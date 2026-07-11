@@ -1,39 +1,47 @@
-## Courier C — execution shape
+## Goal
 
-Courier C spec covers 8 pages (~5,300 LOC across intake, Tools, Homepage, Subscribe, Samples, Get Intelligence, Auth). Applying it as one atomic edit risks silently regressing intake surfaces that Couriers A/B just verified green. I want to split into three verify-in-between turns, all within this Courier C build cycle.
+Roll out the shared `useToolDraft` autosave hook to the 8 intake tools listed in the courier, following the CPPA Risk Assessment reference pattern exactly, and extend `DRAFT_TOOL_MAP` in `MyReports.tsx` to cover the four new toolTypes.
 
-### Approach — shared components first, then per-page injects
+## Files to change
 
-Build two small shared components once, then inject them across pages:
+- `src/pages/CPPACybersecurity.tsx` → toolType `cppa_cybersecurity`
+- `src/pages/DPIAFramework.tsx` → `dpia`
+- `src/pages/GovernanceAssessment.tsx` → `governance`
+- `src/pages/LIAssessmentIntake.tsx` → `lia` (must include assessment `:id` in draft payload; skip restore on mismatch)
+- `src/pages/DPAGenerator.tsx` → `dpa`
+- `src/pages/IRPlaybook.tsx` → `ir`
+- `src/pages/BiometricChecker.tsx` → `biometric`
+- `src/pages/RegistrationAssessment.tsx` → `registration`
+- `src/pages/MyReports.tsx` → extend `DRAFT_TOOL_MAP` per exact FIND/REPLACE
 
-- `<ToolAboveFoldHero />` — renders the intake formula (obligation sentence, sample preview thumb, registry price + est. time, "View sample" secondary, "Start" primary, disclaimer line, "Also available" row).
-- `<HomeGeographyPaths />` — two equal cards (California CPPA / EU GDPR) + trust line.
+Do NOT touch: `useToolDraft.ts`, CPPA Risk / ADMT integrations, RoPA / US Notice / EU Notice / RegistrationOrder / LIAssessment (tracker), edge functions, DB.
 
-All prices from `PRICING` registry. All CTAs already-wired analytics wrappers from `analyticsEvents.ts`. No new copy uses the banned word "gap". Brand tokens only.
+## Per-page integration pattern (mirrors CPPARiskAssessment.tsx)
 
-### Turn split
+1. Add `touched` state (set true on any field change).
+2. Build a memoized `draftData` object of every intake field.
+3. Call `useToolDraft({ toolType, clientId: clientId ?? null, data: draftData, currentStage: step ?? 0, enabled: !!user && touched })`.
+4. Add `applyRestore()` that type-guards each field before setting state; restores step where applicable.
+5. Render a restore banner when `draftFound && !touched` with Resume (applyRestore) and Discard (`void clearDraft()`) — reuse the exact banner already used by CPPA Risk.
+6. Call `clearDraft()` at the same lifecycle point CPPA Risk does (successful run creation / checkout success).
+7. For single-page tools, pass `currentStage: 0` and ignore `restoreStage`.
+8. LIA special case: include the route's assessment `:id` in draft payload; if the restored payload's id ≠ current id, skip restore and suppress the banner.
 
-**Turn 1 (this turn) — Pages 1, 2, 3, 4** (intake + Tools + Homepage)
-- Build `<ToolAboveFoldHero />` + `<HomeGeographyPaths />`.
-- Inject hero on: `GovernanceAssessment`, `DPIAFramework`, `DPAGenerator`, `LIAssessment`, `IRPlaybook`.
-- `Tools.tsx`: add `?region=us|eu` toggle above card grid, normalize card price badge + sample link + Start.
-- `Index.tsx`: inject `<HomeGeographyPaths />` between hero and CPPA deadline strip.
-- Typecheck, report per-page diff.
+## Execution order
 
-**Turn 2 — Pages 5, 6, 7, 8**
-- `Subscribe.tsx`: sticky monthly/annual toggle, ROI block (registry-computed), 4-item FAQ, one sample link per tier, `checkout_started` on plan click.
-- `SamplesHub.tsx` + `SampleReportView.tsx`: "Generate your own report" above-fold CTA, metadata sidebar (tool/juris/length + citation count when present), sticky Start CTA on long bodies.
-- `GetIntelligence.tsx`: instant on-page truncated preview after selection; email required for full delivery; fires `email_captured` source=`get_intelligence`.
-- `Login.tsx` + `Signup.tsx`: one value line.
-- Typecheck.
+1. Read `useToolDraft.ts` and the CPPARiskAssessment autosave block to lock in the exact banner JSX, memo shape, and lifecycle points.
+2. For each of the 8 pages: read the page, identify state fields + step variable + successful-submit call site, then apply the integration in a single edit.
+3. Apply `DRAFT_TOOL_MAP` FIND/REPLACE in `MyReports.tsx`.
+4. Typecheck via the automatic build.
 
-**Turn 3 — Publish + live spot-checks**
-- Security scan check → `preview_ui--publish`.
-- Playwright against live: homepage geography paths (both CTAs route correctly, `View sample` links land), `/tools?region=eu` filters, `/tools?region=us` filters, default shows all. Screenshots.
+## Verification (report back)
 
-### Guardrails
-- No changes to intake question logic, submission flow, or pricing values — only presentation adds above the existing fold.
-- Additive components; existing sections stay unless the spec explicitly replaces them.
-- If any target page's structure diverges from the formula in a way that would require restructuring the intake itself, I stop and report rather than force-fit.
+- Per-file summary + final `useToolDraft` call for each page.
+- Note that functional per-tool testing (banner appears, Resume/Discard, completion clears draft, MyReports labels/routes, SQL spot-check of `tool_sessions` counts) requires interactive preview testing and Stripe test card 4242…; I will flag which items need your hands-on verification vs. what I can confirm from code.
+- Confirm no new user-facing text contains the word "gap".
+- Regression check: CPPA Risk + ADMT integrations untouched.
 
-Confirm and I start Turn 1 immediately.
+## Risks / stop conditions
+
+- If any target page's structure diverges materially from the CPPA Risk pattern (e.g., no clear step state, split into subcomponents that own the field state, uses external form library with a non-serializable shape), STOP for that page and report its actual structure rather than improvise — per courier item 8.
+- If the `MyReports.tsx` FIND block does not match verbatim, STOP and report the actual text.
