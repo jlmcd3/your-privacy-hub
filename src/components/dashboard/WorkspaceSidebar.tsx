@@ -12,6 +12,7 @@ import {
 import { useClientStore, type Client } from "@/stores/clientStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
