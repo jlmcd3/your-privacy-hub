@@ -1071,10 +1071,10 @@ Return this JSON structure exactly:
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);
-    await supabase.from("cppa_assessments").update({
+    await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "error",
       report_data: { error: String(e) },
-    }).eq("id", assessment_id);
+    }, { fn: "run-admt-checker", phase: "terminal_error_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
    }
   })());
