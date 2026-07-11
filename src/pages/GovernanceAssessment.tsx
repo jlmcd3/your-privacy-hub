@@ -34,6 +34,8 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
@@ -246,6 +248,7 @@ const GovernanceAssessment = () => {
         toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
         return;
       }
+      void clearDraft();
       navigate(`/governance-assessment/result/${row.id}?purchased=true`);
       return;
     }
@@ -265,6 +268,55 @@ const GovernanceAssessment = () => {
     technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
     inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism,
   ]);
+
+  const initialIntakeJson = useMemo(() => JSON.stringify(buildIntake()), []);
+  const touched = useMemo(() => JSON.stringify(intakeForCheckout) !== initialIntakeJson, [intakeForCheckout, initialIntakeJson]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+  } = useToolDraft({
+    toolType: "governance",
+    clientId: clientId ?? null,
+    data: { intake: intakeForCheckout, step },
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const payload = restoreData as { intake?: any; step?: number } | null;
+    const d = payload?.intake as Record<string, any> | undefined;
+    if (!d) return;
+    const S = (v: any, fn: (x: string) => void) => { if (typeof v === "string") fn(v); };
+    const A = (v: any, fn: (x: any[]) => void) => { if (Array.isArray(v)) fn(v); };
+    S(d.organization_name, setOrganizationName);
+    S(d.sector, setSector);
+    S(d.org_size, setOrgSize);
+    A(d.jurisdictions, setJurisdictions);
+    if (d.eu_uk_data === "" || d.eu_uk_data === "Yes" || d.eu_uk_data === "No") setEuUkData(d.eu_uk_data);
+    A(d.tools, setTools);
+    A(d.data_categories, setDataCategories);
+    if (d.special_category === "" || d.special_category === "Yes" || d.special_category === "No") setSpecialCategory(d.special_category);
+    A(d.special_categories_list, setSpecialCategoriesList);
+    S(d.privacy_policy, setPrivacyPolicy);
+    S(d.privacy_notice_coverage, setPrivacyNoticeCoverage);
+    S(d.acceptable_use, setAcceptableUse);
+    S(d.dpo_status, setDpoStatus);
+    S(d.dpia_status, setDpiaStatus);
+    S(d.incident_response, setIncidentResponse);
+    S(d.training_status, setTrainingStatus);
+    S(d.tool_instruction, setToolInstruction);
+    S(d.dpa_status, setDpaStatus);
+    S(d.transfer_status, setTransferStatus);
+    S(d.technical_controls, setTechnicalControls);
+    A(d.technical_controls_list, setTechnicalControlsList);
+    S(d.dsr_capability, setDsrCapability);
+    A(d.dsr_rights_tested, setDsrRightsTested);
+    S(d.inventory_audit, setInventoryAudit);
+    S(d.dpia_ai_coverage, setDpiaAiCoverage);
+    S(d.training_ai_coverage, setTrainingAiCoverage);
+    S(d.dpa_art28_verified, setDpaArt28Verified);
+    S(d.transfer_mechanism, setTransferMechanism);
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    else if (typeof payload?.step === "number") setStep(payload.step);
+  };
 
   const summaryStep = step === totalSteps;
 
@@ -460,6 +512,13 @@ const GovernanceAssessment = () => {
           defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
         >
         <div className="flex-1 min-w-0 space-y-6" onFocus={handleGovRailFocus}>
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
           <RequiredLegend />
           {step === 1 && (
             <>
@@ -694,7 +753,7 @@ const GovernanceAssessment = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
-            if (id) navigate(`/governance-assessment/result/${id}?purchased=true`);
+            if (id) { void clearDraft(); navigate(`/governance-assessment/result/${id}?purchased=true`); }
           }}
         />
         <ToolSamplePreview

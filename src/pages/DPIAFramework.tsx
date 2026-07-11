@@ -39,6 +39,8 @@ import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 
@@ -344,6 +346,80 @@ const DPIAFramework = () => {
     source_assessment_id: sourceId || null,
   });
 
+  // Autosave: persist buildIntake() payload; restore via a setters registry.
+  const draftData = useMemo(() => buildIntake(), [
+    organizationName, name, description, purpose, dataCategories, dataSubjects, volume,
+    processors, otherProcessor, safeguards, jurisdictions, legalBasis, article9Condition,
+    necessityProportionality, retentionPeriod, controllerContact, dpoInfo, processorObligations,
+    processingVersion, launchDate, endDate, dpiaTeam, referenceMaterials, reasonsToConduct,
+    dpiaScopeNote, publicationIntent, secondaryUses, natureScopeContext, functionalDescription,
+    supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
+    dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
+    dataSubjectsViews, controllerCountry, controllerLand, controllerSector, centralAdminCountry,
+    euDecisionEstablishment, transferFlows, retentionRecordType,
+  ]);
+  const initialDraftJson = useMemo(() => JSON.stringify(draftData), []);
+  const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJson, [draftData, initialDraftJson]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "dpia",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as Record<string, any> | null;
+    if (!d) return;
+    const S = (v: any, fn: (x: string) => void) => { if (typeof v === "string") fn(v); };
+    const A = (v: any, fn: (x: any[]) => void) => { if (Array.isArray(v)) fn(v); };
+    S(d.organization_name, setOrganizationName);
+    S(d.processing_activity_name, setName);
+    S(d.description, setDescription);
+    S(d.purpose, setPurpose);
+    A(d.data_categories, setDataCategories);
+    S(d.data_subjects, setDataSubjects);
+    S(d.volume_frequency, setVolume);
+    A(d.third_party_processors, setProcessors);
+    A(d.existing_safeguards, setSafeguards);
+    A(d.jurisdictions, setJurisdictions);
+    S(d.legal_basis_proposed, setLegalBasis);
+    S(d.article_9_condition, setArticle9Condition);
+    S(d.necessity_proportionality, setNecessityProportionality);
+    S(d.retention_period, setRetentionPeriod);
+    S(d.controller_contact, setControllerContact);
+    S(d.dpo_info, setDpoInfo);
+    S(d.processor_obligations, setProcessorObligations);
+    S(d.processing_version, setProcessingVersion);
+    S(d.estimated_launch_date, setLaunchDate);
+    S(d.estimated_end_date, setEndDate);
+    S(d.dpia_team, setDpiaTeam);
+    S(d.reference_materials, setReferenceMaterials);
+    A(d.reasons_to_conduct, setReasonsToConduct);
+    S(d.dpia_scope_note, setDpiaScopeNote);
+    S(d.publication_intent, setPublicationIntent);
+    S(d.secondary_uses, setSecondaryUses);
+    S(d.nature_scope_context, setNatureScopeContext);
+    S(d.functional_description, setFunctionalDescription);
+    S(d.supporting_assets, setSupportingAssets);
+    S(d.codes_of_conduct, setCodesOfConduct);
+    S(d.data_minimisation_justification, setDataMinimisationJustification);
+    S(d.data_quality_measures, setDataQualityMeasures);
+    S(d.data_subject_rights_mechanisms, setDataSubjectRightsMechanisms);
+    S(d.dp_by_design_measures, setDpByDesignMeasures);
+    S(d.dpo_advice, setDpoAdvice);
+    S(d.data_subjects_views_sought, setDataSubjectsViewsSought);
+    S(d.data_subjects_views, setDataSubjectsViews);
+    S(d.controller_country, setControllerCountry);
+    S(d.controller_land, setControllerLand);
+    if (["private","public","federal-public","telecom","postal",""].includes(d.controller_sector)) setControllerSector(d.controller_sector);
+    S(d.central_administration_country, setCentralAdminCountry);
+    S(d.eu_decision_establishment_country, setEuDecisionEstablishment);
+    A(d.transfer_flows, setTransferFlows);
+    S(d.retention_record_type, setRetentionRecordType);
+  };
+
   const handlePurchase = async () => {
     const err = validate();
     if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
@@ -382,6 +458,7 @@ const DPIAFramework = () => {
         toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
         return;
       }
+      void clearDraft();
       navigate(`/dpia-framework/result/${row.id}?purchased=true`);
       return;
     }
@@ -472,6 +549,13 @@ const DPIAFramework = () => {
           }
         >
         <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="flex-1 min-w-0 space-y-6">
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
           <RequiredLegend />
 
 
@@ -790,7 +874,7 @@ const DPIAFramework = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
-            if (id) navigate(`/dpia-framework/result/${id}?purchased=true`);
+            if (id) { void clearDraft(); navigate(`/dpia-framework/result/${id}?purchased=true`); }
           }}
         />
         <ToolSamplePreview

@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -142,6 +144,67 @@ const LIAssessmentIntake = () => {
   const [pseudonymisationOptions, setPseudonymisationOptions] = useState(""); // shown for analytics / research
   const [employmentSafeguards, setEmploymentSafeguards] = useState(""); // shown for employee monitoring
 
+  // Autosave payload — includes assessment id so a stale draft from a
+  // different preview row does NOT overwrite fields on the current row.
+  const draftPayload = useMemo(() => ({
+    assessment_id: id,
+    interestHolder, interestType, statedPurpose,
+    alternatives, whyConsentNotUsed, dataMinimised,
+    reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
+    interestStatement, interestHolderOther, interestTypeOther,
+    reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
+    statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
+  }), [
+    id, interestHolder, interestType, statedPurpose, alternatives, whyConsentNotUsed, dataMinimised,
+    reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
+    interestStatement, interestHolderOther, interestTypeOther,
+    reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
+    statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
+  ]);
+  const initialLiaRef = useMemo(() => JSON.stringify({ ...draftPayload, assessment_id: id }), [id]);
+  const touched = useMemo(() => JSON.stringify(draftPayload) !== initialLiaRef, [draftPayload, initialLiaRef]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "lia",
+    clientId: clientId ?? null,
+    data: draftPayload,
+    currentStage: 0,
+    enabled: !!user && touched && !!id,
+  });
+  // Suppress the banner if the saved draft belongs to a different :id.
+  const draftMatchesRoute = ((restoreData as any)?.assessment_id ?? id) === id;
+  const applyRestore = () => {
+    if (!draftMatchesRoute) return;
+    const d = restoreData as Record<string, any> | null;
+    if (!d) return;
+    const S = (v: any, fn: (x: string) => void) => { if (typeof v === "string") fn(v); };
+    const A = (v: any, fn: (x: string[]) => void) => { if (Array.isArray(v)) fn(v); };
+    S(d.interestHolder, setInterestHolder);
+    S(d.interestType, setInterestType);
+    S(d.statedPurpose, setStatedPurpose);
+    S(d.alternatives, setAlternatives);
+    S(d.whyConsentNotUsed, setWhyConsentNotUsed);
+    S(d.dataMinimised, setDataMinimised);
+    S(d.reasonableExpectation, setReasonableExpectation);
+    A(d.vulnerableSubjects, setVulnerableSubjects);
+    S(d.potentialHarm, setPotentialHarm);
+    A(d.safeguards, setSafeguards);
+    S(d.optOutMechanism, setOptOutMechanism);
+    S(d.interestStatement, setInterestStatement);
+    S(d.interestHolderOther, setInterestHolderOther);
+    S(d.interestTypeOther, setInterestTypeOther);
+    S(d.reasonableExpectationDetail, setReasonableExpectationDetail);
+    S(d.potentialHarmDetail, setPotentialHarmDetail);
+    S(d.vulnerableSubjectsOther, setVulnerableSubjectsOther);
+    S(d.safeguardsOther, setSafeguardsOther);
+    S(d.additionalContext, setAdditionalContext);
+    S(d.statutoryRestrictions, setStatutoryRestrictions);
+    S(d.pseudonymisationOptions, setPseudonymisationOptions);
+    S(d.employmentSafeguards, setEmploymentSafeguards);
+  };
+
+
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -276,6 +339,13 @@ const LIAssessmentIntake = () => {
 
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <DraftRestoreBanner
+          draftFound={draftFound && draftMatchesRoute}
+          touched={touched}
+          draftUpdatedAt={draftUpdatedAt}
+          onResume={applyRestore}
+          onDiscard={() => { void clearDraft(); }}
+        />
         <IntakeGuidance>Answer each question as specifically and completely as you can. Where several things apply — multiple alternatives, safeguards, or vulnerable groups — list them separately rather than as one lump. Anything left blank shows up as "not addressed" in your report.</IntakeGuidance>
         {hasSpecialCategory && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm text-red-900">
@@ -529,7 +599,7 @@ const LIAssessmentIntake = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
-            if (id) navigate(`/li-assessment/result/${id}?purchased=true`);
+            if (id) { void clearDraft(); navigate(`/li-assessment/result/${id}?purchased=true`); }
           }}
         />
       </main>

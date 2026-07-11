@@ -1,6 +1,9 @@
 
 import { PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
@@ -62,6 +65,25 @@ export default function BiometricChecker() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bioRailKey, setBioRailKey] = useState<string | null>(null);
+
+  const { user: authUser } = useAuth();
+  const initialFormRef = useMemo(() => JSON.stringify(form), []);
+  const touched = useMemo(() => JSON.stringify(form) !== initialFormRef, [form, initialFormRef]);
+  const draftData = useMemo(() => ({ form }), [form]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "biometric",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!authUser && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { form?: any } | null;
+    if (d?.form && typeof d.form === "object") setForm((prev) => ({ ...prev, ...d.form }));
+  };
+
   const bioRailEntry: RailEntry | null = bioRailKey ? (BIOMETRIC_RAIL[bioRailKey] ?? null) : null;
   const focusBioRail = (k: string) => setBioRailKey(k);
 
@@ -81,6 +103,7 @@ export default function BiometricChecker() {
       return;
     }
     setResult(data);
+    void clearDraft();
     if (data?.id) { navigate(`/biometric-checker/result/${data.id}`); return; }
     setPhase("result");
   };
@@ -139,7 +162,13 @@ export default function BiometricChecker() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <div className="mb-4">
-          
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
         </div>
 
         {refine.isRefine && refine.intake && !refine.loading ? (
@@ -281,7 +310,7 @@ export default function BiometricChecker() {
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);
-          if (id) navigate(`/biometric-checker/result/${id}?purchased=true`);
+          if (id) { void clearDraft(); navigate(`/biometric-checker/result/${id}?purchased=true`); }
         }}
       />
     </WorkspaceLayout>

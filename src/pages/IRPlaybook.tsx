@@ -1,6 +1,9 @@
 // No statutory rail by design — see intakePolicy.ts. Use ChoiceWithOther + IntakeGuidance.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -96,6 +99,25 @@ export default function IRPlaybook() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const { user } = useAuth();
+  const initialFormRef = useMemo(() => JSON.stringify(form), []);
+  const touched = useMemo(() => JSON.stringify(form) !== initialFormRef, [form, initialFormRef]);
+  const draftData = useMemo(() => ({ form }), [form]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "ir",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { form?: any } | null;
+    if (!d?.form || typeof d.form !== "object") return;
+    setForm((prev) => ({ ...prev, ...d.form }));
+  };
+
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");
     else if (params.get("session_id") || params.get("purchased")) setPhase("form");
@@ -125,6 +147,7 @@ export default function IRPlaybook() {
       return;
     }
     // Backend returns 202 + { id }; result page polls ir_playbooks.status.
+    void clearDraft();
     navigate(`/ir-playbook/result/${data.id}`);
   };
 
@@ -188,6 +211,13 @@ export default function IRPlaybook() {
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            <DraftRestoreBanner
+              draftFound={draftFound}
+              touched={touched}
+              draftUpdatedAt={draftUpdatedAt}
+              onResume={applyRestore}
+              onDiscard={() => { void clearDraft(); }}
+            />
             <h2 className="font-display text-brand-navy">Incident details</h2>
             <p className="text-xs font-mono text-muted-foreground">Art. 4(12) GDPR — personal data breach · Art. 33 — 72-hour supervisory authority notification · Art. 34 — communication to data subjects</p>
             <RequiredLegend />

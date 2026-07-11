@@ -24,6 +24,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
 interface IntakeState {
   // Step 1
@@ -94,6 +96,26 @@ export default function RegistrationAssessment() {
 
   const isAnon = !authLoading && !user;
 
+  const initialIntakeJson = useMemo(() => JSON.stringify(EMPTY), []);
+  const touched = useMemo(() => JSON.stringify(intake) !== initialIntakeJson, [intake, initialIntakeJson]);
+  const draftData = useMemo(() => ({ intake, step }), [intake, step]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+  } = useToolDraft({
+    toolType: "registration",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { intake?: any; step?: number } | null;
+    if (!d) return;
+    if (d.intake && typeof d.intake === "object") setIntake({ ...EMPTY, ...d.intake });
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    else if (typeof d.step === "number") setStep(d.step);
+  };
+
   function guardAnon(): boolean {
     if (isAnon) {
       setAuthGateOpen(true);
@@ -161,6 +183,7 @@ export default function RegistrationAssessment() {
       );
       if (error) throw error;
       rememberAssessmentToken(data.shareable_token);
+      void clearDraft();
       navigate(`/registration-manager/result/${encodeURIComponent(data.shareable_token)}`);
     } catch (e: any) {
       toast.error(e.message || "Could not generate assessment");
@@ -188,6 +211,17 @@ export default function RegistrationAssessment() {
                 Free assessment. We map your organization to required DPA, DPO, EU representative, and EU AI Act filings worldwide.
               </p>
             </header>
+
+            <div className="mb-4">
+              <DraftRestoreBanner
+                draftFound={draftFound}
+                touched={touched}
+                draftUpdatedAt={draftUpdatedAt}
+                onResume={applyRestore}
+                onDiscard={() => { void clearDraft(); }}
+              />
+            </div>
+
 
             <div className="relative">
               {isAnon && (

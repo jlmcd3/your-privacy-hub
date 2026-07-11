@@ -1,6 +1,9 @@
 // No statutory rail by design — see intakePolicy.ts. Use ChoiceWithOther + IntakeGuidance.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
@@ -72,6 +75,27 @@ export default function DPAGenerator() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const { user } = useAuth();
+  const initialFormRef = useMemo(() => JSON.stringify(form), []);
+  const touched = useMemo(() => JSON.stringify(form) !== initialFormRef, [form, initialFormRef]);
+  const draftData = useMemo(() => ({ form, step }), [form, step]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+  } = useToolDraft({
+    toolType: "dpa",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { form?: any; step?: number } | null;
+    if (!d) return;
+    if (d.form && typeof d.form === "object") setForm((prev) => ({ ...prev, ...d.form }));
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    else if (typeof d.step === "number") setStep(d.step);
+  };
+
   const validateForm = (): string | null => {
     if (!form.entityName.trim()) return "Please enter your entity name.";
     if (!form.controllerName.trim()) return "Please enter the Controller name.";
@@ -105,6 +129,7 @@ export default function DPAGenerator() {
       setPhase("result");
       return;
     }
+    void clearDraft();
     navigate(`/dpa-generator/result/${data.id}`);
   };
 
@@ -144,6 +169,15 @@ export default function DPAGenerator() {
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
+        <div className="mb-4">
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
+        </div>
         {refine.isRefine && refine.intake && !refine.loading ? (
           <RefinePanel
             toolType="dpa_generator"
@@ -278,7 +312,7 @@ export default function DPAGenerator() {
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);
-          if (id) navigate(`/dpa-generator/result/${id}?purchased=true`);
+          if (id) { void clearDraft(); navigate(`/dpa-generator/result/${id}?purchased=true`); }
         }}
       />
     <Footer />

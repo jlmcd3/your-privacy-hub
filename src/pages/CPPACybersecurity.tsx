@@ -38,6 +38,8 @@ import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
 const MATURITY = [
   "Not implemented",
@@ -127,6 +129,29 @@ export default function CPPACybersecurity() {
     [profile, maturity, notes]
   );
 
+  const draftData = useMemo(() => ({ profile, maturity, notes }), [profile, maturity, notes]);
+  const touched = useMemo(
+    () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0
+      || Object.values(profile).some((v) => (v ?? "").toString().trim() !== ""),
+    [profile, maturity, notes],
+  );
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "cppa_cybersecurity",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { profile?: any; maturity?: any; notes?: any } | null;
+    if (!d) return;
+    if (d.profile && typeof d.profile === "object") setProfile((prev) => ({ ...prev, ...d.profile }));
+    if (d.maturity && typeof d.maturity === "object") setMaturity(d.maturity);
+    if (d.notes && typeof d.notes === "object") setNotes(d.notes);
+  };
+
   const handlePurchase = () => {
     if (!allComplete) {
       toast({ title: "Required", description: "Please rate all 18 controls and complete the profile.", variant: "destructive" });
@@ -207,6 +232,13 @@ export default function CPPACybersecurity() {
         {!refine.isRefine && (<></>)}
         {!refine.isRefine && (<></>)}
         {!refine.isRefine && (<>
+        <DraftRestoreBanner
+          draftFound={draftFound}
+          touched={touched}
+          draftUpdatedAt={draftUpdatedAt}
+          onResume={applyRestore}
+          onDiscard={() => { void clearDraft(); }}
+        />
 
         <IntakeMasthead
           kicker="CPPA Cybersecurity Audit Readiness · 11 CCR § 7123"
@@ -334,6 +366,7 @@ export default function CPPACybersecurity() {
           onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
+            void clearDraft();
             if (isSuite && suiteCyberId) {
               // When entered via /cppa-cybersecurity?suite=true, the risk_id is the
               // first assessment created (stored as id) and cyber_id is suiteCyberId.
