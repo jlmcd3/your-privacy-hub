@@ -221,6 +221,13 @@ export default function IRPlaybook() {
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            <DraftRestoreBanner
+              draftFound={draftFound}
+              touched={touched}
+              draftUpdatedAt={draftUpdatedAt}
+              onResume={applyRestore}
+              onDiscard={() => { void clearDraft(); }}
+            />
             <h2 className="font-display text-brand-navy">Incident details</h2>
             <p className="text-xs font-mono text-muted-foreground">Art. 4(12) GDPR — personal data breach · Art. 33 — 72-hour supervisory authority notification · Art. 34 — communication to data subjects</p>
             <RequiredLegend />
