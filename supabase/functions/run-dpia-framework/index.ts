@@ -509,10 +509,13 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
       ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
       : "";
     const today = new Date().toISOString().slice(0, 10);
+    // R1b2 — compute deterministic TEST-STATES from the raw intake and inject them.
+    const dpiaTestStates = computeDpiaTestStates(intake as Record<string, any>);
+    const dpiaTestStatesBlock = renderDpiaTestStatesBlock(dpiaTestStates);
     const systemWithGdpr = buildSystemContent({
       toolModule: DPIA_TOOL_MODULE,
       currentDate: today,
-      injected: [gdprAuthorityContext, resolvedBlock].filter(Boolean).join("\n\n"),
+      injected: [gdprAuthorityContext, resolvedBlock, dpiaTestStatesBlock].filter(Boolean).join("\n\n"),
     });
 
 
