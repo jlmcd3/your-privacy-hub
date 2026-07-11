@@ -602,6 +602,18 @@ export default function CPPARiskAssessment() {
     dismissDraft();
   };
 
+  // Auto-restore when arriving via "Continue" from My Reports (?resume=1).
+  const autoResumedRef = useRef(false);
+  const shouldAutoResume = searchParams.get("resume") === "1";
+  useEffect(() => {
+    if (!shouldAutoResume) return;
+    if (autoResumedRef.current) return;
+    if (!draftFound || !restoreData || touched) return;
+    autoResumedRef.current = true;
+    applyRestore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldAutoResume, draftFound, restoreData, touched]);
+
   const summaryStep = step === totalSteps;
 
 
