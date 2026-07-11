@@ -138,6 +138,7 @@ export default function WorkspaceSidebar() {
   const location = useLocation();
   const { user } = useAuth();
   const { isPremium, isLoading } = useSubscriptionTier();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
 
   const clients = useClientStore((s) => s.clients);
   const personal = useClientStore((s) => s.personal);
@@ -156,7 +157,7 @@ export default function WorkspaceSidebar() {
 
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
 
-  if (!user || isLoading || !isPremium) return null;
+  if (!user || isLoading || adminLoading || (!isPremium && !isAdmin)) return null;
 
   return (
     <aside
