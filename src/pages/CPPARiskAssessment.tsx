@@ -74,7 +74,12 @@ function formatRelativeTime(d: Date): string {
   return `${Math.round(s / 86400)}d ago`;
 }
 
-const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
+// Revenue bands. R1a split the $25M–$100M band into $25M–$50M and $50M–$100M
+// so § 7120(b)(1)(C) (50% revenue prong) analysis can be band-aligned. Legacy
+// value "$25M–$100M" is intentionally NOT in this list; stored rows keep it
+// and the generator treats it as straddling the $50M line (indeterminate
+// per BAND-VS-THRESHOLD). Restore of a legacy draft renders q1 unselected.
+export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"];
 // Consumer-volume bands aligned to statutory breakpoints:
 //   100,000 — § 1798.140(d)(1)(B) covered-business threshold
 //   250,000 — § 7120(b)(2)(A) cyber-audit volume prong
@@ -83,7 +88,14 @@ const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M
 // and resolves it as indeterminate per the BAND-VS-THRESHOLD rule / T-1
 // deterministic check. Restore of a legacy draft clears q2 so the user
 // re-answers with a clean band (see applyRestore).
-const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
+export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
+// R1a additions.
+export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"];
+export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
+// Q5 options (exported for fixture drift guard).
+export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"];
+// Q15 options.
+export const Q15_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"];
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
 const PI_CATEGORIES = [
   "Contact identifiers (name, email, phone)",
@@ -201,7 +213,7 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 // These do NOT remove a § 7150 trigger from risk-assessment scope on their own;
 // they describe permitted internal uses or carve-outs from specific obligations.
 // Rail key (railKey) maps to CPPA_RISK_RAIL entries with verbatim statutory text.
-const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
+export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
   { key: "fraud_detection",   label: "Fraud prevention / detection",                       cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_fraud_detection" },
   { key: "security_integrity", label: "Security & integrity of systems and data",          cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_security_integrity" },
   { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
@@ -303,13 +315,19 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
 
-  // § 7152 exceptions + impact (optional). Consolidated objects to keep submission wiring simple.
-  const [exceptionClaims, setExceptionClaims] = useState<Record<string, { claimed: boolean; scope: string; safeguards: string }>>({});
+  // § 7152 exceptions + impact (optional). R1a: each claimed exception may carry two additional
+  // optional free-text fields — authority_basis and retention_period — so the generator can
+  // address specific statutory anchors and retention windows tied to the exception's purpose.
+  // Absent keys are legal in old drafts (see applyRestore).
+  type ExceptionClaim = { claimed: boolean; scope: string; safeguards: string; authority_basis?: string; retention_period?: string };
+  const [exceptionClaims, setExceptionClaims] = useState<Record<string, ExceptionClaim>>({});
   const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string; businessBenefits: string; consumerBenefits: string; stakeholderBenefits: string; safeguards: string; harmCauses: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" });
 
   // New § 7152 data elements (see EUP gap analysis). Each persists via draft (Prompt 2/3).
   const [q5bProfiling, setQ5bProfiling] = useState("");      // § 7150(b)(4) systematic-observation / sensitive-location profiling trigger
+  const [q5cShareRev, setQ5cShareRev] = useState("");        // R1a: § 1798.140(d)(1)(C) / § 7120(b)(1) 50%-revenue prong
   const [q15bUnder16, setQ15bUnder16] = useState("");        // § 7001(bbb) under-16 actual-knowledge -> SPI elevation
+  const [q15cSpiVolume, setQ15cSpiVolume] = useState("");    // R1a: § 7120(b)(2)(B) SPI volume band
   const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
   const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
@@ -471,7 +489,9 @@ export default function CPPARiskAssessment() {
     q18_admt_use: q18, q19_admt_description: q19, q20_admt_opt_out: q20,
     // new § 7152 elements
     q5b_profiling_observation: q5bProfiling,
+    q5c_share_revenue_50pct: q5cShareRev,           // R1a
     q15b_under16_knowledge: q15bUnder16,
+    q15c_spi_volume: q15cSpiVolume,                 // R1a
     q18b_admt_training: q18bTraining,
     i1b_min_pi: i1bMinPi,
     i4b_sources: i4bSources,
@@ -506,7 +526,7 @@ export default function CPPARiskAssessment() {
   }), [
     entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
-    q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
@@ -521,7 +541,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, subjectAnchor, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     exceptionClaims, impactData,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -529,7 +549,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, subjectAnchor, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     exceptionClaims, impactData,
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -539,8 +559,8 @@ export default function CPPARiskAssessment() {
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
-    entityName: "", subjectAnchor: "", q5bProfiling: "", q15bUnder16: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
-    exceptionClaims: {} as Record<string, { claimed: boolean; scope: string; safeguards: string }>,
+    entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
@@ -558,7 +578,12 @@ export default function CPPARiskAssessment() {
   const applyRestore = () => {
     const d = restoreData as Record<string, any> | null;
     if (!d) return;
-    if (typeof d.q1 === "string") setQ1(d.q1);
+    if (typeof d.q1 === "string") {
+      // Legacy value "$25M–$100M" is not in the new REVENUE_OPTS; clear so
+      // the radio renders unselected and the user re-answers with a clean
+      // band (mirrors the CONSUMER_OPTS split shipped earlier today).
+      setQ1(REVENUE_OPTS.includes(d.q1) ? d.q1 : "");
+    }
     if (typeof d.q2 === "string") {
       // Guard against legacy straddling band "100,000–1 million" (no longer in
       // CONSUMER_OPTS). Restoring an unknown value would render the radio
@@ -605,7 +630,9 @@ export default function CPPARiskAssessment() {
     if (typeof d.entityName === "string") setEntityName(d.entityName);
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
+    if (typeof d.q5cShareRev === "string") setQ5cShareRev(d.q5cShareRev);
     if (typeof d.q15bUnder16 === "string") setQ15bUnder16(d.q15bUnder16);
+    if (typeof d.q15cSpiVolume === "string") setQ15cSpiVolume(d.q15cSpiVolume);
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
     if (typeof d.i1bMinPi === "string") setI1bMinPi(d.i1bMinPi);
     if (typeof d.i4bSources === "string") setI4bSources(d.i4bSources);
@@ -796,8 +823,15 @@ export default function CPPARiskAssessment() {
                 {renderAssertion("q4_pi_categories")}
               </div>
               <div onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
-                <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
+                <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={Q5_SELL_SHARE_OPTS} value={q5} onChange={setQ5} /></div>
               </div>
+              {q5 && q5 !== "No" && (
+                <div onFocus={() => focusRail('q5c_share_revenue_50pct')}>
+                  <Label>Q5c: Does 50% or more of your annual gross revenue derive from selling or sharing personal information? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(C) / 11 CCR § 7120(b)(1))</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the covered-business test for the § 7120(b)(1) 50%-revenue prong. Skip if you're unsure or the number isn't material.</p>
+                  <div className="mt-2"><Radio name="q5c" options={SHARE_REVENUE_50PCT_OPTS} value={q5cShareRev} onChange={setQ5cShareRev} /></div>
+                </div>
+              )}
               <div onFocus={() => focusRail('q5b_profiling')}>
                 <Label>Q5b: Do you profile consumers based on systematic observation, or based on their presence in a sensitive location? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger from selling/sharing. It covers profiling of applicants, employees, students, or independent contractors through systematic observation (e.g. productivity or location tracking), or profiling based on presence in a sensitive location such as a health-care facility, shelter, place of worship, or domestic-violence services provider.</p>
@@ -857,8 +891,13 @@ export default function CPPARiskAssessment() {
               <h2>Step 4 — Sensitive Personal Information</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5) — sensitive PI definition and obligations</p>
               <RequiredLegend />
-              <div onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more — see the definition.</p><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
+              <div onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more — see the definition.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
+                <div onFocus={() => focusRail('q15c_spi_volume')}>
+                  <Label>Q15c: For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the § 7120(b)(2)(B) SPI-volume cyber-audit prong. Give your best estimate for the distinct California residents whose SPI you process in a year.</p>
+                  <div className="mt-2"><Radio name="q15c" options={SPI_VOLUME_OPTS} value={q15cSpiVolume} onChange={setQ15cSpiVolume} /></div>
+                </div>
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>Q17: What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
               </>)}
@@ -968,7 +1007,7 @@ export default function CPPARiskAssessment() {
                 </p>
                 <div className="mt-3 space-y-3">
                   {CPPA_EXCEPTIONS.map((ex) => {
-                    const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
+                    const cur: ExceptionClaim = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "", authority_basis: "", retention_period: "" };
                     return (
                       <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
                         <label className="flex items-start gap-2 cursor-pointer">
@@ -993,6 +1032,18 @@ export default function CPPARiskAssessment() {
                               value={cur.safeguards}
                               onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
                               placeholder="Safeguards documented to keep this within the permitted purpose under audit."
+                            />
+                            <Textarea
+                              rows={2}
+                              value={cur.authority_basis ?? ""}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, authority_basis: e.target.value } }))}
+                              placeholder="Specific legal authorities underlying this exception (statutes, court rules, regulatory mandates) — optional"
+                            />
+                            <Textarea
+                              rows={2}
+                              value={cur.retention_period ?? ""}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, retention_period: e.target.value } }))}
+                              placeholder="Retention period specific to this exception's purpose — optional"
                             />
                           </div>
                         )}

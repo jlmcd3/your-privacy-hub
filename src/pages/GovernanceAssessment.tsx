@@ -131,6 +131,9 @@ const GovernanceAssessment = () => {
   const [dpaArt28Verified, setDpaArt28Verified] = useState("");
   const [transferMechanism, setTransferMechanism] = useState("");
 
+  // R1a: optional free-text catch-all rendered on the final input step.
+  const [additionalContext, setAdditionalContext] = useState("");
+
   const orgSizeNum = useMemo(() => {
     if (orgSize === "1-10" || orgSize === "11-50") return "small";
     return "large";
@@ -210,6 +213,7 @@ const GovernanceAssessment = () => {
     training_ai_coverage: trainingStatus.startsWith("Yes") ? trainingAiCoverage : "n/a",
     dpa_art28_verified: (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) ? dpaArt28Verified : "n/a",
     transfer_mechanism: (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) ? transferMechanism : "n/a",
+    additional_context: additionalContext,
   });
 
   const handlePurchase = async () => {
@@ -266,7 +270,7 @@ const GovernanceAssessment = () => {
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
     technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
-    inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism,
+    inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism, additionalContext,
   ]);
 
   const initialIntakeJson = useMemo(() => JSON.stringify(buildIntake()), []);
@@ -314,6 +318,7 @@ const GovernanceAssessment = () => {
     S(d.training_ai_coverage, setTrainingAiCoverage);
     S(d.dpa_art28_verified, setDpaArt28Verified);
     S(d.transfer_mechanism, setTransferMechanism);
+    S(d.additional_context, setAdditionalContext);
     if (typeof restoreStage === "number") setStep(restoreStage);
     else if (typeof payload?.step === "number") setStep(payload.step);
   };
@@ -634,6 +639,21 @@ const GovernanceAssessment = () => {
                 <div><Label>Q16a: Which transfer mechanism is in place for those transfers? <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">{transferMechCite}</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfermech" options={transferMechOptions} value={transferMechanism} onChange={setTransferMechanism} /></div></div>
               )}
             </>
+          )}
+
+          {/* R1a: optional catch-all rendered on the final input step (before the summary). */}
+          {!summaryStep && step === totalSteps - 1 && (
+            <div className="pt-2 border-t">
+              <Label htmlFor="additional_context">Additional context — anything material to your privacy program not captured above (optional)</Label>
+              <p className="text-xs text-muted-foreground mt-1">Free text. Anything you want the generator to weigh that the questions above didn't cover.</p>
+              <textarea
+                id="additional_context"
+                className="mt-2 w-full min-h-24 px-3 py-2 rounded-md border border-input bg-background text-sm"
+                value={additionalContext}
+                onChange={(e) => setAdditionalContext(e.target.value)}
+                placeholder="E.g. pending re-org affecting DPO reporting line; open sub-processor gap under review; recent enforcement letter from a state AG."
+              />
+            </div>
           )}
 
           {summaryStep && (() => {
