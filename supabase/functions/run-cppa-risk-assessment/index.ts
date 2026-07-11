@@ -111,7 +111,7 @@ const EMPTY_EXCEPTIONS: Record<string, ExceptionEntry> = {
 // ---------------------------------------------------------------------------
 export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
-import { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
+import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import type { TestState } from "../_shared/cppa-test-states.ts";
 
 
