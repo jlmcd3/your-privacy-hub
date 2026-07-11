@@ -816,30 +816,55 @@ async function runPipeline(assessment_id: string) {
 
       // T-1 — deterministic band-vs-threshold backstop for the § 7120(b)(2)(A)
       // 250,000-consumer volume prong. Derived from the SAME normalised intake
-      // the prompt consumes (fiveStage.annual_consumer_volume). Straddling
-      // bands ("100,000–1 million") and "Unsure" cannot resolve the threshold;
-      // any definitive met/not-met claim in the flattened report is a hard
-      // violation and routes through the SAME single-retry path used above.
+      // the prompt consumes (fiveStage.annual_consumer_volume).
+      //
+      // Clean bands (aligned to the 250,000 breakpoint) resolve deterministically:
+      //   "Fewer than 100,000" / "100,000–249,999" — entirely BELOW 250,000 →
+      //       definitive "met" claims are violations.
+      //   "250,000–1 million" / "1–10 million" / "Over 10 million" — entirely
+      //       AT OR ABOVE 250,000 → definitive "not met" claims are violations.
+      //
+      // Legacy straddling band "100,000–1 million" and "Unsure" cannot resolve
+      // the threshold — ANY definitive met/not-met claim (either direction) is
+      // a violation and the report must state indeterminate.
       const volumeBand = String(fiveStage.annual_consumer_volume ?? "").trim();
-      const bandStraddles250k = volumeBand === "100,000–1 million" || volumeBand.toLowerCase() === "unsure";
+      const belowBands = new Set(["Fewer than 100,000", "100,000–249,999"]);
+      const aboveBands = new Set(["250,000–1 million", "1–10 million", "Over 10 million"]);
+      const straddleOrUnsure = volumeBand === "100,000–1 million" || volumeBand.toLowerCase() === "unsure";
+
+      const metPatterns: RegExp[] = [
+        /exceeds the 250,000/i,
+        /250,000-consumer volume threshold is met/i,
+      ];
+      const notMetPatterns: RegExp[] = [
+        /below the 250,000/i,
+        /250,000-consumer volume threshold is not met/i,
+      ];
+      const hasMetClaim = metPatterns.some((re) => re.test(flat));
+      const hasNotMetClaim = notMetPatterns.some((re) => re.test(flat));
+
       let t1Violation = false;
-      if (bandStraddles250k) {
-        const t1Patterns: RegExp[] = [
-          /below the 250,000/i,
-          /exceeds the 250,000/i,
-          /250,000-consumer volume threshold is not met/i,
-          /250,000-consumer volume threshold is met/i,
-        ];
-        t1Violation = t1Patterns.some((re) => re.test(flat));
-        if (t1Violation) {
-          console.warn(JSON.stringify({
-            evt: "post_gen_violation",
-            rule: "T-1",
-            fn: "run-cppa-risk-assessment",
-            band: volumeBand,
-          }));
-        }
+      let t1Reason: string | undefined;
+      if (straddleOrUnsure && (hasMetClaim || hasNotMetClaim)) {
+        t1Violation = true;
+        t1Reason = "straddle_or_unsure_definitive_claim";
+      } else if (belowBands.has(volumeBand) && hasMetClaim) {
+        t1Violation = true;
+        t1Reason = "below_band_claims_met";
+      } else if (aboveBands.has(volumeBand) && hasNotMetClaim) {
+        t1Violation = true;
+        t1Reason = "above_band_claims_not_met";
       }
+      if (t1Violation) {
+        console.warn(JSON.stringify({
+          evt: "post_gen_violation",
+          rule: "T-1",
+          fn: "run-cppa-risk-assessment",
+          band: volumeBand,
+          reason: t1Reason,
+        }));
+      }
+
 
       if (banned.length || hasHardViolations(lint) || t1Violation) {
         console.warn(JSON.stringify({
