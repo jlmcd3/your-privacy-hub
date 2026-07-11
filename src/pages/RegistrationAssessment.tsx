@@ -96,6 +96,26 @@ export default function RegistrationAssessment() {
 
   const isAnon = !authLoading && !user;
 
+  const initialIntakeJson = useMemo(() => JSON.stringify(EMPTY), []);
+  const touched = useMemo(() => JSON.stringify(intake) !== initialIntakeJson, [intake, initialIntakeJson]);
+  const draftData = useMemo(() => ({ intake, step }), [intake, step]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+  } = useToolDraft({
+    toolType: "registration",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { intake?: any; step?: number } | null;
+    if (!d) return;
+    if (d.intake && typeof d.intake === "object") setIntake({ ...EMPTY, ...d.intake });
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    else if (typeof d.step === "number") setStep(d.step);
+  };
+
   function guardAnon(): boolean {
     if (isAnon) {
       setAuthGateOpen(true);
