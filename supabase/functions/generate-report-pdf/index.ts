@@ -1042,7 +1042,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
         ${a.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(a.statutory_basis)}</p>` : ""}
         ${a.section_7153_mapping ? `<p><span class="label">§ 7153 mapping:</span> ${text(a.section_7153_mapping)}</p>` : ""}
         ${a.current_safeguards ? `<p><span class="label">Current safeguards:</span> ${text(a.current_safeguards)}</p>` : ""}
-        ${a.safeguard_gaps ? `<p><span class="label">Safeguard gaps:</span> ${text(a.safeguard_gaps)}</p>` : ""}
+        ${a.safeguard_gaps ? `<p><span class="label">Safeguard deficiencies:</span> ${text(a.safeguard_gaps)}</p>` : ""}
         ${a.benefits_to_business ? `<p><span class="label">Business benefits:</span> ${text(a.benefits_to_business)}</p>` : ""}
         ${a.benefits_to_consumers ? `<p><span class="label">Consumer benefits:</span> ${text(a.benefits_to_consumers)}</p>` : ""}
         ${Array.isArray(a.adverse_effects) && a.adverse_effects.length ? `<p class="label" style="margin-top:8px;">Adverse effects</p>
