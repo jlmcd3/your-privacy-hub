@@ -38,6 +38,8 @@ import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
 const MATURITY = [
   "Not implemented",
