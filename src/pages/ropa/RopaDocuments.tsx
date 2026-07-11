@@ -254,8 +254,10 @@ export default function RopaDocuments() {
       if (error) throw error;
       toast({ title: "Regenerating documents…", description: "This usually takes under a minute." });
       const terminal = await pollSessionUntilTerminal(sessionId);
-      if (terminal === "failed") throw new Error("Generation failed — please try again.");
-      if (terminal === "timeout") throw new Error("Generation timed out. Please try again.");
+      if (terminal.outcome === "failed") {
+        throw new Error(terminal.error?.trim() || "Generation failed — please try again.");
+      }
+      if (terminal.outcome === "timeout") throw new Error("Generation timed out. Please try again.");
       toast({ title: "Documents regenerated", description: "Refreshing list…" });
       await loadDocuments();
     } catch (err) {
