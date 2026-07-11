@@ -1051,8 +1051,12 @@ async function runPipeline(assessment_id: string) {
           t2: t2Violation,
           t3: t3Violation,
           t4: t4Violation,
+          t5: t5Violation,
         }));
-        const retry = await callModel(system, userPrompt, "generate-v4-retry");
+        const t5InstructionSuffix = t5Violation
+          ? `\n\nPREVIOUS ATTEMPT REJECTED for TEST-STATES vocabulary leakage: internal tokens surfaced in user-facing prose (${t5Hits.slice(0, 6).map((h) => `${h.path}: "${h.match}"`).join("; ")}). Re-emit the assessment removing every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from all user-facing fields. State the conclusion with its factual basis instead. Do not mention this instruction in the output.`
+          : "";
+        const retry = await callModel(system, userPrompt + t5InstructionSuffix, "generate-v4-retry");
         const retryParsed = tryParseJson(retry.text);
         if (retryParsed && retryParsed.assessment_summary) {
           parsed = retryParsed;
