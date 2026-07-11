@@ -102,26 +102,18 @@ const EMPTY_EXCEPTIONS: Record<string, ExceptionEntry> = {
 //   - legacy "$25M–$100M" → indeterminate (straddles the $50M line)
 //   - "$100M–$500M"    → 2028-04-01 cohort
 //   - "Over $500M"     → 2028-04-01 cohort
+//
+// R1d/A1 (PURE MOVE): RevenueBand + classifyRevenueBand + computeTestStates +
+// formatTestStatesBlock + TestState now live in _shared/cppa-test-states.ts
+// so run-quality-batch can import them without duplicating semantics. The
+// generator re-exports the same symbols so every existing caller is
+// byte-identically preserved.
 // ---------------------------------------------------------------------------
-export type RevenueBand = {
-  key: "under_25m" | "25_50m" | "50_100m" | "legacy_25_100m" | "100_500m" | "over_500m" | "unspecified";
-  label: string;
-  audit_cohort: "2028-04-01" | "2029-04-01" | "2030-04-01" | "indeterminate";
-  over_25m: boolean | "indeterminate";
-  over_100m: boolean | "indeterminate";
-};
-export function classifyRevenueBand(q1: unknown): RevenueBand {
-  const v = String(q1 ?? "").trim();
-  switch (v) {
-    case "Under $25M":  return { key: "under_25m",      label: v, audit_cohort: "2030-04-01",     over_25m: false,           over_100m: false };
-    case "$25M–$50M":   return { key: "25_50m",         label: v, audit_cohort: "2030-04-01",     over_25m: true,            over_100m: false };
-    case "$50M–$100M":  return { key: "50_100m",        label: v, audit_cohort: "2029-04-01",     over_25m: true,            over_100m: false };
-    case "$25M–$100M":  return { key: "legacy_25_100m", label: v, audit_cohort: "indeterminate",  over_25m: true,            over_100m: false };
-    case "$100M–$500M": return { key: "100_500m",       label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true };
-    case "Over $500M":  return { key: "over_500m",      label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true };
-    default:            return { key: "unspecified",    label: v || "not specified", audit_cohort: "indeterminate", over_25m: "indeterminate", over_100m: "indeterminate" };
-  }
-}
+export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
+export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
+import { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
+import type { TestState } from "../_shared/cppa-test-states.ts";
+
 
 function shimLegacyIntake(intake: any): FiveStageIntake {
   console.warn(
