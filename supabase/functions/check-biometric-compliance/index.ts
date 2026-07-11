@@ -103,6 +103,8 @@ PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced i
 
 BIPA ENROLLMENT ANCHORING (R1b2 rule 2c): the illustrative BIPA damages calculation must read M7 (enrollment_band_provided) verbatim from the injected TEST-STATES block — the enrollment band supplied by the intake is the anchor. Where M2 (illinois_bipa_scope) is RESOLVED_NOT_MET, do NOT include a BIPA damages calculation in the report at all; where M2 is RESOLVED_MET and M7 is RESOLVED_MET, use the supplied band per the HEADCOUNT CONSISTENCY rule and do NOT re-ask the enrollment count.
 
+TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string "TEST-STATES", the test ids (M1–M9), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in the assessment prose, jurisdiction sections, priority actions, ===INFORMATION_NEEDED=== entries, or defensible-practice discussion. State the conclusion with its factual basis instead — "the intake selects Illinois, engaging BIPA §§ 15(a)–(d)" — never "per TEST-STATES M2" or "(M2 resolved met)". Same philosophy as NO SYSTEM-ROUTING VOICE.
+
 Output ONLY the compliance assessment. No preamble.`;
 
 // ─────────────────────────────────────────────────────────────────────────────
