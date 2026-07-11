@@ -404,10 +404,14 @@ async function runAssessment(assessment_id: string): Promise<void> {
 
 
     const today = new Date().toISOString().slice(0, 10);
+    // R1b2 — compute deterministic TEST-STATES and inject them into the system content.
+    const cyberTestStates = computeCyberTestStates((row.intake_data as Record<string, any>) ?? {});
+    const cyberTestStatesBlock = renderCyberTestStatesBlock(cyberTestStates);
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
       currentDate: today,
       cache: true,
+      injected: cyberTestStatesBlock,
     });
 
     const enforcementBlock = enforcementContext
