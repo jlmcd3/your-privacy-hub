@@ -512,6 +512,13 @@ const GovernanceAssessment = () => {
           defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
         >
         <div className="flex-1 min-w-0 space-y-6" onFocus={handleGovRailFocus}>
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
           <RequiredLegend />
           {step === 1 && (
             <>
