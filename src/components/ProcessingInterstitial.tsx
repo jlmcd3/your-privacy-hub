@@ -123,7 +123,7 @@ export function ProcessingInterstitial({
   const n = cfg.stages.length;
   const perStage = cfg.etaSeconds / n;
   const activeIdx = Math.min(n - 1, Math.floor(elapsed / perStage));
-  const overrun = elapsed > cfg.etaSeconds;
+  const overrun = slow || elapsed > cfg.etaSeconds;
   const pct = Math.min(95, Math.round((elapsed / cfg.etaSeconds) * 100));
 
   return (
@@ -135,7 +135,11 @@ export function ProcessingInterstitial({
         </svg>
         <h3 className="font-serif text-lg text-foreground mb-1">Building your {label}</h3>
         <p className="text-sm text-muted-foreground">
-          {overrun ? "Almost there — finalising your report…" : `This typically takes ${cfg.etaText}.`}{" "}
+          {slow
+            ? "This is taking longer than expected — we are still working on it."
+            : overrun
+              ? "Almost there — finalising your report…"
+              : `This typically takes ${cfg.etaText}.`}{" "}
           <span className="tabular-nums">Elapsed {fmt(elapsed)}</span>
         </p>
       </div>
