@@ -489,7 +489,9 @@ export default function CPPARiskAssessment() {
     q18_admt_use: q18, q19_admt_description: q19, q20_admt_opt_out: q20,
     // new § 7152 elements
     q5b_profiling_observation: q5bProfiling,
+    q5c_share_revenue_50pct: q5cShareRev,           // R1a
     q15b_under16_knowledge: q15bUnder16,
+    q15c_spi_volume: q15cSpiVolume,                 // R1a
     q18b_admt_training: q18bTraining,
     i1b_min_pi: i1bMinPi,
     i4b_sources: i4bSources,
