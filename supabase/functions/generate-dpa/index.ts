@@ -231,10 +231,10 @@ Deno.serve(async (req) => {
     }
 
     if (!ANTHROPIC_API_KEY) {
-      await supabase.from("dpa_documents").update({
+      await lifecycleUpdate(supabase, "dpa_documents", rowId, {
         status: "failed",
         updated_at: new Date().toISOString(),
-      }).eq("id", rowId);
+      }, { fn: "generate-dpa", phase: "terminal_error_no_key" });
       return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
