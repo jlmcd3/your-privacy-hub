@@ -746,7 +746,7 @@ const GovernanceAssessment = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
-            if (id) navigate(`/governance-assessment/result/${id}?purchased=true`);
+            if (id) { void clearDraft(); navigate(`/governance-assessment/result/${id}?purchased=true`); }
           }}
         />
         <ToolSamplePreview
