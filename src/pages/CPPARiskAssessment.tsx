@@ -1007,7 +1007,7 @@ export default function CPPARiskAssessment() {
                 </p>
                 <div className="mt-3 space-y-3">
                   {CPPA_EXCEPTIONS.map((ex) => {
-                    const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
+                    const cur: ExceptionClaim = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "", authority_basis: "", retention_period: "" };
                     return (
                       <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
                         <label className="flex items-start gap-2 cursor-pointer">
@@ -1032,6 +1032,18 @@ export default function CPPARiskAssessment() {
                               value={cur.safeguards}
                               onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
                               placeholder="Safeguards documented to keep this within the permitted purpose under audit."
+                            />
+                            <Textarea
+                              rows={2}
+                              value={cur.authority_basis ?? ""}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, authority_basis: e.target.value } }))}
+                              placeholder="Specific legal authorities underlying this exception (statutes, court rules, regulatory mandates) — optional"
+                            />
+                            <Textarea
+                              rows={2}
+                              value={cur.retention_period ?? ""}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, retention_period: e.target.value } }))}
+                              placeholder="Retention period specific to this exception's purpose — optional"
                             />
                           </div>
                         )}
