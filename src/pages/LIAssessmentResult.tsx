@@ -214,8 +214,16 @@ const LIAssessmentResult = () => {
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
-          {!loading && (status === "pending" || status === "processing") && (
-            <ProcessingInterstitial tool="lia" />
+          {(phase === "stalled" || phase === "stalled_pre_dispatch") && (
+            <GenerationStalledCard variant={phase} retryHref="/li-assessment" onRefresh={refresh} />
+          )}
+
+          {!loading && (phase === "running" || phase === "slow") && (
+            <ProcessingInterstitial
+              tool="lia"
+              startedAt={assessment?.updated_at ?? assessment?.created_at}
+              slow={phase === "slow"}
+            />
           )}
 
           {(status === "failed" || status === "error") && (
