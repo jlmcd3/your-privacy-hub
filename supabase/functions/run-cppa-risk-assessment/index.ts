@@ -794,14 +794,14 @@ async function runPipeline(assessment_id: string) {
       const errorCode = lastStopReason === "max_tokens"
         ? "generation_truncated"
         : "generation_parse_failed";
-      await supabase.from("cppa_assessments").update({
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: {
           error: errorCode,
           stop_reason: lastStopReason,
           debug: debugRaw.slice(0, 4000),
         },
-      }).eq("id", assessment_id);
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_parse" });
       return;
     }
 
