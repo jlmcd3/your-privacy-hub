@@ -287,3 +287,64 @@ export function renderCyberTestStatesBlock(states: Record<string, TestStateEntry
   }
   return lines.join("\n");
 }
+
+// ---------------------------------------------------------------------------
+// T-5 — TEST-STATES VOCABULARY LEAKAGE detector (2026-07-11 leg-(b) remediation).
+// Detects internal-machinery vocabulary bleeding into user-facing prose:
+//   - the literal token "TEST-STATES"
+//   - test ids adjacent to "resolved"/"state" (e.g. "M1 resolved", "M-CA state")
+//   - state tokens (resolved_met / resolved_not_met / RESOLVED_*)
+// Same philosophy as NO SYSTEM-ROUTING VOICE and no-raw-slugs.
+// The regex is authoritative per the leg-(b) ratification.
+// ---------------------------------------------------------------------------
+
+const TEST_STATES_LEAK_RE =
+  /\bTEST-STATES\b|\bM-?[A-Z0-9]{1,4}\s+(resolved|state)\b|\bresolved_(met|not_met)\b|\bRESOLVED_[A-Z_]+\b/gi;
+
+export type TestStatesLeakHit = { path: string; match: string; context: string };
+
+function walkStrings(value: unknown, path: string, out: Array<{ path: string; text: string }>): void {
+  if (value == null) return;
+  if (typeof value === "string") {
+    if (value.length > 0) out.push({ path, text: value });
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) walkStrings(value[i], `${path}[${i}]`, out);
+    return;
+  }
+  if (typeof value === "object") {
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      walkStrings(v, path ? `${path}.${k}` : k, out);
+    }
+  }
+}
+
+/**
+ * Detect TEST-STATES vocabulary leakage in a user-facing payload.
+ * Accepts either a string (flattened text) or any object; walks every string leaf.
+ * Returns match hits (deduped by path+match). Empty array = clean.
+ */
+export function detectTestStatesLeak(input: unknown): TestStatesLeakHit[] {
+  const strings: Array<{ path: string; text: string }> = [];
+  if (typeof input === "string") strings.push({ path: "$", text: input });
+  else walkStrings(input, "", strings);
+  const seen = new Set<string>();
+  const out: TestStatesLeakHit[] = [];
+  for (const { path, text } of strings) {
+    // Reset lastIndex because /g regexes are stateful.
+    TEST_STATES_LEAK_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = TEST_STATES_LEAK_RE.exec(text)) !== null) {
+      const key = `${path}::${m[0]}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const start = Math.max(0, m.index - 30);
+      const end = Math.min(text.length, m.index + m[0].length + 30);
+      out.push({ path, match: m[0], context: text.slice(start, end) });
+      if (out.length > 200) return out; // safety cap
+    }
+  }
+  return out;
+}
+
