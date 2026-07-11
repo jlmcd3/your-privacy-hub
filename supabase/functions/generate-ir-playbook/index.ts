@@ -555,10 +555,10 @@ Deno.serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
-      await supabase.from("ir_playbooks").update({
+      await lifecycleUpdate(supabase, "ir_playbooks", rowId, {
         status: "failed",
         updated_at: new Date().toISOString(),
-      }).eq("id", rowId);
+      }, { fn: "generate-ir-playbook", phase: "terminal_error_no_key" });
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
