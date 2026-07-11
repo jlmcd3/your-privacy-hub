@@ -12,6 +12,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
