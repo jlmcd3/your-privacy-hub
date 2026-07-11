@@ -811,13 +811,42 @@ async function runPipeline(assessment_id: string) {
     try {
       const flat = JSON.stringify(parsed);
       const banned = BANNED_PHRASES.filter((p) => flat.includes(p));
-      const lint = lintReportText(flat);
-      if (banned.length || hasHardViolations(lint)) {
+      const lint = lintReportText(flat, { banGapWord: true });
+
+      // T-1 — deterministic band-vs-threshold backstop for the § 7120(b)(2)(A)
+      // 250,000-consumer volume prong. Derived from the SAME normalised intake
+      // the prompt consumes (fiveStage.annual_consumer_volume). Straddling
+      // bands ("100,000–1 million") and "Unsure" cannot resolve the threshold;
+      // any definitive met/not-met claim in the flattened report is a hard
+      // violation and routes through the SAME single-retry path used above.
+      const volumeBand = String(fiveStage.annual_consumer_volume ?? "").trim();
+      const bandStraddles250k = volumeBand === "100,000–1 million" || volumeBand.toLowerCase() === "unsure";
+      let t1Violation = false;
+      if (bandStraddles250k) {
+        const t1Patterns: RegExp[] = [
+          /below the 250,000/i,
+          /exceeds the 250,000/i,
+          /250,000-consumer volume threshold is not met/i,
+          /250,000-consumer volume threshold is met/i,
+        ];
+        t1Violation = t1Patterns.some((re) => re.test(flat));
+        if (t1Violation) {
+          console.warn(JSON.stringify({
+            evt: "post_gen_violation",
+            rule: "T-1",
+            fn: "run-cppa-risk-assessment",
+            band: volumeBand,
+          }));
+        }
+      }
+
+      if (banned.length || hasHardViolations(lint) || t1Violation) {
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
           banned,
           violations: lint.violations?.slice(0, 20) ?? [],
+          t1: t1Violation,
         }));
         const retry = await callModel(system, userPrompt, "generate-v4-retry");
         const retryParsed = tryParseJson(retry.text);
