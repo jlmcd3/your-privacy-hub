@@ -157,6 +157,7 @@ export default function IRPlaybook() {
       return;
     }
     // Backend returns 202 + { id }; result page polls ir_playbooks.status.
+    void clearDraft();
     navigate(`/ir-playbook/result/${data.id}`);
   };
 
