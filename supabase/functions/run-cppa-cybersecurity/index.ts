@@ -13,6 +13,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
