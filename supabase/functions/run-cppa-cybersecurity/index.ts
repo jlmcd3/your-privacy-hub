@@ -958,7 +958,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
 
       let detected = detectViolations();
-      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(report);
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (totalHits > 0) {
         console.warn(JSON.stringify({
           evt: "post_lint_violation",
@@ -966,6 +967,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           t2: detected.t2.slice(0, 6),
           t3: detected.t3.slice(0, 6),
           t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         // ONE retry: synthesis only, with the violation details as retry instruction.
         try {
@@ -973,6 +975,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT contradict RESOLVED states or re-ask them: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
           if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplied per-control maturity, do NOT collapse the record with 'cannot be determined'/'no basis to assess'/'not established' in executive_summary or enforcement_context`);
           if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every next_steps entry must be verdict-blocking or record-completeness, anchored to a cited provision; remove pure depth items`);
+          if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from executive_summary, per-control finding and remediation, next_steps, and enforcement_context; state the conclusion with its factual basis. Leaked at: ${t5Hits.slice(0, 6).map((h) => `${h.path}:"${h.match}"`).join(", ")}`);
           const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
           const digest2 = buildDigest(allControls);
           const r = await callSynthesis(digest2, (report as any).overall_score ?? 0, retryInstr);
@@ -985,16 +988,18 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
             normaliseReport(report);
           }
           detected = detectViolations();
-          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+          t5Hits = detectTestStatesLeak(report);
+          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
           if (stillHits > 0) {
-            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-cppa-cybersecurity", remaining: stillHits }));
+            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-cppa-cybersecurity", remaining: stillHits, t5_remaining: t5Hits.length }));
           }
         } catch (e) {
-          console.warn("[CPPA Cyber] T-2/T-3/T-4 retry failed (non-fatal):", e);
+          console.warn("[CPPA Cyber] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
         }
         for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) t234Violations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
     for (const v of t234Violations) lintViolations.push(v);
