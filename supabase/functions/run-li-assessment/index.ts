@@ -15,6 +15,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 
 
 
@@ -146,7 +147,103 @@ const LIA_ANALYSIS_EXTRA_RULES = [
   "EDPB CLAIMS QUOTE THE SUPPLIED EXCERPT: any statement that EDPB Guidelines 1/2024 'require' something must quote the relevant SUPPLIED AUTHORITY EXCERPTS text (e.g. the excerpt stating an interest must be 'clearly and precisely articulated') or be phrased as VERIFY-FIRST. A bare 'Section II.A requires…' assertion without the excerpt text is a defect under the citation rules.",
    "LIKELY IMPACT, NOT QUANTIFIED IMPACT: the guidelines require a careful assessment of the likely impact of processing (para. 39) — a qualitative standard covering nature, context, and consequences. Never state that the guidelines require a QUANTIFIED analysis of probability or severity, and never treat the absence of quantification as, by itself, a deficiency. Where quantification would strengthen the record, frame it as strengthening ('a quantified estimate would strengthen the documented balancing record'), never as a guidelines requirement.",
    "FLAG THE ABSENCE, DO NOT PERFORM THE OPERATIONAL ANALYSIS (QL2-FIX-1 Item 7.1): where the intake omits operational reasoning that the necessity or balancing test requires from the controller — e.g. why aggregate or anonymised signals would be insufficient for the stated purpose, why a less-intrusive alternative was rejected, why a shorter retention period would not meet the operational need — the assessment FLAGS the absence and directs the controller to document it, and it stops. It does NOT invent or infer the missing operational analysis on the controller's behalf ('presumably aggregate signals would not suffice because …' is a fatal defect). Canonical form: 'The record supplied to this assessment does not present the controller's operational reasoning for [the specific point]; document that reasoning in the balancing record before relying on legitimate interests for this processing.' This rule is a specific application of OUTPUT-ABSENCE, NOT CONTROLLER-FAILURE and NO EXPLANATORY / GENERATOR-REASONING VOICE — the assessment characterises what the record does not present and identifies what the controller must document, without supplying the controller's answer.",
+   "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 relationship_declared, M2 jurisdictions_declared, M3 data_categories_declared, M4 special_category_flag, M5 vulnerable_subjects_declared, M6 alternatives_considered, M7 safeguards_declared, M8 opt_out_mechanism_present, M9 reasonable_expectation_answered, M10 potential_harm_answered, M11 employment_context). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'alternatives_considered' when M6 is RESOLVED_MET), and NEVER contradict it in test prose (e.g. do NOT ask the controller to 'confirm whether special-category data is in scope' when M4 is RESOLVED_MET or RESOLVED_NOT_MET). INDETERMINATE tests use insufficient-basis language anchored to the specific missing intake key. Argument-strength, verdict, and framework/regime remain JUDGMENT calls per the existing rules — no mechanical test binds them in this tool.",
+   "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items belong in overall_assessment.blocking_issues with the cited provision they block; record-completeness items belong in information_needed with the intake field key and the provision that makes the missing dimension relevant; enhancement items — model-observed depth improvements that no cited provision requires — belong in documentation_recommendations prose ONLY when tied to a cited standard (e.g. Article 5(2) accountability, EDPB Guidelines 1/2024 balancing-record documentation) and NEVER as an open_question or information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer (e.g. safeguards[] populated but retention period unquantified), name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole test where the intake supplies the enum/presence answers the test binds to; where a specific missing piece IS verdict-blocking, name that element rather than collapsing the whole test.",
 ].join("\n\n");
+
+// ─────────────────────────────────────────────────────────────────────────────
+// R1b2 — deterministic TEST-STATES for the LIA generator.
+// Computed from the LIA intake shape produced by src/pages/LIAssessmentIntake.tsx.
+// Applicability, argument_strength, verdict, and regime remain JUDGMENT per the
+// existing SINGLE-FRAMEWORK / MANDATORY FIELDS / balancing rules.
+// ─────────────────────────────────────────────────────────────────────────────
+type LiaTestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
+interface LiaTestStateEntry {
+  state: LiaTestState;
+  basis: string;
+  source_fields: string[];
+}
+
+export function computeLiaTestStates(row: Record<string, any> | null | undefined): Record<string, LiaTestStateEntry> {
+  const r = row ?? {};
+  const balancing = (r.balancing_details ?? {}) as Record<string, any>;
+  const necessity = (r.necessity_details ?? {}) as Record<string, any>;
+  const out: Record<string, LiaTestStateEntry> = {};
+
+  const relationship = String(r.relationship_type ?? "").trim();
+  out.M1 = relationship
+    ? { state: "resolved_met", basis: `intake declares relationship_type "${relationship.slice(0, 60)}"`, source_fields: ["relationship_type"] }
+    : { state: "indeterminate", basis: "relationship_type is empty", source_fields: ["relationship_type"] };
+
+  const jurisdictions: string[] = Array.isArray(r.jurisdictions) ? r.jurisdictions : [];
+  out.M2 = jurisdictions.length
+    ? { state: "resolved_met", basis: `intake declares jurisdictions ${JSON.stringify(jurisdictions)}`, source_fields: ["jurisdictions"] }
+    : { state: "indeterminate", basis: "jurisdictions is empty", source_fields: ["jurisdictions"] };
+
+  const dataCats: string[] = Array.isArray(r.data_categories) ? r.data_categories : [];
+  out.M3 = dataCats.length
+    ? { state: "resolved_met", basis: `intake declares data_categories ${JSON.stringify(dataCats)}`, source_fields: ["data_categories"] }
+    : { state: "indeterminate", basis: "data_categories is empty", source_fields: ["data_categories"] };
+
+  const scdRaw = balancing.special_category_data;
+  out.M4 = typeof scdRaw === "boolean"
+    ? (scdRaw
+        ? { state: "resolved_met", basis: "balancing_details.special_category_data = true (Article 9 in scope)", source_fields: ["balancing_details.special_category_data"] }
+        : { state: "resolved_not_met", basis: "balancing_details.special_category_data = false (Article 9 not engaged)", source_fields: ["balancing_details.special_category_data"] })
+    : { state: "indeterminate", basis: "balancing_details.special_category_data is not set", source_fields: ["balancing_details.special_category_data"] };
+
+  const vuln: string[] = Array.isArray(balancing.vulnerable_subjects) ? balancing.vulnerable_subjects : [];
+  const vulnActive = vuln.filter((v) => v && v !== "None");
+  out.M5 = vuln.length === 0
+    ? { state: "indeterminate", basis: "balancing_details.vulnerable_subjects is not answered", source_fields: ["balancing_details.vulnerable_subjects"] }
+    : (vulnActive.length
+        ? { state: "resolved_met", basis: `intake declares vulnerable groups ${JSON.stringify(vulnActive)}`, source_fields: ["balancing_details.vulnerable_subjects"] }
+        : { state: "resolved_not_met", basis: "intake declares no vulnerable groups (\"None\")", source_fields: ["balancing_details.vulnerable_subjects"] });
+
+  const alternatives = String(necessity.alternatives ?? r.alternatives_considered ?? "").trim();
+  out.M6 = alternatives
+    ? { state: "resolved_met", basis: `intake supplies alternatives_considered ("${alternatives.slice(0, 80)}")`, source_fields: ["alternatives_considered", "necessity_details.alternatives"] }
+    : { state: "indeterminate", basis: "alternatives_considered is empty", source_fields: ["alternatives_considered", "necessity_details.alternatives"] };
+
+  const safeguards: string[] = Array.isArray(balancing.safeguards) ? balancing.safeguards : [];
+  out.M7 = safeguards.length
+    ? { state: "resolved_met", basis: `intake declares safeguards ${JSON.stringify(safeguards)}`, source_fields: ["balancing_details.safeguards"] }
+    : { state: "indeterminate", basis: "balancing_details.safeguards is empty", source_fields: ["balancing_details.safeguards"] };
+
+  const optOut = String(balancing.opt_out_mechanism ?? "").trim();
+  out.M8 = optOut
+    ? { state: "resolved_met", basis: `intake describes opt_out_mechanism ("${optOut.slice(0, 80)}")`, source_fields: ["balancing_details.opt_out_mechanism"] }
+    : { state: "indeterminate", basis: "balancing_details.opt_out_mechanism is empty", source_fields: ["balancing_details.opt_out_mechanism"] };
+
+  const re = String(balancing.reasonable_expectation ?? "").trim();
+  out.M9 = re
+    ? { state: "resolved_met", basis: `intake supplies reasonable_expectation ("${re.slice(0, 60)}")`, source_fields: ["balancing_details.reasonable_expectation"] }
+    : { state: "indeterminate", basis: "balancing_details.reasonable_expectation is empty", source_fields: ["balancing_details.reasonable_expectation"] };
+
+  const harm = String(balancing.potential_harm ?? "").trim();
+  out.M10 = harm
+    ? { state: "resolved_met", basis: `intake supplies potential_harm ("${harm.slice(0, 60)}")`, source_fields: ["balancing_details.potential_harm"] }
+    : { state: "indeterminate", basis: "balancing_details.potential_harm is empty", source_fields: ["balancing_details.potential_harm"] };
+
+  const empIndicators = relationship.toLowerCase();
+  out.M11 = /employee|worker|staff|applicant/i.test(empIndicators)
+    ? { state: "resolved_met", basis: `relationship_type indicates employment context ("${relationship.slice(0, 60)}")`, source_fields: ["relationship_type"] }
+    : (relationship
+        ? { state: "resolved_not_met", basis: `relationship_type "${relationship.slice(0, 60)}" does not indicate employment context`, source_fields: ["relationship_type"] }
+        : { state: "indeterminate", basis: "relationship_type is empty", source_fields: ["relationship_type"] });
+
+  return out;
+}
+
+export function renderLiaTestStatesBlock(states: Record<string, LiaTestStateEntry>): string {
+  const lines: string[] = [];
+  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: state its conclusion with the basis given, do NOT hedge, do NOT emit an information_needed / open_questions entry re-asking for the intake field it was computed from, and do NOT contradict it in prose. INDETERMINATE tests use insufficient-basis language anchored to the named source field.");
+  for (const id of Object.keys(states)) {
+    const e = states[id];
+    lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
+  }
+  return lines.join("\n");
+}
 
 
 
@@ -484,6 +581,10 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
 
+    // R1b2 — deterministic TEST-STATES computed from the intake row.
+    const liaTestStates = computeLiaTestStates(assessment as Record<string, any>);
+    const liaTestStatesBlock = renderLiaTestStatesBlock(liaTestStates);
+
     const ukGuidanceFraming = isUk
       ? `UK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
       : "";
@@ -498,6 +599,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
       gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
       ukGuidanceFraming,
+      liaTestStatesBlock,
     ].filter(Boolean).join("\n\n");
 
     const analysisSystemBlocks = buildSystemContent({
@@ -792,6 +894,108 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
       }
     }
 
+    // R1b2 — post-lint T-2/T-3/T-4 gate on Stage-2 analysis output. Report-level
+    // prose only; one retry cap, then proceed with the violation logged.
+    const t234Violations: any[] = [];
+    {
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const anchorRe = /(Article\s+\d|Recital\s+\d|GDPR|EDPB|ICO|Guidelines\s+1\/2024|§\s*\d|Schedule\s+\d|DPA\s+2018)/i;
+      const RESOLVED_MET_FIELD_MAP: Record<string, string[]> = {
+        M6: ["alternatives_considered"],
+        M7: ["safeguards"],
+        M8: ["opt_out_mechanism"],
+        M4: ["special_category_data"],
+        M5: ["vulnerable_subjects"],
+        M9: ["reasonable_expectation"],
+        M10: ["potential_harm"],
+      };
+      function detectT234(a: any): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = []; const t3: any[] = []; const t4: any[] = [];
+        const info: any[] = Array.isArray(a?.information_needed) ? a.information_needed : [];
+        for (const item of info) {
+          const f = String(item?.field ?? "").trim();
+          if (!f) continue;
+          for (const [id, keys] of Object.entries(RESOLVED_MET_FIELD_MAP)) {
+            const st = liaTestStates[id]?.state;
+            if ((st === "resolved_met" || st === "resolved_not_met") && keys.includes(f)) {
+              t2.push({ test: id, kind: "info_needed_reasks_resolved", field: f });
+            }
+          }
+        }
+        const testFields = ["purpose_test", "necessity_test", "balancing_test"];
+        for (const tf of testFields) {
+          const t = a?.[tf]; if (!t) continue;
+          const text = [t.analysis, ...(Array.isArray(t.open_questions) ? t.open_questions : [])].filter((s: any) => typeof s === "string").join(" ");
+          if (liaTestStates.M4?.state !== "indeterminate" && /(confirm|clarify)\s+whether[^.]{0,80}special\s?category/i.test(text)) {
+            t2.push({ test: "M4", kind: "reasks_resolved_special_category", field: tf });
+          }
+          if (liaTestStates.M8?.state === "resolved_met" && /(confirm|clarify)\s+whether[^.]{0,80}opt[-\s]?out/i.test(text)) {
+            t2.push({ test: "M8", kind: "reasks_resolved_opt_out", field: tf });
+          }
+        }
+        const anyResolved = Object.values(liaTestStates).some((s) => s.state === "resolved_met");
+        if (anyResolved) {
+          const strBasis = String(a?.overall_assessment?.strength_basis ?? "");
+          if (collapseRe.test(strBasis)) t3.push({ field: "overall_assessment.strength_basis", detail: strBasis.slice(0, 160) });
+          for (const tf of testFields) {
+            const s = String(a?.[tf]?.analysis ?? "");
+            if (collapseRe.test(s)) t3.push({ field: `${tf}.analysis`, detail: s.slice(0, 160) });
+          }
+        }
+        const blocking: any[] = Array.isArray(a?.overall_assessment?.blocking_issues) ? a.overall_assessment.blocking_issues : [];
+        for (const b of blocking) {
+          const s = typeof b === "string" ? b : "";
+          if (!s) continue;
+          if (depthLangRe.test(s) && !anchorRe.test(s)) t4.push({ field: "blocking_issues", detail: s.slice(0, 160) });
+        }
+        for (const item of info) {
+          const dims = String(item?.dimensions ?? "");
+          const prov = String(item?.provision ?? "");
+          if (depthLangRe.test(dims) && !anchorRe.test(`${prov} ${dims}`)) {
+            t4.push({ field: "information_needed", detail: dims.slice(0, 160) });
+          }
+        }
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectT234(analysis);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (total > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation", fn: "run-li-assessment",
+          t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+        }));
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies enum/presence answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in test analyses or strength_basis`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every blocking_issues / information_needed item must be verdict-blocking or record-completeness with a cited provision (Article / Recital / EDPB Guidelines / § / DPA 2018 Schedule)`);
+          const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
+          const retry = await runStage2(retryInstr);
+          const parsed = parseLlmJson(retry.text);
+          if (parsed) {
+            analysis = parsed;
+            lintAnalysis(analysis);
+            detected = detectT234(analysis);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            if (still > 0) {
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-li-assessment", remaining: still }));
+            }
+          }
+        } catch (e) {
+          console.warn("[LIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+      }
+    }
+    for (const v of t234Violations) lintViolations.push(v);
+
+
+
+
 
 
 
@@ -921,7 +1125,8 @@ Return JSON:
       information_needed: Array.isArray((analysis as any)?.information_needed) ? (analysis as any).information_needed : [],
       documentation_recommendations: docRecs,
       disclaimer: "This report helps your organisation identify areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions.",
-      data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`
+      data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
+      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2") },
     };
 
     // 2.9 — LIA has no intake_data column; build the guard's intake object

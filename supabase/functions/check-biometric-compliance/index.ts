@@ -97,7 +97,98 @@ NO META-COMMENTARY IN USER-FACING OUTPUT: User-facing prose must read as finishe
 
 Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
 
+TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 biometric_processing_active, M2 illinois_bipa_scope, M3 texas_cubi_scope, M4 washington_mhmd_scope, M5 eu_gdpr_scope, M6 uk_gdpr_scope, M7 enrollment_band_provided, M8 employment_context, M9 authentication_purpose_candidate). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an ===INFORMATION_NEEDED=== entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'jurisdictions' when the Illinois/Texas/Washington/EU/UK scope states are RESOLVED, do NOT ask for 'biometricTypes' when M1 is RESOLVED_MET, do NOT ask for 'orgType' when M8 is RESOLVED), and NEVER contradict it in prose. In particular: where M1 is RESOLVED_NOT_MET (no active biometric processing declared), the CURRENT rating for every jurisdiction MUST be LOW per the CURRENT vs PROSPECTIVE rule, and no priority action may describe a currently-deployed control that the intake did not declare. CANDIDATE states (e.g. M9 keyword match on purpose) are non-binding hypotheses — cite them as considerations to verify, never as facts. Risk ratings, priority-action selection, and enforcement-posture judgement remain JUDGMENT calls per the existing RISK RATING CRITERIA and ENFORCEMENT-POSTURE GROUNDING rules — no mechanical test binds them.
+
+PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items are ones that prevent stating an obligation or risk rating for a jurisdiction; they belong in priority actions with the cited statute they block. Record-completeness items belong in the ===INFORMATION_NEEDED=== JSON with the intake field key and the provision that makes the missing dimension relevant. Enhancement items — model-observed depth improvements that no cited provision requires — belong in defensible-practice prose ONLY when tied to a cited standard (BIPA § 15(a) retention policy, CUBI § 503.001(c)(2) reasonable care, GDPR Article 5(2) accountability, EDPB guidance) and NEVER as an information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer, name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole jurisdiction where the intake supplies the enum/presence answers the analysis binds to (jurisdiction selected, biometric type declared, enrollment band chosen, orgType chosen); where a specific missing element IS verdict-blocking, name that element rather than collapsing the whole jurisdiction.
+
+BIPA ENROLLMENT ANCHORING (R1b2 rule 2c): the illustrative BIPA damages calculation must read M7 (enrollment_band_provided) verbatim from the injected TEST-STATES block — the enrollment band supplied by the intake is the anchor. Where M2 (illinois_bipa_scope) is RESOLVED_NOT_MET, do NOT include a BIPA damages calculation in the report at all; where M2 is RESOLVED_MET and M7 is RESOLVED_MET, use the supplied band per the HEADCOUNT CONSISTENCY rule and do NOT re-ask the enrollment count.
+
 Output ONLY the compliance assessment. No preamble.`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// R1b2 — deterministic TEST-STATES for the biometric-checker generator.
+// Computed from the request Body shape produced by src/pages/BiometricChecker.tsx.
+// Risk ratings, priority-action selection, and enforcement-posture judgement
+// remain JUDGMENT per the existing RISK RATING CRITERIA / ENFORCEMENT-POSTURE
+// GROUNDING rules. Backlog (R2): capture retentionPeriod / consentMechanism /
+// thirdPartyProcessors as structured intake fields to bind further tests.
+// ─────────────────────────────────────────────────────────────────────────────
+type BioTestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate" | "candidate";
+interface BioTestStateEntry {
+  state: BioTestState;
+  basis: string;
+  source_fields: string[];
+}
+const BIO_EMPLOYMENT_ORG = /employer|employee/i;
+const BIO_EMPLOYMENT_PURPOSE = /time\s*&\s*attendance|workforce|physical\s*access/i;
+const BIO_AUTH_PURPOSE = /authentication|identity\s*verification|kyc|customer\s*authentication/i;
+
+export function computeBiometricTestStates(body: Record<string, any> | null | undefined): Record<string, BioTestStateEntry> {
+  const b = body ?? {};
+  const types: string[] = Array.isArray(b.biometricTypes) ? b.biometricTypes : [];
+  const activeTypes = types.filter((t) => t && !/^none\b/i.test(String(t).trim()));
+  const jurisdictions: string[] = Array.isArray(b.jurisdictions) ? b.jurisdictions : [];
+  const jursLc = jurisdictions.map((j) => String(j).toLowerCase());
+  const orgType = String(b.orgType ?? "").trim();
+  const purpose = String(b.purpose ?? "").trim();
+  const enrolled = String(b.enrolledCount ?? "").trim();
+  const out: Record<string, BioTestStateEntry> = {};
+
+  out.M1 = types.length === 0
+    ? { state: "indeterminate", basis: "biometricTypes is empty", source_fields: ["biometricTypes"] }
+    : (activeTypes.length
+        ? { state: "resolved_met", basis: `intake declares biometric types ${JSON.stringify(activeTypes)}`, source_fields: ["biometricTypes"] }
+        : { state: "resolved_not_met", basis: "intake selects only \"None\" for biometricTypes (no active processing)", source_fields: ["biometricTypes"] });
+
+  const has = (needle: string) => jursLc.some((j) => j.includes(needle));
+  const jurisdictionsPresent = jurisdictions.length > 0;
+  const scope = (key: string, needle: string, label: string): BioTestStateEntry =>
+    !jurisdictionsPresent
+      ? { state: "indeterminate", basis: "jurisdictions is empty", source_fields: ["jurisdictions"] }
+      : (has(needle)
+          ? { state: "resolved_met", basis: `intake includes ${label} in jurisdictions`, source_fields: ["jurisdictions"] }
+          : { state: "resolved_not_met", basis: `intake does not include ${label} in jurisdictions`, source_fields: ["jurisdictions"] });
+
+  out.M2 = scope("M2", "illinois", "Illinois (BIPA)");
+  out.M3 = jurisdictionsPresent && (has("texas") || has("other us"))
+    ? { state: "resolved_met", basis: `intake includes Texas or "Other US state" (CUBI in scope)`, source_fields: ["jurisdictions"] }
+    : (jurisdictionsPresent
+        ? { state: "resolved_not_met", basis: "intake does not include Texas or \"Other US state\"", source_fields: ["jurisdictions"] }
+        : { state: "indeterminate", basis: "jurisdictions is empty", source_fields: ["jurisdictions"] });
+  out.M4 = scope("M4", "washington", "Washington state (MHMD)");
+  out.M5 = scope("M5", "eu ", "EU/EEA (GDPR)");
+  out.M6 = scope("M6", "united kingdom", "United Kingdom (UK GDPR)");
+
+  out.M7 = enrolled
+    ? { state: "resolved_met", basis: `intake supplies enrolledCount band "${enrolled}"`, source_fields: ["enrolledCount"] }
+    : { state: "indeterminate", basis: "enrolledCount is empty", source_fields: ["enrolledCount"] };
+
+  const orgEmp = BIO_EMPLOYMENT_ORG.test(orgType);
+  const purposeEmp = BIO_EMPLOYMENT_PURPOSE.test(purpose);
+  out.M8 = (orgEmp || purposeEmp)
+    ? { state: "resolved_met", basis: `orgType="${orgType}" purpose="${purpose}" indicates employment context`, source_fields: ["orgType", "purpose"] }
+    : (orgType || purpose
+        ? { state: "resolved_not_met", basis: `orgType="${orgType}" purpose="${purpose}" does not indicate employment context`, source_fields: ["orgType", "purpose"] }
+        : { state: "indeterminate", basis: "orgType and purpose are empty", source_fields: ["orgType", "purpose"] });
+
+  // M9 is a CANDIDATE — the intake does not confirm KYC/AML use; a purpose keyword
+  // match nominates the hypothesis, absence never rebuts it (per courier doctrine).
+  out.M9 = BIO_AUTH_PURPOSE.test(purpose)
+    ? { state: "candidate", basis: `purpose="${purpose}" matches authentication/KYC keyword — non-binding hypothesis to verify`, source_fields: ["purpose"] }
+    : { state: "indeterminate", basis: "purpose does not match authentication/KYC keyword; absence is not proof", source_fields: ["purpose"] };
+
+  return out;
+}
+
+export function renderBiometricTestStatesBlock(states: Record<string, BioTestStateEntry>): string {
+  const lines: string[] = [];
+  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: state its conclusion with the basis given, do NOT hedge, do NOT emit an ===INFORMATION_NEEDED=== entry re-asking for the intake field it was computed from, and do NOT contradict it in prose. CANDIDATE states are non-binding hypotheses (e.g. keyword matches on free-text purpose) — treat as considerations to verify, never as facts. INDETERMINATE tests use insufficient-basis language anchored to the named source field.");
+  for (const id of Object.keys(states)) {
+    const e = states[id];
+    lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
+  }
+  return lines.join("\n");
+}
 
 const BIOMETRIC_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -1016,6 +1107,10 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
 STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
 
     const today = new Date().toISOString().slice(0, 10);
+    // R1b2 — compute deterministic TEST-STATES from the request body and inject
+    // them into the composed system alongside the registry-sourced facts.
+    const biometricTestStates = computeBiometricTestStates(body as unknown as Record<string, unknown>);
+    const biometricTestStatesBlock = renderBiometricTestStatesBlock(biometricTestStates);
     const composedSystem: SystemBlock[] = buildSystemContent({
       toolModule: BIOMETRIC_TOOL_MODULE,
       variant: isStressRun ? "lean" : "full",
@@ -1024,7 +1119,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       // FORK-R1 R4: facts (ICO figures, BIPA citations, CUBI map, FDBR, PRA-by-statute)
       // come from the registry — never from inline prose. A one-line registry edit
       // changes the biometric output on the next run.
-      injected: renderRegistryFor("biometric-checker"),
+      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}`,
     });
     // Pilot override: service-role callers can fully replace the system prompt to
     // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).
@@ -1175,7 +1270,141 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
       for (const v of lint.violations) lintViolations.push(v);
     }
+
+    // R1b2 — post-lint T-2/T-3/T-4 gate on the final assessment_text (document
+    // mode). One retry cap, then proceed with the violation logged. Same posture
+    // as the T-1 lint retry above.
+    const t234Violations: any[] = [];
+    {
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const anchorRe = /(BIPA|CUBI|740\s*ILCS|§\s*503|Cal\.\s*Civ\.\s*Code|1798\.|Article\s+\d|Recital\s+\d|GDPR|UK\s*GDPR|EDPB|ICO|Guidelines|Chapter\s+V|DPA\s+2018|Schedule\s+1|MHMD)/i;
+      const FIELD_TO_TESTS: Record<string, string[]> = {
+        biometricTypes: ["M1"],
+        jurisdictions: ["M2", "M3", "M4", "M5", "M6"],
+        orgType: ["M8"],
+        purpose: ["M8"],
+        enrolledCount: ["M7"],
+      };
+
+      function parseInformationNeeded(text: string): any[] {
+        const idx = text.indexOf("===INFORMATION_NEEDED===");
+        if (idx === -1) return [];
+        const tail = text.slice(idx + "===INFORMATION_NEEDED===".length);
+        const cleaned = tail.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start === -1 || end === -1) return [];
+        try {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          return Array.isArray(arr) ? arr : [];
+        } catch { return []; }
+      }
+
+      function detectT234(text: string): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = []; const t3: any[] = []; const t4: any[] = [];
+        const info = parseInformationNeeded(text);
+        for (const item of info) {
+          const f = String(item?.field ?? "").trim();
+          if (!f) continue;
+          const bound = FIELD_TO_TESTS[f];
+          if (!bound) continue;
+          for (const id of bound) {
+            const st = biometricTestStates[id]?.state;
+            if (st === "resolved_met" || st === "resolved_not_met") {
+              t2.push({ test: id, kind: "info_needed_reasks_resolved", field: f });
+            }
+          }
+        }
+        // T-2: if M1 is RESOLVED_NOT_MET (no active biometric processing declared),
+        // the report must not present a BIPA damages calculation.
+        if (biometricTestStates.M1?.state === "resolved_not_met") {
+          if (/BIPA\s+(?:statutory\s+)?damages/i.test(text) && /\$[0-9,]{3,}/.test(text)) {
+            t2.push({ test: "M1", kind: "bipa_damages_without_processing", field: "biometricTypes" });
+          }
+        }
+        // T-3: banned collapse phrasing anywhere in the document when any
+        // RESOLVED_MET scope establishes a jurisdiction is in play.
+        const anyResolved = Object.values(biometricTestStates).some((s) => s.state === "resolved_met");
+        if (anyResolved && collapseRe.test(text)) {
+          const m = text.match(collapseRe);
+          t3.push({ field: "assessment_text", detail: m ? m[0] : "" });
+        }
+        // T-4: enhancement-class depth language in information_needed dimensions
+        // without a statutory anchor in the same entry.
+        for (const item of info) {
+          const dims = String(item?.dimensions ?? "");
+          const prov = String(item?.provision ?? "");
+          if (depthLangRe.test(dims) && !anchorRe.test(`${prov} ${dims}`)) {
+            t4.push({ field: "information_needed", detail: dims.slice(0, 160) });
+          }
+        }
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectT234(assessment_text);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (!isStressRun && total > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation", fn: "check-biometric-compliance",
+          t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+        }));
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies jurisdiction/type/orgType/enrollment answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in the assessment prose`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every ===INFORMATION_NEEDED=== entry must be verdict-blocking or record-completeness with a cited provision (BIPA § / CUBI § / Cal. Civ. Code / GDPR Article / EDPB Guidelines / ICO / DPA 2018)`);
+          const details = parts.join(" | ");
+          const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "x-api-key": ANTHROPIC_API_KEY,
+              "anthropic-version": "2023-06-01",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-6",
+              max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
+              system: `You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these post-lint TEST-STATES gate defects silently and without meta-commentary: ${details}`,
+              messages: [
+                { role: "user", content: prompt + stressBudget },
+                { role: "assistant", content: fullText },
+                { role: "user", content: `Regenerate the assessment correcting: ${details}. Same output format, same ===ANNOTATIONS=== and ===INFORMATION_NEEDED=== blocks.` },
+              ],
+            }),
+          });
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            const retryFull = retryData.content?.[0]?.text ?? "";
+            console.log(`[check-biometric-compliance] r1b2 retry done chars=${retryFull.length}`);
+            let retryText = retryFull;
+            const sep2 = retryFull.indexOf("===ANNOTATIONS===");
+            if (sep2 !== -1) retryText = retryFull.slice(0, sep2).trim();
+            retryText = retryText
+              .replace(/^#{1,6}\s+/gm, '').replace(/\*\*\*/g, '').replace(/\*\*/g, '')
+              .replace(/\*([^*\n]+)\*/g, '$1').replace(/^>\s?/gm, '').replace(/^\*\s+/gm, '• ');
+            assessment_text = retryText;
+            const relint = lintReportText(assessment_text, {
+              checkDates: true, checkUnresolvedTokens: true, referenceDate,
+            });
+            assessment_text = relint.clean;
+            detected = detectT234(assessment_text);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            if (still > 0) {
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "check-biometric-compliance", remaining: still }));
+            }
+          }
+        } catch (e) {
+          console.warn("[Biometric] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+      }
+    }
+    for (const v of t234Violations) lintViolations.push(v);
     assessment_text = scrubVoiceLeaks(assessment_text);
+
 
 
     const report_data = {
@@ -1186,7 +1415,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance") },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2") },
     };
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.
