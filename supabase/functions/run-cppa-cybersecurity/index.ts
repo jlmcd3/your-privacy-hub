@@ -758,10 +758,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         const v2 = validateControls(reAssembled);
         if (!v2.ok) {
           console.error(`[CPPA Cyber] controls incomplete after retry: missing=${JSON.stringify(v2.missing)}`);
-          await supabase
-            .from("cppa_assessments")
-            .update({ status: "error" })
-            .eq("id", assessment_id);
+          await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_controls" });
           return;
         }
       }
