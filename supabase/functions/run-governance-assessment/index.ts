@@ -754,11 +754,14 @@ Deno.serve(async (req) => {
 
     const intake = assessment.intake_data as any;
     const orgName = (assessment as any).organization_name || intake?.organization_name || null;
-    await supabase.from("governance_assessments")
-      .update({
-        status: "processing",
-        ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
-      }).eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
+      status: "processing",
+      ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
+    }, { fn: "run-governance-assessment", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
 
     const fnRun = await startFunctionRun(supabase, "run-governance-assessment", {
