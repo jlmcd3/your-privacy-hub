@@ -164,10 +164,113 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "UNCONFIRMED FACTS ARE NEVER MITIGATING FACTORS: an unverified assertion (e.g. 'data not shared with advertisers (unconfirmed)') never appears in a mitigating-factors list — move it to a to-be-confirmed note; its mitigating effect cannot be credited until confirmed.",
     "THE DPIA TRIGGER IS INDEPENDENT OF THE ART. 35(3) LIST: where a WP248 criterion (e.g. systematic monitoring) fires, state that the DPIA is mandatory under Art. 35(1) on that basis, independently of whether any Art. 35(3) enumerated type is engaged; never imply Art. 35(3) list-membership is required for the obligation.",
     "CAUSALLY LINKED RISKS STATE THEIR HIERARCHY: where one risk is a precondition of another's analysis (e.g. invalid legal basis vs downstream balancing risks), state the dependency — the threshold risk first, the dependent risk labelled as conditional on the threshold being resolved.",
+    "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination this tool computes from structured intake fields (M1 special-category data; M2 children's data; M3 Art. 9(2) condition selected; M4 legal basis selected; M5 GDPR applies; M6 international-transfer surface; M7 retention documented; M8 DPO named; M9 profiling narrative CANDIDATE). Tests marked RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — bind their determination and MUST NOT be re-asked in completion_guidance, information_needed, or [TO COMPLETE] placeholders, and MUST NOT be contradicted in prose. INDETERMINATE tests use insufficient-basis language and route to the specific intake field named in the block. M9 is a CANDIDATE, NOT a RESOLUTION: keyword presence directs attention to Art. 35(3)(a) as a JUDGMENT call — assess the description and confirm or reject the prong, citing the narrative language; keyword absence is NOT proof of non-profiling. All other WP248 prongs (large-scale, matching, vulnerable beyond children, innovative tech, systematic monitoring under 35(3)(c)) remain JUDGMENT calls governed by the existing ARTICLE 35 MANDATORY TRIGGER RULE — no mechanical test binds them.",
+    "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking and record-completeness items appear in completion_guidance and information_needed (verdict-blocking listed first). Enhancement items — depth improvements no cited provision requires — appear ONLY in method/methodology narrative, never as a completion_guidance or [TO COMPLETE] item. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the intake and RESOLVED tests establish BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies (e.g. do not [TO COMPLETE] the Art. 9(2) condition when M3 is RESOLVED_MET). (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element (e.g. 'the specific Art. 46 safeguard') rather than collapsing the whole determination.",
+    "TRIGGER STATUS (R1b2 formalisation of ARTICLE 35 MANDATORY TRIGGER RULE): read TEST-STATES M1, M2, and M9 as the binding surface for the enumerated WP248 prongs this tool computes. Where M1 is RESOLVED_MET, cite Art. 35(3)(b) as engaged and name the special category from the intake; where M2 is RESOLVED_MET, cite Recital 38 and the heightened-protection duty; where M9 is CANDIDATE, treat Art. 35(3)(a) as a JUDGMENT call — quote or paraphrase the description language that raised the candidate and either confirm the prong (citing the language) or reject it (explaining why the language does not reach 'systematic and extensive profiling with significant effects'). Never assert Art. 35(3)(a) is engaged solely because M9 is CANDIDATE; never deny it solely because M9 is INDETERMINATE.",
   ].join("\n\n"),
 
   languageVariant: "jurisdiction-conditional",
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// R1b2 — deterministic TEST-STATES for the DPIA generator.
+// Computed from the intake shape produced by src/pages/DPIAFramework.tsx.
+// M1 special-category data (Art. 35(3)(b))     — data_categories ∩ {Health/medical, Biometric, Genetic}
+// M2 children's data (Recital 38)              — any data_categories[i] matches /child/i
+// M3 article_9_condition_selected              — article_9_condition non-empty AND M1 met
+// M4 legal_basis_selected                      — legal_basis_proposed non-empty and ≠ "Not yet determined"
+// M5 gdpr_applies                              — jurisdictions ∋ "EU (GDPR)" or "United Kingdom (UK GDPR)"
+// M6 international_transfer_surface            — jurisdictions include both an EU/UK entry AND a non-EU/UK entry
+// M7 retention_documented                      — retention_period non-empty
+// M8 dpo_named                                 — dpo_info non-empty
+// M9 profiling_narrative (Art. 35(3)(a) proxy) — description matches /\bprofil/i → CANDIDATE (non-binding);
+//                                                absence → INDETERMINATE; keyword presence NEVER = RESOLVED_MET.
+// Other WP248 prongs (large-scale, matching, vulnerable beyond children, innovative tech, 35(3)(c) monitoring)
+// remain JUDGMENT (narrative-only) per the existing ARTICLE 35 MANDATORY TRIGGER RULE.
+// ─────────────────────────────────────────────────────────────────────────────
+type DpiaTestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate" | "candidate";
+interface DpiaTestStateEntry {
+  state: DpiaTestState;
+  basis: string;
+  source_fields: string[];
+}
+const DPIA_SPECIAL_CAT_LABELS = new Set([
+  "Health / medical data",
+  "Health or medical data",
+  "Biometric data",
+  "Genetic data",
+]);
+const DPIA_EU_UK_JURIS = new Set(["EU (GDPR)", "United Kingdom (UK GDPR)"]);
+
+export function computeDpiaTestStates(intake: Record<string, any> | null | undefined): Record<string, DpiaTestStateEntry> {
+  const it = intake ?? {};
+  const cats: string[] = Array.isArray(it.data_categories) ? it.data_categories.map((s: any) => String(s)) : [];
+  const juris: string[] = Array.isArray(it.jurisdictions) ? it.jurisdictions.map((s: any) => String(s)) : [];
+  const out: Record<string, DpiaTestStateEntry> = {};
+
+  const special = cats.filter((c) => DPIA_SPECIAL_CAT_LABELS.has(c));
+  out.M1 = special.length > 0
+    ? { state: "resolved_met", basis: `data_categories includes ${JSON.stringify(special)} — Art. 35(3)(b) engaged`, source_fields: ["data_categories"] }
+    : { state: "resolved_not_met", basis: "no Art. 9 special-category label present in data_categories", source_fields: ["data_categories"] };
+
+  const childCats = cats.filter((c) => /child/i.test(c));
+  out.M2 = childCats.length > 0
+    ? { state: "resolved_met", basis: `data_categories includes children-related label ${JSON.stringify(childCats)} — Recital 38 heightened protection`, source_fields: ["data_categories"] }
+    : { state: "resolved_not_met", basis: "no children-related label present in data_categories", source_fields: ["data_categories"] };
+
+  const art9 = String(it.article_9_condition ?? "").trim();
+  if (out.M1.state === "resolved_not_met") {
+    out.M3 = { state: "resolved_not_applicable", basis: "M1 not met — no Art. 9(2) condition required", source_fields: ["article_9_condition"] };
+  } else {
+    out.M3 = art9
+      ? { state: "resolved_met", basis: `intake supplies Art. 9(2) condition "${art9.slice(0, 100)}"`, source_fields: ["article_9_condition"] }
+      : { state: "indeterminate", basis: "special-category data present but article_9_condition empty", source_fields: ["article_9_condition"] };
+  }
+
+  const basis = String(it.legal_basis_proposed ?? "").trim();
+  out.M4 = (!basis || /^not yet determined$/i.test(basis))
+    ? { state: "indeterminate", basis: `legal_basis_proposed is "${basis || "(empty)"}"`, source_fields: ["legal_basis_proposed"] }
+    : { state: "resolved_met", basis: `intake proposes "${basis}"`, source_fields: ["legal_basis_proposed"] };
+
+  const hasEuUk = juris.some((j) => DPIA_EU_UK_JURIS.has(j));
+  out.M5 = hasEuUk
+    ? { state: "resolved_met", basis: `jurisdictions include EU/UK — GDPR is the operative frame`, source_fields: ["jurisdictions"] }
+    : { state: "resolved_not_met", basis: "no EU/UK jurisdiction in intake — GDPR chapter not engaged as primary", source_fields: ["jurisdictions"] };
+
+  const nonEuUk = juris.filter((j) => !DPIA_EU_UK_JURIS.has(j));
+  out.M6 = (hasEuUk && nonEuUk.length > 0)
+    ? { state: "resolved_met", basis: `intake includes non-EU/UK jurisdictions ${JSON.stringify(nonEuUk)} — Chapter V transfer surface exists`, source_fields: ["jurisdictions"] }
+    : { state: "resolved_not_met", basis: "intake does not evidence a Chapter V transfer surface (missing an EU/UK origin or a non-EU/UK destination)", source_fields: ["jurisdictions"] };
+
+  const retention = String(it.retention_period ?? "").trim();
+  out.M7 = retention
+    ? { state: "resolved_met", basis: `intake documents retention as "${retention.slice(0, 80)}"`, source_fields: ["retention_period"] }
+    : { state: "indeterminate", basis: "retention_period is empty", source_fields: ["retention_period"] };
+
+  const dpo = String(it.dpo_info ?? "").trim();
+  out.M8 = dpo
+    ? { state: "resolved_met", basis: `intake names DPO info "${dpo.slice(0, 80)}"`, source_fields: ["dpo_info"] }
+    : { state: "indeterminate", basis: "dpo_info is empty; DPO consultation is conditional on designation", source_fields: ["dpo_info"] };
+
+  const desc = String(it.description ?? "");
+  out.M9 = /\bprofil/i.test(desc)
+    ? { state: "candidate", basis: `description contains "profil…" — Art. 35(3)(a) prong flagged for JUDGMENT (assess the language; confirm or reject the prong)`, source_fields: ["description"] }
+    : { state: "indeterminate", basis: "description does not contain the 'profil' keyword — absence is NOT proof of non-profiling; assess as JUDGMENT per the existing trigger rule", source_fields: ["description"] };
+
+  return out;
+}
+
+export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEntry>): string {
+  const lines: string[] = [];
+  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: do NOT re-ask it in completion_guidance/information_needed/[TO COMPLETE] placeholders and do NOT contradict it in prose. INDETERMINATE tests use insufficient-basis language anchored to the producing field. CANDIDATE tests are NON-BINDING attention flags for JUDGMENT calls — assess the underlying narrative and either confirm or reject the associated prong, citing the language.");
+  for (const id of Object.keys(states)) {
+    const e = states[id];
+    lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
+  }
+  return lines.join("\n");
+}
+
+
 
 Deno.serve(async (req) => {
   console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION}`);
