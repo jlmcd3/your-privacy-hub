@@ -414,12 +414,31 @@ export default function CPPACybersecurityResult() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
-  const [row, setRow] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [priorId, setPriorId] = useState<string | null>(null);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
-  const [pollTimedOut, setPollTimedOut] = useState(false);
+
+  const computeReportReady = (r: any): boolean => {
+    const rd = r?.report_data as any;
+    return !!(
+      rd
+      && typeof rd === "object"
+      && Object.keys(rd).length > 0
+      && (Array.isArray(rd.controls) || typeof rd.executive_summary === "string")
+    );
+  };
+
+  const { row, loading, phase, refresh, setRow } = useGenerationStatus<any>({
+    table: "cppa_assessments",
+    rowId: id,
+    isTerminal: (r) => {
+      const s = String(r?.status ?? "");
+      if (s === "error" || s === "refunded" || s === "failed_resolved" || s === "failed") return true;
+      if (s === "complete") return computeReportReady(r);
+      return false;
+    },
+    isReportReady: (r) => r?.status === "complete" && computeReportReady(r),
+  });
 
   // Look for an earlier cybersecurity assessment by the same user (for drift compare).
   useEffect(() => {
@@ -441,53 +460,11 @@ export default function CPPACybersecurityResult() {
     return () => { cancelled = true; };
   }, [row?.user_id, row?.id, row?.created_at]);
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    let attempts = 0;
-    // Extended budget: 3s × 100 (5 min) + 6s × 150 (15 min) ≈ 20 min total.
-    const MAX_POLLS = 250;
-    const fetchOnce = async () => {
-      const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
-      setRow(data);
-      setLoading(false);
-      const reportReady = data?.report_data
-        && typeof data.report_data === "object"
-        && Object.keys(data.report_data).length > 0
-        && (
-          Array.isArray((data.report_data as any).controls)
-          || typeof (data.report_data as any).executive_summary === "string"
-        );
-      const stillRunning = data && (
-        data.status === "pending"
-        || data.status === "processing"
-        || (data.status === "complete" && !reportReady)
-      );
-      attempts += 1;
-      if (stillRunning && attempts < MAX_POLLS) {
-        const delay = attempts < 100 ? 3000 : 6000;
-        timer = setTimeout(fetchOnce, delay);
-      } else if (stillRunning) {
-        setPollTimedOut(true);
-      }
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
-
   const status = row?.status;
-  const reportReady = !!(
-    row?.report_data
-    && typeof row.report_data === "object"
-    && Object.keys(row.report_data).length > 0
-    && (Array.isArray(row.report_data.controls) || typeof row.report_data.executive_summary === "string")
-  );
-  const showRunning = !loading && !pollTimedOut && (
-    status === "pending"
-    || status === "processing"
-    || (status === "complete" && !reportReady)
-  );
+  const reportReady = computeReportReady(row);
+  const showRunning = !loading && (phase === "running" || phase === "slow");
   const terminal = status === "complete" || status === "error" || status === "refunded" || status === "failed_resolved";
+  const isStalled = phase === "stalled" || phase === "stalled_pre_dispatch";
 
   const metaText = row?.created_at ? `Generated ${new Date(row.created_at).toLocaleDateString()}` : undefined;
 
