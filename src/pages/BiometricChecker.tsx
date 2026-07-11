@@ -310,7 +310,7 @@ export default function BiometricChecker() {
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);
-          if (id) navigate(`/biometric-checker/result/${id}?purchased=true`);
+          if (id) { void clearDraft(); navigate(`/biometric-checker/result/${id}?purchased=true`); }
         }}
       />
     </WorkspaceLayout>
