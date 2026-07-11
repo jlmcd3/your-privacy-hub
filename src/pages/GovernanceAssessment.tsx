@@ -131,6 +131,9 @@ const GovernanceAssessment = () => {
   const [dpaArt28Verified, setDpaArt28Verified] = useState("");
   const [transferMechanism, setTransferMechanism] = useState("");
 
+  // R1a: optional free-text catch-all rendered on the final input step.
+  const [additionalContext, setAdditionalContext] = useState("");
+
   const orgSizeNum = useMemo(() => {
     if (orgSize === "1-10" || orgSize === "11-50") return "small";
     return "large";
