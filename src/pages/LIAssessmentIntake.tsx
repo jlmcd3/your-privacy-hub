@@ -592,7 +592,7 @@ const LIAssessmentIntake = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
-            if (id) navigate(`/li-assessment/result/${id}?purchased=true`);
+            if (id) { void clearDraft(); navigate(`/li-assessment/result/${id}?purchased=true`); }
           }}
         />
       </main>
