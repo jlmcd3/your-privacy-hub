@@ -1045,11 +1045,14 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
-    await supabase.from("cppa_assessments").update({
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,
       updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
+    }, { fn: "run-admt-checker", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-admt-checker", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
