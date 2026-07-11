@@ -137,12 +137,34 @@ function RiskReportBody({ row }: { row: any }) {
   );
 }
 
-function StatusBlock({ row, label, ctaTo }: { row: any; label: string; ctaTo: string }) {
+const SUITE_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
+
+function StatusBlock({
+  row,
+  label,
+  ctaTo,
+  phase,
+  onRefresh,
+}: {
+  row: any;
+  label: string;
+  ctaTo: string;
+  phase: import("@/hooks/useGenerationStatus").GenerationPhase;
+  onRefresh: () => void;
+}) {
   if (!row) return <p className="text-sm text-muted-foreground">No record found.</p>;
   const status = row?.status;
-  if (status === "pending" || status === "processing") {
+  if (phase === "stalled" || phase === "stalled_pre_dispatch") {
+    return <GenerationStalledCard variant={phase} retryHref={ctaTo} onRefresh={onRefresh} />;
+  }
+  if (phase === "running" || phase === "slow") {
     return (
-      <ProcessingInterstitial tool="cppa_suite" label={label} />
+      <ProcessingInterstitial
+        tool="cppa_suite"
+        label={label}
+        startedAt={row.updated_at ?? row.created_at}
+        slow={phase === "slow"}
+      />
     );
   }
   if (status === "error") {
@@ -161,11 +183,24 @@ export default function CPPASuiteResult() {
   const riskId = params.get("risk_id");
   const cyberId = params.get("cyber_id");
   const purchased = params.get("purchased") === "true";
-  const [riskRow, setRiskRow] = useState<any>(null);
-  const [cyberRow, setCyberRow] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const { isPro } = useSubscriptionTier();
   const [kitLoading, setKitLoading] = useState(false);
+
+  const risk = useGenerationStatus<any>({
+    table: "cppa_assessments",
+    rowId: riskId,
+    isTerminal: (r) => SUITE_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
+  });
+  const cyber = useGenerationStatus<any>({
+    table: "cppa_assessments",
+    rowId: cyberId,
+    isTerminal: (r) => SUITE_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
+  });
+  const riskRow = risk.row;
+  const cyberRow = cyber.row;
+  const loading = (!!riskId && risk.loading) || (!!cyberId && cyber.loading);
 
   // Doc P Step 4: result-page entry point, flag-gated AND Professional-only.
   // Flag stays OFF in production. Non-Professional users with the flag on
@@ -202,26 +237,6 @@ export default function CPPASuiteResult() {
   };
 
 
-  useEffect(() => {
-    let timer: any;
-    const fetchOnce = async () => {
-      const promises: Promise<any>[] = [];
-      if (riskId) promises.push(Promise.resolve(supabase.from("cppa_assessments").select("*").eq("id", riskId).maybeSingle()));
-      if (cyberId) promises.push(Promise.resolve(supabase.from("cppa_assessments").select("*").eq("id", cyberId).maybeSingle()));
-      const results = await Promise.all(promises);
-      let idx = 0;
-      if (riskId) { setRiskRow(results[idx]?.data || null); idx++; }
-      if (cyberId) { setCyberRow(results[idx]?.data || null); idx++; }
-      setLoading(false);
-      const stillRunning = results.some((r) => {
-        const s = r?.data?.status;
-        return s === "pending" || s === "processing";
-      });
-      if (stillRunning) timer = setTimeout(fetchOnce, 3000);
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [riskId, cyberId]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
