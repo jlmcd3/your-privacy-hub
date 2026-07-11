@@ -1270,7 +1270,141 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
       for (const v of lint.violations) lintViolations.push(v);
     }
+
+    // R1b2 — post-lint T-2/T-3/T-4 gate on the final assessment_text (document
+    // mode). One retry cap, then proceed with the violation logged. Same posture
+    // as the T-1 lint retry above.
+    const t234Violations: any[] = [];
+    {
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const anchorRe = /(BIPA|CUBI|740\s*ILCS|§\s*503|Cal\.\s*Civ\.\s*Code|1798\.|Article\s+\d|Recital\s+\d|GDPR|UK\s*GDPR|EDPB|ICO|Guidelines|Chapter\s+V|DPA\s+2018|Schedule\s+1|MHMD)/i;
+      const FIELD_TO_TESTS: Record<string, string[]> = {
+        biometricTypes: ["M1"],
+        jurisdictions: ["M2", "M3", "M4", "M5", "M6"],
+        orgType: ["M8"],
+        purpose: ["M8"],
+        enrolledCount: ["M7"],
+      };
+
+      function parseInformationNeeded(text: string): any[] {
+        const idx = text.indexOf("===INFORMATION_NEEDED===");
+        if (idx === -1) return [];
+        const tail = text.slice(idx + "===INFORMATION_NEEDED===".length);
+        const cleaned = tail.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start === -1 || end === -1) return [];
+        try {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          return Array.isArray(arr) ? arr : [];
+        } catch { return []; }
+      }
+
+      function detectT234(text: string): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = []; const t3: any[] = []; const t4: any[] = [];
+        const info = parseInformationNeeded(text);
+        for (const item of info) {
+          const f = String(item?.field ?? "").trim();
+          if (!f) continue;
+          const bound = FIELD_TO_TESTS[f];
+          if (!bound) continue;
+          for (const id of bound) {
+            const st = biometricTestStates[id]?.state;
+            if (st === "resolved_met" || st === "resolved_not_met") {
+              t2.push({ test: id, kind: "info_needed_reasks_resolved", field: f });
+            }
+          }
+        }
+        // T-2: if M1 is RESOLVED_NOT_MET (no active biometric processing declared),
+        // the report must not present a BIPA damages calculation.
+        if (biometricTestStates.M1?.state === "resolved_not_met") {
+          if (/BIPA\s+(?:statutory\s+)?damages/i.test(text) && /\$[0-9,]{3,}/.test(text)) {
+            t2.push({ test: "M1", kind: "bipa_damages_without_processing", field: "biometricTypes" });
+          }
+        }
+        // T-3: banned collapse phrasing anywhere in the document when any
+        // RESOLVED_MET scope establishes a jurisdiction is in play.
+        const anyResolved = Object.values(biometricTestStates).some((s) => s.state === "resolved_met");
+        if (anyResolved && collapseRe.test(text)) {
+          const m = text.match(collapseRe);
+          t3.push({ field: "assessment_text", detail: m ? m[0] : "" });
+        }
+        // T-4: enhancement-class depth language in information_needed dimensions
+        // without a statutory anchor in the same entry.
+        for (const item of info) {
+          const dims = String(item?.dimensions ?? "");
+          const prov = String(item?.provision ?? "");
+          if (depthLangRe.test(dims) && !anchorRe.test(`${prov} ${dims}`)) {
+            t4.push({ field: "information_needed", detail: dims.slice(0, 160) });
+          }
+        }
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectT234(assessment_text);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (!isStressRun && total > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation", fn: "check-biometric-compliance",
+          t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+        }));
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies jurisdiction/type/orgType/enrollment answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in the assessment prose`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every ===INFORMATION_NEEDED=== entry must be verdict-blocking or record-completeness with a cited provision (BIPA § / CUBI § / Cal. Civ. Code / GDPR Article / EDPB Guidelines / ICO / DPA 2018)`);
+          const details = parts.join(" | ");
+          const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "x-api-key": ANTHROPIC_API_KEY,
+              "anthropic-version": "2023-06-01",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-6",
+              max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
+              system: `You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these post-lint TEST-STATES gate defects silently and without meta-commentary: ${details}`,
+              messages: [
+                { role: "user", content: prompt + stressBudget },
+                { role: "assistant", content: fullText },
+                { role: "user", content: `Regenerate the assessment correcting: ${details}. Same output format, same ===ANNOTATIONS=== and ===INFORMATION_NEEDED=== blocks.` },
+              ],
+            }),
+          });
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            const retryFull = retryData.content?.[0]?.text ?? "";
+            console.log(`[check-biometric-compliance] r1b2 retry done chars=${retryFull.length}`);
+            let retryText = retryFull;
+            const sep2 = retryFull.indexOf("===ANNOTATIONS===");
+            if (sep2 !== -1) retryText = retryFull.slice(0, sep2).trim();
+            retryText = retryText
+              .replace(/^#{1,6}\s+/gm, '').replace(/\*\*\*/g, '').replace(/\*\*/g, '')
+              .replace(/\*([^*\n]+)\*/g, '$1').replace(/^>\s?/gm, '').replace(/^\*\s+/gm, '• ');
+            assessment_text = retryText;
+            const relint = lintReportText(assessment_text, {
+              checkDates: true, checkUnresolvedTokens: true, referenceDate,
+            });
+            assessment_text = relint.clean;
+            detected = detectT234(assessment_text);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            if (still > 0) {
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "check-biometric-compliance", remaining: still }));
+            }
+          }
+        } catch (e) {
+          console.warn("[Biometric] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+      }
+    }
+    for (const v of t234Violations) lintViolations.push(v);
     assessment_text = scrubVoiceLeaks(assessment_text);
+
 
 
     const report_data = {
