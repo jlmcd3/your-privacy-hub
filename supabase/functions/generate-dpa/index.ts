@@ -931,6 +931,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         ? (parsed as any).information_needed
         : [],
       generated_at: new Date().toISOString(),
+      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
 
