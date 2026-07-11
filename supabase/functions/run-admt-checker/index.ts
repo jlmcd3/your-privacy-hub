@@ -681,7 +681,7 @@ ADDITIONAL DISCIPLINES:
         const admtTruncated =
           first.stopReason === "max_tokens" || strictRetry.stopReason === "max_tokens";
         const admtErrorCode = admtTruncated ? "generation_truncated" : "parse_failed";
-        await supabase.from("cppa_assessments").update({
+        await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
           status: "error",
           report_data: {
             error: admtErrorCode,
@@ -691,7 +691,7 @@ ADDITIONAL DISCIPLINES:
             raw_tail: rawText.slice(-400),
             retry_tail: strictRetry.text.slice(-400),
           },
-        }).eq("id", assessment_id);
+        }, { fn: "run-admt-checker", phase: "terminal_error_parse" });
         await failFunctionRun(supabase, fnRun, admtErrorCode, {
           metadata: {
             assessment_id,
