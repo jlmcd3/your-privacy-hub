@@ -51,9 +51,18 @@ const corsHeaders = {
 // ---------------------------------------------------------------------------
 // Shim: legacy flat (q1..q20, i1..i9) intake -> minimal five-stage structure.
 // ---------------------------------------------------------------------------
+type ExceptionEntry = {
+  claimed: boolean;
+  scope: string;
+  safeguards: string;
+  documented: boolean;
+  authority_basis: string;      // R1a — per-exception, claimed authority the generator TESTS (never adopts)
+  retention_period: string;     // R1a — per-exception, additional to record-level i2_retention_period
+};
+
 type FiveStageIntake = {
   triggers: Record<string, boolean>;
-  exceptions: Record<string, { claimed: boolean; scope: string; safeguards: string; documented: boolean }>;
+  exceptions: Record<string, ExceptionEntry>;
   activity_details: any[];
   impact: Record<string, any>;
   org_context: Record<string, any>;
@@ -70,16 +79,49 @@ const EMPTY_TRIGGERS = {
   admt_involved: false,
 };
 
-const EMPTY_EXCEPTIONS = {
-  fraud_detection: { claimed: false, scope: "", safeguards: "", documented: false },
-  security_integrity: { claimed: false, scope: "", safeguards: "", documented: false },
-  debugging: { claimed: false, scope: "", safeguards: "", documented: false },
-  transient_use: { claimed: false, scope: "", safeguards: "", documented: false },
-  internal_research: { claimed: false, scope: "", safeguards: "", documented: false },
-  employment_context: { claimed: false, scope: "", safeguards: "", documented: false },
-  legal_compliance: { claimed: false, scope: "", safeguards: "", documented: false },
-  consumer_request: { claimed: false, scope: "", safeguards: "", documented: false },
+const EMPTY_EXCEPTION: ExceptionEntry = {
+  claimed: false, scope: "", safeguards: "", documented: false, authority_basis: "", retention_period: "",
 };
+const EMPTY_EXCEPTIONS: Record<string, ExceptionEntry> = {
+  fraud_detection: { ...EMPTY_EXCEPTION },
+  security_integrity: { ...EMPTY_EXCEPTION },
+  debugging: { ...EMPTY_EXCEPTION },
+  transient_use: { ...EMPTY_EXCEPTION },
+  internal_research: { ...EMPTY_EXCEPTION },
+  employment_context: { ...EMPTY_EXCEPTION },
+  legal_compliance: { ...EMPTY_EXCEPTION },
+  consumer_request: { ...EMPTY_EXCEPTION },
+};
+
+// ---------------------------------------------------------------------------
+// R1b0 — revenue-band classifier. Single source of truth for both the
+// §1798.140(d)(1)(A) $25M line and the §7121(a) cyber-audit cohort date.
+//   - "Under $25M"     → 2030-04-01 cohort (< $50M revenue)
+//   - "$25M–$50M"      → 2030-04-01 cohort
+//   - "$50M–$100M"     → 2029-04-01 cohort (M6 resolves)
+//   - legacy "$25M–$100M" → indeterminate (straddles the $50M line)
+//   - "$100M–$500M"    → 2028-04-01 cohort
+//   - "Over $500M"     → 2028-04-01 cohort
+// ---------------------------------------------------------------------------
+export type RevenueBand = {
+  key: "under_25m" | "25_50m" | "50_100m" | "legacy_25_100m" | "100_500m" | "over_500m" | "unspecified";
+  label: string;
+  audit_cohort: "2028-04-01" | "2029-04-01" | "2030-04-01" | "indeterminate";
+  over_25m: boolean | "indeterminate";
+  over_100m: boolean | "indeterminate";
+};
+export function classifyRevenueBand(q1: unknown): RevenueBand {
+  const v = String(q1 ?? "").trim();
+  switch (v) {
+    case "Under $25M":  return { key: "under_25m",      label: v, audit_cohort: "2030-04-01",     over_25m: false,           over_100m: false };
+    case "$25M–$50M":   return { key: "25_50m",         label: v, audit_cohort: "2030-04-01",     over_25m: true,            over_100m: false };
+    case "$50M–$100M":  return { key: "50_100m",        label: v, audit_cohort: "2029-04-01",     over_25m: true,            over_100m: false };
+    case "$25M–$100M":  return { key: "legacy_25_100m", label: v, audit_cohort: "indeterminate",  over_25m: true,            over_100m: false };
+    case "$100M–$500M": return { key: "100_500m",       label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true };
+    case "Over $500M":  return { key: "over_500m",      label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true };
+    default:            return { key: "unspecified",    label: v || "not specified", audit_cohort: "indeterminate", over_25m: "indeterminate", over_100m: "indeterminate" };
+  }
+}
 
 function shimLegacyIntake(intake: any): FiveStageIntake {
   console.warn(
@@ -159,14 +201,17 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   const exceptions = { ...EMPTY_EXCEPTIONS };
   for (const [key, v] of Object.entries(exceptionsIntake)) {
     if (v && v.claimed && key in exceptions) {
-      (exceptions as Record<string, any>)[key] = {
+      (exceptions as Record<string, ExceptionEntry>)[key] = {
         claimed: true,
         scope: String(v.scope ?? ""),
         safeguards: String(v.safeguards ?? ""),
         documented: Boolean(v.scope || v.safeguards),
+        authority_basis: String(v.authority_basis ?? ""),   // R1a claimed authority (TESTED, never adopted)
+        retention_period: String(v.retention_period ?? ""), // R1a per-exception retention (additional to i2_retention_period)
       };
     }
   }
+
 
   // Recover the § 7152(a)(1)–(9) content the wizard collects but the v4 slots don't carry.
   const content_detail = {
@@ -203,7 +248,18 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     stakeholder_public_benefits: String(intake.impact_intake?.stakeholderBenefits ?? ""),
     planned_safeguards: String(intake.impact_intake?.safeguards ?? ""),
     harm_sources_and_causes: String(intake.impact_intake?.harmCauses ?? ""),
+    // R1b0 threading — new intake fields exposed on content_detail so
+    // computeTestStates and downstream prose read normalised state, never raw intake.
+    q15c_spi_volume: String(intake.q15c_spi_volume ?? ""),
+    q5c_share_revenue_50pct: String(intake.q5c_share_revenue_50pct ?? ""),
+    revenue_band: classifyRevenueBand(intake.q1_revenue).label,
+    revenue_band_key: classifyRevenueBand(intake.q1_revenue).key,
+    revenue_audit_cohort: classifyRevenueBand(intake.q1_revenue).audit_cohort,
   };
+
+  // R1b0: expose the split revenue band into triggers too, so any downstream
+  // check that reads triggers rather than content_detail can see the resolved posture.
+  (triggers as Record<string, any>).revenue_over_100m = classifyRevenueBand(intake.q1_revenue).over_100m;
 
   return {
     triggers,
@@ -216,23 +272,201 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   };
 }
 
+
 function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean } {
   if (intake?.triggers === undefined) {
     return { intake: shimLegacyIntake(intake ?? {}), wasLegacyShimmed: true };
   }
   // Ensure required substructures are present even on partially-populated new intakes.
+  // R1b0: also mirror the new intake fields onto content_detail and stamp the
+  // revenue band so computeTestStates and prompt injection read normalised state.
+  const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
+  if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
+  if (intake.q5c_share_revenue_50pct !== undefined) cd.q5c_share_revenue_50pct = String(intake.q5c_share_revenue_50pct ?? "");
+  const band = classifyRevenueBand(intake.q1_revenue ?? intake.org_context?.annual_revenue_threshold);
+  cd.revenue_band = band.label;
+  cd.revenue_band_key = band.key;
+  cd.revenue_audit_cohort = band.audit_cohort;
+  const triggers = { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) } as Record<string, any>;
+  triggers.revenue_over_100m = band.over_100m;
   return {
     intake: {
-      triggers: { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) },
+      triggers,
       exceptions: { ...EMPTY_EXCEPTIONS, ...(intake.exceptions ?? {}) },
       activity_details: Array.isArray(intake.activity_details) ? intake.activity_details : [],
       impact: intake.impact ?? {},
       org_context: intake.org_context ?? {},
       annual_consumer_volume: intake.annual_consumer_volume,
+      content_detail: cd,
     },
     wasLegacyShimmed: false,
   };
 }
+
+// ---------------------------------------------------------------------------
+// R1b1 — deterministic TEST-STATES computed from the normalised intake.
+// A RESOLVED state is binding: the model may not hedge, contradict, or
+// convert it into an information_needed ask (rule TEST-STATES ARE BINDING,
+// enforced by post-check T-2).
+// ---------------------------------------------------------------------------
+export type TestState = {
+  state: "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
+  basis: string;
+  source_fields: string[];
+  note?: string;
+};
+
+export function computeTestStates(
+  fiveStage: FiveStageIntake,
+  rawIntake: Record<string, any>,
+): Record<string, TestState> {
+  const map: Record<string, TestState> = {};
+  const q1 = rawIntake.q1_revenue;
+  const band = classifyRevenueBand(q1);
+  const q2 = String(rawIntake.q2_consumers ?? "").trim();
+  const q5 = String(rawIntake.q5_sell_share ?? "").trim();
+  const q5c = String(rawIntake.q5c_share_revenue_50pct ?? "").trim();
+  const q15 = String(rawIntake.q15_sensitive_pi ?? "").trim();
+  const q15c = String(rawIntake.q15c_spi_volume ?? "").trim();
+
+  // M1 — §1798.140(d)(1)(A) $25M revenue threshold
+  if (band.over_25m === "indeterminate") {
+    map.M1 = { state: "indeterminate", basis: "revenue band not specified", source_fields: ["q1_revenue"] };
+  } else {
+    map.M1 = { state: band.over_25m ? "resolved_met" : "resolved_not_met", basis: `revenue band ${band.label}`, source_fields: ["q1_revenue"] };
+  }
+
+  // M2/M3 — consumer-band determinations
+  const CB: Record<string, { over_100k: boolean; over_250k: boolean }> = {
+    "Fewer than 100,000":    { over_100k: false, over_250k: false },
+    "100,000–249,999":       { over_100k: true,  over_250k: false },
+    "250,000–1 million":     { over_100k: true,  over_250k: true },
+    "1–10 million":          { over_100k: true,  over_250k: true },
+    "Over 10 million":       { over_100k: true,  over_250k: true },
+  };
+  const cb = CB[q2];
+  if (cb) {
+    map.M2 = { state: cb.over_100k ? "resolved_met" : "resolved_not_met", basis: `consumer band ${q2}`, source_fields: ["q2_consumers"] };
+    map.M3 = { state: cb.over_250k ? "resolved_met" : "resolved_not_met", basis: `consumer band ${q2}`, source_fields: ["q2_consumers"] };
+  } else {
+    const reason = q2 ? `recorded band ${q2} does not resolve the threshold` : "consumer band not specified";
+    map.M2 = { state: "indeterminate", basis: reason, source_fields: ["q2_consumers"] };
+    map.M3 = { state: "indeterminate", basis: reason, source_fields: ["q2_consumers"] };
+  }
+
+  // M4 — §7120(b)(2)(B) 50,000-SPI volume threshold
+  if (q15 === "No") {
+    map.M4 = { state: "resolved_not_applicable", basis: "q15_sensitive_pi = No — no SPI processing, prong inapplicable", source_fields: ["q15_sensitive_pi"] };
+  } else if (q15c === "50,000 or more") {
+    map.M4 = { state: "resolved_met", basis: "q15c_spi_volume = 50,000 or more", source_fields: ["q15c_spi_volume"] };
+  } else if (q15c === "Fewer than 50,000") {
+    map.M4 = { state: "resolved_not_met", basis: "q15c_spi_volume = Fewer than 50,000", source_fields: ["q15c_spi_volume"] };
+  } else {
+    map.M4 = { state: "indeterminate", basis: q15c ? `q15c_spi_volume = ${q15c} does not resolve` : "q15c_spi_volume not provided", source_fields: ["q15c_spi_volume", "q15_sensitive_pi"] };
+  }
+
+  // M5 — §7120(b)(1) 50%-of-revenue-from-sale/share prong
+  if (q5 === "No") {
+    map.M5 = { state: "resolved_not_met", basis: "q5_sell_share = No — no sale/share, prong inapplicable", source_fields: ["q5_sell_share"] };
+  } else if (q5c === "Yes") {
+    map.M5 = { state: "resolved_met", basis: "q5c_share_revenue_50pct = Yes", source_fields: ["q5c_share_revenue_50pct"] };
+  } else if (q5c === "No") {
+    map.M5 = { state: "resolved_not_met", basis: "q5c_share_revenue_50pct = No", source_fields: ["q5c_share_revenue_50pct"] };
+  } else {
+    map.M5 = { state: "indeterminate", basis: q5c ? `q5c_share_revenue_50pct = ${q5c} does not resolve` : "q5c_share_revenue_50pct not provided", source_fields: ["q5c_share_revenue_50pct", "q5_sell_share"] };
+  }
+
+  // M6 — §7121(a) cyber-audit cohort date
+  if (band.audit_cohort === "indeterminate") {
+    map.M6 = {
+      state: "indeterminate",
+      basis: band.key === "legacy_25_100m"
+        ? `legacy revenue band ${band.label} straddles the $50M line — cohort is 2029-04-01 or 2030-04-01 depending on split`
+        : "revenue band not specified — cohort cannot be resolved",
+      source_fields: ["q1_revenue"],
+    };
+  } else {
+    map.M6 = {
+      state: "resolved_met",
+      basis: `revenue band ${band.label} → §7121(a) cohort ${band.audit_cohort}`,
+      source_fields: ["q1_revenue"],
+      note: `cohort_date=${band.audit_cohort}`,
+    };
+  }
+
+  // M7 — §7150(b) trigger CLAIMED-states (which triggers the intake claims are engaged)
+  const t7 = {
+    sells_or_shares_pi: !!q5 && q5 !== "No",
+    profiling_observation: /yes|both/i.test(String(rawIntake.q5b_profiling_observation ?? "")),
+    sensitive_pi: q15 === "Yes",
+    under16_actual_knowledge: /^yes/i.test(String(rawIntake.q15b_under16_knowledge ?? "")),
+    admt_use: rawIntake.q18_admt_use === "Yes" || rawIntake.q18_admt_use === "In evaluation",
+    admt_training: /^yes/i.test(String(rawIntake.q18b_admt_training ?? "")),
+  };
+  const engaged = Object.entries(t7).filter(([, v]) => v).map(([k]) => k);
+  map.M7 = {
+    state: engaged.length ? "resolved_met" : "resolved_not_met",
+    basis: `claimed § 7150(b) triggers: ${engaged.join(", ") || "none"}`,
+    source_fields: ["q5_sell_share", "q5b_profiling_observation", "q15_sensitive_pi", "q15b_under16_knowledge", "q18_admt_use", "q18b_admt_training"],
+  };
+
+  // M8 — § 7152 exception CLAIMED-set + pinned cite per claimed key
+  const EXCEPTION_PIN: Record<string, string> = {
+    fraud_detection: "Cal. Civ. Code § 1798.145(a)(1)",
+    security_integrity: "Cal. Civ. Code § 1798.145(a)(2)",
+    debugging: "Cal. Civ. Code § 1798.145(a)(3)",
+    transient_use: "Cal. Civ. Code § 1798.145(a)(4)",
+    internal_research: "Cal. Civ. Code § 1798.145(a)(5)",
+    employment_context: "Cal. Civ. Code § 1798.145(o)",
+    legal_compliance: "Cal. Civ. Code § 1798.145(a)(6)",
+    consumer_request: "Cal. Civ. Code § 1798.145(a)(4)",
+  };
+  const exceptionsIntake = (rawIntake.exceptions_intake ?? {}) as Record<string, any>;
+  const claimed = Object.entries(exceptionsIntake).filter(([, v]: any) => v?.claimed).map(([k]) => k);
+  map.M8 = {
+    state: claimed.length ? "resolved_met" : "resolved_not_applicable",
+    basis: claimed.length
+      ? `claimed exceptions: ${claimed.map((k) => `${k} (pinned cite ${EXCEPTION_PIN[k] ?? "§ 1798.145"})`).join("; ")}`
+      : "no § 7152 exceptions claimed",
+    source_fields: ["exceptions_intake"],
+  };
+
+  // M9 — § 7152(a)(1),(2),(4),(8) element presence (non-empty checks)
+  const hasPurpose      = String(rawIntake.i1_processing_purpose ?? "").trim().length > 0;
+  const hasMinPi        = String(rawIntake.i1b_min_pi ?? "").trim().length > 0;
+  const hasRetention    = String(rawIntake.i2_retention_period ?? "").trim().length > 0 || String(rawIntake.i2_retention_criteria ?? "").trim().length > 0;
+  const hasBenefits     = String(rawIntake.impact_intake?.businessBenefits ?? "").trim().length > 0 || String(rawIntake.impact_intake?.consumerBenefits ?? "").trim().length > 0;
+  const hasContributors = String(rawIntake.i7_internal_contributors ?? "").trim().length > 0;
+  const hasCertifier    = String(rawIntake.i8_certifying_exec_name ?? "").trim().length > 0;
+  const allPresent = hasPurpose && hasMinPi && hasRetention && hasBenefits && hasContributors && hasCertifier;
+  map.M9 = {
+    state: allPresent ? "resolved_met" : "resolved_not_met",
+    basis: `§ 7152(a) element presence — (a)(1) purpose=${hasPurpose}; (a)(3) min-PI=${hasMinPi}, retention=${hasRetention}; (a)(4) benefits=${hasBenefits}; (a)(8) contributors=${hasContributors}, certifier=${hasCertifier}`,
+    source_fields: ["i1_processing_purpose", "i1b_min_pi", "i2_retention_period", "i2_retention_criteria", "impact_intake", "i7_internal_contributors", "i8_certifying_exec_name"],
+  };
+
+  // M10 — § 7155(b) / § 7157 canonical dates (already computed elsewhere; folded in)
+  map.M10 = {
+    state: "resolved_met",
+    basis: "§ 7155(b) existing-activity compliance deadline: 2027-12-31; § 7157(a)(1) submission deadline for 2026/2027 assessments: 2028-04-01",
+    source_fields: [],
+    note: "assessment_compliance=2027-12-31; submission=2028-04-01",
+  };
+
+  void fiveStage; // (kept in signature for future use; M-tests currently read raw intake)
+  return map;
+}
+
+export function formatTestStatesBlock(map: Record<string, TestState>): string {
+  const header =
+    "TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING: state its conclusion with the basis given, do NOT hedge, do NOT emit an information_needed entry for it, and do NOT ask the user to confirm/verify it. INDETERMINATE tests use insufficient-basis language and MUST generate exactly one information_needed entry anchored to the producing field.";
+  const rows = Object.entries(map).map(([k, v]) => {
+    const src = v.source_fields.length ? v.source_fields.join(", ") : "(computed)";
+    return `- ${k} [${v.state.toUpperCase()}] — ${v.basis} [source: ${src}]${v.note ? ` {${v.note}}` : ""}`;
+  });
+  return `${header}\n${rows.join("\n")}`;
+}
+
 
 // ---------------------------------------------------------------------------
 // Validation (CR-2 Step 5). Relaxed when payload was shimmed from legacy.
@@ -411,7 +645,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "RECONCILE INTAKE ECHOES WITH THE ASSESSMENT'S CONCLUSION: where the normalised intake echoes an assertion the assessment's own determination does not adopt (e.g. the intake records benefits_outweigh_risks as 'Yes' while the conclusion is 'Insufficient basis'), add one sentence IN THE benefits_outweigh_risks_conclusion FIELD ITSELF — not only in narrative rationale elsewhere — making the relationship explicit: \"The intake asserts [X]; the assessment record as documented does not yet satisfy the § 7152(a) documentation requirements to support that determination.\" Never leave an intake echo standing in apparent contradiction to the conclusion without this reconciling sentence in the conclusion field.",
     "SEVERITY LABELS COHERE WITH DEADLINES: an action labelled 'Immediate' states the immediate act and the statutory deadline as two clauses — 'Begin now: [the act]. The § 7155(b) compliance deadline for existing activities is December 31, 2027.' — never a bare 'Immediate' severity beside a 2027 deadline field as though they described the same clock. Where a deadline is conditional across cohorts (§ 7121(a): April 1, 2028 / 2029 / 2030 by revenue tier), the structured deadline field carries the earliest applicable date with the qualifier '(earliest cohort; conditional — see action text)' so the field cannot be read alone as unconditional. Record-completion items of the same kind carry the same severity label; where two siblings differ (one 'Immediate', one 'High'), the action text states why, or the labels are aligned.",
     "EACH INCONSISTENCY IS DOCUMENTED ONCE: every distinct inconsistency is documented fully — provisions, resolution requirement — in inconsistency_flags only. Where the same inconsistency is relevant to another section (an exception_analysis entry, a narrative), that section carries a one-line cross-reference (\"See inconsistency_flags: retention-period conflict\") and never restates the resolution language, so the reader cannot count one defect twice.",
-    "EXCEPTION CITATIONS ARE A SUBSTANTIVE LEGAL DETERMINATION: for each claimed CCPA exception, compare the processing facts described in the intake to each subsection of Cal. Civ. Code § 1798.145 in turn, identify the specific subsection whose elements the record substantiates (or state that none does on the record provided), and cite that subsection as the operative authority — never cite the parent § 1798.145 generically as if the choice of subsection were an administrative formality for the user to complete. Where the record does not substantiate a specific subsection, state that plainly (\"the record does not establish the elements of any § 1798.145 subsection for this activity\") and route it into information_needed with the specific intake field to enrich, per FORWARD PATH ON INSUFFICIENT INPUT. Include ONE summary-level note, in the single most relevant field and never inside any exception_analysis entry or any [TO COMPLETE] placeholder, conveying in your own words that: (1) each claimed exception must be anchored to the specific § 1798.145 subsection whose elements the record satisfies; (2) 11 CCR §§ 7150–7157 impose the duty to document the claimed exception — they do not themselves create exceptions and are never cited as the source of an exception; (3) the note names where citations come from and never asserts which provision applies to this business. Do not reproduce these instructions verbatim; paraphrase. Per the MANDATED TEXT APPEARS ONCE rule, every other field cross-references the note and never restates it.",
+    "EXCEPTION CITATIONS ARE A SUBSTANTIVE LEGAL DETERMINATION: for each claimed CCPA exception, compare the processing facts described in the intake to each subsection of Cal. Civ. Code § 1798.145 in turn, identify the specific subsection whose elements the record substantiates (or state that none does on the record provided), and cite that subsection as the operative authority — never cite the parent § 1798.145 generically as if the choice of subsection were an administrative formality for the user to complete. Distinguish CLAIMED from SUBSTANTIATED: the exception key's pinned cite (surfaced in M8) plus any user-supplied `authority_basis` are CLAIMED — authority the record asserts, which the generator TESTS against § 1798.145 elements and never adopts as its own determination. An exception is SUBSTANTIATED only when the record satisfies the elements of the pinned or asserted subsection; where authority_basis is supplied but the elements are not met, name the mismatch. A per-exception `retention_period`, where supplied, is analysed under that exception's scoping (name what is documented and its adequacy for the claimed purpose); where absent, the ask for it is a record-completeness item (never verdict-blocking) and follows PROPORTIONATE ASKS. Where the record does not substantiate any specific subsection, state that plainly (\"the record does not establish the elements of any § 1798.145 subsection for this activity\") and route it into information_needed with the specific intake field to enrich, per FORWARD PATH ON INSUFFICIENT INPUT. Include ONE summary-level note, in the single most relevant field and never inside any exception_analysis entry or any [TO COMPLETE] placeholder, conveying in your own words that: (1) each claimed exception must be anchored to the specific § 1798.145 subsection whose elements the record satisfies; (2) 11 CCR §§ 7150–7157 impose the duty to document the claimed exception — they do not themselves create exceptions and are never cited as the source of an exception; (3) the note names where citations come from and never asserts which provision applies to this business. Do not reproduce these instructions verbatim; paraphrase. Per the MANDATED TEXT APPEARS ONCE rule, every other field cross-references the note and never restates it.",
     "CHARACTERISING § 7152(a)(1) AND EXCEPTION SCOPING: describe § 7152(a)(1) as requiring identification of the specific purpose of the processing. Do NOT assert that the regulation text expressly enumerates prohibited generic phrases ('to improve our services', 'for security purposes') — the insufficiency of a generic statement is the APPLICATION of the specificity requirement and must be framed as such ('a generic formulation does not satisfy the § 7152(a)(1) specificity requirement'), not as quoted regulatory text. Separately: the requirement that processing under a claimed exception be limited to what that exception's purpose requires derives from the claimed exception provision itself, NOT from § 7152(a)(3). Where the exception provision is identified, cite it for the scoping requirement; where it is not yet identified, state the necessity requirement without a citation. § 7152(a)(3) governs the categories of PI and minimum-necessary documentation for the processing generally and is never cited as the source of exception-specific scoping.",
     "MANDATED TEXT APPEARS ONCE PER DOCUMENT: every mandated parenthetical or definitional clause from these rules — the dimension guidance for non-generic purposes, the service-provider/contractor definition, the minimum-necessary clause, the exception-citation summary note — appears exactly ONCE in the output, in the single most relevant field. Every other field that needs it carries a short cross-reference ('see priority_actions[1]' / '(see § 1798.140(ag)/(j) definitions above)') and never restates the text verbatim. Restating an identical definitional clause in two or more fields is a defect, and the exception-citation note is a single summary-level note, never repeated per exception_analysis entry.",
     "EMPTY INTAKE FIELDS ARE GAPS, NOT GENERATOR-SEVERITY FINDINGS: where a required element is absent because the corresponding intake field arrived empty (e.g. consumer_categories as an empty array), frame it as an intake documentation gap ('Consumer categories were not provided in the intake and must be documented to complete the § 7152(a)(1) processing summary'), severity proportionate to a fill-in — not as a High-severity omission. High severity is reserved for elements the record contains but the processing posture leaves exposed.",
@@ -433,7 +667,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "ITEM TAXONOMY + source_fields: strengthen_items lists each believed-basis entry — item_id (S-1, S-2, ...), the citing regulation, the intake field_ids involved, and the recorded basis verbatim from the assertion. strengthen_items are OPTIONAL depth items: they are never counted in any issues total, never appear in inconsistency_flags or information_needed, and carry no urgency language. Separately, every inconsistency_flags and information_needed entry carries source_fields listing ALL intake field ids that gave rise to it (both sides of a contradiction).",
     "FIELD-ID VOCABULARY (CLOSED SET): source_fields and any intake-field reference (including inconsistency_flags.intake_field_1 / intake_field_2 and information_needed.field) may ONLY use ids from the CANONICAL_INTAKE_FIELDS list injected below, verbatim. NEVER invent, rename, or paraphrase a field id. Never emit descriptors like 'recipients_third_parties' or 'ADMT trigger fields' unless that exact string appears in the canonical list. An entry that cannot be tied to canonical ids should omit source_fields rather than fabricate them.",
     "ADMT-FIELD SOURCE MAPPING: for the negated-q18-vs-detailed-ADMT-fields inconsistency, the raw intake ids are 'q19_admt_description' and 'q20_admt_opt_out' (these ARE members of the CANONICAL_INTAKE_FIELDS vocabulary when populated in the intake). The intake normaliser exposes their content elsewhere in the report under 'content_detail.admt_description' and 'content_detail.admt_opt_out' — those are report-display paths, not intake-field ids, and MUST NOT appear in source_fields, intake_field_1/2, or information_needed.field. Use the raw intake ids (q19_admt_description / q20_admt_opt_out) in every source_fields context; where prose narrative needs to reference the same content, name the intake id in parentheses on first mention: 'ADMT description (intake field q19_admt_description; surfaced as content_detail.admt_description)'. Where q19_admt_description or q20_admt_opt_out does NOT appear in the injected CANONICAL_INTAKE_FIELDS vocabulary for a given run, do not fabricate them into source_fields — omit source_fields for that entry per the FIELD-ID VOCABULARY rule.",
-    "CYBERSECURITY-AUDIT RATIONALE — NO UNGROUNDED HEDGES, NO CANNED CONCLUSIONS: cross_tool_recommendations.cybersecurity_audit_rationale states a determination grounded in the intake, not a hedged possibility unmoored from the record — and never a conclusion the record cannot support. Sensitive-PI prong: where normalised_intake.triggers.sensitive_pi_beyond_enumerated is false AND no other intake field affirmatively indicates sensitive-PI processing at or approaching the 50,000-consumer threshold, state plainly that on the current record the § 7120(b)(2)(B) sensitive-PI threshold is not indicated — do NOT write hedges of the form 'may approach the 50,000 sensitive-PI threshold… but this has not been fully confirmed'. Where a SPECIFIC intake field DOES suggest sensitive-PI processing, cite that field explicitly. Volume prong: assess the § 7120(b)(2)(A) 250,000-consumer-or-household threshold against the recorded annual_consumer_volume BAND per the BAND-VS-THRESHOLD RULE — state 'met' only if the band lies entirely at or above 250,000, 'not met' only if the band lies entirely below 250,000, and otherwise state that the recorded band straddles the threshold so the volume prong is indeterminate on the current record and the exact count is required. Revenue prong (§ 7120(b)(1) 50%-from-sale/share): state met / not met / insufficient data as the intake supports.",
+    "CYBERSECURITY-AUDIT RATIONALE — NO UNGROUNDED HEDGES, NO CANNED CONCLUSIONS: cross_tool_recommendations.cybersecurity_audit_rationale states a determination grounded in the intake, not a hedged possibility unmoored from the record — and never a conclusion the record cannot support. Read every prong from the injected TEST-STATES block and defer to it: (i) sensitive-PI prong — reflect M4's state verbatim (RESOLVED not applicable when q15_sensitive_pi = No; RESOLVED met when q15c_spi_volume = '50,000 or more'; RESOLVED not met when q15c_spi_volume = 'Fewer than 50,000'; INDETERMINATE otherwise, in which case use insufficient-basis language anchored to q15c_spi_volume). Do NOT emit hedges of the form 'may approach the 50,000 sensitive-PI threshold… but this has not been fully confirmed' when M4 is RESOLVED. (ii) volume prong — reflect M3's state verbatim, per the BAND-VS-THRESHOLD RULE. (iii) revenue prong (§ 7120(b)(1) 50%-from-sale/share) — reflect M5's state verbatim (RESOLVED not-met when q5_sell_share = No or q5c_share_revenue_50pct = No; RESOLVED met when q5c_share_revenue_50pct = Yes; INDETERMINATE otherwise). Zero canned prong-specific phrasing beyond what the TEST-STATES basis supports.",
     "BAND-VS-THRESHOLD RULE: when an intake value is recorded as a RANGE/BAND and a statutory threshold falls strictly inside that range, the threshold determination is INDETERMINATE on the current record — never assert met or not met. State that the recorded band cannot resolve the threshold, and add an information_needed entry requesting the exact figure. A band lying entirely below the threshold supports 'not met'; entirely at or above supports 'met' (subject to any conjunctive conditions). 'Unsure' resolves no threshold. This applies to every banded figure, including the 250,000-consumer/household and 50,000-sensitive-PI volumes (§ 7120(b)(2)) and the $25M / $100M revenue lines (§ 1798.140(d)(1)(A), § 7121(a)). Encompassing is not straddling: a $25M–$100M revenue band lies entirely above the $25M line and supports 'met' for that line while remaining indeterminate for the $100M line.",
     "BENEFITS_OUTWEIGH_RISKS_CONCLUSION IS A RECORD-COMPLETENESS LABEL, NOT A MERITS DETERMINATION: where the record is incomplete, the value of benefits_outweigh_risks_conclusion is exactly 'Cannot be determined — record incomplete. See benefits_outweigh_risks_rationale for detail' (verbatim, matching the schema enum) — NEVER 'Insufficient basis' as a shorthand label, and NEVER 'No' or 'Uncertain' when the underlying issue is record completeness rather than a substantive weighing. The rationale field carries the specifics of what is missing and why the balance cannot yet be struck. Where the record IS sufficient and a substantive determination is possible, use 'Yes' / 'No' / 'Uncertain' as appropriate and put the merits reasoning in the rationale. Do not use the record-completeness label to avoid a substantive determination that the record actually supports.",
     "ADMT-INCONSISTENCY DEADLINE SURFACES BOTH DATES: the priority_action addressing the negated-q18-vs-detailed-ADMT-fields inconsistency (or any action that combines the § 7155(b) assessment-record deadline with the § 7220 ADMT pre-use-notice deadline in its deadline_basis) MUST surface both dates in the deadline field itself so the field cannot be read alone as governed by a single clock. Each date carries its computed temporal framing per the prompt-core TEMPORAL FRAMING RULE, based on the assessment date. Canonical form for the deadline field (framing conditional on the assessment date; substitute the operative phrase for each date at generation time): \"2027-12-31 (assessment record — [operative | prospective as of the assessment date]); 2027-01-01 if ADMT confirmed (pre-use notice — [operative | prospective as of the assessment date]; see action [N])\" — where [N] cross-references the separate ADMT pre-use notice priority action if one exists. deadline_basis then cites both § 7155(b) and § 7220 with the conditional trigger for each. Where the two deadlines govern genuinely separate deliverables, prefer splitting into two priority actions (per the ONE DEADLINE PER ACTION rule) — the both-dates deadline form is reserved for the single-action inconsistency-resolution case where the applicable deadline depends on how the controller resolves the ADMT determination. Where a separate ADMT pre-use-notice priority action EXISTS in the same output, the inconsistency action's deadline field carries ONLY the § 7155(b) assessment-record date, and the § 7220 date lives solely in that separate action.",
@@ -442,6 +676,10 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "INCONSISTENCY CHARACTERISATIONS MATCH ACROSS SECTIONS: where inconsistency_flags describes two records as 'coexisting with an undocumented relationship', every other section referencing the same issue (exception_analysis flags, priority actions) uses the same characterisation — never 'conflicts with' in one place and 'not necessarily contradictory' in another.",
     "INDETERMINATE ADMT STATUS IS PHRASED AS INDETERMINATE: where the ADMT determination is unresolved and the cross-tool recommendation flag is true, write 'whether an ADMT assessment is required cannot be determined on the current record pending resolution' — never 'an ADMT assessment is not triggered... pending resolution', which contradicts the flag.",
     "§7001(e)(2) IS THE SUBSTANTIALLY-REPLACES STANDARD: cite §7001(e)(2) as defining when ADMT substantially replaces human decisionmaking (meaningful human involvement not practicable) — never as a standalone definition of 'meaningful human involvement'.",
+    "TEST-STATES ARE BINDING (R1b1 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1–M10). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry for it, and NEVER ask the user to confirm/verify/validate/document it. A RESOLVED state may never be contradicted in prose. Any test whose state is INDETERMINATE uses insufficient-basis language and MUST generate exactly ONE information_needed entry anchored to the producing field(s) listed in the block. Cross-reference by test id (e.g. 'per TEST-STATES M4') when the same conclusion recurs across sections.",
+    "PROPORTIONATE ASKS (R1b1 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Only verdict-blocking and record-completeness items appear in information_needed (verdict-blocking listed first). Enhancement items appear ONLY in the strengthen/depth mechanism (strengthen_items), with no urgency language. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record establishes BEFORE the residual; the residual is incremental (e.g. 'Additional recipients should be named, with the categories of PI each processes'), and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element that blocks it rather than collapsing the whole determination.",
+    "ADMT ASK ROUTING (R1b1 rule 2e): any information_needed entry arising from a q18-class ADMT determination anchors to `i5_admt_logic` (the free-text home for ADMT logic/description), NEVER to q18/q19/q20 radios. Where the ask genuinely concerns a radio's binary state (rare), route it via the record-completion action rather than an information_needed entry.",
+    "GUIDED-DIMENSIONS FOR OVERLOADED FREE-TEXT FIELDS (R1b1 rule 2f): information_needed entries anchored to `i6_vendors`, `i2_retention_period`, or `i1b_min_pi` MUST enumerate the DIMENSIONS a sufficient answer covers (per ACTIONABLE FILL-IN GUIDANCE) and close with the instruction 'enrich this field and re-run'. Never emit a bare 'provide more detail' ask for these fields.",
     "VOCABULARY — 'GAP' IS BANNED IN PROSE: the word 'gap'/'gaps' must not appear anywhere in generated prose. Use 'deficiency', 'shortfall', or 'missing element' instead. The only permitted occurrence is the exact schema enum value 'Material gaps identified' where the schema requires it.",
   ].join("\n"),
 
@@ -709,28 +947,32 @@ async function runPipeline(assessment_id: string) {
     const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations } = await retrieveCorpusContext(fiveStage);
 
     const today = new Date().toISOString().slice(0, 10);
+    const rawIntake = (row.intake_data ?? {}) as Record<string, unknown>;
+
+    // R1b1 — compute deterministic TEST-STATES and inject them into the system content.
+    const testStates = computeTestStates(fiveStage, rawIntake as Record<string, any>);
+    const testStatesBlock = formatTestStatesBlock(testStates);
+
     const injected = [
       `ENFORCEMENT CONTEXT FROM CORPUS:\n${enforcementContext || "(none returned)"}`,
       `LONGITUDINAL ENFORCEMENT PATTERNS:\n${longitudinalSynthesis || "(none returned)"}`,
       `VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):\n${statuteContext || "(none returned)"}`,
       `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
+      testStatesBlock,
     ].join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
       currentDate: today,
       injected,
     });
-    const rawIntake = (row.intake_data ?? {}) as Record<string, unknown>;
     const subjectAnchor = typeof rawIntake?.subject_anchor === "string" ? (rawIntake.subject_anchor as string).trim() : "";
-    // Doc O 3c-2(i): canonical intake-field vocabulary. The intake IS
-    // the schema — enumerate its top-level keys and inject them into
-    // the user prompt so the model has an authoritative closed set
-    // for source_fields / intake_field_1 / intake_field_2 / field.
+    // Doc O 3c-2(i): canonical intake-field vocabulary.
     const canonicalFieldIds = Object.keys(rawIntake)
       .filter((k) => k !== "assertions")
       .sort();
     const canonicalBlock = `CANONICAL_INTAKE_FIELDS (closed vocabulary — use only these ids verbatim in source_fields, intake_field_1/2, and information_needed.field):\n${canonicalFieldIds.map((k) => `  - ${k}`).join("\n")}`;
     const userPrompt = `${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}`;
+
 
     const t0 = Date.now();
     let parsed: any = null;
@@ -865,14 +1107,102 @@ async function runPipeline(assessment_id: string) {
         }));
       }
 
+      // T-2 — TEST-STATES ARE BINDING: any information_needed entry, hedge, or
+      // confirm-ask referencing a test whose injected state is RESOLVED is a hard
+      // violation. Uses the same testStates map that was injected into the prompt.
+      const hedgeRe = /\b(cannot be determined|insufficient basis|not established|no basis to assess|indeterminate|please confirm|please verify)\b/i;
+      const infoEntries: any[] = Array.isArray(parsed?.information_needed) ? parsed.information_needed : [];
+      let t2Violation = false;
+      const t2Details: Array<{ test: string; kind: "info_needed" | "hedge_in_prose"; detail: string }> = [];
+      for (const [testId, ts] of Object.entries(testStates)) {
+        if (ts.state === "indeterminate") continue;
+        const src = new Set(ts.source_fields);
+        for (const entry of infoEntries) {
+          const entryFields = new Set<string>([
+            ...(Array.isArray(entry?.source_fields) ? entry.source_fields : []),
+            ...(typeof entry?.field === "string" ? [entry.field] : []),
+          ]);
+          const overlaps = [...entryFields].some((f) => src.has(f));
+          if (overlaps) {
+            t2Violation = true;
+            t2Details.push({ test: testId, kind: "info_needed", detail: String(entry?.field ?? entry?.dimensions ?? "").slice(0, 120) });
+          }
+        }
+        // Detect hedge phrases in cybersecurity_audit_rationale where any of the
+        // three prong tests M3/M4/M5 or the cohort M6 is RESOLVED.
+        if (["M3", "M4", "M5", "M6"].includes(testId)) {
+          const rationale = String(parsed?.cross_tool_recommendations?.cybersecurity_audit_rationale ?? "");
+          if (hedgeRe.test(rationale)) {
+            t2Violation = true;
+            t2Details.push({ test: testId, kind: "hedge_in_prose", detail: rationale.slice(0, 160) });
+          }
+        }
+      }
+      if (t2Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-2", fn: "run-cppa-risk-assessment", details: t2Details.slice(0, 10) }));
+      }
 
-      if (banned.length || hasHardViolations(lint) || t1Violation) {
+      // T-3 — BANNED COLLAPSE: banned-collapse phrasing applied to a determination
+      // that the record actually credits. Heuristic: an activity block whose
+      // current_safeguards or benefits fields carry substantive content AND whose
+      // conclusion/rationale contains 'cannot be determined' / 'no basis to assess' /
+      // 'not established' collapses a credited determination.
+      let t3Violation = false;
+      const t3Details: string[] = [];
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const activities: any[] = Array.isArray(parsed?.risk_assessment_by_activity) ? parsed.risk_assessment_by_activity : [];
+      for (let i = 0; i < activities.length; i++) {
+        const a = activities[i] ?? {};
+        const hasEvidence =
+          String(a.current_safeguards ?? "").trim().length > 20 ||
+          String(a.benefits_to_business ?? "").trim().length > 20 ||
+          String(a.benefits_to_consumers ?? "").trim().length > 20;
+        const concl = String(a.benefits_outweigh_risks_conclusion ?? "") + " " + String(a.benefits_outweigh_risks_rationale ?? "");
+        if (hasEvidence && collapseRe.test(concl)) {
+          t3Violation = true;
+          t3Details.push(`activity[${i}]: credited evidence present but conclusion uses banned-collapse phrasing`);
+        }
+      }
+      if (t3Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-3", fn: "run-cppa-risk-assessment", details: t3Details.slice(0, 10) }));
+      }
+
+      // T-4 — ENHANCEMENT-CLASS in information_needed. Detectable subset: entries
+      // whose `dimensions` text contains no statutory-requirement anchor AND uses
+      // optional-depth language. Uncertain cases are log-only (t4_observe).
+      const statAnchorRe = /(§\s*\d|11\s*CCR|1798\.|section\s+\d)/i;
+      const depthLangRe = /\b(could|would strengthen|additional context|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      let t4Violation = false;
+      const t4Details: string[] = [];
+      const t4Observe: string[] = [];
+      for (const entry of infoEntries) {
+        const dim = String(entry?.dimensions ?? "");
+        const hasDepthLang = depthLangRe.test(dim);
+        const hasAnchor = statAnchorRe.test(dim) || statAnchorRe.test(String(entry?.provision ?? ""));
+        if (hasDepthLang && !hasAnchor) {
+          t4Violation = true;
+          t4Details.push(String(entry?.field ?? "?") + ": " + dim.slice(0, 120));
+        } else if (hasDepthLang) {
+          t4Observe.push(String(entry?.field ?? "?"));
+        }
+      }
+      if (t4Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-4", fn: "run-cppa-risk-assessment", details: t4Details.slice(0, 10) }));
+      }
+      if (t4Observe.length) {
+        console.log(JSON.stringify({ evt: "t4_observe", fn: "run-cppa-risk-assessment", fields: t4Observe.slice(0, 20) }));
+      }
+
+      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation) {
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
           banned,
           violations: lint.violations?.slice(0, 20) ?? [],
           t1: t1Violation,
+          t2: t2Violation,
+          t3: t3Violation,
+          t4: t4Violation,
         }));
         const retry = await callModel(system, userPrompt, "generate-v4-retry");
         const retryParsed = tryParseJson(retry.text);
@@ -882,6 +1212,7 @@ async function runPipeline(assessment_id: string) {
           debugRaw = retry.text;
         }
       }
+
     } catch (e) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
@@ -1483,7 +1814,7 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
