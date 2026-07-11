@@ -232,6 +232,13 @@ export default function CPPACybersecurity() {
         {!refine.isRefine && (<></>)}
         {!refine.isRefine && (<></>)}
         {!refine.isRefine && (<>
+        <DraftRestoreBanner
+          draftFound={draftFound}
+          touched={touched}
+          draftUpdatedAt={draftUpdatedAt}
+          onResume={applyRestore}
+          onDiscard={() => { void clearDraft(); }}
+        />
 
         <IntakeMasthead
           kicker="CPPA Cybersecurity Audit Readiness · 11 CCR § 7123"
