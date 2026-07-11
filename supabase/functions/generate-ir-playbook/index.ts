@@ -519,10 +519,12 @@ Deno.serve(async (req) => {
         });
       }
       rowId = row.id;
-      await supabase
-        .from("ir_playbooks")
-        .update({ status: "processing", updated_at: new Date().toISOString() })
-        .eq("id", rowId);
+      const procWrite = await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "processing", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "pre_generation" });
+      if (!procWrite.ok) {
+        return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     } else {
       if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
         return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
