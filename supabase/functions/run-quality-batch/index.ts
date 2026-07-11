@@ -894,13 +894,23 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       return { sourceTable: "li_assessments", sourceRowId: rec.id, reportData: await poll("li_assessments", rec.id) };
     }
     if (tool === "dpia") {
-      const { data: rec, error } = await admin.from("dpia_frameworks").insert({ ...intake, user_id: userId }).select("id").single();
+      const { data: rec, error } = await admin.from("dpia_frameworks").insert({
+        user_id: userId,
+        status: "pending",
+        intake_data: intake,
+        organization_name: intake?.organisation_name ?? intake?.organization_name ?? "Test Org",
+      }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-dpia-framework", { framework_id: rec.id }).catch(() => {});
+      invokeFn("run-dpia-framework", { dpia_id: rec.id }).catch(() => {});
       return { sourceTable: "dpia_frameworks", sourceRowId: rec.id, reportData: await poll("dpia_frameworks", rec.id) };
     }
     if (tool === "governance") {
-      const { data: rec, error } = await admin.from("governance_assessments").insert({ ...intake, user_id: userId }).select("id").single();
+      const { data: rec, error } = await admin.from("governance_assessments").insert({
+        user_id: userId,
+        status: "pending",
+        intake_data: intake,
+        organization_name: intake?.organization_name ?? intake?.company_name ?? "Test Org",
+      }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
       invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
       return { sourceTable: "governance_assessments", sourceRowId: rec.id, reportData: await poll("governance_assessments", rec.id) };
