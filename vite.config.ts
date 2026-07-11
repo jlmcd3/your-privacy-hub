@@ -44,7 +44,10 @@ export default defineConfig(({ mode }) => {
             if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return "react-vendor";
             if (id.includes("react-router")) return "router-vendor";
             if (id.includes("@tanstack/react-query")) return "query-vendor";
-            if (id.includes("react-helmet-async")) return "helmet-vendor";
+            // NOTE: do NOT split react-helmet-async into its own chunk — doing so
+            // triggers a runtime TDZ ("Cannot access 'T' before initialization")
+            // because Rollup hoists a helper reference across the chunk boundary.
+            // Leave it bundled with its consumers.
             if (id.includes("@radix-ui")) return "radix-vendor";
             if (id.includes("lucide-react")) return "icons-vendor";
             if (id.includes("sonner") || id.includes("cmdk") || id.includes("vaul")) return "ui-vendor";
