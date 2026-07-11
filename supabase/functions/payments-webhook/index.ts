@@ -526,13 +526,11 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     };
     const table = tableMap[tool_type];
     if (table) {
-      await supabase
-        .from(table)
-        .update({
-          stripe_payment_intent_id: (session.payment_intent as string) || session.id,
-          purchase_price_cents: session.amount_total || 0,
-        })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, table, assessment_id, {
+        stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+        purchase_price_cents: session.amount_total || 0,
+      }, { fn: "payments-webhook", phase: "payment_evidence" });
+
 
       const fnMap: Record<string, string> = {
         li_assessment: "run-li-assessment",
