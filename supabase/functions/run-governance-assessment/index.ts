@@ -807,6 +807,7 @@ Vendor DPA status: ${intake.dpa_status || "not specified"}
 DPA Article 28(3) verification: ${intake.dpa_art28_verified || "not specified"}
 Cross-border transfer status: ${intake.transfer_status || "not specified"}
 Transfer mechanism in place: ${intake.transfer_mechanism || "not specified"}${intake.tool_instruction ? `\nTool-specific note: ${intake.tool_instruction}` : ""}
+Additional context (user narrative — treat per R1b2 rule 2d ADDITIONAL_CONTEXT CONSUMPTION; NOT structured intake): ${intake.additional_context ? String(intake.additional_context).trim() : "not specified"}
 
 `;
 
