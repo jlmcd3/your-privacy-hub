@@ -1107,6 +1107,10 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
 STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
 
     const today = new Date().toISOString().slice(0, 10);
+    // R1b2 — compute deterministic TEST-STATES from the request body and inject
+    // them into the composed system alongside the registry-sourced facts.
+    const biometricTestStates = computeBiometricTestStates(body as unknown as Record<string, unknown>);
+    const biometricTestStatesBlock = renderBiometricTestStatesBlock(biometricTestStates);
     const composedSystem: SystemBlock[] = buildSystemContent({
       toolModule: BIOMETRIC_TOOL_MODULE,
       variant: isStressRun ? "lean" : "full",
@@ -1115,7 +1119,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       // FORK-R1 R4: facts (ICO figures, BIPA citations, CUBI map, FDBR, PRA-by-statute)
       // come from the registry — never from inline prose. A one-line registry edit
       // changes the biometric output on the next run.
-      injected: renderRegistryFor("biometric-checker"),
+      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}`,
     });
     // Pilot override: service-role callers can fully replace the system prompt to
     // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).
