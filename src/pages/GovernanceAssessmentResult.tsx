@@ -156,8 +156,16 @@ const GovernanceAssessmentResult = () => {
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
-          {!loading && (status === "pending" || status === "processing") && (
-            <ProcessingInterstitial tool="governance" />
+          {(phase === "stalled" || phase === "stalled_pre_dispatch") && (
+            <GenerationStalledCard variant={phase} retryHref="/governance-assessment" onRefresh={refresh} />
+          )}
+
+          {!loading && (phase === "running" || phase === "slow") && (
+            <ProcessingInterstitial
+              tool="governance"
+              startedAt={assessment?.updated_at ?? assessment?.created_at}
+              slow={phase === "slow"}
+            />
           )}
 
           {(status === "failed" || status === "error") && (
