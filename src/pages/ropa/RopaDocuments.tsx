@@ -204,8 +204,10 @@ export default function RopaDocuments() {
       if (genError) throw genError;
 
       const terminal = await pollSessionUntilTerminal(doc.session_id);
-      if (terminal === "failed") throw new Error("Generation failed — please try again.");
-      if (terminal === "timeout") throw new Error("Generation timed out. Please try again.");
+      if (terminal.outcome === "failed") {
+        throw new Error(terminal.error?.trim() || "Generation failed — please try again.");
+      }
+      if (terminal.outcome === "timeout") throw new Error("Generation timed out. Please try again.");
 
       // Read the freshly written signed URL from the version row.
       const { data: ver } = await supabase
