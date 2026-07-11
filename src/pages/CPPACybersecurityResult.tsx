@@ -499,7 +499,7 @@ export default function CPPACybersecurityResult() {
       <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
-        {purchased && !terminal && !pollTimedOut && (
+        {purchased && !terminal && !isStalled && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             {row?.retry_count > 0
               ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${row.retry_count + 1} of 3). No action needed.`
@@ -532,17 +532,15 @@ export default function CPPACybersecurityResult() {
           {loading && <p>Loading…</p>}
 
           {showRunning && (
-            <ProcessingInterstitial tool="cppa_cyber" />
+            <ProcessingInterstitial
+              tool="cppa_cyber"
+              startedAt={row?.updated_at ?? row?.created_at}
+              slow={phase === "slow"}
+            />
           )}
 
-          {pollTimedOut && status !== "complete" && status !== "error" && (
-            <div className="bg-card border rounded-lg p-6 space-y-3">
-              <p className="font-medium text-amber-700">Status check timed out.</p>
-              <p className="text-sm text-muted-foreground">
-                We stopped polling after ~20 minutes. The job may still be running, or it may have failed silently. Refresh to re-check, or contact support if this persists.
-              </p>
-              <Button onClick={() => window.location.reload()}>Refresh status</Button>
-            </div>
+          {isStalled && (
+            <GenerationStalledCard variant={phase as any} retryHref="/cppa-cybersecurity" onRefresh={refresh} />
           )}
 
           {status === "error" && (
