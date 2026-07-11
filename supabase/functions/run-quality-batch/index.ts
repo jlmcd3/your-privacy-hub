@@ -310,17 +310,13 @@ const CHECKS: Check[] = [
 
     const isResolved = (s: string) => s === "resolved_met" || s === "resolved_not_met" || s === "resolved_not_applicable";
 
-    // Build the FiveStageIntake shape the risk generator produces so
-    // computeRiskTestStates has a stable input regardless of fixture surface.
-    const asFiveStage = (intake: any): FiveStageIntake => ({
-      triggers: intake?.triggers ?? {},
-      exceptions: intake?.exceptions ?? {},
-      activity_details: Array.isArray(intake?.activity_details) ? intake.activity_details : [],
-      impact: intake?.impact ?? {},
-      org_context: intake?.org_context ?? {},
-      annual_consumer_volume: intake?.annual_consumer_volume,
-      content_detail: intake?.content_detail,
-    });
+    // R1e: mirror the generator pipeline exactly. `resolveIntakeForTestStates`
+    // returns the same FiveStageIntake `normaliseIntake` produces AND a
+    // raw-shim view with the flat q*_ keys back-filled from
+    // org_context / annual_consumer_volume / content_detail so both fixture
+    // shapes (flat legacy, 5-stage) resolve identical M-states.
+    const resolveForChecks = (intake: any) => resolveIntakeForTestStates(intake ?? {});
+
 
     const collectInfoNeeded = (report: any): any[] => {
       const out: any[] = [];
