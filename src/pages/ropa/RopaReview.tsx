@@ -14,6 +14,10 @@ import RopaInlineFlag from "@/components/ropa/RopaInlineFlag";
 import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import RopaSetup from "./RopaSetup";
+import { useToast } from "@/hooks/use-toast";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
 
 type GenStep = "client" | "activities" | "transfers" | "pdf" | "xlsx";
 
