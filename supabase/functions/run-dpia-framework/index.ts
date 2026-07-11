@@ -1,4 +1,4 @@
-// qb8 build active
+// qb9 dpia-r1b2.1 time-budgeted T-2/T-3/T-4 retry active
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -24,6 +24,8 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
   const startedAt = Date.now();
@@ -273,7 +275,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=r1b2.1`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -765,6 +767,7 @@ Generate substantive draft rows for every table for the controller to verify; us
       return parsed;
     }
 
+    const generationStartedAt = Date.now();
     let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
 
     let reportData: any = { ...partA, ...partB };
@@ -961,9 +964,10 @@ Generate substantive draft rows for every table for the controller to verify; us
       }
     }
 
-    // R1b2 — post-lint T-2/T-3/T-4 gate. Single-call topology; one retry cap.
-    // Rebuilds BOTH halves once on violation (the target defects can land in
-    // either half); merges over reportData. Then proceeds with residuals logged.
+    // R1b2.1 — post-lint T-2/T-3/T-4 gate. Single-call topology; one retry cap,
+    // but time-budgeted: rebuilding both halves is only safe early in the run.
+    // If the gate trips after the elapsed threshold, log the violation and
+    // proceed with residuals merged into lint_warnings (IR-style log-only posture).
     {
       const hedgeAskRe = /\b(please confirm|please verify|to be confirmed|\[TO COMPLETE)/i;
       const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
@@ -1067,30 +1071,45 @@ Generate substantive draft rows for every table for the controller to verify; us
       let detected = detectDpiaViolations();
       const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
       if (totalHits > 0) {
+        const elapsedAtViolationMs = Date.now() - generationStartedAt;
+        const retryWithinBudget = elapsedAtViolationMs < DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS;
         console.warn(JSON.stringify({
-          evt: "post_lint_violation",
+          evt: "post_gen_violation",
           fn: "run-dpia-framework",
+          elapsed_ms: elapsedAtViolationMs,
+          retry_threshold_ms: DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
+          retry_within_budget: retryWithinBudget,
           t2: detected.t2.slice(0, 6),
           t3: detected.t3.slice(0, 6),
           t4: detected.t4.slice(0, 6),
         }));
-        try {
-          const parts: string[] = [];
-          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED tests: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
-          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies substantive inputs; do NOT collapse determinations with 'cannot be determined'/'no basis to assess'/'not established'`);
-          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every completion_guidance item must be verdict-blocking or record-completeness, anchored to a cited GDPR/EDPB provision; remove pure depth items`);
-          const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
-          const [newA, newB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
-          const mergedA = (newA && Object.keys(newA).length > 0) ? newA : partA;
-          const mergedB = (newB && Object.keys(newB).length > 0) ? newB : partB;
-          reportData = { ...mergedA, ...mergedB };
-          detected = detectDpiaViolations();
-          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
-          if (stillHits > 0) {
-            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits }));
+        if (retryWithinBudget) {
+          try {
+            const parts: string[] = [];
+            if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED tests: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
+            if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies substantive inputs; do NOT collapse determinations with 'cannot be determined'/'no basis to assess'/'not established'`);
+            if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every completion_guidance item must be verdict-blocking or record-completeness, anchored to a cited GDPR/EDPB provision; remove pure depth items`);
+            const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
+            const [newA, newB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
+            const mergedA = (newA && Object.keys(newA).length > 0) ? newA : partA;
+            const mergedB = (newB && Object.keys(newB).length > 0) ? newB : partB;
+            reportData = { ...mergedA, ...mergedB };
+            detected = detectDpiaViolations();
+            const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+            if (stillHits > 0) {
+              console.warn(JSON.stringify({ evt: "post_gen_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits }));
+            }
+          } catch (e) {
+            console.warn("[DPIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
           }
-        } catch (e) {
-          console.warn("[DPIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        } else {
+          console.warn(JSON.stringify({
+            evt: "post_gen_violation_retry_skipped",
+            fn: "run-dpia-framework",
+            reason: "elapsed_budget_exceeded",
+            elapsed_ms: elapsedAtViolationMs,
+            retry_threshold_ms: DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
+          }));
         }
         for (const v of detected.t2) lintViolations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) lintViolations.push({ rule: "T-3", ...v });
@@ -1112,7 +1131,7 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
-    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2") };
+    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2.1") };
 
     // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
     try {
