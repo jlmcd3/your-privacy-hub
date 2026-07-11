@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
+const DPIA_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -108,26 +112,16 @@ const DPIAFrameworkResult = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
-  const [dpia, setDpia] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [consultationNote, setConsultationNote] = useState("");
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    const fetchOnce = async () => {
-      const { data } = await supabase.from("dpia_frameworks").select("*").eq("id", id).maybeSingle();
-      setDpia(data);
-      setLoading(false);
-      if (data && (data.status === "pending" || data.status === "processing")) {
-        timer = setTimeout(fetchOnce, 4000);
-      }
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
+  const { row: dpia, loading, phase, refresh, setRow: setDpia } = useGenerationStatus<any>({
+    table: "dpia_frameworks",
+    rowId: id,
+    isTerminal: (r) => DPIA_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
+  });
 
   const report = (translated?.report_data ?? dpia?.report_data) || {};
   const meta = report?.dpia_metadata || {};
@@ -210,8 +204,16 @@ const DPIAFrameworkResult = () => {
           )}
           {loading && <p>Loading…</p>}
 
-          {!loading && (status === "pending" || status === "processing") && (
-            <ProcessingInterstitial tool="dpia" />
+          {(phase === "stalled" || phase === "stalled_pre_dispatch") && (
+            <GenerationStalledCard variant={phase} retryHref="/dpia-framework" onRefresh={refresh} />
+          )}
+
+          {!loading && (phase === "running" || phase === "slow") && (
+            <ProcessingInterstitial
+              tool="dpia"
+              startedAt={dpia?.updated_at ?? dpia?.created_at}
+              slow={phase === "slow"}
+            />
           )}
 
           {status === "failed" && (

@@ -68,14 +68,48 @@ function fmt(s: number) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
-export function ProcessingInterstitial({ tool, label: labelOverride }: { tool: ToolKey; label?: string }) {
+export function ProcessingInterstitial({
+  tool,
+  label: labelOverride,
+  startedAt,
+  slow = false,
+}: {
+  tool: ToolKey;
+  label?: string;
+  /**
+   * ISO timestamp anchor for elapsed. Callers should pass the row's
+   * `updated_at` (or `created_at` before dispatch) so the elapsed clock and
+   * stage animation survive a refresh instead of resetting to 0:00.
+   */
+  startedAt: string;
+  /**
+   * When true, the "taking longer than expected" copy is shown regardless of
+   * whether elapsed has crossed the tool's ETA. Driven by useGenerationStatus
+   * once updated_at is > 10 minutes old.
+   */
+  slow?: boolean;
+}) {
   const cfg = TOOLS[tool];
-  const [elapsed, setElapsed] = useState(0);
+
+  // Compute elapsed against the server-provided anchor, not a tab-local
+  // counter, so a refresh resumes the clock instead of implying a restart.
+  const anchorMs = (() => {
+    const t = Date.parse(startedAt);
+    return Number.isFinite(t) ? t : Date.now();
+  })();
+  const [elapsed, setElapsed] = useState<number>(() =>
+    Math.max(0, Math.floor((Date.now() - anchorMs) / 1000)),
+  );
 
   useEffect(() => {
-    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
+    // Recompute from the anchor on every tick — never `e => e + 1`, which
+    // would drift and reset on remount.
+    const tick = () =>
+      setElapsed(Math.max(0, Math.floor((Date.now() - anchorMs) / 1000)));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [anchorMs]);
 
   if (!cfg) {
     return (
@@ -89,7 +123,7 @@ export function ProcessingInterstitial({ tool, label: labelOverride }: { tool: T
   const n = cfg.stages.length;
   const perStage = cfg.etaSeconds / n;
   const activeIdx = Math.min(n - 1, Math.floor(elapsed / perStage));
-  const overrun = elapsed > cfg.etaSeconds;
+  const overrun = slow || elapsed > cfg.etaSeconds;
   const pct = Math.min(95, Math.round((elapsed / cfg.etaSeconds) * 100));
 
   return (
@@ -101,7 +135,11 @@ export function ProcessingInterstitial({ tool, label: labelOverride }: { tool: T
         </svg>
         <h3 className="font-serif text-lg text-foreground mb-1">Building your {label}</h3>
         <p className="text-sm text-muted-foreground">
-          {overrun ? "Almost there — finalising your report…" : `This typically takes ${cfg.etaText}.`}{" "}
+          {slow
+            ? "This is taking longer than expected — we are still working on it."
+            : overrun
+              ? "Almost there — finalising your report…"
+              : `This typically takes ${cfg.etaText}.`}{" "}
           <span className="tabular-nums">Elapsed {fmt(elapsed)}</span>
         </p>
       </div>

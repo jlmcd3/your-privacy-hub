@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -94,13 +96,39 @@ export default function CPPARiskAssessmentResult() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
-  const [row, setRow] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
-  const [pollTimedOut, setPollTimedOut] = useState(false);
   const { isPro } = useSubscriptionTier();
   const [kitLoading, setKitLoading] = useState(false);
+
+  // Report-ready predicate is shared between the polling hook and render.
+  const computeReportReady = (r: any): boolean => {
+    const rd = r?.report_data as any;
+    if (!rd || typeof rd !== "object" || Object.keys(rd).length === 0) return false;
+    const isV3 = rd.schema_version === "v3-part-a-part-b" && !!rd.part_a;
+    return !!(
+      isV3
+      || isV4Report(rd)
+      || Array.isArray(rd.domains)
+      || typeof rd.executive_summary === "string"
+      || !!rd.assessment_summary
+      || !!rd.risk_assessment_by_activity
+      || !!rd.part_a
+    );
+  };
+
+  const { row, loading, phase, refresh, setRow } = useGenerationStatus<any>({
+    table: "cppa_assessments",
+    rowId: id,
+    // "complete" without report_data is treated as still running — keep polling.
+    isTerminal: (r) => {
+      const s = String(r?.status ?? "");
+      if (s === "error" || s === "refunded" || s === "failed_resolved" || s === "failed") return true;
+      if (s === "complete") return computeReportReady(r);
+      return false;
+    },
+    isReportReady: (r) => r?.status === "complete" && computeReportReady(r),
+  });
 
   // Doc P Step 4: standalone Risk result page entry point.
   // Flag stays OFF in production; Professional-only.
@@ -135,67 +163,14 @@ export default function CPPARiskAssessmentResult() {
     }
   };
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    let attempts = 0;
-    // Extended poll budget: 3s × 100 (5 min) + 6s × 150 (15 min) ≈ 20 min total.
-    // Generator runs can exceed 6 min on heavy intakes; old 5-min cap silently
-    // froze the page on a stale "processing" snapshot.
-    const MAX_POLLS = 250;
-    const fetchOnce = async () => {
-      const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
-      setRow(data);
-      setLoading(false);
-      const rd = data?.report_data as any;
-      const reportReady = rd && typeof rd === "object" && Object.keys(rd).length > 0
-        && (
-          Array.isArray(rd.domains)
-          || typeof rd.executive_summary === "string"
-          || !!rd.assessment_summary
-          || !!rd.risk_assessment_by_activity
-          || !!rd.part_a
-        );
-      const stillRunning = data && (
-        data.status === "pending"
-        || data.status === "processing"
-        || (data.status === "complete" && !reportReady)
-      );
-      attempts += 1;
-      if (stillRunning && attempts < MAX_POLLS) {
-        const delay = attempts < 100 ? 3000 : 6000;
-        timer = setTimeout(fetchOnce, delay);
-      } else if (stillRunning) {
-        setPollTimedOut(true);
-      }
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
-
   const report = (translated?.report_data ?? row?.report_data) || {};
   const status = row?.status;
   const isV3 = !!(row?.report_data && (row.report_data as any).schema_version === "v3-part-a-part-b" && (row.report_data as any).part_a);
   const isV4 = !isV3 && isV4Report(row?.report_data);
-  const reportReady = !!(
-    row?.report_data
-    && typeof row.report_data === "object"
-    && Object.keys(row.report_data).length > 0
-    && (
-      isV3
-      || Array.isArray((row.report_data as any).domains)
-      || typeof (row.report_data as any).executive_summary === "string"
-      || !!(row.report_data as any).assessment_summary
-      || !!(row.report_data as any).risk_assessment_by_activity
-      || !!(row.report_data as any).part_a
-    )
-  );
-  const showRunning = !loading && !pollTimedOut && (
-    status === "pending"
-    || status === "processing"
-    || (status === "complete" && !reportReady)
-  );
+  const reportReady = computeReportReady(row);
+  const showRunning = !loading && (phase === "running" || phase === "slow");
   const terminal = status === "complete" || status === "error" || status === "refunded" || status === "failed_resolved";
+  const isStalled = phase === "stalled" || phase === "stalled_pre_dispatch";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -203,7 +178,7 @@ export default function CPPARiskAssessmentResult() {
       <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
-        {purchased && !terminal && !pollTimedOut && (
+        {purchased && !terminal && !isStalled && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             {row?.retry_count > 0
               ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${row.retry_count + 1} of 3). No action needed.`
@@ -213,17 +188,15 @@ export default function CPPARiskAssessmentResult() {
         {loading && <p>Loading…</p>}
 
         {showRunning && (
-          <ProcessingInterstitial tool="cppa_risk" />
+          <ProcessingInterstitial
+            tool="cppa_risk"
+            startedAt={row?.updated_at ?? row?.created_at}
+            slow={phase === "slow"}
+          />
         )}
 
-        {pollTimedOut && status !== "complete" && status !== "error" && (
-          <div className="bg-card border rounded-lg p-6 space-y-3">
-            <p className="font-medium text-amber-700">Status check timed out.</p>
-            <p className="text-sm text-muted-foreground">
-              We stopped polling after ~20 minutes. The job may still be running, or it may have failed silently. Refresh to re-check, or contact support if this persists.
-            </p>
-            <Button onClick={() => window.location.reload()}>Refresh status</Button>
-          </div>
+        {isStalled && (
+          <GenerationStalledCard variant={phase as any} retryHref="/cppa-risk-assessment" onRefresh={refresh} />
         )}
 
         {status === "error" && (

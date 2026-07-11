@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
+const LI_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -124,38 +128,15 @@ const LIAssessmentResult = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
-  const [assessment, setAssessment] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    let pollCount = 0;
-    const MAX_POLLS = 400; // ~20 min total: 3s × 100 (5 min) + 6s × 300 (15 min) — heavy runs can exceed prior 5-min cap
-
-    const fetchOnce = async () => {
-      const { data } = await supabase.from("li_assessments").select("*").eq("id", id).maybeSingle();
-      setAssessment(data);
-      setLoading(false);
-
-      // Keep polling only while non-terminal. New statuses 'refunded' and
-      // 'failed_resolved' come from the cross-product retry sweeper.
-      if (data && (data.status === "pending" || data.status === "processing")) {
-        pollCount += 1;
-        if (pollCount < MAX_POLLS) {
-          const delay = pollCount < 100 ? 3000 : 6000;
-          timer = setTimeout(fetchOnce, delay);
-        } else {
-          setAssessment((prev: any) => ({ ...prev, status: "failed" }));
-        }
-      }
-    };
-
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
+  const { row: assessment, loading, phase, refresh, setRow: setAssessment } = useGenerationStatus<any>({
+    table: "li_assessments",
+    rowId: id,
+    isTerminal: (r) => LI_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete",
+  });
 
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const status = assessment?.status;
@@ -233,8 +214,16 @@ const LIAssessmentResult = () => {
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
-          {!loading && (status === "pending" || status === "processing") && (
-            <ProcessingInterstitial tool="lia" />
+          {(phase === "stalled" || phase === "stalled_pre_dispatch") && (
+            <GenerationStalledCard variant={phase} retryHref="/li-assessment" onRefresh={refresh} />
+          )}
+
+          {!loading && (phase === "running" || phase === "slow") && (
+            <ProcessingInterstitial
+              tool="lia"
+              startedAt={assessment?.updated_at ?? assessment?.created_at}
+              slow={phase === "slow"}
+            />
           )}
 
           {(status === "failed" || status === "error") && (

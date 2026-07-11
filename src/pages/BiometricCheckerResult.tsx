@@ -1,6 +1,6 @@
 // View a previously generated Biometric Compliance assessment by ID.
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -25,28 +25,22 @@ import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
+const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
-  const [row, setRow] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    const fetchOnce = async () => {
-      const { data } = await supabase.from("biometric_assessments").select("*").eq("id", id).maybeSingle();
-      setRow(data);
-      setLoading(false);
-      if (data && (data.status === "pending" || data.status === "processing")) {
-        timer = setTimeout(fetchOnce, 3000);
-      }
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
+  const { row, loading, phase, refresh, setRow } = useGenerationStatus<any>({
+    table: "biometric_assessments",
+    rowId: id,
+    isTerminal: (r) => TERMINAL_STATUSES.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && (!!r?.analysis_text || !!r?.report_data),
+  });
 
   const report = (translated?.report_data ?? row?.report_data) || {};
   const sourceText = (translated?.analysis_text ?? row?.analysis_text) || report?.assessment_text;
@@ -126,8 +120,14 @@ export default function BiometricCheckerResult() {
             <p className="text-slate">Assessment not found or you don't have access.</p>
             <Button asChild className="mt-4"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
           </div>
-        ) : row.status === "pending" || row.status === "processing" ? (
-          <ProcessingInterstitial tool="biometric" />
+        ) : phase === "stalled" || phase === "stalled_pre_dispatch" ? (
+          <GenerationStalledCard variant={phase} retryHref="/biometric-checker" onRefresh={refresh} />
+        ) : phase === "running" || phase === "slow" ? (
+          <ProcessingInterstitial
+            tool="biometric"
+            startedAt={row.updated_at ?? row.created_at}
+            slow={phase === "slow"}
+          />
         ) : (
           <ReportShell
             title="Biometric Compliance Assessment"

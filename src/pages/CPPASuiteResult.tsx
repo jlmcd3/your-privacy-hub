@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -135,12 +137,34 @@ function RiskReportBody({ row }: { row: any }) {
   );
 }
 
-function StatusBlock({ row, label, ctaTo }: { row: any; label: string; ctaTo: string }) {
+const SUITE_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
+
+function StatusBlock({
+  row,
+  label,
+  ctaTo,
+  phase,
+  onRefresh,
+}: {
+  row: any;
+  label: string;
+  ctaTo: string;
+  phase: import("@/hooks/useGenerationStatus").GenerationPhase;
+  onRefresh: () => void;
+}) {
   if (!row) return <p className="text-sm text-muted-foreground">No record found.</p>;
   const status = row?.status;
-  if (status === "pending" || status === "processing") {
+  if (phase === "stalled" || phase === "stalled_pre_dispatch") {
+    return <GenerationStalledCard variant={phase} retryHref={ctaTo} onRefresh={onRefresh} />;
+  }
+  if (phase === "running" || phase === "slow") {
     return (
-      <ProcessingInterstitial tool="cppa_suite" label={label} />
+      <ProcessingInterstitial
+        tool="cppa_suite"
+        label={label}
+        startedAt={row.updated_at ?? row.created_at}
+        slow={phase === "slow"}
+      />
     );
   }
   if (status === "error") {
@@ -159,11 +183,24 @@ export default function CPPASuiteResult() {
   const riskId = params.get("risk_id");
   const cyberId = params.get("cyber_id");
   const purchased = params.get("purchased") === "true";
-  const [riskRow, setRiskRow] = useState<any>(null);
-  const [cyberRow, setCyberRow] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const { isPro } = useSubscriptionTier();
   const [kitLoading, setKitLoading] = useState(false);
+
+  const risk = useGenerationStatus<any>({
+    table: "cppa_assessments",
+    rowId: riskId,
+    isTerminal: (r) => SUITE_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
+  });
+  const cyber = useGenerationStatus<any>({
+    table: "cppa_assessments",
+    rowId: cyberId,
+    isTerminal: (r) => SUITE_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
+  });
+  const riskRow = risk.row;
+  const cyberRow = cyber.row;
+  const loading = (!!riskId && risk.loading) || (!!cyberId && cyber.loading);
 
   // Doc P Step 4: result-page entry point, flag-gated AND Professional-only.
   // Flag stays OFF in production. Non-Professional users with the flag on
@@ -200,26 +237,6 @@ export default function CPPASuiteResult() {
   };
 
 
-  useEffect(() => {
-    let timer: any;
-    const fetchOnce = async () => {
-      const promises: Promise<any>[] = [];
-      if (riskId) promises.push(Promise.resolve(supabase.from("cppa_assessments").select("*").eq("id", riskId).maybeSingle()));
-      if (cyberId) promises.push(Promise.resolve(supabase.from("cppa_assessments").select("*").eq("id", cyberId).maybeSingle()));
-      const results = await Promise.all(promises);
-      let idx = 0;
-      if (riskId) { setRiskRow(results[idx]?.data || null); idx++; }
-      if (cyberId) { setCyberRow(results[idx]?.data || null); idx++; }
-      setLoading(false);
-      const stillRunning = results.some((r) => {
-        const s = r?.data?.status;
-        return s === "pending" || s === "processing";
-      });
-      if (stillRunning) timer = setTimeout(fetchOnce, 3000);
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [riskId, cyberId]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -250,11 +267,11 @@ export default function CPPASuiteResult() {
               <TabsTrigger value="cyber">Module 2 · Cybersecurity</TabsTrigger>
             </TabsList>
             <TabsContent value="risk" className="mt-6 space-y-6">
-              <StatusBlock row={riskRow} label="Privacy Risk Assessment" ctaTo="/cppa-risk-assessment?suite=true" />
+              <StatusBlock row={riskRow} label="Privacy Risk Assessment" ctaTo="/cppa-risk-assessment?suite=true" phase={risk.phase} onRefresh={risk.refresh} />
               {riskRow?.status === "complete" && <RiskReportBody row={riskRow} />}
             </TabsContent>
             <TabsContent value="cyber" className="mt-6 space-y-6">
-              <StatusBlock row={cyberRow} label="Cybersecurity Readiness Report" ctaTo="/cppa-cybersecurity?suite=true" />
+              <StatusBlock row={cyberRow} label="Cybersecurity Readiness Report" ctaTo="/cppa-cybersecurity?suite=true" phase={cyber.phase} onRefresh={cyber.refresh} />
               {cyberRow?.status === "complete" && <CybersecurityReportBody row={cyberRow} />}
             </TabsContent>
           </Tabs>
@@ -273,7 +290,7 @@ export default function CPPASuiteResult() {
                 toolType="cppa_risk"
                 assessmentId={riskRow.id}
                 pdfUrl={riskRow.pdf_url}
-                onGenerated={(url) => setRiskRow({ ...riskRow, pdf_url: url })}
+                onGenerated={(url) => risk.setRow((prev: any) => ({ ...(prev ?? riskRow), pdf_url: url }))}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
             </>
@@ -284,7 +301,7 @@ export default function CPPASuiteResult() {
                 toolType="cppa_cybersecurity"
                 assessmentId={cyberRow.id}
                 pdfUrl={cyberRow.pdf_url}
-                onGenerated={(url) => setCyberRow({ ...cyberRow, pdf_url: url })}
+                onGenerated={(url) => cyber.setRow((prev: any) => ({ ...(prev ?? cyberRow), pdf_url: url }))}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
             </>
