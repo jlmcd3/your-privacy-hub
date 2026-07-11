@@ -302,6 +302,7 @@ export const GOV_VARIANTS = [
     tool_instruction: "Verbal guidance only",
     dpa_status: "Some vendors",
     transfer_status: "Yes, US-based tools",
+    additional_context: "Interim DPO covering while we recruit a permanent hire; sub-processor register under refresh.",
     test_run: true,
   },
   {
