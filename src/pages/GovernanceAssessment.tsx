@@ -268,6 +268,55 @@ const GovernanceAssessment = () => {
     inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism,
   ]);
 
+  const initialIntakeJson = useMemo(() => JSON.stringify(buildIntake()), []);
+  const touched = useMemo(() => JSON.stringify(intakeForCheckout) !== initialIntakeJson, [intakeForCheckout, initialIntakeJson]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+  } = useToolDraft({
+    toolType: "governance",
+    clientId: clientId ?? null,
+    data: { intake: intakeForCheckout, step },
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const payload = restoreData as { intake?: any; step?: number } | null;
+    const d = payload?.intake as Record<string, any> | undefined;
+    if (!d) return;
+    const S = (v: any, fn: (x: string) => void) => { if (typeof v === "string") fn(v); };
+    const A = (v: any, fn: (x: any[]) => void) => { if (Array.isArray(v)) fn(v); };
+    S(d.organization_name, setOrganizationName);
+    S(d.sector, setSector);
+    S(d.org_size, setOrgSize);
+    A(d.jurisdictions, setJurisdictions);
+    if (d.eu_uk_data === "" || d.eu_uk_data === "Yes" || d.eu_uk_data === "No") setEuUkData(d.eu_uk_data);
+    A(d.tools, setTools);
+    A(d.data_categories, setDataCategories);
+    if (d.special_category === "" || d.special_category === "Yes" || d.special_category === "No") setSpecialCategory(d.special_category);
+    A(d.special_categories_list, setSpecialCategoriesList);
+    S(d.privacy_policy, setPrivacyPolicy);
+    S(d.privacy_notice_coverage, setPrivacyNoticeCoverage);
+    S(d.acceptable_use, setAcceptableUse);
+    S(d.dpo_status, setDpoStatus);
+    S(d.dpia_status, setDpiaStatus);
+    S(d.incident_response, setIncidentResponse);
+    S(d.training_status, setTrainingStatus);
+    S(d.tool_instruction, setToolInstruction);
+    S(d.dpa_status, setDpaStatus);
+    S(d.transfer_status, setTransferStatus);
+    S(d.technical_controls, setTechnicalControls);
+    A(d.technical_controls_list, setTechnicalControlsList);
+    S(d.dsr_capability, setDsrCapability);
+    A(d.dsr_rights_tested, setDsrRightsTested);
+    S(d.inventory_audit, setInventoryAudit);
+    S(d.dpia_ai_coverage, setDpiaAiCoverage);
+    S(d.training_ai_coverage, setTrainingAiCoverage);
+    S(d.dpa_art28_verified, setDpaArt28Verified);
+    S(d.transfer_mechanism, setTransferMechanism);
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    else if (typeof payload?.step === "number") setStep(payload.step);
+  };
+
   const summaryStep = step === totalSteps;
 
   
