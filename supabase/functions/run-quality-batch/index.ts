@@ -39,6 +39,10 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Boot version marker — used to confirm deploy propagation after the
+// dpia/governance intake-shape fix (dpia_id key + intake_data wrapping).
+console.log("[run-quality-batch] build 2026-07-11-dpia-gov-intake-fix");
+
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
 // hard-kills isolates at 400s, so >1 doc/isolate risks killing mid-doc-2 and
