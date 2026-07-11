@@ -39,10 +39,12 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Boot version marker — bumped for the scenario-spec rewrite: governance,
-// cppa-cyber, dpia, registration specs realigned to generator-read key sets;
-// cppa-admt spec extended with admt_system_count + third_party_admt.
-console.log("[run-quality-batch] build 2026-07-11-scenario-spec-fix");
+// Boot version marker — bumped for the leg-(b) TEST-STATES leakage fix bundled
+// atomically with the scenario-spec rewrites (governance / cppa-cyber / dpia /
+// registration / cppa-admt) and PDF template D8 fixes (Safeguard deficiencies,
+// Material deficiencies identified). CONSUMER_OPTS enum enforced on
+// cppa-risk annual_consumer_volume.
+console.log("[run-quality-batch] build 2026-07-11-test-states-leak-fix");
 
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
