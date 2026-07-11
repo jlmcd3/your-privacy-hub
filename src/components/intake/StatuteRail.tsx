@@ -24,6 +24,12 @@ interface StatuteRailProps {
    * Defaults to true so standalone rail surfaces keep current behavior.
    */
   showCoachingFields?: boolean;
+  /**
+   * When true, render for embedding in a parent-controlled sticky column:
+   * full width, no internal sticky wrapper. Default false preserves the
+   * legacy two-column page rendering byte-identically.
+   */
+  fluid?: boolean;
 }
 
 export default function StatuteRail({
@@ -31,6 +37,7 @@ export default function StatuteRail({
   className = "",
   defaultSourceUrl,
   showCoachingFields = true,
+  fluid = false,
 }: StatuteRailProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
