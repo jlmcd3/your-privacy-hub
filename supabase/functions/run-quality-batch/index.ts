@@ -418,10 +418,12 @@ const CHECKS: Check[] = [
         id: "qc_r1_3_50pct_prong_utilization", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const q5 = String(intake?.q5_sell_share ?? "").trim();
-          const q5c = String(intake?.q5c_share_revenue_50pct ?? "").trim();
+          const r = resolveForChecks(intake);
+          const q5 = String(r.rawForStates.q5_sell_share ?? "").trim();
+          const q5c = String(r.rawForStates.q5c_share_revenue_50pct ?? "").trim();
           if (!q5c && q5 !== "No") return { passed: true };
-          const states = computeRiskTestStates(asFiveStage(intake), intake ?? {});
+          const states = computeRiskTestStates(r.fiveStage, r.rawForStates);
+
           const m5 = states.M5;
           if (!m5 || !isResolved(m5.state)) return { passed: true };
           const s = JSON.stringify(report ?? "").toLowerCase();
