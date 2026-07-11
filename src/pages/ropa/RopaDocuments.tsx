@@ -167,22 +167,32 @@ export default function RopaDocuments() {
   };
 
   // Poll a ROPA session until it leaves processing. 3-minute timeout.
+  // Left as an awaited poll rather than the useGenerationStatus hook because
+  // the download/regenerate flows must await terminal state to chain the
+  // signed-URL fetch — the hook's subscription model can't express that.
   const pollSessionUntilTerminal = async (
     sessionIdToPoll: string,
-  ): Promise<"generated" | "failed" | "timeout"> => {
+  ): Promise<
+    | { outcome: "generated" }
+    | { outcome: "failed"; error: string | null }
+    | { outcome: "timeout" }
+  > => {
     const POLL_INTERVAL_MS = 3000;
     const MAX_POLLS = 60;
     for (let i = 0; i < MAX_POLLS; i++) {
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
       const { data: row } = await supabase
         .from("ropa_sessions")
-        .select("status")
+        .select("status, generation_error")
         .eq("id", sessionIdToPoll)
         .maybeSingle();
-      if (row?.status === "generated") return "generated";
-      if (row?.status === "failed") return "failed";
+      if (row?.status === "generated") return { outcome: "generated" };
+      if (row?.status === "failed") {
+        const err = (row as { generation_error?: string | null } | null)?.generation_error ?? null;
+        return { outcome: "failed", error: err };
+      }
     }
-    return "timeout";
+    return { outcome: "timeout" };
   };
 
   const handleDownload = async (doc: DocVersion) => {
@@ -194,8 +204,10 @@ export default function RopaDocuments() {
       if (genError) throw genError;
 
       const terminal = await pollSessionUntilTerminal(doc.session_id);
-      if (terminal === "failed") throw new Error("Generation failed — please try again.");
-      if (terminal === "timeout") throw new Error("Generation timed out. Please try again.");
+      if (terminal.outcome === "failed") {
+        throw new Error(terminal.error?.trim() || "Generation failed — please try again.");
+      }
+      if (terminal.outcome === "timeout") throw new Error("Generation timed out. Please try again.");
 
       // Read the freshly written signed URL from the version row.
       const { data: ver } = await supabase
@@ -242,8 +254,10 @@ export default function RopaDocuments() {
       if (error) throw error;
       toast({ title: "Regenerating documents…", description: "This usually takes under a minute." });
       const terminal = await pollSessionUntilTerminal(sessionId);
-      if (terminal === "failed") throw new Error("Generation failed — please try again.");
-      if (terminal === "timeout") throw new Error("Generation timed out. Please try again.");
+      if (terminal.outcome === "failed") {
+        throw new Error(terminal.error?.trim() || "Generation failed — please try again.");
+      }
+      if (terminal.outcome === "timeout") throw new Error("Generation timed out. Please try again.");
       toast({ title: "Documents regenerated", description: "Refreshing list…" });
       await loadDocuments();
     } catch (err) {
