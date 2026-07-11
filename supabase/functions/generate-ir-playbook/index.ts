@@ -18,6 +18,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
