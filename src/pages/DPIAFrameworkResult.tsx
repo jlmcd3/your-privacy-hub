@@ -204,8 +204,16 @@ const DPIAFrameworkResult = () => {
           )}
           {loading && <p>Loading…</p>}
 
-          {!loading && (status === "pending" || status === "processing") && (
-            <ProcessingInterstitial tool="dpia" />
+          {(phase === "stalled" || phase === "stalled_pre_dispatch") && (
+            <GenerationStalledCard variant={phase} retryHref="/dpia-framework" onRefresh={refresh} />
+          )}
+
+          {!loading && (phase === "running" || phase === "slow") && (
+            <ProcessingInterstitial
+              tool="dpia"
+              startedAt={dpia?.updated_at ?? dpia?.created_at}
+              slow={phase === "slow"}
+            />
           )}
 
           {status === "failed" && (
