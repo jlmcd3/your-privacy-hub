@@ -194,72 +194,15 @@ const COMPONENT_CITATIONS: Record<string, string> = {
 // M4..M21 c{N}_answered           — controls[i].maturity non-empty  (18 tests, one per c1..c18)
 // Applicability class and § 7121(a) cohort are JUDGMENT (no structured field
 // in this intake; governed by the existing APPLICABILITY / PHASE-IN prose rules).
+//
+// R1d/A1 (PURE MOVE): TestStateEntry, computeCyberTestStates, and
+// renderCyberTestStatesBlock live in _shared/cppa-test-states.ts and are
+// re-exported here so every existing caller is byte-identically preserved.
 // ─────────────────────────────────────────────────────────────────────────────
-type TestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
-interface TestStateEntry {
-  state: TestState;
-  basis: string;
-  source_fields: string[];
-}
-const NAMED_FRAMEWORKS = new Set(["SOC 2", "ISO 27001", "NIST CSF 2.0", "CIS Controls"]);
-const NON_INCIDENT_VALUES = new Set(["", "none", "0", "no", "n/a", "na", "not applicable"]);
+export { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
+export type { TestStateEntry } from "../_shared/cppa-test-states.ts";
+import { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
 
-export function computeCyberTestStates(intake: Record<string, any> | null | undefined): Record<string, TestStateEntry> {
-  const it = intake ?? {};
-  const profile = (it.profile ?? {}) as Record<string, any>;
-  const controls: any[] = Array.isArray(it.controls) ? it.controls : [];
-  const out: Record<string, TestStateEntry> = {};
-
-  const framework = String(profile.framework ?? "").trim();
-  out.M1 = framework
-    ? (NAMED_FRAMEWORKS.has(framework)
-        ? { state: "resolved_met", basis: `intake declares primary framework "${framework}"`, source_fields: ["profile.framework"] }
-        : { state: "resolved_not_met", basis: `intake declares framework "${framework}" outside the named set; default to NIST CSF 2.0 per FRAMEWORK rule`, source_fields: ["profile.framework"] })
-    : { state: "indeterminate", basis: "profile.framework is empty", source_fields: ["profile.framework"] };
-
-  const incidents = String(profile.incidents_12mo ?? "").trim();
-  const incidentsLc = incidents.toLowerCase();
-  out.M2 = !incidents
-    ? { state: "indeterminate", basis: "profile.incidents_12mo is empty", source_fields: ["profile.incidents_12mo"] }
-    : NON_INCIDENT_VALUES.has(incidentsLc)
-      ? { state: "resolved_not_met", basis: `intake reports no incidents in the last 12 months ("${incidents}")`, source_fields: ["profile.incidents_12mo"] }
-      : { state: "resolved_met", basis: `intake reports incidents in the last 12 months ("${incidents.slice(0, 80)}")`, source_fields: ["profile.incidents_12mo"] };
-
-  const lastAudit = String(profile.last_audit ?? "").trim();
-  out.M3 = lastAudit
-    ? { state: "resolved_met", basis: `intake documents last audit as "${lastAudit.slice(0, 80)}"`, source_fields: ["profile.last_audit"] }
-    : { state: "indeterminate", basis: "profile.last_audit is empty", source_fields: ["profile.last_audit"] };
-
-  // M4..M21 — per-control ANSWERED states. Index by control key (c1_auth..c18_continuity).
-  const byKey = new Map<string, any>();
-  for (const c of controls) if (c && typeof c.key === "string") byKey.set(c.key, c);
-  const CONTROL_KEYS = [
-    "c1_auth", "c2_encryption", "c3_account_access", "c4_inventory", "c5_secure_config",
-    "c6_vuln_mgmt", "c7_audit_logs", "c8_network_mon", "c9_anti_malware", "c10_segmentation",
-    "c11_port_protocol", "c12_awareness", "c13_training", "c14_secure_dev", "c15_third_party",
-    "c16_retention", "c17_incident", "c18_continuity",
-  ];
-  CONTROL_KEYS.forEach((key, idx) => {
-    const id = `M${4 + idx}`;
-    const row = byKey.get(key);
-    const maturity = String(row?.maturity ?? "").trim();
-    out[id] = maturity
-      ? { state: "resolved_met", basis: `controls[${key}].maturity = "${maturity.slice(0, 60)}"`, source_fields: [`controls.${key}.maturity`] }
-      : { state: "indeterminate", basis: `controls[${key}].maturity is empty`, source_fields: [`controls.${key}.maturity`] };
-  });
-
-  return out;
-}
-
-export function renderCyberTestStatesBlock(states: Record<string, TestStateEntry>): string {
-  const lines: string[] = [];
-  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: state its conclusion with the basis given, do NOT hedge, do NOT emit a next_steps entry re-asking for it, and do NOT contradict it in per-control finding prose. INDETERMINATE tests use insufficient-basis language anchored to the producing field.");
-  for (const id of Object.keys(states)) {
-    const e = states[id];
-    lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
-  }
-  return lines.join("\n");
-}
 
 async function runAssessment(assessment_id: string): Promise<void> {
   const { data: row } = await supabase
