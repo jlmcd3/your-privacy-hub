@@ -1460,9 +1460,7 @@ async function runPipeline(assessment_id: string) {
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     try {
-      await supabase.from("cppa_assessments")
-        .update({ status: "error", report_data: { error: String(e) } })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: String(e) } }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }
   }
 }
