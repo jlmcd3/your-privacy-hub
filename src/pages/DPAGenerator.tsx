@@ -129,6 +129,7 @@ export default function DPAGenerator() {
       setPhase("result");
       return;
     }
+    void clearDraft();
     navigate(`/dpa-generator/result/${data.id}`);
   };
 
