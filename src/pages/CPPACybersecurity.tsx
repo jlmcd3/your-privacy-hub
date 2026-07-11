@@ -129,6 +129,29 @@ export default function CPPACybersecurity() {
     [profile, maturity, notes]
   );
 
+  const draftData = useMemo(() => ({ profile, maturity, notes }), [profile, maturity, notes]);
+  const touched = useMemo(
+    () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0
+      || Object.values(profile).some((v) => (v ?? "").toString().trim() !== ""),
+    [profile, maturity, notes],
+  );
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "cppa_cybersecurity",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { profile?: any; maturity?: any; notes?: any } | null;
+    if (!d) return;
+    if (d.profile && typeof d.profile === "object") setProfile((prev) => ({ ...prev, ...d.profile }));
+    if (d.maturity && typeof d.maturity === "object") setMaturity(d.maturity);
+    if (d.notes && typeof d.notes === "object") setNotes(d.notes);
+  };
+
   const handlePurchase = () => {
     if (!allComplete) {
       toast({ title: "Required", description: "Please rate all 18 controls and complete the profile.", variant: "destructive" });
