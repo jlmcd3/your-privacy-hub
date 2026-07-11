@@ -1337,8 +1337,79 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);
-        const playbook_text = lint.clean;
+const playbook_text = lint.clean;
         const parsedAnnotations = assembled.parsedAnnotations;
+
+        // R1b2 post-check gate — T-2/T-3/T-4 for the IR playbook. Log-only detection
+        // (no regeneration) because the tool topology diverges from the R1b1 single-call
+        // template: outputs are produced as three parallel Sonnet calls under a tight
+        // edge wall-clock budget, and a regeneration would triple cost and risk further
+        // truncation. Signals are surfaced via console.warn and captured in lint_warnings
+        // for downstream inspection. R2 backlog: promote to single-part targeted regen
+        // once we can attribute a violation to a specific part.
+        try {
+          const { tests: irTests } = computeIrTestStates(body);
+          const t2Violations: string[] = [];
+          // T-2: resolved intake facts must not be re-asked.
+          if (irTests.find((t) => t.id === "M-DISC")?.state === "RESOLVED_MET") {
+            if (/please (provide|confirm|supply)[^.]{0,60}(discovery|when the (breach|incident) was)/i.test(playbook_text)) {
+              t2Violations.push("T-2: re-asks discovery timestamp (M-DISC RESOLVED_MET)");
+            }
+          }
+          if (irTests.find((t) => t.id === "M-PROC")?.state === "RESOLVED_MET" || irTests.find((t) => t.id === "M-PROC")?.state === "RESOLVED_NOT_MET") {
+            if (/please (provide|confirm|clarify)[^.]{0,80}(whether a processor|if a processor was involved)/i.test(playbook_text)) {
+              t2Violations.push("T-2: re-asks processor involvement (M-PROC RESOLVED)");
+            }
+          }
+          if (irTests.find((t) => t.id === "M-CA")?.state === "RESOLVED_NOT_MET") {
+            if (/cal\.\s*civ\.\s*code\s*§?\s*1798\.82/i.test(playbook_text)) {
+              t2Violations.push("T-2: cites Cal. Civ. Code §1798.82 with California RESOLVED_NOT_MET");
+            }
+          }
+          if (irTests.find((t) => t.id === "M-GDPR")?.state === "RESOLVED_NOT_MET") {
+            if (/\barticle\s*33\b|\bart\.\s*33\b/i.test(playbook_text)) {
+              t2Violations.push("T-2: cites Article 33 with GDPR RESOLVED_NOT_MET");
+            }
+          }
+          // T-3: banned collapse phrasing when resolved states exist.
+          const collapsePatterns = [
+            /if (?:the )?(?:GDPR|Article\s*33|California) (?:applies|is applicable)/i,
+            /should this (?:jurisdiction|statute) apply/i,
+            /counsel to confirm applicability/i,
+          ];
+          const anyResolved = irTests.some((t) => t.state === "RESOLVED_MET" || t.state === "RESOLVED_NOT_MET");
+          if (anyResolved) {
+            for (const p of collapsePatterns) {
+              if (p.test(playbook_text)) t2Violations.push(`T-3: banned collapse phrasing matched ${p}`);
+            }
+          }
+          // T-4: enhancement-class asks must carry a statutory anchor.
+          // (Log-only heuristic: [TO BE COMPLETED] blocks without any statutory reference within 400 chars.)
+          const tbcRe = /\[TO BE COMPLETED[^\]]*\]/g;
+          let m: RegExpExecArray | null;
+          let t4Count = 0;
+          while ((m = tbcRe.exec(playbook_text)) !== null) {
+            const win = playbook_text.slice(Math.max(0, m.index - 200), m.index + 400);
+            if (!/§\s*\d|art(?:icle|\.)\s*\d|\b(?:GDPR|CCPA|HIPAA|PIPEDA|Law\s*25|SHIELD|PDPA)\b/i.test(win)) {
+              t4Count += 1;
+            }
+          }
+          if (t4Count > 0) t2Violations.push(`T-4: ${t4Count} [TO BE COMPLETED] deferral(s) lack an adjacent statutory anchor`);
+          // §1798.82(h)(1)(C) permanent CHECK-REQUIRED: whenever California is in scope
+          // the playbook must instruct confirmation of the account/card-plus-access-code
+          // combination somewhere in the document.
+          if (irTests.find((t) => t.id === "M-CA-H1C")?.state === "RESOLVED_CHECK_REQUIRED") {
+            const h1cOk = /\(h\)\(1\)\(C\)/.test(playbook_text) && /(access code|security code|password)/i.test(playbook_text);
+            if (!h1cOk) t2Violations.push("T-2/2c: §1798.82(h)(1)(C) permanent CHECK-REQUIRED not surfaced (missing (h)(1)(C) combination-check instruction)");
+          }
+          for (const v of t2Violations) {
+            console.warn(`[IR Playbook][R1b2 post-check] ${v}`);
+            lintWarnings.push({ rule: "r1b2-post-check", detail: v });
+          }
+        } catch (e) {
+          console.error("[IR Playbook][R1b2 post-check] errored (non-fatal):", e);
+        }
+
 
         const portals = body.jurisdictions
           .filter((j) => DPA_PORTALS[j])
