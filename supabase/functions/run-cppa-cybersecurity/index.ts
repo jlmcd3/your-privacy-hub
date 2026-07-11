@@ -192,10 +192,11 @@ async function runAssessment(assessment_id: string): Promise<void> {
     return;
   }
 
-  await supabase
-    .from("cppa_assessments")
-    .update({ status: "processing" })
-    .eq("id", assessment_id);
+  const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-cybersecurity", phase: "pre_generation" });
+  if (!procWrite.ok) {
+    // Cannot persist lifecycle state — abort before spending model time.
+    return;
+  }
 
   try {
     // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
