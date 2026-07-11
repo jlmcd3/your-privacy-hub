@@ -739,10 +739,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     ]);
 
     if (!half1 || !half2) {
-      await supabase
-        .from("cppa_assessments")
-        .update({ status: "error" })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_halves" });
       return;
     }
 
