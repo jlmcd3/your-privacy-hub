@@ -421,6 +421,15 @@ Deno.serve(async (req) => {
       dpia_framework: "dpia",
     };
     if (redeem_annual_credit === true && user_id && ANNUAL_CREDIT_TOOL_MAP[tool_type]) {
+      // Annual credits exist only in live. A sandbox/preview checkout must
+      // never consume (burn) a live credit. Reject and let the client fall
+      // back to the ordinary paid sandbox checkout path.
+      if (checkoutEnv !== "live") {
+        return new Response(
+          JSON.stringify({ error: "annual_credit_live_only" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
       const creditTool = ANNUAL_CREDIT_TOOL_MAP[tool_type];
       // ENT-1: server-side execution contexts always operate on live entitlement.
       let creditQ = supabase
