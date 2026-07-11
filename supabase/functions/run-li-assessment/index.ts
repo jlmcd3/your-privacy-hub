@@ -15,6 +15,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 
 
 
