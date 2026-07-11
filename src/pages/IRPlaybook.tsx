@@ -99,6 +99,35 @@ export default function IRPlaybook() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const { user } = useAuth();
+  const INITIAL_FORM = useMemo(() => ({
+    organizationName: "",
+    discoveryDateTime: "",
+    cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
+    jurisdictions: [] as string[], processorInvolved: false, processorName: "",
+    contained: "Unknown", organisationType: "Company",
+  }), []);
+  const touched = useMemo(() => {
+    // Ignore discoveryDateTime which is initialised to "now"; treat any other change as touched.
+    const a = { ...form, discoveryDateTime: "" };
+    return JSON.stringify(a) !== JSON.stringify(INITIAL_FORM);
+  }, [form, INITIAL_FORM]);
+  const draftData = useMemo(() => ({ form }), [form]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "ir",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { form?: any } | null;
+    if (!d?.form || typeof d.form !== "object") return;
+    setForm((prev) => ({ ...prev, ...d.form }));
+  };
+
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");
     else if (params.get("session_id") || params.get("purchased")) setPhase("form");
