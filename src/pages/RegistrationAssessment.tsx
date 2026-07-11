@@ -24,6 +24,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
 interface IntakeState {
   // Step 1
