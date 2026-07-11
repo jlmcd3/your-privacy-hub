@@ -1231,18 +1231,18 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           documentText: playbook_text,
         });
 
-        await supabase
-          .from("ir_playbooks")
-          .update({
-            client_id: body.client_id ?? null,
-            organization_name: body.organizationName || null,
-            status: "complete",
-            intake_data: body,
-            playbook_text,
-            report_data,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", rowId);
+        const completeWrite = await lifecycleUpdate(supabase, "ir_playbooks", rowId, {
+          client_id: body.client_id ?? null,
+          organization_name: body.organizationName || null,
+          status: "complete",
+          intake_data: body,
+          playbook_text,
+          report_data,
+          updated_at: new Date().toISOString(),
+        }, { fn: "generate-ir-playbook", phase: "terminal_complete" });
+        if (!completeWrite.ok) {
+          await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "terminal_fallback" });
+        }
 
         // L2 — observe-only citation lint (never blocks, never mutates output).
         try {
