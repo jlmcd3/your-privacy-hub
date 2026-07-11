@@ -169,6 +169,15 @@ export default function DPAGenerator() {
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
+        <div className="mb-4">
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
+        </div>
         {refine.isRefine && refine.intake && !refine.loading ? (
           <RefinePanel
             toolType="dpa_generator"
