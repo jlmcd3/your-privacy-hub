@@ -589,24 +589,21 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       })
     );
 
-    const { error: updateErr } = await supabase
-      .from("registration_orders")
-      .update({
-        payment_status: "paid",
-        fulfillment_status: "documents_pending",
-        stripe_payment_intent_id: (session.payment_intent as string) || session.id,
-        stripe_session_id: session.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", orderId);
+    const orderWrite = await lifecycleUpdate(supabase, "registration_orders", orderId, {
+      payment_status: "paid",
+      fulfillment_status: "documents_pending",
+      stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+      stripe_session_id: session.id,
+      updated_at: new Date().toISOString(),
+    }, { fn: "payments-webhook", phase: "payment_evidence" });
 
-    if (updateErr) {
+    if (!orderWrite.ok) {
       console.error(
         JSON.stringify({
           scope: "registration_checkout",
           event: "order_update_failed",
           order_id: orderId,
-          error: updateErr.message,
+          error: orderWrite.message,
         })
       );
     }
