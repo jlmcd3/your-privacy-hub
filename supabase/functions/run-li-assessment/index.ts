@@ -279,8 +279,11 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    await supabase.from("li_assessments").update({ status: "processing" })
-      .eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "processing" }, { fn: "run-li-assessment", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const fnRun = await startFunctionRun(supabase, "run-li-assessment", {
       archetype: "background",
