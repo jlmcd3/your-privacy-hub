@@ -1346,17 +1346,20 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
 
       let detected = detectT234(assessment_text);
-      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(assessment_text);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (!isStressRun && total > 0) {
         console.warn(JSON.stringify({
           evt: "post_lint_violation", fn: "check-biometric-compliance",
           t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         try {
           const parts: string[] = [];
           if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
           if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies jurisdiction/type/orgType/enrollment answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in the assessment prose`);
           if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every ===INFORMATION_NEEDED=== entry must be verdict-blocking or record-completeness with a cited provision (BIPA § / CUBI § / Cal. Civ. Code / GDPR Article / EDPB Guidelines / ICO / DPA 2018)`);
+          if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1–M9), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from the assessment prose, priority actions, and ===INFORMATION_NEEDED=== entries; state the conclusion with its factual basis. Leaked: ${t5Hits.slice(0, 6).map((h) => `"${h.match}"`).join(", ")}`);
           const details = parts.join(" | ");
           const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
@@ -1392,17 +1395,19 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
             });
             assessment_text = relint.clean;
             detected = detectT234(assessment_text);
-            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            t5Hits = detectTestStatesLeak(assessment_text);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
             if (still > 0) {
-              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "check-biometric-compliance", remaining: still }));
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "check-biometric-compliance", remaining: still, t5_remaining: t5Hits.length }));
             }
           }
         } catch (e) {
-          console.warn("[Biometric] T-2/T-3/T-4 retry failed (non-fatal):", e);
+          console.warn("[Biometric] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
         }
         for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) t234Violations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
     for (const v of t234Violations) lintViolations.push(v);
