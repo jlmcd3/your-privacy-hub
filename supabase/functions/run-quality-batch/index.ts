@@ -474,7 +474,9 @@ const CHECKS: Check[] = [
         id: "qc_r1_5_exception_fields_consumed", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const exceptions = (intake?.exceptions ?? {}) as Record<string, any>;
+          const r = resolveForChecks(intake);
+          const exceptions = (r.fiveStage.exceptions ?? {}) as Record<string, any>;
+
           const targets: { key: string; ab?: string; rp?: string }[] = [];
           for (const [k, v] of Object.entries(exceptions)) {
             if (!v?.claimed) continue;
