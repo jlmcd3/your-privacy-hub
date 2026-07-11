@@ -15,6 +15,12 @@ import {
   classifyRevenueBand,
   type FiveStageIntake,
 } from "../_shared/cppa-test-states.ts";
+// R1e (2026-07-11): the QC-R1 checks now feed the identical
+// normaliseIntake -> computeTestStates pipeline the generator itself runs,
+// closing the raw-vs-normalised defect that made QC-R1-4 false-fail on
+// 5-stage-shaped fixtures and hid vacuous passes on QC-R1-1/-2/-3.
+import { resolveIntakeForTestStates } from "../_shared/cppa-risk-normalise.ts";
+
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
 // to stop the alphabetical tail (i5_/i7_/i8_/i9_ keys) from being dropped, which
@@ -44,7 +50,7 @@ const cors = {
 // registration / cppa-admt) and PDF template D8 fixes (Safeguard deficiencies,
 // Material deficiencies identified). CONSUMER_OPTS enum enforced on
 // cppa-risk annual_consumer_volume.
-console.log("[run-quality-batch] build 2026-07-11-chunk1-boundary");
+console.log("[run-quality-batch] build 2026-07-11-qc-r1-normalised");
 
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
@@ -304,17 +310,13 @@ const CHECKS: Check[] = [
 
     const isResolved = (s: string) => s === "resolved_met" || s === "resolved_not_met" || s === "resolved_not_applicable";
 
-    // Build the FiveStageIntake shape the risk generator produces so
-    // computeRiskTestStates has a stable input regardless of fixture surface.
-    const asFiveStage = (intake: any): FiveStageIntake => ({
-      triggers: intake?.triggers ?? {},
-      exceptions: intake?.exceptions ?? {},
-      activity_details: Array.isArray(intake?.activity_details) ? intake.activity_details : [],
-      impact: intake?.impact ?? {},
-      org_context: intake?.org_context ?? {},
-      annual_consumer_volume: intake?.annual_consumer_volume,
-      content_detail: intake?.content_detail,
-    });
+    // R1e: mirror the generator pipeline exactly. `resolveIntakeForTestStates`
+    // returns the same FiveStageIntake `normaliseIntake` produces AND a
+    // raw-shim view with the flat q*_ keys back-filled from
+    // org_context / annual_consumer_volume / content_detail so both fixture
+    // shapes (flat legacy, 5-stage) resolve identical M-states.
+    const resolveForChecks = (intake: any) => resolveIntakeForTestStates(intake ?? {});
+
 
     const collectInfoNeeded = (report: any): any[] => {
       const out: any[] = [];
@@ -352,8 +354,11 @@ const CHECKS: Check[] = [
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
           let states: Record<string, any>;
-          try { states = computeRiskTestStates(asFiveStage(intake), intake ?? {}); }
-          catch (e) { return { passed: false, evidence: `computeTestStates threw: ${(e as Error).message?.slice(0, 80)}` }; }
+          try {
+            const r = resolveForChecks(intake);
+            states = computeRiskTestStates(r.fiveStage, r.rawForStates);
+          } catch (e) { return { passed: false, evidence: `computeTestStates threw: ${(e as Error).message?.slice(0, 80)}` }; }
+
           const resolvedFields = new Set<string>();
           const resolvedIds: string[] = [];
           for (const [id, s] of Object.entries(states)) {
@@ -387,10 +392,12 @@ const CHECKS: Check[] = [
         id: "qc_r1_2_spi_prong_utilization", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const q15 = String(intake?.q15_sensitive_pi ?? "").trim();
-          const q15c = String(intake?.q15c_spi_volume ?? "").trim();
+          const r = resolveForChecks(intake);
+          const q15 = String(r.rawForStates.q15_sensitive_pi ?? "").trim();
+          const q15c = String(r.rawForStates.q15c_spi_volume ?? "").trim();
           if (!q15c && q15 !== "No") return { passed: true }; // absent-value variant: nothing to test
-          const states = computeRiskTestStates(asFiveStage(intake), intake ?? {});
+          const states = computeRiskTestStates(r.fiveStage, r.rawForStates);
+
           const m4 = states.M4;
           if (!m4 || !isResolved(m4.state)) return { passed: true };
           const s = JSON.stringify(report ?? "").toLowerCase();
@@ -411,10 +418,12 @@ const CHECKS: Check[] = [
         id: "qc_r1_3_50pct_prong_utilization", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const q5 = String(intake?.q5_sell_share ?? "").trim();
-          const q5c = String(intake?.q5c_share_revenue_50pct ?? "").trim();
+          const r = resolveForChecks(intake);
+          const q5 = String(r.rawForStates.q5_sell_share ?? "").trim();
+          const q5c = String(r.rawForStates.q5c_share_revenue_50pct ?? "").trim();
           if (!q5c && q5 !== "No") return { passed: true };
-          const states = computeRiskTestStates(asFiveStage(intake), intake ?? {});
+          const states = computeRiskTestStates(r.fiveStage, r.rawForStates);
+
           const m5 = states.M5;
           if (!m5 || !isResolved(m5.state)) return { passed: true };
           const s = JSON.stringify(report ?? "").toLowerCase();
@@ -435,7 +444,9 @@ const CHECKS: Check[] = [
         id: "qc_r1_4_cohort_determinism", dimension: "accuracy", severity: "critical",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const band = classifyRevenueBand(intake?.q1_revenue);
+          const r = resolveForChecks(intake);
+          const band = classifyRevenueBand(r.rawForStates.q1_revenue);
+
           const s = JSON.stringify(report ?? "").toLowerCase();
           // legacy or absent → indeterminate two-cohort treatment required
           if (band.audit_cohort === "indeterminate") {
@@ -463,7 +474,9 @@ const CHECKS: Check[] = [
         id: "qc_r1_5_exception_fields_consumed", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const exceptions = (intake?.exceptions ?? {}) as Record<string, any>;
+          const r = resolveForChecks(intake);
+          const exceptions = (r.fiveStage.exceptions ?? {}) as Record<string, any>;
+
           const targets: { key: string; ab?: string; rp?: string }[] = [];
           for (const [k, v] of Object.entries(exceptions)) {
             if (!v?.claimed) continue;

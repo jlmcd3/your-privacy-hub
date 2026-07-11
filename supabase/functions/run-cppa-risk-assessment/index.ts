@@ -57,251 +57,35 @@ const corsHeaders = {
 };
 
 // ---------------------------------------------------------------------------
-// Shim: legacy flat (q1..q20, i1..i9) intake -> minimal five-stage structure.
+// R1e/A2 (PURE MOVE, 2026-07-11): ExceptionEntry / FiveStageIntake type
+// declarations plus EMPTY_TRIGGERS / EMPTY_EXCEPTION / EMPTY_EXCEPTIONS /
+// shimLegacyIntake / normaliseIntake now live in
+// `_shared/cppa-risk-normalise.ts` so run-quality-batch's QC-R1 deterministic
+// checks can feed the IDENTICAL pipeline the generator runs
+// (normaliseIntake -> computeTestStates). Re-exported here so every existing
+// caller is byte-identically preserved.
 // ---------------------------------------------------------------------------
-type ExceptionEntry = {
-  claimed: boolean;
-  scope: string;
-  safeguards: string;
-  documented: boolean;
-  authority_basis: string;      // R1a — per-exception, claimed authority the generator TESTS (never adopts)
-  retention_period: string;     // R1a — per-exception, additional to record-level i2_retention_period
-};
-
-type FiveStageIntake = {
-  triggers: Record<string, boolean>;
-  exceptions: Record<string, ExceptionEntry>;
-  activity_details: any[];
-  impact: Record<string, any>;
-  org_context: Record<string, any>;
-  annual_consumer_volume?: string;
-  content_detail?: Record<string, any>;
-};
-
-const EMPTY_TRIGGERS = {
-  sells_or_shares_pi: false,
-  targeted_advertising: false,
-  profiling_significant_effects: false,
-  sensitive_pi_beyond_enumerated: false,
-  high_volume_processing: false,
-  admt_involved: false,
-};
-
-const EMPTY_EXCEPTION: ExceptionEntry = {
-  claimed: false, scope: "", safeguards: "", documented: false, authority_basis: "", retention_period: "",
-};
-const EMPTY_EXCEPTIONS: Record<string, ExceptionEntry> = {
-  fraud_detection: { ...EMPTY_EXCEPTION },
-  security_integrity: { ...EMPTY_EXCEPTION },
-  debugging: { ...EMPTY_EXCEPTION },
-  transient_use: { ...EMPTY_EXCEPTION },
-  internal_research: { ...EMPTY_EXCEPTION },
-  employment_context: { ...EMPTY_EXCEPTION },
-  legal_compliance: { ...EMPTY_EXCEPTION },
-  consumer_request: { ...EMPTY_EXCEPTION },
-};
-
-// ---------------------------------------------------------------------------
-// R1b0 — revenue-band classifier. Single source of truth for both the
-// §1798.140(d)(1)(A) $25M line and the §7121(a) cyber-audit cohort date.
-//   - "Under $25M"     → 2030-04-01 cohort (< $50M revenue)
-//   - "$25M–$50M"      → 2030-04-01 cohort
-//   - "$50M–$100M"     → 2029-04-01 cohort (M6 resolves)
-//   - legacy "$25M–$100M" → indeterminate (straddles the $50M line)
-//   - "$100M–$500M"    → 2028-04-01 cohort
-//   - "Over $500M"     → 2028-04-01 cohort
-//
-// R1d/A1 (PURE MOVE): RevenueBand + classifyRevenueBand + computeTestStates +
-// formatTestStatesBlock + TestState now live in _shared/cppa-test-states.ts
-// so run-quality-batch can import them without duplicating semantics. The
-// generator re-exports the same symbols so every existing caller is
-// byte-identically preserved.
-// ---------------------------------------------------------------------------
+export {
+  EMPTY_TRIGGERS,
+  EMPTY_EXCEPTION,
+  EMPTY_EXCEPTIONS,
+  shimLegacyIntake,
+  normaliseIntake,
+} from "../_shared/cppa-risk-normalise.ts";
+import {
+  EMPTY_TRIGGERS,
+  EMPTY_EXCEPTION,
+  EMPTY_EXCEPTIONS,
+  shimLegacyIntake,
+  normaliseIntake,
+} from "../_shared/cppa-risk-normalise.ts";
+import type { ExceptionEntry, FiveStageIntake, TestState } from "../_shared/cppa-test-states.ts";
+export type { ExceptionEntry, FiveStageIntake } from "../_shared/cppa-test-states.ts";
 export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
 import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
-import type { TestState } from "../_shared/cppa-test-states.ts";
 
 
-function shimLegacyIntake(intake: any): FiveStageIntake {
-  console.warn(
-    "[cppa-risk] legacy flat intake detected (intake.triggers undefined). " +
-      "Shimming to minimal five-stage structure. Frontend should be migrated to the five-stage wizard.",
-  );
-
-  // Heuristic trigger mapping from legacy fields.
-  const triggers = { ...EMPTY_TRIGGERS };
-  const sells = typeof intake.q5_sell_share === "string"
-    && /sell|share|both|^yes/i.test(intake.q5_sell_share)
-    && !/^no/i.test(intake.q5_sell_share);
-  if (sells) triggers.sells_or_shares_pi = true;
-  if (intake.q15_sensitive_pi === "Yes") triggers.sensitive_pi_beyond_enumerated = true;
-  // Precise geolocation is sensitive PI under § 1798.140(ae)(1).
-  const piCatsForTrig = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
-  if (piCatsForTrig.some((c: string) => /precise geolocation/i.test(String(c)))) triggers.sensitive_pi_beyond_enumerated = true;
-  // Under-16 actual knowledge elevates to sensitive PI (§ 7001(bbb)).
-  if (typeof intake.q15b_under16_knowledge === "string" && /^yes/i.test(intake.q15b_under16_knowledge)) triggers.sensitive_pi_beyond_enumerated = true;
-  // Profiling via systematic observation / sensitive location (§ 7150(b)(4)).
-  if (typeof intake.q5b_profiling_observation === "string" && /yes|both/i.test(intake.q5b_profiling_observation)) triggers.profiling_significant_effects = true;
-  if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") triggers.admt_involved = true;
-  // Training ADMT / facial / emotion / biometric (§ 7150(b)(6)).
-  if (typeof intake.q18b_admt_training === "string" && /^yes/i.test(intake.q18b_admt_training)) triggers.admt_involved = true;
-  // NOTE: high consumer volume is NOT a § 7150(b) Risk-Assessment trigger.
-  // It is a § 7120 cyber-audit trigger — handled by the CPPA Cybersecurity tool.
-  // Do not auto-set any § 7150(b) trigger from volume alone.
-  // If no § 7150(b) trigger matches, validation below will surface a clear error.
-
-  const piCats = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
-  const activity_details = [{
-    trigger_key: Object.entries(triggers).find(([, v]) => v)?.[0] ?? "sells_or_shares_pi",
-    data_categories: piCats,
-    consumer_categories: [],
-    purpose_description: String(intake.i1_processing_purpose ?? "Legacy intake — purpose not captured at this specificity."),
-    business_benefits: String((intake.impact_intake?.businessBenefits ?? "").trim() || "Not provided."),
-    consumer_benefits: String((intake.impact_intake?.consumerBenefits ?? "").trim() || "Not provided."),
-    stakeholder_public_benefits: String((intake.impact_intake?.stakeholderBenefits ?? "").trim() || "Not provided."),
-    current_safeguards: String((intake.impact_intake?.safeguards ?? "").trim() || "Not provided."),
-    minimum_pi_necessary: String((intake.i1b_min_pi ?? "").trim() || "Not provided."),
-    pi_sources: String((intake.i4b_sources ?? "").trim() || "Not provided."),
-    known_gaps: "",
-    third_party_recipients: String(intake.i6_vendors ?? ""),
-    cross_context_tracking: !!triggers.sells_or_shares_pi,
-    profiling_inferences: !!triggers.admt_involved,
-    children_in_scope: false,
-  }];
-
-  const hasDpia = intake.i9_has_existing_dpia === "Yes" || intake.i9_has_existing_dpia === true;
-  const im = (intake.impact_intake ?? {}) as Record<string, any>;
-  const impact = {
-    likelihood_of_harm: String(im.likelihood || "Possible"),
-    severity_of_harm: String(im.severity || "Moderate"),
-    harm_types: Array.isArray(im.harmTypes) ? im.harmTypes : [],
-    vulnerable_populations_detail: String(im.vulnerable ?? ""),
-    benefits_outweigh_risks: String(im.benefitsOutweigh || "Uncertain"),
-    benefits_outweigh_risks_rationale: String(im.benefitsRationale || "[Not provided in intake]"),
-    cybersecurity_gaps_identified: im.cyberGaps === "Yes",
-    prior_assessments_conducted: hasDpia,
-    prior_assessment_date: "",
-  };
-
-  const org_context = {
-    company_name: String(intake.entity_name || "[FILL IN — business legal name]"),
-    sector: String(intake.q3_sector ?? "Not specified"),
-    annual_revenue_threshold: String(intake.q1_revenue ?? "Not specified"),
-    privacy_counsel_engaged: false,
-    dpo_or_privacy_officer: false,
-    board_level_oversight: false,
-    existing_privacy_programme: "Not specified",
-    cppa_audit_notification_received: false,
-    additional_context: "",
-  };
-
-  // Map the user's claimed § 7152 exceptions over the empty baseline.
-  const exceptionsIntake = (intake.exceptions_intake ?? {}) as Record<string, any>;
-  const exceptions = { ...EMPTY_EXCEPTIONS };
-  for (const [key, v] of Object.entries(exceptionsIntake)) {
-    if (v && v.claimed && key in exceptions) {
-      (exceptions as Record<string, ExceptionEntry>)[key] = {
-        claimed: true,
-        scope: String(v.scope ?? ""),
-        safeguards: String(v.safeguards ?? ""),
-        documented: Boolean(v.scope || v.safeguards),
-        authority_basis: String(v.authority_basis ?? ""),   // R1a claimed authority (TESTED, never adopted)
-        retention_period: String(v.retention_period ?? ""), // R1a per-exception retention (additional to i2_retention_period)
-      };
-    }
-  }
-
-
-  // Recover the § 7152(a)(1)–(9) content the wizard collects but the v4 slots don't carry.
-  const content_detail = {
-    retention_period: String(intake.i2_retention_period ?? ""),
-    retention_criteria: String(intake.i2_retention_criteria ?? ""),
-    retention_detail: String(intake.i2_retention_detail ?? ""),
-    consumer_disclosures: Array.isArray(intake.i4_disclosure_mechanisms)
-      ? intake.i4_disclosure_mechanisms.join("; ")
-      : String(intake.i4_disclosure_mechanisms ?? ""),
-    admt_logic: String(intake.i5_admt_logic ?? ""),
-    admt_training_source: String(intake.i5_admt_training_source ?? ""),
-    admt_fairness_testing: String(intake.i5_admt_fairness_testing ?? ""),
-    admt_human_review: String(intake.i5_admt_human_review ?? ""),
-    admt_description: String(intake.q19_admt_description ?? ""),
-    admt_opt_out: String(intake.q20_admt_opt_out ?? ""),
-    internal_contributors: String(intake.i7_internal_contributors ?? ""),
-    external_consultees: String(intake.i7_external_consultees ?? ""),
-    certifying_exec_name: String(intake.i8_certifying_exec_name ?? ""),
-    certifying_exec_title: String(intake.i8_certifying_exec_title ?? ""),
-    certifying_contact_email: String(intake.i8_contact_email ?? ""),
-    certifying_contact_phone: String(intake.i8_contact_phone ?? ""),
-    existing_dpia: hasDpia ? String(intake.i9_existing_dpia_summary ?? "Yes — summary not provided") : "No",
-    sensitive_pi_limit_offered: String(intake.q16_sensitive_limit ?? ""),
-    sensitive_pi_basis: String(intake.q17_sensitive_basis ?? ""),
-    opt_out_link: String(intake.q9_opt_out ?? ""),
-    notice_at_collection: String(intake.q12_notice_at_collection ?? ""),
-    minimum_pi_necessary: String(intake.i1b_min_pi ?? ""),
-    pi_sources: String(intake.i4b_sources ?? ""),
-    under16_actual_knowledge: String(intake.q15b_under16_knowledge ?? ""),
-    profiling_observation_trigger: String(intake.q5b_profiling_observation ?? ""),
-    admt_training_trigger: String(intake.q18b_admt_training ?? ""),
-    business_benefits: String(intake.impact_intake?.businessBenefits ?? ""),
-    consumer_benefits: String(intake.impact_intake?.consumerBenefits ?? ""),
-    stakeholder_public_benefits: String(intake.impact_intake?.stakeholderBenefits ?? ""),
-    planned_safeguards: String(intake.impact_intake?.safeguards ?? ""),
-    harm_sources_and_causes: String(intake.impact_intake?.harmCauses ?? ""),
-    // R1b0 threading — new intake fields exposed on content_detail so
-    // computeTestStates and downstream prose read normalised state, never raw intake.
-    q15c_spi_volume: String(intake.q15c_spi_volume ?? ""),
-    q5c_share_revenue_50pct: String(intake.q5c_share_revenue_50pct ?? ""),
-    revenue_band: classifyRevenueBand(intake.q1_revenue).label,
-    revenue_band_key: classifyRevenueBand(intake.q1_revenue).key,
-    revenue_audit_cohort: classifyRevenueBand(intake.q1_revenue).audit_cohort,
-  };
-
-  // R1b0: expose the split revenue band into triggers too, so any downstream
-  // check that reads triggers rather than content_detail can see the resolved posture.
-  (triggers as Record<string, any>).revenue_over_100m = classifyRevenueBand(intake.q1_revenue).over_100m;
-
-  return {
-    triggers,
-    exceptions,
-    activity_details,
-    impact,
-    org_context,
-    annual_consumer_volume: String(intake.q2_consumers ?? ""),
-    content_detail,
-  };
-}
-
-
-function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean } {
-  if (intake?.triggers === undefined) {
-    return { intake: shimLegacyIntake(intake ?? {}), wasLegacyShimmed: true };
-  }
-  // Ensure required substructures are present even on partially-populated new intakes.
-  // R1b0: also mirror the new intake fields onto content_detail and stamp the
-  // revenue band so computeTestStates and prompt injection read normalised state.
-  const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
-  if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
-  if (intake.q5c_share_revenue_50pct !== undefined) cd.q5c_share_revenue_50pct = String(intake.q5c_share_revenue_50pct ?? "");
-  const band = classifyRevenueBand(intake.q1_revenue ?? intake.org_context?.annual_revenue_threshold);
-  cd.revenue_band = band.label;
-  cd.revenue_band_key = band.key;
-  cd.revenue_audit_cohort = band.audit_cohort;
-  const triggers = { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) } as Record<string, any>;
-  triggers.revenue_over_100m = band.over_100m;
-  return {
-    intake: {
-      triggers,
-      exceptions: { ...EMPTY_EXCEPTIONS, ...(intake.exceptions ?? {}) },
-      activity_details: Array.isArray(intake.activity_details) ? intake.activity_details : [],
-      impact: intake.impact ?? {},
-      org_context: intake.org_context ?? {},
-      annual_consumer_volume: intake.annual_consumer_volume,
-      content_detail: cd,
-    },
-    wasLegacyShimmed: false,
-  };
-}
 
 // ---------------------------------------------------------------------------
 // R1b1 — deterministic TEST-STATES computed from the normalised intake.
