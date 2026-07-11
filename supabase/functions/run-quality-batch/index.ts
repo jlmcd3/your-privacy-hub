@@ -354,8 +354,11 @@ const CHECKS: Check[] = [
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
           let states: Record<string, any>;
-          try { states = computeRiskTestStates(asFiveStage(intake), intake ?? {}); }
-          catch (e) { return { passed: false, evidence: `computeTestStates threw: ${(e as Error).message?.slice(0, 80)}` }; }
+          try {
+            const r = resolveForChecks(intake);
+            states = computeRiskTestStates(r.fiveStage, r.rawForStates);
+          } catch (e) { return { passed: false, evidence: `computeTestStates threw: ${(e as Error).message?.slice(0, 80)}` }; }
+
           const resolvedFields = new Set<string>();
           const resolvedIds: string[] = [];
           for (const [id, s] of Object.entries(states)) {
