@@ -867,7 +867,7 @@ const DPIAFramework = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
-            if (id) navigate(`/dpia-framework/result/${id}?purchased=true`);
+            if (id) { void clearDraft(); navigate(`/dpia-framework/result/${id}?purchased=true`); }
           }}
         />
         <ToolSamplePreview
