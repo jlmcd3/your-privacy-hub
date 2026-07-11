@@ -934,6 +934,127 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     }
 
+    // R1b2 — post-lint T-2/T-3/T-4 gate on the SYNTHESIS output only (report-level
+    // prose). Per courier Option A: the binding-test/collapse/enhancement rules
+    // target executive_summary, top_risks, next_steps, and enforcement_context;
+    // per-control JSON stays under the lint pipeline above. One retry cap, then
+    // proceed with the violation logged (same posture as T-1 in risk).
+    const t234Violations: any[] = [];
+    {
+      const hedgeRe = /\b(cannot be determined|insufficient basis|not established|no basis to assess|indeterminate|please confirm|please verify)\b/i;
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|additional context|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const statAnchorRe = /(§\s*\d|11\s*CCR|1798\.|section\s+\d)/i;
+
+      function detectViolations(): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = [];
+        const t3: any[] = [];
+        const t4: any[] = [];
+
+        // T-2: RESOLVED per-control test vs contradiction in that control's finding.
+        const controlsArr: any[] = Array.isArray(report.controls) ? report.controls : [];
+        const CONTROL_KEYS = [
+          "c1_auth", "c2_encryption", "c3_account_access", "c4_inventory", "c5_secure_config",
+          "c6_vuln_mgmt", "c7_audit_logs", "c8_network_mon", "c9_anti_malware", "c10_segmentation",
+          "c11_port_protocol", "c12_awareness", "c13_training", "c14_secure_dev", "c15_third_party",
+          "c16_retention", "c17_incident", "c18_continuity",
+        ];
+        CONTROL_KEYS.forEach((key, idx) => {
+          const id = `M${4 + idx}`;
+          const ts = cyberTestStates[id];
+          if (!ts || ts.state !== "resolved_met") return;
+          const c = controlsArr[idx];
+          const status = String(c?.status ?? "");
+          const finding = String(c?.finding ?? "");
+          if (/^\s*Insufficient information\s*$/i.test(status)) {
+            t2.push({ test: id, control: key, kind: "status_contradicts_resolved", detail: `status="${status}" while intake supplied maturity` });
+          }
+          if (/the intake does not (?:establish|address|include)/i.test(finding) || /no discrete .* entry/i.test(finding)) {
+            t2.push({ test: id, control: key, kind: "finding_contradicts_resolved", detail: finding.slice(0, 160) });
+          }
+        });
+
+        // T-2 (M1/M2/M3): synthesis prose must not re-ask what M1/M2/M3 already RESOLVED.
+        const synthProseFields: Array<[string, string]> = [
+          ["executive_summary", String(report.executive_summary ?? "")],
+          ["enforcement_context", String((report as any).enforcement_context ?? "")],
+        ];
+        const nextSteps: any[] = Array.isArray(report.next_steps) ? report.next_steps : [];
+        const nextStepsText = nextSteps.map((s: any) => typeof s === "string" ? s : (s?.action ?? s?.text ?? "")).join(" | ");
+        for (const [testId, sourceKey] of [["M1", "framework"], ["M2", "incidents_12mo"], ["M3", "last_audit"]] as const) {
+          const ts = cyberTestStates[testId];
+          if (!ts || ts.state === "indeterminate") continue;
+          const askRe = new RegExp(`\\b(?:confirm|verify|provide|document|clarify)[^.]{0,80}\\b${sourceKey.replace("_", "\\s?_?")}\\b`, "i");
+          if (askRe.test(nextStepsText)) {
+            t2.push({ test: testId, kind: "next_steps_reasks_resolved", detail: `next_steps re-asks ${sourceKey}` });
+          }
+        }
+
+        // T-3: banned-collapse phrasing in synthesis prose where the record has
+        // credited evidence (any RESOLVED_MET c{N}_answered state).
+        const anyControlAnswered = CONTROL_KEYS.some((_, idx) => cyberTestStates[`M${4 + idx}`]?.state === "resolved_met");
+        if (anyControlAnswered) {
+          for (const [field, text] of synthProseFields) {
+            if (collapseRe.test(text)) t3.push({ field, detail: text.slice(0, 160) });
+          }
+        }
+
+        // T-4: enhancement-class next_steps entries — depth language without a
+        // statutory anchor. Verdict-blocking or record-completeness items must
+        // cite a provision (§ 7122(g), § 7123, Cal. Civ. Code, etc.).
+        for (const step of nextSteps) {
+          const t = typeof step === "string" ? step : String(step?.action ?? step?.text ?? "");
+          if (!t) continue;
+          const hasDepth = depthLangRe.test(t);
+          const hasAnchor = statAnchorRe.test(t);
+          if (hasDepth && !hasAnchor) t4.push({ detail: t.slice(0, 160) });
+        }
+
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectViolations();
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (totalHits > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation",
+          fn: "run-cppa-cybersecurity",
+          t2: detected.t2.slice(0, 6),
+          t3: detected.t3.slice(0, 6),
+          t4: detected.t4.slice(0, 6),
+        }));
+        // ONE retry: synthesis only, with the violation details as retry instruction.
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT contradict RESOLVED states or re-ask them: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplied per-control maturity, do NOT collapse the record with 'cannot be determined'/'no basis to assess'/'not established' in executive_summary or enforcement_context`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every next_steps entry must be verdict-blocking or record-completeness, anchored to a cited provision; remove pure depth items`);
+          const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
+          const digest2 = buildDigest(allControls);
+          const r = await callSynthesis(digest2, (report as any).overall_score ?? 0, retryInstr);
+          if (r) {
+            report.executive_summary = r.executive_summary;
+            report.readiness_level = r.readiness_level;
+            report.top_risks = Array.isArray(r.top_risks) ? r.top_risks : report.top_risks;
+            report.enforcement_context = r.enforcement_context;
+            report.next_steps = Array.isArray(r.next_steps) ? r.next_steps : report.next_steps;
+            normaliseReport(report);
+          }
+          detected = detectViolations();
+          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+          if (stillHits > 0) {
+            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-cppa-cybersecurity", remaining: stillHits }));
+          }
+        } catch (e) {
+          console.warn("[CPPA Cyber] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+      }
+    }
+    for (const v of t234Violations) lintViolations.push(v);
+
     // Deterministic consistency check: align status↔score, recompute overall_score,
     // and align readiness_level to the score band.
     applyConsistencyFixes(report);
