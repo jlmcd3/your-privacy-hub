@@ -32,6 +32,7 @@ import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
