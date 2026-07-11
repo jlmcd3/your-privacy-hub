@@ -278,18 +278,195 @@ function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimm
     return { intake: shimLegacyIntake(intake ?? {}), wasLegacyShimmed: true };
   }
   // Ensure required substructures are present even on partially-populated new intakes.
+  // R1b0: also mirror the new intake fields onto content_detail and stamp the
+  // revenue band so computeTestStates and prompt injection read normalised state.
+  const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
+  if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
+  if (intake.q5c_share_revenue_50pct !== undefined) cd.q5c_share_revenue_50pct = String(intake.q5c_share_revenue_50pct ?? "");
+  const band = classifyRevenueBand(intake.q1_revenue ?? intake.org_context?.annual_revenue_threshold);
+  cd.revenue_band = band.label;
+  cd.revenue_band_key = band.key;
+  cd.revenue_audit_cohort = band.audit_cohort;
+  const triggers = { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) } as Record<string, any>;
+  triggers.revenue_over_100m = band.over_100m;
   return {
     intake: {
-      triggers: { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) },
+      triggers,
       exceptions: { ...EMPTY_EXCEPTIONS, ...(intake.exceptions ?? {}) },
       activity_details: Array.isArray(intake.activity_details) ? intake.activity_details : [],
       impact: intake.impact ?? {},
       org_context: intake.org_context ?? {},
       annual_consumer_volume: intake.annual_consumer_volume,
+      content_detail: cd,
     },
     wasLegacyShimmed: false,
   };
 }
+
+// ---------------------------------------------------------------------------
+// R1b1 — deterministic TEST-STATES computed from the normalised intake.
+// A RESOLVED state is binding: the model may not hedge, contradict, or
+// convert it into an information_needed ask (rule TEST-STATES ARE BINDING,
+// enforced by post-check T-2).
+// ---------------------------------------------------------------------------
+export type TestState = {
+  state: "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
+  basis: string;
+  source_fields: string[];
+  note?: string;
+};
+
+export function computeTestStates(
+  fiveStage: FiveStageIntake,
+  rawIntake: Record<string, any>,
+): Record<string, TestState> {
+  const map: Record<string, TestState> = {};
+  const q1 = rawIntake.q1_revenue;
+  const band = classifyRevenueBand(q1);
+  const q2 = String(rawIntake.q2_consumers ?? "").trim();
+  const q5 = String(rawIntake.q5_sell_share ?? "").trim();
+  const q5c = String(rawIntake.q5c_share_revenue_50pct ?? "").trim();
+  const q15 = String(rawIntake.q15_sensitive_pi ?? "").trim();
+  const q15c = String(rawIntake.q15c_spi_volume ?? "").trim();
+
+  // M1 — §1798.140(d)(1)(A) $25M revenue threshold
+  if (band.over_25m === "indeterminate") {
+    map.M1 = { state: "indeterminate", basis: "revenue band not specified", source_fields: ["q1_revenue"] };
+  } else {
+    map.M1 = { state: band.over_25m ? "resolved_met" : "resolved_not_met", basis: `revenue band ${band.label}`, source_fields: ["q1_revenue"] };
+  }
+
+  // M2/M3 — consumer-band determinations
+  const CB: Record<string, { over_100k: boolean; over_250k: boolean }> = {
+    "Fewer than 100,000":    { over_100k: false, over_250k: false },
+    "100,000–249,999":       { over_100k: true,  over_250k: false },
+    "250,000–1 million":     { over_100k: true,  over_250k: true },
+    "1–10 million":          { over_100k: true,  over_250k: true },
+    "Over 10 million":       { over_100k: true,  over_250k: true },
+  };
+  const cb = CB[q2];
+  if (cb) {
+    map.M2 = { state: cb.over_100k ? "resolved_met" : "resolved_not_met", basis: `consumer band ${q2}`, source_fields: ["q2_consumers"] };
+    map.M3 = { state: cb.over_250k ? "resolved_met" : "resolved_not_met", basis: `consumer band ${q2}`, source_fields: ["q2_consumers"] };
+  } else {
+    const reason = q2 ? `recorded band ${q2} does not resolve the threshold` : "consumer band not specified";
+    map.M2 = { state: "indeterminate", basis: reason, source_fields: ["q2_consumers"] };
+    map.M3 = { state: "indeterminate", basis: reason, source_fields: ["q2_consumers"] };
+  }
+
+  // M4 — §7120(b)(2)(B) 50,000-SPI volume threshold
+  if (q15 === "No") {
+    map.M4 = { state: "resolved_not_applicable", basis: "q15_sensitive_pi = No — no SPI processing, prong inapplicable", source_fields: ["q15_sensitive_pi"] };
+  } else if (q15c === "50,000 or more") {
+    map.M4 = { state: "resolved_met", basis: "q15c_spi_volume = 50,000 or more", source_fields: ["q15c_spi_volume"] };
+  } else if (q15c === "Fewer than 50,000") {
+    map.M4 = { state: "resolved_not_met", basis: "q15c_spi_volume = Fewer than 50,000", source_fields: ["q15c_spi_volume"] };
+  } else {
+    map.M4 = { state: "indeterminate", basis: q15c ? `q15c_spi_volume = ${q15c} does not resolve` : "q15c_spi_volume not provided", source_fields: ["q15c_spi_volume", "q15_sensitive_pi"] };
+  }
+
+  // M5 — §7120(b)(1) 50%-of-revenue-from-sale/share prong
+  if (q5 === "No") {
+    map.M5 = { state: "resolved_not_met", basis: "q5_sell_share = No — no sale/share, prong inapplicable", source_fields: ["q5_sell_share"] };
+  } else if (q5c === "Yes") {
+    map.M5 = { state: "resolved_met", basis: "q5c_share_revenue_50pct = Yes", source_fields: ["q5c_share_revenue_50pct"] };
+  } else if (q5c === "No") {
+    map.M5 = { state: "resolved_not_met", basis: "q5c_share_revenue_50pct = No", source_fields: ["q5c_share_revenue_50pct"] };
+  } else {
+    map.M5 = { state: "indeterminate", basis: q5c ? `q5c_share_revenue_50pct = ${q5c} does not resolve` : "q5c_share_revenue_50pct not provided", source_fields: ["q5c_share_revenue_50pct", "q5_sell_share"] };
+  }
+
+  // M6 — §7121(a) cyber-audit cohort date
+  if (band.audit_cohort === "indeterminate") {
+    map.M6 = {
+      state: "indeterminate",
+      basis: band.key === "legacy_25_100m"
+        ? `legacy revenue band ${band.label} straddles the $50M line — cohort is 2029-04-01 or 2030-04-01 depending on split`
+        : "revenue band not specified — cohort cannot be resolved",
+      source_fields: ["q1_revenue"],
+    };
+  } else {
+    map.M6 = {
+      state: "resolved_met",
+      basis: `revenue band ${band.label} → §7121(a) cohort ${band.audit_cohort}`,
+      source_fields: ["q1_revenue"],
+      note: `cohort_date=${band.audit_cohort}`,
+    };
+  }
+
+  // M7 — §7150(b) trigger CLAIMED-states (which triggers the intake claims are engaged)
+  const t7 = {
+    sells_or_shares_pi: !!q5 && q5 !== "No",
+    profiling_observation: /yes|both/i.test(String(rawIntake.q5b_profiling_observation ?? "")),
+    sensitive_pi: q15 === "Yes",
+    under16_actual_knowledge: /^yes/i.test(String(rawIntake.q15b_under16_knowledge ?? "")),
+    admt_use: rawIntake.q18_admt_use === "Yes" || rawIntake.q18_admt_use === "In evaluation",
+    admt_training: /^yes/i.test(String(rawIntake.q18b_admt_training ?? "")),
+  };
+  const engaged = Object.entries(t7).filter(([, v]) => v).map(([k]) => k);
+  map.M7 = {
+    state: engaged.length ? "resolved_met" : "resolved_not_met",
+    basis: `claimed § 7150(b) triggers: ${engaged.join(", ") || "none"}`,
+    source_fields: ["q5_sell_share", "q5b_profiling_observation", "q15_sensitive_pi", "q15b_under16_knowledge", "q18_admt_use", "q18b_admt_training"],
+  };
+
+  // M8 — § 7152 exception CLAIMED-set + pinned cite per claimed key
+  const EXCEPTION_PIN: Record<string, string> = {
+    fraud_detection: "Cal. Civ. Code § 1798.145(a)(1)",
+    security_integrity: "Cal. Civ. Code § 1798.145(a)(2)",
+    debugging: "Cal. Civ. Code § 1798.145(a)(3)",
+    transient_use: "Cal. Civ. Code § 1798.145(a)(4)",
+    internal_research: "Cal. Civ. Code § 1798.145(a)(5)",
+    employment_context: "Cal. Civ. Code § 1798.145(o)",
+    legal_compliance: "Cal. Civ. Code § 1798.145(a)(6)",
+    consumer_request: "Cal. Civ. Code § 1798.145(a)(4)",
+  };
+  const exceptionsIntake = (rawIntake.exceptions_intake ?? {}) as Record<string, any>;
+  const claimed = Object.entries(exceptionsIntake).filter(([, v]: any) => v?.claimed).map(([k]) => k);
+  map.M8 = {
+    state: claimed.length ? "resolved_met" : "resolved_not_applicable",
+    basis: claimed.length
+      ? `claimed exceptions: ${claimed.map((k) => `${k} (pinned cite ${EXCEPTION_PIN[k] ?? "§ 1798.145"})`).join("; ")}`
+      : "no § 7152 exceptions claimed",
+    source_fields: ["exceptions_intake"],
+  };
+
+  // M9 — § 7152(a)(1),(2),(4),(8) element presence (non-empty checks)
+  const hasPurpose      = String(rawIntake.i1_processing_purpose ?? "").trim().length > 0;
+  const hasMinPi        = String(rawIntake.i1b_min_pi ?? "").trim().length > 0;
+  const hasRetention    = String(rawIntake.i2_retention_period ?? "").trim().length > 0 || String(rawIntake.i2_retention_criteria ?? "").trim().length > 0;
+  const hasBenefits     = String(rawIntake.impact_intake?.businessBenefits ?? "").trim().length > 0 || String(rawIntake.impact_intake?.consumerBenefits ?? "").trim().length > 0;
+  const hasContributors = String(rawIntake.i7_internal_contributors ?? "").trim().length > 0;
+  const hasCertifier    = String(rawIntake.i8_certifying_exec_name ?? "").trim().length > 0;
+  const allPresent = hasPurpose && hasMinPi && hasRetention && hasBenefits && hasContributors && hasCertifier;
+  map.M9 = {
+    state: allPresent ? "resolved_met" : "resolved_not_met",
+    basis: `§ 7152(a) element presence — (a)(1) purpose=${hasPurpose}; (a)(3) min-PI=${hasMinPi}, retention=${hasRetention}; (a)(4) benefits=${hasBenefits}; (a)(8) contributors=${hasContributors}, certifier=${hasCertifier}`,
+    source_fields: ["i1_processing_purpose", "i1b_min_pi", "i2_retention_period", "i2_retention_criteria", "impact_intake", "i7_internal_contributors", "i8_certifying_exec_name"],
+  };
+
+  // M10 — § 7155(b) / § 7157 canonical dates (already computed elsewhere; folded in)
+  map.M10 = {
+    state: "resolved_met",
+    basis: "§ 7155(b) existing-activity compliance deadline: 2027-12-31; § 7157(a)(1) submission deadline for 2026/2027 assessments: 2028-04-01",
+    source_fields: [],
+    note: "assessment_compliance=2027-12-31; submission=2028-04-01",
+  };
+
+  void fiveStage; // (kept in signature for future use; M-tests currently read raw intake)
+  return map;
+}
+
+export function formatTestStatesBlock(map: Record<string, TestState>): string {
+  const header =
+    "TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING: state its conclusion with the basis given, do NOT hedge, do NOT emit an information_needed entry for it, and do NOT ask the user to confirm/verify it. INDETERMINATE tests use insufficient-basis language and MUST generate exactly one information_needed entry anchored to the producing field.";
+  const rows = Object.entries(map).map(([k, v]) => {
+    const src = v.source_fields.length ? v.source_fields.join(", ") : "(computed)";
+    return `- ${k} [${v.state.toUpperCase()}] — ${v.basis} [source: ${src}]${v.note ? ` {${v.note}}` : ""}`;
+  });
+  return `${header}\n${rows.join("\n")}`;
+}
+
 
 // ---------------------------------------------------------------------------
 // Validation (CR-2 Step 5). Relaxed when payload was shimmed from legacy.
