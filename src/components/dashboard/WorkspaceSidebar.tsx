@@ -12,6 +12,7 @@ import {
 import { useClientStore, type Client } from "@/stores/clientStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -137,6 +138,7 @@ export default function WorkspaceSidebar() {
   const location = useLocation();
   const { user } = useAuth();
   const { isPremium, isLoading } = useSubscriptionTier();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
 
   const clients = useClientStore((s) => s.clients);
   const personal = useClientStore((s) => s.personal);
@@ -155,7 +157,7 @@ export default function WorkspaceSidebar() {
 
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
 
-  if (!user || isLoading || !isPremium) return null;
+  if (!user || isLoading || adminLoading || (!isPremium && !isAdmin)) return null;
 
   return (
     <aside
