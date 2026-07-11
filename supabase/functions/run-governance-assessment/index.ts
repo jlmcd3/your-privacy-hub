@@ -16,6 +16,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
