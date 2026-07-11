@@ -79,7 +79,7 @@ function computeCppaScopeResult(input: Record<string, unknown>): Record<string, 
     (
       ["$25M–$100M", "$100M–$500M", "Over $500M"].includes(q2) ||
       q2 === "Unsure" ||
-      ["100,000–1 million", "Over 1 million"].includes(q3) ||
+      ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"].includes(q3) ||
       q3 === "Unsure" ||
       ["Yes — we sell PI", "Yes — we share for targeted/behavioural advertising", "Both"].includes(q4) ||
       q5 === "Yes"

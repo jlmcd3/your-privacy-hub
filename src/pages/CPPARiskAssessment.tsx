@@ -75,7 +75,15 @@ function formatRelativeTime(d: Date): string {
 }
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
-const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
+// Consumer-volume bands aligned to statutory breakpoints:
+//   100,000 — § 1798.140(d)(1)(B) covered-business threshold
+//   250,000 — § 7120(b)(2)(A) cyber-audit volume prong
+// Legacy value "100,000–1 million" (which straddles 250,000) is intentionally
+// NOT in this list — the risk generator still ACCEPTS it in stored intakes
+// and resolves it as indeterminate per the BAND-VS-THRESHOLD rule / T-1
+// deterministic check. Restore of a legacy draft clears q2 so the user
+// re-answers with a clean band (see applyRestore).
+const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
 const PI_CATEGORIES = [
   "Contact identifiers (name, email, phone)",
@@ -551,7 +559,12 @@ export default function CPPARiskAssessment() {
     const d = restoreData as Record<string, any> | null;
     if (!d) return;
     if (typeof d.q1 === "string") setQ1(d.q1);
-    if (typeof d.q2 === "string") setQ2(d.q2);
+    if (typeof d.q2 === "string") {
+      // Guard against legacy straddling band "100,000–1 million" (no longer in
+      // CONSUMER_OPTS). Restoring an unknown value would render the radio
+      // unselected — clear it explicitly so the user must re-answer.
+      setQ2(CONSUMER_OPTS.includes(d.q2) ? d.q2 : "");
+    }
     if (typeof d.q3 === "string") setQ3(d.q3);
     if (Array.isArray(d.q4)) setQ4(d.q4);
     if (typeof d.q5 === "string") setQ5(d.q5);
