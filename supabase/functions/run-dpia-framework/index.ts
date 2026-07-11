@@ -1071,7 +1071,8 @@ Generate substantive draft rows for every table for the controller to verify; us
       }
 
       let detected = detectDpiaViolations();
-      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(reportData);
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (totalHits > 0) {
         const elapsedAtViolationMs = Date.now() - generationStartedAt;
         const retryWithinBudget = elapsedAtViolationMs < DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS;
@@ -1084,6 +1085,7 @@ Generate substantive draft rows for every table for the controller to verify; us
           t2: detected.t2.slice(0, 6),
           t3: detected.t3.slice(0, 6),
           t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         if (retryWithinBudget) {
           try {
@@ -1091,18 +1093,20 @@ Generate substantive draft rows for every table for the controller to verify; us
             if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED tests: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
             if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies substantive inputs; do NOT collapse determinations with 'cannot be determined'/'no basis to assess'/'not established'`);
             if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every completion_guidance item must be verdict-blocking or record-completeness, anchored to a cited GDPR/EDPB provision; remove pure depth items`);
+            if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1, M2, M9, …), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from section prose, completion_guidance, information_needed, and [TO COMPLETE] placeholders; state the conclusion with its factual basis. Leaked at: ${t5Hits.slice(0, 6).map((h) => `${h.path}:"${h.match}"`).join(", ")}`);
             const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
             const [newA, newB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
             const mergedA = (newA && Object.keys(newA).length > 0) ? newA : partA;
             const mergedB = (newB && Object.keys(newB).length > 0) ? newB : partB;
             reportData = { ...mergedA, ...mergedB };
             detected = detectDpiaViolations();
-            const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+            t5Hits = detectTestStatesLeak(reportData);
+            const stillHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
             if (stillHits > 0) {
-              console.warn(JSON.stringify({ evt: "post_gen_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits }));
+              console.warn(JSON.stringify({ evt: "post_gen_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits, t5_remaining: t5Hits.length }));
             }
           } catch (e) {
-            console.warn("[DPIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+            console.warn("[DPIA] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
           }
         } else {
           console.warn(JSON.stringify({
@@ -1111,11 +1115,13 @@ Generate substantive draft rows for every table for the controller to verify; us
             reason: "elapsed_budget_exceeded",
             elapsed_ms: elapsedAtViolationMs,
             retry_threshold_ms: DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
+            t5_skipped: t5Hits.length,
           }));
         }
         for (const v of detected.t2) lintViolations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) lintViolations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) lintViolations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
 
