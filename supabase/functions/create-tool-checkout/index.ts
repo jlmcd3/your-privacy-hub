@@ -499,7 +499,7 @@ Deno.serve(async (req) => {
       ? tool.fallback_subscriber_cents
       : tool.fallback_standalone_cents;
 
-    const env = detectEnv(environment);
+    const env = checkoutEnv;
     const stripe = createStripeClient(env);
 
     // CUSTOMER-1: canonical customer resolution keyed by user_id. When
