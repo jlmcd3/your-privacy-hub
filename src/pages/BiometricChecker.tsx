@@ -1,6 +1,9 @@
 
 import { PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
