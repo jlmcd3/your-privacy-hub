@@ -756,29 +756,45 @@ export default function EUNoticeReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-brand-cloud rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-brand-navy mb-4">
-              Generating your EU & global privacy notices…
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <GenStepRow status={genSteps._session ?? "pending"} label="Session data loaded" />
-              <GenStepRow
-                status={genSteps._config ?? "pending"}
-                label={`${frameworks.length} framework${frameworks.length === 1 ? "" : "s"} configured`}
+            {genPhase === "stalled" || genPhase === "stalled_pre_dispatch" ? (
+              <GenerationStalledCard
+                variant={genPhase}
+                retryHref={`/eu-notices/review/${sessionId ?? ""}`}
+                onRefresh={() => { void refreshGen(); }}
               />
-              {frameworks.map((fw) => (
-                <GenStepRow
-                  key={fw.framework_code}
-                  status={genSteps[fw.framework_code] ?? "pending"}
-                  label={`${fw.framework_name} notice`}
-                />
-              ))}
-              {combinedAvailable && includeCombined && (
-                <GenStepRow status={genSteps._combined ?? "pending"} label="Combined international notice" />
-              )}
-            </ul>
+            ) : (
+              <>
+                <h3 className="text-brand-navy mb-2">
+                  Generating your EU & global privacy notices…
+                </h3>
+                {genPhase === "slow" && (
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Taking longer than expected — still working.
+                  </p>
+                )}
+                <ul className="space-y-2 text-sm">
+                  <GenStepRow status={genSteps._session ?? "pending"} label="Session data loaded" />
+                  <GenStepRow
+                    status={genSteps._config ?? "pending"}
+                    label={`${frameworks.length} framework${frameworks.length === 1 ? "" : "s"} configured`}
+                  />
+                  {frameworks.map((fw) => (
+                    <GenStepRow
+                      key={fw.framework_code}
+                      status={genSteps[fw.framework_code] ?? "pending"}
+                      label={`${fw.framework_name} notice`}
+                    />
+                  ))}
+                  {combinedAvailable && includeCombined && (
+                    <GenStepRow status={genSteps._combined ?? "pending"} label="Combined international notice" />
+                  )}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       )}
+
 
       {/* Checkout modal */}
       {sessionId && (
