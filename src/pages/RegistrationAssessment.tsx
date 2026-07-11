@@ -212,6 +212,17 @@ export default function RegistrationAssessment() {
               </p>
             </header>
 
+            <div className="mb-4">
+              <DraftRestoreBanner
+                draftFound={draftFound}
+                touched={touched}
+                draftUpdatedAt={draftUpdatedAt}
+                onResume={applyRestore}
+                onDiscard={() => { void clearDraft(); }}
+              />
+            </div>
+
+
             <div className="relative">
               {isAnon && (
                 <button
