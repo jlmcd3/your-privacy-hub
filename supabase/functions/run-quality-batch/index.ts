@@ -444,7 +444,9 @@ const CHECKS: Check[] = [
         id: "qc_r1_4_cohort_determinism", dimension: "accuracy", severity: "critical",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const band = classifyRevenueBand(intake?.q1_revenue);
+          const r = resolveForChecks(intake);
+          const band = classifyRevenueBand(r.rawForStates.q1_revenue);
+
           const s = JSON.stringify(report ?? "").toLowerCase();
           // legacy or absent → indeterminate two-cohort treatment required
           if (band.audit_cohort === "indeterminate") {
