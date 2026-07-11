@@ -41,17 +41,53 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     fieldLabel: "Q1: Annual gross revenue",
     citation: "Cal. Civ. Code § 1798.140(ag)(1)",
     citationUrl: CPPA_URL,
-    plainSummary: "A 'business' subject to CCPA/CPRA includes any for-profit entity doing business in California with annual gross revenues exceeding $25 million. This threshold applies regardless of how much California consumer data you process.",
-    regulationText: "A \"business\" means a sole proprietorship, partnership, limited liability company, corporation, association, or other legal entity that is organized or operated for the profit or financial benefit of its shareholders or other owners… and that… Has annual gross revenues in excess of twenty-five million dollars ($25,000,000).",
+    plainSummary: "A 'business' subject to CCPA/CPRA includes any for-profit entity doing business in California with annual gross revenues exceeding $25 million. This threshold applies regardless of how much California consumer data you process. The revenue band you select also determines your first cybersecurity-audit deadline under 11 CCR § 7121(a): >$100M → April 1, 2028; $50M–$100M → April 1, 2029; <$50M → April 1, 2030.",
+    regulationText: "A \"business\" means a sole proprietorship, partnership, limited liability company, corporation, association, or other legal entity that is organized or operated for the profit or financial benefit of its shareholders or other owners… and that… Has annual gross revenues in excess of twenty-five million dollars ($25,000,000).\n\n11 CCR § 7121(a) — First cybersecurity audit report deadline: \"A business must complete its first cybersecurity audit report no later than: (1) April 1, 2028, if the business's annual gross revenue for 2026 was more than one hundred million dollars ($100,000,000) as of January 1, 2027. The business's audit would cover the period from January 1, 2027, through January 1, 2028. (2) April 1, 2029, if the business's annual gross revenue for 2027 was between fifty million dollars ($50,000,000) and one hundred million dollars ($100,000,000) as of January 1, 2028. The business's audit would cover the period from January 1, 2028, through January 1, 2029. (3) April 1, 2030, if the business's annual gross revenue for 2028 was less than fifty million dollars ($50,000,000). The business's audit would cover the period from January 1, 2029, through January 1, 2030.\"",
     relatedCitations: [
       { citation: "Cal. Civ. Code § 1798.140(ag)(2)", label: "Consumer volume threshold" },
       { citation: "Cal. Civ. Code § 1798.140(ag)(3)", label: "50% revenue threshold" },
+      { citation: "11 CCR § 7121(a)", label: "First cybersecurity audit report deadline cohort" },
     ],
     coachLead: "Use last calendar year's gross revenue, worldwide.",
-    coachBody: "The threshold tests total gross revenue — worldwide, before costs. Not California-only revenue. Not profit. Pick the band your best audited figure falls in.",
+    coachBody: "The threshold tests total gross revenue — worldwide, before costs. Not California-only revenue. Not profit. Pick the band your best audited figure falls in. The band you select is also the cohort key § 7121(a) uses to set your first cybersecurity-audit deadline, so the $50M and $100M lines are cohort-defining, not narrative.",
     goodAnswer: "A company took in $28M worldwide last year, only $4M of it in California. It selects the over-$25M band — the statute counts gross revenue, not in-state revenue.",
     commonMistake: "Picking a band from California-only revenue or from net income. Both understate the number the law tests.",
   },
+
+  q5c_share_revenue_50pct: {
+    fieldLabel: "Q5c: 50%-or-more of annual revenue from selling or sharing PI",
+    citation: "Cal. Civ. Code § 1798.140(d)(1)(C)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Deriving 50% or more of annual revenue from selling or sharing consumers' personal information carries two independent consequences: (1) covered-business status under Cal. Civ. Code § 1798.140(d)(1)(C) attaches regardless of revenue size or consumer count; and (2) the same 50%-revenue prong is a standalone cybersecurity-audit trigger under 11 CCR § 7120(b)(1), meaning the audit obligation attaches without any consumer-count threshold.",
+    regulationText: "Cal. Civ. Code § 1798.140(d)(1)(C) — Covered-business definition: \"Derives 50 percent or more of its annual revenues from selling or sharing consumers' personal information.\"\n\n11 CCR § 7120(b)(1) — Cybersecurity-audit trigger: \"A business's processing of consumers' personal information presents significant risk to consumers' security if any of the following is true: (1) The business meets the threshold set forth in Civil Code section 1798.140, subdivision (d)(1)(C), in the preceding calendar year.\"",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.140(ah)", label: "'Share' definition" },
+      { citation: "11 CCR § 7121(a)", label: "Deadline cohort by revenue band" },
+    ],
+    coachLead: "Answer from the revenue mix, not from your product story.",
+    coachBody: "The test is proportion: at least 50% of annual revenue derived from selling or sharing PI. 'Sell' and 'share' carry their CCPA meaning — value-for-consideration disclosure, and cross-context behavioural-advertising disclosure. Base the answer on last year's audited revenue split, not on how the business describes itself.",
+    goodAnswer: "An ad-network operator's revenue is 78% from audience data sold to advertisers. It answers yes — both covered-business status and the cybersecurity-audit trigger attach.",
+    commonMistake: "Answering no because \"we don't sell data for money\" while cross-context behavioural-advertising sharing generates most of the revenue. Sharing counts, and it counts by revenue proportion.",
+  },
+
+  q15c_spi_volume: {
+    fieldLabel: "Q15c: Sensitive PI of 50,000 or more consumers",
+    citation: "11 CCR § 7120(b)(2)(B)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Processing the sensitive personal information of 50,000 or more consumers in the preceding calendar year is a standalone cybersecurity-audit trigger under 11 CCR § 7120(b)(2)(B), independent of the general 250,000-consumer trigger in § 7120(b)(2)(A). It fires only when the § 1798.140(d)(1)(A) revenue-based covered-business test is also met (i.e. annual gross revenues > $25M).",
+    regulationText: "11 CCR § 7120(b)(2) — \"The business meets the threshold set forth in Civil Code section 1798.140, subdivision (d)(1)(A); and… (B) Processed the sensitive personal information of 50,000 or more consumers in the preceding calendar year.\"",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.140(ae)", label: "Sensitive PI definition (see q15)" },
+      { citation: "11 CCR § 7120(b)(2)(A)", label: "250,000-consumer trigger (companion prong)" },
+      { citation: "Cal. Civ. Code § 1798.140(d)(1)(A)", label: "$25M revenue gate for the (b)(2) prongs" },
+    ],
+    coachLead: "Count unique consumers whose sensitive PI you processed — not records.",
+    coachBody: "The 50,000 figure counts distinct consumers whose sensitive PI you processed in the preceding calendar year, not sensitive-PI events. \"Sensitive PI\" is the § 1798.140(ae) list already anchored at Q15 — precise geolocation, government IDs, account credentials, race, health, biometrics, and the rest. If the same 50,000 consumers appear across multiple sensitive-PI categories, they still count once.",
+    goodAnswer: "A telehealth service processed health data for 62,000 California patients last year. It answers \"50,000 or more\" — one sensitive-PI category, distinct-consumer count above the threshold.",
+    commonMistake: "Counting sensitive-PI records or events instead of distinct consumers, or excluding sensitive PI collected but not \"used\" — the trigger tests processing, which includes storage.",
+  },
+
+
 
   q2_consumers: {
     fieldLabel: "Q2: Number of California consumers processed annually",
