@@ -202,10 +202,12 @@ Deno.serve(async (req) => {
     }
 
     if (body.assessment_id) {
-      await supabase
-        .from("dpa_documents")
-        .update({ status: "processing", intake_data: body, updated_at: new Date().toISOString() })
-        .eq("id", body.assessment_id);
+      const procWrite = await lifecycleUpdate(supabase, "dpa_documents", body.assessment_id, { status: "processing", intake_data: body, updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "pre_generation" });
+      if (!procWrite.ok) {
+        return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       rowId = body.assessment_id;
     } else {
       const { data: inserted, error: insErr } = await supabase
