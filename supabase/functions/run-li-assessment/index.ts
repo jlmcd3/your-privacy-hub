@@ -581,6 +581,10 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
 
+    // R1b2 — deterministic TEST-STATES computed from the intake row.
+    const liaTestStates = computeLiaTestStates(assessment as Record<string, any>);
+    const liaTestStatesBlock = renderLiaTestStatesBlock(liaTestStates);
+
     const ukGuidanceFraming = isUk
       ? `UK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
       : "";
@@ -595,6 +599,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
       gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
       ukGuidanceFraming,
+      liaTestStatesBlock,
     ].filter(Boolean).join("\n\n");
 
     const analysisSystemBlocks = buildSystemContent({
