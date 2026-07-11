@@ -75,6 +75,27 @@ export default function DPAGenerator() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const { user } = useAuth();
+  const initialFormRef = useMemo(() => JSON.stringify(form), []);
+  const touched = useMemo(() => JSON.stringify(form) !== initialFormRef, [form, initialFormRef]);
+  const draftData = useMemo(() => ({ form, step }), [form, step]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+  } = useToolDraft({
+    toolType: "dpa",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { form?: any; step?: number } | null;
+    if (!d) return;
+    if (d.form && typeof d.form === "object") setForm((prev) => ({ ...prev, ...d.form }));
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    else if (typeof d.step === "number") setStep(d.step);
+  };
+
   const validateForm = (): string | null => {
     if (!form.entityName.trim()) return "Please enter your entity name.";
     if (!form.controllerName.trim()) return "Please enter the Controller name.";
