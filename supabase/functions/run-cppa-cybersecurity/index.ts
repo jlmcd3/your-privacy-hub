@@ -202,7 +202,7 @@ const COMPONENT_CITATIONS: Record<string, string> = {
 // ─────────────────────────────────────────────────────────────────────────────
 export { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { TestStateEntry } from "../_shared/cppa-test-states.ts";
-import { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
+import { computeCyberTestStates, renderCyberTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 
 async function runAssessment(assessment_id: string): Promise<void> {
