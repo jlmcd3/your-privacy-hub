@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -24,6 +24,9 @@ import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question } from "@/data/ropa-questions/types";
 import SessionCheckoutModal, { type SessionToolType } from "@/components/SessionCheckoutModal";
 import FreeRunIndicator from "@/components/FreeRunIndicator";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
 
 type AnswerValue = string | string[] | null;
 type EuNoticeScope = "single" | "suite" | "full_international";
