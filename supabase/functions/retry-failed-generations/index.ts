@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
       results.push(await sweepTable(table));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      results.push({ table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, errors: [msg] });
+      results.push({ table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, skipped_no_evidence: 0, errors: [msg] });
     }
   }
   let registration: { finalized: number; failed: number; errors: string[] } = { finalized: 0, failed: 0, errors: [] };
