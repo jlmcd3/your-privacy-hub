@@ -1253,8 +1253,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
   } catch (e) {
     console.error("run-governance-assessment error:", e);
     if (assessment_id) {
-      await supabase.from("governance_assessments")
-        .update({ status: "failed" }).eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "governance_assessments", assessment_id, { status: "failed" }, { fn: "run-governance-assessment", phase: "outer_catch" });
     }
     return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
