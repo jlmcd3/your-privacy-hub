@@ -1155,14 +1155,11 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         // CF-2: never merge/persist a truncated playbook.
         if (incompleteReason) {
           console.error(`[generate-ir-playbook] incomplete_generation after retry: ${incompleteReason}`);
-          await supabase
-            .from("ir_playbooks")
-            .update({
-              status: "failed",
-              report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", rowId);
+          await lifecycleUpdate(supabase, "ir_playbooks", rowId, {
+            status: "failed",
+            report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
+            updated_at: new Date().toISOString(),
+          }, { fn: "generate-ir-playbook", phase: "terminal_error_incomplete" });
           return;
         }
 
