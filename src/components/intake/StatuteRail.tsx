@@ -24,6 +24,12 @@ interface StatuteRailProps {
    * Defaults to true so standalone rail surfaces keep current behavior.
    */
   showCoachingFields?: boolean;
+  /**
+   * When true, render for embedding in a parent-controlled sticky column:
+   * full width, no internal sticky wrapper. Default false preserves the
+   * legacy two-column page rendering byte-identically.
+   */
+  fluid?: boolean;
 }
 
 export default function StatuteRail({
@@ -31,6 +37,7 @@ export default function StatuteRail({
   className = "",
   defaultSourceUrl,
   showCoachingFields = true,
+  fluid = false,
 }: StatuteRailProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -167,10 +174,10 @@ export default function StatuteRail({
   return (
     <>
       <aside
-        className={`hidden lg:flex flex-col w-[300px] shrink-0 self-stretch ${className}`}
+        className={`hidden lg:flex flex-col ${fluid ? "w-full" : "w-[300px] shrink-0 self-stretch"} ${className}`}
         aria-label="Regulation reference"
       >
-        <div className="sticky top-4">
+        {fluid ? (
           <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b bg-[hsl(var(--brand-navy)/0.03)]">
               <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--brand-navy))]" />
@@ -178,10 +185,23 @@ export default function StatuteRail({
                 Regulation Reference
               </span>
             </div>
-            <div className="p-4 max-h-[calc(100vh-120px)] overflow-y-auto">{content}</div>
+            <div className="p-4">{content}</div>
           </div>
-        </div>
+        ) : (
+          <div className="sticky top-4">
+            <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b bg-[hsl(var(--brand-navy)/0.03)]">
+                <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--brand-navy))]" />
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">
+                  Regulation Reference
+                </span>
+              </div>
+              <div className="p-4 max-h-[calc(100vh-120px)] overflow-y-auto">{content}</div>
+            </div>
+          </div>
+        )}
       </aside>
+
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t shadow-lg">
         <button

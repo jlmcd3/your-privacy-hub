@@ -59,8 +59,10 @@ export default function BenchLayout({
     >
       {showCoach && (
         <div className="border-b border-rule p-6 xl:border-b-0 xl:border-r">
-          <ColHeader tone="coach">How to answer well</ColHeader>
-          <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
+          <div className="xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
+            <ColHeader tone="coach">How to answer well</ColHeader>
+            <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
+          </div>
         </div>
       )}
       <div className="p-6">
@@ -69,20 +71,23 @@ export default function BenchLayout({
       </div>
       {showRail && (
         <div className="border-t border-rule p-6 xl:border-l xl:border-t-0">
-          <ColHeader tone="law">The law</ColHeader>
-          <StatuteRail
-            entry={railEntry}
-            defaultSourceUrl={defaultSourceUrl}
-            showCoachingFields={false}
-          />
-          {corpusBlock && (
-            <div className="mt-5 border-t border-rule pt-4">
-              <p className="mb-2.5 text-[10.5px] font-bold uppercase tracking-[0.13em] text-teal-action">
-                From the enforcement corpus
-              </p>
-              {corpusBlock}
-            </div>
-          )}
+          <div className="xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
+            <ColHeader tone="law">The law</ColHeader>
+            <StatuteRail
+              entry={railEntry}
+              defaultSourceUrl={defaultSourceUrl}
+              showCoachingFields={false}
+              fluid
+            />
+            {corpusBlock && (
+              <div className="mt-5 border-t border-rule pt-4">
+                <p className="mb-2.5 text-[10.5px] font-bold uppercase tracking-[0.13em] text-teal-action">
+                  From the enforcement corpus
+                </p>
+                {corpusBlock}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
