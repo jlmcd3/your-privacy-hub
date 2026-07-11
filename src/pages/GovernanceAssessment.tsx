@@ -213,6 +213,7 @@ const GovernanceAssessment = () => {
     training_ai_coverage: trainingStatus.startsWith("Yes") ? trainingAiCoverage : "n/a",
     dpa_art28_verified: (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) ? dpaArt28Verified : "n/a",
     transfer_mechanism: (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) ? transferMechanism : "n/a",
+    additional_context: additionalContext,
   });
 
   const handlePurchase = async () => {
