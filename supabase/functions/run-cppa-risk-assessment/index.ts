@@ -1034,7 +1034,14 @@ async function runPipeline(assessment_id: string) {
         console.log(JSON.stringify({ evt: "t4_observe", fn: "run-cppa-risk-assessment", fields: t4Observe.slice(0, 20) }));
       }
 
-      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation) {
+      // T-5 — TEST-STATES vocabulary leakage (leg-(b) 2026-07-11). Hard violation, retry.
+      const t5Hits = detectTestStatesLeak(parsed);
+      const t5Violation = t5Hits.length > 0;
+      if (t5Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-5", fn: "run-cppa-risk-assessment", count: t5Hits.length, hits: t5Hits.slice(0, 10) }));
+      }
+
+      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation || t5Violation) {
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
