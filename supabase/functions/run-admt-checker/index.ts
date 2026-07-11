@@ -398,7 +398,11 @@ Deno.serve(async (req) => {
   // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
   EdgeRuntime.waitUntil((async () => {
    try {
-    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${procWrite.message}`), { metadata: { assessment_id, phase: "pre_generation" } });
+      return;
+    }
     const intake = assessment.intake_data as any;
 
 
