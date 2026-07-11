@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
+const DPIA_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
