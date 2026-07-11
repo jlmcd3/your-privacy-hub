@@ -366,6 +366,7 @@ export default function CPPACybersecurity() {
           onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
+            void clearDraft();
             if (isSuite && suiteCyberId) {
               // When entered via /cppa-cybersecurity?suite=true, the risk_id is the
               // first assessment created (stored as id) and cyber_id is suiteCyberId.
