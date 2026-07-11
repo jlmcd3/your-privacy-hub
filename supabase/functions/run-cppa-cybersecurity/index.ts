@@ -64,6 +64,9 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "TRAINING COMPONENT — AFFIRMATIVE FINDING, NO CROSS-REFERENCE (§ 7123(c)(13)): supersedes the sibling cross-reference form for this component only. Do NOT emit a redundant cross-reference to the awareness component ('as noted under the cybersecurity awareness component…') for the training finding; the training component's finding stands on its own with its own artefact list. Canonical finding: 'The business must retain documentation that separately evidences formal training activities — such as structured onboarding, annual training completion records, or role-based curricula — distinct from general awareness activities, so that the auditor can assess this component independently.' Do NOT restate the awareness rationale, and do NOT use conditional 'if… documentation…' language — state the training-component retention duty affirmatively.",
     "SCORES MATCH FINDINGS: controls whose finding text states the same evidentiary deficiency receive the SAME score; assigning a lower score REQUIRES a stated additional deficiency in that control's own finding text. Never let two controls with equivalent findings differ in score without an articulated reason.",
     "DEADLINE FIELDS CARRY DATES ONLY: a deadline field states the operative date(s); explanatory context (e.g. 'Cal. Civ. Code §§1798.91.04–.06 are separately in force independent of the CPPA audit phase-in') belongs in the finding or remediation text, never inside the deadline field.",
+    "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 = primary_framework_selected; M2 = breach_history_present; M3 = last_audit_documented; M4–M21 = c1..c18 answered). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit a next_steps entry that re-asks the user to confirm/verify/document what the intake has already established, and NEVER contradict it in prose. In particular: where c{N}_answered is RESOLVED_MET (the intake supplied maturity for that control), the control's status MUST NOT be 'Insufficient information' and its finding MUST NOT say 'the intake does not establish [this component]' — score and status must reflect the maturity supplied. INDETERMINATE tests use insufficient-basis language and MUST anchor any resulting next-step to the specific missing profile or per-control intake key. Applicability class and § 7121(a) cohort remain JUDGMENT calls per the existing APPLICABILITY and PHASE-IN rules — no mechanical test binds them in this tool.",
+    "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking and record-completeness items belong in next_steps and per-control remediation; enhancement items — model-observed depth improvements that no cited provision requires — belong in remediation prose ONLY when tied to '§ 7122(g) audit-ready retention' language and NEVER as a next_step. (ii) CREDIT-FIRST — for any partially evidenced control, name what the maturity/notes establish BEFORE the residual; the residual is incremental (e.g. 'retention of the change-log evidence should be added') and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole control when only an increment is missing; where a missing piece IS verdict-blocking (e.g. the control's applicability itself is unconfirmed under the APPLICABILITY CAVEAT rule), name the specific element that blocks it rather than collapsing the whole control.",
+    "READINESS-COHORT RATIONALE (R1b2 rule 2c): the executive_summary's discussion of § 7121(a) phase-in timing must read the M1 (primary_framework_selected) and M3 (last_audit_documented) states verbatim from the injected TEST-STATES block, and the discussion of severity anchoring in the security-incident-response component (c17) must read M2 (breach_history_present). Where M2 is RESOLVED_MET, do NOT hedge severity ('may warrant elevated priority') — state the anchor plainly ('the intake reports incidents in the last 12 months; the incident-response control is anchored accordingly'). Where M1 is RESOLVED_MET with a named framework, do NOT re-open framework selection as a next step; frame remediation IN that framework per the existing FRAMEWORK rule.",
   ].join("\n"),
 
   languageVariant: "american",
@@ -179,6 +182,84 @@ const COMPONENT_CITATIONS: Record<string, string> = {
   "Security-incident response management":                          "11 CCR § 7123(c)(17)",
   "Business-continuity and disaster-recovery planning":             "11 CCR § 7123(c)(18)",
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// R1b2 — deterministic TEST-STATES for the CPPA cybersecurity generator.
+// Computed from the intake shape produced by src/pages/CPPACybersecurity.tsx:
+//   { profile: { entity_name, industry, incidents_12mo, framework, last_audit },
+//     controls: [{ key, label, maturity, notes }, … 18] }
+// M1  primary_framework_selected  — profile.framework ∈ {SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls}
+// M2  breach_history_present      — profile.incidents_12mo answered and not "None"/"0"
+// M3  last_audit_documented       — profile.last_audit non-empty
+// M4..M21 c{N}_answered           — controls[i].maturity non-empty  (18 tests, one per c1..c18)
+// Applicability class and § 7121(a) cohort are JUDGMENT (no structured field
+// in this intake; governed by the existing APPLICABILITY / PHASE-IN prose rules).
+// ─────────────────────────────────────────────────────────────────────────────
+type TestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
+interface TestStateEntry {
+  state: TestState;
+  basis: string;
+  source_fields: string[];
+}
+const NAMED_FRAMEWORKS = new Set(["SOC 2", "ISO 27001", "NIST CSF 2.0", "CIS Controls"]);
+const NON_INCIDENT_VALUES = new Set(["", "none", "0", "no", "n/a", "na", "not applicable"]);
+
+export function computeCyberTestStates(intake: Record<string, any> | null | undefined): Record<string, TestStateEntry> {
+  const it = intake ?? {};
+  const profile = (it.profile ?? {}) as Record<string, any>;
+  const controls: any[] = Array.isArray(it.controls) ? it.controls : [];
+  const out: Record<string, TestStateEntry> = {};
+
+  const framework = String(profile.framework ?? "").trim();
+  out.M1 = framework
+    ? (NAMED_FRAMEWORKS.has(framework)
+        ? { state: "resolved_met", basis: `intake declares primary framework "${framework}"`, source_fields: ["profile.framework"] }
+        : { state: "resolved_not_met", basis: `intake declares framework "${framework}" outside the named set; default to NIST CSF 2.0 per FRAMEWORK rule`, source_fields: ["profile.framework"] })
+    : { state: "indeterminate", basis: "profile.framework is empty", source_fields: ["profile.framework"] };
+
+  const incidents = String(profile.incidents_12mo ?? "").trim();
+  const incidentsLc = incidents.toLowerCase();
+  out.M2 = !incidents
+    ? { state: "indeterminate", basis: "profile.incidents_12mo is empty", source_fields: ["profile.incidents_12mo"] }
+    : NON_INCIDENT_VALUES.has(incidentsLc)
+      ? { state: "resolved_not_met", basis: `intake reports no incidents in the last 12 months ("${incidents}")`, source_fields: ["profile.incidents_12mo"] }
+      : { state: "resolved_met", basis: `intake reports incidents in the last 12 months ("${incidents.slice(0, 80)}")`, source_fields: ["profile.incidents_12mo"] };
+
+  const lastAudit = String(profile.last_audit ?? "").trim();
+  out.M3 = lastAudit
+    ? { state: "resolved_met", basis: `intake documents last audit as "${lastAudit.slice(0, 80)}"`, source_fields: ["profile.last_audit"] }
+    : { state: "indeterminate", basis: "profile.last_audit is empty", source_fields: ["profile.last_audit"] };
+
+  // M4..M21 — per-control ANSWERED states. Index by control key (c1_auth..c18_continuity).
+  const byKey = new Map<string, any>();
+  for (const c of controls) if (c && typeof c.key === "string") byKey.set(c.key, c);
+  const CONTROL_KEYS = [
+    "c1_auth", "c2_encryption", "c3_account_access", "c4_inventory", "c5_secure_config",
+    "c6_vuln_mgmt", "c7_audit_logs", "c8_network_mon", "c9_anti_malware", "c10_segmentation",
+    "c11_port_protocol", "c12_awareness", "c13_training", "c14_secure_dev", "c15_third_party",
+    "c16_retention", "c17_incident", "c18_continuity",
+  ];
+  CONTROL_KEYS.forEach((key, idx) => {
+    const id = `M${4 + idx}`;
+    const row = byKey.get(key);
+    const maturity = String(row?.maturity ?? "").trim();
+    out[id] = maturity
+      ? { state: "resolved_met", basis: `controls[${key}].maturity = "${maturity.slice(0, 60)}"`, source_fields: [`controls.${key}.maturity`] }
+      : { state: "indeterminate", basis: `controls[${key}].maturity is empty`, source_fields: [`controls.${key}.maturity`] };
+  });
+
+  return out;
+}
+
+export function renderCyberTestStatesBlock(states: Record<string, TestStateEntry>): string {
+  const lines: string[] = [];
+  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: state its conclusion with the basis given, do NOT hedge, do NOT emit a next_steps entry re-asking for it, and do NOT contradict it in per-control finding prose. INDETERMINATE tests use insufficient-basis language anchored to the producing field.");
+  for (const id of Object.keys(states)) {
+    const e = states[id];
+    lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
+  }
+  return lines.join("\n");
+}
 
 async function runAssessment(assessment_id: string): Promise<void> {
   const { data: row } = await supabase
@@ -323,10 +404,14 @@ async function runAssessment(assessment_id: string): Promise<void> {
 
 
     const today = new Date().toISOString().slice(0, 10);
+    // R1b2 — compute deterministic TEST-STATES and inject them into the system content.
+    const cyberTestStates = computeCyberTestStates((row.intake_data as Record<string, any>) ?? {});
+    const cyberTestStatesBlock = renderCyberTestStatesBlock(cyberTestStates);
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
       currentDate: today,
       cache: true,
+      injected: cyberTestStatesBlock,
     });
 
     const enforcementBlock = enforcementContext
@@ -849,6 +934,127 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     }
 
+    // R1b2 — post-lint T-2/T-3/T-4 gate on the SYNTHESIS output only (report-level
+    // prose). Per courier Option A: the binding-test/collapse/enhancement rules
+    // target executive_summary, top_risks, next_steps, and enforcement_context;
+    // per-control JSON stays under the lint pipeline above. One retry cap, then
+    // proceed with the violation logged (same posture as T-1 in risk).
+    const t234Violations: any[] = [];
+    {
+      const hedgeRe = /\b(cannot be determined|insufficient basis|not established|no basis to assess|indeterminate|please confirm|please verify)\b/i;
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|additional context|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const statAnchorRe = /(§\s*\d|11\s*CCR|1798\.|section\s+\d)/i;
+
+      function detectViolations(): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = [];
+        const t3: any[] = [];
+        const t4: any[] = [];
+
+        // T-2: RESOLVED per-control test vs contradiction in that control's finding.
+        const controlsArr: any[] = Array.isArray(report.controls) ? report.controls : [];
+        const CONTROL_KEYS = [
+          "c1_auth", "c2_encryption", "c3_account_access", "c4_inventory", "c5_secure_config",
+          "c6_vuln_mgmt", "c7_audit_logs", "c8_network_mon", "c9_anti_malware", "c10_segmentation",
+          "c11_port_protocol", "c12_awareness", "c13_training", "c14_secure_dev", "c15_third_party",
+          "c16_retention", "c17_incident", "c18_continuity",
+        ];
+        CONTROL_KEYS.forEach((key, idx) => {
+          const id = `M${4 + idx}`;
+          const ts = cyberTestStates[id];
+          if (!ts || ts.state !== "resolved_met") return;
+          const c = controlsArr[idx];
+          const status = String(c?.status ?? "");
+          const finding = String(c?.finding ?? "");
+          if (/^\s*Insufficient information\s*$/i.test(status)) {
+            t2.push({ test: id, control: key, kind: "status_contradicts_resolved", detail: `status="${status}" while intake supplied maturity` });
+          }
+          if (/the intake does not (?:establish|address|include)/i.test(finding) || /no discrete .* entry/i.test(finding)) {
+            t2.push({ test: id, control: key, kind: "finding_contradicts_resolved", detail: finding.slice(0, 160) });
+          }
+        });
+
+        // T-2 (M1/M2/M3): synthesis prose must not re-ask what M1/M2/M3 already RESOLVED.
+        const synthProseFields: Array<[string, string]> = [
+          ["executive_summary", String(report.executive_summary ?? "")],
+          ["enforcement_context", String((report as any).enforcement_context ?? "")],
+        ];
+        const nextSteps: any[] = Array.isArray(report.next_steps) ? report.next_steps : [];
+        const nextStepsText = nextSteps.map((s: any) => typeof s === "string" ? s : (s?.action ?? s?.text ?? "")).join(" | ");
+        for (const [testId, sourceKey] of [["M1", "framework"], ["M2", "incidents_12mo"], ["M3", "last_audit"]] as const) {
+          const ts = cyberTestStates[testId];
+          if (!ts || ts.state === "indeterminate") continue;
+          const askRe = new RegExp(`\\b(?:confirm|verify|provide|document|clarify)[^.]{0,80}\\b${sourceKey.replace("_", "\\s?_?")}\\b`, "i");
+          if (askRe.test(nextStepsText)) {
+            t2.push({ test: testId, kind: "next_steps_reasks_resolved", detail: `next_steps re-asks ${sourceKey}` });
+          }
+        }
+
+        // T-3: banned-collapse phrasing in synthesis prose where the record has
+        // credited evidence (any RESOLVED_MET c{N}_answered state).
+        const anyControlAnswered = CONTROL_KEYS.some((_, idx) => cyberTestStates[`M${4 + idx}`]?.state === "resolved_met");
+        if (anyControlAnswered) {
+          for (const [field, text] of synthProseFields) {
+            if (collapseRe.test(text)) t3.push({ field, detail: text.slice(0, 160) });
+          }
+        }
+
+        // T-4: enhancement-class next_steps entries — depth language without a
+        // statutory anchor. Verdict-blocking or record-completeness items must
+        // cite a provision (§ 7122(g), § 7123, Cal. Civ. Code, etc.).
+        for (const step of nextSteps) {
+          const t = typeof step === "string" ? step : String(step?.action ?? step?.text ?? "");
+          if (!t) continue;
+          const hasDepth = depthLangRe.test(t);
+          const hasAnchor = statAnchorRe.test(t);
+          if (hasDepth && !hasAnchor) t4.push({ detail: t.slice(0, 160) });
+        }
+
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectViolations();
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (totalHits > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation",
+          fn: "run-cppa-cybersecurity",
+          t2: detected.t2.slice(0, 6),
+          t3: detected.t3.slice(0, 6),
+          t4: detected.t4.slice(0, 6),
+        }));
+        // ONE retry: synthesis only, with the violation details as retry instruction.
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT contradict RESOLVED states or re-ask them: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplied per-control maturity, do NOT collapse the record with 'cannot be determined'/'no basis to assess'/'not established' in executive_summary or enforcement_context`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every next_steps entry must be verdict-blocking or record-completeness, anchored to a cited provision; remove pure depth items`);
+          const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
+          const digest2 = buildDigest(allControls);
+          const r = await callSynthesis(digest2, (report as any).overall_score ?? 0, retryInstr);
+          if (r) {
+            report.executive_summary = r.executive_summary;
+            report.readiness_level = r.readiness_level;
+            report.top_risks = Array.isArray(r.top_risks) ? r.top_risks : report.top_risks;
+            report.enforcement_context = r.enforcement_context;
+            report.next_steps = Array.isArray(r.next_steps) ? r.next_steps : report.next_steps;
+            normaliseReport(report);
+          }
+          detected = detectViolations();
+          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+          if (stillHits > 0) {
+            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-cppa-cybersecurity", remaining: stillHits }));
+          }
+        } catch (e) {
+          console.warn("[CPPA Cyber] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+      }
+    }
+    for (const v of t234Violations) lintViolations.push(v);
+
     // Deterministic consistency check: align status↔score, recompute overall_score,
     // and align readiness_level to the score band.
     applyConsistencyFixes(report);
@@ -1164,7 +1370,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {});
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity") };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
