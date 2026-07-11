@@ -1176,10 +1176,10 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     });
 
 
-    await supabase
-      .from("cppa_assessments")
-      .update({ status: "complete", report_data: report, obligation_snapshot })
-      .eq("id", assessment_id);
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
