@@ -4,14 +4,14 @@
 // Signature feature: StatuteRail — persistent right column showing verbatim
 // regulation text, plain summary, and FSOR context for every field.
 
-import { useEffect, useMemo, useState, type ComponentProps } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label as UILabel } from "@/components/ui/label";
