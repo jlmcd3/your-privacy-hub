@@ -1107,14 +1107,102 @@ async function runPipeline(assessment_id: string) {
         }));
       }
 
+      // T-2 — TEST-STATES ARE BINDING: any information_needed entry, hedge, or
+      // confirm-ask referencing a test whose injected state is RESOLVED is a hard
+      // violation. Uses the same testStates map that was injected into the prompt.
+      const hedgeRe = /\b(cannot be determined|insufficient basis|not established|no basis to assess|indeterminate|please confirm|please verify)\b/i;
+      const infoEntries: any[] = Array.isArray(parsed?.information_needed) ? parsed.information_needed : [];
+      let t2Violation = false;
+      const t2Details: Array<{ test: string; kind: "info_needed" | "hedge_in_prose"; detail: string }> = [];
+      for (const [testId, ts] of Object.entries(testStates)) {
+        if (ts.state === "indeterminate") continue;
+        const src = new Set(ts.source_fields);
+        for (const entry of infoEntries) {
+          const entryFields = new Set<string>([
+            ...(Array.isArray(entry?.source_fields) ? entry.source_fields : []),
+            ...(typeof entry?.field === "string" ? [entry.field] : []),
+          ]);
+          const overlaps = [...entryFields].some((f) => src.has(f));
+          if (overlaps) {
+            t2Violation = true;
+            t2Details.push({ test: testId, kind: "info_needed", detail: String(entry?.field ?? entry?.dimensions ?? "").slice(0, 120) });
+          }
+        }
+        // Detect hedge phrases in cybersecurity_audit_rationale where any of the
+        // three prong tests M3/M4/M5 or the cohort M6 is RESOLVED.
+        if (["M3", "M4", "M5", "M6"].includes(testId)) {
+          const rationale = String(parsed?.cross_tool_recommendations?.cybersecurity_audit_rationale ?? "");
+          if (hedgeRe.test(rationale)) {
+            t2Violation = true;
+            t2Details.push({ test: testId, kind: "hedge_in_prose", detail: rationale.slice(0, 160) });
+          }
+        }
+      }
+      if (t2Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-2", fn: "run-cppa-risk-assessment", details: t2Details.slice(0, 10) }));
+      }
 
-      if (banned.length || hasHardViolations(lint) || t1Violation) {
+      // T-3 — BANNED COLLAPSE: banned-collapse phrasing applied to a determination
+      // that the record actually credits. Heuristic: an activity block whose
+      // current_safeguards or benefits fields carry substantive content AND whose
+      // conclusion/rationale contains 'cannot be determined' / 'no basis to assess' /
+      // 'not established' collapses a credited determination.
+      let t3Violation = false;
+      const t3Details: string[] = [];
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const activities: any[] = Array.isArray(parsed?.risk_assessment_by_activity) ? parsed.risk_assessment_by_activity : [];
+      for (let i = 0; i < activities.length; i++) {
+        const a = activities[i] ?? {};
+        const hasEvidence =
+          String(a.current_safeguards ?? "").trim().length > 20 ||
+          String(a.benefits_to_business ?? "").trim().length > 20 ||
+          String(a.benefits_to_consumers ?? "").trim().length > 20;
+        const concl = String(a.benefits_outweigh_risks_conclusion ?? "") + " " + String(a.benefits_outweigh_risks_rationale ?? "");
+        if (hasEvidence && collapseRe.test(concl)) {
+          t3Violation = true;
+          t3Details.push(`activity[${i}]: credited evidence present but conclusion uses banned-collapse phrasing`);
+        }
+      }
+      if (t3Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-3", fn: "run-cppa-risk-assessment", details: t3Details.slice(0, 10) }));
+      }
+
+      // T-4 — ENHANCEMENT-CLASS in information_needed. Detectable subset: entries
+      // whose `dimensions` text contains no statutory-requirement anchor AND uses
+      // optional-depth language. Uncertain cases are log-only (t4_observe).
+      const statAnchorRe = /(§\s*\d|11\s*CCR|1798\.|section\s+\d)/i;
+      const depthLangRe = /\b(could|would strengthen|additional context|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      let t4Violation = false;
+      const t4Details: string[] = [];
+      const t4Observe: string[] = [];
+      for (const entry of infoEntries) {
+        const dim = String(entry?.dimensions ?? "");
+        const hasDepthLang = depthLangRe.test(dim);
+        const hasAnchor = statAnchorRe.test(dim) || statAnchorRe.test(String(entry?.provision ?? ""));
+        if (hasDepthLang && !hasAnchor) {
+          t4Violation = true;
+          t4Details.push(String(entry?.field ?? "?") + ": " + dim.slice(0, 120));
+        } else if (hasDepthLang) {
+          t4Observe.push(String(entry?.field ?? "?"));
+        }
+      }
+      if (t4Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-4", fn: "run-cppa-risk-assessment", details: t4Details.slice(0, 10) }));
+      }
+      if (t4Observe.length) {
+        console.log(JSON.stringify({ evt: "t4_observe", fn: "run-cppa-risk-assessment", fields: t4Observe.slice(0, 20) }));
+      }
+
+      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation) {
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
           banned,
           violations: lint.violations?.slice(0, 20) ?? [],
           t1: t1Violation,
+          t2: t2Violation,
+          t3: t3Violation,
+          t4: t4Violation,
         }));
         const retry = await callModel(system, userPrompt, "generate-v4-retry");
         const retryParsed = tryParseJson(retry.text);
@@ -1124,6 +1212,7 @@ async function runPipeline(assessment_id: string) {
           debugRaw = retry.text;
         }
       }
+
     } catch (e) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
