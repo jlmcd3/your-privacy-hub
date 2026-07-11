@@ -339,6 +339,13 @@ const LIAssessmentIntake = () => {
 
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <DraftRestoreBanner
+          draftFound={draftFound && draftMatchesRoute}
+          touched={touched}
+          draftUpdatedAt={draftUpdatedAt}
+          onResume={applyRestore}
+          onDiscard={() => { void clearDraft(); }}
+        />
         <IntakeGuidance>Answer each question as specifically and completely as you can. Where several things apply — multiple alternatives, safeguards, or vulnerable groups — list them separately rather than as one lump. Anything left blank shows up as "not addressed" in your report.</IntakeGuidance>
         {hasSpecialCategory && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm text-red-900">
