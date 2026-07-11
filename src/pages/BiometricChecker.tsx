@@ -103,6 +103,7 @@ export default function BiometricChecker() {
       return;
     }
     setResult(data);
+    void clearDraft();
     if (data?.id) { navigate(`/biometric-checker/result/${data.id}`); return; }
     setPhase("result");
   };
