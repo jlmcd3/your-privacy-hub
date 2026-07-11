@@ -5,6 +5,16 @@
 // Returns 202 immediately. All work in EdgeRuntime.waitUntil().
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
+// checks. Same module the cppa-risk and cppa-cyber generators re-export from,
+// so the checks are guaranteed to be measuring the identical state machine
+// (no semantic drift between generator and grader).
+import {
+  computeTestStates as computeRiskTestStates,
+  computeCyberTestStates,
+  classifyRevenueBand,
+  type FiveStageIntake,
+} from "../_shared/cppa-test-states.ts";
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
 // to stop the alphabetical tail (i5_/i7_/i8_/i9_ keys) from being dropped, which
