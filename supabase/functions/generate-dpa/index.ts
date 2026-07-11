@@ -1062,12 +1062,12 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         // Write the actual error to last_error so watchdog/operator can diagnose
         // instead of leaving the row silently stuck in 'processing'.
         try {
-          await supabase.from("dpa_documents").update({
+          await lifecycleUpdate(supabase, "dpa_documents", rowId, {
             status: "failed",
             last_error: `bg: ${errMsg}`.slice(0, 500),
             last_attempt_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          }).eq("id", rowId);
+          }, { fn: "generate-dpa", phase: "background_catch" });
         } catch (writeErr) {
           console.error("[generate-dpa] failed to write failure state:", writeErr);
         }
