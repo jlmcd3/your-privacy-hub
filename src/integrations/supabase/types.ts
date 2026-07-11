@@ -3420,6 +3420,30 @@ export type Database = {
         }
         Relationships: []
       }
+      processed_stripe_events: {
+        Row: {
+          environment: string | null
+          event_id: string
+          event_type: string | null
+          phase: string
+          processed_at: string
+        }
+        Insert: {
+          environment?: string | null
+          event_id: string
+          event_type?: string | null
+          phase?: string
+          processed_at?: string
+        }
+        Update: {
+          environment?: string | null
+          event_id?: string
+          event_type?: string | null
+          phase?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       professional_clients: {
         Row: {
           client_matter: string | null

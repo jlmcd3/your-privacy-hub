@@ -373,21 +373,47 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const env = (url.searchParams.get("env") || "sandbox") as StripeEnv;
 
-  let event: { type: string; data: { object: any } };
+  let event: { id: string; type: string; data: { object: any } };
   try {
-    event = await verifyWebhook(req, env);
+    event = await verifyWebhook(req, env) as any;
   } catch (e) {
     console.error("Webhook verify failed:", (e as Error).message);
     return new Response("Webhook verify failed", { status: 400 });
   }
 
-  console.log("payments-webhook event:", event.type, "env:", env);
+  console.log("payments-webhook event:", event.type, "id:", event.id, "env:", env);
+
+  // Event-level dedupe: if we have already fully handled this Stripe event,
+  // return 200 immediately and do NOT reprocess. Recorded AFTER the switch
+  // below completes without throwing — a failed handling MUST NOT mark the
+  // event processed (Stripe retries then reprocess safely via the inner
+  // idempotency added in Change 3).
+  if (event.id) {
+    const { data: already } = await supabase
+      .from("processed_stripe_events")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .eq("phase", "handled")
+      .maybeSingle();
+    if (already) {
+      console.log(JSON.stringify({
+        evt: "webhook_duplicate_skipped",
+        event_id: event.id,
+        event_type: event.type,
+        env,
+      }));
+      return new Response(JSON.stringify({ received: true, duplicate: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
 
   try {
     switch (event.type) {
       case "checkout.session.completed":
       case "transaction.completed": {
-        await handleCheckoutCompleted(event.data.object, env);
+        await handleCheckoutCompleted(event.data.object, env, event.id);
         break;
       }
       case "checkout.session.expired":
@@ -423,20 +449,80 @@ Deno.serve(async (req) => {
       default:
         console.log("Unhandled event:", event.type);
     }
+    // Record after successful handling. ON CONFLICT DO NOTHING via
+    // upsert(ignoreDuplicates) so a concurrent redelivery loses the race
+    // gracefully rather than throwing.
+    if (event.id) {
+      const { error: recErr } = await supabase
+        .from("processed_stripe_events")
+        .upsert(
+          { event_id: event.id, phase: "handled", event_type: event.type, environment: env },
+          { onConflict: "event_id,phase", ignoreDuplicates: true },
+        );
+      if (recErr) {
+        console.error(JSON.stringify({
+          evt: "processed_stripe_events_record_failed",
+          event_id: event.id,
+          error: recErr.message,
+        }));
+      }
+    }
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("payments-webhook handler error:", err);
-    return new Response(JSON.stringify({ received: true, warning: (err as Error).message }), {
-      status: 200,
+    console.error(JSON.stringify({
+      evt: "payments_webhook_handler_error",
+      event_id: event?.id ?? null,
+      event_type: event?.type ?? null,
+      env,
+      error: (err as Error).message,
+    }));
+    // Non-2xx so Stripe retries. Inner idempotency (Change 3) makes retry safe.
+    return new Response(JSON.stringify({ received: false, error: (err as Error).message }), {
+      status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 });
 
-async function handleCheckoutCompleted(session: any, env: StripeEnv) {
+/**
+ * Insert an assessment_purchases row idempotently. Relies on the partial
+ * unique index uq_assessment_purchases_intent_assessment covering
+ * (stripe_payment_intent_id, assessment_id). A redelivery of the same
+ * Stripe event must not create a second row and must not throw.
+ */
+async function insertPurchaseIdempotent(row: Record<string, unknown>) {
+  const { error } = await supabase.from("assessment_purchases").insert(row);
+  if (error && (error as any).code === "23505") {
+    console.log(JSON.stringify({
+      evt: "assessment_purchase_duplicate_skipped",
+      stripe_payment_intent_id: row.stripe_payment_intent_id ?? null,
+      assessment_id: row.assessment_id ?? null,
+    }));
+    return;
+  }
+  if (error) throw new Error(`assessment_purchases insert failed: ${error.message}`);
+}
+
+/**
+ * Return true if the generator has already produced a report for this row.
+ * A redelivery must never regenerate a finished report.
+ */
+async function generatorAlreadyRan(table: string, id: string): Promise<boolean> {
+  const { data } = await supabase
+    .from(table)
+    .select("status, report_data")
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return false;
+  if ((data as any).status === "complete") return true;
+  const rd = (data as any).report_data;
+  return rd != null && !(typeof rd === "object" && Object.keys(rd).length === 0);
+}
+
+async function handleCheckoutCompleted(session: any, env: StripeEnv, eventId?: string) {
   const userId = session.metadata?.user_id || session.metadata?.userId;
 
   const SESSION_TOOL_TABLES: Record<string, string> = {
@@ -463,7 +549,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     if (payErr) {
       console.error(`Failed to mark ${sessionTable} paid:`, payErr.message);
     }
-    await supabase.from("assessment_purchases").insert({
+    await insertPurchaseIdempotent({
       user_id: userId || null,
       tool_type: sessionToolType,
       assessment_id: sessionRowId,
@@ -478,6 +564,35 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
 
   if (session.metadata?.topup === "true") {
     const { tool_type, assessment_id } = session.metadata;
+    // CLAIM BEFORE WRITE — the ONE exception to "record-after-success".
+    // Double-crediting a meter top-up is worse than a rare lost top-up on
+    // a crash between claim and update. Both branches are loudly logged.
+    if (eventId) {
+      const { data: claimed, error: claimErr } = await supabase
+        .from("processed_stripe_events")
+        .upsert(
+          { event_id: eventId, phase: "meter_topup", event_type: "checkout.session.completed", environment: env },
+          { onConflict: "event_id,phase", ignoreDuplicates: true },
+        )
+        .select("event_id");
+      if (claimErr) {
+        console.error(JSON.stringify({
+          evt: "topup_claim_failed",
+          event_id: eventId,
+          error: claimErr.message,
+        }));
+        throw new Error(`topup claim failed: ${claimErr.message}`);
+      }
+      if (!claimed || claimed.length === 0) {
+        console.log(JSON.stringify({
+          evt: "topup_duplicate_skipped",
+          event_id: eventId,
+          tool_type,
+          assessment_id,
+        }));
+        return;
+      }
+    }
     const { data: m } = await supabase
       .from("tool_run_meter")
       .select("id, runs_allowed, extension_count")
@@ -485,11 +600,26 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       .eq("assessment_id", assessment_id)
       .maybeSingle();
     if (m) {
-      await supabase.from("tool_run_meter").update({
+      const { error: updErr } = await supabase.from("tool_run_meter").update({
         runs_allowed: (m.runs_allowed as number) + 4,
         extension_count: (m.extension_count as number) + 1,
         updated_at: new Date().toISOString(),
       }).eq("id", m.id as string);
+      if (updErr) {
+        // Accepted tradeoff: top-up claim already recorded; the meter did
+        // not increment. Log loudly (lifecycle_write_failed shape) so it
+        // can be reconciled manually. Do NOT throw — that would trigger
+        // Stripe retry, which would hit the duplicate_skipped path above
+        // and never actually credit the meter.
+        console.error(JSON.stringify({
+          evt: "lifecycle_write_failed",
+          scope: "meter_topup",
+          event_id: eventId ?? null,
+          tool_type,
+          assessment_id,
+          error: updErr.message,
+        }));
+      }
     }
     return;
   }
@@ -498,14 +628,14 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (session.metadata?.tool_type && session.metadata?.assessment_id) {
     const { tool_type, assessment_id } = session.metadata;
 
-    await supabase.from("assessment_purchases").insert({
+    await insertPurchaseIdempotent({
       user_id: userId || null,
       tool_type,
       assessment_id,
       amount_cents: session.amount_total || 0,
       stripe_payment_intent_id: (session.payment_intent as string) || session.id,
       status: "paid",
-      // Align with the sessionTable branch above (line 472): checkout emits
+      // Align with the sessionTable branch above: checkout emits
       // tier ∈ {"professional","intelligence","standalone"} — never "subscriber".
       // Subscriber pricing is applied whenever tier !== "standalone".
       subscriber_at_time: session.metadata?.tier !== "standalone",
@@ -526,11 +656,15 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     };
     const table = tableMap[tool_type];
     if (table) {
-      await lifecycleUpdate(supabase, table, assessment_id, {
+      const evidenceWrite = await lifecycleUpdate(supabase, table, assessment_id, {
         stripe_payment_intent_id: (session.payment_intent as string) || session.id,
         purchase_price_cents: session.amount_total || 0,
       }, { fn: "payments-webhook", phase: "payment_evidence" });
-
+      // Payment-evidence write failures MUST propagate so the outer catch
+      // returns 500 and Stripe redelivers. Inner idempotency makes retry safe.
+      if (!evidenceWrite.ok) {
+        throw new Error(`payment_evidence write failed for ${table}/${assessment_id}: ${evidenceWrite.message}`);
+      }
 
       const fnMap: Record<string, string> = {
         li_assessment: "run-li-assessment",
@@ -547,25 +681,44 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       const fn = fnMap[tool_type];
       if (fn) {
         const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
-        EdgeRuntime.waitUntil(
-          supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } })
-        );
+        if (await generatorAlreadyRan(table, assessment_id)) {
+          console.log(JSON.stringify({
+            evt: "generator_invoke_skipped_already_complete",
+            table, assessment_id, tool_type, fn,
+          }));
+        } else {
+          EdgeRuntime.waitUntil(
+            supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } })
+          );
+        }
 
         if (tool_type === "cppa_suite" && session.metadata?.suite_cyber_id) {
           const suiteCyberId = session.metadata.suite_cyber_id as string;
-          await lifecycleUpdate(supabase, "cppa_assessments", suiteCyberId, {
+          const suiteEvidence = await lifecycleUpdate(supabase, "cppa_assessments", suiteCyberId, {
             stripe_payment_intent_id: (session.payment_intent as string) || session.id,
           }, { fn: "payments-webhook", phase: "payment_evidence" });
-          EdgeRuntime.waitUntil(
-            supabase.functions.invoke("run-cppa-cybersecurity", {
-              body: { assessment_id: suiteCyberId },
-            })
-          );
+          if (!suiteEvidence.ok) {
+            throw new Error(`payment_evidence write failed for cppa_assessments/${suiteCyberId}: ${suiteEvidence.message}`);
+          }
+          if (await generatorAlreadyRan("cppa_assessments", suiteCyberId)) {
+            console.log(JSON.stringify({
+              evt: "generator_invoke_skipped_already_complete",
+              table: "cppa_assessments", assessment_id: suiteCyberId, tool_type: "cppa_cybersecurity",
+            }));
+          } else {
+            EdgeRuntime.waitUntil(
+              supabase.functions.invoke("run-cppa-cybersecurity", {
+                body: { assessment_id: suiteCyberId },
+              })
+            );
+          }
         }
       }
     }
     return;
   }
+
+
 
 
   // Registration Manager order
