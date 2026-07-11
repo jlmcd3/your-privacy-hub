@@ -248,6 +248,7 @@ const GovernanceAssessment = () => {
         toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
         return;
       }
+      void clearDraft();
       navigate(`/governance-assessment/result/${row.id}?purchased=true`);
       return;
     }
