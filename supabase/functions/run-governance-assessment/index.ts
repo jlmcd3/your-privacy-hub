@@ -1242,8 +1242,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         await failFunctionRun(supabase, fnRun, bgErr);
         console.error("run-governance-assessment background error:", bgErr);
         if (assessment_id) {
-          await supabase.from("governance_assessments")
-            .update({ status: "failed" }).eq("id", assessment_id);
+          await lifecycleUpdate(supabase, "governance_assessments", assessment_id, { status: "failed" }, { fn: "run-governance-assessment", phase: "terminal_error_catch" });
         }
       }
     })());
