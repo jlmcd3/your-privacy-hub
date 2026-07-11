@@ -1438,9 +1438,10 @@ async function runPipeline(assessment_id: string) {
       reportData: report_data,
     });
 
-    await supabase.from("cppa_assessments")
-      .update({ status: "complete", report_data })
-      .eq("id", assessment_id);
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
