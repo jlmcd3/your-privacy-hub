@@ -1,6 +1,6 @@
 // View a previously generated Custom DPA by ID. Subscribers reach this from My Reports.
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -24,29 +24,23 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { detectDocumentType } from "@/lib/dpaDocumentType";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
 
+
+const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 
 export default function DPAResult() {
   const { id } = useParams();
-  const [row, setRow] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    const fetchOnce = async () => {
-      const { data } = await supabase.from("dpa_documents").select("*").eq("id", id).maybeSingle();
-      setRow(data);
-      setLoading(false);
-      if (data && (data.status === "pending" || data.status === "processing")) {
-        timer = setTimeout(fetchOnce, 3000);
-      }
-    };
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
+  const { row, loading, phase, refresh, setRow } = useGenerationStatus<any>({
+    table: "dpa_documents",
+    rowId: id,
+    isTerminal: (r) => TERMINAL_STATUSES.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete" && (!!r?.document_text || !!r?.report_data),
+  });
 
   const intake = row?.intake_data || {};
 
