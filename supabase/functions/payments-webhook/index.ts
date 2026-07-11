@@ -12,6 +12,7 @@
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createStripeClient, type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 // Lazy so importing this module in tests (which do not set SUPABASE_URL)
 // does not crash at load time.
