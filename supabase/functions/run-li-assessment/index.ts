@@ -196,8 +196,7 @@ async function generateAssessment(assessment_id: string, assessment: any, fnRun:
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
   } catch (e) {
     console.error("run-li-assessment background error:", e);
-    await supabase.from("li_assessments")
-      .update({ status: "failed" }).eq("id", assessment_id);
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "background_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
   }
 }
