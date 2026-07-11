@@ -32,6 +32,7 @@ const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "f
 
 export default function DPAResult() {
   const { id } = useParams();
+  const { meter } = useRunMeter("dpa_generator", id);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
@@ -107,7 +108,7 @@ export default function DPAResult() {
             }
           >
             {(() => {
-              const { meter } = useRunMeter("dpa_generator", row.id);
+              
               const infoNeeded = (row?.report_data as any)?.information_needed;
               return meter ? (
                 <>

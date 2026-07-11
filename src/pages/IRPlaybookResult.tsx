@@ -30,6 +30,7 @@ const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "f
 
 export default function IRPlaybookResult() {
   const { id } = useParams();
+  const { meter } = useRunMeter("ir_playbook", id!);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
@@ -113,7 +114,6 @@ export default function IRPlaybookResult() {
             }
           >
             {(() => {
-              const { meter } = useRunMeter("ir_playbook", id!);
               const infoNeeded = (row?.report_data as any)?.information_needed;
               return meter ? (
                 <>

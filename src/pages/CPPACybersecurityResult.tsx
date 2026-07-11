@@ -412,6 +412,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
 export default function CPPACybersecurityResult() {
   const { id } = useParams();
+  const { meter } = useRunMeter("cppa_cybersecurity", id);
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
   const [priorId, setPriorId] = useState<string | null>(null);
@@ -514,7 +515,6 @@ export default function CPPACybersecurityResult() {
           topDisclaimer={(row?.report_data as any)?.framework_disclaimer ?? (row?.report_data as any)?.disclaimer}
         >
           {(() => {
-            const { meter } = useRunMeter("cppa_cybersecurity", id);
             const infoNeeded = (row?.report_data as any)?.information_needed;
             return meter ? (
               <>

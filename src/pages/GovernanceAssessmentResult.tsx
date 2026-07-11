@@ -56,6 +56,7 @@ const sevBg = (s: string) => {
 
 const GovernanceAssessmentResult = () => {
   const { id } = useParams();
+  const { meter } = useRunMeter("governance_assessment", id);
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
   const [translated, setTranslated] = useState<any | null>(null);
@@ -138,7 +139,6 @@ const GovernanceAssessmentResult = () => {
           topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
           {(() => {
-            const { meter } = useRunMeter("governance_assessment", id);
             const infoNeeded = (report as any)?.information_needed;
             return meter ? (
               <>

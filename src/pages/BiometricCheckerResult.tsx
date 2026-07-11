@@ -32,6 +32,7 @@ const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "f
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
+  const { meter } = useRunMeter("biometric_checker", id);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
@@ -136,7 +137,7 @@ export default function BiometricCheckerResult() {
             topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
           >
             {(() => {
-              const { meter } = useRunMeter("biometric_checker", row.id);
+              
               const infoNeeded = (report as any)?.information_needed;
               return meter ? (
                 <>
