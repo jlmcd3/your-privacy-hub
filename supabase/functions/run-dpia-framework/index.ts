@@ -357,12 +357,18 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
 
     const processingDesc = intake.processing_description || intake.description || "Not provided";
     const purpose = intake.purpose || "Not provided";
-    const dataCategories = (intake.data_categories || []).join(", ") || "Not specified";
+    // Defense-in-depth: coerce array-typed intake fields safely. The spec
+    // requires string[], but a stringly-typed emission from any upstream
+    // generator (or a user-authored intake) must not crash the build — a
+    // scalar becomes a single-item list, null/undefined becomes empty.
+    const asList = (v: unknown): string[] =>
+      Array.isArray(v) ? v.map((x) => String(x)) : (v == null || v === "" ? [] : [String(v)]);
+    const dataCategories = asList(intake.data_categories).join(", ") || "Not specified";
     const dataSubjects = intake.data_subjects || "Not specified";
     const volume = intake.volume_frequency || "Not specified";
-    const thirdParties = (intake.third_party_processors || []).join(", ") || "None identified";
-    const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
-    const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
+    const thirdParties = asList(intake.third_party_processors).join(", ") || "None identified";
+    const safeguards = asList(intake.existing_safeguards).join(", ") || "None identified";
+    const jurisdictions = asList(intake.jurisdictions).join(", ") || "Not specified";
     const legalBasisProposed = intake.legal_basis_proposed || "Not specified";
     const article9Condition = intake.article_9_condition || "Not specified";
     const necessityProportionality = intake.necessity_proportionality || "Not provided";
@@ -377,7 +383,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     const endDate = intake.estimated_end_date || "Not specified";
     const dpiaTeam = intake.dpia_team || "Not specified";
     const referenceMaterials = intake.reference_materials || "Not specified";
-    const reasonsToConduct = (intake.reasons_to_conduct || []).join("; ") || "Not specified";
+    const reasonsToConduct = asList(intake.reasons_to_conduct).join("; ") || "Not specified";
     const dpiaScopeNote = intake.dpia_scope_note || "Not specified";
     const publicationIntent = intake.publication_intent || "Not specified";
     const secondaryUses = intake.secondary_uses || "Not specified";
@@ -444,7 +450,8 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
       const descParts: string[] = [];
       if (intake.sector) descParts.push(`${intake.sector} sector`);
-      if ((intake.jurisdictions || []).length) descParts.push(`processing in ${(intake.jurisdictions || []).join(", ")}`);
+      const jList = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : (intake.jurisdictions ? [String(intake.jurisdictions)] : []);
+      if (jList.length) descParts.push(`processing in ${jList.join(", ")}`);
       enforcementMeta = {
         attempted: true,
         total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
