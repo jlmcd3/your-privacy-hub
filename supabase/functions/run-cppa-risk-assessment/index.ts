@@ -696,10 +696,10 @@ async function runPipeline(assessment_id: string) {
 
     const validation = validateFiveStage(fiveStage, /* lenient */ wasLegacyShimmed);
     if (!validation.ok) {
-      await supabase.from("cppa_assessments").update({
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: { error: "VALIDATION_FAILED", message: validation.message, field: validation.field },
-      }).eq("id", assessment_id);
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_validation" });
       return;
     }
 
