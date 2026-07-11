@@ -295,26 +295,10 @@ export default function EUNoticeReview() {
     });
   }
 
-  async function pollSessionUntilTerminal(
-    sid: string,
-  ): Promise<{ status: "generated" | "failed" | "timeout"; error?: string }> {
-    const POLL_INTERVAL_MS = 3000;
-    const MAX_POLLS = 60;
-    for (let i = 0; i < MAX_POLLS; i++) {
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-      const { data: row } = await supabase
-        .from("eu_notice_sessions")
-        .select("status, generation_error")
-        .eq("id", sid)
-        .maybeSingle();
-      if (row?.status === "generated") return { status: "generated" };
-      if (row?.status === "failed") {
-        return { status: "failed", error: row.generation_error ?? undefined };
-      }
-    }
-    return { status: "timeout" };
-  }
-
+  // Kick off generation. Truth-signal poll (useGenerationStatus above)
+  // owns the waiting UI — this only dispatches the edge function and hands
+  // off. The bounded for-loop poll was deleted, not wrapped
+  // (COURIER_SESSION_FLOWS_TRUTH_SIGNAL_2026-07-11).
   async function runGeneration() {
     if (!sessionId) return;
     setGenerating(true);
@@ -329,8 +313,9 @@ export default function EUNoticeReview() {
     setGenSteps(initialSteps);
 
     // Tick frameworks optimistically while the edge function runs
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
     let i = 0;
-    const tickInt = setInterval(() => {
+    tickTimerRef.current = setInterval(() => {
       const fw = frameworks[i];
       if (!fw) return;
       setGenSteps((s) => ({ ...s, [fw.framework_code]: "done" }));
@@ -343,26 +328,8 @@ export default function EUNoticeReview() {
       });
       if (error) throw error;
       if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
-
-      // 202 dispatch — poll the session row until terminal status.
-      const terminal = await pollSessionUntilTerminal(sessionId);
-      clearInterval(tickInt);
-      if (terminal.status === "failed") {
-        throw new Error(terminal.error || "Generation failed — please try again.");
-      }
-      if (terminal.status === "timeout") {
-        throw new Error("Generation timed out. Please try again.");
-      }
-
-      const final: Record<string, GenStatus> = { _session: "done", _config: "done" };
-      for (const fw of frameworks) final[fw.framework_code] = "done";
-      if (combinedAvailable && includeCombined) final._combined = "done";
-      setGenSteps(final);
-
-      toast({ title: "Notices generated", description: "Your privacy notices are ready." });
-      setTimeout(() => navigate("/eu-notices/documents"), 600);
     } catch (err) {
-      clearInterval(tickInt);
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
       console.error("[EUNoticeReview] generate error", err);
       toast({
         title: "Could not generate notices",
@@ -372,6 +339,48 @@ export default function EUNoticeReview() {
       setGenerating(false);
     }
   }
+
+  // React to the truth-signal phase transitions.
+  useEffect(() => {
+    if (!generating) return;
+    if (genPhase === "ready") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      const final: Record<string, GenStatus> = { _session: "done", _config: "done" };
+      for (const fw of frameworks) final[fw.framework_code] = "done";
+      if (combinedAvailable && includeCombined) final._combined = "done";
+      setGenSteps(final);
+      toast({ title: "Notices generated", description: "Your privacy notices are ready." });
+      if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+      navigateTimerRef.current = setTimeout(() => navigate("/eu-notices/documents"), 600);
+    } else if (genPhase === "failed") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      (async () => {
+        const { data: r } = await supabase
+          .from("eu_notice_sessions")
+          .select("generation_error")
+          .eq("id", sessionId!)
+          .maybeSingle();
+        toast({
+          title: "Could not generate notices",
+          description:
+            (r as { generation_error?: string } | null)?.generation_error ??
+            "Please try again.",
+          variant: "destructive",
+        });
+      })();
+      setGenerating(false);
+    } else if (genPhase === "stalled" || genPhase === "stalled_pre_dispatch") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      // Modal swaps to GenerationStalledCard (see render).
+    }
+  }, [genPhase, generating, sessionId, frameworks, combinedAvailable, includeCombined, navigate, toast]);
+
+  useEffect(() => () => {
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
+    if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+  }, []);
+
+
 
   async function handleGenerateClick() {
     if (!session) return;
