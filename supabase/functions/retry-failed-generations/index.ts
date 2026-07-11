@@ -71,13 +71,15 @@ interface SweepResult {
   refunded: number;
   credited: number;
   failed_resolved: number;
+  skipped_no_evidence: number;
   errors: string[];
 }
 
 async function sweepTable(table: string): Promise<SweepResult> {
   const result: SweepResult = {
-    table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, errors: [],
+    table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, skipped_no_evidence: 0, errors: [],
   };
+
 
   const stuckCutoff = new Date(Date.now() - STUCK_PROCESSING_MINUTES * 60_000).toISOString();
 
@@ -100,7 +102,26 @@ async function sweepTable(table: string): Promise<SweepResult> {
 
   for (const row of rows) {
     const attemptsSoFar: number = row.retry_count ?? 0;
+
+    // ENTITLEMENT-EVIDENCE GUARD: never re-dispatch a row that carries no
+    // evidence of a legitimately entitled original dispatch. The generator
+    // invocation below uses the service key, which bypasses requireEntitlement —
+    // so this check is the entitlement gate for retries. status='error' alone
+    // is NOT evidence (2026-07-11: manually-erred rows were regenerated free).
+    const evidenceBacked =
+      row.stripe_payment_intent_id != null ||
+      row.is_subscriber_credit === true; // column absent on cppa_assessments → undefined → falsy
+    if (!evidenceBacked) {
+      result.skipped_no_evidence = (result.skipped_no_evidence ?? 0) + 1;
+      console.warn(JSON.stringify({
+        evt: "retry_skipped_no_evidence",
+        table, row_id: row.id, status: row.status,
+      }));
+      continue;
+    }
+
     const exhausted = attemptsSoFar >= MAX_ATTEMPTS - 1;
+
 
     if (!exhausted) {
       // ── RETRY ───────────────────────────────────────────────────────────
@@ -336,7 +357,7 @@ Deno.serve(async (req) => {
       results.push(await sweepTable(table));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      results.push({ table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, errors: [msg] });
+      results.push({ table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, skipped_no_evidence: 0, errors: [msg] });
     }
   }
   let registration: { finalized: number; failed: number; errors: string[] } = { finalized: 0, failed: 0, errors: [] };
