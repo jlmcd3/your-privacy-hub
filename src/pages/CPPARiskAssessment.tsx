@@ -315,13 +315,19 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
 
-  // § 7152 exceptions + impact (optional). Consolidated objects to keep submission wiring simple.
-  const [exceptionClaims, setExceptionClaims] = useState<Record<string, { claimed: boolean; scope: string; safeguards: string }>>({});
+  // § 7152 exceptions + impact (optional). R1a: each claimed exception may carry two additional
+  // optional free-text fields — authority_basis and retention_period — so the generator can
+  // address specific statutory anchors and retention windows tied to the exception's purpose.
+  // Absent keys are legal in old drafts (see applyRestore).
+  type ExceptionClaim = { claimed: boolean; scope: string; safeguards: string; authority_basis?: string; retention_period?: string };
+  const [exceptionClaims, setExceptionClaims] = useState<Record<string, ExceptionClaim>>({});
   const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string; businessBenefits: string; consumerBenefits: string; stakeholderBenefits: string; safeguards: string; harmCauses: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" });
 
   // New § 7152 data elements (see EUP gap analysis). Each persists via draft (Prompt 2/3).
   const [q5bProfiling, setQ5bProfiling] = useState("");      // § 7150(b)(4) systematic-observation / sensitive-location profiling trigger
+  const [q5cShareRev, setQ5cShareRev] = useState("");        // R1a: § 1798.140(d)(1)(C) / § 7120(b)(1) 50%-revenue prong
   const [q15bUnder16, setQ15bUnder16] = useState("");        // § 7001(bbb) under-16 actual-knowledge -> SPI elevation
+  const [q15cSpiVolume, setQ15cSpiVolume] = useState("");    // R1a: § 7120(b)(2)(B) SPI volume band
   const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
   const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
