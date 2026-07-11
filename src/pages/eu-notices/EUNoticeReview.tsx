@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -24,6 +24,9 @@ import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question } from "@/data/ropa-questions/types";
 import SessionCheckoutModal, { type SessionToolType } from "@/components/SessionCheckoutModal";
 import FreeRunIndicator from "@/components/FreeRunIndicator";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
 
 type AnswerValue = string | string[] | null;
 type EuNoticeScope = "single" | "suite" | "full_international";
@@ -101,6 +104,24 @@ export default function EUNoticeReview() {
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [genSteps, setGenSteps] = useState<Record<string, GenStatus>>({});
+  const tickTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Truth-signal poll (server timestamps). Only active while we've dispatched
+  // a generation — otherwise a long-idle non-terminal row could flip to
+  // stalled while the user reads the review.
+  const { phase: genPhase, refresh: refreshGen } = useGenerationStatus<{
+    status?: string | null;
+    generation_error?: string | null;
+    updated_at?: string | null;
+    created_at?: string | null;
+  }>({
+    table: "eu_notice_sessions",
+    rowId: generating ? (sessionId ?? null) : null,
+    isTerminal: (r) => r.status === "generated" || r.status === "failed",
+    isReportReady: (r) => r.status === "generated",
+  });
+
 
   // Load session, frameworks, answers, client name
   useEffect(() => {
@@ -274,26 +295,10 @@ export default function EUNoticeReview() {
     });
   }
 
-  async function pollSessionUntilTerminal(
-    sid: string,
-  ): Promise<{ status: "generated" | "failed" | "timeout"; error?: string }> {
-    const POLL_INTERVAL_MS = 3000;
-    const MAX_POLLS = 60;
-    for (let i = 0; i < MAX_POLLS; i++) {
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-      const { data: row } = await supabase
-        .from("eu_notice_sessions")
-        .select("status, generation_error")
-        .eq("id", sid)
-        .maybeSingle();
-      if (row?.status === "generated") return { status: "generated" };
-      if (row?.status === "failed") {
-        return { status: "failed", error: row.generation_error ?? undefined };
-      }
-    }
-    return { status: "timeout" };
-  }
-
+  // Kick off generation. Truth-signal poll (useGenerationStatus above)
+  // owns the waiting UI — this only dispatches the edge function and hands
+  // off. The bounded for-loop poll was deleted, not wrapped
+  // (COURIER_SESSION_FLOWS_TRUTH_SIGNAL_2026-07-11).
   async function runGeneration() {
     if (!sessionId) return;
     setGenerating(true);
@@ -308,8 +313,9 @@ export default function EUNoticeReview() {
     setGenSteps(initialSteps);
 
     // Tick frameworks optimistically while the edge function runs
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
     let i = 0;
-    const tickInt = setInterval(() => {
+    tickTimerRef.current = setInterval(() => {
       const fw = frameworks[i];
       if (!fw) return;
       setGenSteps((s) => ({ ...s, [fw.framework_code]: "done" }));
@@ -322,26 +328,8 @@ export default function EUNoticeReview() {
       });
       if (error) throw error;
       if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
-
-      // 202 dispatch — poll the session row until terminal status.
-      const terminal = await pollSessionUntilTerminal(sessionId);
-      clearInterval(tickInt);
-      if (terminal.status === "failed") {
-        throw new Error(terminal.error || "Generation failed — please try again.");
-      }
-      if (terminal.status === "timeout") {
-        throw new Error("Generation timed out. Please try again.");
-      }
-
-      const final: Record<string, GenStatus> = { _session: "done", _config: "done" };
-      for (const fw of frameworks) final[fw.framework_code] = "done";
-      if (combinedAvailable && includeCombined) final._combined = "done";
-      setGenSteps(final);
-
-      toast({ title: "Notices generated", description: "Your privacy notices are ready." });
-      setTimeout(() => navigate("/eu-notices/documents"), 600);
     } catch (err) {
-      clearInterval(tickInt);
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
       console.error("[EUNoticeReview] generate error", err);
       toast({
         title: "Could not generate notices",
@@ -351,6 +339,48 @@ export default function EUNoticeReview() {
       setGenerating(false);
     }
   }
+
+  // React to the truth-signal phase transitions.
+  useEffect(() => {
+    if (!generating) return;
+    if (genPhase === "ready") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      const final: Record<string, GenStatus> = { _session: "done", _config: "done" };
+      for (const fw of frameworks) final[fw.framework_code] = "done";
+      if (combinedAvailable && includeCombined) final._combined = "done";
+      setGenSteps(final);
+      toast({ title: "Notices generated", description: "Your privacy notices are ready." });
+      if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+      navigateTimerRef.current = setTimeout(() => navigate("/eu-notices/documents"), 600);
+    } else if (genPhase === "failed") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      (async () => {
+        const { data: r } = await supabase
+          .from("eu_notice_sessions")
+          .select("generation_error")
+          .eq("id", sessionId!)
+          .maybeSingle();
+        toast({
+          title: "Could not generate notices",
+          description:
+            (r as { generation_error?: string } | null)?.generation_error ??
+            "Please try again.",
+          variant: "destructive",
+        });
+      })();
+      setGenerating(false);
+    } else if (genPhase === "stalled" || genPhase === "stalled_pre_dispatch") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      // Modal swaps to GenerationStalledCard (see render).
+    }
+  }, [genPhase, generating, sessionId, frameworks, combinedAvailable, includeCombined, navigate, toast]);
+
+  useEffect(() => () => {
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
+    if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+  }, []);
+
+
 
   async function handleGenerateClick() {
     if (!session) return;
@@ -726,29 +756,45 @@ export default function EUNoticeReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-brand-cloud rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-brand-navy mb-4">
-              Generating your EU & global privacy notices…
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <GenStepRow status={genSteps._session ?? "pending"} label="Session data loaded" />
-              <GenStepRow
-                status={genSteps._config ?? "pending"}
-                label={`${frameworks.length} framework${frameworks.length === 1 ? "" : "s"} configured`}
+            {genPhase === "stalled" || genPhase === "stalled_pre_dispatch" ? (
+              <GenerationStalledCard
+                variant={genPhase}
+                retryHref={`/eu-notices/review/${sessionId ?? ""}`}
+                onRefresh={() => { void refreshGen(); }}
               />
-              {frameworks.map((fw) => (
-                <GenStepRow
-                  key={fw.framework_code}
-                  status={genSteps[fw.framework_code] ?? "pending"}
-                  label={`${fw.framework_name} notice`}
-                />
-              ))}
-              {combinedAvailable && includeCombined && (
-                <GenStepRow status={genSteps._combined ?? "pending"} label="Combined international notice" />
-              )}
-            </ul>
+            ) : (
+              <>
+                <h3 className="text-brand-navy mb-2">
+                  Generating your EU & global privacy notices…
+                </h3>
+                {genPhase === "slow" && (
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Taking longer than expected — still working.
+                  </p>
+                )}
+                <ul className="space-y-2 text-sm">
+                  <GenStepRow status={genSteps._session ?? "pending"} label="Session data loaded" />
+                  <GenStepRow
+                    status={genSteps._config ?? "pending"}
+                    label={`${frameworks.length} framework${frameworks.length === 1 ? "" : "s"} configured`}
+                  />
+                  {frameworks.map((fw) => (
+                    <GenStepRow
+                      key={fw.framework_code}
+                      status={genSteps[fw.framework_code] ?? "pending"}
+                      label={`${fw.framework_name} notice`}
+                    />
+                  ))}
+                  {combinedAvailable && includeCombined && (
+                    <GenStepRow status={genSteps._combined ?? "pending"} label="Combined international notice" />
+                  )}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       )}
+
 
       {/* Checkout modal */}
       {sessionId && (

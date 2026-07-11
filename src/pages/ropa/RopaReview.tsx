@@ -14,6 +14,10 @@ import RopaInlineFlag from "@/components/ropa/RopaInlineFlag";
 import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import RopaSetup from "./RopaSetup";
+import { useToast } from "@/hooks/use-toast";
+import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import GenerationStalledCard from "@/components/GenerationStalledCard";
+
 
 type GenStep = "client" | "activities" | "transfers" | "pdf" | "xlsx";
 
@@ -63,6 +67,8 @@ export default function RopaReview() {
   const ackRef = useRef<HTMLLabelElement | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const tickTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [genSteps, setGenSteps] = useState<Record<GenStep, "pending" | "done">>({
     client: "pending",
     activities: "pending",
@@ -70,6 +76,23 @@ export default function RopaReview() {
     pdf: "pending",
     xlsx: "pending",
   });
+  const { toast } = useToast();
+
+  // Truth-signal poll (server timestamps). Only active while we've dispatched
+  // a generation attempt — otherwise a long-idle "review" row would flip to
+  // stalled after 20 min just because the user was reading the page.
+  const { phase: genPhase, refresh: refreshGen } = useGenerationStatus<{
+    status?: string | null;
+    generation_error?: string | null;
+    updated_at?: string | null;
+    created_at?: string | null;
+  }>({
+    table: "ropa_sessions",
+    rowId: generating ? (sessionId ?? null) : null,
+    isTerminal: (r) => r.status === "generated" || r.status === "failed",
+    isReportReady: (r) => r.status === "generated",
+  });
+
 
   const isRefresh = currentSession?.is_refresh ?? false;
   const pricing = useToolPrice(isRefresh ? "ropa_refresh" : "ropa_initial");
@@ -169,19 +192,32 @@ export default function RopaReview() {
   }, [sessionId]);
 
 
+  // Kick off generation. Truth-signal poll (useGenerationStatus above) now
+  // owns the waiting UI — this function only dispatches the edge function
+  // and hands off. The bounded for-loop poll was deleted, not wrapped
+  // (COURIER_SESSION_FLOWS_TRUTH_SIGNAL_2026-07-11).
   const runGeneration = async () => {
     if (!sessionId) return;
     setGenerating(true);
+    // Reset step visuals for a fresh run
+    setGenSteps({
+      client: "pending",
+      activities: "pending",
+      transfers: "pending",
+      pdf: "pending",
+      xlsx: "pending",
+    });
     const updates: GenStep[] = ["client", "activities", "transfers", "pdf"];
     if (includeExcel) updates.push("xlsx");
 
-    // Tick steps optimistically while we wait for the edge function
-    let i = 0;
-    const tickInt = setInterval(() => {
-      const step = updates[i];
+    // Optimistic step ticks for visual pacing while the server works.
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
+    let ti = 0;
+    tickTimerRef.current = setInterval(() => {
+      const step = updates[ti];
       if (step) {
         setGenSteps((s) => ({ ...s, [step]: "done" }));
-        i += 1;
+        ti += 1;
       }
     }, 600);
 
@@ -196,41 +232,27 @@ export default function RopaReview() {
         },
       });
       if (error) {
-        clearInterval(tickInt);
+        if (tickTimerRef.current) clearInterval(tickTimerRef.current);
         setGenerating(false);
         console.error("generate-ropa-document failed:", error);
-        return;
+        toast({
+          title: "Could not start generation",
+          description: error.message ?? "Please try again.",
+          variant: "destructive",
+        });
       }
+    } catch (e) {
+      if (tickTimerRef.current) clearInterval(tickTimerRef.current);
+      setGenerating(false);
+      console.error(e);
+    }
+  };
 
-      // Background worker now generates; poll the session row until it
-      // reaches a terminal status. 3-minute timeout (≈60 polls × 3s).
-      const POLL_INTERVAL_MS = 3000;
-      const MAX_POLLS = 60;
-      let terminal: "generated" | "failed" | null = null;
-      let lastError: string | null = null;
-      for (let i = 0; i < MAX_POLLS; i++) {
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-        const { data: row } = await supabase
-          .from("ropa_sessions")
-          .select("status, generation_error")
-          .eq("id", sessionId)
-          .maybeSingle();
-        if (row?.status === "generated") { terminal = "generated"; break; }
-        if (row?.status === "failed") {
-          terminal = "failed";
-          lastError = row.generation_error ?? "Generation failed";
-          break;
-        }
-      }
-      clearInterval(tickInt);
-
-      if (terminal !== "generated") {
-        setGenerating(false);
-        console.error("generate-ropa-document did not complete:", lastError ?? "timeout");
-        return;
-      }
-
-      // Mark all steps complete
+  // React to the truth-signal phase transitions.
+  useEffect(() => {
+    if (!generating) return;
+    if (genPhase === "ready") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
       setGenSteps({
         client: "done",
         activities: "done",
@@ -238,19 +260,41 @@ export default function RopaReview() {
         pdf: "done",
         xlsx: includeExcel ? "done" : "pending",
       });
-      setTimeout(
-        () =>
-          navigate(
-            withSession("/ropa/documents", sessionId ?? currentSession?.id)
-          ),
-        600
+      if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+      navigateTimerRef.current = setTimeout(
+        () => navigate(withSession("/ropa/documents", sessionId ?? currentSession?.id)),
+        600,
       );
-    } catch (e) {
-      clearInterval(tickInt);
+    } else if (genPhase === "failed") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      // Read the current error message off the session row for the toast.
+      (async () => {
+        const { data: r } = await supabase
+          .from("ropa_sessions")
+          .select("generation_error")
+          .eq("id", sessionId!)
+          .maybeSingle();
+        toast({
+          title: "Generation failed",
+          description:
+            (r as { generation_error?: string } | null)?.generation_error ??
+            "Please try again.",
+          variant: "destructive",
+        });
+      })();
       setGenerating(false);
-      console.error(e);
+    } else if (genPhase === "stalled" || genPhase === "stalled_pre_dispatch") {
+      if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
+      // Modal keeps showing but swaps to GenerationStalledCard (see render).
     }
-  };
+  }, [genPhase, generating, sessionId, includeExcel, navigate, currentSession?.id, toast]);
+
+  useEffect(() => () => {
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
+    if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+  }, []);
+
+
 
 
   const handleGenerateClick = async () => {
@@ -493,17 +537,33 @@ export default function RopaReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-brand-cloud rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-brand-navy mb-4">Building your RoPA…</h3>
-            <ul className="space-y-2 text-sm">
-              <GenStepRow done={genSteps.client === "done"} label="Client record" />
-              <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
-              <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
-              <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
-              {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
-            </ul>
+            {genPhase === "stalled" || genPhase === "stalled_pre_dispatch" ? (
+              <GenerationStalledCard
+                variant={genPhase}
+                retryHref={`/ropa/review/${sessionId ?? ""}`}
+                onRefresh={() => { void refreshGen(); }}
+              />
+            ) : (
+              <>
+                <h3 className="text-brand-navy mb-2">Building your RoPA…</h3>
+                {genPhase === "slow" && (
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Taking longer than expected — still working.
+                  </p>
+                )}
+                <ul className="space-y-2 text-sm">
+                  <GenStepRow done={genSteps.client === "done"} label="Client record" />
+                  <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
+                  <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
+                  <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
+                  {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       )}
+
 
       {/* Checkout modal */}
       {sessionId && (
