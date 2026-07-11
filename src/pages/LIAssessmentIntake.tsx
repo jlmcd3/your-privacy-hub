@@ -144,6 +144,67 @@ const LIAssessmentIntake = () => {
   const [pseudonymisationOptions, setPseudonymisationOptions] = useState(""); // shown for analytics / research
   const [employmentSafeguards, setEmploymentSafeguards] = useState(""); // shown for employee monitoring
 
+  // Autosave payload — includes assessment id so a stale draft from a
+  // different preview row does NOT overwrite fields on the current row.
+  const draftPayload = useMemo(() => ({
+    assessment_id: id,
+    interestHolder, interestType, statedPurpose,
+    alternatives, whyConsentNotUsed, dataMinimised,
+    reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
+    interestStatement, interestHolderOther, interestTypeOther,
+    reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
+    statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
+  }), [
+    id, interestHolder, interestType, statedPurpose, alternatives, whyConsentNotUsed, dataMinimised,
+    reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
+    interestStatement, interestHolderOther, interestTypeOther,
+    reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
+    statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
+  ]);
+  const initialLiaRef = useMemo(() => JSON.stringify({ ...draftPayload, assessment_id: id }), [id]);
+  const touched = useMemo(() => JSON.stringify(draftPayload) !== initialLiaRef, [draftPayload, initialLiaRef]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "lia",
+    clientId: clientId ?? null,
+    data: draftPayload,
+    currentStage: 0,
+    enabled: !!user && touched && !!id,
+  });
+  // Suppress the banner if the saved draft belongs to a different :id.
+  const draftMatchesRoute = ((restoreData as any)?.assessment_id ?? id) === id;
+  const applyRestore = () => {
+    if (!draftMatchesRoute) return;
+    const d = restoreData as Record<string, any> | null;
+    if (!d) return;
+    const S = (v: any, fn: (x: string) => void) => { if (typeof v === "string") fn(v); };
+    const A = (v: any, fn: (x: string[]) => void) => { if (Array.isArray(v)) fn(v); };
+    S(d.interestHolder, setInterestHolder);
+    S(d.interestType, setInterestType);
+    S(d.statedPurpose, setStatedPurpose);
+    S(d.alternatives, setAlternatives);
+    S(d.whyConsentNotUsed, setWhyConsentNotUsed);
+    S(d.dataMinimised, setDataMinimised);
+    S(d.reasonableExpectation, setReasonableExpectation);
+    A(d.vulnerableSubjects, setVulnerableSubjects);
+    S(d.potentialHarm, setPotentialHarm);
+    A(d.safeguards, setSafeguards);
+    S(d.optOutMechanism, setOptOutMechanism);
+    S(d.interestStatement, setInterestStatement);
+    S(d.interestHolderOther, setInterestHolderOther);
+    S(d.interestTypeOther, setInterestTypeOther);
+    S(d.reasonableExpectationDetail, setReasonableExpectationDetail);
+    S(d.potentialHarmDetail, setPotentialHarmDetail);
+    S(d.vulnerableSubjectsOther, setVulnerableSubjectsOther);
+    S(d.safeguardsOther, setSafeguardsOther);
+    S(d.additionalContext, setAdditionalContext);
+    S(d.statutoryRestrictions, setStatutoryRestrictions);
+    S(d.pseudonymisationOptions, setPseudonymisationOptions);
+    S(d.employmentSafeguards, setEmploymentSafeguards);
+  };
+
+
   useEffect(() => {
     if (!id) return;
     (async () => {
