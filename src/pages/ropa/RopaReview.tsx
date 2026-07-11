@@ -537,17 +537,33 @@ export default function RopaReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-brand-cloud rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-brand-navy mb-4">Building your RoPA…</h3>
-            <ul className="space-y-2 text-sm">
-              <GenStepRow done={genSteps.client === "done"} label="Client record" />
-              <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
-              <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
-              <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
-              {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
-            </ul>
+            {genPhase === "stalled" || genPhase === "stalled_pre_dispatch" ? (
+              <GenerationStalledCard
+                variant={genPhase}
+                retryHref={`/ropa/review/${sessionId ?? ""}`}
+                onRefresh={() => { void refreshGen(); }}
+              />
+            ) : (
+              <>
+                <h3 className="text-brand-navy mb-2">Building your RoPA…</h3>
+                {genPhase === "slow" && (
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Taking longer than expected — still working.
+                  </p>
+                )}
+                <ul className="space-y-2 text-sm">
+                  <GenStepRow done={genSteps.client === "done"} label="Client record" />
+                  <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
+                  <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
+                  <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
+                  {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       )}
+
 
       {/* Checkout modal */}
       {sessionId && (
