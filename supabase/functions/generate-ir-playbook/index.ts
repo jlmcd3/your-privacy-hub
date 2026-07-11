@@ -1,4 +1,4 @@
-// qb8 build active
+// qb8 build active · ir-playbook r1b2.2 — jurisdictional conclusions carry their basis
 // run-meter deploy-check v1
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -315,7 +315,9 @@ PROPORTIONATE ASKS (R1b2 rule 2b): do not re-ask for facts already supplied by t
 
 DEADLINE ARITHMETIC IS PRE-COMPUTED, PROVISIONAL, AND RECALCULABLE (R1b2 rule 2c): the DEADLINES block under INCIDENT TEST-STATES lists, for each applicable jurisdiction, the deadline the courier arithmetic derives from the discovery timestamp under the statute cited. These deadlines are PROVISIONAL in the exact sense of the "PROVISIONAL DEADLINES SAY SO — DETECTION IS PROVISIONAL, AWARENESS IS OPERATIVE" rule above (that rule is unchanged and controls the wording): the anchor is the detection timestamp treated as concurrent with awareness pending confirmation, and every deadline carries the recalculation instruction. Use these computed dates verbatim in Section 3; do not recompute them from memory, do not round, and never state the day of the week. Deadlines for jurisdictions that appear in the intake but not in the DEADLINES block (because the courier does not carry deterministic arithmetic for them) are JUDGMENT — cite the statute per the rulebook and compute inline, flagging with the same PROVISIONAL wording.
 
-TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11 — PRIMARY FIX FOR IR): the INCIDENT TEST-STATES machinery is internal — its tokens NEVER appear in the playbook prose the user reads. Do NOT emit the literal string "TEST-STATES", the test ids (M-CA, M-GDPR, M-TX, M-NY, M-CO, M-OR, M-PROC, M-CONT, M-DISC, M-SENS, M-CA-H1C, M-CA-SEG, …), or the state tokens (RESOLVED_MET, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE) anywhere in Sections 1–8, jurisdiction sections, deadline text, checklist items, escalation triggers, or any other user-visible output. State the conclusion with its factual basis instead — "the intake identifies California residents as affected, engaging Cal. Civ. Code §1798.82" — never "per TEST-STATES M-CA" or "(M-GDPR resolved met)". Section headings, jurisdiction labels, and statutory citations are unaffected — this rule bans only the internal id/state tokens, not the underlying regulatory citations they trigger. Same philosophy as NO SYSTEM-ROUTING VOICE.`;
+TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11 — PRIMARY FIX FOR IR): the INCIDENT TEST-STATES machinery is internal — its tokens NEVER appear in the playbook prose the user reads. Do NOT emit the literal string "TEST-STATES", the test ids (M-CA, M-GDPR, M-TX, M-NY, M-CO, M-OR, M-PROC, M-CONT, M-DISC, M-SENS, M-CA-H1C, M-CA-SEG, …), or the state tokens (RESOLVED_MET, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE) anywhere in Sections 1–8, jurisdiction sections, deadline text, checklist items, escalation triggers, or any other user-visible output. State the conclusion with its factual basis instead — "the intake identifies California residents as affected, engaging Cal. Civ. Code §1798.82" — never "per TEST-STATES M-CA" or "(M-GDPR resolved met)". Section headings, jurisdiction labels, and statutory citations are unaffected — this rule bans only the internal id/state tokens, not the underlying regulatory citations they trigger. Same philosophy as NO SYSTEM-ROUTING VOICE.
+
+JURISDICTIONAL CONCLUSIONS CARRY THEIR BASIS (r1b2.2 2026-07-11): every in-scope or out-of-scope jurisdictional determination states its factual basis in plain user-facing language — e.g. "GDPR and UK GDPR do not govern this incident: the intake lists no EU or UK jurisdiction. Confirm the organisation has no EU or UK establishments that could engage Art. 3(1)." The resident-count segmentation instruction carries its threshold basis the same way (name the statutory threshold and what count must be confirmed against it). A bare in/out-of-scope assertion with no stated basis is a defect. This rule deliberately expresses in compliant prose what the retired test-id annotations used to convey; it never names internal test ids or state tokens.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -1452,7 +1454,7 @@ const playbook_text = lint.clean;
             ? (assembled as any).information_needed
             : [],
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.2") },
         };
         try {
           const guarded = guardInformationNeeded(

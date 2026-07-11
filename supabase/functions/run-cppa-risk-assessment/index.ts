@@ -1,4 +1,4 @@
-// qb8 build active
+// qb8 build active · cppa-risk r1b1.1 time-budgeted post-gen retry (mirrors dpia r1b2.1)
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -38,6 +38,14 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// r1b1.1 (2026-07-11): time-budget guard on the post-gen T-1..T-5 retry.
+// If elapsed generation time at violation detection is at/over this threshold,
+// skip the retry, log post_gen_violation_retry_skipped, and proceed with the
+// document instead of burning the isolate's remaining wall-clock on a second
+// full generation. Mirrors run-dpia-framework DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS.
+const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
+console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.1`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
@@ -1042,9 +1050,18 @@ async function runPipeline(assessment_id: string) {
       }
 
       if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation || t5Violation) {
+        // r1b1.1 time-budget guard (mirrors run-dpia-framework r1b2.1):
+        // retry only if elapsed generation time at detection < 150s;
+        // otherwise log post_gen_violation_retry_skipped, merge findings into
+        // the existing lint/observation surface, and proceed with the document.
+        const elapsedAtViolationMs = Date.now() - t0;
+        const retryWithinBudget = elapsedAtViolationMs < CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS;
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
+          elapsed_ms: elapsedAtViolationMs,
+          retry_threshold_ms: CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS,
+          retry_within_budget: retryWithinBudget,
           banned,
           violations: lint.violations?.slice(0, 20) ?? [],
           t1: t1Violation,
@@ -1053,15 +1070,26 @@ async function runPipeline(assessment_id: string) {
           t4: t4Violation,
           t5: t5Violation,
         }));
-        const t5InstructionSuffix = t5Violation
-          ? `\n\nPREVIOUS ATTEMPT REJECTED for TEST-STATES vocabulary leakage: internal tokens surfaced in user-facing prose (${t5Hits.slice(0, 6).map((h) => `${h.path}: "${h.match}"`).join("; ")}). Re-emit the assessment removing every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from all user-facing fields. State the conclusion with its factual basis instead. Do not mention this instruction in the output.`
-          : "";
-        const retry = await callModel(system, userPrompt + t5InstructionSuffix, "generate-v4-retry");
-        const retryParsed = tryParseJson(retry.text);
-        if (retryParsed && retryParsed.assessment_summary) {
-          parsed = retryParsed;
-          lastStopReason = retry.stopReason;
-          debugRaw = retry.text;
+        if (retryWithinBudget) {
+          const t5InstructionSuffix = t5Violation
+            ? `\n\nPREVIOUS ATTEMPT REJECTED for TEST-STATES vocabulary leakage: internal tokens surfaced in user-facing prose (${t5Hits.slice(0, 6).map((h) => `${h.path}: "${h.match}"`).join("; ")}). Re-emit the assessment removing every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from all user-facing fields. State the conclusion with its factual basis instead. Do not mention this instruction in the output.`
+            : "";
+          const retry = await callModel(system, userPrompt + t5InstructionSuffix, "generate-v4-retry");
+          const retryParsed = tryParseJson(retry.text);
+          if (retryParsed && retryParsed.assessment_summary) {
+            parsed = retryParsed;
+            lastStopReason = retry.stopReason;
+            debugRaw = retry.text;
+          }
+        } else {
+          console.warn(JSON.stringify({
+            evt: "post_gen_violation_retry_skipped",
+            fn: "run-cppa-risk-assessment",
+            reason: "elapsed_budget_exceeded",
+            elapsed_ms: elapsedAtViolationMs,
+            retry_threshold_ms: CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS,
+            rules: { t1: t1Violation, t2: t2Violation, t3: t3Violation, t4: t4Violation, t5: t5Violation },
+          }));
         }
       }
 
@@ -1666,7 +1694,7 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.1") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
