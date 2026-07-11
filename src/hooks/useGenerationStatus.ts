@@ -108,7 +108,7 @@ export function useGenerationStatus<T extends GenerationRowLike>({
       .eq("id", rowId)
       .maybeSingle();
     if (cancelledRef.current) return;
-    const r = (data as T | null) ?? null;
+    const r = (data as unknown as T | null) ?? null;
     setRow(r);
     setLoading(false);
     const next = derive(r, termRef.current, readyRef.current);
