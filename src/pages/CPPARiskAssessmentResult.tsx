@@ -271,7 +271,6 @@ export default function CPPARiskAssessmentResult() {
             )}
 
             {(() => {
-              const { meter } = useRunMeter("cppa_risk_assessment", id);
               const infoNeeded = (report as any)?.information_needed;
               return meter ? (
                 <>
