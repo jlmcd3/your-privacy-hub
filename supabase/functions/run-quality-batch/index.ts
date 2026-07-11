@@ -39,10 +39,12 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Boot version marker — bumped for the scenario-spec rewrite: governance,
-// cppa-cyber, dpia, registration specs realigned to generator-read key sets;
-// cppa-admt spec extended with admt_system_count + third_party_admt.
-console.log("[run-quality-batch] build 2026-07-11-scenario-spec-fix");
+// Boot version marker — bumped for the leg-(b) TEST-STATES leakage fix bundled
+// atomically with the scenario-spec rewrites (governance / cppa-cyber / dpia /
+// registration / cppa-admt) and PDF template D8 fixes (Safeguard deficiencies,
+// Material deficiencies identified). CONSUMER_OPTS enum enforced on
+// cppa-risk annual_consumer_volume.
+console.log("[run-quality-batch] build 2026-07-11-test-states-leak-fix");
 
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
@@ -775,7 +777,7 @@ impact: { likelihood_of_harm: "Remote"|"Possible"|"Likely"|"Near certain", sever
 
 org_context: { company_name: string, sector: string, annual_revenue_threshold: string (e.g. "<$25M","$25M–$100M","$100M–$500M",">$500M"), privacy_counsel_engaged: boolean, dpo_or_privacy_officer: boolean, board_level_oversight: boolean, existing_privacy_programme: string, cppa_audit_notification_received: boolean, additional_context: string }.
 
-annual_consumer_volume: string (approximate count).
+annual_consumer_volume: string — MUST be one of the exact CONSUMER_OPTS enum values used by the intake page: "Fewer than 100,000","100,000–249,999","250,000–1 million","1–10 million","Over 10 million","Unsure". Do NOT emit a raw count range (e.g. "50,000–100,000"); that value is not a member of the enum and will be rejected as option-drift by the fixture-alignment audit.
 
 Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), Healthcare SaaS (sensitive PI, well-documented security/debugging/research/legal exceptions), HR/employment-context-only (single employment_context exception), FinTech credit scoring (profiling_significant_effects + ADMT + cybersecurity gaps), small retailer below thresholds (mostly false triggers — should result in voluntary review), and a high-risk profiling/minors scenario (children_in_scope=true). Mix posture: some weak/undocumented exception claims, some clear gaps, some well-controlled.`,
     "cppa-cyber": `CPPA Cybersecurity Audit — 11 CCR § 7123(c) 18-control schema. Return objects with EXACTLY these top-level keys: entity_name (string), industry (sector string), sector (string, may mirror industry), profile (object: { incidents_12mo: string like "0","1","2-5",">5"; framework: one of "SOC 2","ISO 27001","NIST CSF 2.0","CIS Controls","None"; last_audit: ISO date or "" }), controls (object mapping EACH of these 18 exact slug keys to { status: one of "Implemented","Mature","Partial","Gap","Insufficient information"; notes: string, >=20 chars describing the specific evidence or absence }). The 18 slugs are (use EVERY one, spelled EXACTLY): c1_auth, c2_encryption, c3_account_access, c4_inventory, c5_secure_config, c6_vuln_mgmt, c7_audit_logs, c8_network_mon, c9_anti_malware, c10_segmentation, c11_port_protocol, c12_awareness, c13_training, c14_secure_dev, c15_third_party, c16_retention, c17_incident, c18_continuity. Do NOT invent alternative slugs (no c14_third_party, no c16_training — those are legacy/typo aliases). Vary posture: some fully Mature/Implemented, some with clusters of Partial/Gap in specific domains (e.g. training and incident weak; access controls strong), some with several controls at "Insufficient information" (intake gaps), and vary framework across SOC 2, ISO 27001, NIST CSF 2.0, and one "None". Include both under-threshold small businesses and clearly-covered enterprises.`,

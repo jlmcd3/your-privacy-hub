@@ -14,6 +14,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -169,6 +170,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination this tool computes from structured intake fields (M1 special-category data; M2 children's data; M3 Art. 9(2) condition selected; M4 legal basis selected; M5 GDPR applies; M6 international-transfer surface; M7 retention documented; M8 DPO named; M9 profiling narrative CANDIDATE). Tests marked RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — bind their determination and MUST NOT be re-asked in completion_guidance, information_needed, or [TO COMPLETE] placeholders, and MUST NOT be contradicted in prose. INDETERMINATE tests use insufficient-basis language and route to the specific intake field named in the block. M9 is a CANDIDATE, NOT a RESOLUTION: keyword presence directs attention to Art. 35(3)(a) as a JUDGMENT call — assess the description and confirm or reject the prong, citing the narrative language; keyword absence is NOT proof of non-profiling. All other WP248 prongs (large-scale, matching, vulnerable beyond children, innovative tech, systematic monitoring under 35(3)(c)) remain JUDGMENT calls governed by the existing ARTICLE 35 MANDATORY TRIGGER RULE — no mechanical test binds them.",
     "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking and record-completeness items appear in completion_guidance and information_needed (verdict-blocking listed first). Enhancement items — depth improvements no cited provision requires — appear ONLY in method/methodology narrative, never as a completion_guidance or [TO COMPLETE] item. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the intake and RESOLVED tests establish BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies (e.g. do not [TO COMPLETE] the Art. 9(2) condition when M3 is RESOLVED_MET). (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element (e.g. 'the specific Art. 46 safeguard') rather than collapsing the whole determination.",
     "TRIGGER STATUS (R1b2 formalisation of ARTICLE 35 MANDATORY TRIGGER RULE): read TEST-STATES M1, M2, and M9 as the binding surface for the enumerated WP248 prongs this tool computes. Where M1 is RESOLVED_MET, cite Art. 35(3)(b) as engaged and name the special category from the intake; where M2 is RESOLVED_MET, cite Recital 38 and the heightened-protection duty; where M9 is CANDIDATE, treat Art. 35(3)(a) as a JUDGMENT call — quote or paraphrase the description language that raised the candidate and either confirm the prong (citing the language) or reject it (explaining why the language does not reach 'systematic and extensive profiling with significant effects'). Never assert Art. 35(3)(a) is engaged solely because M9 is CANDIDATE; never deny it solely because M9 is INDETERMINATE.",
+    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M9, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in section_1..section_9 prose, completion_guidance, information_needed, [TO COMPLETE] placeholders, executive_summary, or any other user-visible output. State the conclusion with its factual basis instead — 'the intake declares processing of health data, engaging Art. 9(1)' — never '(M1 resolved met)' or 'per TEST-STATES M1'. Same philosophy as NO SYSTEM-ROUTING VOICE.",
   ].join("\n\n"),
 
   languageVariant: "jurisdiction-conditional",
@@ -1069,7 +1071,8 @@ Generate substantive draft rows for every table for the controller to verify; us
       }
 
       let detected = detectDpiaViolations();
-      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(reportData);
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (totalHits > 0) {
         const elapsedAtViolationMs = Date.now() - generationStartedAt;
         const retryWithinBudget = elapsedAtViolationMs < DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS;
@@ -1082,6 +1085,7 @@ Generate substantive draft rows for every table for the controller to verify; us
           t2: detected.t2.slice(0, 6),
           t3: detected.t3.slice(0, 6),
           t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         if (retryWithinBudget) {
           try {
@@ -1089,18 +1093,20 @@ Generate substantive draft rows for every table for the controller to verify; us
             if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED tests: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
             if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies substantive inputs; do NOT collapse determinations with 'cannot be determined'/'no basis to assess'/'not established'`);
             if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every completion_guidance item must be verdict-blocking or record-completeness, anchored to a cited GDPR/EDPB provision; remove pure depth items`);
+            if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1, M2, M9, …), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from section prose, completion_guidance, information_needed, and [TO COMPLETE] placeholders; state the conclusion with its factual basis. Leaked at: ${t5Hits.slice(0, 6).map((h) => `${h.path}:"${h.match}"`).join(", ")}`);
             const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
             const [newA, newB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
             const mergedA = (newA && Object.keys(newA).length > 0) ? newA : partA;
             const mergedB = (newB && Object.keys(newB).length > 0) ? newB : partB;
             reportData = { ...mergedA, ...mergedB };
             detected = detectDpiaViolations();
-            const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+            t5Hits = detectTestStatesLeak(reportData);
+            const stillHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
             if (stillHits > 0) {
-              console.warn(JSON.stringify({ evt: "post_gen_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits }));
+              console.warn(JSON.stringify({ evt: "post_gen_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits, t5_remaining: t5Hits.length }));
             }
           } catch (e) {
-            console.warn("[DPIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+            console.warn("[DPIA] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
           }
         } else {
           console.warn(JSON.stringify({
@@ -1109,11 +1115,13 @@ Generate substantive draft rows for every table for the controller to verify; us
             reason: "elapsed_budget_exceeded",
             elapsed_ms: elapsedAtViolationMs,
             retry_threshold_ms: DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
+            t5_skipped: t5Hits.length,
           }));
         }
         for (const v of detected.t2) lintViolations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) lintViolations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) lintViolations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
 

@@ -13,6 +13,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -102,6 +103,8 @@ TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records t
 PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items are ones that prevent stating an obligation or risk rating for a jurisdiction; they belong in priority actions with the cited statute they block. Record-completeness items belong in the ===INFORMATION_NEEDED=== JSON with the intake field key and the provision that makes the missing dimension relevant. Enhancement items — model-observed depth improvements that no cited provision requires — belong in defensible-practice prose ONLY when tied to a cited standard (BIPA § 15(a) retention policy, CUBI § 503.001(c)(2) reasonable care, GDPR Article 5(2) accountability, EDPB guidance) and NEVER as an information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer, name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole jurisdiction where the intake supplies the enum/presence answers the analysis binds to (jurisdiction selected, biometric type declared, enrollment band chosen, orgType chosen); where a specific missing element IS verdict-blocking, name that element rather than collapsing the whole jurisdiction.
 
 BIPA ENROLLMENT ANCHORING (R1b2 rule 2c): the illustrative BIPA damages calculation must read M7 (enrollment_band_provided) verbatim from the injected TEST-STATES block — the enrollment band supplied by the intake is the anchor. Where M2 (illinois_bipa_scope) is RESOLVED_NOT_MET, do NOT include a BIPA damages calculation in the report at all; where M2 is RESOLVED_MET and M7 is RESOLVED_MET, use the supplied band per the HEADCOUNT CONSISTENCY rule and do NOT re-ask the enrollment count.
+
+TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string "TEST-STATES", the test ids (M1–M9), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in the assessment prose, jurisdiction sections, priority actions, ===INFORMATION_NEEDED=== entries, or defensible-practice discussion. State the conclusion with its factual basis instead — "the intake selects Illinois, engaging BIPA §§ 15(a)–(d)" — never "per TEST-STATES M2" or "(M2 resolved met)". Same philosophy as NO SYSTEM-ROUTING VOICE.
 
 Output ONLY the compliance assessment. No preamble.`;
 
@@ -1343,17 +1346,20 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
 
       let detected = detectT234(assessment_text);
-      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(assessment_text);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (!isStressRun && total > 0) {
         console.warn(JSON.stringify({
           evt: "post_lint_violation", fn: "check-biometric-compliance",
           t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         try {
           const parts: string[] = [];
           if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
           if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies jurisdiction/type/orgType/enrollment answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in the assessment prose`);
           if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every ===INFORMATION_NEEDED=== entry must be verdict-blocking or record-completeness with a cited provision (BIPA § / CUBI § / Cal. Civ. Code / GDPR Article / EDPB Guidelines / ICO / DPA 2018)`);
+          if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1–M9), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from the assessment prose, priority actions, and ===INFORMATION_NEEDED=== entries; state the conclusion with its factual basis. Leaked: ${t5Hits.slice(0, 6).map((h) => `"${h.match}"`).join(", ")}`);
           const details = parts.join(" | ");
           const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
@@ -1389,17 +1395,19 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
             });
             assessment_text = relint.clean;
             detected = detectT234(assessment_text);
-            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            t5Hits = detectTestStatesLeak(assessment_text);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
             if (still > 0) {
-              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "check-biometric-compliance", remaining: still }));
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "check-biometric-compliance", remaining: still, t5_remaining: t5Hits.length }));
             }
           }
         } catch (e) {
-          console.warn("[Biometric] T-2/T-3/T-4 retry failed (non-fatal):", e);
+          console.warn("[Biometric] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
         }
         for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) t234Violations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
     for (const v of t234Violations) lintViolations.push(v);

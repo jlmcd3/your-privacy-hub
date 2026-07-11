@@ -111,7 +111,7 @@ const EMPTY_EXCEPTIONS: Record<string, ExceptionEntry> = {
 // ---------------------------------------------------------------------------
 export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
-import { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
+import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import type { TestState } from "../_shared/cppa-test-states.ts";
 
 
@@ -516,7 +516,8 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "INCONSISTENCY CHARACTERISATIONS MATCH ACROSS SECTIONS: where inconsistency_flags describes two records as 'coexisting with an undocumented relationship', every other section referencing the same issue (exception_analysis flags, priority actions) uses the same characterisation — never 'conflicts with' in one place and 'not necessarily contradictory' in another.",
     "INDETERMINATE ADMT STATUS IS PHRASED AS INDETERMINATE: where the ADMT determination is unresolved and the cross-tool recommendation flag is true, write 'whether an ADMT assessment is required cannot be determined on the current record pending resolution' — never 'an ADMT assessment is not triggered... pending resolution', which contradicts the flag.",
     "§7001(e)(2) IS THE SUBSTANTIALLY-REPLACES STANDARD: cite §7001(e)(2) as defining when ADMT substantially replaces human decisionmaking (meaningful human involvement not practicable) — never as a standalone definition of 'meaningful human involvement'.",
-    "TEST-STATES ARE BINDING (R1b1 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1–M10). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry for it, and NEVER ask the user to confirm/verify/validate/document it. A RESOLVED state may never be contradicted in prose. Any test whose state is INDETERMINATE uses insufficient-basis language and MUST generate exactly ONE information_needed entry anchored to the producing field(s) listed in the block. Cross-reference by test id (e.g. 'per TEST-STATES M4') when the same conclusion recurs across sections.",
+    "TEST-STATES ARE BINDING (R1b1 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1–M10). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry for it, and NEVER ask the user to confirm/verify/validate/document it. A RESOLVED state may never be contradicted in prose. Any test whose state is INDETERMINATE uses insufficient-basis language and MUST generate exactly ONE information_needed entry anchored to the producing field(s) listed in the block.",
+    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M-CA, M-GDPR, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE) anywhere in prose, priority-action text, information_needed dimensions, exception_analysis, strength_basis, executive_summary, safeguard_gaps, or any other user-visible output. State the conclusion with its factual basis instead — e.g. 'the recorded consumer-volume band lies entirely below 250,000' — never 'per TEST-STATES M3' or 'M3 resolved_not_met'. This is the same philosophy as NO SYSTEM-ROUTING VOICE and NO RAW SLUGS IN PROSE.",
     "PROPORTIONATE ASKS (R1b1 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Only verdict-blocking and record-completeness items appear in information_needed (verdict-blocking listed first). Enhancement items appear ONLY in the strengthen/depth mechanism (strengthen_items), with no urgency language. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record establishes BEFORE the residual; the residual is incremental (e.g. 'Additional recipients should be named, with the categories of PI each processes'), and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element that blocks it rather than collapsing the whole determination.",
     "ADMT ASK ROUTING (R1b1 rule 2e): any information_needed entry arising from a q18-class ADMT determination anchors to `i5_admt_logic` (the free-text home for ADMT logic/description), NEVER to q18/q19/q20 radios. Where the ask genuinely concerns a radio's binary state (rare), route it via the record-completion action rather than an information_needed entry.",
     "GUIDED-DIMENSIONS FOR OVERLOADED FREE-TEXT FIELDS (R1b1 rule 2f): information_needed entries anchored to `i6_vendors`, `i2_retention_period`, or `i1b_min_pi` MUST enumerate the DIMENSIONS a sufficient answer covers (per ACTIONABLE FILL-IN GUIDANCE) and close with the instruction 'enrich this field and re-run'. Never emit a bare 'provide more detail' ask for these fields.",
@@ -1033,7 +1034,14 @@ async function runPipeline(assessment_id: string) {
         console.log(JSON.stringify({ evt: "t4_observe", fn: "run-cppa-risk-assessment", fields: t4Observe.slice(0, 20) }));
       }
 
-      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation) {
+      // T-5 — TEST-STATES vocabulary leakage (leg-(b) 2026-07-11). Hard violation, retry.
+      const t5Hits = detectTestStatesLeak(parsed);
+      const t5Violation = t5Hits.length > 0;
+      if (t5Violation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-5", fn: "run-cppa-risk-assessment", count: t5Hits.length, hits: t5Hits.slice(0, 10) }));
+      }
+
+      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation || t5Violation) {
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
@@ -1043,8 +1051,12 @@ async function runPipeline(assessment_id: string) {
           t2: t2Violation,
           t3: t3Violation,
           t4: t4Violation,
+          t5: t5Violation,
         }));
-        const retry = await callModel(system, userPrompt, "generate-v4-retry");
+        const t5InstructionSuffix = t5Violation
+          ? `\n\nPREVIOUS ATTEMPT REJECTED for TEST-STATES vocabulary leakage: internal tokens surfaced in user-facing prose (${t5Hits.slice(0, 6).map((h) => `${h.path}: "${h.match}"`).join("; ")}). Re-emit the assessment removing every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from all user-facing fields. State the conclusion with its factual basis instead. Do not mention this instruction in the output.`
+          : "";
+        const retry = await callModel(system, userPrompt + t5InstructionSuffix, "generate-v4-retry");
         const retryParsed = tryParseJson(retry.text);
         if (retryParsed && retryParsed.assessment_summary) {
           parsed = retryParsed;

@@ -67,6 +67,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 = primary_framework_selected; M2 = breach_history_present; M3 = last_audit_documented; M4–M21 = c1..c18 answered). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit a next_steps entry that re-asks the user to confirm/verify/document what the intake has already established, and NEVER contradict it in prose. In particular: where c{N}_answered is RESOLVED_MET (the intake supplied maturity for that control), the control's status MUST NOT be 'Insufficient information' and its finding MUST NOT say 'the intake does not establish [this component]' — score and status must reflect the maturity supplied. INDETERMINATE tests use insufficient-basis language and MUST anchor any resulting next-step to the specific missing profile or per-control intake key. Applicability class and § 7121(a) cohort remain JUDGMENT calls per the existing APPLICABILITY and PHASE-IN rules — no mechanical test binds them in this tool.",
     "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking and record-completeness items belong in next_steps and per-control remediation; enhancement items — model-observed depth improvements that no cited provision requires — belong in remediation prose ONLY when tied to '§ 7122(g) audit-ready retention' language and NEVER as a next_step. (ii) CREDIT-FIRST — for any partially evidenced control, name what the maturity/notes establish BEFORE the residual; the residual is incremental (e.g. 'retention of the change-log evidence should be added') and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole control when only an increment is missing; where a missing piece IS verdict-blocking (e.g. the control's applicability itself is unconfirmed under the APPLICABILITY CAVEAT rule), name the specific element that blocks it rather than collapsing the whole control.",
     "READINESS-COHORT RATIONALE (R1b2 rule 2c): the executive_summary's discussion of § 7121(a) phase-in timing must read the M1 (primary_framework_selected) and M3 (last_audit_documented) states verbatim from the injected TEST-STATES block, and the discussion of severity anchoring in the security-incident-response component (c17) must read M2 (breach_history_present). Where M2 is RESOLVED_MET, do NOT hedge severity ('may warrant elevated priority') — state the anchor plainly ('the intake reports incidents in the last 12 months; the incident-response control is anchored accordingly'). Where M1 is RESOLVED_MET with a named framework, do NOT re-open framework selection as a next step; frame remediation IN that framework per the existing FRAMEWORK rule.",
+    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M3, M4–M21, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in executive_summary, per-control finding or remediation, next_steps, regulatory_basis, enforcement_context, or any other user-visible output. State the conclusion with its factual basis instead — 'the intake reports incidents in the last 12 months' — never '(M2 resolved met)' or 'per TEST-STATES M2'. Same philosophy as NO SYSTEM-ROUTING VOICE and NO RAW SLUGS IN PROSE.",
   ].join("\n"),
 
   languageVariant: "american",
@@ -201,7 +202,7 @@ const COMPONENT_CITATIONS: Record<string, string> = {
 // ─────────────────────────────────────────────────────────────────────────────
 export { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { TestStateEntry } from "../_shared/cppa-test-states.ts";
-import { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
+import { computeCyberTestStates, renderCyberTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 
 async function runAssessment(assessment_id: string): Promise<void> {
@@ -957,7 +958,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
 
       let detected = detectViolations();
-      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(report);
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (totalHits > 0) {
         console.warn(JSON.stringify({
           evt: "post_lint_violation",
@@ -965,6 +967,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           t2: detected.t2.slice(0, 6),
           t3: detected.t3.slice(0, 6),
           t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         // ONE retry: synthesis only, with the violation details as retry instruction.
         try {
@@ -972,6 +975,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT contradict RESOLVED states or re-ask them: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
           if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplied per-control maturity, do NOT collapse the record with 'cannot be determined'/'no basis to assess'/'not established' in executive_summary or enforcement_context`);
           if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every next_steps entry must be verdict-blocking or record-completeness, anchored to a cited provision; remove pure depth items`);
+          if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from executive_summary, per-control finding and remediation, next_steps, and enforcement_context; state the conclusion with its factual basis. Leaked at: ${t5Hits.slice(0, 6).map((h) => `${h.path}:"${h.match}"`).join(", ")}`);
           const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
           const digest2 = buildDigest(allControls);
           const r = await callSynthesis(digest2, (report as any).overall_score ?? 0, retryInstr);
@@ -984,16 +988,18 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
             normaliseReport(report);
           }
           detected = detectViolations();
-          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+          t5Hits = detectTestStatesLeak(report);
+          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
           if (stillHits > 0) {
-            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-cppa-cybersecurity", remaining: stillHits }));
+            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-cppa-cybersecurity", remaining: stillHits, t5_remaining: t5Hits.length }));
           }
         } catch (e) {
-          console.warn("[CPPA Cyber] T-2/T-3/T-4 retry failed (non-fatal):", e);
+          console.warn("[CPPA Cyber] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
         }
         for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) t234Violations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
     for (const v of t234Violations) lintViolations.push(v);

@@ -16,6 +16,7 @@ import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
+import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 
 
@@ -148,7 +149,8 @@ const LIA_ANALYSIS_EXTRA_RULES = [
    "LIKELY IMPACT, NOT QUANTIFIED IMPACT: the guidelines require a careful assessment of the likely impact of processing (para. 39) — a qualitative standard covering nature, context, and consequences. Never state that the guidelines require a QUANTIFIED analysis of probability or severity, and never treat the absence of quantification as, by itself, a deficiency. Where quantification would strengthen the record, frame it as strengthening ('a quantified estimate would strengthen the documented balancing record'), never as a guidelines requirement.",
    "FLAG THE ABSENCE, DO NOT PERFORM THE OPERATIONAL ANALYSIS (QL2-FIX-1 Item 7.1): where the intake omits operational reasoning that the necessity or balancing test requires from the controller — e.g. why aggregate or anonymised signals would be insufficient for the stated purpose, why a less-intrusive alternative was rejected, why a shorter retention period would not meet the operational need — the assessment FLAGS the absence and directs the controller to document it, and it stops. It does NOT invent or infer the missing operational analysis on the controller's behalf ('presumably aggregate signals would not suffice because …' is a fatal defect). Canonical form: 'The record supplied to this assessment does not present the controller's operational reasoning for [the specific point]; document that reasoning in the balancing record before relying on legitimate interests for this processing.' This rule is a specific application of OUTPUT-ABSENCE, NOT CONTROLLER-FAILURE and NO EXPLANATORY / GENERATOR-REASONING VOICE — the assessment characterises what the record does not present and identifies what the controller must document, without supplying the controller's answer.",
    "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 relationship_declared, M2 jurisdictions_declared, M3 data_categories_declared, M4 special_category_flag, M5 vulnerable_subjects_declared, M6 alternatives_considered, M7 safeguards_declared, M8 opt_out_mechanism_present, M9 reasonable_expectation_answered, M10 potential_harm_answered, M11 employment_context). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'alternatives_considered' when M6 is RESOLVED_MET), and NEVER contradict it in test prose (e.g. do NOT ask the controller to 'confirm whether special-category data is in scope' when M4 is RESOLVED_MET or RESOLVED_NOT_MET). INDETERMINATE tests use insufficient-basis language anchored to the specific missing intake key. Argument-strength, verdict, and framework/regime remain JUDGMENT calls per the existing rules — no mechanical test binds them in this tool.",
-   "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items belong in overall_assessment.blocking_issues with the cited provision they block; record-completeness items belong in information_needed with the intake field key and the provision that makes the missing dimension relevant; enhancement items — model-observed depth improvements that no cited provision requires — belong in documentation_recommendations prose ONLY when tied to a cited standard (e.g. Article 5(2) accountability, EDPB Guidelines 1/2024 balancing-record documentation) and NEVER as an open_question or information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer (e.g. safeguards[] populated but retention period unquantified), name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole test where the intake supplies the enum/presence answers the test binds to; where a specific missing piece IS verdict-blocking, name that element rather than collapsing the whole test.",
+    "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items belong in overall_assessment.blocking_issues with the cited provision they block; record-completeness items belong in information_needed with the intake field key and the provision that makes the missing dimension relevant; enhancement items — model-observed depth improvements that no cited provision requires — belong in documentation_recommendations prose ONLY when tied to a cited standard (e.g. Article 5(2) accountability, EDPB Guidelines 1/2024 balancing-record documentation) and NEVER as an open_question or information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer (e.g. safeguards[] populated but retention period unquantified), name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole test where the intake supplies the enum/presence answers the test binds to; where a specific missing piece IS verdict-blocking, name that element rather than collapsing the whole test.",
+    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M6, M9, …), or the state tokens (resolved, resolved_met, resolved_not_met, RESOLVED_MET, INDETERMINATE, CANDIDATE) anywhere in test analyses, strength_basis, blocking_issues, information_needed, documentation_recommendations, or any other user-visible output. State the conclusion with its factual basis instead — e.g. 'the intake records four alternatives considered before selecting legitimate interests as the basis' — never '(M6 resolved met)' or 'per TEST-STATES M6'. Inline parentheticals like '(M1 resolved)' are the exact defect this rule bans. Same philosophy as NO SYSTEM-ROUTING VOICE.",
 ].join("\n\n");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -960,17 +962,20 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
       }
 
       let detected = detectT234(analysis);
-      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      let t5Hits = detectTestStatesLeak(analysis);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
       if (total > 0) {
         console.warn(JSON.stringify({
           evt: "post_lint_violation", fn: "run-li-assessment",
           t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+          t5: t5Hits.slice(0, 6),
         }));
         try {
           const parts: string[] = [];
           if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
           if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies enum/presence answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in test analyses or strength_basis`);
           if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every blocking_issues / information_needed item must be verdict-blocking or record-completeness with a cited provision (Article / Recital / EDPB Guidelines / § / DPA 2018 Schedule)`);
+          if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1, M6, M9, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from user-facing fields; state the conclusion with its factual basis. Leaked at: ${t5Hits.slice(0, 6).map((h) => `${h.path}:"${h.match}"`).join(", ")}`);
           const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
           const retry = await runStage2(retryInstr);
           const parsed = parseLlmJson(retry.text);
@@ -978,17 +983,19 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
             analysis = parsed;
             lintAnalysis(analysis);
             detected = detectT234(analysis);
-            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            t5Hits = detectTestStatesLeak(analysis);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
             if (still > 0) {
-              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-li-assessment", remaining: still }));
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-li-assessment", remaining: still, t5_remaining: t5Hits.length }));
             }
           }
         } catch (e) {
-          console.warn("[LIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+          console.warn("[LIA] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
         }
         for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
         for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
         for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+        for (const v of t5Hits) t234Violations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
     }
     for (const v of t234Violations) lintViolations.push(v);

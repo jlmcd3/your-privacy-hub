@@ -19,6 +19,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -312,7 +313,9 @@ TEST-STATES ARE BINDING (R1b2 rule 2a): the INCIDENT TEST-STATES block below the
 
 PROPORTIONATE ASKS (R1b2 rule 2b): do not re-ask for facts already supplied by the structured intake and reflected in the INCIDENT TEST-STATES block. Specifically: do not ask the user to identify the jurisdictions in scope, the discovery timestamp, whether a processor was involved (or the processor's name where supplied), the coarse data-type categories the intake enumerated, or the approximate affected-individual count — these are RESOLVED inputs. Legitimate asks are (i) refinements the intake could not carry (per-state resident segmentation for the CA 500+, TX 250+, VA 1000+ thresholds; confirmation of §1798.82(h)(1)(A)–(H) element specifics; confirmed controller-awareness timestamp where distinct from detection; identity of downstream recipients; forensic root-cause detail), and (ii) INDETERMINATE items from the TEST-STATES block. Frame every ask as one specific missing fact tied to the determination it unblocks — never a generic "please provide more information" line, never a re-ask of a RESOLVED input.
 
-DEADLINE ARITHMETIC IS PRE-COMPUTED, PROVISIONAL, AND RECALCULABLE (R1b2 rule 2c): the DEADLINES block under INCIDENT TEST-STATES lists, for each applicable jurisdiction, the deadline the courier arithmetic derives from the discovery timestamp under the statute cited. These deadlines are PROVISIONAL in the exact sense of the "PROVISIONAL DEADLINES SAY SO — DETECTION IS PROVISIONAL, AWARENESS IS OPERATIVE" rule above (that rule is unchanged and controls the wording): the anchor is the detection timestamp treated as concurrent with awareness pending confirmation, and every deadline carries the recalculation instruction. Use these computed dates verbatim in Section 3; do not recompute them from memory, do not round, and never state the day of the week. Deadlines for jurisdictions that appear in the intake but not in the DEADLINES block (because the courier does not carry deterministic arithmetic for them) are JUDGMENT — cite the statute per the rulebook and compute inline, flagging with the same PROVISIONAL wording.`;
+DEADLINE ARITHMETIC IS PRE-COMPUTED, PROVISIONAL, AND RECALCULABLE (R1b2 rule 2c): the DEADLINES block under INCIDENT TEST-STATES lists, for each applicable jurisdiction, the deadline the courier arithmetic derives from the discovery timestamp under the statute cited. These deadlines are PROVISIONAL in the exact sense of the "PROVISIONAL DEADLINES SAY SO — DETECTION IS PROVISIONAL, AWARENESS IS OPERATIVE" rule above (that rule is unchanged and controls the wording): the anchor is the detection timestamp treated as concurrent with awareness pending confirmation, and every deadline carries the recalculation instruction. Use these computed dates verbatim in Section 3; do not recompute them from memory, do not round, and never state the day of the week. Deadlines for jurisdictions that appear in the intake but not in the DEADLINES block (because the courier does not carry deterministic arithmetic for them) are JUDGMENT — cite the statute per the rulebook and compute inline, flagging with the same PROVISIONAL wording.
+
+TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11 — PRIMARY FIX FOR IR): the INCIDENT TEST-STATES machinery is internal — its tokens NEVER appear in the playbook prose the user reads. Do NOT emit the literal string "TEST-STATES", the test ids (M-CA, M-GDPR, M-TX, M-NY, M-CO, M-OR, M-PROC, M-CONT, M-DISC, M-SENS, M-CA-H1C, M-CA-SEG, …), or the state tokens (RESOLVED_MET, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE) anywhere in Sections 1–8, jurisdiction sections, deadline text, checklist items, escalation triggers, or any other user-visible output. State the conclusion with its factual basis instead — "the intake identifies California residents as affected, engaging Cal. Civ. Code §1798.82" — never "per TEST-STATES M-CA" or "(M-GDPR resolved met)". Section headings, jurisdiction labels, and statutory citations are unaffected — this rule bans only the internal id/state tokens, not the underlying regulatory citations they trigger. Same philosophy as NO SYSTEM-ROUTING VOICE.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -1409,6 +1412,30 @@ const playbook_text = lint.clean;
         } catch (e) {
           console.error("[IR Playbook][R1b2 post-check] errored (non-fatal):", e);
         }
+
+        // T-5 — TEST-STATES vocabulary leakage (leg-(b) 2026-07-11). IR posture is
+        // log-only: the PRIMARY fix for IR is the prompt rule; residual leakage is
+        // surfaced in lint_warnings and console.warn but does NOT trigger a retry
+        // (IR generation is expensive and the prompt-side gate is expected to hold).
+        try {
+          const t5Hits = detectTestStatesLeak(playbook_text);
+          if (t5Hits.length > 0) {
+            console.warn(JSON.stringify({
+              evt: "post_lint_violation",
+              rule: "T-5",
+              fn: "generate-ir-playbook",
+              posture: "log_only",
+              count: t5Hits.length,
+              hits: t5Hits.slice(0, 10),
+            }));
+            for (const h of t5Hits) {
+              lintWarnings.push({ rule: "T-5", posture: "log_only", field: h.path, match: h.match, context: h.context });
+            }
+          }
+        } catch (e) {
+          console.error("[IR Playbook][T-5 post-check] errored (non-fatal):", e);
+        }
+
 
 
         const portals = body.jurisdictions

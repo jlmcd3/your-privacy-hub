@@ -1019,7 +1019,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     <section><h2>Assessment Summary</h2>
       ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
       ${summary.assessment_date ? `<p><span class="label">Assessment date:</span> ${text(summary.assessment_date)}</p>` : ""}
-      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status)}</p>` : ""}
+      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status === "Material gaps identified" ? "Material deficiencies identified" : summary.exceptions_status)}</p>` : ""}
       ${Array.isArray(summary.triggered_activities) && summary.triggered_activities.length ? `<p><span class="label">Triggered activities:</span></p>${list(summary.triggered_activities)}` : ""}
       ${summary.corpus_enforcement_note ? `<div class="callout"><p class="label">Enforcement context note</p>${para(summary.corpus_enforcement_note)}</div>` : ""}
     </section>
@@ -1042,7 +1042,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
         ${a.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(a.statutory_basis)}</p>` : ""}
         ${a.section_7153_mapping ? `<p><span class="label">§ 7153 mapping:</span> ${text(a.section_7153_mapping)}</p>` : ""}
         ${a.current_safeguards ? `<p><span class="label">Current safeguards:</span> ${text(a.current_safeguards)}</p>` : ""}
-        ${a.safeguard_gaps ? `<p><span class="label">Safeguard gaps:</span> ${text(a.safeguard_gaps)}</p>` : ""}
+        ${a.safeguard_gaps ? `<p><span class="label">Safeguard deficiencies:</span> ${text(a.safeguard_gaps)}</p>` : ""}
         ${a.benefits_to_business ? `<p><span class="label">Business benefits:</span> ${text(a.benefits_to_business)}</p>` : ""}
         ${a.benefits_to_consumers ? `<p><span class="label">Consumer benefits:</span> ${text(a.benefits_to_consumers)}</p>` : ""}
         ${Array.isArray(a.adverse_effects) && a.adverse_effects.length ? `<p class="label" style="margin-top:8px;">Adverse effects</p>
