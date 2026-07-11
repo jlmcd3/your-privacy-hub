@@ -991,7 +991,7 @@ Generate substantive draft rows for every table for the controller to verify; us
 
       } catch (bgErr) {
         console.error("run-dpia-framework background error:", bgErr);
-        await supabase.from("dpia_frameworks").update({ status: "failed" }).eq("id", dpia_id);
+        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
         await failFunctionRun(supabase, fnRun, bgErr);
       }
 
