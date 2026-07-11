@@ -213,7 +213,7 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 // These do NOT remove a § 7150 trigger from risk-assessment scope on their own;
 // they describe permitted internal uses or carve-outs from specific obligations.
 // Rail key (railKey) maps to CPPA_RISK_RAIL entries with verbatim statutory text.
-const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
+export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
   { key: "fraud_detection",   label: "Fraud prevention / detection",                       cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_fraud_detection" },
   { key: "security_integrity", label: "Security & integrity of systems and data",          cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_security_integrity" },
   { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
