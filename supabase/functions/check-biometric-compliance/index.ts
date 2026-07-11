@@ -97,7 +97,98 @@ NO META-COMMENTARY IN USER-FACING OUTPUT: User-facing prose must read as finishe
 
 Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
 
+TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 biometric_processing_active, M2 illinois_bipa_scope, M3 texas_cubi_scope, M4 washington_mhmd_scope, M5 eu_gdpr_scope, M6 uk_gdpr_scope, M7 enrollment_band_provided, M8 employment_context, M9 authentication_purpose_candidate). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an ===INFORMATION_NEEDED=== entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'jurisdictions' when the Illinois/Texas/Washington/EU/UK scope states are RESOLVED, do NOT ask for 'biometricTypes' when M1 is RESOLVED_MET, do NOT ask for 'orgType' when M8 is RESOLVED), and NEVER contradict it in prose. In particular: where M1 is RESOLVED_NOT_MET (no active biometric processing declared), the CURRENT rating for every jurisdiction MUST be LOW per the CURRENT vs PROSPECTIVE rule, and no priority action may describe a currently-deployed control that the intake did not declare. CANDIDATE states (e.g. M9 keyword match on purpose) are non-binding hypotheses — cite them as considerations to verify, never as facts. Risk ratings, priority-action selection, and enforcement-posture judgement remain JUDGMENT calls per the existing RISK RATING CRITERIA and ENFORCEMENT-POSTURE GROUNDING rules — no mechanical test binds them.
+
+PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items are ones that prevent stating an obligation or risk rating for a jurisdiction; they belong in priority actions with the cited statute they block. Record-completeness items belong in the ===INFORMATION_NEEDED=== JSON with the intake field key and the provision that makes the missing dimension relevant. Enhancement items — model-observed depth improvements that no cited provision requires — belong in defensible-practice prose ONLY when tied to a cited standard (BIPA § 15(a) retention policy, CUBI § 503.001(c)(2) reasonable care, GDPR Article 5(2) accountability, EDPB guidance) and NEVER as an information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer, name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole jurisdiction where the intake supplies the enum/presence answers the analysis binds to (jurisdiction selected, biometric type declared, enrollment band chosen, orgType chosen); where a specific missing element IS verdict-blocking, name that element rather than collapsing the whole jurisdiction.
+
+BIPA ENROLLMENT ANCHORING (R1b2 rule 2c): the illustrative BIPA damages calculation must read M7 (enrollment_band_provided) verbatim from the injected TEST-STATES block — the enrollment band supplied by the intake is the anchor. Where M2 (illinois_bipa_scope) is RESOLVED_NOT_MET, do NOT include a BIPA damages calculation in the report at all; where M2 is RESOLVED_MET and M7 is RESOLVED_MET, use the supplied band per the HEADCOUNT CONSISTENCY rule and do NOT re-ask the enrollment count.
+
 Output ONLY the compliance assessment. No preamble.`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// R1b2 — deterministic TEST-STATES for the biometric-checker generator.
+// Computed from the request Body shape produced by src/pages/BiometricChecker.tsx.
+// Risk ratings, priority-action selection, and enforcement-posture judgement
+// remain JUDGMENT per the existing RISK RATING CRITERIA / ENFORCEMENT-POSTURE
+// GROUNDING rules. Backlog (R2): capture retentionPeriod / consentMechanism /
+// thirdPartyProcessors as structured intake fields to bind further tests.
+// ─────────────────────────────────────────────────────────────────────────────
+type BioTestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate" | "candidate";
+interface BioTestStateEntry {
+  state: BioTestState;
+  basis: string;
+  source_fields: string[];
+}
+const BIO_EMPLOYMENT_ORG = /employer|employee/i;
+const BIO_EMPLOYMENT_PURPOSE = /time\s*&\s*attendance|workforce|physical\s*access/i;
+const BIO_AUTH_PURPOSE = /authentication|identity\s*verification|kyc|customer\s*authentication/i;
+
+export function computeBiometricTestStates(body: Record<string, any> | null | undefined): Record<string, BioTestStateEntry> {
+  const b = body ?? {};
+  const types: string[] = Array.isArray(b.biometricTypes) ? b.biometricTypes : [];
+  const activeTypes = types.filter((t) => t && !/^none\b/i.test(String(t).trim()));
+  const jurisdictions: string[] = Array.isArray(b.jurisdictions) ? b.jurisdictions : [];
+  const jursLc = jurisdictions.map((j) => String(j).toLowerCase());
+  const orgType = String(b.orgType ?? "").trim();
+  const purpose = String(b.purpose ?? "").trim();
+  const enrolled = String(b.enrolledCount ?? "").trim();
+  const out: Record<string, BioTestStateEntry> = {};
+
+  out.M1 = types.length === 0
+    ? { state: "indeterminate", basis: "biometricTypes is empty", source_fields: ["biometricTypes"] }
+    : (activeTypes.length
+        ? { state: "resolved_met", basis: `intake declares biometric types ${JSON.stringify(activeTypes)}`, source_fields: ["biometricTypes"] }
+        : { state: "resolved_not_met", basis: "intake selects only \"None\" for biometricTypes (no active processing)", source_fields: ["biometricTypes"] });
+
+  const has = (needle: string) => jursLc.some((j) => j.includes(needle));
+  const jurisdictionsPresent = jurisdictions.length > 0;
+  const scope = (key: string, needle: string, label: string): BioTestStateEntry =>
+    !jurisdictionsPresent
+      ? { state: "indeterminate", basis: "jurisdictions is empty", source_fields: ["jurisdictions"] }
+      : (has(needle)
+          ? { state: "resolved_met", basis: `intake includes ${label} in jurisdictions`, source_fields: ["jurisdictions"] }
+          : { state: "resolved_not_met", basis: `intake does not include ${label} in jurisdictions`, source_fields: ["jurisdictions"] });
+
+  out.M2 = scope("M2", "illinois", "Illinois (BIPA)");
+  out.M3 = jurisdictionsPresent && (has("texas") || has("other us"))
+    ? { state: "resolved_met", basis: `intake includes Texas or "Other US state" (CUBI in scope)`, source_fields: ["jurisdictions"] }
+    : (jurisdictionsPresent
+        ? { state: "resolved_not_met", basis: "intake does not include Texas or \"Other US state\"", source_fields: ["jurisdictions"] }
+        : { state: "indeterminate", basis: "jurisdictions is empty", source_fields: ["jurisdictions"] });
+  out.M4 = scope("M4", "washington", "Washington state (MHMD)");
+  out.M5 = scope("M5", "eu ", "EU/EEA (GDPR)");
+  out.M6 = scope("M6", "united kingdom", "United Kingdom (UK GDPR)");
+
+  out.M7 = enrolled
+    ? { state: "resolved_met", basis: `intake supplies enrolledCount band "${enrolled}"`, source_fields: ["enrolledCount"] }
+    : { state: "indeterminate", basis: "enrolledCount is empty", source_fields: ["enrolledCount"] };
+
+  const orgEmp = BIO_EMPLOYMENT_ORG.test(orgType);
+  const purposeEmp = BIO_EMPLOYMENT_PURPOSE.test(purpose);
+  out.M8 = (orgEmp || purposeEmp)
+    ? { state: "resolved_met", basis: `orgType="${orgType}" purpose="${purpose}" indicates employment context`, source_fields: ["orgType", "purpose"] }
+    : (orgType || purpose
+        ? { state: "resolved_not_met", basis: `orgType="${orgType}" purpose="${purpose}" does not indicate employment context`, source_fields: ["orgType", "purpose"] }
+        : { state: "indeterminate", basis: "orgType and purpose are empty", source_fields: ["orgType", "purpose"] });
+
+  // M9 is a CANDIDATE — the intake does not confirm KYC/AML use; a purpose keyword
+  // match nominates the hypothesis, absence never rebuts it (per courier doctrine).
+  out.M9 = BIO_AUTH_PURPOSE.test(purpose)
+    ? { state: "candidate", basis: `purpose="${purpose}" matches authentication/KYC keyword — non-binding hypothesis to verify`, source_fields: ["purpose"] }
+    : { state: "indeterminate", basis: "purpose does not match authentication/KYC keyword; absence is not proof", source_fields: ["purpose"] };
+
+  return out;
+}
+
+export function renderBiometricTestStatesBlock(states: Record<string, BioTestStateEntry>): string {
+  const lines: string[] = [];
+  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: state its conclusion with the basis given, do NOT hedge, do NOT emit an ===INFORMATION_NEEDED=== entry re-asking for the intake field it was computed from, and do NOT contradict it in prose. CANDIDATE states are non-binding hypotheses (e.g. keyword matches on free-text purpose) — treat as considerations to verify, never as facts. INDETERMINATE tests use insufficient-basis language anchored to the named source field.");
+  for (const id of Object.keys(states)) {
+    const e = states[id];
+    lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
+  }
+  return lines.join("\n");
+}
 
 const BIOMETRIC_TOOL_MODULE: ToolModule = {
   outputMode: "document",
