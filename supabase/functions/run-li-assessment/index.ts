@@ -894,6 +894,108 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
       }
     }
 
+    // R1b2 — post-lint T-2/T-3/T-4 gate on Stage-2 analysis output. Report-level
+    // prose only; one retry cap, then proceed with the violation logged.
+    const t234Violations: any[] = [];
+    {
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const anchorRe = /(Article\s+\d|Recital\s+\d|GDPR|EDPB|ICO|Guidelines\s+1\/2024|§\s*\d|Schedule\s+\d|DPA\s+2018)/i;
+      const RESOLVED_MET_FIELD_MAP: Record<string, string[]> = {
+        M6: ["alternatives_considered"],
+        M7: ["safeguards"],
+        M8: ["opt_out_mechanism"],
+        M4: ["special_category_data"],
+        M5: ["vulnerable_subjects"],
+        M9: ["reasonable_expectation"],
+        M10: ["potential_harm"],
+      };
+      function detectT234(a: any): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = []; const t3: any[] = []; const t4: any[] = [];
+        const info: any[] = Array.isArray(a?.information_needed) ? a.information_needed : [];
+        for (const item of info) {
+          const f = String(item?.field ?? "").trim();
+          if (!f) continue;
+          for (const [id, keys] of Object.entries(RESOLVED_MET_FIELD_MAP)) {
+            const st = liaTestStates[id]?.state;
+            if ((st === "resolved_met" || st === "resolved_not_met") && keys.includes(f)) {
+              t2.push({ test: id, kind: "info_needed_reasks_resolved", field: f });
+            }
+          }
+        }
+        const testFields = ["purpose_test", "necessity_test", "balancing_test"];
+        for (const tf of testFields) {
+          const t = a?.[tf]; if (!t) continue;
+          const text = [t.analysis, ...(Array.isArray(t.open_questions) ? t.open_questions : [])].filter((s: any) => typeof s === "string").join(" ");
+          if (liaTestStates.M4?.state !== "indeterminate" && /(confirm|clarify)\s+whether[^.]{0,80}special\s?category/i.test(text)) {
+            t2.push({ test: "M4", kind: "reasks_resolved_special_category", field: tf });
+          }
+          if (liaTestStates.M8?.state === "resolved_met" && /(confirm|clarify)\s+whether[^.]{0,80}opt[-\s]?out/i.test(text)) {
+            t2.push({ test: "M8", kind: "reasks_resolved_opt_out", field: tf });
+          }
+        }
+        const anyResolved = Object.values(liaTestStates).some((s) => s.state === "resolved_met");
+        if (anyResolved) {
+          const strBasis = String(a?.overall_assessment?.strength_basis ?? "");
+          if (collapseRe.test(strBasis)) t3.push({ field: "overall_assessment.strength_basis", detail: strBasis.slice(0, 160) });
+          for (const tf of testFields) {
+            const s = String(a?.[tf]?.analysis ?? "");
+            if (collapseRe.test(s)) t3.push({ field: `${tf}.analysis`, detail: s.slice(0, 160) });
+          }
+        }
+        const blocking: any[] = Array.isArray(a?.overall_assessment?.blocking_issues) ? a.overall_assessment.blocking_issues : [];
+        for (const b of blocking) {
+          const s = typeof b === "string" ? b : "";
+          if (!s) continue;
+          if (depthLangRe.test(s) && !anchorRe.test(s)) t4.push({ field: "blocking_issues", detail: s.slice(0, 160) });
+        }
+        for (const item of info) {
+          const dims = String(item?.dimensions ?? "");
+          const prov = String(item?.provision ?? "");
+          if (depthLangRe.test(dims) && !anchorRe.test(`${prov} ${dims}`)) {
+            t4.push({ field: "information_needed", detail: dims.slice(0, 160) });
+          }
+        }
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectT234(analysis);
+      const total = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (total > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation", fn: "run-li-assessment",
+          t2: detected.t2.slice(0, 6), t3: detected.t3.slice(0, 6), t4: detected.t4.slice(0, 6),
+        }));
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED states: ${detected.t2.map(v => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies enum/presence answers; do NOT use 'cannot be determined' / 'no basis to assess' / 'not established' in test analyses or strength_basis`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every blocking_issues / information_needed item must be verdict-blocking or record-completeness with a cited provision (Article / Recital / EDPB Guidelines / § / DPA 2018 Schedule)`);
+          const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
+          const retry = await runStage2(retryInstr);
+          const parsed = parseLlmJson(retry.text);
+          if (parsed) {
+            analysis = parsed;
+            lintAnalysis(analysis);
+            detected = detectT234(analysis);
+            const still = detected.t2.length + detected.t3.length + detected.t4.length;
+            if (still > 0) {
+              console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-li-assessment", remaining: still }));
+            }
+          }
+        } catch (e) {
+          console.warn("[LIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) t234Violations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) t234Violations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) t234Violations.push({ rule: "T-4", ...v });
+      }
+    }
+    for (const v of t234Violations) lintViolations.push(v);
+
+
+
+
 
 
 
