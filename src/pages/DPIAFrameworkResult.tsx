@@ -110,6 +110,7 @@ const DataTable = ({ columns, rows }: { columns: { key: string; label: string }[
 
 const DPIAFrameworkResult = () => {
   const { id } = useParams();
+  const { meter } = useRunMeter("dpia_framework", id);
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
   const [consultationNote, setConsultationNote] = useState("");
@@ -181,7 +182,6 @@ const DPIAFrameworkResult = () => {
 
         <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions} topDisclaimer={report.framework_disclaimer ?? report.disclaimer}>
           {(() => {
-            const { meter } = useRunMeter("dpia_framework", id);
             const infoNeeded = (report as any)?.information_needed;
             return meter ? (
               <>

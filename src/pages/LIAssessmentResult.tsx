@@ -126,6 +126,7 @@ const TestCard = ({ title, test, annotations, precedents, isUk }: { title: strin
 
 const LIAssessmentResult = () => {
   const { id } = useParams();
+  const { meter } = useRunMeter("li_assessment", id);
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
   const [translated, setTranslated] = useState<any | null>(null);
@@ -196,7 +197,6 @@ const LIAssessmentResult = () => {
           topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
           {(() => {
-            const { meter } = useRunMeter("li_assessment", id);
             const infoNeeded = (report as any)?.information_needed;
             return meter ? (
               <>
