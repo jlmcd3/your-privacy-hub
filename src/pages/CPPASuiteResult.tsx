@@ -290,7 +290,7 @@ export default function CPPASuiteResult() {
                 toolType="cppa_risk"
                 assessmentId={riskRow.id}
                 pdfUrl={riskRow.pdf_url}
-                onGenerated={(url) => setRiskRow({ ...riskRow, pdf_url: url })}
+                onGenerated={(url) => risk.setRow((prev: any) => ({ ...(prev ?? riskRow), pdf_url: url }))}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
             </>
@@ -301,7 +301,7 @@ export default function CPPASuiteResult() {
                 toolType="cppa_cybersecurity"
                 assessmentId={cyberRow.id}
                 pdfUrl={cyberRow.pdf_url}
-                onGenerated={(url) => setCyberRow({ ...cyberRow, pdf_url: url })}
+                onGenerated={(url) => cyber.setRow((prev: any) => ({ ...(prev ?? cyberRow), pdf_url: url }))}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
             </>
