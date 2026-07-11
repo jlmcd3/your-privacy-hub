@@ -578,7 +578,12 @@ export default function CPPARiskAssessment() {
   const applyRestore = () => {
     const d = restoreData as Record<string, any> | null;
     if (!d) return;
-    if (typeof d.q1 === "string") setQ1(d.q1);
+    if (typeof d.q1 === "string") {
+      // Legacy value "$25M–$100M" is not in the new REVENUE_OPTS; clear so
+      // the radio renders unselected and the user re-answers with a clean
+      // band (mirrors the CONSUMER_OPTS split shipped earlier today).
+      setQ1(REVENUE_OPTS.includes(d.q1) ? d.q1 : "");
+    }
     if (typeof d.q2 === "string") {
       // Guard against legacy straddling band "100,000–1 million" (no longer in
       // CONSUMER_OPTS). Restoring an unknown value would render the radio
