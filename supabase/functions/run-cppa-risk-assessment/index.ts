@@ -79,8 +79,12 @@ import {
   shimLegacyIntake,
   normaliseIntake,
 } from "../_shared/cppa-risk-normalise.ts";
-import type { ExceptionEntry, FiveStageIntake } from "../_shared/cppa-test-states.ts";
+import type { ExceptionEntry, FiveStageIntake, TestState } from "../_shared/cppa-test-states.ts";
 export type { ExceptionEntry, FiveStageIntake } from "../_shared/cppa-test-states.ts";
+export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
+export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
+import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+
 
 
 // ---------------------------------------------------------------------------
