@@ -1261,10 +1261,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
         try {
-          await supabase
-            .from("ir_playbooks")
-            .update({ status: "failed", updated_at: new Date().toISOString() })
-            .eq("id", rowId);
+          await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "background_catch" });
         } catch (persistErr) {
           console.error("[generate-ir-playbook] failure-persist error:", persistErr);
         }
