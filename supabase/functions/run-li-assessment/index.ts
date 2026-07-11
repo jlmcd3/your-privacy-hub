@@ -1028,8 +1028,7 @@ Return JSON:
 
   } catch (e) {
     console.error("run-li-assessment error:", e);
-    await supabase.from("li_assessments")
-      .update({ status: "failed" }).eq("id", assessment_id);
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_error_catch" });
     throw e;
   }
 }
