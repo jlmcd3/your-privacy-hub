@@ -15,6 +15,12 @@ import {
   classifyRevenueBand,
   type FiveStageIntake,
 } from "../_shared/cppa-test-states.ts";
+// R1e (2026-07-11): the QC-R1 checks now feed the identical
+// normaliseIntake -> computeTestStates pipeline the generator itself runs,
+// closing the raw-vs-normalised defect that made QC-R1-4 false-fail on
+// 5-stage-shaped fixtures and hid vacuous passes on QC-R1-1/-2/-3.
+import { resolveIntakeForTestStates } from "../_shared/cppa-risk-normalise.ts";
+
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
 // to stop the alphabetical tail (i5_/i7_/i8_/i9_ keys) from being dropped, which
