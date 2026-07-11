@@ -14,6 +14,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 
 
@@ -195,8 +196,7 @@ async function generateAssessment(assessment_id: string, assessment: any, fnRun:
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
   } catch (e) {
     console.error("run-li-assessment background error:", e);
-    await supabase.from("li_assessments")
-      .update({ status: "failed" }).eq("id", assessment_id);
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "background_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
   }
 }
@@ -279,8 +279,11 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    await supabase.from("li_assessments").update({ status: "processing" })
-      .eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "processing" }, { fn: "run-li-assessment", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const fnRun = await startFunctionRun(supabase, "run-li-assessment", {
       archetype: "background",
@@ -951,11 +954,14 @@ Return JSON:
       reportData,
     });
 
-    await supabase.from("li_assessments").update({
+    const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
       updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
+    }, { fn: "run-li-assessment", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
@@ -1022,8 +1028,7 @@ Return JSON:
 
   } catch (e) {
     console.error("run-li-assessment error:", e);
-    await supabase.from("li_assessments")
-      .update({ status: "failed" }).eq("id", assessment_id);
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_error_catch" });
     throw e;
   }
 }

@@ -18,6 +18,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -518,10 +519,12 @@ Deno.serve(async (req) => {
         });
       }
       rowId = row.id;
-      await supabase
-        .from("ir_playbooks")
-        .update({ status: "processing", updated_at: new Date().toISOString() })
-        .eq("id", rowId);
+      const procWrite = await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "processing", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "pre_generation" });
+      if (!procWrite.ok) {
+        return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     } else {
       if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
         return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
@@ -552,10 +555,10 @@ Deno.serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
-      await supabase.from("ir_playbooks").update({
+      await lifecycleUpdate(supabase, "ir_playbooks", rowId, {
         status: "failed",
         updated_at: new Date().toISOString(),
-      }).eq("id", rowId);
+      }, { fn: "generate-ir-playbook", phase: "terminal_error_no_key" });
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -1152,14 +1155,11 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         // CF-2: never merge/persist a truncated playbook.
         if (incompleteReason) {
           console.error(`[generate-ir-playbook] incomplete_generation after retry: ${incompleteReason}`);
-          await supabase
-            .from("ir_playbooks")
-            .update({
-              status: "failed",
-              report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", rowId);
+          await lifecycleUpdate(supabase, "ir_playbooks", rowId, {
+            status: "failed",
+            report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
+            updated_at: new Date().toISOString(),
+          }, { fn: "generate-ir-playbook", phase: "terminal_error_incomplete" });
           return;
         }
 
@@ -1231,18 +1231,18 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           documentText: playbook_text,
         });
 
-        await supabase
-          .from("ir_playbooks")
-          .update({
-            client_id: body.client_id ?? null,
-            organization_name: body.organizationName || null,
-            status: "complete",
-            intake_data: body,
-            playbook_text,
-            report_data,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", rowId);
+        const completeWrite = await lifecycleUpdate(supabase, "ir_playbooks", rowId, {
+          client_id: body.client_id ?? null,
+          organization_name: body.organizationName || null,
+          status: "complete",
+          intake_data: body,
+          playbook_text,
+          report_data,
+          updated_at: new Date().toISOString(),
+        }, { fn: "generate-ir-playbook", phase: "terminal_complete" });
+        if (!completeWrite.ok) {
+          await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "terminal_fallback" });
+        }
 
         // L2 — observe-only citation lint (never blocks, never mutates output).
         try {
@@ -1261,10 +1261,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
         try {
-          await supabase
-            .from("ir_playbooks")
-            .update({ status: "failed", updated_at: new Date().toISOString() })
-            .eq("id", rowId);
+          await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "background_catch" });
         } catch (persistErr) {
           console.error("[generate-ir-playbook] failure-persist error:", persistErr);
         }

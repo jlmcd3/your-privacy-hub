@@ -13,6 +13,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -199,10 +200,14 @@ Deno.serve(async (req) => {
 
     const intake = dpia.intake_data as any;
     const orgName = (dpia as any).organization_name || intake?.organization_name || null;
-    await supabase.from("dpia_frameworks").update({
+    const procWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "processing",
       ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
-    }).eq("id", dpia_id);
+    }, { fn: "run-dpia-framework", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const fnRun = await startFunctionRun(supabase, "run-dpia-framework", {
       archetype: "background",
@@ -920,11 +925,14 @@ Generate substantive draft rows for every table for the controller to verify; us
       reportData,
     });
 
-    await supabase.from("dpia_frameworks").update({
+    const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,
       updated_at: new Date().toISOString(),
-    }).eq("id", dpia_id);
+    }, { fn: "run-dpia-framework", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
@@ -983,7 +991,7 @@ Generate substantive draft rows for every table for the controller to verify; us
 
       } catch (bgErr) {
         console.error("run-dpia-framework background error:", bgErr);
-        await supabase.from("dpia_frameworks").update({ status: "failed" }).eq("id", dpia_id);
+        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
         await failFunctionRun(supabase, fnRun, bgErr);
       }
 

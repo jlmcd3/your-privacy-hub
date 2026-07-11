@@ -32,6 +32,7 @@ import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -685,16 +686,20 @@ async function runPipeline(assessment_id: string) {
   try {
     const { data: row } = await supabase.from("cppa_assessments").select("*").eq("id", assessment_id).single();
     if (!row) return;
-    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-risk-assessment", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      // Cannot persist lifecycle state — abort before spending model time.
+      return;
+    }
 
     const { intake: fiveStage, wasLegacyShimmed } = normaliseIntake(row.intake_data ?? {});
 
     const validation = validateFiveStage(fiveStage, /* lenient */ wasLegacyShimmed);
     if (!validation.ok) {
-      await supabase.from("cppa_assessments").update({
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: { error: "VALIDATION_FAILED", message: validation.message, field: validation.field },
-      }).eq("id", assessment_id);
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_validation" });
       return;
     }
 
@@ -789,14 +794,14 @@ async function runPipeline(assessment_id: string) {
       const errorCode = lastStopReason === "max_tokens"
         ? "generation_truncated"
         : "generation_parse_failed";
-      await supabase.from("cppa_assessments").update({
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: {
           error: errorCode,
           stop_reason: lastStopReason,
           debug: debugRaw.slice(0, 4000),
         },
-      }).eq("id", assessment_id);
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_parse" });
       return;
     }
 
@@ -1433,9 +1438,10 @@ async function runPipeline(assessment_id: string) {
       reportData: report_data,
     });
 
-    await supabase.from("cppa_assessments")
-      .update({ status: "complete", report_data })
-      .eq("id", assessment_id);
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
@@ -1454,9 +1460,7 @@ async function runPipeline(assessment_id: string) {
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     try {
-      await supabase.from("cppa_assessments")
-        .update({ status: "error", report_data: { error: String(e) } })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: String(e) } }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }
   }
 }
@@ -1499,16 +1503,19 @@ Deno.serve(async (req) => {
     });
   }
 
-  try {
-    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
-  } catch { /* row presence is re-checked inside runPipeline */ }
-
   const fnRun = await startFunctionRun(supabase, "run-cppa-risk-assessment", {
     archetype: "background",
     trustClass: "user",
     invokedBy: "user",
     metadata: { assessment_id },
   });
+  const httpProc = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-risk-assessment", phase: "pre_generation_http" });
+  if (!httpProc.ok) {
+    await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${httpProc.message}`), { metadata: { assessment_id, phase: "pre_generation_http" } });
+    return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: httpProc.message }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const wrapped = (async () => {
     try {
       await runPipeline(assessment_id!);

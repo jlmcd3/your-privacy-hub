@@ -12,6 +12,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -201,10 +202,12 @@ Deno.serve(async (req) => {
     }
 
     if (body.assessment_id) {
-      await supabase
-        .from("dpa_documents")
-        .update({ status: "processing", intake_data: body, updated_at: new Date().toISOString() })
-        .eq("id", body.assessment_id);
+      const procWrite = await lifecycleUpdate(supabase, "dpa_documents", body.assessment_id, { status: "processing", intake_data: body, updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "pre_generation" });
+      if (!procWrite.ok) {
+        return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       rowId = body.assessment_id;
     } else {
       const { data: inserted, error: insErr } = await supabase
@@ -228,10 +231,10 @@ Deno.serve(async (req) => {
     }
 
     if (!ANTHROPIC_API_KEY) {
-      await supabase.from("dpa_documents").update({
+      await lifecycleUpdate(supabase, "dpa_documents", rowId, {
         status: "failed",
         updated_at: new Date().toISOString(),
-      }).eq("id", rowId);
+      }, { fn: "generate-dpa", phase: "terminal_error_no_key" });
       return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -945,20 +948,17 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     // the row again with the repaired text; if it fails, the original document
     // stays saved with its lint warnings recorded.
     console.log(`[generate-dpa] persisting rowId=${rowId} chars=${dpa_text.length}`);
-    const { error: updateErr } = await supabase
-      .from("dpa_documents")
-      .update({
-        status: "complete",
-        intake_data: body,
-        document_text: dpa_text,
-        report_data,
-        lint_warnings: lint.violations,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", rowId);
-    if (updateErr) {
-      console.error("[generate-dpa] dpa_documents persist failed:", updateErr);
-      throw updateErr;
+    const completeWrite = await lifecycleUpdate(supabase, "dpa_documents", rowId, {
+      status: "complete",
+      intake_data: body,
+      document_text: dpa_text,
+      report_data,
+      lint_warnings: lint.violations,
+      updated_at: new Date().toISOString(),
+    }, { fn: "generate-dpa", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "dpa_documents", rowId, { status: "failed", last_error: `terminal_complete: ${completeWrite.message}`.slice(0, 500), updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "terminal_fallback" });
+      throw new Error(`dpa_documents persist failed: ${completeWrite.message}`);
     }
     console.log(`[generate-dpa] persisted rowId=${rowId} status=complete`);
 
@@ -1062,12 +1062,12 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         // Write the actual error to last_error so watchdog/operator can diagnose
         // instead of leaving the row silently stuck in 'processing'.
         try {
-          await supabase.from("dpa_documents").update({
+          await lifecycleUpdate(supabase, "dpa_documents", rowId, {
             status: "failed",
             last_error: `bg: ${errMsg}`.slice(0, 500),
             last_attempt_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          }).eq("id", rowId);
+          }, { fn: "generate-dpa", phase: "background_catch" });
         } catch (writeErr) {
           console.error("[generate-dpa] failed to write failure state:", writeErr);
         }

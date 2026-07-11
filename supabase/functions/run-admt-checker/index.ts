@@ -20,6 +20,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -397,7 +398,11 @@ Deno.serve(async (req) => {
   // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
   EdgeRuntime.waitUntil((async () => {
    try {
-    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${procWrite.message}`), { metadata: { assessment_id, phase: "pre_generation" } });
+      return;
+    }
     const intake = assessment.intake_data as any;
 
 
@@ -676,7 +681,7 @@ ADDITIONAL DISCIPLINES:
         const admtTruncated =
           first.stopReason === "max_tokens" || strictRetry.stopReason === "max_tokens";
         const admtErrorCode = admtTruncated ? "generation_truncated" : "parse_failed";
-        await supabase.from("cppa_assessments").update({
+        await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
           status: "error",
           report_data: {
             error: admtErrorCode,
@@ -686,7 +691,7 @@ ADDITIONAL DISCIPLINES:
             raw_tail: rawText.slice(-400),
             retry_tail: strictRetry.text.slice(-400),
           },
-        }).eq("id", assessment_id);
+        }, { fn: "run-admt-checker", phase: "terminal_error_parse" });
         await failFunctionRun(supabase, fnRun, admtErrorCode, {
           metadata: {
             assessment_id,
@@ -1040,11 +1045,14 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
-    await supabase.from("cppa_assessments").update({
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,
       updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
+    }, { fn: "run-admt-checker", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-admt-checker", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
@@ -1063,10 +1071,10 @@ Return this JSON structure exactly:
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);
-    await supabase.from("cppa_assessments").update({
+    await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "error",
       report_data: { error: String(e) },
-    }).eq("id", assessment_id);
+    }, { fn: "run-admt-checker", phase: "terminal_error_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
    }
   })());

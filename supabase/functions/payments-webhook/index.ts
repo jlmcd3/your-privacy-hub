@@ -12,6 +12,7 @@
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createStripeClient, type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 // Lazy so importing this module in tests (which do not set SUPABASE_URL)
 // does not crash at load time.
@@ -525,13 +526,11 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     };
     const table = tableMap[tool_type];
     if (table) {
-      await supabase
-        .from(table)
-        .update({
-          stripe_payment_intent_id: (session.payment_intent as string) || session.id,
-          purchase_price_cents: session.amount_total || 0,
-        })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, table, assessment_id, {
+        stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+        purchase_price_cents: session.amount_total || 0,
+      }, { fn: "payments-webhook", phase: "payment_evidence" });
+
 
       const fnMap: Record<string, string> = {
         li_assessment: "run-li-assessment",
@@ -554,12 +553,9 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
 
         if (tool_type === "cppa_suite" && session.metadata?.suite_cyber_id) {
           const suiteCyberId = session.metadata.suite_cyber_id as string;
-          await supabase
-            .from("cppa_assessments")
-            .update({
-              stripe_payment_intent_id: (session.payment_intent as string) || session.id,
-            })
-            .eq("id", suiteCyberId);
+          await lifecycleUpdate(supabase, "cppa_assessments", suiteCyberId, {
+            stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+          }, { fn: "payments-webhook", phase: "payment_evidence" });
           EdgeRuntime.waitUntil(
             supabase.functions.invoke("run-cppa-cybersecurity", {
               body: { assessment_id: suiteCyberId },
@@ -593,24 +589,21 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       })
     );
 
-    const { error: updateErr } = await supabase
-      .from("registration_orders")
-      .update({
-        payment_status: "paid",
-        fulfillment_status: "documents_pending",
-        stripe_payment_intent_id: (session.payment_intent as string) || session.id,
-        stripe_session_id: session.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", orderId);
+    const orderWrite = await lifecycleUpdate(supabase, "registration_orders", orderId, {
+      payment_status: "paid",
+      fulfillment_status: "documents_pending",
+      stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+      stripe_session_id: session.id,
+      updated_at: new Date().toISOString(),
+    }, { fn: "payments-webhook", phase: "payment_evidence" });
 
-    if (updateErr) {
+    if (!orderWrite.ok) {
       console.error(
         JSON.stringify({
           scope: "registration_checkout",
           event: "order_update_failed",
           order_id: orderId,
-          error: updateErr.message,
+          error: orderWrite.message,
         })
       );
     }

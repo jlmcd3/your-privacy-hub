@@ -13,6 +13,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
+import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
@@ -191,10 +192,11 @@ async function runAssessment(assessment_id: string): Promise<void> {
     return;
   }
 
-  await supabase
-    .from("cppa_assessments")
-    .update({ status: "processing" })
-    .eq("id", assessment_id);
+  const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-cybersecurity", phase: "pre_generation" });
+  if (!procWrite.ok) {
+    // Cannot persist lifecycle state — abort before spending model time.
+    return;
+  }
 
   try {
     // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
@@ -737,10 +739,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     ]);
 
     if (!half1 || !half2) {
-      await supabase
-        .from("cppa_assessments")
-        .update({ status: "error" })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_halves" });
       return;
     }
 
@@ -759,10 +758,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         const v2 = validateControls(reAssembled);
         if (!v2.ok) {
           console.error(`[CPPA Cyber] controls incomplete after retry: missing=${JSON.stringify(v2.missing)}`);
-          await supabase
-            .from("cppa_assessments")
-            .update({ status: "error" })
-            .eq("id", assessment_id);
+          await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_controls" });
           return;
         }
       }
@@ -774,10 +770,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const synthesis = await callSynthesis(digest, overall_score, "");
     if (!synthesis || typeof synthesis !== "object") {
-      await supabase
-        .from("cppa_assessments")
-        .update({ status: "error" })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_synthesis" });
       return;
     }
 
@@ -1183,10 +1176,10 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     });
 
 
-    await supabase
-      .from("cppa_assessments")
-      .update({ status: "complete", report_data: report, obligation_snapshot })
-      .eq("id", assessment_id);
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
@@ -1221,10 +1214,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
   } catch (e) {
     console.error("[CPPA Cyber] runAssessment error:", e);
-    await supabase
-      .from("cppa_assessments")
-      .update({ status: "error" })
-      .eq("id", assessment_id);
+    await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_catch" });
   }
 }
 
