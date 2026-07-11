@@ -954,11 +954,14 @@ Return JSON:
       reportData,
     });
 
-    await supabase.from("li_assessments").update({
+    const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
       updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
+    }, { fn: "run-li-assessment", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
