@@ -67,6 +67,8 @@ export default function RopaReview() {
   const ackRef = useRef<HTMLLabelElement | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const tickTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [genSteps, setGenSteps] = useState<Record<GenStep, "pending" | "done">>({
     client: "pending",
     activities: "pending",
@@ -74,6 +76,23 @@ export default function RopaReview() {
     pdf: "pending",
     xlsx: "pending",
   });
+  const { toast } = useToast();
+
+  // Truth-signal poll (server timestamps). Only active while we've dispatched
+  // a generation attempt — otherwise a long-idle "review" row would flip to
+  // stalled after 20 min just because the user was reading the page.
+  const { phase: genPhase, refresh: refreshGen } = useGenerationStatus<{
+    status?: string | null;
+    generation_error?: string | null;
+    updated_at?: string | null;
+    created_at?: string | null;
+  }>({
+    table: "ropa_sessions",
+    rowId: generating ? (sessionId ?? null) : null,
+    isTerminal: (r) => r.status === "generated" || r.status === "failed",
+    isReportReady: (r) => r.status === "generated",
+  });
+
 
   const isRefresh = currentSession?.is_refresh ?? false;
   const pricing = useToolPrice(isRefresh ? "ropa_refresh" : "ropa_initial");
