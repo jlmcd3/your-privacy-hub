@@ -560,7 +560,7 @@ export default function CPPARiskAssessment() {
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
-    exceptionClaims: {} as Record<string, { claimed: boolean; scope: string; safeguards: string }>,
+    exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
