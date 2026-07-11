@@ -770,10 +770,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const synthesis = await callSynthesis(digest, overall_score, "");
     if (!synthesis || typeof synthesis !== "object") {
-      await supabase
-        .from("cppa_assessments")
-        .update({ status: "error" })
-        .eq("id", assessment_id);
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_synthesis" });
       return;
     }
 
