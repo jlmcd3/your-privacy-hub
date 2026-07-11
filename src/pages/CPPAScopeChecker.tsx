@@ -25,7 +25,11 @@ import { useToolStartedOnInteraction, fireEmailCaptured } from "@/lib/analyticsE
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
-type Q3 = "" | "Fewer than 100,000" | "100,000–1 million" | "Over 1 million" | "Unsure";
+// Q3 accepts both the new bands ("100,000–249,999", "250,000–1 million") AND
+// the legacy straddling band ("100,000–1 million") so completed sessions and
+// autosaved drafts carrying the legacy value remain valid. All three lie
+// at-or-above the § 1798.140(d)(1)(B) 100,000-coverage line.
+type Q3 = "" | "Fewer than 100,000" | "100,000–249,999" | "250,000–1 million" | "100,000–1 million" | "Over 1 million" | "Unsure";
 type Q4 =
   | ""
   | "Yes — we sell PI"
@@ -104,7 +108,7 @@ export default function CPPAScopeChecker() {
       (q1 === "Yes" || q1 === "Unsure") &&
       (["$25M–$100M", "$100M–$500M", "Over $500M"].includes(q2) ||
         q2 === "Unsure" ||
-        ["100,000–1 million", "Over 1 million"].includes(q3) ||
+        ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"].includes(q3) ||
         q3 === "Unsure" ||
         [
           "Yes — we sell PI",
@@ -140,7 +144,7 @@ export default function CPPAScopeChecker() {
         label: "CCPA/CPRA consumer rights obligations apply",
         triggered: (q1 === "Yes" || q1 === "Unsure") &&
           (["$25M–$100M", "$100M–$500M", "Over $500M", "Unsure"].includes(q2) ||
-            ["100,000–1 million", "Over 1 million", "Unsure"].includes(q3)),
+            ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million", "Unsure"].includes(q3)),
       },
       {
         citation: "11 CCR § 7150(b)(1)",
@@ -282,7 +286,7 @@ export default function CPPAScopeChecker() {
               <div className="mt-2">
                 <Radio
                   name="q3"
-                  options={["Fewer than 100,000", "100,000–1 million", "Over 1 million", "Unsure"]}
+                  options={["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "Over 1 million", "Unsure"]}
                   value={q3}
                   onChange={(v) => setQ3(v as Q3)}
                 />
@@ -556,7 +560,7 @@ function ResultsPanel({
 
   const thresholdSentences: string[] = [];
   const revenueMet = ["$25M–$100M", "$100M–$500M", "Over $500M"].includes(q2);
-  const consumerMet = ["100,000–1 million", "Over 1 million"].includes(q3);
+  const consumerMet = ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"].includes(q3);
   const salesMet = q5 === "Yes";
   if (revenueMet) {
     thresholdSentences.push(`meets the annual revenue threshold (${q2})`);
