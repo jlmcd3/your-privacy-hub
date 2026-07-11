@@ -1,6 +1,9 @@
 // No statutory rail by design — see intakePolicy.ts. Use ChoiceWithOther + IntakeGuidance.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
