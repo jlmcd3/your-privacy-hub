@@ -153,7 +153,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
           )}
           {s.exceptions_status && (
             <span className="inline-block px-3 py-1.5 rounded font-medium bg-white/10">
-              Exceptions: {s.exceptions_status}
+              Exceptions: {s.exceptions_status === "Material gaps identified" ? "Material deficiencies identified" : s.exceptions_status}
             </span>
           )}
           <span className="inline-block px-3 py-1.5 rounded font-medium bg-white/10">
