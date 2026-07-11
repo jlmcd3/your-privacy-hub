@@ -549,6 +549,13 @@ const DPIAFramework = () => {
           }
         >
         <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="flex-1 min-w-0 space-y-6">
+          <DraftRestoreBanner
+            draftFound={draftFound}
+            touched={touched}
+            draftUpdatedAt={draftUpdatedAt}
+            onResume={applyRestore}
+            onDiscard={() => { void clearDraft(); }}
+          />
           <RequiredLegend />
 
 
