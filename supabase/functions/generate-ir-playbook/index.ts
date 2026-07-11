@@ -897,6 +897,10 @@ Processor involved: ${body.processorInvolved ? "Yes — " + (body.processorName 
 Contained: ${body.contained}
 Organisation type: ${body.organisationType}
 
+${renderIrTestStatesBlock(body)}
+
+
+
 DPA NOTIFICATION PORTALS FOR RELEVANT JURISDICTIONS
 ${relevantPortals || "(For notification submission, consult each relevant regulator's official website for the current portal or contact channel.)"}
 
