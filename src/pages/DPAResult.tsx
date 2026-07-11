@@ -58,11 +58,23 @@ export default function DPAResult() {
             <p className="text-slate">Document not found or you don't have access.</p>
             <Button asChild className="mt-4"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
           </div>
-        ) : row.status === "pending" || row.status === "processing" ? (
+        ) : phase === "stalled" || phase === "stalled_pre_dispatch" ? (
+          <GenerationStalledCard
+            variant={phase}
+            retryHref="/dpa-generator"
+            onRefresh={refresh}
+          />
+        ) : phase === "running" || phase === "slow" ? (
           <div className="bg-card border border-border rounded-2xl p-10 text-center">
             <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" />
-            <p className="text-foreground">Your DPA is being generated.</p>
-            <p className="text-muted-foreground text-sm mt-1">Usually completes in 15–25 seconds.</p>
+            <p className="text-foreground">
+              {phase === "slow"
+                ? "This is taking longer than expected — still working on your DPA."
+                : "Your DPA is being generated."}
+            </p>
+            {phase === "running" && (
+              <p className="text-muted-foreground text-sm mt-1">Usually completes in 15–25 seconds.</p>
+            )}
           </div>
         ) : (() => {
           const docType = detectDocumentType(intake.controllerJurisdiction || "", intake.processorJurisdiction || "");
