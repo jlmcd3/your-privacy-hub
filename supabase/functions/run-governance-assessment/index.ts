@@ -1190,12 +1190,15 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       reportData,
     });
 
-    await supabase.from("governance_assessments").update({
+    const completeWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
       dpia_scope: dpiaScope,
       updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
+    }, { fn: "run-governance-assessment", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "governance_assessments", assessment_id, { status: "failed" }, { fn: "run-governance-assessment", phase: "terminal_fallback" });
+    }
 
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "governance_assessments", sourceRowId: assessment_id });
