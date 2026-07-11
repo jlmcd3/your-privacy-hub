@@ -281,6 +281,267 @@ const CHECKS: Check[] = [
       return { passed: true };
     },
   },
+
+  // =========================================================================
+  // R1d — QC-R1 deterministic checks. Rubric portions of QC-R1-6 and QC-R1-7
+  // are DEFERRED per the ratified amendment (grading instrument stability for
+  // the R1 regression gate); they will establish a new baseline epoch after
+  // R1 ships and are recorded in quality_loop2_notes rather than grafted onto
+  // the reviewer prompts.
+  // =========================================================================
+
+  // --- shared helpers scoped to this block via IIFE-free closure trick ---
+  ...(function buildQcR1(): Check[] {
+    const CPPA_RISK_ONLY = ["cppa-risk"];
+    const GOVERNANCE_ONLY = ["governance"];
+
+    const isResolved = (s: string) => s === "resolved_met" || s === "resolved_not_met" || s === "resolved_not_applicable";
+
+    // Build the FiveStageIntake shape the risk generator produces so
+    // computeRiskTestStates has a stable input regardless of fixture surface.
+    const asFiveStage = (intake: any): FiveStageIntake => ({
+      triggers: intake?.triggers ?? {},
+      exceptions: intake?.exceptions ?? {},
+      activity_details: Array.isArray(intake?.activity_details) ? intake.activity_details : [],
+      impact: intake?.impact ?? {},
+      org_context: intake?.org_context ?? {},
+      annual_consumer_volume: intake?.annual_consumer_volume,
+      content_detail: intake?.content_detail,
+    });
+
+    const collectInfoNeeded = (report: any): any[] => {
+      const out: any[] = [];
+      const push = (v: any) => { if (v) out.push(v); };
+      const walk = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node?.information_needed)) node.information_needed.forEach(push);
+        if (Array.isArray(node)) node.forEach(walk);
+        else if (typeof node === "object") for (const k of Object.keys(node)) if (k !== "information_needed") walk(node[k]);
+      };
+      walk(report);
+      return out;
+    };
+
+    const rationaleText = (report: any): string => {
+      const chunks: string[] = [];
+      const walk = (node: any, key = "") => {
+        if (node == null) return;
+        if (typeof node === "string") { if (/rationale|audit|cybersecurity|analysis|reasoning|basis/i.test(key)) chunks.push(node); return; }
+        if (Array.isArray(node)) { node.forEach((v, i) => walk(v, key)); return; }
+        if (typeof node === "object") for (const k of Object.keys(node)) walk(node[k], k);
+      };
+      walk(report);
+      return chunks.join("\n").toLowerCase();
+    };
+
+    const HEDGE = /(cannot be determined|cannot determine|unable to (?:confirm|verify|resolve)|please (?:confirm|verify|clarify)|to (?:be )?confirm(?:ed)?|pending confirmation|no basis to assess|insufficient (?:basis|information))/i;
+    const STAT_ANCHOR = /(§|11 CCR|1798\.|Article\s+\d|Recital\s+\d|GDPR|EDPB|DPA\s?2018|Schedule|BIPA|CUBI|MHMD)/i;
+    const OPTIONAL_TONE = /(could strengthen|would strengthen|consider adding|for completeness|optionally|nice to have|would enhance|could enhance)/i;
+
+    return [
+      // QC-R1-1 -- no asks on resolved risk tests
+      {
+        id: "qc_r1_1_no_asks_on_resolved_tests", dimension: "accuracy", severity: "critical",
+        tools: CPPA_RISK_ONLY,
+        run: (intake, report) => {
+          let states: Record<string, any>;
+          try { states = computeRiskTestStates(asFiveStage(intake), intake ?? {}); }
+          catch (e) { return { passed: false, evidence: `computeTestStates threw: ${(e as Error).message?.slice(0, 80)}` }; }
+          const resolvedFields = new Set<string>();
+          const resolvedIds: string[] = [];
+          for (const [id, s] of Object.entries(states)) {
+            if (isResolved(s.state)) {
+              resolvedIds.push(id);
+              (s.source_fields ?? []).forEach((f: string) => resolvedFields.add(f));
+            }
+          }
+          const infoNeeded = collectInfoNeeded(report);
+          for (const entry of infoNeeded) {
+            const fields = [
+              ...(Array.isArray(entry?.source_fields) ? entry.source_fields : []),
+              entry?.field, entry?.source_field, entry?.field_id,
+            ].filter(Boolean).map((s: any) => String(s));
+            const hit = fields.find(f => resolvedFields.has(f));
+            if (hit) return { passed: false, evidence: `information_needed asks for resolved field "${hit}"` };
+          }
+          const rat = rationaleText(report);
+          for (const id of resolvedIds) {
+            const idLc = id.toLowerCase();
+            if (rat.includes(idLc) && HEDGE.test(rat)) {
+              return { passed: false, evidence: `hedge language near resolved test ${id} in rationale prose` };
+            }
+          }
+          return { passed: true };
+        },
+      },
+
+      // QC-R1-2 -- SPI prong (M4) utilization in cyber-audit section
+      {
+        id: "qc_r1_2_spi_prong_utilization", dimension: "accuracy", severity: "high",
+        tools: CPPA_RISK_ONLY,
+        run: (intake, report) => {
+          const q15 = String(intake?.q15_sensitive_pi ?? "").trim();
+          const q15c = String(intake?.q15c_spi_volume ?? "").trim();
+          if (!q15c && q15 !== "No") return { passed: true }; // absent-value variant: nothing to test
+          const states = computeRiskTestStates(asFiveStage(intake), intake ?? {});
+          const m4 = states.M4;
+          if (!m4 || !isResolved(m4.state)) return { passed: true };
+          const s = JSON.stringify(report ?? "").toLowerCase();
+          if (!/7120\s*\(b\)\s*\(2\)\s*\(b\)/.test(s)) {
+            return { passed: false, evidence: `§ 7120(b)(2)(B) not referenced despite resolved M4 (${m4.state})` };
+          }
+          const expected =
+            m4.state === "resolved_met" ? /(met|threshold\s+met|exceeds|50,?000\s+or\s+more)/
+            : m4.state === "resolved_not_met" ? /(not\s+met|below|fewer than 50,?000)/
+            : /(not\s+applicable|inapplicable|n\/?a|no\s+spi)/;
+          if (!expected.test(s)) return { passed: false, evidence: `§ 7120(b)(2)(B) resolution does not match computed M4=${m4.state}` };
+          return { passed: true };
+        },
+      },
+
+      // QC-R1-3 -- 50%-prong (M5) utilization
+      {
+        id: "qc_r1_3_50pct_prong_utilization", dimension: "accuracy", severity: "high",
+        tools: CPPA_RISK_ONLY,
+        run: (intake, report) => {
+          const q5 = String(intake?.q5_sell_share ?? "").trim();
+          const q5c = String(intake?.q5c_share_revenue_50pct ?? "").trim();
+          if (!q5c && q5 !== "No") return { passed: true };
+          const states = computeRiskTestStates(asFiveStage(intake), intake ?? {});
+          const m5 = states.M5;
+          if (!m5 || !isResolved(m5.state)) return { passed: true };
+          const s = JSON.stringify(report ?? "").toLowerCase();
+          if (!/7120\s*\(b\)\s*\(1\)/.test(s)) {
+            return { passed: false, evidence: `§ 7120(b)(1) not referenced despite resolved M5 (${m5.state})` };
+          }
+          const expected =
+            m5.state === "resolved_met" ? /(met|threshold\s+met|50%|fifty percent)/
+            : m5.state === "resolved_not_met" ? /(not\s+met|below|no\s+sale|inapplicable)/
+            : /(not\s+applicable|inapplicable|n\/?a)/;
+          if (!expected.test(s)) return { passed: false, evidence: `§ 7120(b)(1) resolution does not match computed M5=${m5.state}` };
+          return { passed: true };
+        },
+      },
+
+      // QC-R1-4 -- cohort determinism (M6 / § 7121(a))
+      {
+        id: "qc_r1_4_cohort_determinism", dimension: "accuracy", severity: "critical",
+        tools: CPPA_RISK_ONLY,
+        run: (intake, report) => {
+          const band = classifyRevenueBand(intake?.q1_revenue);
+          const s = JSON.stringify(report ?? "").toLowerCase();
+          // legacy or absent → indeterminate two-cohort treatment required
+          if (band.audit_cohort === "indeterminate") {
+            const twoCohort = /(2029-04-01[\s\S]{0,80}2030-04-01|2030-04-01[\s\S]{0,80}2029-04-01|two[- ]cohort|either\s+2029|2029\s+or\s+2030)/i.test(s);
+            if (!twoCohort) return { passed: false, evidence: `legacy/absent revenue band requires indeterminate two-cohort treatment; not present` };
+            return { passed: true };
+          }
+          // resolved band → definitive cohort date (period-dependent conditional prose is OK)
+          const cohort = band.audit_cohort;
+          if (!s.includes(cohort)) {
+            return { passed: false, evidence: `resolved band ${band.label} requires definitive § 7121(a) cohort ${cohort}; not stated` };
+          }
+          // must NOT hedge the resolved cohort ("cannot be determined" near cohort date)
+          const idx = s.indexOf(cohort);
+          const window = s.slice(Math.max(0, idx - 200), idx + 200);
+          if (/(cannot be determined|indeterminate|unable to (?:confirm|resolve))/i.test(window)) {
+            return { passed: false, evidence: `resolved cohort ${cohort} is hedged near the cite window` };
+          }
+          return { passed: true };
+        },
+      },
+
+      // QC-R1-5 -- claimed-exception fields consumed (authority_basis / retention_period)
+      {
+        id: "qc_r1_5_exception_fields_consumed", dimension: "accuracy", severity: "high",
+        tools: CPPA_RISK_ONLY,
+        run: (intake, report) => {
+          const exceptions = (intake?.exceptions ?? {}) as Record<string, any>;
+          const targets: { key: string; ab?: string; rp?: string }[] = [];
+          for (const [k, v] of Object.entries(exceptions)) {
+            if (!v?.claimed) continue;
+            const ab = String(v?.authority_basis ?? "").trim();
+            const rp = String(v?.retention_period ?? "").trim();
+            if (ab || rp) targets.push({ key: k, ab: ab || undefined, rp: rp || undefined });
+          }
+          if (targets.length === 0) return { passed: true }; // nothing to test
+          const s = JSON.stringify(report ?? "").toLowerCase();
+          for (const t of targets) {
+            const keyLc = t.key.toLowerCase();
+            if (t.ab && !s.includes(t.ab.toLowerCase())) {
+              return { passed: false, evidence: `exception "${t.key}" authority_basis ("${t.ab.slice(0, 40)}") not referenced` };
+            }
+            if (t.rp && !s.includes(t.rp.toLowerCase())) {
+              return { passed: false, evidence: `exception "${t.key}" retention_period ("${t.rp.slice(0, 40)}") not referenced` };
+            }
+            // Ensure NOT adopted as established: look for "claimed"/"asserted"/"under test" framing near the exception key
+            const idx = s.indexOf(keyLc);
+            if (idx >= 0) {
+              const win = s.slice(Math.max(0, idx - 300), idx + 300);
+              const framedAsClaim = /(claim|asserted|under test|as claimed|intake states|per the intake|claimed authority|to be substantiated)/i.test(win);
+              const framedAsEstablished = /(establishes|is established|compliant retention|authoritative basis|substantiated authority)/i.test(win);
+              if (framedAsEstablished && !framedAsClaim) {
+                return { passed: false, evidence: `exception "${t.key}" fields adopted as established without claimed-vs-substantiated framing` };
+              }
+            }
+          }
+          return { passed: true };
+        },
+      },
+
+      // QC-R1-7 (deterministic part) -- enhancement placement: optional-depth items
+      // with no statutory anchor must not live under information_needed.
+      {
+        id: "qc_r1_7_enhancement_placement_det", dimension: "analysis", severity: "medium",
+        // Apply everywhere information_needed is emitted; keep it broadly scoped.
+        run: (_intake, report) => {
+          const infoNeeded = collectInfoNeeded(report);
+          for (const entry of infoNeeded) {
+            const dims = String(entry?.dimensions ?? entry?.dimension ?? entry?.reason ?? entry?.rationale ?? "");
+            if (!dims) continue;
+            if (OPTIONAL_TONE.test(dims) && !STAT_ANCHOR.test(dims)) {
+              return { passed: false, evidence: `information_needed uses optional-depth tone without statutory anchor: "${dims.slice(0, 100)}"` };
+            }
+          }
+          return { passed: true };
+        },
+      },
+
+      // QC-R1-8 (deterministic-lite) -- governance additional_context handling
+      {
+        id: "qc_r1_8_governance_additional_context", dimension: "analysis", severity: "high",
+        tools: GOVERNANCE_ONLY,
+        run: (intake, report) => {
+          const ac = String(intake?.org_context?.additional_context ?? intake?.additional_context ?? "").trim();
+          if (!ac) return { passed: true };
+          const s = JSON.stringify(report ?? "").toLowerCase();
+          // (a) findings must reference/credit it — probe first 40 chars of AC as a substring token
+          const token = ac.slice(0, 40).toLowerCase();
+          const referenced = s.includes(token) || /additional context|as noted by (?:the )?(?:organisation|organization|client)|per the intake context/i.test(s);
+          if (!referenced) return { passed: false, evidence: `additional_context present but not referenced/credited in any finding` };
+          // (b) detectable subset — domain status justified SOLELY by additional_context
+          const findings: any[] = [];
+          const walk = (n: any) => {
+            if (!n) return;
+            if (Array.isArray(n)) return n.forEach(walk);
+            if (typeof n === "object") {
+              if (n.domain && n.status && (n.basis || n.rationale || n.reasoning)) findings.push(n);
+              for (const k of Object.keys(n)) walk(n[k]);
+            }
+          };
+          walk(report);
+          for (const f of findings) {
+            const basis = String(f.basis ?? f.rationale ?? f.reasoning ?? "").toLowerCase();
+            if (!basis) continue;
+            if (basis.includes(token) && !STAT_ANCHOR.test(basis) && basis.length < ac.length + 80) {
+              return { passed: false, evidence: `domain "${f.domain}" status "${f.status}" justified solely by additional_context` };
+            }
+          }
+          return { passed: true };
+        },
+      },
+    ];
+  })(),
 ];
 
 // ===================================================================
