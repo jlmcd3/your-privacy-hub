@@ -444,7 +444,7 @@ export default function MyReports() {
           created_at: r.updated_at || r.created_at,
           status: "in_progress",
           summary: orgGuess ? `${orgGuess} · ${stage}` : stage,
-          view_path: map.route,
+          view_path: `${map.route}?resume=1`,
           ...clientMeta(r.client_id),
           is_draft: true,
         });
