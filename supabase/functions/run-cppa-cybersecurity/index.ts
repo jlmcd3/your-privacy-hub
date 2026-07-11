@@ -1214,10 +1214,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
   } catch (e) {
     console.error("[CPPA Cyber] runAssessment error:", e);
-    await supabase
-      .from("cppa_assessments")
-      .update({ status: "error" })
-      .eq("id", assessment_id);
+    await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_catch" });
   }
 }
 
