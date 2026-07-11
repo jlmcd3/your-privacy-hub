@@ -51,9 +51,18 @@ const corsHeaders = {
 // ---------------------------------------------------------------------------
 // Shim: legacy flat (q1..q20, i1..i9) intake -> minimal five-stage structure.
 // ---------------------------------------------------------------------------
+type ExceptionEntry = {
+  claimed: boolean;
+  scope: string;
+  safeguards: string;
+  documented: boolean;
+  authority_basis: string;      // R1a — per-exception, claimed authority the generator TESTS (never adopts)
+  retention_period: string;     // R1a — per-exception, additional to record-level i2_retention_period
+};
+
 type FiveStageIntake = {
   triggers: Record<string, boolean>;
-  exceptions: Record<string, { claimed: boolean; scope: string; safeguards: string; documented: boolean }>;
+  exceptions: Record<string, ExceptionEntry>;
   activity_details: any[];
   impact: Record<string, any>;
   org_context: Record<string, any>;
@@ -70,16 +79,49 @@ const EMPTY_TRIGGERS = {
   admt_involved: false,
 };
 
-const EMPTY_EXCEPTIONS = {
-  fraud_detection: { claimed: false, scope: "", safeguards: "", documented: false },
-  security_integrity: { claimed: false, scope: "", safeguards: "", documented: false },
-  debugging: { claimed: false, scope: "", safeguards: "", documented: false },
-  transient_use: { claimed: false, scope: "", safeguards: "", documented: false },
-  internal_research: { claimed: false, scope: "", safeguards: "", documented: false },
-  employment_context: { claimed: false, scope: "", safeguards: "", documented: false },
-  legal_compliance: { claimed: false, scope: "", safeguards: "", documented: false },
-  consumer_request: { claimed: false, scope: "", safeguards: "", documented: false },
+const EMPTY_EXCEPTION: ExceptionEntry = {
+  claimed: false, scope: "", safeguards: "", documented: false, authority_basis: "", retention_period: "",
 };
+const EMPTY_EXCEPTIONS: Record<string, ExceptionEntry> = {
+  fraud_detection: { ...EMPTY_EXCEPTION },
+  security_integrity: { ...EMPTY_EXCEPTION },
+  debugging: { ...EMPTY_EXCEPTION },
+  transient_use: { ...EMPTY_EXCEPTION },
+  internal_research: { ...EMPTY_EXCEPTION },
+  employment_context: { ...EMPTY_EXCEPTION },
+  legal_compliance: { ...EMPTY_EXCEPTION },
+  consumer_request: { ...EMPTY_EXCEPTION },
+};
+
+// ---------------------------------------------------------------------------
+// R1b0 — revenue-band classifier. Single source of truth for both the
+// §1798.140(d)(1)(A) $25M line and the §7121(a) cyber-audit cohort date.
+//   - "Under $25M"     → 2030-04-01 cohort (< $50M revenue)
+//   - "$25M–$50M"      → 2030-04-01 cohort
+//   - "$50M–$100M"     → 2029-04-01 cohort (M6 resolves)
+//   - legacy "$25M–$100M" → indeterminate (straddles the $50M line)
+//   - "$100M–$500M"    → 2028-04-01 cohort
+//   - "Over $500M"     → 2028-04-01 cohort
+// ---------------------------------------------------------------------------
+export type RevenueBand = {
+  key: "under_25m" | "25_50m" | "50_100m" | "legacy_25_100m" | "100_500m" | "over_500m" | "unspecified";
+  label: string;
+  audit_cohort: "2028-04-01" | "2029-04-01" | "2030-04-01" | "indeterminate";
+  over_25m: boolean | "indeterminate";
+  over_100m: boolean | "indeterminate";
+};
+export function classifyRevenueBand(q1: unknown): RevenueBand {
+  const v = String(q1 ?? "").trim();
+  switch (v) {
+    case "Under $25M":  return { key: "under_25m",      label: v, audit_cohort: "2030-04-01",     over_25m: false,           over_100m: false };
+    case "$25M–$50M":   return { key: "25_50m",         label: v, audit_cohort: "2030-04-01",     over_25m: true,            over_100m: false };
+    case "$50M–$100M":  return { key: "50_100m",        label: v, audit_cohort: "2029-04-01",     over_25m: true,            over_100m: false };
+    case "$25M–$100M":  return { key: "legacy_25_100m", label: v, audit_cohort: "indeterminate",  over_25m: true,            over_100m: false };
+    case "$100M–$500M": return { key: "100_500m",       label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true };
+    case "Over $500M":  return { key: "over_500m",      label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true };
+    default:            return { key: "unspecified",    label: v || "not specified", audit_cohort: "indeterminate", over_25m: "indeterminate", over_100m: "indeterminate" };
+  }
+}
 
 function shimLegacyIntake(intake: any): FiveStageIntake {
   console.warn(
