@@ -458,6 +458,7 @@ const DPIAFramework = () => {
         toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
         return;
       }
+      void clearDraft();
       navigate(`/dpia-framework/result/${row.id}?purchased=true`);
       return;
     }
