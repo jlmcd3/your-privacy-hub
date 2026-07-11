@@ -445,6 +445,19 @@ export default function ADMTChecker() {
     dismissDraft();
   };
 
+  // Auto-restore when arriving via "Continue" from My Reports (?resume=1).
+  const [admtSearchParams] = useSearchParams();
+  const autoResumedRef = useRef(false);
+  const shouldAutoResume = admtSearchParams.get("resume") === "1";
+  useEffect(() => {
+    if (!shouldAutoResume) return;
+    if (autoResumedRef.current) return;
+    if (!draftFound || !restoreData || touched) return;
+    autoResumedRef.current = true;
+    applyRestore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldAutoResume, draftFound, restoreData, touched]);
+
   const handlePurchase = () => {
     if (!user) { setAuthGateOpen(true); return; }
     if (!pricing.stripeConfigured) {
