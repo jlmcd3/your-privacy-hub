@@ -14,6 +14,7 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
