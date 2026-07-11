@@ -65,6 +65,25 @@ export default function BiometricChecker() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bioRailKey, setBioRailKey] = useState<string | null>(null);
+
+  const { user: authUser } = useAuth();
+  const initialFormRef = useMemo(() => JSON.stringify(form), []);
+  const touched = useMemo(() => JSON.stringify(form) !== initialFormRef, [form, initialFormRef]);
+  const draftData = useMemo(() => ({ form }), [form]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, clearDraft,
+  } = useToolDraft({
+    toolType: "biometric",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: 0,
+    enabled: !!authUser && touched,
+  });
+  const applyRestore = () => {
+    const d = restoreData as { form?: any } | null;
+    if (d?.form && typeof d.form === "object") setForm((prev) => ({ ...prev, ...d.form }));
+  };
+
   const bioRailEntry: RailEntry | null = bioRailKey ? (BIOMETRIC_RAIL[bioRailKey] ?? null) : null;
   const focusBioRail = (k: string) => setBioRailKey(k);
 
