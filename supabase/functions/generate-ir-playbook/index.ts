@@ -306,7 +306,13 @@ SUPPORT-NOTE ELEMENT LIST IS DERIVED: the data elements to check for in support 
 
 MANDATORY ACTS USE MANDATORY LANGUAGE: where the playbook itself characterises an act as required (statutorily or by the playbook's own preceding text), operative sentences use "must", never "should" and never softeners such as "should be sought" or "is recommended". Pointers are specific: "see below" / "see above" always name the section or step they point to (e.g. "see Section 4, STEP 3" or "see Section 5, consumer notice template").
 
-THE (h)(1) CHECKLIST NEVER CONTAINS THE (h)(2) TRIGGER: the §1798.82(h)(1)(A)–(H) support-note content-review checklist lists only elements that can plausibly appear in stored notes (SSNs, government IDs, account numbers with access codes, medical/health-insurance information, biometric data); the §1798.82(h)(2) credential-combination trigger (email + password/security Q&A) is addressed in the notification decision tree only, never as a note-content element. Calendar-day statutory deadlines are stated as dates ('on or before 2026-08-09'), never with a time-of-day timestamp.`;
+THE (h)(1) CHECKLIST NEVER CONTAINS THE (h)(2) TRIGGER: the §1798.82(h)(1)(A)–(H) support-note content-review checklist lists only elements that can plausibly appear in stored notes (SSNs, government IDs, account numbers with access codes, medical/health-insurance information, biometric data); the §1798.82(h)(2) credential-combination trigger (email + password/security Q&A) is addressed in the notification decision tree only, never as a note-content element. Calendar-day statutory deadlines are stated as dates ('on or before 2026-08-09'), never with a time-of-day timestamp.
+
+TEST-STATES ARE BINDING (R1b2 rule 2a): the INCIDENT TEST-STATES block below the INCIDENT DETAILS enumerates jurisdiction-applicability (M-CA, M-GDPR, M-TX, M-NY, M-CO, M-OR), processor-involvement (M-PROC), containment status (M-CONT), discovery-anchor (M-DISC), sensitive-category candidates (M-SENS), permanent §1798.82(h)(1)(C) check-required (M-CA-H1C), CA resident-segmentation required (M-CA-SEG), and computed PROVISIONAL deadlines per applicable jurisdiction. A test marked RESOLVED_MET or RESOLVED_NOT_MET is a fact for this run — treat it as decided, do not soften it with "if applicable", "should this apply", or "counsel to confirm applicability", and do not add jurisdiction sections for jurisdictions marked RESOLVED_NOT_MET. A test marked INDETERMINATE (structured intake absent) is the only class that may attract a [TO BE COMPLETED] deferral. A test marked CANDIDATE (e.g. M-SENS: structured data-type overlap suggests, but does not confirm, a §1798.82(h)(1)(A)–(B) name-plus-element combination) may be raised as a hypothesis to CONFIRM, never asserted as met. A test marked RESOLVED_CHECK_REQUIRED (e.g. M-CA-H1C) is a permanent live check for this jurisdiction regardless of what the current intake data-types field says — always instruct the user to confirm whether an account/card number plus required access code, security code, or password was exposed, per the §1798.82(d)(2)(G) AND (h)(1)(C) DETERMINATIONS STAY OPEN rule above (that rule is unchanged and controls the wording).
+
+PROPORTIONATE ASKS (R1b2 rule 2b): do not re-ask for facts already supplied by the structured intake and reflected in the INCIDENT TEST-STATES block. Specifically: do not ask the user to identify the jurisdictions in scope, the discovery timestamp, whether a processor was involved (or the processor's name where supplied), the coarse data-type categories the intake enumerated, or the approximate affected-individual count — these are RESOLVED inputs. Legitimate asks are (i) refinements the intake could not carry (per-state resident segmentation for the CA 500+, TX 250+, VA 1000+ thresholds; confirmation of §1798.82(h)(1)(A)–(H) element specifics; confirmed controller-awareness timestamp where distinct from detection; identity of downstream recipients; forensic root-cause detail), and (ii) INDETERMINATE items from the TEST-STATES block. Frame every ask as one specific missing fact tied to the determination it unblocks — never a generic "please provide more information" line, never a re-ask of a RESOLVED input.
+
+DEADLINE ARITHMETIC IS PRE-COMPUTED, PROVISIONAL, AND RECALCULABLE (R1b2 rule 2c): the DEADLINES block under INCIDENT TEST-STATES lists, for each applicable jurisdiction, the deadline the courier arithmetic derives from the discovery timestamp under the statute cited. These deadlines are PROVISIONAL in the exact sense of the "PROVISIONAL DEADLINES SAY SO — DETECTION IS PROVISIONAL, AWARENESS IS OPERATIVE" rule above (that rule is unchanged and controls the wording): the anchor is the detection timestamp treated as concurrent with awareness pending confirmation, and every deadline carries the recalculation instruction. Use these computed dates verbatim in Section 3; do not recompute them from memory, do not round, and never state the day of the week. Deadlines for jurisdictions that appear in the intake but not in the DEADLINES block (because the courier does not carry deterministic arithmetic for them) are JUDGMENT — cite the statute per the rulebook and compute inline, flagging with the same PROVISIONAL wording.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -460,6 +466,144 @@ function formatEnforcementContext(rows: any[]): string {
       return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Decided: ${decided}\n   ${ref}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
     })
     .join("\n\n");
+}
+
+// ─── R1b2 rule 2a/2b/2c support: TEST-STATES computation for the IR playbook ───
+// Structured intake carries: jurisdictions[], dataTypes[], affectedCount (string),
+// processorInvolved (bool), contained (enum string), discoveryDateTime (ISO). Anything
+// the intake does not carry (per-state resident split; §1798.82(h)(1)(A)–(H) element
+// specifics beyond coarse category; confirmed controller-awareness timestamp distinct
+// from detection) stays JUDGMENT / INDETERMINATE per doctrine. R2 backlog: consider
+// adding per-state resident-count fields and a name+element combination flag to intake.
+type IrStateKind = "RESOLVED_MET" | "RESOLVED_NOT_MET" | "RESOLVED_CHECK_REQUIRED" | "CANDIDATE" | "INDETERMINATE" | "JUDGMENT";
+interface IrTestState { id: string; label: string; state: IrStateKind; basis: string; }
+interface IrDeadlineRow { jurisdiction: string; statute: string; deadline: string; note: string; }
+
+function normJurisdictions(j: string[] | undefined): Set<string> {
+  return new Set((Array.isArray(j) ? j : []).map((x) => String(x).toLowerCase().trim()));
+}
+function hasCA(js: Set<string>): boolean {
+  for (const j of js) {
+    if (j === "california" || j === "us-ca" || j === "ca" || j === "us:ca" || j.includes("california") || j.endsWith("-ca")) return true;
+  }
+  return false;
+}
+function hasGdpr(js: Set<string>): boolean {
+  const eu = ["united kingdom","ireland","france","germany","spain","italy","netherlands","belgium","sweden","denmark","poland","greece","portugal","austria","finland","norway","luxembourg"];
+  for (const j of js) {
+    if (j.includes("gdpr") || j.includes("eu ") || j === "eu" || j === "european union") return true;
+    if (eu.some((c) => j === c || j.includes(c))) return true;
+  }
+  return false;
+}
+function hasJur(js: Set<string>, name: string): boolean {
+  const n = name.toLowerCase();
+  for (const j of js) if (j === n || j.includes(n)) return true;
+  return false;
+}
+function parseCountApprox(s: string | undefined): number | null {
+  if (!s) return null;
+  const digits = String(s).replace(/[^\d]/g, "");
+  if (!digits) return null;
+  const n = parseInt(digits, 10);
+  return Number.isFinite(n) ? n : null;
+}
+function addDays(iso: string, days: number): string | null {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+function addHours(iso: string, hours: number): string | null {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  d.setUTCHours(d.getUTCHours() + hours);
+  return d.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+function computeIrTestStates(body: Body): { tests: IrTestState[]; deadlines: IrDeadlineRow[] } {
+  const js = normJurisdictions(body.jurisdictions);
+  const ca = hasCA(js);
+  const gdpr = hasGdpr(js);
+  const tx = hasJur(js, "texas");
+  const ny = hasJur(js, "new york");
+  const co = hasJur(js, "colorado");
+  const or = hasJur(js, "oregon");
+  const va = hasJur(js, "virginia");
+  const count = parseCountApprox(body.affectedCount);
+  const hasDisc = typeof body.discoveryDateTime === "string" && body.discoveryDateTime.trim().length > 0 && !isNaN(new Date(body.discoveryDateTime).getTime());
+  const dts = Array.isArray(body.dataTypes) ? body.dataTypes : [];
+  const sensitiveOverlap = dts.some((d) => /health|medical|biometric|children|financial|payment/i.test(String(d)));
+
+  const tests: IrTestState[] = [
+    { id: "M-CA", label: "California §1798.82 in scope", state: ca ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${ca ? "includes" : "excludes"} California` },
+    { id: "M-GDPR", label: "GDPR/UK GDPR Art. 33/34 in scope", state: gdpr ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${gdpr ? "includes" : "excludes"} an EU/UK jurisdiction` },
+    { id: "M-TX", label: "Texas §521.053 in scope", state: tx ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${tx ? "includes" : "excludes"} Texas` },
+    { id: "M-NY", label: "New York §899-aa in scope", state: ny ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${ny ? "includes" : "excludes"} New York` },
+    { id: "M-CO", label: "Colorado §6-1-716 in scope", state: co ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${co ? "includes" : "excludes"} Colorado` },
+    { id: "M-OR", label: "Oregon ORS 646A.604 in scope", state: or ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${or ? "includes" : "excludes"} Oregon` },
+    { id: "M-VA", label: "Virginia §18.2-186.6 in scope", state: va ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.jurisdictions ${va ? "includes" : "excludes"} Virginia` },
+    { id: "M-PROC", label: "Processor involvement", state: body.processorInvolved ? "RESOLVED_MET" : "RESOLVED_NOT_MET", basis: `intake.processorInvolved = ${body.processorInvolved}${body.processorInvolved && body.processorName ? `; name = ${body.processorName}` : ""}` },
+    { id: "M-CONT", label: "Containment status supplied", state: (body.contained && String(body.contained).trim().length > 0) ? "RESOLVED_MET" : "INDETERMINATE", basis: `intake.contained = ${body.contained || "(empty)"}` },
+    { id: "M-DISC", label: "Discovery timestamp supplied (PROVISIONAL anchor for deadline arithmetic pending confirmed controller-awareness timestamp)", state: hasDisc ? "RESOLVED_MET" : "INDETERMINATE", basis: `intake.discoveryDateTime = ${body.discoveryDateTime || "(empty)"}` },
+    { id: "M-COUNT", label: "Approximate affected-individual count supplied (TOTAL — not per-state; see M-CA-SEG)", state: count !== null ? "RESOLVED_MET" : "INDETERMINATE", basis: `intake.affectedCount = ${body.affectedCount || "(empty)"}` },
+    { id: "M-SENS", label: "Sensitive-category candidate under §1798.82(h)(1)(A)–(B) (coarse data-type overlap only — name-plus-element combination is not confirmed by intake)", state: sensitiveOverlap ? "CANDIDATE" : "RESOLVED_NOT_MET", basis: `intake.dataTypes overlap with {health, biometric, children, financial} = ${sensitiveOverlap}` },
+    { id: "M-CA-H1C", label: "§1798.82(h)(1)(C) account/card-plus-access-code combination check", state: ca ? "RESOLVED_CHECK_REQUIRED" : "RESOLVED_NOT_MET", basis: ca ? "Permanent check per §1798.82(d)(2)(G) AND (h)(1)(C) DETERMINATIONS STAY OPEN rule — always instruct the user to confirm whether both elements were exposed, regardless of intake.dataTypes" : "California not in scope" },
+    { id: "M-CA-SEG", label: "California per-state resident segmentation required for the 500+ AG-copy threshold", state: ca ? "RESOLVED_CHECK_REQUIRED" : "RESOLVED_NOT_MET", basis: ca ? "RESIDENT COUNT GATE — total affectedCount is not operative; segment for confirmed CA residents" : "California not in scope" },
+    { id: "M-TX-SEG", label: "Texas per-state resident segmentation required for the 250+ AG-notice threshold", state: tx ? "RESOLVED_CHECK_REQUIRED" : "RESOLVED_NOT_MET", basis: tx ? "RESIDENT COUNT GATE — segment for confirmed TX residents" : "Texas not in scope" },
+    { id: "M-VA-SEG", label: "Virginia per-state resident segmentation required for the 1,000+ CRA-notice threshold", state: va ? "RESOLVED_CHECK_REQUIRED" : "RESOLVED_NOT_MET", basis: va ? "RESIDENT COUNT GATE — segment for confirmed VA residents" : "Virginia not in scope" },
+  ];
+
+  const deadlines: IrDeadlineRow[] = [];
+  if (hasDisc) {
+    const iso = body.discoveryDateTime;
+    if (gdpr) {
+      const dl = addHours(iso, 72);
+      if (dl) deadlines.push({ jurisdiction: "EU/UK GDPR", statute: "Art. 33(1)", deadline: dl, note: "72 hours from CONTROLLER-AWARENESS TIMESTAMP; anchor here is the detection timestamp treated PROVISIONALLY as concurrent with awareness — recalculate on confirmation." });
+    }
+    if (ca) {
+      const dl = addDays(iso, 30);
+      if (dl) deadlines.push({ jurisdiction: "California — individuals", statute: "Cal. Civ. Code §1798.82 (as amended by SB 446, eff. 1 Jan 2026)", deadline: dl, note: "30 calendar days from discovery; law-enforcement and scope/integrity delay allowances RETAINED. AG sample-copy clock is +15 calendar days from consumer-notice date when >500 confirmed CA residents (see M-CA-SEG)." });
+    }
+    if (tx) {
+      const indiv = addDays(iso, 60);
+      const ag = addDays(iso, 30);
+      if (indiv) deadlines.push({ jurisdiction: "Texas — individuals", statute: "Tex. Bus. & Com. Code §521.053(b)", deadline: indiv, note: "≤60 days after determination." });
+      if (ag) deadlines.push({ jurisdiction: "Texas — AG", statute: "Tex. Bus. & Com. Code §521.053(i) (SB 768, eff. 1 Sep 2023)", deadline: ag, note: "≤30 days after determination if ≥250 confirmed TX residents (see M-TX-SEG)." });
+    }
+    if (ny) {
+      const dl = addDays(iso, 30);
+      if (dl) deadlines.push({ jurisdiction: "New York — individuals", statute: "N.Y. Gen. Bus. Law §899-aa (S2659B, eff. 21 Dec 2024)", deadline: dl, note: "30 calendar days from discovery; only the law-enforcement delay allowance survives. Regulator notice under §899-aa(8)(a) is triggered whenever any NY resident is notified." });
+    }
+    if (co) {
+      const dl = addDays(iso, 30);
+      if (dl) deadlines.push({ jurisdiction: "Colorado — individuals", statute: "C.R.S. §6-1-716(2)(a)", deadline: dl, note: "30 days from DETERMINATION (not discovery)." });
+    }
+    if (or) {
+      const dl = addDays(iso, 45);
+      if (dl) deadlines.push({ jurisdiction: "Oregon — individuals", statute: "ORS 646A.604(3)(a)", deadline: dl, note: "≤45 days from discovery or receipt of notification." });
+    }
+  }
+  return { tests, deadlines };
+}
+
+function renderIrTestStatesBlock(body: Body): string {
+  const { tests, deadlines } = computeIrTestStates(body);
+  const lines: string[] = [];
+  lines.push("INCIDENT TEST-STATES (BINDING — see R1b2 rules 2a/2b in the system prompt)");
+  for (const t of tests) {
+    lines.push(`- ${t.id} [${t.state}] ${t.label} — ${t.basis}`);
+  }
+  lines.push("");
+  lines.push("DEADLINES (PROVISIONAL — anchor is the detection timestamp treated as concurrent with awareness; recalculate on any confirmed controller-awareness timestamp per the PROVISIONAL DEADLINES rule)");
+  if (deadlines.length === 0) {
+    lines.push("- (no arithmetic performed — either the discovery timestamp is missing or no jurisdiction with deterministic courier arithmetic is in scope; compute inline per the rulebook and mark PROVISIONAL)");
+  } else {
+    for (const d of deadlines) {
+      lines.push(`- ${d.jurisdiction}: ${d.deadline} — ${d.statute}. ${d.note}`);
+    }
+  }
+  return lines.join("\n");
 }
 
 Deno.serve(async (req) => {
@@ -752,6 +896,10 @@ Jurisdictions: ${body.jurisdictions.join(", ")}
 Processor involved: ${body.processorInvolved ? "Yes — " + (body.processorName || "(name not provided)") : "No"}
 Contained: ${body.contained}
 Organisation type: ${body.organisationType}
+
+${renderIrTestStatesBlock(body)}
+
+
 
 DPA NOTIFICATION PORTALS FOR RELEVANT JURISDICTIONS
 ${relevantPortals || "(For notification submission, consult each relevant regulator's official website for the current portal or contact channel.)"}
@@ -1189,8 +1337,79 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);
-        const playbook_text = lint.clean;
+const playbook_text = lint.clean;
         const parsedAnnotations = assembled.parsedAnnotations;
+
+        // R1b2 post-check gate — T-2/T-3/T-4 for the IR playbook. Log-only detection
+        // (no regeneration) because the tool topology diverges from the R1b1 single-call
+        // template: outputs are produced as three parallel Sonnet calls under a tight
+        // edge wall-clock budget, and a regeneration would triple cost and risk further
+        // truncation. Signals are surfaced via console.warn and captured in lint_warnings
+        // for downstream inspection. R2 backlog: promote to single-part targeted regen
+        // once we can attribute a violation to a specific part.
+        try {
+          const { tests: irTests } = computeIrTestStates(body);
+          const t2Violations: string[] = [];
+          // T-2: resolved intake facts must not be re-asked.
+          if (irTests.find((t) => t.id === "M-DISC")?.state === "RESOLVED_MET") {
+            if (/please (provide|confirm|supply)[^.]{0,60}(discovery|when the (breach|incident) was)/i.test(playbook_text)) {
+              t2Violations.push("T-2: re-asks discovery timestamp (M-DISC RESOLVED_MET)");
+            }
+          }
+          if (irTests.find((t) => t.id === "M-PROC")?.state === "RESOLVED_MET" || irTests.find((t) => t.id === "M-PROC")?.state === "RESOLVED_NOT_MET") {
+            if (/please (provide|confirm|clarify)[^.]{0,80}(whether a processor|if a processor was involved)/i.test(playbook_text)) {
+              t2Violations.push("T-2: re-asks processor involvement (M-PROC RESOLVED)");
+            }
+          }
+          if (irTests.find((t) => t.id === "M-CA")?.state === "RESOLVED_NOT_MET") {
+            if (/cal\.\s*civ\.\s*code\s*§?\s*1798\.82/i.test(playbook_text)) {
+              t2Violations.push("T-2: cites Cal. Civ. Code §1798.82 with California RESOLVED_NOT_MET");
+            }
+          }
+          if (irTests.find((t) => t.id === "M-GDPR")?.state === "RESOLVED_NOT_MET") {
+            if (/\barticle\s*33\b|\bart\.\s*33\b/i.test(playbook_text)) {
+              t2Violations.push("T-2: cites Article 33 with GDPR RESOLVED_NOT_MET");
+            }
+          }
+          // T-3: banned collapse phrasing when resolved states exist.
+          const collapsePatterns = [
+            /if (?:the )?(?:GDPR|Article\s*33|California) (?:applies|is applicable)/i,
+            /should this (?:jurisdiction|statute) apply/i,
+            /counsel to confirm applicability/i,
+          ];
+          const anyResolved = irTests.some((t) => t.state === "RESOLVED_MET" || t.state === "RESOLVED_NOT_MET");
+          if (anyResolved) {
+            for (const p of collapsePatterns) {
+              if (p.test(playbook_text)) t2Violations.push(`T-3: banned collapse phrasing matched ${p}`);
+            }
+          }
+          // T-4: enhancement-class asks must carry a statutory anchor.
+          // (Log-only heuristic: [TO BE COMPLETED] blocks without any statutory reference within 400 chars.)
+          const tbcRe = /\[TO BE COMPLETED[^\]]*\]/g;
+          let m: RegExpExecArray | null;
+          let t4Count = 0;
+          while ((m = tbcRe.exec(playbook_text)) !== null) {
+            const win = playbook_text.slice(Math.max(0, m.index - 200), m.index + 400);
+            if (!/§\s*\d|art(?:icle|\.)\s*\d|\b(?:GDPR|CCPA|HIPAA|PIPEDA|Law\s*25|SHIELD|PDPA)\b/i.test(win)) {
+              t4Count += 1;
+            }
+          }
+          if (t4Count > 0) t2Violations.push(`T-4: ${t4Count} [TO BE COMPLETED] deferral(s) lack an adjacent statutory anchor`);
+          // §1798.82(h)(1)(C) permanent CHECK-REQUIRED: whenever California is in scope
+          // the playbook must instruct confirmation of the account/card-plus-access-code
+          // combination somewhere in the document.
+          if (irTests.find((t) => t.id === "M-CA-H1C")?.state === "RESOLVED_CHECK_REQUIRED") {
+            const h1cOk = /\(h\)\(1\)\(C\)/.test(playbook_text) && /(access code|security code|password)/i.test(playbook_text);
+            if (!h1cOk) t2Violations.push("T-2/2c: §1798.82(h)(1)(C) permanent CHECK-REQUIRED not surfaced (missing (h)(1)(C) combination-check instruction)");
+          }
+          for (const v of t2Violations) {
+            console.warn(`[IR Playbook][R1b2 post-check] ${v}`);
+            lintWarnings.push({ rule: "r1b2-post-check", detail: v });
+          }
+        } catch (e) {
+          console.error("[IR Playbook][R1b2 post-check] errored (non-fatal):", e);
+        }
+
 
         const portals = body.jurisdictions
           .filter((j) => DPA_PORTALS[j])
@@ -1206,7 +1425,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             ? (assembled as any).information_needed
             : [],
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2") },
         };
         try {
           const guarded = guardInformationNeeded(
