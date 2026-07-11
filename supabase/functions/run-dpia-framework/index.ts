@@ -200,10 +200,14 @@ Deno.serve(async (req) => {
 
     const intake = dpia.intake_data as any;
     const orgName = (dpia as any).organization_name || intake?.organization_name || null;
-    await supabase.from("dpia_frameworks").update({
+    const procWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "processing",
       ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
-    }).eq("id", dpia_id);
+    }, { fn: "run-dpia-framework", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const fnRun = await startFunctionRun(supabase, "run-dpia-framework", {
       archetype: "background",
