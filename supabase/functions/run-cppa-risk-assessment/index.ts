@@ -947,28 +947,32 @@ async function runPipeline(assessment_id: string) {
     const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations } = await retrieveCorpusContext(fiveStage);
 
     const today = new Date().toISOString().slice(0, 10);
+    const rawIntake = (row.intake_data ?? {}) as Record<string, unknown>;
+
+    // R1b1 — compute deterministic TEST-STATES and inject them into the system content.
+    const testStates = computeTestStates(fiveStage, rawIntake as Record<string, any>);
+    const testStatesBlock = formatTestStatesBlock(testStates);
+
     const injected = [
       `ENFORCEMENT CONTEXT FROM CORPUS:\n${enforcementContext || "(none returned)"}`,
       `LONGITUDINAL ENFORCEMENT PATTERNS:\n${longitudinalSynthesis || "(none returned)"}`,
       `VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):\n${statuteContext || "(none returned)"}`,
       `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
+      testStatesBlock,
     ].join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
       currentDate: today,
       injected,
     });
-    const rawIntake = (row.intake_data ?? {}) as Record<string, unknown>;
     const subjectAnchor = typeof rawIntake?.subject_anchor === "string" ? (rawIntake.subject_anchor as string).trim() : "";
-    // Doc O 3c-2(i): canonical intake-field vocabulary. The intake IS
-    // the schema — enumerate its top-level keys and inject them into
-    // the user prompt so the model has an authoritative closed set
-    // for source_fields / intake_field_1 / intake_field_2 / field.
+    // Doc O 3c-2(i): canonical intake-field vocabulary.
     const canonicalFieldIds = Object.keys(rawIntake)
       .filter((k) => k !== "assertions")
       .sort();
     const canonicalBlock = `CANONICAL_INTAKE_FIELDS (closed vocabulary — use only these ids verbatim in source_fields, intake_field_1/2, and information_needed.field):\n${canonicalFieldIds.map((k) => `  - ${k}`).join("\n")}`;
     const userPrompt = `${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}`;
+
 
     const t0 = Date.now();
     let parsed: any = null;
