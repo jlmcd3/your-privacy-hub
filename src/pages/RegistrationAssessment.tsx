@@ -183,6 +183,7 @@ export default function RegistrationAssessment() {
       );
       if (error) throw error;
       rememberAssessmentToken(data.shareable_token);
+      void clearDraft();
       navigate(`/registration-manager/result/${encodeURIComponent(data.shareable_token)}`);
     } catch (e: any) {
       toast.error(e.message || "Could not generate assessment");
