@@ -120,8 +120,14 @@ export default function BiometricCheckerResult() {
             <p className="text-slate">Assessment not found or you don't have access.</p>
             <Button asChild className="mt-4"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
           </div>
-        ) : row.status === "pending" || row.status === "processing" ? (
-          <ProcessingInterstitial tool="biometric" />
+        ) : phase === "stalled" || phase === "stalled_pre_dispatch" ? (
+          <GenerationStalledCard variant={phase} retryHref="/biometric-checker" onRefresh={refresh} />
+        ) : phase === "running" || phase === "slow" ? (
+          <ProcessingInterstitial
+            tool="biometric"
+            startedAt={row.updated_at ?? row.created_at}
+            slow={phase === "slow"}
+          />
         ) : (
           <ReportShell
             title="Biometric Compliance Assessment"
