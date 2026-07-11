@@ -104,6 +104,24 @@ export default function EUNoticeReview() {
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [genSteps, setGenSteps] = useState<Record<string, GenStatus>>({});
+  const tickTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Truth-signal poll (server timestamps). Only active while we've dispatched
+  // a generation — otherwise a long-idle non-terminal row could flip to
+  // stalled while the user reads the review.
+  const { phase: genPhase, refresh: refreshGen } = useGenerationStatus<{
+    status?: string | null;
+    generation_error?: string | null;
+    updated_at?: string | null;
+    created_at?: string | null;
+  }>({
+    table: "eu_notice_sessions",
+    rowId: generating ? (sessionId ?? null) : null,
+    isTerminal: (r) => r.status === "generated" || r.status === "failed",
+    isReportReady: (r) => r.status === "generated",
+  });
+
 
   // Load session, frameworks, answers, client name
   useEffect(() => {
