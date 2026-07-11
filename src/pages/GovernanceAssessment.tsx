@@ -318,6 +318,7 @@ const GovernanceAssessment = () => {
     S(d.training_ai_coverage, setTrainingAiCoverage);
     S(d.dpa_art28_verified, setDpaArt28Verified);
     S(d.transfer_mechanism, setTransferMechanism);
+    S(d.additional_context, setAdditionalContext);
     if (typeof restoreStage === "number") setStep(restoreStage);
     else if (typeof payload?.step === "number") setStep(payload.step);
   };
