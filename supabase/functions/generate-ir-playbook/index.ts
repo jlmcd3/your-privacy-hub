@@ -1456,7 +1456,7 @@ const playbook_text = lint.clean;
             ? (assembled as any).information_needed
             : [],
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.2") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.3-ws6v21") },
         };
         try {
           const guarded = guardInformationNeeded(
