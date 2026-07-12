@@ -771,6 +771,52 @@ async function runPipeline(assessment_id: string) {
           }
         }
       }
+      // T-2 EXTENSION (r1b1.2, 2026-07-11): OMISSION detection in
+      // cross_tool_recommendations.cybersecurity_audit_rationale. A RESOLVED
+      // test whose outcome is not stated at all in the rationale is a defect
+      // ("a check that cannot see its own conclusion passes everything").
+      // Scope: M4 (sensitive-PI prong, incl. resolved_not_applicable) and M6
+      // (audit-cohort, incl. legacy-band indeterminate requiring both cohort
+      // dates). Merges into the same t2Violation surface so the r1b1.1
+      // time-budgeted retry gate governs the response.
+      {
+        const rationaleT2 = String(parsed?.cross_tool_recommendations?.cybersecurity_audit_rationale ?? "");
+        const m4 = (testStates as any).M4;
+        if (m4) {
+          if (m4.state === "resolved_not_applicable") {
+            // Must state the prong does not apply.
+            const naRe = /(does not apply|not applicable|inapplicable|no sensitive[- ]pi|no sensitive personal information)/i;
+            if (!naRe.test(rationaleT2)) {
+              t2Violation = true;
+              t2Details.push({ test: "M4", kind: "hedge_in_prose", detail: "M4 RESOLVED_NOT_APPLICABLE: § 7120(b)(2)(B) N/A prong outcome absent from cybersecurity_audit_rationale" });
+            }
+          } else if (m4.state === "resolved_met" || m4.state === "resolved_not_met") {
+            const spiRe = /(sensitive[- ]pi|sensitive personal information|§?\s*7120\(b\)\(2\)\(B\)|50,?000)/i;
+            if (!spiRe.test(rationaleT2)) {
+              t2Violation = true;
+              t2Details.push({ test: "M4", kind: "hedge_in_prose", detail: `M4 ${m4.state}: SPI prong outcome absent from cybersecurity_audit_rationale` });
+            }
+          }
+        }
+        const m6 = (testStates as any).M6;
+        if (m6) {
+          if (m6.state === "indeterminate") {
+            // Legacy band → both cohort dates must appear conditionally.
+            const has2029 = /2029/.test(rationaleT2);
+            const has2030 = /2030/.test(rationaleT2);
+            if (!(has2029 && has2030)) {
+              t2Violation = true;
+              t2Details.push({ test: "M6", kind: "hedge_in_prose", detail: "M6 INDETERMINATE (legacy band): cybersecurity_audit_rationale must state BOTH cohort dates (2029 and 2030) as the conditional resolution" });
+            }
+          } else if (m6.state === "resolved_met") {
+            const cohortYear = String(m6.note ?? "").match(/(\d{4})-\d{2}-\d{2}/)?.[1] ?? "";
+            if (cohortYear && !new RegExp(cohortYear).test(rationaleT2)) {
+              t2Violation = true;
+              t2Details.push({ test: "M6", kind: "hedge_in_prose", detail: `M6 RESOLVED_MET: cohort year ${cohortYear} absent from cybersecurity_audit_rationale` });
+            }
+          }
+        }
+      }
       if (t2Violation) {
         console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-2", fn: "run-cppa-risk-assessment", details: t2Details.slice(0, 10) }));
       }
