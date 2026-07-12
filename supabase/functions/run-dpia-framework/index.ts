@@ -280,7 +280,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // re-entry re-runs only missing units.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STAMP = "r1b2.3";
+const STAMP = "r1b2.4-ws6v21";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
