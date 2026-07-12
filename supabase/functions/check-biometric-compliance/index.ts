@@ -1424,7 +1424,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2") },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2-ws6v21") },
     };
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.
