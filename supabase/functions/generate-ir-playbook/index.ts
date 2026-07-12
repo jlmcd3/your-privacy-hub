@@ -1111,7 +1111,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n(Generating part ${which}.)`;
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}${_suppWs6}\n\n(Generating part ${which}.)`;
           const truncatedClean = truncated.replace(/\s+$/, "");
           const continueInstruction = `Your previous attempt was cut off mid-output. ${tail} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
           const { text: continuation, stopReason } = await callClaude(
