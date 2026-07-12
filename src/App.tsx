@@ -195,10 +195,6 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <ScrollToTopButton />
-          <PaymentTestModeBanner />
-          <BlankScreenDiagnostic />
-          <ScrollToTop />
-          <ScrollToTopButton />
           <PageViewTracker />
           <PaymentTestModeBanner />
           <BlankScreenDiagnostic />
