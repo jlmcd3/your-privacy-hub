@@ -492,7 +492,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     async function callControlsHalf(startIdx: number, endIdx: number, extra: string): Promise<{ controls: any[]; annotations: any[] } | null> {
       const base = buildControlsPrompt(startIdx, endIdx);
-      const user = extra ? `${base}\n\n${extra}` : base;
+      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const user = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
       const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
       if (first.stopReason === "max_tokens") {
