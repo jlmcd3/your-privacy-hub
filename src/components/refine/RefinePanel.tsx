@@ -50,7 +50,11 @@ export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
   runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
   resolveFields, resolveHighlightingEnabled,
+  priorInformationNeeded,
 }: Props) {
+  const priorInfo = priorInformationNeeded ?? [];
+  const [supplementalResponses, setSupplementalResponses] = useState<string[]>(() => priorInfo.map(() => ""));
+  const [supplementalContext, setSupplementalContext] = useState<string>("");
   const infoSet = new Set(infoNeededKeys ?? []);
   // Doc Q: active RESOLVE map, empty when disabled. Local cleared-set
   // hides the highlight/chip visually on edit -- never mutates data.
