@@ -1,0 +1,1 @@
+UPDATE public.dpia_frameworks SET stripe_payment_intent_id = NULL, status = 'failed' WHERE id = '614da23b-25c7-407b-b708-8be9455d7ac3';
