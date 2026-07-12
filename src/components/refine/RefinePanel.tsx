@@ -32,6 +32,10 @@ interface Props {
   // here by construction (P3/D5).
   resolveFields?: ResolveFieldMap;
   resolveHighlightingEnabled?: boolean;
+  // WS6 v2.1 (regeneration only): prior report's information_needed entries.
+  // When non-empty, each entry gets its own textarea; a general context box
+  // renders regardless. Absent → no supplemental section rendered.
+  priorInformationNeeded?: Array<{ field?: string; dimensions?: string; ask?: string; [k: string]: unknown }>;
 }
 
 
