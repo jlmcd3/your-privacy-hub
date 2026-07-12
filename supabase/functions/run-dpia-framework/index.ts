@@ -952,10 +952,12 @@ async function advancePhaseIfReady(dpia_id: string): Promise<UnitId[]> {
     const blocked = (u: UnitId) => s[u]?.status === "blocked";
     const dispatchable: UnitId[] = [];
     let mutated = false;
-    if (PHASE1.every(done) && blocked("u4")) {
+    // Ratified gating (r1b2.3): U4 depends solely on U3 (design_risk_impacts hand-off).
+    // U5 digest consumes U1/U2/U3/U4 keys, so it keeps the full-phase gate.
+    if (done("u3") && blocked("u4")) {
       s.u4.status = "dispatching"; dispatchable.push("u4"); mutated = true;
     }
-    if (done("u4") && blocked("u5")) {
+    if (done("u4") && done("u1") && done("u2") && blocked("u5")) {
       s.u5.status = "dispatching"; dispatchable.push("u5"); mutated = true;
     }
     if (!mutated) return [];
@@ -1428,13 +1430,13 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
         mutated = true;
       }
     }
-    if (staging.units.u4?.status !== "done" && PHASE1.every((u) => staging.units[u]?.status === "done")) {
-      staging.units.u4.status = "blocked";
-      mutated = true;
-    }
-    if (staging.units.u5?.status !== "done" && staging.units.u4?.status === "done") {
-      staging.units.u5.status = "blocked";
-      mutated = true;
+    // Reset any errored/stuck U4/U5 back to blocked so advancePhaseIfReady can re-dispatch.
+    for (const u of ["u4", "u5"] as UnitId[]) {
+      const st = staging.units[u]?.status;
+      if (st === "error" || st === "processing" || st === "dispatching") {
+        staging.units[u] = { ...(staging.units[u] ?? {}), status: "blocked" };
+        mutated = true;
+      }
     }
     if (mutated) {
       await optimisticUpdate(dpia_id, dpia.updated_at, { report_data: { ...rd, _staging: staging }, status: "processing", last_error: null });
@@ -1443,13 +1445,12 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     const dispatch: UnitId[] = [];
     for (const u of PHASE1) if (staging.units[u]?.status !== "done") dispatch.push(u);
     for (const u of dispatch) selfInvokeUnit(dpia_id, u);
-    // If PHASE1 already done, kick phase advance.
-    if (dispatch.length === 0) {
-      const next = await advancePhaseIfReady(dpia_id);
-      for (const u of next) selfInvokeUnit(dpia_id, u);
-      // If U5 also done, run stitch inline (covers idempotent retry of a doc stuck at stitch).
-      if (staging.units.u5?.status === "done") await runStitch(dpia_id);
-    }
+    // Always try phase-advance on resume: with U4-only-on-U3 gating, U4 may be
+    // dispatchable even while U1/U2 are still (re)running from this same resume.
+    const next = await advancePhaseIfReady(dpia_id);
+    for (const u of next) selfInvokeUnit(dpia_id, u);
+    // If U5 also done, run stitch inline (covers idempotent retry of a doc stuck at stitch).
+    if (staging.units.u5?.status === "done") await runStitch(dpia_id);
     return;
   }
 
