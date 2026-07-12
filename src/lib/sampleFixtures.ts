@@ -774,6 +774,139 @@ const F_EU_NOTICE: SampleFixture = {
   },
 };
 
+// --- WS6 v2.1 supplemental-capture variants ------------------------------
+// One "-supplemental" variant per WS6-wired tool family (9 total). Each
+// clones the base fixture and injects `supplemental_responses` +
+// `supplemental_context` at the fixture's intake locator so stress runs
+// exercise the SUPPLEMENTAL RESPONSES consumption path end-to-end.
+// LIA supplements land at insert.* (dedicated columns on li_assessments);
+// the other 8 tools land inside intake_data / invoke_body_extras per shape.
+
+type SupplementalPayload = {
+  supplemental_responses: Array<{ ref_field: string; ask: string; response: string }>;
+  supplemental_context: string;
+};
+
+function withSupplemental(
+  base: SampleFixture,
+  at: "insert" | "insert.intake_data" | "invoke_body_extras",
+  payload: SupplementalPayload,
+  meta: { title: string; scenario_summary: string }
+): SampleFixture {
+  const fix = JSON.parse(JSON.stringify(base.fixture)) as any;
+  if (at === "insert") {
+    fix.insert = { ...(fix.insert ?? {}), ...payload };
+  } else if (at === "insert.intake_data") {
+    fix.insert = fix.insert ?? {};
+    fix.insert.intake_data = { ...(fix.insert.intake_data ?? {}), ...payload };
+  } else {
+    fix.invoke_body_extras = { ...(fix.invoke_body_extras ?? {}), ...payload };
+  }
+  return {
+    ...base,
+    variant: `${base.variant}-supplemental`,
+    title: meta.title,
+    scenario_summary: meta.scenario_summary,
+    fixture: fix,
+  };
+}
+
+const F_LIA_UK_SUPP = withSupplemental(F_LIA_UK, "insert", {
+  supplemental_responses: [
+    { ref_field: "purpose_details.purpose_text", ask: "Clarify who inside the control room receives the identity re-link on an alarm.", response: "Only the named on-call shift supervisor and the on-shift occupational-health medic; access is logged and reviewed monthly by the works-council H&S representative." },
+    { ref_field: "balancing_details.opt_out_mechanism", ask: "Confirm whether reassignment to surface roles preserves pay grade.", response: "Yes — reassignment preserves grade, shift premium, and pension accrual under the works-council agreement; no detriment provisions are explicit in the handbook addendum." },
+  ],
+  supplemental_context: "Works-council ratification vote passed 14-2 with two abstentions on 4 June; independent H&S consultant Q3 review already booked.",
+}, {
+  title: "Wearable safety telemetry — supplemental (WS6)",
+  scenario_summary: "LIA supplemental-capture variant: clarifies alarm re-link access and reassignment-parity questions raised on the first-pass information_needed list.",
+});
+
+const F_DPIA_EU_SUPP = withSupplemental(F_DPIA_EU, "insert.intake_data", {
+  supplemental_responses: [
+    { ref_field: "necessity_proportionality", ask: "Confirm the raw-frame deletion job is automated end-to-end.", response: "Yes — nightly lifecycle job on the survey-imagery bucket at 02:00 UTC deletes any object with a capture_ts older than 30 days and writes an attestation row to the deletion_ledger table." },
+    { ref_field: "retention_period", ask: "State the retention for the blurred derivative products.", response: "Blurred orthomosaics: 5 years to support the mineral-permit lifecycle; retention trigger is permit-cycle close + 5y, enforced by the same lifecycle job." },
+  ],
+  supplemental_context: "Landesdatenschutzbehörde consultation letter dated 12 May confirms no prior authorisation required given the blurring pipeline and 30-day raw-frame cap.",
+}, {
+  title: "Drone survey imagery — supplemental (WS6)",
+  scenario_summary: "DPIA supplemental-capture variant: closes deletion-automation and derivative-retention questions from the first pass.",
+});
+
+const F_DPA_EU_SUPP = withSupplemental(F_DPA_EU, "invoke_body_extras", {
+  supplemental_responses: [
+    { ref_field: "services", ask: "Specify whether the processor uses sub-processors located outside the EEA.", response: "One sub-processor in the United States (cloud storage tier) covered by SCCs Module 3 with UK addendum; no other extra-EEA sub-processors." },
+  ],
+  supplemental_context: "Controller has confirmed no additional processing purposes beyond those listed in Annex I(B); the audit right in Clause 7.6(d) is exercised annually.",
+}, {
+  title: "Controller/processor DPA — supplemental (WS6)",
+  scenario_summary: "DPA supplemental-capture variant: closes the sub-processor location question raised on the first pass.",
+});
+
+const F_GOV_EU_SUPP = withSupplemental(F_GOV_EU, "insert.intake_data", {
+  supplemental_responses: [
+    { ref_field: "dpo_status", ask: "State whether the DPO reports directly to the highest management level.", response: "Yes — the DPO reports quarterly to the Management Board and has a standing agenda item; no line-management conflict." },
+    { ref_field: "training_status", ask: "Provide completion rate for the most recent annual privacy training round.", response: "96% completion within the 30-day window; the remaining 4% completed within an extended 14-day grace period tracked in the LMS." },
+  ],
+  supplemental_context: "Board-level privacy review minutes for Q1 and Q2 are on file with the DPO office.",
+}, {
+  title: "Governance assessment — supplemental (WS6)",
+  scenario_summary: "Governance supplemental-capture variant: closes DPO reporting and training-completion questions.",
+});
+
+const F_IR_EU_SUPP = withSupplemental(F_IR_EU, "invoke_body_extras", {
+  supplemental_responses: [
+    { ref_field: "contained", ask: "Confirm the forensics report's conclusion on exfiltration was without qualification.", response: "Mandiant's final report (dated 3 days post-incident) states 'no evidence of data exfiltration' without qualification; egress logs on the affected segment show only backup traffic to the immutable off-site vault." },
+  ],
+  supplemental_context: "Datatilsynet was pre-notified within 12 hours as a courtesy; formal Art. 33 notice not required given the forensic conclusion but the courtesy note is logged.",
+}, {
+  title: "Cold-chain ransomware IR — supplemental (WS6)",
+  scenario_summary: "IR Playbook supplemental-capture variant: reinforces the no-exfiltration finding for the Art. 33 threshold analysis.",
+});
+
+const F_BIO_US_SUPP = withSupplemental(F_BIO_US, "invoke_body_extras", {
+  supplemental_responses: [
+    { ref_field: "enrolledCount", ask: "State whether the enrolled count includes seasonal workers.", response: "Yes — 600 enrolled includes the peak-season contractor uplift; base workforce is ~430; contractor enrolments are purged within 30 days of assignment end." },
+  ],
+  supplemental_context: "Vendor written release (BIPA §15(b)) has been re-signed by all currently enrolled workers as of last month; retention/destruction schedule attested by the vendor quarterly.",
+}, {
+  title: "BIPA fingerprint time-clocks — supplemental (WS6)",
+  scenario_summary: "Biometric checker supplemental-capture variant: closes the enrolment-scope question and confirms release re-signing.",
+});
+
+const F_CPPA_RISK_US_SUPP = withSupplemental(F_CPPA_RISK_US, "insert.intake_data", {
+  supplemental_responses: [
+    { ref_field: "i1_processing_purpose", ask: "Clarify whether the profiling described in q5b is used for any pricing decision.", response: "No — profiling is used only for content recommendation ranking; pricing is uniform across the audience and is not personalised on any profiling signal." },
+    { ref_field: "impact_intake.safeguards", ask: "List the specific safeguard added since the last assessment cycle.", response: "Added per-request logging of the profiling feature vector so DSAR responses can reconstruct the exact ranking inputs used within the 12-month audit window." },
+  ],
+  supplemental_context: "Cybersecurity audit completed 45 days ago; risk-assessment cadence set to annual with an interim review on any material-change trigger.",
+}, {
+  title: "CPPA risk assessment — supplemental (WS6)",
+  scenario_summary: "CPPA Risk supplemental-capture variant: closes pricing-scope and safeguard-delta questions raised on the first pass.",
+});
+
+const F_CPPA_CYBER_US_SUPP = withSupplemental(F_CPPA_CYBER_US, "insert.intake_data", {
+  supplemental_responses: [
+    { ref_field: "controls.c1_auth", ask: "Confirm phishing-resistant MFA is enforced for all privileged accounts.", response: "Yes — FIDO2 hardware keys enforced for all admin, break-glass, and vendor accounts; TOTP retained only for a small legacy service account slated for retirement next quarter." },
+    { ref_field: "controls.c17_incident", ask: "State the tested mean time to contain from the last tabletop exercise.", response: "42 minutes from initial alert to network isolation in the March tabletop; documented in the exercise after-action report." },
+  ],
+  supplemental_context: "External assessor's Reg. §7123(b) report attests to controls c1–c18; no material gaps flagged.",
+}, {
+  title: "CPPA cybersecurity audit — supplemental (WS6)",
+  scenario_summary: "CPPA Cyber supplemental-capture variant: reinforces c1 (MFA) and c17 (IR) evidence.",
+});
+
+const F_CPPA_ADMT_US_SUPP = withSupplemental(F_CPPA_ADMT_US, "insert.intake_data", {
+  supplemental_responses: [
+    { ref_field: "human_review", ask: "Clarify whether the human reviewer can override the ADMT output in all decision domains.", response: "Yes — the reviewer has unconditional override authority in every decision domain; overrides are logged with the reviewer's ID and reasoning and audited monthly." },
+    { ref_field: "opt_out_15_day_process", ask: "State the operational SLA for opt-out processing.", response: "Median 3 business days, 95th percentile 9 business days, hard cap at 14 business days to preserve one-day buffer against the 15-day statutory ceiling." },
+  ],
+  supplemental_context: "Pre-use notice deployed on all consumer-facing surfaces since Q1; access-request response templates approved by counsel.",
+}, {
+  title: "ADMT compliance check — supplemental (WS6)",
+  scenario_summary: "ADMT supplemental-capture variant: closes human-override scope and opt-out SLA questions.",
+});
+
 export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_LIA_UK,
   F_DPIA_EU,
@@ -789,4 +922,14 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_ROPA_EU,
   F_US_NOTICE,
   F_EU_NOTICE,
+  // WS6 v2.1 supplemental-capture variants (9 total, one per wired family)
+  F_LIA_UK_SUPP,
+  F_DPIA_EU_SUPP,
+  F_DPA_EU_SUPP,
+  F_GOV_EU_SUPP,
+  F_IR_EU_SUPP,
+  F_BIO_US_SUPP,
+  F_CPPA_RISK_US_SUPP,
+  F_CPPA_CYBER_US_SUPP,
+  F_CPPA_ADMT_US_SUPP,
 ];
