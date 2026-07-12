@@ -1260,8 +1260,18 @@ Generate substantive draft rows for every table for the controller to verify; us
 
       } catch (bgErr) {
         console.error("run-dpia-framework background error:", bgErr);
-        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
-        await failFunctionRun(supabase, fnRun, bgErr);
+        const isTimeout = bgErr instanceof AnthropicTimeoutError
+          || (bgErr instanceof Error && (bgErr as any).code === "generation_timeout_330s");
+        const patch: Record<string, unknown> = { status: "failed" };
+        if (isTimeout) {
+          patch.report_data = {
+            error: "generation_timeout_330s",
+            evidence: (bgErr as Error).message,
+            elapsed_ms: (bgErr as any).elapsedMs ?? null,
+          };
+        }
+        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, patch, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: isTimeout ? { evidence: "generation_timeout_330s" } : undefined });
       }
 
     })());
