@@ -20,7 +20,6 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
-import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
