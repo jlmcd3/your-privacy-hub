@@ -197,6 +197,11 @@ const App = () => (
           <ScrollToTopButton />
           <PaymentTestModeBanner />
           <BlankScreenDiagnostic />
+          <ScrollToTop />
+          <ScrollToTopButton />
+          <PageViewTracker />
+          <PaymentTestModeBanner />
+          <BlankScreenDiagnostic />
           <CanonicalTag />
           <Suspense fallback={<div style={{padding:"4rem",textAlign:"center",color:"#64748b",fontSize:"14px"}}>Loading…</div>}>
 <Routes>
