@@ -162,6 +162,11 @@ const SamplesHub = lazy(() => import("./pages/SamplesHub.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
 const AdminTestRunMeter = lazy(() => import("./pages/admin/AdminTestRunMeter"));
+const AdminHub = lazy(() => import("./pages/admin/AdminHub"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
+const QualityLoopAugmentation = lazy(() => import("./pages/admin/QualityLoopAugmentation"));
+import PageViewTracker from "@/components/PageViewTracker";
 const queryClient = new QueryClient();
 
 function CategoryRedirect() {
