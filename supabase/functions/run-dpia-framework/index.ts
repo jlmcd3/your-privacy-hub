@@ -1401,7 +1401,7 @@ async function runStitch(dpia_id: string): Promise<void> {
 // Also handles sweeper re-entry: if _staging already exists, re-dispatch only
 // units with status !== 'done'.
 // ─────────────────────────────────────────────────────────────────────────────
-async function runBootstrap(dpia_id: string, caller: { userId?: string; internal?: boolean }): Promise<void> {
+async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
   const dpia = await readRow(dpia_id);
   const rd = (dpia.report_data ?? {}) as any;
 
