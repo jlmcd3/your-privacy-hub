@@ -800,8 +800,12 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       ? [32000, 16000, 8000]
       : [48000, 32000, 16000, 8000];
 
+    // WS6 v2.1 — supplemental capture (regen path); byte-identical on first run
+    // since renderSupplementalBlock returns "" when both inputs are empty. This
+    // preserves DPA's placeholder-neutrality invariant on the first-run baseline.
+    const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
     async function callAi(extraUser: string, timeoutMs: number = 720_000): Promise<{ text: string; finishReason: string | null }> {
-      const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
+      const finalUser = (extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt) + _suppWs6;
       let lastErr: Error | null = null;
       for (let i = 0; i < MAX_TOKENS_LADDER.length; i++) {
         const maxTokens = MAX_TOKENS_LADDER[i];
