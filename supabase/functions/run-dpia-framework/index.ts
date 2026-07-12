@@ -268,312 +268,31 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 
 
 
-Deno.serve(async (req) => {
-  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=r1b2.2`);
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+// ─────────────────────────────────────────────────────────────────────────────
+// r1b2.3 SECTIONED GENERATION (Plan B — 2026-07-12)
+// Each of U1..U5 runs in its own isolate. Phase graph: {U1,U2,U3}||→U4→U5.
+// Shared context (DATA ONLY — never prompt text; Amendment 2) persists to
+// dpia_frameworks.report_data._staging.shared. Every unit rebuilds system
+// blocks and per-unit prompt skeletons from code, so identical-context is
+// preserved without leaking the proprietary rule set to RLS-readable rows.
+// Terminal failures MERGE-preserve _staging (Amendment 1) so the sweeper's
+// re-entry re-runs only missing units.
+// ─────────────────────────────────────────────────────────────────────────────
 
-  try {
-    const caller = await verifyCaller(req);
-    if (!caller.internal && !caller.userId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const { dpia_id } = await req.json();
-    if (!dpia_id) return new Response(JSON.stringify({ error: "dpia_id required" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+const STAMP = "r1b2.3";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const ent = await requireEntitlement(caller, "dpia_framework", { rowId: dpia_id });
-    if (!ent.ok) {
-      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-dpia-framework", reason: ent.reason }));
-      return new Response(JSON.stringify({ error: "forbidden" }), {
-        status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+type UnitId = "u1" | "u2" | "u3" | "u4" | "u5";
+const PHASE1: UnitId[] = ["u1", "u2", "u3"];
+const UNIT_MAX_TOKENS: Record<UnitId, number> = {
+  u1: 12_000, u2: 10_000, u3: 10_000, u4: 16_000, u5: 8_000,
+};
 
-    const { data: dpia } = await supabase
-      .from("dpia_frameworks").select("*").eq("id", dpia_id).single();
-
-    if (!dpia) return new Response(JSON.stringify({ error: "Not found" }),
-      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
-    const intake = dpia.intake_data as any;
-    const orgName = (dpia as any).organization_name || intake?.organization_name || null;
-    const procWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
-      status: "processing",
-      ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
-    }, { fn: "run-dpia-framework", phase: "pre_generation" });
-    if (!procWrite.ok) {
-      return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: procWrite.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const fnRun = await startFunctionRun(supabase, "run-dpia-framework", {
-      archetype: "background",
-      trustClass: "user",
-      userId: caller.internal ? (dpia.user_id ?? null) : caller.userId,
-      invokedBy: caller.internal ? "internal" : "user",
-      metadata: { dpia_id },
-    });
-
-
-    // Dispatch heavy work in background — return 202 immediately so the caller
-    // is not held open past the platform's 150s HTTP idle ceiling. The result
-    // page polls dpia_frameworks.status. On unhandled error we mark the row
-    // failed so callers don't poll forever.
-    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
-    EdgeRuntime.waitUntil((async () => {
-      try {
-    let orgContext = "";
-    if (dpia.source_assessment_id) {
-      const { data: sourceAssessment } = await supabase
-        .from("governance_assessments")
-        .select("intake_data, report_data")
-        .eq("id", dpia.source_assessment_id).single();
-      if (sourceAssessment) {
-        const srcIntake = sourceAssessment.intake_data as any;
-        orgContext = `
-SOURCE GOVERNANCE ASSESSMENT CONTEXT:
-Organisation sector: ${srcIntake.sector || "not specified"}
-Jurisdictions: ${(srcIntake.jurisdictions || []).join(", ")}
-EU/UK data: ${srcIntake.eu_uk_data ? "Yes" : "No"}
-DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
-`;
-      }
-    }
-
-    // (Audited GDPR rules now live in DPIA_TOOL_MODULE.extraRules; the system
-    // prompt is assembled below via buildSystemContent.)
-
-
-
-    const processingDesc = intake.processing_description || intake.description || "Not provided";
-    const purpose = intake.purpose || "Not provided";
-    // Defense-in-depth: coerce array-typed intake fields safely. The spec
-    // requires string[], but a stringly-typed emission from any upstream
-    // generator (or a user-authored intake) must not crash the build — a
-    // scalar becomes a single-item list, null/undefined becomes empty.
-    const asList = (v: unknown): string[] =>
-      Array.isArray(v) ? v.map((x) => String(x)) : (v == null || v === "" ? [] : [String(v)]);
-    const dataCategories = asList(intake.data_categories).join(", ") || "Not specified";
-    const dataSubjects = intake.data_subjects || "Not specified";
-    const volume = intake.volume_frequency || "Not specified";
-    const thirdParties = asList(intake.third_party_processors).join(", ") || "None identified";
-    const safeguards = asList(intake.existing_safeguards).join(", ") || "None identified";
-    const jurisdictions = asList(intake.jurisdictions).join(", ") || "Not specified";
-    const legalBasisProposed = intake.legal_basis_proposed || "Not specified";
-    const article9Condition = intake.article_9_condition || "Not specified";
-    const necessityProportionality = intake.necessity_proportionality || "Not provided";
-    const retentionPeriod = intake.retention_period || "Not specified";
-    const sector = intake.sector || intake.organization_sector || "Not specified";
-    // EDPB template — Section 0 (Overview) inputs (from Tranche 1 intake)
-    const controllerContact = intake.controller_contact || "Not specified";
-    const dpoInfo = intake.dpo_info || "Not specified";
-    const processorObligations = intake.processor_obligations || "Not specified";
-    const processingVersion = intake.processing_version || "Not specified";
-    const launchDate = intake.estimated_launch_date || "Not specified";
-    const endDate = intake.estimated_end_date || "Not specified";
-    const dpiaTeam = intake.dpia_team || "Not specified";
-    const referenceMaterials = intake.reference_materials || "Not specified";
-    const reasonsToConduct = asList(intake.reasons_to_conduct).join("; ") || "Not specified";
-    const dpiaScopeNote = intake.dpia_scope_note || "Not specified";
-    const publicationIntent = intake.publication_intent || "Not specified";
-    const secondaryUses = intake.secondary_uses || "Not specified";
-    const natureScopeContext = intake.nature_scope_context || "Not specified";
-    const functionalDescription = intake.functional_description || "Not specified";
-    const supportingAssets = intake.supporting_assets || "Not specified";
-    const codesOfConduct = intake.codes_of_conduct || "Not specified";
-    const dataMinimisationJustification = intake.data_minimisation_justification || "Not specified";
-    const dataQualityMeasures = intake.data_quality_measures || "Not specified";
-    const dataSubjectRightsMechanisms = intake.data_subject_rights_mechanisms || "Not specified";
-    const dpByDesignMeasures = intake.dp_by_design_measures || "Not specified";
-    const dpoAdvice = intake.dpo_advice || "Not specified";
-    const dataSubjectsViewsSought = intake.data_subjects_views_sought || "Not specified";
-    const dataSubjectsViews = intake.data_subjects_views || "Not specified";
-
-    // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
-    let srcIntakeJurisdictions: string[] | null = null;
-    if (dpia.source_assessment_id) {
-      try {
-        const { data: sa } = await supabase
-          .from("governance_assessments")
-          .select("intake_data")
-          .eq("id", dpia.source_assessment_id).maybeSingle();
-        const sj = (sa?.intake_data as any)?.jurisdictions;
-        if (Array.isArray(sj)) srcIntakeJurisdictions = sj;
-      } catch { /* non-fatal */ }
-    }
-    const effectiveJurisdictions: string[] = srcIntakeJurisdictions ?? (intake.jurisdictions || []);
-    // EU GDPR is primary whenever any EU/EEA jurisdiction is present, even if UK is also listed.
-    // Only use UK as primary when UK/GB is the sole jurisdiction and no EU/EEA mention exists.
-    const hasEU = effectiveJurisdictions.some((j: string) => /\beu\b|european.*union|eea|\bgdpr\b|germany|france|ireland|netherlands|spain|italy|sweden|denmark|poland|belgium|austria|finland|luxembourg|greece|portugal|norway|switzerland/i.test(String(j)));
-    const hasUK = effectiveJurisdictions.some((j: string) => /united kingdom|\buk\b|\bgb\b|uk gdpr|england|wales|scotland/i.test(String(j)));
-    const gdprJurisdiction: "eu" | "uk" = hasEU ? "eu" : (hasUK ? "uk" : "eu");
-
-    // Fetch enforcement precedents (3-5) and GDPR authority context in parallel
-    let enforcementPrecedents: any[] = [];
-    let enforcementMeta: any = { attempted: false };
-    let gdprBlock = "";
-    let gdprMeta: any = { attempted: false };
-    try {
-      // Corpus regime gating: DPIA is a GDPR tool — never query the CCPA corpus.
-      const corpusRegime: "gdpr" | "uk_gdpr" = gdprJurisdiction === "uk" ? "uk_gdpr" : "gdpr";
-      const [ecRes, gdprRes] = await Promise.all([
-        supabase.functions.invoke("get-enforcement-context", {
-          body: {
-            tool: "DPIA",
-            regime: corpusRegime,
-            data_categories: intake.data_categories || [],
-            jurisdictions: intake.jurisdictions || [],
-            sector: intake.sector || undefined,
-            articles: ["gdpr:35", "gdpr:36"],
-            limit: 5,
-          },
-        }),
-        getGdprContext(supabase, {
-          articles: ["35", "36"],
-          jurisdiction: gdprJurisdiction,
-          recitals: [75, 84, 90],
-          guidelineArticles: ["35"],
-          semanticQuery: processingDesc,
-        }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; }),
-      ]);
-      const ctxData = (ecRes as any)?.data;
-      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
-      const descParts: string[] = [];
-      if (intake.sector) descParts.push(`${intake.sector} sector`);
-      const jList = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : (intake.jurisdictions ? [String(intake.jurisdictions)] : []);
-      if (jList.length) descParts.push(`processing in ${jList.join(", ")}`);
-      enforcementMeta = {
-        attempted: true,
-        total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
-        query_descriptor: descParts.join(" — ") || undefined,
-      };
-      gdprBlock = (gdprRes as any)?.block || "";
-      gdprMeta = (gdprRes as any)?.meta || { attempted: false };
-    } catch (e) {
-      console.error("DPIA context fetch failed (non-fatal):", e);
-    }
-
-    const enforcementContextStr = enforcementPrecedents.length > 0
-      ? enforcementPrecedents.map((r: any, i: number) => {
-          const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
-            ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
-          const fineVerified = r.fine_verified !== false;
-          const fine = !fineVerified
-            ? "fine amount under verification — omitted"
-            : (r.fine_eur_equivalent ? `€${Number(r.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
-          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: ${fine} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}${provs}`;
-        }).join("\n")
-      : "No directly analogous enforcement precedents retrieved.";
-
-    // ── Layer 1-3: Resolve jurisdiction facts deterministically and inject ──
-    // Heuristic fallbacks: parse from existing free-text fields where the new
-    // structured intake fields are not present.
-    function inferCountryFromJurisdictions(js: string[]): string {
-      const joined = (js || []).join(" ");
-      if (/germany|deutschland|\bDE\b/i.test(joined)) return "DE";
-      if (/united kingdom|\bUK\b|\bGB\b/i.test(joined)) return "UK";
-      if (/ireland|\bIE\b/i.test(joined)) return "IE";
-      if (/france|\bFR\b/i.test(joined)) return "FR";
-      if (/spain|\bES\b/i.test(joined)) return "ES";
-      if (/netherlands|holland|\bNL\b/i.test(joined)) return "NL";
-      if (/italy|\bIT\b/i.test(joined)) return "IT";
-      return "";
-    }
-    const resolverCountry = (intake.controller_country || inferCountryFromJurisdictions(intake.jurisdictions || []) || "").toUpperCase();
-    const resolverSector = (intake.controller_sector || "private") as any;
-    const facts: DpiaIntakeFacts = {
-      controllerSites: resolverCountry ? [{ country: resolverCountry, land: intake.controller_land || undefined, sector: resolverSector }] : [],
-      centralAdministrationCountry: (intake.central_administration_country || resolverCountry || "").toUpperCase(),
-      euEstablishmentWithDecisionAuthority: intake.eu_decision_establishment_country
-        ? { country: String(intake.eu_decision_establishment_country).toUpperCase(), sector: "private" }
-        : null,
-      transferFlows: Array.isArray(intake.transfer_flows)
-        ? (intake.transfer_flows as any[]).map((f): TransferFlow => ({
-            originRegime: (f.originRegime === "UK" ? "UK" : "EU"),
-            destinationCountry: String(f.destination || "").toUpperCase(),
-            importerEntity: f.importer || undefined,
-            importerDpfCertified: !!f.dpfCertified,
-            importerUkExtensionCertified: !!f.ukExtensionCertified,
-          })).filter((f) => f.destinationCountry)
-        : [],
-      article9Condition: intake.article_9_condition || undefined,
-      retentionRecordType: intake.retention_record_type || undefined,
-    };
-    const resolved = resolveDpiaJurisdiction(facts);
-    const resolvedBlock = renderResolvedBlock(resolved);
-    console.log(`[run-dpia-framework] resolver: country=${resolverCountry} land=${intake.controller_land || "-"} oss=${resolved.oss.ossAvailable} transfers=${resolved.transfers.length}`);
-
-    // Assemble system prompt via the shared core. Block 1 = core (cached);
-    // block 2 = identity + audited DPIA rules (cached); block 3 = corpus +
-    // resolved-jurisdiction injection (NOT cached — per-call facts).
-    const gdprAuthorityContext = gdprBlock
-      ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
-      : "";
-    const today = new Date().toISOString().slice(0, 10);
-    // R1b2 — compute deterministic TEST-STATES from the raw intake and inject them.
-    const dpiaTestStates = computeDpiaTestStates(intake as Record<string, any>);
-    const dpiaTestStatesBlock = renderDpiaTestStatesBlock(dpiaTestStates);
-    const systemWithGdpr = buildSystemContent({
-      toolModule: DPIA_TOOL_MODULE,
-      currentDate: today,
-      injected: [gdprAuthorityContext, resolvedBlock, dpiaTestStatesBlock].filter(Boolean).join("\n\n"),
-    });
-
-
-    // ── Split DPIA generation into two parallel calls to stay within timeout ──
-    const sharedContext = `PROCESSING ACTIVITY DETAILS:
-Organisation (controller) being assessed: ${orgName || "not specified"}
-Processing activity name: ${intake.processing_activity_name || "not specified"}
-Sector: ${sector}
-Legal basis selected by user: ${legalBasisProposed}
-Description: ${processingDesc}
-Purpose: ${purpose}
-Data categories: ${dataCategories}
-Data subjects: ${dataSubjects}
-Volume/frequency: ${volume}
-Third-party processors: ${thirdParties}
-Existing safeguards: ${safeguards}
-Jurisdictions: ${jurisdictions}
-Article 9(2) condition for special-category data (selected by user): ${article9Condition}
-Retention period (provided by user): ${retentionPeriod}
-Necessity, proportionality & alternatives considered (provided by user): ${necessityProportionality}
-
-EDPB TEMPLATE — SECTION 0 (OVERVIEW) INPUTS (controller-provided; use to populate section_0_overview):
-Controller main establishment / point of contact: ${controllerContact}
-DPO (or similar function): ${dpoInfo}
-Processor / sub-processor obligations & tasks: ${processorObligations}
-Processing current version / change history: ${processingVersion}
-Estimated launch date: ${launchDate}
-Estimated end date / expiry: ${endDate}
-DPIA team / roles (RACI): ${dpiaTeam}
-Guidelines / standards used: ${referenceMaterials}
-Reasons to conduct the DPIA (controller-selected): ${reasonsToConduct}
-Scope of this DPIA (in / out): ${dpiaScopeNote}
-Publication / external-sharing intent: ${publicationIntent}
-
-EDPB TEMPLATE — SECTIONS 1, 2 & 5 INPUTS (controller-provided; assess these as proposals, do not treat as settled conclusions):
-[Section 1 — description] Secondary / compatible uses: ${secondaryUses}; Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
-[Section 2 — compliance] Data minimisation justification: ${dataMinimisationJustification}; Data quality measures: ${dataQualityMeasures}; Measures supporting data subjects' rights: ${dataSubjectRightsMechanisms}; Data protection by design & default: ${dpByDesignMeasures}
-[Section 5 — interested parties] DPO advice: ${dpoAdvice}; Data subjects' views sought: ${dataSubjectsViewsSought}; Data subjects' views / justification: ${dataSubjectsViews}
-USE THESE INPUTS: fold them into section_1_description (secondary uses, nature/scope/context, functional description, supporting assets, codes of conduct), section_2_analysis (data minimisation under Art. 5(1)(c); data quality under Art. 5(1)(d); measures supporting data-subject rights under Arts. 12–22; data protection by design & default under Art. 25), and section_5_interested_parties (DPO advice under Art. 35(2); data subjects' views under Art. 35(9), including the controller's justification where views were not sought). Where a value is "Not specified", keep the existing [TO COMPLETE] behaviour for that element rather than inventing content.
-${orgContext}
-
-ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
-${enforcementContextStr}
-
-ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigating measure in the risk assessment, include it in the section_4_risk_management.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
-
-USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs — an Article 9(2) condition, a necessity/proportionality & alternatives statement, and a retention period. Where a value is provided (i.e. not "Not specified"/"Not provided"): (1) Article 9(2) condition — treat it as the controller's PROPOSED special-category condition in section_2_analysis.special_category_conditions: state it explicitly and assess whether it is sound for this processing (for example, flag that explicit consent under Art. 9(2)(a) may not be freely given where an employment or other power imbalance exists). Do NOT emit a blank "[TO COMPLETE — identify Article 9(2) condition]" when the user has supplied one — assess what they supplied. (2) Necessity, proportionality & alternatives — incorporate the user's stated alternatives and justification into section_3_necessity_proportionality (the necessity and proportionality assessments), assessing them, rather than emitting only [TO COMPLETE] placeholders. (3) Retention period — use it in section_2_analysis.data_minimisation_retention (storage-limitation, Art. 5(1)(e)) and in the related mitigating measure, rather than treating retention as undefined. Where a value is "Not specified"/"Not provided", retain the existing [TO COMPLETE] behaviour. Never treat these user inputs as settled legal conclusions — assess them as proposals the organisation must validate and document.
-
-COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. Do not write paragraph-length narrative inside cells of the repeatable tables (controllers, processors, processed_personal_data, purposes, secondary_uses, functional_description, supporting_assets, codes_of_conduct, legal_basis, special_category_conditions, data_minimisation_retention, data_quality, measures_article5, measures_rights, measures_other, measures_dpbd, measures_security, and the risk_assessment and residual_risk_assessment tables). The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
-
-    const promptA = `${sharedContext}
-
-Generate the first half of an EDPB-format DPIA (Overview, Systematic Description, Analysis). Mirror the EDPB DPIA template structure. The repeatable tables (controllers, processors, data items, purposes, legal-basis rows, retention rows, and the measure matrices) must be GENERATED from the processing details above for the controller to verify — populate each row with substantive draft content, and use "[TO COMPLETE — …]" only where a value genuinely cannot be inferred from the intake. For the measure matrices, provide one row per Article 5(1)(a–f) principle (fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity & confidentiality, accountability), one row per data-subject right group, and one row per other GDPR requirement. Return ONLY this JSON structure, no preamble:
-
-{
+// Per-unit JSON output skeletons. Preserved verbatim from the pre-refactor
+// promptA/promptB (L577–740 of the r1b2.2 file). Rule text lives in the
+// shared system prefix (DPIA_TOOL_MODULE.extraRules) — never here.
+const U1_SKELETON = `{
   "dpia_metadata": {
     "processing_activity_name": "brief name for this processing activity",
     "framework_version": "1.0",
@@ -634,7 +353,10 @@ Generate the first half of an EDPB-format DPIA (Overview, Systematic Description
       { "code": "approved code of conduct, or 'None applicable'", "basis": "Required (legal obligation) | Necessary or beneficial | N/A", "explanation": "why" }
     ],
     "completion_guidance": "What the organisation must complete or verify in Section 1"
-  },
+  }
+}`;
+
+const U2_SKELETON = `{
   "section_2_analysis": {
     "title": "Analysis of the Processing",
     "guidance_note": "EDPB Section 2 — lawfulness, data minimisation / retention / quality, and the measures supporting compliance.",
@@ -669,16 +391,7 @@ Generate the first half of an EDPB-format DPIA (Overview, Systematic Description
   }
 }`;
 
-    const promptB = `${sharedContext}
-
-Generate the second half of an EDPB-format DPIA (Necessity & Proportionality, Risk Assessment & Management, Interested Parties, Conclusion). CRITICAL — keep the EDPB design-risk vs incident-risk distinction:
-- section_3_necessity_proportionality.design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context).
-- section_4_risk_management.incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors).
-- section_4_risk_management.inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts and incident_risk_impacts, each scored likelihood × severity with modulating factors.
-- section_4_risk_management.residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures.
-Generate substantive draft rows for every table for the controller to verify; use "[TO COMPLETE — …]" only where a value cannot be inferred. Return ONLY this JSON structure, no preamble:
-
-{
+const U3_SKELETON = `{
   "section_3_necessity_proportionality": {
     "title": "Considerations on Necessity and Proportionality",
     "guidance_note": "EDPB Section 3 — design / structural impacts on rights and freedoms, plus the necessity and proportionality tests.",
@@ -688,7 +401,10 @@ Generate substantive draft rows for every table for the controller to verify; us
     "necessity_assessment": "is the processing effective and the least intrusive option; evidence and the alternatives considered",
     "proportionality_assessment": "do the benefits outweigh the impacts on rights and freedoms; evidence and justification (necessity is a pre-condition)",
     "completion_guidance": "What the organisation must complete or verify in Section 3"
-  },
+  }
+}`;
+
+const U4_SKELETON = `{
   "section_4_risk_management": {
     "title": "Risk Assessment and Management",
     "guidance_note": "EDPB Section 4 — incident / deviation risks, method, inherent risk, additional mitigating measures, residual risk, and the action plan.",
@@ -718,7 +434,10 @@ Generate substantive draft rows for every table for the controller to verify; us
       }
     ],
     "completion_guidance": "What the organisation must complete or verify in Section 4"
-  },
+  }
+}`;
+
+const U5_SKELETON = `{
   "section_5_interested_parties": {
     "title": "Involvement of Interested Parties",
     "guidance_note": "EDPB Section 5 — DPO advice (advisory only) and the views of data subjects or their representatives.",
@@ -739,43 +458,627 @@ Generate substantive draft rows for every table for the controller to verify; us
   "framework_disclaimer": "This document helps your organisation structure its Data Protection Impact Assessment using the EDPB-endorsed Guidelines on DPIA (WP248 rev.01). It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Your qualified Data Protection Officer or legal counsel must review, complete, and own it. It does not constitute legal advice."
 }`;
 
-    function parseJsonish(text: string): any {
-      try {
-        const m = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
-        return m ? JSON.parse(m[0]) : {};
-      } catch (e) {
-        console.error("[DPIA] parse error:", e, "Tail:", text.slice(-200));
-        return {};
+const UNIT_KEYS: Record<UnitId, string[]> = {
+  u1: ["dpia_metadata", "section_0_overview", "section_1_description"],
+  u2: ["section_2_analysis"],
+  u3: ["section_3_necessity_proportionality"],
+  u4: ["section_4_risk_management"],
+  u5: ["section_5_interested_parties", "section_6_conclusion", "framework_disclaimer"],
+};
+
+const UNIT_SKELETON: Record<UnitId, string> = {
+  u1: U1_SKELETON, u2: U2_SKELETON, u3: U3_SKELETON, u4: U4_SKELETON, u5: U5_SKELETON,
+};
+
+const UNIT_INSTRUCTION: Record<UnitId, string> = {
+  u1: "Generate the DPIA overview, metadata, and systematic description. Populate the repeatable tables (controllers, processors, data items, purposes) with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred from the intake. Return ONLY the JSON structure below, no preamble:",
+  u2: "Generate the compliance analysis section. Provide one row per Article 5(1)(a–f) principle for measures_article5, one row per data-subject right group for measures_rights, and one row per other GDPR requirement for measures_other. Populate every table with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred. Return ONLY the JSON structure below, no preamble:",
+  u3: "Generate the necessity & proportionality section. CRITICAL: design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context) — this list will be reused verbatim by Section 4. Return ONLY the JSON structure below, no preamble:",
+  u4: "Generate the risk assessment & management section. CRITICAL — keep the EDPB design-risk vs incident-risk distinction: incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors). inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts (supplied below verbatim) and incident_risk_impacts, each scored likelihood × severity with modulating factors. residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures. Return ONLY the JSON structure below, no preamble:",
+  u5: "Generate the interested-parties section, the conclusion, and the framework disclaimer. CONSISTENCY DUTIES (repair-only): conclusion conditions must link to section_4 measures; blockers named in section_6 must match information_needed entries in earlier sections; dpia_metadata ↔ section_6 must be consistent on unresolved determinations. You MAY reconcile contradictions between earlier units but MUST NOT introduce new legal determinations. Return ONLY the JSON structure below, no preamble:",
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared context — DATA ONLY. Amendment 2: never persist system-prompt text
+// or per-unit prompt-skeleton text. Blocks are rebuilt in every unit from
+// this data via buildSystemBlocksForUnit().
+// ─────────────────────────────────────────────────────────────────────────────
+interface SharedContextData {
+  intake: Record<string, any>;
+  orgName: string | null;
+  orgContext: string;
+  processingDesc: string;
+  gdprJurisdiction: "eu" | "uk";
+  enforcementPrecedents: any[];
+  enforcementMeta: any;
+  gdprBlock: string;
+  gdprMeta: any;
+  resolved: ReturnType<typeof resolveDpiaJurisdiction>;
+  testStates: Record<string, DpiaTestStateEntry>;
+  generationStartedAt: number;
+}
+
+async function buildSharedContext(dpia: any): Promise<SharedContextData> {
+  const intake = (dpia.intake_data as any) ?? {};
+  const orgName = dpia.organization_name || intake?.organization_name || null;
+
+  let orgContext = "";
+  if (dpia.source_assessment_id) {
+    const { data: sourceAssessment } = await supabase
+      .from("governance_assessments")
+      .select("intake_data, report_data")
+      .eq("id", dpia.source_assessment_id).single();
+    if (sourceAssessment) {
+      const srcIntake = sourceAssessment.intake_data as any;
+      orgContext = `
+SOURCE GOVERNANCE ASSESSMENT CONTEXT:
+Organisation sector: ${srcIntake.sector || "not specified"}
+Jurisdictions: ${(srcIntake.jurisdictions || []).join(", ")}
+EU/UK data: ${srcIntake.eu_uk_data ? "Yes" : "No"}
+DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
+`;
+    }
+  }
+
+  const processingDesc = intake.processing_description || intake.description || "Not provided";
+
+  const asList = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x)) : (v == null || v === "" ? [] : [String(v)]);
+
+  // Effective jurisdictions (source-assessment preferred where present).
+  let srcIntakeJurisdictions: string[] | null = null;
+  if (dpia.source_assessment_id) {
+    try {
+      const { data: sa } = await supabase
+        .from("governance_assessments")
+        .select("intake_data")
+        .eq("id", dpia.source_assessment_id).maybeSingle();
+      const sj = (sa?.intake_data as any)?.jurisdictions;
+      if (Array.isArray(sj)) srcIntakeJurisdictions = sj;
+    } catch { /* non-fatal */ }
+  }
+  const effectiveJurisdictions: string[] = srcIntakeJurisdictions ?? (intake.jurisdictions || []);
+  const hasEU = effectiveJurisdictions.some((j: string) => /\beu\b|european.*union|eea|\bgdpr\b|germany|france|ireland|netherlands|spain|italy|sweden|denmark|poland|belgium|austria|finland|luxembourg|greece|portugal|norway|switzerland/i.test(String(j)));
+  const hasUK = effectiveJurisdictions.some((j: string) => /united kingdom|\buk\b|\bgb\b|uk gdpr|england|wales|scotland/i.test(String(j)));
+  const gdprJurisdiction: "eu" | "uk" = hasEU ? "eu" : (hasUK ? "uk" : "eu");
+
+  // Enforcement + GDPR context (parallel).
+  let enforcementPrecedents: any[] = [];
+  let enforcementMeta: any = { attempted: false };
+  let gdprBlock = "";
+  let gdprMeta: any = { attempted: false };
+  try {
+    const corpusRegime: "gdpr" | "uk_gdpr" = gdprJurisdiction === "uk" ? "uk_gdpr" : "gdpr";
+    const [ecRes, gdprRes] = await Promise.all([
+      supabase.functions.invoke("get-enforcement-context", {
+        body: {
+          tool: "DPIA",
+          regime: corpusRegime,
+          data_categories: intake.data_categories || [],
+          jurisdictions: intake.jurisdictions || [],
+          sector: intake.sector || undefined,
+          articles: ["gdpr:35", "gdpr:36"],
+          limit: 5,
+        },
+      }),
+      getGdprContext(supabase, {
+        articles: ["35", "36"],
+        jurisdiction: gdprJurisdiction,
+        recitals: [75, 84, 90],
+        guidelineArticles: ["35"],
+        semanticQuery: processingDesc,
+      }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; }),
+    ]);
+    const ctxData = (ecRes as any)?.data;
+    enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+    const descParts: string[] = [];
+    if (intake.sector) descParts.push(`${intake.sector} sector`);
+    const jList = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : (intake.jurisdictions ? [String(intake.jurisdictions)] : []);
+    if (jList.length) descParts.push(`processing in ${jList.join(", ")}`);
+    enforcementMeta = {
+      attempted: true,
+      total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
+      query_descriptor: descParts.join(" — ") || undefined,
+    };
+    gdprBlock = (gdprRes as any)?.block || "";
+    gdprMeta = (gdprRes as any)?.meta || { attempted: false };
+  } catch (e) {
+    console.error("DPIA context fetch failed (non-fatal):", e);
+  }
+
+  // Deterministic jurisdiction resolution.
+  function inferCountryFromJurisdictions(js: string[]): string {
+    const joined = (js || []).join(" ");
+    if (/germany|deutschland|\bDE\b/i.test(joined)) return "DE";
+    if (/united kingdom|\bUK\b|\bGB\b/i.test(joined)) return "UK";
+    if (/ireland|\bIE\b/i.test(joined)) return "IE";
+    if (/france|\bFR\b/i.test(joined)) return "FR";
+    if (/spain|\bES\b/i.test(joined)) return "ES";
+    if (/netherlands|holland|\bNL\b/i.test(joined)) return "NL";
+    if (/italy|\bIT\b/i.test(joined)) return "IT";
+    return "";
+  }
+  const resolverCountry = (intake.controller_country || inferCountryFromJurisdictions(intake.jurisdictions || []) || "").toUpperCase();
+  const resolverSector = (intake.controller_sector || "private") as any;
+  const facts: DpiaIntakeFacts = {
+    controllerSites: resolverCountry ? [{ country: resolverCountry, land: intake.controller_land || undefined, sector: resolverSector }] : [],
+    centralAdministrationCountry: (intake.central_administration_country || resolverCountry || "").toUpperCase(),
+    euEstablishmentWithDecisionAuthority: intake.eu_decision_establishment_country
+      ? { country: String(intake.eu_decision_establishment_country).toUpperCase(), sector: "private" }
+      : null,
+    transferFlows: Array.isArray(intake.transfer_flows)
+      ? (intake.transfer_flows as any[]).map((f): TransferFlow => ({
+          originRegime: (f.originRegime === "UK" ? "UK" : "EU"),
+          destinationCountry: String(f.destination || "").toUpperCase(),
+          importerEntity: f.importer || undefined,
+          importerDpfCertified: !!f.dpfCertified,
+          importerUkExtensionCertified: !!f.ukExtensionCertified,
+        })).filter((f) => f.destinationCountry)
+      : [],
+    article9Condition: intake.article_9_condition || undefined,
+    retentionRecordType: intake.retention_record_type || undefined,
+  };
+  const resolved = resolveDpiaJurisdiction(facts);
+  console.log(`[run-dpia-framework] resolver: country=${resolverCountry} land=${intake.controller_land || "-"} oss=${resolved.oss.ossAvailable} transfers=${resolved.transfers.length}`);
+
+  const testStates = computeDpiaTestStates(intake as Record<string, any>);
+
+  return {
+    intake, orgName, orgContext, processingDesc, gdprJurisdiction,
+    enforcementPrecedents, enforcementMeta, gdprBlock, gdprMeta,
+    resolved, testStates,
+    generationStartedAt: Date.now(),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rebuild the system+shared-user prefix from data. Called in EVERY unit
+// invocation — deterministic given the module source, so identical context is
+// preserved across units without persisting any prompt text.
+// ─────────────────────────────────────────────────────────────────────────────
+function buildSystemBlocksForUnit(shared: SharedContextData): SystemBlock[] {
+  const gdprAuthorityContext = shared.gdprBlock
+    ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${shared.gdprBlock}`
+    : "";
+  const resolvedBlock = renderResolvedBlock(shared.resolved);
+  const testStatesBlock = renderDpiaTestStatesBlock(shared.testStates);
+  const today = new Date().toISOString().slice(0, 10);
+  const blocks = buildSystemContent({
+    toolModule: DPIA_TOOL_MODULE,
+    currentDate: today,
+    injected: [gdprAuthorityContext, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
+  });
+  // Prompt-caching breakpoint at the end of the shared prefix (courier §5).
+  // buildSystemContent already caches blocks 1+2; force cache on block 3
+  // (corpus + resolved + TEST-STATES) so units pay cached-input rates.
+  if (blocks.length > 0) {
+    const last = blocks[blocks.length - 1];
+    (last as any).cache_control = { type: "ephemeral" };
+  }
+  return blocks;
+}
+
+function buildSharedUserContext(shared: SharedContextData): string {
+  const { intake, orgName, orgContext, enforcementPrecedents, processingDesc } = shared;
+  const asList = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x)) : (v == null || v === "" ? [] : [String(v)]);
+  const purpose = intake.purpose || "Not provided";
+  const dataCategories = asList(intake.data_categories).join(", ") || "Not specified";
+  const dataSubjects = intake.data_subjects || "Not specified";
+  const volume = intake.volume_frequency || "Not specified";
+  const thirdParties = asList(intake.third_party_processors).join(", ") || "None identified";
+  const safeguards = asList(intake.existing_safeguards).join(", ") || "None identified";
+  const jurisdictions = asList(intake.jurisdictions).join(", ") || "Not specified";
+  const legalBasisProposed = intake.legal_basis_proposed || "Not specified";
+  const article9Condition = intake.article_9_condition || "Not specified";
+  const necessityProportionality = intake.necessity_proportionality || "Not provided";
+  const retentionPeriod = intake.retention_period || "Not specified";
+  const sector = intake.sector || intake.organization_sector || "Not specified";
+  const controllerContact = intake.controller_contact || "Not specified";
+  const dpoInfo = intake.dpo_info || "Not specified";
+  const processorObligations = intake.processor_obligations || "Not specified";
+  const processingVersion = intake.processing_version || "Not specified";
+  const launchDate = intake.estimated_launch_date || "Not specified";
+  const endDate = intake.estimated_end_date || "Not specified";
+  const dpiaTeam = intake.dpia_team || "Not specified";
+  const referenceMaterials = intake.reference_materials || "Not specified";
+  const reasonsToConduct = asList(intake.reasons_to_conduct).join("; ") || "Not specified";
+  const dpiaScopeNote = intake.dpia_scope_note || "Not specified";
+  const publicationIntent = intake.publication_intent || "Not specified";
+  const secondaryUses = intake.secondary_uses || "Not specified";
+  const natureScopeContext = intake.nature_scope_context || "Not specified";
+  const functionalDescription = intake.functional_description || "Not specified";
+  const supportingAssets = intake.supporting_assets || "Not specified";
+  const codesOfConduct = intake.codes_of_conduct || "Not specified";
+  const dataMinimisationJustification = intake.data_minimisation_justification || "Not specified";
+  const dataQualityMeasures = intake.data_quality_measures || "Not specified";
+  const dataSubjectRightsMechanisms = intake.data_subject_rights_mechanisms || "Not specified";
+  const dpByDesignMeasures = intake.dp_by_design_measures || "Not specified";
+  const dpoAdvice = intake.dpo_advice || "Not specified";
+  const dataSubjectsViewsSought = intake.data_subjects_views_sought || "Not specified";
+  const dataSubjectsViews = intake.data_subjects_views || "Not specified";
+
+  const enforcementContextStr = enforcementPrecedents.length > 0
+    ? enforcementPrecedents.map((r: any, i: number) => {
+        const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
+          ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
+        const fineVerified = r.fine_verified !== false;
+        const fine = !fineVerified
+          ? "fine amount under verification — omitted"
+          : (r.fine_eur_equivalent ? `€${Number(r.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
+        return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: ${fine} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}${provs}`;
+      }).join("\n")
+    : "No directly analogous enforcement precedents retrieved.";
+
+  return `PROCESSING ACTIVITY DETAILS:
+Organisation (controller) being assessed: ${orgName || "not specified"}
+Processing activity name: ${intake.processing_activity_name || "not specified"}
+Sector: ${sector}
+Legal basis selected by user: ${legalBasisProposed}
+Description: ${processingDesc}
+Purpose: ${purpose}
+Data categories: ${dataCategories}
+Data subjects: ${dataSubjects}
+Volume/frequency: ${volume}
+Third-party processors: ${thirdParties}
+Existing safeguards: ${safeguards}
+Jurisdictions: ${jurisdictions}
+Article 9(2) condition for special-category data (selected by user): ${article9Condition}
+Retention period (provided by user): ${retentionPeriod}
+Necessity, proportionality & alternatives considered (provided by user): ${necessityProportionality}
+
+EDPB TEMPLATE — SECTION 0 (OVERVIEW) INPUTS (controller-provided; use to populate section_0_overview):
+Controller main establishment / point of contact: ${controllerContact}
+DPO (or similar function): ${dpoInfo}
+Processor / sub-processor obligations & tasks: ${processorObligations}
+Processing current version / change history: ${processingVersion}
+Estimated launch date: ${launchDate}
+Estimated end date / expiry: ${endDate}
+DPIA team / roles (RACI): ${dpiaTeam}
+Guidelines / standards used: ${referenceMaterials}
+Reasons to conduct the DPIA (controller-selected): ${reasonsToConduct}
+Scope of this DPIA (in / out): ${dpiaScopeNote}
+Publication / external-sharing intent: ${publicationIntent}
+
+EDPB TEMPLATE — SECTIONS 1, 2 & 5 INPUTS (controller-provided; assess these as proposals, do not treat as settled conclusions):
+[Section 1 — description] Secondary / compatible uses: ${secondaryUses}; Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
+[Section 2 — compliance] Data minimisation justification: ${dataMinimisationJustification}; Data quality measures: ${dataQualityMeasures}; Measures supporting data subjects' rights: ${dataSubjectRightsMechanisms}; Data protection by design & default: ${dpByDesignMeasures}
+[Section 5 — interested parties] DPO advice: ${dpoAdvice}; Data subjects' views sought: ${dataSubjectsViewsSought}; Data subjects' views / justification: ${dataSubjectsViews}
+USE THESE INPUTS: fold them into section_1_description, section_2_analysis, and section_5_interested_parties. Where a value is "Not specified", keep the existing [TO COMPLETE] behaviour for that element rather than inventing content.
+${orgContext}
+
+ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
+${enforcementContextStr}
+
+ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigating measure in the risk assessment, include it in the section_4_risk_management.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
+
+USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs — an Article 9(2) condition, a necessity/proportionality & alternatives statement, and a retention period. Where a value is provided (i.e. not "Not specified"/"Not provided"): (1) Article 9(2) condition — treat as PROPOSED, assess soundness (e.g. flag employment/power-imbalance issues under Art. 9(2)(a)). Do NOT emit a blank "[TO COMPLETE — identify Article 9(2) condition]" when the user has supplied one. (2) Necessity, proportionality & alternatives — incorporate into section_3_necessity_proportionality, assessing them. (3) Retention period — use it in section_2_analysis.data_minimisation_retention. Never treat these user inputs as settled legal conclusions — assess them as proposals the organisation must validate and document.
+
+COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
+}
+
+function parseJsonish(text: string): any {
+  try {
+    const m = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
+    return m ? JSON.parse(m[0]) : {};
+  } catch (e) {
+    console.error("[DPIA] parse error:", e, "Tail:", text.slice(-200));
+    return {};
+  }
+}
+
+// U4 hand-off tail (design_risk_impacts VERBATIM from U3).
+function u4HandoffTail(u3Keys: any): string {
+  const design = u3Keys?.section_3_necessity_proportionality?.design_risk_impacts ?? [];
+  return `\n\nGIVEN — Section 3 design_risk_impacts (verbatim from earlier generation stage; do not modify):\n${JSON.stringify(design, null, 2)}\n\nUse these design risks alongside your own incident_risk_impacts to build inherent_risk_assessment (each row scored likelihood × severity with modulating factors). residual_risk_assessment then re-scores those risks AFTER the additional mitigating measures.`;
+}
+
+// U5 digest tail — compact summaries of U1..U4 for consistency-sweep only.
+function u5DigestTail(units: Record<string, any>): string {
+  const u1 = units.u1?.keys ?? {};
+  const u2 = units.u2?.keys ?? {};
+  const u3 = units.u3?.keys ?? {};
+  const u4 = units.u4?.keys ?? {};
+
+  const meta = u1.dpia_metadata ?? {};
+  const trigger = meta.article_35_3_trigger ?? "";
+  const inherent = Array.isArray(u4?.section_4_risk_management?.inherent_risk_assessment)
+    ? u4.section_4_risk_management.inherent_risk_assessment.slice(0, 20).map((r: any) => ({
+        risk: String(r.risk ?? "").slice(0, 100), level: r.risk_level, acceptable: r.acceptable,
+      }))
+    : [];
+  const residual = Array.isArray(u4?.section_4_risk_management?.residual_risk_assessment)
+    ? u4.section_4_risk_management.residual_risk_assessment.slice(0, 20).map((r: any) => ({
+        risk: String(r.risk ?? "").slice(0, 100), level: r.residual_risk_level, acceptable: r.acceptable,
+      }))
+    : [];
+  const measures = Array.isArray(u4?.section_4_risk_management?.additional_mitigating_measures)
+    ? u4.section_4_risk_management.additional_mitigating_measures.slice(0, 20).map((m: any) => ({
+        measure: String(m.measure ?? "").slice(0, 120), status: m.implementation_status,
+      }))
+    : [];
+
+  // Collect [TO COMPLETE] items and information_needed entries across U1..U4.
+  const toComplete: string[] = [];
+  const infoNeeded: any[] = [];
+  const walk = (o: any) => {
+    if (o == null) return;
+    if (typeof o === "string") {
+      if (/\[TO COMPLETE|\[TO BE ASSESSED/i.test(o)) toComplete.push(o.slice(0, 160));
+      return;
+    }
+    if (Array.isArray(o)) { for (const v of o) walk(v); return; }
+    if (typeof o === "object") {
+      for (const k of Object.keys(o)) {
+        if (k === "information_needed" && Array.isArray(o[k])) infoNeeded.push(...o[k]);
+        walk(o[k]);
       }
     }
+  };
+  walk({ u1, u2, u3, u4 });
 
-    async function genHalf(prompt: string, extraUser: string): Promise<any> {
-      const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      // Courier 2026-07-12 item 1+4: first call at 24k/half; continuation-on-
-      // truncation is handled inside callAnthropicWithContinuation. If the
-      // stitched response is still max_tokens after continuation, fall through
-      // to the existing empty-half behavior — no second full-price retry.
-      const r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, DPIA_HALF_MAX_TOKENS);
-      console.log(`[DPIA] genHalf stopReason=${r.stopReason} chars=${r.text.length} tail=${JSON.stringify(r.text.slice(-120))}`);
-      if (r.stopReason === "max_tokens") {
-        console.error("[DPIA] genHalf truncated_output after continuation — returning empty half");
-        return {};
-      }
-      const parsed = parseJsonish(r.text);
-      if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 0 && r.text.length > 200) {
-        console.error(`[DPIA] genHalf parsed to EMPTY object despite ${r.text.length} chars of response — likely malformed JSON, not empty content. Tail: ${JSON.stringify(r.text.slice(-200))}`);
-      }
-      return parsed;
+  return `\n\nEARLIER-STAGE DIGEST (consistency-sweep input; do NOT introduce new legal determinations):
+- dpia_metadata.article_35_3_trigger: ${JSON.stringify(trigger).slice(0, 400)}
+- Inherent risks (sample): ${JSON.stringify(inherent).slice(0, 1200)}
+- Residual risks (sample): ${JSON.stringify(residual).slice(0, 1200)}
+- Additional measures (sample): ${JSON.stringify(measures).slice(0, 800)}
+- Open [TO COMPLETE] items (${toComplete.length}): ${JSON.stringify(toComplete.slice(0, 20)).slice(0, 1200)}
+- Information-needed entries (${infoNeeded.length}): ${JSON.stringify(infoNeeded.slice(0, 12)).slice(0, 800)}
+
+CONSISTENCY DUTIES for section_6_conclusion:
+- decision.conditions must reference specific measures listed above by name
+- If any foundational determination is still [TO COMPLETE], decision starts with "DRAFT — INCOMPLETE"
+- supervisory_authority_consultation_required: unconditionally "required" iff any residual risk above is High-level; state which risk(s)`;
+}
+
+function buildUnitUserPrompt(unit: UnitId, shared: SharedContextData, staging: any): string {
+  const context = buildSharedUserContext(shared);
+  const instruction = UNIT_INSTRUCTION[unit];
+  const skeleton = UNIT_SKELETON[unit];
+  let tail = "";
+  if (unit === "u4") tail = u4HandoffTail(staging?.units?.u3?.keys);
+  if (unit === "u5") tail = u5DigestTail(staging?.units ?? {});
+  return `${context}\n\n${instruction}\n\n${skeleton}${tail}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Persistence helpers — read-modify-write on report_data jsonb with
+// optimistic concurrency (updated_at). Amendment 1: failure writes MERGE and
+// preserve _staging.
+// ─────────────────────────────────────────────────────────────────────────────
+async function readRow(dpia_id: string) {
+  const { data, error } = await supabase
+    .from("dpia_frameworks").select("*").eq("id", dpia_id).single();
+  if (error) throw error;
+  return data;
+}
+
+async function optimisticUpdate(
+  dpia_id: string,
+  prevUpdatedAt: string | null,
+  patch: Record<string, any>,
+): Promise<boolean> {
+  patch.updated_at = new Date().toISOString();
+  let q = supabase.from("dpia_frameworks").update(patch).eq("id", dpia_id);
+  if (prevUpdatedAt) q = q.eq("updated_at", prevUpdatedAt);
+  const { data, error } = await q.select("id");
+  if (error) { console.error("[optimisticUpdate] error:", error); return false; }
+  return (data?.length ?? 0) > 0;
+}
+
+async function writeUnitStatus(dpia_id: string, unit: UnitId, patch: Record<string, any>): Promise<boolean> {
+  // Retry loop for concurrent writers (u1/u2/u3 all writing status).
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const row = await readRow(dpia_id);
+    const rd = (row.report_data ?? {}) as any;
+    const staging = rd._staging ?? { units: {}, version: STAMP };
+    staging.units = staging.units ?? {};
+    staging.units[unit] = { ...(staging.units[unit] ?? {}), ...patch };
+    const nextRd = { ...rd, _staging: staging };
+    const ok = await optimisticUpdate(dpia_id, row.updated_at, { report_data: nextRd });
+    if (ok) return true;
+    await new Promise((r) => setTimeout(r, 100 + Math.random() * 200));
+  }
+  console.error(`[writeUnitStatus] failed after 5 attempts for unit=${unit}`);
+  return false;
+}
+
+// Amendment 1: MERGE-preserving fail write.
+async function mergePreservingFail(
+  dpia_id: string,
+  unit: UnitId | "stitch",
+  err: unknown,
+  elapsedMs: number,
+): Promise<void> {
+  const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const row = await readRow(dpia_id);
+    const rd = (row.report_data ?? {}) as any;
+    const staging = rd._staging ?? { units: {}, version: STAMP };
+    staging.units = staging.units ?? {};
+    if (unit !== "stitch") {
+      staging.units[unit] = {
+        ...(staging.units[unit] ?? {}),
+        status: "error",
+        error: message.slice(0, 500),
+        elapsed_ms: elapsedMs,
+      };
     }
+    const nextRd = {
+      ...rd,
+      _staging: staging,
+      last_error: { unit, error: message.slice(0, 500), elapsed_ms: elapsedMs, at: new Date().toISOString() },
+    };
+    const patch = { report_data: nextRd, status: "failed" as const };
+    const ok = await optimisticUpdate(dpia_id, row.updated_at, patch);
+    if (ok) return;
+    await new Promise((r) => setTimeout(r, 100 + Math.random() * 200));
+  }
+  console.error(`[mergePreservingFail] failed after 5 attempts unit=${unit}`);
+}
 
-    const generationStartedAt = Date.now();
-    let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
+// ─────────────────────────────────────────────────────────────────────────────
+// Self-reinvoke (mirrors run-quality-batch pattern; STOP-condition #1 CLEAR).
+// ─────────────────────────────────────────────────────────────────────────────
+async function selfInvokeUnit(dpia_id: string, unit: UnitId): Promise<void> {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/run-dpia-framework`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "x-internal-unit": "1",
+      },
+      body: JSON.stringify({ dpia_id, unit }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!r.ok) console.warn(`[run-dpia-framework] self-invoke unit=${unit} HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  } catch (e) {
+    console.warn(`[run-dpia-framework] self-invoke unit=${unit} failed:`, (e as Error).message);
+  }
+}
 
-    let reportData: any = { ...partA, ...partB };
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase advance (optimistic). Returns list of next units to dispatch.
+// ─────────────────────────────────────────────────────────────────────────────
+async function advancePhaseIfReady(dpia_id: string): Promise<UnitId[]> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const row = await readRow(dpia_id);
+    const rd = (row.report_data ?? {}) as any;
+    const staging = rd._staging;
+    if (!staging?.units) return [];
+    const s = staging.units;
+    const done = (u: UnitId) => s[u]?.status === "done";
+    const blocked = (u: UnitId) => s[u]?.status === "blocked";
+    const dispatchable: UnitId[] = [];
+    let mutated = false;
+    if (PHASE1.every(done) && blocked("u4")) {
+      s.u4.status = "dispatching"; dispatchable.push("u4"); mutated = true;
+    }
+    if (done("u4") && blocked("u5")) {
+      s.u5.status = "dispatching"; dispatchable.push("u5"); mutated = true;
+    }
+    if (!mutated) return [];
+    const ok = await optimisticUpdate(dpia_id, row.updated_at, {
+      report_data: { ...rd, _staging: staging },
+    });
+    if (ok) return dispatchable;
+    await new Promise((r) => setTimeout(r, 100 + Math.random() * 200));
+  }
+  return [];
+}
 
-    // QB8-8(a): structural completeness check for residual_risk_assessment entries.
-    // Every entry must carry residual_likelihood, residual_risk_level, and additional_measures.
-    // If any entry is missing fields, run ONE repair scoped to the deficient entries.
+// ─────────────────────────────────────────────────────────────────────────────
+// Unit executor.
+// ─────────────────────────────────────────────────────────────────────────────
+async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
+  const startedMs = Date.now();
+  const row0 = await readRow(dpia_id);
+  const rd0 = (row0.report_data ?? {}) as any;
+  const staging = rd0._staging;
+  if (!staging?.shared) {
+    console.error(`[unit:${unit}] no _staging.shared — cannot execute; skipping`);
+    return;
+  }
+  // Skip-if-already-done (idempotency for sweeper re-entry).
+  if (staging.units?.[unit]?.status === "done") {
+    console.log(`[unit:${unit}] already done — skip`);
+    return;
+  }
+  // Optimistic transition → processing.
+  await writeUnitStatus(dpia_id, unit, { status: "processing", started_at: new Date(startedMs).toISOString() });
+
+  const shared: SharedContextData = staging.shared;
+  // Rebuild system blocks from code (Amendment 2 — never persisted).
+  const systemBlocks = buildSystemBlocksForUnit(shared);
+  const userPrompt = buildUnitUserPrompt(unit, shared, staging);
+
+  try {
+    const r = await callAnthropicWithContinuation({
+      model: "claude-sonnet-4-6",
+      system: systemBlocks,
+      user: userPrompt,
+      maxTokens: UNIT_MAX_TOKENS[unit],
+      label: `run-dpia-framework:unit:${unit}`,
+    });
+    const elapsedMs = Date.now() - startedMs;
+    // Telemetry line (courier §10) — extractable from edge-function logs.
+    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length}`);
+    if (r.stopReason === "max_tokens") {
+      console.error(`[unit:${unit}] truncated after continuation — treating as terminal failure`);
+      await mergePreservingFail(dpia_id, unit, new Error("truncated_after_continuation"), elapsedMs);
+      return;
+    }
+    const keys = parseJsonish(r.text);
+    // Verify unit produced its required keys.
+    const missing = UNIT_KEYS[unit].filter((k) => !keys || typeof keys !== "object" || !(k in keys));
+    if (missing.length > 0) {
+      console.error(`[unit:${unit}] parsed JSON missing required keys: ${missing.join(", ")}`);
+      await mergePreservingFail(dpia_id, unit, new Error(`unit_missing_keys:${missing.join(",")}`), elapsedMs);
+      return;
+    }
+    await writeUnitStatus(dpia_id, unit, {
+      status: "done",
+      keys,
+      elapsed_ms: elapsedMs,
+      output_tokens: r.outputTokens ?? null,
+      stop_reason: r.stopReason ?? null,
+    });
+  } catch (e) {
+    const elapsedMs = Date.now() - startedMs;
+    console.error(`[unit:${unit}] error after ${elapsedMs}ms:`, e);
+    await mergePreservingFail(dpia_id, unit, e, elapsedMs);
+    return;
+  }
+
+  // Phase advance — dispatch next unit(s) atomically.
+  const next = await advancePhaseIfReady(dpia_id);
+  for (const u of next) {
+    await selfInvokeUnit(dpia_id, u);
+  }
+
+  // If we just finished U5, run the stitch stage inline (still in this isolate).
+  if (unit === "u5") {
+    await runStitch(dpia_id);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stitch: merge U1..U5 keys, run whole-doc post-generation machinery, complete.
+// All post-gen checks are PRESERVED from the r1b2.2 file (residual repair,
+// methodology reconciliation, lint walk, T-1..T-5 detection, jurisdiction
+// validator, insufficient-info-guard, placeholder scan, recordRunMeter,
+// observeCitations, accumulate-ropa, PDF/email delivery). Retries that would
+// regenerate full halves are converted to log-only (elapsed budget is always
+// exhausted after sectioned generation — same behaviour as the existing
+// time-budget skip at L1110 of r1b2.2).
+// ─────────────────────────────────────────────────────────────────────────────
+async function runStitch(dpia_id: string): Promise<void> {
+  const stitchStart = Date.now();
+  try {
+    const row = await readRow(dpia_id);
+    const rd = (row.report_data ?? {}) as any;
+    const staging = rd._staging;
+    if (!staging?.units) throw new Error("stitch_no_staging");
+    const dpiaIntake = (row.intake_data as any) ?? {};
+
+    const shared: SharedContextData = staging.shared;
+    const dpiaTestStates = shared.testStates;
+    const resolved = shared.resolved;
+    const enforcementPrecedents = shared.enforcementPrecedents;
+    const enforcementMeta = shared.enforcementMeta;
+    const gdprMeta = shared.gdprMeta;
+
+    // MERGE unit outputs into a single reportData (byte-compatible with r1b2.2).
+    let reportData: any = {
+      ...(staging.units.u1?.keys ?? {}),
+      ...(staging.units.u2?.keys ?? {}),
+      ...(staging.units.u3?.keys ?? {}),
+      ...(staging.units.u4?.keys ?? {}),
+      ...(staging.units.u5?.keys ?? {}),
+    };
+
+    // ── QB8-8(a) residual completeness check (repair pass) ─────────────────
     try {
       const requiredResidualFields = ["residual_likelihood", "residual_risk_level", "additional_measures"];
       const s4 = reportData?.section_4_risk_management;
@@ -787,7 +1090,14 @@ Generate substantive draft rows for every table for the controller to verify; us
         if (deficient.length > 0) {
           console.warn(`[DPIA] QB8-8(a): ${deficient.length} residual_risk_assessment entries missing required fields — repair pass`);
           const repairPrompt = `The following residual_risk_assessment entries from a DPIA are incomplete. Return ONLY a JSON object of the form {"residual_risk_assessment":[...]} containing the SAME entries in the SAME order, completing the listed missing fields for each. Do not change fields that are already populated. Missing fields per entry:\n\n${JSON.stringify(deficient.map((d: any) => ({ index: d.i, entry: d.e, missing_fields: d.missing })), null, 2)}`;
-          const repair = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, repairPrompt, Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5));
+          const systemBlocks = buildSystemBlocksForUnit(shared);
+          const repair = await callAnthropicWithContinuation({
+            model: "claude-sonnet-4-6",
+            system: systemBlocks,
+            user: repairPrompt,
+            maxTokens: Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5),
+            label: "run-dpia-framework:repair-residual",
+          });
           const repaired = parseJsonish(repair.text);
           const repairedArr = Array.isArray(repaired?.residual_risk_assessment) ? repaired.residual_risk_assessment : null;
           if (repairedArr) {
@@ -796,32 +1106,23 @@ Generate substantive draft rows for every table for the controller to verify; us
               if (match) residual[d.i] = { ...residual[d.i], ...match };
             }
           }
-          // Re-validate; if still incomplete, mark report failed rather than persisting truncated table.
           const stillDeficient = residual.filter((e: any) => requiredResidualFields.some((f) => !e?.[f] || (typeof e[f] === "string" && !e[f].trim())));
           if (stillDeficient.length > 0) {
-            console.error(`[DPIA] QB8-8(a): residual_risk_assessment still incomplete after repair (${stillDeficient.length} entries) — marking report failed`);
-            throw new Error(`DPIA residual_risk_assessment incomplete after repair (${stillDeficient.length} entries missing required fields)`);
+            console.error(`[DPIA] QB8-8(a): still incomplete after repair (${stillDeficient.length}) — marking failed`);
+            throw new Error(`DPIA residual_risk_assessment incomplete after repair (${stillDeficient.length} entries)`);
           }
         }
       }
     } catch (e) {
       if (e instanceof Error && e.message.startsWith("DPIA residual_risk_assessment incomplete")) throw e;
-      console.error("[DPIA] QB8-8(a) repair pass errored:", e);
+      console.error("[DPIA] QB8-8(a) errored:", e);
     }
 
-    // QB13-5(a): deterministic risk_level reconciliation. Where the methodology text
-    // mentions "higher of", recompute each inherent/residual row's risk_level as the
-    // higher of severity/likelihood on the High > Medium > Low scale and overwrite
-    // mismatches.
+    // ── QB13-5(a) methodology reconciliation ───────────────────────────────
     try {
       const s4 = reportData?.section_4_risk_management;
-      const methodText = [
-        s4?.method,
-        s4?.methodology,
-        s4?.risk_methodology,
-        s4?.guidance_note,
-        s4?.method_note,
-      ].filter((v) => typeof v === "string").join(" \n ").toLowerCase();
+      const methodText = [s4?.method, s4?.methodology, s4?.risk_methodology, s4?.guidance_note, s4?.method_note]
+        .filter((v) => typeof v === "string").join(" \n ").toLowerCase();
       if (methodText.includes("higher of")) {
         const rank: Record<string, number> = { low: 1, medium: 2, high: 3 };
         const label = ["", "Low", "Medium", "High"];
@@ -845,7 +1146,6 @@ Generate substantive draft rows for every table for the controller to verify; us
           const expected = higher(row?.residual_likelihood, row?.residual_severity);
           if (!expected) continue;
           const cur = String(row?.residual_risk_level ?? "").trim();
-          // Preserve suffix (e.g. " — proposed, subject to the organisation's re-scoring")
           const suffixMatch = cur.match(/^(?:low|medium|high)\b(.*)$/i);
           const suffix = suffixMatch ? suffixMatch[1] : "";
           const curLevel = suffixMatch ? suffixMatch[0].split(/\s|—|-/)[0] : cur;
@@ -854,283 +1154,125 @@ Generate substantive draft rows for every table for the controller to verify; us
             corrections += 1;
           }
         }
-        if (corrections > 0) {
-          console.warn(`[DPIA] QB13-5(a): corrected ${corrections} risk_level value(s) to match declared methodology`);
-        }
+        if (corrections > 0) console.warn(`[DPIA] QB13-5(a): corrected ${corrections} risk_level value(s)`);
       }
     } catch (e) {
-      console.error("[DPIA] QB13-5(a) methodology reconciliation errored:", e);
+      console.error("[DPIA] QB13-5(a) errored:", e);
     }
 
-
-
-
-    // Lint narrative strings across the framework JSON; one retry on hard violations
-    // — surgically regenerating ONLY the half(s) whose top-level keys contain hard
-    // violations, so a clean half is preserved.
+    // ── Lint walk (retries dropped: sectioned elapsed always exhausted) ────
     const lintViolations: any[] = [];
-    const hardKeys = new Set<string>(); // top-level keys (e.g. "section_3_risks") with hard violations
-    const hardDetailsByKey = new Map<string, string[]>();
-    function walkAndLint(obj: any, path: string, topKey: string | null): boolean {
-      let hardSeen = false;
+    function walkAndLint(obj: any, path: string): void {
       if (Array.isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
           if (typeof obj[i] === "string") {
             const r = lintReportText(obj[i]);
             for (const v of r.violations) lintViolations.push({ field: `${path}[${i}]`, ...v });
-            if (hasHardViolations(r)) {
-              hardSeen = true;
-              if (topKey) {
-                hardKeys.add(topKey);
-                const arr = hardDetailsByKey.get(topKey) ?? [];
-                for (const v of r.violations) arr.push(`${v.code}: ${v.detail}`);
-                hardDetailsByKey.set(topKey, arr);
-              }
-            }
             obj[i] = r.clean;
           } else if (obj[i] && typeof obj[i] === "object") {
-            if (walkAndLint(obj[i], `${path}[${i}]`, topKey)) hardSeen = true;
+            walkAndLint(obj[i], `${path}[${i}]`);
           }
         }
       } else if (obj && typeof obj === "object") {
         for (const k of Object.keys(obj)) {
           const v = obj[k];
-          const nextTop = topKey ?? k;
           if (typeof v === "string") {
             const r = lintReportText(v);
             for (const vi of r.violations) lintViolations.push({ field: `${path}.${k}`, ...vi });
-            if (hasHardViolations(r)) {
-              hardSeen = true;
-              hardKeys.add(nextTop);
-              const arr = hardDetailsByKey.get(nextTop) ?? [];
-              for (const vi of r.violations) arr.push(`${vi.code}: ${vi.detail}`);
-              hardDetailsByKey.set(nextTop, arr);
-            }
             obj[k] = r.clean;
           } else if (v && typeof v === "object") {
-            if (walkAndLint(v, `${path}.${k}`, nextTop)) hardSeen = true;
+            walkAndLint(v, `${path}.${k}`);
           }
         }
       }
-      return hardSeen;
     }
+    walkAndLint(reportData, "report");
 
-    const HALF_A_KEYS = new Set(["dpia_metadata", "section_0_overview", "section_1_description", "section_2_analysis"]);
-    const HALF_B_KEYS = new Set(["section_3_necessity_proportionality", "section_4_risk_management", "section_5_interested_parties", "section_6_conclusion", "framework_disclaimer"]);
-
-    if (walkAndLint(reportData, "report", null)) {
-      try {
-        const detailsA: string[] = [];
-        const detailsB: string[] = [];
-        let retryA = false;
-        let retryB = false;
-        for (const k of hardKeys) {
-          const inA = HALF_A_KEYS.has(k);
-          const inB = HALF_B_KEYS.has(k);
-          const details = hardDetailsByKey.get(k) ?? [];
-          if (!inA && !inB) {
-            // Unknown top-level key — safety: include in both halves
-            retryA = true; retryB = true;
-            detailsA.push(...details);
-            detailsB.push(...details);
-            continue;
-          }
-          if (inA) { retryA = true; detailsA.push(...details); }
-          if (inB) { retryB = true; detailsB.push(...details); }
-        }
-        lintViolations.length = 0;
-        hardKeys.clear();
-        hardDetailsByKey.clear();
-
-        const retries: Promise<any>[] = [];
-        let newA: any = null;
-        let newB: any = null;
-        if (retryA) {
-          const retryInstrA = `PREVIOUS ATTEMPT REJECTED by automated lint for: ${detailsA.join("; ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`;
-          retries.push(genHalf(promptA, retryInstrA).then((r) => { newA = r; }));
-        }
-        if (retryB) {
-          const retryInstrB = `PREVIOUS ATTEMPT REJECTED by automated lint for: ${detailsB.join("; ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`;
-          retries.push(genHalf(promptB, retryInstrB).then((r) => { newB = r; }));
-        }
-        await Promise.all(retries);
-
-        // Merge: retained half stays as-is; affected half(s) overwrite their keys.
-        const mergedA = newA ?? partA;
-        const mergedB = newB ?? partB;
-        reportData = { ...mergedA, ...mergedB };
-        walkAndLint(reportData, "report", null);
-      } catch (e) {
-        console.warn("[DPIA] lint retry failed (non-fatal):", e);
-      }
-    }
-
-    // R1b2.1 — post-lint T-2/T-3/T-4 gate. Single-call topology; one retry cap,
-    // but time-budgeted: rebuilding both halves is only safe early in the run.
-    // If the gate trips after the elapsed threshold, log the violation and
-    // proceed with residuals merged into lint_warnings (IR-style log-only posture).
+    // ── T-1..T-5 detection (log-only — courier §7 preserved; retries dropped
+    //    because sectioned elapsed always exceeds DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
+    //    matching the existing time-budget-exceeded skip behaviour.)
     {
-      const hedgeAskRe = /\b(please confirm|please verify|to be confirmed|\[TO COMPLETE)/i;
       const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
       const depthLangRe = /\b(could|would strengthen|additional context|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
       const statAnchorRe = /(Art\.\s*\d|Article\s+\d|Recital\s+\d|GDPR|WP248|EDPB)/i;
-
       function collectStrings(obj: any, out: string[]): void {
         if (typeof obj === "string") { out.push(obj); return; }
         if (Array.isArray(obj)) { for (const v of obj) collectStrings(v, out); return; }
         if (obj && typeof obj === "object") { for (const k of Object.keys(obj)) collectStrings(obj[k], out); }
       }
-
-      function detectDpiaViolations(): { t2: any[]; t3: any[]; t4: any[] } {
-        const t2: any[] = [];
-        const t3: any[] = [];
-        const t4: any[] = [];
-
-        // T-2: RESOLVED test contradicted or re-asked.
-        // M3 RESOLVED_MET → do not [TO COMPLETE] the Art. 9(2) condition.
-        const s2 = reportData?.section_2_analysis;
-        if (dpiaTestStates.M3?.state === "resolved_met") {
-          const s2Strings: string[] = []; collectStrings(s2, s2Strings);
-          for (const s of s2Strings) {
-            if (/\[TO COMPLETE[^\]]*(Art(?:icle)?\.?\s*9(?:\(2\))?|special.category.condition)/i.test(s)) {
-              t2.push({ test: "M3", kind: "re_asks_art9_condition", detail: s.slice(0, 160) });
-            }
-          }
-        }
-        // M4 RESOLVED_MET → do not [TO COMPLETE] the legal basis.
-        if (dpiaTestStates.M4?.state === "resolved_met") {
-          const allStrings: string[] = []; collectStrings(reportData, allStrings);
-          for (const s of allStrings) {
-            if (/\[TO COMPLETE[^\]]*(legal\s+basis|Art(?:icle)?\.?\s*6\(1\))/i.test(s)) {
-              t2.push({ test: "M4", kind: "re_asks_legal_basis", detail: s.slice(0, 160) });
-            }
-          }
-        }
-        // M7 RESOLVED_MET → do not [TO COMPLETE] retention.
-        if (dpiaTestStates.M7?.state === "resolved_met") {
-          const allStrings: string[] = []; collectStrings(reportData, allStrings);
-          for (const s of allStrings) {
-            if (/\[TO COMPLETE[^\]]*retention/i.test(s)) {
-              t2.push({ test: "M7", kind: "re_asks_retention", detail: s.slice(0, 160) });
-            }
-          }
-        }
-        // M1 RESOLVED_MET → special-category conditions section MUST NOT deny Art. 35(3)(b) engagement.
-        if (dpiaTestStates.M1?.state === "resolved_met") {
-          const meta = String(reportData?.dpia_metadata?.article_35_3_trigger ?? "");
-          if (/(does not apply|not engaged|no Art\.\s*35\(3\)\(b\))/i.test(meta)) {
-            t2.push({ test: "M1", kind: "denies_resolved_prong", detail: meta.slice(0, 160) });
-          }
-        }
-        // M6 RESOLVED_MET → transfers chapter must be present, not "none identified".
-        if (dpiaTestStates.M6?.state === "resolved_met") {
-          const allStrings: string[] = []; collectStrings(reportData, allStrings);
-          for (const s of allStrings) {
-            if (/no (?:international )?transfers? (?:identified|apply)/i.test(s)) {
-              t2.push({ test: "M6", kind: "denies_transfer_surface", detail: s.slice(0, 160) });
-              break;
-            }
-          }
-        }
-
-        // T-3: banned-collapse phrasing where the intake credits substantive input.
-        const anyResolvedMet = Object.values(dpiaTestStates).some((v) => v.state === "resolved_met");
-        if (anyResolvedMet) {
-          const proseFields: Array<[string, any]> = [
-            ["section_3_necessity_proportionality", reportData?.section_3_necessity_proportionality],
-            ["section_6_conclusion.justification", reportData?.section_6_conclusion?.justification],
-          ];
-          for (const [name, obj] of proseFields) {
-            const bucket: string[] = []; collectStrings(obj, bucket);
-            for (const s of bucket) {
-              if (collapseRe.test(s)) { t3.push({ field: name, detail: s.slice(0, 160) }); break; }
-            }
-          }
-        }
-
-        // T-4: enhancement-class completion_guidance entries — depth language without a statutory anchor.
-        function walkForT4(obj: any, path: string): void {
-          if (!obj) return;
-          if (Array.isArray(obj)) { obj.forEach((v, i) => walkForT4(v, `${path}[${i}]`)); return; }
-          if (typeof obj !== "object") return;
-          for (const k of Object.keys(obj)) {
-            const v = obj[k];
-            if (k === "completion_guidance" && typeof v === "string") {
-              if (depthLangRe.test(v) && !statAnchorRe.test(v)) {
-                t4.push({ path: `${path}.${k}`, detail: v.slice(0, 160) });
-              }
-            } else if (v && typeof v === "object") {
-              walkForT4(v, `${path}.${k}`);
-            }
-          }
-        }
-        walkForT4(reportData, "report");
-
-        return { t2, t3, t4 };
+      const t2: any[] = []; const t3: any[] = []; const t4: any[] = [];
+      const s2 = reportData?.section_2_analysis;
+      if (dpiaTestStates.M3?.state === "resolved_met") {
+        const s2Strings: string[] = []; collectStrings(s2, s2Strings);
+        for (const s of s2Strings) if (/\[TO COMPLETE[^\]]*(Art(?:icle)?\.?\s*9(?:\(2\))?|special.category.condition)/i.test(s))
+          t2.push({ test: "M3", kind: "re_asks_art9_condition", detail: s.slice(0, 160) });
       }
-
-      let detected = detectDpiaViolations();
-      let t5Hits = detectTestStatesLeak(reportData);
-      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
+      if (dpiaTestStates.M4?.state === "resolved_met") {
+        const allStrings: string[] = []; collectStrings(reportData, allStrings);
+        for (const s of allStrings) if (/\[TO COMPLETE[^\]]*(legal\s+basis|Art(?:icle)?\.?\s*6\(1\))/i.test(s))
+          t2.push({ test: "M4", kind: "re_asks_legal_basis", detail: s.slice(0, 160) });
+      }
+      if (dpiaTestStates.M7?.state === "resolved_met") {
+        const allStrings: string[] = []; collectStrings(reportData, allStrings);
+        for (const s of allStrings) if (/\[TO COMPLETE[^\]]*retention/i.test(s))
+          t2.push({ test: "M7", kind: "re_asks_retention", detail: s.slice(0, 160) });
+      }
+      if (dpiaTestStates.M1?.state === "resolved_met") {
+        const meta = String(reportData?.dpia_metadata?.article_35_3_trigger ?? "");
+        if (/(does not apply|not engaged|no Art\.\s*35\(3\)\(b\))/i.test(meta))
+          t2.push({ test: "M1", kind: "denies_resolved_prong", detail: meta.slice(0, 160) });
+      }
+      if (dpiaTestStates.M6?.state === "resolved_met") {
+        const allStrings: string[] = []; collectStrings(reportData, allStrings);
+        for (const s of allStrings) if (/no (?:international )?transfers? (?:identified|apply)/i.test(s)) {
+          t2.push({ test: "M6", kind: "denies_transfer_surface", detail: s.slice(0, 160) }); break;
+        }
+      }
+      const anyResolvedMet = Object.values(dpiaTestStates).some((v) => v.state === "resolved_met");
+      if (anyResolvedMet) {
+        const proseFields: Array<[string, any]> = [
+          ["section_3_necessity_proportionality", reportData?.section_3_necessity_proportionality],
+          ["section_6_conclusion.justification", reportData?.section_6_conclusion?.justification],
+        ];
+        for (const [name, obj] of proseFields) {
+          const bucket: string[] = []; collectStrings(obj, bucket);
+          for (const s of bucket) if (collapseRe.test(s)) { t3.push({ field: name, detail: s.slice(0, 160) }); break; }
+        }
+      }
+      function walkForT4(obj: any, path: string): void {
+        if (!obj) return;
+        if (Array.isArray(obj)) { obj.forEach((v, i) => walkForT4(v, `${path}[${i}]`)); return; }
+        if (typeof obj !== "object") return;
+        for (const k of Object.keys(obj)) {
+          const v = obj[k];
+          if (k === "completion_guidance" && typeof v === "string") {
+            if (depthLangRe.test(v) && !statAnchorRe.test(v)) t4.push({ path: `${path}.${k}`, detail: v.slice(0, 160) });
+          } else if (v && typeof v === "object") walkForT4(v, `${path}.${k}`);
+        }
+      }
+      walkForT4(reportData, "report");
+      const t5Hits = detectTestStatesLeak(reportData);
+      const totalHits = t2.length + t3.length + t4.length + t5Hits.length;
       if (totalHits > 0) {
-        const elapsedAtViolationMs = Date.now() - generationStartedAt;
-        const retryWithinBudget = elapsedAtViolationMs < DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS;
         console.warn(JSON.stringify({
-          evt: "post_gen_violation",
+          evt: "post_gen_violation_stitch_logonly",
           fn: "run-dpia-framework",
-          elapsed_ms: elapsedAtViolationMs,
-          retry_threshold_ms: DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
-          retry_within_budget: retryWithinBudget,
-          t2: detected.t2.slice(0, 6),
-          t3: detected.t3.slice(0, 6),
-          t4: detected.t4.slice(0, 6),
-          t5: t5Hits.slice(0, 6),
+          stage: "stitch",
+          reason: "sectioned_generation_no_full_regen_retry",
+          t2_count: t2.length, t3_count: t3.length, t4_count: t4.length, t5_count: t5Hits.length,
+          samples: { t2: t2.slice(0, 3), t3: t3.slice(0, 3), t4: t4.slice(0, 3), t5: t5Hits.slice(0, 3) },
         }));
-        if (retryWithinBudget) {
-          try {
-            const parts: string[] = [];
-            if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED tests: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
-            if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies substantive inputs; do NOT collapse determinations with 'cannot be determined'/'no basis to assess'/'not established'`);
-            if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every completion_guidance item must be verdict-blocking or record-completeness, anchored to a cited GDPR/EDPB provision; remove pure depth items`);
-            if (t5Hits.length) parts.push(`T-5 (TEST-STATES VOCABULARY LEAKAGE) — remove every reference to TEST-STATES, test ids (M1, M2, M9, …), and state tokens (resolved_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from section prose, completion_guidance, information_needed, and [TO COMPLETE] placeholders; state the conclusion with its factual basis. Leaked at: ${t5Hits.slice(0, 6).map((h) => `${h.path}:"${h.match}"`).join(", ")}`);
-            const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
-            const [newA, newB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
-            const mergedA = (newA && Object.keys(newA).length > 0) ? newA : partA;
-            const mergedB = (newB && Object.keys(newB).length > 0) ? newB : partB;
-            reportData = { ...mergedA, ...mergedB };
-            detected = detectDpiaViolations();
-            t5Hits = detectTestStatesLeak(reportData);
-            const stillHits = detected.t2.length + detected.t3.length + detected.t4.length + t5Hits.length;
-            if (stillHits > 0) {
-              console.warn(JSON.stringify({ evt: "post_gen_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits, t5_remaining: t5Hits.length }));
-            }
-          } catch (e) {
-            console.warn("[DPIA] T-2/T-3/T-4/T-5 retry failed (non-fatal):", e);
-          }
-        } else {
-          console.warn(JSON.stringify({
-            evt: "post_gen_violation_retry_skipped",
-            fn: "run-dpia-framework",
-            reason: "elapsed_budget_exceeded",
-            elapsed_ms: elapsedAtViolationMs,
-            retry_threshold_ms: DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS,
-            t5_skipped: t5Hits.length,
-          }));
-        }
-        for (const v of detected.t2) lintViolations.push({ rule: "T-2", ...v });
-        for (const v of detected.t3) lintViolations.push({ rule: "T-3", ...v });
-        for (const v of detected.t4) lintViolations.push({ rule: "T-4", ...v });
-        for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
       }
+      for (const v of t2) lintViolations.push({ rule: "T-2", ...v });
+      for (const v of t3) lintViolations.push({ rule: "T-3", ...v });
+      for (const v of t4) lintViolations.push({ rule: "T-4", ...v });
+      for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
     }
 
+    // Hard-key validation (courier §7). Guard against a stitched-empty doc.
     if (!reportData.section_0_overview && !reportData.section_4_risk_management) {
-      reportData = {
-        framework_disclaimer: "This is not legal advice.",
-        error: "Report generation encountered an issue. Please retry."
-      };
+      throw new Error("stitched report missing both section_0_overview and section_4_risk_management");
     }
-
 
     reportData.generated_at = new Date().toISOString();
     reportData.dpia_id = dpia_id;
@@ -1138,9 +1280,9 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
-    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2.2") };
+    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", STAMP) };
 
-    // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
+    // ── Jurisdiction validator ─────────────────────────────────────────────
     try {
       const jurisdictionFindings = validateJurisdiction(reportData, resolved);
       reportData.jurisdiction_validation = {
@@ -1159,12 +1301,7 @@ Generate substantive draft rows for every table for the controller to verify; us
       console.warn("[run-dpia-framework] jurisdiction validator failed (non-fatal):", e);
     }
 
-
-    // Detect unresolved placeholders across the entire report JSON.
-    // Any [TO COMPLETE] or [TO BE ASSESSED] string anywhere in the output
-    // means the document is not ready for sign-off. Set this flag
-    // deterministically so the PDF renderer can show a draft notice without
-    // relying on model compliance with a prompt instruction.
+    // ── Placeholder scan ───────────────────────────────────────────────────
     const reportStr = JSON.stringify(reportData);
     reportData.has_unresolved_placeholders =
       reportStr.includes("[TO COMPLETE") ||
@@ -1176,34 +1313,38 @@ Generate substantive draft rows for every table for the controller to verify; us
         : [];
     } catch { reportData.annotations = []; }
 
-    // 2.7 S2 — forward-path guard. DPIA keeps its existing completion_guidance;
-    // information_needed is added alongside (not merged).
+    // ── Insufficient-info-guard ────────────────────────────────────────────
     try {
-      const guarded = guardInformationNeeded(reportData, (dpia.intake_data as Record<string, unknown>) ?? {});
+      const guarded = guardInformationNeeded(reportData, (dpiaIntake as Record<string, unknown>) ?? {});
       Object.assign(reportData, guarded.report);
     } catch (e) {
       console.warn("[run-dpia-framework] guardInformationNeeded failed (non-fatal):", e);
     }
 
-    // Stage 1: metering + version retention (written BEFORE status:complete).
+    // ── Stage 1: metering + version retention ──────────────────────────────
     await recordRunMeterAndVersion(supabase, {
       toolType: "dpia_framework",
       assessmentId: dpia_id,
-      userId: dpia.user_id ?? null,
-      intake: (dpia.intake_data as Record<string, unknown>) ?? {},
+      userId: row.user_id ?? null,
+      intake: (dpiaIntake as Record<string, unknown>) ?? {},
       reportData,
     });
 
+    // ── Terminal complete: drop _staging, write final report_data ──────────
+    // (Amendment 2 corollary: prompt text was never in _staging anyway; the
+    // drop is still done to keep the row clean of the coordination scratch.)
+    delete (reportData as any)._staging;
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }, { fn: "run-dpia-framework", phase: "terminal_complete" });
     if (!completeWrite.ok) {
-      await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_fallback" });
+      await mergePreservingFail(dpia_id, "stitch", new Error(`lifecycle_write_failed: ${completeWrite.message}`), Date.now() - stitchStart);
+      return;
     }
 
-    // L2 — observe-only citation lint (never blocks, never mutates output).
+    // ── L2 citation observe (non-fatal) ────────────────────────────────────
     try {
       await observeCitations(
         supabase,
@@ -1216,18 +1357,13 @@ Generate substantive draft rows for every table for the controller to verify; us
       console.error("[citation-observe] non-fatal:", String(obsErr));
     }
 
-
-
-    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
-
-
-    // C4 RoPA accumulator
-    if (dpia.client_id) {
-      const intakeAny = (dpia.intake_data as any) || {};
+    // ── C4 RoPA accumulator ────────────────────────────────────────────────
+    if (row.client_id) {
+      const intakeAny = (dpiaIntake as any) || {};
       const summary = intakeAny.processing_description || intakeAny.activity_description || intakeAny.description || "Processing activity requiring DPIA";
       supabase.functions.invoke("accumulate-ropa-activity", {
         body: {
-          client_id: dpia.client_id,
+          client_id: row.client_id,
           source_tool: "dpia_framework",
           source_assessment_id: dpia_id,
           display_name: String(summary).slice(0, 120),
@@ -1238,16 +1374,11 @@ Generate substantive draft rows for every table for the controller to verify; us
       }).catch((e: Error) => console.error("[dpia] accumulate-ropa failed (non-fatal):", e.message));
     }
 
-
-    const { data: userData } = await supabase.auth.admin.getUserById(
-      dpia.user_id
-    ).catch(() => ({ data: null as any }));
-
-    // Fire-and-forget upsell signals (non-fatal).
+    // ── PDF/email delivery + upsell signals ────────────────────────────────
+    const { data: userData } = await supabase.auth.admin.getUserById(row.user_id).catch(() => ({ data: null as any }));
     supabase.functions.invoke('trigger-upsell', {
-      body: { tool_type: 'dpia_framework', assessment_id: dpia_id, user_id: dpia.user_id },
+      body: { tool_type: 'dpia_framework', assessment_id: dpia_id, user_id: row.user_id },
     }).catch((e: Error) => console.error('[dpia] trigger-upsell failed (non-fatal):', e.message));
-
     await supabase.functions.invoke("generate-report-pdf", {
       body: {
         tool_type: "dpia_framework",
@@ -1258,22 +1389,154 @@ Generate substantive draft rows for every table for the controller to verify; us
       },
     }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
 
-      } catch (bgErr) {
-        console.error("run-dpia-framework background error:", bgErr);
-        const isTimeout = bgErr instanceof AnthropicTimeoutError
-          || (bgErr instanceof Error && (bgErr as any).code === "generation_timeout_330s");
-        const patch: Record<string, unknown> = { status: "failed" };
-        if (isTimeout) {
-          patch.report_data = {
-            error: "generation_timeout_330s",
-            evidence: (bgErr as Error).message,
-            elapsed_ms: (bgErr as any).elapsedMs ?? null,
-          };
-        }
-        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, patch, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
-        await failFunctionRun(supabase, fnRun, bgErr, { metadata: isTimeout ? { evidence: "generation_timeout_330s" } : undefined });
-      }
+    console.log(`[run-dpia-framework] stage=stitch elapsed=${Date.now() - stitchStart}ms status=complete`);
+  } catch (e) {
+    console.error("[run-dpia-framework] stitch error:", e);
+    await mergePreservingFail(dpia_id, "stitch", e, Date.now() - stitchStart);
+  }
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Bootstrap: build shared context, initialise _staging, fan-out U1/U2/U3.
+// Also handles sweeper re-entry: if _staging already exists, re-dispatch only
+// units with status !== 'done'.
+// ─────────────────────────────────────────────────────────────────────────────
+async function runBootstrap(dpia_id: string, caller: { userId?: string; internal?: boolean }): Promise<void> {
+  const dpia = await readRow(dpia_id);
+  const rd = (dpia.report_data ?? {}) as any;
+
+  // Sweeper re-entry: _staging present → re-dispatch missing units.
+  if (rd._staging?.units && rd._staging?.shared) {
+    console.log(`[bootstrap] sweeper re-entry for dpia_id=${dpia_id}; existing units:`, Object.fromEntries(Object.entries(rd._staging.units).map(([k, v]: any) => [k, v?.status])));
+    // Clear last_error / re-set failed units to pending so runUnit can proceed.
+    const staging = rd._staging;
+    let mutated = false;
+    for (const u of PHASE1) {
+      if (staging.units[u]?.status !== "done") {
+        staging.units[u] = { ...(staging.units[u] ?? {}), status: staging.units[u]?.status === "processing" ? "pending" : (staging.units[u]?.status ?? "pending") };
+        if (staging.units[u].status === "error") staging.units[u].status = "pending";
+        mutated = true;
+      }
+    }
+    if (staging.units.u4?.status !== "done" && PHASE1.every((u) => staging.units[u]?.status === "done")) {
+      staging.units.u4.status = "blocked";
+      mutated = true;
+    }
+    if (staging.units.u5?.status !== "done" && staging.units.u4?.status === "done") {
+      staging.units.u5.status = "blocked";
+      mutated = true;
+    }
+    if (mutated) {
+      await optimisticUpdate(dpia_id, dpia.updated_at, { report_data: { ...rd, _staging: staging }, status: "processing", last_error: null });
+    }
+    // Dispatch missing PHASE1 units in parallel.
+    const dispatch: UnitId[] = [];
+    for (const u of PHASE1) if (staging.units[u]?.status !== "done") dispatch.push(u);
+    for (const u of dispatch) selfInvokeUnit(dpia_id, u);
+    // If PHASE1 already done, kick phase advance.
+    if (dispatch.length === 0) {
+      const next = await advancePhaseIfReady(dpia_id);
+      for (const u of next) selfInvokeUnit(dpia_id, u);
+      // If U5 also done, run stitch inline (covers idempotent retry of a doc stuck at stitch).
+      if (staging.units.u5?.status === "done") await runStitch(dpia_id);
+    }
+    return;
+  }
+
+  // Fresh run — build shared context.
+  const shared = await buildSharedContext(dpia);
+  const staging = {
+    version: STAMP,
+    shared,
+    units: {
+      u1: { status: "pending" as const },
+      u2: { status: "pending" as const },
+      u3: { status: "pending" as const },
+      u4: { status: "blocked" as const },
+      u5: { status: "blocked" as const },
+    },
+  };
+  const orgName = shared.orgName;
+  const patch: Record<string, any> = {
+    status: "processing",
+    report_data: { ...rd, _staging: staging },
+  };
+  if (orgName && !(dpia as any).organization_name) patch.organization_name = orgName;
+  const ok = await optimisticUpdate(dpia_id, dpia.updated_at, patch);
+  if (!ok) {
+    console.error("[bootstrap] lifecycle write failed");
+    return;
+  }
+
+  // Fan out phase 1.
+  for (const u of PHASE1) selfInvokeUnit(dpia_id, u);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Entry point.
+// ─────────────────────────────────────────────────────────────────────────────
+Deno.serve(async (req) => {
+  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=${STAMP}`);
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const caller = await verifyCaller(req);
+    if (!caller.internal && !caller.userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const body = await req.json();
+    const dpia_id: string | undefined = body?.dpia_id;
+    const unit: UnitId | undefined = body?.unit;
+    if (!dpia_id) return new Response(JSON.stringify({ error: "dpia_id required" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    // Unit invocations must be internal (self-reinvoke with SERVICE_KEY).
+    if (unit) {
+      if (!caller.internal) {
+        return new Response(JSON.stringify({ error: "unit invocation is internal-only" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (!["u1", "u2", "u3", "u4", "u5"].includes(unit)) {
+        return new Response(JSON.stringify({ error: `unknown unit: ${unit}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      // Fire-and-forget in background; return 202 fast so the calling isolate can retire.
+      // @ts-ignore — EdgeRuntime provided by Supabase.
+      EdgeRuntime.waitUntil(runUnit(dpia_id, unit as UnitId).catch((e) => console.error(`[unit:${unit}] top-level:`, e)));
+      return new Response(JSON.stringify({ accepted: true, unit }),
+        { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Bootstrap path: entitlement check + fan-out.
+    const ent = await requireEntitlement(caller, "dpia_framework", { rowId: dpia_id });
+    if (!ent.ok) {
+      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-dpia-framework", reason: ent.reason }));
+      return new Response(JSON.stringify({ error: "forbidden" }),
+        { status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const { data: dpiaExists } = await supabase.from("dpia_frameworks").select("id").eq("id", dpia_id).single();
+    if (!dpiaExists) return new Response(JSON.stringify({ error: "Not found" }),
+      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const fnRun = await startFunctionRun(supabase, "run-dpia-framework", {
+      archetype: "background",
+      trustClass: "user",
+      userId: caller.internal ? null : caller.userId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { dpia_id, mode: "bootstrap" },
+    });
+
+    // @ts-ignore
+    EdgeRuntime.waitUntil((async () => {
+      try {
+        await runBootstrap(dpia_id, caller);
+        await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id, metadata: { phase: "bootstrap_dispatched" } });
+      } catch (bgErr) {
+        console.error("run-dpia-framework bootstrap error:", bgErr);
+        await mergePreservingFail(dpia_id, "stitch", bgErr, 0);
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: { phase: "bootstrap" } });
+      }
     })());
 
     return new Response(JSON.stringify({ success: true, dpia_id, status: "processing" }),
