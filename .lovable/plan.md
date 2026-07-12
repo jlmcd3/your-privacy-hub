@@ -86,10 +86,11 @@ Deleted at U5 stitch success. Sweeper (`STUCK_PROCESSING_MINUTES`) re-enters row
 ## Atomic phase advance (optimistic-lock, no migration)
 Each unit at entry re-reads the row, refuses if own status already `done`, transitions to `processing` via update conditioned on `updated_at` (existing column) — losing writer re-reads and yields. Phase-advance dispatch (U4 after all of U1/U2/U3 done; U5 after U4 done) uses the same optimistic-lock: only the transition setting next-unit `blocked → dispatching` wins. Any double-dispatch is caught by the next unit's own skip-if-`done`/`processing` guard.
 
-## Failure semantics (courier §8)
-- `AnthropicTimeoutError` inside a unit → write `_staging.units[uX] = { status:'error', error:'generation_timeout_330s', unit:'uX', elapsed_ms }`, mark row `failed` via `lifecycleUpdate`, `failFunctionRun` with `{ unit, elapsed_ms }` metadata.
-- Sweeper next attempt: re-dispatch only units with `status !== 'done'`. Existing evidence guard unchanged.
-- Any hard-key validation failure at U5 stitch → same failed path with `stage: 'stitch'`.
+## Failure semantics (courier §8) — **MERGE, DO NOT REPLACE** (Amendment 1)
+- `AnthropicTimeoutError` or any terminal error inside a unit → write `_staging.units[uX] = { status:'error', error, unit:'uX', elapsed_ms }` **as a jsonb-merge into the existing report_data — _staging MUST survive**. Row status → `failed` via `lifecycleUpdate` with **`report_data = { ...existingReportData, _staging: mergedStaging, last_error: {unit, error, elapsed_ms} }`** — never the bare error-stub write at L1265–1273 of the pre-refactor file. `failFunctionRun` receives `{ unit, elapsed_ms }` metadata.
+- Sweeper next attempt: BOOTSTRAP sees intact `_staging`, re-dispatches only units with `status !== 'done'`. Existing evidence guard unchanged.
+- Any hard-key validation failure at U5 stitch → same merge-preserving path with `stage: 'stitch'`.
+- **Turn-4 sandbox verify addendum**: force a unit failure (short-abort ANTHROPIC_ABORT_MS override or stalling mock), confirm the failed row still carries `_staging.units[u_done].keys.<sections>`, then invoke the sweeper (or POST bootstrap re-entry) and confirm only the missing units re-run and the doc completes.
 
 ## UI — DPIA processing page (courier §9)
 Locate existing DPIA result/processing route (likely `src/pages/DPIAProcessing.tsx` or embedded in `useGenerationStatus`). While `status='processing'`, poll `report_data._staging.units.*` and render D8-compliant per-unit progress:
