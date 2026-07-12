@@ -682,6 +682,22 @@ const App = () => (
               }
             />
 
+            {/* Master Console Phase 1 */}
+            <Route path="/admin" element={<ProtectedRoute><AdminHub /></ProtectedRoute>} />
+            <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+            <Route path="/admin/tools" element={<ProtectedRoute><AdminTools /></ProtectedRoute>} />
+            <Route
+              path="/admin/quality-augmentation"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <QualityLoopAugmentation />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
+
             <Route path="/li-assessment" element={<LIAssessment />} />
             <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />
             <Route
