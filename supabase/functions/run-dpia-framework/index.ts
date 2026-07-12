@@ -1075,10 +1075,24 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     });
     const elapsedMs = Date.now() - startedMs;
     // Telemetry line (courier §10) — extractable from edge-function logs.
-    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length}`);
+    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length} continued=${r.continued} cont_retried=${r.contRetried ?? false}`);
+    // r1b2.3 fix (c): durable telemetry passed into every failure write.
+    const callTelemetry: FailTelemetry = {
+      stop_reason: r.stopReason,
+      output_tokens: r.outputTokens,
+      continued: r.continued,
+      first_stop_reason: r.firstStopReason ?? null,
+      first_output_tokens: r.firstOutputTokens ?? null,
+      cont_stop_reason: r.contStopReason ?? null,
+      cont_output_tokens: r.contOutputTokens ?? null,
+      cont_elapsed_ms: r.contElapsedMs ?? null,
+      cont_retried: r.contRetried ?? null,
+      stitched_chars: r.stitchedChars ?? r.text.length,
+      chars: r.text.length,
+    };
     if (r.stopReason === "max_tokens") {
       console.error(`[unit:${unit}] truncated after continuation — treating as terminal failure`);
-      await mergePreservingFail(dpia_id, unit, new Error("truncated_after_continuation"), elapsedMs);
+      await mergePreservingFail(dpia_id, unit, new Error("truncated_after_continuation"), elapsedMs, callTelemetry);
       return;
     }
     const keys = parseJsonish(r.text);
@@ -1086,7 +1100,7 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     const missing = UNIT_KEYS[unit].filter((k) => !keys || typeof keys !== "object" || !(k in keys));
     if (missing.length > 0) {
       console.error(`[unit:${unit}] parsed JSON missing required keys: ${missing.join(", ")}`);
-      await mergePreservingFail(dpia_id, unit, new Error(`unit_missing_keys:${missing.join(",")}`), elapsedMs);
+      await mergePreservingFail(dpia_id, unit, new Error(`unit_missing_keys:${missing.join(",")}`), elapsedMs, callTelemetry);
       return;
     }
     await writeUnitStatus(dpia_id, unit, {
@@ -1095,6 +1109,8 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       elapsed_ms: elapsedMs,
       output_tokens: r.outputTokens ?? null,
       stop_reason: r.stopReason ?? null,
+      continued: r.continued,
+      cont_retried: r.contRetried ?? false,
     });
   } catch (e) {
     const elapsedMs = Date.now() - startedMs;
