@@ -162,6 +162,11 @@ const SamplesHub = lazy(() => import("./pages/SamplesHub.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
 const AdminTestRunMeter = lazy(() => import("./pages/admin/AdminTestRunMeter"));
+const AdminHub = lazy(() => import("./pages/admin/AdminHub"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
+const QualityLoopAugmentation = lazy(() => import("./pages/admin/AdminQualityAugmentationRoute"));
+import PageViewTracker from "@/components/PageViewTracker";
 const queryClient = new QueryClient();
 
 function CategoryRedirect() {
@@ -190,6 +195,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <ScrollToTopButton />
+          <PageViewTracker />
           <PaymentTestModeBanner />
           <BlankScreenDiagnostic />
           <CanonicalTag />
@@ -675,6 +681,22 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
+            {/* Master Console Phase 1 */}
+            <Route path="/admin" element={<ProtectedRoute><AdminHub /></ProtectedRoute>} />
+            <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+            <Route path="/admin/tools" element={<ProtectedRoute><AdminTools /></ProtectedRoute>} />
+            <Route
+              path="/admin/quality-augmentation"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <QualityLoopAugmentation />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
 
             <Route path="/li-assessment" element={<LIAssessment />} />
             <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />

@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_action_log: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          ok: boolean
+          payload: Json
+          result: Json
+          target_id: string | null
+          target_table: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          ok?: boolean
+          payload?: Json
+          result?: Json
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          ok?: boolean
+          payload?: Json
+          result?: Json
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Relationships: []
+      }
       admt_systems: {
         Row: {
           assessment_id: string | null
@@ -565,6 +601,7 @@ export type Database = {
           report_data: Json | null
           retry_count: number
           status: string
+          stripe_env: string | null
           stripe_payment_intent_id: string | null
           updated_at: string
           user_id: string | null
@@ -585,6 +622,7 @@ export type Database = {
           report_data?: Json | null
           retry_count?: number
           status?: string
+          stripe_env?: string | null
           stripe_payment_intent_id?: string | null
           updated_at?: string
           user_id?: string | null
@@ -605,6 +643,7 @@ export type Database = {
           report_data?: Json | null
           retry_count?: number
           status?: string
+          stripe_env?: string | null
           stripe_payment_intent_id?: string | null
           updated_at?: string
           user_id?: string | null
@@ -4805,6 +4844,7 @@ export type Database = {
           payment_status: string
           renewal_reminder_email: string | null
           renewal_reminders_enabled: boolean
+          stripe_env: string | null
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           tier: string
@@ -4831,6 +4871,7 @@ export type Database = {
           payment_status?: string
           renewal_reminder_email?: string | null
           renewal_reminders_enabled?: boolean
+          stripe_env?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           tier: string
@@ -4857,6 +4898,7 @@ export type Database = {
           payment_status?: string
           renewal_reminder_email?: string | null
           renewal_reminders_enabled?: boolean
+          stripe_env?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           tier?: string
@@ -7512,29 +7554,35 @@ export type Database = {
       }
       user_events: {
         Row: {
+          country: string | null
           created_at: string
           event_data: Json
           event_type: string
           id: string
           page_path: string | null
+          region: string | null
           session_id: string | null
           user_id: string | null
         }
         Insert: {
+          country?: string | null
           created_at?: string
           event_data?: Json
           event_type: string
           id?: string
           page_path?: string | null
+          region?: string | null
           session_id?: string | null
           user_id?: string | null
         }
         Update: {
+          country?: string | null
           created_at?: string
           event_data?: Json
           event_type?: string
           id?: string
           page_path?: string | null
+          region?: string | null
           session_id?: string | null
           user_id?: string | null
         }
@@ -8050,6 +8098,7 @@ export type Database = {
       my_client_ids: { Args: never; Returns: string[] }
       normalize_provisions: { Args: { provs: string[] }; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
+      prune_old_user_events: { Args: never; Returns: undefined }
       quality_runs_watchdog: { Args: never; Returns: Json }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
       stress_batch_watchdog: { Args: never; Returns: Json }
