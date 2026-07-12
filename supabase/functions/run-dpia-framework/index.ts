@@ -761,14 +761,51 @@ USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs 
 COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
 }
 
+// r1b2.3 fix (b): robust parse. The original greedy `/\{[\s\S]*\}/` regex is
+// fragile when the model emits fenced/preamble noise or when a continuation
+// stitch introduces multiple top-level braces. Order:
+//   1. strip common code-fence wrapper, then try JSON.parse(text) directly;
+//   2. balanced-brace scan from the first '{' — pick the first complete top-
+//      level object (string-aware, so braces inside strings don't count);
+//   3. fall back to the original greedy match as a last resort.
+// unit_missing_keys remains the fail-loud terminator downstream.
 function parseJsonish(text: string): any {
-  try {
-    const m = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
-    return m ? JSON.parse(m[0]) : {};
-  } catch (e) {
-    console.error("[DPIA] parse error:", e, "Tail:", text.slice(-200));
-    return {};
+  if (!text || typeof text !== "string") return {};
+  const stripped = text.replace(/^\s*```(?:json)?\n?/, "").replace(/\n?```\s*$/, "").trim();
+  // (1) direct parse
+  try { return JSON.parse(stripped); } catch (_) { /* fall through */ }
+  // (2) balanced-brace scan (string-aware)
+  const start = stripped.indexOf("{");
+  if (start >= 0) {
+    let depth = 0, inStr = false, esc = false;
+    for (let i = start; i < stripped.length; i++) {
+      const ch = stripped[i];
+      if (inStr) {
+        if (esc) { esc = false; continue; }
+        if (ch === "\\") { esc = true; continue; }
+        if (ch === '"') inStr = false;
+        continue;
+      }
+      if (ch === '"') { inStr = true; continue; }
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) {
+          const candidate = stripped.slice(start, i + 1);
+          try { return JSON.parse(candidate); } catch (_) { break; }
+        }
+      }
+    }
   }
+  // (3) legacy greedy fallback
+  try {
+    const m = stripped.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+  } catch (e) {
+    console.error("[DPIA] parse error (greedy fallback):", e, "Tail:", stripped.slice(-200));
+  }
+  console.error("[DPIA] parseJsonish returned {} — all strategies failed. Head:", stripped.slice(0, 200), "Tail:", stripped.slice(-200));
+  return {};
 }
 
 // U4 hand-off tail (design_risk_impacts VERBATIM from U3).
