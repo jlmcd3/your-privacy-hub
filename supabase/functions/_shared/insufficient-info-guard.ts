@@ -50,8 +50,13 @@ function synthesiseEntriesFromIntake(
       }
     }
   }
+  // WS6 v2.1: supplemental capture keys are ANSWERS the user provides on
+  // regeneration, not intake facts that can be "missing" — auto-repair must
+  // never synthesise an information_needed entry pointing at them.
+  const WS6_SUPPLEMENTAL_KEYS = new Set(["supplemental_responses", "supplemental_context"]);
   for (const [k, v] of Object.entries(intake)) {
     if (k === "assertions") continue;
+    if (WS6_SUPPLEMENTAL_KEYS.has(k)) continue;
     if (believedWithBasis.has(k)) continue;
     if (isEmpty(v)) {
       out.push({
