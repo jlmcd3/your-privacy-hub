@@ -273,7 +273,17 @@ things about the same item; express any genuine uncertainty the same way in ever
 
 Where the law is genuinely unsettled, say so and give the better-supported reading plus the risk; do
 not assert one answer. You may note the counter-argument a regulator would raise, but never recommend a
-position.`;
+position.
+
+SUPPLEMENTAL RESPONSES (WS6): a "SUPPLEMENTAL RESPONSES" section may be appended to the user prompt on a
+revision run. Treat each entry as a first-party intake fact of the same authority as the base intake.
+Where a supplemental answers a prior information_needed item (by ref or clear correspondence), that item
+is RESOLVED — do not re-emit it and do not restate insufficient-basis phrasing about it. Where a supplemental
+supplies a fact previously flagged insufficient-basis, incorporate it and remove the insufficient framing.
+Supplementals never flip an enumerated mechanical test-state; those are re-selected only in the base
+intake. On placeholder fill, replace the [TO COMPLETE — …] token with the supplied value and leave
+surrounding placeholder-neutral language byte-identical. Never quote a supplemental as authority; an
+absent supplemental is not evidence of absence.`;
 
 export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
     appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy
