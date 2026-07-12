@@ -37,7 +37,7 @@ entry (POST /run-dpia-framework)
             lintReportText walk, T-1..T-5 gate, detectTestStatesLeak,
             jurisdiction validator, insufficient-info-guard, placeholder scan,
             observeCitations, recordRunMeterAndVersion
-        - clear _staging; write final report_data; status=completed
+        - clear _staging; write final report_data; status='complete' (matches existing DB enum)
 ```
 
 ## Key → Unit partition (courier §Design, verbatim mapping)
