@@ -45,7 +45,7 @@ const TOOLS: Record<ToolKey, ToolConfig> = {
     label: "CPPA Cybersecurity Readiness assessment",
     etaText: "about 2–4 minutes",
     etaSeconds: 240,
-    stages: ["Checking the 18 control areas", "Identifying gaps", "Drafting the readiness report", "Building your PDF"],
+    stages: ["Checking the 18 control areas", "Identifying deficiencies", "Drafting the readiness report", "Building your PDF"],
   },
   cppa_suite: {
     label: "CPPA Suite report",
