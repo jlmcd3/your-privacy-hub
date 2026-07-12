@@ -1,4 +1,4 @@
-// qb8 build active · cppa-risk r1b1.3 continuation-on-truncation + 330s self-report abort + compact cells
+// qb8 build active · cppa-risk r1b1.4-ws6v21 continuation-on-truncation + 330s self-report abort + compact cells
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -50,7 +50,7 @@ const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 // Courier 2026-07-12 item 4: first-call ceiling for risk. Continuation
 // (see callAnthropicWithContinuation) is the safety net if exceeded.
 const CPPA_RISK_MAX_TOKENS = 32_000;
-console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.3`);
+console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.4-ws6v21`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
