@@ -1,139 +1,80 @@
-# DPIA Plan B — Sectioned Generation r1b2.3
 
-Self-reinvoke pattern (STOP #1): **CLEAR.** `run-quality-batch` uses `fetch(${SUPABASE_URL}/functions/v1/<fn>, Bearer ${SERVICE_KEY}, x-internal-resume: 1)` awaited. Mirroring it as `x-internal-unit: 1` in `run-dpia-framework`.
+# WS6 v2.1 — Supplemental capture on regeneration
 
-## Design summary
-Split the single `Promise.all([genHalf(promptA), genHalf(promptB)])` at L772 into five unit invocations, each in its own isolate, coordinated through row-level state.
+Scope: capture per-ask + general supplemental input on re-runs, persist onto `intake_data`, consume in all 8 generators, guard-safe, fixture-covered, and add QC-WS6-1 in the harness.
 
-```text
-entry (POST /run-dpia-framework)
-  ├── unit=undefined → BOOTSTRAP (once)
-  │     - verifyCaller, requireEntitlement, load row, resolveIntakeForTestStates
-  │     - build systemWithGdpr, resolved jurisdiction, corpus fetches
-  │     - persist shared context to dpia_frameworks.report_data._staging.shared
-  │     - initialise _staging.units = { u1:pending, u2:pending, u3:pending, u4:blocked, u5:blocked }
-  │     - fan-out: self-reinvoke U1, U2, U3 (parallel)
-  │
-  ├── unit="u1" | "u2" | "u3" (parallel, isolated)
-  │     - skip-if-present guard on _staging.units[uX].status === 'done'
-  │     - load shared context from _staging.shared
-  │     - build unit prompt (shared prefix + cache_control + unit-specific tail)
-  │     - callAnthropicWithContinuation with per-unit cap
-  │     - atomic write: _staging.units[uX] = { status:'done', keys:{...}, elapsed_ms, output_tokens }
-  │     - atomic check "am I last of {u1,u2,u3}?" → if yes, self-reinvoke U4
-  │
-  ├── unit="u4"
-  │     - skip-if-present guard
-  │     - reads U3.design_risk_impacts VERBATIM from _staging.units.u3.keys
-  │     - generates section_4_risk_management (16k cap)
-  │     - atomic write; self-reinvoke U5
-  │
-  └── unit="u5" (synthesis)
-        - reads compact digests of U1–U4 from _staging.units.*.keys
-        - generates section_5_interested_parties, section_6_conclusion, framework_disclaimer
-        - STITCH: reportData = merge(u1.keys, u2.keys, u3.keys, u4.keys, u5.keys)
-        - run EXISTING whole-doc machinery unchanged:
-            residual repair (L779), methodology reconciliation (L816),
-            lintReportText walk, T-1..T-5 gate, detectTestStatesLeak,
-            jurisdiction validator, insufficient-info-guard, placeholder scan,
-            observeCitations, recordRunMeterAndVersion
-        - clear _staging; write final report_data; status='complete' (matches existing DB enum)
+## Pre-flight (verify, record, then proceed)
+
+Re-verify current stamps in code (record in commit message):
+- `run-dpia-framework` STAMP (expect `r1b2.3`, sectioned U1–U5)
+- `run-cppa-risk-assessment` STAMP (expect `r1b1.3`)
+- `run-quality-batch` STAMP (expect `r1b1.4` poll-resume)
+- Grep confirm `supplemental_responses` / `supplemental_context` appear nowhere. STOP + report if found.
+
+## Change 1 — RefinePanel (shared UI, regeneration only)
+
+Edit `src/components/refine/RefinePanel.tsx`:
+- Add optional props: `priorInformationNeeded?: Array<{ ref_field?: string; ask: string }>` and `supplementalEnabled?: boolean` (default true when prop passed).
+- New section "Supplemental information for this revision" rendered ONLY when `priorInformationNeeded` is non-empty OR always the single general box.
+- Per prior entry: a labeled textarea (label = entry.ask / dimensions text), local state `responses[i]`.
+- One general textarea "Anything else material to this revision" → local state `generalContext`.
+- On regenerate: pass to `regenerate({ supplementalResponses, supplementalContext })` alongside `editedFields`.
+
+Edit `src/hooks/useRegenerate.ts` to forward the two new fields into the payload written to `intake_data` as:
 ```
-
-## Key → Unit partition (courier §Design, verbatim mapping)
-
-| Unit | Keys produced | max_tokens | Depends on |
-|---|---|---|---|
-| U1 | `dpia_metadata`, `section_0_overview`, `section_1_description` | 12,000 | shared |
-| U2 | `section_2_analysis` | 10,000 | shared |
-| U3 | `section_3_necessity_proportionality` (incl. `design_risk_impacts`) | 10,000 | shared |
-| U4 | `section_4_risk_management` | 16,000 | shared + U3.design_risk_impacts |
-| U5 | `section_5_interested_parties`, `section_6_conclusion`, `framework_disclaimer` | 8,000 | shared + digests(U1..U4) |
-
-## Prompt content preservation (courier §3)
-Every rule in `DPIA_TOOL_MODULE.extraRules` (L60–L135+) is kept in `systemWithGdpr` verbatim — the shared prefix is built ONCE and reused for every unit. No rule text edits. Compact-cells rule stays. The per-unit prompt tail contains ONLY the JSON skeleton for that unit's keys, plucked verbatim from the current `promptA`/`promptB` JSON schemas (L580–L740). Rules that name multiple sections apply to every unit through the shared system prefix — no duplication needed.
-
-U4's tail includes an explicit hand-off block:
+intake_data.supplemental_responses: [{ ref_field, ask, response }]
+intake_data.supplemental_context: string
 ```
-GIVEN — U3.design_risk_impacts (verbatim, do not modify):
-<JSON of u3.keys.section_3_necessity_proportionality.design_risk_impacts>
+Empty entries are dropped; absent fields never written (first-run parity).
 
-Use these design risks alongside your own incident_risk_impacts to build inherent_risk_assessment per the standing rule (L677 of the reference prompt).
-```
+Wire each of the 9 tool pages to pass `priorInformationNeeded` derived from `report_data.information_needed`. Pages already import RefinePanel; only add the prop. If a page's refine path is not user-reachable, STOP for that page and report actual structure.
 
-U5's tail includes compact digests: risk-row summaries (risk + level + acceptable), measure titles, `[TO COMPLETE]` items, `information_needed[]`, metadata determinations, decision status.
+## Change 2 — Generator consumption (8 generators)
 
-## Storage — `report_data._staging` (no migration) — **DATA ONLY** (Amendment 2)
-```jsonc
-_staging: {
-  shared: {
-    // DATA ONLY — no system prompt text, no rule text, no per-unit prompt skeleton text.
-    // rows are RLS-readable by their owning user; persisting prompt text would leak the
-    // proprietary rule set. System blocks + per-unit skeletons are rebuilt from code
-    // (deterministic given the module source) at the top of every unit invocation.
-    intake, resolved, testStates, enforcementPrecedents, enforcementMeta,
-    gdprMeta, gdprBlock, orgContext, orgName, generationStartedAt, gdprJurisdiction
-  },
-  units: {
-    u1: { status:'pending'|'processing'|'done'|'error', keys?:{...}, elapsed_ms?, output_tokens?, stop_reason?, error?, started_at? },
-    u2: {...}, u3: {...}, u4: {...}, u5: {...}
-  },
-  version: "r1b2.3"
-}
-```
-Deleted at U5 stitch success. Sweeper (`STUCK_PROCESSING_MINUTES`) re-enters row → BOOTSTRAP sees `_staging` present and dispatches only units with `status !== 'done'` (idempotent).
+Add a single shared rule block in a new helper `supabase/functions/_shared/supplemental-rule.ts` exporting:
+- `SUPPLEMENTAL_RULE_TEXT` (the "SUPPLEMENTAL RESPONSES" prompt rule)
+- `formatSupplementalBlock(intake)` returning the rendered intake-side block (or "" when absent), so generators inject it into their intake payload consistently.
 
-## Atomic phase advance (optimistic-lock, no migration)
-Each unit at entry re-reads the row, refuses if own status already `done`, transitions to `processing` via update conditioned on `updated_at` (existing column) — losing writer re-reads and yields. Phase-advance dispatch (U4 after all of U1/U2/U3 done; U5 after U4 done) uses the same optimistic-lock: only the transition setting next-unit `blocked → dispatching` wins. Any double-dispatch is caught by the next unit's own skip-if-`done`/`processing` guard.
+Rule text (canonical, injected verbatim in every emitting prompt):
+> SUPPLEMENTAL RESPONSES: Each entry in `supplemental_responses` is the user's answer to a specific ask from the prior revision's `information_needed`. Treat each response as intake content for the referenced field's determination. It participates in contradiction detection and the assertions/believed-basis machinery unchanged. `supplemental_context` supplements enumerated answers; it never overrides them. When a supplemental response changed a determination in this revision, include one short acknowledgment clause naming the ask that was consumed.
 
-## Failure semantics (courier §8) — **MERGE, DO NOT REPLACE** (Amendment 1)
-- `AnthropicTimeoutError` or any terminal error inside a unit → write `_staging.units[uX] = { status:'error', error, unit:'uX', elapsed_ms }` **as a jsonb-merge into the existing report_data — _staging MUST survive**. Row status → `failed` via `lifecycleUpdate` with **`report_data = { ...existingReportData, _staging: mergedStaging, last_error: {unit, error, elapsed_ms} }`** — never the bare error-stub write at L1265–1273 of the pre-refactor file. `failFunctionRun` receives `{ unit, elapsed_ms }` metadata.
-- Sweeper next attempt: BOOTSTRAP sees intact `_staging`, re-dispatches only units with `status !== 'done'`. Existing evidence guard unchanged.
-- Any hard-key validation failure at U5 stitch → same merge-preserving path with `stage: 'stitch'`.
-- **Turn-4 sandbox verify addendum**: force a unit failure (short-abort ANTHROPIC_ABORT_MS override or stalling mock), confirm the failed row still carries `_staging.units[u_done].keys.<sections>`, then invoke the sweeper (or POST bootstrap re-entry) and confirm only the missing units re-run and the doc completes.
+Per generator:
+- `run-dpia-framework` (SECTIONED, r1b2.3): inject the rule into the prompt builder of every emitting unit (U1, U2, U3, U4). Confirm U5's consistency duty treats supplement-driven deltas as reconcilable (add explicit clause). Supplemental data rides `intake_data` (already read by each unit via `readRow`) — never place prompt text in `_staging`.
+- `run-cppa-risk-assessment` (r1b1.3): inject rule; supplements never flip a banded/mechanical test without the referenced enumerated field being re-selected in the UI (leverages `autoEditableFromIntake` — mark banded fields editable when a supplemental references them).
+- `run-cppa-cybersecurity`, `run-admt-checker`, `run-governance-assessment`, `run-li-assessment`, `check-biometric-compliance`, `generate-ir-playbook`: inject the rule at each prompt build site.
+- `generate-dpa`: same rule + DPA semantic — a supplemental response referencing a `[TO BE COMPLETED]` placeholder FILLS it (user value = intake); PLACEHOLDER NEUTRALITY guarantee stays byte-identical when no fill exists.
 
-## UI — DPIA processing page (courier §9)
-Locate existing DPIA result/processing route (likely `src/pages/DPIAProcessing.tsx` or embedded in `useGenerationStatus`). While `status='processing'`, poll `report_data._staging.units.*` and render D8-compliant per-unit progress:
-- "Preparing shared context — 0 of 6 steps"
-- "Description & metadata complete — 1 of 6 steps" (U1)
-- "Analysis complete — 2 of 6 steps" (U2)
-- "Necessity & proportionality complete — 3 of 6 steps" (U3)
-- "Risk assessment complete — 4 of 6 steps" (U4)
-- "Consistency check — 5 of 6 steps" (U5 mid)
-- "Finalising — 6 of 6 steps" (U5 stitch)
+Acknowledgment clause: single sentence, injected by prompt discipline; no code-side templating.
 
-Reuses `useGenerationStatus` polling; no new architecture.
+## Change 3 — Guard, fixtures, QL2
 
-## Telemetry (courier §10)
-Every unit emits exactly one line:
-```
-[run-dpia-framework] stage=unit:u3 elapsed=87342ms output_tokens=6210 stop_reason=end_turn
-```
+Guard (`_shared/insufficient-info-guard.ts`): verify `supplemental_responses` / `supplemental_context` keys count as part of intake surface (auto-repair does NOT synthesise asks from their absence). If not already, extend the schema-surface list. Add a unit-style comment note.
 
-## Files touched (scan target for verify §7)
-- `supabase/functions/run-dpia-framework/index.ts` — refactor
-- `supabase/functions/_shared/` — no new files needed; if a helper is extracted for the phase-advance SQL, it lives here
-- `src/pages/DPIAProcessing.tsx` (or the DPIA processing page — confirm path in turn 2) — per-unit progress UI
+Fixtures: add ≥1 re-run-with-supplements variant per family — one CPPA (risk), one GDPR-side (dpia or lia), one document tool (dpa). Fixtures carry `supplemental_responses` referencing a prior ask.
 
-No changes to `_shared/anthropic-call.ts`, `cppa-test-states.ts`, `lifecycle-write.ts`, `function-run-logger.ts`, `insufficient-info-guard.ts`, jurisdiction registry, or any other generator.
+QC-WS6-1 in `run-quality-batch` (r1b1.4 poll-resume): deterministic check evaluated on the completed row post-resume. Assertion: for a revision whose fixture carries a supplemental response answering a prior `information_needed` entry, the new `information_needed` MUST NOT contain that entry AND the report MUST contain the acknowledgment clause naming it. Placed in the completion-phase deterministic pass, not the dispatch step.
 
-## Boot marker
-`stampPromptVersion("dpia-framework", "r1b2.3")` and file-header comment `qb9 dpia-r1b2.3 sectioned-generation (U1..U5)`.
+Run QL2/harness re-run scenarios ONLY (never a full batch). Never deploy while runs are in flight.
 
-## Turn plan (verify list is inherently multi-turn)
-1. **This plan** — approve.
-2. Refactor generator + stamp r1b2.3; typecheck; deploy.
-3. Locate & update DPIA processing page for per-unit progress.
-4. Sandbox end-to-end on rich intake (verify §1) — quote per-unit telemetry, wall time, T-check line.
-5. dpia harness run 1/3 (verify §2a).
-6. dpia harness run 2/3.
-7. dpia harness run 3/3.
-8. cppa-risk regression run (verify §3).
-9. QL2 re-measure {dpia} with SQL + floor (verify §4). STOP on FAIL.
-10. Latency ledger + diff-scan proof (verify §6, §7).
+## Verify + report
 
-## Decisions locked (default from courier options, no user input received)
-- Storage: `report_data._staging` (no migration; keeps courier scope tight).
-- U4 hand-off: reads U3 output from `_staging.units.u3.keys` (same channel as shared context).
+1. Per tool: file + line where RefinePanel supplement UI wires in; storage shape written; where SUPPLEMENTAL_RULE_TEXT lands; STOPPED tools listed with actual structure. For DPIA, quote rule text as it lands in each U1–U4 prompt builder.
+2. Preview end-to-end: one CPPA Risk revision on TEST card — answer a prior info-needed entry, regenerate, confirm entry does not recur and quote the acknowledgment clause.
+3. Guard behavior demonstrated both directions (with/without supplements → no synthetic asks).
+4. QC-WS6-1 shown passing on a re-run harness scenario.
+5. Confirm scope stayed inside refine/, tool pages, generators, guard, fixtures, QL2 files. D7/D8 standing. No deploys during in-flight runs.
 
-Revert either default in turn 2 if you object; otherwise proceeding as specified.
+## Technical notes
+
+- Storage lives on `intake_data` (jsonb); no schema migration.
+- No changes to `_staging` semantics (RLS leak prevention).
+- Editable banding: extend `autoEditableFromIntake` outputs so any field referenced by a supplemental becomes editable on next refine (mechanical-test re-selection path).
+- Type: add `SupplementalResponse` type to `src/lib/rerunHighlighting.ts` or a new `src/lib/supplemental.ts` shared with tool pages.
+- Payload shape validated in `useRegenerate` before write; empty entries pruned.
+
+## Out of scope
+
+- First-run intake changes.
+- New purchase/paywall UI (piggybacks on existing refine paths).
+- Any change to `_staging` or RLS.
+- Full-batch harness runs.
