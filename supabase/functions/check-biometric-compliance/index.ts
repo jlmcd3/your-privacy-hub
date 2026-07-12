@@ -1106,9 +1106,9 @@ followed by a JSON array citing enforcement actions that directly supported a pr
 If no cases informed the assessment, output an empty array [].
 
 Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No preamble.`;
-    const stressBudget = isStressRun ? `
+    const stressBudget = (isStressRun ? `
 
-STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
+STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "") + renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
 
     const today = new Date().toISOString().slice(0, 10);
     // R1b2 — compute deterministic TEST-STATES from the request body and inject
