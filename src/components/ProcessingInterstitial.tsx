@@ -73,6 +73,7 @@ export function ProcessingInterstitial({
   label: labelOverride,
   startedAt,
   slow = false,
+  dpiaUnits,
 }: {
   tool: ToolKey;
   label?: string;
@@ -88,6 +89,13 @@ export function ProcessingInterstitial({
    * once updated_at is > 10 minutes old.
    */
   slow?: boolean;
+  /**
+   * DPIA r1b2.3 sectioned-generation per-unit progress. When provided (only
+   * meaningful for tool="dpia"), replaces the ETA-derived stage ladder with
+   * the six D8-clean labels driven by `report_data._staging.units.*.status`.
+   */
+  dpiaUnits?: Record<string, { status?: string | null } | null | undefined>;
+
 }) {
   const cfg = TOOLS[tool];
 
@@ -120,11 +128,45 @@ export function ProcessingInterstitial({
   }
 
   const label = labelOverride || cfg.label;
-  const n = cfg.stages.length;
+
+  // DPIA r1b2.3 per-unit ladder overrides the ETA-derived stages when the
+  // sectioned-generation staging shape is present on the row. Labels are the
+  // D8-clean set specified in the courier's UI §9.
+  const dpiaLadder =
+    tool === "dpia" && dpiaUnits
+      ? (() => {
+          const stages = [
+            "Preparing shared context",
+            "Description & metadata complete",
+            "Analysis complete",
+            "Necessity & proportionality complete",
+            "Risk assessment complete",
+            "Consistency check",
+            "Finalising",
+          ];
+          const done = (k: string) => dpiaUnits[k]?.status === "done";
+          const processing = (k: string) => dpiaUnits[k]?.status === "processing";
+          let idx = 0;
+          if (done("u1")) idx = 1;
+          if (done("u2") && idx < 2) idx = 2;
+          // parallel u1/u2/u3: reflect the furthest completed
+          if (done("u1") && done("u2") && done("u3")) idx = Math.max(idx, 3);
+          if (done("u4")) idx = 4;
+          if (processing("u5")) idx = 5;
+          if (done("u5")) idx = 6;
+          return { stages, activeIdx: Math.min(idx, stages.length - 1), total: stages.length };
+        })()
+      : null;
+
+  const stages = dpiaLadder?.stages ?? cfg.stages;
+  const n = stages.length;
   const perStage = cfg.etaSeconds / n;
-  const activeIdx = Math.min(n - 1, Math.floor(elapsed / perStage));
+  const activeIdx = dpiaLadder ? dpiaLadder.activeIdx : Math.min(n - 1, Math.floor(elapsed / perStage));
   const overrun = slow || elapsed > cfg.etaSeconds;
-  const pct = Math.min(95, Math.round((elapsed / cfg.etaSeconds) * 100));
+  const pct = dpiaLadder
+    ? Math.min(95, Math.round((activeIdx / n) * 100))
+    : Math.min(95, Math.round((elapsed / cfg.etaSeconds) * 100));
+
 
   return (
     <div className="bg-card border rounded-lg p-8 sm:p-10 max-w-xl mx-auto">
@@ -149,7 +191,7 @@ export function ProcessingInterstitial({
       </div>
 
       <ul className="mt-5 space-y-2">
-        {cfg.stages.map((s, i) => {
+        {stages.map((s, i) => {
           const done = i < activeIdx || (overrun && i < n - 1);
           const active = i === activeIdx && !done;
           return (
