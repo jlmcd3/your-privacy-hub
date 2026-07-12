@@ -595,57 +595,20 @@ async function runPipeline(assessment_id: string) {
     let debugRaw = "";
     let lastStopReason: string | null = null;
 
+    // Courier 2026-07-12 items 1+4: first call at CPPA_RISK_MAX_TOKENS with
+    // continuation-on-truncation handled inside callAnthropicWithContinuation.
+    // If the stitched response is still max_tokens, fall through to the
+    // existing generation_truncated error path — no second full generation.
     const first = await callModel(system, userPrompt, "generate-v4");
     lastStopReason = first.stopReason;
-
-    // Helper: re-call Claude at an explicit token ceiling.
-    const callAt = async (maxTokens: number, label: string) => {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: maxTokens,
-          system,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-        signal: AbortSignal.timeout(900_000),
-      });
-      if (!res.ok) {
-        console.warn(`[${label}] http ${res.status}`);
-        return { text: "", stopReason: null as string | null };
-      }
-      const data = await res.json();
-      const text = data.content?.[0]?.text ?? "";
-      const stopReason: string | null = data.stop_reason ?? null;
-      console.log(`[${label}] ok chars=${text.length} stop=${stopReason}`);
-      return { text, stopReason };
-    };
-
-    if (first.stopReason === "max_tokens") {
-      // First call already runs at the model ceiling (PRODUCT_MAX_OUTPUT_TOKENS).
-      // Truncation here is exceptional; one retry at the same ceiling is the
-      // most we can do synchronously. Cross-product retry/refund flow picks up
-      // any residual failures.
-      console.warn(`[cppa-risk v4] output truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} tokens — single retry`);
-      const retry = await callAt(PRODUCT_MAX_OUTPUT_TOKENS, "generate-v4-retry-max");
+    debugRaw = first.text;
+    parsed = tryParseJson(first.text);
+    if (!parsed && first.stopReason !== "max_tokens") {
+      console.warn("[cppa-risk v4] first parse failed — retrying once");
+      const retry = await callModel(system, userPrompt, "generate-v4-retry");
       lastStopReason = retry.stopReason;
       debugRaw = retry.text;
       parsed = tryParseJson(retry.text);
-    } else {
-      debugRaw = first.text;
-      parsed = tryParseJson(first.text);
-      if (!parsed) {
-        console.warn("[cppa-risk v4] first parse failed — retrying once");
-        const retry = await callModel(system, userPrompt, "generate-v4-retry");
-        lastStopReason = retry.stopReason;
-        debugRaw = retry.text;
-        parsed = tryParseJson(retry.text);
-      }
     }
 
     console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms stop=${lastStopReason}`);
