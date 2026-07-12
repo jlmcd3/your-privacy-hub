@@ -1,4 +1,4 @@
-// qb8 build active · cppa-risk r1b1.1 time-budgeted post-gen retry (mirrors dpia r1b2.1)
+// qb8 build active · cppa-risk r1b1.2 T-2 omission detection (M4 N/A + M6 legacy-band cohort)
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -45,7 +45,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 // document instead of burning the isolate's remaining wall-clock on a second
 // full generation. Mirrors run-dpia-framework DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS.
 const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
-console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.1`);
+console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.2`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
@@ -308,7 +308,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "INCONSISTENCY CHARACTERISATIONS MATCH ACROSS SECTIONS: where inconsistency_flags describes two records as 'coexisting with an undocumented relationship', every other section referencing the same issue (exception_analysis flags, priority actions) uses the same characterisation — never 'conflicts with' in one place and 'not necessarily contradictory' in another.",
     "INDETERMINATE ADMT STATUS IS PHRASED AS INDETERMINATE: where the ADMT determination is unresolved and the cross-tool recommendation flag is true, write 'whether an ADMT assessment is required cannot be determined on the current record pending resolution' — never 'an ADMT assessment is not triggered... pending resolution', which contradicts the flag.",
     "§7001(e)(2) IS THE SUBSTANTIALLY-REPLACES STANDARD: cite §7001(e)(2) as defining when ADMT substantially replaces human decisionmaking (meaningful human involvement not practicable) — never as a standalone definition of 'meaningful human involvement'.",
-    "TEST-STATES ARE BINDING (R1b1 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1–M10). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry for it, and NEVER ask the user to confirm/verify/validate/document it. A RESOLVED state may never be contradicted in prose. Any test whose state is INDETERMINATE uses insufficient-basis language and MUST generate exactly ONE information_needed entry anchored to the producing field(s) listed in the block.",
+    "TEST-STATES ARE BINDING (R1b1 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1–M10). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry for it, and NEVER ask the user to confirm/verify/validate/document it. A RESOLVED state may never be contradicted in prose. Any test whose state is INDETERMINATE uses insufficient-basis language and MUST generate exactly ONE information_needed entry anchored to the producing field(s) listed in the block. R1b1.2 REINFORCEMENT: EVERY M-test outcome is STATED in the cyber-audit analysis, including RESOLVED_NOT_APPLICABLE prongs ('the § 7120(b)(2)(B) sensitive-PI prong does not apply: no sensitive-PI processing is indicated') and INDETERMINATE cohorts (legacy revenue band → the explicit two-cohort conditional: 'April 1, 2029 if 2027 revenue is $50M–$100M; April 1, 2030 if under $50M — the recorded band straddles the $50M line and cannot resolve the cohort'). Omission of a computed test's outcome is a defect.",
     "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M-CA, M-GDPR, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE) anywhere in prose, priority-action text, information_needed dimensions, exception_analysis, strength_basis, executive_summary, safeguard_gaps, or any other user-visible output. State the conclusion with its factual basis instead — e.g. 'the recorded consumer-volume band lies entirely below 250,000' — never 'per TEST-STATES M3' or 'M3 resolved_not_met'. This is the same philosophy as NO SYSTEM-ROUTING VOICE and NO RAW SLUGS IN PROSE.",
     "PROPORTIONATE ASKS (R1b1 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Only verdict-blocking and record-completeness items appear in information_needed (verdict-blocking listed first). Enhancement items appear ONLY in the strengthen/depth mechanism (strengthen_items), with no urgency language. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record establishes BEFORE the residual; the residual is incremental (e.g. 'Additional recipients should be named, with the categories of PI each processes'), and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element that blocks it rather than collapsing the whole determination.",
     "ADMT ASK ROUTING (R1b1 rule 2e): any information_needed entry arising from a q18-class ADMT determination anchors to `i5_admt_logic` (the free-text home for ADMT logic/description), NEVER to q18/q19/q20 radios. Where the ask genuinely concerns a radio's binary state (rare), route it via the record-completion action rather than an information_needed entry.",
@@ -768,6 +768,52 @@ async function runPipeline(assessment_id: string) {
           if (hedgeRe.test(rationale)) {
             t2Violation = true;
             t2Details.push({ test: testId, kind: "hedge_in_prose", detail: rationale.slice(0, 160) });
+          }
+        }
+      }
+      // T-2 EXTENSION (r1b1.2, 2026-07-11): OMISSION detection in
+      // cross_tool_recommendations.cybersecurity_audit_rationale. A RESOLVED
+      // test whose outcome is not stated at all in the rationale is a defect
+      // ("a check that cannot see its own conclusion passes everything").
+      // Scope: M4 (sensitive-PI prong, incl. resolved_not_applicable) and M6
+      // (audit-cohort, incl. legacy-band indeterminate requiring both cohort
+      // dates). Merges into the same t2Violation surface so the r1b1.1
+      // time-budgeted retry gate governs the response.
+      {
+        const rationaleT2 = String(parsed?.cross_tool_recommendations?.cybersecurity_audit_rationale ?? "");
+        const m4 = (testStates as any).M4;
+        if (m4) {
+          if (m4.state === "resolved_not_applicable") {
+            // Must state the prong does not apply.
+            const naRe = /(does not apply|not applicable|inapplicable|no sensitive[- ]pi|no sensitive personal information)/i;
+            if (!naRe.test(rationaleT2)) {
+              t2Violation = true;
+              t2Details.push({ test: "M4", kind: "hedge_in_prose", detail: "M4 RESOLVED_NOT_APPLICABLE: § 7120(b)(2)(B) N/A prong outcome absent from cybersecurity_audit_rationale" });
+            }
+          } else if (m4.state === "resolved_met" || m4.state === "resolved_not_met") {
+            const spiRe = /(sensitive[- ]pi|sensitive personal information|§?\s*7120\(b\)\(2\)\(B\)|50,?000)/i;
+            if (!spiRe.test(rationaleT2)) {
+              t2Violation = true;
+              t2Details.push({ test: "M4", kind: "hedge_in_prose", detail: `M4 ${m4.state}: SPI prong outcome absent from cybersecurity_audit_rationale` });
+            }
+          }
+        }
+        const m6 = (testStates as any).M6;
+        if (m6) {
+          if (m6.state === "indeterminate") {
+            // Legacy band → both cohort dates must appear conditionally.
+            const has2029 = /2029/.test(rationaleT2);
+            const has2030 = /2030/.test(rationaleT2);
+            if (!(has2029 && has2030)) {
+              t2Violation = true;
+              t2Details.push({ test: "M6", kind: "hedge_in_prose", detail: "M6 INDETERMINATE (legacy band): cybersecurity_audit_rationale must state BOTH cohort dates (2029 and 2030) as the conditional resolution" });
+            }
+          } else if (m6.state === "resolved_met") {
+            const cohortYear = String(m6.note ?? "").match(/(\d{4})-\d{2}-\d{2}/)?.[1] ?? "";
+            if (cohortYear && !new RegExp(cohortYear).test(rationaleT2)) {
+              t2Violation = true;
+              t2Details.push({ test: "M6", kind: "hedge_in_prose", detail: `M6 RESOLVED_MET: cohort year ${cohortYear} absent from cybersecurity_audit_rationale` });
+            }
           }
         }
       }
@@ -1478,7 +1524,7 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.1") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.2") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
