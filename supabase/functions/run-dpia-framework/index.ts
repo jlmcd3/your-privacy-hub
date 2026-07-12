@@ -925,11 +925,29 @@ async function writeUnitStatus(dpia_id: string, unit: UnitId, patch: Record<stri
 }
 
 // Amendment 1: MERGE-preserving fail write.
+// r1b2.3 fix (c): accept optional call telemetry so the _staging.units[uX]
+// error entry carries stop_reason / output_tokens / continued / stitched_chars
+// / cont_elapsed_ms — the ~6-min edge-log retention window is not durable
+// enough; without this the failure has no trail once logs age out.
+export interface FailTelemetry {
+  stop_reason?: string | null;
+  output_tokens?: number | null;
+  continued?: boolean | null;
+  first_stop_reason?: string | null;
+  first_output_tokens?: number | null;
+  cont_stop_reason?: string | null;
+  cont_output_tokens?: number | null;
+  cont_elapsed_ms?: number | null;
+  cont_retried?: boolean | null;
+  stitched_chars?: number | null;
+  chars?: number | null;
+}
 async function mergePreservingFail(
   dpia_id: string,
   unit: UnitId | "stitch",
   err: unknown,
   elapsedMs: number,
+  telemetry?: FailTelemetry,
 ): Promise<void> {
   const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -943,12 +961,13 @@ async function mergePreservingFail(
         status: "error",
         error: message.slice(0, 500),
         elapsed_ms: elapsedMs,
+        telemetry: telemetry ?? null,
       };
     }
     const nextRd = {
       ...rd,
       _staging: staging,
-      last_error: { unit, error: message.slice(0, 500), elapsed_ms: elapsedMs, at: new Date().toISOString() },
+      last_error: { unit, error: message.slice(0, 500), elapsed_ms: elapsedMs, at: new Date().toISOString(), telemetry: telemetry ?? null },
     };
     const patch = { report_data: nextRd, status: "failed" as const };
     const ok = await optimisticUpdate(dpia_id, row.updated_at, patch);
