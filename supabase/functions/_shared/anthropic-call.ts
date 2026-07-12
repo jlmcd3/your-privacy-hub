@@ -137,6 +137,9 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       elapsedMs: first.elapsedMs,
       outputTokens: first.outputTokens,
       continued: false,
+      firstOutputTokens: first.outputTokens,
+      firstStopReason: first.stopReason,
+      stitchedChars: first.text.length,
     };
   }
 
@@ -147,18 +150,47 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
   // re-emitted at the start of the continuation.
   console.warn(`[${opts.label}] stage=callAnthropic truncated at max_tokens — continuing in place (assistant+user-continue continuation)`);
   const CONTINUE_INSTRUCTION = 'Your previous message hit its length limit mid-output. Continue EXACTLY from the character where it stopped. Output ONLY the remaining text — no preamble, no repetition of earlier output, no code fences.';
-  const cont = await doOne({
+  const contMessages = [
+    { role: "user", content: opts.user },
+    { role: "assistant", content: first.text },
+    { role: "user", content: CONTINUE_INSTRUCTION },
+  ];
+  // r1b2.3 fix (b2): degenerate-continuation guard. If the continuation call
+  // returns fewer than DEGENERATE_MIN_TOKENS while the first call clearly hit
+  // max_tokens, retry ONCE (bounded ~60s) before stitching. This addresses
+  // the actual #69 trigger: the originals' continuation lasted ~5s and
+  // returned near-empty content → stitched into unparseable text. One retry
+  // only — no unbounded loop.
+  const DEGENERATE_MIN_TOKENS = 200;
+  const DEGENERATE_RETRY_TIMEOUT_MS = 60_000;
+  let cont = await doOne({
     model: opts.model,
     system: opts.system,
-    messages: [
-      { role: "user", content: opts.user },
-      { role: "assistant", content: first.text },
-      { role: "user", content: CONTINUE_INSTRUCTION },
-    ],
+    messages: contMessages,
     maxTokens: opts.maxTokens,
     timeoutMs,
     label: `${opts.label}#cont`,
   });
+  let contRetried = false;
+  if ((cont.outputTokens ?? 0) < DEGENERATE_MIN_TOKENS) {
+    console.warn(`[${opts.label}#cont] DEGENERATE (output_tokens=${cont.outputTokens ?? "?"} < ${DEGENERATE_MIN_TOKENS}) — retrying continuation once`);
+    contRetried = true;
+    const retry = await doOne({
+      model: opts.model,
+      system: opts.system,
+      messages: contMessages,
+      maxTokens: opts.maxTokens,
+      timeoutMs: DEGENERATE_RETRY_TIMEOUT_MS,
+      label: `${opts.label}#cont2`,
+    });
+    console.log(`[${opts.label}#cont2] stage=callAnthropic retry elapsed=${retry.elapsedMs}ms stop=${retry.stopReason} output_tokens=${retry.outputTokens ?? "?"} chars=${retry.text.length}`);
+    // Prefer whichever leg produced more tokens.
+    if ((retry.outputTokens ?? 0) > (cont.outputTokens ?? 0)) {
+      cont = { ...retry, elapsedMs: cont.elapsedMs + retry.elapsedMs };
+    } else {
+      cont = { ...cont, elapsedMs: cont.elapsedMs + retry.elapsedMs };
+    }
+  }
 
   // Overlap guard: strip leading whitespace, then find the largest suffix of
   // first.text that is a prefix of contText (scan last ~200 chars) and trim.
@@ -174,10 +206,31 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     contText = contText.slice(overlapLen);
   }
 
+  // r1b2.3 fix (b): stitch preamble-strip. Drop any non-structural prose that
+  // precedes the first structural JSON token at the join. Structural tokens:
+  // `"` `{` `}` `[` `]` `,` `:` and digit / `-` / `t` / `f` / `n` (for
+  // true/false/null). Only strips when the first non-whitespace char is a
+  // letter that ISN'T a legal JSON literal start (i.e. an actual preamble
+  // like "Continuing:\n") — mid-string continuations start with the string
+  // content itself and are left alone.
+  {
+    const head = contText.slice(0, 200);
+    const firstChar = head.replace(/^\s*/, "").charAt(0);
+    const isStructural = /["\{\}\[\],:\-0-9tfn]/.test(firstChar);
+    if (!isStructural && firstChar) {
+      // Look for the first structural marker within the head window.
+      const structIdx = head.search(/["\{\[]/);
+      if (structIdx > 0) {
+        console.log(`[${opts.label}#cont] stage=callAnthropic preamble_strip trimmed=${structIdx} chars head=${JSON.stringify(head.slice(0, structIdx))}`);
+        contText = contText.slice(structIdx);
+      }
+    }
+  }
+
   const combinedText = first.text + contText;
   const combinedTokens = (first.outputTokens ?? 0) + (cont.outputTokens ?? 0);
   const combinedElapsed = first.elapsedMs + cont.elapsedMs;
-  console.log(`[${opts.label}#cont] stage=callAnthropic model=${opts.model} elapsed=${cont.elapsedMs}ms stop=${cont.stopReason} output_tokens=${cont.outputTokens ?? "?"} chars=${contText.length} stitched_chars=${combinedText.length}`);
+  console.log(`[${opts.label}#cont] stage=callAnthropic model=${opts.model} elapsed=${cont.elapsedMs}ms stop=${cont.stopReason} output_tokens=${cont.outputTokens ?? "?"} chars=${contText.length} stitched_chars=${combinedText.length} retried=${contRetried}`);
 
   return {
     text: combinedText,
@@ -185,5 +238,12 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     elapsedMs: combinedElapsed,
     outputTokens: combinedTokens || null,
     continued: true,
+    firstOutputTokens: first.outputTokens,
+    firstStopReason: first.stopReason,
+    contOutputTokens: cont.outputTokens,
+    contStopReason: cont.stopReason,
+    contElapsedMs: cont.elapsedMs,
+    stitchedChars: combinedText.length,
+    contRetried,
   };
 }
