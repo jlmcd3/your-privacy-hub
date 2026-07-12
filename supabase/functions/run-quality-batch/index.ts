@@ -45,12 +45,17 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Boot version marker — bumped for the leg-(b) TEST-STATES leakage fix bundled
-// atomically with the scenario-spec rewrites (governance / cppa-cyber / dpia /
-// registration / cppa-admt) and PDF template D8 fixes (Safeguard deficiencies,
-// Material deficiencies identified). CONSUMER_OPTS enum enforced on
-// cppa-risk annual_consumer_volume.
-console.log("[run-quality-batch] build 2026-07-11-qc-r1-normalised");
+// Boot version marker — r1b1.2 (2026-07-11): GEN/EVAL CHUNK BOUNDARY. After a
+// doc's build completes and the report is persisted, the harness self-reinvokes
+// so the dual-model evaluation (Claude + GPT-4o + deterministic cross-review)
+// runs in a FRESH ~400s isolate. Closes the dpia #61 orphan class (build+eval
+// in one isolate = 688s > 400s wall clock; heartbeat died mid-evaluation with
+// next_doc_index=0). Harmless for fast tools (extra isolate hop is negligible);
+// curative for dpia and any tool whose gen+eval exceeds the isolate budget.
+// Mirrors the proven chunk-1 boundary pattern (empirically validated by
+// cppa-risk #71 completing 5/5). Bundled with cppa-risk r1b1.2 (T-2 omission
+// detection for M4 N/A prong and M6 legacy-band cohort framing).
+console.log("[run-quality-batch] build 2026-07-11-gen-eval-boundary");
 
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
