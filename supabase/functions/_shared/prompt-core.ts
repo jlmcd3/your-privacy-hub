@@ -13,9 +13,13 @@
 // FROZEN TIME FACTS and TEMPORAL FRAMING RULE. Canonical/required output sentences may prescribe
 // structure, voice, and verified citation anchors but must not embed effective/deadline dates in a
 // fixed tense; dates are framed relative to the assessment date at generation time.
+// v3.8 (WS6 v2.1, 2026-07-12): SUPPLEMENTAL RESPONSES consumption rule added to OUTPUT DISCIPLINE
+// (full + lean). A "SUPPLEMENTAL RESPONSES" section may be appended to the user prompt on any
+// revision run; entries are treated as first-party intake facts of the same authority as the base
+// intake and must retire prior information_needed items they answer without becoming a fresh ask.
 
-export const PROMPT_CORE_VERSION = "3.7";
-export const BUILD_TAG = "qb14";
+export const PROMPT_CORE_VERSION = "3.8";
+export const BUILD_TAG = "qb15";
 
 
 
