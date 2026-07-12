@@ -33,6 +33,7 @@ import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -45,7 +46,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 // document instead of burning the isolate's remaining wall-clock on a second
 // full generation. Mirrors run-dpia-framework DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS.
 const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
-console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.2`);
+// Courier 2026-07-12 item 4: first-call ceiling for risk. Continuation
+// (see callAnthropicWithContinuation) is the safety net if exceeded.
+const CPPA_RISK_MAX_TOKENS = 32_000;
+console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.3`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
