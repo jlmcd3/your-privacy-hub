@@ -649,10 +649,12 @@ ADDITIONAL DISCIPLINES:
 
     let rawText: string;
     {
-      const first = await callAnthropic(system, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis");
+      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const _userPromptWithSupp = userPrompt + _suppWs6;
+      const first = await callAnthropic(system, _userPromptWithSupp, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis");
       if (first.stopReason === "max_tokens") {
         console.warn(`[run-admt-checker] gap-analysis truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-        const retry = await callAnthropic(system, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis-retry");
+        const retry = await callAnthropic(system, _userPromptWithSupp, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis-retry");
         rawText = retry.text;
       } else {
         rawText = first.text;
