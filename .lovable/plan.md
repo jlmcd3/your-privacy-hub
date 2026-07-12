@@ -37,7 +37,7 @@ entry (POST /run-dpia-framework)
             lintReportText walk, T-1..T-5 gate, detectTestStatesLeak,
             jurisdiction validator, insufficient-info-guard, placeholder scan,
             observeCitations, recordRunMeterAndVersion
-        - clear _staging; write final report_data; status=completed
+        - clear _staging; write final report_data; status='complete' (matches existing DB enum)
 ```
 
 ## Key → Unit partition (courier §Design, verbatim mapping)
@@ -63,34 +63,34 @@ Use these design risks alongside your own incident_risk_impacts to build inheren
 
 U5's tail includes compact digests: risk-row summaries (risk + level + acceptable), measure titles, `[TO COMPLETE]` items, `information_needed[]`, metadata determinations, decision status.
 
-## Storage — `report_data._staging` (no migration)
+## Storage — `report_data._staging` (no migration) — **DATA ONLY** (Amendment 2)
 ```jsonc
 _staging: {
-  shared: { intake, resolved, testStates, systemBlocks, enforcementPrecedents, enforcementMeta, gdprMeta, generationStartedAt },
+  shared: {
+    // DATA ONLY — no system prompt text, no rule text, no per-unit prompt skeleton text.
+    // rows are RLS-readable by their owning user; persisting prompt text would leak the
+    // proprietary rule set. System blocks + per-unit skeletons are rebuilt from code
+    // (deterministic given the module source) at the top of every unit invocation.
+    intake, resolved, testStates, enforcementPrecedents, enforcementMeta,
+    gdprMeta, gdprBlock, orgContext, orgName, generationStartedAt, gdprJurisdiction
+  },
   units: {
-    u1: { status:'pending'|'done'|'error', keys?:{...}, elapsed_ms?, output_tokens?, stop_reason?, error?, started_at? },
+    u1: { status:'pending'|'processing'|'done'|'error', keys?:{...}, elapsed_ms?, output_tokens?, stop_reason?, error?, started_at? },
     u2: {...}, u3: {...}, u4: {...}, u5: {...}
   },
   version: "r1b2.3"
 }
 ```
-Deleted at U5 stitch success. Sweeper (`STUCK_PROCESSING_MINUTES`) will re-enter row → BOOTSTRAP sees `_staging` present and dispatches only units with `status !== 'done'` (idempotent).
+Deleted at U5 stitch success. Sweeper (`STUCK_PROCESSING_MINUTES`) re-enters row → BOOTSTRAP sees `_staging` present and dispatches only units with `status !== 'done'` (idempotent).
 
-## Atomic phase advance
-Uses Postgres row-level jsonb update with WHERE guard to prevent double-dispatch:
-```sql
-UPDATE dpia_frameworks
-SET report_data = jsonb_set(report_data, '{_staging,units,u4,status}', '"dispatching"')
-WHERE id = $1
-  AND report_data->'_staging'->'units'->'u4'->>'status' = 'blocked'
-RETURNING report_data->'_staging'->'units'->'u4'->>'status';
-```
-Only the caller whose UPDATE returns a row does the dispatch. Same pattern for U5.
+## Atomic phase advance (optimistic-lock, no migration)
+Each unit at entry re-reads the row, refuses if own status already `done`, transitions to `processing` via update conditioned on `updated_at` (existing column) — losing writer re-reads and yields. Phase-advance dispatch (U4 after all of U1/U2/U3 done; U5 after U4 done) uses the same optimistic-lock: only the transition setting next-unit `blocked → dispatching` wins. Any double-dispatch is caught by the next unit's own skip-if-`done`/`processing` guard.
 
-## Failure semantics (courier §8)
-- `AnthropicTimeoutError` inside a unit → write `_staging.units[uX] = { status:'error', error:'generation_timeout_330s', unit:'uX', elapsed_ms }`, mark row `failed` via `lifecycleUpdate`, `failFunctionRun` with `{ unit, elapsed_ms }` metadata.
-- Sweeper next attempt: re-dispatch only units with `status !== 'done'`. Existing evidence guard unchanged.
-- Any hard-key validation failure at U5 stitch → same failed path with `stage: 'stitch'`.
+## Failure semantics (courier §8) — **MERGE, DO NOT REPLACE** (Amendment 1)
+- `AnthropicTimeoutError` or any terminal error inside a unit → write `_staging.units[uX] = { status:'error', error, unit:'uX', elapsed_ms }` **as a jsonb-merge into the existing report_data — _staging MUST survive**. Row status → `failed` via `lifecycleUpdate` with **`report_data = { ...existingReportData, _staging: mergedStaging, last_error: {unit, error, elapsed_ms} }`** — never the bare error-stub write at L1265–1273 of the pre-refactor file. `failFunctionRun` receives `{ unit, elapsed_ms }` metadata.
+- Sweeper next attempt: BOOTSTRAP sees intact `_staging`, re-dispatches only units with `status !== 'done'`. Existing evidence guard unchanged.
+- Any hard-key validation failure at U5 stitch → same merge-preserving path with `stage: 'stitch'`.
+- **Turn-4 sandbox verify addendum**: force a unit failure (short-abort ANTHROPIC_ABORT_MS override or stalling mock), confirm the failed row still carries `_staging.units[u_done].keys.<sections>`, then invoke the sweeper (or POST bootstrap re-entry) and confirm only the missing units re-run and the doc completes.
 
 ## UI — DPIA processing page (courier §9)
 Locate existing DPIA result/processing route (likely `src/pages/DPIAProcessing.tsx` or embedded in `useGenerationStatus`). While `status='processing'`, poll `report_data._staging.units.*` and render D8-compliant per-unit progress:
