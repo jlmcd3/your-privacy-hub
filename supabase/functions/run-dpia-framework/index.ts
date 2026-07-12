@@ -1,4 +1,4 @@
-// qb9 dpia-r1b2.1 time-budgeted T-2/T-3/T-4 retry active
+// qb9 dpia-r1b2.2 continuation-on-truncation + 330s self-report abort + compact cells
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -28,25 +28,17 @@ const corsHeaders = {
 
 const DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 
-async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
-  const startedAt = Date.now();
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(timeoutMs),
+// DPIA per-half first-call ceiling (courier 2026-07-12 item 4). Continuation
+// (see callAnthropicWithContinuation) is the safety net if this is exceeded.
+const DPIA_HALF_MAX_TOKENS = 24_000;
+
+import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
+
+async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
+  const r = await callAnthropicWithContinuation({
+    model, system, user, maxTokens, label: "run-dpia-framework",
   });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}`);
-  const d = await res.json();
-  const text = d.content?.[0]?.text || "";
-  const stopReason: string | null = d.stop_reason ?? null;
-  const elapsed = Date.now() - startedAt;
-  console.log(`[run-dpia-framework] stage=callAnthropic model=${model} elapsed=${elapsed}ms stop=${stopReason} chars=${text.length}`);
-  return { text, stopReason };
+  return { text: r.text, stopReason: r.stopReason };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -277,7 +269,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=r1b2.1`);
+  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=r1b2.2`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -573,7 +565,9 @@ ${enforcementContextStr}
 
 ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigating measure in the risk assessment, include it in the section_4_risk_management.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
 
-USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs — an Article 9(2) condition, a necessity/proportionality & alternatives statement, and a retention period. Where a value is provided (i.e. not "Not specified"/"Not provided"): (1) Article 9(2) condition — treat it as the controller's PROPOSED special-category condition in section_2_analysis.special_category_conditions: state it explicitly and assess whether it is sound for this processing (for example, flag that explicit consent under Art. 9(2)(a) may not be freely given where an employment or other power imbalance exists). Do NOT emit a blank "[TO COMPLETE — identify Article 9(2) condition]" when the user has supplied one — assess what they supplied. (2) Necessity, proportionality & alternatives — incorporate the user's stated alternatives and justification into section_3_necessity_proportionality (the necessity and proportionality assessments), assessing them, rather than emitting only [TO COMPLETE] placeholders. (3) Retention period — use it in section_2_analysis.data_minimisation_retention (storage-limitation, Art. 5(1)(e)) and in the related mitigating measure, rather than treating retention as undefined. Where a value is "Not specified"/"Not provided", retain the existing [TO COMPLETE] behaviour. Never treat these user inputs as settled legal conclusions — assess them as proposals the organisation must validate and document.`;
+USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs — an Article 9(2) condition, a necessity/proportionality & alternatives statement, and a retention period. Where a value is provided (i.e. not "Not specified"/"Not provided"): (1) Article 9(2) condition — treat it as the controller's PROPOSED special-category condition in section_2_analysis.special_category_conditions: state it explicitly and assess whether it is sound for this processing (for example, flag that explicit consent under Art. 9(2)(a) may not be freely given where an employment or other power imbalance exists). Do NOT emit a blank "[TO COMPLETE — identify Article 9(2) condition]" when the user has supplied one — assess what they supplied. (2) Necessity, proportionality & alternatives — incorporate the user's stated alternatives and justification into section_3_necessity_proportionality (the necessity and proportionality assessments), assessing them, rather than emitting only [TO COMPLETE] placeholders. (3) Retention period — use it in section_2_analysis.data_minimisation_retention (storage-limitation, Art. 5(1)(e)) and in the related mitigating measure, rather than treating retention as undefined. Where a value is "Not specified"/"Not provided", retain the existing [TO COMPLETE] behaviour. Never treat these user inputs as settled legal conclusions — assess them as proposals the organisation must validate and document.
+
+COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. Do not write paragraph-length narrative inside cells of the repeatable tables (controllers, processors, processed_personal_data, purposes, secondary_uses, functional_description, supporting_assets, codes_of_conduct, legal_basis, special_category_conditions, data_minimisation_retention, data_quality, measures_article5, measures_rights, measures_other, measures_dpbd, measures_security, and the risk_assessment and residual_risk_assessment tables). The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
 
     const promptA = `${sharedContext}
 
@@ -757,17 +751,15 @@ Generate substantive draft rows for every table for the controller to verify; us
 
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+      // Courier 2026-07-12 item 1+4: first call at 24k/half; continuation-on-
+      // truncation is handled inside callAnthropicWithContinuation. If the
+      // stitched response is still max_tokens after continuation, fall through
+      // to the existing empty-half behavior — no second full-price retry.
+      const r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, DPIA_HALF_MAX_TOKENS);
       console.log(`[DPIA] genHalf stopReason=${r.stopReason} chars=${r.text.length} tail=${JSON.stringify(r.text.slice(-120))}`);
       if (r.stopReason === "max_tokens") {
-        const bumped = Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 1.25);
-        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry at ${bumped} (QB8-8 +25%)`);
-        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, bumped);
-        console.log(`[DPIA] genHalf retry stopReason=${r.stopReason} chars=${r.text.length}`);
-        if (r.stopReason === "max_tokens") {
-          console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
-          return {};
-        }
+        console.error("[DPIA] genHalf truncated_output after continuation — returning empty half");
+        return {};
       }
       const parsed = parseJsonish(r.text);
       if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 0 && r.text.length > 200) {
@@ -1146,7 +1138,7 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
-    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2.1") };
+    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2.2") };
 
     // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
     try {
@@ -1268,8 +1260,18 @@ Generate substantive draft rows for every table for the controller to verify; us
 
       } catch (bgErr) {
         console.error("run-dpia-framework background error:", bgErr);
-        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
-        await failFunctionRun(supabase, fnRun, bgErr);
+        const isTimeout = bgErr instanceof AnthropicTimeoutError
+          || (bgErr instanceof Error && (bgErr as any).code === "generation_timeout_330s");
+        const patch: Record<string, unknown> = { status: "failed" };
+        if (isTimeout) {
+          patch.report_data = {
+            error: "generation_timeout_330s",
+            evidence: (bgErr as Error).message,
+            elapsed_ms: (bgErr as any).elapsedMs ?? null,
+          };
+        }
+        await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, patch, { fn: "run-dpia-framework", phase: "terminal_error_catch" });
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: isTimeout ? { evidence: "generation_timeout_330s" } : undefined });
       }
 
     })());

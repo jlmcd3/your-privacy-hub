@@ -1,4 +1,4 @@
-// qb8 build active · cppa-risk r1b1.2 T-2 omission detection (M4 N/A + M6 legacy-band cohort)
+// qb8 build active · cppa-risk r1b1.3 continuation-on-truncation + 330s self-report abort + compact cells
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -33,6 +33,7 @@ import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -45,7 +46,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 // document instead of burning the isolate's remaining wall-clock on a second
 // full generation. Mirrors run-dpia-framework DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS.
 const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
-console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.2`);
+// Courier 2026-07-12 item 4: first-call ceiling for risk. Continuation
+// (see callAnthropicWithContinuation) is the safety net if exceeded.
+const CPPA_RISK_MAX_TOKENS = 32_000;
+console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.3`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
@@ -513,35 +517,14 @@ Return only valid JSON matching the specified output structure. No preamble, no 
 async function callModel(
   system: string | SystemBlock[],
   user: string,
-  label = "generate-v4"
+  label = "generate-v4",
+  maxTokens: number = CPPA_RISK_MAX_TOKENS,
 ): Promise<{ text: string; stopReason: string | null }> {
-  const t0 = Date.now();
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
-      system,
-      messages: [{ role: "user", content: user }],
-    }),
-    signal: AbortSignal.timeout(900_000),
+  const r = await callAnthropicWithContinuation({
+    model: "claude-sonnet-4-6",
+    system, user, maxTokens, label,
   });
-  const elapsed = Date.now() - t0;
-  if (!res.ok) {
-    const t = await res.text();
-    console.error(`[${label}] HTTP ${res.status} in ${elapsed}ms: ${t.slice(0, 300)}`);
-    throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
-  }
-  const d = await res.json();
-  const text = d.content?.[0]?.text ?? "";
-  const stopReason: string | null = d.stop_reason ?? null;
-  console.log(`[${label}] ok in ${elapsed}ms chars=${text.length} stop=${stopReason}`);
-  return { text, stopReason };
+  return { text: r.text, stopReason: r.stopReason };
 }
 
 function tryParseJson(text: string): any | null {
@@ -604,7 +587,8 @@ async function runPipeline(assessment_id: string) {
       .filter((k) => k !== "assertions")
       .sort();
     const canonicalBlock = `CANONICAL_INTAKE_FIELDS (closed vocabulary — use only these ids verbatim in source_fields, intake_field_1/2, and information_needed.field):\n${canonicalFieldIds.map((k) => `  - ${k}`).join("\n")}`;
-    const userPrompt = `${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}`;
+    const compactCellsBlock = `COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. This applies to every repeated-row structure in the report (including the risk_register / risk_matrix rows, control-mapping rows, information_needed rows, and any other table or matrix). Narrative sections (assessment_summary, methodology notes, and section-level rationales) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
+    const userPrompt = `${compactCellsBlock}\n\n${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}`;
 
 
     const t0 = Date.now();
@@ -612,57 +596,20 @@ async function runPipeline(assessment_id: string) {
     let debugRaw = "";
     let lastStopReason: string | null = null;
 
+    // Courier 2026-07-12 items 1+4: first call at CPPA_RISK_MAX_TOKENS with
+    // continuation-on-truncation handled inside callAnthropicWithContinuation.
+    // If the stitched response is still max_tokens, fall through to the
+    // existing generation_truncated error path — no second full generation.
     const first = await callModel(system, userPrompt, "generate-v4");
     lastStopReason = first.stopReason;
-
-    // Helper: re-call Claude at an explicit token ceiling.
-    const callAt = async (maxTokens: number, label: string) => {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: maxTokens,
-          system,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-        signal: AbortSignal.timeout(900_000),
-      });
-      if (!res.ok) {
-        console.warn(`[${label}] http ${res.status}`);
-        return { text: "", stopReason: null as string | null };
-      }
-      const data = await res.json();
-      const text = data.content?.[0]?.text ?? "";
-      const stopReason: string | null = data.stop_reason ?? null;
-      console.log(`[${label}] ok chars=${text.length} stop=${stopReason}`);
-      return { text, stopReason };
-    };
-
-    if (first.stopReason === "max_tokens") {
-      // First call already runs at the model ceiling (PRODUCT_MAX_OUTPUT_TOKENS).
-      // Truncation here is exceptional; one retry at the same ceiling is the
-      // most we can do synchronously. Cross-product retry/refund flow picks up
-      // any residual failures.
-      console.warn(`[cppa-risk v4] output truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} tokens — single retry`);
-      const retry = await callAt(PRODUCT_MAX_OUTPUT_TOKENS, "generate-v4-retry-max");
+    debugRaw = first.text;
+    parsed = tryParseJson(first.text);
+    if (!parsed && first.stopReason !== "max_tokens") {
+      console.warn("[cppa-risk v4] first parse failed — retrying once");
+      const retry = await callModel(system, userPrompt, "generate-v4-retry");
       lastStopReason = retry.stopReason;
       debugRaw = retry.text;
       parsed = tryParseJson(retry.text);
-    } else {
-      debugRaw = first.text;
-      parsed = tryParseJson(first.text);
-      if (!parsed) {
-        console.warn("[cppa-risk v4] first parse failed — retrying once");
-        const retry = await callModel(system, userPrompt, "generate-v4-retry");
-        lastStopReason = retry.stopReason;
-        debugRaw = retry.text;
-        parsed = tryParseJson(retry.text);
-      }
     }
 
     console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms stop=${lastStopReason}`);
@@ -1524,7 +1471,7 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.2") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.3") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
@@ -1556,9 +1503,18 @@ async function runPipeline(assessment_id: string) {
 
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
+    const isTimeout = e instanceof AnthropicTimeoutError
+      || (e instanceof Error && (e as any).code === "generation_timeout_330s");
     try {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: String(e) } }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+        status: "error",
+        report_data: isTimeout
+          ? { error: "generation_timeout_330s", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null }
+          : { error: String(e) },
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }
+    // Re-throw so the wrapped runner marks the fnRun failed via failFunctionRun.
+    if (isTimeout) throw e;
   }
 }
 
