@@ -9,6 +9,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import {
   renderAiActCitationBlock,
   renderTransferAdequacyNote,
