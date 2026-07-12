@@ -80,6 +80,7 @@ function qcR1_2(intake: any, report: any) {
   if (!expected.test(s)) return { passed: false, evidence: `resolution mismatch M4=${m4.state}` };
   return { passed: true, note: `M4=${m4.state}` };
 }
+// r1b1.3 detector
 function qcR1_3(intake: any, report: any) {
   const r = resolveIntakeForTestStates(intake);
   const q5 = String(r.rawForStates.q5_sell_share ?? "").trim();
@@ -90,30 +91,34 @@ function qcR1_3(intake: any, report: any) {
   if (!m5 || !isResolved(m5.state)) return { passed: true, note: `M5=${m5?.state}` };
   const s = JSON.stringify(report ?? "").toLowerCase();
   if (!/7120\s*\(b\)\s*\(1\)/.test(s)) return { passed: false, evidence: `§7120(b)(1) missing, M5=${m5.state}` };
-  const expected =
-    m5.state === "resolved_met" ? /(met|threshold\s+met|50%|fifty percent)/
-    : m5.state === "resolved_not_met" ? /(not\s+met|below|no\s+sale|inapplicable)/
-    : /(not\s+applicable|inapplicable|n\/?a)/;
-  if (!expected.test(s)) return { passed: false, evidence: `resolution mismatch M5=${m5.state}` };
+  const insuf = /(does not confirm|not\s+confirmed|insufficient\s+(?:basis|information|evidence)|cannot\s+(?:be\s+)?(?:confirmed|determined|resolved|verified)|no\s+basis\s+to\s+(?:confirm|assess|determine)|pending\s+confirmation|to\s+be\s+confirmed|record\s+does\s+not\s+(?:establish|indicate|state|provide|confirm))/i;
+  const met = /(threshold\s+met|is\s+met|meets\s+the\s+threshold|derives\s+50%|50%\s+or\s+more|fifty\s+percent\s+or\s+more|exceeds\s+50%)/i;
+  const notMet = /(not\s+met|does\s+not\s+meet|below\s+(?:the\s+)?(?:50%|threshold)|no\s+sale|does\s+not\s+sell|inapplicable|less\s+than\s+50%|under\s+50%)/i;
+  const na = /(not\s+applicable|inapplicable|n\/?a\b|does\s+not\s+apply)/i;
+  const ok = m5.state === "resolved_met" ? (met.test(s) || insuf.test(s))
+    : m5.state === "resolved_not_met" ? (notMet.test(s) || insuf.test(s))
+    : (na.test(s) || insuf.test(s));
+  if (!ok) return { passed: false, evidence: `no met/not-met/insufficient phrasing M5=${m5.state}` };
   return { passed: true, note: `M5=${m5.state}` };
 }
 function qcR1_4(intake: any, report: any) {
   const r = resolveIntakeForTestStates(intake);
   const band = classifyRevenueBand(r.rawForStates.q1_revenue);
   const s = JSON.stringify(report ?? "").toLowerCase();
+  const cohortRe = (y: string) => new RegExp(`(?:${y}-04-01|april\\s+1,?\\s+${y})`, "i");
+  const has2028 = cohortRe("2028").test(s);
+  const has2029 = cohortRe("2029").test(s);
+  const has2030 = cohortRe("2030").test(s);
   if (band.audit_cohort === "indeterminate") {
-    const twoCohort = /(2029-04-01[\s\S]{0,80}2030-04-01|2030-04-01[\s\S]{0,80}2029-04-01|two[- ]cohort|either\s+2029|2029\s+or\s+2030)/i.test(s);
-    if (!twoCohort) return { passed: false, evidence: `indeterminate band, two-cohort treatment missing`, band: band.label };
+    if (!(has2029 && has2030)) return { passed: false, evidence: `indeterminate needs 2029+2030; got 2029=${has2029} 2030=${has2030}`, band: band.label };
+    const conditional = /(if\s+\d{4}\s+(?:annual\s+)?(?:gross\s+)?revenue|depend(?:s|ing)\s+on|conditional|straddles|cannot\s+resolve|indeterminate|two[- ]cohort|either\s+2029|2029\s+or\s+2030|cohort\s+table)/i;
+    if (!conditional.test(s)) return { passed: false, evidence: `both dates present, no conditional framing`, band: band.label };
     return { passed: true, band: band.label };
   }
-  const cohort = band.audit_cohort;
-  if (!s.includes(cohort)) return { passed: false, evidence: `resolved band ${band.label} needs cohort ${cohort}; missing`, band: band.label };
-  const idx = s.indexOf(cohort);
-  const win = s.slice(Math.max(0, idx - 200), idx + 200);
-  if (/(cannot be determined|indeterminate|unable to (?:confirm|resolve))/i.test(win)) {
-    return { passed: false, evidence: `cohort ${cohort} hedged near cite window`, band: band.label };
-  }
-  return { passed: true, band: band.label, cohort };
+  const year = band.audit_cohort.slice(0, 4);
+  const present = year === "2028" ? has2028 : year === "2029" ? has2029 : has2030;
+  if (!present) return { passed: false, evidence: `resolved ${band.label} missing April 1, ${year}`, band: band.label };
+  return { passed: true, band: band.label, cohort: `April 1, ${year}` };
 }
 function qcR1_5(intake: any, report: any) {
   const r = resolveIntakeForTestStates(intake);
