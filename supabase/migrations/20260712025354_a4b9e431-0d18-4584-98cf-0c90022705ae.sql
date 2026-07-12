@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anyone can read preview li assessment by id" ON public.li_assessments;
