@@ -1249,41 +1249,97 @@ async function runBatch(runId: string): Promise<void> {
         return;
       }
 
-      const intake = intakes[i];
       const scenarioSet = scenarioSetFor(i);
-      const docLabel = `Doc ${i + 1}/${intakes.length} [${scenarioSet}]`;
-      await log("info", `${docLabel}: building…`);
 
-      const { data: docRow } = await admin.from("quality_run_documents").insert({
-        run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
-        scenario_set: scenarioSet,
-      }).select("id").single();
-      if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
+      // GEN/EVAL CHUNK BOUNDARY (r1b1.2, 2026-07-11): if the previous isolate
+      // built this doc and handed off via `pending_eval_doc_id`, resume in the
+      // evaluation phase without rebuilding. Otherwise, build then reinvoke.
+      const pendingEvalId = (state as any).pending_eval_doc_id as string | null | undefined;
+      const pendingEvalIdx = (state as any).pending_eval_doc_index as number | null | undefined;
+      const isResumingEval = !!pendingEvalId && pendingEvalIdx === i;
 
-      const result = await buildDocument(admin, tool, intake, userId);
-      if (!result) {
-        await log("warn", `${docLabel}: build failed`);
-        await admin.from("quality_run_documents").update({ status: "error", error: "build failed" }).eq("id", docRow.id);
-        continue;
+      let docRowId: string;
+      let intake: any;
+      let reportData: any;
+      let docLabel: string;
+      let evalOnly = false;
+
+      if (isResumingEval) {
+        const { data: existing } = await admin.from("quality_run_documents")
+          .select("id, doc_number, intake_data, report_data, scenario_set")
+          .eq("id", pendingEvalId!).single();
+        if (existing && (existing as any).report_data) {
+          docRowId = (existing as any).id;
+          intake = (existing as any).intake_data;
+          reportData = (existing as any).report_data;
+          docLabel = `Doc ${(existing as any).doc_number}/${intakes.length} [${(existing as any).scenario_set ?? scenarioSet}] (eval-resume)`;
+          evalOnly = true;
+          delete (state as any).pending_eval_doc_id;
+          delete (state as any).pending_eval_doc_index;
+          await log("info", `${docLabel}: resumed in evaluation phase (fresh isolate — gen/eval chunk boundary)`);
+        } else {
+          await log("warn", `Doc ${i + 1}/${intakes.length}: pending-eval marker (${pendingEvalId}) missing or has no report_data — falling through to rebuild`);
+          delete (state as any).pending_eval_doc_id;
+          delete (state as any).pending_eval_doc_index;
+        }
       }
 
-      await log("info", `${docLabel}: built — evaluating Claude + GPT-4o + cross-review in parallel…`);
-      await admin.from("quality_run_documents").update({
-        report_data: result.reportData, source_table: result.sourceTable,
-        source_row_id: result.sourceRowId, status: "evaluating",
-      }).eq("id", docRow.id);
+      if (!evalOnly) {
+        intake = intakes[i];
+        docLabel = `Doc ${i + 1}/${intakes.length} [${scenarioSet}]`;
+        await log("info", `${docLabel}: building…`);
+
+        const { data: docRow } = await admin.from("quality_run_documents").insert({
+          run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
+          scenario_set: scenarioSet,
+        }).select("id").single();
+        if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
+
+        const result = await buildDocument(admin, tool, intake, userId);
+        if (!result) {
+          await log("warn", `${docLabel}: build failed`);
+          await admin.from("quality_run_documents").update({ status: "error", error: "build failed" }).eq("id", docRow.id);
+          continue;
+        }
+
+        docRowId = docRow.id;
+        reportData = result.reportData;
+
+        await admin.from("quality_run_documents").update({
+          report_data: result.reportData, source_table: result.sourceTable,
+          source_row_id: result.sourceRowId, status: "evaluating",
+        }).eq("id", docRow.id);
+
+        // GEN/EVAL CHUNK BOUNDARY: build phase complete & persisted. Hand off
+        // to a fresh isolate so dual-model evaluation (~200-250s) gets a full
+        // ~400s budget. dpia #61 died at ~688s mid-eval in a single isolate.
+        // Persist pending_eval marker; keep next_doc_index at `i` (this doc is
+        // not yet complete). On resume, the branch above skips rebuild and goes
+        // straight to evaluation.
+        (state as any).pending_eval_doc_id = docRowId;
+        (state as any).pending_eval_doc_index = i;
+        await log("info", `${docLabel}: built & persisted — self-reinvoking so evaluation runs in a fresh isolate (gen/eval boundary)`);
+        await persistState({});
+        await selfReinvoke(runId);
+        clearInterval(heartbeat);
+        return;
+      }
+
+      // ---------- Evaluation phase ----------
+      await log("info", `${docLabel}: evaluating Claude + GPT-4o + cross-review in parallel…`);
 
       // Run Claude eval and GPT eval in parallel.
       const [claudeEval, gptResult] = await Promise.all([
-        withTimeout(evaluateDocumentClaude(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "Claude eval")
+        withTimeout(evaluateDocumentClaude(tool, intake, reportData), EVALUATION_TIMEOUT_MS, "Claude eval")
           .catch(e => { console.warn("Claude eval failed:", e.message); return null; }),
-        withTimeout(evaluateDocumentGPT(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
+        withTimeout(evaluateDocumentGPT(tool, intake, reportData), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
           .catch(e => ({ eval: null as any, error: e.message })),
       ]);
 
       if (!claudeEval) {
         await log("error", `${docLabel}: Claude evaluation failed or timed out`);
-        await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed or timed out" }).eq("id", docRow.id);
+        await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed or timed out" }).eq("id", docRowId);
+        await persistState({ next_doc_index: i + 1 });
         continue;
       }
       const gptEval = gptResult.eval;
@@ -1343,10 +1399,10 @@ async function runBatch(runId: string): Promise<void> {
         cross_review: crossSummary,
         cross_review_status: crossStatus,
         status: "complete",
-      }).eq("id", docRow.id);
+      }).eq("id", docRowId);
 
       const findingRows = claudeEval.findings.map((f: any) => ({
-        run_id: runId, doc_id: docRow.id, tool, run_number: runNumber,
+        run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
         check_id: f.check_id, check_type: f.check_type, dimension: f.dimension,
         severity: f.severity, passed: f.passed, evidence: f.evidence ?? null,
         scenario_set: scenarioSet,
@@ -1375,7 +1431,7 @@ async function runBatch(runId: string): Promise<void> {
         }
         state.allDocFindings.push({
           ...f,
-          doc_id: docRow.id,
+          doc_id: docRowId,
           scenario_set: scenarioSet,
           cross_category: perDocCategory,
           cross_evidence_gpt: gptEvidence,
@@ -1393,7 +1449,7 @@ async function runBatch(runId: string): Promise<void> {
           state.allDocFindings.push({
             check_id: gptFinding.check_id, check_type: "gpt_only",
             dimension: gptFinding.dimension, severity: gptFinding.severity,
-            passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRow.id,
+            passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRowId,
             scenario_set: scenarioSet,
             cross_category: "gpt_only", cross_evidence_gpt: gptFinding.evidence ?? null,
             rubric_addition: null,
