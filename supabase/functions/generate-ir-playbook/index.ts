@@ -1096,9 +1096,10 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { ok: true };
         }
 
+        const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
         async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
-          const prompt = extra ? `${base}\n\n${extra}` : base;
+          const prompt = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
