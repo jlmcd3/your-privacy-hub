@@ -286,7 +286,11 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 type UnitId = "u1" | "u2" | "u3" | "u4" | "u5";
 const PHASE1: UnitId[] = ["u1", "u2", "u3"];
 const UNIT_MAX_TOKENS: Record<UnitId, number> = {
-  u1: 18_000, u2: 10_000, u3: 10_000, u4: 16_000, u5: 8_000,
+  // r1b2.3 fix (a): u2 10k→14k. #66–68 observed u2 outputs 8,864–9,914 tokens
+  // (razor-thin headroom vs 10k cap); the u2 continuation trigger in #69 is
+  // documented in the courier ledger. Raising the cap makes continuation the
+  // rare path, not the common one, on richer scenarios.
+  u1: 18_000, u2: 14_000, u3: 10_000, u4: 16_000, u5: 8_000,
 };
 
 // Per-unit JSON output skeletons. Preserved verbatim from the pre-refactor
@@ -757,14 +761,51 @@ USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs 
 COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
 }
 
+// r1b2.3 fix (b): robust parse. The original greedy `/\{[\s\S]*\}/` regex is
+// fragile when the model emits fenced/preamble noise or when a continuation
+// stitch introduces multiple top-level braces. Order:
+//   1. strip common code-fence wrapper, then try JSON.parse(text) directly;
+//   2. balanced-brace scan from the first '{' — pick the first complete top-
+//      level object (string-aware, so braces inside strings don't count);
+//   3. fall back to the original greedy match as a last resort.
+// unit_missing_keys remains the fail-loud terminator downstream.
 function parseJsonish(text: string): any {
-  try {
-    const m = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
-    return m ? JSON.parse(m[0]) : {};
-  } catch (e) {
-    console.error("[DPIA] parse error:", e, "Tail:", text.slice(-200));
-    return {};
+  if (!text || typeof text !== "string") return {};
+  const stripped = text.replace(/^\s*```(?:json)?\n?/, "").replace(/\n?```\s*$/, "").trim();
+  // (1) direct parse
+  try { return JSON.parse(stripped); } catch (_) { /* fall through */ }
+  // (2) balanced-brace scan (string-aware)
+  const start = stripped.indexOf("{");
+  if (start >= 0) {
+    let depth = 0, inStr = false, esc = false;
+    for (let i = start; i < stripped.length; i++) {
+      const ch = stripped[i];
+      if (inStr) {
+        if (esc) { esc = false; continue; }
+        if (ch === "\\") { esc = true; continue; }
+        if (ch === '"') inStr = false;
+        continue;
+      }
+      if (ch === '"') { inStr = true; continue; }
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) {
+          const candidate = stripped.slice(start, i + 1);
+          try { return JSON.parse(candidate); } catch (_) { break; }
+        }
+      }
+    }
   }
+  // (3) legacy greedy fallback
+  try {
+    const m = stripped.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+  } catch (e) {
+    console.error("[DPIA] parse error (greedy fallback):", e, "Tail:", stripped.slice(-200));
+  }
+  console.error("[DPIA] parseJsonish returned {} — all strategies failed. Head:", stripped.slice(0, 200), "Tail:", stripped.slice(-200));
+  return {};
 }
 
 // U4 hand-off tail (design_risk_impacts VERBATIM from U3).
@@ -884,11 +925,29 @@ async function writeUnitStatus(dpia_id: string, unit: UnitId, patch: Record<stri
 }
 
 // Amendment 1: MERGE-preserving fail write.
+// r1b2.3 fix (c): accept optional call telemetry so the _staging.units[uX]
+// error entry carries stop_reason / output_tokens / continued / stitched_chars
+// / cont_elapsed_ms — the ~6-min edge-log retention window is not durable
+// enough; without this the failure has no trail once logs age out.
+export interface FailTelemetry {
+  stop_reason?: string | null;
+  output_tokens?: number | null;
+  continued?: boolean | null;
+  first_stop_reason?: string | null;
+  first_output_tokens?: number | null;
+  cont_stop_reason?: string | null;
+  cont_output_tokens?: number | null;
+  cont_elapsed_ms?: number | null;
+  cont_retried?: boolean | null;
+  stitched_chars?: number | null;
+  chars?: number | null;
+}
 async function mergePreservingFail(
   dpia_id: string,
   unit: UnitId | "stitch",
   err: unknown,
   elapsedMs: number,
+  telemetry?: FailTelemetry,
 ): Promise<void> {
   const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -902,12 +961,13 @@ async function mergePreservingFail(
         status: "error",
         error: message.slice(0, 500),
         elapsed_ms: elapsedMs,
+        telemetry: telemetry ?? null,
       };
     }
     const nextRd = {
       ...rd,
       _staging: staging,
-      last_error: { unit, error: message.slice(0, 500), elapsed_ms: elapsedMs, at: new Date().toISOString() },
+      last_error: { unit, error: message.slice(0, 500), elapsed_ms: elapsedMs, at: new Date().toISOString(), telemetry: telemetry ?? null },
     };
     const patch = { report_data: nextRd, status: "failed" as const };
     const ok = await optimisticUpdate(dpia_id, row.updated_at, patch);
@@ -1015,10 +1075,24 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     });
     const elapsedMs = Date.now() - startedMs;
     // Telemetry line (courier §10) — extractable from edge-function logs.
-    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length}`);
+    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length} continued=${r.continued} cont_retried=${r.contRetried ?? false}`);
+    // r1b2.3 fix (c): durable telemetry passed into every failure write.
+    const callTelemetry: FailTelemetry = {
+      stop_reason: r.stopReason,
+      output_tokens: r.outputTokens,
+      continued: r.continued,
+      first_stop_reason: r.firstStopReason ?? null,
+      first_output_tokens: r.firstOutputTokens ?? null,
+      cont_stop_reason: r.contStopReason ?? null,
+      cont_output_tokens: r.contOutputTokens ?? null,
+      cont_elapsed_ms: r.contElapsedMs ?? null,
+      cont_retried: r.contRetried ?? null,
+      stitched_chars: r.stitchedChars ?? r.text.length,
+      chars: r.text.length,
+    };
     if (r.stopReason === "max_tokens") {
       console.error(`[unit:${unit}] truncated after continuation — treating as terminal failure`);
-      await mergePreservingFail(dpia_id, unit, new Error("truncated_after_continuation"), elapsedMs);
+      await mergePreservingFail(dpia_id, unit, new Error("truncated_after_continuation"), elapsedMs, callTelemetry);
       return;
     }
     const keys = parseJsonish(r.text);
@@ -1026,7 +1100,7 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     const missing = UNIT_KEYS[unit].filter((k) => !keys || typeof keys !== "object" || !(k in keys));
     if (missing.length > 0) {
       console.error(`[unit:${unit}] parsed JSON missing required keys: ${missing.join(", ")}`);
-      await mergePreservingFail(dpia_id, unit, new Error(`unit_missing_keys:${missing.join(",")}`), elapsedMs);
+      await mergePreservingFail(dpia_id, unit, new Error(`unit_missing_keys:${missing.join(",")}`), elapsedMs, callTelemetry);
       return;
     }
     await writeUnitStatus(dpia_id, unit, {
@@ -1035,6 +1109,8 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       elapsed_ms: elapsedMs,
       output_tokens: r.outputTokens ?? null,
       stop_reason: r.stopReason ?? null,
+      continued: r.continued,
+      cont_retried: r.contRetried ?? false,
     });
   } catch (e) {
     const elapsedMs = Date.now() - startedMs;
