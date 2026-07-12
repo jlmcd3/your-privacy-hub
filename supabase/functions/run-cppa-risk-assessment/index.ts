@@ -517,35 +517,14 @@ Return only valid JSON matching the specified output structure. No preamble, no 
 async function callModel(
   system: string | SystemBlock[],
   user: string,
-  label = "generate-v4"
+  label = "generate-v4",
+  maxTokens: number = CPPA_RISK_MAX_TOKENS,
 ): Promise<{ text: string; stopReason: string | null }> {
-  const t0 = Date.now();
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
-      system,
-      messages: [{ role: "user", content: user }],
-    }),
-    signal: AbortSignal.timeout(900_000),
+  const r = await callAnthropicWithContinuation({
+    model: "claude-sonnet-4-6",
+    system, user, maxTokens, label,
   });
-  const elapsed = Date.now() - t0;
-  if (!res.ok) {
-    const t = await res.text();
-    console.error(`[${label}] HTTP ${res.status} in ${elapsed}ms: ${t.slice(0, 300)}`);
-    throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
-  }
-  const d = await res.json();
-  const text = d.content?.[0]?.text ?? "";
-  const stopReason: string | null = d.stop_reason ?? null;
-  console.log(`[${label}] ok in ${elapsed}ms chars=${text.length} stop=${stopReason}`);
-  return { text, stopReason };
+  return { text: r.text, stopReason: r.stopReason };
 }
 
 function tryParseJson(text: string): any | null {
