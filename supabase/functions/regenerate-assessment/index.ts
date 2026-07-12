@@ -75,6 +75,9 @@ const EDITABLE_COLUMNS: Record<string, string[]> = {
     "jurisdictions", "sector", "stated_purpose", "alternatives_considered",
     "purpose_details", "necessity_details", "balancing_details",
     "organization_name", "subject_anchor",
+    // WS6 v2.1: LIA has no intake_data column, so supplementals route to
+    // dedicated columns (added by additive migration).
+    "supplemental_responses", "supplemental_context",
   ],
   governance_assessment: ["organization_name"],
   dpia_framework: ["organization_name"],

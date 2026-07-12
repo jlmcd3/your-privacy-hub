@@ -488,6 +488,7 @@ const DPIAFramework = () => {
             runsRemaining={refine.runsRemaining}
             resultPath={`/dpia-framework/result/${refine.assessmentId}`}
             infoNeededKeys={refine.infoNeededKeys}
+              priorInformationNeeded={refine.infoNeeded}
           />
         </main>
       ) : (<>

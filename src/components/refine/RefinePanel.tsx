@@ -32,6 +32,10 @@ interface Props {
   // here by construction (P3/D5).
   resolveFields?: ResolveFieldMap;
   resolveHighlightingEnabled?: boolean;
+  // WS6 v2.1 (regeneration only): prior report's information_needed entries.
+  // When non-empty, each entry gets its own textarea; a general context box
+  // renders regardless. Absent → no supplemental section rendered.
+  priorInformationNeeded?: Array<{ field?: string; dimensions?: string; ask?: string; [k: string]: unknown }>;
 }
 
 
@@ -46,7 +50,11 @@ export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
   runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
   resolveFields, resolveHighlightingEnabled,
+  priorInformationNeeded,
 }: Props) {
+  const priorInfo = priorInformationNeeded ?? [];
+  const [supplementalResponses, setSupplementalResponses] = useState<string[]>(() => priorInfo.map(() => ""));
+  const [supplementalContext, setSupplementalContext] = useState<string>("");
   const infoSet = new Set(infoNeededKeys ?? []);
   // Doc Q: active RESOLVE map, empty when disabled. Local cleared-set
   // hides the highlight/chip visually on edit -- never mutates data.
@@ -117,10 +125,26 @@ export default function RefinePanel({
         cleanEdits[f.key] = raw;
       }
     }
+    // WS6 v2.1: assemble supplemental payload. Empty responses are dropped;
+    // absent values are omitted entirely so first-run parity is preserved.
+    const suppList = priorInfo
+      .map((e, i) => ({
+        ref_field: (e as any).field as string | undefined,
+        ask: ((e as any).dimensions as string | undefined)
+          ?? ((e as any).ask as string | undefined)
+          ?? ((e as any).field as string | undefined)
+          ?? "",
+        response: (supplementalResponses[i] ?? "").trim(),
+      }))
+      .filter((x) => x.response.length > 0);
+    const suppCtx = supplementalContext.trim();
+
     const outcome = await regenerate({
       toolType, assessmentId,
       editedFields: cleanEdits,
       priorRunsUsed: runsUsed,
+      supplementalResponses: suppList.length > 0 ? suppList : undefined,
+      supplementalContext: suppCtx.length > 0 ? suppCtx : undefined,
     });
 
     if (outcome.kind === "accepted") {
@@ -252,6 +276,62 @@ export default function RefinePanel({
           })}
         </div>
       )}
+
+      {/* WS6 v2.1: supplemental capture — regeneration only. Renders each
+          prior information_needed entry as its own textarea plus a general
+          context box. Empty entries are dropped in onRegenerate. */}
+      <div className="space-y-4 pt-2">
+        <div>
+          <div className="text-eyebrow text-brand-mist mb-2">Supplemental information for this revision</div>
+          <p className="text-sm text-slate max-w-[70ch]">
+            Answer any open items the prior report named, and add anything else material to this revision. Your notes are used as intake for the re-run.
+          </p>
+        </div>
+        {priorInfo.length > 0 && (
+          <div className="space-y-3">
+            {priorInfo.map((e, i) => {
+              const label =
+                ((e as any).dimensions as string | undefined)
+                ?? ((e as any).ask as string | undefined)
+                ?? ((e as any).field as string | undefined)
+                ?? `Open item ${i + 1}`;
+              return (
+                <div key={`supp-${i}`} data-testid={`supplemental-entry-${i}`}>
+                  <label htmlFor={`supp-${i}`} className="text-sm font-semibold text-brand-navy">
+                    {label}
+                  </label>
+                  <textarea
+                    id={`supp-${i}`}
+                    value={supplementalResponses[i] ?? ""}
+                    onChange={(ev) =>
+                      setSupplementalResponses((prev) => {
+                        const next = [...prev];
+                        while (next.length < priorInfo.length) next.push("");
+                        next[i] = ev.target.value;
+                        return next;
+                      })
+                    }
+                    placeholder="Your answer to this open item"
+                    className="mt-2 min-h-20 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div data-testid="supplemental-general">
+          <label htmlFor="supp-general" className="text-sm font-semibold text-brand-navy">
+            Anything else material to this revision
+          </label>
+          <textarea
+            id="supp-general"
+            value={supplementalContext}
+            onChange={(ev) => setSupplementalContext(ev.target.value)}
+            placeholder="Additional context (optional)"
+            className="mt-2 min-h-20 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
+          />
+        </div>
+      </div>
 
       <div className="pt-4 border-t border-brand-cloud flex flex-wrap gap-3">
         {!exhausted ? (

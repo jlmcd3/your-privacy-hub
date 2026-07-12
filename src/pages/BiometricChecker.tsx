@@ -183,6 +183,7 @@ export default function BiometricChecker() {
             runsRemaining={refine.runsRemaining}
             resultPath={`/biometric-checker/result/${refine.assessmentId}`}
             infoNeededKeys={refine.infoNeededKeys}
+              priorInformationNeeded={refine.infoNeeded}
           />
         ) : phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
