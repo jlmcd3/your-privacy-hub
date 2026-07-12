@@ -19,6 +19,7 @@ import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERS
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
@@ -648,10 +649,12 @@ ADDITIONAL DISCIPLINES:
 
     let rawText: string;
     {
-      const first = await callAnthropic(system, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis");
+      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const _userPromptWithSupp = userPrompt + _suppWs6;
+      const first = await callAnthropic(system, _userPromptWithSupp, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis");
       if (first.stopReason === "max_tokens") {
         console.warn(`[run-admt-checker] gap-analysis truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-        const retry = await callAnthropic(system, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis-retry");
+        const retry = await callAnthropic(system, _userPromptWithSupp, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis-retry");
         rawText = retry.text;
       } else {
         rawText = first.text;
@@ -667,6 +670,7 @@ ADDITIONAL DISCIPLINES:
       const strictRetry = await callAnthropic(
         system,
         userPrompt +
+          renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context }) +
           "\n\nCRITICAL OUTPUT REQUIREMENT: Respond with a single valid JSON object only. No markdown fences, no commentary before or after. The first character MUST be '{' and the last character MUST be '}'. Escape all internal quotes and newlines per JSON spec.",
         PRODUCT_MAX_OUTPUT_TOKENS,
         "gap-analysis-json-retry"

@@ -9,6 +9,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import {
   renderAiActCitationBlock,
   renderTransferAdequacyNote,
@@ -1096,9 +1097,10 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { ok: true };
         }
 
+        const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
         async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
-          const prompt = extra ? `${base}\n\n${extra}` : base;
+          const prompt = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
@@ -1110,7 +1112,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n(Generating part ${which}.)`;
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}${_suppWs6}\n\n(Generating part ${which}.)`;
           const truncatedClean = truncated.replace(/\s+$/, "");
           const continueInstruction = `Your previous attempt was cut off mid-output. ${tail} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
           const { text: continuation, stopReason } = await callClaude(
@@ -1454,7 +1456,7 @@ const playbook_text = lint.clean;
             ? (assembled as any).information_needed
             : [],
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.2") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.3-ws6v21") },
         };
         try {
           const guarded = guardInformationNeeded(

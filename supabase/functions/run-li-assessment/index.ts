@@ -17,6 +17,7 @@ import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 
 
 
@@ -721,7 +722,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   ]
 }
 
-Every insufficient-basis or Insufficient-information finding elsewhere in this output (including any "uncertain" verdict in purpose_test, necessity_test, or balancing_test) MUST have a corresponding information_needed entry.`;
+Every insufficient-basis or Insufficient-information finding elsewhere in this output (including any "uncertain" verdict in purpose_test, necessity_test, or balancing_test) MUST have a corresponding information_needed entry.${renderSupplementalBlock({ responses: (assessment as any).supplemental_responses, context: (assessment as any).supplemental_context })}`;
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
@@ -1133,7 +1134,7 @@ Return JSON:
       documentation_recommendations: docRecs,
       disclaimer: "This report helps your organisation identify areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
-      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2") },
+      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2-ws6v21") },
     };
 
     // 2.9 — LIA has no intake_data column; build the guard's intake object

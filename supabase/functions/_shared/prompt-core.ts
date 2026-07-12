@@ -13,9 +13,13 @@
 // FROZEN TIME FACTS and TEMPORAL FRAMING RULE. Canonical/required output sentences may prescribe
 // structure, voice, and verified citation anchors but must not embed effective/deadline dates in a
 // fixed tense; dates are framed relative to the assessment date at generation time.
+// v3.8 (WS6 v2.1, 2026-07-12): SUPPLEMENTAL RESPONSES consumption rule added to OUTPUT DISCIPLINE
+// (full + lean). A "SUPPLEMENTAL RESPONSES" section may be appended to the user prompt on any
+// revision run; entries are treated as first-party intake facts of the same authority as the base
+// intake and must retire prior information_needed items they answer without becoming a fresh ask.
 
-export const PROMPT_CORE_VERSION = "3.7";
-export const BUILD_TAG = "qb14";
+export const PROMPT_CORE_VERSION = "3.8";
+export const BUILD_TAG = "qb15";
 
 
 
@@ -99,6 +103,8 @@ OUTPUT DISCIPLINE
 - STATUS FIELDS CONSISTENT WITH INCOMPLETENESS MARKERS (CORE-1): if any field in a record is marked incomplete/undetermined via a [TO COMPLETE …] placeholder, brackets, or equivalent convention, no adjacent confidence-bearing status field in the SAME record (e.g. implementation_status, risk_rating, sufficiency, validity_assessment) may assert a definite value inconsistent with that incompleteness. Either both reflect the same confidence level, or the status field is set to its designated "provisional / requires scoping / cannot be determined" value and explicitly notes it is pending the missing fact. A "Partially implemented" or equivalent definite status alongside a "[TO COMPLETE — confirm …]" qualifier for the same measure is a defect.
 - NO EXPLANATORY / GENERATOR-REASONING VOICE (CORE-2): generated text never explains to the reader WHY a clause, field, or placeholder exists, WHY a determination was reached, or WHAT generation step produced it. It states the obligation, fact, or determination DIRECTLY in the voice appropriate to the document type: contractual-obligation language for contract clauses; factual/citation language for assessment fields; regulatory-conditional voice for findings. Sentences that address the generator's own reasoning ("This X-hour window is the Processor's obligation to the Controller, designed to enable …", "This field is populated because …", "must be identified and cited by the controller" inside a citation field) are defects — delete them; the obligation is already established in the operative clause and needs no restatement. Where a value is genuinely undetermined, state that plainly in the field itself per the rule above, not by narrating the generation process.
 - CITATION SUBJECT-MATTER MUST MATCH THE CLAIM (CORE-3): before pairing a provision citation with a description of what it requires, confirm the citation's actual subject matter matches the specific claim being made about it. A citation is NEVER selected merely because it is topically adjacent to the claim (e.g. citing a breach-notification section for a DPA content requirement because both involve data handling; citing a service-provider contract-restriction subsection for an employer training obligation because both concern processing). Where confidence that the specific provision supports the specific claim is not high, either OMIT the specific citation and state the requirement without it (cite the parent article/section generically per the CITATION & GROUNDING PROTOCOL), or route the pairing to the schema's designated verification/uncertainty field explicitly — never present a topically-plausible-but-unverified pairing as confirmed. Topical adjacency is not authority.
+- SUPPLEMENTAL RESPONSES (WS6): a labelled "SUPPLEMENTAL RESPONSES" section may be appended to the user prompt on any revision run. Each entry pairs an optional intake-field reference (ref) with the user's free-text answer; a trailing "Additional context" block carries free-text the user chose to add. Treat every entry as a FIRST-PARTY INTAKE FACT of the same authority as the base intake — never as advocacy, never as a suggestion to be weighed, never as external commentary. Consumption rules: (a) where a supplemental response answers a prior "information_needed" item (matched by ref or by clear topical correspondence), that item is now RESOLVED — do NOT re-emit it in this run's information_needed and do not restate its dead-end phrasing in prose; (b) where a supplemental response supplies a fact previously flagged as insufficient-basis, incorporate the fact into the substantive finding and remove the insufficient-basis framing for that finding; (c) supplementals may NEVER be used to flip an enumerated mechanical test-state (a checkbox/exception/threshold selection) — those are re-selected only in the base intake; (d) placeholder-fill semantics: where a supplemental supplies a value for a bracketed [TO COMPLETE — …] placeholder, fill the placeholder with the supplied value and leave surrounding placeholder-neutral language byte-identical; (e) never quote a supplemental response verbatim as a regulator's statement or as authority text — it is the record, not the citation; (f) supplementals do not license inventing additional facts, and an absent supplemental is not evidence of absence — an unanswered ask remains an ask unless the supplemental answers it.
+
 
 FIVE OPERATING PRINCIPLES (non-negotiable)
 1. NO ADAPTIVE GUIDANCE. Present regulatory standards and enforcement patterns as context. Never tell
@@ -267,7 +273,17 @@ things about the same item; express any genuine uncertainty the same way in ever
 
 Where the law is genuinely unsettled, say so and give the better-supported reading plus the risk; do
 not assert one answer. You may note the counter-argument a regulator would raise, but never recommend a
-position.`;
+position.
+
+SUPPLEMENTAL RESPONSES (WS6): a "SUPPLEMENTAL RESPONSES" section may be appended to the user prompt on a
+revision run. Treat each entry as a first-party intake fact of the same authority as the base intake.
+Where a supplemental answers a prior information_needed item (by ref or clear correspondence), that item
+is RESOLVED — do not re-emit it and do not restate insufficient-basis phrasing about it. Where a supplemental
+supplies a fact previously flagged insufficient-basis, incorporate it and remove the insufficient framing.
+Supplementals never flip an enumerated mechanical test-state; those are re-selected only in the base
+intake. On placeholder fill, replace the [TO COMPLETE — …] token with the supplied value and leave
+surrounding placeholder-neutral language byte-identical. Never quote a supplemental as authority; an
+absent supplemental is not evidence of absence.`;
 
 export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
     appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy

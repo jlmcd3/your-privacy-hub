@@ -13,6 +13,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
@@ -1105,9 +1106,9 @@ followed by a JSON array citing enforcement actions that directly supported a pr
 If no cases informed the assessment, output an empty array [].
 
 Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No preamble.`;
-    const stressBudget = isStressRun ? `
+    const stressBudget = (isStressRun ? `
 
-STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
+STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "") + renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
 
     const today = new Date().toISOString().slice(0, 10);
     // R1b2 — compute deterministic TEST-STATES from the request body and inject
@@ -1423,7 +1424,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2") },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2-ws6v21") },
     };
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.

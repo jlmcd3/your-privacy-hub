@@ -625,6 +625,53 @@ const CHECKS: Check[] = [
           return { passed: true };
         },
       },
+
+      // QC-WS6-1 (r1b1.4 poll-resume; evaluated on the completed row) —
+      // supplemental capture consumption discipline. When the intake carries
+      // supplemental_responses / supplemental_context (WS6 v2.1), the completed
+      // report MUST: (a) NOT emit an information_needed entry whose `field`
+      // matches any supplemental entry's `ref_field`; (b) NOT restate an
+      // insufficient-basis dead-end phrasing against a supplemental-answered
+      // field. When no supplementals are present, this check is a no-op pass.
+      {
+        id: "qc_ws6_1_supplemental_consumption", dimension: "accuracy", severity: "high",
+        tools: ["cppa-risk", "cppa-cyber", "cppa-admt", "dpia", "governance", "li", "ir", "biometric", "dpa"],
+        run: (intake, report) => {
+          const supp: any[] = Array.isArray(intake?.supplemental_responses) ? intake.supplemental_responses : [];
+          const suppCtx = typeof intake?.supplemental_context === "string" ? intake.supplemental_context.trim() : "";
+          if (supp.length === 0 && !suppCtx) return { passed: true };
+          // Collect the answered ref_fields; only those with a non-empty response count.
+          const answeredRefs = new Set<string>();
+          for (const e of supp) {
+            if (!e || typeof e !== "object") continue;
+            const resp = typeof e.response === "string" ? e.response.trim() : "";
+            const ref = typeof e.ref_field === "string" ? e.ref_field.trim() : "";
+            if (resp && ref) answeredRefs.add(ref);
+          }
+          // (a) no information_needed entry may re-ask an answered ref.
+          const asks: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
+          for (const a of asks) {
+            const f = typeof a?.field === "string" ? a.field : "";
+            if (f && answeredRefs.has(f)) {
+              return { passed: false, evidence: `information_needed re-asks answered supplemental ref_field "${f}"` };
+            }
+          }
+          // (b) no dead-end insufficient-basis phrasing tied to an answered ref appears in prose.
+          if (answeredRefs.size > 0) {
+            const text = JSON.stringify(report ?? "").toLowerCase();
+            const marker = /(insufficient information|cannot be determined without|without further information|not possible to (?:assess|determine) without)/i;
+            if (marker.test(text)) {
+              for (const ref of answeredRefs) {
+                const needle = ref.toLowerCase();
+                if (text.includes(needle)) {
+                  return { passed: false, evidence: `insufficient-basis phrasing persists near answered supplemental ref "${ref}"` };
+                }
+              }
+            }
+          }
+          return { passed: true };
+        },
+      },
     ];
   })(),
 ];

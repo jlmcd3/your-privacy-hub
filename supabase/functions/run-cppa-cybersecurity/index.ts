@@ -10,6 +10,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -491,7 +492,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     async function callControlsHalf(startIdx: number, endIdx: number, extra: string): Promise<{ controls: any[]; annotations: any[] } | null> {
       const base = buildControlsPrompt(startIdx, endIdx);
-      const user = extra ? `${base}\n\n${extra}` : base;
+      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const user = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
       const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
       if (first.stopReason === "max_tokens") {
@@ -518,7 +520,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     async function callSynthesis(controlsDigest: string, computedScore: number, extra: string): Promise<any | null> {
       const base = buildSynthesisPrompt(controlsDigest, computedScore);
-      const user = extra ? `${base}\n\n${extra}` : base;
+      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const user = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
       const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
       if (first.stopReason === "max_tokens") {
@@ -1319,7 +1322,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {});
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2") };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2-ws6v21") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

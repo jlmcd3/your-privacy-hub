@@ -12,6 +12,7 @@ import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, typ
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
@@ -279,7 +280,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // re-entry re-runs only missing units.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STAMP = "r1b2.3";
+const STAMP = "r1b2.4-ws6v21";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -758,7 +759,7 @@ ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E
 
 USER-PROVIDED INPUT HANDLING: The intake above may include user-provided inputs — an Article 9(2) condition, a necessity/proportionality & alternatives statement, and a retention period. Where a value is provided (i.e. not "Not specified"/"Not provided"): (1) Article 9(2) condition — treat as PROPOSED, assess soundness (e.g. flag employment/power-imbalance issues under Art. 9(2)(a)). Do NOT emit a blank "[TO COMPLETE — identify Article 9(2) condition]" when the user has supplied one. (2) Necessity, proportionality & alternatives — incorporate into section_3_necessity_proportionality, assessing them. (3) Retention period — use it in section_2_analysis.data_minimisation_retention. Never treat these user inputs as settled legal conclusions — assess them as proposals the organisation must validate and document.
 
-COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
+COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. The narrative sections (guidance_note, nature, scope, context, and the section-level completion_guidance blocks) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.${renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context })}`;
 }
 
 // r1b2.3 fix (b): robust parse. The original greedy `/\{[\s\S]*\}/` regex is
