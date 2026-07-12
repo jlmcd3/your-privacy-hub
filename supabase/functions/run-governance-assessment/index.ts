@@ -893,7 +893,7 @@ Return JSON:
   "recommended_action": "specific action required — must name the regulation and the action",
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "a statutory deadline with citation where one governs the action; otherwise exactly: timeline to be set by the organisation (e.g. within 7 days | this quarter | this year | ongoing — pick ONE as the illustrative cadence)"
-}`;
+}${renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context })}`;
         const firstText = await callAnthropic(model, domainSystem, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
         let parsed = tryParseJson(firstText);
         if (!parsed) {
