@@ -191,7 +191,7 @@ export function ProcessingInterstitial({
       </div>
 
       <ul className="mt-5 space-y-2">
-        {cfg.stages.map((s, i) => {
+        {stages.map((s, i) => {
           const done = i < activeIdx || (overrun && i < n - 1);
           const active = i === activeIdx && !done;
           return (
