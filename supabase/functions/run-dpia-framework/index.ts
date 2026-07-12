@@ -993,6 +993,16 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
   const systemBlocks = buildSystemBlocksForUnit(shared);
   const userPrompt = buildUnitUserPrompt(unit, shared, staging);
 
+  // Sanctioned chaos hook (r1b2.3, permanent A1 regression hook): when the
+  // DPIA_FORCE_FAIL_UNIT secret matches this unit id, throw before the model
+  // call so the mergePreservingFail path is exercised end-to-end. Inert when
+  // the secret is unset. Do not remove — the courier ledger references this.
+  if (Deno.env.get("DPIA_FORCE_FAIL_UNIT") === unit) {
+    const elapsedMs = Date.now() - startedMs;
+    console.log(`[run-dpia-framework] stage=unit:${unit} forced-fail (DPIA_FORCE_FAIL_UNIT)`);
+    await mergePreservingFail(dpia_id, unit, new Error(`forced-fail: DPIA_FORCE_FAIL_UNIT=${unit}`), elapsedMs);
+    return;
+  }
   try {
     const r = await callAnthropicWithContinuation({
       model: "claude-sonnet-4-6",
