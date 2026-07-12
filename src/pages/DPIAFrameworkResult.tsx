@@ -213,8 +213,10 @@ const DPIAFrameworkResult = () => {
               tool="dpia"
               startedAt={dpia?.updated_at ?? dpia?.created_at}
               slow={phase === "slow"}
+              dpiaUnits={dpia?.report_data?._staging?.units}
             />
           )}
+
 
           {status === "failed" && (
             <div className="bg-card border rounded-lg p-6">
