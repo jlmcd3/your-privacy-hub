@@ -55,7 +55,7 @@ const cors = {
 // Mirrors the proven chunk-1 boundary pattern (empirically validated by
 // cppa-risk #71 completing 5/5). Bundled with cppa-risk r1b1.2 (T-2 omission
 // detection for M4 N/A prong and M6 legacy-band cohort framing).
-console.log("[run-quality-batch] build 2026-07-11-gen-eval-boundary");
+console.log("[run-quality-batch] build 2026-07-12-poll-resume-boundary r1b1.4");
 
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
@@ -67,6 +67,24 @@ const docsPerInvocation = (_tool: string) => 1;
 const EVALUATION_TIMEOUT_MS = 90_000;
 const CROSS_REVIEW_TIMEOUT_MS = 45_000;
 const HEARTBEAT_INTERVAL_MS = 10_000;
+// r1b1.4 (2026-07-12): POLL-RESUME BOUNDARY. Per-isolate poll budget kept
+// safely inside the 400s isolate wall clock — on deadline the harness
+// persists the pending generator row id and self-reinvokes into a fresh
+// isolate that CONTINUES polling the same row. Total per-doc budget of
+// 20min guards against dead generators (see dpia #62 mid-doc-4 orphan:
+// run-dpia-framework died silently, the reaper/sweeper absorb it — but
+// the previous unbounded harness poll waited on a row that would never
+// flip until its own isolate hit 400s). On total-timeout we mark THAT
+// doc failed with an evidence string and PROCEED to the next doc.
+const POLL_DEADLINE_MS = 300_000;
+const DOC_TOTAL_TIMEOUT_MS = 20 * 60_000;
+// Tools whose generators write status='complete' on the source row (poll
+// path). Editorial/transient tools return payloads inline and bypass this.
+const POLL_TOOLS = new Set([
+  "cppa-admt", "cppa-risk", "cppa-cyber", "lia", "dpia",
+  "governance", "dpa-generator", "ir-playbook",
+  "biometric-checker", "registration",
+]);
 
 // B3: editorial tools — score accuracy + citation + no-adaptive-guidance, drop
 // structured-field checks, zero `formatting` weight. The 5pp from formatting
@@ -917,6 +935,138 @@ async function generateValidatedIntakes(tool: string, count: number): Promise<{ 
   return { intakes: accepted, rejected, totalAttempted: initial.length };
 }
 
+// r1b1.4 POLL-RESUME: dispatch-only step. Insert the generator row and fire
+// its edge function; return the source table/row id. Caller then polls the
+// row with a bounded per-isolate deadline and self-reinvokes on deadline.
+async function dispatchGeneration(
+  admin: Admin, tool: string, intake: any, userId: string,
+): Promise<{ sourceTable: string; sourceRowId: string } | null> {
+  try {
+    if (tool === "cppa-admt") {
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt", status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("run-admt-checker", { assessment_id: rec.id }).catch(() => {});
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+    }
+    if (tool === "cppa-risk") {
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id }).catch(() => {});
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+    }
+    if (tool === "cppa-cyber") {
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "cybersecurity", status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id }).catch(() => {});
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+    }
+    if (tool === "lia") {
+      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal"];
+      const cleaned: any = {};
+      for (const k of LIA_COLS) if (intake?.[k] !== undefined) cleaned[k] = intake[k];
+      if (!cleaned.stage) cleaned.stage = "final";
+      if (!cleaned.status) cleaned.status = "pending";
+      const { data: rec, error } = await admin.from("li_assessments").insert({ ...cleaned, user_id: userId }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("run-li-assessment", { assessment_id: rec.id }).catch(() => {});
+      return { sourceTable: "li_assessments", sourceRowId: rec.id };
+    }
+    if (tool === "dpia") {
+      const { data: rec, error } = await admin.from("dpia_frameworks").insert({
+        user_id: userId, status: "pending", intake_data: intake,
+        organization_name: intake?.organisation_name ?? intake?.organization_name ?? "Test Org",
+      }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("run-dpia-framework", { dpia_id: rec.id }).catch(() => {});
+      return { sourceTable: "dpia_frameworks", sourceRowId: rec.id };
+    }
+    if (tool === "governance") {
+      const { data: rec, error } = await admin.from("governance_assessments").insert({
+        user_id: userId, status: "pending", intake_data: intake,
+        organization_name: intake?.organization_name ?? intake?.company_name ?? "Test Org",
+      }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
+      return { sourceTable: "governance_assessments", sourceRowId: rec.id };
+    }
+    if (tool === "dpa-generator") {
+      const { data: rec, error } = await admin.from("dpa_documents").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "dpa_documents", sourceRowId: rec.id };
+    }
+    if (tool === "ir-playbook") {
+      const { data: rec, error } = await admin.from("ir_playbooks").insert({ user_id: userId, status: "pending", intake_data: intake, organization_name: intake?.organizationName ?? "Test Org" }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "ir_playbooks", sourceRowId: rec.id };
+    }
+    if (tool === "biometric-checker") {
+      const { data: rec, error } = await admin.from("biometric_assessments").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true }).catch(() => {});
+      return { sourceTable: "biometric_assessments", sourceRowId: rec.id };
+    }
+    if (tool === "registration") {
+      const { data: rec, error } = await admin.from("registration_orders").insert({
+        user_id: userId, status: "pending", intake_data: intake,
+        organization_name: intake?.organizationName ?? "Test Org",
+        jurisdictions: intake?.jurisdictions ?? [],
+      }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "registration_orders", sourceRowId: rec.id };
+    }
+    console.warn(`[dispatchGeneration] no dispatcher for tool: ${tool}`);
+    return null;
+  } catch (e) {
+    console.warn(`[dispatchGeneration] failed:`, (e as Error).message);
+    return null;
+  }
+}
+
+type PollOutcome =
+  | { status: "complete"; reportData: any }
+  | { status: "error"; error: string }
+  | { status: "deadline" };
+
+async function pollGenerationRow(
+  admin: Admin, sourceTable: string, sourceRowId: string, deadlineMs: number,
+): Promise<PollOutcome> {
+  const deadline = Date.now() + deadlineMs;
+  const intervalMs = sourceTable === "biometric_assessments" ? 2500 : 5000;
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, intervalMs));
+    try {
+      if (sourceTable === "biometric_assessments") {
+        const { data } = await admin.from(sourceTable)
+          .select("status, analysis_text, report_data").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "complete") return { status: "complete", reportData: { ...((data as any)?.report_data ?? {}), assessment_text: (data as any)?.analysis_text ?? "" } };
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      } else if (sourceTable === "registration_orders") {
+        const { data } = await admin.from(sourceTable).select("status").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "complete" || s === "generated") {
+          const { data: docs } = await admin.from("registration_documents")
+            .select("jurisdiction, document_type, content_text").eq("order_id", sourceRowId);
+          return { status: "complete", reportData: { documents: docs ?? [], document_count: docs?.length ?? 0 } };
+        }
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      } else {
+        const { data } = await admin.from(sourceTable).select("status, report_data").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "complete") return { status: "complete", reportData: (data as any)?.report_data };
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      }
+    } catch (e) {
+      // Transient read errors: keep polling until deadline.
+      console.warn(`[pollGenerationRow] read failed for ${sourceTable}/${sourceRowId}:`, (e as Error).message);
+    }
+  }
+  return { status: "deadline" };
+}
+
 async function buildDocument(admin: Admin, tool: string, intake: any, userId: string): Promise<{ sourceTable: string; sourceRowId: string; reportData: any } | null> {
   try {
     const poll = async (table: string, id: string) => {
@@ -1329,35 +1479,133 @@ async function runBatch(runId: string): Promise<void> {
       if (!evalOnly) {
         intake = intakes[i];
         docLabel = `Doc ${i + 1}/${intakes.length} [${scenarioSet}]`;
-        await log("info", `${docLabel}: building…`);
 
-        const { data: docRow } = await admin.from("quality_run_documents").insert({
-          run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
-          scenario_set: scenarioSet,
-        }).select("id").single();
-        if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
+        // r1b1.4 POLL-RESUME BOUNDARY (2026-07-12): the poll of the generator
+        // row is bounded per isolate (~300s, safely inside the 400s wall
+        // clock). On deadline we persist `pending_gen` and self-reinvoke into
+        // a fresh isolate that CONTINUES polling the same row (no rebuild).
+        // A doc-level total budget (20min) guards against dead generators —
+        // see dpia #62 mid-doc-4: run-dpia-framework died silently, the
+        // unbounded harness poll then waited on a row that would never flip
+        // until its own isolate hit 400s and orphaned the run.
+        const pendingGen = (state as any).pending_gen as {
+          doc_index: number; doc_row_id: string;
+          source_table: string; source_row_id: string;
+          gen_started_at: number; isolate_count: number;
+        } | undefined;
+        const isTransient = !POLL_TOOLS.has(tool);
 
-        const result = await buildDocument(admin, tool, intake, userId);
-        if (!result) {
-          await log("warn", `${docLabel}: build failed`);
-          await admin.from("quality_run_documents").update({ status: "error", error: "build failed" }).eq("id", docRow.id);
+        let sourceTable: string;
+        let sourceRowId: string;
+        let genStartedAt: number;
+        let isolateCount: number;
+
+        if (pendingGen && pendingGen.doc_index === i) {
+          docRowId = pendingGen.doc_row_id;
+          sourceTable = pendingGen.source_table;
+          sourceRowId = pendingGen.source_row_id;
+          genStartedAt = pendingGen.gen_started_at;
+          isolateCount = (pendingGen.isolate_count ?? 1) + 1;
+          await log("info", `${docLabel}: resuming poll of ${sourceTable}/${sourceRowId} (isolate ${isolateCount}, gen elapsed ${Math.round((Date.now() - genStartedAt) / 1000)}s)`);
+        } else {
+          await log("info", `${docLabel}: building…`);
+          const { data: docRow } = await admin.from("quality_run_documents").insert({
+            run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
+            scenario_set: scenarioSet,
+          }).select("id").single();
+          if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
+          docRowId = docRow.id;
+
+          if (isTransient) {
+            // Editorial/transient tools: the response IS the artifact — no
+            // per-row polling needed. Preserve legacy buildDocument path.
+            const result = await buildDocument(admin, tool, intake, userId);
+            if (!result) {
+              await log("warn", `${docLabel}: build failed`);
+              await admin.from("quality_run_documents").update({ status: "error", error: "build failed" }).eq("id", docRowId);
+              continue;
+            }
+            reportData = result.reportData;
+            await admin.from("quality_run_documents").update({
+              report_data: result.reportData, source_table: result.sourceTable,
+              source_row_id: result.sourceRowId, status: "evaluating",
+            }).eq("id", docRowId);
+            (state as any).pending_eval_doc_id = docRowId;
+            (state as any).pending_eval_doc_index = i;
+            await log("info", `${docLabel}: built & persisted — self-reinvoking so evaluation runs in a fresh isolate (gen/eval boundary)`);
+            await persistState({});
+            await selfReinvoke(runId);
+            clearInterval(heartbeat);
+            return;
+          }
+
+          const dispatch = await dispatchGeneration(admin, tool, intake, userId);
+          if (!dispatch) {
+            await log("warn", `${docLabel}: dispatch failed`);
+            await admin.from("quality_run_documents").update({ status: "error", error: "dispatch failed" }).eq("id", docRowId);
+            continue;
+          }
+          sourceTable = dispatch.sourceTable;
+          sourceRowId = dispatch.sourceRowId;
+          genStartedAt = Date.now();
+          isolateCount = 1;
+          // Persist source refs immediately so a resumed isolate can pick up
+          // even if this isolate is torn down before the first poll landing.
+          await admin.from("quality_run_documents").update({
+            source_table: sourceTable, source_row_id: sourceRowId,
+          }).eq("id", docRowId);
+        }
+
+        // Doc-level total-timeout guard: one dead generator must never kill
+        // the run. Mark THIS doc failed with evidence, drop pending_gen,
+        // advance next_doc_index, and continue.
+        if (Date.now() - genStartedAt > DOC_TOTAL_TIMEOUT_MS) {
+          const elapsedS = Math.round((Date.now() - genStartedAt) / 1000);
+          await log("error", `${docLabel}: generator did not reach terminal state within budget (${elapsedS}s, ${sourceTable}/${sourceRowId}) — marking doc failed and proceeding to next`);
+          await admin.from("quality_run_documents").update({
+            status: "error",
+            error: `generator did not reach terminal state within budget (${elapsedS}s)`,
+          }).eq("id", docRowId);
+          delete (state as any).pending_gen;
+          await persistState({ next_doc_index: i + 1 });
           continue;
         }
 
-        docRowId = docRow.id;
-        reportData = result.reportData;
+        const remainingTotal = DOC_TOTAL_TIMEOUT_MS - (Date.now() - genStartedAt);
+        const isolateBudget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, remainingTotal));
+        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget);
 
+        if (outcome.status === "deadline") {
+          (state as any).pending_gen = {
+            doc_index: i, doc_row_id: docRowId,
+            source_table: sourceTable, source_row_id: sourceRowId,
+            gen_started_at: genStartedAt, isolate_count: isolateCount,
+          };
+          await log("info", `${docLabel}: poll deadline reached (isolate ${isolateCount}, ${Math.round(isolateBudget/1000)}s) — persisting pending_gen and self-reinvoking to CONTINUE polling (poll-resume boundary)`);
+          await persistState({});
+          await selfReinvoke(runId);
+          clearInterval(heartbeat);
+          return;
+        }
+
+        if (outcome.status === "error") {
+          await log("warn", `${docLabel}: build failed — ${outcome.error}`);
+          await admin.from("quality_run_documents").update({ status: "error", error: outcome.error.slice(0, 300) }).eq("id", docRowId);
+          delete (state as any).pending_gen;
+          await persistState({ next_doc_index: i + 1 });
+          continue;
+        }
+
+        // Complete.
+        reportData = outcome.reportData;
+        delete (state as any).pending_gen;
         await admin.from("quality_run_documents").update({
-          report_data: result.reportData, source_table: result.sourceTable,
-          source_row_id: result.sourceRowId, status: "evaluating",
-        }).eq("id", docRow.id);
+          report_data: reportData, source_table: sourceTable,
+          source_row_id: sourceRowId, status: "evaluating",
+        }).eq("id", docRowId);
 
-        // GEN/EVAL CHUNK BOUNDARY: build phase complete & persisted. Hand off
-        // to a fresh isolate so dual-model evaluation (~200-250s) gets a full
-        // ~400s budget. dpia #61 died at ~688s mid-eval in a single isolate.
-        // Persist pending_eval marker; keep next_doc_index at `i` (this doc is
-        // not yet complete). On resume, the branch above skips rebuild and goes
-        // straight to evaluation.
+        // GEN/EVAL CHUNK BOUNDARY (r1b1.2): hand off to a fresh isolate so
+        // dual-model evaluation (~200-250s) gets a full ~400s budget.
         (state as any).pending_eval_doc_id = docRowId;
         (state as any).pending_eval_doc_index = i;
         await log("info", `${docLabel}: built & persisted — self-reinvoking so evaluation runs in a fresh isolate (gen/eval boundary)`);
