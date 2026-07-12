@@ -77,8 +77,12 @@ export function guardInformationNeeded(
 ): { report: any; deadEndWithoutPath: boolean; strippedCount: number; autoRepaired: number } {
   const intakeObj = intake ?? {};
   const intakeKeys = new Set(Object.keys(intakeObj));
+  // WS6 v2.1: supplemental keys are ANSWER slots, not intake facts. An
+  // information_needed entry targeting them is a defect — strip regardless of
+  // whether the key appears in intake_data on this tool's storage shape.
+  const WS6_SUPPLEMENTAL_KEYS = new Set(["supplemental_responses", "supplemental_context"]);
   const list: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
-  const valid = list.filter((e) => e && typeof e.field === "string" && intakeKeys.has(e.field));
+  const valid = list.filter((e) => e && typeof e.field === "string" && intakeKeys.has(e.field) && !WS6_SUPPLEMENTAL_KEYS.has(e.field));
   const strippedCount = list.length - valid.length;
   if (strippedCount > 0) {
     console.log(JSON.stringify({
