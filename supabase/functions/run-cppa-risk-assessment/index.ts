@@ -1,4 +1,4 @@
-// qb8 build active · cppa-risk r1b1.2 T-2 omission detection (M4 N/A + M6 legacy-band cohort)
+// qb8 build active · cppa-risk r1b1.3 continuation-on-truncation + 330s self-report abort + compact cells
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
