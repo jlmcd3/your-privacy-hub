@@ -10,6 +10,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
