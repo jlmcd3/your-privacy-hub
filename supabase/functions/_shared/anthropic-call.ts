@@ -46,6 +46,16 @@ export interface AnthropicCallResult {
   elapsedMs: number;
   outputTokens: number | null;
   continued: boolean;
+  // r1b2.3 fix (c): expose per-leg detail so callers can persist durable
+  // telemetry on the failure path (the ~6-min log retention window is not
+  // enough — the DB is the only durable trail once logs age out).
+  firstOutputTokens?: number | null;
+  firstStopReason?: string | null;
+  contOutputTokens?: number | null;
+  contStopReason?: string | null;
+  contElapsedMs?: number | null;
+  stitchedChars?: number | null;
+  contRetried?: boolean;
 }
 
 interface RawCallResult {
