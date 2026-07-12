@@ -73,6 +73,7 @@ export function ProcessingInterstitial({
   label: labelOverride,
   startedAt,
   slow = false,
+  dpiaUnits,
 }: {
   tool: ToolKey;
   label?: string;
@@ -88,6 +89,13 @@ export function ProcessingInterstitial({
    * once updated_at is > 10 minutes old.
    */
   slow?: boolean;
+  /**
+   * DPIA r1b2.3 sectioned-generation per-unit progress. When provided (only
+   * meaningful for tool="dpia"), replaces the ETA-derived stage ladder with
+   * the six D8-clean labels driven by `report_data._staging.units.*.status`.
+   */
+  dpiaUnits?: Record<string, { status?: string | null } | null | undefined>;
+
 }) {
   const cfg = TOOLS[tool];
 
