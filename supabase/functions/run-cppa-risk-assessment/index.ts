@@ -589,7 +589,7 @@ async function runPipeline(assessment_id: string) {
       .sort();
     const canonicalBlock = `CANONICAL_INTAKE_FIELDS (closed vocabulary — use only these ids verbatim in source_fields, intake_field_1/2, and information_needed.field):\n${canonicalFieldIds.map((k) => `  - ${k}`).join("\n")}`;
     const compactCellsBlock = `COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. This applies to every repeated-row structure in the report (including the risk_register / risk_matrix rows, control-mapping rows, information_needed rows, and any other table or matrix). Narrative sections (assessment_summary, methodology notes, and section-level rationales) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
-    const userPrompt = `${compactCellsBlock}\n\n${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}`;
+    const userPrompt = `${compactCellsBlock}\n\n${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}${renderSupplementalBlock({ responses: (rawIntake as any)?.supplemental_responses, context: (rawIntake as any)?.supplemental_context })}`;
 
 
     const t0 = Date.now();
