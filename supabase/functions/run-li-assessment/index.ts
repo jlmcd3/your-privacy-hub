@@ -722,7 +722,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   ]
 }
 
-Every insufficient-basis or Insufficient-information finding elsewhere in this output (including any "uncertain" verdict in purpose_test, necessity_test, or balancing_test) MUST have a corresponding information_needed entry.`;
+Every insufficient-basis or Insufficient-information finding elsewhere in this output (including any "uncertain" verdict in purpose_test, necessity_test, or balancing_test) MUST have a corresponding information_needed entry.${renderSupplementalBlock({ responses: (assessment as any).supplemental_responses, context: (assessment as any).supplemental_context })}`;
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
