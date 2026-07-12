@@ -13,6 +13,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
