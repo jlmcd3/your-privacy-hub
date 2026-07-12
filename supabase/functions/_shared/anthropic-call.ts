@@ -130,23 +130,44 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     };
   }
 
-  // Continuation: prefill with the truncated assistant turn and continue.
-  console.warn(`[${opts.label}] stage=callAnthropic truncated at max_tokens — continuing in place (assistant-prefill continuation)`);
+  // Continuation: the Messages API rejects a conversation that ends with an
+  // assistant turn (claude-sonnet-4-6 returns 400 on that shape). Send the
+  // truncated assistant output followed by an explicit user "continue" turn,
+  // then stitch. Overlap guard trims any suffix of first.text that the model
+  // re-emitted at the start of the continuation.
+  console.warn(`[${opts.label}] stage=callAnthropic truncated at max_tokens — continuing in place (assistant+user-continue continuation)`);
+  const CONTINUE_INSTRUCTION = 'Your previous message hit its length limit mid-output. Continue EXACTLY from the character where it stopped. Output ONLY the remaining text — no preamble, no repetition of earlier output, no code fences.';
   const cont = await doOne({
     model: opts.model,
     system: opts.system,
     messages: [
       { role: "user", content: opts.user },
       { role: "assistant", content: first.text },
+      { role: "user", content: CONTINUE_INSTRUCTION },
     ],
     maxTokens: opts.maxTokens,
     timeoutMs,
     label: `${opts.label}#cont`,
   });
-  const combinedText = first.text + cont.text;
+
+  // Overlap guard: strip leading whitespace, then find the largest suffix of
+  // first.text that is a prefix of contText (scan last ~200 chars) and trim.
+  let contText = cont.text.replace(/^\s+/, "");
+  const tailWindow = first.text.slice(-200);
+  let overlapLen = 0;
+  const maxCheck = Math.min(tailWindow.length, contText.length);
+  for (let n = maxCheck; n > 0; n--) {
+    if (first.text.endsWith(contText.slice(0, n))) { overlapLen = n; break; }
+  }
+  if (overlapLen > 0) {
+    console.log(`[${opts.label}#cont] stage=callAnthropic overlap_guard trimmed=${overlapLen} chars`);
+    contText = contText.slice(overlapLen);
+  }
+
+  const combinedText = first.text + contText;
   const combinedTokens = (first.outputTokens ?? 0) + (cont.outputTokens ?? 0);
   const combinedElapsed = first.elapsedMs + cont.elapsedMs;
-  console.log(`[${opts.label}#cont] stage=callAnthropic model=${opts.model} elapsed=${cont.elapsedMs}ms stop=${cont.stopReason} output_tokens=${cont.outputTokens ?? "?"} chars=${cont.text.length} stitched_chars=${combinedText.length}`);
+  console.log(`[${opts.label}#cont] stage=callAnthropic model=${opts.model} elapsed=${cont.elapsedMs}ms stop=${cont.stopReason} output_tokens=${cont.outputTokens ?? "?"} chars=${contText.length} stitched_chars=${combinedText.length}`);
 
   return {
     text: combinedText,

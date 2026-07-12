@@ -286,7 +286,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 type UnitId = "u1" | "u2" | "u3" | "u4" | "u5";
 const PHASE1: UnitId[] = ["u1", "u2", "u3"];
 const UNIT_MAX_TOKENS: Record<UnitId, number> = {
-  u1: 12_000, u2: 10_000, u3: 10_000, u4: 16_000, u5: 8_000,
+  u1: 18_000, u2: 10_000, u3: 10_000, u4: 16_000, u5: 8_000,
 };
 
 // Per-unit JSON output skeletons. Preserved verbatim from the pre-refactor
