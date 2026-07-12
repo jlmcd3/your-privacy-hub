@@ -277,6 +277,62 @@ export default function RefinePanel({
         </div>
       )}
 
+      {/* WS6 v2.1: supplemental capture — regeneration only. Renders each
+          prior information_needed entry as its own textarea plus a general
+          context box. Empty entries are dropped in onRegenerate. */}
+      <div className="space-y-4 pt-2">
+        <div>
+          <div className="text-eyebrow text-brand-mist mb-2">Supplemental information for this revision</div>
+          <p className="text-sm text-slate max-w-[70ch]">
+            Answer any open items the prior report named, and add anything else material to this revision. Your notes are used as intake for the re-run.
+          </p>
+        </div>
+        {priorInfo.length > 0 && (
+          <div className="space-y-3">
+            {priorInfo.map((e, i) => {
+              const label =
+                ((e as any).dimensions as string | undefined)
+                ?? ((e as any).ask as string | undefined)
+                ?? ((e as any).field as string | undefined)
+                ?? `Open item ${i + 1}`;
+              return (
+                <div key={`supp-${i}`} data-testid={`supplemental-entry-${i}`}>
+                  <label htmlFor={`supp-${i}`} className="text-sm font-semibold text-brand-navy">
+                    {label}
+                  </label>
+                  <textarea
+                    id={`supp-${i}`}
+                    value={supplementalResponses[i] ?? ""}
+                    onChange={(ev) =>
+                      setSupplementalResponses((prev) => {
+                        const next = [...prev];
+                        while (next.length < priorInfo.length) next.push("");
+                        next[i] = ev.target.value;
+                        return next;
+                      })
+                    }
+                    placeholder="Your answer to this open item"
+                    className="mt-2 min-h-20 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div data-testid="supplemental-general">
+          <label htmlFor="supp-general" className="text-sm font-semibold text-brand-navy">
+            Anything else material to this revision
+          </label>
+          <textarea
+            id="supp-general"
+            value={supplementalContext}
+            onChange={(ev) => setSupplementalContext(ev.target.value)}
+            placeholder="Additional context (optional)"
+            className="mt-2 min-h-20 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
+          />
+        </div>
+      </div>
+
       <div className="pt-4 border-t border-brand-cloud flex flex-wrap gap-3">
         {!exhausted ? (
           <button
