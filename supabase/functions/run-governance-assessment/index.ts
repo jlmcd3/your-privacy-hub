@@ -14,6 +14,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
