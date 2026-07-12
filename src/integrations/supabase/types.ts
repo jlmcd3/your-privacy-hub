@@ -3036,6 +3036,8 @@ export type Database = {
           status: string
           stripe_payment_intent_id: string | null
           subject_anchor: string | null
+          supplemental_context: string | null
+          supplemental_responses: Json | null
           updated_at: string | null
           user_id: string | null
         }
@@ -3068,6 +3070,8 @@ export type Database = {
           status?: string
           stripe_payment_intent_id?: string | null
           subject_anchor?: string | null
+          supplemental_context?: string | null
+          supplemental_responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -3100,6 +3104,8 @@ export type Database = {
           status?: string
           stripe_payment_intent_id?: string | null
           subject_anchor?: string | null
+          supplemental_context?: string | null
+          supplemental_responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
         }
