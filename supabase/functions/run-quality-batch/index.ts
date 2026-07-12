@@ -635,7 +635,7 @@ const CHECKS: Check[] = [
       // field. When no supplementals are present, this check is a no-op pass.
       {
         id: "qc_ws6_1_supplemental_consumption", dimension: "accuracy", severity: "high",
-        tools: ["cppa-risk", "cppa-cyber", "cppa-admt", "dpia", "governance", "li", "ir", "biometric", "dpa"],
+        tools: ["cppa-risk", "cppa-cyber", "cppa-admt", "dpia", "governance", "lia", "ir", "biometric", "dpa"],
         run: (intake, report) => {
           const supp: any[] = Array.isArray(intake?.supplemental_responses) ? intake.supplemental_responses : [];
           const suppCtx = typeof intake?.supplemental_context === "string" ? intake.supplemental_context.trim() : "";
@@ -1008,7 +1008,7 @@ async function dispatchGeneration(
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }
     if (tool === "lia") {
-      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal"];
+      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal","supplemental_responses","supplemental_context"];
       const cleaned: any = {};
       for (const k of LIA_COLS) if (intake?.[k] !== undefined) cleaned[k] = intake[k];
       if (!cleaned.stage) cleaned.stage = "final";
@@ -1147,7 +1147,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
     }
     if (tool === "lia") {
       // Whitelist columns to li_assessments schema — drop any AI-hallucinated keys
-      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal"];
+      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal","supplemental_responses","supplemental_context"];
       const cleaned: any = {};
       for (const k of LIA_COLS) if (intake?.[k] !== undefined) cleaned[k] = intake[k];
       if (!cleaned.stage) cleaned.stage = "final";
