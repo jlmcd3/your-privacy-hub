@@ -670,6 +670,7 @@ ADDITIONAL DISCIPLINES:
       const strictRetry = await callAnthropic(
         system,
         userPrompt +
+          renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context }) +
           "\n\nCRITICAL OUTPUT REQUIREMENT: Respond with a single valid JSON object only. No markdown fences, no commentary before or after. The first character MUST be '{' and the last character MUST be '}'. Escape all internal quotes and newlines per JSON spec.",
         PRODUCT_MAX_OUTPUT_TOKENS,
         "gap-analysis-json-retry"
