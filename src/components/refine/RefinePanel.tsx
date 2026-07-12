@@ -125,10 +125,26 @@ export default function RefinePanel({
         cleanEdits[f.key] = raw;
       }
     }
+    // WS6 v2.1: assemble supplemental payload. Empty responses are dropped;
+    // absent values are omitted entirely so first-run parity is preserved.
+    const suppList = priorInfo
+      .map((e, i) => ({
+        ref_field: (e as any).field as string | undefined,
+        ask: ((e as any).dimensions as string | undefined)
+          ?? ((e as any).ask as string | undefined)
+          ?? ((e as any).field as string | undefined)
+          ?? "",
+        response: (supplementalResponses[i] ?? "").trim(),
+      }))
+      .filter((x) => x.response.length > 0);
+    const suppCtx = supplementalContext.trim();
+
     const outcome = await regenerate({
       toolType, assessmentId,
       editedFields: cleanEdits,
       priorRunsUsed: runsUsed,
+      supplementalResponses: suppList.length > 0 ? suppList : undefined,
+      supplementalContext: suppCtx.length > 0 ? suppCtx : undefined,
     });
 
     if (outcome.kind === "accepted") {
