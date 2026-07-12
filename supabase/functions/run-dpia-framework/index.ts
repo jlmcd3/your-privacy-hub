@@ -749,17 +749,15 @@ Generate substantive draft rows for every table for the controller to verify; us
 
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+      // Courier 2026-07-12 item 1+4: first call at 24k/half; continuation-on-
+      // truncation is handled inside callAnthropicWithContinuation. If the
+      // stitched response is still max_tokens after continuation, fall through
+      // to the existing empty-half behavior — no second full-price retry.
+      const r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, DPIA_HALF_MAX_TOKENS);
       console.log(`[DPIA] genHalf stopReason=${r.stopReason} chars=${r.text.length} tail=${JSON.stringify(r.text.slice(-120))}`);
       if (r.stopReason === "max_tokens") {
-        const bumped = Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 1.25);
-        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry at ${bumped} (QB8-8 +25%)`);
-        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, bumped);
-        console.log(`[DPIA] genHalf retry stopReason=${r.stopReason} chars=${r.text.length}`);
-        if (r.stopReason === "max_tokens") {
-          console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
-          return {};
-        }
+        console.error("[DPIA] genHalf truncated_output after continuation — returning empty half");
+        return {};
       }
       const parsed = parseJsonish(r.text);
       if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 0 && r.text.length > 200) {
