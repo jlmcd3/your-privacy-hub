@@ -1,4 +1,4 @@
-// qb9 dpia-r1b2.1 time-budgeted T-2/T-3/T-4 retry active
+// qb9 dpia-r1b2.2 continuation-on-truncation + 330s self-report abort + compact cells
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
