@@ -1503,9 +1503,18 @@ async function runPipeline(assessment_id: string) {
 
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
+    const isTimeout = e instanceof AnthropicTimeoutError
+      || (e instanceof Error && (e as any).code === "generation_timeout_330s");
     try {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: String(e) } }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+        status: "error",
+        report_data: isTimeout
+          ? { error: "generation_timeout_330s", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null }
+          : { error: String(e) },
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }
+    // Re-throw so the wrapped runner marks the fnRun failed via failFunctionRun.
+    if (isTimeout) throw e;
   }
 }
 
