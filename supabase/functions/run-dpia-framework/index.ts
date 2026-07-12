@@ -1136,7 +1136,7 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
-    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2.1") };
+    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2.2") };
 
     // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
     try {
