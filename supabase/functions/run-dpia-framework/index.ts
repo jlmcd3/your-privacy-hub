@@ -286,7 +286,11 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 type UnitId = "u1" | "u2" | "u3" | "u4" | "u5";
 const PHASE1: UnitId[] = ["u1", "u2", "u3"];
 const UNIT_MAX_TOKENS: Record<UnitId, number> = {
-  u1: 18_000, u2: 10_000, u3: 10_000, u4: 16_000, u5: 8_000,
+  // r1b2.3 fix (a): u2 10k→14k. #66–68 observed u2 outputs 8,864–9,914 tokens
+  // (razor-thin headroom vs 10k cap); the u2 continuation trigger in #69 is
+  // documented in the courier ledger. Raising the cap makes continuation the
+  // rare path, not the common one, on richer scenarios.
+  u1: 18_000, u2: 14_000, u3: 10_000, u4: 16_000, u5: 8_000,
 };
 
 // Per-unit JSON output skeletons. Preserved verbatim from the pre-refactor
