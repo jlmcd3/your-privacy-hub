@@ -269,7 +269,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=r1b2.1`);
+  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=r1b2.2`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
