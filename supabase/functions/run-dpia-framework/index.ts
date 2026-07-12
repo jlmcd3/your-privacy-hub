@@ -28,25 +28,17 @@ const corsHeaders = {
 
 const DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 
-async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
-  const startedAt = Date.now();
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(timeoutMs),
+// DPIA per-half first-call ceiling (courier 2026-07-12 item 4). Continuation
+// (see callAnthropicWithContinuation) is the safety net if this is exceeded.
+const DPIA_HALF_MAX_TOKENS = 24_000;
+
+import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
+
+async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
+  const r = await callAnthropicWithContinuation({
+    model, system, user, maxTokens, label: "run-dpia-framework",
   });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}`);
-  const d = await res.json();
-  const text = d.content?.[0]?.text || "";
-  const stopReason: string | null = d.stop_reason ?? null;
-  const elapsed = Date.now() - startedAt;
-  console.log(`[run-dpia-framework] stage=callAnthropic model=${model} elapsed=${elapsed}ms stop=${stopReason} chars=${text.length}`);
-  return { text, stopReason };
+  return { text: r.text, stopReason: r.stopReason };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
