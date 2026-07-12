@@ -208,17 +208,14 @@ const LIAssessmentIntake = () => {
   useEffect(() => {
     if (!id) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("li_assessments")
-        .select("id, user_id, organization_name, subject_anchor, processing_description, data_categories, relationship_type, jurisdictions, preview_signal")
-        .eq("id", id)
-        .single();
-      if (error || !data) {
+      const { data, error } = await supabase.functions.invoke("get-preview-li-assessment", { body: { id } });
+      const row = (data as any)?.row;
+      if (error || !row) {
         toast({ title: "Couldn't load preview", description: "Please start again.", variant: "destructive" });
         navigate("/li-assessment");
         return;
       }
-      setRow(data as PreviewRow);
+      setRow(row as PreviewRow);
       setLoading(false);
     })();
   }, [id, navigate, toast]);
