@@ -384,7 +384,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
 Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`,
 };
 
-function buildUserPrompt(intake: FiveStageIntake, subjectAnchor = ""): string {
+function buildUserPrompt(intake: FiveStageIntake, subjectAnchor = "", q1RevenueBand = "Not specified"): string {
   const { triggers, exceptions, activity_details, impact, org_context } = intake;
   const noExceptions = Object.values(exceptions).every((v: any) => !v?.claimed);
 
@@ -476,7 +476,7 @@ Prior assessments conducted: ${impact.prior_assessments_conducted ? `Yes (${impa
 STAGE 5 — ORGANISATIONAL CONTEXT:
 Company: ${org_context.company_name}
 Sector: ${org_context.sector}
-Annual revenue band (§ 1798.140(d)(1)(A)): ${(intake as any)?.q1_revenue ?? (org_context as any)?.q1_revenue ?? "Not specified"}
+Annual revenue band (§ 1798.140(d)(1)(A)): ${q1RevenueBand}
 Privacy counsel engaged: ${org_context.privacy_counsel_engaged ? "Yes" : "No"}
 DPO/Privacy Officer: ${org_context.dpo_or_privacy_officer ? "Yes" : "No"}
 Board-level privacy oversight: ${org_context.board_level_oversight ? "Yes" : "No"}
@@ -591,7 +591,7 @@ async function runPipeline(assessment_id: string) {
       .sort();
     const canonicalBlock = `CANONICAL_INTAKE_FIELDS (closed vocabulary — use only these ids verbatim in source_fields, intake_field_1/2, and information_needed.field):\n${canonicalFieldIds.map((k) => `  - ${k}`).join("\n")}`;
     const compactCellsBlock = `COMPACT-CELLS OUTPUT RULE: Table cells and matrix rows are COMPACT. Each cell contains a substantive but concise determination of approximately 40 words or fewer — enough to state the determination and its immediate justification, not an essay. This applies to every repeated-row structure in the report (including the risk_register / risk_matrix rows, control-mapping rows, information_needed rows, and any other table or matrix). Narrative sections (assessment_summary, methodology notes, and section-level rationales) carry the analysis; tables carry the determinations. This rule does not reduce substantive scope — every required field is still populated with an assessed determination — it constrains only the length and register of table-cell text.`;
-    const userPrompt = `${compactCellsBlock}\n\n${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}${renderSupplementalBlock({ responses: (rawIntake as any)?.supplemental_responses, context: (rawIntake as any)?.supplemental_context })}`;
+    const userPrompt = `${compactCellsBlock}\n\n${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor, (row.intake_data as any)?.q1_revenue ?? "Not specified")}${renderSupplementalBlock({ responses: (rawIntake as any)?.supplemental_responses, context: (rawIntake as any)?.supplemental_context })}`;
 
 
     const t0 = Date.now();
