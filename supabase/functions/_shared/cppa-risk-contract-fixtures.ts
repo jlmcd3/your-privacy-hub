@@ -1,19 +1,25 @@
 // RC-C1 C1.4 — CPPA Risk revision-contract fixtures.
 //
-// Pinned intakes crafted to exercise the three contract scenarios:
-//   (a) first-pass yields k ≥ 3 open items (deliberately-thin intake)
-//   (b) revision answers j < k items (partial-answer path)
-//   (c) revision answers all remaining items (full-close path)
+// RC-D.5 FIX-CPPA-1 (2026-07-13): rewritten in LEGACY-FLAT shape so
+// `normaliseIntake` routes them through `shimLegacyIntake` (the branch that
+// maps entity_name → org_context.company_name and applies lenient
+// validation). The prior authoring carried native discriminator keys
+// (`triggers: {}`, `org_context: ""`, `impact: {...}`, `exceptions: []`) which
+// forced the native branch, where org_context.company_name was undefined and
+// pre-generation validation failed (VALIDATION_FAILED / org_context.company_name).
 //
-// The intakes are consumed by run-quality-batch's pinned-intake path
-// (quality_runs.intakes seeded before dispatch). NOT sampleFixtures-only —
-// callers pin these into `intakes` on a quality_runs row, then hand off to
-// the standard batch pipeline which builds a real cppa-risk assessment for
-// each and runs the WS6 revision path against it.
+// SHAPE CHOICE — Option A (legacy flat) per courier RC-D.5:
+//   • NO `triggers` key (top-level absence is the shim discriminator).
+//   • NO `org_context` / `exceptions` / `impact` object literals — impact
+//     inputs move into `impact_intake` (the shape shimLegacyIntake reads).
+//   • entity_name is the sole company-name source; the shim maps it to
+//     org_context.company_name.
+//   • lenient=true applies (wasLegacyShimmed=true), so the ≥50-char purpose
+//     and ≥100-char rationale strict-mode rules are bypassed and the
+//     deliberate thin spots survive to produce the contract scenarios.
 //
-// Field literals are content-anchored to
-// src/pages/CPPARiskAssessment.tsx (REVENUE_OPTS / CONSUMER_OPTS / …) —
-// keep them in sync when the intake page changes those enums.
+// Field literals remain content-anchored to
+// src/pages/CPPARiskAssessment.tsx (REVENUE_OPTS / CONSUMER_OPTS / …).
 
 export interface CppaRiskContractFixture {
   fixture_id: string;
@@ -24,8 +30,22 @@ export interface CppaRiskContractFixture {
   answer_targets?: string[];
 }
 
-// (a) yields k≥3 — mid-band revenue, ambiguous consumer count, sensitive PI
-// present but volume unspecified, ADMT "In evaluation", impact half-filled.
+// (a) yields k≥3 open items after first pass. Expected ask sources:
+//   1. q15c_spi_volume "" while q15_sensitive_pi="Yes" — SPI-volume figure
+//      is required to resolve § 7120(b)(2)(B) and to size SPI processing;
+//      the empty field routes to an information_needed anchored to
+//      q15c_spi_volume.
+//   2. q18_admt_use "In evaluation" with q19_admt_description /
+//      q20_admt_opt_out both empty — the ADMT branch (§ 7150(b)(6),
+//      § 7220 opt-out mechanics) is engaged by the shim's regex but the
+//      logic/opt-out record is empty; the generator raises ask(s) for
+//      admt_description and admt_opt_out.
+//   3. impact_intake carries likelihood only; severity, benefitsOutweigh,
+//      benefits/consumer/stakeholder benefits, and rationale are absent —
+//      the shim defaults keep validation green under lenient mode, but the
+//      empty benefits text and blank rationale surface as
+//      information_needed entries (§ 7152(a)(4) benefits + § 7154 balancing).
+// Total floor of asks is comfortably ≥3.
 export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
   fixture_id: "cppa-risk-rcC1-yield-k3",
   contract_scenario: "yield_k3",
@@ -35,23 +55,35 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
     q1_revenue: "$100M–$500M",
     q2_consumers: "1–10 million",
     q3_sector: "Healthcare",
-    q4_pi_categories: "Identifiers, health, inferred mental-health state",
+    q4_pi_categories: ["Identifiers", "Health information", "Inferred mental-health state"],
     q5_sell_share: "No",
     q15_sensitive_pi: "Yes",
-    q15c_spi_volume: "", // <-- forces record-completeness ask
-    q18_admt_use: "In evaluation", // <-- forces ADMT clarifier ask
-    activity_details: "AI-driven mental-health triage with mood-diary intake",
-    triggers: {}, // <-- forces triggers ask
-    impact: { likelihood_of_harm: "Possible" /* severity omitted */ },
-    exceptions: [],
-    org_context: "",
+    q15c_spi_volume: "", // <-- ask
+    q18_admt_use: "In evaluation", // <-- ADMT clarifier ask
+    q19_admt_description: "",
+    q20_admt_opt_out: "",
+    i1_processing_purpose: "AI-driven mental-health triage with mood-diary intake",
+    impact_intake: {
+      likelihood: "Possible",
+      // severity intentionally omitted — shim defaults to "Moderate"
+      // benefits + rationale intentionally omitted — surface as asks
+    },
+    exceptions_intake: {},
   },
   answer_targets: [
     "q15c_spi_volume", "q18_admt_use", "impact",
   ],
 };
 
-// (b) partial — same yield but revision answers j<k
+// (b) partial — first pass yields ~3 asks, revision answers only 2 of them.
+// Expected ask sources after shim:
+//   1. q5c_share_revenue_50pct "" while q5_sell_share is a "Yes — share..."
+//      value — § 7121 revenue-prong indeterminate → ask anchored to
+//      q5c_share_revenue_50pct.
+//   2. q15c_spi_volume "" while q15_sensitive_pi="Yes" — as in (a).
+//   3. q20_admt_opt_out "" while q18_admt_use="Yes" — § 7220 opt-out
+//      record missing → ask.
+// answer_targets deliberately covers 2 of 3 to force j<k.
 export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
   fixture_id: "cppa-risk-rcC1-partial-j-lt-k",
   contract_scenario: "partial_j_lt_k",
@@ -61,25 +93,29 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
     q1_revenue: "$50M–$100M",
     q2_consumers: "250,000–1 million",
     q3_sector: "Financial services",
-    q4_pi_categories: "Identifiers, financial, geolocation",
+    q4_pi_categories: ["Identifiers", "Financial information", "Precise geolocation"],
     q5_sell_share: "Yes — share for advertising only",
     q5c_share_revenue_50pct: "", // ask
     q15_sensitive_pi: "Yes",
     q15c_spi_volume: "", // ask
     q18_admt_use: "Yes",
+    q19_admt_description: "Real-time credit scoring using behavioural signals",
     q20_admt_opt_out: "", // ask
-    activity_details: "Real-time credit scoring using behavioural signals",
-    triggers: { q1_revenue: "$50M–$100M" },
-    impact: { likelihood_of_harm: "Likely", severity_of_harm: "Significant" },
-    exceptions: [],
-    org_context: "",
+    i1_processing_purpose: "Real-time credit scoring using behavioural signals",
+    impact_intake: {
+      likelihood: "Likely",
+      severity: "Significant",
+    },
+    exceptions_intake: {},
   },
   // Answer only 2 of the ~3+ items on the first revision.
   answer_targets: ["q5c_share_revenue_50pct", "q15c_spi_volume"],
 };
 
 // (c) full close — remaining items are answered on the second revision.
-// Same intake pattern as (b); harness treats the second dispatch as full-close.
+// Same intake pattern as (b) with the deliberate thin spots filled so the
+// first pass yields fewer asks, and the harness treats the second dispatch
+// as full-close.
 export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
   fixture_id: "cppa-risk-rcC1-full-close",
   contract_scenario: "full_close",
@@ -89,20 +125,20 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
     q1_revenue: "$25M–$50M",
     q2_consumers: "100,000–249,999",
     q3_sector: "Retail",
-    q4_pi_categories: "Identifiers, commercial, geolocation",
+    q4_pi_categories: ["Identifiers", "Commercial information", "Precise geolocation"],
     q5_sell_share: "Yes — share for advertising only",
     q5c_share_revenue_50pct: "No",
     q15_sensitive_pi: "No",
     q18_admt_use: "Yes",
+    q19_admt_description: "Loyalty-tier personalization from purchase and location signals",
     q20_admt_opt_out: "Planned for implementation",
-    activity_details: "Loyalty-tier personalization from purchase + location signals",
-    triggers: { q1_revenue: "$25M–$50M", q5_sell_share: "Yes — share for advertising only" },
-    impact: {
-      likelihood_of_harm: "Possible", severity_of_harm: "Moderate",
-      benefits_outweigh_risks: "Yes",
+    i1_processing_purpose: "Loyalty-tier personalization from purchase and location signals",
+    impact_intake: {
+      likelihood: "Possible",
+      severity: "Moderate",
+      benefitsOutweigh: "Yes",
     },
-    exceptions: [],
-    org_context: "",
+    exceptions_intake: {},
   },
   answer_targets: [], // answer every open_item on the second revision
 };
