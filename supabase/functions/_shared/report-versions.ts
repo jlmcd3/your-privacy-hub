@@ -2,6 +2,15 @@
 // immediately before it overwrites report_data. First-run writes have no
 // prior report and therefore no snapshot to take.
 //
+// TWO-RAILS NOTE (RC-C2.2) — This is the CONTENT-HISTORY rail:
+// `report_versions` holds the prior report_data snapshotted BEFORE each
+// revision overwrite (keyed by version_n, one row per revision attempt that
+// finds a non-empty prior report). The METER rail is `tool_run_versions`,
+// written by supabase/functions/_shared/run-meter.ts, and stores
+// intake_snapshot + build_info per successful generator run. They are
+// independent; don't conflate. Debugging apply history → this table.
+// Debugging meter/entitlement → tool_run_versions.
+//
 // TABLE_MAP mirrors regenerate-assessment's; kept local to avoid a circular
 // import.
 const TABLE_MAP: Record<string, string> = {

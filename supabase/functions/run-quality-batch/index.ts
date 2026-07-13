@@ -2252,12 +2252,29 @@ Deno.serve(async (req) => {
           ? (rowAfter as any).report_data.open_items
           : [];
         const answeredIds: string[] = (answered_items as any[]).map((a) => String(a?.item_id ?? ""));
-        // Derive verdicts from the diff of statuses on answered items.
+        // RC-C2.2 telemetry fix — Prior derivation status-diffed before/after
+        // and printed verdicts=0 whenever the answered item was ALREADY
+        // resolved coming in (false-red spam on 486eb7ec re-answers). The
+        // authoritative signal is a resolution APPENDED in this dispatch
+        // window: any resolutions[] entry on an answered item whose `at`
+        // timestamp is >= dispatch_started counts as this attempt's verdict.
+        // Fall back to status-diff only when the item has no resolutions[].
+        const dispatchStartIso = new Date(startedAt).toISOString();
         const beforeStatusById = new Map(openItemsBefore.map((i: any) => [i.id, i.status]));
         const verdicts = openItemsAfter
           .filter((i: any) => answeredIds.includes(i.id))
-          .filter((i: any) => beforeStatusById.get(i.id) !== i.status)
-          .map((i: any) => ({ item_id: i.id, verdict: i.status }));
+          .map((i: any) => {
+            const res = Array.isArray(i?.resolutions) ? i.resolutions : [];
+            const inWindow = res.find((r: any) => String(r?.at ?? "") >= dispatchStartIso);
+            if (inWindow) {
+              return { item_id: i.id, verdict: String(inWindow.verdict ?? i.status) };
+            }
+            if (beforeStatusById.get(i.id) !== i.status) {
+              return { item_id: i.id, verdict: i.status };
+            }
+            return null;
+          })
+          .filter((v: any) => v !== null) as Array<{ item_id: string; verdict: string }>;
         const changedPaths: string[] = Array.isArray(upstreamBody?.changed_paths)
           ? upstreamBody.changed_paths
           : [];
@@ -2282,7 +2299,7 @@ Deno.serve(async (req) => {
           upstream_body: upstreamBody,
           actor_user_id: userId,
           qc_checks: qcResults,
-          revision_prompt_stamp: "rev-scope@rc-c.2",
+          revision_prompt_stamp: "rev-scope@rc-c.2.2",
         },
       });
     } catch (logErr) {

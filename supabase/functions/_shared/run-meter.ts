@@ -57,6 +57,14 @@ export async function recordRunMeterAndVersion(
     }
     console.log(JSON.stringify({ evt: "run_meter_recorded", tool: toolType, assessment: assessmentId, version: nextVersion }));
 
+    // TWO-RAILS NOTE (RC-C2.2) — `tool_run_versions` is the METER rail:
+    // one row per successful generator run, keyed to tool_run_meter.runs_used,
+    // stores intake_snapshot + document_text + build_info. Content-history
+    // snapshots (prior report_data taken BEFORE overwrite on revision) live in
+    // the RC-A `report_versions` rail written by
+    // supabase/functions/_shared/report-versions.ts. They are independent;
+    // don't conflate. Debugging apply history → report_versions. Debugging
+    // meter/entitlement → tool_run_versions.
     const { error: verErr } = await supabase.from("tool_run_versions").insert({
       user_id: userId,
       tool_type: toolType,
