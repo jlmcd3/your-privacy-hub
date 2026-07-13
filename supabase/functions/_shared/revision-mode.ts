@@ -57,8 +57,8 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
 // RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
 // RC-C2 stamp bump: DPIA Art. 35 register + LIA counsel-deferring register + DPIA unit-scope economy.
-// RC-C2.1 stamp bump: pre-apply hollow-resolution guard (qc_rc_2 refuses, not annotates); resolution-change coupling in prompt.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2.1";
+// RC-C2.2 stamp bump: pre-apply hollow-resolution guard + in-flight owner check + authoritative patch-verdict telemetry.
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2.2";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
@@ -94,6 +94,8 @@ export interface RevisionRequestBody {
   revision_context?: {
     answered_item_ids?: string[];
     answered_items?: Array<{ item_id: string; value: unknown; evidence?: string | null }>;
+    processing_started_at?: string;
+    previous_status?: string;
   };
   assessment_id?: string;
   dpia_id?: string;
@@ -261,20 +263,35 @@ export async function handleRevisionMode(
 
   const hasIntakeCol = HAS_INTAKE_DATA[toolType] ?? true;
   const selectCols = hasIntakeCol
-    ? "id, user_id, intake_data, report_data, status"
-    : "id, user_id, report_data, status";
+    ? "id, user_id, intake_data, report_data, status, updated_at"
+    : "id, user_id, report_data, status, updated_at";
   const { data: row, error: loadErr } = await supabase
     .from(table)
     .select(selectCols)
     .eq("id", rowId)
     .maybeSingle();
   if (loadErr || !row) return jsonResp({ error: "revision_row_not_found", detail: loadErr?.message }, 404);
+  // RC-C2.2 IN-FLIGHT GUARD — regenerate-assessment passes the exact
+  // processing timestamp it just wrote. If this handler loads a processing row
+  // whose updated_at does not match that token, this invocation is not the
+  // owner of the current in-flight revision and must refuse without mutation.
+  if (row.status === "processing") {
+    const expectedProcessingAt = String(body.revision_context?.processing_started_at ?? "");
+    const loadedProcessingAt = String((row as any).updated_at ?? "");
+    const expectedMs = expectedProcessingAt ? new Date(expectedProcessingAt).getTime() : NaN;
+    const loadedMs = loadedProcessingAt ? new Date(loadedProcessingAt).getTime() : NaN;
+    if (!Number.isFinite(expectedMs) || !Number.isFinite(loadedMs) || expectedMs !== loadedMs) {
+      console.warn(JSON.stringify({ evt: "revision_inflight_refused", tool: toolType, row: rowId, expected_processing_at: expectedProcessingAt || null, loaded_processing_at: loadedProcessingAt || null }));
+      return jsonResp({ error: "revision_inflight", message: "another revision is in flight for this row" }, 409);
+    }
+  }
+
   // RC-B.2: capture prior status so we can revert on any refusal path.
-  // Note: regenerate-assessment sets status='processing' immediately before
-  // invoking us, so we observe our own transition here. The in-flight
-  // write-race guard lives at the regenerate-assessment layer (RC-C2.2),
-  // BEFORE the status flip, where 'processing' means someone else owns it.
-  const priorStatus: string = row.status === "processing" ? "complete" : (row.status ?? "complete");
+  // Own in-flight revisions observe the processing status they just wrote;
+  // their safe prior terminal state is complete.
+  const priorStatus: string = row.status === "processing"
+    ? String(body.revision_context?.previous_status ?? "complete")
+    : (row.status ?? "complete");
 
   const storedReport = row.report_data ?? {};
   const openItems: OpenItem[] = Array.isArray(storedReport?.open_items) ? storedReport.open_items : [];
@@ -409,12 +426,24 @@ export async function handleRevisionMode(
   }
 
   // Apply scoped-delta patch.
-  const applied = await applyRevisionPatch(storedReport, {
-    changed_paths: Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [],
-    values: (patchJson.values ?? {}) as Record<string, unknown>,
-    item_verdicts: [],
-    advisory_notes: [],
-  });
+  let applied: Awaited<ReturnType<typeof applyRevisionPatch>>;
+  try {
+    applied = await applyRevisionPatch(storedReport, {
+      changed_paths: Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [],
+      values: (patchJson.values ?? {}) as Record<string, unknown>,
+      item_verdicts: [],
+      advisory_notes: [],
+    });
+  } catch (e: any) {
+    const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    console.error(`[revision:${toolType}] patch_apply_failed`, e?.message, JSON.stringify({ changed_paths: changedPathsIn.slice(0, 20) }));
+    await revertStatus(supabase, table, rowId, priorStatus, toolType, "patch_apply_failed");
+    return jsonResp({
+      error: "revision_patch_apply_failed",
+      detail: e?.message ?? "patch apply failed",
+      changed_paths: changedPathsIn,
+    }, 409);
+  }
   if (!applied.equal) {
     console.error(`[revision:${toolType}] untouched_hash_mismatch before=${applied.untouchedHashBefore.slice(0, 12)} after=${applied.untouchedHashAfter.slice(0, 12)}`);
     await revertStatus(supabase, table, rowId, priorStatus, toolType, "untouched_hash_mismatch");
