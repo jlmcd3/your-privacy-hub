@@ -18,7 +18,7 @@
 //  10. Increment meter + write report + finish with a compact JSON response.
 //
 // This module NEVER changes the frozen open_items array shape or count.
-import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding } from "./revision-patch.ts";
+import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding, validateChangedPathShapes } from "./revision-patch.ts";
 import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
 import { qcVerdictConsistency } from "./revision-qc.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
