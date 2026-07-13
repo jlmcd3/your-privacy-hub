@@ -17,6 +17,7 @@ import {
 import { renderIcoPenaltyFigures } from "../_shared/enforcement-figures-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -1456,7 +1457,7 @@ const playbook_text = lint.clean;
             ? (assembled as any).information_needed
             : [],
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.3-ws6v21") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.4-rcb") },
         };
         try {
           const guarded = guardInformationNeeded(

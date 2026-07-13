@@ -76,6 +76,7 @@ function synthesiseEntriesFromIntake(
 // or identity field; such entries are stripped and a lint_warnings row is
 // pushed. Structural fix arrives in Courier 2.
 import { LOCKED_FIELDS_MAP } from "./locked-fields.ts";
+import { freezeOpenItemsOnFirstRun } from "./open-items.ts";
 const IDENTITY_FIELDS = new Set([
   "entity_name", "subject_anchor", "company_name", "organization_name",
   "system_name", "sector", "q3_sector", "significant_decision_domain",
@@ -147,6 +148,14 @@ export function guardInformationNeeded(
       deadEndWithoutPath = true;
       console.warn(JSON.stringify({ evt: "dead_end_without_path" }));
     }
+  }
+
+  // RC-B B1 — freeze open_items at first completed generation (idempotent:
+  // no-op when report.open_items already present, so revision paths never
+  // rebuild). Enhancement-class items are dropped inside buildOpenItems.
+  if (toolType) {
+    const frozen = freezeOpenItemsOnFirstRun(report, report?.information_needed, toolType, false);
+    report = frozen;
   }
 
   return { report, deadEndWithoutPath, strippedCount, autoRepaired, lockedStripped };

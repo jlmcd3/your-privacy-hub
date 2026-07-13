@@ -137,8 +137,11 @@ Deno.serve(async (req) => {
     tool_type?: string;
     assessment_id?: string;
     edited_fields?: Record<string, unknown>;
-    mode?: "revise" | "errata";
+    mode?: "revise" | "errata" | "revision";
     corrections?: Array<{ field_path: string; new_value: unknown }>;
+    // RC-B B2 — answers transport for the revision path. Each entry keys an
+    // open_item id and rides the WS6 supplemental_responses rail on merge.
+    answered_items?: Array<{ item_id: string; value: unknown; evidence?: string }>;
   };
   try {
     payload = await req.json();
@@ -146,7 +149,7 @@ Deno.serve(async (req) => {
     logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
-  const { tool_type, assessment_id, edited_fields, mode, corrections } = payload;
+  const { tool_type, assessment_id, edited_fields, mode, corrections, answered_items } = payload;
 
   if (!tool_type || !assessment_id) {
     logExit(400, { error: "missing_params" });
@@ -273,6 +276,94 @@ Deno.serve(async (req) => {
       needs_revision: anyNeedsRev,
       message: anyNeedsRev ? "Some corrections did not appear verbatim in the report — a revision run is required to propagate them (revisions are currently disabled)." : "All corrections applied verbatim.",
     });
+  }
+
+  // ---------------------------------------------------------------------
+  // RC-B B3 — REVISION MODE (scoped-delta). Gate-guarded like classic revise.
+  // Rejects any edited_fields (open items are the editable surface). Answers
+  // ride the WS6 supplemental_responses rail carrying { item_id, ask, response }.
+  // ---------------------------------------------------------------------
+  if (mode === "revision") {
+    if (!REVISIONS_ENABLED) {
+      logExit(409, { error: "revisions_disabled" });
+      return json({ error: "revisions_disabled", message: REVISIONS_DISABLED_MESSAGE }, 409);
+    }
+    if (edited_fields && Object.keys(edited_fields).length > 0) {
+      logExit(400, { error: "edits_not_allowed_on_revision" });
+      return json({ error: "edits_not_allowed_on_revision", message: "Revision runs answer open items only; free-form edits are not permitted." }, 400);
+    }
+    const items = Array.isArray(answered_items) ? answered_items : [];
+    if (items.length === 0) {
+      logExit(400, { error: "no_answered_items" });
+      return json({ error: "no_answered_items" }, 400);
+    }
+    // Ownership + open_items membership check.
+    const { data: row } = await supabase
+      .from(table)
+      .select("user_id, intake_data, report_data")
+      .eq("id", assessment_id)
+      .maybeSingle();
+    if (!row || (row as any).user_id !== authedUser.id) {
+      logExit(403, { error: "not_found_or_forbidden" });
+      return json({ error: "not_found_or_forbidden" }, 403);
+    }
+    const openItems: any[] = Array.isArray((row as any).report_data?.open_items) ? (row as any).report_data.open_items : [];
+    const openIds = new Set(openItems.map((o: any) => o.id));
+    for (const a of items) {
+      if (!openIds.has(a.item_id)) {
+        logExit(400, { error: "unknown_item_id", item_id: a.item_id });
+        return json({ error: "unknown_item_id", item_id: a.item_id }, 400);
+      }
+    }
+    // Snapshot FIRST (RC-A A2).
+    await snapshotPriorReport(supabase, { toolType: tool_type, assessmentId: assessment_id, ownerUserId: authedUser.id });
+    // Fold answered_items into the WS6 supplemental_responses rail with item_id.
+    const priorIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+    const priorSupps = Array.isArray((priorIntake as any).supplemental_responses) ? (priorIntake as any).supplemental_responses : [];
+    const nextSupps = [
+      ...priorSupps,
+      ...items.map((a) => ({
+        item_id: a.item_id,
+        ref_field: openItems.find((o: any) => o.id === a.item_id)?.target?.path ?? null,
+        ask: openItems.find((o: any) => o.id === a.item_id)?.why_insufficient ?? "",
+        response: typeof a.value === "string" ? a.value : JSON.stringify(a.value),
+        evidence: a.evidence ?? null,
+      })),
+    ];
+    const nextIntake = { ...priorIntake, supplemental_responses: nextSupps };
+    const hasIntakeCol = HAS_INTAKE_DATA[tool_type] ?? true;
+    const updateObj: Record<string, unknown> = {
+      ...(hasIntakeCol ? { intake_data: nextIntake } : {}),
+      status: "processing",
+      updated_at: new Date().toISOString(),
+    };
+    const { error: updErrRev } = await supabase.from(table).update(updateObj).eq("id", assessment_id);
+    if (updErrRev) {
+      logExit(500, { error: "revision_update_failed", detail: updErrRev.message });
+      return json({ error: "revision_update_failed", detail: updErrRev.message }, 500);
+    }
+    const bodyKeyRev = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
+    // @ts-ignore EdgeRuntime
+    EdgeRuntime.waitUntil(
+      supabase.functions.invoke(FN_MAP[tool_type], {
+        body: {
+          [bodyKeyRev]: assessment_id,
+          is_regeneration: true,
+          revision_mode: true,
+          revision_context: { answered_item_ids: items.map((a) => a.item_id) },
+        },
+      }),
+    );
+    await writeActionLog(supabase, {
+      actor_user_id: authedUser.id,
+      action: "revision_started",
+      target_table: table,
+      target_id: assessment_id,
+      payload: { tool_type, answered_item_ids: items.map((a) => a.item_id) },
+      ok: true,
+    });
+    logExit(200, { ok: true, mode: "revision", answered: items.length });
+    return json({ ok: true, mode: "revision", answered: items.length });
   }
 
   // ---------------------------------------------------------------------

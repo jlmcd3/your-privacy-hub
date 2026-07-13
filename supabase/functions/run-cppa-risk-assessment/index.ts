@@ -28,6 +28,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-citation-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
@@ -1514,7 +1515,12 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.4-rca") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.5-rcb") };
+
+    // RC-B B1 — freeze open_items on first completed generation (idempotent).
+    report_data = freezeOpenItemsOnFirstRun(report_data, (report_data as any).information_needed, "cppa_risk_assessment", false);
+
+
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

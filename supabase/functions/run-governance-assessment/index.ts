@@ -14,6 +14,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
@@ -1182,7 +1183,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const dpiaScope = synthesis.dpia_scope || [];
 
-    (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment", "r1b2-ws6v21") };
+    (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment", "r1b2.1-rcb") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

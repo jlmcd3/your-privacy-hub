@@ -13,6 +13,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
@@ -1424,7 +1425,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2-ws6v21") },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb") },
     };
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.

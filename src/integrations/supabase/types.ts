@@ -3696,6 +3696,45 @@ export type Database = {
         }
         Relationships: []
       }
+      provision_texts: {
+        Row: {
+          approved_by: string | null
+          citation: string
+          created_at: string
+          jurisdiction: string | null
+          key: string
+          last_verified_at: string | null
+          plain_requirements: Json
+          status: string
+          updated_at: string
+          verbatim_excerpt: string
+        }
+        Insert: {
+          approved_by?: string | null
+          citation: string
+          created_at?: string
+          jurisdiction?: string | null
+          key: string
+          last_verified_at?: string | null
+          plain_requirements?: Json
+          status?: string
+          updated_at?: string
+          verbatim_excerpt?: string
+        }
+        Update: {
+          approved_by?: string | null
+          citation?: string
+          created_at?: string
+          jurisdiction?: string | null
+          key?: string
+          last_verified_at?: string | null
+          plain_requirements?: Json
+          status?: string
+          updated_at?: string
+          verbatim_excerpt?: string
+        }
+        Relationships: []
+      }
       quality_applied_patches: {
         Row: {
           applied_at: string | null

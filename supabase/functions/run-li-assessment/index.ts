@@ -12,6 +12,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -1134,7 +1135,7 @@ Return JSON:
       documentation_recommendations: docRecs,
       disclaimer: "This report helps your organisation identify areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
-      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2-ws6v21") },
+      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2.1-rcb") },
     };
 
     // 2.9 — LIA has no intake_data column; build the guard's intake object

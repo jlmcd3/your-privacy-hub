@@ -166,6 +166,7 @@ const AdminHub = lazy(() => import("./pages/admin/AdminHub"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
 const AdminSpend = lazy(() => import("./pages/admin/AdminSpend"));
+const AdminProvisions = lazy(() => import("./pages/admin/AdminProvisions"));
 const ReportVersions = lazy(() => import("./pages/ReportVersions"));
 const QualityLoopAugmentation = lazy(() => import("./pages/admin/AdminQualityAugmentationRoute"));
 import PageViewTracker from "@/components/PageViewTracker";
@@ -689,6 +690,7 @@ const App = () => (
             <Route path="/admin/orders" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminOrders />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/tools" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminTools />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/spend" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminSpend />}</AdminOnly></ProtectedRoute>} />
+            <Route path="/admin/provisions" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminProvisions />}</AdminOnly></ProtectedRoute>} />
             <Route path="/reports/versions/:tool/:id" element={<ProtectedRoute>{<ReportVersions />}</ProtectedRoute>} />
             <Route
               path="/admin/quality-augmentation"
