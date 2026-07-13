@@ -2116,7 +2116,48 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-  // ---------- RC-B.1 internal revision dispatcher ----------
+  // ---------- RC-C1 C1.4 — seed contract fixtures for cppa-risk ----------
+  // Creates a quality_runs row pre-seeded with the 3 contract-scenario
+  // intakes (yield_k3, partial_j_lt_k, full_close) and returns the run id
+  // so the caller can kick a normal batch pass over them. This is the
+  // "wired into the run-quality-batch fixture path" leg — the intakes flow
+  // through the pinned-intake pipeline the harness already consumes, NOT
+  // through a sampleFixtures side-channel.
+  if (body?.action === "seed_contract_fixtures") {
+    const { tool_type } = body;
+    if (tool_type !== "cppa_risk_assessment") {
+      return json({ error: "unsupported_tool", detail: "seed_contract_fixtures currently supports cppa_risk_assessment only (RC-C1)" }, 400);
+    }
+    const intakes = CPPA_RISK_CONTRACT_FIXTURES.map((f) => ({
+      ...f.intake,
+      _fixture_id: f.fixture_id,
+      _contract_scenario: f.contract_scenario,
+      _answer_targets: f.answer_targets ?? [],
+    }));
+    const { data: qr, error: qErr } = await admin
+      .from("quality_runs")
+      .insert({
+        tool: "cppa-risk",
+        status: "queued",
+        batch_size: intakes.length,
+        intakes,
+        next_doc_index: 0,
+        started_by: userId,
+        run_type: "rc-c1-contract-fixtures",
+      })
+      .select("id, run_number")
+      .single();
+    if (qErr) return json({ error: "seed_failed", detail: qErr.message }, 500);
+    return json({
+      ok: true,
+      run_id: (qr as any).id,
+      run_number: (qr as any).run_number,
+      fixture_count: intakes.length,
+      fixtures: CPPA_RISK_CONTRACT_FIXTURES.map((f) => ({ id: f.fixture_id, scenario: f.contract_scenario })),
+    });
+  }
+
+
   // In-runtime dispatch to regenerate-assessment using this runtime's own
   // SR key. Called by admins (same auth check as batch dispatch) and by
   // RC-D's QL3 second pass (dummy-answer revisions dispatched
