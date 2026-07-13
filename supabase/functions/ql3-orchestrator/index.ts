@@ -25,7 +25,7 @@ import { resolveEnumRef } from "../_shared/field-enums.ts";
 // MUST be updated in the same edit that changes behavior in this file.
 // External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
 // post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
-export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+export const BUILD_STAMP = "1e18c9a-rcd10@2026-07-13T22:35Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -280,8 +280,24 @@ async function runOneUnit(runId: string) {
       const upstreamStatus = dispatchRes.status;
       const upstream: any = await dispatchRes.json().catch(() => ({}));
 
+      // RC-D.10 fail-loud: an idempotent_replay is only legitimate when a
+      // PRIOR successful dispatch is recorded in THIS run's qc_result
+      // (regen_build_stamp set + verdicts present). A replay we didn't earn
+      // must never advance to review2 — that path produced pass 4's
+      // false-green with all null verdicts.
+      const priorQcInit: any = (run as any)?.qc_result ?? {};
+      const priorAccepted = !!(priorQcInit?.regen_build_stamp)
+        && Array.isArray(priorQcInit?.upstream?.verdicts)
+        && priorQcInit?.upstream?.verdicts.length > 0;
+      const unexpectedReplay = upstream?.idempotent_replay === true && !priorAccepted;
+      const ok2xx = upstreamStatus >= 200 && upstreamStatus < 300;
+      const nextPhase = unexpectedReplay ? "failed" : (ok2xx ? "review2" : "failed");
+      const nextErr = unexpectedReplay
+        ? "idempotent_replay_unexpected"
+        : (ok2xx ? null : `dispatch_${upstreamStatus}`);
+
       await db.from("quality_loop3_runs").update({
-        phase: upstreamStatus >= 200 && upstreamStatus < 300 ? "review2" : "failed",
+        phase: nextPhase,
         input_spec: {
           open_items_before: openItems.map((i: any) => ({ id: i.id ?? i.item_id, type: i?.input_spec?.type })),
           baseline_version_n: baselineVersion,
@@ -295,14 +311,19 @@ async function runOneUnit(runId: string) {
           build_stamp: BUILD_STAMP,
           rqb_build_stamp: upstream?.build_stamp ?? null,
           regen_build_stamp: upstream?.upstream_build_stamp ?? null,
+          idempotent_replay: upstream?.idempotent_replay === true,
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
             qc_checks: upstream?.qc_checks ?? null,
           },
         },
-        error_message: upstreamStatus >= 200 && upstreamStatus < 300 ? null : `dispatch_${upstreamStatus}`,
+        
+        error_message: nextErr,
+        ...(unexpectedReplay ? { terminal_at: new Date().toISOString() } : {}),
       }).eq("id", runId);
+
+      if (unexpectedReplay) return;
 
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
