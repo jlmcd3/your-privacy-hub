@@ -170,14 +170,12 @@ export default function RefinePanel({
         response: (supplementalResponses[i] ?? "").trim(),
       }))
       .filter((x) => x.response.length > 0);
-    const suppCtx = supplementalContext.trim();
 
     const outcome = await regenerate({
       toolType, assessmentId,
       editedFields: cleanEdits,
       priorRunsUsed: runsUsed,
       supplementalResponses: suppList.length > 0 ? suppList : undefined,
-      supplementalContext: suppCtx.length > 0 ? suppCtx : undefined,
     });
 
     if (outcome.kind === "accepted") {
@@ -376,19 +374,11 @@ export default function RefinePanel({
             })}
           </div>
         )}
-        <div data-testid="supplemental-general">
-          <label htmlFor="supp-general" className="text-sm font-semibold text-brand-navy">
-            Anything else material to this revision
-          </label>
-          <textarea
-            id="supp-general"
-            value={supplementalContext}
-            onChange={(ev) => setSupplementalContext(ev.target.value)}
-            placeholder="Additional context (optional)"
-            className="mt-2 min-h-20 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
-          />
-        </div>
+        {/* RC-B.1 B1.4 — "Anything else material" free-text box REMOVED.
+            Free-form context is superseded by the frozen open_items contract.
+            For verbatim corrections, use the Errata channel. */}
       </div>
+
 
       <div className="pt-4 border-t border-brand-cloud flex flex-wrap gap-3">
         {!exhausted ? (
