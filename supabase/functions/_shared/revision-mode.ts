@@ -38,6 +38,25 @@ const TABLE_MAP: Record<string, string> = {
 
 const DEFAULT_MODEL = "claude-sonnet-4-5";
 
+// RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-b.2";
+
+async function revertStatus(
+  supabase: any, table: string, rowId: string, priorStatus: string | null,
+  toolType: string, reason: string,
+): Promise<void> {
+  if (!priorStatus) return;
+  try {
+    await supabase
+      .from(table)
+      .update({ status: priorStatus, updated_at: new Date().toISOString() })
+      .eq("id", rowId);
+    console.warn(JSON.stringify({ evt: "revision_status_reverted", tool: toolType, row: rowId, to: priorStatus, reason }));
+  } catch (e: any) {
+    console.error(`[revision:${toolType}] status_revert_failed row=${rowId}`, e?.message);
+  }
+}
+
 const TOOL_MODEL: Record<string, string> = {
   li_assessment: DEFAULT_MODEL,
   governance_assessment: DEFAULT_MODEL,
@@ -104,8 +123,9 @@ function buildRevisionPrompt(opts: {
     ...Object.keys(intake ?? {}).map((k) => `intake:${k}`),
   ];
 
+  const answeredIdList = answeredItems.map((a) => a.item.id);
   const system = [
-    "REVISION SCOPE — this is a SCOPED-DELTA revision, NOT a re-generation.",
+    `REVISION SCOPE [${REVISION_PROMPT_STAMP}] — this is a SCOPED-DELTA revision, NOT a re-generation.`,
     "You are re-determining ONLY the report determinations that the ANSWERED_ITEMS below feed. Untouched sections MUST NOT be re-written; the server enforces this with a SHA-256 hash comparison over the untouched subtree and will REJECT any patch whose untouched paths differ from the prior report.",
     "",
     "OUTPUT CONTRACT — return ONLY a single JSON object of this shape (no preamble, no code fences):",
@@ -119,7 +139,7 @@ function buildRevisionPrompt(opts: {
     `ADVISORY CAP for ${toolType}: ${advisoryCap}. Every advisory_note MUST cite a fact_ref drawn from the whitelist below. Ungrounded or over-cap notes are stripped server-side and logged as a QC failure.`,
     `FACT_REF WHITELIST: ${factRefWhitelist.slice(0, 60).join(", ")}${factRefWhitelist.length > 60 ? " …" : ""}`,
     "",
-    "ITEM VERDICTS: emit exactly one verdict per answered item. 'resolved' means the user's response supplies the missing dimension; 'not_resolved' means it does not (explain briefly).",
+    `ITEM VERDICTS — HARD CONTRACT: emit EXACTLY ONE verdict per answered item (${answeredItems.length} total). A missing verdict, a duplicate verdict, or a verdict for an unrecognised item_id is a MALFORMED PATCH and the server will REJECT the entire submission with no partial apply. Required item_ids: [${answeredIdList.join(", ")}]. 'resolved' means the user's response supplies the missing dimension; 'not_resolved' means it does not (explain briefly in reason). Contradictions with intake belong in the corresponding item's not_resolved reason, NEVER in advisory_notes.`,
     dpiaUnitSubset && dpiaUnitSubset.length > 0
       ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units.`
       : "",
@@ -168,10 +188,15 @@ export async function handleRevisionMode(
 
   const { data: row, error: loadErr } = await supabase
     .from(table)
-    .select("id, user_id, intake_data, report_data")
+    .select("id, user_id, intake_data, report_data, status")
     .eq("id", rowId)
     .maybeSingle();
   if (loadErr || !row) return jsonResp({ error: "revision_row_not_found", detail: loadErr?.message }, 404);
+  // RC-B.2: capture prior status so we can revert on any refusal path.
+  // regenerate-assessment set status='processing' before invoking us; the
+  // "prior" status for revert purposes is 'complete' (the row was terminal
+  // before this revision). Fall back to whatever we loaded if not processing.
+  const priorStatus: string = row.status === "processing" ? "complete" : (row.status ?? "complete");
 
   const storedReport = row.report_data ?? {};
   const openItems: OpenItem[] = Array.isArray(storedReport?.open_items) ? storedReport.open_items : [];
@@ -230,11 +255,34 @@ export async function handleRevisionMode(
     patchJson = parsePatchJson(res.text);
     if (!patchJson) {
       console.error(`[revision:${toolType}] parse_failed len=${res.text.length}`);
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, "parse_failed");
       return jsonResp({ error: "revision_parse_failed" }, 502);
     }
   } catch (e: any) {
     console.error(`[revision:${toolType}] model_call_failed`, e?.message);
+    await revertStatus(supabase, table, rowId, priorStatus, toolType, "model_failed");
     return jsonResp({ error: "revision_model_failed", detail: e?.message }, 502);
+  }
+
+  // RC-B.2 VERDICT CARDINALITY — hard contract. Missing/extra/duplicate/unknown
+  // verdicts = malformed patch, 409-class, NO partial apply.
+  const verdictsRaw = Array.isArray(patchJson.item_verdicts) ? patchJson.item_verdicts : [];
+  const verdictIds = verdictsRaw.map((v: any) => String(v?.item_id ?? ""));
+  const verdictIdSet = new Set(verdictIds);
+  const dupCount = verdictIds.length - verdictIdSet.size;
+  const missingVerdicts = answeredIds.filter((id) => !verdictIdSet.has(id));
+  const extraVerdicts = verdictIds.filter((id) => id && !answeredIds.includes(id));
+  if (missingVerdicts.length > 0 || extraVerdicts.length > 0 || dupCount > 0 || verdictsRaw.length !== answeredIds.length) {
+    console.error(`[revision:${toolType}] verdict_cardinality expected=${answeredIds.length} got=${verdictsRaw.length} missing=${missingVerdicts.length} extra=${extraVerdicts.length} dup=${dupCount}`);
+    await revertStatus(supabase, table, rowId, priorStatus, toolType, "verdict_cardinality");
+    return jsonResp({
+      error: "revision_malformed_patch_verdicts",
+      expected: answeredIds.length,
+      got: verdictsRaw.length,
+      missing: missingVerdicts,
+      extra: extraVerdicts,
+      duplicates: dupCount,
+    }, 409);
   }
 
   // Advisory guard — grounding + cap.
@@ -257,6 +305,7 @@ export async function handleRevisionMode(
   });
   if (!applied.equal) {
     console.error(`[revision:${toolType}] untouched_hash_mismatch before=${applied.untouchedHashBefore.slice(0, 12)} after=${applied.untouchedHashAfter.slice(0, 12)}`);
+    await revertStatus(supabase, table, rowId, priorStatus, toolType, "untouched_hash_mismatch");
     return jsonResp({
       error: "revision_untouched_subtree_mutated",
       hash_before: applied.untouchedHashBefore,
@@ -267,7 +316,7 @@ export async function handleRevisionMode(
   // Fold in advisory + updated statuses.
   const nextReport = applied.next;
   nextReport.advisory_notes = advGuard.keep;
-  const verdicts = Array.isArray(patchJson.item_verdicts) ? patchJson.item_verdicts : [];
+  const verdicts = verdictsRaw;
   nextReport.open_items = updateOpenItemStatuses(openItems, verdicts);
 
   // Deterministic QC: every surviving note must have fact_ref.
@@ -289,6 +338,7 @@ export async function handleRevisionMode(
     .eq("id", rowId);
   if (updErr) {
     console.error(`[revision:${toolType}] persist_failed`, updErr.message);
+    await revertStatus(supabase, table, rowId, priorStatus, toolType, "persist_failed");
     return jsonResp({ error: "revision_persist_failed", detail: updErr.message }, 500);
   }
 
