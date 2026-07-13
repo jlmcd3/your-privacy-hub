@@ -1566,7 +1566,7 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
 // Entry point.
 // ─────────────────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=${STAMP}`);
+  console.log(`[qb9-rcb1] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=${STAMP}`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

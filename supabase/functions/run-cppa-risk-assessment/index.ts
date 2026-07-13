@@ -1572,7 +1572,7 @@ async function runPipeline(assessment_id: string) {
 // HTTP entrypoint (unchanged contract: accepts { assessment_id }).
 // ---------------------------------------------------------------------------
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-cppa-risk-assessment build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-cppa-risk-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-cppa-risk-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 

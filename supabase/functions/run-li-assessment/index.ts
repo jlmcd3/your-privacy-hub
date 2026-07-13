@@ -343,7 +343,7 @@ function ensureReferenceCategoryCaveat(report: any): any {
 
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-li-assessment build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-li-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-li-assessment] qb7 qb7r build active");
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

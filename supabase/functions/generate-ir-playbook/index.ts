@@ -615,7 +615,7 @@ function renderIrTestStatesBlock(body: Body): string {
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] generate-ir-playbook build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] generate-ir-playbook build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[generate-ir-playbook] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
