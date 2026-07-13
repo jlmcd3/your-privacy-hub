@@ -20,6 +20,7 @@
 // This module NEVER changes the frozen open_items array shape or count.
 import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding } from "./revision-patch.ts";
 import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
+import { qcVerdictConsistency } from "./revision-qc.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { mapItemsToUnits } from "./dpia-unit-map.ts";
@@ -55,9 +56,9 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 
 // RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
 // RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
-// RC-C2 stamp bump: DPIA Art. 35 register phrasing + LIA counsel-deferring
-// advisory register + DPIA unit-scope economy contract on the surface.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2";
+// RC-C2 stamp bump: DPIA Art. 35 register + LIA counsel-deferring register + DPIA unit-scope economy.
+// RC-C2.1 stamp bump: pre-apply hollow-resolution guard (qc_rc_2 refuses, not annotates); resolution-change coupling in prompt.
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2.1";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
@@ -161,6 +162,8 @@ function buildRevisionPrompt(opts: {
     `FACT_REF WHITELIST: ${factRefWhitelist.slice(0, 60).join(", ")}${factRefWhitelist.length > 60 ? " …" : ""}`,
     "",
     `ITEM VERDICTS — HARD CONTRACT: emit EXACTLY ONE verdict per answered item (${answeredItems.length} total). A missing verdict, a duplicate verdict, or a verdict for an unrecognised item_id is a MALFORMED PATCH and the server will REJECT the entire submission with no partial apply. Required item_ids: [${answeredIdList.join(", ")}]. 'resolved' means the user's response supplies the missing dimension; 'not_resolved' means it does not (explain briefly in reason). Contradictions with intake belong in the corresponding item's not_resolved reason, NEVER in advisory_notes.`,
+    // RC-C2.1 — hollow-resolution guard. A 'resolved' verdict is a claim that the report's determination at the item's target.path has been re-determined; that re-determination MUST appear in this same patch.
+    "RESOLUTION-CHANGE COUPLING — HARD CONTRACT: every 'resolved' verdict REQUIRES the re-determined content for that item's target.path (from open_items[].target.path) to appear in changed_paths (as that exact path or a descendant `path.leaf` / `path[i]`) with the new value in values{}. A 'resolved' verdict without a matching changed_path is a MALFORMED PATCH — the server runs qc_rc_2_verdict_consistency BEFORE applying and REJECTS the entire submission (409, no partial apply, row status reverts). Resolution and change arrive together, or not at all. If the answer clarified context without changing the determination, emit 'not_resolved' and explain in the reason.",
     // RC-C1 C1.2 — cppa-risk record-register rule (11 CCR § 7157 auditability).
     toolType === "cppa_risk_assessment"
       ? "§ 7157 RECORD REGISTER (cppa-risk): each item_verdicts[].reason MUST be written as a record entry — a certifiable statement of what the answer established (or failed to establish) on the § 7152 record. Use factual past-tense record phrasing (e.g. 'Established annual gross revenue band at $100M–$500M under § 7120(b)(1).' or 'Did not establish the § 7152(a)(5) severity dimension; response omitted concrete harm magnitude.'). Do NOT write conversational or advisory text ('you should...', 'consider...', 'we recommend...'). Every reason must be self-contained and cite the operative provision from the item's provision_key."
@@ -365,6 +368,29 @@ export async function handleRevisionMode(
       extra: extraVerdicts,
       duplicates: dupCount,
     }, 409);
+  }
+
+  // RC-C2.1 HOLLOW-RESOLUTION GUARD — run qc_rc_2 BEFORE applying. A 'resolved'
+  // verdict without a matching changed_path is a malformed patch: refuse
+  // entirely (409, no partial apply, prior status reverted). Symmetric to
+  // the SHA-256 untouched-subtree guard: contract violations refuse, not annotate.
+  {
+    const wouldBeItems = updateOpenItemStatuses(openItems, verdictsRaw as any);
+    const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    const preQc = qcVerdictConsistency(
+      answeredIds,
+      verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
+      wouldBeItems as any,
+      changedPathsIn,
+    );
+    if (preQc.status === "red") {
+      console.error(`[revision:${toolType}] pre_apply_qc_red ${preQc.code}: ${preQc.detail}`);
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, `pre_apply_${preQc.code}`);
+      return jsonResp({
+        error: "revision_hollow_resolution",
+        qc: preQc,
+      }, 409);
+    }
   }
 
   // Advisory guard — grounding + cap.
