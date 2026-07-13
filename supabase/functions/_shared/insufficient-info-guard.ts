@@ -163,8 +163,65 @@ export function guardInformationNeeded(
   }
   report.information_needed = valid;
 
+  // RC-C3 D-3 (GOV-ASK-1) — DETERMINISTIC CRITICAL-ASK PASS.
+  // Independent of INSUFFICIENT_MARKER. For each registered critical field
+  // that is empty (and not "believed with basis"), synthesise an ask entry
+  // deterministically. Respects the 3-entry cap shared with the marker
+  // fallback. Emits lint_warnings so downstream QC can see the mask.
+  let criticalSynthesised = 0;
+  const registry = toolType ? (ASK_ELIGIBLE_CRITICAL_FIELDS[toolType] ?? []) : [];
+  if (registry.length > 0) {
+    const assertions = (intakeObj as Record<string, unknown>).assertions as
+      | Record<string, { state?: string; basis?: unknown }>
+      | undefined;
+    const believedWithBasis = new Set<string>();
+    if (assertions && typeof assertions === "object") {
+      for (const [k, v] of Object.entries(assertions)) {
+        if (v && typeof v === "object" && (v as any).state === "believed" && (v as any).basis) {
+          believedWithBasis.add(k);
+        }
+      }
+    }
+    const alreadyCovered = new Set<string>(
+      (report.information_needed as any[]).map((e) => String(e?.field ?? "")),
+    );
+    const additions: Array<{ field: string; why: string; how_to_provide: string; provision?: string }> = [];
+    for (const field of registry) {
+      if (report.information_needed.length + additions.length >= 3) break;
+      if (alreadyCovered.has(field)) continue;
+      const rootKey = field.split(".")[0];
+      if (believedWithBasis.has(rootKey) || believedWithBasis.has(field)) continue;
+      const value = readPath(intakeObj as Record<string, unknown>, field);
+      if (!isEmpty(value)) continue;
+      additions.push({
+        field,
+        // D8: user-facing copy — the word "gap" is banned. Credit-first,
+        // verdict-anchored phrasing.
+        why:
+          `The intake left "${field}" empty; the readiness verdict for this dimension cannot be established without it.`,
+        how_to_provide:
+          `Return to intake and provide a value for "${field}", then regenerate.`,
+      });
+    }
+    if (additions.length > 0) {
+      report.information_needed = [...report.information_needed, ...additions];
+      criticalSynthesised = additions.length;
+      if (!Array.isArray(report.lint_warnings)) report.lint_warnings = [];
+      for (const a of additions) {
+        report.lint_warnings.push({ code: "critical_ask_synthesised", field: a.field });
+      }
+      console.log(JSON.stringify({
+        evt: "critical_asks_synthesised",
+        tool: toolType,
+        added: criticalSynthesised,
+        fields: additions.map((a) => a.field),
+      }));
+    }
+  }
+
   const text = JSON.stringify(report);
-  const tripped = INSUFFICIENT_MARKER.test(text) && valid.length === 0;
+  const tripped = INSUFFICIENT_MARKER.test(text) && report.information_needed.length === 0;
+
 
   let autoRepaired = 0;
   let deadEndWithoutPath = false;
