@@ -40,6 +40,22 @@ import {
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "@/pages/admt/ADMTChecker.enums";
+// RC-C2 C2.2 — DPIA intake enums (content-anchored to DPIAFramework.tsx exports).
+import {
+  DATA_CATS as DPIA_DATA_CATS,
+  JURISDICTIONS as DPIA_JURISDICTIONS,
+  LEGAL_BASES as DPIA_LEGAL_BASES,
+  ARTICLE_9_CONDITIONS as DPIA_ARTICLE_9_CONDITIONS,
+  REASONS_TO_CONDUCT as DPIA_REASONS_TO_CONDUCT,
+  SAFEGUARDS as DPIA_SAFEGUARDS,
+  TOOLS as DPIA_TOOLS,
+} from "@/pages/DPIAFramework";
+// RC-C2 C2.5 — LIA intake enums (content-anchored to LIAssessment.tsx exports).
+import {
+  DATA_CATEGORIES as LIA_DATA_CATEGORIES,
+  RELATIONSHIPS as LIA_RELATIONSHIPS,
+  JURISDICTIONS as LIA_JURISDICTIONS,
+} from "@/pages/LIAssessment";
 
 // Q18 uses inline ["Yes","No","In evaluation"] in the intake JSX; mirror that
 // literal here (content-anchored to CPPARiskAssessment.tsx line 924).
