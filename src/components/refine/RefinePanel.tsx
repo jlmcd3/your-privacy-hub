@@ -5,11 +5,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useRegenerate } from "@/hooks/useRegenerate";
 import { startMeterExtension } from "@/lib/meterExtension";
 import type { ResolveFieldMap } from "@/lib/rerunHighlighting";
+import {
+  StructuredFieldEditor,
+  summariseStructuredValue,
+} from "@/components/refine/StructuredFieldEditor";
 
 export interface EditableFieldSpec {
   key: string;
   label: string;
-  kind: "text" | "textarea";
+  // UX-1 (2026-07-12): "structured" routes object/array-valued fields to
+  // StructuredFieldEditor. Raw-JSON textareas are no longer emitted on the
+  // user path for object/array intake fields.
+  kind: "text" | "textarea" | "structured";
   placeholder?: string;
   help?: string;
 }
