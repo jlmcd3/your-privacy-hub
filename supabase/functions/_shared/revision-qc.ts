@@ -6,8 +6,11 @@
 
 export const CONTRACT_ENABLED_TOOLS = new Set<string>([
   "cppa_risk_assessment",
-  "dpia_framework",   // core proven RC-B; C2.1–C2.4 hardens per-tool
-  "li_assessment",    // RC-C2 C2.5 — LIA joins the contract
+  "dpia_framework",         // core proven RC-B; C2.1–C2.4 hardens per-tool
+  "li_assessment",          // RC-C2 C2.5 — LIA joins the contract
+  "governance_assessment",  // RC-C3/RC-D.1 D-3 — governance revision QC on
+  "cppa_cybersecurity",     // RC-C3/RC-D.1 D-3 — cyber revision QC on
+  "cppa_admt",              // RC-C3/RC-D.1 D-3 — admt revision QC on
 ]);
 
 export interface QcCheckResult {

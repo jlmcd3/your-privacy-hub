@@ -155,13 +155,20 @@ Deno.serve(async (req) => {
   if (!authHeader.startsWith("Bearer ")) return json({ error: "missing_authorization" }, 401);
   const token = authHeader.slice(7).trim();
 
-  const userClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: authHeader } } });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(token);
-  if (userErr || !userData?.user) return json({ error: "invalid_jwt" }, 401);
-  const userId = userData.user.id;
+  // RC-D.1 D-2: internal SR caller acceptance (enumerated: grade-only).
+  // ql3-orchestrator and other internal harnesses call with SR bearer +
+  // x-internal-resume:1. No admin JWT required; read-only over the assessment.
+  const isInternalSR = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
 
-  const { data: isAdmin } = await userClient.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (!isAdmin) return json({ error: "admin_only" }, 403);
+  let userId: string | null = null;
+  if (!isInternalSR) {
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData?.user) return json({ error: "invalid_jwt" }, 401);
+    userId = userData.user.id;
+    const { data: isAdmin } = await userClient.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) return json({ error: "admin_only" }, 403);
+  }
 
   let body: { assessment_id?: string; fixture_label?: string; dry_run?: boolean } = {};
   try { body = await req.json(); } catch { /* allow empty */ }
@@ -196,8 +203,19 @@ Deno.serve(async (req) => {
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
   };
 
+  // RC-D.1 D-2: expose mean_score at top level so internal callers
+  // (ql3-orchestrator) can capture pre/post_score without parsing sub-objects.
+  const scoreParts: number[] = [];
+  if (claudeRes?.overall_score != null) scoreParts.push(Number(claudeRes.overall_score));
+  if (gptRes?.overall_score != null) scoreParts.push(Number(gptRes.overall_score));
+  const mean_score = scoreParts.length > 0
+    ? Math.round((scoreParts.reduce((a, b) => a + b, 0) / scoreParts.length) * 100) / 100
+    : null;
+
   let stored_note_id: string | null = null;
-  if (!body.dry_run) {
+  // Internal SR callers default to dry_run (no product-baseline pollution).
+  const shouldWrite = !body.dry_run && !isInternalSR;
+  if (shouldWrite) {
     // Constraint 4: only quality_loop2_notes, distinctly keyed.
     const { data: noteRow, error: noteErr } = await admin
       .from("quality_loop2_notes")
@@ -208,5 +226,5 @@ Deno.serve(async (req) => {
     stored_note_id = noteRow?.id ?? null;
   }
 
-  return json({ ok: true, stored_note_id, payload });
+  return json({ ok: true, mean_score, stored_note_id, payload });
 });

@@ -2107,18 +2107,46 @@ Deno.serve(async (req) => {
     return json({ resumed: resumeId }, 202);
   }
 
-  // ---------- Normal path: admin user starts a new run ----------
-  const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
-  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-  if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized", detail: claimsErr?.message ?? "no claims" }, 401);
-  const userId = claimsData.claims.sub as string;
+  // ---------- RC-D.1 D-1: internal SR caller acceptance (enumerated actions) ----------
+  // Accept service-role bearer + x-internal-verification header for a strict
+  // allow-list of internal actions (revision_dispatch, seed_contract_fixtures).
+  // This is the inbound half of the internal-caller path already used by
+  // regenerate-assessment; QL3 (ql3-orchestrator) and future internal harnesses
+  // dispatch through here without needing an admin JWT. Every accepted call is
+  // logged to function_runs. Any other action falls through to the normal
+  // admin-JWT path below.
+  const INTERNAL_ALLOWED_ACTIONS = new Set(["revision_dispatch", "seed_contract_fixtures"]);
+  const isInternalSR =
+    req.headers.get("x-internal-verification") === "1"
+    && token === SERVICE_KEY
+    && INTERNAL_ALLOWED_ACTIONS.has(String(body?.action ?? ""));
+  let userId: string | null;
+  if (isInternalSR) {
+    userId = null; // sentinel for internal caller — started_by nullable
+    try {
+      const adminLog = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+      await adminLog.from("function_runs").insert({
+        function_name: "run-quality-batch",
+        status: "started",
+        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null },
+      });
+    } catch (_e) { /* non-fatal */ }
+  } else {
+    // ---------- Normal path: admin user starts a new run ----------
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    });
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized", detail: claimsErr?.message ?? "no claims" }, 401);
+    userId = claimsData.claims.sub as string;
+
+    const adminChk = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+    const { data: isAdmin } = await adminChk.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) return json({ error: "Admin only" }, 403);
+  }
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-  const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (!isAdmin) return json({ error: "Admin only" }, 403);
   // ---------- RC-B.1 internal revision dispatcher ----------
 
   // ---------- RC-C1 C1.4 — seed contract fixtures for cppa-risk ----------
