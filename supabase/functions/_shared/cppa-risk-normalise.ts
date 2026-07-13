@@ -243,7 +243,7 @@ export function resolveIntakeForTestStates(rawIntake: any): {
   }
   const rawForStates: Record<string, any> = {
     ...raw,
-    q1_revenue: raw.q1_revenue ?? org.annual_revenue_threshold,
+    q1_revenue: raw.q1_revenue, // RC-A A5: no fallback to org_context.annual_revenue_threshold
     q2_consumers: raw.q2_consumers ?? fiveStage.annual_consumer_volume,
     q5_sell_share: raw.q5_sell_share
       ?? (fiveStage.triggers?.sells_or_shares_pi ? "Yes" : (raw.q5_sell_share === undefined && "triggers" in raw ? "No" : raw.q5_sell_share)),
