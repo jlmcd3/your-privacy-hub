@@ -20,6 +20,8 @@ import {
 // closing the raw-vs-normalised defect that made QC-R1-4 false-fail on
 // 5-stage-shaped fixtures and hid vacuous passes on QC-R1-1/-2/-3.
 import { resolveIntakeForTestStates } from "../_shared/cppa-risk-normalise.ts";
+// RC-C1 C1.5 — revision contract QC checks.
+import { qcContractMonotonicity, qcVerdictConsistency, CONTRACT_ENABLED_TOOLS } from "../_shared/revision-qc.ts";
 
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
