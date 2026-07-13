@@ -3,6 +3,7 @@
 // completion to verify the on-disk row against the contract invariants.
 // Scoped to contract-enabled tools (currently: cppa_risk_assessment; add as
 // each per-tool courier lands).
+import { candidateTargetPaths } from "./target-path-aliases.ts";
 
 export const CONTRACT_ENABLED_TOOLS = new Set<string>([
   "cppa_risk_assessment",
