@@ -1579,6 +1579,12 @@ Deno.serve(async (req) => {
     const unit: UnitId | undefined = body?.unit;
     if (!dpia_id) return new Response(JSON.stringify({ error: "dpia_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // RC-B.1 — scoped-delta revision short-circuit. Owns unit-subset
+    // routing via _staging.shared.item_unit_map (data-only, no prompt text).
+    if (!unit) {
+      const __rev = await handleRevisionMode(supabase, body, { toolType: "dpia_framework" });
+      if (__rev) return __rev;
+    }
 
     // Unit invocations must be internal (self-reinvoke with SERVICE_KEY).
     if (unit) {

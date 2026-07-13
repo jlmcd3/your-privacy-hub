@@ -1389,12 +1389,18 @@ Deno.serve(async (req) => {
         status: caller.status ?? 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { assessment_id } = await req.json();
+    const __body = await req.json();
+    const { assessment_id } = __body;
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, __body, { toolType: "cppa_cybersecurity" });
+      if (__rev) return __rev;
     }
 
     const ent = await requireEntitlement(caller, "cppa_cybersecurity", { rowId: assessment_id });

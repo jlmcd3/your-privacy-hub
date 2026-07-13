@@ -1583,9 +1583,10 @@ Deno.serve(async (req) => {
   }
 
   let assessment_id: string | undefined;
+  let __body: any = {};
   try {
-    const body = await req.json();
-    assessment_id = body?.assessment_id;
+    __body = await req.json();
+    assessment_id = __body?.assessment_id;
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -1595,6 +1596,13 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "assessment_id required" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+  // RC-B.1 — scoped-delta revision short-circuit. Owns the entire revision
+  // path (patch application, advisory guard, status update, meter bump).
+  // Full-regeneration on the revision path is GONE.
+  {
+    const __rev = await handleRevisionMode(supabase, __body, { toolType: "cppa_risk_assessment" });
+    if (__rev) return __rev;
   }
 
   const ent = await requireEntitlement(caller, "cppa_risk_assessment", { rowId: assessment_id });

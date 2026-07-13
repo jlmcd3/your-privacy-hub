@@ -866,6 +866,11 @@ Deno.serve(async (req) => {
     }
     const body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body as any, { toolType: "biometric_checker" });
+      if (__rev) return __rev;
+    }
 
     if (body.assessment_id) {
       const ent = await requireEntitlement(caller, "biometric_checker", { rowId: body.assessment_id });

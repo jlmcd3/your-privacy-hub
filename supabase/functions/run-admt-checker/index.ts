@@ -380,6 +380,11 @@ Deno.serve(async (req) => {
 
   const assessment_id: string = String(body?.assessment_id ?? "").trim();
   if (!assessment_id) return json({ error: "assessment_id required" }, 400);
+  // RC-B.1 — scoped-delta revision short-circuit.
+  {
+    const __rev = await handleRevisionMode(supabase, body, { toolType: "cppa_admt" });
+    if (__rev) return __rev;
+  }
 
   const { data: assessment } = await supabase
     .from("cppa_assessments")

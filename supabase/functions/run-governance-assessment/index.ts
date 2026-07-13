@@ -742,6 +742,11 @@ Deno.serve(async (req) => {
     const stressRun = body?.stress_run === true;
     if (!assessment_id) return new Response(JSON.stringify({ error: "assessment_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body, { toolType: "governance_assessment" });
+      if (__rev) return __rev;
+    }
 
     const ent = await requireEntitlement(caller, "governance_assessment", { rowId: assessment_id });
     if (!ent.ok) {

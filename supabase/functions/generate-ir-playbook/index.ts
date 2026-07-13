@@ -628,6 +628,11 @@ Deno.serve(async (req) => {
     }
     let body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body as any, { toolType: "ir_playbook" });
+      if (__rev) return __rev;
+    }
 
     if (body.assessment_id) {
       const ent = await requireEntitlement(caller, "ir_playbook", { rowId: body.assessment_id });
