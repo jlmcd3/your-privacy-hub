@@ -110,8 +110,54 @@ export const ADVISORY_CAPS: Record<string, number> = {
   registration_assessment: 0,
 };
 
+// ADVISORY REGISTER (CEO-ratified) — every advisory_note must be a SINGLE
+// suggestive sentence that routes to a reassessment. Template shape:
+//
+//   "If your organization [can document / does] X, a reassessment
+//    covering it may be worth considering, based on your counsel's advice."
+//
+// Substantive findings, contradictions ("Discrepancy detected", "must",
+// "resolves the prior …"), and mandatory language belong in the report body
+// or in item_verdicts[].reason (for not_resolved items) — NOT in advisory.
+// This guard rejects anything that fails the register + runs D8 (banned
+// "gap"/"gaps" word) against every kept note.
+const CONTRADICTION_MARKERS: RegExp[] = [
+  /\bdiscrepancy\b/i,
+  /\bcontradict(ion|ory)?\b/i,
+  /\binconsisten(cy|t)\b/i,
+  /\bresolves\s+the\s+(prior|previous)\b/i,
+  /\bunresolved\b/i,
+  /\bviolat(es|ion)\b/i,
+  /\bmust\s+(be|complete|verify|resolve|assess|confirm)\b/i,
+  /\bis\s+required\b/i,
+  /\bformal\s+assessment\s+required\b/i,
+];
+const SUGGESTIVE_MARKERS: RegExp[] = [
+  /may\s+be\s+worth\s+considering/i,
+  /\ba\s+reassessment\b/i,
+  /^\s*If\s+your\s+organization\b/i,
+];
+// D8: standalone "gap"/"gaps" is banned in ALL user-facing text, incl. advisory.
+const D8_GAP_RE = /\bgaps?\b/i;
+// Single-sentence check: one sentence-terminal '.', '?', or '!' (trailing OK).
+function isSingleSentence(text: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+  // Count sentence terminators not followed by end-of-string/whitespace-only.
+  const matches = t.match(/[.!?](?=\s+\S)/g);
+  return !matches; // no interior terminator = single sentence
+}
+function hasContradictionMarker(text: string): string | null {
+  for (const re of CONTRADICTION_MARKERS) if (re.test(text)) return re.source;
+  return null;
+}
+function matchesSuggestiveShape(text: string): boolean {
+  return SUGGESTIVE_MARKERS.some((re) => re.test(text));
+}
+
 // GROUNDING RULE: advisory may only arise from a fact affirmatively supplied.
-// Guard strips: (a) missing/unknown fact_ref, (b) over-cap tail.
+// Guard strips: (a) missing/unknown fact_ref, (b) contradiction/finding language,
+// (c) multi-sentence, (d) non-suggestive shape, (e) D8 gap word, (f) over-cap tail.
 export function guardAdvisoryNotes(
   notes: Array<{ text: string; fact_ref?: string }>,
   opts: { cap: number; allowedFactRefs: Set<string> },
@@ -126,6 +172,23 @@ export function guardAdvisoryNotes(
       reasons.push(`ungrounded:${ref || "(none)"}`);
       continue;
     }
+    if (D8_GAP_RE.test(text)) {
+      reasons.push(`d8_gap_word:${ref}`);
+      continue;
+    }
+    const cm = hasContradictionMarker(text);
+    if (cm) {
+      reasons.push(`contradiction_style:${ref}:${cm}`);
+      continue;
+    }
+    if (!isSingleSentence(text)) {
+      reasons.push(`multi_sentence:${ref}`);
+      continue;
+    }
+    if (!matchesSuggestiveShape(text)) {
+      reasons.push(`not_suggestive:${ref}`);
+      continue;
+    }
     cleaned.push({ text, fact_ref: ref });
   }
   const kept = cleaned.slice(0, opts.cap);
@@ -133,6 +196,7 @@ export function guardAdvisoryNotes(
   if (cleaned.length > opts.cap) reasons.push(`over_cap:${cleaned.length}>${opts.cap}`);
   return { keep: kept, stripped, reasons };
 }
+
 
 // Deterministic QC — fails a run whose surviving notes lack fact_ref.
 export function checkAdvisoryGrounding(reportData: any): { ok: boolean; message?: string } {
