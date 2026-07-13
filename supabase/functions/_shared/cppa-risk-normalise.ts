@@ -101,7 +101,7 @@ export function shimLegacyIntake(intake: any): FiveStageIntake {
   const org_context = {
     company_name: String(intake.entity_name || "[FILL IN — business legal name]"),
     sector: String(intake.q3_sector ?? "Not specified"),
-    annual_revenue_threshold: String(intake.q1_revenue ?? "Not specified"),
+    annual_revenue_threshold: "", // DEPRECATED (RC-A A5) — read q1_revenue instead
     privacy_counsel_engaged: false,
     dpo_or_privacy_officer: false,
     board_level_oversight: false,
