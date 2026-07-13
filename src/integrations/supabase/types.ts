@@ -4268,6 +4268,75 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_loop3_runs: {
+        Row: {
+          assessment_id: string | null
+          created_at: string
+          dummy_answers: Json | null
+          error_message: string | null
+          id: string
+          input_spec: Json | null
+          items_after: number | null
+          items_before: number | null
+          items_resolved: number | null
+          notes: string | null
+          owner_id: string | null
+          pass_number: number
+          phase: string
+          post_score: number | null
+          pre_score: number | null
+          qc_result: Json | null
+          run_by: string | null
+          terminal_at: string | null
+          tool_slug: string
+          updated_at: string
+        }
+        Insert: {
+          assessment_id?: string | null
+          created_at?: string
+          dummy_answers?: Json | null
+          error_message?: string | null
+          id?: string
+          input_spec?: Json | null
+          items_after?: number | null
+          items_before?: number | null
+          items_resolved?: number | null
+          notes?: string | null
+          owner_id?: string | null
+          pass_number?: number
+          phase?: string
+          post_score?: number | null
+          pre_score?: number | null
+          qc_result?: Json | null
+          run_by?: string | null
+          terminal_at?: string | null
+          tool_slug: string
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string | null
+          created_at?: string
+          dummy_answers?: Json | null
+          error_message?: string | null
+          id?: string
+          input_spec?: Json | null
+          items_after?: number | null
+          items_before?: number | null
+          items_resolved?: number | null
+          notes?: string | null
+          owner_id?: string | null
+          pass_number?: number
+          phase?: string
+          post_score?: number | null
+          pre_score?: number | null
+          qc_result?: Json | null
+          run_by?: string | null
+          terminal_at?: string | null
+          tool_slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quality_reviews: {
         Row: {
           changes: Json
