@@ -1,0 +1,305 @@
+// ql3-orchestrator — Quality Loop 3 (RC-D).
+//
+// Phase machine per row of quality_loop3_runs:
+//   revise_dummy → review2 → done | failed
+//
+// - kickoff (POST { action: "kickoff", tool_slug, assessment_id, notes? })
+//     ─ admin-gated via has_role; internal callers via SR key or x-internal-resume.
+//     ─ Creates quality_loop3_runs row, then self-invokes to start phase work.
+// - resume (POST { action: "resume", run_id }, x-internal-resume: 1)
+//     ─ Runs one bounded unit of work (one phase step), persists progress,
+//       self-invokes to continue. Anti-hang: return 202 immediately.
+//
+// Constraints:
+//  * Only reads/writes public.quality_loop3_runs and reads the assessment row.
+//  * Never writes to cppa_assessments / *_assessments / dpia_frameworks etc.
+//    (revisions are driven exclusively through run-quality-batch/revision_dispatch,
+//    which is the audited internal path.)
+//  * QL2 is untouched. Rollback = drop this function + the table.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const json = (b: unknown, s = 200) =>
+  new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
+
+const admin = () => createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+
+const TOOL_TABLE: Record<string, { table: string; toolType: string }> = {
+  "governance":       { table: "governance_assessments", toolType: "governance_assessment" },
+  "cppa-risk":        { table: "cppa_assessments",       toolType: "cppa_risk_assessment" },
+  "cppa-cyber":       { table: "cppa_assessments",       toolType: "cppa_cybersecurity" },
+  "cppa-admt":        { table: "cppa_assessments",       toolType: "cppa_admt" },
+  "dpia":             { table: "dpia_frameworks",        toolType: "dpia_framework" },
+  "lia":              { table: "li_assessments",         toolType: "li_assessment" },
+  "ir-playbook":      { table: "ir_playbooks",           toolType: "ir_playbook" },
+  "biometric":        { table: "biometric_assessments",  toolType: "biometric_checker" },
+  "dpa":              { table: "dpa_documents",          toolType: "dpa_generator" },
+};
+
+function selfInvoke(runId: string) {
+  return fetch(`${SUPABASE_URL}/functions/v1/ql3-orchestrator`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SERVICE_KEY}`,
+      "apikey": SERVICE_KEY,
+      "x-internal-resume": "1",
+    },
+    body: JSON.stringify({ action: "resume", run_id: runId }),
+  }).catch((e) => console.error("[ql3] self-invoke failed", e));
+}
+
+// Deterministic dummy-answer generator driven by an open_item's input_spec.
+// Contract: never emit a value outside spec.enum / spec.options; bound long text.
+function dummyAnswerFor(item: any): { value: unknown; kind: string; invalid_reason?: string } {
+  const spec = item?.input_spec ?? item?.spec ?? {};
+  const type = String(spec?.type ?? item?.answer_type ?? "text").toLowerCase();
+  const enums: unknown[] = Array.isArray(spec?.enum)
+    ? spec.enum
+    : Array.isArray(spec?.options)
+      ? spec.options.map((o: any) => (o?.value ?? o))
+      : [];
+  if (enums.length > 0) {
+    // Pick the "middle" enum value deterministically.
+    const idx = Math.min(enums.length - 1, Math.max(0, Math.floor(enums.length / 2)));
+    return { value: enums[idx], kind: "enum_pick" };
+  }
+  if (type === "boolean" || type === "bool") return { value: true, kind: "boolean" };
+  if (type === "number" || type === "integer") {
+    const min = Number(spec?.min ?? 1);
+    const max = Number(spec?.max ?? min + 1);
+    const v = Number.isFinite(min) ? min : 1;
+    return { value: v, kind: "number", invalid_reason: (Number.isFinite(max) && v > max) ? "min>max" : undefined };
+  }
+  if (Array.isArray(spec?.slug_keys) && spec.slug_keys.length) {
+    // multi-select: pick first slug
+    return { value: [spec.slug_keys[0]], kind: "slug_pick" };
+  }
+  // Fallback text
+  const maxLen = Number(spec?.max_length ?? 240);
+  const boiler = "Dummy QL3 answer — deterministic fixture value used for revision-loop verification only.";
+  return { value: boiler.slice(0, Math.max(20, Math.min(240, Math.floor(maxLen)))), kind: "text" };
+}
+
+async function readAssessment(toolSlug: string, assessmentId: string) {
+  const cfg = TOOL_TABLE[toolSlug];
+  if (!cfg) throw new Error(`unknown tool_slug: ${toolSlug}`);
+  const db = admin();
+  const { data, error } = await db
+    .from(cfg.table)
+    .select("id, status, report_data")
+    .eq("id", assessmentId)
+    .maybeSingle();
+  if (error) throw new Error(`readAssessment: ${error.message}`);
+  return { row: data, cfg };
+}
+
+async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<number | null> {
+  // Best-effort grader call — grade-single-assessment is cppa-only today; for
+  // other tools we return null and rely on items_before/items_after telemetry
+  // as the QC signal. This keeps QL3 useful across all 9 tools without
+  // conflating grader coverage with revision success.
+  if (!["cppa-risk", "cppa-cyber", "cppa-admt"].includes(toolSlug)) return null;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/grade-single-assessment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "apikey": SERVICE_KEY,
+        "x-internal-resume": "1",
+      },
+      body: JSON.stringify({ assessment_id: assessmentId }),
+    });
+    if (!r.ok) return null;
+    const body: any = await r.json().catch(() => null);
+    const score = body?.mean_score ?? body?.score ?? body?.review?.mean_score ?? null;
+    return typeof score === "number" ? score : null;
+  } catch {
+    return null;
+  }
+}
+
+async function runOneUnit(runId: string) {
+  const db = admin();
+  const { data: run, error: runErr } = await db
+    .from("quality_loop3_runs")
+    .select("*")
+    .eq("id", runId)
+    .maybeSingle();
+  if (runErr || !run) { console.error("[ql3] run not found", runId, runErr?.message); return; }
+  if (run.phase === "done" || run.phase === "failed") return;
+
+  try {
+    if (run.phase === "revise_dummy") {
+      const { row, cfg } = await readAssessment(run.tool_slug, run.assessment_id);
+      if (!row) throw new Error("assessment row missing");
+      const openItems: any[] = Array.isArray((row as any)?.report_data?.open_items)
+        ? (row as any).report_data.open_items
+        : [];
+      const itemsBefore = openItems.length;
+      const preScore = await callInternalGrader(run.tool_slug, run.assessment_id);
+
+      // Generate dummy answers deterministically from input_spec.
+      const answered = openItems
+        .filter((it) => it?.id || it?.item_id)
+        .slice(0, 12) // bound per pass
+        .map((it) => {
+          const ans = dummyAnswerFor(it);
+          return {
+            item_id: String(it.id ?? it.item_id),
+            answer: ans.value,
+            _dummy_kind: ans.kind,
+            ...(ans.invalid_reason ? { _invalid_reason: ans.invalid_reason } : {}),
+          };
+        });
+
+      if (!answered.length) {
+        await db.from("quality_loop3_runs").update({
+          phase: "done",
+          items_before: itemsBefore,
+          items_after: itemsBefore,
+          items_resolved: 0,
+          pre_score: preScore,
+          post_score: preScore,
+          terminal_at: new Date().toISOString(),
+          notes: (run.notes ? run.notes + " | " : "") + "no_open_items_to_answer",
+        }).eq("id", runId);
+        return;
+      }
+
+      // Dispatch revision through the audited internal path.
+      const dispatchRes = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SERVICE_KEY}`,
+          "apikey": SERVICE_KEY,
+          "x-internal-verification": "1",
+        },
+        body: JSON.stringify({
+          action: "revision_dispatch",
+          tool_type: cfg.toolType,
+          assessment_id: run.assessment_id,
+          answered_items: answered,
+        }),
+      });
+      const upstreamStatus = dispatchRes.status;
+      const upstream: any = await dispatchRes.json().catch(() => ({}));
+
+      await db.from("quality_loop3_runs").update({
+        phase: upstreamStatus >= 200 && upstreamStatus < 300 ? "review2" : "failed",
+        input_spec: { open_items_before: openItems.map((i: any) => ({ id: i.id ?? i.item_id, type: i?.input_spec?.type })) },
+        dummy_answers: answered,
+        items_before: itemsBefore,
+        pre_score: preScore,
+        qc_result: {
+          dispatch_status: upstreamStatus,
+          upstream: {
+            verdicts: upstream?.verdicts ?? null,
+            changed_paths: upstream?.changed_paths ?? null,
+            qc_checks: upstream?.qc_checks ?? null,
+          },
+        },
+        error_message: upstreamStatus >= 200 && upstreamStatus < 300 ? null : `dispatch_${upstreamStatus}`,
+      }).eq("id", runId);
+
+      // @ts-ignore
+      EdgeRuntime.waitUntil(selfInvoke(runId));
+      return;
+    }
+
+    if (run.phase === "review2") {
+      const { row } = await readAssessment(run.tool_slug, run.assessment_id);
+      const openItemsAfter: any[] = Array.isArray((row as any)?.report_data?.open_items)
+        ? (row as any).report_data.open_items
+        : [];
+      const itemsAfter = openItemsAfter.length;
+      const postScore = await callInternalGrader(run.tool_slug, run.assessment_id);
+      const resolved = Math.max(0, (run.items_before ?? 0) - itemsAfter);
+
+      await db.from("quality_loop3_runs").update({
+        phase: "done",
+        items_after: itemsAfter,
+        items_resolved: resolved,
+        post_score: postScore,
+        terminal_at: new Date().toISOString(),
+      }).eq("id", runId);
+      return;
+    }
+  } catch (e: any) {
+    await db.from("quality_loop3_runs").update({
+      phase: "failed",
+      error_message: (e?.message ?? String(e)).slice(0, 500),
+      terminal_at: new Date().toISOString(),
+    }).eq("id", runId);
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  const authHeader = req.headers.get("Authorization") || "";
+  const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
+  const isInternal = bearer && bearer === SERVICE_KEY;
+
+  let body: any = null;
+  try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
+
+  const action = body?.action ?? "kickoff";
+
+  // Internal resume path — no admin check, only SR bearer.
+  if (action === "resume") {
+    if (!isInternal) return json({ error: "internal_only" }, 401);
+    const runId = String(body?.run_id ?? "");
+    if (!runId) return json({ error: "missing run_id" }, 400);
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runOneUnit(runId));
+    return json({ accepted: true, run_id: runId }, 202);
+  }
+
+  // Kickoff — admin gated (SR bypass allowed for programmatic starts).
+  let userId: string | null = null;
+  if (!isInternal) {
+    if (!bearer) return json({ error: "missing_authorization" }, 401);
+    const supabase = createClient(SUPABASE_URL, ANON_KEY);
+    const { data: u, error: uErr } = await supabase.auth.getUser(bearer);
+    if (uErr || !u?.user) return json({ error: "invalid_token" }, 401);
+    userId = u.user.id;
+    const { data: isAdmin } = await admin().rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) return json({ error: "admin_only" }, 403);
+  }
+
+  if (action === "kickoff") {
+    const toolSlug = String(body?.tool_slug ?? "");
+    const assessmentId = String(body?.assessment_id ?? "");
+    if (!TOOL_TABLE[toolSlug]) return json({ error: "unsupported_tool", detail: `known: ${Object.keys(TOOL_TABLE).join(",")}` }, 400);
+    if (!assessmentId) return json({ error: "missing assessment_id" }, 400);
+
+    const { data: run, error: insErr } = await admin().from("quality_loop3_runs").insert({
+      tool_slug: toolSlug,
+      assessment_id: assessmentId,
+      run_by: userId,
+      phase: "revise_dummy",
+      pass_number: Number(body?.pass_number ?? 1),
+      notes: body?.notes ?? null,
+    }).select("id").single();
+
+    if (insErr || !run) return json({ error: "insert_failed", detail: insErr?.message }, 500);
+    // @ts-ignore
+    EdgeRuntime.waitUntil(selfInvoke((run as any).id));
+    return json({ run_id: (run as any).id, phase: "revise_dummy" }, 202);
+  }
+
+  return json({ error: "unknown_action", detail: action }, 400);
+});
