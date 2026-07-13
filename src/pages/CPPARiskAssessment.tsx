@@ -224,18 +224,23 @@ export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKe
   { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
 
-// Aligned to the § 7152(a)(5) enumerated negative-impact examples.
-const HARM_TYPES = [
-  "Unauthorised access, destruction, use, modification, or disclosure",
-  "Loss of availability of personal information",
-  "Unlawful discrimination",
-  "Impairment of consumer control over personal information",
-  "Coercion or dark patterns",
-  "Economic harm",
-  "Physical harm",
-  "Reputational harm",
-  "Psychological harm",
-];
+// § 7152(a)(5) negative-impact examples + impact-assessment scales live in a
+// sibling module so the refine surface's structured editor can import them
+// without pulling this page (and thus RefinePanel) back in a cycle.
+export {
+  HARM_TYPES,
+  IMPACT_LIKELIHOOD_OPTS,
+  IMPACT_SEVERITY_OPTS,
+  IMPACT_BENEFITS_OUTWEIGH_OPTS,
+  IMPACT_CYBER_GAPS_OPTS,
+} from "./CPPARiskAssessment.enums";
+import {
+  HARM_TYPES,
+  IMPACT_LIKELIHOOD_OPTS,
+  IMPACT_SEVERITY_OPTS,
+  IMPACT_BENEFITS_OUTWEIGH_OPTS,
+  IMPACT_CYBER_GAPS_OPTS,
+} from "./CPPARiskAssessment.enums";
 
 // Step 6 statute popover helper — one-line plain-language summary with citation.
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
@@ -1251,11 +1256,11 @@ export default function CPPARiskAssessment() {
                 <div className="mt-3 space-y-4">
                   <div>
                     <Label>Likelihood of harm to consumers</Label>
-                    <div className="mt-2"><Radio name="impact_likelihood" options={["Unlikely", "Possible", "Likely", "Highly likely"]} value={impactData.likelihood} onChange={(v) => setImpactData((d) => ({ ...d, likelihood: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_likelihood" options={IMPACT_LIKELIHOOD_OPTS} value={impactData.likelihood} onChange={(v) => setImpactData((d) => ({ ...d, likelihood: v }))} /></div>
                   </div>
                   <div>
                     <Label>Severity of harm if it occurs</Label>
-                    <div className="mt-2"><Radio name="impact_severity" options={["Minimal", "Moderate", "Significant", "Severe"]} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_severity" options={IMPACT_SEVERITY_OPTS} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
                   </div>
                   <div onFocus={() => focusRail('impact_harm_causes')}>
                     <Label>Types of harm that could result <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(5))</span></Label>
@@ -1283,12 +1288,12 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div onFocus={() => focusRail('impact_benefits')}>
                     <Label>Do the benefits of this processing outweigh the risks to consumers?</Label>
-                    <div className="mt-2"><Radio name="impact_benefits" options={["Yes", "No", "Uncertain"]} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_benefits" options={IMPACT_BENEFITS_OUTWEIGH_OPTS} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
                     <Textarea className="mt-2" rows={3} value={impactData.benefitsRationale} onChange={(e) => setImpactData((d) => ({ ...d, benefitsRationale: e.target.value }))} placeholder="Rationale (§ 7152(a)(4)): explain how the specific benefits weigh against the specific harms above." />
                   </div>
                   <div>
                     <Label>Have you identified cybersecurity gaps relevant to this processing?</Label>
-                    <div className="mt-2"><Radio name="impact_cyber" options={["Yes", "No"]} value={impactData.cyberGaps} onChange={(v) => setImpactData((d) => ({ ...d, cyberGaps: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_cyber" options={IMPACT_CYBER_GAPS_OPTS} value={impactData.cyberGaps} onChange={(v) => setImpactData((d) => ({ ...d, cyberGaps: v }))} /></div>
                   </div>
                 </div>
               </div>

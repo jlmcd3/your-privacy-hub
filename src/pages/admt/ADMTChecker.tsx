@@ -85,6 +85,33 @@ const OPT_OUT_EXCEPTIONS = [
   "No exception — we provide a full opt-out right",
 ];
 
+// admt_detail (nested object intake) — enum leaves live in a sibling module
+// so the refine surface's structured editor can import them without pulling
+// this page (and thus RefinePanel) back in a cycle.
+export {
+  ADMT_VENDOR_STATUS_OPTS,
+  ADMT_VENDOR_DOCS_OPTS,
+  ADMT_YES_NO_OPTS,
+  ADMT_YES_NO_UNSURE_OPTS,
+  ADMT_HOSTING_OPTS,
+  ADMT_MODEL_TYPE_OPTS,
+  ADMT_DECISION_EFFECT_OPTS,
+  ADMT_DECISION_CADENCE_OPTS,
+  ADMT_SOLE_FACTOR_OPTS,
+  ADMT_SOLELY_ADVERTISING_OPTS,
+} from "./ADMTChecker.enums";
+import {
+  ADMT_VENDOR_STATUS_OPTS,
+  ADMT_VENDOR_DOCS_OPTS,
+  ADMT_YES_NO_UNSURE_OPTS,
+  ADMT_HOSTING_OPTS,
+  ADMT_MODEL_TYPE_OPTS,
+  ADMT_DECISION_EFFECT_OPTS,
+  ADMT_DECISION_CADENCE_OPTS,
+  ADMT_SOLE_FACTOR_OPTS,
+  ADMT_SOLELY_ADVERTISING_OPTS,
+} from "./ADMTChecker.enums";
+
 function formatRelativeTime(d: Date) {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
   if (s < 60) return "just now";
@@ -709,11 +736,11 @@ export default function ADMTChecker() {
                       <p className="text-[12px] text-muted-foreground">You remain the CCPA-responsible "business." If a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply all facts you need for your own risk assessment (§ 7150(b)(6) / § 7153).</p>
                       <div>
                         <Label className="text-[12px]">Vendor's role under the CCPA</Label>
-                        <div className="mt-1"><Radio name="v_status" options={["Service provider", "Contractor", "Third party", "Unsure"]} value={adv.vendor_status || ""} onChange={(v) => setA("vendor_status", v)} /></div>
+                        <div className="mt-1"><Radio name="v_status" options={ADMT_VENDOR_STATUS_OPTS} value={adv.vendor_status || ""} onChange={(v) => setA("vendor_status", v)} /></div>
                       </div>
                       <div>
                         <Label className="text-[12px]">Vendor documentation on file (select all)</Label>
-                        <div className="mt-1"><Pills options={["Model card / datasheet", "Validation report", "Bias-testing report", "SOC 2 / pen test", "DPIA", "None on file"]} value={adv.vendor_docs || []} onChange={(v) => setA("vendor_docs", v)} /></div>
+                        <div className="mt-1"><Pills options={ADMT_VENDOR_DOCS_OPTS} value={adv.vendor_docs || []} onChange={(v) => setA("vendor_docs", v)} /></div>
                       </div>
                       <div>
                         <Label className="text-[12px]">Do your vendor contracts include these obligations?</Label>
@@ -729,7 +756,7 @@ export default function ADMTChecker() {
                       <div>
                         <Label className="text-[12px]">Does the vendor make this ADMT available to other businesses?</Label>
                         <p className="text-[11px] text-muted-foreground">If yes, the recipient-facts obligation under § 7150(b)(6) / § 7153 is engaged.</p>
-                        <div className="mt-1"><Radio name="v_avail" options={["Yes", "No", "Unsure"]} value={adv.vendor_makes_available || ""} onChange={(v) => setA("vendor_makes_available", v)} /></div>
+                        <div className="mt-1"><Radio name="v_avail" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.vendor_makes_available || ""} onChange={(v) => setA("vendor_makes_available", v)} /></div>
                       </div>
                       <div>
                         <Label className="text-[12px]">Vendor training-data / model-improvement rights &amp; sub-processors</Label>
@@ -793,23 +820,23 @@ export default function ADMTChecker() {
                     </div>
                     <div>
                       <Label className="text-[12px]">Where is the system hosted?</Label>
-                      <div className="mt-1"><Radio name="adv_hosting" options={["Hosted internally", "Hosted by the vendor", "Hybrid"]} value={adv.hosting || ""} onChange={(v) => setA("hosting", v)} /></div>
+                      <div className="mt-1"><Radio name="adv_hosting" options={ADMT_HOSTING_OPTS} value={adv.hosting || ""} onChange={(v) => setA("hosting", v)} /></div>
                     </div>
                     <div>
                       <Label className="text-[12px]">Model type (select all that apply)</Label>
-                      <div className="mt-1"><Pills options={["Rules engine", "Statistical model", "ML classifier", "Ranking / recommender", "Generative AI", "Biometric", "Emotion recognition", "Identity verification"]} value={adv.model_types || []} onChange={(v) => setA("model_types", v)} /></div>
+                      <div className="mt-1"><Pills options={ADMT_MODEL_TYPE_OPTS} value={adv.model_types || []} onChange={(v) => setA("model_types", v)} /></div>
                     </div>
                     <div>
                       <Label className="text-[12px]">What does the decision actually do? (select all)</Label>
-                      <div className="mt-1"><Pills options={["Provision", "Denial", "Ranking", "Eligibility", "Pricing", "Allocation", "Assignment", "Promotion / demotion", "Suspension / termination", "Compensation", "Credentialing", "Diagnosis / care / treatment"]} value={adv.decision_effects || []} onChange={(v) => setA("decision_effects", v)} /></div>
+                      <div className="mt-1"><Pills options={ADMT_DECISION_EFFECT_OPTS} value={adv.decision_effects || []} onChange={(v) => setA("decision_effects", v)} /></div>
                     </div>
                     <div>
                       <Label className="text-[12px]">Decision cadence</Label>
-                      <div className="mt-1"><Radio name="adv_cadence" options={["One-time", "Repeated", "Continuous", "Systematic"]} value={adv.decision_cadence || ""} onChange={(v) => setA("decision_cadence", v)} /></div>
+                      <div className="mt-1"><Radio name="adv_cadence" options={ADMT_DECISION_CADENCE_OPTS} value={adv.decision_cadence || ""} onChange={(v) => setA("decision_cadence", v)} /></div>
                     </div>
                     <div>
                       <Label className="text-[12px]">Is the ADMT output the sole factor in the decision?</Label>
-                      <div className="mt-1"><Radio name="adv_sole" options={["Sole factor — output alone determines the outcome", "Material factor — heavily weighted alongside others", "One of many factors"]} value={adv.sole_factor || ""} onChange={(v) => setA("sole_factor", v)} /></div>
+                      <div className="mt-1"><Radio name="adv_sole" options={ADMT_SOLE_FACTOR_OPTS} value={adv.sole_factor || ""} onChange={(v) => setA("sole_factor", v)} /></div>
                     </div>
                     {adv.sole_factor && !adv.sole_factor.startsWith("Sole") && (
                       <div>
@@ -819,12 +846,12 @@ export default function ADMTChecker() {
                     )}
                     <div>
                       <Label className="text-[12px]">Will the output be used to feed future significant decisions? (§ 7222(b))</Label>
-                      <div className="mt-1"><Radio name="adv_future" options={["Yes", "No", "Unsure"]} value={adv.feeds_future_decisions || ""} onChange={(v) => setA("feeds_future_decisions", v)} /></div>
+                      <div className="mt-1"><Radio name="adv_future" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.feeds_future_decisions || ""} onChange={(v) => setA("feeds_future_decisions", v)} /></div>
                     </div>
                     <div>
                       <Label className="text-[12px]">Is this system used solely for advertising?</Label>
                       <p className="text-[11px] text-muted-foreground">Advertising is excluded from "significant decision" — a Yes here means Article 11 ADMT obligations do not attach.</p>
-                      <div className="mt-1"><Radio name="adv_ads" options={["Yes — solely advertising", "No"]} value={adv.solely_advertising || ""} onChange={(v) => setA("solely_advertising", v)} /></div>
+                      <div className="mt-1"><Radio name="adv_ads" options={ADMT_SOLELY_ADVERTISING_OPTS} value={adv.solely_advertising || ""} onChange={(v) => setA("solely_advertising", v)} /></div>
                     </div>
                   </div>
 

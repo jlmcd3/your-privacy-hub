@@ -10,12 +10,11 @@ function humanize(key: string): string {
 }
 
 // Given the intake object and lockedFields, derive an ordered set of editable
-// field specs by dropping locked/hidden keys. Strings ≥ 80 chars → textarea;
-// arrays/objects → textarea (JSON, user edits as JSON). All others → text input.
-// The caller is responsible for JSON-parsing on submit if needed — but for now
-// RefinePanel emits string values verbatim; the generator's intake_data merge
-// preserves whatever type the field already was for keys the user didn't touch,
-// so we only auto-convert arrays↔CSV.
+// field specs by dropping locked/hidden keys.
+//   - long strings → textarea
+//   - arrays / objects → "structured" (rendered by StructuredFieldEditor, which
+//     never shows raw JSON to the user; UX-1 courier 2026-07-12)
+//   - everything else → single-line text
 export function autoEditableFromIntake(
   intake: Record<string, unknown> | null,
   lockedFields: Record<string, unknown> | null,
@@ -27,9 +26,10 @@ export function autoEditableFromIntake(
     if (locked.has(key) || HIDE_KEYS.has(key)) continue;
     const v = intake[key];
     let kind: EditableFieldSpec["kind"] = "text";
-    if (typeof v === "string" && v.length > 80) kind = "textarea";
-    else if (Array.isArray(v) || (v && typeof v === "object")) kind = "textarea";
+    if (Array.isArray(v) || (v && typeof v === "object")) kind = "structured";
+    else if (typeof v === "string" && v.length > 80) kind = "textarea";
     out.push({ key, label: humanize(key), kind });
   }
   return out;
 }
+

@@ -308,9 +308,9 @@ const LIAssessment = () => {
               editable={[
                 { key: "processing_description", label: "What processing are you considering?", kind: "textarea", placeholder: "Describe the processing being assessed." },
                 { key: "stated_purpose", label: "Stated purpose", kind: "textarea" },
-                { key: "purpose_details", label: "Purpose test — details", kind: "textarea", help: "Why the processing serves a legitimate interest." },
-                { key: "necessity_details", label: "Necessity test — details", kind: "textarea", help: "Why the processing is necessary and proportionate." },
-                { key: "balancing_details", label: "Balancing test — details", kind: "textarea", help: "How data-subject rights and expectations were weighed." },
+                { key: "purpose_details", label: "Purpose test — details", kind: "structured", help: "Why the processing serves a legitimate interest." },
+                { key: "necessity_details", label: "Necessity test — details", kind: "structured", help: "Why the processing is necessary and proportionate." },
+                { key: "balancing_details", label: "Balancing test — details", kind: "structured", help: "How data-subject rights and expectations were weighed." },
                 { key: "alternatives_considered", label: "Alternatives considered", kind: "textarea" },
                 { key: "sector", label: "Sector", kind: "text" },
               ]}
