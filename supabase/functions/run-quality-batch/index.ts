@@ -6,7 +6,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
+// RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
 export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
