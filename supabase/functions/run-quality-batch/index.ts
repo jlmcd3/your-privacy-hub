@@ -2121,6 +2121,9 @@ Deno.serve(async (req) => {
     && token === SERVICE_KEY
     && INTERNAL_ALLOWED_ACTIONS.has(String(body?.action ?? ""));
   let userId: string | null;
+  if (isInternalSR && body?.action === "revision_dispatch" && !body?.dispatch_nonce) {
+    return json({ error: "nonce_required", detail: "internal revision_dispatch requires dispatch_nonce" }, 400);
+  }
   if (isInternalSR) {
     userId = null; // sentinel for internal caller — started_by nullable
     try {
@@ -2128,7 +2131,7 @@ Deno.serve(async (req) => {
       await adminLog.from("function_runs").insert({
         function_name: "run-quality-batch",
         status: "started",
-        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null },
+        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null, dispatch_nonce: body?.dispatch_nonce ?? null },
       });
     } catch (_e) { /* non-fatal */ }
   } else {
