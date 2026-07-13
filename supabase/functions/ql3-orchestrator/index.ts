@@ -292,6 +292,9 @@ async function runOneUnit(runId: string) {
         qc_result: {
           dispatch_status: upstreamStatus,
           baseline_version_n: baselineVersion,
+          build_stamp: BUILD_STAMP,
+          rqb_build_stamp: upstream?.build_stamp ?? null,
+          regen_build_stamp: upstream?.upstream_build_stamp ?? null,
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
