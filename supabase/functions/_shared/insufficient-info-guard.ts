@@ -76,6 +76,7 @@ function synthesiseEntriesFromIntake(
 // or identity field; such entries are stripped and a lint_warnings row is
 // pushed. Structural fix arrives in Courier 2.
 import { LOCKED_FIELDS_MAP } from "./locked-fields.ts";
+import { freezeOpenItemsOnFirstRun } from "./open-items.ts";
 const IDENTITY_FIELDS = new Set([
   "entity_name", "subject_anchor", "company_name", "organization_name",
   "system_name", "sector", "q3_sector", "significant_decision_domain",
