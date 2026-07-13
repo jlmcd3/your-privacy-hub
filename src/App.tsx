@@ -166,6 +166,7 @@ const AdminHub = lazy(() => import("./pages/admin/AdminHub"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
 const AdminSpend = lazy(() => import("./pages/admin/AdminSpend"));
+const AdminProvisions = lazy(() => import("./pages/admin/AdminProvisions"));
 const ReportVersions = lazy(() => import("./pages/ReportVersions"));
 const QualityLoopAugmentation = lazy(() => import("./pages/admin/AdminQualityAugmentationRoute"));
 import PageViewTracker from "@/components/PageViewTracker";
