@@ -21,6 +21,14 @@ import {
   HARM_TYPES,
 } from "@/pages/CPPARiskAssessment.enums";
 import {
+  REVENUE_OPTS,
+  CONSUMER_OPTS,
+  SPI_VOLUME_OPTS,
+  SHARE_REVENUE_50PCT_OPTS,
+  Q5_SELL_SHARE_OPTS,
+  Q15_SENSITIVE_PI_OPTS,
+} from "@/pages/CPPARiskAssessment";
+import {
   ADMT_VENDOR_STATUS_OPTS,
   ADMT_VENDOR_DOCS_OPTS,
   ADMT_YES_NO_OPTS,
@@ -33,6 +41,12 @@ import {
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "@/pages/admt/ADMTChecker.enums";
 
+// Q18 uses inline ["Yes","No","In evaluation"] in the intake JSX; mirror that
+// literal here (content-anchored to CPPARiskAssessment.tsx line 924).
+const Q18_ADMT_USE_OPTS = ["Yes", "No", "In evaluation"] as const;
+// Q20 opt-out inline enum; mirror the intake radio literals.
+const Q20_ADMT_OPT_OUT_OPTS = ["Yes", "No", "In progress"] as const;
+
 type EnumRegistry = Record<string, Record<string, readonly string[]>>;
 
 // tool_type → keyPath → options
@@ -42,12 +56,7 @@ const REGISTRY: EnumRegistry = {
   //   - Form shape (impact_intake.*): produced by CPPARiskAssessment.tsx's
   //     radio/pill controls. All option literals verified to match.
   //   - Persisted/generator shape (impact.*): produced by the WS6 intake
-  //     generator + normalisation layer. Only leaves whose observed values
-  //     match the form's option literals verbatim are registered here;
-  //     leaves with a diverging option set (e.g. benefits_outweigh_risks,
-  //     harm_types) are intentionally omitted so no stored value is trapped
-  //     by an incomplete select. If those enums are formalised elsewhere,
-  //     import them and register the key path.
+  //     generator + normalisation layer.
   cppa_risk_assessment: {
     "impact_intake.likelihood": IMPACT_LIKELIHOOD_OPTS,
     "impact_intake.severity": IMPACT_SEVERITY_OPTS,
@@ -56,6 +65,26 @@ const REGISTRY: EnumRegistry = {
     "impact_intake.harmTypes": HARM_TYPES,
     "impact.severity_of_harm": IMPACT_SEVERITY_OPTS,
     "impact.likelihood_of_harm": IMPACT_LIKELIHOOD_OPTS,
+    "impact.benefits_outweigh_risks": IMPACT_BENEFITS_OUTWEIGH_OPTS,
+    "impact.cybersecurity_gaps_identified": IMPACT_CYBER_GAPS_OPTS,
+    // RC-C1 C1.1 — T-class banded fields registered so open_items with
+    // input_spec.kind = "re-select" render the correct enum in the refine
+    // surface.
+    q1_revenue: REVENUE_OPTS,
+    q2_consumers: CONSUMER_OPTS,
+    i3_ca_consumer_band: CONSUMER_OPTS,
+    annual_consumer_volume: CONSUMER_OPTS,
+    q5_sell_share: Q5_SELL_SHARE_OPTS,
+    q5c_share_revenue_50pct: SHARE_REVENUE_50PCT_OPTS,
+    q15_sensitive_pi: Q15_SENSITIVE_PI_OPTS,
+    q15c_spi_volume: SPI_VOLUME_OPTS,
+    q18_admt_use: Q18_ADMT_USE_OPTS,
+    q20_admt_opt_out: Q20_ADMT_OPT_OUT_OPTS,
+    "triggers.q1_revenue": REVENUE_OPTS,
+    "triggers.q2_consumers": CONSUMER_OPTS,
+    "triggers.q5_sell_share": Q5_SELL_SHARE_OPTS,
+    "triggers.q15_sensitive_pi": Q15_SENSITIVE_PI_OPTS,
+    "triggers.q18_admt_use": Q18_ADMT_USE_OPTS,
   },
   // ADMT Checker (admt_detail = `adv` in the intake)
   cppa_admt: {
