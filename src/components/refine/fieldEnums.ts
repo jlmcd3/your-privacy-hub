@@ -37,13 +37,25 @@ type EnumRegistry = Record<string, Record<string, readonly string[]>>;
 
 // tool_type → keyPath → options
 const REGISTRY: EnumRegistry = {
-  // CPPA Risk (§ 7152 impact assessment scales)
+  // CPPA Risk (§ 7152 impact assessment scales).
+  // Two intake shapes coexist:
+  //   - Form shape (impact_intake.*): produced by CPPARiskAssessment.tsx's
+  //     radio/pill controls. All option literals verified to match.
+  //   - Persisted/generator shape (impact.*): produced by the WS6 intake
+  //     generator + normalisation layer. Only leaves whose observed values
+  //     match the form's option literals verbatim are registered here;
+  //     leaves with a diverging option set (e.g. benefits_outweigh_risks,
+  //     harm_types) are intentionally omitted so no stored value is trapped
+  //     by an incomplete select. If those enums are formalised elsewhere,
+  //     import them and register the key path.
   cppa_risk_assessment: {
     "impact_intake.likelihood": IMPACT_LIKELIHOOD_OPTS,
     "impact_intake.severity": IMPACT_SEVERITY_OPTS,
     "impact_intake.benefitsOutweigh": IMPACT_BENEFITS_OUTWEIGH_OPTS,
     "impact_intake.cyberGaps": IMPACT_CYBER_GAPS_OPTS,
     "impact_intake.harmTypes": HARM_TYPES,
+    "impact.severity_of_harm": IMPACT_SEVERITY_OPTS,
+    "impact.likelihood_of_harm": IMPACT_LIKELIHOOD_OPTS,
   },
   // ADMT Checker (admt_detail = `adv` in the intake)
   cppa_admt: {
