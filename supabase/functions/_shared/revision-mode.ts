@@ -40,7 +40,9 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 
 // RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
 // RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.1";
+// RC-C2 stamp bump: DPIA Art. 35 register phrasing + LIA counsel-deferring
+// advisory register + DPIA unit-scope economy contract on the surface.
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
@@ -145,23 +147,68 @@ function buildRevisionPrompt(opts: {
     toolType === "cppa_risk_assessment"
       ? "§ 7157 RECORD REGISTER (cppa-risk): each item_verdicts[].reason MUST be written as a record entry — a certifiable statement of what the answer established (or failed to establish) on the § 7152 record. Use factual past-tense record phrasing (e.g. 'Established annual gross revenue band at $100M–$500M under § 7120(b)(1).' or 'Did not establish the § 7152(a)(5) severity dimension; response omitted concrete harm magnitude.'). Do NOT write conversational or advisory text ('you should...', 'consider...', 'we recommend...'). Every reason must be self-contained and cite the operative provision from the item's provision_key."
       : "",
+    // RC-C2 C2.4 — dpia Art. 35 working-document register rule.
+    toolType === "dpia_framework"
+      ? "GDPR Art. 35 WORKING-DOCUMENT REGISTER (dpia): each item_verdicts[].reason MUST be phrased as a DPIA record entry that a controller could file verbatim in the Art. 35 working document. Cite the operative provision (from the item's provision_key slug, e.g. 'gdpr-art-9-2-j', 'edpb-wp248-c4') in past-tense factual language (e.g. 'Established the Art. 9(2)(j) research condition, citing controller's national derogation under Art. 89(2).' or 'Did not establish the Art. 28(3) processor-obligation coverage; response cited a DPA in draft but no signed instrument.'). No conversational or advisory phrasing; no 'you should…'; no 'we recommend…'. The reason IS the register entry."
+      : "",
+    // RC-C2 C2.5 — LIA counsel-deferring advisory register.
+    toolType === "li_assessment"
+      ? "LIA ADVISORY REGISTER (li_assessment): advisory_notes (cap 3) must be single suggestive sentences that route to a reassessment and defer to counsel — e.g. 'If your organization can document a data-subject expectation survey covering this cohort, a reassessment covering it may be worth considering, based on your counsel's advice.' Substantive balancing findings, contradictions, or 'must' language belong in the report body or in item_verdicts[].reason. Each item_verdicts[].reason should read as an assessment-register entry (past-tense, citation-anchored) — e.g. 'Established the necessity leg under Art. 6(1)(f) via the documented least-intrusive-means analysis.'"
+      : "",
     dpiaUnitSubset && dpiaUnitSubset.length > 0
-      ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units.`
+      ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units. Prior-report context for units outside this subset has been elided for token economy — do not attempt to reconstruct it.`
       : "",
   ].filter(Boolean).join("\n");
+
+  // RC-C2 C2.3 — UNIT-SCOPE ECONOMY: for DPIA revisions, pass ONLY the
+  // affected sections of the prior report to the model. We keep:
+  //   - report_metadata, open_items, advisory_notes (contract surface)
+  //   - each answered item's target-path subtree (scoped delta surface)
+  // Everything else is elided; token spend on the model call drops
+  // proportionally, and api_usage.input_tokens records the delta (visible
+  // in /admin/spend).
+  const priorReportForPrompt =
+    toolType === "dpia_framework" && dpiaUnitSubset && dpiaUnitSubset.length > 0
+      ? pruneReportToTargets(storedReport, answeredItems.map((a) => a.item.target?.path).filter(Boolean) as string[])
+      : storedReport;
 
   const user = [
     "ANSWERED_ITEMS:",
     JSON.stringify(answersBlock, null, 2),
     "",
     "PRIOR REPORT (JSON; ONLY change paths under determinations these items feed):",
-    JSON.stringify(storedReport, null, 2).slice(0, 60_000),
+    JSON.stringify(priorReportForPrompt, null, 2).slice(0, 60_000),
     "",
     "INTAKE (for reference; do NOT rewrite intake facts):",
     JSON.stringify(intake ?? {}, null, 2).slice(0, 15_000),
   ].join("\n");
 
   return { system, user };
+}
+
+// RC-C2 C2.3 — Prune a report to only the subtrees the answered items feed,
+// plus contract-surface keys. Anything else is stripped so the prompt stays
+// small. Safe for DPIA revision-mode where the untouched-hash guard still
+// verifies byte-identity of stripped paths on the SERVER-SIDE full stored
+// report (this pruning affects ONLY the prompt payload, not the row on disk).
+function pruneReportToTargets(report: any, targetPaths: string[]): any {
+  if (!report || typeof report !== "object") return report;
+  const keep: any = {};
+  // Always keep contract-surface keys the model needs to reason.
+  for (const k of ["report_metadata", "open_items", "advisory_notes", "information_needed"]) {
+    if (report[k] !== undefined) keep[k] = report[k];
+  }
+  // Also keep every top-level subtree that any answered item's target-path
+  // ROOT names (so the model sees the section it's about to patch).
+  const roots = new Set<string>();
+  for (const p of targetPaths) {
+    const root = String(p).split(/[.\[]/, 1)[0].trim();
+    if (root) roots.add(root);
+  }
+  for (const root of roots) {
+    if (report[root] !== undefined) keep[root] = report[root];
+  }
+  return keep;
 }
 
 export interface HandleRevisionOpts {

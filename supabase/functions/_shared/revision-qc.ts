@@ -6,7 +6,8 @@
 
 export const CONTRACT_ENABLED_TOOLS = new Set<string>([
   "cppa_risk_assessment",
-  "dpia_framework", // core proven RC-B; C2 hardens per-tool
+  "dpia_framework",   // core proven RC-B; C2.1–C2.4 hardens per-tool
+  "li_assessment",    // RC-C2 C2.5 — LIA joins the contract
 ]);
 
 export interface QcCheckResult {

@@ -40,6 +40,22 @@ import {
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "@/pages/admt/ADMTChecker.enums";
+// RC-C2 C2.2 — DPIA intake enums (content-anchored to DPIAFramework.tsx exports).
+import {
+  DATA_CATS as DPIA_DATA_CATS,
+  JURISDICTIONS as DPIA_JURISDICTIONS,
+  LEGAL_BASES as DPIA_LEGAL_BASES,
+  ARTICLE_9_CONDITIONS as DPIA_ARTICLE_9_CONDITIONS,
+  REASONS_TO_CONDUCT as DPIA_REASONS_TO_CONDUCT,
+  SAFEGUARDS as DPIA_SAFEGUARDS,
+  TOOLS as DPIA_TOOLS,
+} from "@/pages/DPIAFramework";
+// RC-C2 C2.5 — LIA intake enums (content-anchored to LIAssessment.tsx exports).
+import {
+  DATA_CATEGORIES as LIA_DATA_CATEGORIES,
+  RELATIONSHIPS as LIA_RELATIONSHIPS,
+  JURISDICTIONS as LIA_JURISDICTIONS,
+} from "@/pages/LIAssessment";
 
 // Q18 uses inline ["Yes","No","In evaluation"] in the intake JSX; mirror that
 // literal here (content-anchored to CPPARiskAssessment.tsx line 924).
@@ -104,11 +120,25 @@ const REGISTRY: EnumRegistry = {
     "admt_detail.feeds_future_decisions": ADMT_YES_NO_UNSURE_OPTS,
     "admt_detail.solely_advertising": ADMT_SOLELY_ADVERTISING_OPTS,
   },
-  // Audit note (2026-07-12, UX-1): the remaining seven tools' object/array
-  // intake fields carry only free-text leaves (LIA purpose/necessity/balancing
-  // details, DPIA/DPA/IR/Biometric/CPPACybersecurity/Governance nested blocks).
-  // If the intake for any of them adds an enumerated leaf, register it here
-  // and import the option set from the owning intake page.
+  // RC-C2 C2.2 — DPIA T-class enumerated intake leaves.
+  dpia_framework: {
+    data_categories: DPIA_DATA_CATS,
+    jurisdictions: DPIA_JURISDICTIONS,
+    legal_basis_proposed: DPIA_LEGAL_BASES,
+    article_9_condition: DPIA_ARTICLE_9_CONDITIONS,
+    reasons_to_conduct: DPIA_REASONS_TO_CONDUCT,
+    existing_safeguards: DPIA_SAFEGUARDS,
+    processors: DPIA_TOOLS,
+  },
+  // RC-C2 C2.5 — LIA T-class enumerated intake leaves.
+  li_assessment: {
+    data_categories: LIA_DATA_CATEGORIES,
+    relationship_type: LIA_RELATIONSHIPS,
+    jurisdictions: LIA_JURISDICTIONS,
+  },
+  // Audit note (2026-07-12, UX-1): the remaining five tools' object/array
+  // intake fields carry only free-text leaves. Register enum leaves here as
+  // each per-tool courier lands.
 };
 
 // Normalise an array-index segment ("foo.0.bar" → "foo[].bar") so array
