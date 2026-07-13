@@ -558,6 +558,7 @@ export default function ADMTChecker() {
             resultPath={`/cppa-admt-checker/result/${refine.assessmentId}`}
             infoNeededKeys={refine.infoNeededKeys}
               priorInformationNeeded={refine.infoNeeded}
+              openItems={refine.openItems}
           />
         )}
         {!refine.isRefine && (<>

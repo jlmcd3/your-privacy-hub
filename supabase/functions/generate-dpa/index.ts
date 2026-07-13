@@ -11,6 +11,7 @@ import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
@@ -139,7 +140,7 @@ function fmtYear(e: EnforcementCtx): string {
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] generate-dpa build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] generate-dpa build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[generate-dpa] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -155,6 +156,12 @@ Deno.serve(async (req) => {
     // Trust user identity only from the verified JWT; internal webhook
     // callers may pass user_id in the body (service-role bearer).
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body as any, { toolType: "dpa_generator" });
+      if (__rev) return __rev;
+    }
+
 
     if (body.assessment_id) {
       const ent = await requireEntitlement(caller, "dpa_generator", { rowId: body.assessment_id });

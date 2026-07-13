@@ -14,6 +14,7 @@ import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
@@ -852,7 +853,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[check-biometric-compliance] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -866,6 +867,11 @@ Deno.serve(async (req) => {
     }
     const body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body as any, { toolType: "biometric_checker" });
+      if (__rev) return __rev;
+    }
 
     if (body.assessment_id) {
       const ent = await requireEntitlement(caller, "biometric_checker", { rowId: body.assessment_id });

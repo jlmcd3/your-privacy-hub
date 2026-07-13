@@ -11,6 +11,7 @@ import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERS
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1378,7 +1379,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-cppa-cybersecurity build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-cppa-cybersecurity build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-cppa-cybersecurity] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -1389,12 +1390,18 @@ Deno.serve(async (req) => {
         status: caller.status ?? 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { assessment_id } = await req.json();
+    const __body = await req.json();
+    const { assessment_id } = __body;
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, __body, { toolType: "cppa_cybersecurity" });
+      if (__rev) return __rev;
     }
 
     const ent = await requireEntitlement(caller, "cppa_cybersecurity", { rowId: assessment_id });

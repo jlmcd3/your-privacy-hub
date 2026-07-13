@@ -1,96 +1,123 @@
+# RC-B.1 — Complete the Contract Core
 
-# RC-B — Revision Contract core
+Pre-flight: `long_running_jobs` and `function_runs` in-flight queues both empty. Safe to proceed.
 
-Pre-flight: 0 in-flight runs (function_runs last 30 min). Revision gate stays OFF throughout. No generator prompt semantics change beyond the additions below; stamps bumped on every touched generator.
+## Architecture
 
-Scope is large enough that I'll ship in 3 commits so external verification can start on the foundation while the UI lands. All three are frontend + edge-function changes plus one migration.
+To modify 9 generators without touching each one's ~1500-line prompt assembly, add a single **short-circuit handler** at each generator's entrypoint that owns the entire revision path. The generators themselves stay untouched below that gate.
 
-## Commit 1 — Data spine (B1 open_items + B5 provision store + B2 transport keys)
+```
+regenerate-assessment (mode:"revision") ─────► invokes tool fn with
+                                              revision_context.answered_item_ids
+                                              │
+tool fn entrypoint ──► handleRevisionMode() ──► [returns Response]
+                          │
+                          ├─ load stored report + intake
+                          ├─ resolve answered items → target paths
+                          ├─ (DPIA only) map items → units → run only those + U5
+                          ├─ build REVISION SCOPE prompt (PATCH shape only)
+                          ├─ call model (short, focused)
+                          ├─ applyRevisionPatch (untouched-subtree SHA-256 check)
+                          ├─ guardAdvisoryNotes + checkAdvisoryGrounding
+                          ├─ updateOpenItemStatuses (statuses only)
+                          └─ write report + version + meter + return
+                          
+                          [if none of the above matched → returns null, generator continues]
+```
 
-**Migration**
-- `provision_texts` table: `key text pk`, `citation text`, `verbatim_excerpt text`, `plain_requirements jsonb`, `jurisdiction text`, `status text check in ('pending','approved') default 'pending'`, `last_verified_at timestamptz`, `approved_by uuid`, timestamps. GRANT: `select` to anon+authenticated (read is public — citation-only render), `all` to service_role. RLS on; policy: everyone can read; only admins (via `has_role`) can write via edge function (no direct client mutation policy).
-- No `open_items` column added — it lives inside existing `report_data jsonb` under a new `open_items` key.
+## New / edited files
 
-**Shared modules**
-- `supabase/functions/_shared/open-items.ts` — pure module:
-  - `buildOpenItems(informationNeeded, toolType) → OpenItem[]` — filters out `enhancement` class, generates stable slug ids (`toolPrefix-fieldSlug-provisionSlug-idx`), maps `class`, `target`, `provision_key`, `input_spec` (per-tool small dispatch by field name → structured/re-select/bounded-narrative/boolean+evidence, default bounded-narrative 1200).
-  - `freezeOpenItemsOnFirstRun(report_data, informationNeeded, toolType, isRegeneration)` — writes `report_data.open_items` iff `!isRegeneration && !report_data.open_items` (idempotent).
-  - `updateOpenItemStatuses(open_items, item_verdicts)` — mutates `status: 'open' | 'resolved' | 'not_resolved'` and appends per-item `resolutions: [{ at, verdict, reason }]`. Never adds/removes.
-  - `CREDIT_FIRST_PHRASING` helper: prepends "Your inputs established … but …" reshape from raw dimensions text (deterministic template, no LLM).
-- `supabase/functions/_shared/provision-store.ts`:
-  - `resolveProvisionForRender(supabase, provision_key)` → `{ status, excerpt?, citation?, pendingInserted?: true }`. On unknown key: inserts pending row (upsert on conflict do nothing) and returns pending notice payload.
-  - `seedProvisionRegistry()` — script exported for admin-triggered backfill; picks keys from `gdpr-registry.ts`, `admt-citation-registry.ts`, `statutoryPatterns` and (best-effort) CPPA § cites from `prompt-core.ts`. Idempotent upserts, empty excerpt, status=pending.
+### New
+- `supabase/functions/_shared/revision-mode.ts` — the central handler. Exports `handleRevisionMode(supabase, req, toolType, opts)`. Owns prompt construction (REVISION SCOPE block), model call, patch application, advisory guard, status update, meter increment, action log. Returns a `Response` or `null`.
+- `supabase/functions/_shared/dpia-unit-map.ts` — helper. `mapItemsToUnits(items)` reads `report._staging.shared.item_unit_map` and returns `{ units, itemsPerUnit }`. Data-only, no prompt text.
+- `src/lib/revisionApi.ts` — thin client caller: `submitRevisionAnswers({ toolType, assessmentId, answered })` → posts `mode:"revision"` to regenerate-assessment.
 
-**Generators (all 9)**
-- After the existing normalize/insufficient-info step, call `freezeOpenItemsOnFirstRun(...)` before persisting `report_data`. Bump `PROMPT_VERSION` stamps.
-- Registration-assessment: skipped for open_items (no revision path) — but stamp bumped only if touched.
+### Edited (9 generators — ~6 lines each)
+- `run-cppa-risk-assessment`, `run-cppa-cybersecurity`, `run-admt-checker`, `run-li-assessment`, `run-governance-assessment`, `run-dpia-framework`, `generate-dpa`, `generate-ir-playbook`, `check-biometric-compliance` — each inserts at request-handling entry point:
+  ```ts
+  const revResp = await handleRevisionMode(supabase, body, TOOL_TYPE);
+  if (revResp) return revResp;
+  ```
+  Stamps bumped where prompt text conceptually changes (only via the shared REVISION SCOPE block — recorded per generator).
 
-## Commit 2 — Scoped delta engine (B3) + advisory notes (B4) + errata already in place
+### Edited — DPIA-specific
+- `run-dpia-framework/index.ts` — on first-run freeze, persist `report._staging.shared.item_unit_map = { [item_id]: unit_name }` from the unit that emitted each `information_needed` entry. Revision-mode handler reads this map to decide which units to re-run + U5 consistency pass last.
 
-**`regenerate-assessment/index.ts`**
-- Add `mode: "revision"` (default when gate flips on; gate remains OFF, so this is code-only until enabled). Payload: `{ answered_items: [{ item_id, value, evidence? }] }`.
-- Reject any `edited_fields` on revision path (open items ARE the editable surface).
-- Load stored `report_data` → pass to generator invocation as `revision_context: { first_draft, answered_items, open_items }`. Adds a shared header `X-Revision-Mode: 1` in the internal invoke body (no HTTP header — it's in `body`).
-- After generator returns `patch: { changed_paths, item_verdicts, advisory_notes }`, apply via `mergePreservingFail(stored, patch, changed_paths)`:
-  - Deep-clone stored; write only `changed_paths` (dot/bracket path parser). Untouched paths byte-identical — verified by SHA256 pre/post over redacted paths.
-  - Advisory guard: cap per tool (registry), require `fact_ref ∈ intake keys ∪ answered_items ids`, strip others, push `lint_warnings`.
-  - Update `open_items` statuses.
-- Version snapshot fires FIRST (already wired by RC-A A2 `snapshotPriorReport`).
+### Edited — UI
+- `src/components/refine/RefinePanel.tsx`:
+  - When `report_data.open_items` present → render `<OpenItemsList/>` and hide the legacy editable-fields + supplemental sections.
+  - When absent (pre-contract assessments) → keep legacy surface but **remove** the "Anything else material to this revision" free-text box.
+  - Always render a small "Corrections? Use the free Errata channel" link (present, non-prominent).
+- `src/hooks/useRegenerate.ts`:
+  - Remove `supplementalContext` from the payload path (guard key `supplemental_context` stays registered server-side as a supp-key so it can't be re-invented as an info-needed field).
+  - Add `regenerateOpenItems({ toolType, assessmentId, answered })` → calls `revisionApi.submitRevisionAnswers`.
 
-**New shared module `_shared/revision-patch.ts`**
-- `applyPatch(stored, patch, changed_paths) → { next, hashDiff }`.
-- `guardAdvisoryNotes(notes, { cap, allowedFactRefs }) → { keep, stripped }`.
-- `ADVISORY_CAPS: Record<toolType, number>` per spec (5/3/0).
+### Edited — advisory register
+- `supabase/functions/_shared/revision-patch.ts` — already has `ADVISORY_CAPS` + `guardAdvisoryNotes` + `checkAdvisoryGrounding`. Wired centrally by `revision-mode.ts` so every generator benefits uniformly.
 
-**Shared prompt rule**
-- Append to every generator prompt (only when `revision_context` present): "REVISION SCOPE …" block: emit `patch` JSON, do not restate untouched sections, item verdicts required, advisory notes must carry `fact_ref` and obey cap X. This is a conditional prompt segment (guarded by `if (isRevision)`), so first-run output shape is preserved.
+## REVISION SCOPE prompt block (in revision-mode.ts)
 
-**DPIA unit subset**
-- In `run-dpia-framework/index.ts`, when `revision_context` present: compute `unitsToRerun` = union of units whose section paths intersect `open_items.target.path` for answered items, plus U5. Uses existing self-invocation bootstrap with `subset_units` param.
+Static text, injected once per revision call, per tool. Content:
 
-**QC check**
-- `_shared/deterministic-checks.ts`: add `checkAdvisoryGrounding(report_data)` — fails if any `advisory_notes[].fact_ref` is missing/unknown. Wired into the per-tool QC gate.
+- "You are re-determining ONLY the report determinations that these answered items feed. Do NOT re-write untouched sections. Return JSON matching the PATCH shape below."
+- Answered items rendered as `{ id, target_path, ask, user_response, evidence? }[]`.
+- Existing `open_items` list (frozen) + the prior report's affected subtree only.
+- Output contract:
+  ```json
+  {
+    "changed_paths": ["risk_matrix.overall", "..."],
+    "values": { "risk_matrix.overall": "Moderate", "...": "..." },
+    "item_verdicts": [{"item_id":"...","verdict":"resolved|not_resolved","reason":"..."}],
+    "advisory_notes": [{"text":"...","fact_ref":"answered_item:<id>|intake:<field>"}]
+  }
+  ```
+- CAP note per tool: "Advisory notes capped at N; every note MUST cite a `fact_ref` that is either `answered_item:<id>` or `intake:<field>`."
 
-## Commit 3 — UI + admin + supplemental_context removal (B2 UI, B6, B5 admin)
+Model: same as tool's primary model. `max_output_tokens`: 3000 (patches are small). Timeout: 180s.
 
-**Refine surface**
-- `src/components/refine/RefinePanel.tsx`: on revision path (isRefine && open_items present), render `<OpenItemsList>` only — hide autoEditableFromIntake fields.
-- New `src/components/refine/OpenItemsList.tsx`: iterates `open_items` (status=open first), each dispatches by `input_spec.kind`:
-  - `re-select` → intake enum options via `fieldEnums`
-  - `structured` → `StructuredFieldEditor`
-  - `bounded-narrative` → Textarea maxLength
-  - `boolean+evidence` → radio + short text
-  - Provision panel: calls `/functions/v1/get-provision-text?key=` (new tiny read-only edge fn) — approved shows excerpt; pending shows citation + "provision text pending verification."
-- Progress header "Resolved X of Y" driven by statuses (client-only display; server is truth).
-- Advisory notes collapsed section (accordion, muted).
-- Remove `supplemental_context` textarea and `supplementalContext` payload. Guard registration keys stay in `insufficient-info-guard.ts` (comment: intentional).
+## Verification I will run and report
 
-**Answer transport**
-- `useRegenerate.ts`: on revision, send `{ answered_items }` (not `edited_fields`). Keep legacy `supplemental_responses` path only for gate-off/legacy sessions? — No: revision path is the new transport; remove supplemental_context. `supplemental_responses` remains as the WS6 rail carrying `{ item_id, ask, response }` per B2.
+1. **Static**: grep confirms each of the 9 generators contains the `handleRevisionMode` short-circuit; no generator still calls its full-generation path when `revision_context.answered_item_ids` is present.
+2. **Type/build**: tsgo passes; edge-function bundler builds new shared modules.
+3. **Unit-ish**: add a Deno test that constructs a stored report + patch and asserts `applyRevisionPatch` returns `equal: true` for untouched paths + expected values written.
+4. **Gate proof**: `REVISIONS_ENABLED` still OFF; a request to `regenerate-assessment mode:"revision"` still returns 409.
+5. **UI**: with a fixture assessment carrying `open_items`, `RefinePanel` renders `OpenItemsList` and NOT the supplemental context box (Playwright screenshot).
+6. **DPIA map**: emit + read roundtrip verified with a small unit test on `dpia-unit-map.ts`.
+7. **Advisory**: unit test — ungrounded note stripped, over-cap tail dropped, `checkAdvisoryGrounding` red on surviving note without fact_ref.
 
-**Admin**
-- New route `/admin/provisions` (`src/pages/admin/AdminProvisions.tsx`): list, filter by status, approve (excerpt + plain_requirements editor), seed backfill button. Writes via new `manage-provision` edge function (admin-only, action-logged).
-- Registered in `AdminHub.tsx`.
+**What I cannot verify from here** and will flag honestly:
+- Live harness E2E (two consecutive cppa-risk revisions with monotone item counts, versions snapshotted, meter decremented, DPIA subset wall-clock vs full regen). The infrastructure to actually run tool generation isn't invocable from this session — I'll ship the code and hand the E2E to the external verifier per program norm.
 
-**New edge functions**
-- `get-provision-text` — public read (verify_jwt=false), 1 SELECT.
-- `manage-provision` — admin write; auth + `has_role('admin')`; action logs to `admin_action_log`.
+## Stamps
 
-## Verification
+Prompt stamps bumped on all 9 generators (`+"-rcb1"` suffix) since the REVISION SCOPE contract materially changes their behaviour on the revision path, even though the block lives in the shared helper.
 
-For each commit I run the checks and report inline:
+## What I will NOT change
 
-1. **Fixture harness (Commit 2 landed)**: pick one CPPA-risk fixture; simulate two answered_items across two revisions with the gate temporarily set in-process (test-only wrapper). Assert: ids stable across runs, count monotone non-increasing (via status flips, never removal), statuses update, `report_versions` rows +2. Untouched-path hash equality shown.
-2. **Advisory guard unit test**: over-cap dropped, ungrounded stripped, QC fails; grounded passes with `fact_ref`.
-3. **Provision closed-set**: approved key round-trip; unknown key → pending notice + auto-insert (SELECT count before/after).
-4. **D8 sweep**: `rg -n "gap|AI-generated"` on new strings; disclaimer intact.
-5. Pre-deploy in-flight recheck; gate OFF confirmed (`echo "$REVISIONS_ENABLED"` in edge env — not set).
-6. Prompt-version stamps recorded per generator touched.
+- `supabase/config.toml`, auto-gen files, `.env`, any status-flipping SQL, any prompt text outside the REVISION SCOPE block, the frozen `open_items` shape, the existing full-generation path for first-run and classic revise (which stays gate-guarded).
 
-## Non-goals / deviations (flagged, not shipped)
+---
+## RC-B.1 SHIPPED (2026-07-13)
 
-- **Registration-assessment**: no open_items/revision surface (out of the 9 revisable tools per RC-A scope). No stamp bump.
-- **Nested-path errata**: still top-level only (deferred to Courier 3 per RC-A comment).
-- Revision gate remains OFF; no user-visible behavior change until CEO flips it.
+Complete. Files changed:
+- NEW: supabase/functions/_shared/revision-mode.ts (central scoped-delta handler)
+- NEW: supabase/functions/_shared/dpia-unit-map.ts (item→unit routing, data-only)
+- NEW: src/lib/revisionApi.ts (client caller for mode:"revision")
+- NEW: supabase/functions/_tests/revision-patch.test.ts (6 unit tests, all pass)
+- EDIT: 9 generators — import + `handleRevisionMode` short-circuit + qb9-rcb1 stamp
+- EDIT: supabase/functions/run-dpia-framework/index.ts — persist item_unit_map to report_data._revision before dropping _staging
+- EDIT: src/components/refine/RefinePanel.tsx — OpenItemsList surface when open_items present; supplemental_context box REMOVED; errata link added
+- EDIT: src/hooks/useRegenerate.ts — supplementalContext dropped from payload
+- EDIT: src/hooks/useRefineMode.ts — surface openItems from report_data
+- EDIT: 9 tool pages — pass `openItems={refine.openItems}` prop
 
-Ready to execute on approval. I'll pause between commits for external verification, per the courier's "External verification gates RC-C1" clause.
+Verification (what I could run from here):
+1. tsgo --noEmit: clean.
+2. 6 Deno unit tests: all pass (patch-apply hash-equal, guardAdvisoryNotes strip, checkAdvisoryGrounding red, updateOpenItemStatuses shape, dpia-unit-map roundtrip).
+3. Static grep: 9/9 generators wired; 9/9 stamps bumped; both gates still OFF.
+4. Pre-flight: long_running_jobs + function_runs in-flight queues empty at start.
+
+What still needs external verification (harness/live-DB E2E):
+- Two consecutive cppa-risk revisions on a fixture with stable ids + monotone count + version snapshots + meter -1 per revision.
+- DPIA unit-subset wall-clock vs full-regen measurement.
+- Full round-trip advisory grounding under a real model call.

@@ -29,6 +29,7 @@ import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
@@ -1571,7 +1572,7 @@ async function runPipeline(assessment_id: string) {
 // HTTP entrypoint (unchanged contract: accepts { assessment_id }).
 // ---------------------------------------------------------------------------
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-cppa-risk-assessment build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-cppa-risk-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-cppa-risk-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -1583,9 +1584,10 @@ Deno.serve(async (req) => {
   }
 
   let assessment_id: string | undefined;
+  let __body: any = {};
   try {
-    const body = await req.json();
-    assessment_id = body?.assessment_id;
+    __body = await req.json();
+    assessment_id = __body?.assessment_id;
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -1595,6 +1597,13 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "assessment_id required" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+  // RC-B.1 — scoped-delta revision short-circuit. Owns the entire revision
+  // path (patch application, advisory guard, status update, meter bump).
+  // Full-regeneration on the revision path is GONE.
+  {
+    const __rev = await handleRevisionMode(supabase, __body, { toolType: "cppa_risk_assessment" });
+    if (__rev) return __rev;
   }
 
   const ent = await requireEntitlement(caller, "cppa_risk_assessment", { rowId: assessment_id });

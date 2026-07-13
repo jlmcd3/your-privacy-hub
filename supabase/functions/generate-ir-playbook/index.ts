@@ -18,6 +18,7 @@ import { renderIcoPenaltyFigures } from "../_shared/enforcement-figures-registry
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -614,7 +615,7 @@ function renderIrTestStatesBlock(body: Body): string {
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] generate-ir-playbook build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] generate-ir-playbook build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[generate-ir-playbook] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -628,6 +629,11 @@ Deno.serve(async (req) => {
     }
     let body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body as any, { toolType: "ir_playbook" });
+      if (__rev) return __rev;
+    }
 
     if (body.assessment_id) {
       const ent = await requireEntitlement(caller, "ir_playbook", { rowId: body.assessment_id });

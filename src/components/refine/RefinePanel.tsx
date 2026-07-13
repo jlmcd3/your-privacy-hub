@@ -10,6 +10,9 @@ import {
   summariseStructuredValue,
 } from "@/components/refine/StructuredFieldEditor";
 import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "@/lib/revisionGate";
+// RC-B.1 B1.4 — Open-items surface (used when report_data.open_items exists).
+import OpenItemsList, { type OpenItem as OpenItemT } from "@/components/refine/OpenItemsList";
+import { submitRevisionAnswers } from "@/lib/revisionApi";
 
 export interface EditableFieldSpec {
   key: string;
@@ -44,6 +47,9 @@ interface Props {
   // When non-empty, each entry gets its own textarea; a general context box
   // renders regardless. Absent → no supplemental section rendered.
   priorInformationNeeded?: Array<{ field?: string; dimensions?: string; ask?: string; [k: string]: unknown }>;
+  // RC-B.1 B1.4 — when the assessment carries frozen open_items (contract
+  // core), render OpenItemsList in place of the legacy editable surface.
+  openItems?: OpenItemT[];
 }
 
 
@@ -61,11 +67,12 @@ export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
   runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
   resolveFields, resolveHighlightingEnabled,
-  priorInformationNeeded,
+  priorInformationNeeded, openItems,
 }: Props) {
   const priorInfo = priorInformationNeeded ?? [];
   const [supplementalResponses, setSupplementalResponses] = useState<string[]>(() => priorInfo.map(() => ""));
-  const [supplementalContext, setSupplementalContext] = useState<string>("");
+  // RC-B.1 B1.4 — supplemental_context box REMOVED from RefinePanel; the
+  // free-form catch-all is superseded by the frozen open_items contract.
   const infoSet = new Set(infoNeededKeys ?? []);
   // Doc Q: active RESOLVE map, empty when disabled. Local cleared-set
   // hides the highlight/chip visually on edit -- never mutates data.
@@ -163,14 +170,12 @@ export default function RefinePanel({
         response: (supplementalResponses[i] ?? "").trim(),
       }))
       .filter((x) => x.response.length > 0);
-    const suppCtx = supplementalContext.trim();
 
     const outcome = await regenerate({
       toolType, assessmentId,
       editedFields: cleanEdits,
       priorRunsUsed: runsUsed,
       supplementalResponses: suppList.length > 0 ? suppList : undefined,
-      supplementalContext: suppCtx.length > 0 ? suppCtx : undefined,
     });
 
     if (outcome.kind === "accepted") {
@@ -204,6 +209,41 @@ export default function RefinePanel({
         <div className="text-eyebrow text-brand-mist mb-1">Revisions paused</div>
         <h2 className="font-display text-brand-navy leading-snug">Revisions are temporarily disabled</h2>
         <p className="text-sm text-slate max-w-[70ch]">{REVISIONS_DISABLED_MESSAGE}</p>
+      </section>
+    );
+  }
+
+  // RC-B.1 B1.4 — when the assessment carries frozen open_items (contract
+  // core), render OpenItemsList in place of the legacy editable surface.
+  // Legacy surface stays for pre-contract assessments (no open_items array).
+  if (openItems && openItems.length > 0) {
+    return (
+      <section className="bg-card border border-brand-cloud rounded-2xl p-6 sm:p-8 shadow-eup-sm space-y-6" data-testid="refine-open-items-surface">
+        <header>
+          <div className="text-eyebrow text-brand-mist mb-2">Refine this assessment</div>
+          <h2 className="font-display text-brand-navy leading-snug">Answer the open items</h2>
+          <p className="text-sm text-slate mt-2 max-w-[70ch]">
+            Generation {runsUsed} of {runsAllowed} used. Your first run identified specific
+            items the record needs. Answer any of them below to update the report.
+          </p>
+        </header>
+        <OpenItemsList
+          items={openItems}
+          onSubmit={async (answered) => {
+            const outcome = await submitRevisionAnswers({ toolType, assessmentId, answered });
+            if (outcome.kind === "accepted") {
+              toast({ title: "Regenerating your report", description: "This can take a minute." });
+              nav(resultPath.replace(":id", assessmentId));
+            } else if (outcome.kind === "revisions_disabled") {
+              toast({ title: "Revisions paused", description: REVISIONS_DISABLED_MESSAGE, variant: "destructive" });
+            } else if (outcome.kind === "error") {
+              toast({ title: "Couldn't submit", description: outcome.message, variant: "destructive" });
+            }
+          }}
+        />
+        <p className="text-xs text-muted-foreground pt-2 border-t border-brand-cloud">
+          Need to correct a name or date verbatim? Use the free Errata channel from your report page.
+        </p>
       </section>
     );
   }
@@ -369,19 +409,11 @@ export default function RefinePanel({
             })}
           </div>
         )}
-        <div data-testid="supplemental-general">
-          <label htmlFor="supp-general" className="text-sm font-semibold text-brand-navy">
-            Anything else material to this revision
-          </label>
-          <textarea
-            id="supp-general"
-            value={supplementalContext}
-            onChange={(ev) => setSupplementalContext(ev.target.value)}
-            placeholder="Additional context (optional)"
-            className="mt-2 min-h-20 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
-          />
-        </div>
+        {/* RC-B.1 B1.4 — "Anything else material" free-text box REMOVED.
+            Free-form context is superseded by the frozen open_items contract.
+            For verbatim corrections, use the Errata channel. */}
       </div>
+
 
       <div className="pt-4 border-t border-brand-cloud flex flex-wrap gap-3">
         {!exhausted ? (

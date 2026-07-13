@@ -15,6 +15,7 @@ import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
@@ -725,7 +726,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-governance-assessment build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-governance-assessment] qb7 build active · doc-y-2b");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -742,6 +743,11 @@ Deno.serve(async (req) => {
     const stressRun = body?.stress_run === true;
     if (!assessment_id) return new Response(JSON.stringify({ error: "assessment_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, body, { toolType: "governance_assessment" });
+      if (__rev) return __rev;
+    }
 
     const ent = await requireEntitlement(caller, "governance_assessment", { rowId: assessment_id });
     if (!ent.ok) {

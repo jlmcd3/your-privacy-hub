@@ -23,22 +23,22 @@ export function useRegenerate() {
     // WS6 v2.1: supplemental capture on regeneration. Absent/empty →
     // omitted from payload entirely (preserves first-run parity).
     supplementalResponses?: Array<{ ref_field?: string; ask: string; response: string }>;
-    supplementalContext?: string;
   }): Promise<RegenerateOutcome> {
     setBusy(true);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 60_000);
     try {
       // WS6: fold supplementals into the edits payload under stable keys so
-      // regenerate-assessment routes them per tool (intake_data for the 8
-      // JSON-intake tools; dedicated columns for LIA).
+      // regenerate-assessment routes them per tool. RC-B.1 B1.4 removed the
+      // supplemental_context free-text box; the key stays registered as a
+      // WS6 supplemental key server-side so it cannot be re-invented as an
+      // information_needed field, but the client no longer sends it.
       const supplementalEdits: Record<string, unknown> = {};
       const suppList = (args.supplementalResponses ?? []).filter(
         (e) => e && typeof e.response === "string" && e.response.trim().length > 0,
       );
       if (suppList.length > 0) supplementalEdits.supplemental_responses = suppList;
-      const suppCtx = (args.supplementalContext ?? "").trim();
-      if (suppCtx.length > 0) supplementalEdits.supplemental_context = suppCtx;
+
 
       const { data, error } = await supabase.functions.invoke("regenerate-assessment", {
         body: {

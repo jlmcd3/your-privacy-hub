@@ -20,6 +20,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -358,7 +359,7 @@ function tryParseJson(text: string): any | null {
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-admt-checker build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-admt-checker build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-admt-checker] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -380,6 +381,11 @@ Deno.serve(async (req) => {
 
   const assessment_id: string = String(body?.assessment_id ?? "").trim();
   if (!assessment_id) return json({ error: "assessment_id required" }, 400);
+  // RC-B.1 — scoped-delta revision short-circuit.
+  {
+    const __rev = await handleRevisionMode(supabase, body, { toolType: "cppa_admt" });
+    if (__rev) return __rev;
+  }
 
   const { data: assessment } = await supabase
     .from("cppa_assessments")

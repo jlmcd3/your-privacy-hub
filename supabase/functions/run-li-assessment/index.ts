@@ -13,6 +13,7 @@ import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -342,7 +343,7 @@ function ensureReferenceCategoryCaveat(report: any): any {
 
 
 Deno.serve(async (req) => {
-  console.log(`[qb9] run-li-assessment build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-li-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-li-assessment] qb7 qb7r build active");
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -355,10 +356,16 @@ Deno.serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { assessment_id } = await req.json();
+    const __body = await req.json();
+    const { assessment_id } = __body;
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    // RC-B.1 — scoped-delta revision short-circuit.
+    {
+      const __rev = await handleRevisionMode(supabase, __body, { toolType: "li_assessment" });
+      if (__rev) return __rev;
     }
 
     const ent = await requireEntitlement(caller, "li_assessment", { rowId: assessment_id });
