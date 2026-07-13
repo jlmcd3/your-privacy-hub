@@ -179,6 +179,47 @@ function fieldRootLocked(toolType: string, field: string): boolean {
   return set.has(field) || set.has(root);
 }
 
+// RC-C2 C2.1 — DPIA provision-key SLUG NORMALIZATION.
+// DPIA generators author provision_key as free-text citations
+// (e.g. "GDPR Art. 9(1) (special categories …); EDPB WP248 rev.01 criterion 4").
+// The provision-store schema keys off short slugs (gdpr-art-9-1, edpb-wp248-c4).
+// We split: primary slug → provision_key; full authored string → citation.
+// Recognised patterns cover GDPR articles/recitals/paragraphs and EDPB WP248
+// criteria; anything unrecognised falls through to a generic slug so nothing
+// is silently discarded. Applied for DPIA only; other tools already emit slugs.
+export function normalizeProvisionKey(
+  rawKey: string,
+  toolType: string,
+): { key: string; citation?: string } {
+  const raw = String(rawKey ?? "").trim();
+  if (!raw || raw === "unknown") return { key: "unknown" };
+  if (toolType !== "dpia_framework") return { key: raw };
+  // First segment before ';' or '+' or ' / ' is the primary citation.
+  const primary = raw.split(/;|\s\/\s|\s\+\s/)[0].trim();
+  // GDPR Art. N(x)(y)  → gdpr-art-N-x-y
+  const artMatch = primary.match(/\b(?:GDPR\s+)?Art(?:icle|\.)?\s*(\d+)([a-z]?)((?:\s*\([^)]+\))*)/i);
+  if (artMatch) {
+    const num = artMatch[1];
+    const letter = artMatch[2] ? artMatch[2].toLowerCase() : "";
+    const parens = (artMatch[3] || "").match(/\(([^)]+)\)/g) ?? [];
+    const parts = parens.map((p) => p.replace(/[()\s]/g, "").toLowerCase());
+    const slug = ["gdpr", "art", `${num}${letter}`, ...parts].filter(Boolean).join("-");
+    return { key: slug, citation: raw };
+  }
+  // GDPR Recital N → gdpr-rec-N
+  const recMatch = primary.match(/\bRecital\s*(\d+)/i);
+  if (recMatch) return { key: `gdpr-rec-${recMatch[1]}`, citation: raw };
+  // EDPB WP248 (rev.NN) criterion K → edpb-wp248-cK
+  const wpMatch = primary.match(/WP\s*248[^0-9]*criterion\s*(\d+)/i);
+  if (wpMatch) return { key: `edpb-wp248-c${wpMatch[1]}`, citation: raw };
+  // EDPB Guidelines N/YYYY → edpb-guidelines-N-YYYY
+  const gdMatch = primary.match(/EDPB\s+Guidelines?\s*(\d+)\/(\d{4})/i);
+  if (gdMatch) return { key: `edpb-guidelines-${gdMatch[1]}-${gdMatch[2]}`, citation: raw };
+  // Fallback: generic slug from the primary citation (bounded).
+  const fallback = slugify(primary, 48) || "unknown";
+  return { key: fallback, citation: raw };
+}
+
 export function buildOpenItems(
   informationNeeded: unknown,
   toolType: string,
@@ -196,21 +237,24 @@ export function buildOpenItems(
       console.warn(JSON.stringify({ evt: "open_item_locked_field_stripped", tool: toolType, field }));
       return;
     }
-    const provision = String(e?.provision ?? e?.provision_key ?? "unknown");
-    const baseId = `${prefix}-${slugify(field)}-${slugify(provision, 24)}`;
+    const rawProvision = String(e?.provision ?? e?.provision_key ?? "unknown");
+    const norm = normalizeProvisionKey(rawProvision, toolType);
+    const baseId = `${prefix}-${slugify(field)}-${slugify(norm.key, 24)}`;
     let id = baseId;
     let n = 1;
     while (seen.has(id)) { id = `${baseId}-${++n}`; }
     seen.add(id);
-    out.push({
+    const item: OpenItem = {
       id,
       class: cls,
       target: { kind: "field", path: field },
       why_insufficient: creditFirstPhrasing(field, String(e?.dimensions ?? ""), String(e?.enables ?? "")),
-      provision_key: provision,
+      provision_key: norm.key,
       input_spec: pickInputSpec(toolType, field),
       status: "open",
-    });
+    };
+    if (norm.citation && norm.citation !== norm.key) item.citation = norm.citation;
+    out.push(item);
   });
   return out;
 }
