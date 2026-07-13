@@ -10,6 +10,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1322,7 +1323,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2-ws6v21") };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2.1-rcb") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

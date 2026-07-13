@@ -10,6 +10,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
@@ -936,7 +937,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         ? (parsed as any).information_needed
         : [],
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2-ws6v21") },
+      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.1-rcb") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
 
