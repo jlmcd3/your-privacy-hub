@@ -152,7 +152,36 @@ export function guardInformationNeeded(
   const lockedStripped = lockedStrippedFields.length;
 
   // Second pass — original closed-set + supplemental-key stripping.
-  const valid = afterLockedStrip.filter((e) => e && typeof e.field === "string" && intakeKeys.has(e.field) && !WS6_SUPPLEMENTAL_KEYS.has(e.field));
+  // RC-C3.CYB-2 (RULING 2): NESTED WALKER for cyber ask vocabulary
+  // `controls.<slug>`. A dotted field is accepted iff its first segment names
+  // an intake key AND the remaining path resolves to a real intake node — for
+  // cyber, iff `<slug>` matches a `controls[i].key` in the intake. No static
+  // slug list; the intake itself is the schema (mirrors the top-level rule).
+  const isNestedIntakePath = (fieldPath: string): boolean => {
+    if (!fieldPath.includes(".")) return false;
+    const [root, ...rest] = fieldPath.split(".");
+    if (!intakeKeys.has(root)) return false;
+    const rootVal = (intakeObj as Record<string, unknown>)[root];
+    // Array-of-records with `.key` — cyber `controls[].key` shape.
+    if (Array.isArray(rootVal) && rest.length === 1) {
+      const slug = rest[0];
+      return rootVal.some((r: any) => r && typeof r === "object" && r.key === slug);
+    }
+    // Nested object path — generic walker (governance profile.*, etc.).
+    let cur: any = rootVal;
+    for (const seg of rest) {
+      if (cur == null || typeof cur !== "object") return false;
+      if (!(seg in cur)) return false;
+      cur = cur[seg];
+    }
+    return true;
+  };
+  const valid = afterLockedStrip.filter((e) => {
+    if (!e || typeof e.field !== "string") return false;
+    if (WS6_SUPPLEMENTAL_KEYS.has(e.field)) return false;
+    if (intakeKeys.has(e.field)) return true;
+    return isNestedIntakePath(e.field);
+  });
   const strippedCount = afterLockedStrip.length - valid.length;
   if (strippedCount > 0) {
     console.log(JSON.stringify({
