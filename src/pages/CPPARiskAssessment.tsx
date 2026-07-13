@@ -1258,7 +1258,7 @@ export default function CPPARiskAssessment() {
                 <div className="mt-3 space-y-4">
                   <div>
                     <Label>Likelihood of harm to consumers</Label>
-                    <div className="mt-2"><Radio name="impact_likelihood" options={["Unlikely", "Possible", "Likely", "Highly likely"]} value={impactData.likelihood} onChange={(v) => setImpactData((d) => ({ ...d, likelihood: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_likelihood" options={IMPACT_LIKELIHOOD_OPTS} value={impactData.likelihood} onChange={(v) => setImpactData((d) => ({ ...d, likelihood: v }))} /></div>
                   </div>
                   <div>
                     <Label>Severity of harm if it occurs</Label>
