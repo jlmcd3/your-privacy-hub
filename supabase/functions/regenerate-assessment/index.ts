@@ -401,6 +401,7 @@ Deno.serve(async (req) => {
       revision_context: {
         answered_item_ids: items.map((a) => a.item_id),
         processing_started_at: processingStartedAt,
+        previous_status: String((row as any).status ?? "complete"),
         // For no-intake tools (e.g. LIA) supps aren't persisted; forward
         // the full payload so revision-mode.ts can reconstruct answers.
         ...(hasIntakeCol ? {} : { answered_items: items }),

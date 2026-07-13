@@ -95,6 +95,7 @@ export interface RevisionRequestBody {
     answered_item_ids?: string[];
     answered_items?: Array<{ item_id: string; value: unknown; evidence?: string | null }>;
     processing_started_at?: string;
+    previous_status?: string;
   };
   assessment_id?: string;
   dpia_id?: string;
@@ -288,7 +289,9 @@ export async function handleRevisionMode(
   // RC-B.2: capture prior status so we can revert on any refusal path.
   // Own in-flight revisions observe the processing status they just wrote;
   // their safe prior terminal state is complete.
-  const priorStatus: string = row.status === "processing" ? "complete" : (row.status ?? "complete");
+  const priorStatus: string = row.status === "processing"
+    ? String(body.revision_context?.previous_status ?? "complete")
+    : (row.status ?? "complete");
 
   const storedReport = row.report_data ?? {};
   const openItems: OpenItem[] = Array.isArray(storedReport?.open_items) ? storedReport.open_items : [];
