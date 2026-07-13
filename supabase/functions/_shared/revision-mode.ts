@@ -40,7 +40,9 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 
 // RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
 // RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.1";
+// RC-C2 stamp bump: DPIA Art. 35 register phrasing + LIA counsel-deferring
+// advisory register + DPIA unit-scope economy contract on the surface.
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
