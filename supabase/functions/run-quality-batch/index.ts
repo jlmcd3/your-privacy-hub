@@ -20,6 +20,9 @@ import {
 // closing the raw-vs-normalised defect that made QC-R1-4 false-fail on
 // 5-stage-shaped fixtures and hid vacuous passes on QC-R1-1/-2/-3.
 import { resolveIntakeForTestStates } from "../_shared/cppa-risk-normalise.ts";
+// RC-C1 C1.5 — revision contract QC checks.
+import { qcContractMonotonicity, qcVerdictConsistency, CONTRACT_ENABLED_TOOLS } from "../_shared/revision-qc.ts";
+import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
 
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
@@ -2113,8 +2116,50 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
-
   // ---------- RC-B.1 internal revision dispatcher ----------
+
+  // ---------- RC-C1 C1.4 — seed contract fixtures for cppa-risk ----------
+  // Creates a quality_runs row pre-seeded with the 3 contract-scenario
+  // intakes (yield_k3, partial_j_lt_k, full_close) and returns the run id
+  // so the caller can kick a normal batch pass over them. This is the
+  // "wired into the run-quality-batch fixture path" leg — the intakes flow
+  // through the pinned-intake pipeline the harness already consumes, NOT
+  // through a sampleFixtures side-channel.
+  if (body?.action === "seed_contract_fixtures") {
+    const { tool_type } = body;
+    if (tool_type !== "cppa_risk_assessment") {
+      return json({ error: "unsupported_tool", detail: "seed_contract_fixtures currently supports cppa_risk_assessment only (RC-C1)" }, 400);
+    }
+    const intakes = CPPA_RISK_CONTRACT_FIXTURES.map((f) => ({
+      ...f.intake,
+      _fixture_id: f.fixture_id,
+      _contract_scenario: f.contract_scenario,
+      _answer_targets: f.answer_targets ?? [],
+    }));
+    const { data: qr, error: qErr } = await admin
+      .from("quality_runs")
+      .insert({
+        tool: "cppa-risk",
+        status: "queued",
+        batch_size: intakes.length,
+        intakes,
+        next_doc_index: 0,
+        started_by: userId,
+        run_type: "rc-c1-contract-fixtures",
+      })
+      .select("id, run_number")
+      .single();
+    if (qErr) return json({ error: "seed_failed", detail: qErr.message }, 500);
+    return json({
+      ok: true,
+      run_id: (qr as any).id,
+      run_number: (qr as any).run_number,
+      fixture_count: intakes.length,
+      fixtures: CPPA_RISK_CONTRACT_FIXTURES.map((f) => ({ id: f.fixture_id, scenario: f.contract_scenario })),
+    });
+  }
+
+
   // In-runtime dispatch to regenerate-assessment using this runtime's own
   // SR key. Called by admins (same auth check as batch dispatch) and by
   // RC-D's QL3 second pass (dummy-answer revisions dispatched
@@ -2126,6 +2171,31 @@ Deno.serve(async (req) => {
     const { tool_type, assessment_id, answered_items, internal_user_id } = body;
     if (!tool_type || !assessment_id || !Array.isArray(answered_items) || answered_items.length === 0) {
       return json({ error: "revision_dispatch_missing_params" }, 400);
+    }
+    // RC-C1 C1.5 — snapshot open_items BEFORE dispatch so post-hoc QC can
+    // verify contract monotonicity and verdict consistency deterministically.
+    const tableMap: Record<string, string> = {
+      cppa_risk_assessment: "cppa_assessments",
+      cppa_admt: "cppa_assessments",
+      cppa_cybersecurity: "cppa_assessments",
+      dpia_framework: "dpia_frameworks",
+      li_assessment: "li_assessments",
+      governance_assessment: "governance_assessments",
+      ir_playbook: "ir_playbooks",
+      biometric_checker: "biometric_assessments",
+      dpa_generator: "dpa_documents",
+    };
+    const dispatchTable = tableMap[tool_type];
+    let openItemsBefore: any[] = [];
+    if (dispatchTable) {
+      const { data: rowBefore } = await admin
+        .from(dispatchTable)
+        .select("report_data")
+        .eq("id", assessment_id)
+        .maybeSingle();
+      openItemsBefore = Array.isArray((rowBefore as any)?.report_data?.open_items)
+        ? (rowBefore as any).report_data.open_items
+        : [];
     }
     const fwdPayload = {
       tool_type,
@@ -2154,6 +2224,50 @@ Deno.serve(async (req) => {
       upstreamStatus = 502;
       upstreamBody = { error: "revision_dispatch_fetch_failed", detail: e?.message };
     }
+
+    // RC-C1 C1.5 — QC checks (scoped to contract-enabled tools; regenerate-assessment
+    // fires-and-forgets the actual generation so we poll briefly for completion).
+    const qcResults: any[] = [];
+    if (
+      dispatchTable
+      && upstreamStatus >= 200 && upstreamStatus < 300
+      && CONTRACT_ENABLED_TOOLS.has(tool_type)
+    ) {
+      try {
+        // Wait for row to reach terminal state (max ~60s poll — revision-mode
+        // typically completes in <30s; generation itself may take longer, so
+        // fall back to reading whatever's present when polling times out).
+        let rowAfter: any = null;
+        for (let i = 0; i < 30; i++) {
+          await new Promise((r) => setTimeout(r, 2000));
+          const { data } = await admin
+            .from(dispatchTable)
+            .select("report_data, status")
+            .eq("id", assessment_id)
+            .maybeSingle();
+          if (data && (data as any).status === "complete") { rowAfter = data; break; }
+          rowAfter = data;
+        }
+        const openItemsAfter: any[] = Array.isArray((rowAfter as any)?.report_data?.open_items)
+          ? (rowAfter as any).report_data.open_items
+          : [];
+        const answeredIds: string[] = (answered_items as any[]).map((a) => String(a?.item_id ?? ""));
+        // Derive verdicts from the diff of statuses on answered items.
+        const beforeStatusById = new Map(openItemsBefore.map((i: any) => [i.id, i.status]));
+        const verdicts = openItemsAfter
+          .filter((i: any) => answeredIds.includes(i.id))
+          .filter((i: any) => beforeStatusById.get(i.id) !== i.status)
+          .map((i: any) => ({ item_id: i.id, verdict: i.status }));
+        const changedPaths: string[] = Array.isArray(upstreamBody?.changed_paths)
+          ? upstreamBody.changed_paths
+          : [];
+        qcResults.push(qcContractMonotonicity(openItemsBefore, openItemsAfter));
+        qcResults.push(qcVerdictConsistency(answeredIds, verdicts, openItemsAfter, changedPaths));
+      } catch (e: any) {
+        qcResults.push({ code: "qc_rc_dispatch_error", status: "red", detail: e?.message });
+      }
+    }
+
     try {
       await admin.from("function_runs").insert({
         function_name: "run-quality-batch",
@@ -2167,13 +2281,16 @@ Deno.serve(async (req) => {
           upstream_status: upstreamStatus,
           upstream_body: upstreamBody,
           actor_user_id: userId,
+          qc_checks: qcResults,
+          revision_prompt_stamp: "rev-scope@rc-c.1",
         },
       });
     } catch (logErr) {
       console.warn("[revision_dispatch] function_runs insert failed", (logErr as any)?.message);
     }
-    return json(upstreamBody, upstreamStatus || 500);
+    return json({ ...upstreamBody, qc_checks: qcResults }, upstreamStatus || 500);
   }
+
 
   const { tool, batch_size: requestedBatch, resume_run_id: adminResumeId } = body;
 
