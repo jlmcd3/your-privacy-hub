@@ -324,6 +324,21 @@ Deno.serve(async (req) => {
       logExit(400, { error: "no_answered_items" });
       return json({ error: "no_answered_items" }, 400);
     }
+    // RC-D.4 hardening: reject silently-empty answered_items BEFORE any
+    // snapshot/meter/version side-effects. Missing `value` key OR empty-string
+    // value can never be a valid revision input; substantive-but-insufficient
+    // answers remain honest via the not_resolved verdict path downstream.
+    for (const a of items) {
+      if (!a || typeof a !== "object" || !("value" in (a as any))) {
+        logExit(400, { error: "answered_item_missing_value", item_id: (a as any)?.item_id ?? null });
+        return json({ error: "answered_item_missing_value", item_id: (a as any)?.item_id ?? null, message: "Each answered_items entry must include a `value` key." }, 400);
+      }
+      const v = (a as any).value;
+      if (typeof v === "string" && v.trim().length === 0) {
+        logExit(400, { error: "answered_item_missing_value", item_id: (a as any).item_id ?? null, reason: "empty_string" });
+        return json({ error: "answered_item_missing_value", item_id: (a as any).item_id ?? null, message: "answered_items.value cannot be an empty string." }, 400);
+      }
+    }
     // Ownership + open_items membership check.
     const rowSelect = (HAS_INTAKE_DATA[tool_type] ?? true)
       ? "user_id, intake_data, report_data, status"
