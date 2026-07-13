@@ -225,7 +225,7 @@ export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKe
 ];
 
 // Aligned to the § 7152(a)(5) enumerated negative-impact examples.
-const HARM_TYPES = [
+export const HARM_TYPES = [
   "Unauthorised access, destruction, use, modification, or disclosure",
   "Loss of availability of personal information",
   "Unlawful discrimination",
@@ -236,6 +236,13 @@ const HARM_TYPES = [
   "Reputational harm",
   "Psychological harm",
 ];
+
+// § 7152 impact-assessment scales (used both by the intake radios below and
+// by the refine surface's structured editor via fieldEnums.ts).
+export const IMPACT_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"];
+export const IMPACT_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"];
+export const IMPACT_BENEFITS_OUTWEIGH_OPTS = ["Yes", "No", "Uncertain"];
+export const IMPACT_CYBER_GAPS_OPTS = ["Yes", "No"];
 
 // Step 6 statute popover helper — one-line plain-language summary with citation.
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
