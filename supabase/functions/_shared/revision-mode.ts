@@ -96,6 +96,7 @@ export interface RevisionRequestBody {
     answered_items?: Array<{ item_id: string; value: unknown; evidence?: string | null }>;
     processing_started_at?: string;
     previous_status?: string;
+    dispatch_nonce?: string;
   };
   assessment_id?: string;
   dpia_id?: string;
