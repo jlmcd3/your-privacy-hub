@@ -253,16 +253,17 @@ export async function handleRevisionMode(
 
   console.log(JSON.stringify({ evt: "revision_enter", tool: toolType, row: rowId, n: answeredIds.length }));
 
+  const hasIntakeCol = HAS_INTAKE_DATA[toolType] ?? true;
+  const selectCols = hasIntakeCol
+    ? "id, user_id, intake_data, report_data, status"
+    : "id, user_id, report_data, status";
   const { data: row, error: loadErr } = await supabase
     .from(table)
-    .select("id, user_id, intake_data, report_data, status")
+    .select(selectCols)
     .eq("id", rowId)
     .maybeSingle();
   if (loadErr || !row) return jsonResp({ error: "revision_row_not_found", detail: loadErr?.message }, 404);
   // RC-B.2: capture prior status so we can revert on any refusal path.
-  // regenerate-assessment set status='processing' before invoking us; the
-  // "prior" status for revert purposes is 'complete' (the row was terminal
-  // before this revision). Fall back to whatever we loaded if not processing.
   const priorStatus: string = row.status === "processing" ? "complete" : (row.status ?? "complete");
 
   const storedReport = row.report_data ?? {};
@@ -272,10 +273,21 @@ export async function handleRevisionMode(
   const missing = answeredIds.filter((id) => !byId.has(id));
   if (missing.length > 0) return jsonResp({ error: "revision_unknown_item_ids", missing }, 400);
 
-  // Answers were folded into intake_data.supplemental_responses by
-  // regenerate-assessment before invoke; pull the responses back out.
-  const intake = row.intake_data ?? {};
-  const supps: any[] = Array.isArray(intake?.supplemental_responses) ? intake.supplemental_responses : [];
+  // Answers are folded into intake_data.supplemental_responses by
+  // regenerate-assessment for tables that carry intake_data. For no-intake
+  // tools (LIA), regenerate-assessment forwards the full answered payload
+  // in body.revision_context.answered_items — consume that instead.
+  const intake = (hasIntakeCol ? row.intake_data : null) ?? {};
+  const inlineAnswered: any[] = Array.isArray(body?.revision_context?.answered_items)
+    ? body!.revision_context!.answered_items!
+    : [];
+  const supps: any[] = hasIntakeCol
+    ? (Array.isArray(intake?.supplemental_responses) ? intake.supplemental_responses : [])
+    : inlineAnswered.map((a: any) => ({
+        item_id: a?.item_id,
+        response: typeof a?.value === "string" ? a.value : JSON.stringify(a?.value ?? ""),
+        evidence: a?.evidence ?? null,
+      }));
   const suppById = new Map(supps.filter((s) => s?.item_id).map((s) => [s.item_id, s]));
 
   const answeredPack = answeredIds.map((id) => {
