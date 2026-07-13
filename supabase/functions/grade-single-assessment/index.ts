@@ -203,8 +203,19 @@ Deno.serve(async (req) => {
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
   };
 
+  // RC-D.1 D-2: expose mean_score at top level so internal callers
+  // (ql3-orchestrator) can capture pre/post_score without parsing sub-objects.
+  const scoreParts: number[] = [];
+  if (claudeRes?.overall_score != null) scoreParts.push(Number(claudeRes.overall_score));
+  if (gptRes?.overall_score != null) scoreParts.push(Number(gptRes.overall_score));
+  const mean_score = scoreParts.length > 0
+    ? Math.round((scoreParts.reduce((a, b) => a + b, 0) / scoreParts.length) * 100) / 100
+    : null;
+
   let stored_note_id: string | null = null;
-  if (!body.dry_run) {
+  // Internal SR callers default to dry_run (no product-baseline pollution).
+  const shouldWrite = !body.dry_run && !isInternalSR;
+  if (shouldWrite) {
     // Constraint 4: only quality_loop2_notes, distinctly keyed.
     const { data: noteRow, error: noteErr } = await admin
       .from("quality_loop2_notes")
@@ -215,5 +226,5 @@ Deno.serve(async (req) => {
     stored_note_id = noteRow?.id ?? null;
   }
 
-  return json({ ok: true, stored_note_id, payload });
+  return json({ ok: true, mean_score, stored_note_id, payload });
 });
