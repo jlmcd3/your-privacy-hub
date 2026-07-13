@@ -2173,18 +2173,31 @@ Deno.serve(async (req) => {
       _contract_scenario: f.contract_scenario,
       _answer_targets: f.answer_targets ?? [],
     }));
+    // D-7 fix: mirror the normal-path insert (:2353-2362). Prod quality_runs
+    // has NO started_by/run_type columns — write to created_by/user_id (both
+    // nullable for internal SR caller) and store the run-type label in the
+    // existing `mode` text column. Compute run_number via count+1 to avoid
+    // colliding on the default of 1. Use status 'pending' to match what
+    // runBatch/resume expects.
+    const { count: existingCount } = await admin
+      .from("quality_runs").select("id", { count: "exact", head: true }).eq("tool", cfg.tool);
+    const seedRunNumber = (existingCount ?? 0) + 1;
     const { data: qr, error: qErr } = await admin
       .from("quality_runs")
       .insert({
         tool: cfg.tool,
-        status: "queued",
+        status: "pending",
         batch_size: intakes.length,
+        run_number: seedRunNumber,
         intakes,
         next_doc_index: 0,
-        started_by: userId,
-        run_type: cfg.runType,
+        created_by: userId,
+        user_id: userId,
+        mode: cfg.runType,
+        started_at: new Date().toISOString(),
+        last_heartbeat_at: new Date().toISOString(),
       })
-      .select("id, run_number")
+      .select("id, run_number, tool, mode, created_by, status, batch_size")
       .single();
     if (qErr) return json({ error: "seed_failed", detail: qErr.message }, 500);
     return json({
