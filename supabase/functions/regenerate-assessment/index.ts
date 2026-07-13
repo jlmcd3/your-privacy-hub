@@ -139,9 +139,9 @@ Deno.serve(async (req) => {
     edited_fields?: Record<string, unknown>;
     mode?: "revise" | "errata" | "revision";
     corrections?: Array<{ field_path: string; new_value: unknown }>;
-    // RC-B B2 — answers transport for the revision path. Each entry keys an
-    // open_item id and rides the WS6 supplemental_responses rail on merge.
     answered_items?: Array<{ item_id: string; value: unknown; evidence?: string }>;
+    // RC-B.1 verification — optional owner override for service-role internal calls.
+    internal_user_id?: string;
   };
   try {
     payload = await req.json();
@@ -149,17 +149,25 @@ Deno.serve(async (req) => {
     logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
-  const { tool_type, assessment_id, edited_fields, mode, corrections, answered_items } = payload;
+  const { tool_type, assessment_id, edited_fields, mode, corrections, answered_items, internal_user_id } = payload;
 
   if (!tool_type || !assessment_id) {
     logExit(400, { error: "missing_params" });
     return json({ error: "missing_params" }, 400);
   }
 
-  const authedUser = await getUserFromAuthHeader(req);
-  if (!authedUser) {
-    logExit(401, { error: "unauthenticated" });
-    return json({ error: "unauthenticated" }, 401);
+  // RC-B.1 — Internal verification bypass. Permanent harness plumbing:
+  // callers presenting `x-internal-verification: 1` AND a service-role bearer
+  // are treated as authenticated and exempted from REVISIONS_ENABLED. Any
+  // request missing the header OR the service-role key follows the normal
+  // customer path (401 on auth, 409 on gate). Errata is already gate-exempt.
+  const internalHdr = req.headers.get("x-internal-verification") === "1";
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7) : "";
+  const isInternalVerification = internalHdr && bearer === SERVICE_ROLE;
+  if (internalHdr && !isInternalVerification) {
+    logExit(401, { error: "internal_verification_requires_service_role" });
+    return json({ error: "internal_verification_requires_service_role" }, 401);
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -167,6 +175,22 @@ Deno.serve(async (req) => {
   if (!table) {
     logExit(400, { error: "unknown_tool" });
     return json({ error: "unknown_tool" }, 400);
+  }
+
+  let authedUser: { id: string } | null = null;
+  if (isInternalVerification) {
+    if (internal_user_id) authedUser = { id: internal_user_id };
+    else {
+      const { data } = await supabase.from(table).select("user_id").eq("id", assessment_id).maybeSingle();
+      if ((data as any)?.user_id) authedUser = { id: (data as any).user_id };
+    }
+    console.log(JSON.stringify({ evt: "regen_internal_verification", req_id: reqId, user: authedUser?.id ?? null }));
+  } else {
+    authedUser = await getUserFromAuthHeader(req);
+  }
+  if (!authedUser) {
+    logExit(401, { error: "unauthenticated" });
+    return json({ error: "unauthenticated" }, 401);
   }
 
   // ---------------------------------------------------------------------
@@ -284,7 +308,7 @@ Deno.serve(async (req) => {
   // ride the WS6 supplemental_responses rail carrying { item_id, ask, response }.
   // ---------------------------------------------------------------------
   if (mode === "revision") {
-    if (!REVISIONS_ENABLED) {
+    if (!REVISIONS_ENABLED && !isInternalVerification) {
       logExit(409, { error: "revisions_disabled" });
       return json({ error: "revisions_disabled", message: REVISIONS_DISABLED_MESSAGE }, 409);
     }
@@ -369,7 +393,7 @@ Deno.serve(async (req) => {
   // ---------------------------------------------------------------------
   // RC-A A1 — REVISION GATE for non-errata paths
   // ---------------------------------------------------------------------
-  if (!REVISIONS_ENABLED) {
+  if (!REVISIONS_ENABLED && !isInternalVerification) {
     logExit(409, { error: "revisions_disabled" });
     return json({ error: "revisions_disabled", message: REVISIONS_DISABLED_MESSAGE }, 409);
   }
