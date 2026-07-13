@@ -2114,6 +2114,67 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
+  // ---------- RC-B.1 internal revision dispatcher ----------
+  // In-runtime dispatch to regenerate-assessment using this runtime's own
+  // SR key. Called by admins (same auth check as batch dispatch) and by
+  // RC-D's QL3 second pass (dummy-answer revisions dispatched
+  // function-to-function). Payload passes through verbatim; the response
+  // from regenerate-assessment is returned verbatim, plus a function_runs
+  // log row is written.
+  if (body?.action === "revision_dispatch") {
+    const startedAt = Date.now();
+    const { tool_type, assessment_id, answered_items, internal_user_id } = body;
+    if (!tool_type || !assessment_id || !Array.isArray(answered_items) || answered_items.length === 0) {
+      return json({ error: "revision_dispatch_missing_params" }, 400);
+    }
+    const fwdPayload = {
+      tool_type,
+      assessment_id,
+      mode: "revision",
+      answered_items,
+      ...(internal_user_id ? { internal_user_id } : {}),
+    };
+    let upstreamStatus = 0;
+    let upstreamBody: any = null;
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/regenerate-assessment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SERVICE_KEY}`,
+          "x-internal-verification": "1",
+          "apikey": SERVICE_KEY,
+        },
+        body: JSON.stringify(fwdPayload),
+      });
+      upstreamStatus = r.status;
+      const txt = await r.text();
+      try { upstreamBody = JSON.parse(txt); } catch { upstreamBody = { raw: txt }; }
+    } catch (e: any) {
+      upstreamStatus = 502;
+      upstreamBody = { error: "revision_dispatch_fetch_failed", detail: e?.message };
+    }
+    try {
+      await admin.from("function_runs").insert({
+        function_name: "run-quality-batch",
+        status: upstreamStatus >= 200 && upstreamStatus < 300 ? "success" : "error",
+        duration_ms: Date.now() - startedAt,
+        metadata: {
+          action: "revision_dispatch",
+          tool_type,
+          assessment_id,
+          answered_item_ids: answered_items.map((a: any) => a?.item_id),
+          upstream_status: upstreamStatus,
+          upstream_body: upstreamBody,
+          actor_user_id: userId,
+        },
+      });
+    } catch (logErr) {
+      console.warn("[revision_dispatch] function_runs insert failed", (logErr as any)?.message);
+    }
+    return json(upstreamBody, upstreamStatus || 500);
+  }
+
   const { tool, batch_size: requestedBatch, resume_run_id: adminResumeId } = body;
 
   // Admin-authorized resume/kick for pre-seeded pinned runs (WS6 v2.1). The row
