@@ -219,9 +219,12 @@ Deno.serve(async (req) => {
     }
 
     // Ownership check (source-row user_id must match caller).
+    const rowSelect = (HAS_INTAKE_DATA[tool_type] ?? true)
+      ? "user_id, intake_data, report_data"
+      : "user_id, report_data";
     const { data: srcRow } = await supabase
       .from(table)
-      .select("user_id, intake_data, report_data")
+      .select(rowSelect)
       .eq("id", assessment_id)
       .maybeSingle();
     if (!srcRow || (srcRow as any).user_id !== authedUser.id) {
@@ -322,9 +325,12 @@ Deno.serve(async (req) => {
       return json({ error: "no_answered_items" }, 400);
     }
     // Ownership + open_items membership check.
+    const rowSelect = (HAS_INTAKE_DATA[tool_type] ?? true)
+      ? "user_id, intake_data, report_data"
+      : "user_id, report_data";
     const { data: row } = await supabase
       .from(table)
-      .select("user_id, intake_data, report_data")
+      .select(rowSelect)
       .eq("id", assessment_id)
       .maybeSingle();
     if (!row || (row as any).user_id !== authedUser.id) {
