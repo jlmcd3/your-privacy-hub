@@ -2115,6 +2115,7 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
+  // ---------- RC-B.1 internal revision dispatcher ----------
 
   // ---------- RC-C1 C1.4 — seed contract fixtures for cppa-risk ----------
   // Creates a quality_runs row pre-seeded with the 3 contract-scenario
