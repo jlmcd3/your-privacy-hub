@@ -81,6 +81,22 @@ const T_CLASS_FIELDS: Record<string, Record<string, { enum_ref: string }>> = {
     "triggers.q15_sensitive_pi": { enum_ref: "cppa_risk_assessment:q15_sensitive_pi" },
     "triggers.q18_admt_use":   { enum_ref: "cppa_risk_assessment:q18_admt_use" },
   },
+  // RC-C2 C2.2 — DPIA banded/enumerated intake leaves.
+  dpia_framework: {
+    data_categories:      { enum_ref: "dpia_framework:data_categories" },
+    jurisdictions:        { enum_ref: "dpia_framework:jurisdictions" },
+    legal_basis_proposed: { enum_ref: "dpia_framework:legal_basis_proposed" },
+    article_9_condition:  { enum_ref: "dpia_framework:article_9_condition" },
+    reasons_to_conduct:   { enum_ref: "dpia_framework:reasons_to_conduct" },
+    existing_safeguards:  { enum_ref: "dpia_framework:existing_safeguards" },
+    processors:           { enum_ref: "dpia_framework:processors" },
+  },
+  // RC-C2 C2.5 — LIA banded/enumerated intake leaves.
+  li_assessment: {
+    data_categories:   { enum_ref: "li_assessment:data_categories" },
+    relationship_type: { enum_ref: "li_assessment:relationship_type" },
+    jurisdictions:     { enum_ref: "li_assessment:jurisdictions" },
+  },
 };
 
 // N-class aggregate/narrative fields — always bounded-narrative (or structured
