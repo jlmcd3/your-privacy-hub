@@ -2222,6 +2222,18 @@ Deno.serve(async (req) => {
     if (!tool_type || !assessment_id || !Array.isArray(answered_items) || answered_items.length === 0) {
       return json({ error: "revision_dispatch_missing_params" }, 400);
     }
+    // RC-D.4 hardening: reject malformed answered_items BEFORE the open_items
+    // snapshot / forwarding to regenerate-assessment. Must have `value` key
+    // and non-empty string values; the honest not_resolved path handles
+    // substantive-but-insufficient answers, not silent empties.
+    for (const a of answered_items as any[]) {
+      if (!a || typeof a !== "object" || !("value" in a)) {
+        return json({ error: "answered_item_missing_value", item_id: a?.item_id ?? null }, 400);
+      }
+      if (typeof a.value === "string" && a.value.trim().length === 0) {
+        return json({ error: "answered_item_missing_value", item_id: a.item_id ?? null, reason: "empty_string" }, 400);
+      }
+    }
     // RC-C1 C1.5 — snapshot open_items BEFORE dispatch so post-hoc QC can
     // verify contract monotonicity and verdict consistency deterministically.
     const tableMap: Record<string, string> = {
