@@ -58,7 +58,10 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
 // RC-C2 stamp bump: DPIA Art. 35 register + LIA counsel-deferring register + DPIA unit-scope economy.
 // RC-C2.2 stamp bump: pre-apply hollow-resolution guard + in-flight owner check + authoritative patch-verdict telemetry.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2.2";
+// RC-C3.CYB-2 stamp bump: cyber report-shape vocabulary instruction +
+// pre-apply patch-path shape validator (rejects ask-vocab writes against
+// mismatched report shapes as 409 revision_malformed_patch_shape).
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c3.cyb-2";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
