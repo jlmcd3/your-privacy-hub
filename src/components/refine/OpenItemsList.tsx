@@ -99,9 +99,10 @@ export default function OpenItemsList({ items, onSubmit, submitting, advisoryNot
               <Label htmlFor={`ans-${item.id}`}>Your answer</Label>
               {item.input_spec.kind === "structured" ? (
                 <StructuredFieldEditor
+                  toolType="revision"
+                  keyPath={item.target.path}
                   value={a.value ?? []}
                   onChange={(v) => setAnswer(item.id, { value: v })}
-                  fieldKey={item.target.path}
                 />
               ) : item.input_spec.kind === "boolean+evidence" ? (
                 <div className="space-y-2">
