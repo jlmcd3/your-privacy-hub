@@ -382,10 +382,11 @@ Deno.serve(async (req) => {
     ];
     const nextIntake = { ...priorIntake, supplemental_responses: nextSupps };
     const hasIntakeCol = HAS_INTAKE_DATA[tool_type] ?? true;
+    const processingStartedAt = new Date().toISOString();
     const updateObj: Record<string, unknown> = {
       ...(hasIntakeCol ? { intake_data: nextIntake } : {}),
       status: "processing",
-      updated_at: new Date().toISOString(),
+      updated_at: processingStartedAt,
     };
     const { error: updErrRev } = await supabase.from(table).update(updateObj).eq("id", assessment_id);
     if (updErrRev) {
@@ -393,30 +394,48 @@ Deno.serve(async (req) => {
       return json({ error: "revision_update_failed", detail: updErrRev.message }, 500);
     }
     const bodyKeyRev = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
-    // @ts-ignore EdgeRuntime
-    EdgeRuntime.waitUntil(
-      supabase.functions.invoke(FN_MAP[tool_type], {
-        body: {
-          [bodyKeyRev]: assessment_id,
-          is_regeneration: true,
-          revision_mode: true,
-          revision_context: {
-            answered_item_ids: items.map((a) => a.item_id),
-            // For no-intake tools (e.g. LIA) supps aren't persisted; forward
-            // the full payload so revision-mode.ts can reconstruct answers.
-            ...(hasIntakeCol ? {} : { answered_items: items }),
-          },
-        },
-      }),
-    );
-    await writeActionLog(supabase, {
+    const invokeBody = {
+      [bodyKeyRev]: assessment_id,
+      is_regeneration: true,
+      revision_mode: true,
+      revision_context: {
+        answered_item_ids: items.map((a) => a.item_id),
+        processing_started_at: processingStartedAt,
+        // For no-intake tools (e.g. LIA) supps aren't persisted; forward
+        // the full payload so revision-mode.ts can reconstruct answers.
+        ...(hasIntakeCol ? {} : { answered_items: items }),
+      },
+    };
+    const logRevisionStarted = () => writeActionLog(supabase, {
       actor_user_id: authedUser.id,
       action: "revision_started",
       target_table: table,
       target_id: assessment_id,
-      payload: { tool_type, answered_item_ids: items.map((a) => a.item_id) },
+      payload: { tool_type, answered_item_ids: items.map((a) => a.item_id), processing_started_at: processingStartedAt },
       ok: true,
     });
+
+    // Internal verification dispatches are synchronous so run-quality-batch can
+    // QC against the generator's authoritative PATCH summary (item_verdicts[]
+    // and changed_paths), not a derived status diff.
+    if (isInternalVerification) {
+      const { data: invokeData, error: invokeErr } = await supabase.functions.invoke(FN_MAP[tool_type], { body: invokeBody });
+      await logRevisionStarted();
+      if (invokeErr) {
+        const detail = (invokeErr as any)?.message ?? "revision_invoke_failed";
+        logExit(502, { error: "revision_invoke_failed", detail });
+        return json({ error: "revision_invoke_failed", detail }, 502);
+      }
+      logExit(200, { ok: true, mode: "revision", answered: items.length, synchronous: true });
+      return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}) });
+    }
+    // @ts-ignore EdgeRuntime
+    EdgeRuntime.waitUntil(
+      supabase.functions.invoke(FN_MAP[tool_type], {
+        body: invokeBody,
+      }),
+    );
+    await logRevisionStarted();
     logExit(200, { ok: true, mode: "revision", answered: items.length });
     return json({ ok: true, mode: "revision", answered: items.length });
   }
