@@ -20,6 +20,41 @@
 const INSUFFICIENT_MARKER =
   /\b(insufficient\s+information|without\s+further\s+information|cannot\s+be\s+determined\s+without|requires?\s+additional\s+information|not\s+possible\s+to\s+(?:assess|determine)\s+without)\b/i;
 
+// RC-C3 D-3 (GOV-ASK-1) — DETERMINISTIC CRITICAL-ASK REGISTRY.
+// Per-tool list of verdict-critical, non-identity, non-narrative intake fields.
+// If the field is empty at guard time AND not "believed with basis" (Doc O 3d),
+// an information_needed entry is synthesised DETERMINISTICALLY — independent of
+// whether the model emitted any insufficient-info marker. This closes the
+// generator-improvisation hole where blank verdict-critical fields were
+// silently absorbed and the report rated anyway.
+//
+// Rules for adding a field here:
+//   - The overall verdict/rating genuinely rests on it.
+//   - It is NOT identity-locked (see IDENTITY_LOCKED_FIELDS in open-items.ts).
+//   - It is NOT a narrative/optional/context field (e.g. additional_context).
+//   - Dotted paths supported for nested intake shapes (e.g. "profile.framework").
+const ASK_ELIGIBLE_CRITICAL_FIELDS: Record<string, readonly string[]> = {
+  governance_assessment: ["dpo_status", "transfer_mechanism", "privacy_notice_coverage"],
+  cppa_admt: ["notice_purpose_text", "opt_out_methods"],
+  // cppa_cybersecurity: control gaps carry a literal "Insufficient information"
+  // status string that trips INSUFFICIENT_MARKER via the existing branch; the
+  // deterministic top-level pass is not needed and the nested `controls.<slug>`
+  // shape is not addressable by the intake-key auto-repair. Kept out of the
+  // registry intentionally.
+};
+
+function readPath(obj: Record<string, unknown>, path: string): unknown {
+  if (!path.includes(".")) return (obj as any)[path];
+  const parts = path.split(".");
+  let cur: any = obj;
+  for (const p of parts) {
+    if (cur == null || typeof cur !== "object") return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+
 function isEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true;
   if (typeof v === "string") return v.trim() === "";
