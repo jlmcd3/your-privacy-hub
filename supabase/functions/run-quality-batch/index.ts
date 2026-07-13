@@ -1416,18 +1416,24 @@ async function runBatch(runId: string): Promise<void> {
   try {
     // ---------- 1. Intake generation (only on first invocation) ----------
     let intakes: any[] = Array.isArray(run.intakes) ? run.intakes : [];
-    if (intakes.length === 0) {
-      await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
+    // WS6 v2.1 pinned-fixture support: if intakes are pre-seeded but short of
+    // batchSize AND we haven't started processing yet, generate only the delta
+    // and append after the pinned entries. Preserves position 0..N-1 for pins.
+    const pinnedCount = intakes.length;
+    const nextIdxSafe = run.next_doc_index ?? 0;
+    if (intakes.length < batchSize && nextIdxSafe === 0) {
+      const needed = batchSize - pinnedCount;
+      await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents${pinnedCount > 0 ? `, ${pinnedCount} pinned + ${needed} generated` : ""})`);
       await log(OPENAI_API_KEY ? "success" : "warn",
         OPENAI_API_KEY
           ? `OPENAI_API_KEY detected — GPT-4o cross-review enabled`
           : `OPENAI_API_KEY NOT detected — GPT-4o cross-review will be SKIPPED for every doc`);
       await upd({ status: "generating" });
-      await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
+      await log("info", `Generating ${needed} intake scenarios via Claude…`);
       let intakeWarning: string | null = null;
       try {
-        const gen = await generateValidatedIntakes(tool, batchSize);
-        intakes = gen.intakes;
+        const gen = await generateValidatedIntakes(tool, needed);
+        intakes = [...intakes, ...gen.intakes];
         if (gen.rejected.length > 0) {
           await log("warn", `Intake validation: ${gen.rejected.length}/${gen.totalAttempted} rejected after retry (${tool}). Reasons: ${gen.rejected.slice(0, 3).map(r => r.reason).join(" | ")}`);
         }
@@ -1443,7 +1449,7 @@ async function runBatch(runId: string): Promise<void> {
           clearInterval(heartbeat);
           return;
         }
-        await log("success", `Generated ${intakes.length} intake scenarios (accepted) / ${gen.totalAttempted} attempted`);
+        await log("success", `Intakes ready: ${intakes.length} total (${pinnedCount} pinned + ${gen.intakes.length} generated / ${gen.totalAttempted} attempted)`);
       } catch (e) {
         await log("error", `Intake generation failed: ${(e as Error).message}`);
         await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}`, completed_at: new Date().toISOString() });
@@ -2108,7 +2114,20 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-  const { tool, batch_size: requestedBatch } = body;
+  const { tool, batch_size: requestedBatch, resume_run_id: adminResumeId } = body;
+
+  // Admin-authorized resume/kick for pre-seeded pinned runs (WS6 v2.1). The row
+  // must already exist and be owned by this admin; we simply hand it to runBatch.
+  if (adminResumeId) {
+    const { data: existing, error: exErr } = await admin
+      .from("quality_runs").select("id, created_by, status")
+      .eq("id", adminResumeId).maybeSingle();
+    if (exErr || !existing) return json({ error: `run not found: ${exErr?.message ?? adminResumeId}` }, 404);
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runBatch(adminResumeId));
+    return json({ resumed: adminResumeId, prior_status: existing.status }, 202);
+  }
+
   const batch_size = requestedBatch ?? 5;
   if (!tool) return json({ error: "tool required" }, 400);
 
