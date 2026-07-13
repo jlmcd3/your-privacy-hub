@@ -326,8 +326,8 @@ Deno.serve(async (req) => {
     }
     // Ownership + open_items membership check.
     const rowSelect = (HAS_INTAKE_DATA[tool_type] ?? true)
-      ? "user_id, intake_data, report_data"
-      : "user_id, report_data";
+      ? "user_id, intake_data, report_data, status"
+      : "user_id, report_data, status";
     const { data: row } = await supabase
       .from(table)
       .select(rowSelect)
@@ -337,12 +337,32 @@ Deno.serve(async (req) => {
       logExit(403, { error: "not_found_or_forbidden" });
       return json({ error: "not_found_or_forbidden" }, 403);
     }
+    // RC-C2.2 IN-FLIGHT GUARD — refuse (409) if a prior revision on this row
+    // is still in flight. Prevents the write-race where two near-simultaneous
+    // dispatches both invoke run-* and the loser's late apply overwrites the
+    // winner. This is the correct layer for the guard: at handleRevisionMode
+    // in run-*, we've already flipped status=processing ourselves and can no
+    // longer distinguish our transition from a competing dispatch's.
+    if ((row as any).status === "processing") {
+      logExit(409, { error: "revision_inflight" });
+      return json({ error: "revision_inflight", message: "another revision is in flight for this row" }, 409);
+    }
     const openItems: any[] = Array.isArray((row as any).report_data?.open_items) ? (row as any).report_data.open_items : [];
     const openIds = new Set(openItems.map((o: any) => o.id));
+    // RC-C2.2 UPSTREAM OPEN-STATUS VALIDATION — answering a resolved or
+    // not_resolved item is a 400 here, before any generation. Prevents the
+    // qc_rc_2 false-red spam we saw on 486eb7ec where already-resolved items
+    // were re-answered and the dispatcher status-diff yielded verdicts=0.
+    const openStatusById = new Map(openItems.map((o: any) => [o.id, String(o?.status ?? "open")]));
     for (const a of items) {
       if (!openIds.has(a.item_id)) {
         logExit(400, { error: "unknown_item_id", item_id: a.item_id });
         return json({ error: "unknown_item_id", item_id: a.item_id }, 400);
+      }
+      const st = openStatusById.get(a.item_id) ?? "open";
+      if (st !== "open") {
+        logExit(400, { error: "item_not_open", item_id: a.item_id, status: st });
+        return json({ error: "item_not_open", item_id: a.item_id, status: st, message: "answered_items must reference open items; already resolved/not_resolved items may not be re-answered" }, 400);
       }
     }
     // Snapshot FIRST (RC-A A2).

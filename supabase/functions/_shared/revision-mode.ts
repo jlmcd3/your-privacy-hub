@@ -270,6 +270,10 @@ export async function handleRevisionMode(
     .maybeSingle();
   if (loadErr || !row) return jsonResp({ error: "revision_row_not_found", detail: loadErr?.message }, 404);
   // RC-B.2: capture prior status so we can revert on any refusal path.
+  // Note: regenerate-assessment sets status='processing' immediately before
+  // invoking us, so we observe our own transition here. The in-flight
+  // write-race guard lives at the regenerate-assessment layer (RC-C2.2),
+  // BEFORE the status flip, where 'processing' means someone else owns it.
   const priorStatus: string = row.status === "processing" ? "complete" : (row.status ?? "complete");
 
   const storedReport = row.report_data ?? {};
