@@ -150,5 +150,13 @@ export function guardInformationNeeded(
     }
   }
 
+  // RC-B B1 — freeze open_items at first completed generation (idempotent:
+  // no-op when report.open_items already present, so revision paths never
+  // rebuild). Enhancement-class items are dropped inside buildOpenItems.
+  if (toolType) {
+    const frozen = freezeOpenItemsOnFirstRun(report, report?.information_needed, toolType, false);
+    report = frozen;
+  }
+
   return { report, deadEndWithoutPath, strippedCount, autoRepaired, lockedStripped };
 }
