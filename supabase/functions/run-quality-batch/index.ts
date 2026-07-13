@@ -2259,7 +2259,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (prior) {
         console.log(`[revision_dispatch] idempotent replay skipped nonce=${dispatch_nonce}`);
-        return json({ ok: true, idempotent_replay: true, dispatch_nonce }, 200);
+        return json({ ok: true, idempotent_replay: true, dispatch_nonce, build_stamp: BUILD_STAMP }, 200);
       }
     }
     // RC-C1 C1.5 — snapshot open_items BEFORE dispatch so post-hoc QC can
