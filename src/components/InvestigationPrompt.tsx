@@ -13,13 +13,19 @@ interface InvestigationPromptProps {
    * preview slot to show what a personalised prompt looks like.
    */
   demoContext?: SubscriberContext;
+  /**
+   * When true, the panel renders with the prompt already expanded. Used on
+   * the anonymous homepage "paid" preview so visitors can see the fully
+   * drafted prompt without having to click.
+   */
+  defaultOpen?: boolean;
 }
 
 const PERSONALISATION_TOOLTIP =
   'Prompts are personalised to your role, industries, jurisdictions, topics, and watchlist.';
 
-export function InvestigationPrompt({ item, demoContext }: InvestigationPromptProps) {
-  const [open, setOpen] = useState(false);
+export function InvestigationPrompt({ item, demoContext, defaultOpen = false }: InvestigationPromptProps) {
+  const [open, setOpen] = useState(defaultOpen);
   const [copied, setCopied] = useState(false);
 
   // When a demo context is supplied, skip the hook entirely.
