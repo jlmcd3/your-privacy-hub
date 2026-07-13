@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
   // ride the WS6 supplemental_responses rail carrying { item_id, ask, response }.
   // ---------------------------------------------------------------------
   if (mode === "revision") {
-    if (!REVISIONS_ENABLED) {
+    if (!REVISIONS_ENABLED && !isInternalVerification) {
       logExit(409, { error: "revisions_disabled" });
       return json({ error: "revisions_disabled", message: REVISIONS_DISABLED_MESSAGE }, 409);
     }
@@ -393,7 +393,7 @@ Deno.serve(async (req) => {
   // ---------------------------------------------------------------------
   // RC-A A1 — REVISION GATE for non-errata paths
   // ---------------------------------------------------------------------
-  if (!REVISIONS_ENABLED) {
+  if (!REVISIONS_ENABLED && !isInternalVerification) {
     logExit(409, { error: "revisions_disabled" });
     return json({ error: "revisions_disabled", message: REVISIONS_DISABLED_MESSAGE }, 409);
   }
