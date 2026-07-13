@@ -3,6 +3,7 @@
 // completion to verify the on-disk row against the contract invariants.
 // Scoped to contract-enabled tools (currently: cppa_risk_assessment; add as
 // each per-tool courier lands).
+import { candidateTargetPaths } from "./target-path-aliases.ts";
 
 export const CONTRACT_ENABLED_TOOLS = new Set<string>([
   "cppa_risk_assessment",
@@ -65,6 +66,7 @@ export function qcVerdictConsistency(
   verdicts: Array<{ item_id: string; verdict: string }>,
   itemsAfter: Array<{ id: string; target?: { path?: string }; status?: string }>,
   changedPaths: string[],
+  toolType?: string,
 ): QcCheckResult {
   if (verdicts.length !== answeredIds.length) {
     return {
@@ -86,20 +88,31 @@ export function qcVerdictConsistency(
   }
   const itemById = new Map(itemsAfter.map((i) => [i.id, i]));
   const missingChange: string[] = [];
+  const missingDetail: Array<{ item_id: string; target: string; candidates: string[] }> = [];
   for (const v of verdicts) {
     if (v.verdict !== "resolved") continue;
     const it = itemById.get(v.item_id);
     const targetPath = it?.target?.path;
     if (!targetPath) continue; // narrative-target items not path-checked
-    const touched = changedPaths.some((p) => p === targetPath || p.startsWith(targetPath + ".") || p.startsWith(targetPath + "["));
-    if (!touched) missingChange.push(v.item_id);
+    // RC-D.11 — translate ask-vocabulary target → write-vocabulary candidates
+    // via the explicit per-tool alias map. No wildcards, no substring inference.
+    const candidates = toolType
+      ? candidateTargetPaths(toolType, targetPath)
+      : [targetPath];
+    const touched = changedPaths.some((p) =>
+      candidates.some((c) => p === c || p.startsWith(c + ".") || p.startsWith(c + "[")),
+    );
+    if (!touched) {
+      missingChange.push(v.item_id);
+      missingDetail.push({ item_id: v.item_id, target: targetPath, candidates });
+    }
   }
   if (missingChange.length > 0) {
     return {
       code: "qc_rc_2_verdict_consistency",
       status: "red",
       detail: `resolved verdict without corresponding changed_path: ${missingChange.join(",")}`,
-      data: { missing_change: missingChange, changed_paths: changedPaths },
+      data: { missing_change: missingChange, missing_detail: missingDetail, changed_paths: changedPaths },
     };
   }
   return {

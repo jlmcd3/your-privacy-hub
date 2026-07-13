@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "1e18c9a-rcd10@2026-07-13T22:35Z";
+export const BUILD_STAMP = "2a7f1c3-rcd11@2026-07-13T22:55Z";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -2385,7 +2385,7 @@ Deno.serve(async (req) => {
           ? upstreamBody.changed_paths
           : [];
         qcResults.push(qcContractMonotonicity(openItemsBefore, openItemsAfter));
-        qcResults.push(qcVerdictConsistency(answeredIds, verdicts, openItemsAfter, changedPaths));
+        qcResults.push(qcVerdictConsistency(answeredIds, verdicts, openItemsAfter, changedPaths, body?.tool_type));
       } catch (e: any) {
         qcResults.push({ code: "qc_rc_dispatch_error", status: "red", detail: e?.message });
       }
