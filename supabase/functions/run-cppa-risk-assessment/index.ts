@@ -29,6 +29,7 @@ import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";

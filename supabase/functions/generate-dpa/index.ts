@@ -11,6 +11,7 @@ import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
