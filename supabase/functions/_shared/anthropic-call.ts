@@ -30,14 +30,21 @@ export class AnthropicTimeoutError extends Error {
   }
 }
 
+import { recordApiUsage } from "./api-usage.ts";
+
 export interface AnthropicCallOpts {
   model: string;
-  // Accepts a plain string or the SystemBlock[] array used with prompt-core.
   system: unknown;
   user: string;
   maxTokens: number;
   timeoutMs?: number;
   label: string;
+  // RC-A A7 spend metering — optional; when provided we insert an api_usage
+  // row per API call (fire-and-forget). `label` is used as function_name if
+  // callerName is absent.
+  callerName?: string;
+  product?: string;
+  sourceRowId?: string;
 }
 
 export interface AnthropicCallResult {
@@ -46,9 +53,6 @@ export interface AnthropicCallResult {
   elapsedMs: number;
   outputTokens: number | null;
   continued: boolean;
-  // r1b2.3 fix (c): expose per-leg detail so callers can persist durable
-  // telemetry on the failure path (the ~6-min log retention window is not
-  // enough — the DB is the only durable trail once logs age out).
   firstOutputTokens?: number | null;
   firstStopReason?: string | null;
   contOutputTokens?: number | null;
@@ -56,12 +60,19 @@ export interface AnthropicCallResult {
   contElapsedMs?: number | null;
   stitchedChars?: number | null;
   contRetried?: boolean;
+  // RC-A A7 — full usage exposed for callers that want it inline.
+  inputTokens?: number | null;
+  cacheReadTokens?: number | null;
+  cacheCreationTokens?: number | null;
 }
 
 interface RawCallResult {
   text: string;
   stopReason: string | null;
   outputTokens: number | null;
+  inputTokens: number | null;
+  cacheReadTokens: number | null;
+  cacheCreationTokens: number | null;
   elapsedMs: number;
 }
 
@@ -109,8 +120,12 @@ async function doOne(opts: {
   const d = await res.json();
   const text = d.content?.[0]?.text ?? "";
   const stopReason: string | null = d.stop_reason ?? null;
-  const outputTokens: number | null = typeof d.usage?.output_tokens === "number" ? d.usage.output_tokens : null;
-  return { text, stopReason, outputTokens, elapsedMs };
+  const u = d.usage ?? {};
+  const outputTokens: number | null = typeof u.output_tokens === "number" ? u.output_tokens : null;
+  const inputTokens: number | null = typeof u.input_tokens === "number" ? u.input_tokens : null;
+  const cacheReadTokens: number | null = typeof u.cache_read_input_tokens === "number" ? u.cache_read_input_tokens : null;
+  const cacheCreationTokens: number | null = typeof u.cache_creation_input_tokens === "number" ? u.cache_creation_input_tokens : null;
+  return { text, stopReason, outputTokens, inputTokens, cacheReadTokens, cacheCreationTokens, elapsedMs };
 }
 
 /**
@@ -128,7 +143,19 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     timeoutMs,
     label: opts.label,
   });
-  console.log(`[${opts.label}] stage=callAnthropic model=${opts.model} elapsed=${first.elapsedMs}ms stop=${first.stopReason} output_tokens=${first.outputTokens ?? "?"} chars=${first.text.length}`);
+  console.log(`[${opts.label}] stage=callAnthropic model=${opts.model} elapsed=${first.elapsedMs}ms stop=${first.stopReason} output_tokens=${first.outputTokens ?? "?"} input_tokens=${first.inputTokens ?? "?"} cache_read=${first.cacheReadTokens ?? "?"} cache_creation=${first.cacheCreationTokens ?? "?"} chars=${first.text.length}`);
+  // RC-A A7 — fire-and-forget spend metering per API call (first leg).
+  recordApiUsage({
+    function_name: opts.callerName ?? opts.label,
+    product: opts.product ?? null,
+    model: opts.model,
+    input_tokens: first.inputTokens,
+    output_tokens: first.outputTokens,
+    cache_read_tokens: first.cacheReadTokens,
+    cache_creation_tokens: first.cacheCreationTokens,
+    duration_ms: first.elapsedMs,
+    source_row_id: opts.sourceRowId ?? null,
+  });
 
   if (first.stopReason !== "max_tokens") {
     return {
@@ -140,6 +167,9 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       firstOutputTokens: first.outputTokens,
       firstStopReason: first.stopReason,
       stitchedChars: first.text.length,
+      inputTokens: first.inputTokens,
+      cacheReadTokens: first.cacheReadTokens,
+      cacheCreationTokens: first.cacheCreationTokens,
     };
   }
 
@@ -171,6 +201,18 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     timeoutMs,
     label: `${opts.label}#cont`,
   });
+  // RC-A A7 — meter the continuation leg (before any degenerate retry).
+  recordApiUsage({
+    function_name: opts.callerName ?? opts.label,
+    product: opts.product ?? null,
+    model: opts.model,
+    input_tokens: cont.inputTokens,
+    output_tokens: cont.outputTokens,
+    cache_read_tokens: cont.cacheReadTokens,
+    cache_creation_tokens: cont.cacheCreationTokens,
+    duration_ms: cont.elapsedMs,
+    source_row_id: opts.sourceRowId ?? null,
+  });
   let contRetried = false;
   if ((cont.outputTokens ?? 0) < DEGENERATE_MIN_TOKENS) {
     console.warn(`[${opts.label}#cont] DEGENERATE (output_tokens=${cont.outputTokens ?? "?"} < ${DEGENERATE_MIN_TOKENS}) — retrying continuation once`);
@@ -184,7 +226,17 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       label: `${opts.label}#cont2`,
     });
     console.log(`[${opts.label}#cont2] stage=callAnthropic retry elapsed=${retry.elapsedMs}ms stop=${retry.stopReason} output_tokens=${retry.outputTokens ?? "?"} chars=${retry.text.length}`);
-    // Prefer whichever leg produced more tokens.
+    recordApiUsage({
+      function_name: opts.callerName ?? opts.label,
+      product: opts.product ?? null,
+      model: opts.model,
+      input_tokens: retry.inputTokens,
+      output_tokens: retry.outputTokens,
+      cache_read_tokens: retry.cacheReadTokens,
+      cache_creation_tokens: retry.cacheCreationTokens,
+      duration_ms: retry.elapsedMs,
+      source_row_id: opts.sourceRowId ?? null,
+    });
     if ((retry.outputTokens ?? 0) > (cont.outputTokens ?? 0)) {
       cont = { ...retry, elapsedMs: cont.elapsedMs + retry.elapsedMs };
     } else {
@@ -234,7 +286,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
 
   return {
     text: combinedText,
-    stopReason: cont.stopReason, // if still max_tokens, caller handles fallback
+    stopReason: cont.stopReason,
     elapsedMs: combinedElapsed,
     outputTokens: combinedTokens || null,
     continued: true,
@@ -245,5 +297,8 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     contElapsedMs: cont.elapsedMs,
     stitchedChars: combinedText.length,
     contRetried,
+    inputTokens: (first.inputTokens ?? 0) + (cont.inputTokens ?? 0) || null,
+    cacheReadTokens: (first.cacheReadTokens ?? 0) + (cont.cacheReadTokens ?? 0) || null,
+    cacheCreationTokens: (first.cacheCreationTokens ?? 0) + (cont.cacheCreationTokens ?? 0) || null,
   };
 }

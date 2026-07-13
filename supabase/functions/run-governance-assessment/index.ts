@@ -1164,7 +1164,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
-    const guarded = guardInformationNeeded(reportData, ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {});
+    const guarded = guardInformationNeeded(reportData, ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {}, "governance_assessment");
     reportData = guarded.report;
 
     // QB7-3(a): enforce TIMELINE VOICE post-generation (main path).

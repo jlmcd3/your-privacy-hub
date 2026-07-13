@@ -1319,7 +1319,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
-    const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {});
+    const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2-ws6v21") };

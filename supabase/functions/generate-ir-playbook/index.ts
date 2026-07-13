@@ -1461,8 +1461,7 @@ const playbook_text = lint.clean;
         try {
           const guarded = guardInformationNeeded(
             { ...report_data, playbook_text } as Record<string, unknown>,
-            (body as unknown) as Record<string, unknown>,
-          );
+            (body as unknown) as Record<string, unknown>, "ir_playbook");
           report_data.information_needed = (guarded as any).information_needed ?? report_data.information_needed;
         } catch (e) {
           console.warn("[generate-ir-playbook] insufficient-info guard error:", e);

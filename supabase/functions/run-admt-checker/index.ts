@@ -996,7 +996,7 @@ Return this JSON structure exactly:
 
     // 2.8 S2 — forward-path guard.
     try {
-      const guarded = guardInformationNeeded(report, ((assessment as any).intake_data as Record<string, unknown>) ?? {});
+      const guarded = guardInformationNeeded(report, ((assessment as any).intake_data as Record<string, unknown>) ?? {}, "cppa_admt");
       report = guarded.report;
     } catch (e) {
       console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);

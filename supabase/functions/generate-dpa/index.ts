@@ -943,8 +943,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     try {
       const guarded = guardInformationNeeded(
         { ...report_data, document_text: dpa_text } as Record<string, unknown>,
-        (body as unknown) as Record<string, unknown>,
-      );
+        (body as unknown) as Record<string, unknown>, "dpa_generator");
       (report_data as any).information_needed = (guarded as any).information_needed ?? report_data.information_needed;
     } catch (e) {
       console.warn("[generate-dpa] insufficient-info guard error:", e);
@@ -992,8 +991,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           try {
             const guarded = guardInformationNeeded(
               { ...report_data, document_text: dpa_text } as Record<string, unknown>,
-              (body as unknown) as Record<string, unknown>,
-            );
+              (body as unknown) as Record<string, unknown>, "dpa_generator");
             (report_data as any).information_needed = (guarded as any).information_needed ?? report_data.information_needed;
           } catch (e) {
             console.warn("[generate-dpa] insufficient-info guard error (post-repair):", e);

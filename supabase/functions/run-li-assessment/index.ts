@@ -1150,7 +1150,7 @@ Return JSON:
       sector: (assessment as any).sector ?? null,
       alternatives_considered: (assessment as any).alternatives_considered ?? null,
     };
-    const guarded = guardInformationNeeded(reportData, liaIntakeObject);
+    const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
 
