@@ -419,12 +419,35 @@ Deno.serve(async (req) => {
     // QC against the generator's authoritative PATCH summary (item_verdicts[]
     // and changed_paths), not a derived status diff.
     if (isInternalVerification) {
-      const { data: invokeData, error: invokeErr } = await supabase.functions.invoke(FN_MAP[tool_type], { body: invokeBody });
+      let invokeStatus = 0;
+      let invokeData: any = null;
+      let invokeErr: any = null;
+      try {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/${FN_MAP[tool_type]}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SERVICE_ROLE}`,
+            "apikey": SERVICE_ROLE,
+          },
+          body: JSON.stringify(invokeBody),
+        });
+        invokeStatus = r.status;
+        const txt = await r.text();
+        try { invokeData = txt ? JSON.parse(txt) : null; } catch { invokeData = { raw: txt }; }
+      } catch (e: any) {
+        invokeStatus = 502;
+        invokeErr = e;
+      }
       await logRevisionStarted();
       if (invokeErr) {
-        const detail = (invokeErr as any)?.message ?? "revision_invoke_failed";
+        const detail = invokeErr?.message ?? "revision_invoke_failed";
         logExit(502, { error: "revision_invoke_failed", detail });
         return json({ error: "revision_invoke_failed", detail }, 502);
+      }
+      if (invokeStatus < 200 || invokeStatus >= 300) {
+        logExit(invokeStatus, { error: invokeData?.error ?? "revision_refused", upstream_status: invokeStatus });
+        return json(invokeData ?? { error: "revision_refused" }, invokeStatus);
       }
       logExit(200, { ok: true, mode: "revision", answered: items.length, synchronous: true });
       return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}) });
