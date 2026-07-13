@@ -85,19 +85,32 @@ const OPT_OUT_EXCEPTIONS = [
   "No exception — we provide a full opt-out right",
 ];
 
-// admt_detail (nested object intake) — enum leaves. Exported so the refine
-// surface's structured editor (via fieldEnums.ts) can present the same option
-// set on re-run that first-run showed. Do not retype these literals elsewhere.
-export const ADMT_VENDOR_STATUS_OPTS = ["Service provider", "Contractor", "Third party", "Unsure"];
-export const ADMT_VENDOR_DOCS_OPTS = ["Model card / datasheet", "Validation report", "Bias-testing report", "SOC 2 / pen test", "DPIA", "None on file"];
-export const ADMT_YES_NO_OPTS = ["Yes", "No"];
-export const ADMT_YES_NO_UNSURE_OPTS = ["Yes", "No", "Unsure"];
-export const ADMT_HOSTING_OPTS = ["Hosted internally", "Hosted by the vendor", "Hybrid"];
-export const ADMT_MODEL_TYPE_OPTS = ["Rules engine", "Statistical model", "ML classifier", "Ranking / recommender", "Generative AI", "Biometric", "Emotion recognition", "Identity verification"];
-export const ADMT_DECISION_EFFECT_OPTS = ["Provision", "Denial", "Ranking", "Eligibility", "Pricing", "Allocation", "Assignment", "Promotion / demotion", "Suspension / termination", "Compensation", "Credentialing", "Diagnosis / care / treatment"];
-export const ADMT_DECISION_CADENCE_OPTS = ["One-time", "Repeated", "Continuous", "Systematic"];
-export const ADMT_SOLE_FACTOR_OPTS = ["Sole factor — output alone determines the outcome", "Material factor — heavily weighted alongside others", "One of many factors"];
-export const ADMT_SOLELY_ADVERTISING_OPTS = ["Yes — solely advertising", "No"];
+// admt_detail (nested object intake) — enum leaves live in a sibling module
+// so the refine surface's structured editor can import them without pulling
+// this page (and thus RefinePanel) back in a cycle.
+export {
+  ADMT_VENDOR_STATUS_OPTS,
+  ADMT_VENDOR_DOCS_OPTS,
+  ADMT_YES_NO_OPTS,
+  ADMT_YES_NO_UNSURE_OPTS,
+  ADMT_HOSTING_OPTS,
+  ADMT_MODEL_TYPE_OPTS,
+  ADMT_DECISION_EFFECT_OPTS,
+  ADMT_DECISION_CADENCE_OPTS,
+  ADMT_SOLE_FACTOR_OPTS,
+  ADMT_SOLELY_ADVERTISING_OPTS,
+} from "./ADMTChecker.enums";
+import {
+  ADMT_VENDOR_STATUS_OPTS,
+  ADMT_VENDOR_DOCS_OPTS,
+  ADMT_YES_NO_UNSURE_OPTS,
+  ADMT_HOSTING_OPTS,
+  ADMT_MODEL_TYPE_OPTS,
+  ADMT_DECISION_EFFECT_OPTS,
+  ADMT_DECISION_CADENCE_OPTS,
+  ADMT_SOLE_FACTOR_OPTS,
+  ADMT_SOLELY_ADVERTISING_OPTS,
+} from "./ADMTChecker.enums";
 
 function formatRelativeTime(d: Date) {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
