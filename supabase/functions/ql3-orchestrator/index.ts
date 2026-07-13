@@ -157,8 +157,39 @@ async function runOneUnit(runId: string) {
   if (runErr || !run) { console.error("[ql3] run not found", runId, runErr?.message); return; }
   if (run.phase === "done" || run.phase === "failed") return;
 
+  // RC-D.7 D-QL3-RACE-1: acquire a phase CAS lock BEFORE any dispatch or
+  // finalization side-effect. Only the transaction that atomically flips
+  // phase from its expected value to a "*ing" holding phase proceeds; any
+  // duplicate resume delivery (at-least-once) or double-fired self-invoke
+  // loses the CAS and exits silently. Stamps `dispatch_nonce` on the winner
+  // for audit. Also covers D-QL3-PHASE-1 by construction: only one writer
+  // ever advances the phase for a given transition, so phase writes cannot
+  // regress or overwrite a concurrent winner.
+  const lockPhase = run.phase === "revise_dummy"
+    ? "dispatching"
+    : run.phase === "review2"
+      ? "finalizing"
+      : null;
+  if (lockPhase) {
+    const nonce = crypto.randomUUID();
+    const { data: locked, error: lockErr } = await db
+      .from("quality_loop3_runs")
+      .update({ phase: lockPhase, dispatch_nonce: nonce })
+      .eq("id", runId)
+      .eq("phase", run.phase)
+      .select("id")
+      .maybeSingle();
+    if (lockErr) { console.error("[ql3] CAS error", runId, lockErr.message); return; }
+    if (!locked) {
+      console.log(`[ql3] CAS lost for ${runId} at phase=${run.phase} — another worker owns this transition; exiting silently`);
+      return;
+    }
+    console.log(`[ql3] CAS won for ${runId}: ${run.phase} → ${lockPhase} nonce=${nonce}`);
+  }
+
   try {
     if (run.phase === "revise_dummy") {
+
       const { row, cfg } = await readAssessment(run.tool_slug, run.assessment_id);
       if (!row) throw new Error("assessment row missing");
       const openItems: any[] = Array.isArray((row as any)?.report_data?.open_items)
