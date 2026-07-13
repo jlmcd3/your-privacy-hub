@@ -431,6 +431,21 @@ Deno.serve(async (req) => {
       ok: true,
     });
 
+    // RC-D.7 D-REGEN-ORPHAN-1: if the run-* invoke fails (fetch throws OR
+    // upstream non-2xx) we MUST revert status back to previous_status in the
+    // same handler — otherwise the row is orphaned in `processing` with no
+    // worker and reap-stuck-generations is the only backstop.
+    const previousStatus = String((row as any).status ?? "complete");
+    const revertProcessing = async (reason: string) => {
+      const { error: revErr } = await supabase
+        .from(table)
+        .update({ status: previousStatus, updated_at: new Date().toISOString() })
+        .eq("id", assessment_id)
+        .eq("status", "processing"); // race guard: don't clobber a worker that DID land
+      if (revErr) console.error(`[regen] revert failed (${reason}):`, revErr.message);
+      else console.log(`[regen] reverted ${assessment_id} processing→${previousStatus} (${reason})`);
+    };
+
     // Internal verification dispatches are synchronous so run-quality-batch can
     // QC against the generator's authoritative PATCH summary (item_verdicts[]
     // and changed_paths), not a derived status diff.
@@ -457,27 +472,36 @@ Deno.serve(async (req) => {
       }
       await logRevisionStarted();
       if (invokeErr) {
+        await revertProcessing("invoke_threw");
         const detail = invokeErr?.message ?? "revision_invoke_failed";
         logExit(502, { error: "revision_invoke_failed", detail });
         return json({ error: "revision_invoke_failed", detail }, 502);
       }
       if (invokeStatus < 200 || invokeStatus >= 300) {
+        await revertProcessing(`upstream_${invokeStatus}`);
         logExit(invokeStatus, { error: invokeData?.error ?? "revision_refused", upstream_status: invokeStatus });
         return json(invokeData ?? { error: "revision_refused" }, invokeStatus);
       }
       logExit(200, { ok: true, mode: "revision", answered: items.length, synchronous: true });
       return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}) });
     }
+    // Async customer path — wrap the invoke so a failure reverts status
+    // instead of leaving the row orphaned in processing.
     // @ts-ignore EdgeRuntime
-    EdgeRuntime.waitUntil(
-      supabase.functions.invoke(FN_MAP[tool_type], {
-        body: invokeBody,
-      }),
-    );
+    EdgeRuntime.waitUntil((async () => {
+      try {
+        const r = await supabase.functions.invoke(FN_MAP[tool_type], { body: invokeBody });
+        if ((r as any)?.error) throw (r as any).error;
+      } catch (e: any) {
+        console.error("[regen] async revision invoke failed:", e?.message ?? e);
+        await revertProcessing("async_invoke_failed");
+      }
+    })());
     await logRevisionStarted();
     logExit(200, { ok: true, mode: "revision", answered: items.length });
     return json({ ok: true, mode: "revision", answered: items.length });
   }
+
 
   // ---------------------------------------------------------------------
   // RC-A A1 — REVISION GATE for non-errata paths
