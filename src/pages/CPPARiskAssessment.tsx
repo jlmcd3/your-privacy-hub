@@ -1295,7 +1295,7 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div>
                     <Label>Have you identified cybersecurity gaps relevant to this processing?</Label>
-                    <div className="mt-2"><Radio name="impact_cyber" options={["Yes", "No"]} value={impactData.cyberGaps} onChange={(v) => setImpactData((d) => ({ ...d, cyberGaps: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_cyber" options={IMPACT_CYBER_GAPS_OPTS} value={impactData.cyberGaps} onChange={(v) => setImpactData((d) => ({ ...d, cyberGaps: v }))} /></div>
                   </div>
                 </div>
               </div>
