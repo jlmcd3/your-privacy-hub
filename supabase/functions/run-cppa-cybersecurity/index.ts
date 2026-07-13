@@ -1,6 +1,10 @@
 // qb8 build active
 // build-marker: cyber-qi3-observations-not-directives-2026-07-03
 console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directives-2026-07-03");
+// RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
+// behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
+// sha observed in the first post-deploy telemetry row carrying it.
+export const BUILD_STAMP = "4c8e1f7-rcC3cyb2@2026-07-14T00:15Z";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
