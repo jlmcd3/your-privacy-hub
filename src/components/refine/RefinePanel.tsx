@@ -277,7 +277,19 @@ export default function RefinePanel({
                 )}
               </label>
 
-              {f.kind === "textarea" ? (
+              {f.kind === "structured" ? (
+                <div id={`ref-${f.key}`} className="mt-2">
+                  <StructuredFieldEditor
+                    toolType={toolType}
+                    keyPath={f.key}
+                    value={structuredValues[f.key]}
+                    onChange={(next) => {
+                      clearResolveOnEdit();
+                      setStructuredValues((prev) => ({ ...prev, [f.key]: next }));
+                    }}
+                  />
+                </div>
+              ) : f.kind === "textarea" ? (
                 <textarea
                   id={`ref-${f.key}`}
                   value={(values[f.key] as string) ?? ""}
