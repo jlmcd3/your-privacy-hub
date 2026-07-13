@@ -382,6 +382,43 @@ Deno.serve(async (req) => {
         return json({ error: "item_not_open", item_id: a.item_id, status: st, message: "answered_items must reference open items; already resolved/not_resolved items may not be re-answered" }, 400);
       }
     }
+    // RC-D.8 IDEMPOTENCY CLAIM — before ANY side-effect (snapshot, meter,
+    // status flip), atomically claim the dispatch_nonce. Duplicate deliveries
+    // (at-least-once gateway retries, or writer races) fail the insert and
+    // return a no-side-effect 409 idempotent_replay. Admin/manual dispatches
+    // arrive without a nonce and keep today's behavior (already gated by
+    // status='processing' 409 above).
+    let dispatchNonceClaimed: string | null = null;
+    if (dispatch_nonce && typeof dispatch_nonce === "string") {
+      const { data: claim, error: claimErr } = await supabase
+        .from("revision_dispatch_ledger")
+        .insert({
+          nonce: dispatch_nonce,
+          assessment_id,
+          tool_type,
+          action: "revision_dispatch",
+        })
+        .select("nonce")
+        .maybeSingle();
+      if (claimErr) {
+        // 23505 unique_violation → nonce already claimed by a prior delivery.
+        const code = (claimErr as any).code;
+        if (code === "23505") {
+          logExit(409, { error: "idempotent_replay", dispatch_nonce });
+          return json({ error: "idempotent_replay", dispatch_nonce, message: "duplicate delivery — original dispatch already accepted; no side-effect performed" }, 409);
+        }
+        logExit(500, { error: "ledger_claim_failed", detail: claimErr.message });
+        return json({ error: "ledger_claim_failed", detail: claimErr.message }, 500);
+      }
+      if (!claim) {
+        // ON CONFLICT DO NOTHING via unique PK → treat as replay.
+        logExit(409, { error: "idempotent_replay", dispatch_nonce });
+        return json({ error: "idempotent_replay", dispatch_nonce }, 409);
+      }
+      dispatchNonceClaimed = dispatch_nonce;
+      console.log(JSON.stringify({ evt: "revision_dispatch_ledger_claimed", req_id: reqId, dispatch_nonce }));
+    }
+
     // Snapshot FIRST (RC-A A2).
     await snapshotPriorReport(supabase, { toolType: tool_type, assessmentId: assessment_id, ownerUserId: authedUser.id });
     // Fold answered_items into the WS6 supplemental_responses rail with item_id.
@@ -419,6 +456,11 @@ Deno.serve(async (req) => {
         answered_item_ids: items.map((a) => a.item_id),
         processing_started_at: processingStartedAt,
         previous_status: String((row as any).status ?? "complete"),
+        // RC-D.8: forward the claimed nonce so revision-mode.ts can compare
+        // by nonce rather than updated_at (which is clobbered by the
+        // BEFORE UPDATE update_updated_at_column trigger on cppa_assessments,
+        // making the timestamp guard structurally impossible to satisfy).
+        ...(dispatchNonceClaimed ? { dispatch_nonce: dispatchNonceClaimed } : {}),
         // For no-intake tools (e.g. LIA) supps aren't persisted; forward
         // the full payload so revision-mode.ts can reconstruct answers.
         ...(hasIntakeCol ? {} : { answered_items: items }),
