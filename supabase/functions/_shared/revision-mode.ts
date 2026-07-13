@@ -39,7 +39,8 @@ const TABLE_MAP: Record<string, string> = {
 const DEFAULT_MODEL = "claude-sonnet-4-5";
 
 // RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-b.2";
+// RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.1";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
