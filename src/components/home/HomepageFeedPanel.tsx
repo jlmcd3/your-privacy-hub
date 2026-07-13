@@ -222,6 +222,7 @@ const HomepageArticleCard = ({
           </p>
           <InvestigationPrompt
             item={article}
+            defaultOpen
             demoContext={{
               role: 'privacy_counsel',
               industries: ['healthcare', 'ai-companies'],
