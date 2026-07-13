@@ -1,72 +1,69 @@
+## RC-C3 continuation plan
 
-# RC-C3 execution plan (courier 5 of 6)
+Scope is large enough that I need one approval before I burn a deploy window and a dozen dispatches. Reads and code inspection are done; the shape below is what I intend to execute end-to-end, sequential, with row ids reported per item. Nothing dispatched until you approve.
 
-Locking sequence, deploy windows, and proof-leg definitions before touching code. Prior turns burned cycles when dispatches raced deploys; this plan enforces zero-in-flight gates and one deploy per phase.
+### Current facts (verified this turn)
+- HEAD = `57d64873`, tree clean, matches origin.
+- Only fixture wired today is `CPPA_RISK_CONTRACT_FIXTURES`, consumed by `run-quality-batch` at line 2133 via the pinned-intake path. No governance/cyber/admt equivalent exists.
+- `cppa_assessments.module` discriminator: `risk_assessment | cybersecurity | suite | admt` — cyber and admt live on the same table as risk.
+- `governance_assessments` is its own table (row `7ca49d93` is the empty-freeze first-gen from last turn).
+- No `dispatcher` binary in the sandbox; my dispatcher = `curl_edge_functions` against `run-quality-batch` / `regenerate-assessment` + `psql` polling to terminal.
 
-## Phase 0 — Owed RC-C2 reporting (no code)
-- Query `cppa_assessments` history / `function_runs` for `62074117` first-gen wall-clock and explain the `processing → failed → complete` interlude (which run terminal? was it reaped? was it a synchronous retry?).
-- Extract and quote the LIA §35/assessment-register verdict reason from `486eb7ec` leg-1 revision (from `open_items[].resolutions[]` on the resolved item).
-- Report both before any code lands.
+### Deliverables
 
-## Phase 1 — C3.1 Governance (Limited=3)
-Code changes (one deploy window, after zero-in-flight check on `governance_assessments`):
-1. `_shared/revision-qc.ts`: add `governance_assessment` to `CONTRACT_ENABLED_TOOLS`.
-2. `_shared/open-items.ts`: add `governance_assessment` block to `T_CLASS_FIELDS`; enum_refs point at `governance_assessment:<field>` keys (content-anchored, no literal retyping).
-3. `_shared/revision-patch.ts`: `ADVISORY_CAPS.governance_assessment = 3` (already present per file view — verify).
-4. Export enum constants from `src/pages/GovernanceAssessment.tsx` (or its `.enums.ts` sibling if it exists — check first, create sibling if not, to break import cycles like CPPARisk/ADMT).
-5. Register in `src/components/refine/fieldEnums.ts` under `governance_assessment: { ... }`.
-6. Verify generator prompt already emits ASSESSMENT-register verdict reasons; if not stamped, bump `rev-scope@rc-c.3.1` and record.
+**1. C3.2 forced-ask fixture path (governance + cyber + admt)**
 
-Proof leg (via dispatcher, poll to terminal):
-- Pick or generate one governance row with ≥1 open item; issue one sequential revision answering 1 item.
-- Expected: `qc_rc_1` green, `qc_rc_2` green with verdicts=1 + matching changed_path, snapshot in `report_versions`, statuses moved on `governance_assessments` row.
+Author three new fixture files mirroring `cppa-risk-contract-fixtures.ts`, each with a single `FIXTURE_YIELD_K1_PLUS` intake deliberately thin enough that the generator's information-needed pass emits ≥1 verdict-blocking/record-completeness item after `buildOpenItems` classification:
 
-## Phase 2 — C3.2 CPPA Cyber + ADMT (Limited=3 each)
-Both are dormant (cyber emits 0/12, admt unstamped). Install machinery + one **harness fixture** per tool that forces ≥1 open item at first-gen so freeze→revision→green QC can be end-to-end proven.
+- `supabase/functions/_shared/governance-contract-fixtures.ts` — mid-band multi-jurisdiction org with intentionally missing DPO designation + missing ROPA scope answer.
+- `supabase/functions/_shared/cyber-contract-fixtures.ts` — CPPA cyber intake with missing audit-scope + unspecified control-family evidence.
+- `supabase/functions/_shared/admt-contract-fixtures.ts` — ADMT intake with unspecified opt-out mechanism + unclear significant-decision domain narrative (never identity-locked fields).
 
-Code changes (one deploy window after Phase 1 verified green):
-1. Add `cppa_cybersecurity`, `cppa_admt` to `CONTRACT_ENABLED_TOOLS`.
-2. Add `T_CLASS_FIELDS` blocks for their enumerated posture fields (ADMT's enum set is already in `ADMTChecker.enums.ts` and registered in `fieldEnums.ts`; Cyber needs its own `.enums.ts` sibling if missing).
-3. Confirm `ADVISORY_CAPS` = 3 for each; add if missing.
-4. Add a **harness-only** first-gen path or fixture flag that injects a synthetic `information_needed` entry into the generated `open_items[]`. Marker: `harness: true` on the row (or a distinct `client_id`) and a comment tag `RC-C3 harness fixture — NOT production`.
-5. Register enum leaves in `fieldEnums.ts` (Cyber only, ADMT already registered).
+Wire each into `run-quality-batch` behind an existing tool-selector switch, mirroring the risk path (pinned intakes → generator first-gen → freeze → one revision). Errata path stays exempt.
 
-Proof legs (dispatcher, sequential, one per tool):
-- Cyber harness row → open_items[0] forced-ask → answer 1 → expect green/green + snapshot.
-- ADMT harness row → same shape → same expectation.
+**Deploy discipline**: zero-in-flight check via `SELECT count(*) FROM cppa_assessments WHERE status IN ('pending','processing')` (and same on `governance_assessments`) before `deploy_edge_functions`.
 
-## Phase 3 — C3.3 None-class verification (Biometric / IR / DPA / Registration)
-**NO contract machinery. NO advisory surface.** Read-only checks:
-1. For each of the 4 tools, locate the regeneration path (if any) and dispatch **one harness regen** where a regen path exists; confirm exactly one `report_versions` row is written for that assessment id.
-2. DPA: verify byte-identity comment on the placeholder-fill path is present and untouched; no code change.
-3. Registration: version history only — confirm regen writes `report_versions`; NO other change.
-4. Errata reachability: confirm the errata channel entry (frontend + `regenerate-assessment` errata mode) is reachable and gate-exempt for each of the 4.
+**Execute per tool, sequential**:
+- Dispatch first-gen against fixture → poll to `complete` → verify `open_items` length ≥ 1 → snapshot the row id.
+- Dispatch ONE revision via `regenerate-assessment` answering the fixture's `answer_targets` → poll → verify `verdicts=1`, matching `changed_path`, `qc_rc_1` + `qc_rc_2` green, `report_versions` row present.
+- On red: capture reason and STOP; do not proceed to next tool.
 
-Report per tool: assessment id, `report_versions` row id created (or explicit "no regen path"), errata endpoint response code.
+**2. Regen + errata proofs (biometric / ir / dpa) on existing 02bc7cd6 rows**
 
-## Phase 4 — C3.4 Gate coverage audit (documentation)
-Produce one table in the final report:
-| Page | Refine entry mechanism | `REVISIONS_ENABLED` gate site | Server-side gate site | Errata exempt? |
-Covers all 9 tool pages. Verify via `rg` — no runtime dispatch needed.
+- Enumerate the 02bc7cd6 rows for `biometric_assessments`, `ir_playbooks`, `dpa_documents` — pick the most recent terminal `complete` row per tool.
+- For each, dispatch `regenerate-assessment` with a trivial in-scope revision → verify `report_versions` snapshot row (v_n+1) written, errata endpoint reachable (GET on report-errata function or the page route, whichever exists), report row ids.
 
-## Phase 5 — C3.5 D8 + register sweep
-Grep every new user-facing string added in C3 (advisory text, error messages, generator prompt additions) for standalone `\bgaps?\b` and register-shape violations. Any hit blocks green. No new strings unless required.
+**3. Registration version-history check**
 
-## Phase 6 — Final report
-Per-item table with row ids, deploy timestamps, snapshot version numbers, QC results, and Phase 4 gate table. On green, hand off to RC-D (QL3).
+- Read-only query against `registration_assessments` + any versioning table for a recent 02bc7cd6 filing; confirm history is retrievable via the existing report-versions read path. No dispatch.
 
-## Constraints / non-negotiables
-- **Zero-in-flight** psql check before every deploy window (max 3 deploys total: after Phase 1 code, after Phase 2 code, none after that).
-- **No parallel dispatches** — sequential per leg, poll `status` to terminal (`complete`/`failed`/`errata`).
-- **Stamp bump** only on prompts that actually change; recorded in `_shared/prompt-version.ts` and in report.
-- **Harness fixtures** for Cyber/ADMT clearly labeled and excluded from any production score ledgers.
-- **No behavior changes** to None-class tools — Phase 3 is verification only.
-- If any leg goes red or a snapshot fails to write, **HALT** and report before continuing — same discipline that recovered RC-C2.
+**4. C3.4 gate coverage table**
 
-## Open questions to confirm before Phase 1 code
-1. Governance `.enums.ts` sibling — create if absent, or is there an existing constants module to anchor to? (I'll grep and confirm before writing.)
-2. Cyber `.enums.ts` sibling — same question.
-3. For C3.2 harness fixture path: prefer a query-string flag on `run-cppa-cybersecurity` / `run-admt-checker` (`?harness=1`) that appends the synthetic open item post-generation, gated on service-role auth. Confirm this shape before implementing.
-4. For C3.3 harness regen: which of the 4 None-class tools currently expose a regen path (vs. one-shot)? I'll audit `regenerate-assessment` dispatch table before executing.
+Single markdown table in the final report: 9 pages × {refine entry, server gate, errata exempt confirmed}. Built by `rg` audit of `useRefineMode` callers + `revision-mode.ts` server enforcement + errata function.
 
-Please confirm the sequence and the four open questions, then I fire Phase 0 immediately and move Phase 1 code+deploy on approval.
+**5. RC-C2 stragglers folded in**
+
+- `62074117` DPIA first-gen wall-clock + failed-interlude explanation (already extracted last turn — restated with row ids).
+- `486eb7ec` LIA §35/register verdict quote (already extracted — restated).
+- Governance empty-freeze note for `7ca49d93` (fixture yielded zero asks → structurally valid, insufficient for the revision proof, hence the new C3.2 governance fixture).
+
+### Execution order (strict)
+
+```
+deploy-window-A (fixtures live)
+  → govA-first-gen → govA-revision → report
+  → cyberA-first-gen → cyberA-revision → report
+  → admtA-first-gen → admtA-revision → report
+bio-regen → ir-regen → dpa-regen → registration-history-read
+c3.4 audit → assemble final report
+```
+
+Between each dispatch: poll to terminal (`status IN ('complete','failed')`), then move on. On any red: stop and report; do not chain.
+
+### Risks / call-outs
+
+- The generator's information-needed pass is model-driven — a fixture that "should" yield ≥1 item can still yield zero. If a fixture empty-freezes, I'll iterate the intake ONCE (thinner) before declaring the tool a governance-style empty-freeze case. No infinite loops.
+- Governance first-gen previously took ~142s. Budget wall-clock per fixture round-trip at ~4-6 minutes.
+- If `regenerate-assessment` refuses cleanly (409 no mutation) with a legit reason grounded in the patch, that's an acceptable outcome per your standing rule — I report it as such.
+
+Approve and I execute in one continuous turn, reporting per item with row ids as each completes. If you'd rather I split (fixtures + govA this turn, cyber/admt/regens next), say the word.

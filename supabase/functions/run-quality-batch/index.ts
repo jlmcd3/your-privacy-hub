@@ -23,6 +23,9 @@ import { resolveIntakeForTestStates } from "../_shared/cppa-risk-normalise.ts";
 // RC-C1 C1.5 — revision contract QC checks.
 import { qcContractMonotonicity, qcVerdictConsistency, CONTRACT_ENABLED_TOOLS } from "../_shared/revision-qc.ts";
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
+import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
+import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
+import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
 
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
@@ -2127,10 +2130,16 @@ Deno.serve(async (req) => {
   // through a sampleFixtures side-channel.
   if (body?.action === "seed_contract_fixtures") {
     const { tool_type } = body;
-    if (tool_type !== "cppa_risk_assessment") {
-      return json({ error: "unsupported_tool", detail: "seed_contract_fixtures currently supports cppa_risk_assessment only (RC-C1)" }, 400);
-    }
-    const intakes = CPPA_RISK_CONTRACT_FIXTURES.map((f) => ({
+    // RC-C3 C3.2 — extended beyond cppa_risk_assessment to governance / cyber / admt.
+    const FIXTURE_MAP: Record<string, { tool: string; runType: string; fixtures: Array<{ fixture_id: string; contract_scenario: string; intake: any; answer_targets?: string[] }> }> = {
+      cppa_risk_assessment:  { tool: "cppa-risk",  runType: "rc-c1-contract-fixtures", fixtures: CPPA_RISK_CONTRACT_FIXTURES as any },
+      governance_assessment: { tool: "governance", runType: "rc-c3-contract-fixtures", fixtures: GOVERNANCE_CONTRACT_FIXTURES as any },
+      cppa_cybersecurity:    { tool: "cppa-cyber", runType: "rc-c3-contract-fixtures", fixtures: CYBER_CONTRACT_FIXTURES as any },
+      cppa_admt:             { tool: "cppa-admt",  runType: "rc-c3-contract-fixtures", fixtures: ADMT_CONTRACT_FIXTURES as any },
+    };
+    const cfg = FIXTURE_MAP[tool_type as string];
+    if (!cfg) return json({ error: "unsupported_tool", detail: `seed_contract_fixtures supports: ${Object.keys(FIXTURE_MAP).join(", ")}` }, 400);
+    const intakes = cfg.fixtures.map((f) => ({
       ...f.intake,
       _fixture_id: f.fixture_id,
       _contract_scenario: f.contract_scenario,
@@ -2139,13 +2148,13 @@ Deno.serve(async (req) => {
     const { data: qr, error: qErr } = await admin
       .from("quality_runs")
       .insert({
-        tool: "cppa-risk",
+        tool: cfg.tool,
         status: "queued",
         batch_size: intakes.length,
         intakes,
         next_doc_index: 0,
         started_by: userId,
-        run_type: "rc-c1-contract-fixtures",
+        run_type: cfg.runType,
       })
       .select("id, run_number")
       .single();
@@ -2155,7 +2164,7 @@ Deno.serve(async (req) => {
       run_id: (qr as any).id,
       run_number: (qr as any).run_number,
       fixture_count: intakes.length,
-      fixtures: CPPA_RISK_CONTRACT_FIXTURES.map((f) => ({ id: f.fixture_id, scenario: f.contract_scenario })),
+      fixtures: cfg.fixtures.map((f) => ({ id: f.fixture_id, scenario: f.contract_scenario })),
     });
   }
 
