@@ -17,6 +17,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
+// Value = git short-sha + ISO timestamp. Update in the same edit that
+// changes behavior in this file.
+export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -527,7 +532,7 @@ Deno.serve(async (req) => {
         return json(invokeData ?? { error: "revision_refused" }, invokeStatus);
       }
       logExit(200, { ok: true, mode: "revision", answered: items.length, synchronous: true });
-      return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}) });
+      return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}), build_stamp: BUILD_STAMP });
     }
     // Async customer path — wrap the invoke so a failure reverts status
     // instead of leaving the row orphaned in processing.

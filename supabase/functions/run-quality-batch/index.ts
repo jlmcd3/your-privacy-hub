@@ -5,6 +5,12 @@
 // Returns 202 immediately. All work in EdgeRuntime.waitUntil().
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
+// Value = git short-sha of the commit being deployed + ISO timestamp.
+// MUST be updated in the same edit that changes behavior in this file.
+export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
 // so the checks are guaranteed to be measuring the identical state machine
@@ -2131,7 +2137,7 @@ Deno.serve(async (req) => {
       await adminLog.from("function_runs").insert({
         function_name: "run-quality-batch",
         status: "started",
-        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null, dispatch_nonce: body?.dispatch_nonce ?? null },
+        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null, dispatch_nonce: body?.dispatch_nonce ?? null, build_stamp: BUILD_STAMP },
       });
     } catch (_e) { /* non-fatal */ }
   } else {
@@ -2253,7 +2259,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (prior) {
         console.log(`[revision_dispatch] idempotent replay skipped nonce=${dispatch_nonce}`);
-        return json({ ok: true, idempotent_replay: true, dispatch_nonce }, 200);
+        return json({ ok: true, idempotent_replay: true, dispatch_nonce, build_stamp: BUILD_STAMP }, 200);
       }
     }
     // RC-C1 C1.5 — snapshot open_items BEFORE dispatch so post-hoc QC can
@@ -2333,6 +2339,8 @@ Deno.serve(async (req) => {
           upstream_body: upstreamBody,
           actor_user_id: userId,
           revision_prompt_stamp: "rev-scope@rc-d.8",
+          build_stamp: BUILD_STAMP,
+          upstream_build_stamp: upstreamBody?.build_stamp ?? null,
         },
       }).select("id").maybeSingle();
       completionRowId = (inserted as any)?.id ?? null;
@@ -2392,7 +2400,15 @@ Deno.serve(async (req) => {
         console.warn("[revision_dispatch] function_runs qc_checks update failed", (logErr as any)?.message);
       }
     }
-    return json({ ...upstreamBody, qc_checks: qcResults }, upstreamStatus || 500);
+    // RC-D.9 ADDENDUM: stamp build_stamp (this function) + upstream_build_stamp
+    // (regenerate-assessment, passed through) on the response so ql3-orchestrator
+    // — and any external verifier — can prove which artifacts ran end-to-end.
+    return json({
+      ...upstreamBody,
+      qc_checks: qcResults,
+      build_stamp: BUILD_STAMP,
+      upstream_build_stamp: upstreamBody?.build_stamp ?? null,
+    }, upstreamStatus || 500);
   }
 
 

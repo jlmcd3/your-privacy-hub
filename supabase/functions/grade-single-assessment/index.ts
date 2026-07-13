@@ -39,6 +39,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
+// Value = git short-sha + ISO timestamp. Update in the same edit that
+// changes behavior in this file.
+export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+
 function json(b: unknown, s = 200) {
   return new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 }
