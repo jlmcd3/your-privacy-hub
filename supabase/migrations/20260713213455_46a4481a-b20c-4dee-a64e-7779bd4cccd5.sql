@@ -1,0 +1,1 @@
+ALTER TABLE public.quality_loop3_runs ADD COLUMN IF NOT EXISTS dispatch_nonce uuid;
