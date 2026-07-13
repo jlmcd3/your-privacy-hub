@@ -461,7 +461,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
   "enforcement_context": "string (2-3 sentences: (1) cite phase-in deadlines under 11 CCR § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million. (2) State one sector-relevant enforcement observation using hedged language — 'this sector may attract scrutiny because [specific reason]' — do not assert CPPA has made specific sector-priority announcements without a source. (3) Note that the audit must be performed by a qualified, independent professional and the executive then submits the certification.)",
   "next_steps": ["string"],
   "information_needed": [
-    { "field": "<intake key that exists in the intake — for a per-control gap use that control's intake entry key, e.g. c14_third_party>", "dimensions": "<what specifically to add, as dimensions — never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
+    { "field": "<intake key that exists in the intake — for a per-control gap use the DOTTED ask path `controls.<slug>`, e.g. controls.c14_secure_dev>", "dimensions": "<what specifically to add, as dimensions — never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
   ]
 }
 Every insufficient-basis or "Insufficient information" finding elsewhere in this output (including any per-control status of "Insufficient information") MUST have a corresponding information_needed entry; otherwise return an empty array.`;
