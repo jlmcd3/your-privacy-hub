@@ -4272,6 +4272,7 @@ export type Database = {
         Row: {
           assessment_id: string | null
           created_at: string
+          dispatch_nonce: string | null
           dummy_answers: Json | null
           error_message: string | null
           id: string
@@ -4294,6 +4295,7 @@ export type Database = {
         Insert: {
           assessment_id?: string | null
           created_at?: string
+          dispatch_nonce?: string | null
           dummy_answers?: Json | null
           error_message?: string | null
           id?: string
@@ -4316,6 +4318,7 @@ export type Database = {
         Update: {
           assessment_id?: string | null
           created_at?: string
+          dispatch_nonce?: string | null
           dummy_answers?: Json | null
           error_message?: string | null
           id?: string
