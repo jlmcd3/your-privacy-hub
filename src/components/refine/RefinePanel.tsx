@@ -10,6 +10,9 @@ import {
   summariseStructuredValue,
 } from "@/components/refine/StructuredFieldEditor";
 import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "@/lib/revisionGate";
+// RC-B.1 B1.4 — Open-items surface (used when report_data.open_items exists).
+import OpenItemsList, { type OpenItem as OpenItemT } from "@/components/refine/OpenItemsList";
+import { submitRevisionAnswers } from "@/lib/revisionApi";
 
 export interface EditableFieldSpec {
   key: string;
@@ -44,6 +47,9 @@ interface Props {
   // When non-empty, each entry gets its own textarea; a general context box
   // renders regardless. Absent → no supplemental section rendered.
   priorInformationNeeded?: Array<{ field?: string; dimensions?: string; ask?: string; [k: string]: unknown }>;
+  // RC-B.1 B1.4 — when the assessment carries frozen open_items (contract
+  // core), render OpenItemsList in place of the legacy editable surface.
+  openItems?: OpenItemT[];
 }
 
 
