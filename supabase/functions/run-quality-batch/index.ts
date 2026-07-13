@@ -5,6 +5,12 @@
 // Returns 202 immediately. All work in EdgeRuntime.waitUntil().
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
+// Value = git short-sha of the commit being deployed + ISO timestamp.
+// MUST be updated in the same edit that changes behavior in this file.
+export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
 // so the checks are guaranteed to be measuring the identical state machine
