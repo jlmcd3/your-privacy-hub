@@ -19,7 +19,7 @@ import {
   IMPACT_BENEFITS_OUTWEIGH_OPTS,
   IMPACT_CYBER_GAPS_OPTS,
   HARM_TYPES,
-} from "@/pages/CPPARiskAssessment";
+} from "@/pages/CPPARiskAssessment.enums";
 import {
   ADMT_VENDOR_STATUS_OPTS,
   ADMT_VENDOR_DOCS_OPTS,
@@ -31,7 +31,7 @@ import {
   ADMT_DECISION_CADENCE_OPTS,
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
-} from "@/pages/admt/ADMTChecker";
+} from "@/pages/admt/ADMTChecker.enums";
 
 type EnumRegistry = Record<string, Record<string, readonly string[]>>;
 
