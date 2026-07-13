@@ -2137,7 +2137,7 @@ Deno.serve(async (req) => {
       await adminLog.from("function_runs").insert({
         function_name: "run-quality-batch",
         status: "started",
-        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null, dispatch_nonce: body?.dispatch_nonce ?? null },
+        metadata: { internal: true, action: body?.action, tool_type: body?.tool_type ?? null, assessment_id: body?.assessment_id ?? null, dispatch_nonce: body?.dispatch_nonce ?? null, build_stamp: BUILD_STAMP },
       });
     } catch (_e) { /* non-fatal */ }
   } else {
