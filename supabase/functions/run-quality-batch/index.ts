@@ -2244,21 +2244,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // RC-D.8 internal dedupe: if a prior function_runs completion for the
-    // same nonce+action already exists, this is an at-least-once retry —
-    // skip the forward entirely. Regenerate has its own ledger claim as
-    // the authoritative dedupe, so this is a fast path that avoids a
-    // redundant regenerate invocation.
+    // RC-D.10 fix (RQB-DEDUPE-1): the previous function_runs .contains() dedupe
+    // matched THIS execution's own "started" row (which now carries the nonce
+    // via RC-D.9 observability), producing a false idempotent_replay and a
+    // hollow dispatch. The authoritative acceptance record is
+    // revision_dispatch_ledger — regenerate claims the nonce there BEFORE any
+    // side-effects. Replay iff the ledger row exists; otherwise proceed
+    // (a prior delivery that failed pre-acceptance correctly retries).
     if (dispatch_nonce) {
-      const { data: prior } = await admin
-        .from("function_runs")
-        .select("id")
-        .eq("function_name", "run-quality-batch")
-        .contains("metadata", { action: "revision_dispatch", dispatch_nonce })
+      const { data: ledgerPrior } = await admin
+        .from("revision_dispatch_ledger")
+        .select("nonce")
+        .eq("nonce", dispatch_nonce)
         .limit(1)
         .maybeSingle();
-      if (prior) {
-        console.log(`[revision_dispatch] idempotent replay skipped nonce=${dispatch_nonce}`);
+      if (ledgerPrior) {
+        console.log(`[revision_dispatch] idempotent replay (ledger hit) nonce=${dispatch_nonce}`);
         return json({ ok: true, idempotent_replay: true, dispatch_nonce, build_stamp: BUILD_STAMP }, 200);
       }
     }
