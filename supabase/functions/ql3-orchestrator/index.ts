@@ -64,15 +64,29 @@ function selfInvoke(runId: string) {
 function dummyAnswerFor(item: any): { value: unknown; kind: string; invalid_reason?: string } {
   const spec = item?.input_spec ?? item?.spec ?? {};
   const type = String(spec?.type ?? item?.answer_type ?? "text").toLowerCase();
-  const enums: unknown[] = Array.isArray(spec?.enum)
+  const kind = String(spec?.kind ?? "").toLowerCase();
+  const enumRef: string | null = typeof spec?.enum_ref === "string" ? spec.enum_ref : null;
+  let enums: unknown[] = Array.isArray(spec?.enum)
     ? spec.enum
     : Array.isArray(spec?.options)
       ? spec.options.map((o: any) => (o?.value ?? o))
       : [];
+  // RC-D.6 QL3-ENUM-1: frozen re-select items carry `enum_ref` (e.g.
+  // "cppa_risk_assessment:q15c_spi_volume") instead of inline options.
+  // Resolve via the server-side mirror of the client refine registry.
+  let enumRefResolved: string | "unresolved" | null = null;
+  if ((kind === "re-select" || enumRef) && enums.length === 0) {
+    const mirrored = resolveEnumRef(enumRef);
+    if (mirrored && mirrored.length > 0) {
+      enums = [...mirrored];
+      enumRefResolved = enumRef;
+    } else if (enumRef) {
+      enumRefResolved = "unresolved";
+    }
+  }
   if (enums.length > 0) {
-    // Pick the "middle" enum value deterministically.
     const idx = Math.min(enums.length - 1, Math.max(0, Math.floor(enums.length / 2)));
-    return { value: enums[idx], kind: "enum_pick" };
+    return { value: enums[idx], kind: enumRefResolved && enumRefResolved !== "unresolved" ? "enum_ref_pick" : "enum_pick" };
   }
   if (type === "boolean" || type === "bool") return { value: true, kind: "boolean" };
   if (type === "number" || type === "integer") {
@@ -82,13 +96,17 @@ function dummyAnswerFor(item: any): { value: unknown; kind: string; invalid_reas
     return { value: v, kind: "number", invalid_reason: (Number.isFinite(max) && v > max) ? "min>max" : undefined };
   }
   if (Array.isArray(spec?.slug_keys) && spec.slug_keys.length) {
-    // multi-select: pick first slug
     return { value: [spec.slug_keys[0]], kind: "slug_pick" };
   }
-  // Fallback text
   const maxLen = Number(spec?.max_length ?? 240);
   const boiler = "Dummy QL3 answer — deterministic fixture value used for revision-loop verification only.";
-  return { value: boiler.slice(0, Math.max(20, Math.min(240, Math.floor(maxLen)))), kind: "text" };
+  const text = boiler.slice(0, Math.max(20, Math.min(240, Math.floor(maxLen))));
+  // If a re-select's enum_ref wasn't in the mirror, honestly record it so QC
+  // can see the fallback rather than assuming the spec was satisfied.
+  if (enumRefResolved === "unresolved") {
+    return { value: text, kind: "text_fallback", invalid_reason: "enum_ref_unresolved" };
+  }
+  return { value: text, kind: "text" };
 }
 
 async function readAssessment(toolSlug: string, assessmentId: string) {
