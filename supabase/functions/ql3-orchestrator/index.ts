@@ -167,9 +167,12 @@ async function runOneUnit(runId: string) {
         .slice(0, 12) // bound per pass
         .map((it) => {
           const ans = dummyAnswerFor(it);
+          // RC-D.4 QL3-ANS-1: revision contract reads `value` (revision-mode.ts
+          // :96 / :315), not `answer`. Emitting `answer` silently dropped the
+          // payload and every dummy revision reached the generator empty.
           return {
             item_id: String(it.id ?? it.item_id),
-            answer: ans.value,
+            value: ans.value,
             _dummy_kind: ans.kind,
             ...(ans.invalid_reason ? { _invalid_reason: ans.invalid_reason } : {}),
           };
