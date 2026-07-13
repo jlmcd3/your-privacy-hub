@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { RunMeter } from "@/hooks/useRunMeter";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 
 export default function RunMeterBar({
   meter,
