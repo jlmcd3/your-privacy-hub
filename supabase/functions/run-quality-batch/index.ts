@@ -2385,7 +2385,7 @@ Deno.serve(async (req) => {
           ? upstreamBody.changed_paths
           : [];
         qcResults.push(qcContractMonotonicity(openItemsBefore, openItemsAfter));
-        qcResults.push(qcVerdictConsistency(answeredIds, verdicts, openItemsAfter, changedPaths));
+        qcResults.push(qcVerdictConsistency(answeredIds, verdicts, openItemsAfter, changedPaths, body?.tool_type));
       } catch (e: any) {
         qcResults.push({ code: "qc_rc_dispatch_error", status: "red", detail: e?.message });
       }
