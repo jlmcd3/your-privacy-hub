@@ -104,11 +104,10 @@ async function readAssessment(toolSlug: string, assessmentId: string) {
 }
 
 async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<number | null> {
-  // Best-effort grader call — grade-single-assessment is cppa-only today; for
-  // other tools we return null and rely on items_before/items_after telemetry
-  // as the QC signal. This keeps QL3 useful across all 9 tools without
-  // conflating grader coverage with revision success.
-  if (!["cppa-risk", "cppa-cyber", "cppa-admt"].includes(toolSlug)) return null;
+  // grade-single-assessment uses the cppa-risk rubric label; restrict to
+  // cppa-risk to avoid mis-labelling. Other tools rely on items_before/after
+  // as the QC signal (post_score stays null and that is expected).
+  if (toolSlug !== "cppa-risk") return null;
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/grade-single-assessment`, {
       method: "POST",
@@ -118,11 +117,11 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
         "apikey": SERVICE_KEY,
         "x-internal-resume": "1",
       },
-      body: JSON.stringify({ assessment_id: assessmentId }),
+      body: JSON.stringify({ assessment_id: assessmentId, dry_run: true }),
     });
     if (!r.ok) return null;
     const body: any = await r.json().catch(() => null);
-    const score = body?.mean_score ?? body?.score ?? body?.review?.mean_score ?? null;
+    const score = body?.mean_score ?? body?.payload?.claude?.overall_score ?? null;
     return typeof score === "number" ? score : null;
   } catch {
     return null;
