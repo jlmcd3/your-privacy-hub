@@ -44,8 +44,8 @@ import {
 // Q18 uses inline ["Yes","No","In evaluation"] in the intake JSX; mirror that
 // literal here (content-anchored to CPPARiskAssessment.tsx line 924).
 const Q18_ADMT_USE_OPTS = ["Yes", "No", "In evaluation"] as const;
-// Q20 opt-out inline enum; mirror the intake radio literals.
-const Q20_ADMT_OPT_OUT_OPTS = ["Yes", "No", "In progress"] as const;
+// Q20 opt-out inline enum; mirror the intake radio literals (line 939).
+const Q20_ADMT_OPT_OUT_OPTS = ["Yes, with documented opt-out", "Planned for implementation", "No"] as const;
 
 type EnumRegistry = Record<string, Record<string, readonly string[]>>;
 
