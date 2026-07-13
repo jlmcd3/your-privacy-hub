@@ -62,6 +62,9 @@ export interface RefineMode {
   // NEVER included (P3/D5 binding). Consumers must additionally gate
   // rendering on IMPROVEMENT_KIT_ENABLED && isPro.
   resolveFields: ResolveFieldMap;
+  // RC-B.1 B1.4 — frozen open_items from the prior report_data. When
+  // present, RefinePanel swaps to the OpenItemsList surface.
+  openItems: any[];
 }
 
 export function useRefineMode(toolType: string): RefineMode {
@@ -69,6 +72,7 @@ export function useRefineMode(toolType: string): RefineMode {
   const assessmentId = params.get("refine") || undefined;
   const [intake, setIntake] = useState<Record<string, unknown> | null>(null);
   const [infoNeeded, setInfoNeeded] = useState<InfoNeededEntry[]>([]);
+  const [openItems, setOpenItems] = useState<any[]>([]);
   const [resolveFields, setResolveFields] = useState<ResolveFieldMap>({ fields: {}, fieldOrder: [], count: 0 });
   const [loading, setLoading] = useState(!!assessmentId);
   const { meter } = useRunMeter(toolType, assessmentId);
@@ -102,6 +106,8 @@ export function useRefineMode(toolType: string): RefineMode {
       const rd = (data as any)?.report_data;
       const arr = Array.isArray(rd?.information_needed) ? rd.information_needed : [];
       setInfoNeeded(arr as InfoNeededEntry[]);
+      // RC-B.1 B1.4 — surface frozen open_items to the caller.
+      setOpenItems(Array.isArray(rd?.open_items) ? rd.open_items : []);
       // Doc Q: derive RESOLVE-field map from the prior report_data.
       // strengthen_items is intentionally never inspected here.
       setResolveFields(deriveResolveFields(rd));
@@ -121,5 +127,6 @@ export function useRefineMode(toolType: string): RefineMode {
     infoNeeded,
     infoNeededKeys: infoNeeded.map((e) => (e as any).field).filter(Boolean),
     resolveFields,
+    openItems,
   };
 }
