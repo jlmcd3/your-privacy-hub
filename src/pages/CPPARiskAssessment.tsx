@@ -224,25 +224,23 @@ export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKe
   { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
 
-// Aligned to the § 7152(a)(5) enumerated negative-impact examples.
-export const HARM_TYPES = [
-  "Unauthorised access, destruction, use, modification, or disclosure",
-  "Loss of availability of personal information",
-  "Unlawful discrimination",
-  "Impairment of consumer control over personal information",
-  "Coercion or dark patterns",
-  "Economic harm",
-  "Physical harm",
-  "Reputational harm",
-  "Psychological harm",
-];
-
-// § 7152 impact-assessment scales (used both by the intake radios below and
-// by the refine surface's structured editor via fieldEnums.ts).
-export const IMPACT_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"];
-export const IMPACT_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"];
-export const IMPACT_BENEFITS_OUTWEIGH_OPTS = ["Yes", "No", "Uncertain"];
-export const IMPACT_CYBER_GAPS_OPTS = ["Yes", "No"];
+// § 7152(a)(5) negative-impact examples + impact-assessment scales live in a
+// sibling module so the refine surface's structured editor can import them
+// without pulling this page (and thus RefinePanel) back in a cycle.
+export {
+  HARM_TYPES,
+  IMPACT_LIKELIHOOD_OPTS,
+  IMPACT_SEVERITY_OPTS,
+  IMPACT_BENEFITS_OUTWEIGH_OPTS,
+  IMPACT_CYBER_GAPS_OPTS,
+} from "./CPPARiskAssessment.enums";
+import {
+  HARM_TYPES,
+  IMPACT_LIKELIHOOD_OPTS,
+  IMPACT_SEVERITY_OPTS,
+  IMPACT_BENEFITS_OUTWEIGH_OPTS,
+  IMPACT_CYBER_GAPS_OPTS,
+} from "./CPPARiskAssessment.enums";
 
 // Step 6 statute popover helper — one-line plain-language summary with citation.
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
