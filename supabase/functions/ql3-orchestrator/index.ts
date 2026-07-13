@@ -148,6 +148,19 @@ async function runOneUnit(runId: string) {
       const itemsBefore = openItems.length;
       const preScore = await callInternalGrader(run.tool_slug, run.assessment_id);
 
+      // RC-D.1 D-6: capture baseline report_versions.max(version_n) so
+      // review2 can wait for the revision to *actually* advance the rail
+      // before measuring items_after / post_score.
+      const { data: baseVer } = await db
+        .from("report_versions")
+        .select("version_n")
+        .eq("tool_type", cfg.toolType)
+        .eq("assessment_id", run.assessment_id)
+        .order("version_n", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const baselineVersion = (baseVer as any)?.version_n ?? 0;
+
       // Generate dummy answers deterministically from input_spec.
       const answered = openItems
         .filter((it) => it?.id || it?.item_id)
@@ -176,7 +189,9 @@ async function runOneUnit(runId: string) {
         return;
       }
 
-      // Dispatch revision through the audited internal path.
+      // Dispatch revision through the audited internal path (RC-D.1 D-1:
+      // run-quality-batch accepts SR bearer + x-internal-verification for
+      // enumerated actions).
       const dispatchRes = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
         method: "POST",
         headers: {
@@ -197,12 +212,16 @@ async function runOneUnit(runId: string) {
 
       await db.from("quality_loop3_runs").update({
         phase: upstreamStatus >= 200 && upstreamStatus < 300 ? "review2" : "failed",
-        input_spec: { open_items_before: openItems.map((i: any) => ({ id: i.id ?? i.item_id, type: i?.input_spec?.type })) },
+        input_spec: {
+          open_items_before: openItems.map((i: any) => ({ id: i.id ?? i.item_id, type: i?.input_spec?.type })),
+          baseline_version_n: baselineVersion,
+        },
         dummy_answers: answered,
         items_before: itemsBefore,
         pre_score: preScore,
         qc_result: {
           dispatch_status: upstreamStatus,
+          baseline_version_n: baselineVersion,
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
@@ -218,13 +237,44 @@ async function runOneUnit(runId: string) {
     }
 
     if (run.phase === "review2") {
-      const { row } = await readAssessment(run.tool_slug, run.assessment_id);
-      const openItemsAfter: any[] = Array.isArray((row as any)?.report_data?.open_items)
-        ? (row as any).report_data.open_items
+      // RC-D.1 D-6: confirm terminal state (status complete AND
+      // report_versions.version_n advanced past baseline) BEFORE measuring.
+      const cfg = TOOL_TABLE[run.tool_slug];
+      const baselineVersion: number = (run as any)?.qc_result?.baseline_version_n
+        ?? (run as any)?.input_spec?.baseline_version_n
+        ?? 0;
+      let rowFinal: any = null;
+      let currentVersion = baselineVersion;
+      let terminalReached = false;
+      for (let i = 0; i < 45; i++) { // ~90s with 2s sleep
+        await new Promise((r) => setTimeout(r, 2000));
+        const { data: r1 } = await db
+          .from(cfg.table)
+          .select("id, status, report_data")
+          .eq("id", run.assessment_id)
+          .maybeSingle();
+        const { data: v1 } = await db
+          .from("report_versions")
+          .select("version_n")
+          .eq("tool_type", cfg.toolType)
+          .eq("assessment_id", run.assessment_id)
+          .order("version_n", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        rowFinal = r1;
+        currentVersion = (v1 as any)?.version_n ?? baselineVersion;
+        if ((r1 as any)?.status === "complete" && currentVersion > baselineVersion) {
+          terminalReached = true;
+          break;
+        }
+      }
+      const openItemsAfter: any[] = Array.isArray((rowFinal as any)?.report_data?.open_items)
+        ? (rowFinal as any).report_data.open_items
         : [];
       const itemsAfter = openItemsAfter.length;
       const postScore = await callInternalGrader(run.tool_slug, run.assessment_id);
       const resolved = Math.max(0, (run.items_before ?? 0) - itemsAfter);
+      const priorQc = (run as any)?.qc_result ?? {};
 
       await db.from("quality_loop3_runs").update({
         phase: "done",
@@ -232,6 +282,13 @@ async function runOneUnit(runId: string) {
         items_resolved: resolved,
         post_score: postScore,
         terminal_at: new Date().toISOString(),
+        qc_result: {
+          ...priorQc,
+          review2_terminal_reached: terminalReached,
+          review2_baseline_version_n: baselineVersion,
+          review2_current_version_n: currentVersion,
+        },
+        ...(terminalReached ? {} : { error_message: "review2_timeout_pre_terminal" }),
       }).eq("id", runId);
       return;
     }
