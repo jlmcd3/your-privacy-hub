@@ -137,8 +137,11 @@ Deno.serve(async (req) => {
     tool_type?: string;
     assessment_id?: string;
     edited_fields?: Record<string, unknown>;
-    mode?: "revise" | "errata";
+    mode?: "revise" | "errata" | "revision";
     corrections?: Array<{ field_path: string; new_value: unknown }>;
+    // RC-B B2 — answers transport for the revision path. Each entry keys an
+    // open_item id and rides the WS6 supplemental_responses rail on merge.
+    answered_items?: Array<{ item_id: string; value: unknown; evidence?: string }>;
   };
   try {
     payload = await req.json();
@@ -146,7 +149,7 @@ Deno.serve(async (req) => {
     logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
-  const { tool_type, assessment_id, edited_fields, mode, corrections } = payload;
+  const { tool_type, assessment_id, edited_fields, mode, corrections, answered_items } = payload;
 
   if (!tool_type || !assessment_id) {
     logExit(400, { error: "missing_params" });
