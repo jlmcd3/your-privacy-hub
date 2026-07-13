@@ -380,7 +380,12 @@ Deno.serve(async (req) => {
           [bodyKeyRev]: assessment_id,
           is_regeneration: true,
           revision_mode: true,
-          revision_context: { answered_item_ids: items.map((a) => a.item_id) },
+          revision_context: {
+            answered_item_ids: items.map((a) => a.item_id),
+            // For no-intake tools (e.g. LIA) supps aren't persisted; forward
+            // the full payload so revision-mode.ts can reconstruct answers.
+            ...(hasIntakeCol ? {} : { answered_items: items }),
+          },
         },
       }),
     );
