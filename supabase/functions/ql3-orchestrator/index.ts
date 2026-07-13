@@ -318,7 +318,7 @@ async function runOneUnit(runId: string) {
             qc_checks: upstream?.qc_checks ?? null,
           },
         },
-        ...(nextEnd => nextEnd)(0),
+        
         error_message: nextErr,
         ...(unexpectedReplay ? { terminal_at: new Date().toISOString() } : {}),
       }).eq("id", runId);
