@@ -476,7 +476,7 @@ Prior assessments conducted: ${impact.prior_assessments_conducted ? `Yes (${impa
 STAGE 5 — ORGANISATIONAL CONTEXT:
 Company: ${org_context.company_name}
 Sector: ${org_context.sector}
-Annual revenue band (§ 1798.140(d)(1)(A)): ${(row as any).intake_data?.q1_revenue ?? "Not specified"}
+Annual revenue band (§ 1798.140(d)(1)(A)): ${(intake as any)?.q1_revenue ?? (org_context as any)?.q1_revenue ?? "Not specified"}
 Privacy counsel engaged: ${org_context.privacy_counsel_engaged ? "Yes" : "No"}
 DPO/Privacy Officer: ${org_context.dpo_or_privacy_officer ? "Yes" : "No"}
 Board-level privacy oversight: ${org_context.board_level_oversight ? "Yes" : "No"}
