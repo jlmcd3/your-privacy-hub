@@ -2120,7 +2120,6 @@ Deno.serve(async (req) => {
     req.headers.get("x-internal-verification") === "1"
     && token === SERVICE_KEY
     && INTERNAL_ALLOWED_ACTIONS.has(String(body?.action ?? ""));
-  let userId: string;
   let userId: string | null;
   if (isInternalSR) {
     userId = null; // sentinel for internal caller — started_by nullable
