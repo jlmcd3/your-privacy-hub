@@ -2218,7 +2218,7 @@ Deno.serve(async (req) => {
   // log row is written.
   if (body?.action === "revision_dispatch") {
     const startedAt = Date.now();
-    const { tool_type, assessment_id, answered_items, internal_user_id } = body;
+    const { tool_type, assessment_id, answered_items, internal_user_id, dispatch_nonce } = body;
     if (!tool_type || !assessment_id || !Array.isArray(answered_items) || answered_items.length === 0) {
       return json({ error: "revision_dispatch_missing_params" }, 400);
     }
@@ -2232,6 +2232,25 @@ Deno.serve(async (req) => {
       }
       if (typeof a.value === "string" && a.value.trim().length === 0) {
         return json({ error: "answered_item_missing_value", item_id: a.item_id ?? null, reason: "empty_string" }, 400);
+      }
+    }
+
+    // RC-D.8 internal dedupe: if a prior function_runs completion for the
+    // same nonce+action already exists, this is an at-least-once retry —
+    // skip the forward entirely. Regenerate has its own ledger claim as
+    // the authoritative dedupe, so this is a fast path that avoids a
+    // redundant regenerate invocation.
+    if (dispatch_nonce) {
+      const { data: prior } = await admin
+        .from("function_runs")
+        .select("id")
+        .eq("function_name", "run-quality-batch")
+        .contains("metadata", { action: "revision_dispatch", dispatch_nonce })
+        .limit(1)
+        .maybeSingle();
+      if (prior) {
+        console.log(`[revision_dispatch] idempotent replay skipped nonce=${dispatch_nonce}`);
+        return json({ ok: true, idempotent_replay: true, dispatch_nonce }, 200);
       }
     }
     // RC-C1 C1.5 — snapshot open_items BEFORE dispatch so post-hoc QC can
@@ -2265,6 +2284,9 @@ Deno.serve(async (req) => {
       mode: "revision",
       answered_items,
       ...(internal_user_id ? { internal_user_id } : {}),
+      // RC-D.8: forward end-to-end. Regenerate uses this to claim the nonce
+      // in revision_dispatch_ledger before any side-effects.
+      ...(dispatch_nonce ? { dispatch_nonce } : {}),
     };
     let upstreamStatus = 0;
     let upstreamBody: any = null;
@@ -2285,6 +2307,34 @@ Deno.serve(async (req) => {
     } catch (e: any) {
       upstreamStatus = 502;
       upstreamBody = { error: "revision_dispatch_fetch_failed", detail: e?.message };
+    }
+
+    // RC-D.8: write the completion row IMMEDIATELY after regenerate returns
+    // — BEFORE the up-to-60s polling loop below. Container CPU-wall
+    // termination during polling was leaving the accepted execution's
+    // completion unlogged (see RC-D.8 forensics). The subsequent QC loop
+    // remains best-effort telemetry.
+    let completionRowId: string | null = null;
+    try {
+      const { data: inserted } = await admin.from("function_runs").insert({
+        function_name: "run-quality-batch",
+        status: upstreamStatus >= 200 && upstreamStatus < 300 ? "success" : "error",
+        duration_ms: Date.now() - startedAt,
+        metadata: {
+          action: "revision_dispatch",
+          tool_type,
+          assessment_id,
+          dispatch_nonce: dispatch_nonce ?? null,
+          answered_item_ids: answered_items.map((a: any) => a?.item_id),
+          upstream_status: upstreamStatus,
+          upstream_body: upstreamBody,
+          actor_user_id: userId,
+          revision_prompt_stamp: "rev-scope@rc-d.8",
+        },
+      }).select("id").maybeSingle();
+      completionRowId = (inserted as any)?.id ?? null;
+    } catch (logErr) {
+      console.warn("[revision_dispatch] function_runs completion insert failed", (logErr as any)?.message);
     }
 
     // RC-C1 C1.5 — QC checks (scoped to contract-enabled tools; regenerate-assessment
@@ -2314,11 +2364,6 @@ Deno.serve(async (req) => {
           ? (rowAfter as any).report_data.open_items
           : [];
         const answeredIds: string[] = (answered_items as any[]).map((a) => String(a?.item_id ?? ""));
-        // RC-C2.2 authoritative telemetry fix — qc_rc_2 counts the generator's
-        // PATCH item_verdicts[] returned by handleRevisionMode via
-        // regenerate-assessment. Never derive verdicts from before/after status
-        // diffs; a refused patch leaves status unchanged by design, and an
-        // honest not_resolved verdict may also leave an item open.
         const verdicts = Array.isArray(upstreamBody?.verdicts)
           ? upstreamBody.verdicts
               .map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") }))
@@ -2334,25 +2379,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    try {
-      await admin.from("function_runs").insert({
-        function_name: "run-quality-batch",
-        status: upstreamStatus >= 200 && upstreamStatus < 300 ? "success" : "error",
-        duration_ms: Date.now() - startedAt,
-        metadata: {
-          action: "revision_dispatch",
-          tool_type,
-          assessment_id,
-          answered_item_ids: answered_items.map((a: any) => a?.item_id),
-          upstream_status: upstreamStatus,
-          upstream_body: upstreamBody,
-          actor_user_id: userId,
-          qc_checks: qcResults,
-          revision_prompt_stamp: "rev-scope@rc-c.2.2",
-        },
-      });
-    } catch (logErr) {
-      console.warn("[revision_dispatch] function_runs insert failed", (logErr as any)?.message);
+    // Best-effort: append qc_checks to the completion row we already wrote.
+    if (completionRowId && qcResults.length) {
+      try {
+        const { data: existing } = await admin.from("function_runs").select("metadata").eq("id", completionRowId).maybeSingle();
+        const md = ((existing as any)?.metadata ?? {}) as Record<string, unknown>;
+        await admin.from("function_runs").update({ metadata: { ...md, qc_checks: qcResults } }).eq("id", completionRowId);
+      } catch (logErr) {
+        console.warn("[revision_dispatch] function_runs qc_checks update failed", (logErr as any)?.message);
+      }
     }
     return json({ ...upstreamBody, qc_checks: qcResults }, upstreamStatus || 500);
   }
