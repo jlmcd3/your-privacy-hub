@@ -233,16 +233,75 @@ async function reapFunctionRuns(): Promise<{ table: string; reaped: number; erro
 // This function is not on a schedule, so a registration backstop here would
 // never run. See retry-failed-generations/index.ts → sweepRegistrationOrders.
 
+// RC-D.7 D-REGEN-ORPHAN-1 backstop: revert *revision-mode* rows that were
+// left orphaned in `processing` by a killed regenerate→invoke chain. Distinct
+// from the initial-generation TARGETS above:
+//   - shorter threshold (5 min — the row already has a complete prior report,
+//     nothing is at risk from an early revert)
+//   - reverts to `complete` (the pre-revision terminal state) instead of
+//     failing/erroring — the user still has their prior report intact
+//   - only fires when report_data.open_items exists (i.e. a prior complete
+//     run's open-items rail is present, which is the signature of a revision
+//     dispatch mid-flight and not an initial generation)
+// The primary fix is the revert-on-invoke-failure in regenerate-assessment;
+// this is the safety net for platform-level chain terminations that bypass
+// regenerate's catch entirely.
+const REVISION_STUCK_MINUTES = 5;
+const REVISION_TARGETS: Array<{ table: string; inflight: string; revertTo: string }> = [
+  { table: "cppa_assessments",       inflight: "processing", revertTo: "complete" },
+  { table: "governance_assessments", inflight: "processing", revertTo: "complete" },
+  { table: "dpia_frameworks",        inflight: "processing", revertTo: "complete" },
+  { table: "li_assessments",         inflight: "processing", revertTo: "complete" },
+  { table: "ir_playbooks",           inflight: "processing", revertTo: "complete" },
+  { table: "biometric_assessments",  inflight: "processing", revertTo: "complete" },
+  { table: "dpa_documents",          inflight: "processing", revertTo: "complete" },
+];
 
+async function reapRevisionInFlight(t: { table: string; inflight: string; revertTo: string }) {
+  const cutoff = new Date(Date.now() - REVISION_STUCK_MINUTES * 60_000).toISOString();
+  const { data: candidates, error: selErr } = await supabase
+    .from(t.table)
+    .select("id, report_data, updated_at")
+    .eq("status", t.inflight)
+    .lt("updated_at", cutoff);
+  if (selErr) {
+    console.error(`[reap-stuck] revision ${t.table}: select failed`, selErr);
+    return { table: `${t.table}:revision`, reaped: 0, error: selErr.message };
+  }
+  const eligible = (candidates ?? []).filter((r: any) =>
+    Array.isArray(r?.report_data?.open_items),
+  );
+  if (eligible.length === 0) {
+    console.log(`[reap-stuck] revision ${t.table}: 0 rows reaped`);
+    return { table: `${t.table}:revision`, reaped: 0 };
+  }
+  let reaped = 0;
+  for (const row of eligible as any[]) {
+    const { error: updErr } = await supabase
+      .from(t.table)
+      .update({ status: t.revertTo, updated_at: new Date().toISOString() })
+      .eq("id", row.id)
+      .eq("status", t.inflight); // race guard
+    if (updErr) {
+      console.error(`[reap-stuck] revision ${t.table} ${row.id}: revert failed`, updErr);
+      continue;
+    }
+    reaped += 1;
+    console.log(`[reap-stuck] revision ${t.table}: reverted ${row.id} → ${t.revertTo}`);
+  }
+  return { table: `${t.table}:revision`, reaped };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const results = [];
+    for (const t of REVISION_TARGETS) results.push(await reapRevisionInFlight(t));
     for (const t of TARGETS) results.push(await reap(t));
     results.push(await reapQualityRuns());
     results.push(await reapFunctionRuns());
+
     // Registration orders are swept by retry-failed-generations (scheduled).
     const total = results.reduce((n, r) => n + r.reaped, 0);
 
