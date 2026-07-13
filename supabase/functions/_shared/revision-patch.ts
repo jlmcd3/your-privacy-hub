@@ -47,6 +47,55 @@ function getDeep(obj: any, path: (string | number)[]): unknown {
   return cur;
 }
 
+// RC-C3.CYB-2 — PATCH-PATH VOCABULARY GUARD. Every entry in changed_paths
+// must resolve to a shape-compatible node in the PRIOR report. Concretely:
+//   • a `.foo` segment requires the current node to be a non-null object,
+//   • a `[N]` segment requires the current node to be an array with index N,
+//   • the LEAF's parent must exist (creation of leaves is allowed; grafting
+//     new intermediate objects into an array position is not).
+// This rejects ask-vocabulary writes against the report shape — e.g. a
+// cyber patch of `controls.c13_training.status` against a `controls` ARRAY
+// is a hard 4xx malformed-patch, not a silent object graft (setDeep would
+// otherwise overwrite the array with an object). Returns { ok, invalid[] }.
+export function validateChangedPathShapes(
+  priorReport: any,
+  changedPaths: string[],
+): { ok: boolean; invalid: Array<{ path: string; reason: string }> } {
+  const invalid: Array<{ path: string; reason: string }> = [];
+  for (const p of Array.isArray(changedPaths) ? changedPaths : []) {
+    const parsed = parsePath(String(p ?? ""));
+    if (parsed.length === 0) { invalid.push({ path: p, reason: "empty_path" }); continue; }
+    let cur: any = priorReport;
+    // Walk to the leaf's PARENT; leaf creation on an existing container is OK.
+    let bad: string | null = null;
+    for (let i = 0; i < parsed.length - 1; i++) {
+      const seg = parsed[i];
+      if (cur === null || cur === undefined) { bad = `parent_missing_at:${i}`; break; }
+      if (typeof seg === "number") {
+        if (!Array.isArray(cur)) { bad = `index_on_non_array_at:${i}`; break; }
+        if (seg < 0 || seg >= cur.length) { bad = `index_oob_at:${i}:${seg}/${cur.length}`; break; }
+      } else {
+        if (Array.isArray(cur)) { bad = `property_on_array_at:${i}:${seg}`; break; }
+        if (typeof cur !== "object") { bad = `property_on_non_object_at:${i}`; break; }
+      }
+      cur = cur[seg as any];
+    }
+    if (bad) { invalid.push({ path: p, reason: bad }); continue; }
+    // Final-segment shape check: the leaf's parent shape must match the
+    // segment kind (property vs index), even if the leaf itself is absent.
+    const last = parsed[parsed.length - 1];
+    if (cur === null || cur === undefined) { invalid.push({ path: p, reason: "leaf_parent_missing" }); continue; }
+    if (typeof last === "number") {
+      if (!Array.isArray(cur)) { invalid.push({ path: p, reason: "leaf_index_on_non_array" }); continue; }
+    } else {
+      if (Array.isArray(cur) || typeof cur !== "object") {
+        invalid.push({ path: p, reason: "leaf_property_on_non_object" }); continue;
+      }
+    }
+  }
+  return { ok: invalid.length === 0, invalid };
+}
+
 // Canonical stringify (sorted keys) for stable hashing.
 function canon(v: unknown): string {
   if (v === null || typeof v !== "object") return JSON.stringify(v);

@@ -18,7 +18,7 @@
 //  10. Increment meter + write report + finish with a compact JSON response.
 //
 // This module NEVER changes the frozen open_items array shape or count.
-import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding } from "./revision-patch.ts";
+import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding, validateChangedPathShapes } from "./revision-patch.ts";
 import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
 import { qcVerdictConsistency } from "./revision-qc.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
@@ -58,7 +58,10 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // RC-C1 stamp bump: verdict cardinality + § 7157 record-register phrasing.
 // RC-C2 stamp bump: DPIA Art. 35 register + LIA counsel-deferring register + DPIA unit-scope economy.
 // RC-C2.2 stamp bump: pre-apply hollow-resolution guard + in-flight owner check + authoritative patch-verdict telemetry.
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c.2.2";
+// RC-C3.CYB-2 stamp bump: cyber report-shape vocabulary instruction +
+// pre-apply patch-path shape validator (rejects ask-vocab writes against
+// mismatched report shapes as 409 revision_malformed_patch_shape).
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-c3.cyb-2";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
@@ -178,6 +181,10 @@ function buildRevisionPrompt(opts: {
     // RC-C2 C2.5 — LIA counsel-deferring advisory register.
     toolType === "li_assessment"
       ? "LIA ADVISORY REGISTER (li_assessment): advisory_notes (cap 3) must be single suggestive sentences that route to a reassessment and defer to counsel — e.g. 'If your organization can document a data-subject expectation survey covering this cohort, a reassessment covering it may be worth considering, based on your counsel's advice.' Substantive balancing findings, contradictions, or 'must' language belong in the report body or in item_verdicts[].reason. Each item_verdicts[].reason should read as an assessment-register entry (past-tense, citation-anchored) — e.g. 'Established the necessity leg under Art. 6(1)(f) via the documented least-intrusive-means analysis.'"
+      : "",
+    // RC-C3.CYB-2 — report-shape vocabulary contract for cyber.
+    toolType === "cppa_cybersecurity"
+      ? "CPPA CYBERSECURITY — REPORT-SHAPE VOCABULARY (HARD CONTRACT): open_items[].target.path uses ASK vocabulary (dotted `controls.<slug>`, e.g. `controls.c13_training`), but the report body stores controls as an ARRAY at report.controls[N] (N is the fixed 0-based position of the slug in the c1_auth…c18_continuity order). Every changed_paths entry MUST be written in REPORT-SHAPE indexed vocabulary — e.g. `controls[12].status` for c13_training, `controls[13].status` for c14_secure_dev — NEVER the dotted ask path `controls.c13_training.status`. A dotted ask-path write against the controls array is a MALFORMED PATCH (the server runs a pre-apply shape validator against the prior report and REJECTS the entire submission with 409 revision_malformed_patch_shape, no partial apply, row status reverts). The RESOLUTION-CHANGE COUPLING above still applies: an honest 'resolved' verdict for a `controls.<slug>` item requires a changed_path at `controls[N].status` (the status leaf, per the server's tight alias map)."
       : "",
     dpiaUnitSubset && dpiaUnitSubset.length > 0
       ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units. Prior-report context for units outside this subset has been elided for token economy — do not attempt to reconstruct it.`
@@ -451,6 +458,25 @@ export async function handleRevisionMode(
   const advGuard = guardAdvisoryNotes(advIn, { cap: advisoryCap, allowedFactRefs: allowedRefs });
   if (advGuard.stripped > 0) {
     console.warn(JSON.stringify({ evt: "revision_advisory_stripped", tool: toolType, stripped: advGuard.stripped, reasons: advGuard.reasons }));
+  }
+
+  // RC-C3.CYB-2 — PATCH-PATH VOCABULARY GUARD (pre-apply, all tools).
+  // Rejects any changed_path that cannot resolve to a shape-compatible node
+  // in the prior report — closes the cyber ask-vs-write vocabulary mismatch
+  // (a dotted `controls.<slug>.status` write against the controls array is a
+  // hard 4xx, not a silent object graft) and is safe for every other tool.
+  {
+    const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    const shape = validateChangedPathShapes(storedReport, changedPathsIn);
+    if (!shape.ok) {
+      console.error(`[revision:${toolType}] patch_path_shape_invalid`, JSON.stringify(shape.invalid.slice(0, 10)));
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, "patch_path_shape_invalid");
+      return jsonResp({
+        error: "revision_malformed_patch_shape",
+        invalid: shape.invalid,
+        changed_paths: changedPathsIn,
+      }, 409);
+    }
   }
 
   // Apply scoped-delta patch.
