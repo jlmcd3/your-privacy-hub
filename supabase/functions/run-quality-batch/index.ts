@@ -2252,29 +2252,16 @@ Deno.serve(async (req) => {
           ? (rowAfter as any).report_data.open_items
           : [];
         const answeredIds: string[] = (answered_items as any[]).map((a) => String(a?.item_id ?? ""));
-        // RC-C2.2 telemetry fix — Prior derivation status-diffed before/after
-        // and printed verdicts=0 whenever the answered item was ALREADY
-        // resolved coming in (false-red spam on 486eb7ec re-answers). The
-        // authoritative signal is a resolution APPENDED in this dispatch
-        // window: any resolutions[] entry on an answered item whose `at`
-        // timestamp is >= dispatch_started counts as this attempt's verdict.
-        // Fall back to status-diff only when the item has no resolutions[].
-        const dispatchStartIso = new Date(startedAt).toISOString();
-        const beforeStatusById = new Map(openItemsBefore.map((i: any) => [i.id, i.status]));
-        const verdicts = openItemsAfter
-          .filter((i: any) => answeredIds.includes(i.id))
-          .map((i: any) => {
-            const res = Array.isArray(i?.resolutions) ? i.resolutions : [];
-            const inWindow = res.find((r: any) => String(r?.at ?? "") >= dispatchStartIso);
-            if (inWindow) {
-              return { item_id: i.id, verdict: String(inWindow.verdict ?? i.status) };
-            }
-            if (beforeStatusById.get(i.id) !== i.status) {
-              return { item_id: i.id, verdict: i.status };
-            }
-            return null;
-          })
-          .filter((v: any) => v !== null) as Array<{ item_id: string; verdict: string }>;
+        // RC-C2.2 authoritative telemetry fix — qc_rc_2 counts the generator's
+        // PATCH item_verdicts[] returned by handleRevisionMode via
+        // regenerate-assessment. Never derive verdicts from before/after status
+        // diffs; a refused patch leaves status unchanged by design, and an
+        // honest not_resolved verdict may also leave an item open.
+        const verdicts = Array.isArray(upstreamBody?.verdicts)
+          ? upstreamBody.verdicts
+              .map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") }))
+              .filter((v: any) => v.item_id && answeredIds.includes(v.item_id))
+          : [] as Array<{ item_id: string; verdict: string }>;
         const changedPaths: string[] = Array.isArray(upstreamBody?.changed_paths)
           ? upstreamBody.changed_paths
           : [];
