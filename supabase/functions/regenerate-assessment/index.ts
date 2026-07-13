@@ -20,10 +20,19 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 // RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
 // Value = git short-sha + ISO timestamp. Update in the same edit that
 // changes behavior in this file.
-export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+// RC-D.11: bumped for the CPPA-PATH-1 alias fix (via _shared) + error-path stamp.
+export const BUILD_STAMP = "2a7f1c3-rcd11@2026-07-13T22:55Z";
 
 function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
+  // RC-D.11.4 — stamp EVERY response, including error bodies, so upstream
+  // (run-quality-batch / ql3-orchestrator) can always attribute the artifact
+  // that produced any 4xx/5xx. Only splice into plain object bodies.
+  let stamped: unknown = body;
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    const b = body as Record<string, unknown>;
+    if (!("build_stamp" in b)) stamped = { ...b, build_stamp: BUILD_STAMP };
+  }
+  return new Response(JSON.stringify(stamped), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
