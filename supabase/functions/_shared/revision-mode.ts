@@ -90,7 +90,10 @@ const TOOL_MODEL: Record<string, string> = {
 export interface RevisionRequestBody {
   is_regeneration?: boolean;
   revision_mode?: boolean;
-  revision_context?: { answered_item_ids?: string[] };
+  revision_context?: {
+    answered_item_ids?: string[];
+    answered_items?: Array<{ item_id: string; value: unknown; evidence?: string | null }>;
+  };
   assessment_id?: string;
   dpia_id?: string;
   [k: string]: unknown;
