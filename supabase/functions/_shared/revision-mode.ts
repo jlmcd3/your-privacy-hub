@@ -147,8 +147,16 @@ function buildRevisionPrompt(opts: {
     toolType === "cppa_risk_assessment"
       ? "§ 7157 RECORD REGISTER (cppa-risk): each item_verdicts[].reason MUST be written as a record entry — a certifiable statement of what the answer established (or failed to establish) on the § 7152 record. Use factual past-tense record phrasing (e.g. 'Established annual gross revenue band at $100M–$500M under § 7120(b)(1).' or 'Did not establish the § 7152(a)(5) severity dimension; response omitted concrete harm magnitude.'). Do NOT write conversational or advisory text ('you should...', 'consider...', 'we recommend...'). Every reason must be self-contained and cite the operative provision from the item's provision_key."
       : "",
+    // RC-C2 C2.4 — dpia Art. 35 working-document register rule.
+    toolType === "dpia_framework"
+      ? "GDPR Art. 35 WORKING-DOCUMENT REGISTER (dpia): each item_verdicts[].reason MUST be phrased as a DPIA record entry that a controller could file verbatim in the Art. 35 working document. Cite the operative provision (from the item's provision_key slug, e.g. 'gdpr-art-9-2-j', 'edpb-wp248-c4') in past-tense factual language (e.g. 'Established the Art. 9(2)(j) research condition, citing controller's national derogation under Art. 89(2).' or 'Did not establish the Art. 28(3) processor-obligation coverage; response cited a DPA in draft but no signed instrument.'). No conversational or advisory phrasing; no 'you should…'; no 'we recommend…'. The reason IS the register entry."
+      : "",
+    // RC-C2 C2.5 — LIA counsel-deferring advisory register.
+    toolType === "li_assessment"
+      ? "LIA ADVISORY REGISTER (li_assessment): advisory_notes (cap 3) must be single suggestive sentences that route to a reassessment and defer to counsel — e.g. 'If your organization can document a data-subject expectation survey covering this cohort, a reassessment covering it may be worth considering, based on your counsel's advice.' Substantive balancing findings, contradictions, or 'must' language belong in the report body or in item_verdicts[].reason. Each item_verdicts[].reason should read as an assessment-register entry (past-tense, citation-anchored) — e.g. 'Established the necessity leg under Art. 6(1)(f) via the documented least-intrusive-means analysis.'"
+      : "",
     dpiaUnitSubset && dpiaUnitSubset.length > 0
-      ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units.`
+      ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units. Prior-report context for units outside this subset has been elided for token economy — do not attempt to reconstruct it.`
       : "",
   ].filter(Boolean).join("\n");
 
