@@ -9,6 +9,7 @@ import {
   StructuredFieldEditor,
   summariseStructuredValue,
 } from "@/components/refine/StructuredFieldEditor";
+import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "@/lib/revisionGate";
 
 export interface EditableFieldSpec {
   key: string;
