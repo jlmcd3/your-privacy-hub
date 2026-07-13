@@ -370,6 +370,29 @@ export async function handleRevisionMode(
     }, 409);
   }
 
+  // RC-C2.1 HOLLOW-RESOLUTION GUARD — run qc_rc_2 BEFORE applying. A 'resolved'
+  // verdict without a matching changed_path is a malformed patch: refuse
+  // entirely (409, no partial apply, prior status reverted). Symmetric to
+  // the SHA-256 untouched-subtree guard: contract violations refuse, not annotate.
+  {
+    const wouldBeItems = updateOpenItemStatuses(openItems, verdictsRaw as any);
+    const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    const preQc = qcVerdictConsistency(
+      answeredIds,
+      verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
+      wouldBeItems as any,
+      changedPathsIn,
+    );
+    if (preQc.status === "red") {
+      console.error(`[revision:${toolType}] pre_apply_qc_red ${preQc.code}: ${preQc.detail}`);
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, `pre_apply_${preQc.code}`);
+      return jsonResp({
+        error: "revision_hollow_resolution",
+        qc: preQc,
+      }, 409);
+    }
+  }
+
   // Advisory guard — grounding + cap.
   const allowedRefs = new Set<string>([
     ...answeredIds.map((id) => `answered_item:${id}`),
