@@ -1290,7 +1290,7 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div onFocus={() => focusRail('impact_benefits')}>
                     <Label>Do the benefits of this processing outweigh the risks to consumers?</Label>
-                    <div className="mt-2"><Radio name="impact_benefits" options={["Yes", "No", "Uncertain"]} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_benefits" options={IMPACT_BENEFITS_OUTWEIGH_OPTS} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
                     <Textarea className="mt-2" rows={3} value={impactData.benefitsRationale} onChange={(e) => setImpactData((d) => ({ ...d, benefitsRationale: e.target.value }))} placeholder="Rationale (§ 7152(a)(4)): explain how the specific benefits weigh against the specific harms above." />
                   </div>
                   <div>
