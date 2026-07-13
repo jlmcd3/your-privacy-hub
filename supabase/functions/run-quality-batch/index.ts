@@ -2400,7 +2400,15 @@ Deno.serve(async (req) => {
         console.warn("[revision_dispatch] function_runs qc_checks update failed", (logErr as any)?.message);
       }
     }
-    return json({ ...upstreamBody, qc_checks: qcResults }, upstreamStatus || 500);
+    // RC-D.9 ADDENDUM: stamp build_stamp (this function) + upstream_build_stamp
+    // (regenerate-assessment, passed through) on the response so ql3-orchestrator
+    // — and any external verifier — can prove which artifacts ran end-to-end.
+    return json({
+      ...upstreamBody,
+      qc_checks: qcResults,
+      build_stamp: BUILD_STAMP,
+      upstream_build_stamp: upstreamBody?.build_stamp ?? null,
+    }, upstreamStatus || 500);
   }
 
 
