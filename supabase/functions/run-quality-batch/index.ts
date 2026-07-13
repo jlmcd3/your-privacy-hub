@@ -2282,7 +2282,7 @@ Deno.serve(async (req) => {
           upstream_body: upstreamBody,
           actor_user_id: userId,
           qc_checks: qcResults,
-          revision_prompt_stamp: "rev-scope@rc-c.1",
+          revision_prompt_stamp: "rev-scope@rc-c.2",
         },
       });
     } catch (logErr) {
