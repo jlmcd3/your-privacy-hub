@@ -196,6 +196,18 @@ export default function RefinePanel({
     toast({ title: "Couldn't regenerate", description: outcome.message, variant: "destructive" });
   }
 
+  // RC-A A1 — global revision gate. When disabled, render a notice in place
+  // of the refine panel. Errata channel is not exposed through this panel.
+  if (!REVISIONS_ENABLED) {
+    return (
+      <section className="bg-card border border-brand-cloud rounded-2xl p-6 sm:p-8 shadow-eup-sm space-y-3" data-testid="refine-disabled-notice">
+        <div className="text-eyebrow text-brand-mist mb-1">Revisions paused</div>
+        <h2 className="font-display text-brand-navy leading-snug">Revisions are temporarily disabled</h2>
+        <p className="text-sm text-slate max-w-[70ch]">{REVISIONS_DISABLED_MESSAGE}</p>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-card border border-brand-cloud rounded-2xl p-6 sm:p-8 shadow-eup-sm space-y-6">
       <header>
