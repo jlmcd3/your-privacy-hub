@@ -245,6 +245,18 @@ async function runOneUnit(runId: string) {
       // Dispatch revision through the audited internal path (RC-D.1 D-1:
       // run-quality-batch accepts SR bearer + x-internal-verification for
       // enumerated actions).
+      // RC-D.8 end-to-end idempotency: forward the CAS-winning dispatch_nonce
+      // so rqb + regenerate can turn any duplicate delivery (at-least-once
+      // retries at the HTTP/gateway layer, or writer-races clobbering
+      // updated_at via BEFORE UPDATE triggers) into a no-side-effect
+      // 409 idempotent_replay. Uses the same nonce stamped on the CAS lock
+      // above (dispatch_nonce column on quality_loop3_runs).
+      const dispatchNonce = (await db
+        .from("quality_loop3_runs")
+        .select("dispatch_nonce")
+        .eq("id", runId)
+        .maybeSingle()
+        .then((r) => (r.data as any)?.dispatch_nonce as string | null)) ?? null;
       const dispatchRes = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
         method: "POST",
         headers: {
@@ -258,6 +270,7 @@ async function runOneUnit(runId: string) {
           tool_type: cfg.toolType,
           assessment_id: run.assessment_id,
           answered_items: answered,
+          dispatch_nonce: dispatchNonce,
         }),
       });
       const upstreamStatus = dispatchRes.status;
