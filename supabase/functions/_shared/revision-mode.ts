@@ -460,6 +460,25 @@ export async function handleRevisionMode(
     console.warn(JSON.stringify({ evt: "revision_advisory_stripped", tool: toolType, stripped: advGuard.stripped, reasons: advGuard.reasons }));
   }
 
+  // RC-C3.CYB-2 — PATCH-PATH VOCABULARY GUARD (pre-apply, all tools).
+  // Rejects any changed_path that cannot resolve to a shape-compatible node
+  // in the prior report — closes the cyber ask-vs-write vocabulary mismatch
+  // (a dotted `controls.<slug>.status` write against the controls array is a
+  // hard 4xx, not a silent object graft) and is safe for every other tool.
+  {
+    const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    const shape = validateChangedPathShapes(storedReport, changedPathsIn);
+    if (!shape.ok) {
+      console.error(`[revision:${toolType}] patch_path_shape_invalid`, JSON.stringify(shape.invalid.slice(0, 10)));
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, "patch_path_shape_invalid");
+      return jsonResp({
+        error: "revision_malformed_patch_shape",
+        invalid: shape.invalid,
+        changed_paths: changedPathsIn,
+      }, 409);
+    }
+  }
+
   // Apply scoped-delta patch.
   let applied: Awaited<ReturnType<typeof applyRevisionPatch>>;
   try {
