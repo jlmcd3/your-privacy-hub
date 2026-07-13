@@ -1262,7 +1262,7 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div>
                     <Label>Severity of harm if it occurs</Label>
-                    <div className="mt-2"><Radio name="impact_severity" options={["Minimal", "Moderate", "Significant", "Severe"]} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
+                    <div className="mt-2"><Radio name="impact_severity" options={IMPACT_SEVERITY_OPTS} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
                   </div>
                   <div onFocus={() => focusRail('impact_harm_causes')}>
                     <Label>Types of harm that could result <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(5))</span></Label>
