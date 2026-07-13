@@ -170,6 +170,7 @@ async function runOneUnit(runId: string) {
     : run.phase === "review2"
       ? "finalizing"
       : null;
+  let dispatchNonce: string | null = null;
   if (lockPhase) {
     const nonce = crypto.randomUUID();
     const { data: locked, error: lockErr } = await db
@@ -184,6 +185,7 @@ async function runOneUnit(runId: string) {
       console.log(`[ql3] CAS lost for ${runId} at phase=${run.phase} — another worker owns this transition; exiting silently`);
       return;
     }
+    dispatchNonce = nonce;
     console.log(`[ql3] CAS won for ${runId}: ${run.phase} → ${lockPhase} nonce=${nonce}`);
   }
 
@@ -249,14 +251,9 @@ async function runOneUnit(runId: string) {
       // so rqb + regenerate can turn any duplicate delivery (at-least-once
       // retries at the HTTP/gateway layer, or writer-races clobbering
       // updated_at via BEFORE UPDATE triggers) into a no-side-effect
-      // 409 idempotent_replay. Uses the same nonce stamped on the CAS lock
-      // above (dispatch_nonce column on quality_loop3_runs).
-      const dispatchNonce = (await db
-        .from("quality_loop3_runs")
-        .select("dispatch_nonce")
-        .eq("id", runId)
-        .maybeSingle()
-        .then((r) => (r.data as any)?.dispatch_nonce as string | null)) ?? null;
+      // 409 idempotent_replay. Uses the LOCAL CAS nonce generated and stamped
+      // above; do not re-select the row because read-back can observe stale
+      // deployed artifacts or unexpected nulls under race/replica behavior.
       const dispatchRes = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
         method: "POST",
         headers: {
