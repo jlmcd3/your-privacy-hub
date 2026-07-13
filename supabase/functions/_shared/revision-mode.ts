@@ -141,6 +141,10 @@ function buildRevisionPrompt(opts: {
     `FACT_REF WHITELIST: ${factRefWhitelist.slice(0, 60).join(", ")}${factRefWhitelist.length > 60 ? " …" : ""}`,
     "",
     `ITEM VERDICTS — HARD CONTRACT: emit EXACTLY ONE verdict per answered item (${answeredItems.length} total). A missing verdict, a duplicate verdict, or a verdict for an unrecognised item_id is a MALFORMED PATCH and the server will REJECT the entire submission with no partial apply. Required item_ids: [${answeredIdList.join(", ")}]. 'resolved' means the user's response supplies the missing dimension; 'not_resolved' means it does not (explain briefly in reason). Contradictions with intake belong in the corresponding item's not_resolved reason, NEVER in advisory_notes.`,
+    // RC-C1 C1.2 — cppa-risk record-register rule (11 CCR § 7157 auditability).
+    toolType === "cppa_risk_assessment"
+      ? "§ 7157 RECORD REGISTER (cppa-risk): each item_verdicts[].reason MUST be written as a record entry — a certifiable statement of what the answer established (or failed to establish) on the § 7152 record. Use factual past-tense record phrasing (e.g. 'Established annual gross revenue band at $100M–$500M under § 7120(b)(1).' or 'Did not establish the § 7152(a)(5) severity dimension; response omitted concrete harm magnitude.'). Do NOT write conversational or advisory text ('you should...', 'consider...', 'we recommend...'). Every reason must be self-contained and cite the operative provision from the item's provision_key."
+      : "",
     dpiaUnitSubset && dpiaUnitSubset.length > 0
       ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units.`
       : "",
