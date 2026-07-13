@@ -186,7 +186,7 @@ export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLega
   const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
   if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
   if (intake.q5c_share_revenue_50pct !== undefined) cd.q5c_share_revenue_50pct = String(intake.q5c_share_revenue_50pct ?? "");
-  const band = classifyRevenueBand(intake.q1_revenue ?? intake.org_context?.annual_revenue_threshold);
+  const band = classifyRevenueBand(intake.q1_revenue); // RC-A A5: single-truth read from q1_revenue only
   cd.revenue_band = band.label;
   cd.revenue_band_key = band.key;
   cd.revenue_audit_cohort = band.audit_cohort;
