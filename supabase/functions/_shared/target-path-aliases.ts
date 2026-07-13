@@ -89,7 +89,34 @@ export const TARGET_PATH_ALIASES: Record<string, Record<string, string[]>> = {
   dpia_framework: {},
   li_assessment: {},
   governance_assessment: {},
-  cppa_cybersecurity: {},
+  // RC-C3.CYB-2 — cyber ask vocabulary is dotted `controls.<slug>`; write
+  // vocabulary is `controls[N].status` (index = slug order in ALL_COMPONENTS /
+  // CONTROL_KEYS, N = position−1). RULING 1 (TIGHT): each ask maps to the
+  // control's `.status` leaf specifically — an honest resolution of an
+  // insufficient-information control MUST re-determine its status. Mapping to
+  // the aggregate `controls[N]` would let a remediation-only edit count as
+  // resolution, which legal ruled non-evidentiary. Ordering is asserted in
+  // _tests/cppa-cyber.test.ts (alias table ↔ CONTROL_KEYS ↔ ALL_COMPONENTS).
+  cppa_cybersecurity: {
+    "controls.c1_auth":          ["controls[0].status"],
+    "controls.c2_encryption":    ["controls[1].status"],
+    "controls.c3_account_access":["controls[2].status"],
+    "controls.c4_inventory":     ["controls[3].status"],
+    "controls.c5_secure_config": ["controls[4].status"],
+    "controls.c6_vuln_mgmt":     ["controls[5].status"],
+    "controls.c7_audit_logs":    ["controls[6].status"],
+    "controls.c8_network_mon":   ["controls[7].status"],
+    "controls.c9_anti_malware":  ["controls[8].status"],
+    "controls.c10_segmentation": ["controls[9].status"],
+    "controls.c11_port_protocol":["controls[10].status"],
+    "controls.c12_awareness":    ["controls[11].status"],
+    "controls.c13_training":     ["controls[12].status"],
+    "controls.c14_secure_dev":   ["controls[13].status"],
+    "controls.c15_third_party":  ["controls[14].status"],
+    "controls.c16_retention":    ["controls[15].status"],
+    "controls.c17_incident":     ["controls[16].status"],
+    "controls.c18_continuity":   ["controls[17].status"],
+  },
   cppa_admt: {},
 };
 
