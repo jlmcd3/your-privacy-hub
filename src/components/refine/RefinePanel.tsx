@@ -213,6 +213,41 @@ export default function RefinePanel({
     );
   }
 
+  // RC-B.1 B1.4 — when the assessment carries frozen open_items (contract
+  // core), render OpenItemsList in place of the legacy editable surface.
+  // Legacy surface stays for pre-contract assessments (no open_items array).
+  if (openItems && openItems.length > 0) {
+    return (
+      <section className="bg-card border border-brand-cloud rounded-2xl p-6 sm:p-8 shadow-eup-sm space-y-6" data-testid="refine-open-items-surface">
+        <header>
+          <div className="text-eyebrow text-brand-mist mb-2">Refine this assessment</div>
+          <h2 className="font-display text-brand-navy leading-snug">Answer the open items</h2>
+          <p className="text-sm text-slate mt-2 max-w-[70ch]">
+            Generation {runsUsed} of {runsAllowed} used. Your first run identified specific
+            items the record needs. Answer any of them below to update the report.
+          </p>
+        </header>
+        <OpenItemsList
+          items={openItems}
+          onSubmit={async (answered) => {
+            const outcome = await submitRevisionAnswers({ toolType, assessmentId, answered });
+            if (outcome.kind === "accepted") {
+              toast({ title: "Regenerating your report", description: "This can take a minute." });
+              nav(resultPath.replace(":id", assessmentId));
+            } else if (outcome.kind === "revisions_disabled") {
+              toast({ title: "Revisions paused", description: REVISIONS_DISABLED_MESSAGE, variant: "destructive" });
+            } else if (outcome.kind === "error") {
+              toast({ title: "Couldn't submit", description: outcome.message, variant: "destructive" });
+            }
+          }}
+        />
+        <p className="text-xs text-muted-foreground pt-2 border-t border-brand-cloud">
+          Need to correct a name or date verbatim? Use the free Errata channel from your report page.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-card border border-brand-cloud rounded-2xl p-6 sm:p-8 shadow-eup-sm space-y-6">
       <header>
