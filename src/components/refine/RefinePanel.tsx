@@ -67,11 +67,12 @@ export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
   runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
   resolveFields, resolveHighlightingEnabled,
-  priorInformationNeeded,
+  priorInformationNeeded, openItems,
 }: Props) {
   const priorInfo = priorInformationNeeded ?? [];
   const [supplementalResponses, setSupplementalResponses] = useState<string[]>(() => priorInfo.map(() => ""));
-  const [supplementalContext, setSupplementalContext] = useState<string>("");
+  // RC-B.1 B1.4 — supplemental_context box REMOVED from RefinePanel; the
+  // free-form catch-all is superseded by the frozen open_items contract.
   const infoSet = new Set(infoNeededKeys ?? []);
   // Doc Q: active RESOLVE map, empty when disabled. Local cleared-set
   // hides the highlight/chip visually on edit -- never mutates data.
