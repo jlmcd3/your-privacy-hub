@@ -32,6 +32,7 @@ const SHORTCUTS: Array<{ label: string; to: string; group: string }> = [
   { group: "CPPA",    label: "CPPA runs",           to: "/admin/cppa-runs" },
   { group: "CPPA",    label: "CPPA eval harness",   to: "/admin/cppa-eval" },
   { group: "CPPA",    label: "CPPA corpus",         to: "/admin/cppa-corpus" },
+  { group: "Ops",     label: "API spend",           to: "/admin/spend" },
 ];
 
 function Tile({ label, value }: { label: string; value: string | number }) {

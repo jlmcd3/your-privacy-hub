@@ -101,7 +101,7 @@ export function shimLegacyIntake(intake: any): FiveStageIntake {
   const org_context = {
     company_name: String(intake.entity_name || "[FILL IN — business legal name]"),
     sector: String(intake.q3_sector ?? "Not specified"),
-    annual_revenue_threshold: String(intake.q1_revenue ?? "Not specified"),
+    annual_revenue_threshold: "", // DEPRECATED (RC-A A5) — read q1_revenue instead
     privacy_counsel_engaged: false,
     dpo_or_privacy_officer: false,
     board_level_oversight: false,
@@ -186,7 +186,7 @@ export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLega
   const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
   if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
   if (intake.q5c_share_revenue_50pct !== undefined) cd.q5c_share_revenue_50pct = String(intake.q5c_share_revenue_50pct ?? "");
-  const band = classifyRevenueBand(intake.q1_revenue ?? intake.org_context?.annual_revenue_threshold);
+  const band = classifyRevenueBand(intake.q1_revenue); // RC-A A5: single-truth read from q1_revenue only
   cd.revenue_band = band.label;
   cd.revenue_band_key = band.key;
   cd.revenue_audit_cohort = band.audit_cohort;
@@ -243,7 +243,7 @@ export function resolveIntakeForTestStates(rawIntake: any): {
   }
   const rawForStates: Record<string, any> = {
     ...raw,
-    q1_revenue: raw.q1_revenue ?? org.annual_revenue_threshold,
+    q1_revenue: raw.q1_revenue, // RC-A A5: no fallback to org_context.annual_revenue_threshold
     q2_consumers: raw.q2_consumers ?? fiveStage.annual_consumer_volume,
     q5_sell_share: raw.q5_sell_share
       ?? (fiveStage.triggers?.sells_or_shares_pi ? "Yes" : (raw.q5_sell_share === undefined && "triggers" in raw ? "No" : raw.q5_sell_share)),

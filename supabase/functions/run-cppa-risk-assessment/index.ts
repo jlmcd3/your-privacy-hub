@@ -1,4 +1,4 @@
-// qb8 build active · cppa-risk r1b1.4-ws6v21 continuation-on-truncation + 330s self-report abort + compact cells
+// qb8 build active · cppa-risk r1b1.4-rca continuation-on-truncation + 330s self-report abort + compact cells
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -50,7 +50,7 @@ const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 // Courier 2026-07-12 item 4: first-call ceiling for risk. Continuation
 // (see callAnthropicWithContinuation) is the safety net if exceeded.
 const CPPA_RISK_MAX_TOKENS = 32_000;
-console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.4-ws6v21`);
+console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.4-rca`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
@@ -474,7 +474,7 @@ Prior assessments conducted: ${impact.prior_assessments_conducted ? `Yes (${impa
 STAGE 5 — ORGANISATIONAL CONTEXT:
 Company: ${org_context.company_name}
 Sector: ${org_context.sector}
-Annual revenue threshold: ${org_context.annual_revenue_threshold}
+Annual revenue band (§ 1798.140(d)(1)(A)): ${(row as any).intake_data?.q1_revenue ?? "Not specified"}
 Privacy counsel engaged: ${org_context.privacy_counsel_engaged ? "Yes" : "No"}
 DPO/Privacy Officer: ${org_context.dpo_or_privacy_officer ? "Yes" : "No"}
 Board-level privacy oversight: ${org_context.board_level_oversight ? "Yes" : "No"}
@@ -880,7 +880,7 @@ async function runPipeline(assessment_id: string) {
     // one regeneration with the appended instruction.
     try {
       const intakeForGuard = ((row as any).intake_data as Record<string, unknown>) ?? {};
-      const guarded = guardInformationNeeded(parsed, intakeForGuard);
+      const guarded = guardInformationNeeded(parsed, intakeForGuard, "cppa_risk_assessment");
       // Auto-repair (synthesised information_needed entries from empty intake keys) is
       // applied in-place; no model retry needed. We only regenerate when the guard could
       // not repair AND still detects a dead-end phrase — a rare edge case that used to
@@ -1094,8 +1094,50 @@ async function runPipeline(assessment_id: string) {
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
-    const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {});
+    const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_risk_assessment");
     report_data = guarded.report;
+
+    // RC-A A4 — §7121(a) cohort BINDING lint. When the revenue band resolves
+    // to a specific audit cohort, no prose may claim the band "straddles"
+    // the $50M line — that phrasing is only valid for the legacy
+    // $25M–$100M band (where audit_cohort === "indeterminate"). Rewrite any
+    // straddle sentence to the resolved cohort and record a lint_warnings
+    // entry. Fires post-guard so both the initial parse and any post-repair
+    // parse are covered.
+    try {
+      const rawIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const band = classifyRevenueBand(rawIntake.q1_revenue);
+      if (band.audit_cohort !== "indeterminate") {
+        const STRADDLE_RE = /\bstraddles?\s+the\s+\$50M\s+line\b/gi;
+        const fix = `resolves to §7121(a) cohort ${band.audit_cohort} (revenue band ${band.label})`;
+        let hits = 0;
+        const walk = (v: any): any => {
+          if (typeof v === "string") {
+            if (STRADDLE_RE.test(v)) {
+              hits++;
+              STRADDLE_RE.lastIndex = 0;
+              return v.replace(STRADDLE_RE, fix);
+            }
+            return v;
+          }
+          if (Array.isArray(v)) return v.map(walk);
+          if (v && typeof v === "object") {
+            const o: any = {};
+            for (const [k, x] of Object.entries(v)) o[k] = walk(x);
+            return o;
+          }
+          return v;
+        };
+        report_data = walk(report_data);
+        if (hits > 0) {
+          if (!Array.isArray((report_data as any).lint_warnings)) (report_data as any).lint_warnings = [];
+          (report_data as any).lint_warnings.push({ code: "straddle_phrasing_rewritten", hits, resolved_cohort: band.audit_cohort });
+          console.log(JSON.stringify({ evt: "cppa_risk_straddle_rewritten", hits, cohort: band.audit_cohort }));
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk RC-A A4] straddle lint error:", e);
+    }
 
     // Doc O 3c-2(ii): non-fatal source_fields validation. Drop any
     // source_fields / field_ids value that is not a canonical intake
@@ -1472,7 +1514,7 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.4-ws6v21") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.4-rca") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

@@ -71,24 +71,58 @@ function synthesiseEntriesFromIntake(
 }
 
 
+// RC-A A6 — stopgap identity/locked-field ask guard. Uses first dot-segment
+// of `field` to decide whether an information_needed entry re-asks a locked
+// or identity field; such entries are stripped and a lint_warnings row is
+// pushed. Structural fix arrives in Courier 2.
+import { LOCKED_FIELDS_MAP } from "./locked-fields.ts";
+const IDENTITY_FIELDS = new Set([
+  "entity_name", "subject_anchor", "company_name", "organization_name",
+  "system_name", "sector", "q3_sector", "significant_decision_domain",
+]);
+
 export function guardInformationNeeded(
   report: any,
   intake: Record<string, unknown> | null | undefined,
-): { report: any; deadEndWithoutPath: boolean; strippedCount: number; autoRepaired: number } {
+  toolType?: string,
+): { report: any; deadEndWithoutPath: boolean; strippedCount: number; autoRepaired: number; lockedStripped: number } {
   const intakeObj = intake ?? {};
   const intakeKeys = new Set(Object.keys(intakeObj));
-  // WS6 v2.1: supplemental keys are ANSWER slots, not intake facts. An
-  // information_needed entry targeting them is a defect — strip regardless of
-  // whether the key appears in intake_data on this tool's storage shape.
   const WS6_SUPPLEMENTAL_KEYS = new Set(["supplemental_responses", "supplemental_context"]);
+  const lockedSet = new Set<string>([
+    ...IDENTITY_FIELDS,
+    ...(toolType ? (LOCKED_FIELDS_MAP[toolType] ?? []) : []),
+  ]);
   const list: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
-  const valid = list.filter((e) => e && typeof e.field === "string" && intakeKeys.has(e.field) && !WS6_SUPPLEMENTAL_KEYS.has(e.field));
-  const strippedCount = list.length - valid.length;
+
+  // First pass — RC-A A6: strip locked/identity re-asks. Log a lint_warnings
+  // entry per strip so downstream QC can see the mask.
+  const lockedStrippedFields: string[] = [];
+  const afterLockedStrip = list.filter((e) => {
+    const fieldRoot = typeof e?.field === "string" ? e.field.split(".")[0] : "";
+    if (fieldRoot && lockedSet.has(fieldRoot)) {
+      lockedStrippedFields.push(e.field);
+      return false;
+    }
+    return true;
+  });
+  if (lockedStrippedFields.length > 0) {
+    console.log(JSON.stringify({ evt: "info_needed_locked_stripped", tool: toolType, fields: lockedStrippedFields }));
+    if (!Array.isArray(report.lint_warnings)) report.lint_warnings = [];
+    for (const f of lockedStrippedFields) {
+      report.lint_warnings.push({ code: "locked_ask_stripped", field: f });
+    }
+  }
+  const lockedStripped = lockedStrippedFields.length;
+
+  // Second pass — original closed-set + supplemental-key stripping.
+  const valid = afterLockedStrip.filter((e) => e && typeof e.field === "string" && intakeKeys.has(e.field) && !WS6_SUPPLEMENTAL_KEYS.has(e.field));
+  const strippedCount = afterLockedStrip.length - valid.length;
   if (strippedCount > 0) {
     console.log(JSON.stringify({
       evt: "info_needed_stripped",
       stripped: strippedCount,
-      fields: list.filter((e) => !valid.includes(e)).map((e) => e?.field),
+      fields: afterLockedStrip.filter((e) => !valid.includes(e)).map((e) => e?.field),
     }));
   }
   report.information_needed = valid;
@@ -115,5 +149,5 @@ export function guardInformationNeeded(
     }
   }
 
-  return { report, deadEndWithoutPath, strippedCount, autoRepaired };
+  return { report, deadEndWithoutPath, strippedCount, autoRepaired, lockedStripped };
 }

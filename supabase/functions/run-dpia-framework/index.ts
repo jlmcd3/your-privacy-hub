@@ -1404,7 +1404,7 @@ async function runStitch(dpia_id: string): Promise<void> {
 
     // ── Insufficient-info-guard ────────────────────────────────────────────
     try {
-      const guarded = guardInformationNeeded(reportData, (dpiaIntake as Record<string, unknown>) ?? {});
+      const guarded = guardInformationNeeded(reportData, (dpiaIntake as Record<string, unknown>) ?? {}, "dpia_framework");
       Object.assign(reportData, guarded.report);
     } catch (e) {
       console.warn("[run-dpia-framework] guardInformationNeeded failed (non-fatal):", e);

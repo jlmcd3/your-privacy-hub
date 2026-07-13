@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { RunMeter } from "@/hooks/useRunMeter";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 
 export default function RunMeterBar({
   meter,
@@ -43,7 +44,7 @@ export default function RunMeterBar({
       </div>
 
       <div className="ml-auto flex gap-2">
-        {!exhausted && (
+        {!exhausted && REVISIONS_ENABLED && (
           <Link
             to={refineHref}
             className="px-4 py-2 rounded-lg border border-rule-strong text-brand-navy text-body-small font-semibold hover:bg-brand-cloud/50"

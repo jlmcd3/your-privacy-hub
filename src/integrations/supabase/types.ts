@@ -138,6 +138,48 @@ export type Database = {
           },
         ]
       }
+      api_usage: {
+        Row: {
+          cache_creation_tokens: number | null
+          cache_read_tokens: number | null
+          created_at: string
+          duration_ms: number | null
+          function_name: string
+          id: string
+          input_tokens: number | null
+          model: string | null
+          output_tokens: number | null
+          product: string | null
+          source_row_id: string | null
+        }
+        Insert: {
+          cache_creation_tokens?: number | null
+          cache_read_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          function_name: string
+          id?: string
+          input_tokens?: number | null
+          model?: string | null
+          output_tokens?: number | null
+          product?: string | null
+          source_row_id?: string | null
+        }
+        Update: {
+          cache_creation_tokens?: number | null
+          cache_read_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          function_name?: string
+          id?: string
+          input_tokens?: number | null
+          model?: string | null
+          output_tokens?: number | null
+          product?: string | null
+          source_row_id?: string | null
+        }
+        Relationships: []
+      }
       article_image_pool: {
         Row: {
           approval_status: string
@@ -5466,6 +5508,39 @@ export type Database = {
           translated_content?: Json
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      report_versions: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          open_items_snapshot: Json | null
+          owner_user_id: string | null
+          report_data: Json
+          tool_type: string
+          version_n: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          open_items_snapshot?: Json | null
+          owner_user_id?: string | null
+          report_data: Json
+          tool_type: string
+          version_n: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          open_items_snapshot?: Json | null
+          owner_user_id?: string | null
+          report_data?: Json
+          tool_type?: string
+          version_n?: number
         }
         Relationships: []
       }
