@@ -2121,8 +2121,9 @@ Deno.serve(async (req) => {
     && token === SERVICE_KEY
     && INTERNAL_ALLOWED_ACTIONS.has(String(body?.action ?? ""));
   let userId: string;
+  let userId: string | null;
   if (isInternalSR) {
-    userId = "00000000-0000-0000-0000-000000000000"; // sentinel for internal caller
+    userId = null; // sentinel for internal caller — started_by nullable
     try {
       const adminLog = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
       await adminLog.from("function_runs").insert({
