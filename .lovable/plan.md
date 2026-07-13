@@ -95,3 +95,29 @@ Prompt stamps bumped on all 9 generators (`+"-rcb1"` suffix) since the REVISION 
 ## What I will NOT change
 
 - `supabase/config.toml`, auto-gen files, `.env`, any status-flipping SQL, any prompt text outside the REVISION SCOPE block, the frozen `open_items` shape, the existing full-generation path for first-run and classic revise (which stays gate-guarded).
+
+---
+## RC-B.1 SHIPPED (2026-07-13)
+
+Complete. Files changed:
+- NEW: supabase/functions/_shared/revision-mode.ts (central scoped-delta handler)
+- NEW: supabase/functions/_shared/dpia-unit-map.ts (item→unit routing, data-only)
+- NEW: src/lib/revisionApi.ts (client caller for mode:"revision")
+- NEW: supabase/functions/_tests/revision-patch.test.ts (6 unit tests, all pass)
+- EDIT: 9 generators — import + `handleRevisionMode` short-circuit + qb9-rcb1 stamp
+- EDIT: supabase/functions/run-dpia-framework/index.ts — persist item_unit_map to report_data._revision before dropping _staging
+- EDIT: src/components/refine/RefinePanel.tsx — OpenItemsList surface when open_items present; supplemental_context box REMOVED; errata link added
+- EDIT: src/hooks/useRegenerate.ts — supplementalContext dropped from payload
+- EDIT: src/hooks/useRefineMode.ts — surface openItems from report_data
+- EDIT: 9 tool pages — pass `openItems={refine.openItems}` prop
+
+Verification (what I could run from here):
+1. tsgo --noEmit: clean.
+2. 6 Deno unit tests: all pass (patch-apply hash-equal, guardAdvisoryNotes strip, checkAdvisoryGrounding red, updateOpenItemStatuses shape, dpia-unit-map roundtrip).
+3. Static grep: 9/9 generators wired; 9/9 stamps bumped; both gates still OFF.
+4. Pre-flight: long_running_jobs + function_runs in-flight queues empty at start.
+
+What still needs external verification (harness/live-DB E2E):
+- Two consecutive cppa-risk revisions on a fixture with stable ids + monotone count + version snapshots + meter -1 per revision.
+- DPIA unit-subset wall-clock vs full-regen measurement.
+- Full round-trip advisory grounding under a real model call.
