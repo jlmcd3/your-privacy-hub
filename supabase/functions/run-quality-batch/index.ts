@@ -22,6 +22,7 @@ import {
 import { resolveIntakeForTestStates } from "../_shared/cppa-risk-normalise.ts";
 // RC-C1 C1.5 — revision contract QC checks.
 import { qcContractMonotonicity, qcVerdictConsistency, CONTRACT_ENABLED_TOOLS } from "../_shared/revision-qc.ts";
+import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
 
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
