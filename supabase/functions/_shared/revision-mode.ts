@@ -426,12 +426,24 @@ export async function handleRevisionMode(
   }
 
   // Apply scoped-delta patch.
-  const applied = await applyRevisionPatch(storedReport, {
-    changed_paths: Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [],
-    values: (patchJson.values ?? {}) as Record<string, unknown>,
-    item_verdicts: [],
-    advisory_notes: [],
-  });
+  let applied: Awaited<ReturnType<typeof applyRevisionPatch>>;
+  try {
+    applied = await applyRevisionPatch(storedReport, {
+      changed_paths: Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [],
+      values: (patchJson.values ?? {}) as Record<string, unknown>,
+      item_verdicts: [],
+      advisory_notes: [],
+    });
+  } catch (e: any) {
+    const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    console.error(`[revision:${toolType}] patch_apply_failed`, e?.message, JSON.stringify({ changed_paths: changedPathsIn.slice(0, 20) }));
+    await revertStatus(supabase, table, rowId, priorStatus, toolType, "patch_apply_failed");
+    return jsonResp({
+      error: "revision_patch_apply_failed",
+      detail: e?.message ?? "patch apply failed",
+      changed_paths: changedPathsIn,
+    }, 409);
+  }
   if (!applied.equal) {
     console.error(`[revision:${toolType}] untouched_hash_mismatch before=${applied.untouchedHashBefore.slice(0, 12)} after=${applied.untouchedHashAfter.slice(0, 12)}`);
     await revertStatus(supabase, table, rowId, priorStatus, toolType, "untouched_hash_mismatch");
