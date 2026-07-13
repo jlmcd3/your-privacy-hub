@@ -16,7 +16,8 @@ export interface OpenItem {
   class: OpenItemClass;
   target: { kind: "field" | "narrative"; path: string };
   why_insufficient: string; // CREDIT-FIRST phrasing
-  provision_key: string;
+  provision_key: string;    // SLUG (matches provision_texts.key); free-text preserved on `citation`
+  citation?: string;        // RC-C2 C2.1 — original citation string as authored by the model
   input_spec: OpenItemInputSpec;
   status: OpenItemStatus;
   resolutions?: Array<{ at: string; verdict: "resolved" | "not_resolved"; reason: string }>;
