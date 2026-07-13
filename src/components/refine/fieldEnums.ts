@@ -120,11 +120,25 @@ const REGISTRY: EnumRegistry = {
     "admt_detail.feeds_future_decisions": ADMT_YES_NO_UNSURE_OPTS,
     "admt_detail.solely_advertising": ADMT_SOLELY_ADVERTISING_OPTS,
   },
-  // Audit note (2026-07-12, UX-1): the remaining seven tools' object/array
-  // intake fields carry only free-text leaves (LIA purpose/necessity/balancing
-  // details, DPIA/DPA/IR/Biometric/CPPACybersecurity/Governance nested blocks).
-  // If the intake for any of them adds an enumerated leaf, register it here
-  // and import the option set from the owning intake page.
+  // RC-C2 C2.2 — DPIA T-class enumerated intake leaves.
+  dpia_framework: {
+    data_categories: DPIA_DATA_CATS,
+    jurisdictions: DPIA_JURISDICTIONS,
+    legal_basis_proposed: DPIA_LEGAL_BASES,
+    article_9_condition: DPIA_ARTICLE_9_CONDITIONS,
+    reasons_to_conduct: DPIA_REASONS_TO_CONDUCT,
+    existing_safeguards: DPIA_SAFEGUARDS,
+    processors: DPIA_TOOLS,
+  },
+  // RC-C2 C2.5 — LIA T-class enumerated intake leaves.
+  li_assessment: {
+    data_categories: LIA_DATA_CATEGORIES,
+    relationship_type: LIA_RELATIONSHIPS,
+    jurisdictions: LIA_JURISDICTIONS,
+  },
+  // Audit note (2026-07-12, UX-1): the remaining five tools' object/array
+  // intake fields carry only free-text leaves. Register enum leaves here as
+  // each per-tool courier lands.
 };
 
 // Normalise an array-index segment ("foo.0.bar" → "foo[].bar") so array
