@@ -195,7 +195,12 @@ export async function handleRevisionMode(
   // DPIA-only: constrain generation surface to units these items came from.
   let dpiaUnitSubset: string[] | undefined;
   if (toolType === "dpia_framework") {
-    const unitMap = storedReport?._staging?.shared?.item_unit_map ?? {};
+    // Map persisted at report_data._revision.item_unit_map (survives the
+    // _staging drop at terminal complete). Legacy fallback: _staging.shared.
+    const unitMap =
+      storedReport?._revision?.item_unit_map ??
+      storedReport?._staging?.shared?.item_unit_map ??
+      {};
     const { units } = mapItemsToUnits(answeredIds, unitMap);
     // U5 (consistency) always runs last on a revision.
     dpiaUnitSubset = Array.from(new Set([...units, "u5"]));

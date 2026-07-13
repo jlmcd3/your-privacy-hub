@@ -1422,8 +1422,21 @@ async function runStitch(dpia_id: string): Promise<void> {
     });
 
     // ── Terminal complete: drop _staging, write final report_data ──────────
-    // (Amendment 2 corollary: prompt text was never in _staging anyway; the
-    // drop is still done to keep the row clean of the coordination scratch.)
+    // RC-B.1 B1.2: before dropping _staging, compute the item_id → unit map
+    // from the frozen open_items and persist it OUTSIDE _staging (which is
+    // dropped) under report_data._revision.item_unit_map. Data-only — no
+    // prompt text. The revision-mode handler reads this on the revision path
+    // to run ONLY the mapped units + U5 last.
+    try {
+      const { buildItemUnitMap } = await import("../_shared/dpia-unit-map.ts");
+      const openItems = Array.isArray((reportData as any)?.open_items) ? (reportData as any).open_items : [];
+      if (openItems.length > 0) {
+        const map = buildItemUnitMap(openItems);
+        (reportData as any)._revision = { ...((reportData as any)._revision ?? {}), item_unit_map: map };
+      }
+    } catch (e) {
+      console.warn("[dpia] item_unit_map persist skipped:", (e as Error)?.message);
+    }
     delete (reportData as any)._staging;
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
