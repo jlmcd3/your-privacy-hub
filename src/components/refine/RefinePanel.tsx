@@ -46,10 +46,13 @@ interface Props {
 }
 
 
+// Locked-field renderer: NEVER emits raw JSON. Object/array values are shown
+// as a compact humanised summary via summariseStructuredValue.
 function renderLockedValue(v: unknown): string {
   if (v == null) return "—";
-  if (Array.isArray(v)) return v.join(", ") || "—";
-  if (typeof v === "object") return JSON.stringify(v);
+  if (typeof v === "string") return v || "—";
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (Array.isArray(v) || typeof v === "object") return summariseStructuredValue(v);
   return String(v);
 }
 
@@ -73,20 +76,36 @@ export default function RefinePanel({
   const { toast } = useToast();
   const { regenerate, busy } = useRegenerate();
 
-  // Store form values as strings (arrays/objects are JSON-serialized for edit).
-  const initial = useMemo(() => {
-    const o: Record<string, string> = {};
+  // Scalar values stay as strings; object/array values live in a parallel
+  // map as native JS values, edited in place by StructuredFieldEditor. On
+  // submit, structured values are written back into cleanEdits unchanged —
+  // no JSON.stringify/parse anywhere on the user path (UX-1).
+  const { initialScalar, initialStructured } = useMemo(() => {
+    const scalar: Record<string, string> = {};
+    const structured: Record<string, unknown> = {};
     for (const f of editable) {
-      if (!(f.key in intake)) { o[f.key] = ""; continue; }
+      if (!(f.key in intake)) { scalar[f.key] = ""; continue; }
       const v = intake[f.key];
-      if (v == null) o[f.key] = "";
-      else if (typeof v === "string") o[f.key] = v;
-      else if (typeof v === "number" || typeof v === "boolean") o[f.key] = String(v);
-      else o[f.key] = JSON.stringify(v, null, 2);
+      if (f.kind === "structured") {
+        // Deep-clone so edits don't mutate the source intake object.
+        structured[f.key] = v == null ? v : JSON.parse(JSON.stringify(v));
+      } else if (v == null) {
+        scalar[f.key] = "";
+      } else if (typeof v === "string") {
+        scalar[f.key] = v;
+      } else if (typeof v === "number" || typeof v === "boolean") {
+        scalar[f.key] = String(v);
+      } else {
+        // Defensive: an object/array reached a non-structured spec. Render
+        // the compact summary rather than raw JSON, and treat as read-only
+        // scalar text (still no raw JSON on the user path).
+        scalar[f.key] = summariseStructuredValue(v);
+      }
     }
-    return o;
+    return { initialScalar: scalar, initialStructured: structured };
   }, [editable, intake]);
-  const [values, setValues] = useState<Record<string, string>>(initial);
+  const [values, setValues] = useState<Record<string, string>>(initialScalar);
+  const [structuredValues, setStructuredValues] = useState<Record<string, unknown>>(initialStructured);
 
   const lockedKeys = Object.keys(lockedFields ?? {});
   const exhausted = runsRemaining <= 0;
@@ -110,20 +129,19 @@ export default function RefinePanel({
   }, [activeResolve.count]);
 
   async function onRegenerate() {
-    // Strip any locked keys defensively; coerce values back to their original
-    // JSON shape when the seed value was an array/object.
+    // Strip any locked keys defensively. Structured values are handed back
+    // as-is (same JSON types and shapes as the source intake); scalars are
+    // coerced back to their original primitive type.
     const cleanEdits: Record<string, unknown> = {};
     for (const f of editable) {
       if (lockedKeys.includes(f.key)) continue;
-      const raw = values[f.key] ?? "";
       const seed = intake[f.key];
-      if (Array.isArray(seed) || (seed && typeof seed === "object")) {
-        try { cleanEdits[f.key] = raw.trim() ? JSON.parse(raw) : seed; }
-        catch {
-          toast({ title: "Invalid JSON", description: `Field "${f.label}" must be valid JSON.`, variant: "destructive" });
-          return;
-        }
-      } else if (typeof seed === "number") {
+      if (f.kind === "structured") {
+        cleanEdits[f.key] = f.key in structuredValues ? structuredValues[f.key] : seed;
+        continue;
+      }
+      const raw = values[f.key] ?? "";
+      if (typeof seed === "number") {
         const n = Number(raw);
         cleanEdits[f.key] = Number.isFinite(n) ? n : seed;
       } else if (typeof seed === "boolean") {
