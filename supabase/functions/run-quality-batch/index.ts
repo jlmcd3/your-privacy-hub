@@ -2127,6 +2127,31 @@ Deno.serve(async (req) => {
     if (!tool_type || !assessment_id || !Array.isArray(answered_items) || answered_items.length === 0) {
       return json({ error: "revision_dispatch_missing_params" }, 400);
     }
+    // RC-C1 C1.5 — snapshot open_items BEFORE dispatch so post-hoc QC can
+    // verify contract monotonicity and verdict consistency deterministically.
+    const tableMap: Record<string, string> = {
+      cppa_risk_assessment: "cppa_assessments",
+      cppa_admt: "cppa_assessments",
+      cppa_cybersecurity: "cppa_assessments",
+      dpia_framework: "dpia_frameworks",
+      li_assessment: "li_assessments",
+      governance_assessment: "governance_assessments",
+      ir_playbook: "ir_playbooks",
+      biometric_checker: "biometric_assessments",
+      dpa_generator: "dpa_documents",
+    };
+    const dispatchTable = tableMap[tool_type];
+    let openItemsBefore: any[] = [];
+    if (dispatchTable) {
+      const { data: rowBefore } = await admin
+        .from(dispatchTable)
+        .select("report_data")
+        .eq("id", assessment_id)
+        .maybeSingle();
+      openItemsBefore = Array.isArray((rowBefore as any)?.report_data?.open_items)
+        ? (rowBefore as any).report_data.open_items
+        : [];
+    }
     const fwdPayload = {
       tool_type,
       assessment_id,
@@ -2154,6 +2179,50 @@ Deno.serve(async (req) => {
       upstreamStatus = 502;
       upstreamBody = { error: "revision_dispatch_fetch_failed", detail: e?.message };
     }
+
+    // RC-C1 C1.5 — QC checks (scoped to contract-enabled tools; regenerate-assessment
+    // fires-and-forgets the actual generation so we poll briefly for completion).
+    const qcResults: any[] = [];
+    if (
+      dispatchTable
+      && upstreamStatus >= 200 && upstreamStatus < 300
+      && CONTRACT_ENABLED_TOOLS.has(tool_type)
+    ) {
+      try {
+        // Wait for row to reach terminal state (max ~60s poll — revision-mode
+        // typically completes in <30s; generation itself may take longer, so
+        // fall back to reading whatever's present when polling times out).
+        let rowAfter: any = null;
+        for (let i = 0; i < 30; i++) {
+          await new Promise((r) => setTimeout(r, 2000));
+          const { data } = await admin
+            .from(dispatchTable)
+            .select("report_data, status")
+            .eq("id", assessment_id)
+            .maybeSingle();
+          if (data && (data as any).status === "complete") { rowAfter = data; break; }
+          rowAfter = data;
+        }
+        const openItemsAfter: any[] = Array.isArray((rowAfter as any)?.report_data?.open_items)
+          ? (rowAfter as any).report_data.open_items
+          : [];
+        const answeredIds: string[] = (answered_items as any[]).map((a) => String(a?.item_id ?? ""));
+        // Derive verdicts from the diff of statuses on answered items.
+        const beforeStatusById = new Map(openItemsBefore.map((i: any) => [i.id, i.status]));
+        const verdicts = openItemsAfter
+          .filter((i: any) => answeredIds.includes(i.id))
+          .filter((i: any) => beforeStatusById.get(i.id) !== i.status)
+          .map((i: any) => ({ item_id: i.id, verdict: i.status }));
+        const changedPaths: string[] = Array.isArray(upstreamBody?.changed_paths)
+          ? upstreamBody.changed_paths
+          : [];
+        qcResults.push(qcContractMonotonicity(openItemsBefore, openItemsAfter));
+        qcResults.push(qcVerdictConsistency(answeredIds, verdicts, openItemsAfter, changedPaths));
+      } catch (e: any) {
+        qcResults.push({ code: "qc_rc_dispatch_error", status: "red", detail: e?.message });
+      }
+    }
+
     try {
       await admin.from("function_runs").insert({
         function_name: "run-quality-batch",
@@ -2167,13 +2236,16 @@ Deno.serve(async (req) => {
           upstream_status: upstreamStatus,
           upstream_body: upstreamBody,
           actor_user_id: userId,
+          qc_checks: qcResults,
+          revision_prompt_stamp: "rev-scope@rc-c.1",
         },
       });
     } catch (logErr) {
       console.warn("[revision_dispatch] function_runs insert failed", (logErr as any)?.message);
     }
-    return json(upstreamBody, upstreamStatus || 500);
+    return json({ ...upstreamBody, qc_checks: qcResults }, upstreamStatus || 500);
   }
+
 
   const { tool, batch_size: requestedBatch, resume_run_id: adminResumeId } = body;
 
