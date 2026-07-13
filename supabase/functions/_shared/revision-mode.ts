@@ -36,6 +36,21 @@ const TABLE_MAP: Record<string, string> = {
   cppa_cybersecurity: "cppa_assessments",
 };
 
+// RC-C2 microfix: tools whose row has no intake_data column. Must mirror
+// regenerate-assessment/HAS_INTAKE_DATA. Selecting a non-existent column
+// yields a row-load error → 404 → observed as 403-shaped ownership fail.
+const HAS_INTAKE_DATA: Record<string, boolean> = {
+  li_assessment: false,
+  governance_assessment: true,
+  dpia_framework: true,
+  dpa_generator: true,
+  ir_playbook: true,
+  biometric_checker: true,
+  cppa_admt: true,
+  cppa_risk_assessment: true,
+  cppa_cybersecurity: true,
+};
+
 const DEFAULT_MODEL = "claude-sonnet-4-5";
 
 // RC-B.2 stamp bump: verdict-cardinality contract + status revert on refusal.
