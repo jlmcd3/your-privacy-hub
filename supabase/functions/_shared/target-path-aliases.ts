@@ -37,12 +37,36 @@ export const TARGET_PATH_ALIASES: Record<string, Record<string, string[]>> = {
     q15c_spi_volume: ["normalised_intake.content_detail.q15c_spi_volume"],
     q18_admt_use: ["normalised_intake.triggers.q18_admt_use"],
     q20_admt_opt_out: ["normalised_intake.content_detail.admt_opt_out"],
+    // RC-D.11.1 — buildOpenItems can emit these live-frozen intake targets;
+    // write locations verified against shimLegacyIntake in
+    // _shared/cppa-risk-normalise.ts (legacy intake_intake → impact.*,
+    // i1_processing_purpose / q4_pi_categories → activity_details[0].*,
+    // q19_admt_description → content_detail.admt_description).
+    impact_intake: [
+      "normalised_intake.impact",
+      "normalised_intake.content_detail.business_benefits",
+      "normalised_intake.content_detail.consumer_benefits",
+      "normalised_intake.content_detail.stakeholder_public_benefits",
+      "normalised_intake.content_detail.planned_safeguards",
+      "normalised_intake.content_detail.harm_sources_and_causes",
+    ],
+    i1_processing_purpose: [
+      "normalised_intake.activity_details",
+    ],
+    q4_pi_categories: [
+      "normalised_intake.activity_details",
+    ],
+    q19_admt_description: [
+      "normalised_intake.content_detail.admt_description",
+    ],
+    impact: ["normalised_intake.impact"],
     // Nested triggers.* targets — write path mirrors under normalised_intake.
     "triggers.q1_revenue": ["normalised_intake.triggers.q1_revenue"],
     "triggers.q2_consumers": ["normalised_intake.triggers.q2_consumers"],
     "triggers.q5_sell_share": ["normalised_intake.triggers.q5_sell_share"],
     "triggers.q15_sensitive_pi": ["normalised_intake.triggers.q15_sensitive_pi"],
     "triggers.q18_admt_use": ["normalised_intake.triggers.q18_admt_use"],
+    triggers: ["normalised_intake.triggers"],
     // impact.*
     "impact.likelihood_of_harm": ["normalised_intake.impact.likelihood_of_harm"],
     "impact.severity_of_harm": ["normalised_intake.impact.severity_of_harm"],
