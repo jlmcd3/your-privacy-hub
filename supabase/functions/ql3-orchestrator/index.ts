@@ -357,6 +357,7 @@ async function runOneUnit(runId: string) {
         terminal_at: new Date().toISOString(),
         qc_result: {
           ...priorQc,
+          build_stamp: BUILD_STAMP,
           review2_terminal_reached: terminalReached,
           review2_baseline_version_n: baselineVersion,
           review2_current_version_n: currentVersion,
