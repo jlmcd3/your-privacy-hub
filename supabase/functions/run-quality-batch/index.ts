@@ -2339,6 +2339,8 @@ Deno.serve(async (req) => {
           upstream_body: upstreamBody,
           actor_user_id: userId,
           revision_prompt_stamp: "rev-scope@rc-d.8",
+          build_stamp: BUILD_STAMP,
+          upstream_build_stamp: upstreamBody?.build_stamp ?? null,
         },
       }).select("id").maybeSingle();
       completionRowId = (inserted as any)?.id ?? null;
