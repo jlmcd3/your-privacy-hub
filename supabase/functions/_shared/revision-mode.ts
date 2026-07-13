@@ -271,18 +271,44 @@ export async function handleRevisionMode(
     .eq("id", rowId)
     .maybeSingle();
   if (loadErr || !row) return jsonResp({ error: "revision_row_not_found", detail: loadErr?.message }, 404);
-  // RC-C2.2 IN-FLIGHT GUARD — regenerate-assessment passes the exact
-  // processing timestamp it just wrote. If this handler loads a processing row
-  // whose updated_at does not match that token, this invocation is not the
-  // owner of the current in-flight revision and must refuse without mutation.
+  // RC-C2.2 IN-FLIGHT GUARD — regenerate-assessment passes an ownership token
+  // it just wrote. Preferred token (RC-D.8): the dispatch_nonce claimed in
+  // revision_dispatch_ledger. Fallback: updated_at timestamp — kept for
+  // admin/manual dispatches that don't carry a nonce, but STRUCTURALLY
+  // impossible to satisfy on cppa_assessments because trg_cppa_assessments_updated
+  // (BEFORE UPDATE) overrides updated_at to now() at commit time. Any
+  // internal ql3→rqb→regen path MUST carry a nonce.
   if (row.status === "processing") {
-    const expectedProcessingAt = String(body.revision_context?.processing_started_at ?? "");
-    const loadedProcessingAt = String((row as any).updated_at ?? "");
-    const expectedMs = expectedProcessingAt ? new Date(expectedProcessingAt).getTime() : NaN;
-    const loadedMs = loadedProcessingAt ? new Date(loadedProcessingAt).getTime() : NaN;
-    if (!Number.isFinite(expectedMs) || !Number.isFinite(loadedMs) || expectedMs !== loadedMs) {
-      console.warn(JSON.stringify({ evt: "revision_inflight_refused", tool: toolType, row: rowId, expected_processing_at: expectedProcessingAt || null, loaded_processing_at: loadedProcessingAt || null }));
-      return jsonResp({ error: "revision_inflight", message: "another revision is in flight for this row" }, 409);
+    const expectedNonce = String(body.revision_context?.dispatch_nonce ?? "");
+    if (expectedNonce) {
+      // Nonce-based guard: the ledger claim is the authoritative ownership
+      // token. If this handler was invoked by the winning regenerate call,
+      // the nonce is present in revision_dispatch_ledger for this
+      // assessment_id; a losing/late worker either has no nonce or its
+      // nonce is not the most recent one for the row.
+      const { data: ledgerRow } = await supabase
+        .from("revision_dispatch_ledger")
+        .select("nonce, accepted_at")
+        .eq("nonce", expectedNonce)
+        .eq("assessment_id", rowId)
+        .maybeSingle();
+      if (!ledgerRow) {
+        console.warn(JSON.stringify({ evt: "revision_inflight_refused", tool: toolType, row: rowId, reason: "nonce_not_in_ledger", dispatch_nonce: expectedNonce }));
+        return jsonResp({ error: "revision_inflight", message: "dispatch nonce not present in ledger — not the owning worker" }, 409);
+      }
+      // Owner confirmed by nonce; proceed.
+    } else {
+      // Legacy timestamp guard (admin/manual only). Warn if it fires on
+      // cppa_assessments where it cannot succeed — indicates a caller that
+      // should have been forwarding a nonce.
+      const expectedProcessingAt = String(body.revision_context?.processing_started_at ?? "");
+      const loadedProcessingAt = String((row as any).updated_at ?? "");
+      const expectedMs = expectedProcessingAt ? new Date(expectedProcessingAt).getTime() : NaN;
+      const loadedMs = loadedProcessingAt ? new Date(loadedProcessingAt).getTime() : NaN;
+      if (!Number.isFinite(expectedMs) || !Number.isFinite(loadedMs) || expectedMs !== loadedMs) {
+        console.warn(JSON.stringify({ evt: "revision_inflight_refused", tool: toolType, row: rowId, expected_processing_at: expectedProcessingAt || null, loaded_processing_at: loadedProcessingAt || null, reason: "timestamp_mismatch_no_nonce" }));
+        return jsonResp({ error: "revision_inflight", message: "another revision is in flight for this row" }, 409);
+      }
     }
   }
 
