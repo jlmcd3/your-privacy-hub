@@ -142,6 +142,8 @@ Deno.serve(async (req) => {
     answered_items?: Array<{ item_id: string; value: unknown; evidence?: string }>;
     // RC-B.1 verification — optional owner override for service-role internal calls.
     internal_user_id?: string;
+    // RC-D.8 end-to-end idempotency nonce (present on internal ql3→rqb→regen path).
+    dispatch_nonce?: string;
   };
   try {
     payload = await req.json();
@@ -149,7 +151,7 @@ Deno.serve(async (req) => {
     logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
-  const { tool_type, assessment_id, edited_fields, mode, corrections, answered_items, internal_user_id } = payload;
+  const { tool_type, assessment_id, edited_fields, mode, corrections, answered_items, internal_user_id, dispatch_nonce } = payload;
 
   if (!tool_type || !assessment_id) {
     logExit(400, { error: "missing_params" });
