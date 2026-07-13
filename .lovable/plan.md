@@ -1,123 +1,72 @@
-# RC-B.1 — Complete the Contract Core
 
-Pre-flight: `long_running_jobs` and `function_runs` in-flight queues both empty. Safe to proceed.
+# RC-C3 execution plan (courier 5 of 6)
 
-## Architecture
+Locking sequence, deploy windows, and proof-leg definitions before touching code. Prior turns burned cycles when dispatches raced deploys; this plan enforces zero-in-flight gates and one deploy per phase.
 
-To modify 9 generators without touching each one's ~1500-line prompt assembly, add a single **short-circuit handler** at each generator's entrypoint that owns the entire revision path. The generators themselves stay untouched below that gate.
+## Phase 0 — Owed RC-C2 reporting (no code)
+- Query `cppa_assessments` history / `function_runs` for `62074117` first-gen wall-clock and explain the `processing → failed → complete` interlude (which run terminal? was it reaped? was it a synchronous retry?).
+- Extract and quote the LIA §35/assessment-register verdict reason from `486eb7ec` leg-1 revision (from `open_items[].resolutions[]` on the resolved item).
+- Report both before any code lands.
 
-```
-regenerate-assessment (mode:"revision") ─────► invokes tool fn with
-                                              revision_context.answered_item_ids
-                                              │
-tool fn entrypoint ──► handleRevisionMode() ──► [returns Response]
-                          │
-                          ├─ load stored report + intake
-                          ├─ resolve answered items → target paths
-                          ├─ (DPIA only) map items → units → run only those + U5
-                          ├─ build REVISION SCOPE prompt (PATCH shape only)
-                          ├─ call model (short, focused)
-                          ├─ applyRevisionPatch (untouched-subtree SHA-256 check)
-                          ├─ guardAdvisoryNotes + checkAdvisoryGrounding
-                          ├─ updateOpenItemStatuses (statuses only)
-                          └─ write report + version + meter + return
-                          
-                          [if none of the above matched → returns null, generator continues]
-```
+## Phase 1 — C3.1 Governance (Limited=3)
+Code changes (one deploy window, after zero-in-flight check on `governance_assessments`):
+1. `_shared/revision-qc.ts`: add `governance_assessment` to `CONTRACT_ENABLED_TOOLS`.
+2. `_shared/open-items.ts`: add `governance_assessment` block to `T_CLASS_FIELDS`; enum_refs point at `governance_assessment:<field>` keys (content-anchored, no literal retyping).
+3. `_shared/revision-patch.ts`: `ADVISORY_CAPS.governance_assessment = 3` (already present per file view — verify).
+4. Export enum constants from `src/pages/GovernanceAssessment.tsx` (or its `.enums.ts` sibling if it exists — check first, create sibling if not, to break import cycles like CPPARisk/ADMT).
+5. Register in `src/components/refine/fieldEnums.ts` under `governance_assessment: { ... }`.
+6. Verify generator prompt already emits ASSESSMENT-register verdict reasons; if not stamped, bump `rev-scope@rc-c.3.1` and record.
 
-## New / edited files
+Proof leg (via dispatcher, poll to terminal):
+- Pick or generate one governance row with ≥1 open item; issue one sequential revision answering 1 item.
+- Expected: `qc_rc_1` green, `qc_rc_2` green with verdicts=1 + matching changed_path, snapshot in `report_versions`, statuses moved on `governance_assessments` row.
 
-### New
-- `supabase/functions/_shared/revision-mode.ts` — the central handler. Exports `handleRevisionMode(supabase, req, toolType, opts)`. Owns prompt construction (REVISION SCOPE block), model call, patch application, advisory guard, status update, meter increment, action log. Returns a `Response` or `null`.
-- `supabase/functions/_shared/dpia-unit-map.ts` — helper. `mapItemsToUnits(items)` reads `report._staging.shared.item_unit_map` and returns `{ units, itemsPerUnit }`. Data-only, no prompt text.
-- `src/lib/revisionApi.ts` — thin client caller: `submitRevisionAnswers({ toolType, assessmentId, answered })` → posts `mode:"revision"` to regenerate-assessment.
+## Phase 2 — C3.2 CPPA Cyber + ADMT (Limited=3 each)
+Both are dormant (cyber emits 0/12, admt unstamped). Install machinery + one **harness fixture** per tool that forces ≥1 open item at first-gen so freeze→revision→green QC can be end-to-end proven.
 
-### Edited (9 generators — ~6 lines each)
-- `run-cppa-risk-assessment`, `run-cppa-cybersecurity`, `run-admt-checker`, `run-li-assessment`, `run-governance-assessment`, `run-dpia-framework`, `generate-dpa`, `generate-ir-playbook`, `check-biometric-compliance` — each inserts at request-handling entry point:
-  ```ts
-  const revResp = await handleRevisionMode(supabase, body, TOOL_TYPE);
-  if (revResp) return revResp;
-  ```
-  Stamps bumped where prompt text conceptually changes (only via the shared REVISION SCOPE block — recorded per generator).
+Code changes (one deploy window after Phase 1 verified green):
+1. Add `cppa_cybersecurity`, `cppa_admt` to `CONTRACT_ENABLED_TOOLS`.
+2. Add `T_CLASS_FIELDS` blocks for their enumerated posture fields (ADMT's enum set is already in `ADMTChecker.enums.ts` and registered in `fieldEnums.ts`; Cyber needs its own `.enums.ts` sibling if missing).
+3. Confirm `ADVISORY_CAPS` = 3 for each; add if missing.
+4. Add a **harness-only** first-gen path or fixture flag that injects a synthetic `information_needed` entry into the generated `open_items[]`. Marker: `harness: true` on the row (or a distinct `client_id`) and a comment tag `RC-C3 harness fixture — NOT production`.
+5. Register enum leaves in `fieldEnums.ts` (Cyber only, ADMT already registered).
 
-### Edited — DPIA-specific
-- `run-dpia-framework/index.ts` — on first-run freeze, persist `report._staging.shared.item_unit_map = { [item_id]: unit_name }` from the unit that emitted each `information_needed` entry. Revision-mode handler reads this map to decide which units to re-run + U5 consistency pass last.
+Proof legs (dispatcher, sequential, one per tool):
+- Cyber harness row → open_items[0] forced-ask → answer 1 → expect green/green + snapshot.
+- ADMT harness row → same shape → same expectation.
 
-### Edited — UI
-- `src/components/refine/RefinePanel.tsx`:
-  - When `report_data.open_items` present → render `<OpenItemsList/>` and hide the legacy editable-fields + supplemental sections.
-  - When absent (pre-contract assessments) → keep legacy surface but **remove** the "Anything else material to this revision" free-text box.
-  - Always render a small "Corrections? Use the free Errata channel" link (present, non-prominent).
-- `src/hooks/useRegenerate.ts`:
-  - Remove `supplementalContext` from the payload path (guard key `supplemental_context` stays registered server-side as a supp-key so it can't be re-invented as an info-needed field).
-  - Add `regenerateOpenItems({ toolType, assessmentId, answered })` → calls `revisionApi.submitRevisionAnswers`.
+## Phase 3 — C3.3 None-class verification (Biometric / IR / DPA / Registration)
+**NO contract machinery. NO advisory surface.** Read-only checks:
+1. For each of the 4 tools, locate the regeneration path (if any) and dispatch **one harness regen** where a regen path exists; confirm exactly one `report_versions` row is written for that assessment id.
+2. DPA: verify byte-identity comment on the placeholder-fill path is present and untouched; no code change.
+3. Registration: version history only — confirm regen writes `report_versions`; NO other change.
+4. Errata reachability: confirm the errata channel entry (frontend + `regenerate-assessment` errata mode) is reachable and gate-exempt for each of the 4.
 
-### Edited — advisory register
-- `supabase/functions/_shared/revision-patch.ts` — already has `ADVISORY_CAPS` + `guardAdvisoryNotes` + `checkAdvisoryGrounding`. Wired centrally by `revision-mode.ts` so every generator benefits uniformly.
+Report per tool: assessment id, `report_versions` row id created (or explicit "no regen path"), errata endpoint response code.
 
-## REVISION SCOPE prompt block (in revision-mode.ts)
+## Phase 4 — C3.4 Gate coverage audit (documentation)
+Produce one table in the final report:
+| Page | Refine entry mechanism | `REVISIONS_ENABLED` gate site | Server-side gate site | Errata exempt? |
+Covers all 9 tool pages. Verify via `rg` — no runtime dispatch needed.
 
-Static text, injected once per revision call, per tool. Content:
+## Phase 5 — C3.5 D8 + register sweep
+Grep every new user-facing string added in C3 (advisory text, error messages, generator prompt additions) for standalone `\bgaps?\b` and register-shape violations. Any hit blocks green. No new strings unless required.
 
-- "You are re-determining ONLY the report determinations that these answered items feed. Do NOT re-write untouched sections. Return JSON matching the PATCH shape below."
-- Answered items rendered as `{ id, target_path, ask, user_response, evidence? }[]`.
-- Existing `open_items` list (frozen) + the prior report's affected subtree only.
-- Output contract:
-  ```json
-  {
-    "changed_paths": ["risk_matrix.overall", "..."],
-    "values": { "risk_matrix.overall": "Moderate", "...": "..." },
-    "item_verdicts": [{"item_id":"...","verdict":"resolved|not_resolved","reason":"..."}],
-    "advisory_notes": [{"text":"...","fact_ref":"answered_item:<id>|intake:<field>"}]
-  }
-  ```
-- CAP note per tool: "Advisory notes capped at N; every note MUST cite a `fact_ref` that is either `answered_item:<id>` or `intake:<field>`."
+## Phase 6 — Final report
+Per-item table with row ids, deploy timestamps, snapshot version numbers, QC results, and Phase 4 gate table. On green, hand off to RC-D (QL3).
 
-Model: same as tool's primary model. `max_output_tokens`: 3000 (patches are small). Timeout: 180s.
+## Constraints / non-negotiables
+- **Zero-in-flight** psql check before every deploy window (max 3 deploys total: after Phase 1 code, after Phase 2 code, none after that).
+- **No parallel dispatches** — sequential per leg, poll `status` to terminal (`complete`/`failed`/`errata`).
+- **Stamp bump** only on prompts that actually change; recorded in `_shared/prompt-version.ts` and in report.
+- **Harness fixtures** for Cyber/ADMT clearly labeled and excluded from any production score ledgers.
+- **No behavior changes** to None-class tools — Phase 3 is verification only.
+- If any leg goes red or a snapshot fails to write, **HALT** and report before continuing — same discipline that recovered RC-C2.
 
-## Verification I will run and report
+## Open questions to confirm before Phase 1 code
+1. Governance `.enums.ts` sibling — create if absent, or is there an existing constants module to anchor to? (I'll grep and confirm before writing.)
+2. Cyber `.enums.ts` sibling — same question.
+3. For C3.2 harness fixture path: prefer a query-string flag on `run-cppa-cybersecurity` / `run-admt-checker` (`?harness=1`) that appends the synthetic open item post-generation, gated on service-role auth. Confirm this shape before implementing.
+4. For C3.3 harness regen: which of the 4 None-class tools currently expose a regen path (vs. one-shot)? I'll audit `regenerate-assessment` dispatch table before executing.
 
-1. **Static**: grep confirms each of the 9 generators contains the `handleRevisionMode` short-circuit; no generator still calls its full-generation path when `revision_context.answered_item_ids` is present.
-2. **Type/build**: tsgo passes; edge-function bundler builds new shared modules.
-3. **Unit-ish**: add a Deno test that constructs a stored report + patch and asserts `applyRevisionPatch` returns `equal: true` for untouched paths + expected values written.
-4. **Gate proof**: `REVISIONS_ENABLED` still OFF; a request to `regenerate-assessment mode:"revision"` still returns 409.
-5. **UI**: with a fixture assessment carrying `open_items`, `RefinePanel` renders `OpenItemsList` and NOT the supplemental context box (Playwright screenshot).
-6. **DPIA map**: emit + read roundtrip verified with a small unit test on `dpia-unit-map.ts`.
-7. **Advisory**: unit test — ungrounded note stripped, over-cap tail dropped, `checkAdvisoryGrounding` red on surviving note without fact_ref.
-
-**What I cannot verify from here** and will flag honestly:
-- Live harness E2E (two consecutive cppa-risk revisions with monotone item counts, versions snapshotted, meter decremented, DPIA subset wall-clock vs full regen). The infrastructure to actually run tool generation isn't invocable from this session — I'll ship the code and hand the E2E to the external verifier per program norm.
-
-## Stamps
-
-Prompt stamps bumped on all 9 generators (`+"-rcb1"` suffix) since the REVISION SCOPE contract materially changes their behaviour on the revision path, even though the block lives in the shared helper.
-
-## What I will NOT change
-
-- `supabase/config.toml`, auto-gen files, `.env`, any status-flipping SQL, any prompt text outside the REVISION SCOPE block, the frozen `open_items` shape, the existing full-generation path for first-run and classic revise (which stays gate-guarded).
-
----
-## RC-B.1 SHIPPED (2026-07-13)
-
-Complete. Files changed:
-- NEW: supabase/functions/_shared/revision-mode.ts (central scoped-delta handler)
-- NEW: supabase/functions/_shared/dpia-unit-map.ts (item→unit routing, data-only)
-- NEW: src/lib/revisionApi.ts (client caller for mode:"revision")
-- NEW: supabase/functions/_tests/revision-patch.test.ts (6 unit tests, all pass)
-- EDIT: 9 generators — import + `handleRevisionMode` short-circuit + qb9-rcb1 stamp
-- EDIT: supabase/functions/run-dpia-framework/index.ts — persist item_unit_map to report_data._revision before dropping _staging
-- EDIT: src/components/refine/RefinePanel.tsx — OpenItemsList surface when open_items present; supplemental_context box REMOVED; errata link added
-- EDIT: src/hooks/useRegenerate.ts — supplementalContext dropped from payload
-- EDIT: src/hooks/useRefineMode.ts — surface openItems from report_data
-- EDIT: 9 tool pages — pass `openItems={refine.openItems}` prop
-
-Verification (what I could run from here):
-1. tsgo --noEmit: clean.
-2. 6 Deno unit tests: all pass (patch-apply hash-equal, guardAdvisoryNotes strip, checkAdvisoryGrounding red, updateOpenItemStatuses shape, dpia-unit-map roundtrip).
-3. Static grep: 9/9 generators wired; 9/9 stamps bumped; both gates still OFF.
-4. Pre-flight: long_running_jobs + function_runs in-flight queues empty at start.
-
-What still needs external verification (harness/live-DB E2E):
-- Two consecutive cppa-risk revisions on a fixture with stable ids + monotone count + version snapshots + meter -1 per revision.
-- DPIA unit-subset wall-clock vs full-regen measurement.
-- Full round-trip advisory grounding under a real model call.
+Please confirm the sequence and the four open questions, then I fire Phase 0 immediately and move Phase 1 code+deploy on approval.
