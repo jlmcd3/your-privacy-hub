@@ -25,7 +25,7 @@ import { resolveEnumRef } from "../_shared/field-enums.ts";
 // MUST be updated in the same edit that changes behavior in this file.
 // External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
 // post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
-export const BUILD_STAMP = "2a7f1c3-rcd11@2026-07-13T22:55Z";
+export const BUILD_STAMP = "3b9d2e5-rcd111@2026-07-13T23:10Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
