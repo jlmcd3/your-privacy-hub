@@ -430,6 +430,7 @@ export async function handleRevisionMode(
       verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
       wouldBeItems as any,
       changedPathsIn,
+      toolType,
     );
     if (preQc.status === "red") {
       console.error(`[revision:${toolType}] pre_apply_qc_red ${preQc.code}: ${preQc.detail}`);
