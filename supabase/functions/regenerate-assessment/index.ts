@@ -532,7 +532,7 @@ Deno.serve(async (req) => {
         return json(invokeData ?? { error: "revision_refused" }, invokeStatus);
       }
       logExit(200, { ok: true, mode: "revision", answered: items.length, synchronous: true });
-      return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}) });
+      return json({ ok: true, mode: "revision", answered: items.length, ...(invokeData ?? {}), build_stamp: BUILD_STAMP });
     }
     // Async customer path — wrap the invoke so a failure reverts status
     // instead of leaving the row orphaned in processing.
