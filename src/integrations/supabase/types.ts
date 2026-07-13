@@ -5739,6 +5739,30 @@ export type Database = {
         }
         Relationships: []
       }
+      revision_dispatch_ledger: {
+        Row: {
+          accepted_at: string
+          action: string
+          assessment_id: string
+          nonce: string
+          tool_type: string
+        }
+        Insert: {
+          accepted_at?: string
+          action?: string
+          assessment_id: string
+          nonce: string
+          tool_type: string
+        }
+        Update: {
+          accepted_at?: string
+          action?: string
+          assessment_id?: string
+          nonce?: string
+          tool_type?: string
+        }
+        Relationships: []
+      }
       ropa_activity_templates: {
         Row: {
           category: string
