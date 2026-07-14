@@ -390,9 +390,18 @@ async function runOneUnit(runId: string) {
         ? (rowFinal as any).report_data.open_items
         : [];
       const itemsAfter = openItemsAfter.length;
-      const postScore = await callInternalGrader(run.tool_slug, run.assessment_id);
+      // RC-C3.CLOSE-1 (item 1) — N=3 post samples; median = point post_score;
+      // pre samples carried from the revise_dummy write for the band calc.
+      const postSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
+      const postScore = postSamples.length > 0
+        ? [...postSamples].sort((a, b) => a - b)[Math.floor(postSamples.length / 2)]
+        : null;
       const resolved = Math.max(0, (run.items_before ?? 0) - itemsAfter);
       const priorQc = (run as any)?.qc_result ?? {};
+      const preSamplesPersisted: number[] = Array.isArray(priorQc?.score_samples?.pre)
+        ? priorQc.score_samples.pre.filter((x: unknown) => typeof x === "number")
+        : [];
+      const variance = computeVariance(preSamplesPersisted, postSamples);
 
       await db.from("quality_loop3_runs").update({
         phase: "done",
@@ -406,6 +415,12 @@ async function runOneUnit(runId: string) {
           review2_terminal_reached: terminalReached,
           review2_baseline_version_n: baselineVersion,
           review2_current_version_n: currentVersion,
+          // RC-C3.CLOSE-1 (item 1) — raw samples + band decision. Every band
+          // verdict is auditable per-run from qc_result alone (no cross-run
+          // history). |delta| < band → "no_signal"; other pass/fail semantics
+          // are unchanged by this addition.
+          score_samples: { pre: preSamplesPersisted, post: postSamples },
+          variance,
         },
         ...(terminalReached ? {} : { error_message: "review2_timeout_pre_terminal" }),
       }).eq("id", runId);
