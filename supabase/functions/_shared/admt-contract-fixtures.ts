@@ -26,9 +26,9 @@ export const FIXTURE_ADMT_YIELD_K1: AdmtContractFixture = {
     decision_domains: ["Hiring or admission decisions"],
     // Radio — HUMAN_REVIEW_OPTIONS (L58–63).
     human_review: "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
-    // Radio — ["Yes","No","Unsure"] (L943).
+    // Radio — ["Yes","No"] (L943). "Unsure" removed per RC-P6.
     training_data_use: "Yes",
-    // Radio — ["Yes","No","Unsure"] (L955).
+    // Radio — ["Yes","No","Unsure"] (L955). Profiling retains "Unsure" pending separate ruling.
     profiling_use: "Yes",
     // Free-text <input> (L782–787).
     admt_system_count: "1",
@@ -82,8 +82,7 @@ export const FIXTURE_ADMT_YIELD_K1: AdmtContractFixture = {
     access_trade_secret_policy: "Rubric weights withheld as trade secret (Civil Code § 3426.1(d))",
     // Free-text <input> (L709–714).
     ca_consumer_count: "50000",
-    // Free-text <input> (L1435–1440).
-    prior_access_requests_12mo: "0",
+    // prior_access_requests_12mo removed (RC-P6).
   },
   answer_targets: ["notice_purpose_text", "opt_out_methods"],
 };

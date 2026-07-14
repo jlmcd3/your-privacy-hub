@@ -204,7 +204,7 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
       "profiling_use",
       "third_party_admt",
       "admt_system_count",
-      "prior_access_requests_12mo",
+      
       "opt_out_15_day_process",
       "opt_out_service_provider_notice",
     ],

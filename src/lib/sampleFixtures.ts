@@ -559,7 +559,7 @@ const F_CPPA_ADMT_US: SampleFixture = {
         profiling_use: "No",
         third_party_admt: "No",
         admt_system_count: "1",
-        prior_access_requests_12mo: "12",
+        
         admt_detail: {},
         notice_delivery: ["In-app just-in-time notice before data collection", "Layered notice linked from account creation and application flow"],
         notice_has_specific_purpose: "Yes — plain-language description of the specific purpose",
