@@ -34,6 +34,17 @@ export const BUILD_STAMP = "5d2f9c1-ql3open1@2026-07-14T05:30Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// QL3-OPEN-1 — exported for unit-test pinning of the OPEN-only filter and
+// the 12-item bound. Register items with status !== "open" (resolved,
+// not_resolved, or any future terminal status) must never enter answered.
+export function selectOpenForRevision(register: unknown): any[] {
+  if (!Array.isArray(register)) return [];
+  return register
+    .filter((it: any) => it?.status === "open")
+    .filter((it: any) => it?.id || it?.item_id)
+    .slice(0, 12);
+}
 const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const cors = {
