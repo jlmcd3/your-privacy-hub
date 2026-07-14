@@ -91,6 +91,7 @@ const DPIA_INTAKE = {
 /* ---------------------------------------------------------------- */
 
 const DPA_BODY = (userId: string) => ({
+  entityName: "Meridian Health Analytics Ltd",
   controllerName: "Meridian Health Analytics Ltd",
   controllerJurisdiction: "United Kingdom",
   processorName: "CloudMed Processing GmbH",
@@ -98,14 +99,12 @@ const DPA_BODY = (userId: string) => ({
   services:
     "Processing of patient health records on behalf of the Controller to provide AI-powered risk stratification analytics.",
   dataCategories: ["Health / medical data", "Employee / HR data"],
-  
-  retention: "Risk scores retained for 24 months; raw patient data not retained by Processor.",
+
+  retention: "Fixed period: 24 months for risk scores; raw patient data not retained by Processor.",
   hasSubProcessors: true,
   subProcessorList: "Microsoft Azure (EU region); Snowflake Inc (EU region).",
-  legalFramework: "GDPR (EU) and UK GDPR",
-  auditRights: "annual third-party audit",
-  includeTransferClause: true,
-  transferMechanism: "EU Standard Contractual Clauses (2021/914)",
+  auditRights: "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
+  transferMechanism: "UK IDTA / UK Addendum to EU SCCs",
   user_id: userId,
 });
 

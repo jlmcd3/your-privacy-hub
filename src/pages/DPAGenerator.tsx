@@ -58,15 +58,22 @@ export default function DPAGenerator() {
   const { clientId } = useActiveClient();
   const refine = useRefineMode("dpa_generator");
   const [step, setStep] = useState(1);
+  // CEO ruling 2026-07-14: legalFramework + includeTransferClause are DERIVED
+  // server-side; retention/auditRights/transfer question are ASKED with no
+  // default. Fold-in free-text state ("Other: <text>", "Fixed period: <text>")
+  // lives alongside the enum selection for the three fold-in fields.
   const [form, setForm] = useState({
     entityName: "",
     controllerName: "", controllerJurisdiction: "Germany",
     processorName: "", processorJurisdiction: "Germany",
     services: "", dataCategories: [] as string[],
-    retention: "As directed by controller",
+    retentionChoice: "" as "" | "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period — specify",
+    retentionFixedText: "",
     hasSubProcessors: false, subProcessorList: "",
-    legalFramework: "GDPR", auditRights: "Standard",
-    includeTransferClause: false, transferMechanism: "SCCs",
+    auditRightsChoice: "" as "" | "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Custom — describe",
+    auditRightsOtherText: "",
+    transfersInvolved: "" as "" | "Yes" | "No",
+    transferMechanism: "" as "" | "EU Standard Contractual Clauses (SCCs)" | "UK IDTA / UK Addendum to EU SCCs" | "Binding Corporate Rules" | "Adequacy decision or regulations" | "None in place yet",
   });
   const [phase, setPhase] = useState<"sample" | "generating" | "result">("sample");
   const [result, setResult] = useState<string>("");
@@ -102,6 +109,12 @@ export default function DPAGenerator() {
     if (!form.processorName.trim()) return "Please enter the Processor name.";
     if (!form.services.trim()) return "Please describe the Services to be provided.";
     if (form.dataCategories.length === 0) return "Please select at least one data category.";
+    if (!form.retentionChoice) return "Please choose a retention / deletion option.";
+    if (form.retentionChoice === "Fixed period — specify" && !form.retentionFixedText.trim()) return "Please specify the fixed retention period.";
+    if (!form.auditRightsChoice) return "Please choose an audit-rights option.";
+    if (form.auditRightsChoice === "Custom — describe" && !form.auditRightsOtherText.trim()) return "Please describe the custom audit-rights arrangement.";
+    if (!form.transfersInvolved) return "Please answer whether the processing involves cross-jurisdiction transfers.";
+    if (form.transfersInvolved === "Yes" && !form.transferMechanism) return "Please select the transfer mechanism in place.";
     return null;
   };
 
@@ -112,13 +125,42 @@ export default function DPAGenerator() {
   const toggleCat = (c: string) =>
     setForm(f => ({ ...f, dataCategories: f.dataCategories.includes(c) ? f.dataCategories.filter(x => x !== c) : [...f.dataCategories, c] }));
 
+  const buildInvokeBody = () => {
+    const retention =
+      form.retentionChoice === "Fixed period — specify"
+        ? `Fixed period: ${form.retentionFixedText.trim()}`
+        : form.retentionChoice;
+    const auditRights =
+      form.auditRightsChoice === "Custom — describe"
+        ? `Other: ${form.auditRightsOtherText.trim()}`
+        : form.auditRightsChoice;
+    const includeTransferClause = form.transfersInvolved === "Yes";
+    const transferMechanism = includeTransferClause ? form.transferMechanism : "";
+    return {
+      entityName: form.entityName,
+      controllerName: form.controllerName,
+      controllerJurisdiction: form.controllerJurisdiction,
+      processorName: form.processorName,
+      processorJurisdiction: form.processorJurisdiction,
+      services: form.services,
+      dataCategories: form.dataCategories,
+      retention,
+      hasSubProcessors: form.hasSubProcessors,
+      subProcessorList: form.subProcessorList,
+      auditRights,
+      includeTransferClause,
+      transferMechanism,
+      documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type,
+    };
+  };
+
   const handleGenerate = async () => {
     setPhase("generating");
     const timeout = new Promise<never>((_, reject) =>
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type, user_id: access.user?.id, client_id: clientId ?? null } }),
+      supabase.functions.invoke("generate-dpa", { body: { ...buildInvokeBody(), user_id: access.user?.id, client_id: clientId ?? null } }),
 
       timeout,
     ]).catch((error) => ({ data: null, error }));
@@ -279,6 +321,52 @@ export default function DPAGenerator() {
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
                 </div></fieldset>
+
+              <label className="block"><span className="font-semibold text-brand-navy">Retention / deletion at end of services<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(g) GDPR)</span></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.retentionChoice} onChange={e => setForm(f => ({ ...f, retentionChoice: e.target.value as typeof f.retentionChoice }))}>
+                  <option value="">— select an option —</option>
+                  <option value="As directed by the Controller's documented instructions">As directed by the Controller's documented instructions</option>
+                  <option value="For the duration of the principal agreement, then delete or return">For the duration of the principal agreement, then delete or return</option>
+                  <option value="Fixed period — specify">Fixed period — specify</option>
+                </select>
+                {form.retentionChoice === "Fixed period — specify" && (
+                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="e.g., 24 months from termination" value={form.retentionFixedText} onChange={e => setForm(f => ({ ...f, retentionFixedText: e.target.value }))} />
+                )}
+              </label>
+
+              <label className="block"><span className="font-semibold text-brand-navy">Audit rights<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(h) GDPR)</span></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.auditRightsChoice} onChange={e => setForm(f => ({ ...f, auditRightsChoice: e.target.value as typeof f.auditRightsChoice }))}>
+                  <option value="">— select an option —</option>
+                  <option value="Documentation review — Processor provides audit reports/certifications on request">Documentation review — Processor provides audit reports/certifications on request</option>
+                  <option value="Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice">Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice</option>
+                  <option value="Enhanced — on-site inspection on 30 days' notice plus continuous evidence access">Enhanced — on-site inspection on 30 days' notice plus continuous evidence access</option>
+                  <option value="Custom — describe">Custom — describe</option>
+                </select>
+                {form.auditRightsChoice === "Custom — describe" && (
+                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="Describe the audit arrangement" value={form.auditRightsOtherText} onChange={e => setForm(f => ({ ...f, auditRightsOtherText: e.target.value }))} />
+                )}
+              </label>
+
+              <label className="block"><span className="font-semibold text-brand-navy">Does the processing involve transfers of personal data across the jurisdictions above (or onward to third countries)?<Req /></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transfersInvolved} onChange={e => setForm(f => ({ ...f, transfersInvolved: e.target.value as typeof f.transfersInvolved, transferMechanism: e.target.value === "Yes" ? f.transferMechanism : "" }))}>
+                  <option value="">— select an option —</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </label>
+
+              {form.transfersInvolved === "Yes" && (
+                <label className="block"><span className="font-semibold text-brand-navy">Transfer mechanism in place<Req /></span>
+                  <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transferMechanism} onChange={e => setForm(f => ({ ...f, transferMechanism: e.target.value as typeof f.transferMechanism }))}>
+                    <option value="">— select a mechanism —</option>
+                    <option value="EU Standard Contractual Clauses (SCCs)">EU Standard Contractual Clauses (SCCs)</option>
+                    <option value="UK IDTA / UK Addendum to EU SCCs">UK IDTA / UK Addendum to EU SCCs</option>
+                    <option value="Binding Corporate Rules">Binding Corporate Rules</option>
+                    <option value="Adequacy decision or regulations">Adequacy decision or regulations</option>
+                    <option value="None in place yet">None in place yet</option>
+                  </select>
+                </label>
+              )}
             </div>
             <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
             <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
@@ -309,7 +397,7 @@ export default function DPAGenerator() {
         toolType="dpa_generator"
         userId={access.user?.id}
         clientId={clientId}
-        intakeData={{ ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type }}
+        intakeData={buildInvokeBody()}
 
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {

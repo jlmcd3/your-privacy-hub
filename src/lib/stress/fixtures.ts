@@ -407,6 +407,7 @@ export const BIOMETRIC_VARIANTS = [
 
 export const DPA_VARIANTS = [
   {
+    entityName: "Hermey Dental & Health Group Ltd",
     controllerName: "Hermey Dental & Health Group Ltd",
     controllerJurisdiction: "United Kingdom",
     processorName: "CloudMed Processing GmbH",
@@ -414,65 +415,60 @@ export const DPA_VARIANTS = [
     services:
       "AI-powered patient risk stratification analytics, including data ingestion, model inference, risk score generation, and structured report return.",
     dataCategories: ["Health / medical data", "Employee / HR data"],
-    
-    retention: "24 months for risk scores; raw patient data not retained.",
+
+    retention: "Fixed period: 24 months for risk scores; raw patient data not retained.",
     hasSubProcessors: true,
     subProcessorList: "Microsoft Azure (EU), Snowflake Inc (EU).",
-    legalFramework: "GDPR (EU) and UK GDPR",
-    auditRights: "annual third-party audit",
-    includeTransferClause: true,
-    transferMechanism: "EU Standard Contractual Clauses (2021/914)",
+    auditRights: "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
+    transferMechanism: "EU Standard Contractual Clauses (SCCs)",
   },
   {
+    entityName: "Moonracer Capital Bank plc",
     controllerName: "Moonracer Capital Bank plc",
     controllerJurisdiction: "United Kingdom",
     processorName: "Featurespace Limited",
     processorJurisdiction: "United Kingdom",
     services:
       "Real-time card-not-present fraud-detection scoring service, including feature engineering, model inference and decision return.",
-    dataCategories: ["Financial / transaction data", "Customer / contact data", "Device / technical data"],
-    
-    retention: "Model features 13 months; decisions 6 years for regulatory retention.",
+    dataCategories: ["Financial / payment data", "General personal data"],
+
+    retention: "Fixed period: Model features 13 months; decisions 6 years for regulatory retention.",
     hasSubProcessors: true,
     subProcessorList: "Amazon Web Services (EU regions).",
-    legalFramework: "UK GDPR and EU GDPR",
-    auditRights: "annual SOC 2 Type II + right-to-audit clause",
-    includeTransferClause: true,
-    transferMechanism: "UK IDTA + EU SCCs",
+    auditRights: "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access",
+    transferMechanism: "UK IDTA / UK Addendum to EU SCCs",
   },
   {
+    entityName: "Misfit Toys Trading Co. International Ltd",
     controllerName: "Misfit Toys Trading Co. International Ltd",
     controllerJurisdiction: "Ireland",
     processorName: "SendGrid Inc.",
-    processorJurisdiction: "United States",
+    processorJurisdiction: "United States (federal)",
     services:
       "Transactional and marketing email delivery, including list management, send orchestration, deliverability analytics and engagement event capture.",
-    dataCategories: ["Customer / contact data", "Behavioural / engagement data"],
-    
-    retention: "Engagement events 18 months; suppression list indefinitely.",
+    dataCategories: ["General personal data"],
+
+    retention: "For the duration of the principal agreement, then delete or return",
     hasSubProcessors: true,
     subProcessorList: "Twilio Inc. (US); Google Cloud Platform (US).",
-    legalFramework: "GDPR (EU) and UK GDPR",
-    auditRights: "annual SOC 2 review",
-    includeTransferClause: true,
-    transferMechanism: "EU SCCs + EU-US Data Privacy Framework",
+    auditRights: "Documentation review — Processor provides audit reports/certifications on request",
+    transferMechanism: "EU Standard Contractual Clauses (SCCs)",
   },
   {
+    entityName: "Silver & Gold Logistics Ltd",
     controllerName: "Silver & Gold Logistics Ltd",
     controllerJurisdiction: "France",
     processorName: "Geotab Inc.",
-    processorJurisdiction: "Canada",
+    processorJurisdiction: "Canada (federal / PIPEDA)",
     services:
       "Fleet telematics platform — in-cab device data collection, transmission, storage and reporting for HGV fleet operations.",
-    dataCategories: ["Employee / HR data", "Location data", "Device / technical data"],
-    
-    retention: "Raw telemetry 12 months; aggregated reports 5 years.",
+    dataCategories: ["Employee / HR data", "Location data"],
+
+    retention: "As directed by the Controller's documented instructions",
     hasSubProcessors: true,
     subProcessorList: "Microsoft Azure (EU regions).",
-    legalFramework: "GDPR (EU)",
-    auditRights: "annual ISO 27001 audit",
-    includeTransferClause: true,
-    transferMechanism: "EU adequacy decision for Canada (PIPEDA, commercial scope)",
+    auditRights: "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
+    transferMechanism: "Adequacy decision or regulations",
   },
 ];
 

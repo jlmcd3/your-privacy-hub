@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "6e3a1d4-intake-rulings-p2-followup@2026-07-14T18:30Z";
+export const BUILD_STAMP = "8575c3c6-dpa-derive-framework@2026-07-14T20:00Z";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -36,16 +36,32 @@ interface Body {
   // requests that still send the key are accepted and the value ignored (Body interface
   // is a superset of the wire — extra keys are dropped by TS at read sites).
 
-  retention: string;
+  // Post-ruling 2026-07-14: retention / auditRights / transfer question are ASKED;
+  // legalFramework and includeTransferClause are DERIVED server-side. All four
+  // fields remain accepted on legacy payloads with the OLD default fall-backs
+  // applied below so replays don't 400 — but the current form never omits them.
+  retention?: string;
   hasSubProcessors: boolean;
   subProcessorList?: string;
-  legalFramework: string;
-  auditRights: string;
-  includeTransferClause: boolean;
-  transferMechanism: string;
+  legalFramework?: string; // ignored (derived from documentType); accepted for BC
+  auditRights?: string;
+  includeTransferClause?: boolean;
+  transferMechanism?: string;
   documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca";
   assessment_id?: string;
   user_id?: string;
+}
+
+// CEO ruling 2026-07-14 — legal framework derived from documentType.
+function frameworkFor(docType: string): string {
+  switch (docType) {
+    case "us-state": return "US state privacy law (CCPA/CPRA and applicable state acts)";
+    case "canada": return "PIPEDA";
+    case "dual-eu-us": return "Dual EU/US";
+    case "dual-eu-ca": return "Dual EU/Canada";
+    case "gdpr":
+    default: return "GDPR";
+  }
 }
 
 const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
@@ -213,6 +229,23 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    }
+
+    // Backward compatibility (CEO ruling 2026-07-14): legacy payloads that omit
+    // the newly-asked fields fall back to the OLD form defaults server-side so
+    // replays don't 400. The current form never produces this shape. Any client
+    // legalFramework value is IGNORED — the framework is derived below.
+    if (typeof body.retention !== "string" || !body.retention.trim()) {
+      body.retention = "As directed by controller";
+    }
+    if (typeof body.auditRights !== "string" || !body.auditRights.trim()) {
+      body.auditRights = "Standard";
+    }
+    if (typeof body.includeTransferClause !== "boolean") {
+      body.includeTransferClause = false;
+    }
+    if (typeof body.transferMechanism !== "string") {
+      body.transferMechanism = body.includeTransferClause ? "SCCs" : "";
     }
 
     if (body.assessment_id) {
@@ -414,8 +447,14 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
 
     const DUAL_EU_CA_SYSTEM = `You are a senior data protection counsel with expertise in both EU/UK GDPR and Canadian privacy law (PIPEDA, Quebec Law 25, PIPA AB/BC, PHIPA ON). Draft a dual-compliance Data Processing Agreement that satisfies both GDPR Article 28 and applicable Canadian federal/provincial privacy laws as a single integrated agreement. Where GDPR is stricter, GDPR prevails; where Canadian requirements are additional, both are captured.`;
 
+    // CEO ruling 2026-07-14: "None in place yet" → the section states no Art. 46
+    // mechanism is currently in place and emits a [TO BE COMPLETED: …] placeholder,
+    // rather than drafting SCC incorporation.
+    const noMechanismYet = body.includeTransferClause && body.transferMechanism === "None in place yet";
     const transferSection = body.includeTransferClause
-      ? `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`
+      ? (noMechanismYet
+          ? `10. INTERNATIONAL TRANSFER PROVISIONS — The Parties confirm that no Article 46 GDPR transfer mechanism is currently in place for the transfers contemplated by this DPA. State this fact in operative voice and emit a [TO BE COMPLETED: transfer mechanism to be adopted before transfers occur] placeholder covering (a) the mechanism to be adopted (EU SCCs, UK IDTA / UK Addendum, Binding Corporate Rules, adequacy decision), (b) the effective date, and (c) the execution party. Do NOT draft SCC incorporation language or represent that SCCs apply. The Parties shall not commence any restricted transfer until that placeholder is populated.`
+          : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
       : "";
 
     const PARTIES_BLOCK = `PARTIES
@@ -456,6 +495,7 @@ Audit rights: ${body.auditRights}`;
 - PRE-EXECUTION TASKS ARE NOT OPERATIVE TERMS: an executed instrument never instructs the Parties to perform a verification 'before execution of this DPA' inside its own operative text — the document cannot condition its own execution on tasks stated within it. Where a fact must be established before signature (the competent supervisory authority for a registered seat, a sub-processor's Data Privacy Framework participation), the clause carries a [TO BE COMPLETED: …] placeholder naming the fact and how it is determined, and any verification instruction lives in a schedule header note — never in a clause, recital, or annex body. A pre-execution instruction appearing more than once for the same fact is additionally a repetition defect.
 - ALTERNATIVES ARE SELECT-ONE PLACEHOLDERS: mutually exclusive substantive alternatives are never left in executed text separated by slashes ('unlimited / capped at a specified multiple of annual fees / as otherwise agreed'). Present them as a single select-one placeholder: '[TO BE COMPLETED: select one — (Option A) unlimited; (Option B) capped at [amount or multiple]; (Option C) as set out in the Principal Agreement — delete the options not selected].' Slash-separated alternatives in an operative clause are a drafting defect.
 - DEFERRED COMPLIANCE-CRITICAL PERIODS CARRY THEIR CONSTRAINT: where a notification or assistance period is deferred to the Parties and a statutory deadline depends on it (e.g. the Processor's obligation to pass on data subject requests, which feeds the Controller's Article 12(3) one-month response deadline), the placeholder states the governing constraint without supplying a value: '[TO BE COMPLETED: notification period — must be short enough to enable the Controller to meet its Article 12(3) one-month response deadline]'. Never a bare '[TO BE COMPLETED: notification period]' where a statutory clock depends on the term, and never a supplied default value. THE ARTICLE 12(3) ANNOTATION ATTACHES ONLY to periods that feed the Controller's data-subject-request response deadline (the Processor's obligation to pass on or assist with data subject requests). DPIA-assistance periods, audit-response periods, and breach-notification periods each carry their OWN governing constraint where one exists (e.g. Article 33(2) 'without undue delay' for breach notification) or a plain '[TO BE COMPLETED: response period for [the assistance type]]' placeholder where none does — never the Article 12(3) annotation.
+- RETENTION-SHAPE RENDERING (CEO ruling 2026-07-14): the "Retention:" field in the PARTIES block above carries ONE of exactly three shapes; render clause 2.6 (Duration / Retention) and the Schedule 2 / Annex I.B retention-period cross-reference accordingly, and do not conflate the two non-fixed shapes with the fixed one: (a) "As directed by the Controller's documented instructions" — clause 2.6 states the Processor retains Personal Data only for the period the Controller's documented instructions require and destroys or returns it in accordance with clause 8; Schedule 2 retention-period entry reads "As set out in clause 2.6 of this DPA (retention governed by the Controller's documented instructions)"; do NOT substitute a numeric duration in either place. (b) "For the duration of the principal agreement, then delete or return" — clause 2.6 states retention runs for the term of the Principal Agreement and Personal Data is deleted or returned in accordance with clause 8 at termination; Schedule 2 entry reads "As set out in clause 2.6 of this DPA (duration of the Principal Agreement, then deletion or return)"; do NOT emit a numeric duration. (c) "Fixed period: <duration>" — clause 2.6 states the fixed duration verbatim from the intake as an operative term and cross-references clause 8 for the deletion/return trigger; Schedule 2 entry reads "As set out in clause 2.6 of this DPA (<duration> from the event defined therein)" substituting the same duration; the event that starts the clock remains a [TO BE COMPLETED: …] placeholder per the event-defined retention-triggers rule below. Never emit the same retention question in two places — clause 2.6 is the source of truth and Schedule 2 cross-references it.
 - Include an annotations array listing every enforcement case from the ENFORCEMENT CONTEXT above that informed a clause choice. Use the exact id value from each case (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge.
 
 CRITICAL DRAFTING RULES — NON-NEGOTIABLE:
@@ -547,7 +587,7 @@ If a detected mismatch exists between the entity's legal form and the stated inc
 16. LEAD-SA SENTENCE (2.4d). "…this does not affect the competence of the German state DPA in respect of [Processor] as an establishment under German law."`;
 
     const GDPR_USER = `${PARTIES_BLOCK}
-Legal framework: ${body.legalFramework}
+Legal framework: ${frameworkFor(documentType)}
 ${sectorFlags.isComplexRoleSector ? `
 CONTROLLER/PROCESSOR ROLE ALERT — ${sectorFlags.complexRoleSectorName.toUpperCase()}
 The services described suggest a ${sectorFlags.complexRoleSectorName} context where the Processor's role as a pure processor under GDPR Article 28 may be uncertain. Include in Section 1 (Parties and Recitals) the following recital:

@@ -73,6 +73,9 @@ import {
   dpaGeneratorContract,
   DPA_JURISDICTIONS,
   DPA_DATA_CATS,
+  DPA_RETENTION_OPTIONS,
+  DPA_AUDIT_RIGHTS_OPTIONS,
+  DPA_TRANSFER_MECHANISM_OPTIONS,
 } from "../_shared/intake-contracts/dpa-generator.ts";
 import {
   irPlaybookContract,
@@ -400,12 +403,21 @@ Deno.test("intake-contracts / dpia MIRROR — FIELD_ENUM_MIRROR entries match co
   }
 });
 
-Deno.test("intake-contracts / dpa PARITY — jurisdiction + data-cat options appear verbatim in page source", async () => {
+Deno.test("intake-contracts / dpa PARITY — jurisdiction + data-cat + retention + audit + transfer options appear verbatim in page source", async () => {
   const src = await Deno.readTextFile(
     new URL("../../../src/pages/DPAGenerator.tsx", import.meta.url),
   );
   for (const opt of DPA_DATA_CATS) {
     assert(src.includes(opt), `DPA data-cat not found verbatim in page source: ${JSON.stringify(opt)}`);
+  }
+  for (const opt of DPA_RETENTION_OPTIONS) {
+    assert(src.includes(opt), `DPA retention option not found verbatim: ${JSON.stringify(opt)}`);
+  }
+  for (const opt of DPA_AUDIT_RIGHTS_OPTIONS) {
+    assert(src.includes(opt), `DPA audit-rights option not found verbatim: ${JSON.stringify(opt)}`);
+  }
+  for (const opt of DPA_TRANSFER_MECHANISM_OPTIONS) {
+    assert(src.includes(opt), `DPA transfer-mechanism option not found verbatim: ${JSON.stringify(opt)}`);
   }
   // DPA_JURISDICTIONS come from @/lib/dpaDocumentType — assert against
   // that module.
@@ -446,13 +458,11 @@ Deno.test("intake-contracts / dpa FIXTURES — synthesised form payload validate
     processorJurisdiction: "Germany",
     services: "Hosting and support",
     dataCategories: ["General personal data"],
-    retention: "As directed by controller",
+    retention: "As directed by the Controller's documented instructions",
     hasSubProcessors: false,
     subProcessorList: "",
-    legalFramework: "GDPR",
-    auditRights: "Standard",
-    includeTransferClause: false,
-    transferMechanism: "SCCs",
+    auditRights: "Documentation review — Processor provides audit reports/certifications on request",
+    transferMechanism: "",
   };
   const res = validateIntake(dpaGeneratorContract, payload);
   assert(res.ok, JSON.stringify(res.violations));
