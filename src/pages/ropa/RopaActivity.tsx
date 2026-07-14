@@ -775,22 +775,29 @@ function QuestionInput({
       );
 
     case "yes_no_unsure":
+      // RC-Cleanup3 (CEO-ratified 2026-07-14): the tri-state "yes/no/unsure"
+      // render was collapsed to yes/no. The question type union in
+      // src/data/ropa-questions/types.ts still exports "yes_no_unsure" for
+      // legacy compatibility, but no active ROPA question uses it and any
+      // legacy stored value === "unsure" will simply render as no selection
+      // (radiogroup aria-checked=false on both buttons) — non-crashing; the
+      // user picks a definite branch on revisit.
       return (
-        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="grid grid-cols-3 gap-2">
-          {["yes", "no", "unsure"].map((o) => (
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="grid grid-cols-2 gap-2">
+          {["yes", "no"].map((o) => (
             <button
               key={o}
               onClick={() => onChange(o)}
               role="radio"
               aria-checked={v === o}
-              aria-label={o === "unsure" ? "Not sure" : o}
+              aria-label={o}
               className={`p-3 rounded-lg border capitalize min-h-[52px] ${
                 v === o
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
               }`}
             >
-              {o === "unsure" ? "Not sure" : o}
+              {o}
             </button>
           ))}
         </div>
