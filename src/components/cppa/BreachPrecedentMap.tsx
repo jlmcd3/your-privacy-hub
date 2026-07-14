@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CPPA_CONTROL_PRECEDENT_KEYWORDS } from "@/data/cppa-control-precedent-keywords";
-import { controlStatusColor } from "@/pages/CPPACybersecurityResult";
+import { controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
 
 type Action = {
   id: string;

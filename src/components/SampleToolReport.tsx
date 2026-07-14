@@ -12,7 +12,7 @@ import GovernanceReportBody from "@/components/report-bodies/GovernanceReportBod
 import LIAReportBody from "@/components/report-bodies/LIAReportBody";
 import DPIAReportBody from "@/components/report-bodies/DPIAReportBody";
 import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
-import { CybersecurityReportBody } from "@/pages/CPPACybersecurityResult";
+import { CybersecurityReportBody } from "@/components/cppa/CybersecurityReportBody";
 import { SampleReportBody } from "@/components/SampleReportBody";
 
 export interface SampleToolReportProps {
