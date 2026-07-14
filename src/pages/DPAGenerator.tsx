@@ -58,15 +58,22 @@ export default function DPAGenerator() {
   const { clientId } = useActiveClient();
   const refine = useRefineMode("dpa_generator");
   const [step, setStep] = useState(1);
+  // CEO ruling 2026-07-14: legalFramework + includeTransferClause are DERIVED
+  // server-side; retention/auditRights/transfer question are ASKED with no
+  // default. Fold-in free-text state ("Other: <text>", "Fixed period: <text>")
+  // lives alongside the enum selection for the three fold-in fields.
   const [form, setForm] = useState({
     entityName: "",
     controllerName: "", controllerJurisdiction: "Germany",
     processorName: "", processorJurisdiction: "Germany",
     services: "", dataCategories: [] as string[],
-    retention: "As directed by controller",
+    retentionChoice: "" as "" | "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period — specify",
+    retentionFixedText: "",
     hasSubProcessors: false, subProcessorList: "",
-    legalFramework: "GDPR", auditRights: "Standard",
-    includeTransferClause: false, transferMechanism: "SCCs",
+    auditRightsChoice: "" as "" | "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Custom — describe",
+    auditRightsOtherText: "",
+    transfersInvolved: "" as "" | "Yes" | "No",
+    transferMechanism: "" as "" | "EU Standard Contractual Clauses (SCCs)" | "UK IDTA / UK Addendum to EU SCCs" | "Binding Corporate Rules" | "Adequacy decision or regulations" | "None in place yet",
   });
   const [phase, setPhase] = useState<"sample" | "generating" | "result">("sample");
   const [result, setResult] = useState<string>("");
