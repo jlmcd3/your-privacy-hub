@@ -853,7 +853,7 @@ const ADMT_INPUT = {
   ca_consumer_count: "50,000–100,000 annually",
   third_party_admt: "Vendor X ScoreEngine API provides the underlying credit-scoring model.",
   admt_system_count: "1",
-  prior_access_requests_12mo: "2",
+  
   notice_delivery: ["Separate standalone Pre-use Notice"],
   notice_has_specific_purpose: "Yes",
   notice_purpose_text: "We use an automated model to decide whether to approve your loan application.",

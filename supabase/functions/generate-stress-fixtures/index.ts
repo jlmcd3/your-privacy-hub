@@ -371,7 +371,7 @@ Return a JSON object with EXACTLY these fields:
     "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
     "access_response_timeline": "string", "access_trade_secret_policy": "string",
     "ca_consumer_count": "string", "third_party_admt": "Yes or No",
-    "admt_system_count": "string", "prior_access_requests_12mo": "string",
+    "admt_system_count": "string",
     "admt_detail": {}
   }
 }
@@ -486,7 +486,7 @@ Return a JSON object with EXACTLY these fields:
     "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
     "access_response_timeline": "string", "access_trade_secret_policy": "string",
     "ca_consumer_count": "string", "third_party_admt": "Yes or No",
-    "admt_system_count": "string", "prior_access_requests_12mo": "string",
+    "admt_system_count": "string",
     "admt_detail": {}
   },
   "lia": null,
@@ -956,7 +956,7 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
     ca_consumer_count: slot === 1 ? "500,000+" : "75,000",
     third_party_admt: isAdtech ? "Yes" : "No",
     admt_system_count: slot === 1 ? "3" : "1",
-    prior_access_requests_12mo: slot === 1 ? "42" : "6",
+    // prior_access_requests_12mo removed (RC-P6).
     admt_detail: {},
   };
 }

@@ -212,7 +212,7 @@ export default function ADMTChecker() {
   const [caConsumerCount, setCaConsumerCount] = useState("");
   const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
   const [admtSystemCount, setAdmtSystemCount] = useState("");
-  const [priorAccessRequests12mo, setPriorAccessRequests12mo] = useState("");
+  // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
   // Step 2
   const [noticeDelivery, setNoticeDelivery] = useState<string[]>([]);
@@ -368,7 +368,7 @@ export default function ADMTChecker() {
       ca_consumer_count: caConsumerCount,
       third_party_admt: thirdPartyAdmt,
       admt_system_count: admtSystemCount,
-      prior_access_requests_12mo: priorAccessRequests12mo,
+      // prior_access_requests_12mo removed (RC-P6).
       opt_out_15_day_process: optOut15DayProcess,
       opt_out_service_provider_notice: optOutServiceProviderNotice,
       admt_detail: adv,
@@ -383,7 +383,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy,
-      caConsumerCount, thirdPartyAdmt, admtSystemCount, priorAccessRequests12mo, optOut15DayProcess, optOutServiceProviderNotice, adv,
+      caConsumerCount, thirdPartyAdmt, admtSystemCount, optOut15DayProcess, optOutServiceProviderNotice, adv,
     ],
   );
 
@@ -466,7 +466,7 @@ export default function ADMTChecker() {
     if (typeof d.third_party_admt === "string") setThirdPartyAdmt(d.third_party_admt);
     if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
     if (typeof d.admt_system_count === "string") setAdmtSystemCount(d.admt_system_count);
-    if (typeof d.prior_access_requests_12mo === "string") setPriorAccessRequests12mo(d.prior_access_requests_12mo);
+    // d.prior_access_requests_12mo (legacy drafts) intentionally ignored — field removed (RC-P6).
     if (d.admt_detail && typeof d.admt_detail === "object") setAdv(d.admt_detail);
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
@@ -940,7 +940,7 @@ export default function ADMTChecker() {
                         <div className="mt-1">
                           <Radio
                             name="training_data"
-                            options={["Yes", "No", "Unsure"]}
+                            options={["Yes", "No"]}
                             value={trainingDataUse}
                             onChange={setTrainingDataUse}
                             onFocus={() => focus("scope_does_business_use_admt")}
@@ -1427,18 +1427,7 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label>Has this consumer previously submitted access requests to your business in the last 12 months? (optional)</Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Under § 7222(j), if a consumer has submitted more than four access requests within a 12-month period, you may provide aggregate-level logic and output summaries instead of individualized responses. Enter the approximate number of prior requests from this consumer, or leave blank.
-                    </p>
-                    <input
-                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
-                      value={priorAccessRequests12mo}
-                      onChange={(e) => setPriorAccessRequests12mo(e.target.value)}
-                      placeholder="e.g. 0, 2, 5"
-                    />
-                  </div>
+                  {/* prior_access_requests_12mo question removed (RC-P6): § 7222(j) threshold applies at framework level and is now framed as a monitoring threshold in the report, not conditioned on a per-consumer count. */}
 
                   <div>
                     <Label onFocus={() => focus("access_logic_disclosure")}>
@@ -1523,7 +1512,7 @@ export default function ADMTChecker() {
                         ...(thirdPartyAdmt ? [["Third-party ADMT tools", thirdPartyAdmt]] : []),
                         ...(optOut15DayProcess ? [["15-day opt-out process", optOut15DayProcess]] : []),
                         ...(admtSystemCount ? [["ADMT systems operated", admtSystemCount]] : []),
-                        ...(priorAccessRequests12mo ? [["Prior access requests (12 mo.)", priorAccessRequests12mo]] : []),
+                        // Prior access requests (12 mo.) row removed (RC-P6).
                       ] as [string, string][]
                     )
                       .filter(([, v]) => v)
