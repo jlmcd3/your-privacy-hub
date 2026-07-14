@@ -1002,7 +1002,16 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     "trend-report": `Trend Report generator. Required camelCase fields: theme (string, the trend theme — e.g. "AI Act high-risk classification convergence", "Biometric privacy enforcement trends 2026", "Cross-border transfer mechanism shifts post-Schrems II"), jurisdictions (array), industries (array, e.g. ["AdTech","HealthTech","FinTech","Retail","HR/EmpTech"]), timeWindowMonths (integer 3–24), audience (one of "Executive","Legal","Engineering"). Vary themes (some highly active, some quieter), audiences, and windows.`,
     "state-law": `US State Privacy Law check. Required camelCase fields: state (one of "California","Colorado","Connecticut","Virginia","Texas","Utah","Oregon","Washington","Maryland","Tennessee","Indiana","Iowa","Montana","Delaware","New Jersey","New Hampshire","Kentucky","Minnesota","Rhode Island"), businessType (sector string), processingActivities (string description), dataCategories (array including some sensitive types), consumerVolume (string range like "10000-100000"), sellsSharesPI (boolean), hasOptOutMechanism (boolean), question (string — a specific compliance question about this state's law). Vary states and posture (some near-threshold, some clearly in-scope, some borderline).`,
   };
-  const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
+  // RC-REM-P2: for every tool with a contract, the schema portion of the
+  // prompt is derived MECHANICALLY from the contract (verbatim enum
+  // options, exact key list, "[]" array shape, conditional rules). The
+  // per-tool coaching (sector/posture mix) still comes from
+  // SCENARIO_GUIDANCE. Tools without a contract keep their pre-P2
+  // hand-typed description.
+  const contractForTool = CONTRACT_BY_TOOL[tool];
+  const description = contractForTool
+    ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
+    : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
   const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
   // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt) produce ~1.5-2k tokens per intake;
   // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
