@@ -494,7 +494,7 @@ PROFILING USE: ${intake.profiling_use}
 THIRD-PARTY ADMT TOOLS IN USE: ${intake.third_party_admt || "(none disclosed)"}
 VENDOR DILIGENCE: status: ${d.vendor_status || "(n/a)"}; documentation on file: ${(d.vendor_docs ?? []).join(", ") || "(none)"}; contract — audit rights: ${d.v_audit || "(n/a)"}, consumer-request assistance: ${d.v_assist || "(n/a)"}, opt-out propagation: ${d.v_optout || "(n/a)"}, appeal support: ${d.v_appeal || "(n/a)"}, incident notification: ${d.v_incident || "(n/a)"}; vendor makes ADMT available to other businesses: ${d.vendor_makes_available || "(n/a)"}; vendor training / model-improvement rights: ${d.vendor_training_rights || "(n/a)"}
 NUMBER OF DISTINCT ADMT SYSTEMS THIS BUSINESS OPERATES: ${intake.admt_system_count || "(not specified — assume single system)"}
-PRIOR ACCESS REQUESTS FROM THIS CONSUMER (ESTIMATED, 12-MONTH PERIOD): ${intake.prior_access_requests_12mo || "(not tracked)"}
+
 
 PRE-USE NOTICE:
 - Delivery method(s): ${(intake.notice_delivery ?? []).join("; ")}
