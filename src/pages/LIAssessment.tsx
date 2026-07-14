@@ -35,21 +35,17 @@ import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 
 
-// RC-C2 C2.5 — intake option sets exported for the refine surface T-class registry.
-export const DATA_CATEGORIES = [
-  "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
-  "Location data", "Employment data", "Financial data", "Health or medical data",
-  "Biometric data", "Special category data", "Communications data", "Device/technical data", "Other",
-];
-export const RELATIONSHIPS = [
-  "Existing customer", "Prospective customer", "Employee", "Former employee",
-  "Website visitor (no account)", "B2B contact", "Member of the public", "Other",
-];
-export const JURISDICTIONS = [
-  "EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal",
-  "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)",
-  "Australia", "Singapore", "Other",
-];
+// RC-FLIP-3 — intake option sets extracted to LIAssessment.enums.ts so shared
+// components (refine surface) import from a page-free module, breaking the
+// page↔shared-component cycle that hoisted these bindings into the
+// LIAssessment chunk and caused a TDZ ReferenceError on the Governance route.
+// Page re-exports so intake-page consumers are unchanged.
+export {
+  DATA_CATEGORIES, RELATIONSHIPS, JURISDICTIONS,
+} from "@/pages/LIAssessment.enums";
+import {
+  DATA_CATEGORIES, RELATIONSHIPS, JURISDICTIONS,
+} from "@/pages/LIAssessment.enums";
 
 const MultiPills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
