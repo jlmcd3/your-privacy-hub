@@ -19,7 +19,7 @@ interface Profile {
   employee_band: EmployeeBand | "";
   is_controller: boolean;
   is_processor: boolean;
-  has_dpo: "yes" | "no" | "unsure" | "";
+  has_dpo: "yes" | "no" | "";
   dpo_name: string;
   dpo_email: string;
   dpo_phone: string;
@@ -547,7 +547,7 @@ export default function RopaSetup() {
               Do you have a Data Protection Officer?
             </h2>
             <div className="flex flex-col md:flex-row gap-2">
-              {(["yes", "no", "unsure"] as const).map((v) => (
+              {(["yes", "no"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => setProfile({ ...profile, has_dpo: v })}
@@ -557,7 +557,7 @@ export default function RopaSetup() {
                       : "border-border"
                   }`}
                 >
-                  {v === "unsure" ? "Not sure" : v}
+                  {v}
                 </button>
               ))}
             </div>
@@ -595,7 +595,11 @@ export default function RopaSetup() {
                 </Field>
               </div>
             )}
-            {(profile.has_dpo === "no" || profile.has_dpo === "unsure") &&
+            {/* RC-Cleanup3: legacy has_dpo === "unsure" is no longer stored; the
+                DPO recommendation block below renders only for a definite "no".
+                Legacy rows with "unsure" render as unselected (no button
+                highlighted) and the block is hidden until the user re-answers. */}
+            {profile.has_dpo === "no" &&
               profile.employee_band === "<50" && (
                 <div className="p-3 bg-muted/40 border border-border rounded-lg text-sm text-muted-foreground">
                   Under-50 organisations are rarely required to appoint a DPO.

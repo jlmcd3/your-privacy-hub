@@ -36,15 +36,26 @@ interface StateLaw {
   notes: string | null;
 }
 
-type ConsumerVolume = "<35k" | "35k-100k" | "100k-175k" | ">175k" | "unsure";
-type RevenueShare = "none" | "<20" | "20-25" | ">=50" | "unsure_no_sale";
+// RC-Cleanup3 (CEO-ratified 2026-07-14): "unsure" (ConsumerVolume) and
+// "unsure_no_sale" (RevenueShare) removed. Users must pick a definite band.
+// Pre-change heuristic behavior for the unsure values: isLikelyObligated
+// returned obligated:false for "unsure" volume (volumeMeets=false because
+// none of the band checks matched, revenueDriven=false because it required
+// a volume band comparison that also failed) and obligated:false for
+// "unsure_no_sale" revenue (revenueDriven=false because the revenue was not
+// one of ">=50"/"20-25"). Both unsure paths therefore marked EVERY state as
+// NOT-obligated by auto-selection. After this change, the heuristic runs
+// only on definite bands and its state selections stand on those values;
+// user manual overrides via toggle() are unchanged. useState defaults for
+// `volume` and `revenue` are `null` (unchanged) — no silent definite default.
+type ConsumerVolume = "<35k" | "35k-100k" | "100k-175k" | ">175k";
+type RevenueShare = "none" | "<20" | "20-25" | ">=50";
 
 const VOLUME_OPTIONS: { value: ConsumerVolume; label: string }[] = [
   { value: "<35k", label: "Under 35,000" },
   { value: "35k-100k", label: "35,000–100,000" },
   { value: "100k-175k", label: "100,000–175,000" },
   { value: ">175k", label: "Over 175,000" },
-  { value: "unsure", label: "Not sure" },
 ];
 
 const REVENUE_OPTIONS: { value: RevenueShare; label: string }[] = [
@@ -52,7 +63,6 @@ const REVENUE_OPTIONS: { value: RevenueShare; label: string }[] = [
   { value: "<20", label: "Less than 20%" },
   { value: "20-25", label: "20–25%" },
   { value: ">=50", label: "50% or more" },
-  { value: "unsure_no_sale", label: "Not sure — I don't sell data" },
 ];
 
 /**

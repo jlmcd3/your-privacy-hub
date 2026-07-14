@@ -412,6 +412,14 @@ function QuestionInput({
         </RadioGroup>
       );
     case "yes_no_unsure":
+      // RC-Cleanup3 (CEO-ratified 2026-07-14): the "Unsure — flag for review"
+      // option was UI-only. Sweep of supabase/functions/generate-us-notice
+      // (and every other us-notice edge function) found ZERO reads of the
+      // literal "unsure" — there was no downstream review-flag pathway,
+      // notice-text branch, or persistence transform keyed on it. Removing
+      // the option is a pure label + local-state change. Legacy stored
+      // answers with value === "unsure" will render as no selection
+      // (RadioGroup value has no matching item) and the user can re-answer.
       return (
         <RadioGroup
           value={(value as string) ?? ""}
@@ -421,7 +429,6 @@ function QuestionInput({
           {[
             { v: "yes", l: "Yes" },
             { v: "no", l: "No" },
-            { v: "unsure", l: "Unsure — flag for review" },
           ].map((opt) => (
             <div key={opt.v} className="flex items-center space-x-2">
               <RadioGroupItem value={opt.v} id={`${question.key}-${opt.v}`} />
