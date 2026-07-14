@@ -97,6 +97,31 @@ const T_CLASS_FIELDS: Record<string, Record<string, { enum_ref: string }>> = {
     relationship_type: { enum_ref: "li_assessment:relationship_type" },
     jurisdictions:     { enum_ref: "li_assessment:jurisdictions" },
   },
+  // RC-C3.CLOSE-1 — cyber controls carry a shared maturity enum. All 18
+  // dotted ask paths (controls.<slug>) route to a single enum_ref so the
+  // refine surface renders the maturity re-select from the intake page
+  // (src/pages/CPPACybersecurity.tsx MATURITY). FROZEN rows are not
+  // migrated; this only affects future first-gens.
+  cppa_cybersecurity: {
+    "controls.c1_auth":           { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c2_encryption":     { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c3_account_access": { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c4_inventory":      { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c5_secure_config":  { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c6_vuln_mgmt":      { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c7_audit_logs":     { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c8_network_mon":    { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c9_anti_malware":   { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c10_segmentation":  { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c11_port_protocol": { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c12_awareness":     { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c13_training":      { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c14_secure_dev":    { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c15_third_party":   { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c16_retention":     { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c17_incident":      { enum_ref: "cppa_cybersecurity:maturity" },
+    "controls.c18_continuity":    { enum_ref: "cppa_cybersecurity:maturity" },
+  },
 };
 
 // N-class aggregate/narrative fields — always bounded-narrative (or structured
