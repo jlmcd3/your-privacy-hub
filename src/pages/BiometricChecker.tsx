@@ -60,7 +60,8 @@ export default function BiometricChecker() {
     jurisdictions: [] as string[],
   });
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
-  const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
+  // bipa_risk retired 2026-07-14 — dropped from result state shape.
+  const [result, setResult] = useState<{ assessment_text: string; jurisdictions_analysed: string[] } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -98,7 +99,7 @@ export default function BiometricChecker() {
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.assessment_text) {
-      setResult({ assessment_text: "Generation failed. Please try again.", bipa_risk: null, jurisdictions_analysed: [] });
+      setResult({ assessment_text: "Generation failed. Please try again.", jurisdictions_analysed: [] });
       setPhase("result");
       return;
     }
@@ -189,13 +190,7 @@ export default function BiometricChecker() {
         ) : phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between"><h2 className="font-display text-brand-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
-            {result.bipa_risk && (
-              <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
-                <h3 className="text-amber-900 mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
-                <p className="text-sm text-amber-900">Low end: <strong>${result.bipa_risk.lowEnd.toLocaleString()}</strong> · High end: <strong>${result.bipa_risk.highEnd.toLocaleString()}</strong></p>
-                <p className="text-meta text-amber-800 mt-1">{result.bipa_risk.note}</p>
-              </div>
-            )}
+            {/* BIPA litigation risk callout retired 2026-07-14 — bipa_risk hard-null since enrolledCount removal. */}
             <AssessmentReport text={result.assessment_text} />
             <p className="text-meta text-muted-foreground">Assessment reflects laws and enforcement as of {new Date().toLocaleDateString()}.</p>
             <ToolDisclaimer />

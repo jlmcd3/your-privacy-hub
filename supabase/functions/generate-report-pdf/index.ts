@@ -2148,7 +2148,7 @@ Deno.serve(async (req) => {
     } else if (tool_type === "biometric_checker") {
       const intake = record.intake_data || {};
       const text = record.analysis_text || record.report_data?.assessment_text || "";
-      const bipa = record.report_data?.bipa_risk;
+      // BIPA litigation risk callout retired 2026-07-14 — bipa_risk field removed from report_data.
       const metaLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
         ((record.jurisdictions || intake.jurisdictions || []).length
           ? ` · ${(record.jurisdictions || intake.jurisdictions).join(", ")}` : "");
@@ -2159,11 +2159,8 @@ Deno.serve(async (req) => {
         text,
         showJurisdictionChip: true,
         disclaimerHtml: `<span class="kw">Not legal advice.</span> This biometric compliance assessment is generated for informational purposes only. Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction. This document does not create an attorney-client relationship and does not constitute legal advice.`,
-        callout: bipa ? {
-          kind: "warn",
-          title: "BIPA Litigation Risk Estimate",
-          html: `Low end: <strong>$${(bipa.lowEnd || 0).toLocaleString()}</strong> · High end: <strong>$${(bipa.highEnd || 0).toLocaleString()}</strong>${bipa.note ? `<div style="margin-top:4px;font-size:10.5px;color:#5c5a54;">${escHtml(bipa.note)}</div>` : ""}`,
-        } : undefined,
+        // BIPA risk callout branch retired 2026-07-14
+        callout: undefined,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "ir_playbook") {

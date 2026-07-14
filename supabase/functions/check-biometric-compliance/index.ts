@@ -2,7 +2,7 @@
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "7f2c9a1-bio-p3@2026-07-14T20:00Z";
+export const BUILD_STAMP = "9a3d1c4-bio-cleanup1@2026-07-14T23:10Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -285,7 +285,7 @@ function formatEnforcementContext(rows: any[]): string {
 }
 
 async function runStressBiometric(body: Body, resolvedUserId: string | null) {
-  const bipaRisk = null;
+  // bipa_risk retired 2026-07-14 — hard-null since enrolledCount removal; field removed from report_data.
 
   function stressSection(jurisdiction: string): string {
     const j = jurisdiction.toLowerCase();
@@ -790,7 +790,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   const assessment_text = scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n"));
 
   const report_data = {
-    bipa_risk: bipaRisk,
+    // bipa_risk field retired 2026-07-14
     jurisdictions_analysed: uniqueJurisdictions,
     enforcement_precedents: [],
     enforcement_meta: { attempted: false, stress_run: true },
@@ -831,7 +831,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   return new Response(JSON.stringify({
     id: savedId,
     assessment_text,
-    bipa_risk: bipaRisk,
+    // bipa_risk field retired 2026-07-14
     jurisdictions_analysed: body.jurisdictions,
     enforcement_precedents: [],
     generated_at: report_data.generated_at,
@@ -961,8 +961,8 @@ Deno.serve(async (req) => {
       console.error("enforcement fetch failed:", e);
     }
 
-    // Step 2 — BIPA illustrative dollar-range risk retired 2026-07-14 (enrolledCount removed).
-    const bipaRisk = null;
+    // Step 2 — BIPA illustrative dollar-range risk retired 2026-07-14 (enrolledCount removed);
+    // bipa_risk field removed from report_data and streamed payloads.
 
     // Washington My Health My Data Act applies broadly to "consumer health data"
     // including biometric data tied to health inferences. Private right of action
@@ -1401,7 +1401,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
 
 
     const report_data = {
-      bipa_risk: bipaRisk,
+      // bipa_risk field retired 2026-07-14
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
@@ -1525,7 +1525,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         await writer.write(encoder.encode(JSON.stringify({
           id: savedId,
           assessment_text,
-          bipa_risk: bipaRisk,
+          // bipa_risk field retired 2026-07-14
           jurisdictions_analysed: body.jurisdictions,
           enforcement_precedents: report_data.enforcement_precedents,
           generated_at: report_data.generated_at,

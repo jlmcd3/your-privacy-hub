@@ -53,7 +53,7 @@ export default function BiometricCheckerResult() {
         ""
       )
     : sourceText;
-  const bipaRisk = report?.bipa_risk;
+  // bipa_risk retired 2026-07-14 — field is hard-null at emit; callout removed.
 
   const orgName = (row?.intake_data as any)?.orgName || (row?.intake_data as any)?.organizationName || null;
   const orgType = (row?.intake_data as any)?.orgType || null;
@@ -82,30 +82,7 @@ export default function BiometricCheckerResult() {
     </>
   );
 
-  // Render the BIPA risk callout only when the assessment text confirms BIPA
-  // applies in Illinois (Applies = Yes or Conditional). Never render it before
-  // the applicability determination.
-  const bipaApplies = (() => {
-    if (!bipaRisk) return false;
-    const t = String(text || "");
-    if (!/Illinois/i.test(t)) return false;
-    // Look for an Illinois section header followed (within ~600 chars) by
-    // "Applies to this organisation: Yes" or "... Conditional".
-    const idx = t.search(/Illinois[^\n]*\n/i);
-    if (idx < 0) return false;
-    const window = t.slice(idx, idx + 800);
-    return /Applies to this organisation:\s*(Yes|Conditional)/i.test(window);
-  })();
-
-  const bipaCallout = bipaApplies && bipaRisk ? (
-    <div className="border-l-4 border-[hsl(var(--warn))] bg-[hsl(var(--warn)/0.06)] rounded-r-md px-4 py-3 mt-6">
-      <h3 className="text-[hsl(var(--warn))] mb-1">⚠️ BIPA Litigation Risk Estimate</h3>
-      <p className="text-sm text-foreground">
-        Low end: <span className="font-medium text-brand-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-brand-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
-      </p>
-      {bipaRisk.note && <p className="text-meta text-muted-foreground mt-1">{bipaRisk.note}</p>}
-    </div>
-  ) : null;
+  // BIPA risk callout retired 2026-07-14 — bipa_risk is hard-null at emit; JSX and render site removed.
 
   return (
     <div className="min-h-screen bg-brand-cloud">
@@ -164,7 +141,7 @@ export default function BiometricCheckerResult() {
               </div>
             )}
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
-            {bipaCallout}
+            {/* bipaCallout render site retired 2026-07-14 */}
             <ToolDisclaimer addition="Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction." />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
