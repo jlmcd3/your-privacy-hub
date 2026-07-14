@@ -33,6 +33,7 @@ import {
   IMPACT_BENEFITS_OUTWEIGH_OPTS as RISK_IMPACT_BENEFITS,
   IMPACT_CYBER_GAPS_OPTS as RISK_IMPACT_CYBER,
   HARM_TYPES as RISK_HARM_TYPES,
+  CPPA_RISK_INLINE_LISTS,
 } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
 import {
   cppaAdmtContract,
