@@ -198,10 +198,13 @@ function matchesDerivedPattern(pattern: string, candidate: string): boolean {
       || candidate.startsWith(pattern + ".")
       || candidate.startsWith(pattern + "[");
   }
-  // Build regex from pattern: escape everything, then swap "\[\*\]" → "\[\d+\]".
-  const escaped = pattern.replace(/[.+^${}()|\\]/g, "\\$&").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
-  const withWildcard = escaped.replace(/\\\[\\\*\\\]/g, "\\[\\d+\\]");
-  const re = new RegExp("^" + withWildcard + "(\\.|\\[|$)");
+  // Split on the literal "[*]" token, escape each literal segment for regex,
+  // and join with the numeric-index wildcard. Then require descend/equal.
+  const parts = pattern.split("[*]").map((seg) =>
+    seg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+  );
+  const body = parts.join("\\[\\d+\\]");
+  const re = new RegExp("^" + body + "(\\.|\\[|$)");
   return re.test(candidate);
 }
 
