@@ -42,7 +42,7 @@ const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print"
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
 const PURPOSE = ["Time & attendance / workforce management","Physical access control","Customer authentication","Surveillance / monitoring","Research or product development","Other"];
 const JURS = ["EU / EEA (GDPR)","United Kingdom (UK GDPR)","Illinois, USA (BIPA)","Texas, USA (CUBI)","Washington state, USA","Other US state","United States — Federal (FTC)","Canada (PIPEDA / provincial)","Australia (Privacy Act)"];
-const COUNTS = ["Fewer than 500","500-5,000","5,000-50,000","50,000-500,000","More than 500,000"];
+
 
 export default function BiometricChecker() {
   useToolStartedOnInteraction("biometric");
@@ -57,7 +57,7 @@ export default function BiometricChecker() {
   const { meter } = useRunMeter("biometric_checker", refine.assessmentId);
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], orgName: "", purpose: PURPOSE[0],
-    jurisdictions: [] as string[], enrolledCount: COUNTS[1],
+    jurisdictions: [] as string[],
   });
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
   const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
@@ -269,9 +269,6 @@ export default function BiometricChecker() {
                 </p>
               )}
             </fieldset>
-            <label onFocus={() => focusBioRail("enrolledCount")} className="block text-sm"><span className="font-semibold text-brand-navy">Individuals enrolled</span>
-              <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.enrolledCount} onChange={e => setForm(f => ({ ...f, enrolledCount: e.target.value }))}>
-                {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
 
             <div className="border-t border-border pt-4">
               {!access.user ? (

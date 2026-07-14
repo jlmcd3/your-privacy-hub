@@ -102,17 +102,4 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
     commonMistake: "Selecting only headquarters. BIPA claims attach per Illinois individual, wherever the employer is based.",
   },
 
-  enrolledCount: {
-    fieldLabel: "Individuals enrolled",
-    citation: "GDPR Art. 35(3)(b) · BIPA litigation exposure",
-    citationUrl: GDPR_URL,
-    plainSummary:
-      "Enrolment volume drives two things. Under GDPR, processing biometric data on a 'large scale' triggers mandatory DPIAs under Article 35(3)(b) and may require DPO designation. Under BIPA, enrolment count is a direct proxy for class-action exposure: at $1,000–$5,000 per violation, even modest enrolment populations can generate eight- to nine-figure liability ranges.",
-    regulationText:
-      "A data protection impact assessment referred to in paragraph 1 shall in particular be required in the case of: … (b) processing on a large scale of special categories of data referred to in Article 9(1)…",
-    coachLead: "Count every stored template — active, inactive, and departed.",
-    coachBody: "Exposure scales with stored templates, not active users. Check the vendor database for the true total, including leavers never purged.",
-    goodAnswer: "A firm has 300 staff but 1,100 stored templates. It selects the higher band — the retained templates are the exposure.",
-    commonMistake: "Counting current headcount. Unpurged templates from departed staff are exactly the retention exposure.",
-  },
 };
