@@ -103,7 +103,7 @@ const LIA_JURISDICTIONS = [
 ];
 
 // ── cppa_cybersecurity ─────────────────────────────────────────────────
-// RC-C3.CLOSE-1 — mirror of src/pages/CPPACybersecurity.tsx MATURITY.
+// RC-C3.CLOSE-1 / RC-FLIP-2 — mirror of src/pages/CPPACybersecurity.enums.ts MATURITY.
 // Shared across all 18 controls (T_CLASS_FIELDS routes every
 // `controls.<slug>` ask to this single enum_ref).
 const CYBER_MATURITY_OPTS = [
