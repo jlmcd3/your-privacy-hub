@@ -222,7 +222,11 @@ async function runOneUnit(runId: string) {
         ? (row as any).report_data.open_items
         : [];
       const itemsBefore = openItems.length;
-      const preScore = await callInternalGrader(run.tool_slug, run.assessment_id);
+      // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
+      const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
+      const preScore = preSamples.length > 0
+        ? [...preSamples].sort((a, b) => a - b)[Math.floor(preSamples.length / 2)]
+        : null;
 
       // RC-D.1 D-6: capture baseline report_versions.max(version_n) so
       // review2 can wait for the revision to *actually* advance the rail
