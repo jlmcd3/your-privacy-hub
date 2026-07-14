@@ -4,7 +4,12 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "a1c9d2e-rcC3cyb3@2026-07-14T02:40Z";
+export const BUILD_STAMP = "b2d7f3a-rcC3cyb5@2026-07-14T04:30Z";
+
+function boundedErr(e: unknown, max = 2000): string {
+  const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
+  return s.slice(0, max);
+}
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
@@ -498,7 +503,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     async function callControlsHalf(startIdx: number, endIdx: number, extra: string): Promise<{ controls: any[]; annotations: any[] } | null> {
       const base = buildControlsPrompt(startIdx, endIdx);
-      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const _suppWs6 = renderSupplementalBlock({ responses: (row.intake_data as any)?.supplemental_responses, context: (row.intake_data as any)?.supplemental_context });
       const user = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
       const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
@@ -526,7 +531,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     async function callSynthesis(controlsDigest: string, computedScore: number, extra: string): Promise<any | null> {
       const base = buildSynthesisPrompt(controlsDigest, computedScore);
-      const _suppWs6 = renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context });
+      const _suppWs6 = renderSupplementalBlock({ responses: (row.intake_data as any)?.supplemental_responses, context: (row.intake_data as any)?.supplemental_context });
       const user = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
       const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
@@ -777,7 +782,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     ]);
 
     if (!half1 || !half2) {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_halves" });
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: "terminal_error_halves: one or both controls halves returned null (see prior console.error/parse-failure logs for detail)" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_halves" });
       return;
     }
 
@@ -796,7 +801,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         const v2 = validateControls(reAssembled);
         if (!v2.ok) {
           console.error(`[CPPA Cyber] controls incomplete after retry: missing=${JSON.stringify(v2.missing)}`);
-          await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_controls" });
+          await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_error_controls: controls incomplete after retry; missing=${JSON.stringify(v2.missing).slice(0, 500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_controls" });
           return;
         }
       }
@@ -808,7 +813,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const synthesis = await callSynthesis(digest, overall_score, "");
     if (!synthesis || typeof synthesis !== "object") {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_synthesis" });
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: "terminal_error_synthesis: synthesis call returned null or non-object (see prior parse-failure/truncation logs for detail)" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_synthesis" });
       return;
     }
 
@@ -1342,7 +1347,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
     if (!completeWrite.ok) {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
     }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
@@ -1378,7 +1383,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
   } catch (e) {
     console.error("[CPPA Cyber] runAssessment error:", e);
-    await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error" }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_catch" });
+    await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_error_catch: ${boundedErr(e)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_error_catch" });
   }
 }
 
