@@ -82,9 +82,7 @@ export default function BiometricCheckerResult() {
     </>
   );
 
-  // BIPA risk callout retired 2026-07-14 — bipa_risk is hard-null at emit and both
-  // the applicability check and the JSX have been removed.
-  const bipaCallout = null;
+  // BIPA risk callout retired 2026-07-14 — bipa_risk is hard-null at emit; JSX and render site removed.
 
   return (
     <div className="min-h-screen bg-brand-cloud">
