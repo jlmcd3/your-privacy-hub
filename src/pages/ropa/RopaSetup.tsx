@@ -778,7 +778,7 @@ export default function RopaSetup() {
                     }`
                   : profile.has_dpo === "no"
                     ? "None"
-                    : "Not sure"
+                    : "Not answered"
               }
               onEdit={() => setStep(2)}
             />

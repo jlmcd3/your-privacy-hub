@@ -224,12 +224,9 @@ export default function EUNoticeQuestions() {
                 <RadioGroupItem value="no" id={`${currentQ.key}-no`} />
                 <Label htmlFor={`${currentQ.key}-no`} className="cursor-pointer">No</Label>
               </div>
-              {currentQ.type === "yes_no_unsure" && (
-                <div className="flex items-center gap-2 py-1">
-                  <RadioGroupItem value="unsure" id={`${currentQ.key}-unsure`} />
-                  <Label htmlFor={`${currentQ.key}-unsure`} className="cursor-pointer">Not sure</Label>
-                </div>
-              )}
+              {/* "Not sure" branch retired (CEO ruling 2026-07-14). yes_no_unsure-
+                  typed questions now render Yes/No only; legacy stored "unsure"
+                  answers render unselected (no matching RadioGroupItem). */}
             </RadioGroup>
           )}
           {currentQ.type === "single_choice" && currentQ.options && (
