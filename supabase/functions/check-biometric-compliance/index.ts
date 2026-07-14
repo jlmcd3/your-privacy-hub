@@ -283,11 +283,7 @@ function formatEnforcementContext(rows: any[]): string {
 }
 
 async function runStressBiometric(body: Body, resolvedUserId: string | null) {
-  const bipaApplies = body.jurisdictions.some(
-    (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
-  );
   const bipaRisk = null;
-  void bipaApplies;
 
   function stressSection(jurisdiction: string): string {
     const j = jurisdiction.toLowerCase();
@@ -376,7 +372,6 @@ ICO enforcement posture on biometric data is active; failure to satisfy both the
     }
 
     if (isIL) {
-      const risk = estimateBIPARisk(body.enrolledCount);
       return `${jurisdiction} — Biometric Information Privacy Act (BIPA), 740 ILCS 14
 
 Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
@@ -399,7 +394,7 @@ Sale and sharing restrictions:
 Absolute prohibition on sale, lease, trade, or profit. Disclosure limited to consent, financial transaction completion, or legal compulsion.
 
 Current enforcement posture:
-Active private litigation. Illustrative exposure for ${body.enrolledCount} enrolled (using midpoint): $${risk.lowEnd.toLocaleString()} – $${risk.highEnd.toLocaleString()} (negligent to intentional per-person damages). Post-Aug 2024 conduct limited to one violation per person in federal court.
+Active private litigation. Exposure runs per person and per violation ($1,000 negligent / $5,000 intentional); post-August 2024 conduct is limited to one violation per person per biometric identifier under P.A. 103-0769.
 
 Priority actions:
 1. Execute written releases before any biometric collection — use standalone documents not embedded in general onboarding.
@@ -964,11 +959,8 @@ Deno.serve(async (req) => {
       console.error("enforcement fetch failed:", e);
     }
 
-    // Step 2 — BIPA risk
-    const bipaApplies = body.jurisdictions.some(
-      (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
-    );
-    const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
+    // Step 2 — BIPA illustrative dollar-range risk retired 2026-07-14 (enrolledCount removed).
+    const bipaRisk = null;
 
     // Washington My Health My Data Act applies broadly to "consumer health data"
     // including biometric data tied to health inferences. Private right of action
@@ -1016,7 +1008,7 @@ Organisation name: ${(body as any).orgName || (body as any).organizationName || 
 Biometric data types: ${body.biometricTypes.join(", ")}
 Organisation type: ${body.orgType}
 Primary purpose: ${body.purpose}
-Individuals enrolled: ${body.enrolledCount}
+
 Jurisdictions: ${body.jurisdictions.join(", ")}
 ${wamhmdApplies ? `
 WASHINGTON MY HEALTH MY DATA ACT (MHMD) — APPLICABILITY FLAG
@@ -1051,14 +1043,8 @@ OTHER US STATE — APPLICABILITY FLAG
 Do NOT skip this section even though no specific state was named.
 ` : ""}ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
-${bipaRisk ? `
-BIPA LITIGATION RISK ESTIMATE (Illinois) — USE ONLY IF BIPA APPLIES
-Use these figures only inside the Illinois section, and only after you have determined that BIPA applies (Applies = Yes or Conditional). Do not surface these numbers before the applicability determination.
-Based on ${body.enrolledCount} enrolled individuals:
-Low end (negligent violations): $${bipaRisk.lowEnd.toLocaleString()}
-High end (intentional violations): $${bipaRisk.highEnd.toLocaleString()}
-${bipaRisk.note}
-` : ""}
+
+
 For each jurisdiction, structure your output EXACTLY as follows:
 
 [JURISDICTION] — [LAW NAME]
