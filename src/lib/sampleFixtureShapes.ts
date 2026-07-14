@@ -70,7 +70,7 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
       "services",
       "dataCategories",
       "retention",
-      "legalFramework",
+      "auditRights",
     ],
   },
   governance: {
