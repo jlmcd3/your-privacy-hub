@@ -99,7 +99,7 @@ export default function BiometricChecker() {
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.assessment_text) {
-      setResult({ assessment_text: "Generation failed. Please try again.", bipa_risk: null, jurisdictions_analysed: [] });
+      setResult({ assessment_text: "Generation failed. Please try again.", jurisdictions_analysed: [] });
       setPhase("result");
       return;
     }
