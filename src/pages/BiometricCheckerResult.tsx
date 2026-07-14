@@ -53,7 +53,7 @@ export default function BiometricCheckerResult() {
         ""
       )
     : sourceText;
-  const bipaRisk = report?.bipa_risk;
+  // bipa_risk retired 2026-07-14 — field is hard-null at emit; callout removed.
 
   const orgName = (row?.intake_data as any)?.orgName || (row?.intake_data as any)?.organizationName || null;
   const orgType = (row?.intake_data as any)?.orgType || null;
