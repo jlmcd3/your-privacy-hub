@@ -172,23 +172,21 @@ const F_DPA_EU: SampleFixture = {
   result_url_pattern: "/dpa-generator/result/{id}",
   fixture: {
     invoke_body_extras: {
+      entityName: "North Pole Manual Mining Ltd",
       controllerName: "North Pole Manual Mining Ltd",
       controllerJurisdiction: "United Kingdom",
       processorName: "Abominal SM GmbH",
       processorJurisdiction: "Germany",
       services:
         "Payroll calculation, HR record-keeping, benefits administration, and statutory reporting for the Controller's ~2,400 UK-based mining and corporate employees, including underground shift workers.",
-      dataCategories: ["Employee / HR data", "Financial / payment data", "Government identifiers (NI numbers)"],
-      
-      retention: "Active employment plus 6 years post-termination (UK statutory retention for payroll records).",
+      dataCategories: ["Employee / HR data", "Financial / payment data"],
+      // Fixed-period shape — page fold-in string.
+      retention: "Fixed period: Active employment plus 6 years post-termination (UK statutory retention for payroll records).",
       hasSubProcessors: true,
       subProcessorList:
         "Whiteout Watch Ltd (UK, managed security monitoring for the payroll/HR systems).",
-      legalFramework: "EU GDPR + UK GDPR (dual regime)",
-      auditRights: "annual third-party audit plus right of on-site inspection on 30 days' notice",
-      includeTransferClause: true,
-      transferMechanism:
-        "EU Standard Contractual Clauses (2021/914) with the UK International Data Transfer Addendum",
+      auditRights: "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
+      transferMechanism: "UK IDTA / UK Addendum to EU SCCs",
     },
     invoke: { fn: "generate-dpa", returns_id: true },
     poll: null,
