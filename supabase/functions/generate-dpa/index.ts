@@ -447,8 +447,14 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
 
     const DUAL_EU_CA_SYSTEM = `You are a senior data protection counsel with expertise in both EU/UK GDPR and Canadian privacy law (PIPEDA, Quebec Law 25, PIPA AB/BC, PHIPA ON). Draft a dual-compliance Data Processing Agreement that satisfies both GDPR Article 28 and applicable Canadian federal/provincial privacy laws as a single integrated agreement. Where GDPR is stricter, GDPR prevails; where Canadian requirements are additional, both are captured.`;
 
+    // CEO ruling 2026-07-14: "None in place yet" → the section states no Art. 46
+    // mechanism is currently in place and emits a [TO BE COMPLETED: …] placeholder,
+    // rather than drafting SCC incorporation.
+    const noMechanismYet = body.includeTransferClause && body.transferMechanism === "None in place yet";
     const transferSection = body.includeTransferClause
-      ? `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`
+      ? (noMechanismYet
+          ? `10. INTERNATIONAL TRANSFER PROVISIONS — The Parties confirm that no Article 46 GDPR transfer mechanism is currently in place for the transfers contemplated by this DPA. State this fact in operative voice and emit a [TO BE COMPLETED: transfer mechanism to be adopted before transfers occur] placeholder covering (a) the mechanism to be adopted (EU SCCs, UK IDTA / UK Addendum, Binding Corporate Rules, adequacy decision), (b) the effective date, and (c) the execution party. Do NOT draft SCC incorporation language or represent that SCCs apply. The Parties shall not commence any restricted transfer until that placeholder is populated.`
+          : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
       : "";
 
     const PARTIES_BLOCK = `PARTIES
