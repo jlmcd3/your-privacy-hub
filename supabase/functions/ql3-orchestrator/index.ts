@@ -27,7 +27,10 @@ import { computeVariance, VARIANCE_SAMPLES_N } from "../_shared/ql3-variance.ts"
 // External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
 // post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
 // RC-C3.CLOSE-1 (item 1) — grader-variance band added.
-export const BUILD_STAMP = "4c1e8b2-rcC3close1@2026-07-14T05:00Z";
+// QL3-OPEN-1 — revise_dummy filters register to status==="open" before
+// answering; items_before/after count OPEN only; items_resolved counts
+// open→resolved STATUS TRANSITIONS by id (not array-length delta).
+export const BUILD_STAMP = "5d2f9c1-ql3open1@2026-07-14T05:30Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
