@@ -231,6 +231,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Backward compatibility (CEO ruling 2026-07-14): legacy payloads that omit
+    // the newly-asked fields fall back to the OLD form defaults server-side so
+    // replays don't 400. The current form never produces this shape. Any client
+    // legalFramework value is IGNORED — the framework is derived below.
+    if (typeof body.retention !== "string" || !body.retention.trim()) {
+      body.retention = "As directed by controller";
+    }
+    if (typeof body.auditRights !== "string" || !body.auditRights.trim()) {
+      body.auditRights = "Standard";
+    }
+    if (typeof body.includeTransferClause !== "boolean") {
+      body.includeTransferClause = false;
+    }
+    if (typeof body.transferMechanism !== "string") {
+      body.transferMechanism = body.includeTransferClause ? "SCCs" : "";
+    }
+
     if (body.assessment_id) {
       const procWrite = await lifecycleUpdate(supabase, "dpa_documents", body.assessment_id, { status: "processing", intake_data: body, updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "pre_generation" });
       if (!procWrite.ok) {
