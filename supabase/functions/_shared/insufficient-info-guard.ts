@@ -36,12 +36,63 @@ const INSUFFICIENT_MARKER =
 const ASK_ELIGIBLE_CRITICAL_FIELDS: Record<string, readonly string[]> = {
   governance_assessment: ["dpo_status", "transfer_mechanism", "privacy_notice_coverage"],
   cppa_admt: ["notice_purpose_text", "opt_out_methods"],
-  // cppa_cybersecurity: control gaps carry a literal "Insufficient information"
-  // status string that trips INSUFFICIENT_MARKER via the existing branch; the
-  // deterministic top-level pass is not needed and the nested `controls.<slug>`
-  // shape is not addressable by the intake-key auto-repair. Kept out of the
-  // registry intentionally.
+  // cppa_cybersecurity: intake shape is an array-of-records
+  // (intake.controls[{key,label,maturity,notes}]), not a flat top-level
+  // field set. Handled by a dedicated nested synthesis walker below
+  // (RC-C3.CYB-3 P-1) — NOT via this top-level registry.
 };
+
+// RC-C3.CYB-3 (P-1) — DETERMINISTIC CYBER ASK-SYNTHESIS WALKER.
+// For cppa_cybersecurity, walk intake.controls[]; for every control whose
+// maturity is empty or literally "Insufficient information" AND is not
+// covered by an assertion state="believed" with a non-empty basis, mint an
+// information_needed entry with field = dotted "controls.<slug>". Copy
+// follows D8 (no "gap"; credit-first). Respects the shared 3-entry cap and
+// emits critical_ask_synthesised lint rows exactly like the top-level path.
+function synthesiseCyberAsksFromControls(
+  intake: Record<string, unknown>,
+  alreadyCovered: Set<string>,
+  remainingSlots: number,
+): Array<{ field: string; why: string; how_to_provide: string }> {
+  if (remainingSlots <= 0) return [];
+  const controls = (intake as any)?.controls;
+  if (!Array.isArray(controls)) return [];
+  const assertions = (intake as Record<string, unknown>).assertions;
+  const believedWithBasis = new Set<string>();
+  if (assertions && typeof assertions === "object") {
+    for (const [k, v] of Object.entries(assertions as Record<string, unknown>)) {
+      if (v && typeof v === "object" && (v as any).state === "believed" && (v as any).basis) {
+        believedWithBasis.add(k);
+      }
+    }
+  }
+  const out: Array<{ field: string; why: string; how_to_provide: string }> = [];
+  for (const c of controls) {
+    if (out.length >= remainingSlots) break;
+    if (!c || typeof c !== "object") continue;
+    const slug = String((c as any).key ?? "");
+    if (!slug) continue;
+    const askField = `controls.${slug}`;
+    if (alreadyCovered.has(askField)) continue;
+    if (believedWithBasis.has(askField) || believedWithBasis.has(slug)) continue;
+    const maturity = (c as any).maturity;
+    const isEmptyMaturity =
+      maturity == null ||
+      (typeof maturity === "string" &&
+        (maturity.trim() === "" || /^insufficient\s+information$/i.test(maturity.trim())));
+    if (!isEmptyMaturity) continue;
+    const label = String((c as any).label ?? slug);
+    out.push({
+      field: askField,
+      // D8: no "gap"; credit-first, verdict-anchored.
+      why:
+        `The intake left the "${label}" control unassessed; the readiness verdict for this component cannot be established without its maturity and supporting notes.`,
+      how_to_provide:
+        `Return to the cybersecurity intake, set a maturity level for "${label}" and add the evidencing notes, then regenerate.`,
+    });
+  }
+  return out;
+}
 
 function readPath(obj: Record<string, unknown>, path: string): unknown {
   if (!path.includes(".")) return (obj as any)[path];
