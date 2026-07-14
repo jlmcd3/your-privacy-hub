@@ -33,7 +33,7 @@ const INSUFFICIENT_MARKER =
 //   - It is NOT identity-locked (see IDENTITY_LOCKED_FIELDS in open-items.ts).
 //   - It is NOT a narrative/optional/context field (e.g. additional_context).
 //   - Dotted paths supported for nested intake shapes (e.g. "profile.framework").
-const ASK_ELIGIBLE_CRITICAL_FIELDS: Record<string, readonly string[]> = {
+export const ASK_ELIGIBLE_CRITICAL_FIELDS: Record<string, readonly string[]> = {
   // 2026-07-14 CEO ruling — governance intake requires definite answers; no
   // customer-reachable insufficiency state exists; registry intentionally
   // empty. Do not re-add without a form change that reintroduces an unknown
