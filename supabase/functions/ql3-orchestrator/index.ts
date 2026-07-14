@@ -19,13 +19,15 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { resolveEnumRef } from "../_shared/field-enums.ts";
+import { computeVariance, VARIANCE_SAMPLES_N } from "../_shared/ql3-variance.ts";
 
 // RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
 // External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
 // post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
-export const BUILD_STAMP = "3b9d2e5-rcd111@2026-07-13T23:10Z";
+// RC-C3.CLOSE-1 (item 1) — grader-variance band added.
+export const BUILD_STAMP = "4c1e8b2-rcC3close1@2026-07-14T05:00Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
