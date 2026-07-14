@@ -122,3 +122,141 @@ export function qcVerdictConsistency(
     data: { verdicts: verdicts.length, changed_paths: changedPaths.length },
   };
 }
+
+// RC-P3 §CHECK-A — changed_paths ALLOWLIST.
+//
+// Every changed_path emitted by the model patch must equal or descend from
+// EITHER (a) a candidateTargetPaths() expansion of some answered item's
+// target.path, OR (b) an entry in the per-tool DERIVED_PATHS below — an
+// explicit, enumerated set of report sub-sections the revision generator
+// legitimately re-derives ALONGSIDE an answer. No wildcards on path segments
+// other than the reserved `[*]` numeric-index marker (matches any array index).
+//
+// Server-owned bookkeeping keys (see SERVER_OWNED_PATHS) are stripped from
+// the check because revision-mode.ts overwrites them AFTER applyRevisionPatch
+// (open_items, advisory_notes, information_needed, item_verdicts, lint_warnings);
+// whatever the model wrote there is discarded and cannot leak into the row.
+//
+// Justifications for every DERIVED_PATHS entry cite the observed prod run id
+// (public.quality_loop3_runs.qc_result -> upstream.changed_paths) so the
+// audit trail is preserved.
+export const SERVER_OWNED_PATHS: readonly string[] = [
+  "open_items",
+  "advisory_notes",
+  "information_needed",
+  "item_verdicts",
+  "lint_warnings",
+];
+
+export const DERIVED_PATHS: Record<string, readonly string[]> = {
+  // Observed run 3e5f3b45 (cppa-risk): patch touched
+  // `cross_tool_recommendations.cybersecurity_audit_rationale` (aliased via
+  // TARGET_PATH_ALIASES, rule (a)) AND `priority_actions` — a top-level
+  // action-list section the risk generator re-derives when a trigger
+  // intake band flips (§ 7152 record consequence). Rule (b) required.
+  cppa_risk_assessment: [
+    "priority_actions",
+  ],
+  // Observed run 08a71bcd (cppa-cyber): answering two `controls.<slug>` items
+  // caused writes to that control's `.status` leaf (rule (a) via alias map)
+  // AND its `.score`, `.finding`, `.priority`, `.remediation` peers, plus
+  // the aggregate scoring/summary block the cyber generator recomputes when
+  // any control changes. All entries verified against the run's changed_paths.
+  cppa_cybersecurity: [
+    "controls[*].score",
+    "controls[*].finding",
+    "controls[*].priority",
+    "controls[*].remediation",
+    "top_risks",
+    "next_steps",
+    "overall_score",
+    "readiness_level",
+    "methodology_note",
+    "executive_summary",
+    "control_status_counts.implemented",
+    "control_status_counts.partially_implemented",
+    "control_status_counts.insufficient_information",
+  ],
+  // No observed non-(a) writes on lia, dpia, governance, admt, dpa, ir,
+  // biometric revision runs to date. Left as empty arrays so a future
+  // contributor sees the sweep was done deliberately.
+  li_assessment: [],
+  dpia_framework: [],
+  governance_assessment: [],
+  cppa_admt: [],
+  dpa_generator: [],
+  ir_playbook: [],
+  biometric_checker: [],
+};
+
+// Convert a DERIVED_PATHS pattern (which may contain "[*]" numeric-index
+// wildcards) into a predicate: matches paths that are equal to the pattern
+// or descend from it, with each "[*]" position matching any `[<digits>]`.
+function matchesDerivedPattern(pattern: string, candidate: string): boolean {
+  if (!pattern.includes("[*]")) {
+    return candidate === pattern
+      || candidate.startsWith(pattern + ".")
+      || candidate.startsWith(pattern + "[");
+  }
+  // Build regex from pattern: escape everything, then swap "\[\*\]" → "\[\d+\]".
+  const escaped = pattern.replace(/[.+^${}()|\\]/g, "\\$&").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
+  const withWildcard = escaped.replace(/\\\[\\\*\\\]/g, "\\[\\d+\\]");
+  const re = new RegExp("^" + withWildcard + "(\\.|\\[|$)");
+  return re.test(candidate);
+}
+
+// qc_rc_3_changed_paths_authorized — every declared changed_path must trace
+// back to an answered item (rule a) OR to a per-tool DERIVED_PATHS entry
+// (rule b). Server-owned bookkeeping keys are pre-stripped.
+export function qcChangedPathsAuthorized(
+  answeredItems: Array<{ target?: { path?: string } }>,
+  changedPaths: string[],
+  toolType: string,
+): QcCheckResult {
+  const derived = DERIVED_PATHS[toolType] ?? [];
+  const serverOwned = new Set<string>(SERVER_OWNED_PATHS);
+  // Build the union of authorized prefixes from answered items (rule a).
+  const askPrefixes: string[] = [];
+  for (const it of answeredItems) {
+    const p = it?.target?.path;
+    if (!p) continue;
+    for (const c of candidateTargetPaths(toolType, p)) {
+      if (c && !askPrefixes.includes(c)) askPrefixes.push(c);
+    }
+  }
+  const unauthorized: Array<{ path: string; reason: string }> = [];
+  for (const raw of changedPaths) {
+    const p = String(raw ?? "");
+    if (!p) continue;
+    // Strip server-owned bookkeeping — revision-mode overwrites these.
+    const root = p.split(/[.\[]/, 1)[0];
+    if (serverOwned.has(root)) continue;
+    // Rule (a): answered-item target coverage.
+    const ruleA = askPrefixes.some((c) =>
+      p === c || p.startsWith(c + ".") || p.startsWith(c + "[")
+    );
+    if (ruleA) continue;
+    // Rule (b): derived-paths coverage.
+    const ruleB = derived.some((pat) => matchesDerivedPattern(pat, p));
+    if (ruleB) continue;
+    unauthorized.push({ path: p, reason: "no_answered_target_or_derived_entry" });
+  }
+  if (unauthorized.length > 0) {
+    return {
+      code: "qc_rc_3_changed_paths_authorized",
+      status: "red",
+      detail: `unauthorized changed_path(s): ${unauthorized.map((u) => u.path).join(",")}`,
+      data: {
+        unauthorized,
+        ask_prefixes: askPrefixes,
+        derived_paths: derived,
+      },
+    };
+  }
+  return {
+    code: "qc_rc_3_changed_paths_authorized",
+    status: "green",
+    detail: `${changedPaths.length} changed_path(s) all authorized`,
+    data: { checked: changedPaths.length, ask_prefixes: askPrefixes.length, derived: derived.length },
+  };
+}
