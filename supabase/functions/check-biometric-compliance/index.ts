@@ -961,8 +961,8 @@ Deno.serve(async (req) => {
       console.error("enforcement fetch failed:", e);
     }
 
-    // Step 2 — BIPA illustrative dollar-range risk retired 2026-07-14 (enrolledCount removed).
-    const bipaRisk = null;
+    // Step 2 — BIPA illustrative dollar-range risk retired 2026-07-14 (enrolledCount removed);
+    // bipa_risk field removed from report_data and streamed payloads.
 
     // Washington My Health My Data Act applies broadly to "consumer health data"
     // including biometric data tied to health inferences. Private right of action
