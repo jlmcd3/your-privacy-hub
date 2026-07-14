@@ -2148,7 +2148,7 @@ Deno.serve(async (req) => {
     } else if (tool_type === "biometric_checker") {
       const intake = record.intake_data || {};
       const text = record.analysis_text || record.report_data?.assessment_text || "";
-      const bipa = record.report_data?.bipa_risk;
+      // BIPA litigation risk callout retired 2026-07-14 — bipa_risk field removed from report_data.
       const metaLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
         ((record.jurisdictions || intake.jurisdictions || []).length
           ? ` · ${(record.jurisdictions || intake.jurisdictions).join(", ")}` : "");
