@@ -158,6 +158,22 @@ Deno.test("intake-contracts / risk PARITY — contract enums === form enums", ()
   assertEquals([...RISK_HARM_TYPES], [...RiskEnums.HARM_TYPES]);
 });
 
+Deno.test("intake-contracts / risk PARITY — inline-list literals match page source", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../src/pages/CPPARiskAssessment.tsx", import.meta.url),
+  );
+  // For each inline list, every option string must appear verbatim in the
+  // page source. Guards against silent drift in q4/q6/q3 option copies.
+  for (const [listName, opts] of Object.entries(CPPA_RISK_INLINE_LISTS)) {
+    for (const opt of opts as readonly string[]) {
+      assert(
+        src.includes(opt),
+        `CPPA_RISK_INLINE_LISTS.${listName} option not found verbatim in page source: ${JSON.stringify(opt)}`,
+      );
+    }
+  }
+});
+
 Deno.test("intake-contracts / risk MIRROR — FIELD_ENUM_MIRROR entries match contract", () => {
   const pairs: Array<[string, readonly string[]]> = [
     ["cppa_risk_assessment:q1_revenue", RISK_REVENUE_OPTS],
