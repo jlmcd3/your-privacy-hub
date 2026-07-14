@@ -175,7 +175,7 @@ Return a JSON object with EXACTLY these top-level fields:
   "dpa": {
     "controllerName": "string", "controllerJurisdiction": "string",
     "processorName": "string — a realistic vendor name", "processorJurisdiction": "string",
-    "services": "string", "dataCategories": ["array"], "dataSubjectCount": "string",
+    "services": "string", "dataCategories": ["array"],
     "retention": "string", "hasSubProcessors": boolean, "subProcessorList": "string or empty string",
     "legalFramework": "${isEU ? "GDPR" : "US"}", "auditRights": "string",
     "includeTransferClause": boolean, "transferMechanism": "string or null"
@@ -648,7 +648,7 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       documentType: geo === "eu" ? "gdpr" : "us-state",
       services: `${industry} analytics, hosting, and support services`,
       dataCategories,
-      dataSubjectCount: slot === 1 ? "1,000,000+" : "85,000",
+      
       retention: "24 months after last active relationship",
       hasSubProcessors: true,
       subProcessorList: "AWS, Snowflake, Zendesk",
