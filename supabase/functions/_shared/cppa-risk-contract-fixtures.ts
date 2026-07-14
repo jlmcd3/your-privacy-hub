@@ -135,7 +135,11 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
     q1_revenue: "$50M–$100M",
     q2_consumers: "250,000–1 million",
     q3_sector: "Financial services",
-    q4_pi_categories: ["Identifiers", "Financial information", "Precise geolocation"],
+    q4_pi_categories: [
+      "Contact identifiers (name, email, phone)",
+      "Financial information",
+      "Precise geolocation (GPS-level / specific address)",
+    ],
     q5_sell_share: "Yes — share for advertising only",
     q5c_share_revenue_50pct: "", // ask
     q15_sensitive_pi: "Yes",
