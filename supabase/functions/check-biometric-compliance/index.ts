@@ -797,7 +797,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     annotations: [],
     lint_warnings: [],
     generated_at: new Date().toISOString(),
-    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress") },
+    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP },
   };
 
   let savedId: string | null = null;
