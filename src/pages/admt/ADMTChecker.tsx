@@ -212,7 +212,7 @@ export default function ADMTChecker() {
   const [caConsumerCount, setCaConsumerCount] = useState("");
   const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
   const [admtSystemCount, setAdmtSystemCount] = useState("");
-  const [priorAccessRequests12mo, setPriorAccessRequests12mo] = useState("");
+  // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
   // Step 2
   const [noticeDelivery, setNoticeDelivery] = useState<string[]>([]);
