@@ -1511,6 +1511,39 @@ async function runBatch(runId: string): Promise<void> {
     // and append after the pinned entries. Preserves position 0..N-1 for pins.
     const pinnedCount = intakes.length;
     const nextIdxSafe = run.next_doc_index ?? 0;
+
+    // RC-REM-P2: Validate pinned fixtures at run start against the same
+    // contract used for generated intakes. Pinned fixtures are ratified
+    // evidence — a pinned fixture that no longer parses against the
+    // current contract MUST abort the run so the drift is fixed at source,
+    // never silently graded. Only enforced on the first invocation
+    // (nextIdxSafe === 0) so mid-run resumes don't re-check.
+    if (pinnedCount > 0 && nextIdxSafe === 0) {
+      const pinContract = CONTRACT_BY_TOOL[tool];
+      if (pinContract) {
+        const fails: Array<{ idx: number; violations: string }> = [];
+        for (let i = 0; i < intakes.length; i++) {
+          const res = validateAgainstContract(pinContract, intakes[i] ?? {});
+          if (!res.ok) {
+            fails.push({
+              idx: i,
+              violations: res.violations.slice(0, 6)
+                .map(v => `${v.key}: ${v.reason}`).join("; ")
+                + (res.violations.length > 6 ? ` (+${res.violations.length - 6} more)` : ""),
+            });
+          }
+        }
+        if (fails.length > 0) {
+          const msg = `Pinned-fixture contract violations for ${tool} (${fails.length}/${pinnedCount}): `
+            + fails.slice(0, 3).map(f => `#${f.idx} → ${f.violations}`).join(" | ")
+            + (fails.length > 3 ? ` … +${fails.length - 3} more` : "");
+          await log("error", msg);
+          await upd({ status: "error", error: msg, completed_at: new Date().toISOString() });
+          clearInterval(heartbeat);
+          return;
+        }
+      }
+    }
     if (intakes.length < batchSize && nextIdxSafe === 0) {
       const needed = batchSize - pinnedCount;
       await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents${pinnedCount > 0 ? `, ${pinnedCount} pinned + ${needed} generated` : ""})`);
