@@ -141,7 +141,7 @@ export default function BiometricCheckerResult() {
               </div>
             )}
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
-            {bipaCallout}
+            {/* bipaCallout render site retired 2026-07-14 */}
             <ToolDisclaimer addition="Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction." />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
