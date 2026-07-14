@@ -218,7 +218,6 @@ const F_GOV_EU: SampleFixture = {
         special_category: "No",
         special_categories_list: [],
         privacy_policy: "Yes, up to date",
-        acceptable_use: "Yes, up to date",
         dpo_status: "Yes, formally appointed DPO",
         dpia_status: "Yes, formal DPIA programme with register",
         incident_response: "Yes, tested in last 12 months",
@@ -263,7 +262,7 @@ const F_GOV_US: SampleFixture = {
         special_category: "Yes",
         special_categories_list: ["Biometric data (fingerprint templates)"],
         privacy_policy: "Yes, up to date",
-        acceptable_use: "Yes, up to date",
+        
         dpo_status: "Yes, formally appointed privacy officer",
         dpia_status: "Yes, formal DPIA programme with register",
         incident_response: "Yes, tested in last 12 months",

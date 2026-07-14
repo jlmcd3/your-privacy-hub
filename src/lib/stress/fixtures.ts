@@ -294,7 +294,6 @@ export const GOV_VARIANTS = [
     special_category: "Yes",
     special_categories_list: ["Health data"],
     privacy_policy: "Yes, but outdated",
-    acceptable_use: "Yes, but general only",
     dpo_status: "Yes, informal privacy lead",
     dpia_status: "No, none conducted",
     incident_response: "Yes, but not tested",
@@ -315,7 +314,7 @@ export const GOV_VARIANTS = [
     special_category: "No",
     special_categories_list: [],
     privacy_policy: "Yes, reviewed in last 12 months",
-    acceptable_use: "Yes, role-specific",
+    
     dpo_status: "Yes, statutory DPO appointed",
     dpia_status: "Yes, for high-risk activities only",
     incident_response: "Yes, tested in last 12 months",
@@ -335,7 +334,7 @@ export const GOV_VARIANTS = [
     special_category: "No",
     special_categories_list: [],
     privacy_policy: "Yes, reviewed in last 12 months",
-    acceptable_use: "Yes, but general only",
+    
     dpo_status: "Yes, informal privacy lead",
     dpia_status: "Yes, for new products only",
     incident_response: "Yes, but not tested",
@@ -355,7 +354,7 @@ export const GOV_VARIANTS = [
     special_category: "No",
     special_categories_list: [],
     privacy_policy: "Yes, but outdated",
-    acceptable_use: "No, not in place",
+    
     dpo_status: "No, no privacy lead",
     dpia_status: "No, none conducted",
     incident_response: "No, not in place",

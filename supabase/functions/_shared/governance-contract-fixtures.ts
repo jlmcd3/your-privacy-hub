@@ -33,7 +33,7 @@ export const FIXTURE_GOV_YIELD_K1: GovernanceContractFixture = {
     special_category: "No",
     privacy_policy: "Yes, but outdated (>12 months)",
     privacy_notice_coverage: "", // <-- record-completeness ask
-    acceptable_use: "Draft only",
+    
     dpo_status: "", // <-- verdict-blocking ask (EU/UK data + no DPO status)
     dpia_status: "Partial — some activities covered",
     dpia_ai_coverage: "Partial",

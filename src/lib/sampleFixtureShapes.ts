@@ -85,7 +85,7 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
       "data_categories",
       "special_category",
       "privacy_policy",
-      "acceptable_use",
+      
       "dpo_status",
       "dpia_status",
       "incident_response",

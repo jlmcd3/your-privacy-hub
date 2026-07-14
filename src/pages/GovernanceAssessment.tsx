@@ -107,7 +107,7 @@ const GovernanceAssessment = () => {
   // Step 3
   const [privacyPolicy, setPrivacyPolicy] = useState("");
   const [privacyNoticeCoverage, setPrivacyNoticeCoverage] = useState("");
-  const [acceptableUse, setAcceptableUse] = useState("");
+  
   const [dpoStatus, setDpoStatus] = useState("");
   const [dpiaStatus, setDpiaStatus] = useState("");
   const [incidentResponse, setIncidentResponse] = useState("");
@@ -144,9 +144,9 @@ const GovernanceAssessment = () => {
   const isUk = jurisdictions.includes("United Kingdom (UK GDPR)");
   const isEu = jurisdictions.includes("EU (GDPR)");
   const transferMechOptions =
-    isUk && !isEu ? ["UK IDTA", "UK Addendum to EU SCCs", "UK adequacy regulations", "None / not sure"]
-    : isEu && !isUk ? ["EU Standard Contractual Clauses (SCCs)", "Binding Corporate Rules", "Adequacy decision", "None / not sure"]
-    : ["UK IDTA / Addendum", "EU SCCs", "Binding Corporate Rules", "Adequacy decision/regulations", "None / not sure"];
+    isUk && !isEu ? ["UK IDTA", "UK Addendum to EU SCCs", "UK adequacy regulations", "None"]
+    : isEu && !isUk ? ["EU Standard Contractual Clauses (SCCs)", "Binding Corporate Rules", "Adequacy decision", "None"]
+    : ["UK IDTA / Addendum", "EU SCCs", "Binding Corporate Rules", "Adequacy decision/regulations", "None"];
   const transferMechCite = isUk && !isEu ? "(UK IDTA / Addendum · s.119A DPA 2018)" : "(Art. 46 GDPR — SCCs/IDTA)";
   const totalSteps = showStep5 ? 6 : 5; // 5 sections + summary
 
@@ -161,7 +161,7 @@ const GovernanceAssessment = () => {
       if (specialCategory === "Yes" && !specialCategoriesList.length) return "Select which special categories apply.";
     }
     if (step === 3) {
-      if (!privacyPolicy || !acceptableUse || !dpiaStatus || !incidentResponse) return "Please complete all required questions.";
+      if (!privacyPolicy || !dpiaStatus || !incidentResponse) return "Please complete all required questions.";
       if (showDpoQ && !dpoStatus) return "Please answer the DPO question.";
       if (!dsrCapability) return "Please answer the data subject rights question (Q17).";
       if (!inventoryAudit) return "Please answer the inventory / shadow-tool audit question (Q18).";
@@ -198,7 +198,7 @@ const GovernanceAssessment = () => {
     special_category: specialCategory, special_categories_list: specialCategoriesList,
     privacy_policy: privacyPolicy,
     privacy_notice_coverage: privacyPolicy.startsWith("Yes") ? privacyNoticeCoverage : "n/a",
-    acceptable_use: acceptableUse,
+    
     dpo_status: showDpoQ ? dpoStatus : "n/a",
     dpia_status: dpiaStatus, incident_response: incidentResponse,
     training_status: trainingStatus, tool_instruction: toolInstruction,
@@ -266,7 +266,7 @@ const GovernanceAssessment = () => {
 
   const intakeForCheckout = useMemo(() => buildIntake(), [
     organizationName, sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
-    specialCategory, specialCategoriesList, privacyPolicy, acceptableUse,
+    specialCategory, specialCategoriesList, privacyPolicy,
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
     technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
@@ -301,7 +301,7 @@ const GovernanceAssessment = () => {
     A(d.special_categories_list, setSpecialCategoriesList);
     S(d.privacy_policy, setPrivacyPolicy);
     S(d.privacy_notice_coverage, setPrivacyNoticeCoverage);
-    S(d.acceptable_use, setAcceptableUse);
+    
     S(d.dpo_status, setDpoStatus);
     S(d.dpia_status, setDpiaStatus);
     S(d.incident_response, setIncidentResponse);
@@ -595,7 +595,7 @@ const GovernanceAssessment = () => {
               {privacyPolicy.startsWith("Yes") && (
                 <div><Label>Q8a: Does your published privacy notice describe all current processing activities, recipients, international transfers, retention periods, and data-subject rights for your tools?<Req /> <DefPopover termKey="gdpr_transparency" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 13–14 GDPR)</span></Label><div className="mt-2"><Radio name="pncov" options={["Yes — notice covers all current activities, transfers, retention, and rights", "Partially — some activities or tools not yet reflected", "No — notice not updated for current tools", "Unsure"]} value={privacyNoticeCoverage} onChange={setPrivacyNoticeCoverage} /></div></div>
               )}
-              <div><Label>Q9: Acceptable use policy for technology tools<Req /></Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
+              
               {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent?<Req /> <DefPopover termKey="gdpr_dpo" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 37–39 GDPR)</span> <EnforcementSignalIcon signalKey="dpo_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
               <div><Label>Q11: Has any DPIA been conducted?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
               {dpiaStatus.startsWith("Yes") && (
@@ -682,7 +682,7 @@ const GovernanceAssessment = () => {
             if (specialCategory === "Yes") push("Special categories", specialCategoriesList);
             push("Privacy policy", privacyPolicy);
             if (privacyPolicy.startsWith("Yes")) push("Privacy notice coverage", privacyNoticeCoverage);
-            push("Acceptable use policy", acceptableUse);
+            
             if (showDpoQ) push("DPO appointed", dpoStatus);
             push("DPIA conducted previously", dpiaStatus);
             push("Incident response plan", incidentResponse);
