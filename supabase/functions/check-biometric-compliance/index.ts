@@ -1525,7 +1525,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         await writer.write(encoder.encode(JSON.stringify({
           id: savedId,
           assessment_text,
-          bipa_risk: bipaRisk,
+          // bipa_risk field retired 2026-07-14
           jurisdictions_analysed: body.jurisdictions,
           enforcement_precedents: report_data.enforcement_precedents,
           generated_at: report_data.generated_at,
