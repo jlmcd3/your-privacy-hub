@@ -1,6 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
+export const BUILD_STAMP = "6e3a1d4-intake-rulings-p2@2026-07-14T17:45Z";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -31,7 +32,10 @@ interface Body {
   processorJurisdiction: string;
   services: string;
   dataCategories: string[];
-  dataSubjectCount: string;
+  // dataSubjectCount removed per CEO ruling 2026-07-14 (never-asked phantom field);
+  // requests that still send the key are accepted and the value ignored (Body interface
+  // is a superset of the wire — extra keys are dropped by TS at read sites).
+
   retention: string;
   hasSubProcessors: boolean;
   subProcessorList?: string;
@@ -419,7 +423,6 @@ Controller: ${body.controllerName} (${body.controllerJurisdiction})
 Processor: ${body.processorName} (${body.processorJurisdiction})
 Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
-Data subjects: approximately ${body.dataSubjectCount} individuals
 Retention: ${body.retention}
 Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None"}
 Audit rights: ${body.auditRights}`;

@@ -63,7 +63,7 @@ export default function DPAGenerator() {
     controllerName: "", controllerJurisdiction: "Germany",
     processorName: "", processorJurisdiction: "Germany",
     services: "", dataCategories: [] as string[],
-    dataSubjectCount: "100-10K", retention: "As directed by controller",
+    retention: "As directed by controller",
     hasSubProcessors: false, subProcessorList: "",
     legalFramework: "GDPR", auditRights: "Standard",
     includeTransferClause: false, transferMechanism: "SCCs",
