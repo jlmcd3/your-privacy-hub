@@ -1270,7 +1270,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         jurisdictions: ["M2", "M3", "M4", "M5", "M6"],
         orgType: ["M8"],
         purpose: ["M8"],
-        enrolledCount: ["M7"],
+        
       };
 
       function parseInformationNeeded(text: string): any[] {
