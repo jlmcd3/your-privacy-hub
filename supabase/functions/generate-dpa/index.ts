@@ -36,16 +36,32 @@ interface Body {
   // requests that still send the key are accepted and the value ignored (Body interface
   // is a superset of the wire — extra keys are dropped by TS at read sites).
 
-  retention: string;
+  // Post-ruling 2026-07-14: retention / auditRights / transfer question are ASKED;
+  // legalFramework and includeTransferClause are DERIVED server-side. All four
+  // fields remain accepted on legacy payloads with the OLD default fall-backs
+  // applied below so replays don't 400 — but the current form never omits them.
+  retention?: string;
   hasSubProcessors: boolean;
   subProcessorList?: string;
-  legalFramework: string;
-  auditRights: string;
-  includeTransferClause: boolean;
-  transferMechanism: string;
+  legalFramework?: string; // ignored (derived from documentType); accepted for BC
+  auditRights?: string;
+  includeTransferClause?: boolean;
+  transferMechanism?: string;
   documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca";
   assessment_id?: string;
   user_id?: string;
+}
+
+// CEO ruling 2026-07-14 — legal framework derived from documentType.
+function frameworkFor(docType: string): string {
+  switch (docType) {
+    case "us-state": return "US state privacy law (CCPA/CPRA and applicable state acts)";
+    case "canada": return "PIPEDA";
+    case "dual-eu-us": return "Dual EU/US";
+    case "dual-eu-ca": return "Dual EU/Canada";
+    case "gdpr":
+    default: return "GDPR";
+  }
 }
 
 const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
