@@ -1401,7 +1401,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
 
 
     const report_data = {
-      bipa_risk: bipaRisk,
+      // bipa_risk field retired 2026-07-14
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
