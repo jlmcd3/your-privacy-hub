@@ -55,9 +55,43 @@ import {
   RELATIONSHIPS as LIA_RELATIONSHIPS,
   JURISDICTIONS as LIA_JURISDICTIONS,
 } from "../_shared/intake-contracts/li-assessment.ts";
+import {
+  governanceContract,
+  GOVERNANCE_INLINE_LISTS,
+} from "../_shared/intake-contracts/governance-assessment.ts";
+import {
+  dpiaFrameworkContract,
+  DPIA_DATA_CATS as CONTRACT_DPIA_DATA_CATS,
+  DPIA_JURISDICTIONS as CONTRACT_DPIA_JURS,
+  DPIA_LEGAL_BASES as CONTRACT_DPIA_LEGAL,
+  DPIA_ART9 as CONTRACT_DPIA_ART9,
+  DPIA_REASONS as CONTRACT_DPIA_REASONS,
+  DPIA_SAFEGUARDS as CONTRACT_DPIA_SAFEGUARDS,
+  DPIA_TOOLS as CONTRACT_DPIA_TOOLS,
+} from "../_shared/intake-contracts/dpia-framework.ts";
+import {
+  dpaGeneratorContract,
+  DPA_JURISDICTIONS,
+  DPA_DATA_CATS,
+} from "../_shared/intake-contracts/dpa-generator.ts";
+import {
+  irPlaybookContract,
+  IR_CAUSES,
+  IR_DATA_TYPES,
+  IR_JURISDICTIONS,
+  IR_ORG_TYPES,
+} from "../_shared/intake-contracts/ir-playbook.ts";
+import {
+  biometricCheckerContract,
+  BIO_TYPES,
+  BIO_ORG,
+  BIO_PURPOSE,
+  BIO_JURS,
+} from "../_shared/intake-contracts/biometric-checker.ts";
 import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
+import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
 import { FIELD_ENUM_MIRROR } from "../_shared/field-enums.ts";
 
 // Form enums modules (zero imports; safe to load under Deno test).
@@ -65,6 +99,7 @@ import { MATURITY as FORM_MATURITY } from "../../../src/pages/CPPACybersecurity.
 import * as RiskEnums from "../../../src/pages/CPPARiskAssessment.enums.ts";
 import * as AdmtEnums from "../../../src/pages/admt/ADMTChecker.enums.ts";
 import * as LiaEnums from "../../../src/pages/LIAssessment.enums.ts";
+import * as DpiaEnums from "../../../src/pages/DPIAFramework.enums.ts";
 
 Deno.test("intake-contracts / cyber PARITY — contract MATURITY === form MATURITY", () => {
   assertEquals(
@@ -312,4 +347,163 @@ Deno.test("intake-contracts / lia FIXTURES — synthesised Stage-A + Stage-B val
   };
   const rB = validateIntake(liAssessmentStageBContract, stageB);
   assert(rB.ok, `Stage B violates: ${JSON.stringify(rB.violations)}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// P1-C — Governance / DPIA / DPA / IR / Biometric
+// ═════════════════════════════════════════════════════════════════════
+
+Deno.test("intake-contracts / governance PARITY — inline-list literals match page source", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../src/pages/GovernanceAssessment.tsx", import.meta.url),
+  );
+  for (const [listName, opts] of Object.entries(GOVERNANCE_INLINE_LISTS)) {
+    for (const opt of opts as readonly string[]) {
+      assert(
+        src.includes(opt),
+        `GOVERNANCE_INLINE_LISTS.${listName} option not found verbatim in page source: ${JSON.stringify(opt)}`,
+      );
+    }
+  }
+});
+
+Deno.test("intake-contracts / governance FIXTURES — every fixture validates cleanly", () => {
+  for (const fx of GOVERNANCE_CONTRACT_FIXTURES) {
+    const res = validateIntake(governanceContract, fx.intake as Record<string, unknown>);
+    assert(res.ok, `fixture ${fx.fixture_id} violates contract: ${JSON.stringify(res.violations)}`);
+  }
+});
+
+Deno.test("intake-contracts / dpia PARITY — contract enums === form enums", () => {
+  assertEquals([...CONTRACT_DPIA_DATA_CATS], [...DpiaEnums.DATA_CATS]);
+  assertEquals([...CONTRACT_DPIA_JURS], [...DpiaEnums.JURISDICTIONS]);
+  assertEquals([...CONTRACT_DPIA_LEGAL], [...DpiaEnums.LEGAL_BASES]);
+  assertEquals([...CONTRACT_DPIA_ART9], [...DpiaEnums.ARTICLE_9_CONDITIONS]);
+  assertEquals([...CONTRACT_DPIA_REASONS], [...DpiaEnums.REASONS_TO_CONDUCT]);
+  assertEquals([...CONTRACT_DPIA_SAFEGUARDS], [...DpiaEnums.SAFEGUARDS]);
+  assertEquals([...CONTRACT_DPIA_TOOLS], [...DpiaEnums.TOOLS]);
+});
+
+Deno.test("intake-contracts / dpia MIRROR — FIELD_ENUM_MIRROR entries match contract enums", () => {
+  const pairs: Array<[string, readonly string[]]> = [
+    ["dpia_framework:data_categories", CONTRACT_DPIA_DATA_CATS],
+    ["dpia_framework:jurisdictions", CONTRACT_DPIA_JURS],
+    ["dpia_framework:legal_basis_proposed", CONTRACT_DPIA_LEGAL],
+    ["dpia_framework:article_9_condition", CONTRACT_DPIA_ART9],
+    ["dpia_framework:reasons_to_conduct", CONTRACT_DPIA_REASONS],
+    ["dpia_framework:existing_safeguards", CONTRACT_DPIA_SAFEGUARDS],
+  ];
+  for (const [ref, opts] of pairs) {
+    const mirror = FIELD_ENUM_MIRROR[ref];
+    assert(Array.isArray(mirror), `${ref} missing from FIELD_ENUM_MIRROR`);
+    assertEquals([...mirror!], [...opts], `${ref} drifted`);
+  }
+});
+
+Deno.test("intake-contracts / dpa PARITY — jurisdiction + data-cat options appear verbatim in page source", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../src/pages/DPAGenerator.tsx", import.meta.url),
+  );
+  for (const opt of DPA_DATA_CATS) {
+    assert(src.includes(opt), `DPA data-cat not found verbatim in page source: ${JSON.stringify(opt)}`);
+  }
+  // DPA_JURISDICTIONS come from @/lib/dpaDocumentType — assert against
+  // that module.
+  const libSrc = await Deno.readTextFile(
+    new URL("../../../src/lib/dpaDocumentType.ts", import.meta.url),
+  );
+  for (const opt of DPA_JURISDICTIONS) {
+    assert(libSrc.includes(opt), `DPA jurisdiction not found verbatim: ${JSON.stringify(opt)}`);
+  }
+});
+
+Deno.test("intake-contracts / ir PARITY — inline-list options appear verbatim in page source", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../src/pages/IRPlaybook.tsx", import.meta.url),
+  );
+  for (const opt of IR_CAUSES) assert(src.includes(opt), `IR_CAUSES ${JSON.stringify(opt)} missing`);
+  for (const opt of IR_DATA_TYPES) assert(src.includes(opt), `IR_DATA_TYPES ${JSON.stringify(opt)} missing`);
+  for (const opt of IR_JURISDICTIONS) assert(src.includes(opt), `IR_JURISDICTIONS ${JSON.stringify(opt)} missing`);
+  for (const opt of IR_ORG_TYPES) assert(src.includes(opt), `IR_ORG_TYPES ${JSON.stringify(opt)} missing`);
+});
+
+Deno.test("intake-contracts / biometric PARITY — inline-list options appear verbatim in page source", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../src/pages/BiometricChecker.tsx", import.meta.url),
+  );
+  for (const opt of BIO_TYPES) assert(src.includes(opt), `BIO_TYPES ${JSON.stringify(opt)} missing`);
+  for (const opt of BIO_ORG) assert(src.includes(opt), `BIO_ORG ${JSON.stringify(opt)} missing`);
+  for (const opt of BIO_PURPOSE) assert(src.includes(opt), `BIO_PURPOSE ${JSON.stringify(opt)} missing`);
+  for (const opt of BIO_JURS) assert(src.includes(opt), `BIO_JURS ${JSON.stringify(opt)} missing`);
+});
+
+Deno.test("intake-contracts / dpa FIXTURES — synthesised form payload validates", () => {
+  const payload = {
+    entityName: "Acme Retail",
+    controllerName: "Acme Corp",
+    controllerJurisdiction: "Germany",
+    processorName: "CloudOps",
+    processorJurisdiction: "Germany",
+    services: "Hosting and support",
+    dataCategories: ["General personal data"],
+    retention: "As directed by controller",
+    hasSubProcessors: false,
+    subProcessorList: "",
+    legalFramework: "GDPR",
+    auditRights: "Standard",
+    includeTransferClause: false,
+    transferMechanism: "SCCs",
+  };
+  const res = validateIntake(dpaGeneratorContract, payload);
+  assert(res.ok, JSON.stringify(res.violations));
+});
+
+Deno.test("intake-contracts / ir FIXTURES — synthesised form payload validates", () => {
+  const payload = {
+    organizationName: "Acme Retail Ltd",
+    discoveryDateTime: "2026-07-14T09:00",
+    cause: "Ransomware or malware",
+    dataTypes: ["Names and contact details", "Financial / payment data"],
+    affectedCount: "1,000–10,000",
+    jurisdictions: ["Germany", "United Kingdom"],
+    processorInvolved: false,
+    processorName: "",
+    contained: "Yes",
+    organisationType: "Company",
+  };
+  const res = validateIntake(irPlaybookContract, payload);
+  assert(res.ok, JSON.stringify(res.violations));
+});
+
+Deno.test("intake-contracts / biometric FIXTURES — synthesised form payload validates", () => {
+  const payload = {
+    orgName: "Acme Retail",
+    biometricTypes: ["Fingerprint / palm print"],
+    orgType: "Employer (employee biometrics)",
+    purpose: "Time & attendance / workforce management",
+    jurisdictions: ["Illinois, USA (BIPA)"],
+  };
+  const res = validateIntake(biometricCheckerContract, payload);
+  assert(res.ok, JSON.stringify(res.violations));
+});
+
+Deno.test("intake-contracts / dpia FIXTURES — synthesised form payload validates", () => {
+  const payload = {
+    organization_name: "Acme Ltd",
+    processing_activity_name: "Employee retention analytics",
+    description: "x".repeat(120),
+    purpose: "Predict attrition risk and target retention interventions.",
+    data_categories: ["Employee records"],
+    data_subjects: "Employees in EU offices",
+    volume_frequency: "~500 records, weekly refresh",
+    third_party_processors: ["Microsoft 365 / Copilot"],
+    existing_safeguards: ["Encryption at rest", "Access controls"],
+    jurisdictions: ["EU (GDPR)"],
+    legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+    article_9_condition: "",
+    necessity_proportionality: "Alternatives considered; least-intrusive design chosen.",
+    retention_period: "24 months after employee exit",
+  };
+  const res = validateIntake(dpiaFrameworkContract, payload);
+  assert(res.ok, JSON.stringify(res.violations));
 });
