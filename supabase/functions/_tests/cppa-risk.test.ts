@@ -60,8 +60,10 @@ Deno.test("schema accepts Insufficient basis and exception missing_elements", ()
   assertStringIncludes(schema, '"missing_elements": string[]');
   // documentation_status accepts "Insufficient basis".
   assert(/"documentation_status":[^,}]*"Insufficient basis"/.test(schema));
-  // benefits_outweigh_risks_conclusion allows "Insufficient basis".
-  assert(/"benefits_outweigh_risks_conclusion":[^,}]*"Insufficient basis"/.test(schema));
+  // benefits_outweigh_risks_conclusion uses the RC-C1 record-completeness
+  // label — "Cannot be determined — record incomplete." — not the bare
+  // "Insufficient basis" shorthand (see prompt-core rule at index.ts L311).
+  assert(/"benefits_outweigh_risks_conclusion":[^,}]*"Cannot be determined — record incomplete\./.test(schema));
 });
 
 Deno.test("citation framework forbids § 7221(c)(5)", () => {
