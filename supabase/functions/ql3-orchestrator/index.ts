@@ -395,17 +395,36 @@ async function runOneUnit(runId: string) {
           break;
         }
       }
-      const openItemsAfter: any[] = Array.isArray((rowFinal as any)?.report_data?.open_items)
+      // QL3-OPEN-1: measure OPEN-only counts (items_before/after semantics
+      // = count of items whose status === "open"). items_resolved counts
+      // STATUS TRANSITIONS by id — how many of the ids that were OPEN at
+      // dispatch are now status === "resolved" in the post-revision register.
+      // Array-length delta is unreliable because the register can grow or
+      // shrink during revision (new open items surfaced, resolved items
+      // retained, etc.).
+      const registerAfter: any[] = Array.isArray((rowFinal as any)?.report_data?.open_items)
         ? (rowFinal as any).report_data.open_items
         : [];
+      const openItemsAfter = registerAfter.filter((it: any) => it?.status === "open");
       const itemsAfter = openItemsAfter.length;
-      // RC-C3.CLOSE-1 (item 1) — N=3 post samples; median = point post_score;
-      // pre samples carried from the revise_dummy write for the band calc.
       const postSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
       const postScore = postSamples.length > 0
         ? [...postSamples].sort((a, b) => a - b)[Math.floor(postSamples.length / 2)]
         : null;
-      const resolved = Math.max(0, (run.items_before ?? 0) - itemsAfter);
+      const openIdsBefore: string[] = Array.isArray((run as any)?.input_spec?.open_items_before)
+        ? (run as any).input_spec.open_items_before
+            .map((i: any) => (i?.id ? String(i.id) : null))
+            .filter((s: string | null): s is string => !!s)
+        : [];
+      const nowById = new Map<string, string>();
+      for (const it of registerAfter) {
+        const iid = it?.id ?? it?.item_id;
+        if (iid) nowById.set(String(iid), String(it?.status ?? ""));
+      }
+      const resolved = openIdsBefore.reduce(
+        (n, id) => n + (nowById.get(id) === "resolved" ? 1 : 0),
+        0,
+      );
       const priorQc = (run as any)?.qc_result ?? {};
       const preSamplesPersisted: number[] = Array.isArray(priorQc?.score_samples?.pre)
         ? priorQc.score_samples.pre.filter((x: unknown) => typeof x === "number")
