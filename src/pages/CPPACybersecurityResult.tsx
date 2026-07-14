@@ -6,10 +6,8 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
-import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
@@ -22,13 +20,7 @@ import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
-import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
-import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
-import AuditScopeMemoGenerator from "@/components/cppa/AuditScopeMemoGenerator";
-import AuditorHandoffButton, { AuditorHandoffCover } from "@/components/cppa/AuditorHandoffPackage";
-import BreachPrecedentMap from "@/components/cppa/BreachPrecedentMap";
-import { useCitationVerification } from "@/hooks/useCitationVerification";
-import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
+import AuditorHandoffButton from "@/components/cppa/AuditorHandoffPackage";
 
 // RC-FLIP-3 — presentation helpers and the CybersecurityReportBody component
 // were extracted into standalone modules to eliminate a page↔shared-component
