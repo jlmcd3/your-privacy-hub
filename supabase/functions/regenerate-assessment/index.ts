@@ -21,7 +21,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 // Value = git short-sha + ISO timestamp. Update in the same edit that
 // changes behavior in this file.
 // RC-D.11: bumped for the CPPA-PATH-1 alias fix (via _shared) + error-path stamp.
-export const BUILD_STAMP = "4c8e1f7-rcC3cyb2@2026-07-14T00:15Z";
+export const BUILD_STAMP = "a1c9d2e-rcC3cyb3@2026-07-14T02:40Z";
 
 function json(body: unknown, status = 200) {
   // RC-D.11.4 — stamp EVERY response, including error bodies, so upstream
