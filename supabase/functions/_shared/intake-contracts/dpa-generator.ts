@@ -1,9 +1,8 @@
 // RC-REM-P1-C — DPA Generator intake contract.
-//
-// Intake shape verified against src/pages/DPAGenerator.tsx form state
-// (~L61). Post-ruling: no dataSubjectCount. `documentType` is derived
-// server-side (detectDocumentType) — marked structured/optional and noted
-// as server-derived.
+// CEO ruling 2026-07-14: retention / auditRights / transfer question are ASKED
+// with fold-in "Other: …" / "Fixed period: …" conventions; legalFramework and
+// includeTransferClause are DERIVED server-side (frameworkFor(documentType);
+// transfersInvolved === "Yes").
 //
 // Jurisdiction option lists are literal copies of @/lib/dpaDocumentType.
 
@@ -35,9 +34,30 @@ const DATA_CATS = [
   "Biometric data", "Genetic data", "Criminal records",
 ] as const;
 
-const LEGAL_FRAMEWORK = ["GDPR"] as const; // single option in form select
-const AUDIT_RIGHTS = ["Standard"] as const;
-const TRANSFER_MECHANISM = ["SCCs"] as const;
+// Post-ruling enums with the exact option strings from src/pages/DPAGenerator.tsx.
+// The three fold-in fields ("Fixed period — specify" and "Custom — describe")
+// are enum members; the free-text tail is wired at the page layer as
+// "Fixed period: <text>" / "Other: <text>" and remains verbatim on the wire.
+const RETENTION_OPTIONS = [
+  "As directed by the Controller's documented instructions",
+  "For the duration of the principal agreement, then delete or return",
+  "Fixed period — specify",
+] as const;
+
+const AUDIT_RIGHTS_OPTIONS = [
+  "Documentation review — Processor provides audit reports/certifications on request",
+  "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
+  "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access",
+  "Custom — describe",
+] as const;
+
+const TRANSFER_MECHANISM_OPTIONS = [
+  "EU Standard Contractual Clauses (SCCs)",
+  "UK IDTA / UK Addendum to EU SCCs",
+  "Binding Corporate Rules",
+  "Adequacy decision or regulations",
+  "None in place yet",
+] as const;
 
 const JURISDICTIONS = [
   ...JURS_EU, ...JURS_US, ...JURS_CANADA, ...JURS_OTHER,
@@ -46,9 +66,9 @@ const JURISDICTIONS = [
 export {
   DATA_CATS as DPA_DATA_CATS,
   JURISDICTIONS as DPA_JURISDICTIONS,
-  LEGAL_FRAMEWORK as DPA_LEGAL_FRAMEWORK,
-  AUDIT_RIGHTS as DPA_AUDIT_RIGHTS,
-  TRANSFER_MECHANISM as DPA_TRANSFER_MECHANISM,
+  RETENTION_OPTIONS as DPA_RETENTION_OPTIONS,
+  AUDIT_RIGHTS_OPTIONS as DPA_AUDIT_RIGHTS_OPTIONS,
+  TRANSFER_MECHANISM_OPTIONS as DPA_TRANSFER_MECHANISM_OPTIONS,
 };
 
 export const dpaGeneratorContract: IntakeContract = {
@@ -62,16 +82,23 @@ export const dpaGeneratorContract: IntakeContract = {
     { key: "processorJurisdiction", kind: "enum", required: "always", options: JURISDICTIONS },
     { key: "services", kind: "narrative", required: "always" },
     { key: "dataCategories", kind: "multi-enum", required: "always", options: DATA_CATS },
-    { key: "retention", kind: "text", required: "optional" },
+    // Fold-in fields — the enum carries the "Fixed period — specify" /
+    // "Custom — describe" member; downstream wire values may be
+    // "Fixed period: <text>" or "Other: <text>", which validators recognise
+    // as fold-in extensions of the enum member.
+    { key: "retention", kind: "text", required: "always" },
     { key: "hasSubProcessors", kind: "boolean", required: "optional" },
     { key: "subProcessorList", kind: "text", required: "optional" },
-    { key: "legalFramework", kind: "enum", required: "optional", options: LEGAL_FRAMEWORK },
-    { key: "auditRights", kind: "enum", required: "optional", options: AUDIT_RIGHTS },
-    { key: "includeTransferClause", kind: "boolean", required: "optional" },
-    { key: "transferMechanism", kind: "enum", required: "optional", options: TRANSFER_MECHANISM },
+    { key: "auditRights", kind: "text", required: "always" },
+    // includeTransferClause + legalFramework are SERVER-DERIVED — carried as
+    // structured/optional for downstream visibility. legalFramework is
+    // derived from documentType via frameworkFor(); includeTransferClause is
+    // derived from the "transfers involved?" answer on the form.
+    { key: "includeTransferClause", kind: "structured", required: "optional" },
+    { key: "legalFramework", kind: "structured", required: "optional" },
+    { key: "transferMechanism", kind: "text", required: "optional" },
     // documentType — server-derived via detectDocumentType(controllerJurisdiction,
-    // processorJurisdiction) at invoke time. Not part of the client form
-    // state; carried as structured/optional for downstream visibility.
+    // processorJurisdiction) at invoke time.
     { key: "documentType", kind: "structured", required: "optional" },
   ],
 };
