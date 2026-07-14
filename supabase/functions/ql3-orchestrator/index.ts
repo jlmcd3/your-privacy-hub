@@ -240,7 +240,7 @@ async function runOneUnit(runId: string) {
       const registerAll: any[] = Array.isArray((row as any)?.report_data?.open_items)
         ? (row as any).report_data.open_items
         : [];
-      const openItems: any[] = registerAll.filter((it: any) => it?.status === "open");
+      const openItems = selectOpenForRevision(registerAll);
       const itemsBefore = openItems.length;
       // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
       const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
