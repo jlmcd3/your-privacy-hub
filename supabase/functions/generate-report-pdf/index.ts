@@ -1832,6 +1832,9 @@ function makeAttachmentName(toolType: string, generatedAt: string): string {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  console.log(`[generate-report-pdf] build active · build_stamp=${BUILD_STAMP}`);
+  console.log(JSON.stringify({ evt: "pdf_build_stamp", build_stamp: BUILD_STAMP }));
+
   try {
     // SEC-1b: Do not 401 anon callers here — let the eligibility check below
     // return the stable PREVIEW_REQUIRES_ACCOUNT / forbidden codes instead.
