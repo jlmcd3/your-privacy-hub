@@ -44,7 +44,11 @@ export const IMPROVEMENT_KIT_DESIGNATED_FIELDS: readonly string[] = [
   "exceptions_intake",
 ];
 
-export type AssertionState = "confirmed" | "believed" | "unknown";
+// RC-Cleanup2: "unknown" retired from the widget. Legacy stored assertions
+// with state:"unknown" are treated as no assertion at every backend read site
+// (already true pre-change) — read paths use tolerant string comparisons, not
+// exhaustive narrowing, so no runtime break for legacy rows.
+export type AssertionState = "confirmed" | "believed";
 export type AssertionBasis =
   | "standard_template"
   | "written_policy"

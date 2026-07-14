@@ -952,7 +952,7 @@ export default function ADMTChecker() {
                         <div className="mt-1">
                           <Radio
                             name="profiling"
-                            options={["Yes", "No", "Unsure"]}
+                            options={["Yes", "No"]}
                             value={profilingUse}
                             onChange={setProfilingUse}
                             onFocus={() => focus("scope_does_business_use_admt")}

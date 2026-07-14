@@ -7,12 +7,12 @@
  *     matching intake-key shape (snake_case, no whitespace).
  *  3. AssertionLevel three-segment control renders the three states and
  *     reveals the four basis chips when "Believed" is selected.
- *  4. AssertionEntry writeback contracts hold:
+ *  4. AssertionEntry writeback contracts hold (RC-Cleanup2: "unknown" retired):
  *       Confirmed  -> { state:"confirmed", basis:null }
- *       Unknown    -> { state:"unknown",   basis:null }
  *       Believed   -> { state:"believed",  basis:null } until a chip is picked
  *       Believed+basis -> { state:"believed", basis:"standard_template"|... }
  *       Believed+Skip  -> { state:"believed", basis:null }
+ *       Re-click selected state -> undefined (widget cleared).
  *
  * Non-goals: rendering the full CPPA Risk page, database writes, grader calls.
  */
@@ -68,11 +68,11 @@ describe("Improvement Kit — AssertionLevel control", () => {
     return { onChange };
   };
 
-  it("renders three state radios and tags the field id", () => {
+  it("renders the two state radios and tags the field id (RC-Cleanup2: Unknown retired)", () => {
     setup();
     expect(screen.getByRole("radio", { name: /Confirmed/i })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Believed/i })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /Unknown/i })).toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: /Unknown/i })).toBeNull();
     expect(document.querySelector('[data-assertion-field="i2_retention_period"]')).toBeTruthy();
   });
 
@@ -82,10 +82,10 @@ describe("Improvement Kit — AssertionLevel control", () => {
     expect(onChange).toHaveBeenCalledWith({ state: "confirmed", basis: null });
   });
 
-  it("Unknown writes { unknown, null }", () => {
-    const { onChange } = setup();
-    fireEvent.click(screen.getByRole("radio", { name: /Unknown/i }));
-    expect(onChange).toHaveBeenCalledWith({ state: "unknown", basis: null });
+  it("Re-clicking the selected state clears the assertion (widget cleared → backend no-op)", () => {
+    const { onChange } = setup({ state: "confirmed", basis: null });
+    fireEvent.click(screen.getByRole("radio", { name: /Confirmed/i }));
+    expect(onChange).toHaveBeenCalledWith(undefined);
   });
 
   it("Believed writes { believed, null } and reveals basis chips", () => {
