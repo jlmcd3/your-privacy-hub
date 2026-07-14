@@ -56,6 +56,8 @@ import {
   RELATIONSHIPS as LIA_RELATIONSHIPS,
   JURISDICTIONS as LIA_JURISDICTIONS,
 } from "@/pages/LIAssessment";
+// RC-C3.CLOSE-1 — CPPA Cybersecurity maturity options.
+import { MATURITY as CYBER_MATURITY_OPTS } from "@/pages/CPPACybersecurity";
 
 // Q18 uses inline ["Yes","No","In evaluation"] in the intake JSX; mirror that
 // literal here (content-anchored to CPPARiskAssessment.tsx line 924).
@@ -136,7 +138,32 @@ const REGISTRY: EnumRegistry = {
     relationship_type: LIA_RELATIONSHIPS,
     jurisdictions: LIA_JURISDICTIONS,
   },
-  // Audit note (2026-07-12, UX-1): the remaining five tools' object/array
+  // RC-C3.CLOSE-1 — CPPA Cybersecurity. All 18 controls.<slug> paths share
+  // the intake page's MATURITY option list; the enum_ref emitted on frozen
+  // open_items is "cppa_cybersecurity:maturity" (resolved server-side via
+  // FIELD_ENUM_MIRROR). Registering per-slug here keeps client-side
+  // getEnumOptions(toolType, keyPath) working without an enum_ref lookup.
+  cppa_cybersecurity: {
+    "controls.c1_auth": CYBER_MATURITY_OPTS,
+    "controls.c2_encryption": CYBER_MATURITY_OPTS,
+    "controls.c3_account_access": CYBER_MATURITY_OPTS,
+    "controls.c4_inventory": CYBER_MATURITY_OPTS,
+    "controls.c5_secure_config": CYBER_MATURITY_OPTS,
+    "controls.c6_vuln_mgmt": CYBER_MATURITY_OPTS,
+    "controls.c7_audit_logs": CYBER_MATURITY_OPTS,
+    "controls.c8_network_mon": CYBER_MATURITY_OPTS,
+    "controls.c9_anti_malware": CYBER_MATURITY_OPTS,
+    "controls.c10_segmentation": CYBER_MATURITY_OPTS,
+    "controls.c11_port_protocol": CYBER_MATURITY_OPTS,
+    "controls.c12_awareness": CYBER_MATURITY_OPTS,
+    "controls.c13_training": CYBER_MATURITY_OPTS,
+    "controls.c14_secure_dev": CYBER_MATURITY_OPTS,
+    "controls.c15_third_party": CYBER_MATURITY_OPTS,
+    "controls.c16_retention": CYBER_MATURITY_OPTS,
+    "controls.c17_incident": CYBER_MATURITY_OPTS,
+    "controls.c18_continuity": CYBER_MATURITY_OPTS,
+  },
+  // Audit note (2026-07-12, UX-1): the remaining tools' object/array
   // intake fields carry only free-text leaves. Register enum leaves here as
   // each per-tool courier lands.
 };

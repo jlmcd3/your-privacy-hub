@@ -19,13 +19,15 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { resolveEnumRef } from "../_shared/field-enums.ts";
+import { computeVariance, VARIANCE_SAMPLES_N } from "../_shared/ql3-variance.ts";
 
 // RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
 // External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
 // post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
-export const BUILD_STAMP = "3b9d2e5-rcd111@2026-07-13T23:10Z";
+// RC-C3.CLOSE-1 (item 1) — grader-variance band added.
+export const BUILD_STAMP = "4c1e8b2-rcC3close1@2026-07-14T05:00Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -154,6 +156,21 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
   }
 }
 
+// RC-C3.CLOSE-1 (item 1) — sample the grader N times per phase so QL3 can
+// derive a bootstrapped no-signal band. Sequential (never parallel) so the
+// grader isn't hammered; each call is bounded by callInternalGrader's own
+// timeout. Non-numeric returns are dropped. Empty array is a legitimate
+// outcome for tools without a scoring rubric (e.g. non cppa-risk) and is
+// handled by computeVariance → "insufficient_samples".
+async function sampleGraderScores(toolSlug: string, assessmentId: string, n = VARIANCE_SAMPLES_N): Promise<number[]> {
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const s = await callInternalGrader(toolSlug, assessmentId);
+    if (typeof s === "number" && Number.isFinite(s)) out.push(s);
+  }
+  return out;
+}
+
 async function runOneUnit(runId: string) {
   const db = admin();
   const { data: run, error: runErr } = await db
@@ -205,7 +222,11 @@ async function runOneUnit(runId: string) {
         ? (row as any).report_data.open_items
         : [];
       const itemsBefore = openItems.length;
-      const preScore = await callInternalGrader(run.tool_slug, run.assessment_id);
+      // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
+      const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
+      const preScore = preSamples.length > 0
+        ? [...preSamples].sort((a, b) => a - b)[Math.floor(preSamples.length / 2)]
+        : null;
 
       // RC-D.1 D-6: capture baseline report_versions.max(version_n) so
       // review2 can wait for the revision to *actually* advance the rail
@@ -312,6 +333,9 @@ async function runOneUnit(runId: string) {
           rqb_build_stamp: upstream?.build_stamp ?? null,
           regen_build_stamp: upstream?.upstream_build_stamp ?? null,
           idempotent_replay: upstream?.idempotent_replay === true,
+          // RC-C3.CLOSE-1 (item 1) — persist raw pre-samples now; post-samples
+          // and the band verdict land in the review2 write. Auditable per-run.
+          score_samples: { pre: preSamples, post: [] },
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
@@ -366,9 +390,18 @@ async function runOneUnit(runId: string) {
         ? (rowFinal as any).report_data.open_items
         : [];
       const itemsAfter = openItemsAfter.length;
-      const postScore = await callInternalGrader(run.tool_slug, run.assessment_id);
+      // RC-C3.CLOSE-1 (item 1) — N=3 post samples; median = point post_score;
+      // pre samples carried from the revise_dummy write for the band calc.
+      const postSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
+      const postScore = postSamples.length > 0
+        ? [...postSamples].sort((a, b) => a - b)[Math.floor(postSamples.length / 2)]
+        : null;
       const resolved = Math.max(0, (run.items_before ?? 0) - itemsAfter);
       const priorQc = (run as any)?.qc_result ?? {};
+      const preSamplesPersisted: number[] = Array.isArray(priorQc?.score_samples?.pre)
+        ? priorQc.score_samples.pre.filter((x: unknown) => typeof x === "number")
+        : [];
+      const variance = computeVariance(preSamplesPersisted, postSamples);
 
       await db.from("quality_loop3_runs").update({
         phase: "done",
@@ -382,6 +415,12 @@ async function runOneUnit(runId: string) {
           review2_terminal_reached: terminalReached,
           review2_baseline_version_n: baselineVersion,
           review2_current_version_n: currentVersion,
+          // RC-C3.CLOSE-1 (item 1) — raw samples + band decision. Every band
+          // verdict is auditable per-run from qc_result alone (no cross-run
+          // history). |delta| < band → "no_signal"; other pass/fail semantics
+          // are unchanged by this addition.
+          score_samples: { pre: preSamplesPersisted, post: postSamples },
+          variance,
         },
         ...(terminalReached ? {} : { error_message: "review2_timeout_pre_terminal" }),
       }).eq("id", runId);

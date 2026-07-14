@@ -102,6 +102,18 @@ const LIA_JURISDICTIONS = [
   "Australia", "Singapore", "Other",
 ];
 
+// ── cppa_cybersecurity ─────────────────────────────────────────────────
+// RC-C3.CLOSE-1 — mirror of src/pages/CPPACybersecurity.tsx MATURITY.
+// Shared across all 18 controls (T_CLASS_FIELDS routes every
+// `controls.<slug>` ask to this single enum_ref).
+const CYBER_MATURITY_OPTS = [
+  "Not implemented",
+  "Ad hoc / informal",
+  "Documented, partially implemented",
+  "Implemented across organization",
+  "Implemented with continuous monitoring",
+];
+
 // enum_ref → options. Keys mirror the client REGISTRY keyPaths in
 // src/components/refine/fieldEnums.ts; the enum_ref emitted on frozen
 // open_items is "<tool_type>:<keyPath>".
@@ -159,6 +171,8 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "li_assessment:data_categories": LIA_DATA_CATEGORIES,
   "li_assessment:relationship_type": LIA_RELATIONSHIPS,
   "li_assessment:jurisdictions": LIA_JURISDICTIONS,
+  // cppa_cybersecurity — single maturity enum, shared across 18 controls.
+  "cppa_cybersecurity:maturity": CYBER_MATURITY_OPTS,
 };
 
 export function resolveEnumRef(enumRef: string | null | undefined): readonly string[] | null {

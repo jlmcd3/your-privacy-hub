@@ -50,6 +50,35 @@ Deno.test("cyber fixture answer_targets use DOTTED ask-vocabulary paths", () => 
   ]);
 });
 
+// RC-C3.CLOSE-1 (item 2) — T_CLASS_FIELDS.cppa_cybersecurity MUST carry all
+// 18 dotted control paths, each routed to the shared "cppa_cybersecurity:
+// maturity" enum_ref. Prevents regressions where cyber open_items freeze
+// with input_spec bounded-narrative instead of the maturity re-select.
+Deno.test("cyber T_CLASS pins 18 controls.<slug> → cppa_cybersecurity:maturity", async () => {
+  const src = await Deno.readTextFile(new URL("../_shared/open-items.ts", import.meta.url));
+  for (const slug of EXPECTED_ORDER) {
+    const needle = `"controls.${slug}"`;
+    assertStringIncludes(src, needle);
+  }
+  // Every controls.<slug> line in the cppa_cybersecurity block must route
+  // to the shared maturity enum. A raw regex is enough for a pin test.
+  const block = src.split("cppa_cybersecurity: {")[1]?.split("\n};")[0] ?? "";
+  for (const slug of EXPECTED_ORDER) {
+    const line = block.split("\n").find((l) => l.includes(`"controls.${slug}"`)) ?? "";
+    assertStringIncludes(line, "cppa_cybersecurity:maturity");
+  }
+});
+
+Deno.test("cyber maturity enum resolves via server FIELD_ENUM_MIRROR", async () => {
+  const { resolveEnumRef } = await import("../_shared/field-enums.ts");
+  const opts = resolveEnumRef("cppa_cybersecurity:maturity");
+  assert(Array.isArray(opts) && opts.length === 5,
+    `expected 5 maturity options; got ${JSON.stringify(opts)}`);
+  // Anchored to intake page constants (do NOT retype here — assert shape only).
+  assert(opts!.some((o) => /Not implemented/i.test(o)));
+  assert(opts!.some((o) => /continuous monitoring/i.test(o)));
+});
+
 // RC-C3.CYB-3 (P-1) — deterministic ask-synthesis walker: for the fixture's
 // two empty-maturity controls (c13_training, c14_secure_dev), guard must
 // mint dotted asks. Copy must never contain "gap".
