@@ -458,13 +458,11 @@ Deno.test("intake-contracts / dpa FIXTURES — synthesised form payload validate
     processorJurisdiction: "Germany",
     services: "Hosting and support",
     dataCategories: ["General personal data"],
-    retention: "As directed by controller",
+    retention: "As directed by the Controller's documented instructions",
     hasSubProcessors: false,
     subProcessorList: "",
-    legalFramework: "GDPR",
-    auditRights: "Standard",
-    includeTransferClause: false,
-    transferMechanism: "SCCs",
+    auditRights: "Documentation review — Processor provides audit reports/certifications on request",
+    transferMechanism: "",
   };
   const res = validateIntake(dpaGeneratorContract, payload);
   assert(res.ok, JSON.stringify(res.violations));
