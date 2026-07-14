@@ -99,3 +99,38 @@ Deno.test("Generic 'Return ONLY valid JSON' lives in the core, not duplicated in
   assert(!/Return ONLY valid JSON/i.test(blocks[1].text),
     "block 2 must not duplicate the core's strict-JSON output discipline");
 });
+
+// P4 — ASK_ELIGIBLE_CRITICAL_FIELDS registry closure.
+import {
+  ASK_ELIGIBLE_CRITICAL_FIELDS,
+  guardInformationNeeded,
+} from "../_shared/insufficient-info-guard.ts";
+
+Deno.test("P4 registry: governance_assessment is intentionally empty (CEO 2026-07-14)", () => {
+  assertEquals(ASK_ELIGIBLE_CRITICAL_FIELDS.governance_assessment.length, 0);
+});
+
+Deno.test("P4 registry: cppa_admt entries match verified reachable-empty set", () => {
+  assertEquals(
+    [...ASK_ELIGIBLE_CRITICAL_FIELDS.cppa_admt].sort(),
+    ["notice_purpose_text", "opt_out_methods"].sort(),
+  );
+});
+
+Deno.test("P4 guard: fully-populated governance intake synthesises zero critical asks", () => {
+  const intake = {
+    sector: "SaaS",
+    size: "50-249",
+    jurisdictions: ["California"],
+    eu_uk_data: "No",
+    dpo_status: "n/a",
+    transfer_mechanism: "n/a",
+    privacy_notice_coverage: "Comprehensive",
+    dpia_status: "In place",
+    incident_response_plan: "Yes",
+  };
+  const report: any = { information_needed: [], lint_warnings: [] };
+  const out = guardInformationNeeded(report, intake, "governance_assessment");
+  assertEquals(out.report.information_needed.length, 0);
+  assertEquals(out.autoRepaired, 0);
+});
