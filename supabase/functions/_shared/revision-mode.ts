@@ -61,7 +61,8 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // RC-C3.CYB-2 stamp bump: cyber report-shape vocabulary instruction +
 // pre-apply patch-path shape validator (rejects ask-vocab writes against
 // mismatched report shapes as 409 revision_malformed_patch_shape).
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c3.cyb-2";
+// RC-P3 stamp bump: server-side changed_paths allowlist (rejects undeclared-target writes).
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-p3";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
