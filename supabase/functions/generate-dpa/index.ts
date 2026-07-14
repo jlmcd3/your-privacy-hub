@@ -586,7 +586,7 @@ If a detected mismatch exists between the entity's legal form and the stated inc
 16. LEAD-SA SENTENCE (2.4d). "…this does not affect the competence of the German state DPA in respect of [Processor] as an establishment under German law."`;
 
     const GDPR_USER = `${PARTIES_BLOCK}
-Legal framework: ${body.legalFramework}
+Legal framework: ${frameworkFor(documentType)}
 ${sectorFlags.isComplexRoleSector ? `
 CONTROLLER/PROCESSOR ROLE ALERT — ${sectorFlags.complexRoleSectorName.toUpperCase()}
 The services described suggest a ${sectorFlags.complexRoleSectorName} context where the Processor's role as a pure processor under GDPR Article 28 may be uncertain. Include in Section 1 (Parties and Recitals) the following recital:
