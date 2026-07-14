@@ -72,12 +72,16 @@ export const FIXTURE_CYBER_YIELD_K1: CyberContractFixture = {
       industry: "Healthcare SaaS",
       incidents_12mo: "1",
       framework: "SOC 2",
-      last_audit: "2025-09-15",
+      // RC-REM-P1: fixture corrected from ISO date to enum option (form
+      // last_audit is a <select>; free-text dates are not accepted).
+      last_audit: "Within 12 months",
     },
     controls: LIVE_CONTROLS.map(({ key, label }) => ({
       key,
       label,
-      maturity: INSUFFICIENT_SLUGS.has(key) ? "" : "Implemented",
+      // RC-REM-P1: fixture corrected from "Implemented" (not a MATURITY
+      // option) to the verbatim enum value "Implemented across organization".
+      maturity: INSUFFICIENT_SLUGS.has(key) ? "" : "Implemented across organization",
       notes: NOTES[key] ?? "",
     })),
   },
