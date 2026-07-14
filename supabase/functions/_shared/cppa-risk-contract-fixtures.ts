@@ -141,6 +141,7 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
       severity: "Significant",
     },
     exceptions_intake: {},
+    ...REQUIRED_ALWAYS_FILLERS,
   },
   // Answer only 2 of the ~3+ items on the first revision.
   answer_targets: ["q5c_share_revenue_50pct", "q15c_spi_volume"],
@@ -173,6 +174,7 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
       benefitsOutweigh: "Yes",
     },
     exceptions_intake: {},
+    ...REQUIRED_ALWAYS_FILLERS,
   },
   answer_targets: [], // answer every open_item on the second revision
 };
