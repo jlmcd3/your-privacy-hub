@@ -3,6 +3,10 @@
 // supabase/functions/run-admt-checker/index.ts
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
+// RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
+export const BUILD_STAMP = "b7f4e91-admt-p6-training-yn-prior-removed@2026-07-14T22:15Z";
+console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
+console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -70,7 +74,7 @@ When in doubt, include BOTH deadlines and explain the distinction in a single ac
 
 7. CONSOLIDATED NOTICE (§ 7220(e)): Analyze whether the business could benefit from providing a consolidated Pre-Use Notice. Four scenarios permit consolidation: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. This is a benefit, not an obligation. Always note the mandatory condition: the consolidated notice must include all required § 7220(c) elements for each system or use covered. Produce the consolidated_notice_analysis field in all cases — mark applicable:false with a brief explanation if a single-system/single-purpose deployment makes it irrelevant.
 
-8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply. STATUS RULE FOR access_aggregate_log: because the per-consumer ADMT-use-frequency log exists only to ENABLE the optional aggregate response, its absence is NEVER a compliance gap. Do NOT assign status "gap" or "missing" to access_aggregate_log on the basis that no log exists or the intake does not track use frequency. If the business provides individualized responses in all cases it is fully compliant without the log. Mark access_aggregate_log status "compliant" and frame any remediation as an efficiency recommendation ("Consider logging per-consumer ADMT-use frequency to enable the optional aggregate response for high-frequency consumers"), never as a required fix.
+8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Frame this as an option available at the framework level, and always flag it as a threshold to monitor (per-consumer ADMT-use frequency; see rule 14(g) for the correct threshold characterization). This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply. STATUS RULE FOR access_aggregate_log: because the per-consumer ADMT-use-frequency log exists only to ENABLE the optional aggregate response, its absence is NEVER a compliance gap. Do NOT assign status "gap" or "missing" to access_aggregate_log on the basis that no log exists or the intake does not track use frequency. If the business provides individualized responses in all cases it is fully compliant without the log. Mark access_aggregate_log status "compliant" and frame any remediation as an efficiency recommendation ("Consider logging per-consumer ADMT-use frequency to enable the optional aggregate response for high-frequency consumers"), never as a required fix.
 
 9. SIGNIFICANT-DECISION CLASSIFIER — STRUCTURAL GATE:
 
