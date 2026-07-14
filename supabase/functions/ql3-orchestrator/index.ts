@@ -333,6 +333,9 @@ async function runOneUnit(runId: string) {
           rqb_build_stamp: upstream?.build_stamp ?? null,
           regen_build_stamp: upstream?.upstream_build_stamp ?? null,
           idempotent_replay: upstream?.idempotent_replay === true,
+          // RC-C3.CLOSE-1 (item 1) — persist raw pre-samples now; post-samples
+          // and the band verdict land in the review2 write. Auditable per-run.
+          score_samples: { pre: preSamples, post: [] },
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
