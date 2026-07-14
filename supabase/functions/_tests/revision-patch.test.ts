@@ -36,14 +36,19 @@ Deno.test("applyRevisionPatch: untouched-subtree hash mismatches if extra key ad
 });
 
 Deno.test("guardAdvisoryNotes: ungrounded stripped + over-cap trimmed", () => {
+  // Register-compliant advisory shape (CEO-ratified, revision-patch.ts L162-170):
+  // single suggestive sentence, no contradiction markers, no D8 gap word,
+  // grounded in an allowed fact_ref.
   const allowed = new Set(["answered_item:x1", "intake:sector"]);
+  const suggestive = (topic: string) =>
+    `If your organization can document ${topic}, a reassessment covering it may be worth considering, based on your counsel's advice.`;
   const out = guardAdvisoryNotes(
     [
-      { text: "good", fact_ref: "answered_item:x1" },
-      { text: "no ref" },
-      { text: "bad ref", fact_ref: "answered_item:zzz" },
-      { text: "good2", fact_ref: "intake:sector" },
-      { text: "over cap", fact_ref: "answered_item:x1" },
+      { text: suggestive("item one"), fact_ref: "answered_item:x1" },
+      { text: suggestive("orphaned"), /* no fact_ref → ungrounded */ },
+      { text: suggestive("bad ref"), fact_ref: "answered_item:zzz" },
+      { text: suggestive("item two"), fact_ref: "intake:sector" },
+      { text: suggestive("item three"), fact_ref: "answered_item:x1" },
     ],
     { cap: 2, allowedFactRefs: allowed },
   );
