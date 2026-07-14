@@ -357,7 +357,7 @@ export default function CPPACybersecurity() {
 
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">
           {isSuite ? (
-            <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Please complete all 18 controls.", variant: "destructive" }); return; } if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
+            <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Please complete the profile (entity, industry, incidents, framework, last audit).", variant: "destructive" }); return; } notifyUnassessed(); if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
               Purchase CPPA Suite — ${suitePricing.price}
             </Button>
           ) : (
