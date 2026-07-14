@@ -3,27 +3,78 @@
 // Intake shape verified against src/pages/DPIAFramework.tsx buildIntake()
 // (~L283). 44 user-facing keys + `source_assessment_id` system key.
 //
-// Enum options anchored to src/pages/DPIAFramework.enums.ts. Parity
+// Enum options are literal copies of src/pages/DPIAFramework.enums.ts. Parity
 // enforced by the test.
 
 import type { IntakeContract } from "./types.ts";
-import {
-  DATA_CATS as DPIA_DATA_CATS,
-  TOOLS as DPIA_TOOLS,
-  SAFEGUARDS as DPIA_SAFEGUARDS,
-  JURISDICTIONS as DPIA_JURISDICTIONS,
-  LEGAL_BASES as DPIA_LEGAL_BASES,
-  ARTICLE_9_CONDITIONS as DPIA_ART9,
-  REASONS_TO_CONDUCT as DPIA_REASONS,
-} from "../../../../src/pages/DPIAFramework.enums.ts";
+
+export const DPIA_DATA_CATS = [
+  "Contact details", "Employee records", "Customer records", "Health or medical data",
+  "Financial data", "Biometric data", "Children's data", "Location data",
+  "Communications content", "Other",
+] as const;
+
+export const DPIA_TOOLS = [
+  "Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein",
+  "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features",
+  "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies",
+  "HubSpot", "Adobe Creative Cloud",
+] as const;
+
+export const DPIA_SAFEGUARDS = [
+  "Encryption at rest", "Encryption in transit", "Access controls", "Data minimisation",
+  "Pseudonymisation", "Staff training", "DPA signed with processor", "Anonymisation",
+  "Contractual restrictions", "None",
+] as const;
+
+export const DPIA_JURISDICTIONS = [
+  "EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal",
+  "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)",
+  "Australia", "Singapore", "Other",
+] as const;
+
+export const DPIA_LEGAL_BASES = [
+  "Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))",
+  "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))",
+  "Legitimate interest (Art. 6(1)(f))",
+] as const;
+
+export const DPIA_ART9 = [
+  "Explicit consent (Art. 9(2)(a))",
+  "Employment, social security & social protection law (Art. 9(2)(b))",
+  "Vital interests — data subject incapable of consent (Art. 9(2)(c))",
+  "Not-for-profit body's legitimate activities (Art. 9(2)(d))",
+  "Data manifestly made public by the data subject (Art. 9(2)(e))",
+  "Establishment, exercise or defence of legal claims (Art. 9(2)(f))",
+  "Substantial public interest — Union/Member State law (Art. 9(2)(g))",
+  "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
+  "Public interest in public health (Art. 9(2)(i))",
+  "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))",
+] as const;
+
+export const DPIA_REASONS = [
+  "Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))",
+  "Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
+  "Large-scale systematic monitoring of a public area (Art. 35(3)(c))",
+  "Evaluation or scoring (incl. profiling / prediction)",
+  "Automated decision-making with legal or significant effect",
+  "Sensitive or highly personal data",
+  "Data processed on a large scale",
+  "Matching or combining datasets",
+  "Data concerning vulnerable subjects",
+  "Innovative use of new technology",
+  "Processing prevents exercising a right / using a service",
+  "Required by national law",
+  "DPO or data-subject recommendation",
+  "Required by a code of conduct / standard",
+  "Risk management / accountability (beneficial)",
+  "Existing processing — the risk has changed",
+] as const;
 
 // SPECIAL_CATEGORY_CATS — page L58; gates article_9_condition requiredness.
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"] as const;
 
-export {
-  DPIA_DATA_CATS, DPIA_TOOLS, DPIA_SAFEGUARDS, DPIA_JURISDICTIONS,
-  DPIA_LEGAL_BASES, DPIA_ART9, DPIA_REASONS, SPECIAL_CATEGORY_CATS,
-};
+export { SPECIAL_CATEGORY_CATS };
 
 export const dpiaFrameworkContract: IntakeContract = {
   tool_type: "dpia_framework",

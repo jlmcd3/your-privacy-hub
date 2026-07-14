@@ -5,13 +5,29 @@
 // server-side (detectDocumentType) — marked structured/optional and noted
 // as server-derived.
 //
-// Jurisdiction option lists come from @/lib/dpaDocumentType (JURS_EU,
-// JURS_US, JURS_CANADA, JURS_OTHER) — imported here for verbatim parity.
+// Jurisdiction option lists are literal copies of @/lib/dpaDocumentType.
 
 import type { IntakeContract } from "./types.ts";
-import {
-  JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER,
-} from "../../../../src/lib/dpaDocumentType.ts";
+
+const JURS_EU = [
+  "Germany", "France", "Ireland", "Spain", "Italy", "Netherlands",
+  "United Kingdom", "Belgium", "Sweden", "Denmark", "Poland", "Norway",
+  "Portugal", "Austria", "Finland", "Luxembourg", "Greece", "Switzerland",
+] as const;
+
+const JURS_US = [
+  "California", "Texas", "New York", "Connecticut", "Colorado", "Virginia",
+  "Florida", "Washington", "Illinois", "Massachusetts", "Oregon", "Indiana",
+  "Montana", "Iowa", "Tennessee", "Minnesota", "Utah", "Delaware",
+  "United States (federal)",
+] as const;
+
+const JURS_CANADA = [
+  "Canada (federal / PIPEDA)", "Quebec (Law 25)", "Ontario (PHIPA)",
+  "British Columbia (PIPA)", "Alberta (PIPA)",
+] as const;
+
+const JURS_OTHER = ["Australia", "Singapore", "Japan", "Brazil", "Other"] as const;
 
 const DATA_CATS = [
   "General personal data", "Financial / payment data", "Location data",
