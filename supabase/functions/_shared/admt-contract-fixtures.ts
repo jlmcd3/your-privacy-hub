@@ -35,7 +35,7 @@ export const FIXTURE_ADMT_YIELD_K1: AdmtContractFixture = {
     // ExhibitTextarea — free-text string (L724–730). "No" is a valid free-text answer indicating none.
     third_party_admt: "No",
     // Pills — NOTICE_DELIVERY_OPTIONS (L65–71).
-    notice_delivery: ["Account-creation or onboarding flow"],
+    notice_delivery: ["We have not yet provided a Pre-use Notice"],
     // Radio — ["Yes","No — uses generic language","We have not yet created a Pre-use Notice"] (L1002). Scenario: notice not provided.
     notice_has_specific_purpose: "We have not yet created a Pre-use Notice",
     // Textarea — verdict-blocking ask (§ 7220 notice requirement).
