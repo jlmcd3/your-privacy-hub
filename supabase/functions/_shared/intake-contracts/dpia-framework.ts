@@ -49,7 +49,7 @@ export const DPIA_ART9 = [
   "Substantial public interest — Union/Member State law (Art. 9(2)(g))",
   "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
   "Public interest in public health (Art. 9(2)(i))",
-  "Archiving, research or statistics — Art.89(1) (Art. 9(2)(j))",
+  "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))",
 ] as const;
 
 export const DPIA_REASONS = [
