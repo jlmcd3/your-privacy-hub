@@ -20,10 +20,50 @@ import {
   cppaCybersecurityContract,
   CYBER_MATURITY_OPTIONS,
 } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+import {
+  cppaRiskContract,
+  REVENUE_OPTS as RISK_REVENUE_OPTS,
+  CONSUMER_OPTS as RISK_CONSUMER_OPTS,
+  SPI_VOLUME_OPTS as RISK_SPI_VOLUME_OPTS,
+  SHARE_REVENUE_50PCT_OPTS as RISK_SHARE_50_OPTS,
+  Q5_SELL_SHARE_OPTS as RISK_Q5_OPTS,
+  Q15_SENSITIVE_PI_OPTS as RISK_Q15_OPTS,
+  IMPACT_LIKELIHOOD_OPTS as RISK_IMPACT_LIKELIHOOD,
+  IMPACT_SEVERITY_OPTS as RISK_IMPACT_SEVERITY,
+  IMPACT_BENEFITS_OUTWEIGH_OPTS as RISK_IMPACT_BENEFITS,
+  IMPACT_CYBER_GAPS_OPTS as RISK_IMPACT_CYBER,
+  HARM_TYPES as RISK_HARM_TYPES,
+} from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+import {
+  cppaAdmtContract,
+  ADMT_VENDOR_STATUS_OPTS,
+  ADMT_VENDOR_DOCS_OPTS,
+  ADMT_YES_NO_OPTS,
+  ADMT_YES_NO_UNSURE_OPTS,
+  ADMT_HOSTING_OPTS,
+  ADMT_MODEL_TYPE_OPTS,
+  ADMT_DECISION_EFFECT_OPTS,
+  ADMT_DECISION_CADENCE_OPTS,
+  ADMT_SOLE_FACTOR_OPTS,
+  ADMT_SOLELY_ADVERTISING_OPTS,
+} from "../_shared/intake-contracts/cppa-admt.ts";
+import {
+  liAssessmentStageAContract,
+  liAssessmentStageBContract,
+  DATA_CATEGORIES as LIA_DATA_CATEGORIES,
+  RELATIONSHIPS as LIA_RELATIONSHIPS,
+  JURISDICTIONS as LIA_JURISDICTIONS,
+} from "../_shared/intake-contracts/li-assessment.ts";
 import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
+import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
+import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
 import { FIELD_ENUM_MIRROR } from "../_shared/field-enums.ts";
-// Form enums module (zero imports; safe to load under Deno test).
+
+// Form enums modules (zero imports; safe to load under Deno test).
 import { MATURITY as FORM_MATURITY } from "../../../src/pages/CPPACybersecurity.enums.ts";
+import * as RiskEnums from "../../../src/pages/CPPARiskAssessment.enums.ts";
+import * as AdmtEnums from "../../../src/pages/admt/ADMTChecker.enums.ts";
+import * as LiaEnums from "../../../src/pages/LIAssessment.enums.ts";
 
 Deno.test("intake-contracts / cyber PARITY — contract MATURITY === form MATURITY", () => {
   assertEquals(
@@ -97,4 +137,162 @@ Deno.test("intake-contracts / validator — accepts empty maturity (optional)", 
     controls: [{ key: "c1_auth", label: "Authentication", maturity: "", notes: "" }],
   } as Record<string, unknown>);
   assert(res.ok, JSON.stringify(res.violations));
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// CPPA Risk Assessment
+// ═════════════════════════════════════════════════════════════════════
+
+Deno.test("intake-contracts / risk PARITY — contract enums === form enums", () => {
+  assertEquals([...RISK_REVENUE_OPTS], [...RiskEnums.REVENUE_OPTS]);
+  assertEquals([...RISK_CONSUMER_OPTS], [...RiskEnums.CONSUMER_OPTS]);
+  assertEquals([...RISK_SPI_VOLUME_OPTS], [...RiskEnums.SPI_VOLUME_OPTS]);
+  assertEquals([...RISK_SHARE_50_OPTS], [...RiskEnums.SHARE_REVENUE_50PCT_OPTS]);
+  assertEquals([...RISK_Q5_OPTS], [...RiskEnums.Q5_SELL_SHARE_OPTS]);
+  assertEquals([...RISK_Q15_OPTS], [...RiskEnums.Q15_SENSITIVE_PI_OPTS]);
+  assertEquals([...RISK_IMPACT_LIKELIHOOD], [...RiskEnums.IMPACT_LIKELIHOOD_OPTS]);
+  assertEquals([...RISK_IMPACT_SEVERITY], [...RiskEnums.IMPACT_SEVERITY_OPTS]);
+  assertEquals([...RISK_IMPACT_BENEFITS], [...RiskEnums.IMPACT_BENEFITS_OUTWEIGH_OPTS]);
+  assertEquals([...RISK_IMPACT_CYBER], [...RiskEnums.IMPACT_CYBER_GAPS_OPTS]);
+  assertEquals([...RISK_HARM_TYPES], [...RiskEnums.HARM_TYPES]);
+});
+
+Deno.test("intake-contracts / risk MIRROR — FIELD_ENUM_MIRROR entries match contract", () => {
+  const pairs: Array<[string, readonly string[]]> = [
+    ["cppa_risk_assessment:q1_revenue", RISK_REVENUE_OPTS],
+    ["cppa_risk_assessment:q2_consumers", RISK_CONSUMER_OPTS],
+    ["cppa_risk_assessment:q5_sell_share", RISK_Q5_OPTS],
+    ["cppa_risk_assessment:q5c_share_revenue_50pct", RISK_SHARE_50_OPTS],
+    ["cppa_risk_assessment:q15_sensitive_pi", RISK_Q15_OPTS],
+    ["cppa_risk_assessment:q15c_spi_volume", RISK_SPI_VOLUME_OPTS],
+    ["cppa_risk_assessment:impact_intake.likelihood", RISK_IMPACT_LIKELIHOOD],
+    ["cppa_risk_assessment:impact_intake.severity", RISK_IMPACT_SEVERITY],
+    ["cppa_risk_assessment:impact_intake.benefitsOutweigh", RISK_IMPACT_BENEFITS],
+    ["cppa_risk_assessment:impact_intake.cyberGaps", RISK_IMPACT_CYBER],
+    ["cppa_risk_assessment:impact_intake.harmTypes", RISK_HARM_TYPES],
+  ];
+  for (const [ref, opts] of pairs) {
+    const mirror = FIELD_ENUM_MIRROR[ref];
+    assert(Array.isArray(mirror), `${ref} missing from FIELD_ENUM_MIRROR`);
+    assertEquals([...mirror!], [...opts], `${ref} drifted`);
+  }
+});
+
+Deno.test("intake-contracts / risk FIXTURES — every fixture validates cleanly", () => {
+  for (const fx of CPPA_RISK_CONTRACT_FIXTURES) {
+    const res = validateIntake(cppaRiskContract, fx.intake as Record<string, unknown>);
+    assert(res.ok, `fixture ${fx.fixture_id} violates contract: ${JSON.stringify(res.violations)}`);
+  }
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// CPPA ADMT
+// ═════════════════════════════════════════════════════════════════════
+
+Deno.test("intake-contracts / admt PARITY — contract enums === form enums", () => {
+  assertEquals([...ADMT_VENDOR_STATUS_OPTS], [...AdmtEnums.ADMT_VENDOR_STATUS_OPTS]);
+  assertEquals([...ADMT_VENDOR_DOCS_OPTS], [...AdmtEnums.ADMT_VENDOR_DOCS_OPTS]);
+  assertEquals([...ADMT_YES_NO_OPTS], [...AdmtEnums.ADMT_YES_NO_OPTS]);
+  assertEquals([...ADMT_YES_NO_UNSURE_OPTS], [...AdmtEnums.ADMT_YES_NO_UNSURE_OPTS]);
+  assertEquals([...ADMT_HOSTING_OPTS], [...AdmtEnums.ADMT_HOSTING_OPTS]);
+  assertEquals([...ADMT_MODEL_TYPE_OPTS], [...AdmtEnums.ADMT_MODEL_TYPE_OPTS]);
+  assertEquals([...ADMT_DECISION_EFFECT_OPTS], [...AdmtEnums.ADMT_DECISION_EFFECT_OPTS]);
+  assertEquals([...ADMT_DECISION_CADENCE_OPTS], [...AdmtEnums.ADMT_DECISION_CADENCE_OPTS]);
+  assertEquals([...ADMT_SOLE_FACTOR_OPTS], [...AdmtEnums.ADMT_SOLE_FACTOR_OPTS]);
+  assertEquals([...ADMT_SOLELY_ADVERTISING_OPTS], [...AdmtEnums.ADMT_SOLELY_ADVERTISING_OPTS]);
+});
+
+Deno.test("intake-contracts / admt MIRROR — admt_detail enum leaves match FIELD_ENUM_MIRROR", () => {
+  const pairs: Array<[string, readonly string[]]> = [
+    ["cppa_admt:admt_detail.vendor_status", ADMT_VENDOR_STATUS_OPTS],
+    ["cppa_admt:admt_detail.vendor_docs", ADMT_VENDOR_DOCS_OPTS],
+    ["cppa_admt:admt_detail.v_audit", ADMT_YES_NO_OPTS],
+    ["cppa_admt:admt_detail.vendor_makes_available", ADMT_YES_NO_UNSURE_OPTS],
+    ["cppa_admt:admt_detail.hosting", ADMT_HOSTING_OPTS],
+    ["cppa_admt:admt_detail.model_types", ADMT_MODEL_TYPE_OPTS],
+    ["cppa_admt:admt_detail.decision_effects", ADMT_DECISION_EFFECT_OPTS],
+    ["cppa_admt:admt_detail.decision_cadence", ADMT_DECISION_CADENCE_OPTS],
+    ["cppa_admt:admt_detail.sole_factor", ADMT_SOLE_FACTOR_OPTS],
+    ["cppa_admt:admt_detail.feeds_future_decisions", ADMT_YES_NO_UNSURE_OPTS],
+    ["cppa_admt:admt_detail.solely_advertising", ADMT_SOLELY_ADVERTISING_OPTS],
+  ];
+  for (const [ref, opts] of pairs) {
+    const mirror = FIELD_ENUM_MIRROR[ref];
+    assert(Array.isArray(mirror), `${ref} missing from FIELD_ENUM_MIRROR`);
+    assertEquals([...mirror!], [...opts], `${ref} drifted`);
+  }
+});
+
+Deno.test("intake-contracts / admt FIXTURES — every fixture validates cleanly", () => {
+  for (const fx of ADMT_CONTRACT_FIXTURES) {
+    const res = validateIntake(cppaAdmtContract, fx.intake as Record<string, unknown>);
+    assert(res.ok, `fixture ${fx.fixture_id} violates contract: ${JSON.stringify(res.violations)}`);
+  }
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// LI Assessment (Stage A + Stage B)
+// ═════════════════════════════════════════════════════════════════════
+
+Deno.test("intake-contracts / lia PARITY — contract enums === form enums", () => {
+  assertEquals([...LIA_DATA_CATEGORIES], [...LiaEnums.DATA_CATEGORIES]);
+  assertEquals([...LIA_RELATIONSHIPS], [...LiaEnums.RELATIONSHIPS]);
+  assertEquals([...LIA_JURISDICTIONS], [...LiaEnums.JURISDICTIONS]);
+});
+
+Deno.test("intake-contracts / lia MIRROR — FIELD_ENUM_MIRROR matches contract enums", () => {
+  const pairs: Array<[string, readonly string[]]> = [
+    ["li_assessment:data_categories", LIA_DATA_CATEGORIES],
+    ["li_assessment:relationship_type", LIA_RELATIONSHIPS],
+    ["li_assessment:jurisdictions", LIA_JURISDICTIONS],
+  ];
+  for (const [ref, opts] of pairs) {
+    const mirror = FIELD_ENUM_MIRROR[ref];
+    assert(Array.isArray(mirror), `${ref} missing from FIELD_ENUM_MIRROR`);
+    assertEquals([...mirror!], [...opts], `${ref} drifted`);
+  }
+});
+
+Deno.test("intake-contracts / lia FIXTURES — synthesised Stage-A + Stage-B validate cleanly", () => {
+  // No persisted fixture module for LIA today; validate a form-shaped
+  // exemplar so the contract wiring is exercised end-to-end.
+  const stageA = {
+    organization_name: "Acme Ltd",
+    subject_anchor: "Customer churn analytics",
+    processing_description: "Analyse purchase patterns to predict churn and target retention offers.",
+    data_categories: ["Contact data", "Purchase/transaction history"],
+    relationship_type: "Existing customer",
+    jurisdictions: ["EU (GDPR)"],
+  };
+  const rA = validateIntake(liAssessmentStageAContract, stageA);
+  assert(rA.ok, `Stage A violates: ${JSON.stringify(rA.violations)}`);
+
+  const stageB = {
+    ...stageA,
+    stated_purpose: "Reduce customer churn by identifying at-risk accounts and offering targeted retention.",
+    alternatives_considered: "Considered consent-based marketing; rejected because response rates too low.",
+    purpose_details: {
+      interest_holder: "Data controller",
+      interest_type: "Commercial",
+      interest_statement: "Retention of existing customer relationships.",
+    },
+    necessity_details: {
+      alternatives: "Considered generic offers to all customers; rejected as wasteful and less relevant.",
+      why_consent_not_used: "Consent friction would depress response and defeat the retention objective.",
+      data_minimised: "Only purchase history and engagement metrics — no special categories.",
+      pseudonymisation_options: null,
+    },
+    balancing_details: {
+      reasonable_expectation: "Yes",
+      potential_harm: "Minor",
+      safeguards: ["Access controls", "Retention limits"],
+      opt_out_mechanism: "In-account preference toggle; unsubscribe link on every message.",
+      statutory_restrictions: null,
+      employment_safeguards: null,
+    },
+    stage: "submitted",
+    preview_assessment_id: "abc-123",
+  };
+  const rB = validateIntake(liAssessmentStageBContract, stageB);
+  assert(rB.ok, `Stage B violates: ${JSON.stringify(rB.violations)}`);
 });

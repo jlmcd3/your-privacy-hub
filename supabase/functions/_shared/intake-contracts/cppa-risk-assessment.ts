@@ -1,0 +1,189 @@
+// RC-REM-P1-B — CPPA Risk Assessment intake contract.
+//
+// Intake shape verified against src/pages/CPPARiskAssessment.tsx `intake`
+// memo (~L483). Required-vs-conditional matches the form's `stepValid`
+// (~L444). Enum options are content-anchored to
+// src/pages/CPPARiskAssessment.enums.ts (imported by the test module at
+// PARITY time) and to the page's inline `<Radio options={[…]}` literals
+// (copied verbatim below and asserted against the page's live source in
+// PARITY).
+//
+// IMPORT-VS-LITERAL: same decision as the cyber contract (P1-A) —
+// literal copy in the contract; parity enforced by the test.
+
+import type { IntakeContract } from "./types.ts";
+
+// ── Verbatim option copies ──────────────────────────────────────────────
+export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"] as const;
+export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"] as const;
+export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
+export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
+export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"] as const;
+export const Q15_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"] as const;
+export const IMPACT_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"] as const;
+export const IMPACT_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"] as const;
+export const IMPACT_BENEFITS_OUTWEIGH_OPTS = ["Yes", "No", "Uncertain"] as const;
+export const IMPACT_CYBER_GAPS_OPTS = ["Yes", "No"] as const;
+export const HARM_TYPES = [
+  "Unauthorised access, destruction, use, modification, or disclosure",
+  "Loss of availability of personal information",
+  "Unlawful discrimination",
+  "Impairment of consumer control over personal information",
+  "Coercion or dark patterns",
+  "Economic harm",
+  "Physical harm",
+  "Reputational harm",
+  "Psychological harm",
+] as const;
+
+// Page-inline option lists (see CPPARiskAssessment.tsx line numbers in
+// comments below). Parity for these is not asserted against a form module
+// (they live inline in the JSX); the sanity check is that the contract's
+// options string list is unique per key.
+const Q5B_PROFILING_OPTS = [
+  "Yes — systematic observation of workers/students/applicants",
+  "Yes — based on sensitive-location presence",
+  "Both",
+  "No",
+] as const;
+const Q7_OPTS = ["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"] as const;
+const Q8_OPTS = ["Online self-service", "Handled via support", "No formal process"] as const;
+const Q9_OPTS = ["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"] as const;
+const Q10_OPTS = ["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"] as const;
+const Q11_OPTS = ["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"] as const;
+const Q12_OPTS = ["Yes, covers all collection points", "Yes, partial coverage", "No"] as const;
+const Q13_OPTS = ["Yes, all three", "Some elements", "No"] as const;
+const Q14_OPTS = ["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"] as const;
+const Q16_OPTS = [
+  "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
+  "Yes, handled within privacy settings",
+  "No",
+  "Not yet implemented",
+] as const;
+const Q17_OPTS = ["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"] as const;
+const Q18_OPTS = ["Yes", "No", "In evaluation"] as const;
+const Q15B_UNDER16_OPTS = [
+  "Yes — we knowingly process under-16 data",
+  "No — we do not knowingly process under-16 data",
+  "Unsure",
+] as const;
+const Q20_OPTS = ["Yes, with documented opt-out", "Planned for implementation", "No"] as const;
+const Q21_TRAINING_OPTS = [
+  "Yes — training ADMT for significant decisions",
+  "Yes — training facial/emotion/biometric recognition",
+  "No",
+] as const;
+const CA_CONSUMER_BAND = ["Fewer than 10,000", "10,000–100,000", "100,000–1,000,000", "More than 1,000,000", "Unsure"] as const;
+const DISCLOSURE_MECHANISMS = [
+  "Notice at Collection",
+  "Privacy policy",
+  "Just-in-time notice",
+  "Consent screen",
+  "Account-settings disclosure",
+  "Contract / terms of service",
+  "No standalone disclosure",
+] as const;
+const RETENTION_CRITERIA = [
+  "Fixed period from collection",
+  "Duration of account / relationship",
+  "Statutory or regulatory retention requirement",
+  "Until purpose is fulfilled, then deletion",
+  "Other criteria (described below)",
+] as const;
+const YES_NO_OPTS = ["Yes", "No"] as const;
+
+export const cppaRiskContract: IntakeContract = {
+  tool_type: "cppa_risk_assessment",
+  table: "cppa_risk_runs",
+  fields: [
+    // Business profile (Step 1 — all required)
+    { key: "entity_name",    kind: "text", required: "always" },
+    { key: "subject_anchor", kind: "text", required: "always" },
+    { key: "q1_revenue",     kind: "enum", required: "always", options: REVENUE_OPTS },
+    { key: "q2_consumers",   kind: "enum", required: "always", options: CONSUMER_OPTS },
+    { key: "q3_sector",      kind: "text", required: "always" },
+    { key: "q4_pi_categories", kind: "structured", required: "always" }, // array of PI category strings (page uses a Pills widget with an open list)
+    { key: "q5_sell_share",  kind: "enum", required: "always", options: Q5_SELL_SHARE_OPTS },
+    { key: "q5b_profiling_observation", kind: "enum", required: "always", options: Q5B_PROFILING_OPTS },
+    // Q5c only appears when q5 starts with "Yes"; hiddenValue is "".
+    { key: "q5c_share_revenue_50pct", kind: "enum", required: "conditional",
+      requiredWhen: 'q5_sell_share starts with "Yes"', hiddenValue: "",
+      options: SHARE_REVENUE_50PCT_OPTS },
+
+    // Consumer rights (Step 2)
+    { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; "
+    { key: "q6_right_know_multi", kind: "structured", required: "always" }, // string[] mirror of q6_right_know
+    { key: "q7_right_delete",     kind: "enum",       required: "always", options: Q7_OPTS },
+    { key: "q8_right_correct",    kind: "enum",       required: "always", options: Q8_OPTS },
+    { key: "q9_opt_out",          kind: "enum",       required: "always", options: Q9_OPTS },
+    { key: "q10_id_verification", kind: "enum",       required: "always", options: Q10_OPTS },
+
+    // Notices (Step 3)
+    { key: "q11_policy_review",       kind: "enum", required: "always", options: Q11_OPTS },
+    { key: "q12_notice_at_collection", kind: "enum", required: "always", options: Q12_OPTS },
+    { key: "q13_notice_content",       kind: "enum", required: "always", options: Q13_OPTS },
+    { key: "q14_employee_notice",      kind: "enum", required: "always", options: Q14_OPTS },
+
+    // Sensitive PI (Step 4)
+    { key: "q15_sensitive_pi",      kind: "enum", required: "always", options: Q15_SENSITIVE_PI_OPTS },
+    { key: "q15b_under16_knowledge", kind: "enum", required: "always", options: Q15B_UNDER16_OPTS },
+    { key: "q15c_spi_volume",       kind: "enum", required: "conditional",
+      requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
+      options: SPI_VOLUME_OPTS },
+    { key: "q16_sensitive_limit",   kind: "enum", required: "conditional",
+      requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
+      options: Q16_OPTS },
+    { key: "q17_sensitive_basis",   kind: "enum", required: "conditional",
+      requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
+      options: Q17_OPTS },
+
+    // ADMT (Step 5)
+    { key: "q18_admt_use",       kind: "enum",      required: "always", options: Q18_OPTS },
+    { key: "q19_admt_description", kind: "narrative", required: "conditional",
+      requiredWhen: 'q18_admt_use === "Yes" || q18_admt_use === "In evaluation"',
+      hiddenValue: "" },
+    { key: "q20_admt_opt_out",   kind: "enum",      required: "conditional",
+      requiredWhen: 'q18_admt_use === "Yes"', hiddenValue: "",
+      options: Q20_OPTS },
+    { key: "q18b_admt_training", kind: "enum",      required: "always", options: Q21_TRAINING_OPTS },
+
+    // Step 6 — I-series
+    { key: "i1_processing_purpose",  kind: "narrative",  required: "always" }, // ≥30 chars in form
+    { key: "i1b_min_pi",             kind: "narrative",  required: "always" }, // ≥20 chars in form
+    { key: "i2_retention_period",    kind: "text",       required: "always" },
+    { key: "i2_retention_criteria",  kind: "enum",       required: "always", options: RETENTION_CRITERIA },
+    { key: "i2_retention_detail",    kind: "narrative",  required: "optional" },
+    { key: "i3_ca_consumer_band",    kind: "enum",       required: "always", options: CA_CONSUMER_BAND },
+    { key: "i4_disclosure_mechanisms", kind: "multi-enum", required: "always", options: DISCLOSURE_MECHANISMS },
+    { key: "i4b_sources",            kind: "narrative",  required: "always" },
+    // I-5 fields are only required when ADMT trigger is engaged.
+    { key: "i5_admt_logic",          kind: "narrative",  required: "conditional",
+      requiredWhen: 'ADMT trigger engaged (q18_admt_use === "Yes" or "In evaluation")' },
+    { key: "i5_admt_training_source", kind: "narrative", required: "optional" },
+    { key: "i5_admt_fairness_testing", kind: "narrative", required: "optional" },
+    { key: "i5_admt_human_review",   kind: "narrative",  required: "conditional",
+      requiredWhen: 'ADMT trigger engaged' },
+    { key: "i6_vendors",             kind: "narrative",  required: "always" },
+    { key: "i7_internal_contributors", kind: "narrative", required: "always" },
+    { key: "i7_external_consultees", kind: "narrative",  required: "optional" },
+    { key: "i8_certifying_exec_name", kind: "text",      required: "always" },
+    { key: "i8_certifying_exec_title", kind: "text",     required: "always" },
+    { key: "i8_contact_phone",       kind: "text",       required: "optional" },
+    { key: "i8_contact_email",       kind: "text",       required: "optional" },
+    { key: "i9_has_existing_dpia",   kind: "enum",       required: "always", options: YES_NO_OPTS },
+    { key: "i9_existing_dpia_summary", kind: "narrative", required: "conditional",
+      requiredWhen: 'i9_has_existing_dpia === "Yes"', hiddenValue: "" },
+
+    // Structured optional blocks
+    { key: "exceptions_intake", kind: "structured", required: "optional" },
+    { key: "impact_intake",     kind: "structured", required: "optional" },
+
+    // Impact_intake enum leaves — advisory (impact_intake itself is
+    // optional; only enum-parity is enforced when present).
+    { key: "impact_intake.likelihood",      kind: "enum", required: "optional", options: IMPACT_LIKELIHOOD_OPTS },
+    { key: "impact_intake.severity",        kind: "enum", required: "optional", options: IMPACT_SEVERITY_OPTS },
+    { key: "impact_intake.benefitsOutweigh", kind: "enum", required: "optional", options: IMPACT_BENEFITS_OUTWEIGH_OPTS },
+    { key: "impact_intake.cyberGaps",       kind: "enum", required: "optional", options: IMPACT_CYBER_GAPS_OPTS },
+    { key: "impact_intake.harmTypes",       kind: "multi-enum", required: "optional", options: HARM_TYPES },
+  ],
+};
