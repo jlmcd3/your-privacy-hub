@@ -52,10 +52,14 @@ export interface CppaRiskContractFixture {
 // impact_intake benefits/rationale) are intentionally left blank/omitted
 // because the contract marks those conditional or optional — the revision
 // harness still surfaces them as asks.
+// RC-REM-P1-B (re-courier 2026-07-14): q4_pi_categories, q6_right_know_multi,
+// and q3_sector are now closed enums per the contract — fixture values
+// below are verbatim members of PI_CATEGORIES / Q6_ACCESS_OPTS / SECTORS
+// respectively (source: src/pages/CPPARiskAssessment.tsx L96-116, L857).
 const REQUIRED_ALWAYS_FILLERS = {
   q5b_profiling_observation: "No",
-  q6_right_know: "Online request form",
-  q6_right_know_multi: ["Online request form"],
+  q6_right_know: "Online form with identity verification",
+  q6_right_know_multi: ["Online form with identity verification"],
   q7_right_delete: "Manual process, documented",
   q8_right_correct: "Handled via support",
   q9_opt_out: "Yes, prominently on homepage",
