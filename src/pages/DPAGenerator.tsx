@@ -109,6 +109,12 @@ export default function DPAGenerator() {
     if (!form.processorName.trim()) return "Please enter the Processor name.";
     if (!form.services.trim()) return "Please describe the Services to be provided.";
     if (form.dataCategories.length === 0) return "Please select at least one data category.";
+    if (!form.retentionChoice) return "Please choose a retention / deletion option.";
+    if (form.retentionChoice === "Fixed period — specify" && !form.retentionFixedText.trim()) return "Please specify the fixed retention period.";
+    if (!form.auditRightsChoice) return "Please choose an audit-rights option.";
+    if (form.auditRightsChoice === "Custom — describe" && !form.auditRightsOtherText.trim()) return "Please describe the custom audit-rights arrangement.";
+    if (!form.transfersInvolved) return "Please answer whether the processing involves cross-jurisdiction transfers.";
+    if (form.transfersInvolved === "Yes" && !form.transferMechanism) return "Please select the transfer mechanism in place.";
     return null;
   };
 
