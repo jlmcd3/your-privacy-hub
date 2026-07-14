@@ -11,7 +11,7 @@
 import type { IntakeContract } from "./types.ts";
 import {
   JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER,
-} from "../../../src/lib/dpaDocumentType.ts";
+} from "../../../../src/lib/dpaDocumentType.ts";
 
 const DATA_CATS = [
   "General personal data", "Financial / payment data", "Location data",

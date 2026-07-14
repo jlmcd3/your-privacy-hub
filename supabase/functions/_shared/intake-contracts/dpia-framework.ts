@@ -15,7 +15,7 @@ import {
   LEGAL_BASES as DPIA_LEGAL_BASES,
   ARTICLE_9_CONDITIONS as DPIA_ART9,
   REASONS_TO_CONDUCT as DPIA_REASONS,
-} from "../../../src/pages/DPIAFramework.enums.ts";
+} from "../../../../src/pages/DPIAFramework.enums.ts";
 
 // SPECIAL_CATEGORY_CATS — page L58; gates article_9_condition requiredness.
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"] as const;
