@@ -18,8 +18,8 @@ const toolModule: ToolModule = {
   extraRules: "Tool-specific rules here.",
 };
 
-Deno.test("version is 3.7", () => {
-  assertEquals(PROMPT_CORE_VERSION, "3.7");
+Deno.test("version is 3.8", () => {
+  assertEquals(PROMPT_CORE_VERSION, "3.8");
 });
 
 Deno.test("v3.7 META rules present in prompt core", () => {
