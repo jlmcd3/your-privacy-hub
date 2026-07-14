@@ -125,13 +125,42 @@ export default function DPAGenerator() {
   const toggleCat = (c: string) =>
     setForm(f => ({ ...f, dataCategories: f.dataCategories.includes(c) ? f.dataCategories.filter(x => x !== c) : [...f.dataCategories, c] }));
 
+  const buildInvokeBody = () => {
+    const retention =
+      form.retentionChoice === "Fixed period — specify"
+        ? `Fixed period: ${form.retentionFixedText.trim()}`
+        : form.retentionChoice;
+    const auditRights =
+      form.auditRightsChoice === "Custom — describe"
+        ? `Other: ${form.auditRightsOtherText.trim()}`
+        : form.auditRightsChoice;
+    const includeTransferClause = form.transfersInvolved === "Yes";
+    const transferMechanism = includeTransferClause ? form.transferMechanism : "";
+    return {
+      entityName: form.entityName,
+      controllerName: form.controllerName,
+      controllerJurisdiction: form.controllerJurisdiction,
+      processorName: form.processorName,
+      processorJurisdiction: form.processorJurisdiction,
+      services: form.services,
+      dataCategories: form.dataCategories,
+      retention,
+      hasSubProcessors: form.hasSubProcessors,
+      subProcessorList: form.subProcessorList,
+      auditRights,
+      includeTransferClause,
+      transferMechanism,
+      documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type,
+    };
+  };
+
   const handleGenerate = async () => {
     setPhase("generating");
     const timeout = new Promise<never>((_, reject) =>
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type, user_id: access.user?.id, client_id: clientId ?? null } }),
+      supabase.functions.invoke("generate-dpa", { body: { ...buildInvokeBody(), user_id: access.user?.id, client_id: clientId ?? null } }),
 
       timeout,
     ]).catch((error) => ({ data: null, error }));
