@@ -670,7 +670,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     : "CCPA §1798.100(d); C.R.S. §6-1-1309 and Va. Code §59.1-580";
   const tools = Array.isArray(intake?.tools) && intake.tools.length ? intake.tools.join(", ") : "external workflow tools";
   const profile = intake?.sector ? `${intake.sector} organisation` : "organisation";
-  const hasCoreControls = Boolean(intake?.privacy_policy || intake?.acceptable_use || intake?.training_status || intake?.dpa_status);
+  const hasCoreControls = Boolean(intake?.privacy_policy || intake?.training_status || intake?.dpa_status);
 
   const domain_findings = Object.fromEntries(DOMAIN_DEFINITIONS.map((domain, idx) => {
     const severity = hasCoreControls
@@ -725,8 +725,11 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
+export const BUILD_STAMP = "9c3e8f1-gov-p5-acceptable-use-removed@2026-07-14T21:30Z";
+
 Deno.serve(async (req) => {
-  console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION}`);
+  console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
+  console.log(JSON.stringify({ evt: "gov_build_stamp", build_stamp: BUILD_STAMP }));
   console.log("[run-governance-assessment] qb7 build active · doc-y-2b");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -800,7 +803,7 @@ Technology tools in use: ${(intake.tools || []).join(", ") || "not specified"}
   Data categories processed: ${(intake.data_categories || []).join(", ") || "not specified"}
   Existing privacy policy: ${intake.privacy_policy || "not specified"}
   Privacy notice coverage: ${intake.privacy_notice_coverage || "not specified"}
-  Existing acceptable use policy: ${intake.acceptable_use || "not specified"}
+  
 DPO status: ${intake.dpo_status || "not specified"}
 DPIA status: ${intake.dpia_status || "not specified"}
 DPIA AI/high-risk coverage: ${intake.dpia_ai_coverage || "not specified"}

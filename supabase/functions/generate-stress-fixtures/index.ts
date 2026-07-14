@@ -168,7 +168,7 @@ Return a JSON object with EXACTLY these top-level fields:
     "sector": "string", "org_size": "string", "jurisdictions": ["array"],
     "eu_uk_data": "${isEU ? "Yes" : "No"}", "tools": ["array"], "data_categories": ["array"],
     "special_category": "Yes or No", "special_categories_list": [],
-    "privacy_policy": "string", "acceptable_use": "string", "dpo_status": "string",
+    "privacy_policy": "string", "dpo_status": "string",
     "dpia_status": "string", "incident_response": "string", "training_status": "string",
     "tool_instruction": "string", "dpa_status": "string", "transfer_status": "string"
   },
@@ -630,7 +630,7 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       special_category: usesBiometric || /health|hr|children|education/i.test(industry) ? "Yes" : "No",
       special_categories_list: usesBiometric ? ["biometric identifiers"] : [],
       privacy_policy: "Published and reviewed annually",
-      acceptable_use: "Documented for employees and platform users",
+      
       dpo_status: geo === "eu" ? "DPO appointed" : "Privacy lead appointed",
       dpia_status: "Completed for high-risk workflows",
       incident_response: "Documented playbook tested twice per year",
