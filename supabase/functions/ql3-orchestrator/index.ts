@@ -20,17 +20,80 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { resolveEnumRef } from "../_shared/field-enums.ts";
 import { computeVariance, VARIANCE_SAMPLES_N } from "../_shared/ql3-variance.ts";
+import { validateIntake } from "../_shared/intake-contracts/validate.ts";
+import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
+import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
+import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
+import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
+import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
+import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
 
 // RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
-// MUST be updated in the same edit that changes behavior in this file.
-// External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
-// post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
-// RC-C3.CLOSE-1 (item 1) — grader-variance band added.
-// QL3-OPEN-1 — revise_dummy filters register to status==="open" before
-// answering; items_before/after count OPEN only; items_resolved counts
-// open→resolved STATUS TRANSITIONS by id (not array-length delta).
-export const BUILD_STAMP = "5d2f9c1-ql3open1@2026-07-14T05:30Z";
+// RC-P5 (2026-07-14): fixture reachability sweep + startup validateIntake
+// assertion added; cyber partial-submission scenario pinned in SCENARIOS.
+export const BUILD_STAMP = "a91e37b4-rcP5-fixtures@2026-07-14T22:30Z";
+
+// RC-P5 — SCENARIOS: static map of contract-fixture expectations. Each entry
+// documents the honest revision-harness expectation post-P3/P4. Consumed by
+// the startup assertion below (validateIntake per fixture) and by external
+// review; QL3 does not seed intake at runtime — it operates on assessments
+// created by run-quality-batch from these fixtures.
+export const SCENARIOS = {
+  "cppa-cyber": {
+    contract: cppaCybersecurityContract,
+    fixtures: CYBER_CONTRACT_FIXTURES,
+    // RC-P5 (partial-submission): 15 of 18 controls populated; 3 empty
+    // (c13_training, c14_secure_dev, c15_third_party). First-gen expects
+    // per-control "Insufficient information" status entries and up to 3
+    // information_needed entries (3-cap in synthesiseCyberAsksFromControls).
+    // Dummy-answered via answered_items → resolution with controls[N].status
+    // changed_paths passing the P3 allowlist (DERIVED_PATHS.cppa_cybersecurity
+    // covers score/finding/priority/remediation peer leaves).
+    expect: "yield_k_up_to_3_open_items",
+  },
+  "governance": {
+    contract: governanceContract,
+    fixtures: GOVERNANCE_CONTRACT_FIXTURES,
+    // Post-P4: governance registry intentionally empty; fully-populated
+    // intake yields zero open_items.
+    expect: "zero_open_items",
+  },
+  "cppa-admt": {
+    contract: cppaAdmtContract,
+    fixtures: ADMT_CONTRACT_FIXTURES,
+    // Post-P4: reachable-empty notice_purpose_text and opt_out_methods via
+    // exception paths (Human appeal / Hiring / Work allocation) — canned
+    // verbatim strings elsewhere.
+    expect: "yield_k1_plus_reachable_empty",
+  },
+  "cppa-risk": {
+    contract: cppaRiskContract,
+    fixtures: CPPA_RISK_CONTRACT_FIXTURES,
+    expect: "mixed_yield_k3_partial_full",
+  },
+} as const;
+
+// RC-P5 — Startup assertion: refuse to run any scenario whose intake fails
+// validateIntake(contract, intake). Runs at module cold-start so the
+// x-internal-verification bypass can never again carry a form-unreachable
+// state (P1 tests re-cover this at CI time; this is the deploy-time gate).
+export function assertScenariosFormReachable(): void {
+  for (const [slug, s] of Object.entries(SCENARIOS)) {
+    for (const fx of s.fixtures as any[]) {
+      const res = validateIntake(s.contract as any, fx.intake as Record<string, unknown>);
+      if (!res.ok) {
+        const msg = `[ql3] SCENARIO_INTAKE_INVALID slug=${slug} fixture=${fx.fixture_id} violations=${JSON.stringify(res.violations)}`;
+        console.error(msg);
+        throw new Error(msg);
+      }
+    }
+  }
+}
+assertScenariosFormReachable();
+
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

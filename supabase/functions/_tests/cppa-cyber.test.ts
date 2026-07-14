@@ -44,9 +44,12 @@ Deno.test("cyber fixture controls array matches the pinned slug order 1:1", () =
 });
 
 Deno.test("cyber fixture answer_targets use DOTTED ask-vocabulary paths", () => {
+  // RC-P5: fixture bumped to 15/18 partial submission — 3 empty controls
+  // (c13_training, c14_secure_dev, c15_third_party) matching the 3-cap.
   assertEquals(FIXTURE_CYBER_YIELD_K1.answer_targets, [
     "controls.c13_training",
     "controls.c14_secure_dev",
+    "controls.c15_third_party",
   ]);
 });
 

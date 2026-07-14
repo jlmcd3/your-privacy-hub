@@ -1,29 +1,29 @@
-// RC-C3 C3.2 — Governance revision-contract fixtures.
+// RC-C3 C3.2 / RC-P5 — Governance revision-contract fixtures.
 //
-// Pinned intake authored to be deliberately THIN on two non-identity fields
-// so the generator's information-needed pass emits ≥1 verdict-blocking /
-// record-completeness open_item after `buildOpenItems` classification.
-// Identity-locked fields (organization_name, jurisdictions) are fully
-// populated per IDENTITY_LOCKED_FIELDS in _shared/open-items.ts — the freeze
-// must NEVER target those.
+// POST-P4 STATE (2026-07-14): the governance form no longer supports any
+// customer-reachable insufficiency state — every field either resolves to a
+// definite enum value or a legitimate `n/a` under a gate. Consequently the
+// deterministic ASK registry for governance is intentionally empty (see
+// ASK_ELIGIBLE_CRITICAL_FIELDS.governance_assessment in
+// _shared/insufficient-info-guard.ts) and `information_needed` for a
+// fully-populated intake MUST be `[]`.
 //
-// P1-C: values normalised to verbatim form options
-// (src/pages/GovernanceAssessment.tsx L43–L149, L594–L667) so this fixture
-// passes validateIntake(governanceContract, …) cleanly. Intentional thin
-// spots (`dpo_status`, `transfer_mechanism`, `privacy_notice_coverage`)
-// remain empty strings — the validator does not enforce conditional
-// requiredness, only enum verbatim-ness on present values.
+// This fixture therefore encodes a definite, fully-populated intake. Any
+// revision-harness expectation of "forced governance ask" is rewritten as a
+// zero-open-items outcome — the QL3 orchestrator scenario map asserts this.
+// Identity-locked fields (organization_name, jurisdictions) remain fully
+// populated; the freeze contract must NEVER target those.
 
 export interface GovernanceContractFixture {
   fixture_id: string;
-  contract_scenario: "yield_k1_plus";
+  contract_scenario: "yield_k1_plus" | "zero_open_items";
   intake: Record<string, unknown>;
-  answer_targets: string[]; // target.path prefixes the revision will answer
+  answer_targets: string[]; // empty when the fixture asserts zero-open-items
 }
 
 export const FIXTURE_GOV_YIELD_K1: GovernanceContractFixture = {
   fixture_id: "gov-rcC3-yield-k1-plus",
-  contract_scenario: "yield_k1_plus",
+  contract_scenario: "zero_open_items",
   intake: {
     organization_name: "Cordelia Analytics Ltd",
     sector: "Media/advertising",
@@ -37,9 +37,14 @@ export const FIXTURE_GOV_YIELD_K1: GovernanceContractFixture = {
     special_category: "No",
     special_categories_list: [],
     privacy_policy: "Yes, but outdated",
-    privacy_notice_coverage: "", // <-- record-completeness ask
-
-    dpo_status: "", // <-- verdict-blocking ask (EU/UK data + no DPO status)
+    // RC-P5: definite value — form radio (PRIVACY_NOTICE_COVERAGE) always
+    // resolves to one of four verbatim options when privacy_policy starts
+    // with "Yes"; empty is not form-reachable.
+    privacy_notice_coverage: "Partially — some activities or tools not yet reflected",
+    // RC-P5: definite value — DPO_STATUS radio ("Yes, formal DPO" |
+    // "Yes, informal privacy lead" | "No"); empty not form-reachable when
+    // eu_uk_data === "Yes".
+    dpo_status: "Yes, informal privacy lead",
     dpia_status: "Yes, one DPIA completed",
     dpia_ai_coverage: "Some covered",
     incident_response: "Documented but informal",
@@ -49,7 +54,9 @@ export const FIXTURE_GOV_YIELD_K1: GovernanceContractFixture = {
     dpa_status: "Most vendors",
     dpa_art28_verified: "Partially",
     transfer_status: "Yes, US-based tools",
-    transfer_mechanism: "", // <-- verdict-blocking ask (transfer without mechanism)
+    // RC-P5: definite value — TRANSFER_MECHANISM radio; empty not
+    // form-reachable when transfer_status ∈ {"Yes, US-based tools", …}.
+    transfer_mechanism: "EU Standard Contractual Clauses (SCCs)",
     technical_controls: "Partial — some tools or categories",
     technical_controls_list: [],
     dsr_capability: "Ad hoc / not documented",
@@ -57,8 +64,10 @@ export const FIXTURE_GOV_YIELD_K1: GovernanceContractFixture = {
     inventory_audit: "Inventory exists, no formal audit/approval",
     additional_context: "",
   },
-  answer_targets: ["dpo_status", "transfer_mechanism", "privacy_notice_coverage"],
+  // Post-P4: zero-open-items expected. No revision targets.
+  answer_targets: [],
 };
+
 
 export const GOVERNANCE_CONTRACT_FIXTURES: GovernanceContractFixture[] = [
   FIXTURE_GOV_YIELD_K1,

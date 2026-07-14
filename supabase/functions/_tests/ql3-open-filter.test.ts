@@ -37,5 +37,5 @@ Deno.test("QL3-OPEN-1 selectOpenForRevision — non-array yields []", () => {
 });
 
 Deno.test("QL3-OPEN-1 BUILD_STAMP bumped", () => {
-  assertEquals(BUILD_STAMP, "5d2f9c1-ql3open1@2026-07-14T05:30Z");
+  assertEquals(BUILD_STAMP, "a91e37b4-rcP5-fixtures@2026-07-14T22:30Z");
 });

@@ -54,14 +54,21 @@ const NOTES: Record<string, string> = {
   c10_segmentation:  "Prod/stage/dev VPC isolation; private subnets for data tier.",
   c11_port_protocol: "Security-group deny-by-default; approved ports registered in CMDB.",
   c12_awareness:     "Monthly phishing simulations and quarterly threat-landscape briefings.",
-  // c13_training, c14_secure_dev deliberately empty to force per-control asks
-  c15_third_party:   "Vendor security reviews prior to onboarding; annual reassessment.",
+  // c13_training, c14_secure_dev, c15_third_party deliberately empty (RC-P5:
+  // partial-submission — 15 of 18 controls populated, 3 empty, matching the
+  // 3-cap in synthesiseCyberAsksFromControls).
   c16_retention:     "Data-retention schedule enforced by Lifecycle Policies; PII purge 30d post-deletion.",
   c17_incident:      "Documented IR plan; tabletop exercised 2025-Q3; playbooks in Confluence.",
   c18_continuity:    "DR runbook; monthly restore drills; RTO 4h / RPO 15m.",
 };
 
-const INSUFFICIENT_SLUGS = new Set(["c13_training", "c14_secure_dev"]);
+// RC-P5: three empty controls yield the 3-cap of per-control asks. This is a
+// FORM-REACHABLE partial submission — the maturity <select> allows an unset
+// value and the form gates submission on `allComplete` for `profile.*` only,
+// not per-control. "Insufficient information" is NEVER a maturity VALUE (not
+// in CYBER_MATURITY_OPTIONS); it is the report-side STATUS the generator
+// derives from an empty maturity.
+const INSUFFICIENT_SLUGS = new Set(["c13_training", "c14_secure_dev", "c15_third_party"]);
 
 export const FIXTURE_CYBER_YIELD_K1: CyberContractFixture = {
   fixture_id: "cyber-rcC3-yield-k1-plus",
@@ -72,24 +79,22 @@ export const FIXTURE_CYBER_YIELD_K1: CyberContractFixture = {
       industry: "Healthcare SaaS",
       incidents_12mo: "1",
       framework: "SOC 2",
-      // RC-REM-P1: fixture corrected from ISO date to enum option (form
-      // last_audit is a <select>; free-text dates are not accepted).
       last_audit: "Within 12 months",
     },
     controls: LIVE_CONTROLS.map(({ key, label }) => ({
       key,
       label,
-      // RC-REM-P1: fixture corrected from "Implemented" (not a MATURITY
-      // option) to the verbatim enum value "Implemented across organization".
       maturity: INSUFFICIENT_SLUGS.has(key) ? "" : "Implemented across organization",
       notes: NOTES[key] ?? "",
     })),
   },
-  // RC-C3.CYB-2 (RULING 1): asks are DOTTED ASK-vocabulary paths.
-  // The tight alias map resolves each to `controls[N].status` for qc_rc_2;
-  // the revision prompt instructs the model to emit changed_paths in
-  // REPORT-SHAPE indexed vocabulary (controls[12].status, controls[13].status).
-  answer_targets: ["controls.c13_training", "controls.c14_secure_dev"],
+  // Dotted ASK-vocabulary paths (revision prompt emits report-shape indexed
+  // vocabulary controls[12/13/14].status via the alias map).
+  answer_targets: [
+    "controls.c13_training",
+    "controls.c14_secure_dev",
+    "controls.c15_third_party",
+  ],
 };
 
 export const CYBER_CONTRACT_FIXTURES: CyberContractFixture[] = [
