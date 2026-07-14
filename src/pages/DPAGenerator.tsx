@@ -321,6 +321,52 @@ export default function DPAGenerator() {
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
                 </div></fieldset>
+
+              <label className="block"><span className="font-semibold text-brand-navy">Retention / deletion at end of services<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(g) GDPR)</span></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.retentionChoice} onChange={e => setForm(f => ({ ...f, retentionChoice: e.target.value as typeof f.retentionChoice }))}>
+                  <option value="">— select an option —</option>
+                  <option value="As directed by the Controller's documented instructions">As directed by the Controller's documented instructions</option>
+                  <option value="For the duration of the principal agreement, then delete or return">For the duration of the principal agreement, then delete or return</option>
+                  <option value="Fixed period — specify">Fixed period — specify</option>
+                </select>
+                {form.retentionChoice === "Fixed period — specify" && (
+                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="e.g., 24 months from termination" value={form.retentionFixedText} onChange={e => setForm(f => ({ ...f, retentionFixedText: e.target.value }))} />
+                )}
+              </label>
+
+              <label className="block"><span className="font-semibold text-brand-navy">Audit rights<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(h) GDPR)</span></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.auditRightsChoice} onChange={e => setForm(f => ({ ...f, auditRightsChoice: e.target.value as typeof f.auditRightsChoice }))}>
+                  <option value="">— select an option —</option>
+                  <option value="Documentation review — Processor provides audit reports/certifications on request">Documentation review — Processor provides audit reports/certifications on request</option>
+                  <option value="Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice">Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice</option>
+                  <option value="Enhanced — on-site inspection on 30 days' notice plus continuous evidence access">Enhanced — on-site inspection on 30 days' notice plus continuous evidence access</option>
+                  <option value="Custom — describe">Custom — describe</option>
+                </select>
+                {form.auditRightsChoice === "Custom — describe" && (
+                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="Describe the audit arrangement" value={form.auditRightsOtherText} onChange={e => setForm(f => ({ ...f, auditRightsOtherText: e.target.value }))} />
+                )}
+              </label>
+
+              <label className="block"><span className="font-semibold text-brand-navy">Does the processing involve transfers of personal data across the jurisdictions above (or onward to third countries)?<Req /></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transfersInvolved} onChange={e => setForm(f => ({ ...f, transfersInvolved: e.target.value as typeof f.transfersInvolved, transferMechanism: e.target.value === "Yes" ? f.transferMechanism : "" }))}>
+                  <option value="">— select an option —</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </label>
+
+              {form.transfersInvolved === "Yes" && (
+                <label className="block"><span className="font-semibold text-brand-navy">Transfer mechanism in place<Req /></span>
+                  <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transferMechanism} onChange={e => setForm(f => ({ ...f, transferMechanism: e.target.value as typeof f.transferMechanism }))}>
+                    <option value="">— select a mechanism —</option>
+                    <option value="EU Standard Contractual Clauses (SCCs)">EU Standard Contractual Clauses (SCCs)</option>
+                    <option value="UK IDTA / UK Addendum to EU SCCs">UK IDTA / UK Addendum to EU SCCs</option>
+                    <option value="Binding Corporate Rules">Binding Corporate Rules</option>
+                    <option value="Adequacy decision or regulations">Adequacy decision or regulations</option>
+                    <option value="None in place yet">None in place yet</option>
+                  </select>
+                </label>
+              )}
             </div>
             <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
             <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
