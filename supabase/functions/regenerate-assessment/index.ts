@@ -396,6 +396,7 @@ Deno.serve(async (req) => {
       if (st !== "open") {
         logExit(400, { error: "item_not_open", item_id: a.item_id, status: st });
         return json({ error: "item_not_open", item_id: a.item_id, status: st, message: "answered_items must reference open items; already resolved/not_resolved items may not be re-answered" }, 400);
+      }
     }
     // RC-P3 §CHECK-B — ANSWERED-VALUE VALIDATION. Enforce the frozen
     // open_item.input_spec against the posted value BEFORE any side-effect
@@ -405,8 +406,8 @@ Deno.serve(async (req) => {
     // Refine surface (src/components/refine/OpenItemsList.tsx L107-119) posts
     // boolean+evidence as `{ item_id, value: boolean, evidence?: string }` —
     // the boolean rides on `value`, evidence rides on a separate top-level
-    // field (NOT wrapped inside value). Both wrapped `{ value, evidence }`
-    // and flat shapes are accepted here for robustness (batch/QL3 callers).
+    // field (NOT wrapped inside value). Both flat and legacy wrapped
+    // `{ value:boolean, evidence?:string }` shapes are accepted here.
     const openItemById = new Map(openItems.map((o: any) => [o.id, o]));
     for (const a of items) {
       const item: any = openItemById.get(a.item_id);
@@ -416,7 +417,7 @@ Deno.serve(async (req) => {
       if (kind === "re-select") {
         const opts = resolveEnumRef(spec?.enum_ref) ?? null;
         if (!opts || opts.length === 0) {
-          // Server config error, not user error. Do NOT 400 the user; return 500-class.
+          // Server config error, not user error. Do NOT 400 the user.
           console.error(JSON.stringify({
             evt: "invalid_answer_value_config",
             item_id: a.item_id,
@@ -459,8 +460,6 @@ Deno.serve(async (req) => {
           return json({ error: "invalid_answer_value", item_id: a.item_id, reason: `narrative exceeds max_chars=${cap}` }, 400);
         }
       } else if (kind === "boolean+evidence") {
-        // Refine surface posts: value: boolean, evidence?: string (top-level).
-        // Accept legacy wrapped shape: { value: boolean, evidence?: string }.
         let boolVal: unknown = v;
         if (v && typeof v === "object" && !Array.isArray(v)) {
           if (typeof (v as any).value !== "boolean") {
@@ -477,16 +476,14 @@ Deno.serve(async (req) => {
         // Shape-only: must be a non-null object or array. P1 contract-field
         // key validation deferred (target.path→contract field mapping is
         // per-tool; safe default until QL3 confirms per-path shapes).
-        if (v === null || (typeof v !== "object")) {
+        if (v === null || typeof v !== "object") {
           logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "structured_wrong_shape" });
           return json({ error: "invalid_answer_value", item_id: a.item_id, reason: "structured value must be an object or array" }, 400);
         }
       }
-      // Unknown kinds pass through unchanged (belt-and-braces: never a hard
-      // stop for a spec we don't recognise; logged for audit).
+      // Unknown kinds pass through unchanged.
     }
 
-    }
     // RC-D.8 IDEMPOTENCY CLAIM — before ANY side-effect (snapshot, meter,
     // status flip), atomically claim the dispatch_nonce. Duplicate deliveries
     // (at-least-once gateway retries, or writer races) fail the insert and
