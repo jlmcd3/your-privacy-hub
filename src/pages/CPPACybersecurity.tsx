@@ -41,15 +41,11 @@ import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
-// RC-C3.CLOSE-1 — exported so the refine surface (fieldEnums) and the
-// server-side QL3 mirror stay content-anchored to the intake page.
-export const MATURITY = [
-  "Not implemented",
-  "Ad hoc / informal",
-  "Documented, partially implemented",
-  "Implemented across organization",
-  "Implemented with continuous monitoring",
-] as const;
+// RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
+// shared components (refine surface) don't import this page module. Re-export
+// kept for any external references to `@/pages/CPPACybersecurity`.
+export { MATURITY } from "./CPPACybersecurity.enums";
+import { MATURITY } from "./CPPACybersecurity.enums";
 
 type Control = { key: string; label: string; description: string; citation: string };
 
