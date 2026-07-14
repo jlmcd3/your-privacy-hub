@@ -1027,7 +1027,10 @@ Return JSON:
   ]
 }
 
+GOVERNANCE information_needed CLOSURE (2026-07-14 CEO ruling): every governance intake field is a required question with a definite answer on the current form — there is no customer-reachable "unknown" state for enumerated fields. information_needed MUST be [] unless a field's value in the INTAKE SUMMARY is literally empty (structurally absent / blank string). Do not populate information_needed to request confirmation, elaboration, or "please provide" refinements on any populated enumerated field; those go in domain-finding remediation as verification items, not as intake asks.
+
 Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`;
+
 
     // L5 GOVERNANCE INJECTION (synthesis stage only): verbatim GDPR article text
     // for the applicable regime. Domain stage is untouched.
