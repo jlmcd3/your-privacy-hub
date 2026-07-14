@@ -221,9 +221,15 @@ async function runOneUnit(runId: string) {
 
       const { row, cfg } = await readAssessment(run.tool_slug, run.assessment_id);
       if (!row) throw new Error("assessment row missing");
-      const openItems: any[] = Array.isArray((row as any)?.report_data?.open_items)
+      // QL3-OPEN-1: the register contains items in every status
+      // (open / resolved / not_resolved). Only OPEN items are legitimate
+      // targets for a dummy revision — regenerate-assessment refuses
+      // item_not_open per RC-D.4, and that refusal previously turned
+      // the whole pass into dispatch_400. Filter here, then measure.
+      const registerAll: any[] = Array.isArray((row as any)?.report_data?.open_items)
         ? (row as any).report_data.open_items
         : [];
+      const openItems: any[] = registerAll.filter((it: any) => it?.status === "open");
       const itemsBefore = openItems.length;
       // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
       const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
