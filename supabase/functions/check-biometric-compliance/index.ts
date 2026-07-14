@@ -1,6 +1,8 @@
 // qb8 build active
-// BUILD_STAMP: bio-p3-remove-enrolledcount@2026-07-14T19:15Z
-console.log("[build-marker] check-biometric-compliance bio-p3-remove-enrolledcount@2026-07-14T19:15Z");
+// BUILD_STAMP — real exported constant (was previously a comment; telemetry could
+// not verify the deploy). Bump on every behavior edit. External-verification gate:
+// clone HEAD sha == BUILD_STAMP prefix.
+export const BUILD_STAMP = "7f2c9a1-bio-p3@2026-07-14T20:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -795,7 +797,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     annotations: [],
     lint_warnings: [],
     generated_at: new Date().toISOString(),
-    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress") },
+    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP },
   };
 
   let savedId: string | null = null;
@@ -837,8 +839,8 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9-rcb1] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION}`);
-  console.log("[check-biometric-compliance] qb7 qb7r build active");
+  console.log(`[qb9-rcb1] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
+  console.log(JSON.stringify({ evt: "bio_build_stamp", build_stamp: BUILD_STAMP }));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -1406,7 +1408,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb") },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP },
     };
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.
