@@ -285,7 +285,7 @@ function formatEnforcementContext(rows: any[]): string {
 }
 
 async function runStressBiometric(body: Body, resolvedUserId: string | null) {
-  const bipaRisk = null;
+  // bipa_risk retired 2026-07-14 — hard-null since enrolledCount removal; field removed from report_data.
 
   function stressSection(jurisdiction: string): string {
     const j = jurisdiction.toLowerCase();
