@@ -419,7 +419,7 @@ export const DPA_VARIANTS = [
     services:
       "AI-powered patient risk stratification analytics, including data ingestion, model inference, risk score generation, and structured report return.",
     dataCategories: ["Health / medical data", "Employee / HR data"],
-    dataSubjectCount: "approximately 50,000",
+    
     retention: "24 months for risk scores; raw patient data not retained.",
     hasSubProcessors: true,
     subProcessorList: "Microsoft Azure (EU), Snowflake Inc (EU).",
@@ -436,7 +436,7 @@ export const DPA_VARIANTS = [
     services:
       "Real-time card-not-present fraud-detection scoring service, including feature engineering, model inference and decision return.",
     dataCategories: ["Financial / transaction data", "Customer / contact data", "Device / technical data"],
-    dataSubjectCount: "approximately 3,000,000",
+    
     retention: "Model features 13 months; decisions 6 years for regulatory retention.",
     hasSubProcessors: true,
     subProcessorList: "Amazon Web Services (EU regions).",
@@ -453,7 +453,7 @@ export const DPA_VARIANTS = [
     services:
       "Transactional and marketing email delivery, including list management, send orchestration, deliverability analytics and engagement event capture.",
     dataCategories: ["Customer / contact data", "Behavioural / engagement data"],
-    dataSubjectCount: "approximately 8,000,000",
+    
     retention: "Engagement events 18 months; suppression list indefinitely.",
     hasSubProcessors: true,
     subProcessorList: "Twilio Inc. (US); Google Cloud Platform (US).",
@@ -470,7 +470,7 @@ export const DPA_VARIANTS = [
     services:
       "Fleet telematics platform — in-cab device data collection, transmission, storage and reporting for HGV fleet operations.",
     dataCategories: ["Employee / HR data", "Location data", "Device / technical data"],
-    dataSubjectCount: "approximately 1,200",
+    
     retention: "Raw telemetry 12 months; aggregated reports 5 years.",
     hasSubProcessors: true,
     subProcessorList: "Microsoft Azure (EU regions).",

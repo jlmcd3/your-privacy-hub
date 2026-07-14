@@ -98,7 +98,7 @@ const DPA_BODY = (userId: string) => ({
   services:
     "Processing of patient health records on behalf of the Controller to provide AI-powered risk stratification analytics.",
   dataCategories: ["Health / medical data", "Employee / HR data"],
-  dataSubjectCount: "approximately 50,000",
+  
   retention: "Risk scores retained for 24 months; raw patient data not retained by Processor.",
   hasSubProcessors: true,
   subProcessorList: "Microsoft Azure (EU region); Snowflake Inc (EU region).",

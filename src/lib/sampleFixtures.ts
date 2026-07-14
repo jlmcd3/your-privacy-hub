@@ -179,7 +179,7 @@ const F_DPA_EU: SampleFixture = {
       services:
         "Payroll calculation, HR record-keeping, benefits administration, and statutory reporting for the Controller's ~2,400 UK-based mining and corporate employees, including underground shift workers.",
       dataCategories: ["Employee / HR data", "Financial / payment data", "Government identifiers (NI numbers)"],
-      dataSubjectCount: "approximately 2,400",
+      
       retention: "Active employment plus 6 years post-termination (UK statutory retention for payroll records).",
       hasSubProcessors: true,
       subProcessorList:
