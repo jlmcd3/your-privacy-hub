@@ -28,7 +28,7 @@ export const FIXTURE_ADMT_YIELD_K1: AdmtContractFixture = {
     human_review: "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
     // Radio — ["Yes","No"] (L943). "Unsure" removed per RC-P6.
     training_data_use: "Yes",
-    // Radio — ["Yes","No","Unsure"] (L955). Profiling retains "Unsure" pending separate ruling.
+    // Radio — ["Yes","No"] (L955). "Unsure" removed per RC-Cleanup2.
     profiling_use: "Yes",
     // Free-text <input> (L782–787).
     admt_system_count: "1",
