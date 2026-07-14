@@ -46,6 +46,39 @@ export interface CppaRiskContractFixture {
 //      empty benefits text and blank rationale surface as
 //      information_needed entries (§ 7152(a)(4) benefits + § 7154 balancing).
 // Total floor of asks is comfortably ≥3.
+// RC-REM-P1-B: fixtures expanded with all form-gated required-always
+// fields so validateIntake(cppaRiskContract, fixture.intake) passes with
+// zero violations. Thin-spot fields (q15c, q19/q20 where q18-conditional,
+// impact_intake benefits/rationale) are intentionally left blank/omitted
+// because the contract marks those conditional or optional — the revision
+// harness still surfaces them as asks.
+const REQUIRED_ALWAYS_FILLERS = {
+  q5b_profiling_observation: "No",
+  q6_right_know: "Online request form",
+  q6_right_know_multi: ["Online request form"],
+  q7_right_delete: "Manual process, documented",
+  q8_right_correct: "Handled via support",
+  q9_opt_out: "Yes, prominently on homepage",
+  q10_id_verification: "Documented verification process matching CPPA guidance",
+  q11_policy_review: "Within 12 months",
+  q12_notice_at_collection: "Yes, covers all collection points",
+  q13_notice_content: "Yes, all three",
+  q14_employee_notice: "Not applicable (no CA employees)",
+  q15b_under16_knowledge: "No — we do not knowingly process under-16 data",
+  q18b_admt_training: "No",
+  i1b_min_pi: "Identifiers and processing-related fields; no ancillary categories.",
+  i2_retention_period: "24 months",
+  i2_retention_criteria: "Until purpose is fulfilled, then deletion",
+  i3_ca_consumer_band: "100,000–1,000,000",
+  i4_disclosure_mechanisms: ["Privacy policy"],
+  i4b_sources: "Directly from consumers via the product",
+  i6_vendors: "None",
+  i7_internal_contributors: "Privacy Office; Product Engineering",
+  i8_certifying_exec_name: "Alex Certifier",
+  i8_certifying_exec_title: "Chief Privacy Officer",
+  i9_has_existing_dpia: "No",
+} as const;
+
 export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
   fixture_id: "cppa-risk-rcC1-yield-k3",
   contract_scenario: "yield_k3",
@@ -69,6 +102,7 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       // benefits + rationale intentionally omitted — surface as asks
     },
     exceptions_intake: {},
+    ...REQUIRED_ALWAYS_FILLERS,
   },
   answer_targets: [
     "q15c_spi_volume", "q18_admt_use", "impact",
