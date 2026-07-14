@@ -20,7 +20,7 @@
 // This module NEVER changes the frozen open_items array shape or count.
 import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding, validateChangedPathShapes } from "./revision-patch.ts";
 import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
-import { qcVerdictConsistency } from "./revision-qc.ts";
+import { qcVerdictConsistency, qcChangedPathsAuthorized } from "./revision-qc.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { mapItemsToUnits } from "./dpia-unit-map.ts";
@@ -61,7 +61,8 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // RC-C3.CYB-2 stamp bump: cyber report-shape vocabulary instruction +
 // pre-apply patch-path shape validator (rejects ask-vocab writes against
 // mismatched report shapes as 409 revision_malformed_patch_shape).
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-c3.cyb-2";
+// RC-P3 stamp bump: server-side changed_paths allowlist (rejects undeclared-target writes).
+export const REVISION_PROMPT_STAMP = "rev-scope@rc-p3";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
@@ -154,7 +155,7 @@ function buildRevisionPrompt(opts: {
   const answeredIdList = answeredItems.map((a) => a.item.id);
   const system = [
     `REVISION SCOPE [${REVISION_PROMPT_STAMP}] — this is a SCOPED-DELTA revision, NOT a re-generation.`,
-    "You are re-determining ONLY the report determinations that the ANSWERED_ITEMS below feed. Untouched sections MUST NOT be re-written; the server enforces this with a SHA-256 hash comparison over the untouched subtree and will REJECT any patch whose untouched paths differ from the prior report.",
+    "You are re-determining ONLY the report determinations that the ANSWERED_ITEMS below feed. The server enforces BOTH invariants on every submission: (1) UNTOUCHED-SUBTREE HASH — a SHA-256 comparison over the untouched paths REJECTS any patch whose out-of-declaration prose or values differ from the prior report; (2) CHANGED-PATHS ALLOWLIST — every entry in changed_paths must equal or descend from the target.path of an answered_item (or one of its explicit aliases), or from a per-tool enumerated set of paths the generator legitimately re-derives alongside an answer. Writes to undeclared targets are REJECTED with `revision_unauthorized_changed_path` (409, no partial apply, row status reverts).",
     "",
     "OUTPUT CONTRACT — return ONLY a single JSON object of this shape (no preamble, no code fences):",
     "{",
@@ -445,6 +446,23 @@ export async function handleRevisionMode(
       return jsonResp({
         error: "revision_hollow_resolution",
         qc: preQc,
+      }, 409);
+    }
+    // RC-P3 §CHECK-A — CHANGED-PATHS ALLOWLIST. Every changed_path must
+    // resolve to (a) an answered-item target (via alias map) or (b) an
+    // enumerated per-tool DERIVED_PATHS entry. Server-owned bookkeeping
+    // keys are stripped pre-check because revision-mode overwrites them.
+    const preAllow = qcChangedPathsAuthorized(
+      answeredPack.map((a) => ({ target: { path: a.item.target?.path } })),
+      changedPathsIn,
+      toolType,
+    );
+    if (preAllow.status === "red") {
+      console.error(`[revision:${toolType}] pre_apply_qc_red ${preAllow.code}: ${preAllow.detail}`);
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, `pre_apply_${preAllow.code}`);
+      return jsonResp({
+        error: "revision_unauthorized_changed_path",
+        qc: preAllow,
       }, 409);
     }
   }
