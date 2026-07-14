@@ -396,7 +396,96 @@ Deno.serve(async (req) => {
       if (st !== "open") {
         logExit(400, { error: "item_not_open", item_id: a.item_id, status: st });
         return json({ error: "item_not_open", item_id: a.item_id, status: st, message: "answered_items must reference open items; already resolved/not_resolved items may not be re-answered" }, 400);
+    }
+    // RC-P3 §CHECK-B — ANSWERED-VALUE VALIDATION. Enforce the frozen
+    // open_item.input_spec against the posted value BEFORE any side-effect
+    // (snapshot, meter, status flip). Same shape as answered_item_missing_value:
+    // 400 { error: "invalid_answer_value", item_id, reason }.
+    //
+    // Refine surface (src/components/refine/OpenItemsList.tsx L107-119) posts
+    // boolean+evidence as `{ item_id, value: boolean, evidence?: string }` —
+    // the boolean rides on `value`, evidence rides on a separate top-level
+    // field (NOT wrapped inside value). Both wrapped `{ value, evidence }`
+    // and flat shapes are accepted here for robustness (batch/QL3 callers).
+    const openItemById = new Map(openItems.map((o: any) => [o.id, o]));
+    for (const a of items) {
+      const item: any = openItemById.get(a.item_id);
+      const spec = item?.input_spec ?? {};
+      const kind = String(spec?.kind ?? "").toLowerCase();
+      const v = (a as any).value;
+      if (kind === "re-select") {
+        const opts = resolveEnumRef(spec?.enum_ref) ?? null;
+        if (!opts || opts.length === 0) {
+          // Server config error, not user error. Do NOT 400 the user; return 500-class.
+          console.error(JSON.stringify({
+            evt: "invalid_answer_value_config",
+            item_id: a.item_id,
+            enum_ref: spec?.enum_ref ?? null,
+            reason: "enum_ref_unresolved_or_empty",
+          }));
+          logExit(500, { error: "invalid_answer_value_config", item_id: a.item_id });
+          return json({
+            error: "invalid_answer_value_config",
+            item_id: a.item_id,
+            reason: "enum_ref_unresolved_or_empty",
+            message: "Server enum registry did not resolve this item's enum_ref. Not a client error.",
+          }, 500);
+        }
+        const optSet = new Set(opts as readonly string[]);
+        if (Array.isArray(v)) {
+          for (const el of v) {
+            if (typeof el !== "string" || !optSet.has(el)) {
+              logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "enum_member_not_in_options", value: el });
+              return json({ error: "invalid_answer_value", item_id: a.item_id, reason: `enum member "${String(el)}" is not in the input_spec enum` }, 400);
+            }
+          }
+        } else if (typeof v === "string") {
+          if (!optSet.has(v)) {
+            logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "enum_not_in_options", value: v });
+            return json({ error: "invalid_answer_value", item_id: a.item_id, reason: `value "${v}" is not in the input_spec enum` }, 400);
+          }
+        } else {
+          logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "enum_wrong_shape" });
+          return json({ error: "invalid_answer_value", item_id: a.item_id, reason: "re-select value must be a string or string[]" }, 400);
+        }
+      } else if (kind === "bounded-narrative") {
+        if (typeof v !== "string") {
+          logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "narrative_wrong_shape" });
+          return json({ error: "invalid_answer_value", item_id: a.item_id, reason: "bounded-narrative value must be a string" }, 400);
+        }
+        const cap = Number(spec?.max_chars ?? 1200);
+        if (v.length > cap) {
+          logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "narrative_over_cap" });
+          return json({ error: "invalid_answer_value", item_id: a.item_id, reason: `narrative exceeds max_chars=${cap}` }, 400);
+        }
+      } else if (kind === "boolean+evidence") {
+        // Refine surface posts: value: boolean, evidence?: string (top-level).
+        // Accept legacy wrapped shape: { value: boolean, evidence?: string }.
+        let boolVal: unknown = v;
+        if (v && typeof v === "object" && !Array.isArray(v)) {
+          if (typeof (v as any).value !== "boolean") {
+            logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "boolean_wrong_shape" });
+            return json({ error: "invalid_answer_value", item_id: a.item_id, reason: "boolean+evidence wrapped shape requires value:boolean" }, 400);
+          }
+          boolVal = (v as any).value;
+        }
+        if (typeof boolVal !== "boolean") {
+          logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "boolean_wrong_shape" });
+          return json({ error: "invalid_answer_value", item_id: a.item_id, reason: "boolean+evidence requires a boolean value" }, 400);
+        }
+      } else if (kind === "structured") {
+        // Shape-only: must be a non-null object or array. P1 contract-field
+        // key validation deferred (target.path→contract field mapping is
+        // per-tool; safe default until QL3 confirms per-path shapes).
+        if (v === null || (typeof v !== "object")) {
+          logExit(400, { error: "invalid_answer_value", item_id: a.item_id, reason: "structured_wrong_shape" });
+          return json({ error: "invalid_answer_value", item_id: a.item_id, reason: "structured value must be an object or array" }, 400);
+        }
       }
+      // Unknown kinds pass through unchanged (belt-and-braces: never a hard
+      // stop for a spec we don't recognise; logged for audit).
+    }
+
     }
     // RC-D.8 IDEMPOTENCY CLAIM — before ANY side-effect (snapshot, meter,
     // status flip), atomically claim the dispatch_nonce. Duplicate deliveries
