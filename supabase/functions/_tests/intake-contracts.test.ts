@@ -73,6 +73,9 @@ import {
   dpaGeneratorContract,
   DPA_JURISDICTIONS,
   DPA_DATA_CATS,
+  DPA_RETENTION_OPTIONS,
+  DPA_AUDIT_RIGHTS_OPTIONS,
+  DPA_TRANSFER_MECHANISM_OPTIONS,
 } from "../_shared/intake-contracts/dpa-generator.ts";
 import {
   irPlaybookContract,
