@@ -33,6 +33,7 @@ import {
   IMPACT_BENEFITS_OUTWEIGH_OPTS as RISK_IMPACT_BENEFITS,
   IMPACT_CYBER_GAPS_OPTS as RISK_IMPACT_CYBER,
   HARM_TYPES as RISK_HARM_TYPES,
+  CPPA_RISK_INLINE_LISTS,
 } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
 import {
   cppaAdmtContract,
@@ -155,6 +156,22 @@ Deno.test("intake-contracts / risk PARITY — contract enums === form enums", ()
   assertEquals([...RISK_IMPACT_BENEFITS], [...RiskEnums.IMPACT_BENEFITS_OUTWEIGH_OPTS]);
   assertEquals([...RISK_IMPACT_CYBER], [...RiskEnums.IMPACT_CYBER_GAPS_OPTS]);
   assertEquals([...RISK_HARM_TYPES], [...RiskEnums.HARM_TYPES]);
+});
+
+Deno.test("intake-contracts / risk PARITY — inline-list literals match page source", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../src/pages/CPPARiskAssessment.tsx", import.meta.url),
+  );
+  // For each inline list, every option string must appear verbatim in the
+  // page source. Guards against silent drift in q4/q6/q3 option copies.
+  for (const [listName, opts] of Object.entries(CPPA_RISK_INLINE_LISTS)) {
+    for (const opt of opts as readonly string[]) {
+      assert(
+        src.includes(opt),
+        `CPPA_RISK_INLINE_LISTS.${listName} option not found verbatim in page source: ${JSON.stringify(opt)}`,
+      );
+    }
+  }
 });
 
 Deno.test("intake-contracts / risk MIRROR — FIELD_ENUM_MIRROR entries match contract", () => {

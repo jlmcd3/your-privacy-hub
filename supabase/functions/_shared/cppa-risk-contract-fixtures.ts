@@ -52,10 +52,14 @@ export interface CppaRiskContractFixture {
 // impact_intake benefits/rationale) are intentionally left blank/omitted
 // because the contract marks those conditional or optional — the revision
 // harness still surfaces them as asks.
+// RC-REM-P1-B (re-courier 2026-07-14): q4_pi_categories, q6_right_know_multi,
+// and q3_sector are now closed enums per the contract — fixture values
+// below are verbatim members of PI_CATEGORIES / Q6_ACCESS_OPTS / SECTORS
+// respectively (source: src/pages/CPPARiskAssessment.tsx L96-116, L857).
 const REQUIRED_ALWAYS_FILLERS = {
   q5b_profiling_observation: "No",
-  q6_right_know: "Online request form",
-  q6_right_know_multi: ["Online request form"],
+  q6_right_know: "Online form with identity verification",
+  q6_right_know_multi: ["Online form with identity verification"],
   q7_right_delete: "Manual process, documented",
   q8_right_correct: "Handled via support",
   q9_opt_out: "Yes, prominently on homepage",
@@ -87,8 +91,12 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
     subject_anchor: "Mental-health triage service",
     q1_revenue: "$100M–$500M",
     q2_consumers: "1–10 million",
-    q3_sector: "Healthcare",
-    q4_pi_categories: ["Identifiers", "Health information", "Inferred mental-health state"],
+    q3_sector: "Healthcare/Life Sciences",
+    q4_pi_categories: [
+      "Contact identifiers (name, email, phone)",
+      "Health or medical information",
+      "Other",
+    ],
     q5_sell_share: "No",
     q15_sensitive_pi: "Yes",
     q15c_spi_volume: "", // <-- ask
@@ -127,7 +135,11 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
     q1_revenue: "$50M–$100M",
     q2_consumers: "250,000–1 million",
     q3_sector: "Financial services",
-    q4_pi_categories: ["Identifiers", "Financial information", "Precise geolocation"],
+    q4_pi_categories: [
+      "Contact identifiers (name, email, phone)",
+      "Financial information",
+      "Precise geolocation (GPS-level / specific address)",
+    ],
     q5_sell_share: "Yes — share for advertising only",
     q5c_share_revenue_50pct: "", // ask
     q15_sensitive_pi: "Yes",
@@ -159,8 +171,12 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
     subject_anchor: "Loyalty-program personalization engine",
     q1_revenue: "$25M–$50M",
     q2_consumers: "100,000–249,999",
-    q3_sector: "Retail",
-    q4_pi_categories: ["Identifiers", "Commercial information", "Precise geolocation"],
+    q3_sector: "Retail/ecommerce",
+    q4_pi_categories: [
+      "Contact identifiers (name, email, phone)",
+      "Internet or network activity",
+      "Precise geolocation (GPS-level / specific address)",
+    ],
     q5_sell_share: "Yes — share for advertising only",
     q5c_share_revenue_50pct: "No",
     q15_sensitive_pi: "No",

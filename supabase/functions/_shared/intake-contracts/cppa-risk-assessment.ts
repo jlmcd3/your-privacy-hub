@@ -37,9 +37,10 @@ export const HARM_TYPES = [
 ] as const;
 
 // Page-inline option lists (see CPPARiskAssessment.tsx line numbers in
-// comments below). Parity for these is not asserted against a form module
-// (they live inline in the JSX); the sanity check is that the contract's
-// options string list is unique per key.
+// comments below). These live inline in the JSX (or as page-local const
+// arrays not re-exported from .enums.ts); parity for them is spot-checked
+// via CPPA_RISK_INLINE_LISTS below (imported into the test module and
+// asserted against the page source via a substring anchor).
 const Q5B_PROFILING_OPTS = [
   "Yes — systematic observation of workers/students/applicants",
   "Yes — based on sensitive-location presence",
@@ -92,6 +93,63 @@ const RETENTION_CRITERIA = [
 ] as const;
 const YES_NO_OPTS = ["Yes", "No"] as const;
 
+// Fixed inline option lists on the page (verbatim copies from
+// src/pages/CPPARiskAssessment.tsx):
+//   • PI_CATEGORIES     — L97   (rendered by <Pills options={PI_CATEGORIES}> at L816)
+//   • Q6_ACCESS_OPTS    — inline at L857 (rendered by <Pills options={[...]}> at L856)
+//   • SECTORS           — L96   (rendered by <select> at L807-810)
+// These are anchored, closed lists with no free-text "Other" fold-in on
+// the field (PI_CATEGORIES includes a literal "Other" pill that is a
+// selectable enum member, not a text input), so they are registered as
+// enum / multi-enum and asserted via CPPA_RISK_INLINE_LISTS parity below.
+const PI_CATEGORIES = [
+  "Contact identifiers (name, email, phone)",
+  "Device identifiers (IP, cookies, device IDs)",
+  "Internet or network activity",
+  "Precise geolocation (GPS-level / specific address)",
+  "General location (city, region, ZIP, IP-derived)",
+  "Financial information",
+  "Health or medical information",
+  "Biometric information",
+  "Genetic data",
+  "Racial or ethnic origin",
+  "Religious or philosophical beliefs",
+  "Union membership",
+  "Sexual orientation or gender identity",
+  "Citizenship or immigration status",
+  "Employment information",
+  "Education information",
+  "Children's data (under 16)",
+  "Other",
+] as const;
+const Q6_ACCESS_OPTS = [
+  "Online form with identity verification",
+  "Email or written request process",
+  "In-app account settings",
+  "No formal process in place",
+] as const;
+const SECTORS = [
+  "Technology/SaaS",
+  "Healthcare/Life Sciences",
+  "Financial services",
+  "Retail/ecommerce",
+  "Media/advertising",
+  "Professional services",
+  "Education",
+  "Government/public sector",
+  "Legal services",
+  "Manufacturing",
+  "Other",
+] as const;
+
+// Exposed for the test module — verifies verbatim parity with the page
+// inline literals (the .enums.ts module doesn't export these).
+export const CPPA_RISK_INLINE_LISTS = {
+  PI_CATEGORIES,
+  Q6_ACCESS_OPTS,
+  SECTORS,
+};
+
 export const cppaRiskContract: IntakeContract = {
   tool_type: "cppa_risk_assessment",
   table: "cppa_risk_runs",
@@ -101,8 +159,8 @@ export const cppaRiskContract: IntakeContract = {
     { key: "subject_anchor", kind: "text", required: "always" },
     { key: "q1_revenue",     kind: "enum", required: "always", options: REVENUE_OPTS },
     { key: "q2_consumers",   kind: "enum", required: "always", options: CONSUMER_OPTS },
-    { key: "q3_sector",      kind: "text", required: "always" },
-    { key: "q4_pi_categories", kind: "structured", required: "always" }, // array of PI category strings (page uses a Pills widget with an open list)
+    { key: "q3_sector",      kind: "enum", required: "always", options: SECTORS },
+    { key: "q4_pi_categories", kind: "multi-enum", required: "always", options: PI_CATEGORIES },
     { key: "q5_sell_share",  kind: "enum", required: "always", options: Q5_SELL_SHARE_OPTS },
     { key: "q5b_profiling_observation", kind: "enum", required: "always", options: Q5B_PROFILING_OPTS },
     // Q5c only appears when q5 starts with "Yes"; hiddenValue is "".
@@ -111,8 +169,8 @@ export const cppaRiskContract: IntakeContract = {
       options: SHARE_REVENUE_50PCT_OPTS },
 
     // Consumer rights (Step 2)
-    { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; "
-    { key: "q6_right_know_multi", kind: "structured", required: "always" }, // string[] mirror of q6_right_know
+    { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; " — free-form joined string, not enum-checkable
+    { key: "q6_right_know_multi", kind: "multi-enum", required: "always", options: Q6_ACCESS_OPTS }, // <Pills options={[…verbatim…]}> at CPPARiskAssessment.tsx L856-857
     { key: "q7_right_delete",     kind: "enum",       required: "always", options: Q7_OPTS },
     { key: "q8_right_correct",    kind: "enum",       required: "always", options: Q8_OPTS },
     { key: "q9_opt_out",          kind: "enum",       required: "always", options: Q9_OPTS },
