@@ -177,7 +177,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
 // M1 special-category data (Art. 35(3)(b))     — data_categories ∩ {Health/medical, Biometric, Genetic}
 // M2 children's data (Recital 38)              — any data_categories[i] matches /child/i
 // M3 article_9_condition_selected              — article_9_condition non-empty AND M1 met
-// M4 legal_basis_selected                      — legal_basis_proposed non-empty and ≠ "Not yet determined"
+// M4 legal_basis_selected                      — legal_basis_proposed non-empty (P4: "Not yet determined" removed from enum; legacy rows still tolerated as indeterminate)
 // M5 gdpr_applies                              — jurisdictions ∋ "EU (GDPR)" or "United Kingdom (UK GDPR)"
 // M6 international_transfer_surface            — jurisdictions include both an EU/UK entry AND a non-EU/UK entry
 // M7 retention_documented                      — retention_period non-empty
@@ -227,6 +227,8 @@ export function computeDpiaTestStates(intake: Record<string, any> | null | undef
   }
 
   const basis = String(it.legal_basis_proposed ?? "").trim();
+  // P4: enum no longer contains "Not yet determined"; the regex clause is retained
+  // solely to keep legacy rows (persisted before the enum shrink) treated as indeterminate.
   out.M4 = (!basis || /^not yet determined$/i.test(basis))
     ? { state: "indeterminate", basis: `legal_basis_proposed is "${basis || "(empty)"}"`, source_fields: ["legal_basis_proposed"] }
     : { state: "resolved_met", basis: `intake proposes "${basis}"`, source_fields: ["legal_basis_proposed"] };
@@ -283,6 +285,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
+export const BUILD_STAMP = "8a4d2c7-dpia-p4-nyd-removed@2026-07-14T20:45Z";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -1579,7 +1582,8 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
 // Entry point.
 // ─────────────────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
-  console.log(`[qb9-rcb1] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=${STAMP}`);
+  console.log(`[qb9-rcb1] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=${STAMP} · build_stamp=${BUILD_STAMP}`);
+  console.log(JSON.stringify({ evt: "dpia_build_stamp", build_stamp: BUILD_STAMP }));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
