@@ -171,6 +171,8 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "li_assessment:data_categories": LIA_DATA_CATEGORIES,
   "li_assessment:relationship_type": LIA_RELATIONSHIPS,
   "li_assessment:jurisdictions": LIA_JURISDICTIONS,
+  // cppa_cybersecurity — single maturity enum, shared across 18 controls.
+  "cppa_cybersecurity:maturity": CYBER_MATURITY_OPTS,
 };
 
 export function resolveEnumRef(enumRef: string | null | undefined): readonly string[] | null {
