@@ -925,6 +925,16 @@ const BIOMETRIC_JURISDICTION_SUBSTRINGS = [
   "ireland","dpc","germany","spain",
 ];
 type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
+// RC-REM-P2: contract-driven validation. For every tool that has an
+// IntakeContract (CONTRACT_BY_TOOL, above), we run validateAgainstContract
+// and reject any intake with violations. The biometric jurisdiction
+// substring rule is preserved as an ADDITIONAL check layered on top of the
+// biometric contract (the contract enforces multi-enum presence; the
+// substring rule enforces the resolver-substring convention that the
+// biometric checker downstream relies on). Tools without contracts fall
+// through to `{ ok: true }` — matching pre-P2 behavior for editorial/QA
+// tools (ask-privacy, weekly-brief, custom-brief, trend-report, state-law,
+// registration).
 const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
   "biometric-checker": (intake: any) => {
     const j = intake?.jurisdictions;
@@ -939,8 +949,21 @@ const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
   },
 };
 function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
-  const v = INTAKE_VALIDATORS[tool];
-  return v ? v(intake) : { ok: true };
+  // Contract check (if any) runs first — it's the machine-derived source of
+  // truth. Extra per-tool rules run afterward and can only tighten, never
+  // loosen, contract acceptance.
+  const contract = CONTRACT_BY_TOOL[tool];
+  if (contract) {
+    const res = validateAgainstContract(contract, intake ?? {});
+    if (!res.ok) {
+      const head = res.violations.slice(0, 4)
+        .map(v => `${v.key}: ${v.reason}`).join("; ");
+      const more = res.violations.length > 4 ? ` (+${res.violations.length - 4} more)` : "";
+      return { ok: false, reason: `contract: ${head}${more}` };
+    }
+  }
+  const extra = INTAKE_VALIDATORS[tool];
+  return extra ? extra(intake) : { ok: true };
 }
 
 async function generateIntakes(tool: string, count: number): Promise<any[]> {
