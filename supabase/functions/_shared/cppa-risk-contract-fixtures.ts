@@ -91,8 +91,12 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
     subject_anchor: "Mental-health triage service",
     q1_revenue: "$100M–$500M",
     q2_consumers: "1–10 million",
-    q3_sector: "Healthcare",
-    q4_pi_categories: ["Identifiers", "Health information", "Inferred mental-health state"],
+    q3_sector: "Healthcare/Life Sciences",
+    q4_pi_categories: [
+      "Contact identifiers (name, email, phone)",
+      "Health or medical information",
+      "Other",
+    ],
     q5_sell_share: "No",
     q15_sensitive_pi: "Yes",
     q15c_spi_volume: "", // <-- ask
