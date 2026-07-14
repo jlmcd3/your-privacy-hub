@@ -109,10 +109,18 @@ export default function CPPACybersecurity() {
     "11 CCR § 7123",
   ]);
 
-  const allComplete = useMemo(
-    () => CONTROLS.every((c) => maturity[c.key]) && profile.entity_name.trim() && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
-    [maturity, profile]
+  // RC-P7: control maturity is no longer required at submit. Blank controls flow to the
+  // backend's insufficient-information path (M4–M21 → indeterminate; synthesiseCyberAsksFromControls
+  // mints information_needed entries subject to the 3-entry cap).
+  const profileComplete = useMemo(
+    () => !!(profile.entity_name.trim() && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit),
+    [profile]
   );
+  const unassessedCount = useMemo(
+    () => CONTROLS.filter((c) => !maturity[c.key]).length,
+    [maturity]
+  );
+  const allComplete = profileComplete;
 
   const intake = useMemo(
     () => ({
@@ -150,11 +158,21 @@ export default function CPPACybersecurity() {
     if (d.notes && typeof d.notes === "object") setNotes(d.notes);
   };
 
+  const notifyUnassessed = () => {
+    if (unassessedCount > 0) {
+      toast({
+        title: "Partial submission",
+        description: `${unassessedCount} of 18 controls left unassessed — they will be reported as "insufficient information" and you can supply them later.`,
+      });
+    }
+  };
+
   const handlePurchase = () => {
     if (!allComplete) {
-      toast({ title: "Required", description: "Please rate all 18 controls and complete the profile.", variant: "destructive" });
+      toast({ title: "Required", description: "Please complete the profile (entity, industry, incidents, framework, last audit).", variant: "destructive" });
       return;
     }
+    notifyUnassessed();
     if (!user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
   };
