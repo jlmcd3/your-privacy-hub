@@ -448,6 +448,23 @@ export async function handleRevisionMode(
         qc: preQc,
       }, 409);
     }
+    // RC-P3 §CHECK-A — CHANGED-PATHS ALLOWLIST. Every changed_path must
+    // resolve to (a) an answered-item target (via alias map) or (b) an
+    // enumerated per-tool DERIVED_PATHS entry. Server-owned bookkeeping
+    // keys are stripped pre-check because revision-mode overwrites them.
+    const preAllow = qcChangedPathsAuthorized(
+      answeredItems.map((a) => ({ target: { path: a.item.target?.path } })),
+      changedPathsIn,
+      toolType,
+    );
+    if (preAllow.status === "red") {
+      console.error(`[revision:${toolType}] pre_apply_qc_red ${preAllow.code}: ${preAllow.detail}`);
+      await revertStatus(supabase, table, rowId, priorStatus, toolType, `pre_apply_${preAllow.code}`);
+      return jsonResp({
+        error: "revision_unauthorized_changed_path",
+        qc: preAllow,
+      }, 409);
+    }
   }
 
   // Advisory guard — grounding + cap.
