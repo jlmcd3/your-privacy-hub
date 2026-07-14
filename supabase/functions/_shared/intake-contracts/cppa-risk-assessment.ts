@@ -159,8 +159,8 @@ export const cppaRiskContract: IntakeContract = {
     { key: "subject_anchor", kind: "text", required: "always" },
     { key: "q1_revenue",     kind: "enum", required: "always", options: REVENUE_OPTS },
     { key: "q2_consumers",   kind: "enum", required: "always", options: CONSUMER_OPTS },
-    { key: "q3_sector",      kind: "text", required: "always" },
-    { key: "q4_pi_categories", kind: "structured", required: "always" }, // array of PI category strings (page uses a Pills widget with an open list)
+    { key: "q3_sector",      kind: "enum", required: "always", options: SECTORS },
+    { key: "q4_pi_categories", kind: "multi-enum", required: "always", options: PI_CATEGORIES },
     { key: "q5_sell_share",  kind: "enum", required: "always", options: Q5_SELL_SHARE_OPTS },
     { key: "q5b_profiling_observation", kind: "enum", required: "always", options: Q5B_PROFILING_OPTS },
     // Q5c only appears when q5 starts with "Yes"; hiddenValue is "".
@@ -169,8 +169,8 @@ export const cppaRiskContract: IntakeContract = {
       options: SHARE_REVENUE_50PCT_OPTS },
 
     // Consumer rights (Step 2)
-    { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; "
-    { key: "q6_right_know_multi", kind: "structured", required: "always" }, // string[] mirror of q6_right_know
+    { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; " — free-form joined string, not enum-checkable
+    { key: "q6_right_know_multi", kind: "multi-enum", required: "always", options: Q6_ACCESS_OPTS }, // <Pills options={[…verbatim…]}> at CPPARiskAssessment.tsx L856-857
     { key: "q7_right_delete",     kind: "enum",       required: "always", options: Q7_OPTS },
     { key: "q8_right_correct",    kind: "enum",       required: "always", options: Q8_OPTS },
     { key: "q9_opt_out",          kind: "enum",       required: "always", options: Q9_OPTS },
