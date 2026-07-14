@@ -190,13 +190,7 @@ export default function BiometricChecker() {
         ) : phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between"><h2 className="font-display text-brand-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
-            {result.bipa_risk && (
-              <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
-                <h3 className="text-amber-900 mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
-                <p className="text-sm text-amber-900">Low end: <strong>${result.bipa_risk.lowEnd.toLocaleString()}</strong> · High end: <strong>${result.bipa_risk.highEnd.toLocaleString()}</strong></p>
-                <p className="text-meta text-amber-800 mt-1">{result.bipa_risk.note}</p>
-              </div>
-            )}
+            {/* BIPA litigation risk callout retired 2026-07-14 — bipa_risk hard-null since enrolledCount removal. */}
             <AssessmentReport text={result.assessment_text} />
             <p className="text-meta text-muted-foreground">Assessment reflects laws and enforcement as of {new Date().toLocaleDateString()}.</p>
             <ToolDisclaimer />
