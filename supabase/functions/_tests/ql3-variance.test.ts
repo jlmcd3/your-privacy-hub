@@ -13,7 +13,7 @@ import {
 Deno.test("floor applies when pre samples coincide (zero variance)", () => {
   // Identical pre samples → bootstrapped sigma = 0 → band = floor.
   const v = computeVariance([0.8, 0.8, 0.8], [0.9, 0.9, 0.9]);
-  assertEquals(v.sigma, 0);
+  assert(v.sigma !== null && Math.abs(v.sigma) < 1e-9);
   assertEquals(v.band, VARIANCE_BAND_FLOOR);
   assertEquals(v.pre_median, 0.8);
   assertEquals(v.post_median, 0.9);
