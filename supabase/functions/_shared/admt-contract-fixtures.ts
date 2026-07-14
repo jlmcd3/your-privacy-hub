@@ -17,7 +17,9 @@ export const FIXTURE_ADMT_YIELD_K1: AdmtContractFixture = {
   fixture_id: "admt-rcC3-yield-k1-plus",
   contract_scenario: "yield_k1_plus",
   intake: {
-    entity_name: "Marisol Talent Cloud, Inc.",
+    // RC-REM-P1-B: fixture key corrected from entity_name → organization_name
+    // (form submits organization_name at ADMTChecker.tsx L337).
+    organization_name: "Marisol Talent Cloud, Inc.",
     system_name: "Marisol Screen v3",
     system_type: "Automated resume screening + interview scheduling",
     system_description:
