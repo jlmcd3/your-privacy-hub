@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "a1c9d2e-rcC3cyb3@2026-07-14T02:40Z";
+export const BUILD_STAMP = "p2contracts-2026-07-14T14:00Z";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -32,6 +32,52 @@ import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtu
 import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
 import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
+// RC-REM-P2 — contract-driven intake generation + validation.
+import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
+import { validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
+import { renderContractPrompt } from "../_shared/intake-contracts/render.ts";
+import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
+import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
+import { dpiaFrameworkContract } from "../_shared/intake-contracts/dpia-framework.ts";
+import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-assessment.ts";
+import { dpaGeneratorContract } from "../_shared/intake-contracts/dpa-generator.ts";
+import { irPlaybookContract } from "../_shared/intake-contracts/ir-playbook.ts";
+import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-checker.ts";
+
+// Tool-key → contract. The QL2 tool key is what generateIntakes receives
+// (e.g. "cppa-cyber"), not the contract's tool_type. Contract coverage set
+// is Phase-1's nine census tools. Non-contract tools (ask-privacy,
+// weekly-brief, custom-brief, trend-report, state-law, registration) fall
+// through to their existing hand-typed descriptions in generateIntakes.
+const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {
+  "cppa-admt":         cppaAdmtContract,
+  "cppa-risk":         cppaRiskContract,
+  "cppa-cyber":        cppaCybersecurityContract,
+  "governance":        governanceContract,
+  "dpia":              dpiaFrameworkContract,
+  "lia":               liAssessmentStageBContract,
+  "dpa-generator":     dpaGeneratorContract,
+  "ir-playbook":       irPlaybookContract,
+  "biometric-checker": biometricCheckerContract,
+};
+
+// Per-tool scenario coaching. This is PROMPT COLOR — mixes of sector,
+// posture, jurisdiction — kept OUT of the contract itself (which is schema
+// only). Verbatim-lifted from the pre-P2 hand-typed descriptions so no
+// coverage-matrix guidance is lost.
+const SCENARIO_GUIDANCE: Record<string, string> = {
+  "cppa-admt": `Include a mix: 2 advertising/adtech (NOT significant decisions), 2 gaming (NOT significant decisions), 2 HR/employment (significant decisions), 2 fintech credit scoring (significant decisions), 1 healthcare AI (significant decision), 1 recommendation engine (NOT significant decision).`,
+  "cppa-risk": `Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), Healthcare SaaS (sensitive PI, well-documented security/debugging/research/legal exceptions), HR/employment-context-only (single employment_context exception), FinTech credit scoring (profiling_significant_effects + ADMT + cybersecurity gaps), small retailer below thresholds (mostly false triggers — should result in voluntary review), and a high-risk profiling/minors scenario (children_in_scope=true). Mix posture: some weak/undocumented exception claims, some clear gaps, some well-controlled.`,
+  "cppa-cyber": `Vary posture: some fully at the top maturity level, some with clusters of low maturity in specific domains (e.g. training and incident weak; access controls strong), some with several controls left blank (intake gaps), and vary framework across the profile.framework options. Include both under-threshold small businesses and clearly-covered enterprises.`,
+  "governance": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, SaaS, Retail) and posture — some mature programmes, some with concentrated gaps (no DPO + no DPIA + weak DPA), some EU-only, some US-multi-state, some mixed EU/UK/US.`,
+  "dpia": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, EdTech, Retail) and posture — some with mature Art.35 documentation, some with material gaps (missing DPO, no data_subjects_views_sought, weak necessity_proportionality), some with third-country transfers lacking a mechanism. Include EU/UK on at least half of scenarios to exercise the GDPR path.`,
+  "lia": `Vary sectors (Healthcare, FinTech, Logistics, Retail, AdTech, HR) and posture — some well-balanced, some weak safeguards, some questionable necessity.`,
+  "dpa-generator": `Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU and some cross-border transfers.`,
+  "ir-playbook": `Vary sectors (Healthcare, Retail, FinTech, EdTech) and severity.`,
+  "biometric-checker": `Vary across single-jurisdiction and multi-jurisdiction mixes (e.g. Illinois only; Texas + California; EU + UK). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
+};
 
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
