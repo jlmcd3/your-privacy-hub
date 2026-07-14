@@ -55,9 +55,43 @@ import {
   RELATIONSHIPS as LIA_RELATIONSHIPS,
   JURISDICTIONS as LIA_JURISDICTIONS,
 } from "../_shared/intake-contracts/li-assessment.ts";
+import {
+  governanceContract,
+  GOVERNANCE_INLINE_LISTS,
+} from "../_shared/intake-contracts/governance-assessment.ts";
+import {
+  dpiaFrameworkContract,
+  DPIA_DATA_CATS as CONTRACT_DPIA_DATA_CATS,
+  DPIA_JURISDICTIONS as CONTRACT_DPIA_JURS,
+  DPIA_LEGAL_BASES as CONTRACT_DPIA_LEGAL,
+  DPIA_ART9 as CONTRACT_DPIA_ART9,
+  DPIA_REASONS as CONTRACT_DPIA_REASONS,
+  DPIA_SAFEGUARDS as CONTRACT_DPIA_SAFEGUARDS,
+  DPIA_TOOLS as CONTRACT_DPIA_TOOLS,
+} from "../_shared/intake-contracts/dpia-framework.ts";
+import {
+  dpaGeneratorContract,
+  DPA_JURISDICTIONS,
+  DPA_DATA_CATS,
+} from "../_shared/intake-contracts/dpa-generator.ts";
+import {
+  irPlaybookContract,
+  IR_CAUSES,
+  IR_DATA_TYPES,
+  IR_JURISDICTIONS,
+  IR_ORG_TYPES,
+} from "../_shared/intake-contracts/ir-playbook.ts";
+import {
+  biometricCheckerContract,
+  BIO_TYPES,
+  BIO_ORG,
+  BIO_PURPOSE,
+  BIO_JURS,
+} from "../_shared/intake-contracts/biometric-checker.ts";
 import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
+import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
 import { FIELD_ENUM_MIRROR } from "../_shared/field-enums.ts";
 
 // Form enums modules (zero imports; safe to load under Deno test).
@@ -65,6 +99,7 @@ import { MATURITY as FORM_MATURITY } from "../../../src/pages/CPPACybersecurity.
 import * as RiskEnums from "../../../src/pages/CPPARiskAssessment.enums.ts";
 import * as AdmtEnums from "../../../src/pages/admt/ADMTChecker.enums.ts";
 import * as LiaEnums from "../../../src/pages/LIAssessment.enums.ts";
+import * as DpiaEnums from "../../../src/pages/DPIAFramework.enums.ts";
 
 Deno.test("intake-contracts / cyber PARITY — contract MATURITY === form MATURITY", () => {
   assertEquals(
