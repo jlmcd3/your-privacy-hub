@@ -4,7 +4,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "4c8e1f7-rcC3cyb2@2026-07-14T00:15Z";
+export const BUILD_STAMP = "a1c9d2e-rcC3cyb3@2026-07-14T02:40Z";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
@@ -1328,7 +1328,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2.1-rcb") };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "r1b2.1-rcb"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
@@ -1383,8 +1383,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 }
 
 Deno.serve(async (req) => {
-  console.log(`[qb9-rcb1] run-cppa-cybersecurity build active · core=${PROMPT_CORE_VERSION}`);
-  console.log("[run-cppa-cybersecurity] qb7 qb7r build active");
+  console.log(`[qb9-rcb1] run-cppa-cybersecurity build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
+  console.log(JSON.stringify({ evt: "cyber_build_stamp", build_stamp: BUILD_STAMP }));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

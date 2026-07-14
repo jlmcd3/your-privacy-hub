@@ -50,6 +50,38 @@ Deno.test("cyber fixture answer_targets use DOTTED ask-vocabulary paths", () => 
   ]);
 });
 
+// RC-C3.CYB-3 (P-1) — deterministic ask-synthesis walker: for the fixture's
+// two empty-maturity controls (c13_training, c14_secure_dev), guard must
+// mint dotted asks. Copy must never contain "gap".
+Deno.test("cyber synthesis walker mints dotted asks for empty-maturity controls", async () => {
+  const { guardInformationNeeded } = await import("../_shared/insufficient-info-guard.ts");
+  const report: any = { information_needed: [], lint_warnings: [] };
+  const { report: guarded } = guardInformationNeeded(
+    report,
+    FIXTURE_CYBER_YIELD_K1.intake as Record<string, unknown>,
+    "cppa_cybersecurity",
+  );
+  const fields = (guarded.information_needed as any[]).map((e) => e.field);
+  assert(
+    fields.includes("controls.c13_training"),
+    `expected controls.c13_training in ${JSON.stringify(fields)}`,
+  );
+  assert(
+    fields.includes("controls.c14_secure_dev"),
+    `expected controls.c14_secure_dev in ${JSON.stringify(fields)}`,
+  );
+  for (const e of guarded.information_needed as any[]) {
+    const blob = `${e.why} ${e.how_to_provide}`.toLowerCase();
+    assert(!blob.includes("gap"), `D8 violation — "gap" in copy: ${blob}`);
+  }
+  const lintCodes = (guarded.lint_warnings as any[]).map((l) => l.code);
+  assert(
+    lintCodes.includes("critical_ask_synthesised"),
+    `expected critical_ask_synthesised lint row; got ${JSON.stringify(lintCodes)}`,
+  );
+});
+
+
 
 
 Deno.test("assembled system is a 2-block array with expected content", () => {
