@@ -19,15 +19,13 @@ import {
   IMPACT_BENEFITS_OUTWEIGH_OPTS,
   IMPACT_CYBER_GAPS_OPTS,
   HARM_TYPES,
-} from "@/pages/CPPARiskAssessment.enums";
-import {
   REVENUE_OPTS,
   CONSUMER_OPTS,
   SPI_VOLUME_OPTS,
   SHARE_REVENUE_50PCT_OPTS,
   Q5_SELL_SHARE_OPTS,
   Q15_SENSITIVE_PI_OPTS,
-} from "@/pages/CPPARiskAssessment";
+} from "@/pages/CPPARiskAssessment.enums";
 import {
   ADMT_VENDOR_STATUS_OPTS,
   ADMT_VENDOR_DOCS_OPTS,
@@ -40,7 +38,8 @@ import {
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "@/pages/admt/ADMTChecker.enums";
-// RC-C2 C2.2 — DPIA intake enums (content-anchored to DPIAFramework.tsx exports).
+// RC-C2 C2.2 / RC-FLIP-3 — DPIA intake enums anchored to the standalone
+// .enums module (never the page) to keep shared components page-free.
 import {
   DATA_CATS as DPIA_DATA_CATS,
   JURISDICTIONS as DPIA_JURISDICTIONS,
@@ -49,13 +48,14 @@ import {
   REASONS_TO_CONDUCT as DPIA_REASONS_TO_CONDUCT,
   SAFEGUARDS as DPIA_SAFEGUARDS,
   TOOLS as DPIA_TOOLS,
-} from "@/pages/DPIAFramework";
-// RC-C2 C2.5 — LIA intake enums (content-anchored to LIAssessment.tsx exports).
+} from "@/pages/DPIAFramework.enums";
+// RC-C2 C2.5 / RC-FLIP-3 — LIA intake enums anchored to the standalone
+// .enums module (never the page).
 import {
   DATA_CATEGORIES as LIA_DATA_CATEGORIES,
   RELATIONSHIPS as LIA_RELATIONSHIPS,
   JURISDICTIONS as LIA_JURISDICTIONS,
-} from "@/pages/LIAssessment";
+} from "@/pages/LIAssessment.enums";
 // RC-C3.CLOSE-1 / RC-FLIP-2 — anchor to the standalone enums module (not the
 // page) to avoid a page↔shared-component circular import.
 import { MATURITY as CYBER_MATURITY_OPTS } from "@/pages/CPPACybersecurity.enums";
