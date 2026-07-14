@@ -156,6 +156,21 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
   }
 }
 
+// RC-C3.CLOSE-1 (item 1) — sample the grader N times per phase so QL3 can
+// derive a bootstrapped no-signal band. Sequential (never parallel) so the
+// grader isn't hammered; each call is bounded by callInternalGrader's own
+// timeout. Non-numeric returns are dropped. Empty array is a legitimate
+// outcome for tools without a scoring rubric (e.g. non cppa-risk) and is
+// handled by computeVariance → "insufficient_samples".
+async function sampleGraderScores(toolSlug: string, assessmentId: string, n = VARIANCE_SAMPLES_N): Promise<number[]> {
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const s = await callInternalGrader(toolSlug, assessmentId);
+    if (typeof s === "number" && Number.isFinite(s)) out.push(s);
+  }
+  return out;
+}
+
 async function runOneUnit(runId: string) {
   const db = admin();
   const { data: run, error: runErr } = await db
