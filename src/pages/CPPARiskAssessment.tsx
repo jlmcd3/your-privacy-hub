@@ -74,28 +74,25 @@ function formatRelativeTime(d: Date): string {
   return `${Math.round(s / 86400)}d ago`;
 }
 
-// Revenue bands. R1a split the $25M–$100M band into $25M–$50M and $50M–$100M
-// so § 7120(b)(1)(C) (50% revenue prong) analysis can be band-aligned. Legacy
-// value "$25M–$100M" is intentionally NOT in this list; stored rows keep it
-// and the generator treats it as straddling the $50M line (indeterminate
-// per BAND-VS-THRESHOLD). Restore of a legacy draft renders q1 unselected.
-export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"];
-// Consumer-volume bands aligned to statutory breakpoints:
-//   100,000 — § 1798.140(d)(1)(B) covered-business threshold
-//   250,000 — § 7120(b)(2)(A) cyber-audit volume prong
-// Legacy value "100,000–1 million" (which straddles 250,000) is intentionally
-// NOT in this list — the risk generator still ACCEPTS it in stored intakes
-// and resolves it as indeterminate per the BAND-VS-THRESHOLD rule / T-1
-// deterministic check. Restore of a legacy draft clears q2 so the user
-// re-answers with a clean band (see applyRestore).
-export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
-// R1a additions.
-export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"];
-export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
-// Q5 options (exported for fixture drift guard).
-export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"];
-// Q15 options.
-export const Q15_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"];
+// RC-FLIP-3 — T-class banded option sets extracted to CPPARiskAssessment.enums.ts
+// so shared components (refine surface) import from a page-free module. Page
+// re-exports so existing intake-page consumers are unchanged.
+export {
+  REVENUE_OPTS,
+  CONSUMER_OPTS,
+  SPI_VOLUME_OPTS,
+  SHARE_REVENUE_50PCT_OPTS,
+  Q5_SELL_SHARE_OPTS,
+  Q15_SENSITIVE_PI_OPTS,
+} from "@/pages/CPPARiskAssessment.enums";
+import {
+  REVENUE_OPTS,
+  CONSUMER_OPTS,
+  SPI_VOLUME_OPTS,
+  SHARE_REVENUE_50PCT_OPTS,
+  Q5_SELL_SHARE_OPTS,
+  Q15_SENSITIVE_PI_OPTS,
+} from "@/pages/CPPARiskAssessment.enums";
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
 const PI_CATEGORIES = [
   "Contact identifiers (name, email, phone)",
