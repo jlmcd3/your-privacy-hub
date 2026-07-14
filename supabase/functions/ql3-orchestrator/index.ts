@@ -27,10 +27,24 @@ import { computeVariance, VARIANCE_SAMPLES_N } from "../_shared/ql3-variance.ts"
 // External gate: clone HEAD sha == BUILD_STAMP sha observed in the first
 // post-deploy telemetry row (quality_loop3_runs.qc_result.build_stamp here).
 // RC-C3.CLOSE-1 (item 1) — grader-variance band added.
-export const BUILD_STAMP = "4c1e8b2-rcC3close1@2026-07-14T05:00Z";
+// QL3-OPEN-1 — revise_dummy filters register to status==="open" before
+// answering; items_before/after count OPEN only; items_resolved counts
+// open→resolved STATUS TRANSITIONS by id (not array-length delta).
+export const BUILD_STAMP = "5d2f9c1-ql3open1@2026-07-14T05:30Z";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// QL3-OPEN-1 — exported for unit-test pinning of the OPEN-only filter and
+// the 12-item bound. Register items with status !== "open" (resolved,
+// not_resolved, or any future terminal status) must never enter answered.
+export function selectOpenForRevision(register: unknown): any[] {
+  if (!Array.isArray(register)) return [];
+  return register
+    .filter((it: any) => it?.status === "open")
+    .filter((it: any) => it?.id || it?.item_id)
+    .slice(0, 12);
+}
 const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const cors = {
@@ -218,9 +232,15 @@ async function runOneUnit(runId: string) {
 
       const { row, cfg } = await readAssessment(run.tool_slug, run.assessment_id);
       if (!row) throw new Error("assessment row missing");
-      const openItems: any[] = Array.isArray((row as any)?.report_data?.open_items)
+      // QL3-OPEN-1: the register contains items in every status
+      // (open / resolved / not_resolved). Only OPEN items are legitimate
+      // targets for a dummy revision — regenerate-assessment refuses
+      // item_not_open per RC-D.4, and that refusal previously turned
+      // the whole pass into dispatch_400. Filter here, then measure.
+      const registerAll: any[] = Array.isArray((row as any)?.report_data?.open_items)
         ? (row as any).report_data.open_items
         : [];
+      const openItems = selectOpenForRevision(registerAll);
       const itemsBefore = openItems.length;
       // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
       const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
@@ -242,10 +262,9 @@ async function runOneUnit(runId: string) {
       const baselineVersion = (baseVer as any)?.version_n ?? 0;
 
       // Generate dummy answers deterministically from input_spec.
-      const answered = openItems
-        .filter((it) => it?.id || it?.item_id)
-        .slice(0, 12) // bound per pass
-        .map((it) => {
+      // openItems is already OPEN-only, id-guarded, and 12-bounded by
+      // selectOpenForRevision (QL3-OPEN-1).
+      const answered = openItems.map((it) => {
           const ans = dummyAnswerFor(it);
           // RC-D.4 QL3-ANS-1: revision contract reads `value` (revision-mode.ts
           // :96 / :315), not `answer`. Emitting `answer` silently dropped the
@@ -386,17 +405,36 @@ async function runOneUnit(runId: string) {
           break;
         }
       }
-      const openItemsAfter: any[] = Array.isArray((rowFinal as any)?.report_data?.open_items)
+      // QL3-OPEN-1: measure OPEN-only counts (items_before/after semantics
+      // = count of items whose status === "open"). items_resolved counts
+      // STATUS TRANSITIONS by id — how many of the ids that were OPEN at
+      // dispatch are now status === "resolved" in the post-revision register.
+      // Array-length delta is unreliable because the register can grow or
+      // shrink during revision (new open items surfaced, resolved items
+      // retained, etc.).
+      const registerAfter: any[] = Array.isArray((rowFinal as any)?.report_data?.open_items)
         ? (rowFinal as any).report_data.open_items
         : [];
+      const openItemsAfter = registerAfter.filter((it: any) => it?.status === "open");
       const itemsAfter = openItemsAfter.length;
-      // RC-C3.CLOSE-1 (item 1) — N=3 post samples; median = point post_score;
-      // pre samples carried from the revise_dummy write for the band calc.
       const postSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
       const postScore = postSamples.length > 0
         ? [...postSamples].sort((a, b) => a - b)[Math.floor(postSamples.length / 2)]
         : null;
-      const resolved = Math.max(0, (run.items_before ?? 0) - itemsAfter);
+      const openIdsBefore: string[] = Array.isArray((run as any)?.input_spec?.open_items_before)
+        ? (run as any).input_spec.open_items_before
+            .map((i: any) => (i?.id ? String(i.id) : null))
+            .filter((s: string | null): s is string => !!s)
+        : [];
+      const nowById = new Map<string, string>();
+      for (const it of registerAfter) {
+        const iid = it?.id ?? it?.item_id;
+        if (iid) nowById.set(String(iid), String(it?.status ?? ""));
+      }
+      const resolved = openIdsBefore.reduce(
+        (n, id) => n + (nowById.get(id) === "resolved" ? 1 : 0),
+        0,
+      );
       const priorQc = (run as any)?.qc_result ?? {};
       const preSamplesPersisted: number[] = Array.isArray(priorQc?.score_samples?.pre)
         ? priorQc.score_samples.pre.filter((x: unknown) => typeof x === "number")
