@@ -262,10 +262,9 @@ async function runOneUnit(runId: string) {
       const baselineVersion = (baseVer as any)?.version_n ?? 0;
 
       // Generate dummy answers deterministically from input_spec.
-      const answered = openItems
-        .filter((it) => it?.id || it?.item_id)
-        .slice(0, 12) // bound per pass
-        .map((it) => {
+      // openItems is already OPEN-only, id-guarded, and 12-bounded by
+      // selectOpenForRevision (QL3-OPEN-1).
+      const answered = openItems.map((it) => {
           const ans = dummyAnswerFor(it);
           // RC-D.4 QL3-ANS-1: revision contract reads `value` (revision-mode.ts
           // :96 / :315), not `answer`. Emitting `answer` silently dropped the
