@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "a1c9d2e-rcC3cyb3@2026-07-14T02:40Z";
+export const BUILD_STAMP = "p2contracts-2026-07-14T14:00Z";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -32,6 +32,52 @@ import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtu
 import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
 import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
+// RC-REM-P2 — contract-driven intake generation + validation.
+import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
+import { validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
+import { renderContractPrompt } from "../_shared/intake-contracts/render.ts";
+import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
+import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
+import { dpiaFrameworkContract } from "../_shared/intake-contracts/dpia-framework.ts";
+import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-assessment.ts";
+import { dpaGeneratorContract } from "../_shared/intake-contracts/dpa-generator.ts";
+import { irPlaybookContract } from "../_shared/intake-contracts/ir-playbook.ts";
+import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-checker.ts";
+
+// Tool-key → contract. The QL2 tool key is what generateIntakes receives
+// (e.g. "cppa-cyber"), not the contract's tool_type. Contract coverage set
+// is Phase-1's nine census tools. Non-contract tools (ask-privacy,
+// weekly-brief, custom-brief, trend-report, state-law, registration) fall
+// through to their existing hand-typed descriptions in generateIntakes.
+const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {
+  "cppa-admt":         cppaAdmtContract,
+  "cppa-risk":         cppaRiskContract,
+  "cppa-cyber":        cppaCybersecurityContract,
+  "governance":        governanceContract,
+  "dpia":              dpiaFrameworkContract,
+  "lia":               liAssessmentStageBContract,
+  "dpa-generator":     dpaGeneratorContract,
+  "ir-playbook":       irPlaybookContract,
+  "biometric-checker": biometricCheckerContract,
+};
+
+// Per-tool scenario coaching. This is PROMPT COLOR — mixes of sector,
+// posture, jurisdiction — kept OUT of the contract itself (which is schema
+// only). Verbatim-lifted from the pre-P2 hand-typed descriptions so no
+// coverage-matrix guidance is lost.
+const SCENARIO_GUIDANCE: Record<string, string> = {
+  "cppa-admt": `Include a mix: 2 advertising/adtech (NOT significant decisions), 2 gaming (NOT significant decisions), 2 HR/employment (significant decisions), 2 fintech credit scoring (significant decisions), 1 healthcare AI (significant decision), 1 recommendation engine (NOT significant decision).`,
+  "cppa-risk": `Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), Healthcare SaaS (sensitive PI, well-documented security/debugging/research/legal exceptions), HR/employment-context-only (single employment_context exception), FinTech credit scoring (profiling_significant_effects + ADMT + cybersecurity gaps), small retailer below thresholds (mostly false triggers — should result in voluntary review), and a high-risk profiling/minors scenario (children_in_scope=true). Mix posture: some weak/undocumented exception claims, some clear gaps, some well-controlled.`,
+  "cppa-cyber": `Vary posture: some fully at the top maturity level, some with clusters of low maturity in specific domains (e.g. training and incident weak; access controls strong), some with several controls left blank (intake gaps), and vary framework across the profile.framework options. Include both under-threshold small businesses and clearly-covered enterprises.`,
+  "governance": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, SaaS, Retail) and posture — some mature programmes, some with concentrated gaps (no DPO + no DPIA + weak DPA), some EU-only, some US-multi-state, some mixed EU/UK/US.`,
+  "dpia": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, EdTech, Retail) and posture — some with mature Art.35 documentation, some with material gaps (missing DPO, no data_subjects_views_sought, weak necessity_proportionality), some with third-country transfers lacking a mechanism. Include EU/UK on at least half of scenarios to exercise the GDPR path.`,
+  "lia": `Vary sectors (Healthcare, FinTech, Logistics, Retail, AdTech, HR) and posture — some well-balanced, some weak safeguards, some questionable necessity.`,
+  "dpa-generator": `Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU and some cross-border transfers.`,
+  "ir-playbook": `Vary sectors (Healthcare, Retail, FinTech, EdTech) and severity.`,
+  "biometric-checker": `Vary across single-jurisdiction and multi-jurisdiction mixes (e.g. Illinois only; Texas + California; EU + UK). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
+};
 
 
 // Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
@@ -879,6 +925,16 @@ const BIOMETRIC_JURISDICTION_SUBSTRINGS = [
   "ireland","dpc","germany","spain",
 ];
 type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
+// RC-REM-P2: contract-driven validation. For every tool that has an
+// IntakeContract (CONTRACT_BY_TOOL, above), we run validateAgainstContract
+// and reject any intake with violations. The biometric jurisdiction
+// substring rule is preserved as an ADDITIONAL check layered on top of the
+// biometric contract (the contract enforces multi-enum presence; the
+// substring rule enforces the resolver-substring convention that the
+// biometric checker downstream relies on). Tools without contracts fall
+// through to `{ ok: true }` — matching pre-P2 behavior for editorial/QA
+// tools (ask-privacy, weekly-brief, custom-brief, trend-report, state-law,
+// registration).
 const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
   "biometric-checker": (intake: any) => {
     const j = intake?.jurisdictions;
@@ -893,8 +949,21 @@ const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
   },
 };
 function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
-  const v = INTAKE_VALIDATORS[tool];
-  return v ? v(intake) : { ok: true };
+  // Contract check (if any) runs first — it's the machine-derived source of
+  // truth. Extra per-tool rules run afterward and can only tighten, never
+  // loosen, contract acceptance.
+  const contract = CONTRACT_BY_TOOL[tool];
+  if (contract) {
+    const res = validateAgainstContract(contract, intake ?? {});
+    if (!res.ok) {
+      const head = res.violations.slice(0, 4)
+        .map(v => `${v.key}: ${v.reason}`).join("; ");
+      const more = res.violations.length > 4 ? ` (+${res.violations.length - 4} more)` : "";
+      return { ok: false, reason: `contract: ${head}${more}` };
+    }
+  }
+  const extra = INTAKE_VALIDATORS[tool];
+  return extra ? extra(intake) : { ok: true };
 }
 
 async function generateIntakes(tool: string, count: number): Promise<any[]> {
@@ -933,7 +1002,16 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     "trend-report": `Trend Report generator. Required camelCase fields: theme (string, the trend theme — e.g. "AI Act high-risk classification convergence", "Biometric privacy enforcement trends 2026", "Cross-border transfer mechanism shifts post-Schrems II"), jurisdictions (array), industries (array, e.g. ["AdTech","HealthTech","FinTech","Retail","HR/EmpTech"]), timeWindowMonths (integer 3–24), audience (one of "Executive","Legal","Engineering"). Vary themes (some highly active, some quieter), audiences, and windows.`,
     "state-law": `US State Privacy Law check. Required camelCase fields: state (one of "California","Colorado","Connecticut","Virginia","Texas","Utah","Oregon","Washington","Maryland","Tennessee","Indiana","Iowa","Montana","Delaware","New Jersey","New Hampshire","Kentucky","Minnesota","Rhode Island"), businessType (sector string), processingActivities (string description), dataCategories (array including some sensitive types), consumerVolume (string range like "10000-100000"), sellsSharesPI (boolean), hasOptOutMechanism (boolean), question (string — a specific compliance question about this state's law). Vary states and posture (some near-threshold, some clearly in-scope, some borderline).`,
   };
-  const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
+  // RC-REM-P2: for every tool with a contract, the schema portion of the
+  // prompt is derived MECHANICALLY from the contract (verbatim enum
+  // options, exact key list, "[]" array shape, conditional rules). The
+  // per-tool coaching (sector/posture mix) still comes from
+  // SCENARIO_GUIDANCE. Tools without a contract keep their pre-P2
+  // hand-typed description.
+  const contractForTool = CONTRACT_BY_TOOL[tool];
+  const description = contractForTool
+    ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
+    : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
   const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
   // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt) produce ~1.5-2k tokens per intake;
   // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
@@ -1433,6 +1511,39 @@ async function runBatch(runId: string): Promise<void> {
     // and append after the pinned entries. Preserves position 0..N-1 for pins.
     const pinnedCount = intakes.length;
     const nextIdxSafe = run.next_doc_index ?? 0;
+
+    // RC-REM-P2: Validate pinned fixtures at run start against the same
+    // contract used for generated intakes. Pinned fixtures are ratified
+    // evidence — a pinned fixture that no longer parses against the
+    // current contract MUST abort the run so the drift is fixed at source,
+    // never silently graded. Only enforced on the first invocation
+    // (nextIdxSafe === 0) so mid-run resumes don't re-check.
+    if (pinnedCount > 0 && nextIdxSafe === 0) {
+      const pinContract = CONTRACT_BY_TOOL[tool];
+      if (pinContract) {
+        const fails: Array<{ idx: number; violations: string }> = [];
+        for (let i = 0; i < intakes.length; i++) {
+          const res = validateAgainstContract(pinContract, intakes[i] ?? {});
+          if (!res.ok) {
+            fails.push({
+              idx: i,
+              violations: res.violations.slice(0, 6)
+                .map(v => `${v.key}: ${v.reason}`).join("; ")
+                + (res.violations.length > 6 ? ` (+${res.violations.length - 6} more)` : ""),
+            });
+          }
+        }
+        if (fails.length > 0) {
+          const msg = `Pinned-fixture contract violations for ${tool} (${fails.length}/${pinnedCount}): `
+            + fails.slice(0, 3).map(f => `#${f.idx} → ${f.violations}`).join(" | ")
+            + (fails.length > 3 ? ` … +${fails.length - 3} more` : "");
+          await log("error", msg);
+          await upd({ status: "error", error: msg, completed_at: new Date().toISOString() });
+          clearInterval(heartbeat);
+          return;
+        }
+      }
+    }
     if (intakes.length < batchSize && nextIdxSafe === 0) {
       const needed = batchSize - pinnedCount;
       await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents${pinnedCount > 0 ? `, ${pinnedCount} pinned + ${needed} generated` : ""})`);
