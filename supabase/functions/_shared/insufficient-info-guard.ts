@@ -299,6 +299,37 @@ export function guardInformationNeeded(
     }
   }
 
+  // RC-C3.CYB-3 (P-1) — cyber deterministic ask-synthesis walker. Runs for
+  // cppa_cybersecurity ONLY. Independent of INSUFFICIENT_MARKER; shares the
+  // 3-entry cap with the registry pass; emits critical_ask_synthesised lint
+  // rows so downstream QC observes the mask.
+  if (toolType === "cppa_cybersecurity") {
+    const alreadyCovered = new Set<string>(
+      (report.information_needed as any[]).map((e) => String(e?.field ?? "")),
+    );
+    const remaining = Math.max(0, 3 - report.information_needed.length);
+    const cyberAdds = synthesiseCyberAsksFromControls(
+      intakeObj as Record<string, unknown>,
+      alreadyCovered,
+      remaining,
+    );
+    if (cyberAdds.length > 0) {
+      report.information_needed = [...report.information_needed, ...cyberAdds];
+      if (!Array.isArray(report.lint_warnings)) report.lint_warnings = [];
+      for (const a of cyberAdds) {
+        report.lint_warnings.push({ code: "critical_ask_synthesised", field: a.field });
+      }
+      console.log(JSON.stringify({
+        evt: "critical_asks_synthesised",
+        tool: toolType,
+        added: cyberAdds.length,
+        fields: cyberAdds.map((a) => a.field),
+        source: "cyber_controls_walker",
+      }));
+    }
+  }
+
+
   const text = JSON.stringify(report);
   const tripped = INSUFFICIENT_MARKER.test(text) && report.information_needed.length === 0;
 
