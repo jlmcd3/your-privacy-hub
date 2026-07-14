@@ -790,7 +790,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   const assessment_text = scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n"));
 
   const report_data = {
-    bipa_risk: bipaRisk,
+    // bipa_risk field retired 2026-07-14
     jurisdictions_analysed: uniqueJurisdictions,
     enforcement_precedents: [],
     enforcement_meta: { attempted: false, stress_run: true },
