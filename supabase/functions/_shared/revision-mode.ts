@@ -155,7 +155,7 @@ function buildRevisionPrompt(opts: {
   const answeredIdList = answeredItems.map((a) => a.item.id);
   const system = [
     `REVISION SCOPE [${REVISION_PROMPT_STAMP}] — this is a SCOPED-DELTA revision, NOT a re-generation.`,
-    "You are re-determining ONLY the report determinations that the ANSWERED_ITEMS below feed. Untouched sections MUST NOT be re-written; the server enforces this with a SHA-256 hash comparison over the untouched subtree and will REJECT any patch whose untouched paths differ from the prior report.",
+    "You are re-determining ONLY the report determinations that the ANSWERED_ITEMS below feed. The server enforces BOTH invariants on every submission: (1) UNTOUCHED-SUBTREE HASH — a SHA-256 comparison over the untouched paths REJECTS any patch whose out-of-declaration prose or values differ from the prior report; (2) CHANGED-PATHS ALLOWLIST — every entry in changed_paths must equal or descend from the target.path of an answered_item (or one of its explicit aliases), or from a per-tool enumerated set of paths the generator legitimately re-derives alongside an answer. Writes to undeclared targets are REJECTED with `revision_unauthorized_changed_path` (409, no partial apply, row status reverts).",
     "",
     "OUTPUT CONTRACT — return ONLY a single JSON object of this shape (no preamble, no code fences):",
     "{",
