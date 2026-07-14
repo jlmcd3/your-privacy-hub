@@ -117,7 +117,6 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
       "biometricTypes",
       "purpose",
       "jurisdictions",
-      "enrolledCount",
     ],
   },
   cppa_risk: {

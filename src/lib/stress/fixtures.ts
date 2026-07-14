@@ -376,7 +376,6 @@ export const BIOMETRIC_VARIANTS = [
     purpose:
       "Time and attendance — employee clock-in/clock-out for a manufacturing facility. Vendor: US cloud. Consent: contract clause. Retention: undocumented.",
     jurisdictions: ["United Kingdom", "Illinois, USA (BIPA)"],
-    enrolledCount: "500-5,000",
     is_free_tier: false,
   },
   {
@@ -385,7 +384,6 @@ export const BIOMETRIC_VARIANTS = [
     purpose:
       "Mobile-app login fingerprint authentication for retail-banking customers. Vendor: in-region cloud. Retention: device-bound, no server template.",
     jurisdictions: ["EU/EEA", "United Kingdom"],
-    enrolledCount: "Over 1,000,000",
     is_free_tier: false,
   },
   {
@@ -394,7 +392,6 @@ export const BIOMETRIC_VARIANTS = [
     purpose:
       "Voice authentication for contact-centre self-service for online shoppers. Vendor: US SaaS. Retention: 12 months. Consent banner present.",
     jurisdictions: ["California (CCPA/CPRA)", "Texas (CUBI)"],
-    enrolledCount: "50,000-500,000",
     is_free_tier: false,
   },
   {
@@ -403,7 +400,6 @@ export const BIOMETRIC_VARIANTS = [
     purpose:
       "High-security warehouse access control for HGV drivers and despatch staff. Vendor: on-premise. Retention: while employed + 30 days.",
     jurisdictions: ["EU/EEA"],
-    enrolledCount: "100-500",
     is_free_tier: false,
   },
 ];

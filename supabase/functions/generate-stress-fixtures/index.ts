@@ -190,8 +190,7 @@ Return a JSON object with EXACTLY these top-level fields:
     "biometricTypes": ["array"],
     "orgType": "string",
     "purpose": "string",
-    "jurisdictions": ["array"],
-    "enrolledCount": "string"
+    "jurisdictions": ["array"]
   },
   "registration": {
     "organization_name": "string", "organization_country": "string",
@@ -207,7 +206,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values (e.g. biometricTypes may be ["none currently deployed"] and enrolledCount may be "0"). Never emit null.`;
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values (e.g. biometricTypes may be ["none currently deployed"]). Never emit null.`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -675,8 +674,6 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
         ? "Identity verification and fraud prevention"
         : "None — no biometric systems currently in use",
       jurisdictions: jurisdictionsDisplay,
-
-      enrolledCount: usesBiometric ? (slot === 1 ? "120,000" : "18,000") : "0",
     },
     registration: {
       organization_name: c.companyName,

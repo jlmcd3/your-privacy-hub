@@ -353,7 +353,6 @@ const F_BIO_US: SampleFixture = {
       purpose:
         "Time and attendance for warehouse shift workers across three Illinois facilities. Sector: Logistics. Vendor: Yes — fingerprint timeclock hardware and template storage provided by a US-based vendor bound by a written BIPA-compliant DPA that prohibits secondary use, sale, or lease of templates and requires deletion on request. Existing consent: Standalone written BIPA release signed by each enrolled worker before enrollment, separate from the employment agreement, referencing specific purpose (time and attendance), retention (3 years after last interaction or separation, whichever first), and destruction schedule. Published BIPA policy on the company intranet and worker handbook. Retention policy: Formally documented and published — templates destroyed when the initial purpose is satisfied or within 3 years of the individual's last interaction, whichever occurs first, with automated deletion job and quarterly attestation.",
       jurisdictions: ["Illinois, USA (BIPA)"],
-      enrolledCount: "500-5,000",
       is_free_tier: false,
     },
     invoke: { fn: "check-biometric-compliance", returns_id: true },
@@ -866,12 +865,12 @@ const F_IR_EU_SUPP = withSupplemental(F_IR_EU, "invoke_body_extras", {
 
 const F_BIO_US_SUPP = withSupplemental(F_BIO_US, "invoke_body_extras", {
   supplemental_responses: [
-    { ref_field: "enrolledCount", ask: "State whether the enrolled count includes seasonal workers.", response: "Yes — 600 enrolled includes the peak-season contractor uplift; base workforce is ~430; contractor enrolments are purged within 30 days of assignment end." },
+    { ref_field: "purpose", ask: "Confirm whether the vendor has re-executed standalone BIPA §15(b) releases with all currently enrolled workers.", response: "Yes — vendor written releases (BIPA §15(b)) were re-signed by all currently enrolled workers last month, standalone from the employment agreement, referencing purpose, retention, and destruction schedule." },
   ],
   supplemental_context: "Vendor written release (BIPA §15(b)) has been re-signed by all currently enrolled workers as of last month; retention/destruction schedule attested by the vendor quarterly.",
 }, {
   title: "BIPA fingerprint time-clocks — supplemental (WS6)",
-  scenario_summary: "Biometric checker supplemental-capture variant: closes the enrolment-scope question and confirms release re-signing.",
+  scenario_summary: "Biometric checker supplemental-capture variant: confirms release re-signing.",
 });
 
 const F_CPPA_RISK_US_SUPP = withSupplemental(F_CPPA_RISK_US, "insert.intake_data", {

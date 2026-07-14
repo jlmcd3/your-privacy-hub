@@ -187,18 +187,17 @@ export function computeUpsellSignals(
 
     // ── BIOMETRIC ────────────────────────────────────────────────────
     // Verified fields: row.intake_data.jurisdictions, row.intake_data.biometricTypes,
-    //   row.intake_data.enrolledCount, row.report_data.bipa_risk,
     //   row.report_data.jurisdictions_analysed
     case 'biometric_checker': {
       const intake   = row?.intake_data ?? {};
       const jurs     = norm(intake?.jurisdictions ?? []);
-      const bipaRisk = row?.report_data?.bipa_risk;
+      const bipaApplies = jurs.some((j: string) => j.includes('illinois') || j.includes('bipa'));
 
       push('dpia_framework',
         'Biometric processing is high-risk — a DPIA is required under GDPR Article 35.',
         'high', 1);
 
-      if (bipaRisk)
+      if (bipaApplies)
         push('governance_assessment',
           'BIPA exposure identified — a Governance Assessment reviews your broader Illinois compliance posture.',
           'high', 2);

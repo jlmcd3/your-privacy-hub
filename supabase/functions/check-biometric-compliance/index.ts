@@ -1,6 +1,6 @@
 // qb8 build active
-// build-marker: biometric-qi-battery4-fix-2026-07-03
-console.log("[build-marker] check-biometric-compliance qi-battery4-fix-2026-07-03");
+// BUILD_STAMP: bio-p3-remove-enrolledcount@2026-07-14T19:15Z
+console.log("[build-marker] check-biometric-compliance bio-p3-remove-enrolledcount@2026-07-14T19:15Z");
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -34,7 +34,8 @@ const BIOMETRIC_RULEBOOK = `BIPA — BEHAVIOURAL RULES (the canonical citations 
   - PROOFREADING: proofread headings and prose for duplicated adjacent words (e.g. "vendor-disclosure disclosure") before output.
   - CURRENCY FOOTER: Append to the END of the assessment output: "Precedent and enforcement positions current to the database's last update (June 2026). Verify before reliance."
   - Section 15(b) written-consent and Section 15(a) public retention-and-destruction policy obligations are unchanged. A private right of action remains.
-  - HEADCOUNT CONSISTENCY: Whenever you present an illustrative damages calculation using a single enrollment figure drawn from a range in the intake, state the assumption explicitly (e.g. "assumes the midpoint (2,500) of the stated 500–5,000 range") and present the full-range figure alongside it.
+
+
 
 CITATION GUARDRAILS:
   - Cite enforcement actions ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt (each tagged [E#] with an id) AND from the ICO ENFORCEMENT FIGURES registry block. Never reference regulator fines from training knowledge.
@@ -45,7 +46,7 @@ ENFORCEMENT CASE CITATION FORMAT IN PROSE: When referencing any enforcement case
 
 QUALITY STANDARDS:
 1. Risk ratings (LOW/MEDIUM/HIGH/CRITICAL) must reflect actual enforcement posture in the named jurisdictions, not theoretical exposure.
-2. For BIPA: the litigation risk calculation must account for per-person per-violation statutory damages ($1,000 negligent / $5,000 intentional), the scale of enrolled individuals provided, AND the P.A. 103-0769 single-violation rule for post-August 2024 conduct.
+2. For BIPA: any litigation-risk framing must account for per-person per-violation statutory damages ($1,000 negligent / $5,000 intentional) and the P.A. 103-0769 single-violation rule for post-August 2024 conduct. The intake does not supply an enrollment figure — describe exposure qualitatively (per-person, per-violation) and do not compute an illustrative dollar range.
 3. Priority actions must be specific — name the law, the requirement, and the concrete control or document the organisation must put in place. No generic "review your practices".
 4. Where enforcement precedents show specific omissions that have been sanctioned (e.g. missing written consent, no retention schedule), call those out as priority gaps.
 
@@ -101,11 +102,11 @@ NO META-COMMENTARY IN USER-FACING OUTPUT: User-facing prose must read as finishe
 
 Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
 
-TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 biometric_processing_active, M2 illinois_bipa_scope, M3 texas_cubi_scope, M4 washington_mhmd_scope, M5 eu_gdpr_scope, M6 uk_gdpr_scope, M7 enrollment_band_provided, M8 employment_context, M9 authentication_purpose_candidate). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an ===INFORMATION_NEEDED=== entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'jurisdictions' when the Illinois/Texas/Washington/EU/UK scope states are RESOLVED, do NOT ask for 'biometricTypes' when M1 is RESOLVED_MET, do NOT ask for 'orgType' when M8 is RESOLVED), and NEVER contradict it in prose. In particular: where M1 is RESOLVED_NOT_MET (no active biometric processing declared), the CURRENT rating for every jurisdiction MUST be LOW per the CURRENT vs PROSPECTIVE rule, and no priority action may describe a currently-deployed control that the intake did not declare. CANDIDATE states (e.g. M9 keyword match on purpose) are non-binding hypotheses — cite them as considerations to verify, never as facts. Risk ratings, priority-action selection, and enforcement-posture judgement remain JUDGMENT calls per the existing RISK RATING CRITERIA and ENFORCEMENT-POSTURE GROUNDING rules — no mechanical test binds them.
+TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 biometric_processing_active, M2 illinois_bipa_scope, M3 texas_cubi_scope, M4 washington_mhmd_scope, M5 eu_gdpr_scope, M6 uk_gdpr_scope, M8 employment_context, M9 authentication_purpose_candidate). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an ===INFORMATION_NEEDED=== entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'jurisdictions' when the Illinois/Texas/Washington/EU/UK scope states are RESOLVED, do NOT ask for 'biometricTypes' when M1 is RESOLVED_MET, do NOT ask for 'orgType' when M8 is RESOLVED), and NEVER contradict it in prose. In particular: where M1 is RESOLVED_NOT_MET (no active biometric processing declared), the CURRENT rating for every jurisdiction MUST be LOW per the CURRENT vs PROSPECTIVE rule, and no priority action may describe a currently-deployed control that the intake did not declare. CANDIDATE states (e.g. M9 keyword match on purpose) are non-binding hypotheses — cite them as considerations to verify, never as facts. Risk ratings, priority-action selection, and enforcement-posture judgement remain JUDGMENT calls per the existing RISK RATING CRITERIA and ENFORCEMENT-POSTURE GROUNDING rules — no mechanical test binds them.
 
-PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items are ones that prevent stating an obligation or risk rating for a jurisdiction; they belong in priority actions with the cited statute they block. Record-completeness items belong in the ===INFORMATION_NEEDED=== JSON with the intake field key and the provision that makes the missing dimension relevant. Enhancement items — model-observed depth improvements that no cited provision requires — belong in defensible-practice prose ONLY when tied to a cited standard (BIPA § 15(a) retention policy, CUBI § 503.001(c)(2) reasonable care, GDPR Article 5(2) accountability, EDPB guidance) and NEVER as an information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer, name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole jurisdiction where the intake supplies the enum/presence answers the analysis binds to (jurisdiction selected, biometric type declared, enrollment band chosen, orgType chosen); where a specific missing element IS verdict-blocking, name that element rather than collapsing the whole jurisdiction.
+PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items are ones that prevent stating an obligation or risk rating for a jurisdiction; they belong in priority actions with the cited statute they block. Record-completeness items belong in the ===INFORMATION_NEEDED=== JSON with the intake field key and the provision that makes the missing dimension relevant. Enhancement items — model-observed depth improvements that no cited provision requires — belong in defensible-practice prose ONLY when tied to a cited standard (BIPA § 15(a) retention policy, CUBI § 503.001(c)(2) reasonable care, GDPR Article 5(2) accountability, EDPB guidance) and NEVER as an information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer, name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole jurisdiction where the intake supplies the enum/presence answers the analysis binds to (jurisdiction selected, biometric type declared, orgType chosen); where a specific missing element IS verdict-blocking, name that element rather than collapsing the whole jurisdiction.
 
-BIPA ENROLLMENT ANCHORING (R1b2 rule 2c): the illustrative BIPA damages calculation must read M7 (enrollment_band_provided) verbatim from the injected TEST-STATES block — the enrollment band supplied by the intake is the anchor. Where M2 (illinois_bipa_scope) is RESOLVED_NOT_MET, do NOT include a BIPA damages calculation in the report at all; where M2 is RESOLVED_MET and M7 is RESOLVED_MET, use the supplied band per the HEADCOUNT CONSISTENCY rule and do NOT re-ask the enrollment count.
+BIPA DAMAGES FRAMING (R1b2 rule 2c): the intake does NOT supply an enrolled-headcount figure. Do NOT compute or present an illustrative BIPA dollar-range calculation and do NOT re-ask the enrollment count in ===INFORMATION_NEEDED===. Describe BIPA exposure qualitatively — per-person, per-violation statutory damages ($1,000 negligent / $5,000 intentional), subject to the P.A. 103-0769 single-violation-per-person rule for post-August 2024 conduct — and note that a defensible headcount for exposure modelling is a scoping exercise for the organisation and its counsel, not an intake field.
 
 TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string "TEST-STATES", the test ids (M1–M9), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in the assessment prose, jurisdiction sections, priority actions, ===INFORMATION_NEEDED=== entries, or defensible-practice discussion. State the conclusion with its factual basis instead — "the intake selects Illinois, engaging BIPA §§ 15(a)–(d)" — never "per TEST-STATES M2" or "(M2 resolved met)". Same philosophy as NO SYSTEM-ROUTING VOICE.
 
@@ -137,7 +138,7 @@ export function computeBiometricTestStates(body: Record<string, any> | null | un
   const jursLc = jurisdictions.map((j) => String(j).toLowerCase());
   const orgType = String(b.orgType ?? "").trim();
   const purpose = String(b.purpose ?? "").trim();
-  const enrolled = String(b.enrolledCount ?? "").trim();
+  
   const out: Record<string, BioTestStateEntry> = {};
 
   out.M1 = types.length === 0
@@ -165,9 +166,9 @@ export function computeBiometricTestStates(body: Record<string, any> | null | un
   out.M5 = scope("M5", "eu ", "EU/EEA (GDPR)");
   out.M6 = scope("M6", "united kingdom", "United Kingdom (UK GDPR)");
 
-  out.M7 = enrolled
-    ? { state: "resolved_met", basis: `intake supplies enrolledCount band "${enrolled}"`, source_fields: ["enrolledCount"] }
-    : { state: "indeterminate", basis: "enrolledCount is empty", source_fields: ["enrolledCount"] };
+  // M7 (enrollment_band_provided) retired 2026-07-14 — enrolledCount removed from intake.
+
+
 
   const orgEmp = BIO_EMPLOYMENT_ORG.test(orgType);
   const purposeEmp = BIO_EMPLOYMENT_PURPOSE.test(purpose);
@@ -220,7 +221,7 @@ interface Body {
   orgName?: string;
   purpose: string;
   jurisdictions: string[];
-  enrolledCount: string;
+  // enrolledCount retired 2026-07-14 — legacy stored intakes may still carry the key; it is ignored, not read.
   assessment_id?: string;
   user_id?: string;
   client_id?: string | null;
@@ -263,21 +264,8 @@ function describeProcessing(orgType: string, types: string[], purpose: string): 
   return `${org} processing ${active.join(", ")} for the stated purpose: ${short}`;
 }
 
-function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
-  const countMap: Record<string, number> = {
-    "Fewer than 500": 250,
-    "500-5,000": 2500,
-    "5,000-50,000": 25000,
-    "50,000-500,000": 250000,
-    "More than 500,000": 500000,
-  };
-  const count = countMap[enrolledCount] ?? 2500;
-  return {
-    lowEnd: count * 1000,
-    highEnd: count * 5000,
-    note: `Based on ${count.toLocaleString()} enrolled individuals (midpoint of the stated ${enrolledCount} range) × $1,000 (negligent) to $5,000 (intentional) per person. This is a mathematical illustration only — not a legal opinion.`,
-  };
-}
+// estimateBIPARisk() removed 2026-07-14 — enrolledCount intake field retired.
+// BIPA exposure is now described qualitatively (per-person, per-violation statutory damages).
 
 function formatEnforcementContext(rows: any[]): string {
   if (!rows || rows.length === 0) return "No specific biometric enforcement precedents retrieved.";
@@ -295,10 +283,7 @@ function formatEnforcementContext(rows: any[]): string {
 }
 
 async function runStressBiometric(body: Body, resolvedUserId: string | null) {
-  const bipaApplies = body.jurisdictions.some(
-    (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
-  );
-  const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
+  const bipaRisk = null;
 
   function stressSection(jurisdiction: string): string {
     const j = jurisdiction.toLowerCase();
@@ -387,7 +372,6 @@ ICO enforcement posture on biometric data is active; failure to satisfy both the
     }
 
     if (isIL) {
-      const risk = estimateBIPARisk(body.enrolledCount);
       return `${jurisdiction} — Biometric Information Privacy Act (BIPA), 740 ILCS 14
 
 Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
@@ -410,7 +394,7 @@ Sale and sharing restrictions:
 Absolute prohibition on sale, lease, trade, or profit. Disclosure limited to consent, financial transaction completion, or legal compulsion.
 
 Current enforcement posture:
-Active private litigation. Illustrative exposure for ${body.enrolledCount} enrolled (using midpoint): $${risk.lowEnd.toLocaleString()} – $${risk.highEnd.toLocaleString()} (negligent to intentional per-person damages). Post-Aug 2024 conduct limited to one violation per person in federal court.
+Active private litigation. Exposure runs per person and per violation ($1,000 negligent / $5,000 intentional); post-August 2024 conduct is limited to one violation per person per biometric identifier under P.A. 103-0769.
 
 Priority actions:
 1. Execute written releases before any biometric collection — use standalone documents not embedded in general onboarding.
@@ -975,11 +959,8 @@ Deno.serve(async (req) => {
       console.error("enforcement fetch failed:", e);
     }
 
-    // Step 2 — BIPA risk
-    const bipaApplies = body.jurisdictions.some(
-      (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
-    );
-    const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
+    // Step 2 — BIPA illustrative dollar-range risk retired 2026-07-14 (enrolledCount removed).
+    const bipaRisk = null;
 
     // Washington My Health My Data Act applies broadly to "consumer health data"
     // including biometric data tied to health inferences. Private right of action
@@ -1027,7 +1008,7 @@ Organisation name: ${(body as any).orgName || (body as any).organizationName || 
 Biometric data types: ${body.biometricTypes.join(", ")}
 Organisation type: ${body.orgType}
 Primary purpose: ${body.purpose}
-Individuals enrolled: ${body.enrolledCount}
+
 Jurisdictions: ${body.jurisdictions.join(", ")}
 ${wamhmdApplies ? `
 WASHINGTON MY HEALTH MY DATA ACT (MHMD) — APPLICABILITY FLAG
@@ -1062,14 +1043,8 @@ OTHER US STATE — APPLICABILITY FLAG
 Do NOT skip this section even though no specific state was named.
 ` : ""}ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
-${bipaRisk ? `
-BIPA LITIGATION RISK ESTIMATE (Illinois) — USE ONLY IF BIPA APPLIES
-Use these figures only inside the Illinois section, and only after you have determined that BIPA applies (Applies = Yes or Conditional). Do not surface these numbers before the applicability determination.
-Based on ${body.enrolledCount} enrolled individuals:
-Low end (negligent violations): $${bipaRisk.lowEnd.toLocaleString()}
-High end (intentional violations): $${bipaRisk.highEnd.toLocaleString()}
-${bipaRisk.note}
-` : ""}
+
+
 For each jurisdiction, structure your output EXACTLY as follows:
 
 [JURISDICTION] — [LAW NAME]
@@ -1295,7 +1270,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         jurisdictions: ["M2", "M3", "M4", "M5", "M6"],
         orgType: ["M8"],
         purpose: ["M8"],
-        enrolledCount: ["M7"],
+        
       };
 
       function parseInformationNeeded(text: string): any[] {

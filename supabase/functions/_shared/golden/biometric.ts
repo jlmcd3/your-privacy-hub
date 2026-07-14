@@ -20,7 +20,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["fingerprint"],
       purpose: "Workforce time and attendance",
       jurisdictions: ["Illinois, USA (BIPA)"],
-      enrolledCount: "500-5000",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "names BIPA, not generic" },
@@ -40,7 +39,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["facial geometry"],
       purpose: "Loss prevention",
       jurisdictions: ["Illinois, USA (BIPA)"],
-      enrolledCount: "5000-50000",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "names BIPA, not generic" },
@@ -59,7 +57,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["facial geometry"],
       purpose: "Physical access control",
       jurisdictions: ["California, USA (CCPA)"],
-      enrolledCount: "500-5000",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "names CCPA/CPRA, not generic" },
@@ -77,7 +74,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["voiceprint"],
       purpose: "Customer authentication",
       jurisdictions: ["Washington, USA"],
-      enrolledCount: "50000-500000",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "names WA biometric statute, not generic" },
@@ -95,7 +91,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["fingerprint"],
       purpose: "Patient check-in",
       jurisdictions: ["Virginia, USA"],
-      enrolledCount: "Fewer than 500",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "VCDPA addressed" },
@@ -113,7 +108,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["facial geometry"],
       purpose: "Ticketless venue entry",
       jurisdictions: ["United Kingdom (UK GDPR)"],
-      enrolledCount: "5000-50000",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "UK GDPR named" },
@@ -132,7 +126,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["facial geometry"],
       purpose: "Border / boarding identity verification",
       jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
-      enrolledCount: "More than 500,000",
     },
     assertions: [
       { kind: "must_include", pattern: "Article\\s*9", flags: "i", label: "GDPR Art 9 referenced" },
@@ -152,7 +145,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["hand geometry"],
       purpose: "Member access control",
       jurisdictions: ["Texas, USA (CUBI)"],
-      enrolledCount: "5000-50000",
     },
     assertions: [
       { kind: "jurisdiction_resolved", label: "CUBI named, not generic" },
@@ -173,7 +165,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["fingerprint"],
       purpose: "Employee POS authentication",
       jurisdictions: ["Texas, USA (CUBI)", "California, USA (CCPA)"],
-      enrolledCount: "500-5000",
     },
     assertions: [
       { kind: "must_cite", citation: "503.001", label: "CUBI cited for TX" },
@@ -191,7 +182,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["facial geometry"],
       purpose: "KYC remote onboarding",
       jurisdictions: ["EU (GDPR)"],
-      enrolledCount: "50000-500000",
     },
     assertions: [
       { kind: "must_include", pattern: "Article\\s*9", flags: "i", label: "GDPR Art 9 special category" },
@@ -210,7 +200,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["iris scan"],
       purpose: "Secure facility access",
       jurisdictions: ["Illinois, USA (BIPA)", "Washington, USA"],
-      enrolledCount: "500-5000",
     },
     assertions: [
       { kind: "must_cite", citation: "740 ILCS 14", label: "BIPA cited for IL" },
@@ -228,7 +217,6 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       biometricTypes: ["fingerprint", "facial geometry"],
       purpose: "Employee time tracking",
       jurisdictions: ["California, USA (CCPA)"],
-      enrolledCount: "500-5000",
       // weak posture: no written policy, undefined retention
     },
     assertions: [
