@@ -5,6 +5,7 @@ import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "../_shared/revisi
 import { snapshotPriorReport } from "../_shared/report-versions.ts";
 import { writeActionLog } from "../_shared/write-action-log.ts";
 import { LOCKED_FIELDS_MAP } from "../_shared/locked-fields.ts";
+import { resolveEnumRef } from "../_shared/field-enums.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
