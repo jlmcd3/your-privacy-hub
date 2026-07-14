@@ -34,13 +34,23 @@ const INSUFFICIENT_MARKER =
 //   - It is NOT a narrative/optional/context field (e.g. additional_context).
 //   - Dotted paths supported for nested intake shapes (e.g. "profile.framework").
 const ASK_ELIGIBLE_CRITICAL_FIELDS: Record<string, readonly string[]> = {
-  governance_assessment: ["dpo_status", "transfer_mechanism", "privacy_notice_coverage"],
+  // 2026-07-14 CEO ruling — governance intake requires definite answers; no
+  // customer-reachable insufficiency state exists; registry intentionally
+  // empty. Do not re-add without a form change that reintroduces an unknown
+  // option.
+  governance_assessment: [],
+  // cppa_admt: both entries verified reachable-empty through the live form.
+  //   - notice_purpose_text: empty when noticeHasSpecificPurpose is
+  //     "No — uses generic language" or "We have not yet created a Pre-use Notice".
+  //   - opt_out_methods: empty [] when an opt-out exception is selected
+  //     (Human appeal / Hiring / Work allocation).
   cppa_admt: ["notice_purpose_text", "opt_out_methods"],
   // cppa_cybersecurity: intake shape is an array-of-records
   // (intake.controls[{key,label,maturity,notes}]), not a flat top-level
   // field set. Handled by a dedicated nested synthesis walker below
   // (RC-C3.CYB-3 P-1) — NOT via this top-level registry.
 };
+
 
 // RC-C3.CYB-3 (P-1) — DETERMINISTIC CYBER ASK-SYNTHESIS WALKER.
 // For cppa_cybersecurity, walk intake.controls[]; for every control whose
