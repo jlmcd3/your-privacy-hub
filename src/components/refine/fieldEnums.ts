@@ -56,6 +56,8 @@ import {
   RELATIONSHIPS as LIA_RELATIONSHIPS,
   JURISDICTIONS as LIA_JURISDICTIONS,
 } from "@/pages/LIAssessment";
+// RC-C3.CLOSE-1 — CPPA Cybersecurity maturity options.
+import { MATURITY as CYBER_MATURITY_OPTS } from "@/pages/CPPACybersecurity";
 
 // Q18 uses inline ["Yes","No","In evaluation"] in the intake JSX; mirror that
 // literal here (content-anchored to CPPARiskAssessment.tsx line 924).
