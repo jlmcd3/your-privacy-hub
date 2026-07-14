@@ -2,7 +2,7 @@
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "7f2c9a1-bio-p3@2026-07-14T20:00Z";
+export const BUILD_STAMP = "9a3d1c4-bio-cleanup1@2026-07-14T23:10Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
