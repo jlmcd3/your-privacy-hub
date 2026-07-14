@@ -60,7 +60,8 @@ export default function BiometricChecker() {
     jurisdictions: [] as string[],
   });
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
-  const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
+  // bipa_risk retired 2026-07-14 — dropped from result state shape.
+  const [result, setResult] = useState<{ assessment_text: string; jurisdictions_analysed: string[] } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
