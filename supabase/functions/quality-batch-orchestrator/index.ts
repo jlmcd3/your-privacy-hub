@@ -3,13 +3,21 @@
 // Architecture is a deliberate copy of ql2-orchestrator: return 202 immediately,
 // do ONE bounded unit of work per invocation, persist progress in
 // quality_batch_runs, self-chain via EdgeRuntime.waitUntil + fetch back with
-// x-internal-resume: 1 and the service-role bearer. run-quality-batch itself is
-// invoked exactly the way admins invoke it today (body {tool, batch_size});
-// this function does not modify or re-implement any of its logic.
+// x-internal-resume: 1 and the service-role bearer.
+//
+// Child dispatch: we do NOT call run-quality-batch's normal start path (that path
+// requires an admin USER JWT — auth.getClaims + has_role check at
+// run-quality-batch/index.ts ~L2255–2267, and the service-role key has no
+// `sub`). Instead we pre-seed a `quality_runs` row exactly the way
+// run-quality-batch's own start-path insert does (~L2544–2553), then POST
+// { resume_run_id } with `x-internal-resume: 1` + service-role bearer to the
+// internal-resume acceptance path (~L2218–2225) which fires `runBatch(resumeId)`
+// with no JWT. run-quality-batch itself is not modified.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export const BUILD_STAMP = "26a27712-6062-4089-8cde-40c351be3eae-qb-orchestrator@2026-07-15";
+export const BUILD_STAMP = "9f4d1c02-3b7e-4a5a-a1b1-d5a6c9e2f014-qb-orchestrator@2026-07-15-p1.1";
+
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
