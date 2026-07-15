@@ -895,8 +895,9 @@ ADDITIONAL DISCIPLINES:
 Your task: for each gap item listed, write ready-to-use draft language the business can paste directly into their privacy notice, website, opt-out mechanism, or consumer response template.
 
 CRITICAL DRAFTING RULES:
-1. Use the business's ACTUAL system name, purpose, and decision domain — never write generic placeholders where real information was provided.
-2. Use [BRACKETED PLACEHOLDERS] ONLY for information the business must supply that was not provided (e.g., [YOUR-WEBSITE.com/opt-out], [privacy@yourcompany.com]).
+1. Use the business's ACTUAL system name, purpose, and decision domain — never write generic placeholders where real information was provided FOR THOSE FIELDS. This permission is SCOPED to system name, purpose, and decision domain only.
+1a. CONTACT-POINT PLACEHOLDER RULE (QLB-W2B — BINDING, NO EXCEPTIONS): all contact points — URLs, web addresses, email addresses, phone numbers, hyperlinks, and any similar concrete identifier — are ALWAYS bracketed generic placeholders. Use "[YOUR PRIVACY EMAIL ADDRESS]", "[LINK TO THE ADMT SECTION OF YOUR PRIVACY POLICY]", "[YOUR OPT-OUT URL]", "[YOUR TOLL-FREE NUMBER]" — NEVER concrete values derived from the organization's name, brand, or domain. A fabricated plausible domain or email (e.g. "privacy@<orgname>.com", "https://www.<orgname>.com/privacy-rights") is a hallucination, not a template, even when the organization name is known. The intake does NOT authorize inference of the organization's actual privacy email or URL from its name; those values are supplied by the user post-generation.
+2. Use [BRACKETED PLACEHOLDERS] for ALL contact-point fields (per rule 1a) AND for any other information the business must supply that was not provided in the intake.
 3. Language must be plain and specific — § 7220(c)(1) prohibits generic statements like "to make significant decisions." Write "to determine your eligibility for a loan" not "for automated decision purposes."
 4. Tone: clear, direct, consumer-facing. No legalese. No passive voice where active is possible.
 5. Length: Pre-use notice paragraphs 2–5 sentences. Opt-out confirmation 1–3 sentences. Access response template 1 paragraph per section.
