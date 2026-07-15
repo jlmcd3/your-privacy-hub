@@ -167,6 +167,7 @@ export default function QualityLoop3() {
   const [activeBatch, setActiveBatch] = useState<Ql3BatchRow | null>(null);
   const [batchLogs, setBatchLogs] = useState<Ql3LogRow[]>([]);
   const [unattachedLogs, setUnattachedLogs] = useState<Ql3LogRow[]>([]);
+  const [liveLogs, setLiveLogs] = useState<Ql3LogRow[]>([]);
   const [stopping, setStopping] = useState(false);
 
   // Recent runs card
@@ -258,6 +259,15 @@ export default function QualityLoop3() {
     if (data) setUnattachedLogs(data as unknown as Ql3LogRow[]);
   }
 
+  async function loadLiveLogRows() {
+    const { data } = await supabase
+      .from("quality_loop3_log")
+      .select("*")
+      .order("ts", { ascending: false })
+      .limit(500);
+    if (data) setLiveLogs(((data as unknown as Ql3LogRow[]) ?? []).reverse());
+  }
+
   // Poll active batch + logs every 10s.
   useEffect(() => {
     if (!activeBatch) return;
@@ -281,7 +291,7 @@ export default function QualityLoop3() {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      await loadUnattachedLogRows();
+      await Promise.all([loadUnattachedLogRows(), loadLiveLogRows()]);
       if (cancelled) return;
       setLogLastRefreshedAt(new Date().toISOString());
     };
@@ -296,6 +306,7 @@ export default function QualityLoop3() {
       await Promise.all([
         activeBatch ? loadActiveBatchLogs(activeBatch) : Promise.resolve(),
         loadUnattachedLogRows(),
+        loadLiveLogRows(),
         refresh(),
       ]);
       setLogRefreshTick((n) => n + 1);
@@ -307,8 +318,10 @@ export default function QualityLoop3() {
     }
   };
 
-  // Merged log stream: batch-scoped + recent unattached, deduped by id, sorted by ts.
+  // Live log stream: newest QL3 log rows directly from quality_loop3_log.
+  // Fall back to scoped logs only before the first live feed load completes.
   const mergedLogs = (() => {
+    if (liveLogs.length > 0) return liveLogs;
     const seen = new Map<string, Ql3LogRow>();
     for (const r of batchLogs) seen.set(r.id, r);
     for (const r of unattachedLogs) seen.set(r.id, r);
