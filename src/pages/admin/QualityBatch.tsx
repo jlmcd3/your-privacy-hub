@@ -196,7 +196,7 @@ export default function QualityBatch() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase
-        .from("quality_batch_runs" as any)
+        .from("quality_batch_runs")
         .select("*")
         .order("started_at", { ascending: false })
         .limit(1)
@@ -211,8 +211,8 @@ export default function QualityBatch() {
     let cancelled = false;
     const load = async () => {
       const [{ data: batch }, { data: log }] = await Promise.all([
-        supabase.from("quality_batch_runs" as any).select("*").eq("id", activeBatch.id).maybeSingle(),
-        supabase.from("quality_batch_log" as any)
+        supabase.from("quality_batch_runs").select("*").eq("id", activeBatch.id).maybeSingle(),
+        supabase.from("quality_batch_log")
           .select("*").eq("run_id", activeBatch.id).order("ts", { ascending: true }).limit(500),
       ]);
       if (cancelled) return;
@@ -233,9 +233,9 @@ export default function QualityBatch() {
     let cancelled = false;
     const load = async () => {
       const [{ data: rows }, { data: base }] = await Promise.all([
-        supabase.from("quality_batch_runs" as any)
+        supabase.from("quality_batch_runs")
           .select("*").order("started_at", { ascending: false }).limit(10),
-        supabase.from("quality_batch_baselines" as any).select("*"),
+        supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
       if (rows) setRecentBatches(rows as any);
@@ -294,7 +294,7 @@ export default function QualityBatch() {
       if (error) throw error;
       const runId = (data as any)?.run_id;
       if (!runId) throw new Error("orchestrator returned no run_id");
-      const { data: row } = await supabase.from("quality_batch_runs" as any)
+      const { data: row } = await supabase.from("quality_batch_runs")
         .select("*").eq("id", runId).maybeSingle();
       setActiveBatch(row as any);
       setBatchLogs([]);
@@ -402,7 +402,7 @@ export default function QualityBatch() {
         return { tool, claude_score: claude, gpt_score: gpt, avg_score: avg, captured_at: new Date().toISOString() };
       });
       if (rows.length === 0) { toast.message("No complete results to snapshot."); return; }
-      const { error } = await supabase.from("quality_batch_baselines" as any)
+      const { error } = await supabase.from("quality_batch_baselines")
         .upsert(rows, { onConflict: "tool" });
       if (error) throw error;
       const m = new Map<string, Baseline>();
