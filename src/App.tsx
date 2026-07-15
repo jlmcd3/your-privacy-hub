@@ -636,6 +636,18 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/quality-batch"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <QualityBatch />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/function-health"
               element={
                 <ProtectedRoute>
