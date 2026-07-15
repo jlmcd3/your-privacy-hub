@@ -30,7 +30,7 @@ export default function Obligations() {
     return (
       <div className="min-h-screen bg-brand-cloud">
         <Navbar />
-        <main className="py-20 flex justify-center">
+        <main id="main-content" className="py-20 flex justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-brand-navy" />
         </main>
       </div>
