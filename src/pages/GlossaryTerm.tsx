@@ -53,7 +53,7 @@ const GlossaryTerm = () => {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         <div className="bg-card border border-border rounded-xl p-6 mb-8">
           <h2 className="text-foreground mb-3">Definition</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">{term.definition}</p>
+          <p className="font-serif-text text-fluid-base text-ink leading-relaxed">{term.definition}</p>
           <p className="text-xs text-muted-foreground mt-4 italic">
             Source:{" "}
             {(() => {
