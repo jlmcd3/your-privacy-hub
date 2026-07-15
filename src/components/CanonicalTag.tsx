@@ -37,6 +37,7 @@ export default function CanonicalTag() {
     const currentUrl = new URL(window.location.href);
     currentUrl.protocol = "https:";
     currentUrl.host = new URL(SITE_ORIGIN).host;
+    currentUrl.search = "";
     currentUrl.hash = "";
     const href = currentUrl.toString();
     const title = ROUTE_TITLES[pathname];
