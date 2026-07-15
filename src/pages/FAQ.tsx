@@ -15,11 +15,11 @@ const I_ANNUAL_SAVING = `$${PRICING.intelligence.monthly.dollars * 12 - PRICING.
 const faqs = [
   {
     q: "How often is the platform updated?",
-    a: "Daily. Our systems continuously monitor regulatory authorities across the world — including the EDPB, ICO, FTC, CNIL, all 50 US state attorneys general, and dozens of national data protection authorities worldwide. New articles are ingested, filtered for relevance, and summarized within hours of publication.",
+    a: "Daily. Our systems continuously monitor regulatory authorities across the world, including the EDPB, ICO, FTC, CNIL, all 50 US state attorneys general, and dozens of national data protection authorities worldwide. New articles are ingested, filtered for relevance, and summarized within hours of publication.",
   },
   {
     q: "Who writes the analysis?",
-    a: "All summaries and the weekly Privacy Intelligence Report are drawn from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
+    a: "All summaries and the weekly Privacy Intelligence Report are drawn from primary source material: press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
   },
   {
     q: "What countries and jurisdictions are covered?",
@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     q: "What does Intelligence add?",
-    a: "Intelligence subscribers receive the full 8-section weekly Privacy Intelligence Report every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.\n\nEvery article also includes a pre-built AI investigation prompt for paid subscribers. The prompt is automatically assembled from the article's regulatory context — jurisdiction, legal theory, compliance impact, and recommended actions — so you can paste it directly into Claude, ChatGPT, or any AI assistant and begin your own investigation immediately, without having to construct the prompt yourself.",
+    a: "Intelligence subscribers receive the full 8-section weekly Privacy Intelligence Report every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.\n\nEvery article also includes a pre-built AI investigation prompt for paid subscribers. The prompt is automatically assembled from the article's regulatory context (jurisdiction, legal theory, compliance impact, and recommended actions), so you can paste it directly into Claude, ChatGPT, or any AI assistant and begin your own investigation immediately, without having to construct the prompt yourself.",
   },
   {
     q: "How is the analysis produced?",
@@ -39,15 +39,15 @@ const faqs = [
   },
   {
     q: "What are the enforcement citations in tool outputs?",
-    a: "Smart Tools (LIA, DPIA, Governance Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings — the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources and legal counsel review are still required before relying on any regulatory position.",
+    a: "Smart Tools (LIA, DPIA, Governance Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources and legal counsel review are still required before relying on any regulatory position.",
   },
   {
     q: "How many generations do I get per Smart Tool report?",
-    a: "Every Smart Tool report includes 4 generations — one initial run plus up to 3 revisions. Use the Refine panel to change your answers or add context and regenerate at no extra cost. Once you've used all 4, you can purchase 4 additional generations as a top-up.",
+    a: "Every Smart Tool report includes 4 generations: one initial run plus up to 3 revisions. Use the Refine panel to change your answers or add context and regenerate at no extra cost. Once you've used all 4, you can purchase 4 additional generations as a top-up.",
   },
   {
     q: "How do I cancel my subscription?",
-    a: "You can cancel anytime — no cancellation fees, no notice period required. Cancel directly from your account settings or by emailing hello@enduserprivacy.com. If you cancel, you retain access until the end of your current billing period.",
+    a: "You can cancel anytime, with no cancellation fees and no notice period required. Cancel directly from your account settings or by emailing hello@enduserprivacy.com. If you cancel, you retain access until the end of your current billing period.",
   },
   {
     q: "Is my payment information secure?",
@@ -58,7 +58,7 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save ${I_ANNUAL_SAVING}) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
+    a: `Privacy Intelligence is ${I_MO} (or ${I_YR}, save ${I_ANNUAL_SAVING}) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
   },
   {
     q: "What is included in Professional?",
@@ -70,7 +70,7 @@ const pricingFaqs = [
   },
   {
     q: "Can I get my reports in other languages?",
-    a: "Yes. Every generated report and document can be translated into more than 20 languages — including French, German, Spanish, Italian, Dutch, Polish, Portuguese, Japanese, and Chinese — directly from the report page, at no extra charge (up to 4 languages per report). The English original remains the authoritative version. The weekly Privacy Intelligence Report is likewise available in your preferred language.",
+    a: "Yes. Every generated report and document can be translated into more than 20 languages (including French, German, Spanish, Italian, Dutch, Polish, Portuguese, Japanese, and Chinese) directly from the report page, at no extra charge (up to 4 languages per report). The English original remains the authoritative version. The weekly Privacy Intelligence Report is likewise available in your preferred language.",
   },
 ];
 
@@ -81,8 +81,8 @@ const FAQ = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>FAQ | End User Privacy — Privacy Intelligence Platform</title>
-        <meta name="description" content="Common questions about End User Privacy — coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
+        <title>FAQ | End User Privacy: Privacy Intelligence Platform</title>
+        <meta name="description" content="Common questions about End User Privacy: coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
       </Helmet>
       <Navbar />
 

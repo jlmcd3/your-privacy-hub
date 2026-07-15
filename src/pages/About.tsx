@@ -55,7 +55,7 @@ const About = () => {
               Our mission
             </span>
             <blockquote className="font-display text-[22px] md:text-[28px] font-bold text-brand-navy leading-tight mb-5">
-              “Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do.”
+              “Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis: that's what we do.”
             </blockquote>
             <p className="text-[15px] text-slate leading-relaxed">
               EndUserPrivacy.com monitors privacy developments across the world on a daily basis, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
@@ -103,7 +103,7 @@ const About = () => {
                   <p className="text-sm text-gray-600">
                     Most privacy resources describe what the law says.
                     We calibrate our analysis against 3,700+ real enforcement
-                    decisions — what regulators actually penalise, in practice,
+                    decisions: what regulators actually penalise, in practice,
                     across authorities worldwide. There is a material difference between
                     statutory text and enforcement reality. Our tools and
                     intelligence reflect that difference.
@@ -122,7 +122,7 @@ const About = () => {
                     with three layers of AI analysis: an alert identifying the
                     regulatory risk, context explaining what it means, and analysis
                     with specific operational guidance. The result is not a link to
-                    a press release — it is a briefing you can act on.
+                    a press release; it is a briefing you can act on.
                   </p>
                 </div>
               </div>
@@ -134,8 +134,8 @@ const About = () => {
                     Intelligence and compliance tools in one platform
                   </h3>
                   <p className="text-sm text-gray-600">
-                    The privacy tools most professionals use — LIAs, DPIAs, DPA
-                    generators, IR playbooks — are sold separately by specialist
+                    The privacy tools most professionals use (LIAs, DPIAs, DPA
+                    generators, IR playbooks) are sold separately by specialist
                     vendors at significant cost. We offer thirteen enforcement-calibrated
                     compliance tools at standalone per-use prices.
                     The intelligence that informs the tools and the tools themselves
@@ -155,7 +155,7 @@ const About = () => {
                     specifically for your role (DPO, privacy counsel, CISO,
                     compliance lead), your jurisdictions, and your tracked topics.
                     The platform knows whether you work in healthcare, financial
-                    services, or AdTech — and surfaces the enforcement patterns
+                    services, or AdTech, and surfaces the enforcement patterns
                     and guidance that are relevant to you, not to everyone.
                   </p>
                 </div>
@@ -173,7 +173,7 @@ const About = () => {
               >
                 hello@enduserprivacy.com
               </a>{" "}
-              — we respond within one business day.
+              . We respond within one business day.
             </p>
           </div>
 
@@ -182,14 +182,14 @@ const About = () => {
               EndUserPrivacy.com monitors privacy regulatory authorities across the world, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
             </p>
             <p>
-              Our platform ingests, filters, and summarizes primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.
+              Our platform ingests, filters, and summarizes primary source material (press releases, regulatory announcements, and authoritative news coverage), so privacy professionals can focus on what matters most.
             </p>
             <p>
               Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, End User Privacy gives you the intelligence you need in one place.
             </p>
             <h2 className="font-display text-brand-navy pt-4">Our Mission</h2>
             <p>
-              To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn`t require expensive enterprise subscriptions or hours of manual research.
+              To make privacy regulatory intelligence accessible, comprehensive, and actionable, at any price point. We believe that staying informed about the global privacy landscape shouldn`t require expensive enterprise subscriptions or hours of manual research.
             </p>
 
             {/* Free Tools section */}
