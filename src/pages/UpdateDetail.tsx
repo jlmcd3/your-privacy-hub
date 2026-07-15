@@ -290,11 +290,28 @@ const UpdateDetail = () => {
             {/* Title */}
             <h1 className="font-display text-foreground leading-tight mb-3" style={{ fontSize: 'clamp(1.333rem, 0.933rem + 2vw, 1.833rem)' }}>{article.title}</h1>
 
-            {/* Meta row */}
+            {/* Meta row: author attribution + date + read time */}
             <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground mb-4">
-              {article.source_name && <span>{article.source_name}</span>}
+              {article.source_name && <span>By {article.source_name}</span>}
               {article.source_name && article.published_at && <span>·</span>}
-              {article.published_at && <span>{formatDate(article.published_at)}</span>}
+              {article.published_at && (
+                <time dateTime={article.published_at}>{formatDate(article.published_at)}</time>
+              )}
+              {(() => {
+                const words = [article.summary, ai?.why_it_matters, ai?.compliance_impact]
+                  .filter(Boolean)
+                  .join(" ")
+                  .replace(/<[^>]+>/g, " ")
+                  .split(/\s+/)
+                  .filter(Boolean).length;
+                const minutes = Math.max(1, Math.ceil(words / 220));
+                return words > 0 ? (
+                  <>
+                    <span>·</span>
+                    <span>{minutes} min read</span>
+                  </>
+                ) : null;
+              })()}
               {article.regulator && (
                 <>
                   <span>·</span>

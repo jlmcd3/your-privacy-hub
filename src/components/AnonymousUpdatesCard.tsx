@@ -70,7 +70,7 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
             </span>
           )}
           {item.published_at && (
-            <span className="text-[11px] text-brand-mist">{fmtDate(item.published_at)}</span>
+            <time className="text-[11px] text-brand-mist" dateTime={item.published_at || undefined}>{fmtDate(item.published_at)}</time>
           )}
           {cat && (
             <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
