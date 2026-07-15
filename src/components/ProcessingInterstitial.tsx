@@ -121,7 +121,7 @@ export function ProcessingInterstitial({
 
   if (!cfg) {
     return (
-      <div className="bg-card border rounded-lg p-10 text-center">
+      <div className="bg-card border rounded-lg p-10 text-center" role="status" aria-live="polite">
         <p className="text-muted-foreground">Generating your report…</p>
       </div>
     );
