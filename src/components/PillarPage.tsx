@@ -12,6 +12,7 @@ import type { ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { fireEmailCaptured } from "@/lib/analyticsEvents";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 interface PillarPageProps {
   title: string;
@@ -66,6 +67,7 @@ const PillarPage = ({
   const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
+  const fireConversion = useConversionEvent();
 
   const tier: "anonymous" | "free" | "premium" = !user ? "anonymous" : isPremium ? "premium" : "free";
 
