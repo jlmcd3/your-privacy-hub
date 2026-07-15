@@ -206,7 +206,7 @@ const PillarPage = ({
           {user && !isPremium && emailCaptureText && (
             <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-brand-mist bg-white/10 px-3 py-1.5 rounded-full">
               <span>Intelligence subscribers see full tables and analysis on every update.</span>
-              <Link to="/subscribe" className="text-sky-300 font-semibold hover:text-white transition-colors">
+              <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Get Intelligence", cta_position: "hero-secondary" })} className="text-sky-300 font-semibold hover:text-white transition-colors">
                 Get Intelligence →
               </Link>
             </div>
@@ -308,6 +308,7 @@ const PillarPage = ({
               </p>
               <Link
                 to="/subscribe"
+                onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Get full intelligence", cta_position: "feature-gate" })}
                 className="inline-flex w-full sm:w-auto items-center justify-center text-[12px] font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
               >
                 Get full intelligence →
@@ -398,6 +399,7 @@ const PillarPage = ({
             </p>
             <Link
               to="/subscribe"
+              onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Get full intelligence", cta_position: "article-footer" })}
               className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
             >
               Get full intelligence →
