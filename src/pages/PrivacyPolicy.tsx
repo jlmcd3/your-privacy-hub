@@ -44,8 +44,8 @@ const PrivacyPolicy = () => {
       sections={SECTIONS}
     >
       <div className="prose prose-sm max-w-none space-y-8 font-serif-text text-fluid-base text-ink">
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">Introduction</h2>
+          <section id="introduction" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">Introduction</h2>
             <p>
               End User Privacy ("we," "us," or "our") operates enduserprivacy.com (the "Site"). This
               Privacy Policy explains what information we collect, how we use it, with whom we share
@@ -57,8 +57,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">1. Who We Are</h2>
+          <section id="who-we-are" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">1. Who We Are</h2>
             <p>
               End User Privacy is a privacy intelligence and compliance platform serving privacy
               professionals, including data protection officers, privacy counsel, compliance
@@ -71,8 +71,8 @@ const PrivacyPolicy = () => {
             <p>Contact: <Mail /></p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="information-collected" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               2. Information We Collect
             </h2>
 
@@ -134,8 +134,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="how-we-use" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               3. How We Use Your Information
             </h2>
             <p>We use your information for the following purposes:</p>
@@ -182,8 +182,8 @@ const PrivacyPolicy = () => {
             </ul>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="third-party-providers" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               4. Third-Party Service Providers
             </h2>
             <p>
@@ -252,8 +252,8 @@ const PrivacyPolicy = () => {
             <p className="font-semibold">We do not sell your personal data to any third party.</p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="advertising" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               5. Advertising and Google AdSense
             </h2>
             <p>The Site displays advertisements served by Google AdSense.</p>
@@ -293,8 +293,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="cookies" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               6. Cookies and Similar Technologies
             </h2>
             <p>We use the following categories of cookies:</p>
@@ -351,8 +351,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="retention" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               7. Data Retention
             </h2>
             <p>We retain your personal data as follows:</p>
@@ -376,8 +376,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">8. Your Rights</h2>
+          <section id="your-rights" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">8. Your Rights</h2>
 
             <h3 className="text-foreground">
               8.1 Rights under UK/EU GDPR
@@ -440,8 +440,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="international" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               9. International Data Transfers
             </h2>
             <p>
@@ -462,8 +462,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="children" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               10. Children's Privacy
             </h2>
             <p>
@@ -473,8 +473,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">11. Security</h2>
+          <section id="security" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">11. Security</h2>
             <p>
               We implement appropriate technical and organisational measures to protect your
               personal data, including:
@@ -494,8 +494,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="third-party-links" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               12. Third-Party Links
             </h2>
             <p>
@@ -506,8 +506,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="changes" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               13. Changes to This Policy
             </h2>
             <p>
@@ -518,8 +518,8 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">14. Contact Us</h2>
+          <section id="contact" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">14. Contact Us</h2>
             <p>
               For any questions, requests, or complaints regarding this Privacy Policy or our data
               practices, contact:
