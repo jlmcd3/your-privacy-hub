@@ -166,6 +166,7 @@ export default function QualityLoop3() {
   // Active/last batch
   const [activeBatch, setActiveBatch] = useState<Ql3BatchRow | null>(null);
   const [batchLogs, setBatchLogs] = useState<Ql3LogRow[]>([]);
+  const [unattachedLogs, setUnattachedLogs] = useState<Ql3LogRow[]>([]);
   const [stopping, setStopping] = useState(false);
 
   // Recent runs card
