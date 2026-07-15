@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 interface Props {
   open: boolean;
@@ -23,8 +25,28 @@ export default function AuthGateModal({
   body = "Your report will be saved to your account and emailed to you.",
 }: Props) {
   const location = useLocation();
+  const fireConversion = useConversionEvent();
   const target = redirectTo ?? `${location.pathname}${location.search}`;
   const encoded = encodeURIComponent(target);
+
+  // PP-1 D3: firing the unauthenticated-redirect-gate leg of signup_initiated
+  // when the auth gate is presented on an intake route. referrer_path is the
+  // route the user was trying to complete (the intake page). variant is
+  // "page-load" here since the gate is a page-scoped modal.
+  useEffect(() => {
+    if (!open) return;
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : new URLSearchParams();
+    fireConversion("signup_initiated", {
+      referrer_path: location.pathname,
+      utm_source: params.get("utm_source") || "",
+      utm_campaign: params.get("utm_campaign") || "",
+      variant: "page-load",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (!open) return null;
 
@@ -56,6 +78,14 @@ export default function AuthGateModal({
         <div className="flex flex-col gap-2.5">
           <Link
             to={`/signup?redirect=${encoded}`}
+            onClick={() =>
+              fireConversion("signup_initiated", {
+                referrer_path: location.pathname,
+                utm_source: "",
+                utm_campaign: "",
+                variant: "form-engagement",
+              })
+            }
             className="text-center bg-brand-navy text-white font-bold text-[14px] py-3 px-5 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Create free account
