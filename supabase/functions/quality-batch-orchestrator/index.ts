@@ -232,7 +232,7 @@ async function runUnit(runId: string) {
   let child: ChildSnapshot | null = null;
   if (run.current_quality_run_id) {
     const { data: c } = await db.from("quality_runs")
-      .select("status, last_heartbeat_at, score_overall, gpt_score_overall, error")
+      .select("status, last_heartbeat_at, score_overall, gpt_score_overall, error, run_number")
       .eq("id", run.current_quality_run_id)
       .maybeSingle();
     child = c ? {
@@ -241,8 +241,10 @@ async function runUnit(runId: string) {
       score_overall: (c as any).score_overall ?? null,
       gpt_score_overall: (c as any).gpt_score_overall ?? null,
       error: (c as any).error ?? null,
+      run_number: (c as any).run_number ?? null,
     } : null;
   }
+
 
   const d = decide(run as any as BatchRow, child, Date.now());
 
