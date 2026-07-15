@@ -394,7 +394,7 @@ const UpdateDetail = () => {
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
                       style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
-                      <p className="text-base leading-relaxed text-brand-navy m-0">
+                      <p className="font-serif-text text-fluid-base leading-relaxed text-brand-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
                       </p>
                     </div>
