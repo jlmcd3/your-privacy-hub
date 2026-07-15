@@ -847,7 +847,7 @@ export default function Tools() {
               </div>
             ))}
           </div>
-          <Link to="/subscribe" className="inline-block text-sm font-semibold text-brand-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+          <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start 10-day Intelligence trial", cta_position: "article-footer" })} className="inline-block text-sm font-semibold text-brand-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
             Start 10-day Intelligence trial →
           </Link>
           <p className="text-brand-cloud/60 text-meta mt-4">
@@ -900,14 +900,20 @@ export default function Tools() {
               <div className="flex gap-3 pt-2">
                 <Link
                   to={activeTool.href}
-                  onClick={() => setSampleModal(null)}
+                  onClick={() => {
+                    fireConversion("tool_start_click", { tool_slug: activeTool.slug, page_path: "/tools", user_type: userType });
+                    setSampleModal(null);
+                  }}
                   className="flex-1 text-center bg-brand-navy text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-all no-underline"
                 >
                   Open {activeTool.name} →
                 </Link>
                 <Link
                   to="/subscribe"
-                  onClick={() => setSampleModal(null)}
+                  onClick={() => {
+                    fireConversion("subscribe_cta_click", { cta_label: "See Professional", cta_position: "feature-gate" });
+                    setSampleModal(null);
+                  }}
                   className="flex-1 text-center border border-primary/30 text-primary font-semibold text-sm py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
                 >
                   See Professional →
