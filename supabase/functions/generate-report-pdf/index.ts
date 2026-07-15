@@ -2,7 +2,7 @@
 // BUILD_STAMP — real exported constant (was previously absent; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "47b4d65b-pdf-join-guard@2026-07-15T00:15Z";
+export const BUILD_STAMP = "qlb-w2-abcd-pdf1@2026-07-15T03:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -202,7 +202,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
   <h1>Legitimate Interest Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -307,7 +307,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
   <h1>GDPR Governance Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -316,7 +316,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Organisation</td>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Organization</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(assessment?.organization_name || report.organisation_profile?.organization_name || "—")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Sector</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(report.organisation_profile?.sector || "—")}</td>
@@ -396,7 +396,7 @@ function buildDPIAReportHTML(report: any, dpia: any): string {
   const prose = (label: string, val: any): string =>
     val ? `<p><span class="label">${escHtml(label)}:</span> ${sanitizeNarrative(String(val))}</p>` : "";
   const sec = (heading: string, s: any, inner: string): string =>
-    !s ? "" : `<h2>${escHtml(heading)}</h2>${s.guidance_note ? `<div class="guidance">${escHtml(s.guidance_note)}</div>` : ""}${inner}${s.completion_guidance ? `<div class="completion"><strong>The organisation must complete: </strong>${escHtml(s.completion_guidance)}</div>` : ""}`;
+    !s ? "" : `<h2>${escHtml(heading)}</h2>${s.guidance_note ? `<div class="guidance">${escHtml(s.guidance_note)}</div>` : ""}${inner}${s.completion_guidance ? `<div class="completion"><strong>The organization must complete: </strong>${escHtml(s.completion_guidance)}</div>` : ""}`;
 
   const ov = report.section_0_overview, d1 = report.section_1_description, an = report.section_2_analysis;
   const np = report.section_3_necessity_proportionality, rm = report.section_4_risk_management;
@@ -435,7 +435,7 @@ table.dt td { padding:5px 7px; border:1px solid #dde5ea; vertical-align:top; }
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
   <h1>Impact Assessment Builder</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -678,6 +678,31 @@ interface TextReportOpts {
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
   /** Optional override for the standard "Not legal advice" disclaimer block. */
   disclaimerHtml?: string;
+  /**
+   * PDF-1: pre-body HTML block rendered verbatim (unescaped) BEFORE section
+   * parsing. Use this for renderer-owned metadata blocks (IR playbook
+   * "Prepared for" card) so their raw HTML is not shoved through
+   * parseTextBlocks and rendered as literal text.
+   */
+  htmlPrefix?: string;
+}
+
+/**
+ * PDF-1: strip HTML tags from generator-emitted body text so raw markup does
+ * not leak into the PDF as literal escaped characters. Preserves inner text
+ * content and paragraph breaks; converts <br> to newlines and closing block
+ * tags (</p>, </div>, </tr>, </table>, </li>, </h1..6>) to double newlines
+ * so the downstream parser sees paragraph structure.
+ */
+function stripBodyHtml(text: string): string {
+  if (!text) return "";
+  if (!/<[a-zA-Z\/!]/.test(text)) return text; // fast path: no tags
+  return text
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\/\s*(p|div|tr|table|thead|tbody|li|ul|ol|h[1-6])\s*>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function buildTextReportHTML(opts: TextReportOpts): string {
@@ -771,16 +796,17 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 <body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
     <h1>${escHtml(opts.title)}</h1>
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
   <div class="body">
     <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
-      This document is provided to support your organisation's compliance review.
+      This document is provided to support your organization's compliance review.
       It does not create an attorney-client relationship. Always consult qualified legal
       counsel for advice specific to your situation.`}</div>
     ${calloutHtml}
+    ${opts.htmlPrefix ?? ""}
     ${sectionsHtml}
     <div class="footer">EndUserPrivacy.com · Generated ${new Date().toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}</div>
   </div>
@@ -910,7 +936,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
@@ -1009,7 +1035,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record?.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
     <div class="summary-bar">
@@ -1605,7 +1631,7 @@ function buildADMTReportHTML(report: any, record: any): string {
 
 function buildRegistrationReportHTML(record: any): string {
   const summary = record.result_summary || {};
-  const orgName: string = record.organization_name || summary.organization_name || "[Organisation]";
+  const orgName: string = record.organization_name || summary.organization_name || "[Organization]";
   const generatedAt: string = record.created_at || new Date().toISOString();
   const generatedHuman = new Date(generatedAt).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
@@ -1745,12 +1771,12 @@ function buildRegistrationReportHTML(record: any): string {
 <body>
 <div class="eup-bar">
   <img src="${LOGO_URL}" alt="End User Privacy" style="height:22px;width:auto;display:block;" />
-  <span>Compliance Tool · Customised Analysis</span>
+  <span>Compliance Tool · Customized Analysis</span>
 </div>
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
 <p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
-  Not legal advice. This document is provided to support your organisation's compliance review.
+  Not legal advice. This document is provided to support your organization's compliance review.
   It does not create an attorney-client relationship. Always consult qualified legal counsel for advice specific to your situation.
 </p>
 
@@ -2189,12 +2215,12 @@ Deno.serve(async (req) => {
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Prepared for</td>
-      <td style="padding:3px 0;color:#1a1916;font-weight:600;">${escHtml(orgName || "[TO BE COMPLETED: organisation name]")}</td>
+      <td style="padding:3px 0;color:#1a1916;font-weight:600;">${escHtml(orgName || "[TO BE COMPLETED: organization name]")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Incident ID</td>
       <td style="padding:3px 0;color:#b45309;font-weight:600;">[TO BE COMPLETED: assign unique incident ID]</td>
     </tr>
     <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Organisation type</td>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Organization type</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(orgType || "—")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
       <td style="padding:3px 0;color:#7c1a1a;font-weight:600;">DRAFT — CONFIRM ALL DEADLINES WITH COUNSEL</td>
@@ -2214,7 +2240,13 @@ Deno.serve(async (req) => {
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
           (orgName ? ` · ${orgName}` : "") +
           (jurArr.length ? ` · ${jurArr.join(", ")}` : ""),
-        text: metadataBlock + "\n\n" + (record.playbook_text || ""),
+        // PDF-1: metadataBlock is raw renderer-owned HTML — pass via htmlPrefix
+        // so it renders as styled content, not escaped as literal text.
+        // playbook_text may embed generator-emitted HTML (tables/divs) which
+        // parseTextBlocks does not understand and would previously escape into
+        // visible markup on page 1 — strip tags before parsing.
+        htmlPrefix: metadataBlock,
+        text: stripBodyHtml(record.playbook_text || ""),
         showJurisdictionChip: false,
         callout: { kind: "muted", html: calloutText },
         disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be confirmed with qualified legal counsel before reliance during a live incident.`,
@@ -2222,9 +2254,21 @@ Deno.serve(async (req) => {
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
       const intake = record.intake_data || {};
+      // PDF-1 subtitle guard: legalFramework can arrive as an object from
+      // intake shims; String(obj) → "[object Object]" is the bug. Coerce
+      // safely and fall back to omission for non-string values.
+      const rawFramework = (intake as any).legalFramework;
+      const frameworkLabel = typeof rawFramework === "string" && rawFramework.trim()
+        ? rawFramework.trim()
+        : (rawFramework && typeof rawFramework === "object"
+            ? String((rawFramework as any).label ?? (rawFramework as any).name ?? "").trim()
+            : "");
+      const ctrlName = typeof (intake as any).controllerName === "string" ? (intake as any).controllerName : "Controller";
+      const procName = typeof (intake as any).processorName === "string" ? (intake as any).processorName : "Processor";
+      const generatedLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}`;
       html = buildTextReportHTML({
-        title: `Your Custom DPA — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`,
-        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · ${intake.legalFramework || "GDPR"}`,
+        title: `Your Custom DPA — ${ctrlName} / ${procName}`,
+        metaLine: frameworkLabel ? `${generatedLine} · ${frameworkLabel}` : generatedLine,
         text: record.document_text || "",
         showJurisdictionChip: false,
         disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs for review by qualified counsel. It is not a negotiated agreement and must not be executed without legal review. It does not create an attorney-client relationship.`,

@@ -347,8 +347,8 @@ function languageVariantRule(variant: LanguageVariant): string {
   if (variant === "jurisdiction-conditional") {
     return "Write in the English variant that matches the governing jurisdiction of the output — American English for US-law outputs (e.g. CCPA/CPPA); British English for UK/EU outputs (UK GDPR / GDPR). Never mix variants within one document.";
   }
-  // american (default)
-  return "Use American English throughout this document — spelling (organization, behavior, minimize, recognize, analyze, program, license[noun]), date format, terminology. Never British variants.";
+  // american (default) — Ruling R-15C-1 (revised): all nine products write US English.
+  return "Write in US English (en-US) spelling throughout — organization, behavior, minimize, recognize, analyze, program, license[noun], customized, prioritize, utilize, categorize, summarize, center, color. Never mix variants. Two exemptions apply, and only these two: (a) statutory citations, statute names, and quoted statutory or regulatory text are reproduced exactly as enacted and never respelled (e.g. GDPR's own \"pseudonymisation\" stays when quoting the regulation); (b) intake enum values and contract-bound option strings are quoted verbatim and never respelled.";
 }
 
 export function buildSystemContent(opts: {

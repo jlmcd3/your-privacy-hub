@@ -563,7 +563,7 @@ export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData
     citationFramework: GOVERNANCE_CITATION_FRAMEWORK,
     outputMode: "strict-JSON",
     extraRules: buildGovernanceSharedRules(jurisdictions, euUkData),
-    languageVariant: "jurisdiction-conditional",
+    languageVariant: "american",
   };
 }
 
@@ -573,7 +573,7 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
     citationFramework: `${GOVERNANCE_CITATION_FRAMEWORK} In the synthesis you may cite enforcement precedents, but ONLY those provided in the ENFORCEMENT PRECEDENTS / ENFORCEMENT CONTEXT block. Never state a monetary fine amount unless it appears in that block; otherwise write '[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register'. Known correct figures (use only if the case is in your block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000; ICO Capita Pension Solutions (2024) £6,090,000; ICO British Airways (2020) £20,000,000.`,
     outputMode: "strict-JSON",
     extraRules: buildGovernanceSharedRules(jurisdictions, euUkData),
-    languageVariant: "jurisdiction-conditional",
+    languageVariant: "american",
   };
 }
 
@@ -725,7 +725,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
-export const BUILD_STAMP = "2f8c1a94-gov-crash-fix@2026-07-15T00:00Z";
+export const BUILD_STAMP = "qlb-w2-abcd-pdf1@2026-07-15T03:00Z";
 
 Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);

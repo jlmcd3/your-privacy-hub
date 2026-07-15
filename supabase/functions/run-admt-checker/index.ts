@@ -4,7 +4,7 @@
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "b7f4e91-admt-join-guard@2026-07-15T00:15Z";
+export const BUILD_STAMP = "qlb-w2-abcd-pdf1@2026-07-15T03:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -281,6 +281,8 @@ CITATION FORMAT: never emit a parent-plus-subpart combined citation ('§ 7222(b)
 COMBINED CITATIONS STATE EACH PROVISION'S ROLE: never emit a bare combined citation ('11 CCR § 7222(b)(3) + 11 CCR § 7001(e)(1)'); state what each provision does in the pairing (e.g. '11 CCR § 7222(b)(3) (access-response content requirement), applying the § 7001(e)(1) definitional element'). Attestation references match the source field verbatim: where submission_requirement says 'signed under penalty of perjury', every cross-reference says 'signed under penalty of perjury', never a paraphrase.
 
 SAMPLE CONSUMER LANGUAGE IS PRECISE AND SELF-CONTAINED: (1) anchor purpose disclosures to the completed decision ('Why we used automated decision-making to evaluate your account'), not open-ended past use; (2) describe the disclosures made, never the consumer's capabilities ('The information provided above enables you to understand…' — not 'does not affect your ability to understand'); (3) placeholder example lists use bracketed generic placeholders ('[CATEGORY 1], [CATEGORY 2]'), never real-sounding categories that could read as recommendations; (4) cessation timing is framed on technical feasibility ('as soon as we are technically able after your request is verified'), never on queue position.
+
+CONTACT-POINT PLACEHOLDERS (QLB-W2B — BINDING, NO EXCEPTIONS): in every sample_language field and every template/consumer-facing language block, all contact points — URLs, web addresses, email addresses, phone numbers, hyperlinks, and any similar concrete identifier — are ALWAYS bracketed generic placeholders (e.g. "[YOUR PRIVACY EMAIL ADDRESS]", "[LINK TO THE ADMT SECTION OF YOUR PRIVACY POLICY]", "[YOUR OPT-OUT URL]", "[YOUR TOLL-FREE NUMBER]"). NEVER fabricate a concrete email, domain, or URL from the organization's name, brand, or industry — a plausible-looking value derived from the org name (e.g. "privacy@<orgname>.com" or "https://www.<orgname>.com/…") is a hallucination, not a template. The organization's actual contact points are user-supplied at deployment time; the tool NEVER infers or invents them.
 
 
 
@@ -895,8 +897,9 @@ ADDITIONAL DISCIPLINES:
 Your task: for each gap item listed, write ready-to-use draft language the business can paste directly into their privacy notice, website, opt-out mechanism, or consumer response template.
 
 CRITICAL DRAFTING RULES:
-1. Use the business's ACTUAL system name, purpose, and decision domain — never write generic placeholders where real information was provided.
-2. Use [BRACKETED PLACEHOLDERS] ONLY for information the business must supply that was not provided (e.g., [YOUR-WEBSITE.com/opt-out], [privacy@yourcompany.com]).
+1. Use the business's ACTUAL system name, purpose, and decision domain — never write generic placeholders where real information was provided FOR THOSE FIELDS. This permission is SCOPED to system name, purpose, and decision domain only.
+1a. CONTACT-POINT PLACEHOLDER RULE (QLB-W2B — BINDING, NO EXCEPTIONS): all contact points — URLs, web addresses, email addresses, phone numbers, hyperlinks, and any similar concrete identifier — are ALWAYS bracketed generic placeholders. Use "[YOUR PRIVACY EMAIL ADDRESS]", "[LINK TO THE ADMT SECTION OF YOUR PRIVACY POLICY]", "[YOUR OPT-OUT URL]", "[YOUR TOLL-FREE NUMBER]" — NEVER concrete values derived from the organization's name, brand, or domain. A fabricated plausible domain or email (e.g. "privacy@<orgname>.com", "https://www.<orgname>.com/privacy-rights") is a hallucination, not a template, even when the organization name is known. The intake does NOT authorize inference of the organization's actual privacy email or URL from its name; those values are supplied by the user post-generation.
+2. Use [BRACKETED PLACEHOLDERS] for ALL contact-point fields (per rule 1a) AND for any other information the business must supply that was not provided in the intake.
 3. Language must be plain and specific — § 7220(c)(1) prohibits generic statements like "to make significant decisions." Write "to determine your eligibility for a loan" not "for automated decision purposes."
 4. Tone: clear, direct, consumer-facing. No legalese. No passive voice where active is possible.
 5. Length: Pre-use notice paragraphs 2–5 sentences. Opt-out confirmation 1–3 sentences. Access response template 1 paragraph per section.
