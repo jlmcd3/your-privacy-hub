@@ -184,7 +184,7 @@ export default function RegistrationAssessmentResult() {
       <>
         <Helmet><title>Your Registration Map — End User Privacy</title></Helmet>
         <Navbar />
-        <main>
+        <main id="main-content" aria-label="Registration">
           <PageContainer>
             <div className="max-w-md mx-auto py-16">
               <Card>

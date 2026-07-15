@@ -200,7 +200,7 @@ export default function RegistrationAssessment() {
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
       <Navbar />
-      <main>
+      <main id="main-content" aria-label="Registration">
         <PageContainer>
           <div className="max-w-3xl mx-auto py-10">
             <header className="mb-8">
