@@ -316,7 +316,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Organisation</td>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Organization</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(assessment?.organization_name || report.organisation_profile?.organization_name || "—")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Sector</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(report.organisation_profile?.sector || "—")}</td>
@@ -777,7 +777,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   </header>
   <div class="body">
     <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
-      This document is provided to support your organisation's compliance review.
+      This document is provided to support your organization's compliance review.
       It does not create an attorney-client relationship. Always consult qualified legal
       counsel for advice specific to your situation.`}</div>
     ${calloutHtml}
@@ -1750,7 +1750,7 @@ function buildRegistrationReportHTML(record: any): string {
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
 <p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
-  Not legal advice. This document is provided to support your organisation's compliance review.
+  Not legal advice. This document is provided to support your organization's compliance review.
   It does not create an attorney-client relationship. Always consult qualified legal counsel for advice specific to your situation.
 </p>
 
@@ -2189,12 +2189,12 @@ Deno.serve(async (req) => {
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Prepared for</td>
-      <td style="padding:3px 0;color:#1a1916;font-weight:600;">${escHtml(orgName || "[TO BE COMPLETED: organisation name]")}</td>
+      <td style="padding:3px 0;color:#1a1916;font-weight:600;">${escHtml(orgName || "[TO BE COMPLETED: organization name]")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Incident ID</td>
       <td style="padding:3px 0;color:#b45309;font-weight:600;">[TO BE COMPLETED: assign unique incident ID]</td>
     </tr>
     <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Organisation type</td>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Organization type</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(orgType || "—")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
       <td style="padding:3px 0;color:#7c1a1a;font-weight:600;">DRAFT — CONFIRM ALL DEADLINES WITH COUNSEL</td>
