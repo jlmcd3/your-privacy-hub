@@ -217,38 +217,54 @@ export default function QualityLoop3() {
   const [logRefreshing, setLogRefreshing] = useState(false);
   const [logLastRefreshedAt, setLogLastRefreshedAt] = useState<string | null>(null);
 
+  async function loadActiveBatchLogs(batchRow: Ql3BatchRow) {
+    const { data: batch } = await supabase
+      .from("quality_loop3_batches")
+      .select("*")
+      .eq("id", batchRow.id)
+      .maybeSingle();
+
+    const latestBatch = ((batch as unknown as Ql3BatchRow | null) ?? batchRow);
+    const runIds = (latestBatch.results ?? [])
+      .map((r) => r.ql3_run_id)
+      .filter((x): x is string => !!x);
+    if (latestBatch.current_ql3_run_id) runIds.push(latestBatch.current_ql3_run_id);
+    const uniqueRunIds = Array.from(new Set(runIds));
+    const { data: log } = uniqueRunIds.length > 0
+      ? await supabase.from("quality_loop3_log")
+          .select("*")
+          .or(`batch_id.eq.${latestBatch.id},ql3_run_id.in.(${uniqueRunIds.join(",")})`)
+          .order("ts", { ascending: true })
+          .limit(500)
+      : await supabase.from("quality_loop3_log")
+          .select("*")
+          .eq("batch_id", latestBatch.id)
+          .order("ts", { ascending: true })
+          .limit(500);
+
+    if (batch) setActiveBatch(batch as unknown as Ql3BatchRow);
+    if (log) setBatchLogs(log as unknown as Ql3LogRow[]);
+  }
+
+  async function loadUnattachedLogRows() {
+    const sinceIso = new Date(Date.now() - 15 * 60_000).toISOString();
+    const { data } = await supabase
+      .from("quality_loop3_log")
+      .select("*")
+      .is("batch_id", null)
+      .gte("ts", sinceIso)
+      .order("ts", { ascending: true })
+      .limit(300);
+    if (data) setUnattachedLogs(data as unknown as Ql3LogRow[]);
+  }
+
   // Poll active batch + logs every 10s.
   useEffect(() => {
     if (!activeBatch) return;
     let cancelled = false;
     const load = async () => {
-      const { data: batch } = await supabase
-        .from("quality_loop3_batches")
-        .select("*")
-        .eq("id", activeBatch.id)
-        .maybeSingle();
+      await loadActiveBatchLogs(activeBatch);
       if (cancelled) return;
-
-      const latestBatch = ((batch as unknown as Ql3BatchRow | null) ?? activeBatch);
-      const runIds = (latestBatch.results ?? [])
-        .map((r) => r.ql3_run_id)
-        .filter((x): x is string => !!x);
-      if (latestBatch.current_ql3_run_id) runIds.push(latestBatch.current_ql3_run_id);
-      const uniqueRunIds = Array.from(new Set(runIds));
-      const { data: log } = uniqueRunIds.length > 0
-        ? await supabase.from("quality_loop3_log")
-            .select("*")
-            .or(`batch_id.eq.${latestBatch.id},ql3_run_id.in.(${uniqueRunIds.join(",")})`)
-            .order("ts", { ascending: true })
-            .limit(500)
-        : await supabase.from("quality_loop3_log")
-            .select("*")
-            .eq("batch_id", latestBatch.id)
-            .order("ts", { ascending: true })
-            .limit(500);
-      if (cancelled) return;
-      if (batch) setActiveBatch(batch as unknown as Ql3BatchRow);
-      if (log) setBatchLogs(log as unknown as Ql3LogRow[]);
       setLogLastRefreshedAt(new Date().toISOString());
     };
     load();
@@ -265,16 +281,8 @@ export default function QualityLoop3() {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const sinceIso = new Date(Date.now() - 15 * 60_000).toISOString();
-      const { data } = await supabase
-        .from("quality_loop3_log")
-        .select("*")
-        .is("batch_id", null)
-        .gte("ts", sinceIso)
-        .order("ts", { ascending: true })
-        .limit(300);
+      await loadUnattachedLogRows();
       if (cancelled) return;
-      if (data) setUnattachedLogs(data as unknown as Ql3LogRow[]);
       setLogLastRefreshedAt(new Date().toISOString());
     };
     load();
@@ -284,9 +292,19 @@ export default function QualityLoop3() {
 
   const refreshLog = async () => {
     setLogRefreshing(true);
-    setLogRefreshTick((n) => n + 1);
-    // brief visual feedback; the effects run synchronously on tick change
-    setTimeout(() => setLogRefreshing(false), 600);
+    try {
+      await Promise.all([
+        activeBatch ? loadActiveBatchLogs(activeBatch) : Promise.resolve(),
+        loadUnattachedLogRows(),
+        refresh(),
+      ]);
+      setLogRefreshTick((n) => n + 1);
+      setLogLastRefreshedAt(new Date().toISOString());
+    } catch (e: any) {
+      toast.error(`Log refresh failed: ${e?.message ?? String(e)}`);
+    } finally {
+      setLogRefreshing(false);
+    }
   };
 
   // Merged log stream: batch-scoped + recent unattached, deduped by id, sorted by ts.
