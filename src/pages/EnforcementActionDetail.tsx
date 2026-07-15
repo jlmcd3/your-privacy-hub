@@ -179,7 +179,7 @@ export default function EnforcementActionDetail() {
           "@type": "Article",
           headline: title,
           description: desc,
-          ...(action.date ? { datePublished: action.date } : {}),
+          ...(action.decision_date ? { datePublished: action.decision_date } : {}),
           about: { "@type": "Thing", name: `${action.regulator} enforcement action` },
           publisher: { "@type": "Organization", name: "End User Privacy" },
           url: `https://enduserprivacy.com/enforcement-intelligence/${action.id}`,
