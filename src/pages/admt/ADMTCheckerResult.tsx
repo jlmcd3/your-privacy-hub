@@ -99,7 +99,7 @@ function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: st
     if (showNoGapsMessage) {
       return (
         <section className="space-y-2">
-          <h3 className="font-serif text-lg">{title}</h3>
+          <h3 className="font-body text-display-card font-semibold">{title}</h3>
           <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
             No gaps identified in assessed elements.
           </p>
@@ -112,7 +112,7 @@ function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: st
   const ok = items.filter((i) => i.status === "compliant");
   return (
     <section className="space-y-3">
-      <h3 className="font-serif text-lg">{title}</h3>
+      <h3 className="font-body text-display-card font-semibold">{title}</h3>
       {gaps.length > 0 && (
         <div className="space-y-3">
           {gaps.map((item, i) => (
@@ -360,7 +360,7 @@ export default function ADMTCheckerResult() {
         )}
 
 
-        <div className="rounded-lg border p-5 bg-card">
+        <div className="font-serif-text rounded-lg border p-5 bg-card">
           {orgName && (
             <div className="text-sm text-muted-foreground mb-2">
               Prepared for: <span className="font-medium text-foreground">{orgName}</span>
@@ -379,8 +379,8 @@ export default function ADMTCheckerResult() {
         </div>
 
         {report.scope_analysis && (
-          <section className="space-y-4">
-            <h3 className="font-serif text-lg">Scope Analysis</h3>
+          <section className="font-serif-text space-y-4">
+            <h3 className="font-body text-display-card font-semibold">Scope Analysis</h3>
 
             {/* Exception qualification — most consequential finding */}
             {report.scope_analysis.exception_reasoning && report.scope_analysis.exception_claimed && report.scope_analysis.exception_claimed !== "none" && (
@@ -495,8 +495,8 @@ export default function ADMTCheckerResult() {
         )}
 
         {report.consolidated_notice_analysis && (
-          <section className="space-y-3">
-            <h3 className="font-serif text-lg">Consolidated Notice Eligibility</h3>
+          <section className="font-serif-text space-y-3">
+            <h3 className="font-body text-display-card font-semibold">Consolidated Notice Eligibility</h3>
             <div className={`rounded-lg border p-4 space-y-3 ${
               report.consolidated_notice_analysis.applicable
                 ? "border-[hsl(var(--cobalt)/0.3)] bg-[hsl(var(--cobalt)/0.04)]"
@@ -553,8 +553,8 @@ export default function ADMTCheckerResult() {
         )}
 
         {report.enforcement_context && (
-          <section className="space-y-3">
-            <h3 className="font-serif text-lg">Enforcement Exposure</h3>
+          <section className="font-serif-text space-y-3">
+            <h3 className="font-body text-display-card font-semibold">Enforcement Exposure</h3>
             <div className="rounded-lg border bg-card p-4 space-y-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="rounded-md bg-muted/40 p-3">
@@ -582,8 +582,8 @@ export default function ADMTCheckerResult() {
         )}
 
         {report.priority_actions?.length > 0 && (
-          <section className="space-y-2">
-            <h3 className="font-serif text-lg">Priority Actions</h3>
+          <section className="font-serif-text space-y-2">
+            <h3 className="font-body text-display-card font-semibold">Priority Actions</h3>
             <div className="rounded-lg border border-red-200 bg-red-50/30 dark:bg-red-950/10 divide-y divide-red-100">
               {report.priority_actions.map((action: string, i: number) => (
                 <div key={i} className="flex gap-3 px-4 py-3">
@@ -612,8 +612,8 @@ export default function ADMTCheckerResult() {
         />
 
         {report.risk_assessment_obligation?.required && (
-          <section className="space-y-3">
-            <h3 className="font-serif text-lg">Risk Assessment Obligation</h3>
+          <section className="font-serif-text space-y-3">
+            <h3 className="font-body text-display-card font-semibold">Risk Assessment Obligation</h3>
             <div className="rounded-lg border border-amber-200 bg-amber-50/20 dark:bg-amber-950/10 p-5 space-y-4">
               <p className="text-[13px] leading-relaxed font-medium">
                 {report.risk_assessment_obligation.summary}
@@ -654,8 +654,8 @@ export default function ADMTCheckerResult() {
         )}
 
         {Array.isArray(report.documentation_to_maintain) && report.documentation_to_maintain.length > 0 && (
-          <section className="space-y-3">
-            <h3 className="font-serif text-lg">Records to Maintain</h3>
+          <section className="font-serif-text space-y-3">
+            <h3 className="font-body text-display-card font-semibold">Records to Maintain</h3>
             <p className="text-[12px] text-muted-foreground">
               The CPPA may request these records at any time, independent of annual submission deadlines. Maintain them continuously from the date ADMT processing begins.
             </p>
@@ -686,7 +686,7 @@ export default function ADMTCheckerResult() {
 
         {report.aggregate_access_response && (
           <section className="space-y-3">
-            <h3 className="font-serif text-lg">Aggregate Access Response Option</h3>
+            <h3 className="font-body text-display-card font-semibold">Aggregate Access Response Option</h3>
             <div className={`rounded-lg border p-4 space-y-3 ${
               report.aggregate_access_response.applicable === true
                 ? "border-[hsl(var(--cobalt)/0.3)] bg-[hsl(var(--cobalt)/0.04)]"

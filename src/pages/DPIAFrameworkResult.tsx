@@ -36,7 +36,7 @@ const sevColor = (s: string) => {
 
 const Section = ({ num, title, guidance, completion, children }: any) => (
   <section className="bg-card border rounded-lg p-6 print:break-before-page">
-    <h2 className="mb-2">Section {num}: {title}</h2>
+    <h2 className="font-body text-display-card font-semibold mb-2">Section {num}: {title}</h2>
     {guidance && (
       <details className="mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded p-3 text-sm">
         <summary className="cursor-pointer font-medium">Guidance</summary>
@@ -57,7 +57,7 @@ const Field = ({ label, value }: { label: string; value: any }) => value ? (
   <div><span className="text-xs uppercase font-medium text-muted-foreground">{label}</span><p className="text-sm mt-1 whitespace-pre-wrap">{value}</p></div>
 ) : null;
 
-const SubH = ({ children }: any) => <h3 className="text-sm font-semibold mt-5 mb-1.5">{children}</h3>;
+const SubH = ({ children }: any) => <h3 className="font-body text-display-card font-semibold mt-5 mb-1.5">{children}</h3>;
 
 const StatusBadge = ({ value }: { value: string }) => {
   const v = (value || "").toLowerCase();
@@ -226,7 +226,7 @@ const DPIAFrameworkResult = () => {
           )}
 
           {status === "complete" && (
-            <div className="space-y-6">
+            <div className="space-y-6 font-serif-text">
               {Array.isArray(meta.applicable_frameworks) && meta.applicable_frameworks.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {meta.applicable_frameworks.map((f: string) => (

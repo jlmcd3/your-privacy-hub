@@ -136,7 +136,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
   const enf = report.enforcement_context;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-serif-text">
       {/* Header band */}
       <section className="bg-slate-900 text-white rounded-lg p-8">
         <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
@@ -171,7 +171,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Triggered activities */}
       {triggers.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-3">Scope & Triggered Activities</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">Scope & Triggered Activities</h2>
           {report.scope_and_triggers?.scope_notes && (
             <p className="text-sm text-muted-foreground mb-4">{report.scope_and_triggers.scope_notes}</p>
           )}
@@ -214,7 +214,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Exceptions */}
       {exceptions.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-3">§ 7152 Exception Analysis</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">§ 7152 Exception Analysis</h2>
           <Accordion type="multiple">
             {exceptions.map((e, i) => (
               <AccordionItem key={i} value={`e${i}`}>
@@ -249,7 +249,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Risk by activity */}
       {activities.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-3">Risk Assessment by Activity (§ 7153)</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">Risk Assessment by Activity (§ 7153)</h2>
           <Accordion type="multiple">
             {activities.map((a, i) => (
               <AccordionItem key={i} value={`a${i}`}>
@@ -318,7 +318,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Inconsistency flags */}
       {inconsistencies.length > 0 && (
         <section className="bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded p-4">
-          <h2 className="mb-2 text-amber-900 dark:text-amber-200">Inconsistency Flags</h2>
+          <h2 className="font-body text-display-card font-semibold mb-2 text-amber-900 dark:text-amber-200">Inconsistency Flags</h2>
           <ul className="space-y-2 text-sm">
             {inconsistencies.map((f, i) => (
               <li key={i} className="border-l-2 border-amber-400 pl-3">
@@ -341,7 +341,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Priority actions */}
       {actions.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-3">Priority Actions</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">Priority Actions</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left bg-muted/40">
@@ -365,7 +365,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Cross-tool recommendations */}
       {(xtool.cybersecurity_audit_rationale || xtool.admt_assessment_rationale) && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-3">Cross-Tool Recommendations</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">Cross-Tool Recommendations</h2>
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
             <div className="border rounded p-3">
               <p className="font-medium">Cybersecurity Audit: {yn(xtool.cybersecurity_audit)}</p>
@@ -389,7 +389,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
           )
         : (enf.relevant_precedents || enf.sector_specific_patterns || enf.audit_division_priorities) && (
             <section className="bg-card border rounded-lg p-6 text-sm space-y-2">
-              <h2 className="mb-2">Enforcement Context</h2>
+              <h2 className="font-body text-display-card font-semibold mb-2">Enforcement Context</h2>
               {enf.relevant_precedents && <p><strong>Relevant precedents:</strong> {enf.relevant_precedents}</p>}
               {enf.sector_specific_patterns && <p><strong>Sector patterns:</strong> {enf.sector_specific_patterns}</p>}
               {enf.audit_division_priorities && <p><strong>Audit Division priorities:</strong> {enf.audit_division_priorities}</p>}

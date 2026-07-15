@@ -61,7 +61,7 @@ const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any
 const TestCard = ({ title, test, annotations, precedents, isUk }: any) => (
   <div className="bg-card border rounded-lg p-5">
     <div className="flex items-center justify-between mb-3">
-      <h3 className="">{title}</h3>
+      <h3 className="font-body text-display-card font-semibold ">{title}</h3>
       {test?.verdict && <span className={`px-2 py-1 text-xs rounded ${verdictColor(test.verdict)}`}>{verdictLabel(test.verdict)}</span>}
     </div>
     {test?.analysis && <p className="text-sm text-foreground mb-3">{test.analysis}</p>}
@@ -103,9 +103,9 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
   const precs = report?.enforcement_precedents;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-serif-text">
       <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
-        <h2 className="mb-3">Assessment Summary</h2>
+        <h2 className="font-body text-display-card font-semibold mb-3">Assessment Summary</h2>
         {(intake?.organization_name || intake?.processing_description) && (
           <p className="text-sm text-foreground mb-3">
             {intake?.organization_name ? (
@@ -134,7 +134,7 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
 
       {Array.isArray(overall?.blocking_issues) && overall.blocking_issues.length > 0 && (
         <section className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-5">
-          <h3 className="text-red-800 dark:text-red-300 mb-3">⛔ Blocking Issues — Resolve Before Relying on Legitimate Interest</h3>
+          <h3 className="font-body text-display-card font-semibold text-red-800 dark:text-red-300 mb-3">⛔ Blocking Issues — Resolve Before Relying on Legitimate Interest</h3>
           <ul className="space-y-2">
             {overall.blocking_issues.map((issue: string, i: number) => (
               <li key={i} className="text-sm text-red-900 dark:text-red-200 flex gap-2">
@@ -147,14 +147,14 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
       )}
 
       <section className="bg-card border rounded-lg p-6">
-        <h2 className="mb-4">Most Analogous Regulatory Decisions</h2>
+        <h2 className="font-body text-display-card font-semibold mb-4">Most Analogous Regulatory Decisions</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="p-4 border rounded">
-            <h3 className="text-green-700 mb-2">Accepted Cases</h3>
+            <h3 className="font-body text-display-card font-semibold text-green-700 mb-2">Accepted Cases</h3>
             <p className="text-sm">{overall?.closest_accepted_precedent || "No closely analogous accepted precedents found in tracked database"}</p>
           </div>
           <div className="p-4 border rounded">
-            <h3 className="text-red-700 mb-2">Rejected Cases</h3>
+            <h3 className="font-body text-display-card font-semibold text-red-700 mb-2">Rejected Cases</h3>
             <p className="text-sm">{overall?.closest_rejected_precedent || "No closely analogous rejected precedents found in tracked database"}</p>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
 
       {(Array.isArray(docs?.recommended_documentation) || Array.isArray(docs?.balancing_record_elements)) && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-4">Recommended Documentation for Your LIA Record</h2>
+          <h2 className="font-body text-display-card font-semibold mb-4">Recommended Documentation for Your LIA Record</h2>
           {Array.isArray(docs?.recommended_documentation) && docs.recommended_documentation.map((d: any, i: number) => (
             <div key={i} className="mb-4 pb-4 border-b last:border-b-0">
               <p className="font-medium">{d.document_name || d.name || d.document}</p>
@@ -186,7 +186,7 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
           ))}
           {Array.isArray(docs?.balancing_record_elements) && docs.balancing_record_elements.length > 0 && (
             <>
-              <h3 className="mt-4 mb-2">Balancing Record — Must Include</h3>
+              <h3 className="font-body text-display-card font-semibold mt-4 mb-2">Balancing Record — Must Include</h3>
               <ol className="list-decimal pl-5 text-sm space-y-1">{docs.balancing_record_elements.map((e: string, i: number) => <li key={i}>{e}</li>)}</ol>
             </>
           )}
@@ -194,7 +194,7 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
       )}
 
       <section className="bg-card border rounded-lg p-6">
-        <h3 className="mb-2">Does this processing require a DPIA?</h3>
+        <h3 className="font-body text-display-card font-semibold mb-2">Does this processing require a DPIA?</h3>
         <p className="text-sm text-muted-foreground mb-3">
           If your assessment identifies high-risk processing, you may be required to conduct a Data Protection Impact Assessment under GDPR Article 35.
         </p>
