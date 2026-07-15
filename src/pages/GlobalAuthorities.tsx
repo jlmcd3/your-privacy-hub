@@ -218,7 +218,7 @@ const GlobalAuthorities = () => {
                   key={entry.id}
                   className="bg-card border border-brand-cloud rounded-xl p-5 shadow-eup-sm flex flex-col gap-3 hover:border-brand-navy/30 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <div className="text-[11px] uppercase tracking-wider text-slate font-semibold">
                         {REGION_FLAG[entry.regionGroup]} {entry.country}

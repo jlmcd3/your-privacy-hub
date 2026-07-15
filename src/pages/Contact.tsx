@@ -58,7 +58,7 @@ const Contact = () => {
             {submitted ? (
               <div role="status" aria-live="polite" className="text-center py-4">
                 <div className="text-4xl mb-4" aria-hidden="true">✉️</div>
-                <h2 className="font-display text-brand-navy mb-2">Thanks — your message is on its way.</h2>
+                <h2 className="font-display text-brand-navy mb-2">Thanks. Your message is on its way.</h2>
                 <p className="text-slate text-[14px] leading-relaxed mb-4">
                   Your email client should have opened with a pre-filled message. If it didn't, you can email us directly at{" "}
                   <a href="mailto:hello@enduserprivacy.com" className="text-brand-teal-text hover:underline no-underline">

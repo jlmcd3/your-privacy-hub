@@ -63,31 +63,34 @@ const Signup = () => {
           {/* Greyed-out form preview */}
           <div className="space-y-3 mb-6 opacity-40" aria-hidden="true" onFocusCapture={onEmailEngagement} onPointerDownCapture={onEmailEngagement}>
             <div className="text-left">
-              <label className="block text-sm font-medium text-brand-navy mb-1.5">Email</label>
+              <label htmlFor="signup-email" className="block text-sm font-medium text-brand-navy mb-1.5">Email</label>
               <input
+                id="signup-email"
                 type="email"
                 disabled
                 placeholder="you@company.com"
                 onFocus={onEmailEngagement}
-                className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud/50 border border-silver rounded-lg text-slate cursor-not-allowed"
+                className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud/50 border border-silver rounded-lg text-slate cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
               />
             </div>
             <div className="text-left">
-              <label className="block text-sm font-medium text-brand-navy mb-1.5">Password</label>
+              <label htmlFor="signup-password" className="block text-sm font-medium text-brand-navy mb-1.5">Password</label>
               <input
+                id="signup-password"
                 type="password"
                 disabled
                 placeholder="Min. 6 characters"
-                className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud/50 border border-silver rounded-lg text-slate cursor-not-allowed"
+                className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud/50 border border-silver rounded-lg text-slate cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
               />
             </div>
             <button
               type="button"
               disabled
-              className="w-full py-3 text-[14px] font-semibold text-white bg-brand-mist rounded-lg cursor-not-allowed border-none"
+              className="w-full py-3 text-[14px] font-semibold text-white bg-brand-mist rounded-lg cursor-not-allowed border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
             >
               Create Account
             </button>
+
           </div>
 
           <p className="text-sm text-slate mb-2">

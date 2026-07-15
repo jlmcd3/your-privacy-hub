@@ -257,15 +257,16 @@ const USPrivacyLaws = () => {
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <button
           onClick={() => scrollTo("recent-developments")}
-          className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-brand-mist/10 to-brand-navy/5 border border-brand-mist/30 hover:border-brand-mist/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
+          className="w-full flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-brand-mist/10 to-brand-navy/5 border border-brand-mist/30 hover:border-brand-mist/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
         >
           <span className="text-sm md:text-sm text-brand-navy font-bold">
             See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
-          <span className="text-brand-mist whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
+          <span className="text-brand-mist group-hover:translate-x-0.5 transition-transform font-bold text-sm">
             Jump to Recent Developments →
           </span>
         </button>
+
         
       </div>
 
