@@ -21,6 +21,28 @@ const TOOLS = [
   "dpia", "lia", "ir-playbook", "biometric", "dpa",
 ];
 
+// QL3 tool slug → quality_run_documents.tool value.
+const DOC_TOOL_MAP: Record<string, string> = {
+  governance: "governance",
+  "cppa-risk": "cppa-risk",
+  "cppa-cyber": "cppa-cyber",
+  "cppa-admt": "cppa-admt",
+  dpia: "dpia",
+  lia: "lia",
+  "ir-playbook": "ir-playbook",
+  biometric: "biometric-checker",
+  dpa: "dpa-generator",
+};
+
+function fmtRelTime(iso: string): string {
+  const d = new Date(iso).getTime();
+  const s = Math.round((Date.now() - d) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86400)}d ago`;
+}
+
 type Ql3Run = {
   id: string;
   tool_slug: string;
@@ -46,6 +68,7 @@ export default function QualityLoop3() {
   const [starting, setStarting] = useState(false);
   const [runs, setRuns] = useState<Ql3Run[]>([]);
   const [loading, setLoading] = useState(false);
+  const [prefillHint, setPrefillHint] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
@@ -59,6 +82,35 @@ export default function QualityLoop3() {
     setRuns((data as any) ?? []);
   }
   useEffect(() => { refresh(); const t = setInterval(refresh, 8000); return () => clearInterval(t); }, []);
+
+  // Pre-fill Assessment ID from latest completed quality_run_documents row
+  // for the selected tool. Only "complete" is treated as scored/completed —
+  // observed status values in the table: complete, evaluating, building, error.
+  useEffect(() => {
+    let cancelled = false;
+    const docTool = DOC_TOOL_MAP[tool];
+    setPrefillHint(null);
+    setAssessmentId("");
+    if (!docTool) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("quality_run_documents" as any)
+        .select("source_row_id, doc_number, created_at, status")
+        .eq("tool", docTool)
+        .eq("status", "complete")
+        .not("source_row_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      if (error) return; // silent — pre-fill is a convenience, never blocking
+      const row = (data as any)?.[0];
+      if (row?.source_row_id) {
+        setAssessmentId(row.source_row_id);
+        setPrefillHint(`pre-filled from run-quality-batch doc #${row.doc_number} · ${fmtRelTime(row.created_at)}`);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tool]);
 
   async function startRun() {
     if (!assessmentId.trim()) { toast.error("assessment_id required"); return; }
@@ -96,7 +148,14 @@ export default function QualityLoop3() {
             </div>
             <div>
               <Label>Assessment ID (UUID)</Label>
-              <Input value={assessmentId} onChange={(e) => setAssessmentId(e.target.value)} placeholder="terminal assessment row id" />
+              <Input
+                value={assessmentId}
+                onChange={(e) => { setAssessmentId(e.target.value); if (prefillHint) setPrefillHint(null); }}
+                placeholder="terminal assessment row id"
+              />
+              {prefillHint && (
+                <p className="text-xs text-muted-foreground mt-1 italic">{prefillHint}</p>
+              )}
             </div>
           </div>
           <div>
