@@ -2222,9 +2222,21 @@ Deno.serve(async (req) => {
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
       const intake = record.intake_data || {};
+      // PDF-1 subtitle guard: legalFramework can arrive as an object from
+      // intake shims; String(obj) → "[object Object]" is the bug. Coerce
+      // safely and fall back to omission for non-string values.
+      const rawFramework = (intake as any).legalFramework;
+      const frameworkLabel = typeof rawFramework === "string" && rawFramework.trim()
+        ? rawFramework.trim()
+        : (rawFramework && typeof rawFramework === "object"
+            ? String((rawFramework as any).label ?? (rawFramework as any).name ?? "").trim()
+            : "");
+      const ctrlName = typeof (intake as any).controllerName === "string" ? (intake as any).controllerName : "Controller";
+      const procName = typeof (intake as any).processorName === "string" ? (intake as any).processorName : "Processor";
+      const generatedLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}`;
       html = buildTextReportHTML({
-        title: `Your Custom DPA — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`,
-        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · ${intake.legalFramework || "GDPR"}`,
+        title: `Your Custom DPA — ${ctrlName} / ${procName}`,
+        metaLine: frameworkLabel ? `${generatedLine} · ${frameworkLabel}` : generatedLine,
         text: record.document_text || "",
         showJurisdictionChip: false,
         disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs for review by qualified counsel. It is not a negotiated agreement and must not be executed without legal review. It does not create an attorney-client relationship.`,
