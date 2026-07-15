@@ -49,7 +49,7 @@ export default function GenerationStalledCard({
           href={`mailto:${supportEmail}?subject=Generation%20did%20not%20complete&body=${encodeURIComponent(
             typeof window !== "undefined" ? window.location.href : "",
           )}`}
-          className="text-sm underline text-brand-navy"
+          className="text-sm underline text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-action focus-visible:ring-offset-2 rounded"
         >
           Contact support
         </a>
