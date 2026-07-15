@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "d7739d32-p2contracts-string-array@2026-07-15T00:00Z";
+export const BUILD_STAMP = "qlb-f2-drop-biometric-substring@2026-07-15T01:00Z";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -919,35 +919,20 @@ function categorizePerDoc(claudeFail: boolean, gptFail: boolean): string {
 // Per-tool intake validators. Mirrors the tool's own resolver semantics so the
 // quality loop never scores garbage. If validation fails twice for an item, it's
 // dropped; if >30% of intakes fail across a run, the caller aborts.
-const BIOMETRIC_JURISDICTION_SUBSTRINGS = [
-  "illinois","bipa","texas","cubi","washington","california","ccpa","cpra",
-  "virginia","eu","eea","gdpr","united kingdom","uk gdpr","france","cnil",
-  "ireland","dpc","germany","spain",
-];
 type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
-// RC-REM-P2: contract-driven validation. For every tool that has an
+// RC-REM-P2 / QLB-F2: contract-driven validation. For every tool that has an
 // IntakeContract (CONTRACT_BY_TOOL, above), we run validateAgainstContract
-// and reject any intake with violations. The biometric jurisdiction
-// substring rule is preserved as an ADDITIONAL check layered on top of the
-// biometric contract (the contract enforces multi-enum presence; the
-// substring rule enforces the resolver-substring convention that the
-// biometric checker downstream relies on). Tools without contracts fall
-// through to `{ ok: true }` — matching pre-P2 behavior for editorial/QA
-// tools (ask-privacy, weekly-brief, custom-brief, trend-report, state-law,
-// registration).
-const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
-  "biometric-checker": (intake: any) => {
-    const j = intake?.jurisdictions;
-    if (!Array.isArray(j) || j.length === 0) return { ok: false, reason: "jurisdictions[] missing or empty" };
-    for (const entry of j) {
-      const s = String(entry ?? "").toLowerCase();
-      if (!BIOMETRIC_JURISDICTION_SUBSTRINGS.some(sub => s.includes(sub))) {
-        return { ok: false, reason: `jurisdiction "${entry}" unresolvable (use selection labels like "Illinois, USA (BIPA)", not bare codes)` };
-      }
-    }
-    return { ok: true };
-  },
-};
+// and reject any intake with violations. Extra per-tool rules layered here
+// can only tighten, never loosen, contract acceptance. Tools without
+// contracts fall through to `{ ok: true }` — matching pre-P2 behavior for
+// editorial/QA tools (ask-privacy, weekly-brief, custom-brief, trend-report,
+// state-law, registration). QLB-F2 removed the biometric-checker
+// jurisdiction-substring rule: contract multi-enum on JURS already enforces
+// exact label membership, which is strictly stronger than the substring
+// list, and the substring list wrongly rejected four contract-legal options
+// ("Other US state", "United States — Federal (FTC)", "Canada (PIPEDA /
+// provincial)", "Australia (Privacy Act)").
+const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {};
 function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
   // Contract check (if any) runs first — it's the machine-derived source of
   // truth. Extra per-tool rules run afterward and can only tighten, never
