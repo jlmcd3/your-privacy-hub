@@ -272,7 +272,12 @@ const handler = async (req: Request): Promise<Response> => {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   // Row fetch by id is unambiguous — no module filter needed for
   // cppa_assessments (id is table PK).
-  const selectCols = ["id", "status", spec.reportCol, ...spec.intakeCols].join(", ");
+  // QLB-F3: also fetch the body-text column (playbook_text /
+  // document_text / analysis_text) when the spec declares one, and fold
+  // it into `report` as `bodyKey` so the grader payload leads with body.
+  const cols = ["id", "status", spec.reportCol, ...spec.intakeCols];
+  if (spec.bodyCol) cols.push(spec.bodyCol);
+  const selectCols = cols.join(", ");
   const { data: row, error: selErr } = await admin
     .from(spec.table)
     .select(selectCols)
@@ -288,7 +293,12 @@ const handler = async (req: Request): Promise<Response> => {
   const intake: unknown = spec.intakeCols.length === 1
     ? rowAny[spec.intakeCols[0]]
     : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
-  const report = rowAny[spec.reportCol];
+  let report = rowAny[spec.reportCol];
+  if (spec.bodyCol && spec.bodyKey) {
+    const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
+    (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
+    report = rd;
+  }
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
