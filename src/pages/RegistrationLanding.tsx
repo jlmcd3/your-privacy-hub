@@ -66,7 +66,8 @@ export default function RegistrationLanding() {
           content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
-      </Helmet>      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      </Helmet>
+      <main id="main-content" aria-label="Registration Manager"><div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
       </div>
 
