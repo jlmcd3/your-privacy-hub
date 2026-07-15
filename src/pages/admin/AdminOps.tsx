@@ -265,8 +265,8 @@ function GenerationPanel() {
         if (!units.has(key)) units.set(key, { elapsed: [], okN: 0, errN: 0, contFired: 0, contRetried: 0, failClass: {} });
         const bucket = units.get(key)!;
         if (typeof u.elapsed_ms === "number") bucket.elapsed.push(u.elapsed_ms);
-        if (u.status === "success") bucket.okN += 1;
-        else if (u.status === "error") bucket.errN += 1;
+        if (u.status === "success" || u.status === "done") bucket.okN += 1;
+        else if (u.status === "error" || u.status === "blocked") bucket.errN += 1;
         if (u.continuation_fired) bucket.contFired += 1;
         if (u.cont_retried) bucket.contRetried += 1;
         if (u.status === "error") {
