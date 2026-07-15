@@ -82,7 +82,19 @@ const FAQ = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>FAQ | End User Privacy: Privacy Intelligence Platform</title>
-        <meta name="description" content="Common questions about End User Privacy: coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
+        <meta name="description" content="Common questions about End User Privacy: coverage across jurisdictions worldwide, methodology, update frequency, pricing, and cancellation." />
+        <meta property="og:title" content="FAQ | End User Privacy" />
+        <meta property="og:description" content="Answers on coverage, methodology, pricing, and cancellation for the End User Privacy intelligence platform." />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [...faqs, ...pricingFaqs].map(f => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        })}</script>
       </Helmet>
       <Navbar />
       <main id="main-content" aria-label="Frequently Asked Questions">
