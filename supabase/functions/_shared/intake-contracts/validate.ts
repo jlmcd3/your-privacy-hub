@@ -106,6 +106,27 @@ function checkField(intake: Record<string, unknown>, f: IntakeField, out: Violat
         }
       }
     }
+  } else if (f.kind === "string-array") {
+    // Flat array of non-empty strings. Elements are free text unless
+    // options are provided; when options are present, elements must be
+    // either verbatim-in-options or begin with "Other: " (matches the
+    // form's fold-in convention: `Other: <free text>`).
+    for (const v of values) {
+      if (v === undefined || v === null) continue;
+      if (!Array.isArray(v)) {
+        out.push({ key: f.key, reason: `string-array key "${f.key}" expected a JSON array of strings; got ${typeof v}` });
+        continue;
+      }
+      for (const el of v) {
+        if (typeof el !== "string" || el.length === 0) {
+          out.push({ key: f.key, reason: `string-array key "${f.key}" element ${JSON.stringify(el)} is not a non-empty string` });
+          continue;
+        }
+        if (f.options && !f.options.includes(el) && !el.startsWith("Other: ")) {
+          out.push({ key: f.key, reason: `string-array key "${f.key}" element ${JSON.stringify(el)} not in options and not an "Other: …" fold-in` });
+        }
+      }
+    }
   }
 
   if (f.required === "always") {

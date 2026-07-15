@@ -61,6 +61,7 @@ export function renderContractPrompt(contract: IntakeContract): string {
       '"narrative" → a longer descriptive string (≥ 40 chars where meaningful). ' +
       '"boolean" → true or false. ' +
       '"date" → an ISO date string. ' +
+      '"string-array" → a JSON array of strings (never an object); each element is a non-empty string. If options are listed, each element must be one of options VERBATIM or begin with "Other: " followed by free text. ' +
       '"structured" → an object or array whose internal shape the contract does not further constrain here.',
   );
   lines.push(

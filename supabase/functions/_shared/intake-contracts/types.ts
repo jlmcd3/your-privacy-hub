@@ -15,6 +15,7 @@ export type FieldKind =
   | "narrative"
   | "boolean"
   | "date"
+  | "string-array"
   | "structured";
 
 export type Requiredness = "always" | "conditional" | "optional";

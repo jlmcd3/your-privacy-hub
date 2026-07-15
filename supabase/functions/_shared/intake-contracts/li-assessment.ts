@@ -45,10 +45,11 @@ export const liAssessmentStageAContract: IntakeContract = {
     { key: "organization_name",     kind: "text",       required: "always" },
     { key: "subject_anchor",        kind: "text",       required: "always" },
     { key: "processing_description", kind: "narrative", required: "always" },
-    // data_categories accepts the enum options plus any "Other: <free text>"
-    // string that the form folds in — captured as "structured" so the
-    // validator only enforces top-level presence.
-    { key: "data_categories",       kind: "structured", required: "always" },
+    // data_categories is a FLAT ARRAY OF STRINGS. Elements are enum values
+    // from DATA_CATEGORIES OR "Other: <free text>" strings that the form
+    // folds in (LIAssessment.tsx ~L142). Persisted as text[] in
+    // li_assessments.data_categories — an object payload will fail insert.
+    { key: "data_categories",       kind: "string-array", required: "always" },
     { key: "relationship_type",     kind: "text",       required: "always" }, // enum RELATIONSHIPS OR "Other: …" post-fold
     { key: "jurisdictions",         kind: "multi-enum", required: "always", options: JURISDICTIONS },
   ],
@@ -63,7 +64,7 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "organization_name",     kind: "text",       required: "always" },
     { key: "subject_anchor",        kind: "text",       required: "optional" }, // preview may not have set it; nullable in the insert
     { key: "processing_description", kind: "narrative", required: "always" },
-    { key: "data_categories",       kind: "structured", required: "always" },
+    { key: "data_categories",       kind: "string-array", required: "always" }, // flat string[] with "Other: …" folded in; persisted as text[]
     { key: "relationship_type",     kind: "text",       required: "always" },
     { key: "jurisdictions",         kind: "multi-enum", required: "always", options: JURISDICTIONS },
 
@@ -93,11 +94,11 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "balancing_details",                              kind: "structured", required: "always" },
     { key: "balancing_details.reasonable_expectation",       kind: "enum",       required: "always", options: REASONABLE_EXPECTATION_OPTS },
     { key: "balancing_details.reasonable_expectation_detail", kind: "narrative", required: "optional" },
-    { key: "balancing_details.vulnerable_subjects",          kind: "structured", required: "optional" }, // multi-select shape lives in the form
+    { key: "balancing_details.vulnerable_subjects",          kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L127
     { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "optional" },
     { key: "balancing_details.potential_harm",               kind: "enum",       required: "always", options: POTENTIAL_HARM_OPTS },
     { key: "balancing_details.potential_harm_detail",        kind: "narrative",  required: "optional" },
-    { key: "balancing_details.safeguards",                   kind: "structured", required: "optional" },
+    { key: "balancing_details.safeguards",                   kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L129
     { key: "balancing_details.safeguards_other",             kind: "text",       required: "optional" },
     { key: "balancing_details.opt_out_mechanism",            kind: "narrative",  required: "always" },
     { key: "balancing_details.special_category_data",        kind: "boolean",    required: "optional" },
