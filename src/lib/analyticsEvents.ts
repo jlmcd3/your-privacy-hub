@@ -9,6 +9,7 @@
 
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/trackEvent";
+import { supabase } from "@/integrations/supabase/client";
 
 const FIRED_KEY = "eup_fired_events_v1";
 
@@ -97,6 +98,32 @@ export function useToolStartedOnInteraction(tool: string) {
 
     const fire = () => {
       fireToolStarted(tool);
+      // PP-1: mirror the same first-intake-interaction moment as
+      // tool_start_click via the track-geo pathway. Session-dedupe handled
+      // above (firedSet has already been checked); we don't re-check here
+      // because fireToolStarted's onceFire covers it.
+      (async () => {
+        try {
+          const path =
+            typeof window !== "undefined" ? window.location.pathname : "";
+          const { data } = await supabase.auth.getSession();
+          const user_type = data?.session?.user ? "authenticated" : "anonymous";
+          const session_id =
+            typeof window !== "undefined" && window.sessionStorage
+              ? window.sessionStorage.getItem("eup_session_id")
+              : null;
+          await supabase.functions.invoke("track-geo", {
+            body: {
+              event_type: "tool_start_click",
+              page_path: path,
+              session_id,
+              event_data: { tool_slug: tool, page_path: path, user_type },
+            },
+          });
+        } catch {
+          /* swallow — analytics must never break UX */
+        }
+      })();
       cleanup();
     };
 
