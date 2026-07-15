@@ -222,24 +222,30 @@ export default function QualityLoop3() {
     if (!activeBatch) return;
     let cancelled = false;
     const load = async () => {
-      const runIds = (activeBatch.results ?? [])
+      const { data: batch } = await supabase
+        .from("quality_loop3_batches")
+        .select("*")
+        .eq("id", activeBatch.id)
+        .maybeSingle();
+      if (cancelled) return;
+
+      const latestBatch = ((batch as unknown as Ql3BatchRow | null) ?? activeBatch);
+      const runIds = (latestBatch.results ?? [])
         .map((r) => r.ql3_run_id)
         .filter((x): x is string => !!x);
-      if (activeBatch.current_ql3_run_id) runIds.push(activeBatch.current_ql3_run_id);
-      const [{ data: batch }, { data: log }] = await Promise.all([
-        supabase.from("quality_loop3_batches").select("*").eq("id", activeBatch.id).maybeSingle(),
-        runIds.length > 0
-          ? supabase.from("quality_loop3_log")
-              .select("*")
-              .or(`batch_id.eq.${activeBatch.id},ql3_run_id.in.(${runIds.join(",")})`)
-              .order("ts", { ascending: true })
-              .limit(500)
-          : supabase.from("quality_loop3_log")
-              .select("*")
-              .eq("batch_id", activeBatch.id)
-              .order("ts", { ascending: true })
-              .limit(500),
-      ]);
+      if (latestBatch.current_ql3_run_id) runIds.push(latestBatch.current_ql3_run_id);
+      const uniqueRunIds = Array.from(new Set(runIds));
+      const { data: log } = uniqueRunIds.length > 0
+        ? await supabase.from("quality_loop3_log")
+            .select("*")
+            .or(`batch_id.eq.${latestBatch.id},ql3_run_id.in.(${uniqueRunIds.join(",")})`)
+            .order("ts", { ascending: true })
+            .limit(500)
+        : await supabase.from("quality_loop3_log")
+            .select("*")
+            .eq("batch_id", latestBatch.id)
+            .order("ts", { ascending: true })
+            .limit(500);
       if (cancelled) return;
       if (batch) setActiveBatch(batch as unknown as Ql3BatchRow);
       if (log) setBatchLogs(log as unknown as Ql3LogRow[]);
