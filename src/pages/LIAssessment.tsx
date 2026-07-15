@@ -502,7 +502,7 @@ const LIAssessment = () => {
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-brand-cloud">
                 <button
                   onClick={handleContinue}
-                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-brand-navy text-white font-semibold hover:bg-brand-ocean transition-colors"
+                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-teal-action text-white font-semibold hover:bg-teal-action-hover transition-colors"
                 >
                   Continue to full assessment (${pricing.price})
                 </button>

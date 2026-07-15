@@ -435,7 +435,7 @@ function CreateAccountPrompt() {
               variant: "page-load",
             })
           }
-          className="inline-flex items-center justify-center bg-brand-navy text-white font-semibold text-sm px-4 py-2 rounded-md no-underline hover:opacity-90"
+          className="inline-flex items-center justify-center bg-teal-action hover:bg-teal-action-hover text-white font-semibold text-sm px-4 py-2 rounded-md no-underline"
         >
           Create free account
         </Link>
