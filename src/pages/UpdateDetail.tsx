@@ -353,7 +353,7 @@ const UpdateDetail = () => {
                     <div className="text-meta uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
-                    <p className="text-base leading-relaxed text-brand-navy">
+                    <p className="font-serif-text text-fluid-base leading-relaxed text-brand-navy">
                       {ai?.why_it_matters_short || (ai?.why_it_matters?.split('. ')[0] + '…')}
                     </p>
                   </div>
