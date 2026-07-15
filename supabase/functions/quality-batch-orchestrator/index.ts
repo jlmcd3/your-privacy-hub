@@ -339,12 +339,13 @@ async function runUnit(runId: string) {
       results.push({
         tool,
         quality_run_id: run.current_quality_run_id,
-        run_number: null,
+        run_number: child?.run_number ?? null,
         final_status: "stalled",
         score_overall: null,
         gpt_score_overall: null,
         error: `child heartbeat stale > ${CHILD_STALL_MS / 60000}min`,
       });
+
       const nextIdx = run.current_tool_index + 1;
       await db.from("quality_batch_runs").update({
         tool_results: results,
