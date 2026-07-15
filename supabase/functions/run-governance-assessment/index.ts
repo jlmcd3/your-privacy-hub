@@ -962,7 +962,8 @@ Return JSON:
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
       const descParts: string[] = [];
       if (intake.sector) descParts.push(`${intake.sector} sector`);
-      if ((intake.jurisdictions || []).length) descParts.push(`governance in ${(intake.jurisdictions || []).join(", ")}`);
+      const jurs = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : [];
+      if (jurs.length) descParts.push(`governance in ${jurs.join(", ")}`);
       enforcementMeta = {
         attempted: true,
         total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
