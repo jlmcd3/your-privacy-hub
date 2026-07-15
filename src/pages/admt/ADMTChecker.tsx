@@ -611,7 +611,7 @@ export default function ADMTChecker() {
           defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf"
           corpusBlock={
             activeRailEntry?.enforcementNote ? (
-              <p className="text-body-small text-ink-soft leading-relaxed">
+              <p className="text-body-small text-ink leading-relaxed">
                 {activeRailEntry.enforcementNote}
               </p>
             ) : undefined

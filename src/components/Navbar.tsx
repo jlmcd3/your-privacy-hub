@@ -458,7 +458,13 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-brand-navy border-b border-brand-navy sticky top-0 z-50">
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-brand-navy focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-teal focus:ring-offset-2"
+    >
+      Skip to main content
+    </a>
+    <nav aria-label="Primary" className="bg-brand-navy border-b border-brand-navy sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14 md:h-16">
         {/* Logo */}
         <div className="flex items-center flex-1">
