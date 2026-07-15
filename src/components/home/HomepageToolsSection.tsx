@@ -105,7 +105,7 @@ function ProductColumn({
             <li key={`${p.title}-${idx}`}>
               <Link
                 to={href}
-                className="block rounded-lg border border-brand-cloud bg-brand-cloud px-4 py-3 no-underline hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card transition-colors"
+                className="block rounded-lg border border-brand-cloud bg-brand-cloud px-4 py-3 no-underline shadow-eup-sm hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card hover:shadow-eup-md transition-all motion-reduce:transition-colors"
               >
                 <h3 className="text-brand-navy mb-1 leading-snug">{p.title}</h3>
                 <p className="text-meta text-slate leading-relaxed">{p.blurb}</p>
