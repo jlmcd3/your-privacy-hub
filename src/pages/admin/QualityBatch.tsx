@@ -1,14 +1,10 @@
-// QualityBatch — admin console for run-quality-batch.
+// QualityBatch — admin console for run-quality-batch, driven by the
+// server-side quality-batch-orchestrator (QB-P1/P1.1). Rebuilt in QB-P2 on
+// QualityLoop2's three-panel pattern.
 //
-// Multi-product mode: admin selects any subset of the nine tools; the frontend
-// fires run-quality-batch sequentially (one tool at a time), polling the
-// resulting quality_runs row until it reaches a terminal status before
-// dequeuing the next tool. This mirrors ql2-orchestrator's server-side
-// one-product-at-a-time discipline, implemented client-side because
-// run-quality-batch itself takes one tool per invocation.
-//
-// Terminal statuses for quality_runs (verified in codebase, see TERMINAL_STATUSES
-// below — complete/completed/done/error/failed/cancelled/canceled).
+// The prior client-side queue (pollUntilTerminal / startQueue / cancelQueue /
+// QueueItem / TERMINAL_STATUSES / cancelRef) is gone — the orchestrator now
+// owns sequential dispatch, stall detection, and cancellation.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-// Matches run-quality-batch CONTRACT_MAP keys verbatim.
+// Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
 const TOOLS = [
   "cppa-admt",
   "cppa-risk",
@@ -53,13 +49,56 @@ type QRun = {
   progress_log: LogEntry[] | null;
 };
 
-const TERMINAL_STATUSES = new Set([
-  "complete", "completed", "done", "error", "failed", "cancelled", "canceled",
-]);
-const isTerminal = (s: string) => TERMINAL_STATUSES.has(s?.toLowerCase?.() ?? "");
+type ToolResult = {
+  tool: string;
+  quality_run_id: string | null;
+  run_number: number | null;
+  final_status: string;
+  score_overall: number | null;
+  gpt_score_overall: number | null;
+  error: string | null;
+};
+
+type BatchRow = {
+  id: string;
+  tools: string[];
+  batch_size: number;
+  status: string;
+  phase: string;
+  current_tool_index: number;
+  current_quality_run_id: string | null;
+  tool_results: ToolResult[];
+  cancel_requested: boolean;
+  last_error: string | null;
+  started_at: string;
+  completed_at: string | null;
+};
+
+type BatchLogRow = {
+  id: string;
+  ts: string;
+  level: string;
+  tool: string | null;
+  message: string;
+};
+
+type Baseline = {
+  tool: string;
+  claude_score: number | null;
+  gpt_score: number | null;
+  avg_score: number | null;
+  captured_at: string;
+};
 
 const SELECT_COLS =
   "id, tool, status, batch_size, run_number, checks_passed, checks_failed, checks_total, score_overall, gpt_score_overall, cross_review_complete, error, started_at, completed_at, progress_log";
+
+const CHILD_TERMINAL = new Set([
+  "complete", "completed", "done", "error", "failed", "cancelled", "canceled",
+]);
+const isChildTerminal = (s: string) => CHILD_TERMINAL.has(s?.toLowerCase?.() ?? "");
+const BATCH_TERMINAL = new Set(["complete", "failed", "cancelled"]);
+const isBatchTerminal = (s: string) => BATCH_TERMINAL.has(s?.toLowerCase?.() ?? "");
 
 function levelVariant(level?: string): "default" | "secondary" | "destructive" | "outline" {
   switch ((level ?? "").toLowerCase()) {
@@ -76,6 +115,16 @@ function levelVariant(level?: string): "default" | "secondary" | "destructive" |
   }
 }
 
+function finalStatusVariant(s: string): "default" | "secondary" | "destructive" | "outline" {
+  const v = s.toLowerCase();
+  if (v === "complete" || v === "completed") return "default";
+  if (v === "error" || v === "failed" || v === "dispatch_failed") return "destructive";
+  if (v === "stalled") return "outline";
+  if (v === "cancelled" || v === "canceled") return "outline";
+  return "secondary";
+}
+
+// Legacy child-run drill-down log panel (kept for Recent runs card).
 function LogPanel({ entries }: { entries: LogEntry[] | null }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -104,73 +153,112 @@ function LogPanel({ entries }: { entries: LogEntry[] | null }) {
   );
 }
 
-// Poll a single quality_runs row by id until it hits a terminal status
-// or the caller signals cancel. Returns the last row observed.
-async function pollUntilTerminal(
-  runId: string,
-  cancelRef: { cancelled: boolean },
-  intervalMs = 8000,
-): Promise<QRun | null> {
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    if (cancelRef.cancelled) return null;
-    const { data } = await supabase
-      .from("quality_runs")
-      .select(SELECT_COLS)
-      .eq("id", runId)
-      .maybeSingle();
-    const row = data as any as QRun | null;
-    if (row && isTerminal(row.status)) return row;
-    await new Promise((r) => setTimeout(r, intervalMs));
-  }
-}
-
-type QueueItem = {
-  tool: string;
-  state: "pending" | "running" | "done" | "error" | "skipped";
-  run_id?: string;
-  run_number?: number | null;
-  final_status?: string;
-  error?: string;
-};
-
 export default function QualityBatch() {
+  // Panel A state
   const [selected, setSelected] = useState<Set<string>>(new Set(TOOLS));
   const [batchSize, setBatchSize] = useState<number>(5);
+  const [starting, setStarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
+
+  // Active batch state
+  const [activeBatch, setActiveBatch] = useState<BatchRow | null>(null);
+  const [batchLogs, setBatchLogs] = useState<BatchLogRow[]>([]);
+
+  // Panel C state
+  const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
+  const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
+  const [snapshotting, setSnapshotting] = useState(false);
+
+  // Resume + Recent quality_runs card state (unchanged)
   const [resumeId, setResumeId] = useState("");
   const [resumeTool, setResumeTool] = useState<string>("governance");
   const [resuming, setResuming] = useState(false);
-
-  const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [running, setRunning] = useState(false);
-  const cancelRef = useRef<{ cancelled: boolean }>({ cancelled: false });
-
   const [runs, setRuns] = useState<QRun[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingRuns, setLoadingRuns] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  async function refresh() {
-    setLoading(true);
+  // ─── Reattach on mount: adopt latest running batch if any ────────────────
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("quality_batch_runs" as any)
+        .select("*")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setActiveBatch(data as any);
+    })();
+  }, []);
+
+  // ─── Poll active batch + its logs every 10s ──────────────────────────────
+  useEffect(() => {
+    if (!activeBatch) return;
+    let cancelled = false;
+    const load = async () => {
+      const [{ data: batch }, { data: log }] = await Promise.all([
+        supabase.from("quality_batch_runs" as any).select("*").eq("id", activeBatch.id).maybeSingle(),
+        supabase.from("quality_batch_log" as any)
+          .select("*").eq("run_id", activeBatch.id).order("ts", { ascending: true }).limit(500),
+      ]);
+      if (cancelled) return;
+      if (batch) setActiveBatch(batch as any);
+      if (log) setBatchLogs(log as any);
+    };
+    load();
+    const t = setInterval(() => {
+      // Stop polling once terminal; still allow one final refresh.
+      if (activeBatch && isBatchTerminal(activeBatch.status)) return;
+      load();
+    }, 10_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [activeBatch?.id, activeBatch?.status]);
+
+  // ─── Recent batches + baselines for the score matrix ─────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const [{ data: rows }, { data: base }] = await Promise.all([
+        supabase.from("quality_batch_runs" as any)
+          .select("*").order("started_at", { ascending: false }).limit(10),
+        supabase.from("quality_batch_baselines" as any).select("*"),
+      ]);
+      if (cancelled) return;
+      if (rows) setRecentBatches(rows as any);
+      if (base) {
+        const m = new Map<string, Baseline>();
+        for (const b of base as any[]) m.set(b.tool, b as Baseline);
+        setBaselines(m);
+      }
+    };
+    load();
+    const t = setInterval(load, 15_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, []);
+
+  // ─── Recent child quality_runs (bottom drill-down card) ──────────────────
+  async function refreshRuns() {
+    setLoadingRuns(true);
     const { data, error } = await supabase
       .from("quality_runs")
       .select(SELECT_COLS)
       .order("started_at", { ascending: false })
       .limit(30);
-    setLoading(false);
-    if (error) {
-      toast.error(`Load failed: ${error.message}`);
-      return;
-    }
+    setLoadingRuns(false);
+    if (error) { toast.error(`Load failed: ${error.message}`); return; }
     setRuns((data as any) ?? []);
   }
-
-  const anyActive = useMemo(() => runs.some((r) => !isTerminal(r.status)), [runs]);
-  useEffect(() => { refresh(); }, []);
+  const anyChildActive = useMemo(
+    () => runs.some((r) => !isChildTerminal(r.status)),
+    [runs],
+  );
+  useEffect(() => { refreshRuns(); }, []);
   useEffect(() => {
-    if (!anyActive && expanded.size === 0 && !running) return;
-    const t = setInterval(refresh, 8000);
+    if (!anyChildActive && expanded.size === 0) return;
+    const t = setInterval(refreshRuns, 10_000);
     return () => clearInterval(t);
-  }, [anyActive, expanded.size, running]);
+  }, [anyChildActive, expanded.size]);
+
+  const isBatchRunning = !!activeBatch && !isBatchTerminal(activeBatch.status);
 
   function toggleTool(t: string, checked: boolean) {
     setSelected((prev) => {
@@ -180,65 +268,47 @@ export default function QualityBatch() {
     });
   }
 
-  function updateQueueItem(idx: number, patch: Partial<QueueItem>) {
-    setQueue((prev) => prev.map((q, i) => (i === idx ? { ...q, ...patch } : q)));
-  }
-
-  async function startQueue() {
+  async function onStart() {
     const tools = TOOLS.filter((t) => selected.has(t));
     if (tools.length === 0) { toast.error("Select at least one tool"); return; }
-    const initial: QueueItem[] = tools.map((t) => ({ tool: t, state: "pending" }));
-    setQueue(initial);
-    setRunning(true);
-    cancelRef.current = { cancelled: false };
-
-    for (let i = 0; i < tools.length; i++) {
-      if (cancelRef.current.cancelled) {
-        // Mark remaining as skipped.
-        setQueue((prev) => prev.map((q, idx) => (idx >= i && q.state === "pending" ? { ...q, state: "skipped" } : q)));
-        break;
-      }
-      const tool = tools[i];
-      updateQueueItem(i, { state: "running" });
-      try {
-        const { data, error } = await supabase.functions.invoke("run-quality-batch", {
-          body: { tool, batch_size: batchSize },
-        });
-        if (error) throw error;
-        const d = (data as any) ?? {};
-        const runId: string | undefined = d.run_id;
-        if (!runId) throw new Error("run-quality-batch returned no run_id");
-        updateQueueItem(i, { run_id: runId, run_number: d.run_number ?? null });
-        refresh();
-        const row = await pollUntilTerminal(runId, cancelRef.current);
-        if (!row) {
-          updateQueueItem(i, { state: "skipped" });
-        } else {
-          const terminalIsError = ["error", "failed"].includes((row.status ?? "").toLowerCase());
-          updateQueueItem(i, {
-            state: terminalIsError ? "error" : "done",
-            final_status: row.status,
-            error: row.error ?? undefined,
-          });
-        }
-        refresh();
-      } catch (e: any) {
-        const msg = e?.context?.body ?? e?.message ?? String(e);
-        updateQueueItem(i, { state: "error", error: typeof msg === "string" ? msg : JSON.stringify(msg) });
-        toast.error(`${tool}: ${typeof msg === "string" ? msg : "invocation failed"}`);
-        // Continue with next tool — one crash shouldn't abort the queue.
-      }
+    setStarting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("quality-batch-orchestrator", {
+        body: { action: "start", tools, batch_size: batchSize },
+      });
+      if (error) throw error;
+      const runId = (data as any)?.run_id;
+      if (!runId) throw new Error("orchestrator returned no run_id");
+      const { data: row } = await supabase.from("quality_batch_runs" as any)
+        .select("*").eq("id", runId).maybeSingle();
+      setActiveBatch(row as any);
+      setBatchLogs([]);
+      toast.success("Batch started");
+    } catch (e: any) {
+      const msg = e?.context?.body ?? e?.message ?? String(e);
+      toast.error(`Start failed: ${typeof msg === "string" ? msg : JSON.stringify(msg)}`);
+    } finally {
+      setStarting(false);
     }
-    setRunning(false);
-    refresh();
   }
 
-  function cancelQueue() {
-    cancelRef.current.cancelled = true;
-    toast.message("Cancel requested — will stop after the current tool finishes.");
+  async function onStop() {
+    if (!activeBatch) return;
+    setStopping(true);
+    try {
+      const { error } = await supabase.functions.invoke("quality-batch-orchestrator", {
+        body: { action: "cancel", run_id: activeBatch.id },
+      });
+      if (error) throw error;
+      toast.success("Stop requested — batch and in-flight tool will terminate");
+    } catch (e: any) {
+      toast.error(`Stop failed: ${e?.message ?? e}`);
+    } finally {
+      setStopping(false);
+    }
   }
 
-  async function resumeRun() {
+  async function onResumeChildRun() {
     if (!resumeId.trim()) { toast.error("resume_run_id required"); return; }
     setResuming(true);
     try {
@@ -249,7 +319,7 @@ export default function QualityBatch() {
       const d = (data as any) ?? {};
       toast.success(`Resumed: run ${d.run_number ?? "?"} · ${d.run_id ?? "ok"}`);
       setResumeId("");
-      refresh();
+      refreshRuns();
     } catch (e: any) {
       const msg = e?.context?.body ?? e?.message ?? String(e);
       toast.error(`Resume failed: ${typeof msg === "string" ? msg : JSON.stringify(msg)}`);
@@ -261,34 +331,96 @@ export default function QualityBatch() {
   function toggleExpand(id: string) {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   }
 
-  const doneCount = queue.filter((q) => q.state === "done" || q.state === "error" || q.state === "skipped").length;
-  const currentTool = queue.find((q) => q.state === "running")?.tool ?? null;
+  // ─── Derived: current tool + per-tool chips for active batch ─────────────
+  const activeToolResults: ToolResult[] = Array.isArray(activeBatch?.tool_results)
+    ? (activeBatch!.tool_results as ToolResult[])
+    : [];
+  const currentTool = activeBatch && isBatchRunning
+    ? (activeBatch.tools[activeBatch.current_tool_index] ?? null)
+    : null;
+  const doneCount = activeToolResults.length;
+  const totalCount = activeBatch?.tools.length ?? 0;
+
+  // ─── Score matrix data ───────────────────────────────────────────────────
+  const matrixColumns = useMemo(() => {
+    // Oldest → newest
+    return [...recentBatches].sort((a, b) => (a.started_at < b.started_at ? -1 : 1));
+  }, [recentBatches]);
+
+  const testsCount = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const t of TOOLS) m.set(t, 0);
+    for (const b of recentBatches) {
+      const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as any) : [];
+      for (const r of results) m.set(r.tool, (m.get(r.tool) ?? 0) + 1);
+    }
+    return m;
+  }, [recentBatches]);
+
+  async function onResnapshotBaseline() {
+    if (!window.confirm("Replace baseline with the average of all stored batch results?")) return;
+    setSnapshotting(true);
+    try {
+      const perTool = new Map<string, { claudeSum: number; claudeN: number; gptSum: number; gptN: number }>();
+      for (const b of recentBatches) {
+        const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as any) : [];
+        for (const r of results) {
+          if (r.final_status !== "complete") continue;
+          const e = perTool.get(r.tool) ?? { claudeSum: 0, claudeN: 0, gptSum: 0, gptN: 0 };
+          if (typeof r.score_overall === "number") { e.claudeSum += r.score_overall; e.claudeN += 1; }
+          if (typeof r.gpt_score_overall === "number") { e.gptSum += r.gpt_score_overall; e.gptN += 1; }
+          perTool.set(r.tool, e);
+        }
+      }
+      const rows = Array.from(perTool.entries()).map(([tool, v]) => {
+        const claude = v.claudeN ? v.claudeSum / v.claudeN : null;
+        const gpt = v.gptN ? v.gptSum / v.gptN : null;
+        const parts: number[] = [];
+        if (claude != null) parts.push(claude);
+        if (gpt != null) parts.push(gpt);
+        const avg = parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : null;
+        return { tool, claude_score: claude, gpt_score: gpt, avg_score: avg, captured_at: new Date().toISOString() };
+      });
+      if (rows.length === 0) { toast.message("No complete results to snapshot."); return; }
+      const { error } = await supabase.from("quality_batch_baselines" as any)
+        .upsert(rows, { onConflict: "tool" });
+      if (error) throw error;
+      const m = new Map<string, Baseline>();
+      for (const r of rows) m.set(r.tool, r as Baseline);
+      setBaselines(m);
+      toast.success("Baseline re-snapshotted.");
+    } catch (e: any) {
+      toast.error(`Snapshot failed: ${e?.message ?? e}`);
+    } finally {
+      setSnapshotting(false);
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-baseline justify-between">
         <h1 className="text-3xl font-serif text-foreground">Quality Batch</h1>
-        <span className="text-xs text-muted-foreground font-mono">run-quality-batch</span>
+        <span className="text-xs text-muted-foreground font-mono">quality-batch-orchestrator</span>
       </div>
 
+      {/* Panel A — Run */}
       <Card>
-        <CardHeader><CardTitle>Start a new batch</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Run</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Tools (queued sequentially)</Label>
+            <Label>Tools (dispatched sequentially by the orchestrator)</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
               {TOOLS.map((t) => (
                 <label key={t} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={selected.has(t)}
                     onCheckedChange={(v) => toggleTool(t, v === true)}
-                    disabled={running}
+                    disabled={isBatchRunning}
                   />
                   <span className="font-mono text-xs">{t}</span>
                 </label>
@@ -298,13 +430,13 @@ export default function QualityBatch() {
               <button
                 type="button"
                 className="text-brand-teal-text underline hover:no-underline disabled:opacity-40"
-                disabled={running}
+                disabled={isBatchRunning}
                 onClick={() => setSelected(new Set(TOOLS))}
               >Select all</button>
               <button
                 type="button"
                 className="text-brand-teal-text underline hover:no-underline disabled:opacity-40"
-                disabled={running}
+                disabled={isBatchRunning}
                 onClick={() => setSelected(new Set())}
               >Clear</button>
               <span className="text-muted-foreground ml-auto">{selected.size} selected</span>
@@ -318,67 +450,89 @@ export default function QualityBatch() {
               min={1}
               max={50}
               value={batchSize}
-              disabled={running}
-              onChange={(e) => setBatchSize(Math.max(1, Number(e.target.value) || 1))}
+              disabled={isBatchRunning}
+              onChange={(e) => setBatchSize(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={startQueue} disabled={running || selected.size === 0}>
-              {running ? `Running ${currentTool ?? "…"}` : `Start (${selected.size})`}
+          <div className="flex flex-wrap gap-2 items-center">
+            <Button onClick={onStart} disabled={starting || isBatchRunning || selected.size === 0}>
+              {starting ? "Starting…" : `Start (${selected.size})`}
             </Button>
-            {running && (
-              <Button variant="outline" onClick={cancelQueue} disabled={cancelRef.current.cancelled}>
-                {cancelRef.current.cancelled ? "Stopping…" : "Cancel remaining"}
+            {isBatchRunning && (
+              <Button variant="destructive" onClick={onStop} disabled={stopping}>
+                {stopping ? "Stopping…" : "Stop batch"}
               </Button>
             )}
-          </div>
-
-          {queue.length > 0 && (
-            <div className="border rounded p-3 space-y-1 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Queue: {doneCount}/{queue.length} finished</span>
-                {currentTool && <span className="text-muted-foreground">currently: <span className="font-mono">{currentTool}</span></span>}
+            {activeBatch && (
+              <div className="text-sm text-muted-foreground">
+                Run <code>{activeBatch.id.slice(0, 8)}</code> · <Badge variant="outline">{activeBatch.status}</Badge>
+                {" · "}phase <code>{activeBatch.phase}</code>
+                {" · "}<span className="font-mono">{currentTool ?? "—"}</span>
+                {" · "}{doneCount}/{totalCount} tools
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-1 mt-2">
-                {queue.map((q) => (
-                  <div key={q.tool} className="flex items-center gap-2">
-                    <Badge variant={
-                      q.state === "done" ? "default"
-                        : q.state === "error" ? "destructive"
-                        : q.state === "running" ? "secondary"
-                        : "outline"
-                    } className="h-4 text-[10px]">{q.state}</Badge>
-                    <span className="font-mono">{q.tool}</span>
-                    {q.run_number != null && <span className="text-muted-foreground">#{q.run_number}</span>}
-                    {q.final_status && <span className="text-muted-foreground">· {q.final_status}</span>}
-                  </div>
-                ))}
+            )}
+          </div>
+          {activeBatch?.last_error && (
+            <div className="text-xs text-destructive break-all">{activeBatch.last_error}</div>
+          )}
+
+          {activeBatch && activeBatch.tools.length > 0 && (
+            <div className="border rounded p-3 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {activeBatch.tools.map((t, i) => {
+                  const done = activeToolResults[i];
+                  const isCurrent = i === activeBatch.current_tool_index && isBatchRunning && !done;
+                  return (
+                    <div key={t} className="flex items-center gap-2 flex-wrap">
+                      {done ? (
+                        <Badge variant={finalStatusVariant(done.final_status)} className="h-4 text-[10px]">
+                          {done.final_status}
+                        </Badge>
+                      ) : isCurrent ? (
+                        <Badge variant="secondary" className="h-4 text-[10px]">running</Badge>
+                      ) : (
+                        <Badge variant="outline" className="h-4 text-[10px]">pending</Badge>
+                      )}
+                      <span className="font-mono">{t}</span>
+                      {done?.run_number != null && (
+                        <span className="text-muted-foreground">#{done.run_number}</span>
+                      )}
+                      {done && done.final_status === "complete" && (
+                        <span className="text-muted-foreground font-mono">
+                          {done.score_overall?.toFixed?.(1) ?? "—"} / {done.gpt_score_overall?.toFixed?.(1) ?? "—"}
+                        </span>
+                      )}
+                      {done?.error && (
+                        <span className="text-destructive break-all">{done.error}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
+          {/* Resume existing child run — unchanged from prior page */}
           <div className="pt-2 border-t space-y-2">
-            <Label>Resume existing run</Label>
+            <Label>Resume existing run (single child quality_runs row)</Label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="md:col-span-2">
                 <Input
                   value={resumeId}
                   onChange={(e) => setResumeId(e.target.value)}
                   placeholder="quality_runs.id (UUID)"
-                  disabled={running}
                 />
               </div>
               <select
                 value={resumeTool}
                 onChange={(e) => setResumeTool(e.target.value)}
-                disabled={running}
                 className="h-10 rounded border bg-background px-2 text-sm"
               >
                 {TOOLS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <Button variant="secondary" onClick={resumeRun} disabled={resuming || running}>
+            <Button variant="secondary" onClick={onResumeChildRun} disabled={resuming}>
               {resuming ? "…" : "Resume"}
             </Button>
             <p className="text-xs text-muted-foreground">
@@ -388,11 +542,121 @@ export default function QualityBatch() {
         </CardContent>
       </Card>
 
+      {/* Panel B — Live log */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Live log
+            {activeBatch && (
+              <span className="text-xs text-muted-foreground ml-2 font-mono">
+                batch {activeBatch.id.slice(0, 8)}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BatchLogView entries={batchLogs} />
+        </CardContent>
+      </Card>
+
+      {/* Panel C — Tools × Batches score matrix */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Tools & batch scores</CardTitle>
+          <Button size="sm" variant="outline" disabled={snapshotting} onClick={onResnapshotBaseline}>
+            {snapshotting ? "Snapshotting…" : "Re-snapshot baseline"}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-2 pr-3">Tool</th>
+                  <th className="py-2 pr-3">Tests</th>
+                  <th className="py-2 pr-3 bg-muted/40">Baseline</th>
+                  {matrixColumns.map((b, i) => (
+                    <th
+                      key={b.id}
+                      className="py-2 pr-3 whitespace-nowrap"
+                      title={`${b.id} · ${new Date(b.started_at).toLocaleString()}`}
+                    >
+                      Batch {i + 1}
+                      <div className="text-[10px] font-normal text-muted-foreground">
+                        {new Date(b.started_at).toLocaleDateString()}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {TOOLS.map((tool) => {
+                  const baseline = baselines.get(tool);
+                  const baseAvg = baseline?.avg_score != null ? Number(baseline.avg_score) : null;
+                  return (
+                    <tr key={tool} className="border-b align-top">
+                      <td className="py-2 pr-3 font-mono">{tool}</td>
+                      <td className="py-2 pr-3">{testsCount.get(tool) ?? 0}</td>
+                      <td
+                        className="py-2 pr-3 bg-muted/40 font-mono"
+                        title={baseline
+                          ? `claude ${baseline.claude_score ?? "—"} · gpt ${baseline.gpt_score ?? "—"}`
+                          : undefined}
+                      >
+                        {baseAvg == null ? "—" : baseAvg.toFixed(1)}
+                      </td>
+                      {matrixColumns.map((b) => {
+                        const results: ToolResult[] = Array.isArray(b.tool_results)
+                          ? (b.tool_results as any) : [];
+                        const entry = results.find((r) => r.tool === tool);
+                        if (!entry) {
+                          return <td key={b.id} className="py-2 pr-3 text-muted-foreground">—</td>;
+                        }
+                        if (entry.final_status !== "complete") {
+                          return (
+                            <td key={b.id} className="py-2 pr-3">
+                              <Badge variant={finalStatusVariant(entry.final_status)} className="h-4 text-[10px]">
+                                {entry.final_status}
+                              </Badge>
+                            </td>
+                          );
+                        }
+                        const c = entry.score_overall;
+                        const g = entry.gpt_score_overall;
+                        const parts: number[] = [];
+                        if (typeof c === "number") parts.push(c);
+                        if (typeof g === "number") parts.push(g);
+                        const avg = parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : null;
+                        const delta = avg != null && baseAvg != null ? avg - baseAvg : null;
+                        const color = delta == null ? "" :
+                          delta > 0.05 ? "text-emerald-600" :
+                          delta < -0.05 ? "text-destructive" : "text-muted-foreground";
+                        return (
+                          <td key={b.id} className="py-2 pr-3 font-mono whitespace-nowrap">
+                            {c?.toFixed?.(1) ?? "—"} / {g?.toFixed?.(1) ?? "—"}
+                            {delta != null && (
+                              <span className={`ml-1 text-[10px] ${color}`}>
+                                {delta >= 0 ? "+" : ""}{delta.toFixed(1)}
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent child runs (unchanged drill-down) */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent runs</CardTitle>
-          <Button variant="ghost" size="sm" onClick={refresh} disabled={loading}>
-            {loading ? "…" : "Refresh"}
+          <Button variant="ghost" size="sm" onClick={refreshRuns} disabled={loadingRuns}>
+            {loadingRuns ? "…" : "Refresh"}
           </Button>
         </CardHeader>
         <CardContent>
@@ -435,9 +699,7 @@ export default function QualityBatch() {
                     {" · "}gpt: {r.gpt_score_overall?.toFixed?.(3) ?? "—"}
                     {" · "}cross-review: {r.cross_review_complete ? "yes" : "no"}
                     {r.completed_at && (
-                      <>
-                        {" · "}completed {new Date(r.completed_at).toLocaleString()}
-                      </>
+                      <> {" · "}completed {new Date(r.completed_at).toLocaleString()}</>
                     )}
                   </div>
                   {r.error && (
@@ -463,6 +725,34 @@ export default function QualityBatch() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function BatchLogView({ entries }: { entries: BatchLogRow[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+  }, [entries.length]);
+  return (
+    <div
+      ref={ref}
+      className="font-mono text-xs max-h-[28rem] overflow-y-auto border rounded p-3 bg-muted/30"
+    >
+      {entries.length === 0 && (
+        <div className="text-muted-foreground">No log entries.</div>
+      )}
+      {entries.map((l) => (
+        <div
+          key={l.id}
+          className={
+            l.level === "error" ? "text-destructive" :
+            l.level === "warn" ? "text-yellow-600" : ""
+          }
+        >
+          {new Date(l.ts).toLocaleTimeString()} · {l.level} · {l.tool ?? "—"} · {l.message}
+        </div>
+      ))}
     </div>
   );
 }
