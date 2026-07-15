@@ -266,7 +266,7 @@ async function runUnit(runId: string) {
     }
 
     case "dispatch_child": {
-      const inv = await invokeRunQualityBatch(d.tool, run.batch_size);
+      const inv = await seedAndResume(d.tool, run.batch_size, run.created_by);
       if (!inv.ok) {
         // Record failure for this tool and advance.
         const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
@@ -295,11 +295,12 @@ async function runUnit(runId: string) {
       await db.from("quality_batch_runs").update({
         current_quality_run_id: inv.runId,
       }).eq("id", runId);
-      await log(runId, `Dispatched ${d.tool} → quality_runs=${inv.runId}${inv.runNumber != null ? ` (run #${inv.runNumber})` : ""}`, { tool: d.tool });
+      await log(runId, `Dispatched ${d.tool} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool: d.tool });
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
+
 
     case "child_terminal": {
       const tool = run.tools[run.current_tool_index];
