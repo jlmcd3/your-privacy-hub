@@ -320,6 +320,7 @@ export default function ADMTCheckerResult() {
       <Helmet>
         <title>ADMT Compliance Assessment — {report.system_name} | End User Privacy</title>
       </Helmet>
+      <main id="main-content" aria-label="ADMT Compliance Assessment">
       <ReportShell
         title={`ADMT Compliance Assessment — ${report.system_name}`}
         meta={`Generated ${new Date(assessment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · Compliance deadline: ${report.compliance_deadline}`}
