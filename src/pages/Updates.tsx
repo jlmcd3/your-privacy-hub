@@ -437,7 +437,7 @@ const Updates = () => {
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
                 <title>Privacy Intelligence Feed | End User Privacy</title>
-                <meta name="description" content="Daily intelligence monitored from regulatory and news sources across the world — filtered by jurisdiction, topic, date, and source." />
+                <meta name="description" content="Daily intelligence monitored from regulatory and news sources across the world, filtered by jurisdiction, topic, date, and source." />
             </Helmet>
             <Navbar />
 
@@ -454,7 +454,7 @@ const Updates = () => {
                                 : "Privacy Intelligence Feed"}
                     </h1>
                     <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-                        Daily intelligence from regulatory and news sources across the world — filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
+                        Daily intelligence from regulatory and news sources across the world. Filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
                     </p>
                 </div>
             </header>
@@ -567,11 +567,11 @@ const Updates = () => {
                 ) : (
                   <Link
                     to="/get-intelligence"
-                    aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
+                    aria-label="Get your privacy intelligence, customized and analyzed for your priorities and responsibilities"
                     className="group block bg-brand-mist/10 hover:bg-brand-mist/20 border border-brand-mist/30 hover:border-brand-mist/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
                   >
                     <p className="text-sm font-semibold m-0 text-brand-teal-text group-hover:text-brand-navy transition-colors">
-                      Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
+                      Get your privacy intelligence, customized and analyzed for your priorities and responsibilities →
                     </p>
                   </Link>
                 )}
@@ -661,7 +661,7 @@ const Updates = () => {
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
                     <div className="text-sm text-brand-navy bg-brand-teal/5 border border-brand-teal/20 px-3 py-2 rounded-lg mb-4">
-                        Get a personalised Privacy Intelligence Report every Monday — written for your role, jurisdiction, and industry.{" "}
+                        Get a personalised Privacy Intelligence Report every Monday, written for your role, jurisdiction, and industry.{" "}
                         <Link to="/get-intelligence" className="underline font-semibold text-brand-teal-text hover:text-brand-navy">
                             Build your sample brief →
                         </Link>
@@ -673,7 +673,7 @@ const Updates = () => {
                     <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
                         <div className="flex-1 text-sm text-amber-900">
                             <span className="font-semibold">No exact matches</span> for your filter combination.
-                            Showing the closest related updates — we relaxed{" "}
+                            Showing the closest related updates; we relaxed{" "}
                             <span className="font-medium">{relaxed.join(", ")}</span>.
                         </div>
                         <button
