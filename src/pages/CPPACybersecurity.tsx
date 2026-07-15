@@ -195,7 +195,7 @@ export default function CPPACybersecurity() {
           offers: { "@type": "Offer", price: String(PRICING.tools.cppa_cyber.dollars), priceCurrency: "USD", availability: "https://schema.org/InStock" },
         })}</script>
       </Helmet>
-      <header className="bg-[#1a4a6e] text-white py-12">
+      <header className="bg-brand-ocean text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
