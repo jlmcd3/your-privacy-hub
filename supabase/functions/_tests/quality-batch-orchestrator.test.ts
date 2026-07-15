@@ -116,3 +116,32 @@ Deno.test("decide: fresh heartbeat → child_wait", () => {
   const d = decide(row, child, now);
   assertEquals(d.kind, "child_wait");
 });
+
+Deno.test("ChildSnapshot type carries run_number (compile-time)", () => {
+  const snap: ChildSnapshot = {
+    status: "complete", last_heartbeat_at: null,
+    score_overall: null, gpt_score_overall: null, error: null,
+    run_number: 42,
+  };
+  assertEquals(snap.run_number, 42);
+});
+
+Deno.test("buildSeedRow: exact key set and values match run-quality-batch insert", () => {
+  const nowIso = "2026-07-15T00:00:00.000Z";
+  const row = buildSeedRow("governance", 5, 7, "admin-uuid", nowIso);
+  // Exact key set — no more, no fewer.
+  assertEquals(
+    Object.keys(row).sort(),
+    ["batch_size", "created_by", "last_heartbeat_at", "next_doc_index",
+     "run_number", "started_at", "status", "tool", "user_id"],
+  );
+  assertEquals(row.tool, "governance");
+  assertEquals(row.status, "pending");
+  assertEquals(row.batch_size, 5);
+  assertEquals(row.run_number, 7);
+  assertEquals(row.created_by, "admin-uuid");
+  assertEquals(row.user_id, "admin-uuid");
+  assertEquals(row.started_at, nowIso);
+  assertEquals(row.last_heartbeat_at, nowIso);
+  assertEquals(row.next_doc_index, 0);
+});
