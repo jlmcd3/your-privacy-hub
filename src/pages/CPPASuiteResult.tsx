@@ -240,7 +240,18 @@ export default function CPPASuiteResult() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>CPPA Audit Readiness Suite | End User Privacy</title></Helmet>
+      <Helmet>
+        <title>CPPA Audit Readiness Suite | End User Privacy</title>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
+            { "@type": "ListItem", position: 2, name: "CPPA Suite", item: "https://enduserprivacy.com/cppa" },
+            { "@type": "ListItem", position: 3, name: "CPPA Audit Readiness Suite", item: "https://enduserprivacy.com/cppa-suite" },
+          ],
+        })}</script>
+      </Helmet>
       <Navbar />
       <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
