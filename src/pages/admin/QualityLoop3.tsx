@@ -68,6 +68,7 @@ export default function QualityLoop3() {
   const [starting, setStarting] = useState(false);
   const [runs, setRuns] = useState<Ql3Run[]>([]);
   const [loading, setLoading] = useState(false);
+  const [prefillHint, setPrefillHint] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
@@ -81,6 +82,35 @@ export default function QualityLoop3() {
     setRuns((data as any) ?? []);
   }
   useEffect(() => { refresh(); const t = setInterval(refresh, 8000); return () => clearInterval(t); }, []);
+
+  // Pre-fill Assessment ID from latest completed quality_run_documents row
+  // for the selected tool. Only "complete" is treated as scored/completed —
+  // observed status values in the table: complete, evaluating, building, error.
+  useEffect(() => {
+    let cancelled = false;
+    const docTool = DOC_TOOL_MAP[tool];
+    setPrefillHint(null);
+    setAssessmentId("");
+    if (!docTool) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("quality_run_documents" as any)
+        .select("source_row_id, doc_number, created_at, status")
+        .eq("tool", docTool)
+        .eq("status", "complete")
+        .not("source_row_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      if (error) return; // silent — pre-fill is a convenience, never blocking
+      const row = (data as any)?.[0];
+      if (row?.source_row_id) {
+        setAssessmentId(row.source_row_id);
+        setPrefillHint(`pre-filled from run-quality-batch doc #${row.doc_number} · ${fmtRelTime(row.created_at)}`);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tool]);
 
   async function startRun() {
     if (!assessmentId.trim()) { toast.error("assessment_id required"); return; }
