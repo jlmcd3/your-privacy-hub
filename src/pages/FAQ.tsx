@@ -85,6 +85,7 @@ const FAQ = () => {
         <meta name="description" content="Common questions about End User Privacy: coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
       </Helmet>
       <Navbar />
+      <main id="main-content" aria-label="Frequently Asked Questions">
 
       {/* Hero */}
       <section className="bg-gradient-to-b from-brand-navy to-brand-slate-teal py-16 px-4">
@@ -170,6 +171,8 @@ const FAQ = () => {
           </a>
         </div>
       </div>
+
+      </main>
 
       <Footer />
     </div>
