@@ -253,7 +253,7 @@ const handler = async (req: Request): Promise<Response> => {
     .maybeSingle();
   if (selErr) return json({ error: selErr.message }, 500);
   if (!row) return json({ error: "assessment_not_found" }, 404);
-  const rowAny = row as Record<string, unknown>;
+  const rowAny = row as unknown as Record<string, unknown>;
   if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
 
   // Assemble intake from the per-tool columns. Single JSONB column → pass
