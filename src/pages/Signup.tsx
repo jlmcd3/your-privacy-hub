@@ -1,10 +1,43 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Lock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 const Signup = () => {
+  const fireConversion = useConversionEvent();
+  const engagementFired = useRef(false);
+
+  useEffect(() => {
+    const referrer_path =
+      typeof document !== "undefined" ? new URL(document.referrer || "about:blank").pathname : "";
+    const params =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    fireConversion("signup_initiated", {
+      referrer_path,
+      utm_source: params.get("utm_source") || "",
+      utm_campaign: params.get("utm_campaign") || "",
+      variant: "page-load",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onEmailEngagement = () => {
+    if (engagementFired.current) return;
+    engagementFired.current = true;
+    const params =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    const referrer_path =
+      typeof document !== "undefined" ? new URL(document.referrer || "about:blank").pathname : "";
+    fireConversion("signup_initiated", {
+      referrer_path,
+      utm_source: params.get("utm_source") || "",
+      utm_campaign: params.get("utm_campaign") || "",
+      variant: "form-engagement",
+    });
+  };
   return (
     <div className="min-h-screen bg-brand-cloud flex flex-col">
       <Helmet>
