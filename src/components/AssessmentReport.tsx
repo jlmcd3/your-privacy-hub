@@ -24,11 +24,14 @@ import { ReactNode, CSSProperties } from "react";
 
 // Document body typography — matches the downloadable Word file so the
 // on-screen preview reads as the same document.
+// Font family is delivered via the `font-serif-text` Tailwind class (Source Serif 4)
+// per PRIV-1 body-prose ruling. Size and line-height remain inline for parity
+// with the downloadable Word file.
 const REPORT_BODY_STYLE: CSSProperties = {
-  fontFamily: "'Times New Roman', Times, serif",
   fontSize: "11pt",
   lineHeight: 1.55,
 };
+const BODY_PROSE_CLASS = "font-serif-text text-foreground";
 
 // ───────────────────────── inline formatter ─────────────────────────
 // Render **bold** spans inside an arbitrary string. We deliberately
@@ -190,13 +193,13 @@ function BlockList({ blocks }: { blocks: Block[] }) {
         if (b.type === "subhead") {
           return (
             <div key={idx} className="pt-2">
-              {/* DM Sans medium reads cleaner than DM Serif Display bold at this size */}
-              <h4 className="text-sm font-semibold text-brand-navy tracking-tight uppercase">
+              {/* Intra-body H4 subhead — PRIV-1 token trio */}
+              <h4 className="font-body text-display-card font-semibold text-brand-navy tracking-tight uppercase">
                 {b.text}
               </h4>
               <div className="mt-1 h-[2px] w-10 bg-[hsl(var(--steel))] rounded-full" />
               {b.trailing && (
-                <p className="mt-2 text-foreground" style={REPORT_BODY_STYLE}>
+                <p className={`mt-2 ${BODY_PROSE_CLASS}`} style={REPORT_BODY_STYLE}>
                   {renderInline(b.trailing, `sh-${idx}`)}
                 </p>
               )}
@@ -205,7 +208,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
         }
         if (b.type === "para") {
           return (
-            <p key={idx} className="text-foreground" style={REPORT_BODY_STYLE}>
+            <p key={idx} className={BODY_PROSE_CLASS} style={REPORT_BODY_STYLE}>
               {renderInline(b.text, `p-${idx}`)}
             </p>
           );
@@ -221,7 +224,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                   >
                     {it.num}.
                   </span>
-                  <span className="text-foreground" style={REPORT_BODY_STYLE}>
+                  <span className={BODY_PROSE_CLASS} style={REPORT_BODY_STYLE}>
                     {renderInline(it.text, `ol-${idx}-${j}`)}
                   </span>
                 </li>
@@ -239,7 +242,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                   className="flex-shrink-0 mt-[9px] w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent))]"
                   aria-hidden
                 />
-                <span className="text-foreground" style={REPORT_BODY_STYLE}>
+                <span className={BODY_PROSE_CLASS} style={REPORT_BODY_STYLE}>
                   {renderInline(it, `ul-${idx}-${j}`)}
                 </span>
               </li>
@@ -313,7 +316,7 @@ export default function AssessmentReport({
                   {sectionChipLabel}
                 </span>
               )}
-              <h3 className="text-brand-navy leading-tight">
+              <h3 className="font-body text-display-card font-semibold text-brand-navy leading-tight">
                 {jurisdiction}
               </h3>
               {statute && (

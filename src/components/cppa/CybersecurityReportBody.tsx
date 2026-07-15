@@ -23,7 +23,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
     : [];
   const { isVerified } = useCitationVerification(ledgerCitations);
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-serif-text">
       {/* Sprint 2 #3 — Cover (print-only by default; visible when handoff package is being generated) */}
       <AuditorHandoffCover row={row} />
 
@@ -86,7 +86,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
       {Array.isArray(report?.controls) && report.controls.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-4">Control Findings</h2>
+          <h2 className="font-body text-display-card font-semibold mb-4">Control Findings</h2>
           <Accordion type="multiple">
             {report.controls.map((d: any, i: number) => (
               <AccordionItem key={i} value={`c${i}`}>
@@ -223,7 +223,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
         };
         return (
           <section className="bg-card border rounded-lg p-6">
-            <h2 className="mb-1">Pre-Audit Readiness Gap Log</h2>
+            <h2 className="font-body text-display-card font-semibold mb-1">Pre-Audit Readiness Gap Log</h2>
             <p className="text-xs text-muted-foreground mb-4">
               Remediation tasks for every Gap, Critical Gap, and Partial Gap control. Target dates back-solved
               from the April 1, 2028 audit submission deadline (Critical Gap = 6 months before, Gap = 3 months
@@ -272,7 +272,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
       {/* Sprint 1 #7 — Existing-framework cross-walk */}
       <section className="bg-card border rounded-lg p-6">
-        <h2 className="mb-1">Framework Mapping</h2>
+        <h2 className="font-body text-display-card font-semibold mb-1">Framework Mapping</h2>
         <p className="text-xs text-muted-foreground mb-4">
           Where your existing NIST CSF, ISO 27001, or SOC 2 controls likely apply to each CPPA cybersecurity component, and the
           CPPA-specific evidence the agency expects in addition. The FSOR is explicit that holding a NIST / ISO / SOC 2
@@ -308,7 +308,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
       {Array.isArray(report?.top_risks) && report.top_risks.length > 0 && (
         <section>
-          <h2 className="mb-3">Top Risks</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">Top Risks</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {report.top_risks.slice(0, 3).map((r: any, i: number) => (
               <div key={i} className="bg-card border rounded-lg p-4">
@@ -324,7 +324,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
       {Array.isArray(report?.next_steps) && report.next_steps.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-3">Next Steps</h2>
+          <h2 className="font-body text-display-card font-semibold mb-3">Next Steps</h2>
           <ol className="list-decimal pl-5 space-y-1 text-sm">
             {report.next_steps.map((s: string, i: number) => <li key={i}>{s}</li>)}
           </ol>
@@ -334,7 +334,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
       {/* Sprint 2 #3 — Citation ledger (included so the handoff PDF is self-contained) */}
       {Array.isArray(report?.citation_ledger) && report.citation_ledger.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="mb-1">Citation Ledger</h2>
+          <h2 className="font-body text-display-card font-semibold mb-1">Citation Ledger</h2>
           <p className="text-xs text-muted-foreground mb-4">
             Every authority cited in this report with the validator's verification status. Entries marked
             "Not in corpus" or "Unsupported" must be independently verified against the primary source

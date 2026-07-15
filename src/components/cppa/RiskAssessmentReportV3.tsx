@@ -76,7 +76,7 @@ const SectionShell = ({
   <section className={`border rounded-lg p-5 ${fill ? "bg-amber-50/40 dark:bg-amber-950/10" : "bg-card"}`}>
     <header className="flex items-baseline gap-3 flex-wrap mb-3">
       <span className="text-xs font-mono px-2 py-0.5 rounded bg-brand-navy text-white">{num}</span>
-      <h3 className="font-serif text-lg">{title}</h3>
+      <h3 className="font-body text-display-card font-semibold">{title}</h3>
       {statute && <span className="text-[11px] text-muted-foreground font-mono">{statute}</span>}
     </header>
     <div className="space-y-3 text-sm">{children}</div>
@@ -103,7 +103,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
   const gating = report?.gating ?? { ready_for_signoff: false, blockers: [] };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-serif-text">
       {/* Top: sign-off gating banner */}
       <div
         className={`rounded-lg border-l-4 p-4 ${
@@ -387,7 +387,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
         <section className="border-2 rounded-lg p-5 bg-brand-cloud/30">
           <header className="flex items-baseline gap-3 mb-3 flex-wrap">
             <span className="text-xs font-mono px-2 py-0.5 rounded bg-brand-teal-deep text-white">Part B</span>
-            <h3 className="font-serif text-lg">§ 7157 Annual Submission Worksheet</h3>
+            <h3 className="font-body text-display-card font-semibold">§ 7157 Annual Submission Worksheet</h3>
             <span className="text-[11px] font-mono text-muted-foreground">{report.part_b.statute}</span>
           </header>
           <ul className="text-sm space-y-1">

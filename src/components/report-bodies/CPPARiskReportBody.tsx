@@ -24,7 +24,7 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
   const isV4 = !isV3 && isV4Report(report);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-serif-text">
       {!isV4 && (
         <section className="bg-slate-900 text-white rounded-lg p-8">
           <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
