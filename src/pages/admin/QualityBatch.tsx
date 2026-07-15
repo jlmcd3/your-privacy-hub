@@ -773,7 +773,7 @@ export default function QualityBatch() {
               <thead>
                 <tr className="border-b text-left">
                   <th className="py-2 pr-3">Tool</th>
-                  <th className="py-2 pr-3">Tests</th>
+                  <th className="py-2 pr-3">Tests (last 10)</th>
                   <th className="py-2 pr-3 bg-muted/40">Baseline</th>
                   {matrixColumns.map((b, i) => (
                     <th
@@ -784,6 +784,20 @@ export default function QualityBatch() {
                       Batch {i + 1}
                       <div className="text-[10px] font-normal text-muted-foreground">
                         {new Date(b.started_at).toLocaleDateString()}
+                      </div>
+                      <div className="flex gap-1 mt-1">
+                        <button
+                          type="button"
+                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                          onClick={() => onDownloadBatchZip(b)}
+                          title="Download PDFs (zip)"
+                        >zip</button>
+                        <button
+                          type="button"
+                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                          onClick={() => onExportBatchMarkdown(b)}
+                          title="Export analysis (.md)"
+                        >md</button>
                       </div>
                     </th>
                   ))}
