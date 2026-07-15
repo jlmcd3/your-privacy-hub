@@ -64,7 +64,7 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "organization_name",     kind: "text",       required: "always" },
     { key: "subject_anchor",        kind: "text",       required: "optional" }, // preview may not have set it; nullable in the insert
     { key: "processing_description", kind: "narrative", required: "always" },
-    { key: "data_categories",       kind: "structured", required: "always" },
+    { key: "data_categories",       kind: "string-array", required: "always" }, // flat string[] with "Other: …" folded in; persisted as text[]
     { key: "relationship_type",     kind: "text",       required: "always" },
     { key: "jurisdictions",         kind: "multi-enum", required: "always", options: JURISDICTIONS },
 
