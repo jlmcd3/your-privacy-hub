@@ -201,7 +201,11 @@ async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, repo
   return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: parsed.findings ?? [], strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
 }
 
-Deno.serve(async (req) => {
+function isKnownTool(x: unknown): x is QL3Tool {
+  return typeof x === "string" && (KNOWN_TOOL_SLUGS as readonly string[]).includes(x);
+}
+
+const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
@@ -224,34 +228,54 @@ Deno.serve(async (req) => {
     if (!isAdmin) return json({ error: "admin_only" }, 403);
   }
 
-  let body: { assessment_id?: string; fixture_label?: string; dry_run?: boolean } = {};
+  let body: { assessment_id?: string; fixture_label?: string; dry_run?: boolean; tool?: string } = {};
   try { body = await req.json(); } catch { /* allow empty */ }
   if (!body.assessment_id) return json({ error: "missing_assessment_id" }, 400);
 
+  // QL3-P1.2: `tool` is optional; DEFAULT "cppa-risk" so existing callers
+  // (ql3-orchestrator.callInternalGrader, admin one-off Doc W baseline)
+  // stay unchanged. Unknown slug → 400 unknown_tool.
+  const toolRaw = body.tool ?? "cppa-risk";
+  if (!isKnownTool(toolRaw)) {
+    return json({ error: "unknown_tool", detail: `known: ${KNOWN_TOOL_SLUGS.join(",")}` }, 400);
+  }
+  const tool: QL3Tool = toolRaw;
+  const spec = TOOL_TABLE[tool];
+
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+  // Row fetch by id is unambiguous — no module filter needed for
+  // cppa_assessments (id is table PK).
+  const selectCols = ["id", "status", spec.reportCol, ...spec.intakeCols].join(", ");
   const { data: row, error: selErr } = await admin
-    .from("cppa_assessments")
-    .select("id, intake_data, report_data, status, created_at")
+    .from(spec.table)
+    .select(selectCols)
     .eq("id", body.assessment_id)
     .maybeSingle();
   if (selErr) return json({ error: selErr.message }, 500);
   if (!row) return json({ error: "assessment_not_found" }, 404);
-  if (!row.report_data) return json({ error: "assessment_not_generated" }, 400);
+  const rowAny = row as Record<string, unknown>;
+  if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
 
+  // Assemble intake from the per-tool columns. Single JSONB column → pass
+  // through; multi-column (LIA) → object with those column values.
+  const intake: unknown = spec.intakeCols.length === 1
+    ? rowAny[spec.intakeCols[0]]
+    : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
+  const report = rowAny[spec.reportCol];
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
-  try { claudeRes = await gradeOne("claude", row.intake_data, row.report_data); }
+  try { claudeRes = await gradeOne("claude", tool, intake, report); }
   catch (e) { claudeErr = (e as Error).message; }
-  try { gptRes = await gradeOne("gpt", row.intake_data, row.report_data); }
+  try { gptRes = await gradeOne("gpt", tool, intake, report); }
   catch (e) { gptErr = (e as Error).message; }
 
   const payload = {
-    assessment_id: row.id,
+    assessment_id: rowAny.id,
     fixture_label: body.fixture_label ?? "believed_fixture",
     graded_at: new Date().toISOString(),
     graded_by: userId,
-    tool: "cppa-risk",
+    tool,
     claude: claudeRes ? { overall_score: claudeRes.overall_score, dimension_scores: claudeRes.dimension_scores, findings_count: claudeRes.findings.length, critical_failures: claudeRes.critical_failures } : { error: claudeErr },
     gpt: gptRes ? { overall_score: gptRes.overall_score, dimension_scores: gptRes.dimension_scores, findings_count: gptRes.findings.length, critical_failures: gptRes.critical_failures } : { error: gptErr },
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
