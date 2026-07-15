@@ -212,14 +212,18 @@ async function readAssessment(toolSlug: string, assessmentId: string) {
 // Kept in sync manually; a drift would key the grade cache under a different
 // stamp and force a re-sample, which is safe (miss = re-grade, never a
 // silent hit). Update in the same edit that changes grade-single-assessment.
-export const GRADER_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+// QL3-P1.2 (2026-07-15): grader generalized to all nine QL3 tools; stamp
+// bumped in lock-step with grade-single-assessment BUILD_STAMP. The
+// equality invariant is asserted by _tests/ql3-p1-2.test.ts.
+export const GRADER_STAMP = "ql3-p1-2-multitool@2026-07-15T00:00Z";
 
 export interface GraderSample { claude: number | null; gpt: number | null; blended: number | null }
 async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<GraderSample | null> {
-  // grade-single-assessment uses the cppa-risk rubric label; restrict to
-  // cppa-risk to avoid mis-labelling. Other tools rely on items_before/after
-  // as the QC signal (post_score stays null and that is expected).
-  if (toolSlug !== "cppa-risk") return null;
+  // QL3-P1.2: grade-single-assessment now accepts a `tool` param and
+  // routes to the correct table for all nine QL3 slugs. All non-editorial
+  // tools score on the same six-dimension rubric; per-tool signal (items
+  // resolved, incorporation) remains the primary QC gate — grader scores
+  // are complementary variance samples, not the sole verdict.
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/grade-single-assessment`, {
       method: "POST",
@@ -229,7 +233,7 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
         "apikey": SERVICE_KEY,
         "x-internal-resume": "1",
       },
-      body: JSON.stringify({ assessment_id: assessmentId, dry_run: true }),
+      body: JSON.stringify({ assessment_id: assessmentId, tool: toolSlug, dry_run: true }),
     });
     if (!r.ok) return null;
     const body: any = await r.json().catch(() => null);
