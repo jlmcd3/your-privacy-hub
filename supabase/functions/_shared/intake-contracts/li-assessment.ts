@@ -45,10 +45,11 @@ export const liAssessmentStageAContract: IntakeContract = {
     { key: "organization_name",     kind: "text",       required: "always" },
     { key: "subject_anchor",        kind: "text",       required: "always" },
     { key: "processing_description", kind: "narrative", required: "always" },
-    // data_categories accepts the enum options plus any "Other: <free text>"
-    // string that the form folds in — captured as "structured" so the
-    // validator only enforces top-level presence.
-    { key: "data_categories",       kind: "structured", required: "always" },
+    // data_categories is a FLAT ARRAY OF STRINGS. Elements are enum values
+    // from DATA_CATEGORIES OR "Other: <free text>" strings that the form
+    // folds in (LIAssessment.tsx ~L142). Persisted as text[] in
+    // li_assessments.data_categories — an object payload will fail insert.
+    { key: "data_categories",       kind: "string-array", required: "always" },
     { key: "relationship_type",     kind: "text",       required: "always" }, // enum RELATIONSHIPS OR "Other: …" post-fold
     { key: "jurisdictions",         kind: "multi-enum", required: "always", options: JURISDICTIONS },
   ],
