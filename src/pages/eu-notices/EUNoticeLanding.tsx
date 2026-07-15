@@ -11,6 +11,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { EU_NOTICE_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const FRAMEWORKS = [
   { code: "EU_GDPR", name: "EU GDPR", region: "EU/EEA" },
@@ -29,6 +31,9 @@ const FRAMEWORKS = [
 
 export default function EUNoticeLanding() {
   const { hasToolAccess } = useSubscriptionTier();
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -52,7 +57,7 @@ export default function EUNoticeLanding() {
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">
-            <Link to="/subscribe">View subscription plans <ArrowRight className="h-4 w-4 ml-2" /></Link>
+            <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>View subscription plans <ArrowRight className="h-4 w-4 ml-2" /></Link>
           </Button>
           <Button
             asChild
@@ -60,7 +65,7 @@ export default function EUNoticeLanding() {
             size="lg"
             className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
           >
-            <Link to="/eu-notices">My notice projects</Link>
+            <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>My notice projects</Link>
           </Button>
         </div>
       </PageHero>
@@ -116,7 +121,7 @@ export default function EUNoticeLanding() {
               EU &amp; Global Privacy Notice Builder for every supported framework at no additional charge.
             </p>
             <Button asChild size="lg">
-              <Link to="/subscribe">View subscription plans <ArrowRight className="h-4 w-4 ml-2" /></Link>
+              <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "article-footer" })}>View subscription plans <ArrowRight className="h-4 w-4 ml-2" /></Link>
             </Button>
           </div>
         </section>
