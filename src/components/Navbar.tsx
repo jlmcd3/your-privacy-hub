@@ -823,7 +823,10 @@ const Navbar = () => {
                 <Link
                   to="/subscribe"
                   className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2.5 rounded-lg no-underline"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    fireConversion("subscribe_cta_click", { cta_label: "See Plans", cta_position: "top-banner" });
+                    setMobileOpen(false);
+                  }}
                 >
                   See Plans →
                 </Link>
