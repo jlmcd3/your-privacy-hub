@@ -17,6 +17,12 @@
 //  5. Standalone invocation only — never wired into ql2-orchestrator
 //     or run-stress-job.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+// QLB-F3 — shared grader payload builder (mirrors run-quality-batch).
+import {
+  buildGraderPayload,
+  GRADER_PAYLOAD_BUDGET,
+  familyForSingleTool,
+} from "../_shared/grader/payload.ts";
 
 // Intake slice for grader prompts. Cap raised 2500 -> 8000 (Doc X, 2026-07-06)
 // to mirror run-quality-batch. Beyond 8000, keep HEAD (5000) + TAIL (3000).
