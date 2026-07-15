@@ -301,7 +301,7 @@ export default function SamplesHub() {
                 <Link
                   to={`/samples/${g.toolSlug}`}
                   onClick={() => fireConversion("sample_report_view", { tool_slug: g.toolSlug, variant: "hub-click" })}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text hover:underline no-underline"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text no-underline hover:underline underline-offset-4 decoration-brand-teal motion-safe:transition-colors"
                 >
                   <FileText className="h-4 w-4" aria-hidden /> View sample
                 </Link>
