@@ -8,9 +8,11 @@ import {
   RUN_QUALITY_BATCH_TERMINAL,
   CHILD_STALL_MS,
   decide,
+  buildSeedRow,
   type BatchRow,
   type ChildSnapshot,
 } from "../quality-batch-orchestrator/index.ts";
+
 
 Deno.test("slug set matches the nine run-quality-batch slugs exactly", () => {
   const expected = new Set([
