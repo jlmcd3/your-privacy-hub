@@ -83,6 +83,13 @@ const Subscribe = () => {
   const [checkoutTier, setCheckoutTier] = useState<"intelligence" | "professional">("intelligence");
   const startCheckout = async (interval: "month" | "year", tier: "intelligence" | "professional" = "intelligence") => {
     if (!user) {
+      // PP-1 D3: fire signup_initiated on the redirect leg from Subscribe → /signup.
+      fireConversion("signup_initiated", {
+        referrer_path: "/subscribe",
+        utm_source: "",
+        utm_campaign: "",
+        variant: "page-load",
+      });
       navigate(`/signup?redirect=/subscribe`);
       return;
     }
