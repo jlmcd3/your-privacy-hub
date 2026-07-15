@@ -37,7 +37,18 @@ const Footer = () => {
               { label: "Pricing", href: "/subscribe" },
               { label: "Sample Intelligence Report", href: "/#brief" },
             ].map((l) => (
-              <Link key={l.label} to={l.href} className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
+              <Link
+                key={l.label}
+                to={l.href}
+                onClick={
+                  l.href === "/subscribe"
+                    ? () => fireConversion("subscribe_cta_click", { cta_label: l.label, cta_position: "page-footer" })
+                    : undefined
+                }
+                className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline"
+              >
+                {l.label}
+              </Link>
             ))}
           </div>
 
