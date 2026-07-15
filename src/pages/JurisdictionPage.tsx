@@ -376,13 +376,24 @@ const JurisdictionPage = () => {
         <title>{jurisdiction.name} Privacy Law & Regulatory Updates | End User Privacy</title>
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
         <link rel="canonical" href={`https://enduserprivacy.com/jurisdiction/${slug}`} />
+        <meta property="og:title" content={`${jurisdiction.name} Privacy Law & Regulatory Updates`} />
+        <meta property="og:description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}.`} />
+        <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
           headline: `${jurisdiction.name} Data Privacy Law & Regulator Guide`,
           description: jurisdiction.overview,
           publisher: { "@type": "Organization", name: "End User Privacy" },
-          
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
+            { "@type": "ListItem", position: 2, name: "Global Privacy Laws", item: "https://enduserprivacy.com/global-privacy-laws" },
+            { "@type": "ListItem", position: 3, name: jurisdiction.name, item: `https://enduserprivacy.com/jurisdiction/${slug}` },
+          ],
         })}</script>
       </Helmet>
       <Navbar />
