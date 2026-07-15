@@ -308,12 +308,13 @@ async function runUnit(runId: string) {
       results.push({
         tool,
         quality_run_id: run.current_quality_run_id,
-        run_number: null,
+        run_number: d.snapshot.run_number,
         final_status: d.snapshot.status,
         score_overall: d.snapshot.score_overall,
         gpt_score_overall: d.snapshot.gpt_score_overall,
         error: d.snapshot.error,
       });
+
       const nextIdx = run.current_tool_index + 1;
       await db.from("quality_batch_runs").update({
         tool_results: results,
