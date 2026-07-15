@@ -9,6 +9,8 @@ import SampleReportLink from "@/components/SampleReportLink";
 import ToolsSelector from "@/components/tools/ToolsSelector";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 // Map Tools-page slugs to /samples/{sampleSlug} slugs where a published sample exists.
 const SAMPLE_SLUG_MAP: Record<string, string> = {
@@ -557,6 +559,9 @@ export default function Tools() {
   const [sampleModal, setSampleModal] = useState<string | null>(null);
   const activeTool = sampleModal ? TOOLS.find((t) => t.slug === sampleModal) : null;
   const { hasToolAccess, tier } = useSubscriptionTier();
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
 
   // Courier C — ?region=us|eu filters the tool grid; anything else = all.
   const [searchParams, setSearchParams] = useSearchParams();
