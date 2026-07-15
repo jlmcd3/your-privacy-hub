@@ -98,7 +98,7 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "optional" },
     { key: "balancing_details.potential_harm",               kind: "enum",       required: "always", options: POTENTIAL_HARM_OPTS },
     { key: "balancing_details.potential_harm_detail",        kind: "narrative",  required: "optional" },
-    { key: "balancing_details.safeguards",                   kind: "structured", required: "optional" },
+    { key: "balancing_details.safeguards",                   kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L129
     { key: "balancing_details.safeguards_other",             kind: "text",       required: "optional" },
     { key: "balancing_details.opt_out_mechanism",            kind: "narrative",  required: "always" },
     { key: "balancing_details.special_category_data",        kind: "boolean",    required: "optional" },
