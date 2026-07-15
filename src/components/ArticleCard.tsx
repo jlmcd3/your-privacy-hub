@@ -423,7 +423,7 @@ const FullCard = ({
             <span className="text-meta font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
           )}
           {item.published_at && (
-            <span className="text-meta text-brand-mist">{fmtDate(item.published_at)}</span>
+            <time className="text-meta text-brand-mist" dateTime={item.published_at || undefined}>{fmtDate(item.published_at)}</time>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -701,7 +701,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               <span className="text-[11px] text-slate-500 font-medium">{item.source_name}</span>
             )}
             {item.published_at && (
-              <span className="text-[11px] text-slate-400">{fmtDate(item.published_at)}</span>
+              <time className="text-[11px] text-slate-400" dateTime={item.published_at || undefined}>{fmtDate(item.published_at)}</time>
             )}
             {item.category && (
               <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -761,7 +761,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
         )}
         <span className="text-[11px] text-slate ml-auto">{item.source_name}</span>
         {item.published_at && (
-          <span className="text-[11px] text-slate-400">{fmtDate(item.published_at)}</span>
+          <time className="text-[11px] text-slate-400" dateTime={item.published_at || undefined}>{fmtDate(item.published_at)}</time>
         )}
         {item.source_url && (
           <a
@@ -848,7 +848,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
             </span>
           )}
           {item.published_at && (
-            <span className="text-[11px] text-brand-mist">{fmtDate(item.published_at)}</span>
+            <time className="text-[11px] text-brand-mist" dateTime={item.published_at || undefined}>{fmtDate(item.published_at)}</time>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
