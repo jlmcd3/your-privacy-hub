@@ -196,6 +196,23 @@ export default function QualityLoop3() {
     })();
   }, []);
 
+  // Past batches (for retro downloads / analysis exports).
+  const [pastBatches, setPastBatches] = useState<Ql3BatchRow[]>([]);
+  const [pastLoading, setPastLoading] = useState(false);
+  const [pastToolFilter, setPastToolFilter] = useState<string>("all");
+  async function loadPastBatches() {
+    setPastLoading(true);
+    const { data, error } = await supabase
+      .from("quality_loop3_batches")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setPastLoading(false);
+    if (error) { toast.error(`Load past batches failed: ${error.message}`); return; }
+    setPastBatches((data as unknown as Ql3BatchRow[]) ?? []);
+  }
+  useEffect(() => { loadPastBatches(); }, []);
+
   const [logRefreshTick, setLogRefreshTick] = useState(0);
   const [logRefreshing, setLogRefreshing] = useState(false);
   const [logLastRefreshedAt, setLogLastRefreshedAt] = useState<string | null>(null);
@@ -750,6 +767,82 @@ export default function QualityLoop3() {
         <CardContent>
           <BatchLogView entries={mergedLogs} />
 
+        </CardContent>
+      </Card>
+
+      {/* Panel B2 — Past batches (documents + analysis export) */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
+          <CardTitle>Past batches</CardTitle>
+          <div className="flex items-center gap-2">
+            <select
+              className="text-xs border rounded px-2 py-1 bg-background h-8"
+              value={pastToolFilter}
+              onChange={(e) => setPastToolFilter(e.target.value)}
+            >
+              <option value="all">All tools</option>
+              {TOOLS.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <Button variant="ghost" size="sm" onClick={loadPastBatches} disabled={pastLoading}>
+              {pastLoading ? "…" : "Refresh"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            {pastBatches.length === 0 && (
+              <p className="text-muted-foreground">No batches yet.</p>
+            )}
+            {pastBatches
+              .filter((b) => pastToolFilter === "all" || b.tool_slug === pastToolFilter)
+              .map((b) => {
+                const results = b.results ?? [];
+                const total = b.doc_ids?.length ?? results.length;
+                const done = results.filter((r) => r.final_phase === "done").length;
+                const failed = results.filter((r) => r.final_phase === "failed" || r.final_phase === "stalled" || r.final_phase === "kickoff_failed").length;
+                const running = !isBatchTerminal(b.status);
+                return (
+                  <div key={b.id} className="border rounded p-3 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline">{b.tool_slug}</Badge>
+                      <Badge variant={b.status === "complete" ? "default" : (b.status === "failed" || b.status === "cancelled") ? "destructive" : "secondary"}>
+                        {b.status}
+                      </Badge>
+                      <span className="font-mono text-xs text-muted-foreground">{b.id.slice(0, 8)}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {done}/{total} done{failed ? ` · ${failed} failed` : ""}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {b.completed_at
+                          ? `finished ${fmtRelTime(b.completed_at)}`
+                          : b.started_at
+                          ? `started ${fmtRelTime(b.started_at)}`
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={running || done === 0}
+                        onClick={() => onDownloadBatchZip(b)}
+                        title={running ? "Batch still running" : done === 0 ? "No completed docs" : "Zip revised PDFs"}
+                      >
+                        Download revised PDFs (zip)
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={results.length === 0}
+                        onClick={() => onExportBatchMarkdown(b)}
+                      >
+                        Export analysis (.md)
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         </CardContent>
       </Card>
 
