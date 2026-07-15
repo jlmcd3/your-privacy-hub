@@ -33,6 +33,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import ToolCTABlock from "@/components/ToolCTABlock";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
@@ -526,6 +527,12 @@ export default function ADMTChecker() {
             Compliance deadline: <strong className="text-amber-300">January 1, 2027</strong> for businesses already using ADMT for significant decisions.
           </p>
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
+          <ToolCTABlock
+            toolSlug="admt"
+            ctaPosition="hero"
+            onDark
+            pagePath="/cppa-admt-checker"
+          />
         </div>
       </header>
 
