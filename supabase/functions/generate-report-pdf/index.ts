@@ -2240,7 +2240,13 @@ Deno.serve(async (req) => {
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
           (orgName ? ` · ${orgName}` : "") +
           (jurArr.length ? ` · ${jurArr.join(", ")}` : ""),
-        text: metadataBlock + "\n\n" + (record.playbook_text || ""),
+        // PDF-1: metadataBlock is raw renderer-owned HTML — pass via htmlPrefix
+        // so it renders as styled content, not escaped as literal text.
+        // playbook_text may embed generator-emitted HTML (tables/divs) which
+        // parseTextBlocks does not understand and would previously escape into
+        // visible markup on page 1 — strip tags before parsing.
+        htmlPrefix: metadataBlock,
+        text: stripBodyHtml(record.playbook_text || ""),
         showJurisdictionChip: false,
         callout: { kind: "muted", html: calloutText },
         disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be confirmed with qualified legal counsel before reliance during a live incident.`,
