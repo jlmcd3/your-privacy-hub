@@ -15,6 +15,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import JSZip from "jszip";
+
+// QB-P3: slug → generate-report-pdf tool_type. Verified against
+// supabase/functions/generate-report-pdf/index.ts tableMap (L1853–1868).
+const SLUG_TO_TOOL_TYPE: Record<string, string> = {
+  "cppa-admt": "cppa_admt",
+  "cppa-risk": "cppa_risk",
+  "cppa-cyber": "cppa_cybersecurity",
+  "governance": "governance_assessment",
+  "dpia": "dpia_framework",
+  "lia": "li_assessment",
+  "dpa-generator": "dpa_generator",
+  "ir-playbook": "ir_playbook",
+  "biometric-checker": "biometric_checker",
+};
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
 const TOOLS = [
