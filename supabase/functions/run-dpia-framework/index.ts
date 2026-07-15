@@ -285,7 +285,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "8a4d2c7-dpia-p4-nyd-removed@2026-07-14T20:45Z";
+export const BUILD_STAMP = "8a4d2c7-dpia-join-guard@2026-07-15T00:15Z";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
