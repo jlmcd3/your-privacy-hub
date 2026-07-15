@@ -804,7 +804,9 @@ async function runOneUnit(runId: string) {
   }
 }
 
-Deno.serve(async (req) => {
+// QL3-P1: guard Deno.serve so unit tests can import this module without
+// binding the default port (needed when tests also import ql3-batch-orchestrator).
+if (import.meta.main) Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
