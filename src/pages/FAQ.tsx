@@ -119,7 +119,7 @@ const FAQ = () => {
                   return next;
                 });
               }}
-              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left"
+              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
             >
               <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
               <ChevronDown
@@ -145,7 +145,7 @@ const FAQ = () => {
                     return next;
                   });
                 }}
-                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left"
+                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
               >
                 <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
                 <ChevronDown
