@@ -4378,6 +4378,120 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_loop3_batches: {
+        Row: {
+          cancel_requested: boolean
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          current_index: number
+          current_ql3_run_id: string | null
+          doc_ids: Json
+          id: string
+          last_error: string | null
+          last_heartbeat_at: string | null
+          phase: string
+          results: Json
+          source_quality_run_id: string
+          started_at: string | null
+          status: string
+          tool_slug: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_requested?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          current_index?: number
+          current_ql3_run_id?: string | null
+          doc_ids: Json
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          phase?: string
+          results?: Json
+          source_quality_run_id: string
+          started_at?: string | null
+          status?: string
+          tool_slug: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_requested?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          current_index?: number
+          current_ql3_run_id?: string | null
+          doc_ids?: Json
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          phase?: string
+          results?: Json
+          source_quality_run_id?: string
+          started_at?: string | null
+          status?: string
+          tool_slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quality_loop3_grade_cache: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          grader_stamp: string
+          samples: Json
+          tool_slug: string
+          version_n: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          grader_stamp: string
+          samples: Json
+          tool_slug: string
+          version_n: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          grader_stamp?: string
+          samples?: Json
+          tool_slug?: string
+          version_n?: number
+        }
+        Relationships: []
+      }
+      quality_loop3_log: {
+        Row: {
+          batch_id: string | null
+          id: string
+          level: string
+          message: string
+          ql3_run_id: string | null
+          ts: string
+        }
+        Insert: {
+          batch_id?: string | null
+          id?: string
+          level?: string
+          message: string
+          ql3_run_id?: string | null
+          ts?: string
+        }
+        Update: {
+          batch_id?: string | null
+          id?: string
+          level?: string
+          message?: string
+          ql3_run_id?: string | null
+          ts?: string
+        }
+        Relationships: []
+      }
       quality_loop3_runs: {
         Row: {
           assessment_id: string | null
@@ -4394,7 +4508,11 @@ export type Database = {
           owner_id: string | null
           pass_number: number
           phase: string
+          post_claude_score: number | null
+          post_gpt_score: number | null
           post_score: number | null
+          pre_claude_score: number | null
+          pre_gpt_score: number | null
           pre_score: number | null
           qc_result: Json | null
           run_by: string | null
@@ -4417,7 +4535,11 @@ export type Database = {
           owner_id?: string | null
           pass_number?: number
           phase?: string
+          post_claude_score?: number | null
+          post_gpt_score?: number | null
           post_score?: number | null
+          pre_claude_score?: number | null
+          pre_gpt_score?: number | null
           pre_score?: number | null
           qc_result?: Json | null
           run_by?: string | null
@@ -4440,7 +4562,11 @@ export type Database = {
           owner_id?: string | null
           pass_number?: number
           phase?: string
+          post_claude_score?: number | null
+          post_gpt_score?: number | null
           post_score?: number | null
+          pre_claude_score?: number | null
+          pre_gpt_score?: number | null
           pre_score?: number | null
           qc_result?: Json | null
           run_by?: string | null
