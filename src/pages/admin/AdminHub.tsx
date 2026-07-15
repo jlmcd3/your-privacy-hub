@@ -13,6 +13,7 @@ type Tiles = {
 } | null;
 
 const SHORTCUTS: Array<{ label: string; to: string; group: string }> = [
+  { group: "Ops",     label: "Operations",          to: "/admin/ops" },
   { group: "Ops",     label: "Orders",              to: "/admin/orders" },
   { group: "Ops",     label: "Toolbox",             to: "/admin/tools" },
   { group: "Ops",     label: "Cron status",         to: "/admin/cron-status" },
