@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type SampleRow = {
   id: string;
@@ -43,6 +44,7 @@ export default function SamplesHub() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const fireConversion = useConversionEvent();
 
   useEffect(() => {
     let cancelled = false;
