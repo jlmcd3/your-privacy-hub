@@ -1605,7 +1605,7 @@ function buildADMTReportHTML(report: any, record: any): string {
 
 function buildRegistrationReportHTML(record: any): string {
   const summary = record.result_summary || {};
-  const orgName: string = record.organization_name || summary.organization_name || "[Organisation]";
+  const orgName: string = record.organization_name || summary.organization_name || "[Organization]";
   const generatedAt: string = record.created_at || new Date().toISOString();
   const generatedHuman = new Date(generatedAt).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
