@@ -107,7 +107,7 @@ export default function OnboardingProfile() {
         <meta name="description" content="Tell us your role, jurisdiction, and sector so we can personalise your Action Brief on every article." />
       </Helmet>
       <Navbar />
-      <div className="flex-1 flex items-center justify-center py-16 px-4">
+      <main id="main-content" aria-label="Onboarding profile" className="flex-1 flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-lg bg-card border border-brand-cloud rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-brand-navy mb-2">
             Personalise your intelligence feed
