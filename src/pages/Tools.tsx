@@ -612,7 +612,7 @@ export default function Tools() {
             Every tool draws from a live database of 3,700+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Every report can be translated into more than 20 languages from the report page.
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
-            <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
+            <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start 10-day Intelligence trial", cta_position: "hero" })} className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
               Start 10-day Intelligence trial ({INTELLIGENCE_PRICING.monthlyShort()}) →
             </Link>
             <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
@@ -808,11 +808,17 @@ export default function Tools() {
                       See a sample output →
                     </button>
                     {SUBSCRIBER_ONLY_SLUGS.has(tool.slug) && !hasToolAccess ? (
-                      <Link to="/subscribe" className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                      <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Subscribe to access", cta_position: "pricing-card-intelligence" })} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
                         Subscribe to access →
                       </Link>
                     ) : (
-                      <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                      <Link
+                        to={tool.href}
+                        onClick={() =>
+                          fireConversion("tool_start_click", { tool_slug: tool.slug, page_path: "/tools", user_type: userType })
+                        }
+                        className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline"
+                      >
                         Open tool →
                       </Link>
                     )}
