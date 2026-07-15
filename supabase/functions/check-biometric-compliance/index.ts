@@ -201,9 +201,11 @@ export function renderBiometricTestStatesBlock(states: Record<string, BioTestSta
 
 const BIOMETRIC_TOOL_MODULE: ToolModule = {
   outputMode: "document",
-  // Decision FIX_quality_loop_actually_improving (a): biometric now follows the house-style
-  // American variant like every other tool. The deterministic `no_british_spelling` check in
-  // run-quality-batch is the single source of truth for spelling, so no per-tool exemption.
+  // Ruling R-15C-1 (revised) 2026-07-15: biometric writes US English like every
+  // other product. Locale is enforced by the [[LANGUAGE_VARIANT_RULE]] injected
+  // from prompt-core (american variant) — the deterministic `no_british_spelling`
+  // check in run-quality-batch was retired (QLB-F3); the prompt rule is now the
+  // single source of truth for spelling.
   citationFramework:
     "Cite statutes by official identifier: BIPA = 740 ILCS 14 (section letters 15(a)/(b)/(d), 20); Texas CUBI = Tex. Bus. & Com. Code § 503.001; California = Cal. Civ. Code §§ 1798.x; EU/UK biometric special-category data = GDPR / UK GDPR Article 9. Cite enforcement actions and case law ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; never assert a fine or settlement amount from training knowledge — direct the reader to the regulator's enforcement register.",
   identity: BIOMETRIC_IDENTITY,
