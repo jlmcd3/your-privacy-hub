@@ -806,6 +806,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
       It does not create an attorney-client relationship. Always consult qualified legal
       counsel for advice specific to your situation.`}</div>
     ${calloutHtml}
+    ${opts.htmlPrefix ?? ""}
     ${sectionsHtml}
     <div class="footer">EndUserPrivacy.com · Generated ${new Date().toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}</div>
   </div>
