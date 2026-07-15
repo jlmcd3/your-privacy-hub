@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "8575c3c6-dpa-derive-framework@2026-07-14T20:00Z";
+export const BUILD_STAMP = "8575c3c6-dpa-join-guard@2026-07-15T00:15Z";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
     let gdprMeta: any = { attempted: false };
     try {
       const semanticQuery =
-        `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(body.dataCategories || []).join(", ")}.`;
+        `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(Array.isArray(body.dataCategories) ? body.dataCategories : []).join(", ")}.`;
       const r = await getGdprContext(supabase, {
         articles: ["28", "32", "33"],
         jurisdiction: dpaJurisdiction,

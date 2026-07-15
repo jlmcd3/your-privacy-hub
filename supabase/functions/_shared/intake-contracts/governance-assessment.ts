@@ -126,12 +126,17 @@ export const governanceContract: IntakeContract = {
     { key: "org_size", kind: "enum", required: "always", options: GOV_SIZES },
     { key: "jurisdictions", kind: "multi-enum", required: "always", options: GOV_JURISDICTIONS },
     { key: "eu_uk_data", kind: "enum", required: "always", options: YES_NO },
-    // `tools` may contain a free-form "Other: <text>" suffix appended in
-    // buildIntake — kept as multi-enum for the fixed set; validator
-    // accepts empty. Off-list free-form entries would flag; the form
-    // funnels those via the "Other: " prefix which is not verbatim in the
-    // list. Registered as text to avoid false positives.
-    { key: "tools", kind: "structured", required: "optional" },
+    // `tools` is a flat string[] in the real form (GovernanceAssessment.tsx
+    // ~L99), always drawn from GOV_TOOLS. The form additionally folds an
+    // optional "Other: <text>" suffix (page ~L196) — that non-verbatim
+    // string would be flagged by multi-enum validation, but validateIntake
+    // is invoked only on AI-generated intakes (run-quality-batch) and
+    // fixture cold-starts (ql3-orchestrator); real end-user submissions
+    // bypass it entirely, so shape enforcement is safe here. Prior
+    // "structured" classification left the shape unconstrained, which
+    // allowed a nested-object intake past the AI validator and crashed the
+    // .join() at run-governance-assessment L802 (RC-Gov-Crash-2026-07-15).
+    { key: "tools", kind: "multi-enum", required: "optional", options: GOV_TOOLS },
     { key: "data_categories", kind: "multi-enum", required: "always", options: GOV_DATA_CATS },
     { key: "special_category", kind: "enum", required: "always", options: YES_NO },
     { key: "special_categories_list", kind: "multi-enum", required: "optional", options: GOV_SPECIAL_CATS },

@@ -2,7 +2,7 @@
 // BUILD_STAMP — real exported constant (was previously absent; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "47b4d65b-pdf-stamp-init@2026-07-14T19:26Z";
+export const BUILD_STAMP = "47b4d65b-pdf-join-guard@2026-07-15T00:15Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -456,7 +456,7 @@ ${report.has_unresolved_placeholders ? `<div style="background:#7c1a1a;color:#ff
     </tr>
     <tr>
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdiction scope</td>
-      <td style="padding:3px 0;color:#1a1916;">${escHtml((meta.applicable_frameworks || []).join(" | ") || "[TO COMPLETE]")}</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml((Array.isArray(meta.applicable_frameworks) ? meta.applicable_frameworks : []).join(" | ") || "[TO COMPLETE]")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
       <td style="padding:3px 0;color:#b45309;font-weight:600;">FRAMEWORK — NOT A COMPLETED DPIA</td>
     </tr>

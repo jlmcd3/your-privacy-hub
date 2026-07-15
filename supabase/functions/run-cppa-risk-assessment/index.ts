@@ -466,7 +466,7 @@ ${activityProse || "No activity detail provided."}
 STAGE 4 — IMPACT ASSESSMENT:
 Likelihood of harm: ${impact.likelihood_of_harm}
 Severity of harm: ${impact.severity_of_harm}
-Harm types identified: ${(impact.harm_types ?? []).join(", ")}
+Harm types identified: ${(Array.isArray(impact.harm_types) ? impact.harm_types : []).join(", ")}
 ${impact.vulnerable_populations_detail ? `Vulnerable populations detail: ${impact.vulnerable_populations_detail}` : ""}
 Benefits outweigh risks (organisation assessment): ${impact.benefits_outweigh_risks}
 Rationale: ${impact.benefits_outweigh_risks_rationale}

@@ -456,7 +456,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystemBlocks,
-        `Classify this processing activity for legitimate interest analysis:\nOrganisation (controller) being assessed: ${assessment.organization_name || "not specified"}\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
+        `Classify this processing activity for legitimate interest analysis:\nOrganisation (controller) being assessed: ${assessment.organization_name || "not specified"}\nDescription: ${assessment.processing_description}\nData categories: ${(Array.isArray(assessment.data_categories) ? assessment.data_categories : []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
         500
       ),
 
@@ -500,7 +500,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       if (ctx) {
         const descParts: string[] = [];
         if (assessment.sector) descParts.push(`${assessment.sector} sector`);
-        if ((assessment.jurisdictions || []).length) descParts.push(`processing in ${(assessment.jurisdictions || []).join(", ")}`);
+        if ((assessment.jurisdictions || []).length) descParts.push(`processing in ${(Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : []).join(", ")}`);
         enforcementMeta = {
           attempted: true,
           total_matched: typeof ctx.total_matched === "number" ? ctx.total_matched : null,
@@ -625,9 +625,9 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 PROPOSED PROCESSING (Stage A):
 Organisation (controller) being assessed: ${assessment.organization_name || "not specified"}
 Description: ${assessment.processing_description}
-Data categories: ${(assessment.data_categories || []).join(", ")}
+Data categories: ${(Array.isArray(assessment.data_categories) ? assessment.data_categories : []).join(", ")}
 Relationship with data subjects: ${assessment.relationship_type || "not specified"}
-Jurisdictions: ${(assessment.jurisdictions || []).join(", ")}
+Jurisdictions: ${(Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : []).join(", ")}
 Sector: ${assessment.sector || "not specified"}
 
 STAGE B — PURPOSE FACTS:
@@ -647,11 +647,11 @@ Pseudonymisation/aggregation options: ${necessityDetails.pseudonymisation_option
 STAGE B — BALANCING FACTS:
 Reasonable expectation: ${balancingDetails.reasonable_expectation || "not specified"}
 Reasonable expectation — controller's explanation: ${balancingDetails.reasonable_expectation_detail || "none given"}
-Vulnerable subjects involved: ${(balancingDetails.vulnerable_subjects || []).join(", ") || "none indicated"}
+Vulnerable subjects involved: ${(Array.isArray(balancingDetails.vulnerable_subjects) ? balancingDetails.vulnerable_subjects : []).join(", ") || "none indicated"}
 Vulnerable subjects — other (if specified): ${balancingDetails.vulnerable_subjects_other || "n/a"}
 Worst-case harm: ${balancingDetails.potential_harm || "not specified"}
 Worst-case harm — controller's description: ${balancingDetails.potential_harm_detail || "none given"}
-Safeguards in place: ${(balancingDetails.safeguards || []).join(", ") || "none specified"}
+Safeguards in place: ${(Array.isArray(balancingDetails.safeguards) ? balancingDetails.safeguards : []).join(", ") || "none specified"}
 Safeguards — other (if specified): ${balancingDetails.safeguards_other || "n/a"}
 Additional context from the controller: ${balancingDetails.additional_context || "none provided"}
 Opt-out mechanism: ${balancingDetails.opt_out_mechanism || "not specified"}

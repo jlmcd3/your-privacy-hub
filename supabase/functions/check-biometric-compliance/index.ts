@@ -2,7 +2,7 @@
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "9a3d1c4-bio-cleanup1@2026-07-14T23:10Z";
+export const BUILD_STAMP = "9a3d1c4-bio-join-guard@2026-07-15T00:15Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -954,7 +954,7 @@ Deno.serve(async (req) => {
         enforcementMeta = {
           attempted: true,
           total_matched: typeof j?.total_matched === "number" ? j.total_matched : null,
-          query_descriptor: `biometric processing in ${(body.jurisdictions || []).join(", ") || "—"}`,
+          query_descriptor: `biometric processing in ${(Array.isArray(body.jurisdictions) ? body.jurisdictions : []).join(", ") || "—"}`,
         };
       }
     } catch (e) {

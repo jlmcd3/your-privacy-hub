@@ -725,7 +725,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
-export const BUILD_STAMP = "1a45ee28-gov-p4-registry-closure@2026-07-14T22:00Z";
+export const BUILD_STAMP = "2f8c1a94-gov-crash-fix@2026-07-15T00:00Z";
 
 Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
@@ -793,14 +793,20 @@ Deno.serve(async (req) => {
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
     EdgeRuntime.waitUntil((async () => {
       try {
+    // RC-Gov-Crash-2026-07-15 — asList() mirror of run-dpia-framework's
+    // helper. Defends the render prompt against non-array intake shapes
+    // that slipped past validateIntake (or came in via legacy rows).
+    const asList = (v: unknown): string[] =>
+      Array.isArray(v) ? v.map((x) => String(x))
+        : (v == null || v === "" ? [] : [String(v)]);
     const intakeSummary = `
 Organisation (controller) being assessed: ${orgName || "not specified"}
 Organisation sector: ${intake.sector || "not specified"}
 Organisation size: ${intake.org_size || "not specified"}
-Jurisdictions of operation: ${(intake.jurisdictions || []).join(", ") || "not specified"}
+Jurisdictions of operation: ${asList(intake.jurisdictions).join(", ") || "not specified"}
 EU/UK personal data processed: ${intake.eu_uk_data || "not specified"}
-Technology tools in use: ${(intake.tools || []).join(", ") || "not specified"}
-  Data categories processed: ${(intake.data_categories || []).join(", ") || "not specified"}
+Technology tools in use: ${asList(intake.tools).join(", ") || "not specified"}
+  Data categories processed: ${asList(intake.data_categories).join(", ") || "not specified"}
   Existing privacy policy: ${intake.privacy_policy || "not specified"}
   Privacy notice coverage: ${intake.privacy_notice_coverage || "not specified"}
   
@@ -956,7 +962,8 @@ Return JSON:
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
       const descParts: string[] = [];
       if (intake.sector) descParts.push(`${intake.sector} sector`);
-      if ((intake.jurisdictions || []).length) descParts.push(`governance in ${(intake.jurisdictions || []).join(", ")}`);
+      const jurs = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : [];
+      if (jurs.length) descParts.push(`governance in ${jurs.join(", ")}`);
       enforcementMeta = {
         attempted: true,
         total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
