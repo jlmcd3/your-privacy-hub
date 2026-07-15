@@ -678,6 +678,31 @@ interface TextReportOpts {
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
   /** Optional override for the standard "Not legal advice" disclaimer block. */
   disclaimerHtml?: string;
+  /**
+   * PDF-1: pre-body HTML block rendered verbatim (unescaped) BEFORE section
+   * parsing. Use this for renderer-owned metadata blocks (IR playbook
+   * "Prepared for" card) so their raw HTML is not shoved through
+   * parseTextBlocks and rendered as literal text.
+   */
+  htmlPrefix?: string;
+}
+
+/**
+ * PDF-1: strip HTML tags from generator-emitted body text so raw markup does
+ * not leak into the PDF as literal escaped characters. Preserves inner text
+ * content and paragraph breaks; converts <br> to newlines and closing block
+ * tags (</p>, </div>, </tr>, </table>, </li>, </h1..6>) to double newlines
+ * so the downstream parser sees paragraph structure.
+ */
+function stripBodyHtml(text: string): string {
+  if (!text) return "";
+  if (!/<[a-zA-Z\/!]/.test(text)) return text; // fast path: no tags
+  return text
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\/\s*(p|div|tr|table|thead|tbody|li|ul|ol|h[1-6])\s*>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function buildTextReportHTML(opts: TextReportOpts): string {
