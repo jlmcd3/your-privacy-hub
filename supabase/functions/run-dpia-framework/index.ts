@@ -523,7 +523,7 @@ async function buildSharedContext(dpia: any): Promise<SharedContextData> {
       orgContext = `
 SOURCE GOVERNANCE ASSESSMENT CONTEXT:
 Organisation sector: ${srcIntake.sector || "not specified"}
-Jurisdictions: ${(srcIntake.jurisdictions || []).join(", ")}
+Jurisdictions: ${(Array.isArray(srcIntake.jurisdictions) ? srcIntake.jurisdictions : []).join(", ")}
 EU/UK data: ${srcIntake.eu_uk_data ? "Yes" : "No"}
 DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
 `;

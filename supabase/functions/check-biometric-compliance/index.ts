@@ -954,7 +954,7 @@ Deno.serve(async (req) => {
         enforcementMeta = {
           attempted: true,
           total_matched: typeof j?.total_matched === "number" ? j.total_matched : null,
-          query_descriptor: `biometric processing in ${(body.jurisdictions || []).join(", ") || "—"}`,
+          query_descriptor: `biometric processing in ${(Array.isArray(body.jurisdictions) ? body.jurisdictions : []).join(", ") || "—"}`,
         };
       }
     } catch (e) {

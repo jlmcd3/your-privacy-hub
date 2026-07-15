@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
     let gdprMeta: any = { attempted: false };
     try {
       const semanticQuery =
-        `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(body.dataCategories || []).join(", ")}.`;
+        `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(Array.isArray(body.dataCategories) ? body.dataCategories : []).join(", ")}.`;
       const r = await getGdprContext(supabase, {
         articles: ["28", "32", "33"],
         jurisdiction: dpaJurisdiction,

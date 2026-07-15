@@ -437,7 +437,7 @@ Deno.serve(async (req) => {
       const retrieveRes = await supabase.functions.invoke("cppa-retrieve-context", {
         body: {
           topics: ["admt", "significant-decision", "pre-use-notice", "profiling"],
-          query: `ADMT compliance ${(intake.decision_domains ?? []).join(" ")} opt-out pre-use notice access right`,
+          query: `ADMT compliance ${(Array.isArray(intake.decision_domains) ? intake.decision_domains : []).join(" ")} opt-out pre-use notice access right`,
           include_deadlines: true,
           full_text_limit: 15,
           limit: 20,
@@ -485,19 +485,19 @@ ADMT SYSTEM: ${intake.system_name}
 SYSTEM TYPE: ${intake.system_type || "(not specified)"}
 DESCRIPTION: ${intake.system_description}
 CALIFORNIA CONSUMERS PROCESSED ANNUALLY (APPROX.): ${intake.ca_consumer_count || "(not provided)"}
-DECISION DOMAINS: ${(intake.decision_domains ?? []).join("; ")}${d.decision_domains_other ? ` — OTHER (described by business, assess against § 7001(ddd)): ${d.decision_domains_other}` : ""}
-DECISION PROFILE: vendor/product: ${d.vendor_product || "(n/a)"}; hosting: ${d.hosting || "(n/a)"}; model type(s): ${(d.model_types ?? []).join(", ") || "(n/a)"}; decision effect(s): ${(d.decision_effects ?? []).join(", ") || "(n/a)"}; cadence: ${d.decision_cadence || "(n/a)"}; ADMT output is sole factor: ${d.sole_factor || "(not answered)"}; other factors: ${d.other_factors || "(n/a)"}; feeds future significant decisions: ${d.feeds_future_decisions || "(n/a)"}; solely advertising: ${d.solely_advertising || "(n/a)"}
+DECISION DOMAINS: ${(Array.isArray(intake.decision_domains) ? intake.decision_domains : []).join("; ")}${d.decision_domains_other ? ` — OTHER (described by business, assess against § 7001(ddd)): ${d.decision_domains_other}` : ""}
+DECISION PROFILE: vendor/product: ${d.vendor_product || "(n/a)"}; hosting: ${d.hosting || "(n/a)"}; model type(s): ${(Array.isArray(d.model_types) ? d.model_types : []).join(", ") || "(n/a)"}; decision effect(s): ${(Array.isArray(d.decision_effects) ? d.decision_effects : []).join(", ") || "(n/a)"}; cadence: ${d.decision_cadence || "(n/a)"}; ADMT output is sole factor: ${d.sole_factor || "(not answered)"}; other factors: ${d.other_factors || "(n/a)"}; feeds future significant decisions: ${d.feeds_future_decisions || "(n/a)"}; solely advertising: ${d.solely_advertising || "(n/a)"}
 HUMAN REVIEW: ${intake.human_review}
 HUMAN-INVOLVEMENT SELF-TEST (§ 7001(e)(1)): reviewer present: ${d.hi_reviewer_present || "(not answered)"}; role: ${d.hi_reviewer_role || "(n/a)"}; stage: ${d.hi_stage || "(n/a)"}; (A) knows how to interpret output: ${d.hi_trained || "(n/a)"}; (B) reviews output + other info: ${d.hi_reviews_other_info || "(n/a)"}; (C) authority to change decision: ${d.hi_authority_override || "(n/a)"}; override rate: ${d.hi_override_rate || "(n/a)"}
 TRAINS ADMT ON PI: ${intake.training_data_use}
 PROFILING USE: ${intake.profiling_use}
 THIRD-PARTY ADMT TOOLS IN USE: ${intake.third_party_admt || "(none disclosed)"}
-VENDOR DILIGENCE: status: ${d.vendor_status || "(n/a)"}; documentation on file: ${(d.vendor_docs ?? []).join(", ") || "(none)"}; contract — audit rights: ${d.v_audit || "(n/a)"}, consumer-request assistance: ${d.v_assist || "(n/a)"}, opt-out propagation: ${d.v_optout || "(n/a)"}, appeal support: ${d.v_appeal || "(n/a)"}, incident notification: ${d.v_incident || "(n/a)"}; vendor makes ADMT available to other businesses: ${d.vendor_makes_available || "(n/a)"}; vendor training / model-improvement rights: ${d.vendor_training_rights || "(n/a)"}
+VENDOR DILIGENCE: status: ${d.vendor_status || "(n/a)"}; documentation on file: ${(Array.isArray(d.vendor_docs) ? d.vendor_docs : []).join(", ") || "(none)"}; contract — audit rights: ${d.v_audit || "(n/a)"}, consumer-request assistance: ${d.v_assist || "(n/a)"}, opt-out propagation: ${d.v_optout || "(n/a)"}, appeal support: ${d.v_appeal || "(n/a)"}, incident notification: ${d.v_incident || "(n/a)"}; vendor makes ADMT available to other businesses: ${d.vendor_makes_available || "(n/a)"}; vendor training / model-improvement rights: ${d.vendor_training_rights || "(n/a)"}
 NUMBER OF DISTINCT ADMT SYSTEMS THIS BUSINESS OPERATES: ${intake.admt_system_count || "(not specified — assume single system)"}
 
 
 PRE-USE NOTICE:
-- Delivery method(s): ${(intake.notice_delivery ?? []).join("; ")}
+- Delivery method(s): ${(Array.isArray(intake.notice_delivery) ? intake.notice_delivery : []).join("; ")}
 - Has specific purpose statement: ${intake.notice_has_specific_purpose}
 - Purpose text (verbatim from notice): ${intake.notice_purpose_text || "(not provided)"}
 - Describes opt-out right: ${intake.notice_has_opt_out_desc}
@@ -508,15 +508,15 @@ PRE-USE NOTICE:
 
 OPT-OUT:
 - Approach / exception claimed: ${intake.opt_out_exception}${d.opt_out_exception_other ? ` — business's own description (assess whether a § 7221(b) exception is established): ${d.opt_out_exception_other}` : ""}
-- Opt-out methods provided: ${(intake.opt_out_methods ?? []).join("; ")}
+- Opt-out methods provided: ${(Array.isArray(intake.opt_out_methods) ? intake.opt_out_methods : []).join("; ")}
 - Opt-out link title: ${intake.opt_out_link_title || "(not provided)"}
 - Not relying on cookie banner only: ${intake.opt_out_no_cookie_banner}
 - No account creation required to opt out: ${intake.opt_out_no_account_required}
 - Confirmation mechanism: ${intake.opt_out_confirmation_mechanism}
 - Appeal process: ${intake.opt_out_appeal_process || "(not applicable)"}
 - Fairness documentation: ${intake.opt_out_fairness_doc || "(not applicable)"}
-- Validity & non-discrimination detail: protected characteristics tested: ${(d.bias_protected_chars ?? []).join(", ") || "(n/a)"}; proxy variables / mitigation: ${d.bias_proxy_vars || "(n/a)"}; testing cadence: ${d.bias_testing_cadence || "(n/a)"}; last test: ${d.bias_last_test || "(n/a)"}; next test: ${d.bias_next_test || "(n/a)"}; adverse-impact analysis: ${d.bias_adverse_impact || "(n/a)"}; outcome / FPR / FNR by group: ${d.bias_outcome_summary || "(n/a)"}
-- Appeal mechanics: reviewer role: ${d.appeal_reviewer_role || "(n/a)"}; trained: ${d.appeal_trained || "(n/a)"}; authority to overturn: ${d.appeal_authority_overturn || "(n/a)"}; consumer may submit: ${(d.appeal_consumer_submit ?? []).join(", ") || "(n/a)"}; timeline: ${d.appeal_timeline || "(n/a)"}; outcomes: ${(d.appeal_outcomes ?? []).join(", ") || "(n/a)"}; reversal rate: ${d.appeal_reversal_rate || "(n/a)"}
+- Validity & non-discrimination detail: protected characteristics tested: ${(Array.isArray(d.bias_protected_chars) ? d.bias_protected_chars : []).join(", ") || "(n/a)"}; proxy variables / mitigation: ${d.bias_proxy_vars || "(n/a)"}; testing cadence: ${d.bias_testing_cadence || "(n/a)"}; last test: ${d.bias_last_test || "(n/a)"}; next test: ${d.bias_next_test || "(n/a)"}; adverse-impact analysis: ${d.bias_adverse_impact || "(n/a)"}; outcome / FPR / FNR by group: ${d.bias_outcome_summary || "(n/a)"}
+- Appeal mechanics: reviewer role: ${d.appeal_reviewer_role || "(n/a)"}; trained: ${d.appeal_trained || "(n/a)"}; authority to overturn: ${d.appeal_authority_overturn || "(n/a)"}; consumer may submit: ${(Array.isArray(d.appeal_consumer_submit) ? d.appeal_consumer_submit : []).join(", ") || "(n/a)"}; timeline: ${d.appeal_timeline || "(n/a)"}; outcomes: ${(Array.isArray(d.appeal_outcomes) ? d.appeal_outcomes : []).join(", ") || "(n/a)"}; reversal rate: ${d.appeal_reversal_rate || "(n/a)"}
 - 15-business-day opt-out process documented: ${intake.opt_out_15_day_process || "(not described — operational gap)"}
 
 ACCESS RIGHT:
@@ -872,12 +872,12 @@ ADDITIONAL DISCIPLINES:
 
     if (gapItems.length > 0) {
       try {
-        const decisionDomain = (intake.decision_domains ?? []).join(", ");
+        const decisionDomain = (Array.isArray(intake.decision_domains) ? intake.decision_domains : []).join(", ");
         const systemName = intake.system_name ?? "the automated system";
         const purposeText = intake.notice_purpose_text || "";
         const systemDescription = intake.system_description ?? "";
         const humanReview = intake.human_review ?? "";
-        const optOutMethods = (intake.opt_out_methods ?? []).join(" and ");
+        const optOutMethods = (Array.isArray(intake.opt_out_methods) ? intake.opt_out_methods : []).join(" and ");
         const optOutLinkTitle = intake.opt_out_link_title || "Opt Out of Automated Decisions";
         const optOutConfirmation = intake.opt_out_confirmation_mechanism || "";
         const optOutAppeal = intake.opt_out_appeal_process || "";

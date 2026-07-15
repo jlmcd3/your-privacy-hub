@@ -315,7 +315,7 @@ Jurisdiction requirements:
 - AI registration: ${r.ai_registration_required ? "Yes — " + (r.ai_threshold || "") : "No"}
 - Filing fee: ${r.filing_fee_cents ? (r.filing_fee_cents / 100) + " " + r.filing_currency : "Free"}
 - Renewal: ${r.renewal_period_months ? r.renewal_period_months + " months" : "None"}
-- Languages: ${(r.language_requirements || []).join(", ") || "English"}
+- Languages: ${(Array.isArray(r.language_requirements) ? r.language_requirements : []).join(", ") || "English"}
 - Notes: ${r.notes || "None"}
 
 Output clean plain text with clear section headings (Title Case, on their own line, followed by a blank line), bullet items using the • character, and signature blocks where relevant. Do not use markdown symbols (#, **, *, _, backticks, >). Use [Bracketed Placeholders] for fields the user must complete.`;

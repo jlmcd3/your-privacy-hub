@@ -456,7 +456,7 @@ ${report.has_unresolved_placeholders ? `<div style="background:#7c1a1a;color:#ff
     </tr>
     <tr>
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdiction scope</td>
-      <td style="padding:3px 0;color:#1a1916;">${escHtml((meta.applicable_frameworks || []).join(" | ") || "[TO COMPLETE]")}</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml((Array.isArray(meta.applicable_frameworks) ? meta.applicable_frameworks : []).join(" | ") || "[TO COMPLETE]")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
       <td style="padding:3px 0;color:#b45309;font-weight:600;">FRAMEWORK — NOT A COMPLETED DPIA</td>
     </tr>
