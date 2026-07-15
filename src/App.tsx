@@ -165,6 +165,7 @@ const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
 const AdminTestRunMeter = lazy(() => import("./pages/admin/AdminTestRunMeter"));
 const AdminHub = lazy(() => import("./pages/admin/AdminHub"));
+const AdminOps = lazy(() => import("./pages/admin/AdminOps"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
 const AdminSpend = lazy(() => import("./pages/admin/AdminSpend"));
@@ -714,6 +715,7 @@ const App = () => (
             {/* Master Console Phase 1 */}
             <Route path="/admin" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminHub />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/orders" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminOrders />}</AdminOnly></ProtectedRoute>} />
+            <Route path="/admin/ops" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}><Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}><AdminOps /></Suspense></AdminOnly></ProtectedRoute>} />
             <Route path="/admin/tools" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminTools />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/spend" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminSpend />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/provisions" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminProvisions />}</AdminOnly></ProtectedRoute>} />
