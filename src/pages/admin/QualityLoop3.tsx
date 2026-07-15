@@ -196,6 +196,10 @@ export default function QualityLoop3() {
     })();
   }, []);
 
+  const [logRefreshTick, setLogRefreshTick] = useState(0);
+  const [logRefreshing, setLogRefreshing] = useState(false);
+  const [logLastRefreshedAt, setLogLastRefreshedAt] = useState<string | null>(null);
+
   // Poll active batch + logs every 10s.
   useEffect(() => {
     if (!activeBatch) return;
@@ -222,6 +226,7 @@ export default function QualityLoop3() {
       if (cancelled) return;
       if (batch) setActiveBatch(batch as unknown as Ql3BatchRow);
       if (log) setBatchLogs(log as unknown as Ql3LogRow[]);
+      setLogLastRefreshedAt(new Date().toISOString());
     };
     load();
     const t = setInterval(() => {
@@ -229,7 +234,7 @@ export default function QualityLoop3() {
       load();
     }, 10_000);
     return () => { cancelled = true; clearInterval(t); };
-  }, [activeBatch?.id, activeBatch?.status]);
+  }, [activeBatch?.id, activeBatch?.status, logRefreshTick]);
 
   // Also tail unattached single-mode QL3 log entries (batch_id IS NULL) so
   // operators see one-off runs that were never adopted into a batch.
@@ -247,11 +252,19 @@ export default function QualityLoop3() {
         .limit(300);
       if (cancelled) return;
       if (data) setUnattachedLogs(data as unknown as Ql3LogRow[]);
+      setLogLastRefreshedAt(new Date().toISOString());
     };
     load();
     const t = setInterval(load, 10_000);
     return () => { cancelled = true; clearInterval(t); };
-  }, []);
+  }, [logRefreshTick]);
+
+  const refreshLog = async () => {
+    setLogRefreshing(true);
+    setLogRefreshTick((n) => n + 1);
+    // brief visual feedback; the effects run synchronously on tick change
+    setTimeout(() => setLogRefreshing(false), 600);
+  };
 
   // Merged log stream: batch-scoped + recent unattached, deduped by id, sorted by ts.
   const mergedLogs = (() => {
@@ -709,7 +722,7 @@ export default function QualityLoop3() {
 
       {/* Panel B — Live log */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             Live log
             {activeBatch && (
@@ -723,6 +736,16 @@ export default function QualityLoop3() {
               </span>
             )}
           </CardTitle>
+          <div className="flex items-center gap-2">
+            {logLastRefreshedAt && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {new Date(logLastRefreshedAt).toLocaleTimeString()}
+              </span>
+            )}
+            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing}>
+              {logRefreshing ? "…" : "Refresh"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <BatchLogView entries={mergedLogs} />
