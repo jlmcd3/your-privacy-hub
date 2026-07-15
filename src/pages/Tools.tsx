@@ -117,7 +117,7 @@ const SECTION_HEADERS: Record<ToolSection, {
 }> = {
   assessments: {
     label: "Assessments",
-    title: "Know where you stand — with cited enforcement evidence in every output",
+    title: "Know where you stand, with cited enforcement evidence in every output",
     note: "Available individually at standalone prices",
     iconPath: "M4 3h10l3 3v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z M7 8h8 M7 11h6 M7 14h3",
     colors: {
@@ -175,7 +175,7 @@ const DIFFERENTIATORS = [
     checks: [
       "Thousands of decisions from regulatory authorities across the world",
       "DPA notices, ICO actions, FTC settlements, HHS OCR agreements",
-      "Cited in every output — the enforcement cases behind each finding are visible and traceable",
+      "Cited in every output: the enforcement cases behind each finding are visible and traceable",
     ],
   },
   {
@@ -184,7 +184,7 @@ const DIFFERENTIATORS = [
     body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
     checkColor: "text-accent",
     checks: [
-      "Scored against enforcement precedents — with cited decisions shown alongside each finding",
+      "Scored against enforcement precedents, with cited decisions shown alongside each finding",
       "Findings ordered by likelihood of regulatory scrutiny",
       "Dated, scored output structured for professional review",
     ],
@@ -195,7 +195,7 @@ const DIFFERENTIATORS = [
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
     checkColor: "text-amber-800",
     checks: [
-      "Provisions informed by enforcement failures — with a Drafting Notes appendix citing the specific cases",
+      "Provisions informed by enforcement failures, with a Drafting Notes appendix citing the specific cases",
       "Jurisdiction-specific and calibrated to your processing activities",
       "Your inputs are never retained or used to train models",
     ],
@@ -235,8 +235,8 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.governance.display,
     freeBadge: "Quick scan free",
     body: [
-      "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
-      "The GDPR Governance Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
+      "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong, rather than after.",
+      "The GDPR Governance Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents (not a generic best-practice checklist), and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
       "The output is a dated, scored assessment document with cited enforcement decisions behind every risk finding. It is not a regulatory audit and does not carry the authority of one.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -252,7 +252,7 @@ const TOOLS: ToolDef[] = [
     section: "assessments",
     icon: "⚖️",
     name: "Legitimate Interest Assessment",
-    tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
+    tagline: "Build a complete, documented Legitimate Interest Assessment: the three-part test, done properly.",
     href: "/li-assessment",
     requirement: { tier: "expected", text: "Expected — to rely on Art. 6(1)(f)" },
     subscriberPrice: PRICING.tools.lia.display,
@@ -260,7 +260,7 @@ const TOOLS: ToolDef[] = [
     freeBadge: "Step 1 free",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
-      "The analysis draws from enforcement decisions relevant to your use case — and cites them directly in the output.",
+      "The analysis draws from enforcement decisions relevant to your use case, and cites them directly in the output.",
       "The generated document is a starting point for legal review, not a replacement for it. It is structured to be presented to your legal or privacy professional for sign-off, with enforcement citations visible alongside each test verdict.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -276,14 +276,14 @@ const TOOLS: ToolDef[] = [
     section: "assessments",
     icon: "📄",
     name: "Impact Assessment Builder (DPIA)",
-    tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
+    tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
     requirement: { tier: "required", text: "Required — GDPR Art. 35" },
     subscriberPrice: PRICING.tools.dpia.display,
     standalonePrice: PRICING.tools.dpia.display,
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
-      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit — with cited supervisory authority decisions.",
+      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit, with cited supervisory authority decisions.",
       "The output is designed to be reviewed by the appropriate privacy professional in your organisation and retained as part of your permanent accountability record. It is intended to form the basis of a documented professional review, not to substitute for it.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -306,7 +306,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.biometric.display,
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks.",
-      "The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — and cites the specific corpus decisions behind every priority action.",
+      "The analysis incorporates current enforcement posture (what regulators and courts are actively scrutinising), and cites the specific corpus decisions behind every priority action.",
       "The assessment is designed to be the starting point for a conversation with your privacy or legal team. Multi-jurisdiction assessments are included with Professional subscriptions.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -331,7 +331,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.dpa.display,
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
-      "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. Every provision reflects that intelligence — and a Drafting Notes appendix cites the specific decisions.",
+      "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. Every provision reflects that intelligence, and a Drafting Notes appendix cites the specific decisions.",
       "This tool generates a draft legal document. It does not constitute legal advice, and the output should be reviewed by qualified legal counsel before execution.",
     ],
     sampleSections: [
@@ -345,7 +345,7 @@ const TOOLS: ToolDef[] = [
     section: "documents",
     icon: "🚨",
     name: "Incident Response Playbook",
-    tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
+    tagline: "Your complete breach response playbook: deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
     requirement: { tier: "supports", text: "Supports breach-notification duties" },
     subscriberPrice: PRICING.tools.ir_playbook.display,
@@ -396,7 +396,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "US state privacy laws are not interchangeable. CCPA disclosure requirements differ from Virginia's, which differ from Colorado's, which differ again from the more recent state laws. A single 'US privacy notice' that does not surface those differences is itself a compliance risk — and increasingly, an enforcement one.",
       "The U.S. Privacy Notice Builder produces state-specific notices that include the disclosures each statute actually requires: categories of personal information, sources, purposes, sale and sharing disclosures, sensitive data handling, and consumer rights mechanisms. State-specific overlays are applied automatically based on the jurisdictions you select.",
-      "The output is a draft notice for review by your privacy or legal professional before publication. It is structured to be read by counsel quickly — clearly delineating the state-specific provisions from the universal ones — and to be updated as state laws continue to evolve. The U.S. Privacy Notice Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
+      "The output is a draft notice for review by your privacy or legal professional before publication. It is structured to be read by counsel quickly (clearly delineating the state-specific provisions from the universal ones), and to be updated as state laws continue to evolve. The U.S. Privacy Notice Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
     ],
     sampleSections: [
       { label: "California (CCPA/CPRA) — sensitive personal information", content: "We collect the following categories of sensitive personal information: government identifiers, account log-in credentials, and precise geolocation. You have the right to limit the use and disclosure of this information." },
@@ -416,7 +416,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "Article 13 and 14 set out what a GDPR-compliant notice must contain. The gap between meeting those requirements on paper and producing a notice that withstands scrutiny is, in practice, the gap between checkbox compliance and an accountability posture that holds up.",
       "The EU/UK Privacy Notice Builder produces a GDPR and UK GDPR-aligned notice covering each Article 13/14 disclosure: identity of the controller, contact details, lawful basis per processing purpose, recipients, retention, international transfer safeguards, and data subject rights. International transfer language is calibrated to the destinations and mechanisms you specify (SCCs, adequacy, derogations).",
-      "The generated notice is structured for review by your privacy or legal professional and intended to be the basis of a documented review — not a substitute for one. The EU/UK Privacy Notice Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
+      "The generated notice is structured for review by your privacy or legal professional and intended to be the basis of a documented review, not a substitute for one. The EU/UK Privacy Notice Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
     ],
     sampleSections: [
       { label: "Lawful basis (per purpose)", content: "Account creation and management: Article 6(1)(b) — necessary for performance of a contract. Marketing communications: Article 6(1)(a) — consent (withdrawable at any time). Fraud prevention: Article 6(1)(f) — legitimate interest, balancing test documented and available on request." },
@@ -550,7 +550,7 @@ const PRICING_GRID: [string, string][] = [
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
   ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$99'} (Smart)`],
-  ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional) — Governance, LIA, or DPIA"],
+  ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional): Governance, LIA, or DPIA"],
 ];
 
 export default function Tools() {
@@ -608,7 +608,7 @@ export default function Tools() {
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
-              Start 10-day Intelligence trial — {INTELLIGENCE_PRICING.monthlyShort()} →
+              Start 10-day Intelligence trial ({INTELLIGENCE_PRICING.monthlyShort()}) →
             </Link>
             <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
               See the tools ↓
@@ -763,11 +763,11 @@ export default function Tools() {
                         {SUBSCRIBER_ONLY_SLUGS.has(tool.slug)
                           ? hasToolAccess
                             ? "Included in your subscription"
-                            : "Subscriber-only — not sold standalone"
+                            : "Subscriber-only: not sold standalone"
                           : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Included in your Professional"
                           : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
-                          ? "Paid — subscriber rate applied"
+                          ? "Paid: subscriber rate applied"
                           : tier === "monthly" && tool.monthlySubscriberPrice
                           ? "Monthly subscriber discount"
                           : `${tool.standalonePrice} without subscription`}
@@ -870,7 +870,7 @@ export default function Tools() {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-meta text-muted-foreground italic border-b border-border pb-4">
-                This is a representative sample showing the structure and depth of a real output. Content is illustrative — your generated document will reflect your specific inputs and current enforcement intelligence.
+                This is a representative sample showing the structure and depth of a real output. Content is illustrative: your generated document will reflect your specific inputs and current enforcement intelligence.
               </p>
               {activeTool.sampleSections.map((section, i) => (
                 <div key={i} className="bg-muted/40 rounded-xl p-4 border border-border">
