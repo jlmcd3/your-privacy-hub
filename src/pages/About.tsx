@@ -12,7 +12,7 @@ const About = () => {
 
       </Helmet>
       <Navbar />
-      <main className="flex-1">
+      <main id="main-content" aria-label="About End User Privacy" className="flex-1">
         <section className="bg-gradient-to-br from-brand-navy via-brand-slate-teal to-brand-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
             <span className="inline-block text-meta font-semibold tracking-wider uppercase text-brand-mist bg-brand-mist/10 border border-brand-mist/20 rounded-full px-3 py-1 mb-4">
