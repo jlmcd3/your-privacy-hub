@@ -1,106 +1,91 @@
-# RC-C3.CYB-1 — Design Note (no code edits this turn; gate stays OFF)
 
-## (a) Chosen ask-vocabulary for cyber open-item `target.path`
+## PP-7a.2 — Group B tool landing pages: classification + rewrite plan
 
-**Vocabulary: dotted `controls.<slug>`** (e.g. `controls.c13_training`, `controls.c14_secure_dev`).
+### Task 1 — Group B inventory (from `App.tsx` router)
 
-Rationale — chosen over the two alternatives:
+Group B is the tool landing/intake set. Enumerated directly from `src/App.tsx`:
 
-- **Bare slug `c13_training`** (current prompt): requires either a blanket allowlist bypass in `insufficient-info-guard.ts` closed-set (forgeable — any 2-char string starting with `c` would sneak through) or a hardcoded 18-slug allow-set. Rejected: violates constraint #1 ("no forgeable bypasses").
-- **Indexed `controls[12].maturity`**: encodes the intake's array position into the frozen ask. Rejected: brittle if intake ordering ever changes; slug is the durable key.
+| # | Route | File | Baseline `grep -o "—" \| wc -l` |
+|---|---|---|---|
+| 1 | /governance-assessment | src/pages/GovernanceAssessment.tsx | 67 |
+| 2 | /dpia-framework | src/pages/DPIAFramework.tsx | 50 |
+| 3 | /dpa-generator | src/pages/DPAGenerator.tsx | 43 |
+| 4 | /ir-playbook | src/pages/IRPlaybook.tsx | 11 |
+| 5 | /li-assessment | src/pages/LIAssessment.tsx | 21 |
+| 6 | /biometric-checker | src/pages/BiometricChecker.tsx | 15 |
+| 7 | /cppa | src/pages/CPPAHub.tsx | 4 |
+| 8 | /cppa-scope-checker | src/pages/CPPAScopeChecker.tsx | 37 |
+| 9 | /cppa-risk-assessment | src/pages/CPPARiskAssessment.tsx | 92 |
+| 10 | /cppa-cybersecurity | src/pages/CPPACybersecurity.tsx | 17 |
+| 11 | /cppa-admt-checker | src/pages/admt/ADMTChecker.tsx | 68 |
+| 12 | /ropa-builder | src/pages/ropa/RopaLanding.tsx | 11 |
+| 13 | /us-notice-builder | src/pages/us-notices/USNoticeLanding.tsx | 14 |
+| 14 | /eu-global-notice-builder | src/pages/eu-notices/EUNoticeLanding.tsx | 5 |
+| 15 | /notice-builder | src/pages/NoticeBuilderLanding.tsx | 11 |
+| 16 | /registration-manager | src/pages/RegistrationLanding.tsx | 20 |
+| 17 | /legitimate-interest-tracker | src/pages/LegitimateInterestTracker.tsx | 8 |
+| 18 | /notices-ropa | src/pages/NoticesRopaHub.tsx | 2 |
 
-Dotted `controls.<slug>` is:
-- Deterministically synthesisable from a nested walk (constraint #1).
-- Verifiable in the closed-set check by resolving `controls[]` and matching `.key === "<slug>"` — no substring/wildcard needed.
-- Already the shape `computeCyberTestStates` uses for `source_fields` (`controls.c13_training.maturity`), so vocabularies align.
+**Total: 18 files, 496 em-dash occurrences.** Methodology: `grep -o "—" <file> | wc -l`.
 
-Guard change (design, not implemented this turn): extend the closed-set filter in `insufficient-info-guard.ts` to accept dotted paths whose first segment is an intake key AND, when that intake value is an array of `{key,…}` records, whose second segment matches an element's `.key`. Non-controls dotted paths retain today's exact-top-level behavior.
+### Task 2 — Class-A rewritable set (strict boundary)
 
-## (b) Where the revision path writes an answered control — and resulting alias entries
+Under the ratified boundary ("doubt → B; Class A iff only product/pricing/access, no legal assertion; sample-report-style output → B; enum values contract-bound → B; comments Class-C untouchable"), the Class-A set on Group B is small and confined to five sub-categories:
 
-**Write vocabulary (file evidence):**
-- `run-cppa-cybersecurity/index.ts:1152–1153` iterates `report.controls[idx]`; the persisted report shape is `controls: [{ control: <human name>, status, finding, remediation, deadline, … }]` — an array keyed by index, with the human name in `control` (NOT the slug).
-- `run-cppa-cybersecurity/index.ts:569–579, 723–729` confirm the same shape (18-element array; `c.status`, `c.control`).
-- `applyRevisionPatch` (`_shared/revision-patch.ts:63+`) writes only whitelisted `changed_paths` into `report_data`. A revision resolving a control gap therefore emits paths of the form `controls[<idx>].status` (and/or `.finding`, `.remediation`).
+**a) Pricing/CTA button labels** — pure product+price tokens
+- Governance L754/756/759; DPA L129; Biometric L141/144; CPPAScope L708/713/718; CPPARisk L1336/1340; CPPACyber L361/365; ADMT L1554/1555
 
-**Parity does NOT hold** — ask vocabulary is `controls.c13_training` (slug), write vocabulary is `controls[12].status` (index + human name). D-2 confirmed.
+**b) `preRunHint` product-mechanic strings** — "…fixed once you first generate — everything else stays editable across your included revision runs." (5 files: Gov L514, DPIA L523, LIA L339, Biometric L215, CPPARisk L758, CPPACyber L271, ADMT L590)
 
-**Alias entries** — explicit and enumerated (no wildcards). Slug→index derived from the frozen 18-element order defined in `_shared/cyber-contract-fixtures.ts` and mirrored in the generator (`c1_auth`…`c18_continuity`, indexes 0…17):
+**c) `<title>` document titles** — pure product identifiers (statute name identifies product per ruling)
+- DPIA L461, CPPAScope L214, CPPARisk L676, CPPACyber L185, ADMT L508, Ropa L24
 
-```
-TARGET_PATH_ALIASES.cppa_cybersecurity = {
-  "controls.c1_auth":         ["controls[0]"],
-  "controls.c2_encryption":   ["controls[1]"],
-  "controls.c3_account_access": ["controls[2]"],
-  "controls.c4_inventory":    ["controls[3]"],
-  "controls.c5_secure_config":["controls[4]"],
-  "controls.c6_vuln_mgmt":    ["controls[5]"],
-  "controls.c7_audit_logs":   ["controls[6]"],
-  "controls.c8_network_mon":  ["controls[7]"],
-  "controls.c9_anti_malware": ["controls[8]"],
-  "controls.c10_segmentation":["controls[9]"],
-  "controls.c11_port_protocol":["controls[10]"],
-  "controls.c12_awareness":   ["controls[11]"],
-  "controls.c13_training":    ["controls[12]"],
-  "controls.c14_secure_dev":  ["controls[13]"],
-  "controls.c15_third_party": ["controls[14]"],
-  "controls.c16_retention":   ["controls[15]"],
-  "controls.c17_incident":    ["controls[16]"],
-  "controls.c18_continuity":  ["controls[17]"],
-};
-```
+**d) Step / section product headings** — "Step N — <label>", H3 module labels
+- CPPARisk L776/849/883/895/918/949; CPPAHub L202; DPA L258/275
 
-The existing `qc_rc_2` matcher already accepts descendants (`c + "."` / `c + "["`), so an alias of `controls[12]` covers `controls[12].status`, `controls[12].finding`, `controls[12].remediation` — no matcher change needed (constraint #2).
+**e) Access/subscription messaging and product-guidance form prompts with no legal assertion**
+- Gov L649; LIA L247/371/375/429/507; Biometric L274; CPPAScope L404/680/684/760; CPPARisk L710/792/1306; ADMT L544; Ropa L32/42/87/124/226/302/307; USNotice L53/88/94/95/151/173/179/219/282; EUNotice L44/51/104/115; NoticeBuilder L64/71/72/110/122/194/212; Registration L35/39/47/79/120/121/221/230; CPPAHub L138
 
-**Slug↔index binding is contract, not inference.** The 18-slug ordering is fixed in the fixture and the generator; any future reorder would require the alias table to be updated in the same commit (add a unit test that pins slug order = alias order).
+**Estimated Class-A total: ~90 strings (~18% of 496).** Everything else — statutory citations, RequirementBadge law-assertions, InfoPopover/StatutePopover text, sample-report bullets, contract-bound `<option value=…>` enums, and Class-C comments — stays put.
 
-## (c) New fixture shape + answer_targets
+### Task 3 — Connector distribution target (no connector > 80%)
 
-Rewrite `_shared/cyber-contract-fixtures.ts` `intake` in the live shape from `CPPACybersecurity.tsx` / `computeCyberTestStates` (array-of-records with `maturity`, not object-with-status):
+Planned mix across the ~90 rewrites:
+- Parentheses (buttons/pricing): ~28%
+- Colon (headings, labels, product prompts): ~26%
+- Period / sentence split (long product-mechanic sentences): ~22%
+- Comma (short access clauses): ~18%
+- " · " / drop-dash (titles, taglines): ~6%
 
-```ts
-intake: {
-  entity_name: "Halcyon Health Systems, Inc.",
-  industry: "Healthcare SaaS",
-  sector: "Healthcare",
-  profile: {
-    entity_name: "Halcyon Health Systems, Inc.",
-    industry: "Healthcare SaaS",
-    incidents_12mo: "1",
-    framework: "SOC 2",
-    last_audit: "2025-09-15",
-  },
-  controls: [
-    { key: "c1_auth",          label: "Authentication",              maturity: "Implemented", notes: "SSO+MFA; hardware keys for admins." },
-    …
-    { key: "c12_awareness",    label: "Cybersecurity awareness",     maturity: "Implemented", notes: "Annual training; monthly phishing." },
-    { key: "c13_training",     label: "Cybersecurity education and training", maturity: "", notes: "" },
-    { key: "c14_secure_dev",   label: "Secure development and coding practices", maturity: "", notes: "" },
-    { key: "c15_third_party",  label: "Third-party oversight",       maturity: "Implemented", notes: "Vendor security reviews." },
-    …
-    { key: "c18_continuity",   label: "Business continuity / DR",    maturity: "Implemented", notes: "Monthly restore drills; RTO 4h / RPO 15m." },
-  ],
-},
-answer_targets: ["controls.c13_training", "controls.c14_secure_dev"],
-```
+### Task 4 — H1 pass
 
-Result: `computeCyberTestStates` will render M4…M21 for 16 controls as `resolved_met` and 2 as `indeterminate` — matching the intake JSON the generator sees (D-3 resolved).
+Group B page H1s already surveyed: none contain em-dashes at HEAD (spot-check: Gov "A structured review…", DPIA "Impact Assessment Builder", CPPARisk "CPPA Privacy Risk Assessment", CPPACyber "CPPA Cybersecurity Audit Readiness", Ropa "Build an audit-ready Record…", ADMT "ADMT Compliance Assessment", NoticeBuilder "Generate your privacy notices…" ← the `<title>` attribute passed to a hero component is on my rewrite list because it renders as an H1 in that component's shell). H1 ban satisfied.
 
-## (d) Files to touch (when authorized)
+### Task 5 — Frozen invariants
 
-1. `supabase/functions/_shared/insufficient-info-guard.ts` — extend closed-set check to accept dotted `controls.<slug>` when the intake `controls[]` element with `.key === slug` exists; extend `ASK_ELIGIBLE_CRITICAL_FIELDS` with a **nested-walker** entry for `cppa_cybersecurity` that enumerates any control whose `maturity` is empty or "Insufficient information" (deterministic — GOV-ASK-1 pattern, constraint #1). Registry comment at :39–44 is removed (obsolete). Synthesised `why`/`how_to_provide` copy avoids the word "gap" (constraint #3).
-2. `supabase/functions/_shared/target-path-aliases.ts` — replace empty `cppa_cybersecurity: {}` with the 18 explicit entries above.
-3. `supabase/functions/_shared/open-items.ts` — add `cppa_cybersecurity` entries to `T_CLASS_FIELDS` mapping each `controls.<slug>` to an enum_ref (`cppa_cybersecurity:maturity`) so refine renders a proper maturity re-select rather than bounded-narrative.
-4. `supabase/functions/_shared/cyber-contract-fixtures.ts` — rewrite intake in live shape; update `answer_targets` to dotted vocabulary (D-3).
-5. `supabase/functions/run-cppa-cybersecurity/index.ts` — prompt fix (~:459–463): change example from `c14_third_party` to `controls.c14_secure_dev`; instruct `information_needed.field` to use dotted `controls.<slug>` (D-4 + vocabulary alignment).
-6. `supabase/functions/_tests/cppa-cyber.test.ts` — add tests: (i) all 18 alias entries present and aligned with fixture order; (ii) guard synthesises asks for empty-maturity controls; (iii) synthesised copy contains no "gap".
-7. **BUILD_STAMP bumps** on: `run-cppa-cybersecurity`, `run-quality-batch`, `ql3-orchestrator`, `regenerate-assessment` (constraint #5).
+- Revision-claim arithmetic: no rewrite touches a claim-bearing string (no counts, no PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY strings on Group B landings; verified by scan).
+- Pricing tokens: `PRICING`, `PRICING_REGISTRY`, `INTELLIGENCE_PRICING` interpolations preserved verbatim inside rewritten templates.
+- Contract-bound enum values (DPA `retentionChoice` / `auditRightsChoice`, Governance/CPPARisk Radio option strings used in equality checks): **not touched**.
+- Class-D `"—"` placeholder tokens (NoticesRopaHub, LegitimateInterestTracker fallback): **not touched**.
+- Class-C code comments: **not touched**.
+- Zero admin/**, zero supabase/, zero edge deploys, frontend strings only.
 
-**No schema changes.** No changes to admt / governance / risk paths (constraint #4). No matcher changes (constraint #2).
+### Task 6 — Report shape (delivered on completion)
 
-## Options / trade-offs surfaced for CEO+legal
+- Full 18-file inventory table with pre / post occurrence counts (grep -o methodology)
+- Single before/after string table (~90 rows) grouped by file
+- Survivors list per file (Class-B/C/D with one-line reason each)
+- Connector distribution table (actual vs. planned)
+- Task-status closeout covering all PP-7a tasks (7a.1a, 7a.1b, 7a.1b-FIX, 7a.1b-2, 7a.2)
+- Deviations list
 
-- **Alias target granularity: `controls[N]` vs `controls[N].status`.** I recommend `controls[N]` (aggregate) so a resolution that legitimately touches `.status` + `.finding` + `.remediation` for the same control counts once; the descendant match handles all three. Trade-off: a revision that touches ONLY `controls[N].remediation` (leaving status untouched) would still be treated as a resolution — acceptable because verdict copy is separately checked, but legal may prefer the tighter `.status`-only alias if they want the contract to require an explicit status change.
-- **Nested-walker in guard vs static registry.** Static registry (list all 18 slugs) is simpler but drifts if the slug set ever changes. Nested walker (iterate `intake.controls[]` at runtime) is self-maintaining. I recommend the walker; static list is the fallback if legal wants the ask set fully declarative.
+### Deferred out of PP-7a.2 (by prompt scope)
 
-STOP after design note. Awaiting CEO authorization to implement.
+- REV-1 claim alignment
+- Any file outside the 18 above (e.g. `/samples`, `/tools`, admin/**)
+- Result-page components (`*Result.tsx`) — these are report renderers, not landing pages
+- Sub-components on the intake shells (RailEntries, InlinePricingBadge, etc.) — untouched; sweep is confined to the page files themselves
+
+### Ready to execute
+
+On approval, I execute all ~90 rewrites in one dispatch, run `grep -o "—" | wc -l` per file for post-edit proof, and produce the full report. Stop after reporting.
