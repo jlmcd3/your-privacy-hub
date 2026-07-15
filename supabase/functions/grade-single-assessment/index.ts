@@ -42,7 +42,46 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
 // Value = git short-sha + ISO timestamp. Update in the same edit that
 // changes behavior in this file.
-export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+// QL3-P1.2 (2026-07-15): generalized to all nine QL3 tools via `tool` param
+// with `TOOL_TABLE` (mirrors ql3-orchestrator.TOOL_TABLE + run-quality-batch
+// intake insert paths). Bumping the stamp invalidates the QL3 grade cache
+// by design — cache misses re-grade, safe.
+export const BUILD_STAMP = "ql3-p1-2-multitool@2026-07-15T00:00Z";
+
+// QL3 tool slug allow-list (mirrors ql3-orchestrator.TOOL_TABLE keys).
+export const KNOWN_TOOL_SLUGS = [
+  "governance", "cppa-risk", "cppa-cyber", "cppa-admt",
+  "dpia", "lia", "ir-playbook", "biometric", "dpa",
+] as const;
+export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
+
+// Per-tool row shape for grader intake+report fetch.
+//   * `table` mirrors ql3-orchestrator/index.ts:123-133 TOOL_TABLE.
+//   * `intakeCols` mirrors run-quality-batch/index.ts intake-insert paths
+//     (lines ~1083-1149 / 1221-1285): all tools carry a JSONB `intake_data`
+//     column EXCEPT `lia`, whose intake is spread across explicit columns
+//     on `li_assessments` (row inserted via `{ ...cleaned, user_id }`).
+//   * `reportCol` is `report_data` for all nine (verified against
+//     information_schema on 2026-07-15).
+type ToolRowSpec = { table: string; intakeCols: string[]; reportCol: "report_data" };
+const LI_INTAKE_COLS = [
+  "organization_name", "sector", "jurisdictions", "relationship_type",
+  "data_categories", "stated_purpose", "processing_description",
+  "purpose_details", "necessity_details", "balancing_details",
+  "alternatives_considered", "supplemental_context", "supplemental_responses",
+  "subject_anchor", "preview_signal",
+];
+export const TOOL_TABLE: Record<QL3Tool, ToolRowSpec> = {
+  "governance":  { table: "governance_assessments", intakeCols: ["intake_data"], reportCol: "report_data" },
+  "cppa-risk":   { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
+  "cppa-cyber":  { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
+  "cppa-admt":   { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
+  "dpia":        { table: "dpia_frameworks",        intakeCols: ["intake_data"], reportCol: "report_data" },
+  "lia":         { table: "li_assessments",         intakeCols: LI_INTAKE_COLS,  reportCol: "report_data" },
+  "ir-playbook": { table: "ir_playbooks",           intakeCols: ["intake_data"], reportCol: "report_data" },
+  "biometric":   { table: "biometric_assessments",  intakeCols: ["intake_data"], reportCol: "report_data" },
+  "dpa":         { table: "dpa_documents",          intakeCols: ["intake_data"], reportCol: "report_data" },
+};
 
 function json(b: unknown, s = 200) {
   return new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
