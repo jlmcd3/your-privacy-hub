@@ -212,7 +212,15 @@ function computeOverall(scores: any, tool: QL3Tool): number {
 
 async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
-  const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
+  // QLB-F3: body-first, metadata-stripped, equal budget across models.
+  const family = familyForSingleTool(tool);
+  const payload = family
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+    : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
+  if (payload.truncated) {
+    console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+  }
+  const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`;
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
