@@ -208,7 +208,14 @@ async function readAssessment(toolSlug: string, assessmentId: string) {
   return { row: data, cfg };
 }
 
-async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<number | null> {
+// QL3-P1 — grader_stamp is mirrored from grade-single-assessment.BUILD_STAMP.
+// Kept in sync manually; a drift would key the grade cache under a different
+// stamp and force a re-sample, which is safe (miss = re-grade, never a
+// silent hit). Update in the same edit that changes grade-single-assessment.
+export const GRADER_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+
+export interface GraderSample { claude: number | null; gpt: number | null; blended: number | null }
+async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<GraderSample | null> {
   // grade-single-assessment uses the cppa-risk rubric label; restrict to
   // cppa-risk to avoid mis-labelling. Other tools rely on items_before/after
   // as the QC signal (post_score stays null and that is expected).
@@ -226,12 +233,21 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
     });
     if (!r.ok) return null;
     const body: any = await r.json().catch(() => null);
-    const score = body?.mean_score ?? body?.payload?.claude?.overall_score ?? null;
-    return typeof score === "number" ? score : null;
+    const claude = body?.payload?.claude?.overall_score;
+    const gpt = body?.payload?.gpt?.overall_score;
+    const blended = body?.mean_score;
+    return {
+      claude: typeof claude === "number" && Number.isFinite(claude) ? claude : null,
+      gpt: typeof gpt === "number" && Number.isFinite(gpt) ? gpt : null,
+      blended: typeof blended === "number" && Number.isFinite(blended) ? blended : null,
+    };
   } catch {
     return null;
   }
 }
+
+export interface GraderSamples { claude: number[]; gpt: number[]; blended: number[] }
+export function emptyGraderSamples(): GraderSamples { return { claude: [], gpt: [], blended: [] }; }
 
 // RC-C3.CLOSE-1 (item 1) — sample the grader N times per phase so QL3 can
 // derive a bootstrapped no-signal band. Sequential (never parallel) so the
@@ -239,13 +255,185 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
 // timeout. Non-numeric returns are dropped. Empty array is a legitimate
 // outcome for tools without a scoring rubric (e.g. non cppa-risk) and is
 // handled by computeVariance → "insufficient_samples".
-async function sampleGraderScores(toolSlug: string, assessmentId: string, n = VARIANCE_SAMPLES_N): Promise<number[]> {
-  const out: number[] = [];
+// QL3-P1: now returns per-model + blended arrays; the blended array is the
+// same series previously returned so back-compat callers unaffected.
+async function sampleGraderScores(toolSlug: string, assessmentId: string, n = VARIANCE_SAMPLES_N): Promise<GraderSamples> {
+  const out = emptyGraderSamples();
   for (let i = 0; i < n; i++) {
     const s = await callInternalGrader(toolSlug, assessmentId);
-    if (typeof s === "number" && Number.isFinite(s)) out.push(s);
+    if (!s) continue;
+    if (s.claude != null) out.claude.push(s.claude);
+    if (s.gpt != null) out.gpt.push(s.gpt);
+    if (s.blended != null) out.blended.push(s.blended);
   }
   return out;
+}
+
+export function medianOrNull(xs: number[]): number | null {
+  if (!xs || xs.length === 0) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.floor(s.length / 2)];
+}
+
+// QL3-P1 grade cache helpers. Cache key: (assessment_id, version_n, grader_stamp).
+async function loadCachedSamples(assessmentId: string, versionN: number): Promise<GraderSamples | null> {
+  try {
+    const { data } = await admin()
+      .from("quality_loop3_grade_cache")
+      .select("samples")
+      .eq("assessment_id", assessmentId)
+      .eq("version_n", versionN)
+      .eq("grader_stamp", GRADER_STAMP)
+      .maybeSingle();
+    const s: any = (data as any)?.samples;
+    if (!s) return null;
+    return {
+      claude: Array.isArray(s.claude) ? s.claude.filter((n: unknown) => typeof n === "number") : [],
+      gpt: Array.isArray(s.gpt) ? s.gpt.filter((n: unknown) => typeof n === "number") : [],
+      blended: Array.isArray(s.blended) ? s.blended.filter((n: unknown) => typeof n === "number") : [],
+    };
+  } catch {
+    return null;
+  }
+}
+async function storeCachedSamples(assessmentId: string, toolSlug: string, versionN: number, samples: GraderSamples): Promise<void> {
+  try {
+    await admin()
+      .from("quality_loop3_grade_cache")
+      .upsert({
+        assessment_id: assessmentId,
+        tool_slug: toolSlug,
+        version_n: versionN,
+        grader_stamp: GRADER_STAMP,
+        samples: samples as unknown as Record<string, unknown>,
+      }, { onConflict: "assessment_id,version_n,grader_stamp" });
+  } catch (e) {
+    console.warn("[ql3] grade cache upsert failed", (e as Error).message);
+  }
+}
+
+// QL3-P1 — additive log writes into public.quality_loop3_log. Non-fatal.
+async function logQL3(runId: string | null, level: "info" | "warn" | "error", message: string, batchId: string | null = null) {
+  try {
+    await admin().from("quality_loop3_log").insert({
+      batch_id: batchId,
+      ql3_run_id: runId,
+      level,
+      message: message.slice(0, 2000),
+    });
+  } catch {}
+}
+
+// QL3-P1 — Deterministic incorporation check. Pure & exported for tests.
+// For each verdict `resolved`, resolve the item's target.path against
+// report_data and check the value REFLECTS the dummy answer.
+export type IncorpKind = "enum" | "multi_enum" | "text" | "unverifiable";
+export type IncorpResult = "pass" | "fail" | "unverifiable";
+export interface IncorpCheck {
+  item_id: string;
+  path: string | null;
+  kind: IncorpKind;
+  result: IncorpResult;
+  detail?: string;
+}
+export interface IncorpReport { pass: boolean; checked: IncorpCheck[] }
+
+export function resolvePath(root: unknown, path: string | null | undefined): unknown {
+  if (!path || typeof path !== "string") return undefined;
+  // Support dotted keys and [N] array indices.
+  const parts: string[] = [];
+  const tokens = path.split(".");
+  for (const t of tokens) {
+    const m = t.match(/^([^\[]+)((?:\[\d+\])*)$/);
+    if (!m) return undefined;
+    const [, name, idxPart] = m;
+    if (name) parts.push(name);
+    if (idxPart) {
+      const idxs = idxPart.match(/\d+/g) ?? [];
+      for (const i of idxs) parts.push(i);
+    }
+  }
+  let cur: any = root;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    if (Array.isArray(cur) && /^\d+$/.test(p)) cur = cur[Number(p)];
+    else cur = cur[p];
+  }
+  return cur;
+}
+
+export function checkIncorporation(params: {
+  reportData: unknown;
+  register: any[];
+  verdicts: any[];
+  answered: any[];
+}): IncorpReport {
+  const answeredById = new Map<string, unknown>();
+  for (const a of params.answered ?? []) {
+    const id = a?.item_id ?? a?.id;
+    if (id != null) answeredById.set(String(id), a?.value);
+  }
+  const registerById = new Map<string, any>();
+  for (const it of params.register ?? []) {
+    const id = it?.id ?? it?.item_id;
+    if (id != null) registerById.set(String(id), it);
+  }
+  const checks: IncorpCheck[] = [];
+  for (const v of params.verdicts ?? []) {
+    if ((v?.verdict ?? v?.status) !== "resolved") continue;
+    const itemId = String(v?.item_id ?? v?.id ?? "");
+    if (!itemId) continue;
+    const item = registerById.get(itemId);
+    const path: string | null = item?.target?.path ?? null;
+    const answer = answeredById.get(itemId);
+    // Path-vocabulary nuance: cppa-cyber ask-paths use `controls.<slug>` but
+    // the report shape stores controls as an array (controls[N]). We do not
+    // attempt to alias here — if resolvePath returns undefined, we mark
+    // "unverifiable" and NEVER fail the run on it.
+    const actual = resolvePath(params.reportData, path);
+    if (actual === undefined || path == null) {
+      checks.push({ item_id: itemId, path, kind: "unverifiable", result: "unverifiable", detail: path ? "path_unresolvable" : "no_path" });
+      continue;
+    }
+    // Classify by answer shape.
+    if (Array.isArray(answer)) {
+      // multi_enum: every selected member must be present in actual (array or string).
+      const missing: unknown[] = [];
+      const container = Array.isArray(actual) ? actual : [actual];
+      for (const m of answer) {
+        if (!container.some((x) => x === m || String(x) === String(m))) missing.push(m);
+      }
+      checks.push({
+        item_id: itemId, path, kind: "multi_enum",
+        result: missing.length === 0 ? "pass" : "fail",
+        ...(missing.length ? { detail: `missing:${JSON.stringify(missing).slice(0, 120)}` } : {}),
+      });
+      continue;
+    }
+    if (typeof answer === "string" && typeof actual === "string") {
+      // Enum-style match first: exact equality (case-insensitive).
+      if (actual.trim().toLowerCase() === answer.trim().toLowerCase()) {
+        checks.push({ item_id: itemId, path, kind: "enum", result: "pass" });
+      } else if (actual.toLowerCase().includes(answer.trim().toLowerCase()) && answer.trim().length > 0) {
+        checks.push({ item_id: itemId, path, kind: "text", result: "pass" });
+      } else {
+        checks.push({ item_id: itemId, path, kind: "text", result: "fail", detail: "not_contained" });
+      }
+      continue;
+    }
+    if (typeof answer === "boolean" || typeof answer === "number") {
+      checks.push({
+        item_id: itemId, path, kind: "enum",
+        result: actual === answer ? "pass" : "fail",
+        ...(actual === answer ? {} : { detail: `expected:${String(answer)} actual:${String(actual)}` }),
+      });
+      continue;
+    }
+    // Non-primitive answer we don't know how to compare.
+    checks.push({ item_id: itemId, path, kind: "unverifiable", result: "unverifiable", detail: "unsupported_answer_shape" });
+  }
+  const pass = checks.every((c) => c.result !== "fail");
+  return { pass, checked: checks };
 }
 
 async function runOneUnit(runId: string) {
