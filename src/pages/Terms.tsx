@@ -1,25 +1,30 @@
-import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import LegalPageLayout, { type LegalSection } from "@/components/LegalPageLayout";
+
+const SECTIONS: LegalSection[] = [
+  { id: "acknowledgements", label: "Your Acknowledgements" },
+  { id: "site", label: "The Site" },
+  { id: "orders-pricing", label: "Orders & Pricing" },
+  { id: "third-parties", label: "Third Parties" },
+  { id: "license", label: "License & Restrictions" },
+  { id: "term-termination", label: "Term & Termination" },
+  { id: "confidentiality", label: "Confidentiality" },
+  { id: "feedback", label: "Feedback License" },
+  { id: "modifications", label: "Modifications to This Agreement" },
+  { id: "legal-matters", label: "Legal Matters" },
+  { id: "general", label: "General" },
+];
 
 const Terms = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Terms of Service | End User Privacy</title>
-        <meta
-          name="description"
-          content="Terms of Service governing use of enduserprivacy.com, including acknowledgements, orders, licenses, confidentiality, and limitation of liability."
-        />
-      </Helmet>
-      <Navbar />
-      <main id="main-content" aria-label="Terms of Service" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <h1 className="font-display text-foreground mb-2">
-          EndUserPrivacy Terms of Service
-        </h1>
-        <p className="text-sm text-muted-foreground mb-10">Last updated: May 15, 2026</p>
-
-        <div className="prose prose-sm max-w-none space-y-8 text-foreground/90">
+    <LegalPageLayout
+      title="EndUserPrivacy Terms of Service"
+      metaTitle="Terms of Service | End User Privacy"
+      metaDescription="Terms of Service governing use of enduserprivacy.com, including acknowledgements, orders, licenses, confidentiality, and limitation of liability."
+      lastUpdated="May 15, 2026"
+      ariaLabel="Terms of Service"
+      sections={SECTIONS}
+    >
+      <div className="prose prose-sm max-w-none space-y-8 font-serif-text text-fluid-base text-ink">
           <section className="space-y-3">
             <p>
               These Terms of Service (the "Agreement") govern use of the enduserprivacy.com
@@ -35,8 +40,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="acknowledgements" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               Your Acknowledgements
             </h2>
             <p>
@@ -62,8 +67,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">The Site</h2>
+          <section id="site" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">The Site</h2>
             <p>
               Any new features or tools which are added to the Site shall also be subject to this
               Agreement. You can review the most current version of the Terms of Service at any
@@ -101,8 +106,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">Orders &amp; Pricing</h2>
+          <section id="orders-pricing" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">Orders &amp; Pricing</h2>
             <p>
               Prices for our products are subject to change without notice. We reserve the right at
               any time to modify or discontinue access to the Site (or any part or content thereof)
@@ -155,7 +160,7 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
+          <section id="third-parties" className="space-y-3 scroll-mt-24">
             <h3 className="text-foreground">Third Parties</h3>
             <p>
               We may provide you with access to third-party tools over which we neither monitor nor
@@ -225,8 +230,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="license" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               License &amp; Restrictions
             </h2>
             <p>
@@ -263,8 +268,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="term-termination" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               Term &amp; Termination
             </h2>
             <p>
@@ -283,8 +288,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">Confidentiality</h2>
+          <section id="confidentiality" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">Confidentiality</h2>
             <p>
               Each party agrees that all business, technical and financial information, and any
               form of agreements or contracts it obtains from the other party is the confidential
@@ -308,8 +313,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">Feedback License</h2>
+          <section id="feedback" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">Feedback License</h2>
             <p>
               If you provide any idea, recommendation or other suggestion regarding possible
               corrections, improvements or extensions related to any aspect of the Site or
@@ -357,8 +362,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">
+          <section id="modifications" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">
               Modifications to This Agreement
             </h2>
             <p>
@@ -378,8 +383,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">Legal Matters</h2>
+          <section id="legal-matters" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">Legal Matters</h2>
             <p>
               <u>No Warranties</u>. THE SITE, THE DOCUMENTS AND AGREEMENTS AND PRODUCTS MADE
               AVAILABLE THROUGH THE SITE, AND ALL OTHER DATA AND ELEMENTS PROVIDED THROUGH THE
@@ -457,8 +462,8 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-foreground">General</h2>
+          <section id="general" className="space-y-3 scroll-mt-24">
+            <h2 className="font-body text-display-card font-semibold">General</h2>
             <p>
               Your rights and obligations under this Agreement are personal to you, and are not
               assignable, transferable or sublicensable by you except with our prior written
@@ -519,9 +524,7 @@ const Terms = () => {
             </p>
           </section>
         </div>
-      </main>
-      <Footer />
-    </div>
+    </LegalPageLayout>
   );
 };
 
