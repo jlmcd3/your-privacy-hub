@@ -64,7 +64,7 @@ export default function TopicLaneScroller({
         {cards.filter((card, i, arr) => arr.findIndex(c => c.id === card.id) === i).map((card, i) => (
           <div
             key={card.id + '-' + i}
-            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-brand-cloud p-3 hover:shadow-eup-sm hover:-translate-y-0.5 transition-all ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
+            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-brand-cloud p-3 shadow-eup-sm hover:shadow-eup-md motion-safe:hover:-translate-y-0.5 transition-all motion-reduce:transition-shadow ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
           >
             <ArticleCard item={card} variant="compact" />
           </div>

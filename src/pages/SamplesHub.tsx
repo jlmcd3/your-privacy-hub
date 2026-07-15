@@ -264,7 +264,7 @@ export default function SamplesHub() {
           {grouped.map((g) => (
             <article
               key={g.toolSlug}
-              className="rounded-xl border border-brand-cloud bg-card p-6 md:p-7 shadow-sm flex flex-col"
+              className="rounded-xl border border-brand-cloud bg-card p-6 md:p-7 shadow-eup-sm hover:shadow-eup-md transition-shadow motion-reduce:transition-none flex flex-col"
             >
               <header className="mb-3">
                 <h2 className="font-display text-xl md:text-2xl text-brand-navy mb-1">
@@ -301,7 +301,7 @@ export default function SamplesHub() {
                 <Link
                   to={`/samples/${g.toolSlug}`}
                   onClick={() => fireConversion("sample_report_view", { tool_slug: g.toolSlug, variant: "hub-click" })}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text hover:underline no-underline"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text no-underline hover:underline underline-offset-4 decoration-brand-teal motion-safe:transition-colors"
                 >
                   <FileText className="h-4 w-4" aria-hidden /> View sample
                 </Link>

@@ -89,11 +89,11 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
   return (
     <div
       id={t.slug}
-      className="group scroll-mt-24 block p-4 bg-card border border-brand-cloud rounded-xl hover:border-brand-teal/30 hover:shadow-eup-sm transition-all"
+      className="group scroll-mt-24 block p-4 bg-card border border-brand-cloud rounded-xl hover:border-brand-teal/30 hover:shadow-eup-md transition-all motion-reduce:transition-none"
     >
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
-          <Link to={`/glossary/${t.slug}`} className="no-underline">
+          <Link to={`/glossary/${t.slug}`} className="no-underline hover:underline underline-offset-4 decoration-brand-teal motion-safe:transition-colors">
             <h3 className="text-brand-navy mb-1 inline">
               {highlight(t.term, q)}
             </h3>
