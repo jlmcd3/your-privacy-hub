@@ -94,7 +94,7 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "balancing_details",                              kind: "structured", required: "always" },
     { key: "balancing_details.reasonable_expectation",       kind: "enum",       required: "always", options: REASONABLE_EXPECTATION_OPTS },
     { key: "balancing_details.reasonable_expectation_detail", kind: "narrative", required: "optional" },
-    { key: "balancing_details.vulnerable_subjects",          kind: "structured", required: "optional" }, // multi-select shape lives in the form
+    { key: "balancing_details.vulnerable_subjects",          kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L127
     { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "optional" },
     { key: "balancing_details.potential_harm",               kind: "enum",       required: "always", options: POTENTIAL_HARM_OPTS },
     { key: "balancing_details.potential_harm_detail",        kind: "narrative",  required: "optional" },
