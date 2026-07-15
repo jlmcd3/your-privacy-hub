@@ -179,24 +179,25 @@ async function gptCall(system: string, user: string, maxTokens = 3000): Promise<
 
 function tryParse(s: string): any { try { return JSON.parse(s); } catch { const m = s.match(/\{[\s\S]*\}/); return m ? (() => { try { return JSON.parse(m[0]); } catch { return null; } })() : null; } }
 
-function computeOverall(scores: any): number {
+function computeOverall(scores: any, tool: QL3Tool): number {
+  const w = weightsFor(tool);
   return Math.round(
-    (scores.accuracy ?? 60) * WEIGHTS.accuracy +
-    (scores.citation ?? 60) * WEIGHTS.citation +
-    (scores.hallucination ?? 60) * WEIGHTS.hallucination +
-    (scores.analysis ?? 60) * WEIGHTS.analysis +
-    (scores.intelligence ?? 60) * WEIGHTS.intelligence +
-    (scores.formatting ?? 60) * WEIGHTS.formatting
+    (scores.accuracy ?? 60) * w.accuracy +
+    (scores.citation ?? 60) * w.citation +
+    (scores.hallucination ?? 60) * w.hallucination +
+    (scores.analysis ?? 60) * w.analysis +
+    (scores.intelligence ?? 60) * w.intelligence +
+    (scores.formatting ?? 60) * w.formatting
   );
 }
 
-async function gradeOne(role: "claude" | "gpt", intake: any, report: any) {
+async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
-  const user = `TOOL: cppa-risk\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
+  const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
-  const overall = computeOverall(parsed.dimension_scores);
+  const overall = computeOverall(parsed.dimension_scores, tool);
   return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: parsed.findings ?? [], strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
 }
 
