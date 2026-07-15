@@ -136,8 +136,17 @@ Return ONLY valid JSON of this exact shape:
   "critical_failures": ["..."]
 }`;
 }
-// Weights mirror weightsFor("cppa-risk") in run-quality-batch (non-editorial path).
-const WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+// Weights mirror weightsFor(tool) from run-quality-batch/index.ts:154-158.
+// run-quality-batch is untouchable per QL3-P1 and does not export weightsFor,
+// so we mirror it as a local read-only helper. All nine QL3 slugs are
+// non-editorial (EDITORIAL_TOOLS at run-quality-batch:150-152), so the
+// weights are identical across the nine — but we still parameterize by
+// tool so any future editorial reclassification propagates via a code
+// re-mirror rather than a silent divergence.
+const NON_EDITORIAL_WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+function weightsFor(_tool: QL3Tool) {
+  return NON_EDITORIAL_WEIGHTS;
+}
 // ---- END verbatim copy ----
 
 async function claudeCall(system: string, user: string, maxTokens = 5000): Promise<string> {
