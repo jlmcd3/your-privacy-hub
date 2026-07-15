@@ -10,7 +10,6 @@ import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import CopyButton from "@/components/CopyButton";
-import SampleReportLink from "@/components/SampleReportLink";
 import ToolCTABlock from "@/components/ToolCTABlock";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
