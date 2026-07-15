@@ -194,7 +194,7 @@ export default function OnboardingProfile() {
             </button>
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );
