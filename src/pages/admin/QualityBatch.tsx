@@ -15,6 +15,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import JSZip from "jszip";
+
+// QB-P3: slug → generate-report-pdf tool_type. Verified against
+// supabase/functions/generate-report-pdf/index.ts tableMap (L1853–1868).
+const SLUG_TO_TOOL_TYPE: Record<string, string> = {
+  "cppa-admt": "cppa_admt",
+  "cppa-risk": "cppa_risk",
+  "cppa-cyber": "cppa_cybersecurity",
+  "governance": "governance_assessment",
+  "dpia": "dpia_framework",
+  "lia": "li_assessment",
+  "dpa-generator": "dpa_generator",
+  "ir-playbook": "ir_playbook",
+  "biometric-checker": "biometric_checker",
+};
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
 const TOOLS = [
@@ -181,12 +196,12 @@ export default function QualityBatch() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase
-        .from("quality_batch_runs" as any)
+        .from("quality_batch_runs")
         .select("*")
         .order("started_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (data) setActiveBatch(data as any);
+      if (data) setActiveBatch(data as unknown as BatchRow);
     })();
   }, []);
 
@@ -196,13 +211,13 @@ export default function QualityBatch() {
     let cancelled = false;
     const load = async () => {
       const [{ data: batch }, { data: log }] = await Promise.all([
-        supabase.from("quality_batch_runs" as any).select("*").eq("id", activeBatch.id).maybeSingle(),
-        supabase.from("quality_batch_log" as any)
+        supabase.from("quality_batch_runs").select("*").eq("id", activeBatch.id).maybeSingle(),
+        supabase.from("quality_batch_log")
           .select("*").eq("run_id", activeBatch.id).order("ts", { ascending: true }).limit(500),
       ]);
       if (cancelled) return;
-      if (batch) setActiveBatch(batch as any);
-      if (log) setBatchLogs(log as any);
+      if (batch) setActiveBatch(batch as unknown as BatchRow);
+      if (log) setBatchLogs(log as unknown as BatchLogRow[]);
     };
     load();
     const t = setInterval(() => {
@@ -218,15 +233,15 @@ export default function QualityBatch() {
     let cancelled = false;
     const load = async () => {
       const [{ data: rows }, { data: base }] = await Promise.all([
-        supabase.from("quality_batch_runs" as any)
+        supabase.from("quality_batch_runs")
           .select("*").order("started_at", { ascending: false }).limit(10),
-        supabase.from("quality_batch_baselines" as any).select("*"),
+        supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
-      if (rows) setRecentBatches(rows as any);
+      if (rows) setRecentBatches(rows as unknown as BatchRow[]);
       if (base) {
         const m = new Map<string, Baseline>();
-        for (const b of base as any[]) m.set(b.tool, b as Baseline);
+        for (const b of (base as unknown as Baseline[])) m.set(b.tool, b);
         setBaselines(m);
       }
     };
@@ -279,9 +294,9 @@ export default function QualityBatch() {
       if (error) throw error;
       const runId = (data as any)?.run_id;
       if (!runId) throw new Error("orchestrator returned no run_id");
-      const { data: row } = await supabase.from("quality_batch_runs" as any)
+      const { data: row } = await supabase.from("quality_batch_runs")
         .select("*").eq("id", runId).maybeSingle();
-      setActiveBatch(row as any);
+      setActiveBatch(row as unknown as BatchRow);
       setBatchLogs([]);
       toast.success("Batch started");
     } catch (e: any) {
@@ -356,19 +371,25 @@ export default function QualityBatch() {
     const m = new Map<string, number>();
     for (const t of TOOLS) m.set(t, 0);
     for (const b of recentBatches) {
-      const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as any) : [];
+      const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as unknown as ToolResult[]) : [];
       for (const r of results) m.set(r.tool, (m.get(r.tool) ?? 0) + 1);
     }
     return m;
   }, [recentBatches]);
 
   async function onResnapshotBaseline() {
-    if (!window.confirm("Replace baseline with the average of all stored batch results?")) return;
+    if (!window.confirm("Replace baseline with the average of ALL stored batch results (unbounded)?")) return;
     setSnapshotting(true);
     try {
+      // QB-P3 correction: aggregate over ALL quality_batch_runs.tool_results,
+      // not just the last-10 the score matrix keeps in state.
+      const { data: allBatches, error: fetchErr } = await supabase
+        .from("quality_batch_runs")
+        .select("tool_results");
+      if (fetchErr) throw fetchErr;
       const perTool = new Map<string, { claudeSum: number; claudeN: number; gptSum: number; gptN: number }>();
-      for (const b of recentBatches) {
-        const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as any) : [];
+      for (const b of (allBatches ?? [])) {
+        const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as unknown as ToolResult[]) : [];
         for (const r of results) {
           if (r.final_status !== "complete") continue;
           const e = perTool.get(r.tool) ?? { claudeSum: 0, claudeN: 0, gptSum: 0, gptN: 0 };
@@ -387,19 +408,188 @@ export default function QualityBatch() {
         return { tool, claude_score: claude, gpt_score: gpt, avg_score: avg, captured_at: new Date().toISOString() };
       });
       if (rows.length === 0) { toast.message("No complete results to snapshot."); return; }
-      const { error } = await supabase.from("quality_batch_baselines" as any)
+      const { error } = await supabase.from("quality_batch_baselines")
         .upsert(rows, { onConflict: "tool" });
       if (error) throw error;
       const m = new Map<string, Baseline>();
       for (const r of rows) m.set(r.tool, r as Baseline);
       setBaselines(m);
-      toast.success("Baseline re-snapshotted.");
+      toast.success(`Baseline re-snapshotted across ${allBatches?.length ?? 0} batches.`);
     } catch (e: any) {
       toast.error(`Snapshot failed: ${e?.message ?? e}`);
     } finally {
       setSnapshotting(false);
     }
   }
+
+  // ─── QB-P3: PDF zip export (per batch) ───────────────────────────────────
+  async function onDownloadBatchZip(batch: BatchRow) {
+    const toolResults: ToolResult[] = Array.isArray(batch.tool_results)
+      ? (batch.tool_results as unknown as ToolResult[]) : [];
+    const completed = toolResults.filter((r) => r.final_status === "complete" && r.quality_run_id);
+    if (completed.length === 0) { toast.error("No complete tools in this batch."); return; }
+
+    const tid = toast.loading(`Preparing PDFs for batch ${batch.id.slice(0, 8)}…`);
+    try {
+      const zip = new JSZip();
+      let ok = 0, failed = 0, docTotal = 0;
+      for (const tr of completed) {
+        const toolType = SLUG_TO_TOOL_TYPE[tr.tool];
+        if (!toolType) { failed += 1; continue; }
+        const { data: docs, error: docErr } = await supabase
+          .from("quality_run_documents")
+          .select("id, doc_number, source_row_id, status")
+          .eq("run_id", tr.quality_run_id!)
+          .eq("status", "complete")
+          .not("source_row_id", "is", null)
+          .order("doc_number", { ascending: true });
+        if (docErr || !docs) { failed += 1; continue; }
+        for (const d of docs) {
+          docTotal += 1;
+          toast.loading(`Rendering ${tr.tool} #${d.doc_number} (${ok + failed + 1}/${completed.length}+)…`, { id: tid });
+          try {
+            const { data: pdfResp, error: pdfErr } = await supabase.functions.invoke("generate-report-pdf", {
+              body: { tool_type: toolType, assessment_id: d.source_row_id },
+            });
+            if (pdfErr) throw pdfErr;
+            const url = (pdfResp as any)?.pdf_url as string | undefined;
+            if (!url) throw new Error("no pdf_url");
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const shortRow = (d.source_row_id ?? "row").slice(0, 8);
+            zip.file(`${tr.tool}/${String(d.doc_number).padStart(2, "0")}-${shortRow}.pdf`, blob);
+            ok += 1;
+          } catch (e) {
+            console.error("pdf fetch failed", tr.tool, d.source_row_id, e);
+            failed += 1;
+          }
+        }
+      }
+      if (ok === 0) {
+        toast.error(`Zip aborted — 0 of ${docTotal} PDFs rendered.`, { id: tid });
+        return;
+      }
+      const blob = await zip.generateAsync({ type: "blob" });
+      const stamp = new Date().toISOString().slice(0, 10);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `quality-batch-${batch.id.slice(0, 8)}-${stamp}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      toast.success(`Zipped ${ok} PDF${ok === 1 ? "" : "s"}${failed ? ` · ${failed} failed` : ""}.`, { id: tid });
+    } catch (e: any) {
+      toast.error(`Zip failed: ${e?.message ?? e}`, { id: tid });
+    }
+  }
+
+  // ─── QB-P3: markdown analysis export (per batch) ─────────────────────────
+  async function onExportBatchMarkdown(batch: BatchRow) {
+    const tid = toast.loading(`Building analysis for batch ${batch.id.slice(0, 8)}…`);
+    try {
+      const toolResults: ToolResult[] = Array.isArray(batch.tool_results)
+        ? (batch.tool_results as unknown as ToolResult[]) : [];
+      const lines: string[] = [];
+      lines.push(`# Quality Batch Analysis — ${batch.id}`);
+      lines.push("");
+      lines.push(`- Started: ${batch.started_at}`);
+      lines.push(`- Completed: ${batch.completed_at ?? "—"}`);
+      lines.push(`- Status: ${batch.status}  ·  Phase: ${batch.phase}`);
+      lines.push(`- Batch size: ${batch.batch_size}`);
+      lines.push(`- Tools (${batch.tools.length}): ${batch.tools.join(", ")}`);
+      lines.push("");
+      lines.push("## Per-tool summary");
+      lines.push("");
+      lines.push("| Tool | final_status | score_overall | gpt_score_overall | error |");
+      lines.push("| --- | --- | --- | --- | --- |");
+      for (const tr of toolResults) {
+        lines.push(
+          `| ${tr.tool} | ${tr.final_status} | ${tr.score_overall ?? "—"} | ${tr.gpt_score_overall ?? "—"} | ${tr.error ? tr.error.replace(/\|/g, "\\|").slice(0, 200) : ""} |`,
+        );
+      }
+      lines.push("");
+
+      for (const tr of toolResults) {
+        if (!tr.quality_run_id) continue;
+        lines.push(`## ${tr.tool}  ·  run \`${tr.quality_run_id}\``);
+        lines.push("");
+        const { data: docs } = await supabase
+          .from("quality_run_documents")
+          .select("doc_number, overall_score, gpt_overall_score, cross_review_status, source_row_id, status")
+          .eq("run_id", tr.quality_run_id)
+          .order("doc_number", { ascending: true });
+        lines.push("### Documents");
+        lines.push("");
+        lines.push("| # | status | overall_score | gpt_overall_score | cross_review_status | source_row_id |");
+        lines.push("| --- | --- | --- | --- | --- | --- |");
+        const disagreements: string[] = [];
+        for (const d of (docs ?? [])) {
+          lines.push(`| ${d.doc_number} | ${d.status} | ${d.overall_score ?? "—"} | ${d.gpt_overall_score ?? "—"} | ${d.cross_review_status ?? "—"} | ${d.source_row_id ?? "—"} |`);
+          const c = d.overall_score, g = d.gpt_overall_score;
+          if (typeof c === "number" && typeof g === "number" && Math.abs(c - g) > 10) {
+            disagreements.push(`- doc #${d.doc_number}: claude=${c}, gpt=${g}, |Δ|=${Math.abs(c - g).toFixed(1)}`);
+          }
+          if (d.cross_review_status && /disagree|conflict|divergent/i.test(d.cross_review_status)) {
+            disagreements.push(`- doc #${d.doc_number}: cross_review_status="${d.cross_review_status}"`);
+          }
+        }
+        lines.push("");
+        if (disagreements.length) {
+          lines.push("### Cross-model disagreements (>10 pt or status)");
+          lines.push("");
+          for (const s of disagreements) lines.push(s);
+          lines.push("");
+        }
+
+        const { data: findings } = await supabase
+          .from("quality_findings")
+          .select("check_id, check_type, dimension, severity, evidence, doc_id, passed")
+          .eq("run_id", tr.quality_run_id)
+          .eq("passed", false)
+          .order("dimension", { ascending: true });
+        lines.push("### Failed findings (grouped by dimension)");
+        lines.push("");
+        const byDim = new Map<string, typeof findings>();
+        for (const f of (findings ?? [])) {
+          const arr = byDim.get(f.dimension) ?? ([] as any);
+          (arr as any[]).push(f);
+          byDim.set(f.dimension, arr as any);
+        }
+        if (byDim.size === 0) {
+          lines.push("_No failed findings._");
+          lines.push("");
+        } else {
+          for (const [dim, arr] of byDim.entries()) {
+            lines.push(`#### ${dim}  (${(arr as any[]).length})`);
+            lines.push("");
+            for (const f of arr as any[]) {
+              const ev = (f.evidence ?? "").toString().replace(/\s+/g, " ").slice(0, 400);
+              lines.push(`- **[${f.severity}] ${f.check_id}** _(${f.check_type})_ — ${ev}`);
+            }
+            lines.push("");
+          }
+        }
+      }
+
+      lines.push("---");
+      lines.push("");
+      lines.push("_Generated for prompt-improvement analysis — paste to Claude._");
+      const md = lines.join("\n");
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const stamp = new Date().toISOString().slice(0, 10);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `quality-batch-${batch.id.slice(0, 8)}-${stamp}.md`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      toast.success("Analysis .md ready.", { id: tid });
+    } catch (e: any) {
+      toast.error(`Export failed: ${e?.message ?? e}`, { id: tid });
+    }
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -465,12 +655,22 @@ export default function QualityBatch() {
               </Button>
             )}
             {activeBatch && (
-              <div className="text-sm text-muted-foreground">
-                Run <code>{activeBatch.id.slice(0, 8)}</code> · <Badge variant="outline">{activeBatch.status}</Badge>
-                {" · "}phase <code>{activeBatch.phase}</code>
-                {" · "}<span className="font-mono">{currentTool ?? "—"}</span>
-                {" · "}{doneCount}/{totalCount} tools
-              </div>
+              <>
+                <div className="text-sm text-muted-foreground">
+                  Run <code>{activeBatch.id.slice(0, 8)}</code> · <Badge variant="outline">{activeBatch.status}</Badge>
+                  {" · "}phase <code>{activeBatch.phase}</code>
+                  {" · "}<span className="font-mono">{currentTool ?? "—"}</span>
+                  {" · "}{doneCount}/{totalCount} tools
+                </div>
+                <Button size="sm" variant="outline"
+                  disabled={isBatchRunning}
+                  onClick={() => onDownloadBatchZip(activeBatch)}
+                  title={isBatchRunning ? "Finish batch first" : "Zip all completed-tool PDFs"}
+                >Download PDFs (zip)</Button>
+                <Button size="sm" variant="outline" onClick={() => onExportBatchMarkdown(activeBatch)}>
+                  Export analysis (.md)
+                </Button>
+              </>
             )}
           </div>
           {activeBatch?.last_error && (
@@ -573,7 +773,7 @@ export default function QualityBatch() {
               <thead>
                 <tr className="border-b text-left">
                   <th className="py-2 pr-3">Tool</th>
-                  <th className="py-2 pr-3">Tests</th>
+                  <th className="py-2 pr-3">Tests (last 10)</th>
                   <th className="py-2 pr-3 bg-muted/40">Baseline</th>
                   {matrixColumns.map((b, i) => (
                     <th
@@ -584,6 +784,20 @@ export default function QualityBatch() {
                       Batch {i + 1}
                       <div className="text-[10px] font-normal text-muted-foreground">
                         {new Date(b.started_at).toLocaleDateString()}
+                      </div>
+                      <div className="flex gap-1 mt-1">
+                        <button
+                          type="button"
+                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                          onClick={() => onDownloadBatchZip(b)}
+                          title="Download PDFs (zip)"
+                        >zip</button>
+                        <button
+                          type="button"
+                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                          onClick={() => onExportBatchMarkdown(b)}
+                          title="Export analysis (.md)"
+                        >md</button>
                       </div>
                     </th>
                   ))}
@@ -607,7 +821,7 @@ export default function QualityBatch() {
                       </td>
                       {matrixColumns.map((b) => {
                         const results: ToolResult[] = Array.isArray(b.tool_results)
-                          ? (b.tool_results as any) : [];
+                          ? (b.tool_results as unknown as ToolResult[]) : [];
                         const entry = results.find((r) => r.tool === tool);
                         if (!entry) {
                           return <td key={b.id} className="py-2 pr-3 text-muted-foreground">—</td>;
