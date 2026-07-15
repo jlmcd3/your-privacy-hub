@@ -217,6 +217,18 @@ const UpdateDetail = () => {
           <title>{article.title} | End User Privacy</title>
           <meta name="description" content={metaDesc} />
           <meta name="robots" content="noindex, nofollow" />
+          <meta property="og:title" content={article.title} />
+          {metaDesc && <meta property="og:description" content={metaDesc} />}
+          <meta property="og:type" content="article" />
+          <script type="application/ld+json">{JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: article.title,
+            datePublished: article.published_at,
+            ...(article.source_name ? { publisher: { "@type": "Organization", name: article.source_name } } : {}),
+            ...(metaDesc ? { description: metaDesc } : {}),
+            url: `https://enduserprivacy.com/updates/${article.id}`,
+          })}</script>
         </Helmet>
       )}
       {!article && !loading && (
