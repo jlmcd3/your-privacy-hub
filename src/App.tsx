@@ -166,6 +166,7 @@ const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests
 const AdminTestRunMeter = lazy(() => import("./pages/admin/AdminTestRunMeter"));
 const AdminHub = lazy(() => import("./pages/admin/AdminHub"));
 const AdminOps = lazy(() => import("./pages/admin/AdminOps"));
+const AdminTraffic = lazy(() => import("./pages/admin/AdminTraffic"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
 const AdminSpend = lazy(() => import("./pages/admin/AdminSpend"));
