@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { AlertTriangle, Filter, LogIn, Lock, RefreshCw, Search, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ function Stars({ n }: { n: number | null }) {
 export default function Enforcement() {
   const [params, setParams] = useSearchParams();
   const { isPremium, isLoading: authLoading } = usePremiumStatus();
+  const fireConversion = useConversionEvent();
 
   const view = (params.get("view") ?? "recent") as "recent" | "archive";
   const q = params.get("q") ?? "";
@@ -383,7 +385,7 @@ export default function Enforcement() {
                   everyone.
                 </p>
               </div>
-              <Link to="/subscribe" className="shrink-0">
+              <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Upgrade to Premium", cta_position: "feature-gate" })} className="shrink-0">
                 <Button>Upgrade to Premium</Button>
               </Link>
             </CardContent>
@@ -578,7 +580,7 @@ export default function Enforcement() {
               </div>
               <div className="shrink-0 flex gap-2">
                 {archiveError.kind === "premium" && (
-                  <Link to="/subscribe">
+                  <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Upgrade to Premium", cta_position: "feed-gate" })}>
                     <Button size="sm">Upgrade to Premium</Button>
                   </Link>
                 )}
