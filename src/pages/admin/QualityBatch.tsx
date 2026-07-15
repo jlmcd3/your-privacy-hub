@@ -1,23 +1,23 @@
 // QualityBatch — admin console for run-quality-batch.
 //
-// Mirrors QualityLoop3.tsx structure (same auth model via AdminOnly wrapper in
-// App.tsx, same 8s polling pattern). Additive to /admin/quality-loop2 — that
-// page is untouched.
+// Multi-product mode: admin selects any subset of the nine tools; the frontend
+// fires run-quality-batch sequentially (one tool at a time), polling the
+// resulting quality_runs row until it reaches a terminal status before
+// dequeuing the next tool. This mirrors ql2-orchestrator's server-side
+// one-product-at-a-time discipline, implemented client-side because
+// run-quality-batch itself takes one tool per invocation.
+//
+// Terminal statuses for quality_runs (verified in codebase, see TERMINAL_STATUSES
+// below — complete/completed/done/error/failed/cancelled/canceled).
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 
 // Matches run-quality-batch CONTRACT_MAP keys verbatim.
@@ -53,7 +53,9 @@ type QRun = {
   progress_log: LogEntry[] | null;
 };
 
-const TERMINAL_STATUSES = new Set(["complete", "completed", "done", "error", "failed", "cancelled", "canceled"]);
+const TERMINAL_STATUSES = new Set([
+  "complete", "completed", "done", "error", "failed", "cancelled", "canceled",
+]);
 const isTerminal = (s: string) => TERMINAL_STATUSES.has(s?.toLowerCase?.() ?? "");
 
 const SELECT_COLS =
@@ -102,12 +104,47 @@ function LogPanel({ entries }: { entries: LogEntry[] | null }) {
   );
 }
 
+// Poll a single quality_runs row by id until it hits a terminal status
+// or the caller signals cancel. Returns the last row observed.
+async function pollUntilTerminal(
+  runId: string,
+  cancelRef: { cancelled: boolean },
+  intervalMs = 8000,
+): Promise<QRun | null> {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (cancelRef.cancelled) return null;
+    const { data } = await supabase
+      .from("quality_runs")
+      .select(SELECT_COLS)
+      .eq("id", runId)
+      .maybeSingle();
+    const row = data as any as QRun | null;
+    if (row && isTerminal(row.status)) return row;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+
+type QueueItem = {
+  tool: string;
+  state: "pending" | "running" | "done" | "error" | "skipped";
+  run_id?: string;
+  run_number?: number | null;
+  final_status?: string;
+  error?: string;
+};
+
 export default function QualityBatch() {
-  const [tool, setTool] = useState<string>("governance");
+  const [selected, setSelected] = useState<Set<string>>(new Set(TOOLS));
   const [batchSize, setBatchSize] = useState<number>(5);
-  const [starting, setStarting] = useState(false);
   const [resumeId, setResumeId] = useState("");
+  const [resumeTool, setResumeTool] = useState<string>("governance");
   const [resuming, setResuming] = useState(false);
+
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [running, setRunning] = useState(false);
+  const cancelRef = useRef<{ cancelled: boolean }>({ cancelled: false });
+
   const [runs, setRuns] = useState<QRun[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -118,7 +155,7 @@ export default function QualityBatch() {
       .from("quality_runs")
       .select(SELECT_COLS)
       .order("started_at", { ascending: false })
-      .limit(20);
+      .limit(30);
     setLoading(false);
     if (error) {
       toast.error(`Load failed: ${error.message}`);
@@ -128,43 +165,85 @@ export default function QualityBatch() {
   }
 
   const anyActive = useMemo(() => runs.some((r) => !isTerminal(r.status)), [runs]);
+  useEffect(() => { refresh(); }, []);
   useEffect(() => {
-    refresh();
-  }, []);
-  useEffect(() => {
-    // Poll while there are non-terminal rows OR any panel is expanded (log updates).
-    if (!anyActive && expanded.size === 0) return;
+    if (!anyActive && expanded.size === 0 && !running) return;
     const t = setInterval(refresh, 8000);
     return () => clearInterval(t);
-  }, [anyActive, expanded.size]);
+  }, [anyActive, expanded.size, running]);
 
-  async function startBatch() {
-    setStarting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("run-quality-batch", {
-        body: { tool, batch_size: batchSize },
-      });
-      if (error) throw error;
-      const d = (data as any) ?? {};
-      toast.success(`Batch started: run ${d.run_number ?? "?"} · ${d.run_id ?? "ok"}`);
-      refresh();
-    } catch (e: any) {
-      const msg = e?.context?.body ?? e?.message ?? String(e);
-      toast.error(`Kickoff failed: ${typeof msg === "string" ? msg : JSON.stringify(msg)}`);
-    } finally {
-      setStarting(false);
+  function toggleTool(t: string, checked: boolean) {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (checked) n.add(t); else n.delete(t);
+      return n;
+    });
+  }
+
+  function updateQueueItem(idx: number, patch: Partial<QueueItem>) {
+    setQueue((prev) => prev.map((q, i) => (i === idx ? { ...q, ...patch } : q)));
+  }
+
+  async function startQueue() {
+    const tools = TOOLS.filter((t) => selected.has(t));
+    if (tools.length === 0) { toast.error("Select at least one tool"); return; }
+    const initial: QueueItem[] = tools.map((t) => ({ tool: t, state: "pending" }));
+    setQueue(initial);
+    setRunning(true);
+    cancelRef.current = { cancelled: false };
+
+    for (let i = 0; i < tools.length; i++) {
+      if (cancelRef.current.cancelled) {
+        // Mark remaining as skipped.
+        setQueue((prev) => prev.map((q, idx) => (idx >= i && q.state === "pending" ? { ...q, state: "skipped" } : q)));
+        break;
+      }
+      const tool = tools[i];
+      updateQueueItem(i, { state: "running" });
+      try {
+        const { data, error } = await supabase.functions.invoke("run-quality-batch", {
+          body: { tool, batch_size: batchSize },
+        });
+        if (error) throw error;
+        const d = (data as any) ?? {};
+        const runId: string | undefined = d.run_id;
+        if (!runId) throw new Error("run-quality-batch returned no run_id");
+        updateQueueItem(i, { run_id: runId, run_number: d.run_number ?? null });
+        refresh();
+        const row = await pollUntilTerminal(runId, cancelRef.current);
+        if (!row) {
+          updateQueueItem(i, { state: "skipped" });
+        } else {
+          const terminalIsError = ["error", "failed"].includes((row.status ?? "").toLowerCase());
+          updateQueueItem(i, {
+            state: terminalIsError ? "error" : "done",
+            final_status: row.status,
+            error: row.error ?? undefined,
+          });
+        }
+        refresh();
+      } catch (e: any) {
+        const msg = e?.context?.body ?? e?.message ?? String(e);
+        updateQueueItem(i, { state: "error", error: typeof msg === "string" ? msg : JSON.stringify(msg) });
+        toast.error(`${tool}: ${typeof msg === "string" ? msg : "invocation failed"}`);
+        // Continue with next tool — one crash shouldn't abort the queue.
+      }
     }
+    setRunning(false);
+    refresh();
+  }
+
+  function cancelQueue() {
+    cancelRef.current.cancelled = true;
+    toast.message("Cancel requested — will stop after the current tool finishes.");
   }
 
   async function resumeRun() {
-    if (!resumeId.trim()) {
-      toast.error("resume_run_id required");
-      return;
-    }
+    if (!resumeId.trim()) { toast.error("resume_run_id required"); return; }
     setResuming(true);
     try {
       const { data, error } = await supabase.functions.invoke("run-quality-batch", {
-        body: { tool, resume_run_id: resumeId.trim() },
+        body: { tool: resumeTool, resume_run_id: resumeId.trim() },
       });
       if (error) throw error;
       const d = (data as any) ?? {};
@@ -188,6 +267,9 @@ export default function QualityBatch() {
     });
   }
 
+  const doneCount = queue.filter((q) => q.state === "done" || q.state === "error" || q.state === "skipped").length;
+  const currentTool = queue.find((q) => q.state === "running")?.tool ?? null;
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-baseline justify-between">
@@ -196,55 +278,109 @@ export default function QualityBatch() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Start a new batch</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Start a new batch</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Tool</Label>
-              <Select value={tool} onValueChange={setTool}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TOOLS.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div>
+            <Label>Tools (queued sequentially)</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+              {TOOLS.map((t) => (
+                <label key={t} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={selected.has(t)}
+                    onCheckedChange={(v) => toggleTool(t, v === true)}
+                    disabled={running}
+                  />
+                  <span className="font-mono text-xs">{t}</span>
+                </label>
+              ))}
             </div>
-            <div>
-              <Label>Batch size</Label>
-              <Input
-                type="number"
-                min={1}
-                max={50}
-                value={batchSize}
-                onChange={(e) => setBatchSize(Math.max(1, Number(e.target.value) || 1))}
-              />
+            <div className="flex gap-2 mt-2 text-xs">
+              <button
+                type="button"
+                className="text-brand-teal-text underline hover:no-underline disabled:opacity-40"
+                disabled={running}
+                onClick={() => setSelected(new Set(TOOLS))}
+              >Select all</button>
+              <button
+                type="button"
+                className="text-brand-teal-text underline hover:no-underline disabled:opacity-40"
+                disabled={running}
+                onClick={() => setSelected(new Set())}
+              >Clear</button>
+              <span className="text-muted-foreground ml-auto">{selected.size} selected</span>
             </div>
           </div>
+
+          <div>
+            <Label>Batch size (applied to every selected tool)</Label>
+            <Input
+              type="number"
+              min={1}
+              max={50}
+              value={batchSize}
+              disabled={running}
+              onChange={(e) => setBatchSize(Math.max(1, Number(e.target.value) || 1))}
+            />
+          </div>
+
           <div className="flex flex-wrap gap-2">
-            <Button onClick={startBatch} disabled={starting}>
-              {starting ? "Starting…" : "Start batch"}
+            <Button onClick={startQueue} disabled={running || selected.size === 0}>
+              {running ? `Running ${currentTool ?? "…"}` : `Start (${selected.size})`}
             </Button>
+            {running && (
+              <Button variant="outline" onClick={cancelQueue} disabled={cancelRef.current.cancelled}>
+                {cancelRef.current.cancelled ? "Stopping…" : "Cancel remaining"}
+              </Button>
+            )}
           </div>
+
+          {queue.length > 0 && (
+            <div className="border rounded p-3 space-y-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Queue: {doneCount}/{queue.length} finished</span>
+                {currentTool && <span className="text-muted-foreground">currently: <span className="font-mono">{currentTool}</span></span>}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-1 mt-2">
+                {queue.map((q) => (
+                  <div key={q.tool} className="flex items-center gap-2">
+                    <Badge variant={
+                      q.state === "done" ? "default"
+                        : q.state === "error" ? "destructive"
+                        : q.state === "running" ? "secondary"
+                        : "outline"
+                    } className="h-4 text-[10px]">{q.state}</Badge>
+                    <span className="font-mono">{q.tool}</span>
+                    {q.run_number != null && <span className="text-muted-foreground">#{q.run_number}</span>}
+                    {q.final_status && <span className="text-muted-foreground">· {q.final_status}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pt-2 border-t space-y-2">
             <Label>Resume existing run</Label>
-            <div className="flex gap-2">
-              <Input
-                value={resumeId}
-                onChange={(e) => setResumeId(e.target.value)}
-                placeholder="quality_runs.id (UUID)"
-              />
-              <Button variant="secondary" onClick={resumeRun} disabled={resuming}>
-                {resuming ? "…" : "Resume"}
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="md:col-span-2">
+                <Input
+                  value={resumeId}
+                  onChange={(e) => setResumeId(e.target.value)}
+                  placeholder="quality_runs.id (UUID)"
+                  disabled={running}
+                />
+              </div>
+              <select
+                value={resumeTool}
+                onChange={(e) => setResumeTool(e.target.value)}
+                disabled={running}
+                className="h-10 rounded border bg-background px-2 text-sm"
+              >
+                {TOOLS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
+            <Button variant="secondary" onClick={resumeRun} disabled={resuming || running}>
+              {resuming ? "…" : "Resume"}
+            </Button>
             <p className="text-xs text-muted-foreground">
               Sends {"{ tool, resume_run_id }"} to run-quality-batch. Tool must match the row.
             </p>
