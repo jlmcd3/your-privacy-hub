@@ -305,4 +305,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   return json({ ok: true, mean_score, stored_note_id, payload });
-});
+};
+
+// QL3-P1.2: expose handler for tests; only bind Deno.serve when run as
+// the entrypoint (mirrors ql3-orchestrator/ql3-batch-orchestrator).
+export { handler };
+if (import.meta.main) Deno.serve(handler);
