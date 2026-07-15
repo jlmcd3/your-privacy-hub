@@ -33,29 +33,29 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Jurisdiction profiles (worldwide)", free: true, intel: true, platform: true },
   { feature: "Regulator directory", free: true, intel: true, platform: true },
   { feature: "Research guides (GDPR, AI Act, US laws)", free: true, intel: true, platform: true },
-  { feature: "Enforcement tracker, all actions", free: true, intel: true, platform: true },
+  { feature: "Enforcement tracker — all actions", free: true, intel: true, platform: true },
   { feature: "Personalized weekly digest", free: true, intel: true, platform: true },
 
   { isSection: true, feature: "The intelligence layer" },
   { feature: "Cross-jurisdiction signals and pattern analysis", free: true, intel: true, platform: true },
-  { feature: "Full Privacy Intelligence Report, customized for your industry & jurisdictions", free: false, intel: true, platform: true },
+  { feature: "Full Privacy Intelligence Report — customized for your industry & jurisdictions", free: false, intel: true, platform: true },
   { feature: "Enforcement trends & pattern signals", free: false, intel: true, platform: true },
   { feature: "Per-article intelligence: regulatory theory, action items, sectors", free: false, intel: true, platform: true },
-  { feature: "AI investigation prompt, pre-loaded with regulatory context, ready to paste into any AI assistant", free: false, intel: true, platform: true },
+  { feature: "AI investigation prompt — pre-loaded with regulatory context, ready to paste into any AI assistant", free: false, intel: true, platform: true },
   { feature: "Priority Monday delivery", free: false, intel: true, platform: true },
 
-  { isSection: true, feature: "The action layer, compliance tools with cited enforcement evidence" },
+  { isSection: true, feature: "The action layer — compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "4 generations per report, refine and regenerate at no extra cost", free: true, intel: true, platform: true },
+  { feature: "4 generations per report — refine and regenerate at no extra cost", free: true, intel: true, platform: true },
   { feature: "Governance Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
   { feature: "Legitimate Interest Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
   { feature: "DPA Generator (Smart Tool)", free: false, intel: T.dpa.display, platform: T.dpa.display },
   { feature: "IR Playbook (Convenience)", free: false, intel: T.ir_playbook.display, platform: T.ir_playbook.display },
   { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: T.biometric.display, platform: T.biometric.display },
-  { feature: "Records of Processing (RoPA), subscriber-only", free: "—", intel: "Included", platform: "Included" },
-  { feature: "US Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
-  { feature: "EU & Global Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "Records of Processing (RoPA) — subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "US Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "EU & Global Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
   { feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: false, intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
@@ -110,7 +110,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month, client/matter workspaces. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client/matter workspaces. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
         />
       </Helmet>
       <Navbar />
@@ -145,12 +145,12 @@ const Subscribe = () => {
               </div>
               <p className="text-brand-cloud text-meta mb-1">
 
-                or {PRICING.intelligence.annual.display}/year, {PRICING.intelligence.annual.savingDisplay}
+                or {PRICING.intelligence.annual.display}/year — {PRICING.intelligence.annual.savingDisplay}
               </p>
               <ul className="space-y-2 mb-6">
                 {[
                   "Daily privacy intelligence feed",
-                  "Weekly Privacy Intelligence Report, personalised by role, jurisdiction & topics",
+                  "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "Reports & documents translatable into 20+ languages",
                   "AI investigation prompt on every article",
                   "Access to some compliance tools at standalone prices",
@@ -171,11 +171,11 @@ const Subscribe = () => {
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
                     <span className="text-brand-mist font-bold">✓</span>
-                    <span><strong className="text-white">1 free Smart Tool run/year</strong> (Governance, LIA, or DPIA, up to {INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
+                    <span><strong className="text-white">1 free Smart Tool run/year</strong> (Governance, LIA, or DPIA — up to {INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-brand-mist font-bold">✓</span>
-                    <span>Subscriber pricing on Smart Tools, <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
+                    <span>Subscriber pricing on Smart Tools — <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-brand-mist font-bold">✓</span>
@@ -193,7 +193,7 @@ const Subscribe = () => {
                   disabled={!!loading}
                   className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
                 >
-                  Start annual, {PRICING.intelligence.annual.display}/yr <ArrowRight className="w-4 h-4 inline ml-1" />
+                  Start annual — {PRICING.intelligence.annual.display}/yr <ArrowRight className="w-4 h-4 inline ml-1" />
                 </button>
                 <button
                   onClick={() => startCheckout("month", "intelligence")}
@@ -226,7 +226,7 @@ const Subscribe = () => {
                 <span className="text-brand-cloud text-lg font-normal">/month</span>
               </div>
               <p className="text-amber-100 text-meta mb-1">
-                or {PRICING.professional.annual.display}/year, {PRICING.professional.annual.savingDisplay}
+                or {PRICING.professional.annual.display}/year — {PRICING.professional.annual.savingDisplay}
               </p>
               <p className="text-brand-cloud/80 text-meta mb-1">
                 {PRICING.professional.annual.note}
@@ -238,7 +238,7 @@ const Subscribe = () => {
                 {[
                   "Everything in Intelligence (for account holder)",
                   "Client/matter workspace & compliance record",
-                  `3 free Smart Tool runs per year (annual plan only, up to ${PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)`,
+                  `3 free Smart Tool runs per year (annual plan only — up to ${PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)`,
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
@@ -254,11 +254,11 @@ const Subscribe = () => {
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-400 font-bold">✓</span>
-                    <span><strong className="text-white">3 free Smart Tool runs/year</strong> (Governance, LIA, or DPIA, up to {PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
+                    <span><strong className="text-white">3 free Smart Tool runs/year</strong> (Governance, LIA, or DPIA — up to {PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-400 font-bold">✓</span>
-                    <span>Lowest per-tool pricing, <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
+                    <span>Lowest per-tool pricing — <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-400 font-bold">✓</span>
@@ -276,7 +276,7 @@ const Subscribe = () => {
                   disabled={!!loading}
                   className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
                 >
-                  Start annual, {PRICING.professional.annual.display}/yr <ArrowRight className="w-4 h-4 inline ml-1" />
+                  Start annual — {PRICING.professional.annual.display}/yr <ArrowRight className="w-4 h-4 inline ml-1" />
                 </button>
                 <button
                   onClick={() => startCheckout("month", "professional")}
@@ -287,7 +287,7 @@ const Subscribe = () => {
                 </button>
               </div>
               <p className="text-center text-amber-100/80 text-meta mt-2">
-                Add clients at {PRICING.professional.perClient.display}/client/year, no minimum.
+                Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
               </p>
               <Link
                 to="/samples/governance"
@@ -317,7 +317,7 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-brand-navy/70">at {T.registration.display} per filing.</span>
+          <span className="text-brand-navy/70">— {T.registration.display} per filing.</span>
         </div>
       </div>
 
@@ -325,7 +325,7 @@ const Subscribe = () => {
         <div className="flex items-center justify-center gap-2 rounded-xl bg-brand-cloud py-3 px-5">
           <ShieldCheck className="w-5 h-5 text-brand-teal-text flex-shrink-0" />
           <p className="text-center text-base font-semibold text-brand-navy">
-            Tool output calibrated against enforcement decisions and regulatory guidance, not just statutory text.
+            Tool output calibrated against enforcement decisions and regulatory guidance — not just statutory text.
           </p>
         </div>
       </div>
@@ -353,18 +353,18 @@ const Subscribe = () => {
                   { type: 'row', feature: "Jurisdiction profiles (worldwide)", free: "✓", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Regulator directory", free: "✓", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Research guides (GDPR, biometric, health, etc.)", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Enforcement tracker, all actions", free: "✓", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "Enforcement tracker — all actions", free: "✓", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Personalized weekly digest", free: "✓", intel: "✓", platform: "✓" },
 
                   { type: 'section', feature: "The intelligence layer" },
                   { type: 'row', feature: "Cross-jurisdiction signals and pattern analysis", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Full Privacy Intelligence Report, customized for your industry & jurisdictions", free: "—", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "Full Privacy Intelligence Report — customized for your industry & jurisdictions", free: "—", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Enforcement trends & pattern signals", free: "—", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Per-article intelligence: regulatory theory, action items, sectors", free: "—", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "AI investigation prompt, pre-loaded with regulatory context, ready to paste into any AI assistant", free: "—", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "AI investigation prompt — pre-loaded with regulatory context, ready to paste into any AI assistant", free: "—", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Priority Monday delivery", free: "—", intel: "✓", platform: "✓" },
 
-                  { type: 'section', feature: "The action layer, compliance tools with cited enforcement evidence" },
+                  { type: 'section', feature: "The action layer — compliance tools with cited enforcement evidence" },
                   { type: 'row', feature: "Sample preview of all tools", free: "✓", intel: "✓", platform: "✓" },
                   { type: 'row', feature: "Governance Assessment (Smart)", free: "—", intel: T.governance.display, platform: T.governance.display },
                   { type: 'row', feature: "Legitimate Interest Assessment (Smart)", free: "—", intel: T.lia.display, platform: T.lia.display },
@@ -415,7 +415,7 @@ const Subscribe = () => {
         </div>
         <p className="text-center text-xs text-brand-steel mt-4">
           Individual tools also available as standalone purchases.
-          CPPA Scope Checker is free, no account required.
+          CPPA Scope Checker is free — no account required.
         </p>
       </div>
 
@@ -544,7 +544,7 @@ const Subscribe = () => {
                   role="img"
                   aria-label="Donut chart of the privacy professional's toolkit. End User Privacy occupies the largest segment at 40 percent."
                 >
-                  <title>The privacy professional's toolkit, End User Privacy fills the missing piece</title>
+                  <title>The privacy professional's toolkit — End User Privacy fills the missing piece</title>
                   {/* EUP segment: 40% */}
                   <path d="M120,24 A96,96 0 0,1 176.4,197.7 L151.7,163.7 A54,54 0 0,0 120,66 Z" fill="#D97706" stroke="#B45309" strokeWidth="1" />
                   {/* Legal research: 15% */}
@@ -573,7 +573,7 @@ const Subscribe = () => {
                   {
                     color: "bg-amber-500",
                     name: "Regulatory intelligence and action",
-                    desc: "What changed, what it means for your work, and what to do, automatically, every week.",
+                    desc: "What changed, what it means for your work, and what to do — automatically, every week.",
                     nameClass: "text-amber-800",
                   },
                   {
@@ -621,11 +621,11 @@ const Subscribe = () => {
               End User Privacy
             </p>
             <h3 className="text-brand-navy mb-2 leading-snug">
-              The monitoring and action layer, purpose-built
+              The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">
               Our tools monitor privacy regulatory authorities worldwide, synthesise every development,
-              and tell you what it means for your specific work, automatically, every week.
+              and tell you what it means for your specific work — automatically, every week.
               Plus the compliance documents to act on it.
             </p>
           </div>
@@ -651,7 +651,7 @@ const Subscribe = () => {
           <div className="border-l-[3px] border-amber-500 bg-card border border-brand-cloud rounded-r-xl px-5 py-4">
             <p className="text-sm text-slate leading-relaxed italic">
               "End User Privacy is the monitoring and intelligence layer you add once, and
-              then stop having to think about, working alongside the professional tools you
+              then stop having to think about — working alongside the professional tools you
               already rely on."
             </p>
           </div>
@@ -659,10 +659,10 @@ const Subscribe = () => {
 
         {error && <p className="text-center text-severity-warning text-sm mt-6">{error}</p>}
 
-        {/* ROI block, registry-computed */}
+        {/* ROI block — registry-computed */}
         <div className="max-w-3xl mx-auto mt-12 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-brand-cloud bg-card p-5">
-            <p className="text-eyebrow text-brand-teal-text mb-2">Intelligence annual, return on cost</p>
+            <p className="text-eyebrow text-brand-teal-text mb-2">Intelligence annual — return on cost</p>
             <p className="text-sm text-slate leading-relaxed">
               At <strong className="text-brand-navy">{PRICING.intelligence.annual.display}/year</strong>,
               one included Smart Tool run (up to <strong className="text-brand-navy">{INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY}</strong> value)
@@ -670,11 +670,11 @@ const Subscribe = () => {
             </p>
           </div>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-            <p className="text-eyebrow text-amber-800 mb-2">Professional annual, return on cost</p>
+            <p className="text-eyebrow text-amber-800 mb-2">Professional annual — return on cost</p>
             <p className="text-sm text-slate leading-relaxed">
               At <strong className="text-brand-navy">{PRICING.professional.annual.display}/year</strong>,
               three included Smart Tool runs (up to <strong className="text-brand-navy">{PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY}</strong> value)
-              cover more than half the subscription, before the client workspace pays for itself.
+              cover more than half the subscription — before the client workspace pays for itself.
             </p>
           </div>
         </div>
@@ -694,11 +694,11 @@ const Subscribe = () => {
               },
               {
                 q: "Is the output legal advice?",
-                a: "No. Outputs are calibrated against enforcement decisions and regulatory guidance to support your legal review, they must be reviewed by qualified counsel before operational use.",
+                a: "No. Outputs are calibrated against enforcement decisions and regulatory guidance to support your legal review — they must be reviewed by qualified counsel before operational use.",
               },
               {
                 q: "Do free Smart Tool runs roll over?",
-                a: "No. Free runs are per annual term (1 for Intelligence annual, 3 for Professional annual, Governance, LIA, or DPIA). Subscriber pricing applies to every additional run.",
+                a: "No. Free runs are per annual term (1 for Intelligence annual, 3 for Professional annual — Governance, LIA, or DPIA). Subscriber pricing applies to every additional run.",
               },
             ].map((item) => (
               <details key={item.q} className="group rounded-xl border border-brand-cloud bg-card p-4 open:shadow-eup-sm">
