@@ -794,11 +794,13 @@ async function runOneUnit(runId: string) {
     }
 
   } catch (e: any) {
+    const msg = (e?.message ?? String(e)).slice(0, 500);
     await db.from("quality_loop3_runs").update({
       phase: "failed",
-      error_message: (e?.message ?? String(e)).slice(0, 500),
+      error_message: msg,
       terminal_at: new Date().toISOString(),
     }).eq("id", runId);
+    await logQL3(runId, "error", `runUnit failure: ${msg}`);
   }
 }
 
