@@ -202,7 +202,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
   <h1>Legitimate Interest Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -307,7 +307,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
   <h1>GDPR Governance Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -435,7 +435,7 @@ table.dt td { padding:5px 7px; border:1px solid #dde5ea; vertical-align:top; }
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
   <h1>Impact Assessment Builder</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -771,7 +771,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 <body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
     <h1>${escHtml(opts.title)}</h1>
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
@@ -910,7 +910,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
@@ -1009,7 +1009,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record?.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
     <div class="summary-bar">
@@ -1745,7 +1745,7 @@ function buildRegistrationReportHTML(record: any): string {
 <body>
 <div class="eup-bar">
   <img src="${LOGO_URL}" alt="End User Privacy" style="height:22px;width:auto;display:block;" />
-  <span>Compliance Tool · Customised Analysis</span>
+  <span>Compliance Tool · Customized Analysis</span>
 </div>
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
