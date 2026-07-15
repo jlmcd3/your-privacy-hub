@@ -93,7 +93,7 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
     >
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
-          <Link to={`/glossary/${t.slug}`} className="no-underline">
+          <Link to={`/glossary/${t.slug}`} className="no-underline hover:underline underline-offset-4 decoration-brand-teal motion-safe:transition-colors">
             <h3 className="text-brand-navy mb-1 inline">
               {highlight(t.term, q)}
             </h3>
