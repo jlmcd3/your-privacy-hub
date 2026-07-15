@@ -28,7 +28,7 @@ export default function WorkspaceLayout({
       </div>
       <div className="flex-1 flex w-full">
         <WorkspaceSidebar />
-        <main className="flex-1 min-w-0">{children}</main>
+        <main id="main-content" aria-label="Workspace main content" className="flex-1 min-w-0">{children}</main>
       </div>
       {showFooter && <Footer />}
     </div>
