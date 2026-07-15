@@ -655,12 +655,22 @@ export default function QualityBatch() {
               </Button>
             )}
             {activeBatch && (
-              <div className="text-sm text-muted-foreground">
-                Run <code>{activeBatch.id.slice(0, 8)}</code> · <Badge variant="outline">{activeBatch.status}</Badge>
-                {" · "}phase <code>{activeBatch.phase}</code>
-                {" · "}<span className="font-mono">{currentTool ?? "—"}</span>
-                {" · "}{doneCount}/{totalCount} tools
-              </div>
+              <>
+                <div className="text-sm text-muted-foreground">
+                  Run <code>{activeBatch.id.slice(0, 8)}</code> · <Badge variant="outline">{activeBatch.status}</Badge>
+                  {" · "}phase <code>{activeBatch.phase}</code>
+                  {" · "}<span className="font-mono">{currentTool ?? "—"}</span>
+                  {" · "}{doneCount}/{totalCount} tools
+                </div>
+                <Button size="sm" variant="outline"
+                  disabled={isBatchRunning}
+                  onClick={() => onDownloadBatchZip(activeBatch)}
+                  title={isBatchRunning ? "Finish batch first" : "Zip all completed-tool PDFs"}
+                >Download PDFs (zip)</Button>
+                <Button size="sm" variant="outline" onClick={() => onExportBatchMarkdown(activeBatch)}>
+                  Export analysis (.md)
+                </Button>
+              </>
             )}
           </div>
           {activeBatch?.last_error && (
