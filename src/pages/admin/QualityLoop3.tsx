@@ -786,7 +786,7 @@ export default function QualityLoop3() {
             )}
             {unattachedLogs.length > 0 && (
               <span className="text-xs text-muted-foreground ml-2">
-                · +{unattachedLogs.length} unattached (last 15m)
+                · latest {mergedLogs.length} rows
               </span>
             )}
           </CardTitle>
