@@ -148,7 +148,14 @@ export default function QualityLoop3() {
             </div>
             <div>
               <Label>Assessment ID (UUID)</Label>
-              <Input value={assessmentId} onChange={(e) => setAssessmentId(e.target.value)} placeholder="terminal assessment row id" />
+              <Input
+                value={assessmentId}
+                onChange={(e) => { setAssessmentId(e.target.value); if (prefillHint) setPrefillHint(null); }}
+                placeholder="terminal assessment row id"
+              />
+              {prefillHint && (
+                <p className="text-xs text-muted-foreground mt-1 italic">{prefillHint}</p>
+              )}
             </div>
           </div>
           <div>
