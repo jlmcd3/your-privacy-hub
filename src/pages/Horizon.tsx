@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -109,6 +110,7 @@ function HorizonCard({ item }: { item: HorizonItem }) {
 export default function Horizon() {
   const { user } = useAuth();
   const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
+  const fireConversion = useConversionEvent();
   const [items, setItems] = useState<HorizonItem[]>([]);
   const [watch, setWatch] = useState<WatchItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,7 +193,7 @@ export default function Horizon() {
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🛰️ Forward-looking intelligence · Included with Intelligence subscription ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()})
-            {!isPremium && <> · <Link to="/subscribe" className="underline hover:text-amber-100">Start your subscription →</Link></>}
+            {!isPremium && <> · <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start your subscription", cta_position: "top-banner" })} className="underline hover:text-amber-100">Start your subscription →</Link></>}
           </span>
           <h1 className="font-serif text-white mb-3">
             Enforcement Forecast Intelligence
@@ -308,6 +310,7 @@ export default function Horizon() {
               </p>
               <Link
                 to="/subscribe"
+                onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start your subscription", cta_position: "feature-gate" })}
                 className="inline-block text-sm font-semibold text-brand-teal-text no-underline hover:underline"
               >
                 Start your subscription →
