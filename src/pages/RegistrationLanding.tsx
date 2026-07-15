@@ -281,6 +281,7 @@ export default function RegistrationLanding() {
           </div>
         </section>
       </PageContainer>
+      </main>
       <Footer />
     </>
   );
