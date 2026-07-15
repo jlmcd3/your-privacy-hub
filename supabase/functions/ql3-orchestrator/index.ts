@@ -622,16 +622,24 @@ async function runOneUnit(runId: string) {
         dummy_answers: answered,
         items_before: itemsBefore,
         pre_score: preScore,
+        pre_claude_score: preClaude,
+        pre_gpt_score: preGpt,
         qc_result: {
           dispatch_status: upstreamStatus,
           baseline_version_n: baselineVersion,
           build_stamp: BUILD_STAMP,
+          grader_stamp: GRADER_STAMP,
+          pre_samples_cached: preCached,
           rqb_build_stamp: upstream?.build_stamp ?? null,
           regen_build_stamp: upstream?.upstream_build_stamp ?? null,
           idempotent_replay: upstream?.idempotent_replay === true,
-          // RC-C3.CLOSE-1 (item 1) — persist raw pre-samples now; post-samples
-          // and the band verdict land in the review2 write. Auditable per-run.
-          score_samples: { pre: preSamples, post: [] },
+          // QL3-P1 — persist per-model + blended raw samples. Back-compat:
+          // score_samples.pre.blended keeps the previously-persisted blended
+          // vector readable at the same key depth.
+          score_samples: {
+            pre: { claude: preSamples.claude, gpt: preSamples.gpt, blended: preSamples.blended },
+            post: { claude: [], gpt: [], blended: [] },
+          },
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
@@ -642,6 +650,8 @@ async function runOneUnit(runId: string) {
         error_message: nextErr,
         ...(unexpectedReplay ? { terminal_at: new Date().toISOString() } : {}),
       }).eq("id", runId);
+      await logQL3(runId, unexpectedReplay ? "error" : (ok2xx ? "info" : "warn"),
+        `dispatch upstream_status=${upstreamStatus} next_phase=${nextPhase}${nextErr ? ` err=${nextErr}` : ""}`);
 
       if (unexpectedReplay) return;
 
@@ -649,6 +659,7 @@ async function runOneUnit(runId: string) {
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
+
 
     if (run.phase === "review2") {
       // RC-D.1 D-6: confirm terminal state (status complete AND
