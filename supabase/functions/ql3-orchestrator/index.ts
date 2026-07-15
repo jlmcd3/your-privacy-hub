@@ -208,7 +208,14 @@ async function readAssessment(toolSlug: string, assessmentId: string) {
   return { row: data, cfg };
 }
 
-async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<number | null> {
+// QL3-P1 — grader_stamp is mirrored from grade-single-assessment.BUILD_STAMP.
+// Kept in sync manually; a drift would key the grade cache under a different
+// stamp and force a re-sample, which is safe (miss = re-grade, never a
+// silent hit). Update in the same edit that changes grade-single-assessment.
+export const GRADER_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+
+export interface GraderSample { claude: number | null; gpt: number | null; blended: number | null }
+async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<GraderSample | null> {
   // grade-single-assessment uses the cppa-risk rubric label; restrict to
   // cppa-risk to avoid mis-labelling. Other tools rely on items_before/after
   // as the QC signal (post_score stays null and that is expected).
@@ -226,12 +233,21 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
     });
     if (!r.ok) return null;
     const body: any = await r.json().catch(() => null);
-    const score = body?.mean_score ?? body?.payload?.claude?.overall_score ?? null;
-    return typeof score === "number" ? score : null;
+    const claude = body?.payload?.claude?.overall_score;
+    const gpt = body?.payload?.gpt?.overall_score;
+    const blended = body?.mean_score;
+    return {
+      claude: typeof claude === "number" && Number.isFinite(claude) ? claude : null,
+      gpt: typeof gpt === "number" && Number.isFinite(gpt) ? gpt : null,
+      blended: typeof blended === "number" && Number.isFinite(blended) ? blended : null,
+    };
   } catch {
     return null;
   }
 }
+
+export interface GraderSamples { claude: number[]; gpt: number[]; blended: number[] }
+export function emptyGraderSamples(): GraderSamples { return { claude: [], gpt: [], blended: [] }; }
 
 // RC-C3.CLOSE-1 (item 1) — sample the grader N times per phase so QL3 can
 // derive a bootstrapped no-signal band. Sequential (never parallel) so the
@@ -239,13 +255,185 @@ async function callInternalGrader(toolSlug: string, assessmentId: string): Promi
 // timeout. Non-numeric returns are dropped. Empty array is a legitimate
 // outcome for tools without a scoring rubric (e.g. non cppa-risk) and is
 // handled by computeVariance → "insufficient_samples".
-async function sampleGraderScores(toolSlug: string, assessmentId: string, n = VARIANCE_SAMPLES_N): Promise<number[]> {
-  const out: number[] = [];
+// QL3-P1: now returns per-model + blended arrays; the blended array is the
+// same series previously returned so back-compat callers unaffected.
+async function sampleGraderScores(toolSlug: string, assessmentId: string, n = VARIANCE_SAMPLES_N): Promise<GraderSamples> {
+  const out = emptyGraderSamples();
   for (let i = 0; i < n; i++) {
     const s = await callInternalGrader(toolSlug, assessmentId);
-    if (typeof s === "number" && Number.isFinite(s)) out.push(s);
+    if (!s) continue;
+    if (s.claude != null) out.claude.push(s.claude);
+    if (s.gpt != null) out.gpt.push(s.gpt);
+    if (s.blended != null) out.blended.push(s.blended);
   }
   return out;
+}
+
+export function medianOrNull(xs: number[]): number | null {
+  if (!xs || xs.length === 0) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.floor(s.length / 2)];
+}
+
+// QL3-P1 grade cache helpers. Cache key: (assessment_id, version_n, grader_stamp).
+async function loadCachedSamples(assessmentId: string, versionN: number): Promise<GraderSamples | null> {
+  try {
+    const { data } = await admin()
+      .from("quality_loop3_grade_cache")
+      .select("samples")
+      .eq("assessment_id", assessmentId)
+      .eq("version_n", versionN)
+      .eq("grader_stamp", GRADER_STAMP)
+      .maybeSingle();
+    const s: any = (data as any)?.samples;
+    if (!s) return null;
+    return {
+      claude: Array.isArray(s.claude) ? s.claude.filter((n: unknown) => typeof n === "number") : [],
+      gpt: Array.isArray(s.gpt) ? s.gpt.filter((n: unknown) => typeof n === "number") : [],
+      blended: Array.isArray(s.blended) ? s.blended.filter((n: unknown) => typeof n === "number") : [],
+    };
+  } catch {
+    return null;
+  }
+}
+async function storeCachedSamples(assessmentId: string, toolSlug: string, versionN: number, samples: GraderSamples): Promise<void> {
+  try {
+    await admin()
+      .from("quality_loop3_grade_cache")
+      .upsert({
+        assessment_id: assessmentId,
+        tool_slug: toolSlug,
+        version_n: versionN,
+        grader_stamp: GRADER_STAMP,
+        samples: samples as unknown as Record<string, unknown>,
+      }, { onConflict: "assessment_id,version_n,grader_stamp" });
+  } catch (e) {
+    console.warn("[ql3] grade cache upsert failed", (e as Error).message);
+  }
+}
+
+// QL3-P1 — additive log writes into public.quality_loop3_log. Non-fatal.
+async function logQL3(runId: string | null, level: "info" | "warn" | "error", message: string, batchId: string | null = null) {
+  try {
+    await admin().from("quality_loop3_log").insert({
+      batch_id: batchId,
+      ql3_run_id: runId,
+      level,
+      message: message.slice(0, 2000),
+    });
+  } catch {}
+}
+
+// QL3-P1 — Deterministic incorporation check. Pure & exported for tests.
+// For each verdict `resolved`, resolve the item's target.path against
+// report_data and check the value REFLECTS the dummy answer.
+export type IncorpKind = "enum" | "multi_enum" | "text" | "unverifiable";
+export type IncorpResult = "pass" | "fail" | "unverifiable";
+export interface IncorpCheck {
+  item_id: string;
+  path: string | null;
+  kind: IncorpKind;
+  result: IncorpResult;
+  detail?: string;
+}
+export interface IncorpReport { pass: boolean; checked: IncorpCheck[] }
+
+export function resolvePath(root: unknown, path: string | null | undefined): unknown {
+  if (!path || typeof path !== "string") return undefined;
+  // Support dotted keys and [N] array indices.
+  const parts: string[] = [];
+  const tokens = path.split(".");
+  for (const t of tokens) {
+    const m = t.match(/^([^\[]+)((?:\[\d+\])*)$/);
+    if (!m) return undefined;
+    const [, name, idxPart] = m;
+    if (name) parts.push(name);
+    if (idxPart) {
+      const idxs = idxPart.match(/\d+/g) ?? [];
+      for (const i of idxs) parts.push(i);
+    }
+  }
+  let cur: any = root;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    if (Array.isArray(cur) && /^\d+$/.test(p)) cur = cur[Number(p)];
+    else cur = cur[p];
+  }
+  return cur;
+}
+
+export function checkIncorporation(params: {
+  reportData: unknown;
+  register: any[];
+  verdicts: any[];
+  answered: any[];
+}): IncorpReport {
+  const answeredById = new Map<string, unknown>();
+  for (const a of params.answered ?? []) {
+    const id = a?.item_id ?? a?.id;
+    if (id != null) answeredById.set(String(id), a?.value);
+  }
+  const registerById = new Map<string, any>();
+  for (const it of params.register ?? []) {
+    const id = it?.id ?? it?.item_id;
+    if (id != null) registerById.set(String(id), it);
+  }
+  const checks: IncorpCheck[] = [];
+  for (const v of params.verdicts ?? []) {
+    if ((v?.verdict ?? v?.status) !== "resolved") continue;
+    const itemId = String(v?.item_id ?? v?.id ?? "");
+    if (!itemId) continue;
+    const item = registerById.get(itemId);
+    const path: string | null = item?.target?.path ?? null;
+    const answer = answeredById.get(itemId);
+    // Path-vocabulary nuance: cppa-cyber ask-paths use `controls.<slug>` but
+    // the report shape stores controls as an array (controls[N]). We do not
+    // attempt to alias here — if resolvePath returns undefined, we mark
+    // "unverifiable" and NEVER fail the run on it.
+    const actual = resolvePath(params.reportData, path);
+    if (actual === undefined || path == null) {
+      checks.push({ item_id: itemId, path, kind: "unverifiable", result: "unverifiable", detail: path ? "path_unresolvable" : "no_path" });
+      continue;
+    }
+    // Classify by answer shape.
+    if (Array.isArray(answer)) {
+      // multi_enum: every selected member must be present in actual (array or string).
+      const missing: unknown[] = [];
+      const container = Array.isArray(actual) ? actual : [actual];
+      for (const m of answer) {
+        if (!container.some((x) => x === m || String(x) === String(m))) missing.push(m);
+      }
+      checks.push({
+        item_id: itemId, path, kind: "multi_enum",
+        result: missing.length === 0 ? "pass" : "fail",
+        ...(missing.length ? { detail: `missing:${JSON.stringify(missing).slice(0, 120)}` } : {}),
+      });
+      continue;
+    }
+    if (typeof answer === "string" && typeof actual === "string") {
+      // Enum-style match first: exact equality (case-insensitive).
+      if (actual.trim().toLowerCase() === answer.trim().toLowerCase()) {
+        checks.push({ item_id: itemId, path, kind: "enum", result: "pass" });
+      } else if (actual.toLowerCase().includes(answer.trim().toLowerCase()) && answer.trim().length > 0) {
+        checks.push({ item_id: itemId, path, kind: "text", result: "pass" });
+      } else {
+        checks.push({ item_id: itemId, path, kind: "text", result: "fail", detail: "not_contained" });
+      }
+      continue;
+    }
+    if (typeof answer === "boolean" || typeof answer === "number") {
+      checks.push({
+        item_id: itemId, path, kind: "enum",
+        result: actual === answer ? "pass" : "fail",
+        ...(actual === answer ? {} : { detail: `expected:${String(answer)} actual:${String(actual)}` }),
+      });
+      continue;
+    }
+    // Non-primitive answer we don't know how to compare.
+    checks.push({ item_id: itemId, path, kind: "unverifiable", result: "unverifiable", detail: "unsupported_answer_shape" });
+  }
+  const pass = checks.every((c) => c.result !== "fail");
+  return { pass, checked: checks };
 }
 
 async function runOneUnit(runId: string) {
@@ -305,15 +493,11 @@ async function runOneUnit(runId: string) {
         : [];
       const openItems = selectOpenForRevision(registerAll);
       const itemsBefore = openItems.length;
-      // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
-      const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
-      const preScore = preSamples.length > 0
-        ? [...preSamples].sort((a, b) => a - b)[Math.floor(preSamples.length / 2)]
-        : null;
 
       // RC-D.1 D-6: capture baseline report_versions.max(version_n) so
       // review2 can wait for the revision to *actually* advance the rail
-      // before measuring items_after / post_score.
+      // before measuring items_after / post_score. Also used as the QL3-P1
+      // pre-sample cache key.
       const { data: baseVer } = await db
         .from("report_versions")
         .select("version_n")
@@ -323,6 +507,29 @@ async function runOneUnit(runId: string) {
         .limit(1)
         .maybeSingle();
       const baselineVersion = (baseVer as any)?.version_n ?? 0;
+
+      // QL3-P1 grade cache — try to reuse pre-samples for
+      // (assessment_id, baseline version_n, grader_stamp).
+      let preSamples: GraderSamples = emptyGraderSamples();
+      let preCached = false;
+      const cachedPre = await loadCachedSamples(run.assessment_id, baselineVersion);
+      if (cachedPre && (cachedPre.blended.length > 0 || cachedPre.claude.length > 0 || cachedPre.gpt.length > 0)) {
+        preSamples = cachedPre;
+        preCached = true;
+        await logQL3(runId, "info", `pre-samples cache HIT assessment=${run.assessment_id} version=${baselineVersion}`);
+      } else {
+        // RC-C3.CLOSE-1 (item 1) — sample N=3.
+        preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
+        // Only store if we produced anything (non-cppa-risk returns empties).
+        if (preSamples.blended.length > 0 || preSamples.claude.length > 0 || preSamples.gpt.length > 0) {
+          await storeCachedSamples(run.assessment_id, run.tool_slug, baselineVersion, preSamples);
+        }
+        await logQL3(runId, "info", `pre-samples cache MISS assessment=${run.assessment_id} version=${baselineVersion} n=${preSamples.blended.length}`);
+      }
+      const preScore = medianOrNull(preSamples.blended);
+      const preClaude = medianOrNull(preSamples.claude);
+      const preGpt = medianOrNull(preSamples.gpt);
+
 
       // Generate dummy answers deterministically from input_spec.
       // openItems is already OPEN-only, id-guarded, and 12-bounded by
@@ -348,11 +555,18 @@ async function runOneUnit(runId: string) {
           items_resolved: 0,
           pre_score: preScore,
           post_score: preScore,
+          pre_claude_score: preClaude,
+          pre_gpt_score: preGpt,
+          post_claude_score: preClaude,
+          post_gpt_score: preGpt,
           terminal_at: new Date().toISOString(),
           notes: (run.notes ? run.notes + " | " : "") + "no_open_items_to_answer",
         }).eq("id", runId);
+        await logQL3(runId, "info", "no_open_items_to_answer — done");
         return;
       }
+      await logQL3(runId, "info", `dispatch tool=${cfg.toolType} answered=${answered.length}`);
+
 
       // Dispatch revision through the audited internal path (RC-D.1 D-1:
       // run-quality-batch accepts SR bearer + x-internal-verification for
@@ -408,16 +622,24 @@ async function runOneUnit(runId: string) {
         dummy_answers: answered,
         items_before: itemsBefore,
         pre_score: preScore,
+        pre_claude_score: preClaude,
+        pre_gpt_score: preGpt,
         qc_result: {
           dispatch_status: upstreamStatus,
           baseline_version_n: baselineVersion,
           build_stamp: BUILD_STAMP,
+          grader_stamp: GRADER_STAMP,
+          pre_samples_cached: preCached,
           rqb_build_stamp: upstream?.build_stamp ?? null,
           regen_build_stamp: upstream?.upstream_build_stamp ?? null,
           idempotent_replay: upstream?.idempotent_replay === true,
-          // RC-C3.CLOSE-1 (item 1) — persist raw pre-samples now; post-samples
-          // and the band verdict land in the review2 write. Auditable per-run.
-          score_samples: { pre: preSamples, post: [] },
+          // QL3-P1 — persist per-model + blended raw samples. Back-compat:
+          // score_samples.pre.blended keeps the previously-persisted blended
+          // vector readable at the same key depth.
+          score_samples: {
+            pre: { claude: preSamples.claude, gpt: preSamples.gpt, blended: preSamples.blended },
+            post: { claude: [], gpt: [], blended: [] },
+          },
           upstream: {
             verdicts: upstream?.verdicts ?? null,
             changed_paths: upstream?.changed_paths ?? null,
@@ -428,6 +650,8 @@ async function runOneUnit(runId: string) {
         error_message: nextErr,
         ...(unexpectedReplay ? { terminal_at: new Date().toISOString() } : {}),
       }).eq("id", runId);
+      await logQL3(runId, unexpectedReplay ? "error" : (ok2xx ? "info" : "warn"),
+        `dispatch upstream_status=${upstreamStatus} next_phase=${nextPhase}${nextErr ? ` err=${nextErr}` : ""}`);
 
       if (unexpectedReplay) return;
 
@@ -435,6 +659,7 @@ async function runOneUnit(runId: string) {
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
+
 
     if (run.phase === "review2") {
       // RC-D.1 D-6: confirm terminal state (status complete AND
@@ -481,9 +706,14 @@ async function runOneUnit(runId: string) {
       const openItemsAfter = registerAfter.filter((it: any) => it?.status === "open");
       const itemsAfter = openItemsAfter.length;
       const postSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
-      const postScore = postSamples.length > 0
-        ? [...postSamples].sort((a, b) => a - b)[Math.floor(postSamples.length / 2)]
-        : null;
+      const postScore = medianOrNull(postSamples.blended);
+      const postClaude = medianOrNull(postSamples.claude);
+      const postGpt = medianOrNull(postSamples.gpt);
+      // QL3-P1: write post-samples to cache under the NEW version_n — they
+      // become the next pass's pre-samples.
+      if (currentVersion > 0 && (postSamples.blended.length > 0 || postSamples.claude.length > 0 || postSamples.gpt.length > 0)) {
+        await storeCachedSamples(run.assessment_id, run.tool_slug, currentVersion, postSamples);
+      }
       const openIdsBefore: string[] = Array.isArray((run as any)?.input_spec?.open_items_before)
         ? (run as any).input_spec.open_items_before
             .map((i: any) => (i?.id ? String(i.id) : null))
@@ -499,44 +729,84 @@ async function runOneUnit(runId: string) {
         0,
       );
       const priorQc = (run as any)?.qc_result ?? {};
-      const preSamplesPersisted: number[] = Array.isArray(priorQc?.score_samples?.pre)
-        ? priorQc.score_samples.pre.filter((x: unknown) => typeof x === "number")
-        : [];
-      const variance = computeVariance(preSamplesPersisted, postSamples);
+      // Back-compat read: prior shape was `score_samples.pre: number[]`,
+      // new shape is `{claude, gpt, blended}`. Prefer blended when present.
+      const priorPre: any = priorQc?.score_samples?.pre;
+      const preSamplesPersisted: number[] = Array.isArray(priorPre)
+        ? priorPre.filter((x: unknown) => typeof x === "number")
+        : (Array.isArray(priorPre?.blended) ? priorPre.blended.filter((x: unknown) => typeof x === "number") : []);
+      const variance = computeVariance(preSamplesPersisted, postSamples.blended);
+
+      // QL3-P1 incorporation check (after terminalReached confirmed above).
+      const verdicts: any[] = Array.isArray(priorQc?.upstream?.verdicts) ? priorQc.upstream.verdicts : [];
+      const answered: any[] = Array.isArray((run as any)?.dummy_answers) ? (run as any).dummy_answers : [];
+      let incorporation: IncorpReport | null = null;
+      let incorpNote = "";
+      if (terminalReached && verdicts.length > 0) {
+        incorporation = checkIncorporation({
+          reportData: (rowFinal as any)?.report_data,
+          register: registerAfter,
+          verdicts,
+          answered,
+        });
+        const failCount = incorporation.checked.filter((c) => c.result === "fail").length;
+        if (failCount > 0) incorpNote = `incorporation_failed(${failCount})`;
+      }
+
+      const newNotes = incorpNote
+        ? ((run as any).notes ? `${(run as any).notes} | ${incorpNote}` : incorpNote)
+        : (run as any).notes;
 
       await db.from("quality_loop3_runs").update({
         phase: "done",
         items_after: itemsAfter,
         items_resolved: resolved,
         post_score: postScore,
+        post_claude_score: postClaude,
+        post_gpt_score: postGpt,
         terminal_at: new Date().toISOString(),
+        ...(incorpNote ? { notes: newNotes } : {}),
         qc_result: {
           ...priorQc,
           build_stamp: BUILD_STAMP,
+          grader_stamp: GRADER_STAMP,
           review2_terminal_reached: terminalReached,
           review2_baseline_version_n: baselineVersion,
           review2_current_version_n: currentVersion,
-          // RC-C3.CLOSE-1 (item 1) — raw samples + band decision. Every band
-          // verdict is auditable per-run from qc_result alone (no cross-run
-          // history). |delta| < band → "no_signal"; other pass/fail semantics
-          // are unchanged by this addition.
-          score_samples: { pre: preSamplesPersisted, post: postSamples },
+          // QL3-P1 — persist per-model + blended raw samples; back-compat
+          // blended vector preserved at the same key depth.
+          score_samples: {
+            pre: {
+              claude: Array.isArray(priorPre?.claude) ? priorPre.claude : [],
+              gpt: Array.isArray(priorPre?.gpt) ? priorPre.gpt : [],
+              blended: preSamplesPersisted,
+            },
+            post: { claude: postSamples.claude, gpt: postSamples.gpt, blended: postSamples.blended },
+          },
           variance,
+          ...(incorporation ? { incorporation } : {}),
         },
         ...(terminalReached ? {} : { error_message: "review2_timeout_pre_terminal" }),
       }).eq("id", runId);
+      await logQL3(runId, terminalReached ? "info" : "warn",
+        `review2 done terminal=${terminalReached} items_after=${itemsAfter} resolved=${resolved}${incorpNote ? " " + incorpNote : ""}`);
       return;
     }
+
   } catch (e: any) {
+    const msg = (e?.message ?? String(e)).slice(0, 500);
     await db.from("quality_loop3_runs").update({
       phase: "failed",
-      error_message: (e?.message ?? String(e)).slice(0, 500),
+      error_message: msg,
       terminal_at: new Date().toISOString(),
     }).eq("id", runId);
+    await logQL3(runId, "error", `runUnit failure: ${msg}`);
   }
 }
 
-Deno.serve(async (req) => {
+// QL3-P1: guard Deno.serve so unit tests can import this module without
+// binding the default port (needed when tests also import ql3-batch-orchestrator).
+if (import.meta.main) Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -587,6 +857,7 @@ Deno.serve(async (req) => {
     }).select("id").single();
 
     if (insErr || !run) return json({ error: "insert_failed", detail: insErr?.message }, 500);
+    await logQL3((run as any).id, "info", `kickoff tool=${toolSlug} assessment=${assessmentId} notes=${(body?.notes ?? "").toString().slice(0, 200)}`);
     // @ts-ignore
     EdgeRuntime.waitUntil(selfInvoke((run as any).id));
     return json({ run_id: (run as any).id, phase: "revise_dummy" }, 202);
