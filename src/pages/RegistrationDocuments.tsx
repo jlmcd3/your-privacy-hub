@@ -287,6 +287,7 @@ export default function RegistrationDocuments() {
           </div>
         </div>
       </PageContainer>
+      </main>
       <Footer />
 
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
