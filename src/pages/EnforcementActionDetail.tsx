@@ -171,6 +171,28 @@ export default function EnforcementActionDetail() {
         <title>{title} — {action.regulator} | Enforcement Intelligence</title>
         <meta name="description" content={desc} />
         <link rel="canonical" href={`https://enduserprivacy.com/enforcement-intelligence/${action.id}`} />
+        <meta property="og:title" content={`${title} — ${action.regulator}`} />
+        <meta property="og:description" content={desc} />
+        <meta property="og:type" content="article" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: title,
+          description: desc,
+          ...(action.date ? { datePublished: action.date } : {}),
+          about: { "@type": "Thing", name: `${action.regulator} enforcement action` },
+          publisher: { "@type": "Organization", name: "End User Privacy" },
+          url: `https://enduserprivacy.com/enforcement-intelligence/${action.id}`,
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
+            { "@type": "ListItem", position: 2, name: "Enforcement Intelligence", item: "https://enduserprivacy.com/enforcement-intelligence" },
+            { "@type": "ListItem", position: 3, name: title, item: `https://enduserprivacy.com/enforcement-intelligence/${action.id}` },
+          ],
+        })}</script>
       </Helmet>
       <Navbar />
 
