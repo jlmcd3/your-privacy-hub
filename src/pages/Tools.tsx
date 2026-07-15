@@ -352,7 +352,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.ir_playbook.display,
     freeBadge: "Deadline lookup free",
     body: [
-      "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
+      "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes (faster resolution, stronger regulatory relationships, and more defensible documentation) than those that begin from scratch under time pressure.",
       "Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance and cited directly in the output.",
       "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Professional subscribers, this tool is included at no additional cost.",
     ],
