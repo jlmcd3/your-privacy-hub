@@ -264,7 +264,7 @@ export default function SamplesHub() {
           {grouped.map((g) => (
             <article
               key={g.toolSlug}
-              className="rounded-xl border border-brand-cloud bg-card p-6 md:p-7 shadow-sm flex flex-col"
+              className="rounded-xl border border-brand-cloud bg-card p-6 md:p-7 shadow-eup-sm hover:shadow-eup-md transition-shadow motion-reduce:transition-none flex flex-col"
             >
               <header className="mb-3">
                 <h2 className="font-display text-xl md:text-2xl text-brand-navy mb-1">
