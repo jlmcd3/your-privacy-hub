@@ -1,0 +1,413 @@
+// quality-batch-orchestrator — server-side sequential multi-tool run-quality-batch driver.
+//
+// Architecture is a deliberate copy of ql2-orchestrator: return 202 immediately,
+// do ONE bounded unit of work per invocation, persist progress in
+// quality_batch_runs, self-chain via EdgeRuntime.waitUntil + fetch back with
+// x-internal-resume: 1 and the service-role bearer. run-quality-batch itself is
+// invoked exactly the way admins invoke it today (body {tool, batch_size});
+// this function does not modify or re-implement any of its logic.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+export const BUILD_STAMP = "26a27712-6062-4089-8cde-40c351be3eae-qb-orchestrator@2026-07-15";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+const json = (b: unknown, s = 200) =>
+  new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
+
+const admin = () => createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+
+// Exact slug set accepted by run-quality-batch's normal-path dispatcher.
+// Keep in sync with apply-quality-fix.TOOL_FILE_PATH and run-quality-batch
+// tool switch. Order here is purely alphabetical for readability; the caller
+// supplies the ordered queue.
+export const RUN_QUALITY_BATCH_SLUGS = new Set<string>([
+  "cppa-admt", "cppa-risk", "cppa-cyber",
+  "governance", "dpia", "lia",
+  "dpa-generator", "ir-playbook", "biometric-checker",
+]);
+
+// Terminal statuses written by run-quality-batch's runBatch. Extracted verbatim
+// from supabase/functions/run-quality-batch/index.ts:
+//   L1541  status="error"     — intake generation reject / fatal early
+//   L1578  status="error"     — intake generation exception
+//   L1615  status="cancelled" — cancel_requested honored
+//   L1941  status="error"     — "No documents completed"
+//   L2153  status="complete"  — success terminal
+//   L2200  status="error"     — outer catch
+// Nothing else transitions the run into a terminal state.
+export const RUN_QUALITY_BATCH_TERMINAL = new Set<string>([
+  "complete", "error", "cancelled",
+]);
+
+// Child-run stall threshold. run-quality-batch heartbeats every ~10s while
+// alive (index.ts L1454), so > 6 minutes with no update means the child is
+// wedged — advance the batch instead of hanging the whole queue.
+export const CHILD_STALL_MS = 6 * 60_000;
+
+async function log(runId: string, message: string, opts: { level?: string; tool?: string } = {}) {
+  try {
+    await admin().from("quality_batch_log").insert({
+      run_id: runId, message, level: opts.level ?? "info", tool: opts.tool ?? null,
+    });
+  } catch (e) {
+    console.error("[qb-orchestrator] log insert failed", (e as Error).message);
+  }
+}
+
+async function heartbeat(runId: string) {
+  await admin().from("quality_batch_runs")
+    .update({ last_heartbeat_at: new Date().toISOString() })
+    .eq("id", runId);
+}
+
+function selfInvoke(runId: string) {
+  return fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      apikey: SERVICE_KEY,
+      "x-internal-resume": "1",
+    },
+    body: JSON.stringify({ run_id: runId }),
+  }).catch((e) => console.error("[qb-orchestrator] self-invoke failed", e));
+}
+
+// Pure phase transition: given a loaded row, decide the next action.
+// Extracted so unit tests can exercise the decision matrix without a DB.
+export type BatchRow = {
+  status: string;
+  phase: string;
+  cancel_requested: boolean;
+  tools: string[];
+  current_tool_index: number;
+  current_quality_run_id: string | null;
+  tool_results: unknown[];
+};
+export type ChildSnapshot = {
+  status: string | null;
+  last_heartbeat_at: string | null;
+  score_overall: number | null;
+  gpt_score_overall: number | null;
+  error: string | null;
+};
+export type Decision =
+  | { kind: "noop" }
+  | { kind: "cancel_terminal" }
+  | { kind: "advance_phase_running_tool" }
+  | { kind: "dispatch_child"; tool: string }
+  | { kind: "child_terminal"; snapshot: ChildSnapshot; moreTools: boolean }
+  | { kind: "child_stalled"; moreTools: boolean }
+  | { kind: "child_wait" };
+
+export function decide(row: BatchRow, child: ChildSnapshot | null, now: number): Decision {
+  if (row.status !== "running") return { kind: "noop" };
+  if (row.cancel_requested) return { kind: "cancel_terminal" };
+  if (row.phase === "kickoff") return { kind: "advance_phase_running_tool" };
+  if (row.phase !== "running_tool") return { kind: "noop" };
+
+  if (!row.current_quality_run_id) {
+    const tool = row.tools[row.current_tool_index];
+    return { kind: "dispatch_child", tool };
+  }
+
+  if (!child) return { kind: "child_wait" };
+
+  if (child.status && RUN_QUALITY_BATCH_TERMINAL.has(child.status)) {
+    const moreTools = row.current_tool_index + 1 < row.tools.length;
+    return { kind: "child_terminal", snapshot: child, moreTools };
+  }
+
+  const hbMs = child.last_heartbeat_at ? new Date(child.last_heartbeat_at).getTime() : 0;
+  if (hbMs && now - hbMs > CHILD_STALL_MS) {
+    const moreTools = row.current_tool_index + 1 < row.tools.length;
+    return { kind: "child_stalled", moreTools };
+  }
+  return { kind: "child_wait" };
+}
+
+async function invokeRunQualityBatch(tool: string, batchSize: number)
+  : Promise<{ ok: true; runId: string; runNumber: number | null } | { ok: false; err: string }> {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        apikey: SERVICE_KEY,
+      },
+      body: JSON.stringify({ tool, batch_size: batchSize }),
+    });
+    const txt = await r.text();
+    let js: any = null;
+    try { js = JSON.parse(txt); } catch { /* */ }
+    if (!r.ok || !js?.run_id) {
+      return { ok: false, err: `HTTP ${r.status}: ${txt.slice(0, 300)}` };
+    }
+    return { ok: true, runId: js.run_id, runNumber: js.run_number ?? null };
+  } catch (e) {
+    return { ok: false, err: (e as Error).message };
+  }
+}
+
+async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
+  await admin().from("quality_batch_runs").update({
+    ...patch,
+    completed_at: new Date().toISOString(),
+  }).eq("id", runId);
+}
+
+async function runUnit(runId: string) {
+  const db = admin();
+  const { data: run } = await db.from("quality_batch_runs").select("*").eq("id", runId).maybeSingle();
+  if (!run) return;
+  await heartbeat(runId);
+
+  // Fetch child snapshot only when there is one to fetch.
+  let child: ChildSnapshot | null = null;
+  if (run.current_quality_run_id) {
+    const { data: c } = await db.from("quality_runs")
+      .select("status, last_heartbeat_at, score_overall, gpt_score_overall, error")
+      .eq("id", run.current_quality_run_id)
+      .maybeSingle();
+    child = c ? {
+      status: (c as any).status ?? null,
+      last_heartbeat_at: (c as any).last_heartbeat_at ?? null,
+      score_overall: (c as any).score_overall ?? null,
+      gpt_score_overall: (c as any).gpt_score_overall ?? null,
+      error: (c as any).error ?? null,
+    } : null;
+  }
+
+  const d = decide(run as any as BatchRow, child, Date.now());
+
+  switch (d.kind) {
+    case "noop": return;
+
+    case "cancel_terminal": {
+      await markTerminalAll(runId, { status: "cancelled", phase: "done" });
+      await log(runId, "Batch cancelled by user");
+      return;
+    }
+
+    case "advance_phase_running_tool": {
+      await db.from("quality_batch_runs").update({ phase: "running_tool" }).eq("id", runId);
+      await log(runId, `Batch kickoff: ${run.tools.length} tool(s), batch_size=${run.batch_size} — [${run.tools.join(", ")}]`);
+      // @ts-ignore
+      EdgeRuntime.waitUntil(selfInvoke(runId));
+      return;
+    }
+
+    case "dispatch_child": {
+      const inv = await invokeRunQualityBatch(d.tool, run.batch_size);
+      if (!inv.ok) {
+        // Record failure for this tool and advance.
+        const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
+        results.push({
+          tool: d.tool, quality_run_id: null, run_number: null,
+          final_status: "dispatch_failed", score_overall: null,
+          gpt_score_overall: null, error: inv.err,
+        });
+        const nextIdx = run.current_tool_index + 1;
+        const done = nextIdx >= run.tools.length;
+        await db.from("quality_batch_runs").update({
+          tool_results: results,
+          current_tool_index: nextIdx,
+          current_quality_run_id: null,
+          ...(done ? { phase: "done" } : {}),
+        }).eq("id", runId);
+        await log(runId, `Dispatch failed for ${d.tool}: ${inv.err}`, { level: "error", tool: d.tool });
+        if (done) {
+          await finalizeIfDone(runId);
+        } else {
+          // @ts-ignore
+          EdgeRuntime.waitUntil(selfInvoke(runId));
+        }
+        return;
+      }
+      await db.from("quality_batch_runs").update({
+        current_quality_run_id: inv.runId,
+      }).eq("id", runId);
+      await log(runId, `Dispatched ${d.tool} → quality_runs=${inv.runId}${inv.runNumber != null ? ` (run #${inv.runNumber})` : ""}`, { tool: d.tool });
+      // @ts-ignore
+      EdgeRuntime.waitUntil(selfInvoke(runId));
+      return;
+    }
+
+    case "child_terminal": {
+      const tool = run.tools[run.current_tool_index];
+      const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
+      results.push({
+        tool,
+        quality_run_id: run.current_quality_run_id,
+        run_number: null,
+        final_status: d.snapshot.status,
+        score_overall: d.snapshot.score_overall,
+        gpt_score_overall: d.snapshot.gpt_score_overall,
+        error: d.snapshot.error,
+      });
+      const nextIdx = run.current_tool_index + 1;
+      await db.from("quality_batch_runs").update({
+        tool_results: results,
+        current_tool_index: nextIdx,
+        current_quality_run_id: null,
+      }).eq("id", runId);
+      await log(runId,
+        `${tool} finished: status=${d.snapshot.status} score=${d.snapshot.score_overall ?? "—"} gpt=${d.snapshot.gpt_score_overall ?? "—"}${d.snapshot.error ? ` err=${d.snapshot.error}` : ""}`,
+        { level: d.snapshot.status === "complete" ? "info" : "warn", tool });
+      if (d.moreTools) {
+        // @ts-ignore
+        EdgeRuntime.waitUntil(selfInvoke(runId));
+      } else {
+        await finalizeIfDone(runId);
+      }
+      return;
+    }
+
+    case "child_stalled": {
+      const tool = run.tools[run.current_tool_index];
+      const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
+      results.push({
+        tool,
+        quality_run_id: run.current_quality_run_id,
+        run_number: null,
+        final_status: "stalled",
+        score_overall: null,
+        gpt_score_overall: null,
+        error: `child heartbeat stale > ${CHILD_STALL_MS / 60000}min`,
+      });
+      const nextIdx = run.current_tool_index + 1;
+      await db.from("quality_batch_runs").update({
+        tool_results: results,
+        current_tool_index: nextIdx,
+        current_quality_run_id: null,
+      }).eq("id", runId);
+      await log(runId, `${tool} stalled — advancing to next tool`, { level: "warn", tool });
+      if (d.moreTools) {
+        // @ts-ignore
+        EdgeRuntime.waitUntil(selfInvoke(runId));
+      } else {
+        await finalizeIfDone(runId);
+      }
+      return;
+    }
+
+    case "child_wait": {
+      await heartbeat(runId);
+      // @ts-ignore
+      EdgeRuntime.waitUntil((async () => {
+        await new Promise((r) => setTimeout(r, 15_000));
+        await selfInvoke(runId);
+      })());
+      return;
+    }
+  }
+}
+
+async function finalizeIfDone(runId: string) {
+  const db = admin();
+  const { data: run } = await db.from("quality_batch_runs").select("*").eq("id", runId).maybeSingle();
+  if (!run) return;
+  const results: any[] = Array.isArray(run.tool_results) ? run.tool_results : [];
+  const anySuccess = results.some((r) => r?.final_status === "complete");
+  const status = anySuccess ? "complete" : "failed";
+  await markTerminalAll(runId, { status, phase: "done" });
+  await log(runId, `Batch ${status} — ${results.length} tool(s); ${results.filter((r) => r?.final_status === "complete").length} succeeded`);
+}
+
+async function startRun(userId: string, tools: string[], batchSizeRaw: number)
+  : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
+  if (!Array.isArray(tools) || tools.length === 0) {
+    return { ok: false, status: 400, err: "tools array required and non-empty" };
+  }
+  const bad = tools.filter((t) => !RUN_QUALITY_BATCH_SLUGS.has(t));
+  if (bad.length) return { ok: false, status: 400, err: `unknown tool slug(s): ${bad.join(", ")}` };
+  const batchSize = Math.max(1, Math.min(50, Math.floor(Number(batchSizeRaw) || 0) || 5));
+
+  const db = admin();
+  const { data: row, error } = await db.from("quality_batch_runs").insert({
+    tools, batch_size: batchSize, status: "running", phase: "kickoff",
+    current_tool_index: 0, tool_results: [], created_by: userId,
+  }).select("id").single();
+  if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
+  await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}`);
+  // @ts-ignore
+  EdgeRuntime.waitUntil(selfInvoke(row.id));
+  return { ok: true, runId: row.id };
+}
+
+Deno.serve(async (req) => {
+  console.log(`[qb-orchestrator] boot ${BUILD_STAMP}`);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "POST only" }, 405);
+
+  let body: any = {};
+  try { body = await req.json(); } catch { /* */ }
+
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace("Bearer ", "");
+  const isInternal = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
+
+  // Internal self-chain resume
+  if (isInternal && body?.run_id) {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runUnit(body.run_id).catch(async (e) => {
+      console.error("[qb-orchestrator] unit error", e);
+      try {
+        await admin().from("quality_batch_log").insert({
+          run_id: body.run_id, level: "error",
+          message: `Unit error: ${(e as Error).message}`.slice(0, 500),
+        });
+        await admin().from("quality_batch_runs").update({
+          status: "failed", phase: "done",
+          last_error: (e as Error).message?.slice(0, 300),
+          completed_at: new Date().toISOString(),
+        }).eq("id", body.run_id);
+      } catch { /* */ }
+    }));
+    return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
+  }
+
+  // External admin call
+  if (!token) return json({ error: "Unauthorized" }, 401);
+  const userClient = createClient(SUPABASE_URL, ANON_KEY);
+  const { data: claims, error: claimsErr } = await userClient.auth.getClaims(token);
+  if (claimsErr || !claims?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+  const userId = claims.claims.sub as string;
+  const { data: isAdmin } = await admin().rpc("has_role", { _user_id: userId, _role: "admin" });
+  if (!isAdmin) return json({ error: "Admin only" }, 403);
+
+  if (body?.action === "start") {
+    const res = await startRun(userId, body?.tools, body?.batch_size);
+    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
+    return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
+  }
+
+  if (body?.action === "cancel" && body?.run_id) {
+    const db = admin();
+    const { data: existing } = await db.from("quality_batch_runs")
+      .select("current_quality_run_id").eq("id", body.run_id).maybeSingle();
+    await db.from("quality_batch_runs").update({ cancel_requested: true }).eq("id", body.run_id);
+    if ((existing as any)?.current_quality_run_id) {
+      await db.from("quality_runs").update({ cancel_requested: true })
+        .eq("id", (existing as any).current_quality_run_id);
+    }
+    await log(body.run_id, "Cancel requested");
+    return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
+  }
+
+  if (body?.run_id) {
+    const { data } = await admin().from("quality_batch_runs").select("*").eq("id", body.run_id).maybeSingle();
+    return json({ run: data, build_stamp: BUILD_STAMP });
+  }
+
+  return json({ error: "Unknown action" }, 400);
+});

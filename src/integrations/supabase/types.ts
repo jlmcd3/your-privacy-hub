@@ -3831,6 +3831,116 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_batch_baselines: {
+        Row: {
+          avg_score: number | null
+          captured_at: string
+          claude_score: number | null
+          gpt_score: number | null
+          tool: string
+        }
+        Insert: {
+          avg_score?: number | null
+          captured_at?: string
+          claude_score?: number | null
+          gpt_score?: number | null
+          tool: string
+        }
+        Update: {
+          avg_score?: number | null
+          captured_at?: string
+          claude_score?: number | null
+          gpt_score?: number | null
+          tool?: string
+        }
+        Relationships: []
+      }
+      quality_batch_log: {
+        Row: {
+          id: string
+          level: string
+          message: string
+          run_id: string
+          tool: string | null
+          ts: string
+        }
+        Insert: {
+          id?: string
+          level?: string
+          message: string
+          run_id: string
+          tool?: string | null
+          ts?: string
+        }
+        Update: {
+          id?: string
+          level?: string
+          message?: string
+          run_id?: string
+          tool?: string | null
+          ts?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_batch_log_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_batch_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_batch_runs: {
+        Row: {
+          batch_size: number
+          cancel_requested: boolean
+          completed_at: string | null
+          created_by: string
+          current_quality_run_id: string | null
+          current_tool_index: number
+          id: string
+          last_error: string | null
+          last_heartbeat_at: string
+          phase: string
+          started_at: string
+          status: string
+          tool_results: Json
+          tools: string[]
+        }
+        Insert: {
+          batch_size: number
+          cancel_requested?: boolean
+          completed_at?: string | null
+          created_by: string
+          current_quality_run_id?: string | null
+          current_tool_index?: number
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string
+          phase?: string
+          started_at?: string
+          status?: string
+          tool_results?: Json
+          tools: string[]
+        }
+        Update: {
+          batch_size?: number
+          cancel_requested?: boolean
+          completed_at?: string | null
+          created_by?: string
+          current_quality_run_id?: string | null
+          current_tool_index?: number
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string
+          phase?: string
+          started_at?: string
+          status?: string
+          tool_results?: Json
+          tools?: string[]
+        }
+        Relationships: []
+      }
       quality_check_results: {
         Row: {
           check_id: string
