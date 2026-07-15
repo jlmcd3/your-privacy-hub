@@ -555,11 +555,18 @@ async function runOneUnit(runId: string) {
           items_resolved: 0,
           pre_score: preScore,
           post_score: preScore,
+          pre_claude_score: preClaude,
+          pre_gpt_score: preGpt,
+          post_claude_score: preClaude,
+          post_gpt_score: preGpt,
           terminal_at: new Date().toISOString(),
           notes: (run.notes ? run.notes + " | " : "") + "no_open_items_to_answer",
         }).eq("id", runId);
+        await logQL3(runId, "info", "no_open_items_to_answer — done");
         return;
       }
+      await logQL3(runId, "info", `dispatch tool=${cfg.toolType} answered=${answered.length}`);
+
 
       // Dispatch revision through the audited internal path (RC-D.1 D-1:
       // run-quality-batch accepts SR bearer + x-internal-verification for
