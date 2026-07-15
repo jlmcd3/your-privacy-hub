@@ -144,8 +144,43 @@ export function decide(row: BatchRow, child: ChildSnapshot | null, now: number):
   return { kind: "child_wait" };
 }
 
-async function invokeRunQualityBatch(tool: string, batchSize: number)
-  : Promise<{ ok: true; runId: string; runNumber: number | null } | { ok: false; err: string }> {
+// Pure row-builder mirroring run-quality-batch/index.ts ~L2547–2552's insert
+// payload — exposed so unit tests can assert the exact key set/values with no
+// DB, no network. `createdBy` MUST be the admin who started the batch so the
+// audit trail attributes child runs to that admin (never null).
+export function buildSeedRow(
+  tool: string, batchSize: number, runNumber: number, createdBy: string, nowIso: string,
+) {
+  return {
+    tool,
+    status: "pending" as const,
+    batch_size: batchSize,
+    run_number: runNumber,
+    created_by: createdBy,
+    user_id: createdBy,
+    started_at: nowIso,
+    last_heartbeat_at: nowIso,
+    next_doc_index: 0,
+  };
+}
+
+async function seedAndResume(tool: string, batchSize: number, createdBy: string)
+  : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
+  const db = admin();
+  // (a) Compute run_number the same way run-quality-batch does at ~L2544.
+  const { count } = await db.from("quality_runs")
+    .select("id", { count: "exact", head: true }).eq("tool", tool);
+  const runNumber = (count ?? 0) + 1;
+
+  // (b) Insert the pending row — same field set as run-quality-batch's own insert.
+  const nowIso = new Date().toISOString();
+  const seed = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  const { data: run, error: iErr } = await db.from("quality_runs")
+    .insert(seed).select("id").single();
+  if (iErr || !run) return { ok: false, err: `seed insert: ${iErr?.message ?? "no row"}` };
+  const runId = run.id as string;
+
+  // (c) POST to run-quality-batch's internal-resume path (~L2218–2225).
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
       method: "POST",
@@ -153,20 +188,32 @@ async function invokeRunQualityBatch(tool: string, batchSize: number)
         "Content-Type": "application/json",
         Authorization: `Bearer ${SERVICE_KEY}`,
         apikey: SERVICE_KEY,
+        "x-internal-resume": "1",
       },
-      body: JSON.stringify({ tool, batch_size: batchSize }),
+      body: JSON.stringify({ resume_run_id: runId }),
     });
     const txt = await r.text();
-    let js: any = null;
-    try { js = JSON.parse(txt); } catch { /* */ }
-    if (!r.ok || !js?.run_id) {
-      return { ok: false, err: `HTTP ${r.status}: ${txt.slice(0, 300)}` };
+    if (!r.ok) {
+      // (d) Mark seeded row error so no orphan pending row is left behind.
+      const detail = `HTTP ${r.status}: ${txt.slice(0, 200)}`;
+      await db.from("quality_runs").update({
+        status: "error",
+        error: `orchestrator resume dispatch failed: ${detail}`.slice(0, 500),
+      }).eq("id", runId);
+      return { ok: false, err: detail };
     }
-    return { ok: true, runId: js.run_id, runNumber: js.run_number ?? null };
+    return { ok: true, runId, runNumber };
   } catch (e) {
-    return { ok: false, err: (e as Error).message };
+    const detail = (e as Error).message;
+    await db.from("quality_runs").update({
+      status: "error",
+      error: `orchestrator resume dispatch failed: ${detail}`.slice(0, 500),
+    }).eq("id", runId);
+    return { ok: false, err: detail };
   }
 }
+
+
 
 async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
   await admin().from("quality_batch_runs").update({
