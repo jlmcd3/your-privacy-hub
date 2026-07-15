@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
@@ -341,6 +342,7 @@ const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const fireConversion = useConversionEvent();
 
   useEffect(() => {
     const el = dropdownRef.current;
@@ -657,6 +659,7 @@ const Navbar = () => {
           {/* Always-visible Pricing link */}
           <Link
             to="/subscribe"
+            onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Pricing", cta_position: "top-banner" })}
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
               location.pathname === "/subscribe"
                 ? "text-white"
@@ -783,7 +786,10 @@ const Navbar = () => {
                   <Link
                     to="/subscribe"
                     className="block text-center text-sm font-semibold text-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.25)] px-4 py-2.5 rounded-lg no-underline"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      fireConversion("subscribe_cta_click", { cta_label: "See plans", cta_position: "top-banner" });
+                      setMobileOpen(false);
+                    }}
                   >
                     ⭐ See plans
                   </Link>
@@ -817,7 +823,10 @@ const Navbar = () => {
                 <Link
                   to="/subscribe"
                   className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2.5 rounded-lg no-underline"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    fireConversion("subscribe_cta_click", { cta_label: "See Plans", cta_position: "top-banner" });
+                    setMobileOpen(false);
+                  }}
                 >
                   See Plans →
                 </Link>

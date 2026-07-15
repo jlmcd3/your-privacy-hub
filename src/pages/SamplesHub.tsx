@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type SampleRow = {
   id: string;
@@ -43,6 +44,7 @@ export default function SamplesHub() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const fireConversion = useConversionEvent();
 
   useEffect(() => {
     let cancelled = false;
@@ -285,6 +287,7 @@ export default function SamplesHub() {
                       <Link
                         key={v.id}
                         to={`/samples/${g.toolSlug}/${v.variant}`}
+                        onClick={() => fireConversion("sample_report_view", { tool_slug: g.toolSlug, variant: "hub-click" })}
                         className="inline-flex items-center rounded-full border border-brand-cloud bg-muted/40 px-3 py-1 text-xs font-medium text-brand-navy hover:bg-brand-cloud/60 no-underline"
                       >
                         {v.variant}
@@ -297,6 +300,7 @@ export default function SamplesHub() {
               <div className="mt-auto flex flex-wrap gap-4 items-center pt-4 border-t border-brand-cloud/60">
                 <Link
                   to={`/samples/${g.toolSlug}`}
+                  onClick={() => fireConversion("sample_report_view", { tool_slug: g.toolSlug, variant: "hub-click" })}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text hover:underline no-underline"
                 >
                   <FileText className="h-4 w-4" aria-hidden /> View sample

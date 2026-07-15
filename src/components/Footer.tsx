@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 const Footer = () => {
+  const fireConversion = useConversionEvent();
   return (
     <footer className="bg-brand-navy text-brand-mist pt-14 pb-8 px-4 md:px-8">
       <div className="max-w-[1280px] mx-auto">
@@ -35,7 +37,18 @@ const Footer = () => {
               { label: "Pricing", href: "/subscribe" },
               { label: "Sample Intelligence Report", href: "/#brief" },
             ].map((l) => (
-              <Link key={l.label} to={l.href} className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
+              <Link
+                key={l.label}
+                to={l.href}
+                onClick={
+                  l.href === "/subscribe"
+                    ? () => fireConversion("subscribe_cta_click", { cta_label: l.label, cta_position: "page-footer" })
+                    : undefined
+                }
+                className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline"
+              >
+                {l.label}
+              </Link>
             ))}
           </div>
 

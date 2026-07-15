@@ -11,6 +11,7 @@ import { SampleToolReport } from "@/components/SampleToolReport";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
 import { fmtDate } from "@/lib/dates";
 import { fireSampleOpened } from "@/lib/analyticsEvents";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type SampleRow = {
   id: string;
@@ -76,8 +77,13 @@ export default function SampleReport() {
   );
   const toolRoute = toolSlug ? TOOL_ROUTE[toolSlug] : undefined;
 
+  const fireConversion = useConversionEvent();
+
   useEffect(() => {
-    if (toolSlug) fireSampleOpened(toolSlug);
+    if (toolSlug) {
+      fireSampleOpened(toolSlug);
+      fireConversion("sample_report_view", { tool_slug: toolSlug, variant: "full-page" });
+    }
     let cancelled = false;
     (async () => {
       if (!toolSlug) return;
