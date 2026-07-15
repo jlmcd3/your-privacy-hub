@@ -50,7 +50,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "Can I add the notice to my website?",
-    a: "Yes — every notice is generated as embeddable HTML you can paste into any page, plus PDF and Word versions for review and records.",
+    a: "Yes. Every notice is generated as embeddable HTML you can paste into any page, plus PDF and Word versions for review and records.",
   },
   {
     q: "What happens when state laws change?",
@@ -85,14 +85,14 @@ export default function USNoticeLanding() {
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included in your Annual Platform — every US state privacy notice is included at no additional charge.
+            ✓ Included in your Annual Platform: every US state privacy notice is included at no additional charge.
           </div>
         )}
       </div>
       <PageHero
         chip={<>📋 US Privacy Notice Builder · Included with any subscription</>}
-        title="Generate US privacy notices for all 20 states — in one session."
-        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription — monthly or annual. Not sold as a standalone product."
+        title="Generate US privacy notices for all 20 states, in one session."
+        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="min-h-[48px]">
@@ -148,7 +148,7 @@ export default function USNoticeLanding() {
                 {
                   n: "3",
                   title: "Download in any format",
-                  body: "Get your notices as PDF, Word, or embeddable HTML — ready to publish on your site.",
+                  body: "Get your notices as PDF, Word, or embeddable HTML, ready to publish on your site.",
                 },
               ].map((step) => (
                 <Card key={step.n}>
@@ -170,13 +170,13 @@ export default function USNoticeLanding() {
               State coverage
             </h2>
             <p className="text-muted-foreground mb-8 max-w-2xl">
-              Every active US state privacy law, organised by framework — so you only
+              Every active US state privacy law, organised by framework, so you only
               answer the questions that actually apply to your business.
             </p>
             <div className="space-y-6">
               <CoverageGroup
                 title="California"
-                tag="CCPA/CPRA — Unique Framework"
+                tag="CCPA/CPRA · Unique Framework"
                 items={["California"]}
                 emphasized
               />
@@ -216,7 +216,7 @@ export default function USNoticeLanding() {
               Pricing
             </h2>
             <p className="text-muted-foreground mb-8">
-              Included with any active Intelligence or Professional subscription — monthly or annual. Not sold as a standalone product.
+              Included with any active Intelligence or Professional subscription (monthly or annual). Not sold as a standalone product.
             </p>
             <Card>
               <CardContent className="cmp-table p-0 overflow-x-auto">
@@ -279,7 +279,7 @@ export default function USNoticeLanding() {
               Included with any subscription.
             </h2>
             <p className="text-muted-foreground mb-8">
-              Subscribe to Intelligence or Professional — monthly or annual — to access the
+              Subscribe to Intelligence or Professional (monthly or annual) to access the
               US Privacy Notice Builder for every active state at no additional charge.
             </p>
             <Button asChild size="lg" className="min-h-[48px]">

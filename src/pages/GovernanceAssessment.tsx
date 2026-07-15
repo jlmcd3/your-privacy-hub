@@ -511,7 +511,7 @@ const GovernanceAssessment = () => {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The organisation name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+          preRunHint="The organisation name you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
         />
         <BenchLayout
           toolType="governance"
@@ -646,7 +646,7 @@ const GovernanceAssessment = () => {
           {/* R1a: optional catch-all rendered on the final input step (before the summary). */}
           {!summaryStep && step === totalSteps - 1 && (
             <div className="pt-2 border-t">
-              <Label htmlFor="additional_context">Additional context — anything material to your privacy program not captured above (optional)</Label>
+              <Label htmlFor="additional_context">Additional context: anything material to your privacy program not captured above (optional)</Label>
               <p className="text-xs text-muted-foreground mt-1">Free text. Anything you want the generator to weigh that the questions above didn't cover.</p>
               <textarea
                 id="additional_context"
@@ -751,12 +751,12 @@ const GovernanceAssessment = () => {
                 {pricing.price === 0
                   ? purchasing
                     ? "Generating…"
-                    : "Generate Assessment — Free"
+                    : "Generate Assessment (Free)"
                   : !pricing.stripeConfigured
-                    ? `Payments Coming Soon — $${pricing.price}`
+                    ? `Payments Coming Soon ($${pricing.price})`
                     : purchasing
                       ? "Redirecting…"
-                      : `Purchase Full Healthcheck — $${pricing.price}`}
+                      : `Purchase Full Healthcheck ($${pricing.price})`}
               </Button>
             )}
           </div>

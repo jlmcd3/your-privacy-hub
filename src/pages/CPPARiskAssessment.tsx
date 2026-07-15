@@ -673,7 +673,7 @@ export default function CPPARiskAssessment() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title>
+        <title>CPPA Privacy Risk Assessment (Module 1) | End User Privacy</title>
         <meta name="description" content="California CPPA risk assessment mapped 1:1 to § 7152(a)(1)–(9). Generates a regulation-mapped framework pre-populated from your intake, ready for executive sign-off." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-risk-assessment" />
       </Helmet>
@@ -707,7 +707,7 @@ export default function CPPARiskAssessment() {
             "This tool documents your record — it does not provide legal advice; review with counsel before relying on it.",
           ]}
         />
-        <IntakeGuidance>Where a field asks you to describe something, be specific and complete — name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
+        <IntakeGuidance>Where a field asks you to describe something, be specific and complete: name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
         {refine.isRefine && refine.intake && !refine.loading && (
@@ -755,7 +755,7 @@ export default function CPPARiskAssessment() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The entity and subject line you set below are fixed once you first generate — everything else stays editable across your included generations."
+          preRunHint="The entity and subject line you set below are fixed once you first generate. Everything else stays editable across your included generations."
         />
         <div ref={topRef} className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
 
@@ -773,7 +773,7 @@ export default function CPPARiskAssessment() {
         <div className="space-y-6">
           {step === 1 && (
             <>
-              <h2>Step 1 — Business Profile</h2>
+              <h2>Step 1: Business Profile</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ag) — CCPA/CPRA business definition and applicability thresholds</p>
               <RequiredLegend />
               <div>
@@ -789,7 +789,7 @@ export default function CPPARiskAssessment() {
                 />
               </div>
               <div onFocus={() => focusRail('subject_anchor')}>
-                <Label htmlFor="subject_anchor">In one line — what processing does this assessment cover? <Req /></Label>
+                <Label htmlFor="subject_anchor">In one line: what processing does this assessment cover? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">
                   Set when you first generate; fixed across your revision runs. The detailed purpose (Step 6) remains editable.
                 </p>
@@ -846,7 +846,7 @@ export default function CPPARiskAssessment() {
 
           {step === 2 && (
             <>
-              <h2>Step 2 — Consumer Rights Infrastructure</h2>
+              <h2>Step 2: Consumer Rights Infrastructure</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code §§ 1798.100–1798.135 — consumer rights obligations</p>
               <RequiredLegend />
               <div>
@@ -880,7 +880,7 @@ export default function CPPARiskAssessment() {
 
           {step === 3 && (
             <>
-              <h2>Step 3 — Privacy Notices</h2>
+              <h2>Step 3: Privacy Notices</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code §§ 1798.100(a), 1798.130; 11 CCR § 7003 — notice requirements</p>
               <RequiredLegend />
               <div><Label>Q11: When was your privacy policy last reviewed or updated? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div>{renderAssertion("q11_policy_review")}</div>
@@ -892,7 +892,7 @@ export default function CPPARiskAssessment() {
 
           {step === 4 && (
             <>
-              <h2>Step 4 — Sensitive Personal Information</h2>
+              <h2>Step 4: Sensitive Personal Information</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5) — sensitive PI definition and obligations</p>
               <RequiredLegend />
               <div onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more — see the definition.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
@@ -915,7 +915,7 @@ export default function CPPARiskAssessment() {
 
           {step === 5 && (
             <>
-              <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
+              <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5: Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3), 7150(b)(6) — ADMT definition and risk assessment triggers</p>
               <RequiredLegend />
               <div onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
@@ -946,7 +946,7 @@ export default function CPPARiskAssessment() {
 
           {step === 6 && (
             <>
-              <h2>Step 6 — Risk Assessment Specifics</h2>
+              <h2>Step 6: Risk Assessment Specifics</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7152(a)(1)–(9), 7156(b), 7157 — mandatory risk assessment content requirements</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">
@@ -1303,7 +1303,7 @@ export default function CPPARiskAssessment() {
           {!summaryStep && regulatoryFootprint.length > 0 && (
             <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
-                ⚡ Regulatory exposure — updated from your answers
+                ⚡ Regulatory exposure, updated from your answers
               </p>
               {regulatoryFootprint.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">
@@ -1333,11 +1333,11 @@ export default function CPPARiskAssessment() {
                 <div className="flex gap-2 flex-wrap">
                   {isSuite ? (
                     <Button onClick={() => { if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
-                      Purchase CPPA Suite — ${suitePricing.price}
+                      Purchase CPPA Suite (${suitePricing.price})
                     </Button>
                   ) : (
                     <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
-                      {!pricing.stripeConfigured ? `Payments Coming Soon — $${displayPrice}` : `Run CPPA Risk Assessment — $${displayPrice}`}
+                      {!pricing.stripeConfigured ? `Payments Coming Soon ($${displayPrice})` : `Run CPPA Risk Assessment ($${displayPrice})`}
                     </Button>
                   )}
                 </div>

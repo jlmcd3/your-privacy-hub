@@ -458,7 +458,7 @@ const DPIAFramework = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <DashboardSubnav />
-      <Helmet><title>{`Impact Assessment Builder — from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
+      <Helmet><title>{`Impact Assessment Builder · from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
         <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <RefinePanel
@@ -520,7 +520,7 @@ const DPIAFramework = () => {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The processing activity you name below is fixed once you first generate — everything else stays editable across your included revision runs."
+          preRunHint="The processing activity you name below is fixed once you first generate. Everything else stays editable across your included revision runs."
         />
 
         <BenchLayout

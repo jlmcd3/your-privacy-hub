@@ -505,7 +505,7 @@ export default function ADMTChecker() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>ADMT Compliance Assessment — Module 3 | End User Privacy</title>
+        <title>ADMT Compliance Assessment (Module 3) | End User Privacy</title>
         <meta name="description" content="California ADMT compliance assessment covering pre-use notice, opt-out, and access rights under 11 CCR §§ 7200–7222. January 1, 2027 deadline." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-admt-checker" />
       </Helmet>
@@ -541,7 +541,7 @@ export default function ADMTChecker() {
             "Deadline context: ADMT disclosure obligations begin January 1, 2027.",
           ]}
         />
-        <IntakeGuidance className="mb-4">Describe each automated decision-making system specifically and separately — what it decides, on what data, and the human-review step. If you run several systems, give each its own description rather than merging them.</IntakeGuidance>
+        <IntakeGuidance className="mb-4">Describe each automated decision-making system specifically and separately: what it decides, on what data, and the human-review step. If you run several systems, give each its own description rather than merging them.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />
 
@@ -587,7 +587,7 @@ export default function ADMTChecker() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The subject you set below is fixed once you first generate — everything else stays editable across your 4 included generations."
+          preRunHint="The subject you set below is fixed once you first generate. Everything else stays editable across your 4 included generations."
         />
 
         <div className="mt-3 rounded-md border border-brand-teal/30 bg-brand-cloud/40 p-3 text-sm">
@@ -1551,8 +1551,8 @@ export default function ADMTChecker() {
                       className="bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white"
                     >
                       {!pricing.stripeConfigured
-                        ? `Payments Coming Soon — $${pricing.price}`
-                        : `Run ADMT Compliance Assessment — $${pricing.price}`}
+                        ? `Payments Coming Soon ($${pricing.price})`
+                        : `Run ADMT Compliance Assessment ($${pricing.price})`}
                     </Button>
                   )}
                 </div>

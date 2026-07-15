@@ -138,10 +138,10 @@ export default function BiometricChecker() {
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — included with your plan"
+      ? "Analyse (included with your plan)"
       : biometricFreeRunAvailable
         ? "Run your first Biometric Check free →"
-        : `Analyse — $${pricing.price}`;
+        : `Analyse ($${pricing.price})`;
 
   return (
     <WorkspaceLayout className="bg-paper">
@@ -212,7 +212,7 @@ export default function BiometricChecker() {
                 : undefined
             }
             meter={meter ?? null}
-            preRunHint="The entity name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+            preRunHint="The entity name you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
           />
           <BenchLayout
             toolType="biometric"
@@ -271,7 +271,7 @@ export default function BiometricChecker() {
               ) : access.isPremium ? (
                 <p className="text-meta text-muted-foreground mb-3">You're signed in and ready to run your assessment.</p>
               ) : (
-                <p className="text-meta text-muted-foreground mb-3">Analysis is {PRICING.tools.biometric.display} — standard rate for all tiers.</p>
+                <p className="text-meta text-muted-foreground mb-3">Analysis is {PRICING.tools.biometric.display}: standard rate for all tiers.</p>
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">

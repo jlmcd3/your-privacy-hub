@@ -135,7 +135,7 @@ export default function CPPAHub() {
 
         <section className="bg-brand-navy text-white rounded-lg p-10 text-center">
           <p className="text-xs uppercase tracking-[0.18em] text-brand-cloud font-semibold mb-3">
-            Start here — free, 2 minutes, no signup
+            Start here: free, 2 minutes, no signup
           </p>
           <h2 className="font-serif text-3xl md:text-4xl mb-3 text-white">Run the CPPA Scope Checker</h2>
           <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
@@ -199,7 +199,7 @@ export default function CPPAHub() {
 
         <section className="bg-card border rounded-lg p-6">
           <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
-          <h3 className="font-serif text-xl mb-2">ADMT Compliance Assessment — Module 3</h3>
+          <h3 className="font-serif text-xl mb-2">ADMT Compliance Assessment (Module 3)</h3>
           <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
             Sold standalone. If you also need Risk (Module 1) and Cybersecurity (Module 2), the Scope Checker will surface the Full Suite bundle.
           </p>

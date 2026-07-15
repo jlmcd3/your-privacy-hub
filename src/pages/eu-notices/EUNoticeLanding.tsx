@@ -41,14 +41,14 @@ export default function EUNoticeLanding() {
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included in your Annual Platform — every EU & global privacy notice framework is included at no additional charge.
+            ✓ Included in your Annual Platform: every EU & global privacy notice framework is included at no additional charge.
           </div>
         )}
       </div>
       <PageHero
         chip={<>🌐 EU & Global Notice Builder · Included with any subscription</>}
         title="EU & Global Privacy Notice Builder"
-        description="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks — in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        description="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks, in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">
@@ -101,7 +101,7 @@ export default function EUNoticeLanding() {
               <div>
                 <Clock className="h-6 w-6 text-primary mb-3" />
                 <h3 className="mb-1">Annual refresh built in</h3>
-                <p className="text-sm text-muted-foreground">When the law changes, refresh in minutes — your prior answers carry forward.</p>
+                <p className="text-sm text-muted-foreground">When the law changes, refresh in minutes; your prior answers carry forward.</p>
               </div>
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function EUNoticeLanding() {
             <FileText className="h-10 w-10 mx-auto text-primary mb-4" />
             <h2 className="font-serif mb-3">Included with any subscription.</h2>
             <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-              Subscribe to Intelligence or Professional — monthly or annual — to access the
+              Subscribe to Intelligence or Professional (monthly or annual) to access the
               EU &amp; Global Privacy Notice Builder for every supported framework at no additional charge.
             </p>
             <Button asChild size="lg">

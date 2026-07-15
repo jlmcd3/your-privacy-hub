@@ -182,7 +182,7 @@ export default function CPPACybersecurity() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title>
+        <title>CPPA Cybersecurity Audit Readiness (Module 2) | End User Privacy</title>
         <meta name="description" content="CPPA cybersecurity audit readiness mapped to the 18 program components in the agency's regulations. Includes Breach Precedent Map, Auditor Independence Advisor, and Auditor Handoff Package." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-cybersecurity" />
         <script type="application/ld+json">{JSON.stringify({
@@ -268,7 +268,7 @@ export default function CPPACybersecurity() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The entity name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+          preRunHint="The entity name you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
         />
         <BenchLayout
           toolType="cppa_cyber"
@@ -358,11 +358,11 @@ export default function CPPACybersecurity() {
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">
           {isSuite ? (
             <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Please complete the profile (entity, industry, incidents, framework, last audit).", variant: "destructive" }); return; } notifyUnassessed(); if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
-              Purchase CPPA Suite — ${suitePricing.price}
+              Purchase CPPA Suite (${suitePricing.price})
             </Button>
           ) : (
             <Button onClick={handlePurchase}>
-              Run Cybersecurity Readiness — ${displayPrice}
+              Run Cybersecurity Readiness (${displayPrice})
             </Button>
           )}
         </div>

@@ -211,7 +211,7 @@ export default function CPPAScopeChecker() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>CPPA Scope Checker — CCPA/CPRA | End User Privacy</title>
+        <title>CPPA Scope Checker (CCPA/CPRA) | End User Privacy</title>
         <meta
           name="description"
           content="Free 2-minute CCPA/CPRA scope check. Determine whether the California Consumer Privacy Act and CPPA enforcement obligations apply to your business. No account, no payment."
@@ -401,7 +401,7 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
   if (isAuthed) {
     return (
       <p className="text-xs text-muted-foreground italic pt-3 border-t">
-        Saved to your account — find it any time in{" "}
+        Saved to your account. Find it any time in{" "}
         <Link to="/dashboard/reports" className="underline hover:text-foreground">My Reports</Link>.
       </p>
     );
@@ -677,11 +677,12 @@ function ResultsPanel({
       {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
         <section className="rounded-lg border-2 border-brand-teal bg-brand-cloud/40 p-6 space-y-3">
           <p className="text-xs uppercase tracking-[0.18em] text-brand-teal-text font-semibold">
-            Recommended — you triggered 2+ modules
+            Recommended: you triggered 2+ modules
+
           </p>
           <h3 className="font-serif text-2xl text-brand-navy">CPPA Full Audit Suite (M1 + M2)</h3>
           <p className="text-sm text-foreground">
-            Covers Risk Assessment (Module 1) and Cybersecurity Readiness (Module 2) together —{" "}
+            Covers Risk Assessment (Module 1) and Cybersecurity Readiness (Module 2) together,{" "}
             <span className="font-semibold">
               {PRICING_REGISTRY.cppa_suite_standalone.displayPrice}
             </span>{" "}
@@ -705,17 +706,17 @@ function ResultsPanel({
         <div className="flex flex-wrap gap-3">
           {obligationMap.riskAssessmentRequired && (
             <Button variant={obligationMap.riskAssessmentRequired && cyberRequiredConfirmed ? "outline" : "default"} onClick={() => navigate("/cppa-risk-assessment")}>
-              Run CPPA Risk Assessment — Module 1 · {PRICING_REGISTRY.cppa_risk_standalone.displayPrice} →
+              Run CPPA Risk Assessment (Module 1) · {PRICING_REGISTRY.cppa_risk_standalone.displayPrice} →
             </Button>
           )}
           {cyberRequiredConfirmed && (
             <Button variant={obligationMap.riskAssessmentRequired && cyberRequiredConfirmed ? "outline" : "default"} onClick={() => navigate("/cppa-cybersecurity")}>
-              Run CPPA Cybersecurity Readiness — Module 2 · {PRICING_REGISTRY.cppa_cyber_standalone.displayPrice} →
+              Run CPPA Cybersecurity Readiness (Module 2) · {PRICING_REGISTRY.cppa_cyber_standalone.displayPrice} →
             </Button>
           )}
           {obligationMap.admtRequired && (
             <Button variant="outline" onClick={() => navigate("/cppa-admt-checker")}>
-              Run ADMT Compliance Assessment — Module 3 · {PRICING_REGISTRY.cppa_admt_standalone.displayPrice} →
+              Run ADMT Compliance Assessment (Module 3) · {PRICING_REGISTRY.cppa_admt_standalone.displayPrice} →
             </Button>
           )}
         </div>
@@ -757,7 +758,7 @@ function CPPAUpdatesCapture() {
       <section className="rounded-lg border bg-card p-6">
         <p className="text-sm font-medium text-brand-navy">Subscribed to CPPA regulatory updates.</p>
         <p className="text-xs text-muted-foreground mt-1">
-          You'll receive periodic CPPA rulemaking and enforcement updates. Your obligation-map results were not emailed — create a free account above to save them.
+          You'll receive periodic CPPA rulemaking and enforcement updates. Your obligation-map results were not emailed; create a free account above to save them.
         </p>
       </section>
     );

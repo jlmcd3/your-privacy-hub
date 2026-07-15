@@ -21,7 +21,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 const TITLE =
-  "RoPA Builder — Records of Processing | End User Privacy";
+  "RoPA Builder · Records of Processing | End User Privacy";
 const META_DESCRIPTION =
   "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers 25+ jurisdictions including EU GDPR, UK GDPR, LGPD, and CCPA.";
 
@@ -29,7 +29,7 @@ const STEPS = [
   {
     icon: ListChecks,
     title: "Answer plain-language questions",
-    body: "About your data processing activities — no legal jargon.",
+    body: "About your data processing activities, in plain language (no legal jargon).",
   },
   {
     icon: FileText,
@@ -39,7 +39,7 @@ const STEPS = [
   {
     icon: Download,
     title: "Download your audit-ready record",
-    body: "Export in PDF, Word, or Excel — formatted for regulator review.",
+    body: "Export in PDF, Word, or Excel, formatted for regulator review.",
   },
 ];
 
@@ -84,7 +84,7 @@ const FAQ = [
   },
   {
     q: "Can I edit the RoPA after generating?",
-    a: "Yes — through the annual refresh flow, you can add new activities, confirm unchanged ones, or update existing entries.",
+    a: "Yes. Through the annual refresh flow, you can add new activities, confirm unchanged ones, or update existing entries.",
   },
 ];
 
@@ -121,7 +121,7 @@ export default function RopaLanding() {
           <RequirementBadge variant="hero" tier="required" text="GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
-            frameworks. Included with every Intelligence and Professional subscription —
+            frameworks. Included with every Intelligence and Professional subscription,
             monthly or annual. Not sold as a standalone product.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -223,7 +223,7 @@ export default function RopaLanding() {
               Pricing
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
-              Included with any active subscription — no per-document fees.
+              Included with any active subscription, with no per-document fees.
             </p>
 
             <div className="cmp-table overflow-x-auto border border-border rounded-2xl">
@@ -299,12 +299,12 @@ export default function RopaLanding() {
           </h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
             RoPA Builder is included with every Intelligence and Professional
-            subscription — monthly or annual. It is not sold as a standalone
+            subscription (monthly or annual). It is not sold as a standalone
             product.
           </p>
           <Button asChild size="lg">
             <Link to="/subscribe">
-              Included with any subscription — Subscribe <ArrowRight className="ml-1.5 h-4 w-4" />
+              Included with any subscription: Subscribe <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
         </section>
