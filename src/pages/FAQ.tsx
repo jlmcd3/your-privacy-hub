@@ -121,30 +121,7 @@ const FAQ = () => {
 
       {/* Accordion */}
       <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
-        {faqs.map((faq, i) => (
-          <div key={i} className="bg-card border border-brand-cloud rounded-xl mb-3 overflow-hidden">
-            <button
-              onClick={() => {
-                setOpenIndices(prev => {
-                  const next = new Set(prev);
-                  if (next.has(i)) next.delete(i); else next.add(i);
-                  return next;
-                });
-              }}
-              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
-            >
-              <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
-              <ChevronDown
-                className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
-              />
-            </button>
-            {openIndices.has(i) && (
-              <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed whitespace-pre-line">{faq.a}</div>
-            )}
-          </div>
-        ))}
-
-        <h2 className="font-display text-brand-navy mt-10 mb-4">Pricing</h2>
+        <h2 className="font-display text-brand-navy mb-4">Pricing</h2>
         {pricingFaqs.map((faq, j) => {
           const i = faqs.length + j;
           return (
@@ -170,6 +147,39 @@ const FAQ = () => {
             </div>
           );
         })}
+
+        <h2 className="font-display text-brand-navy mt-10 mb-4">General</h2>
+        {faqs.map((faq, i) => (
+          <div key={i} className="bg-card border border-brand-cloud rounded-xl mb-3 overflow-hidden">
+            <button
+              onClick={() => {
+                setOpenIndices(prev => {
+                  const next = new Set(prev);
+                  if (next.has(i)) next.delete(i); else next.add(i);
+                  return next;
+                });
+              }}
+              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
+            >
+              <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
+              <ChevronDown
+                className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
+              />
+            </button>
+            {openIndices.has(i) && (
+              <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed whitespace-pre-line">{faq.a}</div>
+            )}
+          </div>
+        ))}
+
+        <h2 className="font-display text-brand-navy mt-10 mb-4">Security &amp; Data Handling</h2>
+        <div className="bg-card border border-brand-cloud rounded-xl mb-3 overflow-hidden p-6">
+          <p className="text-[14px] text-slate italic leading-relaxed">
+            {/* Placeholder marker — content supplied by Legal. */}
+            [ Content pending legal review. ]
+          </p>
+        </div>
+
 
         {/* Bottom CTA */}
         <div className="bg-brand-navy rounded-2xl p-8 text-center mt-12">
