@@ -706,9 +706,14 @@ async function runOneUnit(runId: string) {
       const openItemsAfter = registerAfter.filter((it: any) => it?.status === "open");
       const itemsAfter = openItemsAfter.length;
       const postSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
-      const postScore = postSamples.length > 0
-        ? [...postSamples].sort((a, b) => a - b)[Math.floor(postSamples.length / 2)]
-        : null;
+      const postScore = medianOrNull(postSamples.blended);
+      const postClaude = medianOrNull(postSamples.claude);
+      const postGpt = medianOrNull(postSamples.gpt);
+      // QL3-P1: write post-samples to cache under the NEW version_n — they
+      // become the next pass's pre-samples.
+      if (currentVersion > 0 && (postSamples.blended.length > 0 || postSamples.claude.length > 0 || postSamples.gpt.length > 0)) {
+        await storeCachedSamples(run.assessment_id, run.tool_slug, currentVersion, postSamples);
+      }
       const openIdsBefore: string[] = Array.isArray((run as any)?.input_spec?.open_items_before)
         ? (run as any).input_spec.open_items_before
             .map((i: any) => (i?.id ? String(i.id) : null))
@@ -724,34 +729,70 @@ async function runOneUnit(runId: string) {
         0,
       );
       const priorQc = (run as any)?.qc_result ?? {};
-      const preSamplesPersisted: number[] = Array.isArray(priorQc?.score_samples?.pre)
-        ? priorQc.score_samples.pre.filter((x: unknown) => typeof x === "number")
-        : [];
-      const variance = computeVariance(preSamplesPersisted, postSamples);
+      // Back-compat read: prior shape was `score_samples.pre: number[]`,
+      // new shape is `{claude, gpt, blended}`. Prefer blended when present.
+      const priorPre: any = priorQc?.score_samples?.pre;
+      const preSamplesPersisted: number[] = Array.isArray(priorPre)
+        ? priorPre.filter((x: unknown) => typeof x === "number")
+        : (Array.isArray(priorPre?.blended) ? priorPre.blended.filter((x: unknown) => typeof x === "number") : []);
+      const variance = computeVariance(preSamplesPersisted, postSamples.blended);
+
+      // QL3-P1 incorporation check (after terminalReached confirmed above).
+      const verdicts: any[] = Array.isArray(priorQc?.upstream?.verdicts) ? priorQc.upstream.verdicts : [];
+      const answered: any[] = Array.isArray((run as any)?.dummy_answers) ? (run as any).dummy_answers : [];
+      let incorporation: IncorpReport | null = null;
+      let incorpNote = "";
+      if (terminalReached && verdicts.length > 0) {
+        incorporation = checkIncorporation({
+          reportData: (rowFinal as any)?.report_data,
+          register: registerAfter,
+          verdicts,
+          answered,
+        });
+        const failCount = incorporation.checked.filter((c) => c.result === "fail").length;
+        if (failCount > 0) incorpNote = `incorporation_failed(${failCount})`;
+      }
+
+      const newNotes = incorpNote
+        ? ((run as any).notes ? `${(run as any).notes} | ${incorpNote}` : incorpNote)
+        : (run as any).notes;
 
       await db.from("quality_loop3_runs").update({
         phase: "done",
         items_after: itemsAfter,
         items_resolved: resolved,
         post_score: postScore,
+        post_claude_score: postClaude,
+        post_gpt_score: postGpt,
         terminal_at: new Date().toISOString(),
+        ...(incorpNote ? { notes: newNotes } : {}),
         qc_result: {
           ...priorQc,
           build_stamp: BUILD_STAMP,
+          grader_stamp: GRADER_STAMP,
           review2_terminal_reached: terminalReached,
           review2_baseline_version_n: baselineVersion,
           review2_current_version_n: currentVersion,
-          // RC-C3.CLOSE-1 (item 1) — raw samples + band decision. Every band
-          // verdict is auditable per-run from qc_result alone (no cross-run
-          // history). |delta| < band → "no_signal"; other pass/fail semantics
-          // are unchanged by this addition.
-          score_samples: { pre: preSamplesPersisted, post: postSamples },
+          // QL3-P1 — persist per-model + blended raw samples; back-compat
+          // blended vector preserved at the same key depth.
+          score_samples: {
+            pre: {
+              claude: Array.isArray(priorPre?.claude) ? priorPre.claude : [],
+              gpt: Array.isArray(priorPre?.gpt) ? priorPre.gpt : [],
+              blended: preSamplesPersisted,
+            },
+            post: { claude: postSamples.claude, gpt: postSamples.gpt, blended: postSamples.blended },
+          },
           variance,
+          ...(incorporation ? { incorporation } : {}),
         },
         ...(terminalReached ? {} : { error_message: "review2_timeout_pre_terminal" }),
       }).eq("id", runId);
+      await logQL3(runId, terminalReached ? "info" : "warn",
+        `review2 done terminal=${terminalReached} items_after=${itemsAfter} resolved=${resolved}${incorpNote ? " " + incorpNote : ""}`);
       return;
     }
+
   } catch (e: any) {
     await db.from("quality_loop3_runs").update({
       phase: "failed",
