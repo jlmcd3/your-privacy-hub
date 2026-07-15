@@ -32,7 +32,8 @@ const DirectoriesPreview = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* US States */}
-          <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm hover:shadow-eup-md hover:-translate-y-0.5 transition-all">
+          <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm hover:shadow-eup-md motion-safe:hover:-translate-y-0.5 transition-all motion-reduce:transition-shadow">
+
             <div className="px-5 md:px-6 py-5 md:py-6 bg-gradient-to-br from-brand-ocean to-brand-slate-teal flex justify-between items-start">
               <div>
                 <h3 className="text-white mb-1">🇺🇸 U.S. State Privacy Authorities</h3>
