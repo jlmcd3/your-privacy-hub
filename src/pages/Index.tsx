@@ -21,6 +21,7 @@ const Index = () => (
 
     <Navbar />
     <BreakingNewsBanner />
+    <main id="main-content" aria-label="Home">
     <SearchFirstHero />
     <HomeGeographyPaths />
     <CPPADeadlineStrip />
@@ -74,6 +75,7 @@ const Index = () => (
     </div>
 
     <HomepagePricingStrip />
+    </main>
     <Footer />
   </div>
 );

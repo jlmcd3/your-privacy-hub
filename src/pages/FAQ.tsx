@@ -85,6 +85,7 @@ const FAQ = () => {
         <meta name="description" content="Common questions about End User Privacy: coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
       </Helmet>
       <Navbar />
+      <main id="main-content" aria-label="Frequently Asked Questions">
 
       {/* Hero */}
       <section className="bg-gradient-to-b from-brand-navy to-brand-slate-teal py-16 px-4">
@@ -118,7 +119,7 @@ const FAQ = () => {
                   return next;
                 });
               }}
-              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left"
+              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
             >
               <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
               <ChevronDown
@@ -144,7 +145,7 @@ const FAQ = () => {
                     return next;
                   });
                 }}
-                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left"
+                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
               >
                 <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
                 <ChevronDown
@@ -170,6 +171,8 @@ const FAQ = () => {
           </a>
         </div>
       </div>
+
+      </main>
 
       <Footer />
     </div>

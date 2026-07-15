@@ -28,7 +28,7 @@ const PrivacyPolicy = () => {
         />
       </Helmet>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+      <main id="main-content" aria-label="Privacy Policy" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <h1 className="font-display text-foreground mb-2">
           Privacy Policy
         </h1>
