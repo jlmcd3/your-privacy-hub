@@ -798,7 +798,7 @@ export default function QualityBatch() {
                 {new Date(logLastRefreshedAt).toLocaleTimeString()}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing || !activeBatch}>
+            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing}>
               {logRefreshing ? "…" : "Refresh"}
             </Button>
           </div>
