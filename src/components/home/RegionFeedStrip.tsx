@@ -29,7 +29,7 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
           <a
             key={i}
             {...props}
-            className="bg-white rounded-xl border border-brand-cloud p-5 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
+            className="bg-white rounded-xl border border-brand-cloud p-5 no-underline shadow-eup-sm hover:shadow-eup-md motion-safe:hover:-translate-y-0.5 transition-all motion-reduce:transition-shadow group"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl flag-emoji">{item.flag}</span>
