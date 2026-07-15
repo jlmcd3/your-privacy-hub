@@ -100,7 +100,7 @@ export default function ToolCTABlock({
       <Link
         to={primaryHref}
         onClick={handlePrimary}
-        className="inline-flex items-center gap-2 rounded-md bg-teal-action px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+        className="inline-flex items-center gap-2 rounded-md bg-teal-action px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[hsl(var(--teal-action-hover))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
       >
         {primaryLabelResolved}
         <ArrowRight className="h-4 w-4" aria-hidden />
