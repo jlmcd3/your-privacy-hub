@@ -10,6 +10,7 @@ import {
   accentFor,
 } from "@/lib/li-outcome-palette";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import ToolCTABlock from "@/components/ToolCTABlock";
 
 const OUTCOME_ORDER = LI_OUTCOME_ORDER;
 
@@ -98,7 +99,12 @@ const LegitimateInterestTracker = () => {
           </span>
           <h1 className="font-serif text-white mb-3">Legitimate Interest Tracker</h1>
           <p className="text-slate-300 text-lg max-w-3xl">Global privacy law, tracked daily.</p>
-          
+          <ToolCTABlock
+            toolSlug="li_tracker"
+            ctaPosition="hero"
+            onDark
+            pagePath="/legitimate-interest-tracker"
+          />
         </div>
       </header>
 
