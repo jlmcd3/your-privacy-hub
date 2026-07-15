@@ -70,7 +70,7 @@ Deno.test("decide: terminal child triggers child_terminal with moreTools flag", 
   const row: BatchRow = { ...baseRow, phase: "running_tool", current_quality_run_id: "abc" };
   const child: ChildSnapshot = {
     status: "complete", last_heartbeat_at: new Date().toISOString(),
-    score_overall: 82, gpt_score_overall: 79, error: null,
+    score_overall: 82, gpt_score_overall: 79, error: null, run_number: null,
   };
   const d = decide(row, child, Date.now());
   assert(d.kind === "child_terminal");
@@ -86,7 +86,7 @@ Deno.test("decide: every run-quality-batch terminal status is recognized", () =>
   for (const s of ["complete", "error", "cancelled"]) {
     const child: ChildSnapshot = {
       status: s, last_heartbeat_at: new Date().toISOString(),
-      score_overall: null, gpt_score_overall: null, error: null,
+      score_overall: null, gpt_score_overall: null, error: null, run_number: null,
     };
     const d = decide(row, child, Date.now());
     assertEquals(d.kind, "child_terminal", `expected terminal for status=${s}`);
@@ -99,7 +99,7 @@ Deno.test("decide: stale heartbeat past 6min → child_stalled", () => {
   const child: ChildSnapshot = {
     status: "building",
     last_heartbeat_at: new Date(now - (CHILD_STALL_MS + 1000)).toISOString(),
-    score_overall: null, gpt_score_overall: null, error: null,
+    score_overall: null, gpt_score_overall: null, error: null, run_number: null,
   };
   const d = decide(row, child, now);
   assertEquals(d.kind, "child_stalled");
@@ -111,7 +111,7 @@ Deno.test("decide: fresh heartbeat → child_wait", () => {
   const child: ChildSnapshot = {
     status: "building",
     last_heartbeat_at: new Date(now - 5_000).toISOString(),
-    score_overall: null, gpt_score_overall: null, error: null,
+    score_overall: null, gpt_score_overall: null, error: null, run_number: null,
   };
   const d = decide(row, child, now);
   assertEquals(d.kind, "child_wait");
