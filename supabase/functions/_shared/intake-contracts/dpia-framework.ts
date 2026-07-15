@@ -88,9 +88,9 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "data_subjects", kind: "text", required: "always" },
     { key: "volume_frequency", kind: "text", required: "always" },
     // third_party_processors — Pills multi-select over TOOLS plus optional
-    // "Other: <text>" suffix append; kept as structured to allow the
-    // free-form entry.
-    { key: "third_party_processors", kind: "structured", required: "optional" },
+    // "Other: <text>" append. Flat string[] (DPIAFramework.tsx L290:
+    // [...processors, `Other: ${otherProcessor.trim()}`]).
+    { key: "third_party_processors", kind: "string-array", required: "optional" },
     { key: "existing_safeguards", kind: "multi-enum", required: "optional", options: DPIA_SAFEGUARDS },
     { key: "jurisdictions", kind: "multi-enum", required: "always", options: DPIA_JURISDICTIONS },
     { key: "legal_basis_proposed", kind: "enum", required: "always", options: DPIA_LEGAL_BASES },
