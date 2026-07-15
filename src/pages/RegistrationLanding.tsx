@@ -20,6 +20,8 @@ import {
   Brain, Building2, ArrowRight,
 } from "lucide-react";
 import { formatPrice, PRICING } from "@/config/pricing";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const FAQS = [
   {
@@ -49,6 +51,9 @@ const FAQS = [
 ];
 
 export default function RegistrationLanding() {
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
   // hasToolAccess no longer used here (registration is always per-filing).
   return (
     <>
@@ -81,7 +86,7 @@ export default function RegistrationLanding() {
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <Button size="lg" asChild className="bg-white text-slate-900 hover:bg-slate-100">
-              <Link to="/registration-manager/start">Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
+              <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white">
               <Link to="#how-it-works">How it works</Link>
@@ -268,7 +273,7 @@ export default function RegistrationLanding() {
           <h2 className="font-display text-brand-navy mb-3">Ready to start?</h2>
           <p className="text-slate text-sm mb-6">The free assessment takes about 5 minutes.</p>
           <Button size="lg" asChild className="bg-brand-navy hover:bg-brand-navy/90 text-white">
-            <Link to="/registration-manager/start">Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
+            <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
           </Button>
           <div className="mt-10 max-w-3xl mx-auto">
             <RegistrationDisclaimer />
