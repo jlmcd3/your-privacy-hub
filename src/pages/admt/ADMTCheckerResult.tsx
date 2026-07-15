@@ -746,6 +746,7 @@ export default function ADMTCheckerResult() {
           .
         </p>
       </ReportShell>
+    </main>
     <Footer />
     </div>
   );
