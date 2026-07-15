@@ -231,6 +231,36 @@ export default function QualityLoop3() {
     return () => { cancelled = true; clearInterval(t); };
   }, [activeBatch?.id, activeBatch?.status]);
 
+  // Also tail unattached single-mode QL3 log entries (batch_id IS NULL) so
+  // operators see one-off runs that were never adopted into a batch.
+  // Polls unconditionally on a 10s cadence; window = last 15 minutes.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const sinceIso = new Date(Date.now() - 15 * 60_000).toISOString();
+      const { data } = await supabase
+        .from("quality_loop3_log")
+        .select("*")
+        .is("batch_id", null)
+        .gte("ts", sinceIso)
+        .order("ts", { ascending: true })
+        .limit(300);
+      if (cancelled) return;
+      if (data) setUnattachedLogs(data as unknown as Ql3LogRow[]);
+    };
+    load();
+    const t = setInterval(load, 10_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, []);
+
+  // Merged log stream: batch-scoped + recent unattached, deduped by id, sorted by ts.
+  const mergedLogs = (() => {
+    const seen = new Map<string, Ql3LogRow>();
+    for (const r of batchLogs) seen.set(r.id, r);
+    for (const r of unattachedLogs) seen.set(r.id, r);
+    return Array.from(seen.values()).sort((a, b) => a.ts.localeCompare(b.ts));
+  })();
+
   // Single-mode pre-fill.
   useEffect(() => {
     if (mode !== "single") return;
