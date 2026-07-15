@@ -125,17 +125,20 @@ const Login = () => {
             </p>
 
             {error && (
-              <div className="mb-5 p-3 rounded-lg bg-severity-warning/10 border border-severity-warning/30 text-severity-warning text-sm text-center">
+              <div role="alert" aria-live="polite" className="mb-5 p-3 rounded-lg bg-severity-warning/10 border border-severity-warning/30 text-severity-warning text-sm text-center">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4" noValidate>
               <div>
-                <label className="block text-sm font-medium text-brand-navy mb-1.5">Email</label>
+                <label htmlFor="login-email" className="block text-sm font-medium text-brand-navy mb-1.5">Email</label>
                 <input
+                  id="login-email"
                   type="email"
                   required
+                  aria-required="true"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none placeholder:text-brand-mist focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
@@ -143,11 +146,13 @@ const Login = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-brand-navy mb-1.5">Password</label>
+                <label htmlFor="login-password" className="block text-sm font-medium text-brand-navy mb-1.5">Password</label>
                 <div className="relative">
                   <input
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     required
+                    aria-required="true"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onCopy={blockExfil}
