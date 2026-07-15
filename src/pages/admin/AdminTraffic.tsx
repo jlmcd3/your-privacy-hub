@@ -161,7 +161,7 @@ function TrafficInner() {
           <div className="max-h-96 overflow-auto">
             <table className="w-full">
               <thead className="sticky top-0 bg-card"><tr>
-                <Head>Country</Head><Head>Sessions</Head><Head>Events</Head><Head></Head>
+                <Head>Country</Head><Head>Sessions</Head><Head>Events</Head><Head>{" "}</Head>
               </tr></thead>
               <tbody>
                 {agg.geography.map((g) => (
