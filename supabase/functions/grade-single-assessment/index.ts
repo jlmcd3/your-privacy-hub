@@ -42,7 +42,46 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // RC-D.9 ADDENDUM: BUILD_STAMP is the CEO's external-verification anchor.
 // Value = git short-sha + ISO timestamp. Update in the same edit that
 // changes behavior in this file.
-export const BUILD_STAMP = "rcd9-addendum@2026-07-13T22:15Z";
+// QL3-P1.2 (2026-07-15): generalized to all nine QL3 tools via `tool` param
+// with `TOOL_TABLE` (mirrors ql3-orchestrator.TOOL_TABLE + run-quality-batch
+// intake insert paths). Bumping the stamp invalidates the QL3 grade cache
+// by design — cache misses re-grade, safe.
+export const BUILD_STAMP = "ql3-p1-2-multitool@2026-07-15T00:00Z";
+
+// QL3 tool slug allow-list (mirrors ql3-orchestrator.TOOL_TABLE keys).
+export const KNOWN_TOOL_SLUGS = [
+  "governance", "cppa-risk", "cppa-cyber", "cppa-admt",
+  "dpia", "lia", "ir-playbook", "biometric", "dpa",
+] as const;
+export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
+
+// Per-tool row shape for grader intake+report fetch.
+//   * `table` mirrors ql3-orchestrator/index.ts:123-133 TOOL_TABLE.
+//   * `intakeCols` mirrors run-quality-batch/index.ts intake-insert paths
+//     (lines ~1083-1149 / 1221-1285): all tools carry a JSONB `intake_data`
+//     column EXCEPT `lia`, whose intake is spread across explicit columns
+//     on `li_assessments` (row inserted via `{ ...cleaned, user_id }`).
+//   * `reportCol` is `report_data` for all nine (verified against
+//     information_schema on 2026-07-15).
+type ToolRowSpec = { table: string; intakeCols: string[]; reportCol: "report_data" };
+const LI_INTAKE_COLS = [
+  "organization_name", "sector", "jurisdictions", "relationship_type",
+  "data_categories", "stated_purpose", "processing_description",
+  "purpose_details", "necessity_details", "balancing_details",
+  "alternatives_considered", "supplemental_context", "supplemental_responses",
+  "subject_anchor", "preview_signal",
+];
+export const TOOL_TABLE: Record<QL3Tool, ToolRowSpec> = {
+  "governance":  { table: "governance_assessments", intakeCols: ["intake_data"], reportCol: "report_data" },
+  "cppa-risk":   { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
+  "cppa-cyber":  { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
+  "cppa-admt":   { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
+  "dpia":        { table: "dpia_frameworks",        intakeCols: ["intake_data"], reportCol: "report_data" },
+  "lia":         { table: "li_assessments",         intakeCols: LI_INTAKE_COLS,  reportCol: "report_data" },
+  "ir-playbook": { table: "ir_playbooks",           intakeCols: ["intake_data"], reportCol: "report_data" },
+  "biometric":   { table: "biometric_assessments",  intakeCols: ["intake_data"], reportCol: "report_data" },
+  "dpa":         { table: "dpa_documents",          intakeCols: ["intake_data"], reportCol: "report_data" },
+};
 
 function json(b: unknown, s = 200) {
   return new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -97,8 +136,17 @@ Return ONLY valid JSON of this exact shape:
   "critical_failures": ["..."]
 }`;
 }
-// Weights mirror weightsFor("cppa-risk") in run-quality-batch (non-editorial path).
-const WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+// Weights mirror weightsFor(tool) from run-quality-batch/index.ts:154-158.
+// run-quality-batch is untouchable per QL3-P1 and does not export weightsFor,
+// so we mirror it as a local read-only helper. All nine QL3 slugs are
+// non-editorial (EDITORIAL_TOOLS at run-quality-batch:150-152), so the
+// weights are identical across the nine — but we still parameterize by
+// tool so any future editorial reclassification propagates via a code
+// re-mirror rather than a silent divergence.
+const NON_EDITORIAL_WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+function weightsFor(_tool: QL3Tool) {
+  return NON_EDITORIAL_WEIGHTS;
+}
 // ---- END verbatim copy ----
 
 async function claudeCall(system: string, user: string, maxTokens = 5000): Promise<string> {
@@ -131,28 +179,33 @@ async function gptCall(system: string, user: string, maxTokens = 3000): Promise<
 
 function tryParse(s: string): any { try { return JSON.parse(s); } catch { const m = s.match(/\{[\s\S]*\}/); return m ? (() => { try { return JSON.parse(m[0]); } catch { return null; } })() : null; } }
 
-function computeOverall(scores: any): number {
+function computeOverall(scores: any, tool: QL3Tool): number {
+  const w = weightsFor(tool);
   return Math.round(
-    (scores.accuracy ?? 60) * WEIGHTS.accuracy +
-    (scores.citation ?? 60) * WEIGHTS.citation +
-    (scores.hallucination ?? 60) * WEIGHTS.hallucination +
-    (scores.analysis ?? 60) * WEIGHTS.analysis +
-    (scores.intelligence ?? 60) * WEIGHTS.intelligence +
-    (scores.formatting ?? 60) * WEIGHTS.formatting
+    (scores.accuracy ?? 60) * w.accuracy +
+    (scores.citation ?? 60) * w.citation +
+    (scores.hallucination ?? 60) * w.hallucination +
+    (scores.analysis ?? 60) * w.analysis +
+    (scores.intelligence ?? 60) * w.intelligence +
+    (scores.formatting ?? 60) * w.formatting
   );
 }
 
-async function gradeOne(role: "claude" | "gpt", intake: any, report: any) {
+async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
-  const user = `TOOL: cppa-risk\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
+  const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
-  const overall = computeOverall(parsed.dimension_scores);
+  const overall = computeOverall(parsed.dimension_scores, tool);
   return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: parsed.findings ?? [], strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
 }
 
-Deno.serve(async (req) => {
+function isKnownTool(x: unknown): x is QL3Tool {
+  return typeof x === "string" && (KNOWN_TOOL_SLUGS as readonly string[]).includes(x);
+}
+
+const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
@@ -175,34 +228,54 @@ Deno.serve(async (req) => {
     if (!isAdmin) return json({ error: "admin_only" }, 403);
   }
 
-  let body: { assessment_id?: string; fixture_label?: string; dry_run?: boolean } = {};
+  let body: { assessment_id?: string; fixture_label?: string; dry_run?: boolean; tool?: string } = {};
   try { body = await req.json(); } catch { /* allow empty */ }
   if (!body.assessment_id) return json({ error: "missing_assessment_id" }, 400);
 
+  // QL3-P1.2: `tool` is optional; DEFAULT "cppa-risk" so existing callers
+  // (ql3-orchestrator.callInternalGrader, admin one-off Doc W baseline)
+  // stay unchanged. Unknown slug → 400 unknown_tool.
+  const toolRaw = body.tool ?? "cppa-risk";
+  if (!isKnownTool(toolRaw)) {
+    return json({ error: "unknown_tool", detail: `known: ${KNOWN_TOOL_SLUGS.join(",")}` }, 400);
+  }
+  const tool: QL3Tool = toolRaw;
+  const spec = TOOL_TABLE[tool];
+
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+  // Row fetch by id is unambiguous — no module filter needed for
+  // cppa_assessments (id is table PK).
+  const selectCols = ["id", "status", spec.reportCol, ...spec.intakeCols].join(", ");
   const { data: row, error: selErr } = await admin
-    .from("cppa_assessments")
-    .select("id, intake_data, report_data, status, created_at")
+    .from(spec.table)
+    .select(selectCols)
     .eq("id", body.assessment_id)
     .maybeSingle();
   if (selErr) return json({ error: selErr.message }, 500);
   if (!row) return json({ error: "assessment_not_found" }, 404);
-  if (!row.report_data) return json({ error: "assessment_not_generated" }, 400);
+  const rowAny = row as unknown as Record<string, unknown>;
+  if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
 
+  // Assemble intake from the per-tool columns. Single JSONB column → pass
+  // through; multi-column (LIA) → object with those column values.
+  const intake: unknown = spec.intakeCols.length === 1
+    ? rowAny[spec.intakeCols[0]]
+    : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
+  const report = rowAny[spec.reportCol];
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
-  try { claudeRes = await gradeOne("claude", row.intake_data, row.report_data); }
+  try { claudeRes = await gradeOne("claude", tool, intake, report); }
   catch (e) { claudeErr = (e as Error).message; }
-  try { gptRes = await gradeOne("gpt", row.intake_data, row.report_data); }
+  try { gptRes = await gradeOne("gpt", tool, intake, report); }
   catch (e) { gptErr = (e as Error).message; }
 
   const payload = {
-    assessment_id: row.id,
+    assessment_id: rowAny.id,
     fixture_label: body.fixture_label ?? "believed_fixture",
     graded_at: new Date().toISOString(),
     graded_by: userId,
-    tool: "cppa-risk",
+    tool,
     claude: claudeRes ? { overall_score: claudeRes.overall_score, dimension_scores: claudeRes.dimension_scores, findings_count: claudeRes.findings.length, critical_failures: claudeRes.critical_failures } : { error: claudeErr },
     gpt: gptRes ? { overall_score: gptRes.overall_score, dimension_scores: gptRes.dimension_scores, findings_count: gptRes.findings.length, critical_failures: gptRes.critical_failures } : { error: gptErr },
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
@@ -232,4 +305,9 @@ Deno.serve(async (req) => {
   }
 
   return json({ ok: true, mean_score, stored_note_id, payload });
-});
+};
+
+// QL3-P1.2: expose handler for tests; only bind Deno.serve when run as
+// the entrypoint (mirrors ql3-orchestrator/ql3-batch-orchestrator).
+export { handler };
+if (import.meta.main) Deno.serve(handler);
