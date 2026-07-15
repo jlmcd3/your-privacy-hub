@@ -17,6 +17,8 @@ import {
 import { ArrowRight, Check, Shield, RefreshCw, MapPin } from "lucide-react";
 import { US_NOTICE_PRICING, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const VIRGINIA_STATES = [
   "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
@@ -64,6 +66,9 @@ const FAQ: Array<{ q: string; a: string }> = [
 
 export default function USNoticeLanding() {
   const { hasToolAccess } = useSubscriptionTier();
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
   useEffect(() => {
     document.title =
       "US Privacy Notice Builder | End User Privacy";
@@ -96,7 +101,7 @@ export default function USNoticeLanding() {
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="min-h-[48px]">
-            <Link to="/subscribe">
+            <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
               View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
@@ -106,7 +111,7 @@ export default function USNoticeLanding() {
             variant="outline"
             className="min-h-[48px] bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
           >
-            <Link to="/us-notices">View my notice projects</Link>
+            <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/us-notice-builder", user_type: userType })}>View my notice projects</Link>
           </Button>
         </div>
       </PageHero>
@@ -283,7 +288,7 @@ export default function USNoticeLanding() {
               US Privacy Notice Builder for every active state at no additional charge.
             </p>
             <Button asChild size="lg" className="min-h-[48px]">
-              <Link to="/subscribe">
+              <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "article-footer" })}>
                 View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
               </Link>
             </Button>
