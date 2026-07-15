@@ -539,9 +539,7 @@ const PrivacyPolicy = () => {
 
           <p className="text-sm text-muted-foreground pt-4">© 2026 EUP, LLC</p>
         </div>
-      </main>
-      <Footer />
-    </div>
+    </LegalPageLayout>
   );
 };
 
