@@ -657,6 +657,7 @@ const Navbar = () => {
           {/* Always-visible Pricing link */}
           <Link
             to="/subscribe"
+            onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Pricing", cta_position: "top-banner" })}
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
               location.pathname === "/subscribe"
                 ? "text-white"
