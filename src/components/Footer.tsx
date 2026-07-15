@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 const Footer = () => {
+  const fireConversion = useConversionEvent();
   return (
     <footer className="bg-brand-navy text-brand-mist pt-14 pb-8 px-4 md:px-8">
       <div className="max-w-[1280px] mx-auto">
