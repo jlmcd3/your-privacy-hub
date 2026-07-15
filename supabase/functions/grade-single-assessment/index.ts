@@ -46,7 +46,10 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // with `TOOL_TABLE` (mirrors ql3-orchestrator.TOOL_TABLE + run-quality-batch
 // intake insert paths). Bumping the stamp invalidates the QL3 grade cache
 // by design — cache misses re-grade, safe.
-export const BUILD_STAMP = "ql3-p1-2-multitool@2026-07-15T00:00Z";
+// QLB-F3 (2026-07-15): grader payload rebuild (body-first, metadata-strip,
+// equal budget), spelling-neutral prompt preamble, and fill-in placeholder
+// exemption mirrored verbatim with run-quality-batch.
+export const BUILD_STAMP = "ql3-qlbf3-grader-payload@2026-07-15T02:00Z";
 
 // QL3 tool slug allow-list (mirrors ql3-orchestrator.TOOL_TABLE keys).
 export const KNOWN_TOOL_SLUGS = [
@@ -63,7 +66,12 @@ export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
 //     on `li_assessments` (row inserted via `{ ...cleaned, user_id }`).
 //   * `reportCol` is `report_data` for all nine (verified against
 //     information_schema on 2026-07-15).
-type ToolRowSpec = { table: string; intakeCols: string[]; reportCol: "report_data" };
+// QLB-F3: `bodyCol` names an optional secondary text column that holds
+// the substantive document body when it does NOT live inside report_data
+// (ir_playbooks.playbook_text; dpa_documents.document_text;
+// biometric_assessments.analysis_text). The handler fetches it alongside
+// report_data and folds it into the grader payload as a top-level key.
+type ToolRowSpec = { table: string; intakeCols: string[]; reportCol: "report_data"; bodyCol?: string; bodyKey?: string };
 const LI_INTAKE_COLS = [
   "organization_name", "sector", "jurisdictions", "relationship_type",
   "data_categories", "stated_purpose", "processing_description",
@@ -78,9 +86,9 @@ export const TOOL_TABLE: Record<QL3Tool, ToolRowSpec> = {
   "cppa-admt":   { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
   "dpia":        { table: "dpia_frameworks",        intakeCols: ["intake_data"], reportCol: "report_data" },
   "lia":         { table: "li_assessments",         intakeCols: LI_INTAKE_COLS,  reportCol: "report_data" },
-  "ir-playbook": { table: "ir_playbooks",           intakeCols: ["intake_data"], reportCol: "report_data" },
-  "biometric":   { table: "biometric_assessments",  intakeCols: ["intake_data"], reportCol: "report_data" },
-  "dpa":         { table: "dpa_documents",          intakeCols: ["intake_data"], reportCol: "report_data" },
+  "ir-playbook": { table: "ir_playbooks",           intakeCols: ["intake_data"], reportCol: "report_data", bodyCol: "playbook_text",  bodyKey: "playbook_text" },
+  "biometric":   { table: "biometric_assessments",  intakeCols: ["intake_data"], reportCol: "report_data", bodyCol: "analysis_text",  bodyKey: "assessment_text" },
+  "dpa":         { table: "dpa_documents",          intakeCols: ["intake_data"], reportCol: "report_data", bodyCol: "document_text",  bodyKey: "document_text" },
 };
 
 function json(b: unknown, s = 200) {
