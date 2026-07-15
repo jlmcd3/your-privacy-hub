@@ -715,6 +715,7 @@ const App = () => (
             {/* Master Console Phase 1 */}
             <Route path="/admin" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminHub />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/orders" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminOrders />}</AdminOnly></ProtectedRoute>} />
+            <Route path="/admin/ops" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}><Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}><AdminOps /></Suspense></AdminOnly></ProtectedRoute>} />
             <Route path="/admin/tools" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminTools />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/spend" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminSpend />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/provisions" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminProvisions />}</AdminOnly></ProtectedRoute>} />
