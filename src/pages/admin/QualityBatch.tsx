@@ -201,7 +201,7 @@ export default function QualityBatch() {
         .order("started_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (data) setActiveBatch(data as any);
+      if (data) setActiveBatch(data as unknown as BatchRow);
     })();
   }, []);
 
@@ -216,8 +216,8 @@ export default function QualityBatch() {
           .select("*").eq("run_id", activeBatch.id).order("ts", { ascending: true }).limit(500),
       ]);
       if (cancelled) return;
-      if (batch) setActiveBatch(batch as any);
-      if (log) setBatchLogs(log as any);
+      if (batch) setActiveBatch(batch as unknown as BatchRow);
+      if (log) setBatchLogs(log as unknown as BatchLogRow[]);
     };
     load();
     const t = setInterval(() => {
@@ -238,10 +238,10 @@ export default function QualityBatch() {
         supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
-      if (rows) setRecentBatches(rows as any);
+      if (rows) setRecentBatches(rows as unknown as BatchRow[]);
       if (base) {
         const m = new Map<string, Baseline>();
-        for (const b of base as any[]) m.set(b.tool, b as Baseline);
+        for (const b of (base as unknown as Baseline[])) m.set(b.tool, b);
         setBaselines(m);
       }
     };
@@ -296,7 +296,7 @@ export default function QualityBatch() {
       if (!runId) throw new Error("orchestrator returned no run_id");
       const { data: row } = await supabase.from("quality_batch_runs")
         .select("*").eq("id", runId).maybeSingle();
-      setActiveBatch(row as any);
+      setActiveBatch(row as unknown as BatchRow);
       setBatchLogs([]);
       toast.success("Batch started");
     } catch (e: any) {
@@ -371,7 +371,7 @@ export default function QualityBatch() {
     const m = new Map<string, number>();
     for (const t of TOOLS) m.set(t, 0);
     for (const b of recentBatches) {
-      const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as any) : [];
+      const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as unknown as ToolResult[]) : [];
       for (const r of results) m.set(r.tool, (m.get(r.tool) ?? 0) + 1);
     }
     return m;
@@ -383,7 +383,7 @@ export default function QualityBatch() {
     try {
       const perTool = new Map<string, { claudeSum: number; claudeN: number; gptSum: number; gptN: number }>();
       for (const b of recentBatches) {
-        const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as any) : [];
+        const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as unknown as ToolResult[]) : [];
         for (const r of results) {
           if (r.final_status !== "complete") continue;
           const e = perTool.get(r.tool) ?? { claudeSum: 0, claudeN: 0, gptSum: 0, gptN: 0 };
@@ -622,7 +622,7 @@ export default function QualityBatch() {
                       </td>
                       {matrixColumns.map((b) => {
                         const results: ToolResult[] = Array.isArray(b.tool_results)
-                          ? (b.tool_results as any) : [];
+                          ? (b.tool_results as unknown as ToolResult[]) : [];
                         const entry = results.find((r) => r.tool === tool);
                         if (!entry) {
                           return <td key={b.id} className="py-2 pr-3 text-muted-foreground">—</td>;
