@@ -117,7 +117,18 @@ export default function CPPACybersecurityResult() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>
+      <Helmet>
+        <title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
+            { "@type": "ListItem", position: 2, name: "CPPA Suite", item: "https://enduserprivacy.com/cppa" },
+            { "@type": "ListItem", position: 3, name: "CPPA Cybersecurity Audit Readiness", item: "https://enduserprivacy.com/cppa-cybersecurity" },
+          ],
+        })}</script>
+      </Helmet>
       <Navbar />
       <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
