@@ -493,15 +493,11 @@ async function runOneUnit(runId: string) {
         : [];
       const openItems = selectOpenForRevision(registerAll);
       const itemsBefore = openItems.length;
-      // RC-C3.CLOSE-1 (item 1) — sample N=3; median = point pre_score.
-      const preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
-      const preScore = preSamples.length > 0
-        ? [...preSamples].sort((a, b) => a - b)[Math.floor(preSamples.length / 2)]
-        : null;
 
       // RC-D.1 D-6: capture baseline report_versions.max(version_n) so
       // review2 can wait for the revision to *actually* advance the rail
-      // before measuring items_after / post_score.
+      // before measuring items_after / post_score. Also used as the QL3-P1
+      // pre-sample cache key.
       const { data: baseVer } = await db
         .from("report_versions")
         .select("version_n")
@@ -511,6 +507,29 @@ async function runOneUnit(runId: string) {
         .limit(1)
         .maybeSingle();
       const baselineVersion = (baseVer as any)?.version_n ?? 0;
+
+      // QL3-P1 grade cache — try to reuse pre-samples for
+      // (assessment_id, baseline version_n, grader_stamp).
+      let preSamples: GraderSamples = emptyGraderSamples();
+      let preCached = false;
+      const cachedPre = await loadCachedSamples(run.assessment_id, baselineVersion);
+      if (cachedPre && (cachedPre.blended.length > 0 || cachedPre.claude.length > 0 || cachedPre.gpt.length > 0)) {
+        preSamples = cachedPre;
+        preCached = true;
+        await logQL3(runId, "info", `pre-samples cache HIT assessment=${run.assessment_id} version=${baselineVersion}`);
+      } else {
+        // RC-C3.CLOSE-1 (item 1) — sample N=3.
+        preSamples = await sampleGraderScores(run.tool_slug, run.assessment_id);
+        // Only store if we produced anything (non-cppa-risk returns empties).
+        if (preSamples.blended.length > 0 || preSamples.claude.length > 0 || preSamples.gpt.length > 0) {
+          await storeCachedSamples(run.assessment_id, run.tool_slug, baselineVersion, preSamples);
+        }
+        await logQL3(runId, "info", `pre-samples cache MISS assessment=${run.assessment_id} version=${baselineVersion} n=${preSamples.blended.length}`);
+      }
+      const preScore = medianOrNull(preSamples.blended);
+      const preClaude = medianOrNull(preSamples.claude);
+      const preGpt = medianOrNull(preSamples.gpt);
+
 
       // Generate dummy answers deterministically from input_spec.
       // openItems is already OPEN-only, id-guarded, and 12-bounded by
