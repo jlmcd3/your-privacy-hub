@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 import { supabase } from "@/integrations/supabase/client";
 import { findLaw, isUrlFresh } from "@/data/lawRegistry";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 /**
  * Render a law name as: internal jurisdiction link + optional external "↗" to gov source.
@@ -87,6 +88,7 @@ function matchFilter(event: CalendarEvent, key: string): boolean {
 }
 
 const Calendar = () => {
+  const fireConversion = useConversionEvent();
   const [activeFilter, setActiveFilter] = useState("all");
   const [dbEvents, setDbEvents] = useState<CalendarEvent[]>([]);
 
@@ -196,6 +198,7 @@ const Calendar = () => {
           </p>
           <Link
             to="/subscribe"
+            onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Get Intelligence", cta_position: "top-banner" })}
             className="flex-shrink-0 text-[12px] font-bold text-amber-900 bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-colors whitespace-nowrap"
           >
             Get Intelligence →
