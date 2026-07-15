@@ -317,7 +317,7 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-brand-navy/70">— {T.registration.display} per filing.</span>
+          <span className="text-brand-navy/70">at {T.registration.display} per filing.</span>
         </div>
       </div>
 
