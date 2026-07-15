@@ -4,11 +4,13 @@
 //   { profile: { entity_name, industry, incidents_12mo, framework, last_audit },
 //     controls: [{ key, label, maturity, notes }, ×18] }
 //
-// Two controls (c13_training, c14_secure_dev) are left at "Insufficient
-// information" with empty notes so the forced-ask pass mints per-control
-// asks; the other 16 are populated at plausible maturity levels with
-// citation-worthy notes. `answer_targets` are the DOTTED ASK-vocabulary
-// paths (per RC-C3.CYB-2 alias map), NOT the report-shape indexed paths.
+// Three controls (c13_training, c14_secure_dev, c15_third_party) are left
+// with maturity "" (empty string — NOT the literal "Insufficient
+// information", which is not a valid CYBER_MATURITY_OPTIONS value) and
+// empty notes so the forced-ask pass mints per-control asks; the other 15
+// are populated at "Implemented across organization" with citation-worthy
+// notes. `answer_targets` are the DOTTED ASK-vocabulary paths (per
+// RC-C3.CYB-2 alias map), NOT the report-shape indexed paths.
 
 export interface CyberContractFixture {
   fixture_id: string;
