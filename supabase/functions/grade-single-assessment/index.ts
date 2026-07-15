@@ -17,6 +17,12 @@
 //  5. Standalone invocation only — never wired into ql2-orchestrator
 //     or run-stress-job.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+// QLB-F3 — shared grader payload builder (mirrors run-quality-batch).
+import {
+  buildGraderPayload,
+  GRADER_PAYLOAD_BUDGET,
+  familyForSingleTool,
+} from "../_shared/grader/payload.ts";
 
 // Intake slice for grader prompts. Cap raised 2500 -> 8000 (Doc X, 2026-07-06)
 // to mirror run-quality-batch. Beyond 8000, keep HEAD (5000) + TAIL (3000).
@@ -46,7 +52,10 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // with `TOOL_TABLE` (mirrors ql3-orchestrator.TOOL_TABLE + run-quality-batch
 // intake insert paths). Bumping the stamp invalidates the QL3 grade cache
 // by design — cache misses re-grade, safe.
-export const BUILD_STAMP = "ql3-p1-2-multitool@2026-07-15T00:00Z";
+// QLB-F3 (2026-07-15): grader payload rebuild (body-first, metadata-strip,
+// equal budget), spelling-neutral prompt preamble, and fill-in placeholder
+// exemption mirrored verbatim with run-quality-batch.
+export const BUILD_STAMP = "ql3-qlbf3-grader-payload@2026-07-15T02:00Z";
 
 // QL3 tool slug allow-list (mirrors ql3-orchestrator.TOOL_TABLE keys).
 export const KNOWN_TOOL_SLUGS = [
@@ -63,7 +72,12 @@ export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
 //     on `li_assessments` (row inserted via `{ ...cleaned, user_id }`).
 //   * `reportCol` is `report_data` for all nine (verified against
 //     information_schema on 2026-07-15).
-type ToolRowSpec = { table: string; intakeCols: string[]; reportCol: "report_data" };
+// QLB-F3: `bodyCol` names an optional secondary text column that holds
+// the substantive document body when it does NOT live inside report_data
+// (ir_playbooks.playbook_text; dpa_documents.document_text;
+// biometric_assessments.analysis_text). The handler fetches it alongside
+// report_data and folds it into the grader payload as a top-level key.
+type ToolRowSpec = { table: string; intakeCols: string[]; reportCol: "report_data"; bodyCol?: string; bodyKey?: string };
 const LI_INTAKE_COLS = [
   "organization_name", "sector", "jurisdictions", "relationship_type",
   "data_categories", "stated_purpose", "processing_description",
@@ -78,9 +92,9 @@ export const TOOL_TABLE: Record<QL3Tool, ToolRowSpec> = {
   "cppa-admt":   { table: "cppa_assessments",       intakeCols: ["intake_data"], reportCol: "report_data" },
   "dpia":        { table: "dpia_frameworks",        intakeCols: ["intake_data"], reportCol: "report_data" },
   "lia":         { table: "li_assessments",         intakeCols: LI_INTAKE_COLS,  reportCol: "report_data" },
-  "ir-playbook": { table: "ir_playbooks",           intakeCols: ["intake_data"], reportCol: "report_data" },
-  "biometric":   { table: "biometric_assessments",  intakeCols: ["intake_data"], reportCol: "report_data" },
-  "dpa":         { table: "dpa_documents",          intakeCols: ["intake_data"], reportCol: "report_data" },
+  "ir-playbook": { table: "ir_playbooks",           intakeCols: ["intake_data"], reportCol: "report_data", bodyCol: "playbook_text",  bodyKey: "playbook_text" },
+  "biometric":   { table: "biometric_assessments",  intakeCols: ["intake_data"], reportCol: "report_data", bodyCol: "analysis_text",  bodyKey: "assessment_text" },
+  "dpa":         { table: "dpa_documents",          intakeCols: ["intake_data"], reportCol: "report_data", bodyCol: "document_text",  bodyKey: "document_text" },
 };
 
 function json(b: unknown, s = 200) {
@@ -121,6 +135,11 @@ DIMENSIONS:
 6. formatting     — Clean output; no AI meta-commentary.
 
 CORPUS-VERIFIED RECENT AMENDMENTS (do not deduct for these): the platform's legal corpus is verified against official texts, including changes that may postdate your training knowledge. The following are CORRECT statements of current law; treat them as accurate, do not flag them for verification, and do not deduct from any dimension for asserting them: (1) Cal. Civ. Code § 1798.82, as amended by SB 446 (effective January 1, 2026): individual notice within 30 calendar days of discovery or notification per (a)(2)(A); for breaches affecting more than 500 California residents, a single sample copy to the California Attorney General within 15 calendar days of consumer notice per (f); both statutory delay allowances retained per (a)(2)(B). (2) CCPA post-CPRA subsection lettering in Cal. Civ. Code § 1798.140: 'service provider' is defined at subsection (ag), not the pre-2020 (v) lettering. (3) UK GDPR Article 6(11), inserted by the Data (Use and Access) Act 2025 (recognised-legitimate-interests examples: direct marketing, intra-group transmission for internal administrative purposes, network and information security). This list is exhaustive: it does not license any OTHER uncited or unverifiable legal claim, and all normal citation and hallucination scrutiny continues to apply to everything else.
+
+SPELLING NEUTRALITY (CEO Ruling R-15C-1 revised, QLB-F3): US and British spelling differences are NEVER a deduction under ANY dimension. Ignore spelling variety entirely — do not flag "organisation" vs "organization", "recognise" vs "recognize", "behaviour" vs "behavior", or any other locale variant. House-style locale is enforced by the Product Prompts, not by this grading rubric.
+
+BRACKETED FILL-IN MARKERS (CEO Ruling R-15C-2, QLB-F3): bracketed fill-in placeholders — including "[TO BE COMPLETED …]", "[TO BE COMPLETED: <detail>]", "[TO COMPLETE — <detail>]", "[TO BE ASSESSED]", and equivalent square-bracketed forms — are MANDATED anti-fabrication placeholders emitted per the Product Prompt's Priority 1 fact-discipline rule. Their presence is NEVER a deduction under ANY rubric check (not an internal-reasoning leak, not incompleteness, not lack of actionability, not boilerplate, not any other dimension). Grade the substance PRESENT in the document; deferral density is policed by product lint, not by this rubric.
+
 
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
 ${rubricChecklistText(checks)}
@@ -193,7 +212,15 @@ function computeOverall(scores: any, tool: QL3Tool): number {
 
 async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
-  const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
+  // QLB-F3: body-first, metadata-stripped, equal budget across models.
+  const family = familyForSingleTool(tool);
+  const payload = family
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+    : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
+  if (payload.truncated) {
+    console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+  }
+  const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`;
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
@@ -245,7 +272,12 @@ const handler = async (req: Request): Promise<Response> => {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   // Row fetch by id is unambiguous — no module filter needed for
   // cppa_assessments (id is table PK).
-  const selectCols = ["id", "status", spec.reportCol, ...spec.intakeCols].join(", ");
+  // QLB-F3: also fetch the body-text column (playbook_text /
+  // document_text / analysis_text) when the spec declares one, and fold
+  // it into `report` as `bodyKey` so the grader payload leads with body.
+  const cols = ["id", "status", spec.reportCol, ...spec.intakeCols];
+  if (spec.bodyCol) cols.push(spec.bodyCol);
+  const selectCols = cols.join(", ");
   const { data: row, error: selErr } = await admin
     .from(spec.table)
     .select(selectCols)
@@ -261,7 +293,12 @@ const handler = async (req: Request): Promise<Response> => {
   const intake: unknown = spec.intakeCols.length === 1
     ? rowAny[spec.intakeCols[0]]
     : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
-  const report = rowAny[spec.reportCol];
+  let report = rowAny[spec.reportCol];
+  if (spec.bodyCol && spec.bodyKey) {
+    const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
+    (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
+    report = rd;
+  }
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;

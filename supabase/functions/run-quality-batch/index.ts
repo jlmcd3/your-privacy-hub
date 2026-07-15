@@ -9,7 +9,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qlb-f2-drop-biometric-substring@2026-07-15T01:00Z";
+export const BUILD_STAMP = "qlb-f3-grader-payload@2026-07-15T02:00Z";
+
+// QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
+// equal budget across Claude+GPT).
+import {
+  buildGraderPayload,
+  GRADER_PAYLOAD_BUDGET,
+  familyForBatchTool,
+} from "../_shared/grader/payload.ts";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -312,16 +320,11 @@ const CHECKS: Check[] = [
       return { passed: true };
     },
   },
-  {
-    id: "no_british_spelling", dimension: "formatting", severity: "medium",
-    run: (_intake, report) => {
-      const s = JSON.stringify(report ?? "").toLowerCase();
-      const hits = ["personalise", "recognise", "organisation", "colour", "behaviour", "analyse"]
-        .filter(w => s.includes(w));
-      if (hits.length) return { passed: false, evidence: `British spelling: ${hits.join(", ")}` };
-      return { passed: true };
-    },
-  },
+  // QLB-F3: no_british_spelling deleted per CEO Ruling R-15C-1 (revised).
+  // Spelling variety is never a deduction; en-US is enforced by Product
+  // Prompts (see COURIER QLB-W2C), not the harness. This slot is
+  // deliberately left empty to preserve check-id line-neighbourhoods for
+  // reviewers reading old batch reports.
   {
     id: "no_prompt_artifacts", dimension: "formatting", severity: "high",
     run: (_intake, report) => {
@@ -369,7 +372,10 @@ const CHECKS: Check[] = [
       const s = JSON.stringify(report ?? "");
       const bad = [...s.matchAll(/§\s*(\d{4,5})(?:\([a-z0-9]+\))*/gi)]
         .map(m => parseInt(m[1]))
-        .filter(n => n > 100 && n < 7000);
+        // QLB-F3: § 1798 is the Cal. Civ. Code prefix the ADMT product
+        // prompt mandates citing (§ 1798.155, § 1798.120, § 1798.125);
+        // do not flag it as a hallucinated ADMT section number.
+        .filter(n => n > 100 && n < 7000 && n !== 1798);
       if (bad.length)
         return { passed: false, evidence: `Suspicious section numbers outside known range: ${[...new Set(bad)].slice(0, 3).map(n => `§ ${n}`).join(", ")}` };
       return { passed: true };
@@ -804,6 +810,11 @@ DIMENSIONS:
 
 CORPUS-VERIFIED RECENT AMENDMENTS (do not deduct for these): the platform's legal corpus is verified against official texts, including changes that may postdate your training knowledge. The following are CORRECT statements of current law; treat them as accurate, do not flag them for verification, and do not deduct from any dimension for asserting them: (1) Cal. Civ. Code § 1798.82, as amended by SB 446 (effective January 1, 2026): individual notice within 30 calendar days of discovery or notification per (a)(2)(A); for breaches affecting more than 500 California residents, a single sample copy to the California Attorney General within 15 calendar days of consumer notice per (f); both statutory delay allowances retained per (a)(2)(B). (2) CCPA post-CPRA subsection lettering in Cal. Civ. Code § 1798.140: 'service provider' is defined at subsection (ag), not the pre-2020 (v) lettering. (3) UK GDPR Article 6(11), inserted by the Data (Use and Access) Act 2025 (recognised-legitimate-interests examples: direct marketing, intra-group transmission for internal administrative purposes, network and information security). This list is exhaustive: it does not license any OTHER uncited or unverifiable legal claim, and all normal citation and hallucination scrutiny continues to apply to everything else.
 
+SPELLING NEUTRALITY (CEO Ruling R-15C-1 revised, QLB-F3): US and British spelling differences are NEVER a deduction under ANY dimension. Ignore spelling variety entirely — do not flag "organisation" vs "organization", "recognise" vs "recognize", "behaviour" vs "behavior", or any other locale variant. House-style locale is enforced by the Product Prompts, not by this grading rubric.
+
+BRACKETED FILL-IN MARKERS (CEO Ruling R-15C-2, QLB-F3): bracketed fill-in placeholders — including "[TO BE COMPLETED …]", "[TO BE COMPLETED: <detail>]", "[TO COMPLETE — <detail>]", "[TO BE ASSESSED]", and equivalent square-bracketed forms — are MANDATED anti-fabrication placeholders emitted per the Product Prompt's Priority 1 fact-discipline rule. Their presence is NEVER a deduction under ANY rubric check (not an internal-reasoning leak, not incompleteness, not lack of actionability, not boilerplate, not any other dimension). Grade the substance PRESENT in the document; deferral density is policed by product lint, not by this rubric.
+
+
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
 ${rubricChecklistText(checks)}
 
@@ -835,10 +846,19 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   // dimension/severity if the model omits or invents them.
   const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
 
+  // QLB-F3: body-first, metadata-stripped, equal-budget grader payload.
+  const family = familyForBatchTool(tool);
+  const payload = family
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+    : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
+  if (payload.truncated) {
+    console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=claude original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+  }
+
   let claudeResult: any = null;
   try {
     const sys = buildRubricSystemPrompt("claude", tool);
-    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
+    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
     claudeResult = tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
@@ -881,7 +901,15 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
       ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy. Score "formatting" as 100 (N/A). Focus on (1) accuracy of facts and law, (2) citation fidelity, (3) no_adaptive_guidance.`
       : "";
     const sys = buildRubricSystemPrompt("gpt", tool);
-    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
+    // QLB-F3: same body-first payload + equal budget as Claude path.
+    const family = familyForBatchTool(tool);
+    const payload = family
+      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+      : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
+    if (payload.truncated) {
+      console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+    }
+    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nDOCUMENT TO EVALUATE:\n${payload.text}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
@@ -1175,6 +1203,20 @@ async function pollGenerationRow(
           return { status: "complete", reportData: { documents: docs ?? [], document_count: docs?.length ?? 0 } };
         }
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      } else if (sourceTable === "ir_playbooks") {
+        // QLB-F3: playbook_text lives in a separate column; merge it into
+        // reportData so the grader payload builder leads with the body.
+        const { data } = await admin.from(sourceTable).select("status, playbook_text, report_data").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "complete") return { status: "complete", reportData: { ...((data as any)?.report_data ?? {}), playbook_text: (data as any)?.playbook_text ?? "" } };
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      } else if (sourceTable === "dpa_documents") {
+        // QLB-F3: document_text lives in a separate column; merge it in
+        // (mirror of biometric_assessments and ir_playbooks handling).
+        const { data } = await admin.from(sourceTable).select("status, document_text, report_data").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "complete") return { status: "complete", reportData: { ...((data as any)?.report_data ?? {}), document_text: (data as any)?.document_text ?? "" } };
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       } else {
         const { data } = await admin.from(sourceTable).select("status, report_data").eq("id", sourceRowId).single();
         const s = (data as any)?.status;
@@ -1192,10 +1234,21 @@ async function pollGenerationRow(
 async function buildDocument(admin: Admin, tool: string, intake: any, userId: string): Promise<{ sourceTable: string; sourceRowId: string; reportData: any } | null> {
   try {
     const poll = async (table: string, id: string) => {
+      // QLB-F3: for tables whose body lives in a separate text column
+      // (playbook_text, document_text), fold it into report_data on the
+      // way out so the grader payload builder can lead with the body.
+      const bodyCol =
+        table === "ir_playbooks" ? "playbook_text" :
+        table === "dpa_documents" ? "document_text" : null;
+      const cols = bodyCol ? `status, report_data, ${bodyCol}` : "status, report_data";
       for (let i = 0; i < 120; i++) {
         await new Promise(r => setTimeout(r, 5000));
-        const { data } = await admin.from(table).select("status, report_data").eq("id", id).single();
-        if ((data as any)?.status === "complete") return (data as any)?.report_data;
+        const { data } = await admin.from(table).select(cols).eq("id", id).single();
+        if ((data as any)?.status === "complete") {
+          const rd = (data as any)?.report_data ?? {};
+          if (bodyCol) return { ...rd, [bodyCol]: (data as any)?.[bodyCol] ?? "" };
+          return rd;
+        }
         if (["error", "failed", "cancelled"].includes((data as any)?.status ?? ""))
           throw new Error(`${table} status=${(data as any)?.status}`);
       }

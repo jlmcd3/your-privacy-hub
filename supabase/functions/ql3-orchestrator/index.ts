@@ -215,7 +215,7 @@ async function readAssessment(toolSlug: string, assessmentId: string) {
 // QL3-P1.2 (2026-07-15): grader generalized to all nine QL3 tools; stamp
 // bumped in lock-step with grade-single-assessment BUILD_STAMP. The
 // equality invariant is asserted by _tests/ql3-p1-2.test.ts.
-export const GRADER_STAMP = "ql3-p1-2-multitool@2026-07-15T00:00Z";
+export const GRADER_STAMP = "ql3-qlbf3-grader-payload@2026-07-15T02:00Z";
 
 export interface GraderSample { claude: number | null; gpt: number | null; blended: number | null }
 async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<GraderSample | null> {
