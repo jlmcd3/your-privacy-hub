@@ -524,9 +524,7 @@ const Terms = () => {
             </p>
           </section>
         </div>
-      </main>
-      <Footer />
-    </div>
+    </LegalPageLayout>
   );
 };
 
