@@ -1,25 +1,30 @@
-import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import LegalPageLayout, { type LegalSection } from "@/components/LegalPageLayout";
+
+const SECTIONS: LegalSection[] = [
+  { id: "acknowledgements", label: "Your Acknowledgements" },
+  { id: "site", label: "The Site" },
+  { id: "orders-pricing", label: "Orders & Pricing" },
+  { id: "third-parties", label: "Third Parties" },
+  { id: "license", label: "License & Restrictions" },
+  { id: "term-termination", label: "Term & Termination" },
+  { id: "confidentiality", label: "Confidentiality" },
+  { id: "feedback", label: "Feedback License" },
+  { id: "modifications", label: "Modifications to This Agreement" },
+  { id: "legal-matters", label: "Legal Matters" },
+  { id: "general", label: "General" },
+];
 
 const Terms = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Terms of Service | End User Privacy</title>
-        <meta
-          name="description"
-          content="Terms of Service governing use of enduserprivacy.com, including acknowledgements, orders, licenses, confidentiality, and limitation of liability."
-        />
-      </Helmet>
-      <Navbar />
-      <main id="main-content" aria-label="Terms of Service" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <h1 className="font-display text-foreground mb-2">
-          EndUserPrivacy Terms of Service
-        </h1>
-        <p className="text-sm text-muted-foreground mb-10">Last updated: May 15, 2026</p>
-
-        <div className="prose prose-sm max-w-none space-y-8 text-foreground/90">
+    <LegalPageLayout
+      title="EndUserPrivacy Terms of Service"
+      metaTitle="Terms of Service | End User Privacy"
+      metaDescription="Terms of Service governing use of enduserprivacy.com, including acknowledgements, orders, licenses, confidentiality, and limitation of liability."
+      lastUpdated="May 15, 2026"
+      ariaLabel="Terms of Service"
+      sections={SECTIONS}
+    >
+      <div className="prose prose-sm max-w-none space-y-8 font-serif-text text-fluid-base text-ink">
           <section className="space-y-3">
             <p>
               These Terms of Service (the "Agreement") govern use of the enduserprivacy.com
