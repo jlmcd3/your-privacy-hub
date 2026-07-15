@@ -396,7 +396,7 @@ function buildDPIAReportHTML(report: any, dpia: any): string {
   const prose = (label: string, val: any): string =>
     val ? `<p><span class="label">${escHtml(label)}:</span> ${sanitizeNarrative(String(val))}</p>` : "";
   const sec = (heading: string, s: any, inner: string): string =>
-    !s ? "" : `<h2>${escHtml(heading)}</h2>${s.guidance_note ? `<div class="guidance">${escHtml(s.guidance_note)}</div>` : ""}${inner}${s.completion_guidance ? `<div class="completion"><strong>The organisation must complete: </strong>${escHtml(s.completion_guidance)}</div>` : ""}`;
+    !s ? "" : `<h2>${escHtml(heading)}</h2>${s.guidance_note ? `<div class="guidance">${escHtml(s.guidance_note)}</div>` : ""}${inner}${s.completion_guidance ? `<div class="completion"><strong>The organization must complete: </strong>${escHtml(s.completion_guidance)}</div>` : ""}`;
 
   const ov = report.section_0_overview, d1 = report.section_1_description, an = report.section_2_analysis;
   const np = report.section_3_necessity_proportionality, rm = report.section_4_risk_management;
