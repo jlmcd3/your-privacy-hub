@@ -4,6 +4,16 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
 import { PRICING_REGISTRY } from "@/config/pricing";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
+
+// PP-1: map /cppa hub card hrefs to their tool_slug for tool_start_click.
+const CPPA_CARD_SLUG: Record<string, string> = {
+  "/cppa-scope-checker": "cppa_scope",
+  "/cppa-risk-assessment": "cppa_risk",
+  "/cppa-cybersecurity": "cppa_cyber",
+  "/cppa-admt-checker": "cppa_admt",
+};
 
 const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
 const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
@@ -75,6 +85,9 @@ const FAQ = [
 
 
 export default function CPPAHub() {
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
