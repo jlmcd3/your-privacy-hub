@@ -209,18 +209,37 @@ export default function QualityBatch() {
   const [logRefreshTick, setLogRefreshTick] = useState(0);
   const [logRefreshing, setLogRefreshing] = useState(false);
   const [logLastRefreshedAt, setLogLastRefreshedAt] = useState<string | null>(null);
+
+  async function loadBatchLogs(batchRow: BatchRow) {
+    const [{ data: batch }, { data: log }] = await Promise.all([
+      supabase.from("quality_batch_runs").select("*").eq("id", batchRow.id).maybeSingle(),
+      supabase.from("quality_batch_log")
+        .select("*").eq("run_id", batchRow.id).order("ts", { ascending: true }).limit(500),
+    ]);
+    if (batch) setActiveBatch(batch as unknown as BatchRow);
+    if (log) setBatchLogs(log as unknown as BatchLogRow[]);
+  }
+
+  async function loadLatestBatchLogs() {
+    const { data } = await supabase
+      .from("quality_batch_runs")
+      .select("*")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) {
+      setBatchLogs([]);
+      return;
+    }
+    await loadBatchLogs(data as unknown as BatchRow);
+  }
+
   useEffect(() => {
     if (!activeBatch) return;
     let cancelled = false;
     const load = async () => {
-      const [{ data: batch }, { data: log }] = await Promise.all([
-        supabase.from("quality_batch_runs").select("*").eq("id", activeBatch.id).maybeSingle(),
-        supabase.from("quality_batch_log")
-          .select("*").eq("run_id", activeBatch.id).order("ts", { ascending: true }).limit(500),
-      ]);
+      await loadBatchLogs(activeBatch);
       if (cancelled) return;
-      if (batch) setActiveBatch(batch as unknown as BatchRow);
-      if (log) setBatchLogs(log as unknown as BatchLogRow[]);
       setLogLastRefreshedAt(new Date().toISOString());
     };
     load();
@@ -232,10 +251,20 @@ export default function QualityBatch() {
     return () => { cancelled = true; clearInterval(t); };
   }, [activeBatch?.id, activeBatch?.status, logRefreshTick]);
 
-  const refreshLog = () => {
+  const refreshLog = async () => {
     setLogRefreshing(true);
-    setLogRefreshTick((n) => n + 1);
-    setTimeout(() => setLogRefreshing(false), 600);
+    try {
+      await Promise.all([
+        loadLatestBatchLogs(),
+        refreshRuns(),
+      ]);
+      setLogRefreshTick((n) => n + 1);
+      setLogLastRefreshedAt(new Date().toISOString());
+    } catch (e: any) {
+      toast.error(`Log refresh failed: ${e?.message ?? String(e)}`);
+    } finally {
+      setLogRefreshing(false);
+    }
   };
 
   // ─── Recent batches + baselines for the score matrix ─────────────────────
@@ -769,7 +798,7 @@ export default function QualityBatch() {
                 {new Date(logLastRefreshedAt).toLocaleTimeString()}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing || !activeBatch}>
+            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing}>
               {logRefreshing ? "…" : "Refresh"}
             </Button>
           </div>
