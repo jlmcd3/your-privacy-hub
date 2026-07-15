@@ -83,18 +83,21 @@ export default function ResetPassword() {
                 Choose a strong password for your End User Privacy account.
               </p>
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-severity-warning/10 border border-severity-warning/30 text-severity-warning text-sm text-center">
+                <div role="alert" aria-live="polite" className="mb-5 p-3 rounded-lg bg-severity-warning/10 border border-severity-warning/30 text-severity-warning text-sm text-center">
                   {error}
                 </div>
               )}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 <div>
-                  <label className="block text-sm font-medium text-brand-navy mb-1.5">
+                  <label htmlFor="reset-password" className="block text-sm font-medium text-brand-navy mb-1.5">
                     New Password
                   </label>
                   <input
+                    id="reset-password"
                     type="password"
                     required
+                    aria-required="true"
+                    autoComplete="new-password"
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -103,12 +106,15 @@ export default function ResetPassword() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-brand-navy mb-1.5">
+                  <label htmlFor="reset-confirm" className="block text-sm font-medium text-brand-navy mb-1.5">
                     Confirm Password
                   </label>
                   <input
+                    id="reset-confirm"
                     type="password"
                     required
+                    aria-required="true"
+                    autoComplete="new-password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
