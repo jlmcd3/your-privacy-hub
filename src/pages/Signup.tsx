@@ -61,13 +61,14 @@ const Signup = () => {
           </p>
 
           {/* Greyed-out form preview */}
-          <div className="space-y-3 mb-6 pointer-events-none select-none opacity-40" aria-hidden="true">
+          <div className="space-y-3 mb-6 opacity-40" aria-hidden="true" onFocusCapture={onEmailEngagement} onPointerDownCapture={onEmailEngagement}>
             <div className="text-left">
               <label className="block text-sm font-medium text-brand-navy mb-1.5">Email</label>
               <input
                 type="email"
                 disabled
                 placeholder="you@company.com"
+                onFocus={onEmailEngagement}
                 className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud/50 border border-silver rounded-lg text-slate cursor-not-allowed"
               />
             </div>
