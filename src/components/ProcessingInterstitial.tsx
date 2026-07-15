@@ -169,9 +169,14 @@ export function ProcessingInterstitial({
 
 
   return (
-    <div className="bg-card border rounded-lg p-8 sm:p-10 max-w-xl mx-auto">
+    <div
+      className="bg-card border rounded-lg p-8 sm:p-10 max-w-xl mx-auto"
+      role="status"
+      aria-live="polite"
+      aria-atomic="false"
+    >
       <div className="flex flex-col items-center text-center">
-        <svg className="animate-spin h-14 w-14 mb-4" viewBox="0 0 50 50" aria-hidden="true">
+        <svg className="animate-spin h-14 w-14 mb-4" viewBox="0 0 50 50" role="img" aria-label={`Generating your ${label}`}>
           <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="4" className="text-muted-foreground opacity-20" />
           <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray="90 150" className="text-amber-500" />
         </svg>
