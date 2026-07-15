@@ -717,10 +717,16 @@ export default function QualityLoop3() {
                 batch {activeBatch.id.slice(0, 8)}
               </span>
             )}
+            {unattachedLogs.length > 0 && (
+              <span className="text-xs text-muted-foreground ml-2">
+                · +{unattachedLogs.length} unattached (last 15m)
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <BatchLogView entries={batchLogs} />
+          <BatchLogView entries={mergedLogs} />
+
         </CardContent>
       </Card>
 
