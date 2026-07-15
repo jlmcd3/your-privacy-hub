@@ -234,7 +234,7 @@ function TrafficInner() {
           <table className="w-full">
             <thead className="sticky top-0 bg-card"><tr>
               <Head>utm_source</Head><Head>utm_medium</Head><Head>utm_campaign</Head>
-              <Head>Sessions</Head><Head>Events</Head><Head></Head>
+              <Head>Sessions</Head><Head>Events</Head><Head>{" "}</Head>
             </tr></thead>
             <tbody>
               {agg.campaigns.map((c) => {
