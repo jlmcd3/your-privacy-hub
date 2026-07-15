@@ -156,6 +156,9 @@ export default function CPPAHub() {
           </p>
           <Link
             to="/cppa-scope-checker"
+            onClick={() =>
+              fireConversion("tool_start_click", { tool_slug: "cppa_scope", page_path: "/cppa", user_type: userType })
+            }
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded bg-brand-teal-deep text-white text-base font-semibold hover:bg-brand-teal/90 no-underline"
           >
             Run Scope Checker <ArrowRight className="w-5 h-5" />
@@ -172,6 +175,13 @@ export default function CPPAHub() {
               <Link
                 key={t.title}
                 to={t.href}
+                onClick={() =>
+                  fireConversion("tool_start_click", {
+                    tool_slug: CPPA_CARD_SLUG[t.href] || t.href,
+                    page_path: "/cppa",
+                    user_type: userType,
+                  })
+                }
                 className="group block bg-card border rounded-lg p-6 hover:border-brand-teal transition-colors no-underline"
               >
                 <div className="flex items-start gap-4">
@@ -218,6 +228,9 @@ export default function CPPAHub() {
           </p>
           <Link
             to="/cppa-admt-checker"
+            onClick={() =>
+              fireConversion("tool_start_click", { tool_slug: "cppa_admt", page_path: "/cppa", user_type: userType })
+            }
             className="text-sm font-medium text-brand-teal-text hover:underline no-underline"
           >
             Open the ADMT Compliance Assessment →
