@@ -15,6 +15,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const US_VIRGINIA_STATES = [
   "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
@@ -39,10 +41,14 @@ const EU_FRAMEWORKS = [
 
 export default function NoticeBuilderLanding() {
   useToolStartedOnInteraction("notice_builder");
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
 
   const { hasToolAccess } = useSubscriptionTier();
   const usHref = hasToolAccess ? "/us-notices" : "/subscribe";
   const euHref = hasToolAccess ? "/eu-notices" : "/subscribe";
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -73,7 +79,7 @@ export default function NoticeBuilderLanding() {
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">
-            <Link to="/subscribe">
+            <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
               View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
@@ -83,7 +89,7 @@ export default function NoticeBuilderLanding() {
             size="lg"
             className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
           >
-            <Link to="/notices-ropa">My notice projects</Link>
+            <Link to="/notices-ropa" onClick={() => fireConversion("tool_start_click", { tool_slug: "notice_builder", page_path: "/notice-builder", user_type: userType })}>My notice projects</Link>
           </Button>
         </div>
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
@@ -138,7 +144,7 @@ export default function NoticeBuilderLanding() {
                     </div>
                   </div>
                   <Button asChild className="w-full mt-2">
-                    <Link to={usHref}>
+                    <Link to={usHref} onClick={() => hasToolAccess ? fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/notice-builder", user_type: userType }) : fireConversion("subscribe_cta_click", { cta_label: "Subscribe to access", cta_position: "pricing-card-intelligence" })}>
                       {hasToolAccess ? "Open US Notice Builder" : "Subscribe to access"}
                       <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                     </Link>
@@ -173,7 +179,7 @@ export default function NoticeBuilderLanding() {
                     </div>
                   </div>
                   <Button asChild className="w-full mt-2">
-                    <Link to={euHref}>
+                    <Link to={euHref} onClick={() => hasToolAccess ? fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/notice-builder", user_type: userType }) : fireConversion("subscribe_cta_click", { cta_label: "Subscribe to access", cta_position: "pricing-card-intelligence" })}>
                       {hasToolAccess ? "Open EU/Global Notice Builder" : "Subscribe to access"}
                       <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                     </Link>
@@ -213,7 +219,7 @@ export default function NoticeBuilderLanding() {
               both the US and EU/Global notice builders at no additional charge.
             </p>
             <Button asChild size="lg">
-              <Link to="/subscribe">
+              <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "article-footer" })}>
                 View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
               </Link>
             </Button>

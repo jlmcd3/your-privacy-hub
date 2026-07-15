@@ -19,6 +19,8 @@ import { Check, ArrowRight, ExternalLink, FileText, ListChecks, Download } from 
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const TITLE =
   "RoPA Builder · Records of Processing | End User Privacy";
@@ -90,6 +92,9 @@ const FAQ = [
 
 export default function RopaLanding() {
   useToolStartedOnInteraction("ropa");
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
 
   const pricing = useToolPrice("ropa_initial");
   useEffect(() => {
@@ -126,7 +131,7 @@ export default function RopaLanding() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
-              <Link to="/get-intelligence">
+              <Link to="/get-intelligence" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
                 View subscription plans <ArrowRight className="ml-1.5 h-4 w-4" />
               </Link>
             </Button>
@@ -303,7 +308,7 @@ export default function RopaLanding() {
             product.
           </p>
           <Button asChild size="lg">
-            <Link to="/subscribe">
+            <Link to="/subscribe" onClick={() => { fireConversion("subscribe_cta_click", { cta_label: "Included with any subscription", cta_position: "article-footer" }); fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/ropa-builder", user_type: userType }); }}>
               Included with any subscription: Subscribe <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>

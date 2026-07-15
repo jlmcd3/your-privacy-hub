@@ -4,6 +4,16 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
 import { PRICING_REGISTRY } from "@/config/pricing";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
+
+// PP-1: map /cppa hub card hrefs to their tool_slug for tool_start_click.
+const CPPA_CARD_SLUG: Record<string, string> = {
+  "/cppa-scope-checker": "cppa_scope",
+  "/cppa-risk-assessment": "cppa_risk",
+  "/cppa-cybersecurity": "cppa_cyber",
+  "/cppa-admt-checker": "cppa_admt",
+};
 
 const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
 const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
@@ -75,6 +85,9 @@ const FAQ = [
 
 
 export default function CPPAHub() {
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -143,6 +156,9 @@ export default function CPPAHub() {
           </p>
           <Link
             to="/cppa-scope-checker"
+            onClick={() =>
+              fireConversion("tool_start_click", { tool_slug: "cppa_scope", page_path: "/cppa", user_type: userType })
+            }
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded bg-brand-teal-deep text-white text-base font-semibold hover:bg-brand-teal/90 no-underline"
           >
             Run Scope Checker <ArrowRight className="w-5 h-5" />
@@ -159,6 +175,13 @@ export default function CPPAHub() {
               <Link
                 key={t.title}
                 to={t.href}
+                onClick={() =>
+                  fireConversion("tool_start_click", {
+                    tool_slug: CPPA_CARD_SLUG[t.href] || t.href,
+                    page_path: "/cppa",
+                    user_type: userType,
+                  })
+                }
                 className="group block bg-card border rounded-lg p-6 hover:border-brand-teal transition-colors no-underline"
               >
                 <div className="flex items-start gap-4">
@@ -205,6 +228,9 @@ export default function CPPAHub() {
           </p>
           <Link
             to="/cppa-admt-checker"
+            onClick={() =>
+              fireConversion("tool_start_click", { tool_slug: "cppa_admt", page_path: "/cppa", user_type: userType })
+            }
             className="text-sm font-medium text-brand-teal-text hover:underline no-underline"
           >
             Open the ADMT Compliance Assessment →

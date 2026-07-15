@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type FileRow = {
   id: string;
@@ -87,6 +88,8 @@ export default function NoticesRopaHub() {
   const { client, clientName, isPersonalActive } = useActiveClient();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<FileRow[]>([]);
+  const fireConversion = useConversionEvent();
+  const userType = user ? "authenticated" : "anonymous";
 
   useEffect(() => {
     if (!user || !client) return;
@@ -185,13 +188,13 @@ export default function NoticesRopaHub() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline" className="gap-1">
-                <Link to="/us-notices"><Plus className="w-3.5 h-3.5" /> US Notice</Link>
+                <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/notices-ropa", user_type: userType })}><Plus className="w-3.5 h-3.5" /> US Notice</Link>
               </Button>
               <Button asChild size="sm" variant="outline" className="gap-1">
-                <Link to="/eu-notices"><Plus className="w-3.5 h-3.5" /> EU Notice</Link>
+                <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/notices-ropa", user_type: userType })}><Plus className="w-3.5 h-3.5" /> EU Notice</Link>
               </Button>
               <Button asChild size="sm" variant="outline" className="gap-1">
-                <Link to="/ropa"><Plus className="w-3.5 h-3.5" /> RoPA</Link>
+                <Link to="/ropa" onClick={() => fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/notices-ropa", user_type: userType })}><Plus className="w-3.5 h-3.5" /> RoPA</Link>
               </Button>
             </div>
           </div>

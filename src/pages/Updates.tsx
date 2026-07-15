@@ -12,6 +12,7 @@ import { type ArticleItem } from "@/components/ArticleCard";
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
 import { containsProfanity } from "@/lib/profanityFilter";
 import { toast } from "sonner";
@@ -111,6 +112,7 @@ function lastIngestionLabel(items: Update[]): string {
 
 
 const Updates = () => {
+  const fireConversion = useConversionEvent();
     const [searchParams, setSearchParams] = useSearchParams();
     const [updates, setUpdates] = useState<Update[]>([]);
     const [loading, setLoading] = useState(true);
@@ -567,6 +569,7 @@ const Updates = () => {
                 ) : (
                   <Link
                     to="/get-intelligence"
+                    onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Get your privacy intelligence", cta_position: "top-banner" })}
                     aria-label="Get your privacy intelligence, customized and analyzed for your priorities and responsibilities"
                     className="group block bg-brand-mist/10 hover:bg-brand-mist/20 border border-brand-mist/30 hover:border-brand-mist/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
                   >
@@ -662,7 +665,7 @@ const Updates = () => {
                 {user && !isPremium && (
                     <div className="text-sm text-brand-navy bg-brand-teal/5 border border-brand-teal/20 px-3 py-2 rounded-lg mb-4">
                         Get a personalised Privacy Intelligence Report every Monday, written for your role, jurisdiction, and industry.{" "}
-                        <Link to="/get-intelligence" className="underline font-semibold text-brand-teal-text hover:text-brand-navy">
+                        <Link to="/get-intelligence" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Build your sample brief", cta_position: "feed-gate" })} className="underline font-semibold text-brand-teal-text hover:text-brand-navy">
                             Build your sample brief →
                         </Link>
                     </div>

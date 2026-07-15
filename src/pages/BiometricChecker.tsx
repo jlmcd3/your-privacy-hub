@@ -36,6 +36,7 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
@@ -46,6 +47,8 @@ const JURS = ["EU / EEA (GDPR)","United Kingdom (UK GDPR)","Illinois, USA (BIPA)
 
 export default function BiometricChecker() {
   useToolStartedOnInteraction("biometric");
+  const fireConversion = useConversionEvent();
+
 
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -279,7 +282,7 @@ export default function BiometricChecker() {
                   className="bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
                   {ctaLabel}</button>
                 {access.user && !access.isPremium && (
-                  <Link to="/subscribe" className="bg-card border border-primary text-primary font-semibold text-sm px-6 py-3 rounded-xl hover:bg-primary/5 no-underline">Subscribe instead →</Link>
+                  <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Subscribe instead", cta_position: "tool-gate" })} className="bg-card border border-primary text-primary font-semibold text-sm px-6 py-3 rounded-xl hover:bg-primary/5 no-underline">Subscribe instead →</Link>
                 )}
               </div>
             </div>

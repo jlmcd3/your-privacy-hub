@@ -25,6 +25,7 @@ import { AssistedInput } from "@/components/AssistedInput";
 import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
@@ -167,6 +168,7 @@ const Pills = ({
 );
 
 export default function ADMTChecker() {
+  useToolStartedOnInteraction("cppa_admt");
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();

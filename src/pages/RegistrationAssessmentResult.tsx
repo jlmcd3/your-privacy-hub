@@ -16,6 +16,7 @@ import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/R
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import { PRICING_REGISTRY, PRICING } from "@/config/pricing";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 interface JurisdictionResult {
   code: string;
@@ -39,6 +40,7 @@ export default function RegistrationAssessmentResult() {
   const { token: rawToken } = useParams<{ token: string }>();
   const token = rawToken ? decodeURIComponent(rawToken) : undefined;
   const navigate = useNavigate();
+  const fireConversion = useConversionEvent();
   const [loading, setLoading] = useState(true);
   const [assessment, setAssessment] = useState<any>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -96,6 +98,13 @@ export default function RegistrationAssessmentResult() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sign in to purchase");
+      // PP-1 D3: redirect-gate signup_initiated fire.
+      fireConversion("signup_initiated", {
+        referrer_path: `/registration-manager/result/${token ?? ""}`,
+        utm_source: "",
+        utm_campaign: "",
+        variant: "page-load",
+      });
       navigate(`/signup?redirect=/registration-manager/result/${encodeURIComponent(token!)}`);
       return;
     }

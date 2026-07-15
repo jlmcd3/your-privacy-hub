@@ -9,6 +9,7 @@ import {
   stripeFor,
   accentFor,
 } from "@/lib/li-outcome-palette";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 const OUTCOME_ORDER = LI_OUTCOME_ORDER;
 
@@ -36,6 +37,7 @@ const SourceCell = ({ sourceUrl, caseReference }: { sourceUrl: string | null; ca
 };
 
 const LegitimateInterestTracker = () => {
+  const fireConversion = useConversionEvent();
   const [entries, setEntries] = useState<any[]>([]);
   const [trendSummary, setTrendSummary] = useState<any>(null);
   const [outcomeFilter, setOutcomeFilter] = useState("All");
@@ -267,7 +269,7 @@ const LegitimateInterestTracker = () => {
           <p className="text-sm text-brand-mist mb-5 max-w-[500px] mx-auto">
             Get full intelligence for weekly analysis of enforcement trends, sector-specific LI risk assessments, and action items tailored to your industry and jurisdictions.
           </p>
-          <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
+          <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Unlock Weekly Intelligence", cta_position: "article-footer" })} className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             Unlock Weekly Intelligence →
           </Link>
         </div>

@@ -9,6 +9,8 @@ import SampleReportLink from "@/components/SampleReportLink";
 import ToolsSelector from "@/components/tools/ToolsSelector";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 // Map Tools-page slugs to /samples/{sampleSlug} slugs where a published sample exists.
 const SAMPLE_SLUG_MAP: Record<string, string> = {
@@ -557,6 +559,9 @@ export default function Tools() {
   const [sampleModal, setSampleModal] = useState<string | null>(null);
   const activeTool = sampleModal ? TOOLS.find((t) => t.slug === sampleModal) : null;
   const { hasToolAccess, tier } = useSubscriptionTier();
+  const fireConversion = useConversionEvent();
+  const { user } = useAuth();
+  const userType = user ? "authenticated" : "anonymous";
 
   // Courier C — ?region=us|eu filters the tool grid; anything else = all.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -607,7 +612,7 @@ export default function Tools() {
             Every tool draws from a live database of 3,700+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Every report can be translated into more than 20 languages from the report page.
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
-            <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
+            <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start 10-day Intelligence trial", cta_position: "hero" })} className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
               Start 10-day Intelligence trial ({INTELLIGENCE_PRICING.monthlyShort()}) →
             </Link>
             <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
@@ -803,11 +808,17 @@ export default function Tools() {
                       See a sample output →
                     </button>
                     {SUBSCRIBER_ONLY_SLUGS.has(tool.slug) && !hasToolAccess ? (
-                      <Link to="/subscribe" className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                      <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Subscribe to access", cta_position: "pricing-card-intelligence" })} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
                         Subscribe to access →
                       </Link>
                     ) : (
-                      <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                      <Link
+                        to={tool.href}
+                        onClick={() =>
+                          fireConversion("tool_start_click", { tool_slug: tool.slug, page_path: "/tools", user_type: userType })
+                        }
+                        className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline"
+                      >
                         Open tool →
                       </Link>
                     )}
@@ -836,7 +847,7 @@ export default function Tools() {
               </div>
             ))}
           </div>
-          <Link to="/subscribe" className="inline-block text-sm font-semibold text-brand-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+          <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start 10-day Intelligence trial", cta_position: "article-footer" })} className="inline-block text-sm font-semibold text-brand-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
             Start 10-day Intelligence trial →
           </Link>
           <p className="text-brand-cloud/60 text-meta mt-4">
@@ -889,14 +900,20 @@ export default function Tools() {
               <div className="flex gap-3 pt-2">
                 <Link
                   to={activeTool.href}
-                  onClick={() => setSampleModal(null)}
+                  onClick={() => {
+                    fireConversion("tool_start_click", { tool_slug: activeTool.slug, page_path: "/tools", user_type: userType });
+                    setSampleModal(null);
+                  }}
                   className="flex-1 text-center bg-brand-navy text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-all no-underline"
                 >
                   Open {activeTool.name} →
                 </Link>
                 <Link
                   to="/subscribe"
-                  onClick={() => setSampleModal(null)}
+                  onClick={() => {
+                    fireConversion("subscribe_cta_click", { cta_label: "See Professional", cta_position: "feature-gate" });
+                    setSampleModal(null);
+                  }}
                   className="flex-1 text-center border border-primary/30 text-primary font-semibold text-sm py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
                 >
                   See Professional →

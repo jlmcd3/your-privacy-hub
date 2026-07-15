@@ -22,6 +22,7 @@ import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
 import { useToolStartedOnInteraction, fireEmailCaptured } from "@/lib/analyticsEvents";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -416,6 +417,7 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
 
 function CreateAccountPrompt() {
   const redirect = encodeURIComponent("/cppa-scope-checker");
+  const fireConversion = useConversionEvent();
   return (
     <section className="bg-card border rounded-lg p-4">
       <p className="text-sm font-medium">Save this obligation map to your account</p>
@@ -425,6 +427,14 @@ function CreateAccountPrompt() {
       <div className="flex flex-col sm:flex-row gap-2 mt-3">
         <Link
           to={`/signup?redirect=${redirect}`}
+          onClick={() =>
+            fireConversion("signup_initiated", {
+              referrer_path: "/cppa-scope-checker",
+              utm_source: "",
+              utm_campaign: "",
+              variant: "page-load",
+            })
+          }
           className="inline-flex items-center justify-center bg-brand-navy text-white font-semibold text-sm px-4 py-2 rounded-md no-underline hover:opacity-90"
         >
           Create free account

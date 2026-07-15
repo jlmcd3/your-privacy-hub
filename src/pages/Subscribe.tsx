@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon, ArrowRight, ShieldCheck } from "lucide-react";
@@ -70,6 +71,7 @@ const Subscribe = () => {
   const { isPremium } = usePremiumStatus();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
+  const fireConversion = useConversionEvent();
   const [searchParams] = useSearchParams();
   const bJurisdiction = searchParams.get("j");
   const bIndustry = searchParams.get("i");
@@ -81,6 +83,13 @@ const Subscribe = () => {
   const [checkoutTier, setCheckoutTier] = useState<"intelligence" | "professional">("intelligence");
   const startCheckout = async (interval: "month" | "year", tier: "intelligence" | "professional" = "intelligence") => {
     if (!user) {
+      // PP-1 D3: fire signup_initiated on the redirect leg from Subscribe → /signup.
+      fireConversion("signup_initiated", {
+        referrer_path: "/subscribe",
+        utm_source: "",
+        utm_campaign: "",
+        variant: "page-load",
+      });
       navigate(`/signup?redirect=/subscribe`);
       return;
     }
@@ -208,6 +217,7 @@ const Subscribe = () => {
               </p>
               <Link
                 to="/get-intelligence"
+                onClick={() => fireConversion("subscribe_cta_click", { cta_label: "See a sample Intelligence brief", cta_position: "hero-secondary" })}
                 className="mt-2 block text-center text-meta text-white/80 hover:text-white underline underline-offset-2 no-underline"
               >
                 See a sample Intelligence brief →
