@@ -255,7 +255,7 @@ export default function DPAGenerator() {
                   />
                 ))}
               </div>
-              <p className="text-meta text-slate-400">Step {currentStep} of 4 — {sectionNames[currentStep - 1]}</p>
+              <p className="text-meta text-slate-400">Step {currentStep} of 4: {sectionNames[currentStep - 1]}</p>
             </div>
           );
         })()}
@@ -272,7 +272,7 @@ export default function DPAGenerator() {
         return phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display text-brand-navy">Your {docType.label} — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display text-brand-navy">Your {docType.label}: {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
             <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {docType.label} · {form.controllerJurisdiction} / {form.processorJurisdiction}</p>
@@ -385,7 +385,7 @@ export default function DPAGenerator() {
               onClick={handlePurchase}
               className="w-full bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all"
             >
-              {access.isFreeForUser ? "Generate — Free" : `Generate — $${pricing.price}`}
+              {access.isFreeForUser ? "Generate (Free)" : `Generate ($${pricing.price})`}
             </button>
           </div>
         );

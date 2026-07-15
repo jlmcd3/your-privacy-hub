@@ -32,11 +32,11 @@ const FAQS = [
   },
   {
     q: "Do you submit filings to authorities for me?",
-    a: "No. We do not submit filings on your behalf. We generate the documents, jurisdiction-specific checklists, and portal links — you (or your counsel) submit them. This keeps you in direct legal control of every filing and avoids any agency or attorney-client ambiguity.",
+    a: "No. We do not submit filings on your behalf. We generate the documents, jurisdiction-specific checklists, and portal links; you (or your counsel) submit them. This keeps you in direct legal control of every filing and avoids any agency or attorney-client ambiguity.",
   },
   {
     q: "How does pricing work?",
-    a: `Registration filings are ${PRICING.tools.registration.display} per filing — flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.`,
+    a: `Registration filings are ${PRICING.tools.registration.display} per filing, flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.`,
   },
   {
     q: "Do you create EU AI Act registration documents?",
@@ -44,7 +44,7 @@ const FAQS = [
   },
   {
     q: "Can I get reminders before renewals are due?",
-    a: "Yes — renewal deadline tracking is included with any End User Privacy subscription. Subscribers get reminders at 90, 60, 30, and 7 days before each filing expires plus regenerated filing packs at no extra cost. Non-subscribers receive a single courtesy notice 60 days out.",
+    a: "Yes. Renewal deadline tracking is included with any End User Privacy subscription. Subscribers get reminders at 90, 60, 30, and 7 days before each filing expires plus regenerated filing packs at no extra cost. Non-subscribers receive a single courtesy notice 60 days out.",
   },
 ];
 
@@ -76,7 +76,7 @@ export default function RegistrationLanding() {
           <RequirementBadge variant="hero" tier="required" text="Several jurisdictions require controllers to register with — or pay a data-protection fee to — their supervisory authority. In the UK, the ICO data-protection fee is a legal requirement for most organisations." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act
-            registration drafts — generated in minutes, tailored to every jurisdiction you operate in,
+            registration drafts, generated in minutes, tailored to every jurisdiction you operate in,
             and renewed on schedule.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -117,8 +117,8 @@ export default function RegistrationLanding() {
           <div className="grid md:grid-cols-4 gap-4">
             {[
               ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
-              ["2", "Personalized scope", "We map your activities to every jurisdiction that applies — with confidence ratings."],
-              ["3", "Generate documents", `Pay only when you generate documents — ${PRICING.tools.registration.display} per filing, flat. We draft every required filing in minutes.`],
+              ["2", "Personalized scope", "We map your activities to every jurisdiction that applies, with confidence ratings."],
+              ["3", "Generate documents", `Pay only when you generate documents: ${PRICING.tools.registration.display} per filing, flat. We draft every required filing in minutes.`],
               ["4", "You file & we track renewals", "You (or your counsel) submit the filings. Optional annual renewal monitoring keeps you ahead of expiry dates."],
             ].map(([n, t, b]) => (
               <Card key={n} className="border-border/60">
@@ -218,7 +218,7 @@ export default function RegistrationLanding() {
             </Card>
           </div>
           <p className="text-center text-xs text-brand-mist mt-6">
-            Annual subscribers: 1 free Smart Tool run/year on Intelligence annual, 3 on Professional annual — redeemable on Governance, LIA, or DPIA.
+            Annual subscribers: 1 free Smart Tool run/year on Intelligence annual, 3 on Professional annual, redeemable on Governance, LIA, or DPIA.
           </p>
         </section>
 
@@ -227,7 +227,7 @@ export default function RegistrationLanding() {
         <section className="py-12 border-t border-border/40 text-center">
           <h2 className="font-display text-brand-navy mb-3">30+ jurisdictions covered</h2>
           <p className="text-slate text-sm max-w-2xl mx-auto">
-            All 27 EU member states, EEA (Norway, Iceland, Liechtenstein), UK, Switzerland — with rolling
+            All 27 EU member states, EEA (Norway, Iceland, Liechtenstein), UK, Switzerland, with rolling
             additions for the U.S., LATAM, APAC, and Africa.
           </p>
         </section>

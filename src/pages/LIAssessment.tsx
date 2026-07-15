@@ -244,7 +244,7 @@ const LIAssessment = () => {
         {/* HOW IT WORKS */}
         <section className="mb-10">
           <div className="text-eyebrow text-brand-mist mb-2">How it works</div>
-          <h2 className="font-display text-brand-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
+          <h2 className="font-display text-brand-navy mb-5 leading-snug">Three steps, and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
@@ -336,7 +336,7 @@ const LIAssessment = () => {
                 : undefined
             }
             meter={meter ?? null}
-            preRunHint="The subject line you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+            preRunHint="The subject line you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
           />
           <BenchLayout
             toolType="lia"
@@ -368,11 +368,11 @@ const LIAssessment = () => {
             </div>
             <div onFocus={() => focusLia("subject_anchor")}>
               <Label htmlFor="subject-anchor" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">
-                In one line — what does this assessment cover?<Req />
+                In one line: what does this assessment cover?<Req />
               </Label>
               <p className="text-xs text-muted-foreground mt-1">
                 This names the single interest being assessed. It is set when you first generate and stays fixed
-                across all your revision runs — everything below it can be refined.
+                across all your revision runs; everything below it can be refined.
               </p>
               <input
                 id="subject-anchor"
@@ -426,7 +426,7 @@ const LIAssessment = () => {
                 disabled={loading}
                 className="w-full sm:w-auto px-6 py-3 rounded-md bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white font-semibold disabled:opacity-60 transition-colors"
               >
-                {loading ? "Analysing precedents…" : "Get my preliminary signal — Free"}
+                {loading ? "Analysing precedents…" : "Get my preliminary signal (Free)"}
               </button>
               <p className="text-meta text-muted-foreground mt-2">Free, instant, no account or card required.</p>
             </div>
@@ -504,7 +504,7 @@ const LIAssessment = () => {
                   onClick={handleContinue}
                   className="w-full sm:w-auto px-6 py-3 rounded-md bg-brand-navy text-white font-semibold hover:bg-brand-ocean transition-colors"
                 >
-                  Continue to full assessment — ${pricing.price}
+                  Continue to full assessment (${pricing.price})
                 </button>
                 {pricing.isSubscriber && pricing.standalonePrice > pricing.price && (
                   <span className="text-meta text-muted-foreground">

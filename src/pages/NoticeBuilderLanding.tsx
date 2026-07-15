@@ -61,15 +61,15 @@ export default function NoticeBuilderLanding() {
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included with your subscription — every US state notice and every EU/Global framework is included at no additional charge.
+            ✓ Included with your subscription: every US state notice and every EU/Global framework is included at no additional charge.
           </div>
         )}
       </div>
 
       <PageHero
         chip={<>🌍 Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
-        title="Generate your privacy notices — US states and EU/Global frameworks, in one place."
-        description="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription — monthly or annual. Not sold as a standalone product."
+        title="Generate your privacy notices: US states and EU/Global frameworks, in one place."
+        description="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">
@@ -107,7 +107,7 @@ export default function NoticeBuilderLanding() {
             <h2 className="font-serif mb-2">Pick your flow</h2>
             <p className="text-muted-foreground mb-8 max-w-3xl">
               Most teams need one or both. You can run them independently or chain them
-              from the same workspace — answers pre-populate from your RoPA where applicable.
+              from the same workspace; answers pre-populate from your RoPA where applicable.
             </p>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -119,7 +119,7 @@ export default function NoticeBuilderLanding() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     CCPA/CPRA, Virginia CDPA, Texas TDPSA, Maryland MODPA, Florida FDBR
-                    and every active US state framework — one questionnaire, separate
+                    and every active US state framework: one questionnaire, separate
                     notices per state.
                   </p>
                   <RequirementBadge tier="required" text="Required — CCPA notice-at-collection & most US state laws" />
@@ -191,7 +191,7 @@ export default function NoticeBuilderLanding() {
               {[
                 { n: "1", title: "Pick your jurisdictions", body: "Select states or frameworks. We surface only the questions that actually apply." },
                 { n: "2", title: "Answer once", body: "4–18 questions per jurisdiction. Save and resume any time. RoPA answers pre-fill." },
-                { n: "3", title: "Download anywhere", body: "PDF and embeddable HTML — separate notice per jurisdiction." },
+                { n: "3", title: "Download anywhere", body: "PDF and embeddable HTML, separate notice per jurisdiction." },
               ].map((step) => (
                 <Card key={step.n}>
                   <CardContent className="p-6">
@@ -209,7 +209,7 @@ export default function NoticeBuilderLanding() {
           <div className="max-w-[820px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="font-serif mb-3">Included with any subscription.</h2>
             <p className="text-muted-foreground mb-6">
-              Subscribe to Intelligence or Professional — monthly or annual — to access
+              Subscribe to Intelligence or Professional (monthly or annual) to access
               both the US and EU/Global notice builders at no additional charge.
             </p>
             <Button asChild size="lg">
