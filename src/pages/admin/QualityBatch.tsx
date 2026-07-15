@@ -206,6 +206,9 @@ export default function QualityBatch() {
   }, []);
 
   // ─── Poll active batch + its logs every 10s ──────────────────────────────
+  const [logRefreshTick, setLogRefreshTick] = useState(0);
+  const [logRefreshing, setLogRefreshing] = useState(false);
+  const [logLastRefreshedAt, setLogLastRefreshedAt] = useState<string | null>(null);
   useEffect(() => {
     if (!activeBatch) return;
     let cancelled = false;
@@ -218,6 +221,7 @@ export default function QualityBatch() {
       if (cancelled) return;
       if (batch) setActiveBatch(batch as unknown as BatchRow);
       if (log) setBatchLogs(log as unknown as BatchLogRow[]);
+      setLogLastRefreshedAt(new Date().toISOString());
     };
     load();
     const t = setInterval(() => {
@@ -226,7 +230,13 @@ export default function QualityBatch() {
       load();
     }, 10_000);
     return () => { cancelled = true; clearInterval(t); };
-  }, [activeBatch?.id, activeBatch?.status]);
+  }, [activeBatch?.id, activeBatch?.status, logRefreshTick]);
+
+  const refreshLog = () => {
+    setLogRefreshing(true);
+    setLogRefreshTick((n) => n + 1);
+    setTimeout(() => setLogRefreshing(false), 600);
+  };
 
   // ─── Recent batches + baselines for the score matrix ─────────────────────
   useEffect(() => {
@@ -744,7 +754,7 @@ export default function QualityBatch() {
 
       {/* Panel B — Live log */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             Live log
             {activeBatch && (
@@ -753,6 +763,16 @@ export default function QualityBatch() {
               </span>
             )}
           </CardTitle>
+          <div className="flex items-center gap-2">
+            {logLastRefreshedAt && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {new Date(logLastRefreshedAt).toLocaleTimeString()}
+              </span>
+            )}
+            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing || !activeBatch}>
+              {logRefreshing ? "…" : "Refresh"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <BatchLogView entries={batchLogs} />
