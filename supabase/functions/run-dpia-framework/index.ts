@@ -168,7 +168,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M9, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in section_1..section_9 prose, completion_guidance, information_needed, [TO COMPLETE] placeholders, executive_summary, or any other user-visible output. State the conclusion with its factual basis instead — 'the intake declares processing of health data, engaging Art. 9(1)' — never '(M1 resolved met)' or 'per TEST-STATES M1'. Same philosophy as NO SYSTEM-ROUTING VOICE.",
   ].join("\n\n"),
 
-  languageVariant: "jurisdiction-conditional",
+  languageVariant: "american",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
