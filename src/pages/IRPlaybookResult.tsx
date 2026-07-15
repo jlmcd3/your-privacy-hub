@@ -47,7 +47,7 @@ export default function IRPlaybookResult() {
     <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Your Incident Response Playbook | End User Privacy</title></Helmet>
       <Navbar />
-      <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main id="main-content" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
         <ClientContextBadge />
         {loading ? (
@@ -64,8 +64,8 @@ export default function IRPlaybookResult() {
             onRefresh={refresh}
           />
         ) : phase === "running" || phase === "slow" ? (
-          <div className="bg-card border border-border rounded-2xl p-10 text-center">
-            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" />
+          <div className="bg-card border border-border rounded-2xl p-10 text-center" role="status" aria-live="polite">
+            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" aria-hidden="true" />
             <p className="text-foreground">
               {phase === "slow"
                 ? "This is taking longer than expected — still building your playbook."

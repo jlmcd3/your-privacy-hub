@@ -358,7 +358,7 @@ export default function ClientsPortfolio() {
 
   return (
     <WorkspaceLayout className="bg-background">
-      <main className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h1 className="text-brand-navy">{heading}</h1>

@@ -31,7 +31,7 @@ export default function GenerationStalledCard({
     : "The generator stopped responding and the run has been left in a non-terminal state past our 20-minute limit. Nothing further will happen on this page. Start a new run below, or contact us and reference this URL — we will investigate and refund or credit as appropriate.";
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+    <div className="bg-card border border-border rounded-lg p-6 space-y-4" role="alert" aria-live="assertive">
       <div>
         <p className="font-medium text-red-700 mb-1">{headline}</p>
         <p className="text-sm text-muted-foreground">{body}</p>
@@ -49,7 +49,7 @@ export default function GenerationStalledCard({
           href={`mailto:${supportEmail}?subject=Generation%20did%20not%20complete&body=${encodeURIComponent(
             typeof window !== "undefined" ? window.location.href : "",
           )}`}
-          className="text-sm underline text-brand-navy"
+          className="text-sm underline text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-action focus-visible:ring-offset-2 rounded"
         >
           Contact support
         </a>

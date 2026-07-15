@@ -267,11 +267,11 @@ export default function ADMTCheckerResult() {
       <div className="min-h-screen flex flex-col bg-brand-cloud">
       <Navbar />
       <DashboardSubnav />
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Clock className="w-8 h-8 text-muted-foreground animate-spin" />
+        <main id="main-content" aria-label="ADMT Compliance Assessment generating" className="flex flex-col items-center justify-center py-24 gap-4" role="status" aria-live="polite">
+          <Clock className="w-8 h-8 text-muted-foreground animate-spin" aria-hidden="true" />
           <p className="text-muted-foreground text-sm">Generating your ADMT Compliance Assessment…</p>
           <p className="text-muted-foreground text-xs">This typically takes 60–90 seconds. Two analysis passes run in sequence.</p>
-        </div>
+        </main>
       <Footer />
     </div>
     );
@@ -320,6 +320,7 @@ export default function ADMTCheckerResult() {
       <Helmet>
         <title>ADMT Compliance Assessment — {report.system_name} | End User Privacy</title>
       </Helmet>
+      <main id="main-content" aria-label="ADMT Compliance Assessment">
       <ReportShell
         title={`ADMT Compliance Assessment — ${report.system_name}`}
         meta={`Generated ${new Date(assessment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · Compliance deadline: ${report.compliance_deadline}`}
@@ -745,6 +746,7 @@ export default function ADMTCheckerResult() {
           .
         </p>
       </ReportShell>
+    </main>
     <Footer />
     </div>
   );

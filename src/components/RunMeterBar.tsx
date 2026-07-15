@@ -47,7 +47,7 @@ export default function RunMeterBar({
         {!exhausted && REVISIONS_ENABLED && (
           <Link
             to={refineHref}
-            className="px-4 py-2 rounded-lg border border-rule-strong text-brand-navy text-body-small font-semibold hover:bg-brand-cloud/50"
+            className="px-4 py-2 rounded-lg border border-rule-strong text-brand-navy text-body-small font-semibold hover:bg-brand-cloud/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-action focus-visible:ring-offset-2"
           >
             Refine inputs
           </Link>
@@ -55,7 +55,7 @@ export default function RunMeterBar({
         {exhausted && (
           <button
             onClick={onExtend}
-            className="px-4 py-2 rounded-lg bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white text-body-small font-semibold"
+            className="px-4 py-2 rounded-lg bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white text-body-small font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-action focus-visible:ring-offset-2"
           >
             Extend with 4 more
           </button>

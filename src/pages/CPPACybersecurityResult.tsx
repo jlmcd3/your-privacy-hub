@@ -119,7 +119,7 @@ export default function CPPACybersecurityResult() {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>
       <Navbar />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         {purchased && !terminal && !isStalled && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">

@@ -125,7 +125,7 @@ export default function RegistrationOrder() {
         <title>Registration Order — End User Privacy</title>
       </Helmet>
       <Navbar />
-      <main>
+      <main id="main-content" aria-label="Registration">
         <PageContainer>
           <div className="max-w-4xl mx-auto py-10">
             {params.get("from") === "reports" ? (

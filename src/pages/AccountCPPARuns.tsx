@@ -108,7 +108,7 @@ export default function AccountCPPARuns() {
         <meta name="description" content="Your past CPPA Audit Readiness Suite runs — re-open results or download PDFs." />
       </Helmet>
       <Navbar />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <header>
           <h1 className="font-serif text-brand-navy">My CPPA Runs</h1>

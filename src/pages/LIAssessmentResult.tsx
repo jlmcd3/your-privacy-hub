@@ -178,7 +178,7 @@ const LIAssessmentResult = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Legitimate Interest Assessment Tool | End User Privacy</title></Helmet>
       <Navbar />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
 
