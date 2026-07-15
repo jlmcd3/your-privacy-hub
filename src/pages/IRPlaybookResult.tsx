@@ -64,8 +64,8 @@ export default function IRPlaybookResult() {
             onRefresh={refresh}
           />
         ) : phase === "running" || phase === "slow" ? (
-          <div className="bg-card border border-border rounded-2xl p-10 text-center">
-            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" />
+          <div className="bg-card border border-border rounded-2xl p-10 text-center" role="status" aria-live="polite">
+            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" aria-hidden="true" />
             <p className="text-foreground">
               {phase === "slow"
                 ? "This is taking longer than expected — still building your playbook."
