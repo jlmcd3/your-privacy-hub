@@ -442,6 +442,7 @@ const Updates = () => {
                 <meta name="description" content="Daily intelligence monitored from regulatory and news sources across the world, filtered by jurisdiction, topic, date, and source." />
             </Helmet>
             <Navbar />
+            <main id="main-content" aria-label="Privacy Intelligence Feed">
 
             <header className="bg-[#2d7a8a] text-white py-12">
                 <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -609,6 +610,7 @@ const Updates = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
                             type="text"
+                            aria-label="Search the Privacy Intelligence Feed"
                             placeholder="Search the entire Privacy Intelligence Feed…"
                             value={searchTerm}
                             onChange={(e) => {
@@ -634,6 +636,7 @@ const Updates = () => {
                         )}
                     </div>
                     <select
+                        aria-label="Date range filter"
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
                         className="px-4 py-3.5 border-2 border-border rounded-lg text-base bg-background focus:outline-none focus:border-brand-teal"
@@ -702,6 +705,7 @@ const Updates = () => {
                 </div>
             </div>
 
+            </main>
             <Footer />
         </div>
     );
