@@ -148,6 +148,7 @@ export default function RegistrationDocuments() {
         <title>Registration Documents | End User Privacy</title>
       </Helmet>
       <Navbar />
+      <main id="main-content" aria-label="Registration documents">
       <PageContainer>
         <div className="py-6">
           <Button asChild variant="ghost" size="sm" className="mb-4">
