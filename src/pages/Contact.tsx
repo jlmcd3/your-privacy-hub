@@ -32,7 +32,7 @@ const Contact = () => {
             </p>
             <a
               href="mailto:hello@enduserprivacy.com"
-              className="inline-block px-6 py-3 bg-brand-navy text-white font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
+              className="inline-block px-6 py-3 bg-teal-action text-white font-semibold rounded-md hover:opacity-90 transition-all no-underline text-[14px]"
             >
               hello@enduserprivacy.com →
             </a>

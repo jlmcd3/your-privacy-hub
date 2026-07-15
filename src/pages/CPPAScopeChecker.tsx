@@ -228,7 +228,7 @@ export default function CPPAScopeChecker() {
           offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
         })}</script>
       </Helmet>
-      <header className="bg-[#1a4a6e] text-white py-12">
+      <header className="bg-brand-ocean text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🛡️ CPPA Scope Checker · Free · No account required
@@ -435,7 +435,7 @@ function CreateAccountPrompt() {
               variant: "page-load",
             })
           }
-          className="inline-flex items-center justify-center bg-brand-navy text-white font-semibold text-sm px-4 py-2 rounded-md no-underline hover:opacity-90"
+          className="inline-flex items-center justify-center bg-teal-action hover:bg-teal-action-hover text-white font-semibold text-sm px-4 py-2 rounded-md no-underline"
         >
           Create free account
         </Link>
