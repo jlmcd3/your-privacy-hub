@@ -8,9 +8,11 @@ import {
   RUN_QUALITY_BATCH_TERMINAL,
   CHILD_STALL_MS,
   decide,
+  buildSeedRow,
   type BatchRow,
   type ChildSnapshot,
 } from "../quality-batch-orchestrator/index.ts";
+
 
 Deno.test("slug set matches the nine run-quality-batch slugs exactly", () => {
   const expected = new Set([
@@ -68,7 +70,7 @@ Deno.test("decide: terminal child triggers child_terminal with moreTools flag", 
   const row: BatchRow = { ...baseRow, phase: "running_tool", current_quality_run_id: "abc" };
   const child: ChildSnapshot = {
     status: "complete", last_heartbeat_at: new Date().toISOString(),
-    score_overall: 82, gpt_score_overall: 79, error: null,
+    score_overall: 82, gpt_score_overall: 79, error: null, run_number: null,
   };
   const d = decide(row, child, Date.now());
   assert(d.kind === "child_terminal");
@@ -84,7 +86,7 @@ Deno.test("decide: every run-quality-batch terminal status is recognized", () =>
   for (const s of ["complete", "error", "cancelled"]) {
     const child: ChildSnapshot = {
       status: s, last_heartbeat_at: new Date().toISOString(),
-      score_overall: null, gpt_score_overall: null, error: null,
+      score_overall: null, gpt_score_overall: null, error: null, run_number: null,
     };
     const d = decide(row, child, Date.now());
     assertEquals(d.kind, "child_terminal", `expected terminal for status=${s}`);
@@ -97,7 +99,7 @@ Deno.test("decide: stale heartbeat past 6min → child_stalled", () => {
   const child: ChildSnapshot = {
     status: "building",
     last_heartbeat_at: new Date(now - (CHILD_STALL_MS + 1000)).toISOString(),
-    score_overall: null, gpt_score_overall: null, error: null,
+    score_overall: null, gpt_score_overall: null, error: null, run_number: null,
   };
   const d = decide(row, child, now);
   assertEquals(d.kind, "child_stalled");
@@ -109,8 +111,37 @@ Deno.test("decide: fresh heartbeat → child_wait", () => {
   const child: ChildSnapshot = {
     status: "building",
     last_heartbeat_at: new Date(now - 5_000).toISOString(),
-    score_overall: null, gpt_score_overall: null, error: null,
+    score_overall: null, gpt_score_overall: null, error: null, run_number: null,
   };
   const d = decide(row, child, now);
   assertEquals(d.kind, "child_wait");
+});
+
+Deno.test("ChildSnapshot type carries run_number (compile-time)", () => {
+  const snap: ChildSnapshot = {
+    status: "complete", last_heartbeat_at: null,
+    score_overall: null, gpt_score_overall: null, error: null,
+    run_number: 42,
+  };
+  assertEquals(snap.run_number, 42);
+});
+
+Deno.test("buildSeedRow: exact key set and values match run-quality-batch insert", () => {
+  const nowIso = "2026-07-15T00:00:00.000Z";
+  const row = buildSeedRow("governance", 5, 7, "admin-uuid", nowIso);
+  // Exact key set — no more, no fewer.
+  assertEquals(
+    Object.keys(row).sort(),
+    ["batch_size", "created_by", "last_heartbeat_at", "next_doc_index",
+     "run_number", "started_at", "status", "tool", "user_id"],
+  );
+  assertEquals(row.tool, "governance");
+  assertEquals(row.status, "pending");
+  assertEquals(row.batch_size, 5);
+  assertEquals(row.run_number, 7);
+  assertEquals(row.created_by, "admin-uuid");
+  assertEquals(row.user_id, "admin-uuid");
+  assertEquals(row.started_at, nowIso);
+  assertEquals(row.last_heartbeat_at, nowIso);
+  assertEquals(row.next_doc_index, 0);
 });

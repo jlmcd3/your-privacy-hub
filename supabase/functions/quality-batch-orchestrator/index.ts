@@ -3,13 +3,21 @@
 // Architecture is a deliberate copy of ql2-orchestrator: return 202 immediately,
 // do ONE bounded unit of work per invocation, persist progress in
 // quality_batch_runs, self-chain via EdgeRuntime.waitUntil + fetch back with
-// x-internal-resume: 1 and the service-role bearer. run-quality-batch itself is
-// invoked exactly the way admins invoke it today (body {tool, batch_size});
-// this function does not modify or re-implement any of its logic.
+// x-internal-resume: 1 and the service-role bearer.
+//
+// Child dispatch: we do NOT call run-quality-batch's normal start path (that path
+// requires an admin USER JWT — auth.getClaims + has_role check at
+// run-quality-batch/index.ts ~L2255–2267, and the service-role key has no
+// `sub`). Instead we pre-seed a `quality_runs` row exactly the way
+// run-quality-batch's own start-path insert does (~L2544–2553), then POST
+// { resume_run_id } with `x-internal-resume: 1` + service-role bearer to the
+// internal-resume acceptance path (~L2218–2225) which fires `runBatch(resumeId)`
+// with no JWT. run-quality-batch itself is not modified.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export const BUILD_STAMP = "26a27712-6062-4089-8cde-40c351be3eae-qb-orchestrator@2026-07-15";
+export const BUILD_STAMP = "9f4d1c02-3b7e-4a5a-a1b1-d5a6c9e2f014-qb-orchestrator@2026-07-15-p1.1";
+
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -98,7 +106,9 @@ export type ChildSnapshot = {
   score_overall: number | null;
   gpt_score_overall: number | null;
   error: string | null;
+  run_number: number | null;
 };
+
 export type Decision =
   | { kind: "noop" }
   | { kind: "cancel_terminal" }
@@ -134,8 +144,43 @@ export function decide(row: BatchRow, child: ChildSnapshot | null, now: number):
   return { kind: "child_wait" };
 }
 
-async function invokeRunQualityBatch(tool: string, batchSize: number)
-  : Promise<{ ok: true; runId: string; runNumber: number | null } | { ok: false; err: string }> {
+// Pure row-builder mirroring run-quality-batch/index.ts ~L2547–2552's insert
+// payload — exposed so unit tests can assert the exact key set/values with no
+// DB, no network. `createdBy` MUST be the admin who started the batch so the
+// audit trail attributes child runs to that admin (never null).
+export function buildSeedRow(
+  tool: string, batchSize: number, runNumber: number, createdBy: string, nowIso: string,
+) {
+  return {
+    tool,
+    status: "pending" as const,
+    batch_size: batchSize,
+    run_number: runNumber,
+    created_by: createdBy,
+    user_id: createdBy,
+    started_at: nowIso,
+    last_heartbeat_at: nowIso,
+    next_doc_index: 0,
+  };
+}
+
+async function seedAndResume(tool: string, batchSize: number, createdBy: string)
+  : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
+  const db = admin();
+  // (a) Compute run_number the same way run-quality-batch does at ~L2544.
+  const { count } = await db.from("quality_runs")
+    .select("id", { count: "exact", head: true }).eq("tool", tool);
+  const runNumber = (count ?? 0) + 1;
+
+  // (b) Insert the pending row — same field set as run-quality-batch's own insert.
+  const nowIso = new Date().toISOString();
+  const seed = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  const { data: run, error: iErr } = await db.from("quality_runs")
+    .insert(seed).select("id").single();
+  if (iErr || !run) return { ok: false, err: `seed insert: ${iErr?.message ?? "no row"}` };
+  const runId = run.id as string;
+
+  // (c) POST to run-quality-batch's internal-resume path (~L2218–2225).
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
       method: "POST",
@@ -143,20 +188,32 @@ async function invokeRunQualityBatch(tool: string, batchSize: number)
         "Content-Type": "application/json",
         Authorization: `Bearer ${SERVICE_KEY}`,
         apikey: SERVICE_KEY,
+        "x-internal-resume": "1",
       },
-      body: JSON.stringify({ tool, batch_size: batchSize }),
+      body: JSON.stringify({ resume_run_id: runId }),
     });
     const txt = await r.text();
-    let js: any = null;
-    try { js = JSON.parse(txt); } catch { /* */ }
-    if (!r.ok || !js?.run_id) {
-      return { ok: false, err: `HTTP ${r.status}: ${txt.slice(0, 300)}` };
+    if (!r.ok) {
+      // (d) Mark seeded row error so no orphan pending row is left behind.
+      const detail = `HTTP ${r.status}: ${txt.slice(0, 200)}`;
+      await db.from("quality_runs").update({
+        status: "error",
+        error: `orchestrator resume dispatch failed: ${detail}`.slice(0, 500),
+      }).eq("id", runId);
+      return { ok: false, err: detail };
     }
-    return { ok: true, runId: js.run_id, runNumber: js.run_number ?? null };
+    return { ok: true, runId, runNumber };
   } catch (e) {
-    return { ok: false, err: (e as Error).message };
+    const detail = (e as Error).message;
+    await db.from("quality_runs").update({
+      status: "error",
+      error: `orchestrator resume dispatch failed: ${detail}`.slice(0, 500),
+    }).eq("id", runId);
+    return { ok: false, err: detail };
   }
 }
+
+
 
 async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
   await admin().from("quality_batch_runs").update({
@@ -175,7 +232,7 @@ async function runUnit(runId: string) {
   let child: ChildSnapshot | null = null;
   if (run.current_quality_run_id) {
     const { data: c } = await db.from("quality_runs")
-      .select("status, last_heartbeat_at, score_overall, gpt_score_overall, error")
+      .select("status, last_heartbeat_at, score_overall, gpt_score_overall, error, run_number")
       .eq("id", run.current_quality_run_id)
       .maybeSingle();
     child = c ? {
@@ -184,8 +241,10 @@ async function runUnit(runId: string) {
       score_overall: (c as any).score_overall ?? null,
       gpt_score_overall: (c as any).gpt_score_overall ?? null,
       error: (c as any).error ?? null,
+      run_number: (c as any).run_number ?? null,
     } : null;
   }
+
 
   const d = decide(run as any as BatchRow, child, Date.now());
 
@@ -207,7 +266,7 @@ async function runUnit(runId: string) {
     }
 
     case "dispatch_child": {
-      const inv = await invokeRunQualityBatch(d.tool, run.batch_size);
+      const inv = await seedAndResume(d.tool, run.batch_size, run.created_by);
       if (!inv.ok) {
         // Record failure for this tool and advance.
         const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
@@ -236,11 +295,12 @@ async function runUnit(runId: string) {
       await db.from("quality_batch_runs").update({
         current_quality_run_id: inv.runId,
       }).eq("id", runId);
-      await log(runId, `Dispatched ${d.tool} → quality_runs=${inv.runId}${inv.runNumber != null ? ` (run #${inv.runNumber})` : ""}`, { tool: d.tool });
+      await log(runId, `Dispatched ${d.tool} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool: d.tool });
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
+
 
     case "child_terminal": {
       const tool = run.tools[run.current_tool_index];
@@ -248,12 +308,13 @@ async function runUnit(runId: string) {
       results.push({
         tool,
         quality_run_id: run.current_quality_run_id,
-        run_number: null,
+        run_number: d.snapshot.run_number,
         final_status: d.snapshot.status,
         score_overall: d.snapshot.score_overall,
         gpt_score_overall: d.snapshot.gpt_score_overall,
         error: d.snapshot.error,
       });
+
       const nextIdx = run.current_tool_index + 1;
       await db.from("quality_batch_runs").update({
         tool_results: results,
@@ -278,12 +339,13 @@ async function runUnit(runId: string) {
       results.push({
         tool,
         quality_run_id: run.current_quality_run_id,
-        run_number: null,
+        run_number: child?.run_number ?? null,
         final_status: "stalled",
         score_overall: null,
         gpt_score_overall: null,
         error: `child heartbeat stale > ${CHILD_STALL_MS / 60000}min`,
       });
+
       const nextIdx = run.current_tool_index + 1;
       await db.from("quality_batch_runs").update({
         tool_results: results,
