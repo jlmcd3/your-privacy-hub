@@ -93,14 +93,25 @@ export default function USStateLawPage() {
         <title>{state.state} Privacy Law — Statute, Regulator & Active Bills | End User Privacy</title>
         <meta name="description" content={metaDescription} />
         <link rel="canonical" href={canonical} />
+        <meta property="og:title" content={`${state.state} Privacy Law — Statute, Regulator & Active Bills`} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
           headline: `${state.state} Privacy Law — Statute, Regulator & Active Bills`,
           description: metaDescription,
           publisher: { "@type": "Organization", name: "End User Privacy" },
-          
           mainEntityOfPage: canonical,
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
+            { "@type": "ListItem", position: 2, name: "US Privacy Laws", item: "https://enduserprivacy.com/us-privacy-laws" },
+            { "@type": "ListItem", position: 3, name: `${state.state} Privacy Law`, item: canonical },
+          ],
         })}</script>
       </Helmet>
       <Navbar />

@@ -33,6 +33,21 @@ const GlossaryTerm = () => {
       <Helmet>
         <title>{term.term} — Privacy Law Definition | End User Privacy</title>
         <meta name="description" content={`What does "${term.term}" mean in privacy law? Plain-English definition, related regulations (${term.regulations.join(", ")}), and linked terms.`} />
+        <meta property="og:title" content={`${term.term} — Privacy Law Definition`} />
+        <meta property="og:description" content={`Plain-English definition of ${term.term} with related privacy regulations and linked terms.`} />
+        <meta property="og:type" content="article" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "DefinedTerm",
+          name: term.term,
+          description: term.definition,
+          inDefinedTermSet: {
+            "@type": "DefinedTermSet",
+            name: "End User Privacy Glossary",
+            url: "https://enduserprivacy.com/glossary",
+          },
+          url: `https://enduserprivacy.com/glossary/${term.slug}`,
+        })}</script>
       </Helmet>
       <Navbar />
 

@@ -217,6 +217,18 @@ const UpdateDetail = () => {
           <title>{article.title} | End User Privacy</title>
           <meta name="description" content={metaDesc} />
           <meta name="robots" content="noindex, nofollow" />
+          <meta property="og:title" content={article.title} />
+          {metaDesc && <meta property="og:description" content={metaDesc} />}
+          <meta property="og:type" content="article" />
+          <script type="application/ld+json">{JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: article.title,
+            datePublished: article.published_at,
+            ...(article.source_name ? { publisher: { "@type": "Organization", name: article.source_name } } : {}),
+            ...(metaDesc ? { description: metaDesc } : {}),
+            url: `https://enduserprivacy.com/updates/${article.id}`,
+          })}</script>
         </Helmet>
       )}
       {!article && !loading && (
@@ -353,7 +365,7 @@ const UpdateDetail = () => {
                     <div className="text-meta uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
-                    <p className="text-base leading-relaxed text-brand-navy">
+                    <p className="font-serif-text text-fluid-base leading-relaxed text-brand-navy">
                       {ai?.why_it_matters_short || (ai?.why_it_matters?.split('. ')[0] + '…')}
                     </p>
                   </div>
@@ -394,7 +406,7 @@ const UpdateDetail = () => {
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
                       style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
-                      <p className="text-base leading-relaxed text-brand-navy m-0">
+                      <p className="font-serif-text text-fluid-base leading-relaxed text-brand-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
                       </p>
                     </div>

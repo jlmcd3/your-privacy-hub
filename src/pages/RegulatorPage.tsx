@@ -51,6 +51,9 @@ const RegulatorPage = () => {
         <title>{regulator.name}{regulator.abbreviation && !regulator.name.includes(`(${regulator.abbreviation})`) ? ` (${regulator.abbreviation})` : ''} — Regulator Profile | End User Privacy</title>
         <meta name="description" content={`${regulator.name} (${regulator.abbreviation}) profile: ${regulator.country} data protection authority. Legislation, enforcement updates, complaint portal, and monitoring tier.`} />
         <link rel="canonical" href={`https://enduserprivacy.com/regulator/${slug}`} />
+        <meta property="og:title" content={`${regulator.name}${regulator.abbreviation ? ` (${regulator.abbreviation})` : ''} — Regulator Profile`} />
+        <meta property="og:description" content={`${regulator.name} profile: ${regulator.country} data protection authority.`} />
+        <meta property="og:type" content="profile" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "GovernmentOrganization",
@@ -58,6 +61,15 @@ const RegulatorPage = () => {
           alternateName: regulator.abbreviation || undefined,
           url: regulator.website || undefined,
           areaServed: regulator.country,
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
+            { "@type": "ListItem", position: 2, name: "Regulators", item: "https://enduserprivacy.com/global-authorities" },
+            { "@type": "ListItem", position: 3, name: regulator.name, item: `https://enduserprivacy.com/regulator/${slug}` },
+          ],
         })}</script>
       </Helmet>
       <Navbar />
