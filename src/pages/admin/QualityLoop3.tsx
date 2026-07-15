@@ -21,6 +21,28 @@ const TOOLS = [
   "dpia", "lia", "ir-playbook", "biometric", "dpa",
 ];
 
+// QL3 tool slug → quality_run_documents.tool value.
+const DOC_TOOL_MAP: Record<string, string> = {
+  governance: "governance",
+  "cppa-risk": "cppa-risk",
+  "cppa-cyber": "cppa-cyber",
+  "cppa-admt": "cppa-admt",
+  dpia: "dpia",
+  lia: "lia",
+  "ir-playbook": "ir-playbook",
+  biometric: "biometric-checker",
+  dpa: "dpa-generator",
+};
+
+function fmtRelTime(iso: string): string {
+  const d = new Date(iso).getTime();
+  const s = Math.round((Date.now() - d) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86400)}d ago`;
+}
+
 type Ql3Run = {
   id: string;
   tool_slug: string;
