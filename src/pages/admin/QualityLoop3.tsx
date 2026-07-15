@@ -722,7 +722,7 @@ export default function QualityLoop3() {
 
       {/* Panel B — Live log */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             Live log
             {activeBatch && (
@@ -736,6 +736,16 @@ export default function QualityLoop3() {
               </span>
             )}
           </CardTitle>
+          <div className="flex items-center gap-2">
+            {logLastRefreshedAt && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {new Date(logLastRefreshedAt).toLocaleTimeString()}
+              </span>
+            )}
+            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing}>
+              {logRefreshing ? "…" : "Refresh"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <BatchLogView entries={mergedLogs} />
