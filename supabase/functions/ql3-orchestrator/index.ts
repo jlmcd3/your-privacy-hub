@@ -855,6 +855,7 @@ Deno.serve(async (req) => {
     }).select("id").single();
 
     if (insErr || !run) return json({ error: "insert_failed", detail: insErr?.message }, 500);
+    await logQL3((run as any).id, "info", `kickoff tool=${toolSlug} assessment=${assessmentId} notes=${(body?.notes ?? "").toString().slice(0, 200)}`);
     // @ts-ignore
     EdgeRuntime.waitUntil(selfInvoke((run as any).id));
     return json({ run_id: (run as any).id, phase: "revise_dummy" }, 202);
