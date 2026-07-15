@@ -196,6 +196,23 @@ export default function QualityLoop3() {
     })();
   }, []);
 
+  // Past batches (for retro downloads / analysis exports).
+  const [pastBatches, setPastBatches] = useState<Ql3BatchRow[]>([]);
+  const [pastLoading, setPastLoading] = useState(false);
+  const [pastToolFilter, setPastToolFilter] = useState<string>("all");
+  async function loadPastBatches() {
+    setPastLoading(true);
+    const { data, error } = await supabase
+      .from("quality_loop3_batches")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setPastLoading(false);
+    if (error) { toast.error(`Load past batches failed: ${error.message}`); return; }
+    setPastBatches((data as unknown as Ql3BatchRow[]) ?? []);
+  }
+  useEffect(() => { loadPastBatches(); }, []);
+
   const [logRefreshTick, setLogRefreshTick] = useState(0);
   const [logRefreshing, setLogRefreshing] = useState(false);
   const [logLastRefreshedAt, setLogLastRefreshedAt] = useState<string | null>(null);
