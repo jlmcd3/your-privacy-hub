@@ -1,6 +1,22 @@
-import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import LegalPageLayout, { type LegalSection } from "@/components/LegalPageLayout";
+
+const SECTIONS: LegalSection[] = [
+  { id: "introduction", label: "Introduction" },
+  { id: "who-we-are", label: "1. Who We Are" },
+  { id: "information-collected", label: "2. Information We Collect" },
+  { id: "how-we-use", label: "3. How We Use Your Information" },
+  { id: "third-party-providers", label: "4. Third-Party Service Providers" },
+  { id: "advertising", label: "5. Advertising and Google AdSense" },
+  { id: "cookies", label: "6. Cookies and Similar Technologies" },
+  { id: "retention", label: "7. Data Retention" },
+  { id: "your-rights", label: "8. Your Rights" },
+  { id: "international", label: "9. International Data Transfers" },
+  { id: "children", label: "10. Children's Privacy" },
+  { id: "security", label: "11. Security" },
+  { id: "third-party-links", label: "12. Third-Party Links" },
+  { id: "changes", label: "13. Changes to This Policy" },
+  { id: "contact", label: "14. Contact Us" },
+];
 
 const ExtLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
@@ -19,22 +35,15 @@ const Mail = ({ subject }: { subject?: string }) => (
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Privacy Policy | End User Privacy</title>
-        <meta
-          name="description"
-          content="How End User Privacy collects, uses, shares, and protects your information, including your rights under GDPR and US state privacy laws."
-        />
-      </Helmet>
-      <Navbar />
-      <main id="main-content" aria-label="Privacy Policy" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <h1 className="font-display text-foreground mb-2">
-          Privacy Policy
-        </h1>
-        <p className="text-sm text-muted-foreground mb-10">Last updated: July 4, 2026</p>
-
-        <div className="prose prose-sm max-w-none text-foreground/90 space-y-8">
+    <LegalPageLayout
+      title="Privacy Policy"
+      metaTitle="Privacy Policy | End User Privacy"
+      metaDescription="How End User Privacy collects, uses, shares, and protects your information, including your rights under GDPR and US state privacy laws."
+      lastUpdated="July 4, 2026"
+      ariaLabel="Privacy Policy"
+      sections={SECTIONS}
+    >
+      <div className="prose prose-sm max-w-none space-y-8 font-serif-text text-fluid-base text-ink">
           <section className="space-y-3">
             <h2 className="font-display text-foreground">Introduction</h2>
             <p>
