@@ -106,7 +106,9 @@ export type ChildSnapshot = {
   score_overall: number | null;
   gpt_score_overall: number | null;
   error: string | null;
+  run_number: number | null;
 };
+
 export type Decision =
   | { kind: "noop" }
   | { kind: "cancel_terminal" }
