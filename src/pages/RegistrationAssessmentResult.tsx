@@ -53,6 +53,7 @@ export default function RegistrationAssessmentResult() {
   const [emailUnlocked, setEmailUnlocked] = useState<boolean>(false);
   const [pendingEmail, setPendingEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
+  useToolCompletedOnce("registration_assessment", !loading && !!assessment);
 
   useEffect(() => {
     if (!token) return;
