@@ -20,6 +20,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { invokeGated } from "../_shared/invoke-gated.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
