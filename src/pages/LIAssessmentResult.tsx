@@ -139,6 +139,7 @@ const LIAssessmentResult = () => {
     isTerminal: (r) => LI_TERMINAL.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete",
   });
+  useToolCompletedOnce("li_assessment", assessment?.status === "complete");
 
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const status = assessment?.status;
