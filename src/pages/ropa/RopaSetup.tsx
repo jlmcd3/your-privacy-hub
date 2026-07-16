@@ -8,7 +8,9 @@ import { RopaShell } from "@/components/ropa/RopaShell";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { SECTORS } from "@/constants/sectors";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 import { toast } from "sonner";
+
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
