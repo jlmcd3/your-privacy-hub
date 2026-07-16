@@ -16,6 +16,7 @@ interface Props {
 
 export default function CPPASuitePDFButton({ riskId, cyberId, className }: Props) {
   const [busy, setBusy] = useState(false);
+  const fireConversion = useConversionEvent();
   if (!riskId && !cyberId) return null;
 
   const handle = async () => {
