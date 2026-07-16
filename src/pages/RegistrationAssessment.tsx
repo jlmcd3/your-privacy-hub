@@ -92,6 +92,8 @@ export default function RegistrationAssessment() {
   const { user, loading: authLoading } = useAuth();
   const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const [intake, setIntake] = useState<IntakeState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
