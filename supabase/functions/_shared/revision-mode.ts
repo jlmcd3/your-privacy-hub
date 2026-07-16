@@ -214,6 +214,8 @@ function buildRevisionPrompt(opts: {
     dpiaUnitSubset && dpiaUnitSubset.length > 0
       ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units. Prior-report context for units outside this subset has been elided for token economy — do not attempt to reconstruct it.`
       : "",
+    "",
+    "PRE-EMIT SELF-CHECK — before you return the JSON, verify BOTH conditions and revise if either fails: (a) every item with verdict 'resolved' has at least one changed_paths entry drawn from that item's allowed_paths in ALLOWED_CHANGED_PATHS_BY_ITEM; (b) every changed_paths entry falls under the union of allowed_paths across ALL answered items. On failure: for condition (a), flip the offending verdict to 'not_resolved' and rewrite its reason as a register entry explaining what the answer did NOT establish; for condition (b), prune the offending changed_paths entries (and their values{} entries) from the patch. Only emit the JSON after both conditions hold.",
   ].filter(Boolean).join("\n");
 
   // RC-C2 C2.3 — UNIT-SCOPE ECONOMY: for DPIA revisions, pass ONLY the
