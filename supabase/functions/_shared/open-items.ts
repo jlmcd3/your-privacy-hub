@@ -44,9 +44,21 @@ function slugify(s: string, max = 40): string {
 }
 
 // CREDIT-FIRST: state what intake DID establish before the residual.
-export function creditFirstPhrasing(field: string, dimensions: string, enables: string): string {
+// W3-A (2026-07-16): for cppa_risk_assessment, the scaffolding lead-in
+// "Your inputs established the surrounding context for '<field>'" reads as
+// platform-internal mechanism-referencing prose to counsel and — per QL3
+// batch 4de60a82 — answering it degrades documents (4×5 dummy asks
+// yielded net −1.9; doc#1 −7). Emit a plain missing-dimensions sentence
+// for cppa-risk while leaving the credit-first phrasing byte-identical
+// for every other tool (W3-F handles the shared refactor next).
+export function creditFirstPhrasing(field: string, dimensions: string, enables: string, toolType?: string): string {
   const dim = String(dimensions || "").trim();
   const en = String(enables || "").trim();
+  if (toolType === "cppa_risk_assessment") {
+    const need = dim ? `The record still needs ${dim}` : `The record still needs more detail on "${field}"`;
+    const tail = en ? ` to enable ${en}.` : `.`;
+    return need + tail;
+  }
   const base = `Your inputs established the surrounding context for "${field}"`;
   const gap = dim ? `, but the record still needs ${dim}` : `, but the record needs more detail`;
   const tail = en ? ` to enable ${en}.` : `.`;
@@ -273,7 +285,7 @@ export function buildOpenItems(
       id,
       class: cls,
       target: { kind: "field", path: field },
-      why_insufficient: creditFirstPhrasing(field, String(e?.dimensions ?? ""), String(e?.enables ?? "")),
+      why_insufficient: creditFirstPhrasing(field, String(e?.dimensions ?? ""), String(e?.enables ?? ""), toolType),
       provision_key: norm.key,
       input_spec: pickInputSpec(toolType, field),
       status: "open",

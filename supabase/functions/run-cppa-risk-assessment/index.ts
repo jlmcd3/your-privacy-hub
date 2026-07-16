@@ -319,11 +319,13 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M-CA, M-GDPR, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE) anywhere in prose, priority-action text, information_needed dimensions, exception_analysis, strength_basis, executive_summary, safeguard_gaps, or any other user-visible output. State the conclusion with its factual basis instead — e.g. 'the recorded consumer-volume band lies entirely below 250,000' — never 'per TEST-STATES M3' or 'M3 resolved_not_met'. This is the same philosophy as NO SYSTEM-ROUTING VOICE and NO RAW SLUGS IN PROSE.",
     "PROPORTIONATE ASKS (R1b1 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Only verdict-blocking and record-completeness items appear in information_needed (verdict-blocking listed first). Enhancement items appear ONLY in the strengthen/depth mechanism (strengthen_items), with no urgency language. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record establishes BEFORE the residual; the residual is incremental (e.g. 'Additional recipients should be named, with the categories of PI each processes'), and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element that blocks it rather than collapsing the whole determination.",
     "ADMT ASK ROUTING (R1b1 rule 2e): any information_needed entry arising from a q18-class ADMT determination anchors to `i5_admt_logic` (the free-text home for ADMT logic/description), NEVER to q18/q19/q20 radios. Where the ask genuinely concerns a radio's binary state (rare), route it via the record-completion action rather than an information_needed entry.",
-    "GUIDED-DIMENSIONS FOR OVERLOADED FREE-TEXT FIELDS (R1b1 rule 2f): information_needed entries anchored to `i6_vendors`, `i2_retention_period`, or `i1b_min_pi` MUST enumerate the DIMENSIONS a sufficient answer covers (per ACTIONABLE FILL-IN GUIDANCE) and close with the instruction 'enrich this field and re-run'. Never emit a bare 'provide more detail' ask for these fields.",
+    "GUIDED-DIMENSIONS FOR OVERLOADED FREE-TEXT FIELDS (R1b1 rule 2f; W3-A revision): information_needed entries anchored to `i6_vendors`, `i2_retention_period`, or `i1b_min_pi` MUST enumerate the DIMENSIONS a sufficient answer covers (per ACTIONABLE FILL-IN GUIDANCE). Name the missing dimensions and stop. Never emit a bare 'provide more detail' ask for these fields, and NEVER close with platform-internal instruction phrasing such as 'enrich this field and re-run', 'provide these details and regenerate', or any other mechanism-referencing directive to the reader.",
     "VOCABULARY — 'GAP' IS BANNED IN PROSE: the word 'gap'/'gaps' must not appear anywhere in generated prose. Use 'deficiency', 'shortfall', or 'missing element' instead. The only permitted occurrence is the exact schema enum value 'Material gaps identified' where the schema requires it.",
     "SPI PRONG CITATION IS BINDING (QLB-W2A rule 1): when the § 7120(b)(2)(B) sensitive-PI prong (M4) is RESOLVED MET on the current record, the report MUST reference § 7120(b)(2)(B) by name in its applicability/scope analysis (typically in cybersecurity_audit_rationale and any scope narrative that turns on the SPI-volume threshold), and MUST state the conclusion with its factual basis (e.g. 'the § 7120(b)(2)(B) sensitive-PI threshold is met: the intake records SPI volume at 50,000 or more'). Never state that the audit is triggered without naming the § 7120(b)(2)(B) subsection as the operative authority when M4 is RESOLVED MET.",
-    "50%-REVENUE PRONG CITATION IS BINDING (QLB-W2A rule 1): when the § 7120(b)(1) 50%-of-revenue-from-sale/share prong (M5) is RESOLVED MET on the current record, the report MUST reference § 7120(b)(1) by name in its applicability/scope analysis and MUST state the conclusion with its factual basis (e.g. 'the § 7120(b)(1) 50%-from-sale/share prong is met: the intake records q5c_share_revenue_50pct = Yes'). Never state that the audit is triggered without naming the § 7120(b)(1) subsection as the operative authority when M5 is RESOLVED MET.",
-    "NO INFORMATION_NEEDED ASKS ON RESOLVED-TEST INPUTS (QLB-W2A rule 2): never emit an information_needed entry — nor any ask, hedge, or 'please confirm/verify/validate/document' phrasing — that re-requests any intake field backing a RESOLVED test in the injected TEST-STATES block. This includes, without limitation: impact_intake (M9 sources — i1_processing_purpose, i1b_min_pi, i2_retention_period, i2_retention_criteria, impact_intake, i7_internal_contributors, i8_certifying_exec_name), q1_revenue (M1/M-COHORT), q2_consumers (M2/M3), q5_sell_share and q5c_share_revenue_50pct (M5), q15_sensitive_pi and q15c_spi_volume (M4), and every other source_field listed against a RESOLVED test. This reinforces TEST-STATES ARE BINDING: RESOLVED means the input is on the record and the determination is final — the report states the conclusion, never asks for the input back.",
+    "50%-REVENUE PRONG CITATION IS BINDING BOTH WAYS (QLB-W2A rule 1; W3-A qc_r1_3 reconciliation): whenever the § 7120(b)(1) 50%-of-revenue-from-sale/share prong (M5) is RESOLVED — met OR not met — the report MUST reference § 7120(b)(1) by name in its applicability/scope analysis and MUST state the conclusion explicitly with its factual basis. RESOLVED MET example: 'the § 7120(b)(1) 50%-from-sale/share prong is met: the intake records q5c_share_revenue_50pct = Yes'. RESOLVED NOT MET example: 'the § 7120(b)(1) 50%-from-sale/share prong is not met: the intake records q5_sell_share = No' (or 'q5c_share_revenue_50pct = No', as applicable). Never state that the audit is or is not triggered without naming § 7120(b)(1) as the operative authority whenever M5 is RESOLVED, and never omit the conclusion for the resolved_not_met case.",
+    "NO INFORMATION_NEEDED ASKS ON RESOLVED-TEST INPUTS (QLB-W2A rule 2): never emit an information_needed entry — nor any ask, hedge, or 'please confirm/verify/validate/document' phrasing — that re-requests any intake field backing a RESOLVED test in the injected TEST-STATES block. This includes, without limitation: impact_intake (M9 sources — i1_processing_purpose, i1b_min_pi, i2_retention_period, i2_retention_criteria, impact_intake, i7_internal_contributors, i8_certifying_exec_name), q1_revenue (M1/M-COHORT), q2_consumers (M2/M3), q5_sell_share and q5c_share_revenue_50pct (M5), q15_sensitive_pi and q15c_spi_volume (M4), and every other source_field listed against a RESOLVED test. This reinforces TEST-STATES ARE BINDING: RESOLVED means the input is on the record and the determination is final — the report states the conclusion, never asks for the input back. A deterministic post-generation strip enforces this rule at source; any resolved-source ask surfacing the model emits is dropped before the report is written.",
+    "NORMALISED-INTAKE FABRICATION BAN (W3-A rule): the normalised_intake echo restates intake facts only. It NEVER synthesises figures, cadences, volumes, refresh intervals, or other specifics the intake does not supply. Forbidden shapes include quantities like 'approximately 2.4 billion events per day' or cadences like 'propensity scores refreshed every 15 minutes' when the intake never states such numbers. Absent details stay absent (or are flagged as record-completeness items anchored to the intake field that is actually missing), never invented — and this rule binds every field in the report, not only the normalised_intake echo: no user-facing field may introduce a figure or specific that the intake did not supply. Where a magnitude is described only qualitatively in the intake, state it qualitatively; do not translate 'high volume' into a number.",
+    "NO PLATFORM-INTERNAL PHRASING IN CUSTOMER TEXT (W3-A rule): user-facing document text — every field the reader sees, including information_needed entries, priority_actions, exception_analysis, executive_summary, and every table cell — describes what the record contains or needs, never how our system processes it. Banned phrases include 'Enrich this field and re-run', 'provide these details and regenerate', 'Your inputs established the surrounding context for <field>', and any equivalent mechanism-referencing directive. State the missing dimensions with the governing provision instead (e.g. 'The record does not document the retention period for [X]. Under § 7152(a)(4)(B) the assessment must state the retention period for each category of personal information or the criteria used to determine it.').",
     "CITATION-NAMESPACE INTEGRITY (QLB-W2A rule 3): the § 7000-series lives in Title 11 of the California Code of Regulations — cite it as '11 CCR § 70xx' (or '§ 70xx' with 11 CCR established in context). Civil Code citations are § 1798.x — cite them as 'Cal. Civ. Code § 1798.x'. Never mix the namespaces. 'Cal. Civ. Code § 7001' (or any Cal. Civ. Code § 7xxx) is ALWAYS wrong: § 7001 defines terms in 11 CCR, not in the Civil Code. Before emitting any citation, confirm the section number belongs to the namespace named in the prefix; a mismatched prefix is a fatal citation error and must never appear.",
   ].join("\n"),
 
@@ -1103,6 +1105,47 @@ async function runPipeline(assessment_id: string) {
     const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_risk_assessment");
     report_data = guarded.report;
 
+    // W3-A — DETERMINISTIC RESOLVED-SOURCE STRIP. Enforces the QLB-W2A rule 2
+    // and the ratified TP W3-A directive at source: any information_needed
+    // entry whose `field` (or its first dot-segment) is a source_field of a
+    // RESOLVED test is a re-ask for input the record already supplies. Batch
+    // 4de60a82 proved answering these asks makes documents WORSE. Prompt-level
+    // guidance is insufficient — models still emit them — so we strip them
+    // here after the closed-set guard and record a lint_warnings entry.
+    try {
+      const resolvedSources = new Set<string>();
+      for (const [_id, st] of Object.entries(testStates ?? {})) {
+        const state = String((st as any)?.state ?? "");
+        if (state === "resolved_met" || state === "resolved_not_met" || state === "resolved_not_applicable") {
+          for (const sf of ((st as any)?.source_fields ?? []) as string[]) {
+            if (typeof sf === "string" && sf) resolvedSources.add(sf);
+          }
+        }
+      }
+      const infoList: any[] = Array.isArray((report_data as any).information_needed) ? (report_data as any).information_needed : [];
+      const strippedFields: string[] = [];
+      const kept = infoList.filter((e) => {
+        const raw = typeof e?.field === "string" ? e.field : "";
+        if (!raw) return true;
+        const root = raw.split(/[.\[]/, 1)[0];
+        if (resolvedSources.has(raw) || resolvedSources.has(root)) {
+          strippedFields.push(raw);
+          return false;
+        }
+        return true;
+      });
+      if (strippedFields.length > 0) {
+        (report_data as any).information_needed = kept;
+        if (!Array.isArray((report_data as any).lint_warnings)) (report_data as any).lint_warnings = [];
+        for (const f of strippedFields) {
+          (report_data as any).lint_warnings.push({ code: "w3a_resolved_source_ask_stripped", field: f });
+        }
+        console.log(JSON.stringify({ evt: "w3a_resolved_source_ask_stripped", tool: "cppa_risk_assessment", count: strippedFields.length, fields: strippedFields.slice(0, 12) }));
+      }
+    } catch (e) {
+      console.warn("[cppa-risk] W3-A resolved-source strip errored:", e);
+    }
+
     // RC-A A4 — §7121(a) cohort BINDING lint. When the revenue band resolves
     // to a specific audit cohort, no prose may claim the band "straddles"
     // the $50M line — that phrasing is only valid for the legacy
@@ -1520,7 +1563,7 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.5-rcb") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "r1b1.5-rcb-w3a") };
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
     report_data = freezeOpenItemsOnFirstRun(report_data, (report_data as any).information_needed, "cppa_risk_assessment", false);
