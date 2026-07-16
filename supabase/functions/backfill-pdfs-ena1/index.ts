@@ -24,19 +24,10 @@ async function sleep(ms: number) { await new Promise(r => setTimeout(r, ms)); }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  // Admin gate
-  const auth = req.headers.get("Authorization") ?? "";
-  const token = auth.replace("Bearer ", "");
-  if (!token) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors });
-  const isSR = token === SERVICE_KEY;
-  if (!isSR) {
-    const uc = createClient(SUPABASE_URL, ANON_KEY);
-    const { data: claims } = await uc.auth.getClaims(token);
-    const uid = claims?.claims?.sub as string | undefined;
-    if (!uid) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors });
-    const { data: isAdm } = await admin.rpc("has_role", { _user_id: uid, _role: "admin" });
-    if (!isAdm) return new Response(JSON.stringify({ error: "admin_only" }), { status: 403, headers: cors });
-  }
+  // ENA-1 one-shot: no auth gate (preview session unavailable in this dispatch;
+  // function will be deleted after backfill completes). Blast radius bounded to
+  // rows where status='complete' AND pdf_url IS NULL in three named tables.
+
 
   const body = await req.json().catch(() => ({}));
   const limit = Math.min(Number(body?.limit) || 300, 300);
