@@ -153,15 +153,42 @@ async function sweepTable(table: string): Promise<SweepResult> {
         continue;
       }
 
-      const { error: invokeErr } = await supabase.functions.invoke(dispatch.fn, {
-        body: { [dispatch.bodyKey]: row.id, retry_attempt: attemptsSoFar + 1 },
-      });
-      if (invokeErr) {
-        result.errors.push(`invoke ${dispatch.fn}: ${invokeErr.message}`);
-        // Roll back status so the next sweep picks it up again.
+      // Raw fetch (not supabase.functions.invoke) so we can capture the
+      // true HTTP status + response body when a generator returns non-2xx.
+      // The wrapped SDK client throws a generic "Edge Function returned a
+      // non-2xx status code" that hides the real error.
+      const invokeUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/${dispatch.fn}`;
+      const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      let invokeErrMsg: string | null = null;
+      try {
+        const res = await fetch(invokeUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${svcKey}`,
+            "apikey": svcKey,
+          },
+          body: JSON.stringify({ [dispatch.bodyKey]: row.id, retry_attempt: attemptsSoFar + 1 }),
+        });
+        if (!res.ok) {
+          const bodyText = (await res.text()).slice(0, 500);
+          invokeErrMsg = `status=${res.status} body=${bodyText}`;
+          console.error(JSON.stringify({
+            evt: "retry_invoke_non_2xx",
+            fn: dispatch.fn,
+            table, row_id: row.id,
+            status: res.status,
+            body: bodyText,
+          }));
+        }
+      } catch (e) {
+        invokeErrMsg = e instanceof Error ? e.message : String(e);
+      }
+      if (invokeErrMsg) {
+        result.errors.push(`invoke ${dispatch.fn}: ${invokeErrMsg}`);
         await supabase.from(table).update({
           status: "error",
-          last_error: `retry invoke failed: ${invokeErr.message}`,
+          last_error: `retry invoke failed: ${invokeErrMsg}`.slice(0, 500),
         }).eq("id", row.id);
         continue;
       }
