@@ -30,6 +30,31 @@ function j(body: unknown, status = 200) {
   });
 }
 
+// INC-2: run-li-assessment is verifyCaller-gated. supabase-js
+// `functions.invoke` drops the service-role bearer server-to-server; use raw
+// fetch to preserve the auth header. Returns the SDK-like shape callers use.
+async function invokeRunLI(body: Record<string, unknown>): Promise<{ data: unknown; error: { message: string } | null }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/run-li-assessment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SERVICE_ROLE}`,
+        "apikey": SERVICE_ROLE,
+      },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let parsed: unknown = null;
+    try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
+    if (!res.ok) return { data: parsed, error: { message: `status=${res.status} body=${text.slice(0, 300)}` } };
+    return { data: parsed, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : String(e) } };
+  }
+}
+
+
 // Settle-poll for meter/version reads. The generator writes meter+versions
 // immediately before status:complete, but PostgREST cache/eventual-consistency
 // can lag by a beat — poll every 2s up to 30s until the expected condition
@@ -198,9 +223,7 @@ async function runAcceptance(
     assessmentId = (inserted as any).id as string;
 
     // ── (a) RUN 1 ─────────────────────────────────────────────────────────────
-    const inv1 = await svc.functions.invoke("run-li-assessment", {
-      body: { assessment_id: assessmentId },
-    });
+    const inv1 = await invokeRunLI({ assessment_id: assessmentId });
     if (inv1.error) throw new Error(`run 1 invoke failed: ${inv1.error.message}`);
     const s1 = await pollLIA(svc, assessmentId);
     if (s1 !== "complete") throw new Error(`run 1 status=${s1}`);
@@ -437,9 +460,7 @@ async function runAcceptance(
     }
 
     // ── (f) FAILED RUN IS FREE ────────────────────────────────────────────────
-    await svc.functions.invoke("run-li-assessment", {
-      body: { assessment_id: ZERO_UUID },
-    });
+    await invokeRunLI({ assessment_id: ZERO_UUID });
     // no polling needed — generator errors before any success path
     await new Promise((r) => setTimeout(r, 2000));
     const { data: mZ } = await svc
@@ -641,9 +662,7 @@ async function runStep(
     }
 
     if (step === "F") {
-      const inv = await svc.functions.invoke("run-li-assessment", {
-        body: { assessment_id: ZERO_UUID },
-      });
+      const inv = await invokeRunLI({ assessment_id: ZERO_UUID });
       await new Promise((r) => setTimeout(r, 2500));
       const { data: mZ } = await svc.from("tool_run_meter").select("id")
         .eq("tool_type", TOOL_TYPE).eq("assessment_id", ZERO_UUID).maybeSingle();

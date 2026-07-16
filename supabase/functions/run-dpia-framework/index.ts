@@ -2,6 +2,7 @@
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { invokeGated } from "../_shared/invoke-gated.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
@@ -1486,15 +1487,14 @@ async function runStitch(dpia_id: string): Promise<void> {
     supabase.functions.invoke('trigger-upsell', {
       body: { tool_type: 'dpia_framework', assessment_id: dpia_id, user_id: row.user_id },
     }).catch((e: Error) => console.error('[dpia] trigger-upsell failed (non-fatal):', e.message));
-    await supabase.functions.invoke("generate-report-pdf", {
-      body: {
-        tool_type: "dpia_framework",
-        assessment_id: dpia_id,
-        user_email: userData?.user?.email || null,
-        user_name: userData?.user?.user_metadata?.full_name || null,
-        result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/dpia-framework/result/${dpia_id}`,
-      },
-    }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
+    // INC-2: generate-report-pdf is verifyCaller-gated → raw fetch.
+    await invokeGated("generate-report-pdf", {
+      tool_type: "dpia_framework",
+      assessment_id: dpia_id,
+      user_email: userData?.user?.email || null,
+      user_name: userData?.user?.user_metadata?.full_name || null,
+      result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/dpia-framework/result/${dpia_id}`,
+    }).then((r) => { if (!r.ok) console.error("[dpia] PDF/email delivery failed (non-fatal):", r.status, r.body || r.error); });
 
     console.log(`[run-dpia-framework] stage=stitch elapsed=${Date.now() - stitchStart}ms status=complete`);
   } catch (e) {

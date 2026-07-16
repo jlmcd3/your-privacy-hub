@@ -20,6 +20,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { invokeGated } from "../_shared/invoke-gated.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -1254,15 +1255,17 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       body: { tool_type: 'governance_assessment', assessment_id, user_id: assessment.user_id },
     }).catch((e: Error) => console.error('[gov] trigger-upsell failed (non-fatal):', e.message));
 
-    await supabase.functions.invoke("generate-report-pdf", {
-      body: {
-        tool_type: "governance_assessment",
-        assessment_id,
-        user_email: userData?.user?.email || null,
-        user_name: userData?.user?.user_metadata?.full_name || null,
-        result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/governance-assessment/result/${assessment_id}`,
-      },
-    }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
+    // INC-2: generate-report-pdf is verifyCaller-gated. Use raw fetch with
+    // explicit service-role bearer — supabase.functions.invoke drops the
+    // header server-to-server and every PDF silently 401s. Awaited so the
+    // background block does not exit before the PDF write completes.
+    await invokeGated("generate-report-pdf", {
+      tool_type: "governance_assessment",
+      assessment_id,
+      user_email: userData?.user?.email || null,
+      user_name: userData?.user?.user_metadata?.full_name || null,
+      result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/governance-assessment/result/${assessment_id}`,
+    }).then((r) => { if (!r.ok) console.error("[gov] PDF/email delivery failed (non-fatal):", r.status, r.body || r.error); });
 
       } catch (bgErr) {
         await failFunctionRun(supabase, fnRun, bgErr);
