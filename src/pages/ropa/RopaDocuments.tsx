@@ -67,6 +67,7 @@ export default function RopaDocuments() {
   const { toast } = useToast();
   const { clientName, isPersonalActive } = useActiveClient();
   const { isAdmin } = useIsAdmin();
+  const fireConversion = useConversionEvent();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
