@@ -32,6 +32,8 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import MethodologyBox from "@/components/cppa/MethodologyBox";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -264,6 +266,8 @@ export default function CPPARiskAssessment() {
   const displayPrice = activePricing.price;
 
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const refine = useRefineMode("cppa_risk_assessment");
   const { isPro } = useSubscriptionTier();
   // Doc Q: highlighting is gated on both the Kit flag AND the Pro check.
@@ -475,10 +479,12 @@ export default function CPPARiskAssessment() {
 
   const next = () => {
     const err = stepValid();
-    if (err) { toast({ title: "Required", description: err, variant: "destructive" }); return; }
+    if (err) { setValidationError(err); return; }
+    setValidationError(null);
     setStep((s) => s + 1);
   };
-  const back = () => setStep((s) => Math.max(1, s - 1));
+  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+
 
   const intake = useMemo(() => ({
     entity_name: entityName.trim(),
@@ -757,7 +763,7 @@ export default function CPPARiskAssessment() {
           meter={meter ?? null}
           preRunHint="The entity and subject line you set below are fixed once you first generate. Everything else stays editable across your included generations."
         />
-        <div ref={topRef} className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
+        <div ref={topRef} className="text-sm text-muted-foreground my-4" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <BenchLayout
           toolType="cppa_risk"
@@ -1317,8 +1323,10 @@ export default function CPPARiskAssessment() {
               ))}
             </div>
           )}
+          <ValidationErrorSummary message={validationError} className="mt-4" />
           <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
+
             <div className="flex items-center gap-3 ml-auto">
               {user && (
                 draftSaving ? (

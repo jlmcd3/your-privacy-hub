@@ -19,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
 import { AssistedInput } from "@/components/AssistedInput";
@@ -181,6 +183,8 @@ export default function ADMTChecker() {
   const refine = useRefineMode("cppa_admt");
   const { meter } = useRunMeter("cppa_admt", refine.assessmentId);
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const totalSteps = 5;
 
   const [activeRailKey, setActiveRailKey] = useState<string | null>(null);
@@ -329,12 +333,14 @@ export default function ADMTChecker() {
   const next = () => {
     const err = stepValid();
     if (err) {
-      toast({ title: "Required", description: err, variant: "destructive" });
+      setValidationError(err);
       return;
     }
+    setValidationError(null);
     setStep((s) => s + 1);
   };
-  const back = () => setStep((s) => Math.max(1, s - 1));
+  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+
 
   const intake = useMemo(
     () => ({
@@ -610,7 +616,7 @@ export default function ADMTChecker() {
           <span className="text-muted-foreground"> bundles them at a discount.</span>
         </div>
 
-        <div className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
+        <div className="text-sm text-muted-foreground my-4" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <BenchLayout
           toolType="admt"
@@ -1535,8 +1541,10 @@ export default function ADMTChecker() {
                 </>
               )}
 
+              <ValidationErrorSummary message={validationError} className="mt-4" />
               <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
                 <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
+
                 <div className="flex items-center gap-3 ml-auto">
                   {user &&
                     (draftSaving ? (

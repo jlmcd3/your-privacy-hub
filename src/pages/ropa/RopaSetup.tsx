@@ -8,7 +8,9 @@ import { RopaShell } from "@/components/ropa/RopaShell";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { SECTORS } from "@/constants/sectors";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 import { toast } from "sonner";
+
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
@@ -160,6 +162,8 @@ export default function RopaSetup() {
     "idle"
   );
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const [hasExistingSession, setHasExistingSession] = useState<string | null>(null);
 
   // Load existing profile + session on mount.
@@ -341,10 +345,12 @@ export default function RopaSetup() {
 
   const handleConfirm = async () => {
     if (!clientId) {
-      toast.error("Select an organisation first");
+      setValidationError("Select an organisation first");
       return;
     }
+    setValidationError(null);
     setSubmitting(true);
+
     try {
       // Store sector on the workspace, but NEVER rename the workspace itself —
       // the org being documented in this RoPA is recorded on the session.
@@ -381,8 +387,9 @@ export default function RopaSetup() {
       navigate(withSession("/ropa/activities", sessionId));
 
     } catch (e) {
-      toast.error("Could not save setup. Please try again.");
+      setValidationError("Could not save setup. Please try again.");
       console.error(e);
+
     } finally {
       setSubmitting(false);
     }
@@ -804,7 +811,9 @@ export default function RopaSetup() {
         )}
 
         {/* Nav */}
+        <ValidationErrorSummary message={validationError} className="mt-4" />
         <div className="flex items-center justify-between pt-4 border-t border-border">
+
           <button
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}

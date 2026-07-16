@@ -23,6 +23,8 @@ import AuthGateModal from "@/components/AuthGateModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
@@ -90,6 +92,8 @@ export default function RegistrationAssessment() {
   const { user, loading: authLoading } = useAuth();
   const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const [intake, setIntake] = useState<IntakeState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -158,13 +162,14 @@ export default function RegistrationAssessment() {
 
   async function submit() {
     if (!intake.organization_name.trim()) {
-      toast.error("Please enter your organization name.");
+      setValidationError("Please enter your organization name.");
       return;
     }
     if (!intake.organization_country && intake.markets_served.length === 0) {
-      toast.error("Tell us where you're based or which markets you serve");
+      setValidationError("Tell us where you're based or which markets you serve");
       return;
     }
+    setValidationError(null);
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -191,6 +196,7 @@ export default function RegistrationAssessment() {
       setSubmitting(false);
     }
   }
+
 
   return (
     <>
@@ -240,7 +246,7 @@ export default function RegistrationAssessment() {
               >
             <Card>
               <CardHeader>
-                <CardTitle>Step {step} of 3</CardTitle>
+                <CardTitle aria-live="polite">Step {step} of 3</CardTitle>
                 <CardDescription>
                   {step === 1 && "About your organization"}
                   {step === 2 && "What data do you process?"}
@@ -443,12 +449,14 @@ export default function RegistrationAssessment() {
                   </div>
                 )}
 
+                <ValidationErrorSummary message={validationError} className="mb-4" />
                 <div className="flex justify-between pt-4 border-t">
-                  <Button variant="ghost" onClick={() => setStep(Math.max(1, step - 1))} disabled={step === 1}>
+                  <Button variant="ghost" onClick={() => { setValidationError(null); setStep(Math.max(1, step - 1)); }} disabled={step === 1}>
                     Back
                   </Button>
                   {step < 3 ? (
-                    <Button onClick={() => setStep(step + 1)}>Next</Button>
+                    <Button onClick={() => { setValidationError(null); setStep(step + 1); }}>Next</Button>
+
                   ) : (
                     <Button onClick={submit} disabled={submitting}>
                       {submitting ? "Generating..." : "Show me where I need to register"}

@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
@@ -85,6 +87,8 @@ const GovernanceAssessment = () => {
   const refine = useRefineMode("governance_assessment");
   const { meter } = useRunMeter("governance_assessment", refine.assessmentId);
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -185,10 +189,12 @@ const GovernanceAssessment = () => {
 
   const next = () => {
     const err = stepValid();
-    if (err) { toast({ title: "Required", description: err, variant: "destructive" }); return; }
+    if (err) { setValidationError(err); return; }
+    setValidationError(null);
     setStep((s) => s + 1);
   };
-  const back = () => setStep((s) => Math.max(1, s - 1));
+  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+
 
   const buildIntake = () => ({
     organization_name: organizationName,
@@ -499,7 +505,7 @@ const GovernanceAssessment = () => {
           This assessment evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.
         </div>
 
-        <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
+        <div className="text-sm text-muted-foreground" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <IntakeMasthead
           kicker="GDPR Governance Assessment · Art. 5(2) accountability"
@@ -742,8 +748,10 @@ const GovernanceAssessment = () => {
             </div>
           )}
 
+          <ValidationErrorSummary message={validationError} className="mt-4" />
           <div className="flex justify-between pt-4 border-t">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
+
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
