@@ -223,9 +223,7 @@ async function runAcceptance(
     assessmentId = (inserted as any).id as string;
 
     // ── (a) RUN 1 ─────────────────────────────────────────────────────────────
-    const inv1 = await svc.functions.invoke("run-li-assessment", {
-      body: { assessment_id: assessmentId },
-    });
+    const inv1 = await invokeRunLI({ assessment_id: assessmentId });
     if (inv1.error) throw new Error(`run 1 invoke failed: ${inv1.error.message}`);
     const s1 = await pollLIA(svc, assessmentId);
     if (s1 !== "complete") throw new Error(`run 1 status=${s1}`);
