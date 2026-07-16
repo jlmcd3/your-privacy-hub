@@ -40,6 +40,16 @@ const INCLUDED_GENERATIONS_SLUGS = new Set([
   "cppa-admt-checker",
 ]);
 
+// Tier-1 slugs surface the canonical top-up line adjacent to the primary CTA.
+const TOPUP_TIER1_SLUGS = new Set([
+  "dpa-generator",
+  "dpia",
+  "li-assessment",
+  "cppa-risk-assessment",
+  "cppa-admt-checker",
+  "ir-playbook",
+]);
+
 // Map Tools-page slugs to PRICING tool keys so we can classify per card.
 const SLUG_TO_TOOL_KEY: Record<string, string> = {
   healthcheck: "governance",
@@ -779,9 +789,16 @@ export default function Tools() {
                       </div>
                     )}
                     {INCLUDED_GENERATIONS_SLUGS.has(tool.slug) && (
-                      <p className="text-body-small text-ink mt-1">
-                        {INCLUDED_GENERATIONS_COPY}
-                      </p>
+                      <>
+                        <p className="text-body-small text-ink mt-1">
+                          Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.
+                        </p>
+                        {TOPUP_TIER1_SLUGS.has(tool.slug) && (
+                          <p className="text-body-small text-ink mt-1">
+                            Need more? Add 4 additional generations for half the tool price.
+                          </p>
+                        )}
+                      </>
                     )}
                     {SAMPLE_SLUG_MAP[tool.slug] && (
                       <div className="mt-2">
