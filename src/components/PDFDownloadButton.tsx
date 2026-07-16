@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type ToolType =
   | "biometric_checker"
