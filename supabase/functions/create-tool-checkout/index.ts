@@ -252,12 +252,53 @@ Deno.serve(async (req) => {
 
     // Stage 1 Prompt 1.7: half-price "top-up" — grants +4 generations on an
     // existing assessment's meter. Handled BEFORE the standard purchase flow
-    // because it uses inline price_data (no lookup key, no subscriber tiering)
-    // and returns immediately with a hosted checkout URL.
+    // because it returns immediately with a hosted checkout URL.
+    //
+    // REV-2 PART A: (a) restricted to the nine metered Smart Tools — this
+    // set is identical to regenerate-assessment's TABLE_MAP (L54–63) and
+    // by construction excludes every TOOLS entry with
+    // fallback_standalone_cents: 0 (RoPA, US/EU notice variants), so an
+    // unguarded top-up on a non-metered tool can no longer attempt a
+    // zero-amount checkout. (b) Price is sourced from the pricing
+    // registry via lookup_key ("<tool>_topup_v1"), NOT computed from
+    // fallback_standalone_cents / 2. Registry is the single source of
+    // truth; policy is that each top-up is exactly half the tool's
+    // current standalone price (see src/config/pricing.ts).
     if (topup === true && assessment_id) {
-      const halfPrice = Math.round(tool.fallback_standalone_cents / 2);
+      const TOPUP_LOOKUPS: Record<string, string> = {
+        li_assessment: "li_topup_v1",
+        governance_assessment: "governance_topup_v1",
+        dpia_framework: "dpia_topup_v1",
+        dpa_generator: "dpa_topup_v1",
+        ir_playbook: "ir_topup_v1",
+        biometric_checker: "biometric_topup_v1",
+        cppa_admt: "cppa_admt_topup_v1",
+        cppa_risk_assessment: "cppa_risk_topup_v1",
+        cppa_cybersecurity: "cppa_cybersecurity_topup_v1",
+      };
+      const topupLookup = TOPUP_LOOKUPS[tool_type];
+      if (!topupLookup) {
+        return new Response(
+          JSON.stringify({
+            error: "topup_not_available_for_tool",
+            message: "Meter top-ups are only offered on the nine metered Smart Tools.",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
       const topupEnv = detectEnv(environment);
       const topupStripe = createStripeClient(topupEnv);
+      const topupPrice = await resolvePriceId(topupStripe, topupLookup);
+      if (!topupPrice || typeof topupPrice.unit_amount !== "number") {
+        return new Response(
+          JSON.stringify({
+            error: "topup_price_not_found",
+            lookup_key: topupLookup,
+            message: "Top-up price is not yet synced to Stripe. Run sync-pricing from Admin → Pricing.",
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
       const rawOriginTop =
         return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
       const originTop = /^https?:\/\//i.test(rawOriginTop)
@@ -271,7 +312,7 @@ Deno.serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: { name: `${tool.name} — 4 additional generations` },
-            unit_amount: halfPrice,
+            unit_amount: topupPrice.unit_amount,
           },
           quantity: 1,
         }],
@@ -279,6 +320,7 @@ Deno.serve(async (req) => {
           tool_type,
           assessment_id,
           topup: "true",
+          topup_lookup_key: topupLookup,
           user_id: user_id ?? "",
         },
         success_url: `${originTop}${returnPathTop}`,
@@ -289,6 +331,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
 
     // v8 gating:
