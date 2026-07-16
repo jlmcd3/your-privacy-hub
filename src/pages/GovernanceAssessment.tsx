@@ -189,10 +189,12 @@ const GovernanceAssessment = () => {
 
   const next = () => {
     const err = stepValid();
-    if (err) { toast({ title: "Required", description: err, variant: "destructive" }); return; }
+    if (err) { setValidationError(err); return; }
+    setValidationError(null);
     setStep((s) => s + 1);
   };
-  const back = () => setStep((s) => Math.max(1, s - 1));
+  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+
 
   const buildIntake = () => ({
     organization_name: organizationName,
