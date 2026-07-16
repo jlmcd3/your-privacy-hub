@@ -375,7 +375,12 @@ const CHECKS: Check[] = [
         // QLB-F3: § 1798 is the Cal. Civ. Code prefix the ADMT product
         // prompt mandates citing (§ 1798.155, § 1798.120, § 1798.125);
         // do not flag it as a hallucinated ADMT section number.
-        .filter(n => n > 100 && n < 7000 && n !== 1798);
+        // TP-1: Cal. Civ. Code § 3426 (Uniform Trade Secrets Act, incl.
+        // subdivisions such as § 3426.1(d) — trade-secret carve-out) is
+        // MANDATED by the ADMT product prompt. The checker was firing on it
+        // as a false positive (3× in batch b50e364d, all verified false).
+        // Allowlist § 3426 in the same manner as § 1798.
+        .filter(n => n > 100 && n < 7000 && n !== 1798 && n !== 3426);
       if (bad.length)
         return { passed: false, evidence: `Suspicious section numbers outside known range: ${[...new Set(bad)].slice(0, 3).map(n => `§ ${n}`).join(", ")}` };
       return { passed: true };
