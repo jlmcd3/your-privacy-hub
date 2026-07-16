@@ -21,7 +21,7 @@
 // v3.9 (W3-F, 2026-07-16): GLOBAL CITATION DEPTH DISCIPLINE + NO INVENTED CASE LAW
 // added to CITATION & GROUNDING PROTOCOL, and a VERIFIED CITATION ANCHORS block
 // added at the end of the core carrying: § 1798.140 definition letters (business =
-// (d), (d)(1)(B) for the 50% revenue prong; service provider = (ag)); ADMT (11 CCR)
+// (d), (d)(1)(C) for the 50% revenue prong; service provider = (ag)); ADMT (11 CCR)
 // real section ranges (§ 7001, §§ 7150–7157, §§ 7200–7222); BIPA § 15(a) verbatim
 // retention rule ("last interaction", not "collection"); GDPR Art. 9(1) biometric
 // qualifier (special-category only when the purpose is uniquely identifying a
