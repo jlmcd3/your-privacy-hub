@@ -232,5 +232,3 @@ verify_jwt = false
 verify_jwt = false
 
 
-[functions.backfill-pdfs-ena1]
-verify_jwt = false
