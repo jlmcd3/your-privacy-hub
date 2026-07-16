@@ -15,7 +15,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const ALLOWED = new Set(["reap_sweep", "ping"]);
+const ALLOWED = new Set(["reap_sweep", "ping", "invoke_generator"]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
