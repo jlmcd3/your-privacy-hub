@@ -1105,6 +1105,47 @@ async function runPipeline(assessment_id: string) {
     const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_risk_assessment");
     report_data = guarded.report;
 
+    // W3-A — DETERMINISTIC RESOLVED-SOURCE STRIP. Enforces the QLB-W2A rule 2
+    // and the ratified TP W3-A directive at source: any information_needed
+    // entry whose `field` (or its first dot-segment) is a source_field of a
+    // RESOLVED test is a re-ask for input the record already supplies. Batch
+    // 4de60a82 proved answering these asks makes documents WORSE. Prompt-level
+    // guidance is insufficient — models still emit them — so we strip them
+    // here after the closed-set guard and record a lint_warnings entry.
+    try {
+      const resolvedSources = new Set<string>();
+      for (const [_id, st] of Object.entries(testStates ?? {})) {
+        const state = String((st as any)?.state ?? "");
+        if (state === "resolved_met" || state === "resolved_not_met" || state === "resolved_not_applicable") {
+          for (const sf of ((st as any)?.source_fields ?? []) as string[]) {
+            if (typeof sf === "string" && sf) resolvedSources.add(sf);
+          }
+        }
+      }
+      const infoList: any[] = Array.isArray((report_data as any).information_needed) ? (report_data as any).information_needed : [];
+      const strippedFields: string[] = [];
+      const kept = infoList.filter((e) => {
+        const raw = typeof e?.field === "string" ? e.field : "";
+        if (!raw) return true;
+        const root = raw.split(/[.\[]/, 1)[0];
+        if (resolvedSources.has(raw) || resolvedSources.has(root)) {
+          strippedFields.push(raw);
+          return false;
+        }
+        return true;
+      });
+      if (strippedFields.length > 0) {
+        (report_data as any).information_needed = kept;
+        if (!Array.isArray((report_data as any).lint_warnings)) (report_data as any).lint_warnings = [];
+        for (const f of strippedFields) {
+          (report_data as any).lint_warnings.push({ code: "w3a_resolved_source_ask_stripped", field: f });
+        }
+        console.log(JSON.stringify({ evt: "w3a_resolved_source_ask_stripped", tool: "cppa_risk_assessment", count: strippedFields.length, fields: strippedFields.slice(0, 12) }));
+      }
+    } catch (e) {
+      console.warn("[cppa-risk] W3-A resolved-source strip errored:", e);
+    }
+
     // RC-A A4 — §7121(a) cohort BINDING lint. When the revenue band resolves
     // to a specific audit cohort, no prose may claim the band "straddles"
     // the $50M line — that phrasing is only valid for the legacy
