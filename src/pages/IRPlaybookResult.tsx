@@ -41,6 +41,7 @@ export default function IRPlaybookResult() {
     isTerminal: (r) => TERMINAL_STATUSES.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete" && (!!r?.playbook_text || !!r?.report_data),
   });
+  useToolCompletedOnce("ir_playbook", row?.status === "complete" && (!!row?.playbook_text || !!row?.report_data));
 
   const intake = row?.intake_data || {};
 
