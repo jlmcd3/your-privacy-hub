@@ -376,11 +376,8 @@ export default function DPAGenerator() {
             <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
             <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
-            {validationError && (
-              <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-sm" role="alert">
-                {validationError}
-              </div>
-            )}
+            <ValidationErrorSummary message={validationError} />
+
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
               <span className="font-semibold text-blue-900">Document type: {docType.label}</span>
               <p className="text-blue-700 mt-0.5">{docType.description}</p>
