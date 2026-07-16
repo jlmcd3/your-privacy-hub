@@ -234,6 +234,9 @@ export default function RopaDocuments() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(objectUrl);
+      if (doc.document_format === "pdf" || doc.document_format === "docx") {
+        fireConversion("report_download", { tool_slug: "ropa", format: doc.document_format });
+      }
       void loadDocuments();
     } catch (err) {
       console.error("Download failed:", err);
