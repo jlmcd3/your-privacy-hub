@@ -2373,6 +2373,43 @@ Deno.serve(async (req) => {
   }
 
 
+  // ---------- ENA-1 task 1 — internal start_quality_batch ----------
+  // Mirrors the console Start button: full 9-tool batch × 5 docs, dispatched
+  // via quality-batch-orchestrator. Accepts SR bearer + x-internal-verification
+  // (already gated above). Inserts a quality_batch_runs row, then fires the
+  // orchestrator's internal-resume self-chain so the batch actually runs.
+  // No nonce required for this action. function_runs "started" row was already
+  // written above (the isInternalSR branch); no extra log needed here.
+  if (body?.action === "start_quality_batch") {
+    const DEFAULT_TOOLS = [
+      "cppa-risk", "cppa-cyber", "cppa-admt",
+      "governance", "dpia", "lia",
+      "dpa-generator", "ir-playbook", "biometric-checker",
+    ];
+    const tools = Array.isArray(body?.tools) && body.tools.length ? body.tools : DEFAULT_TOOLS;
+    const batchSize = Math.max(1, Math.min(50, Math.floor(Number(body?.batch_size) || 0) || 5));
+    const { data: row, error: bErr } = await admin.from("quality_batch_runs").insert({
+      tools, batch_size: batchSize, status: "running", phase: "kickoff",
+      current_tool_index: 0, tool_results: [], created_by: null,
+    }).select("id").single();
+    if (bErr || !row) return json({ error: "start_quality_batch_insert_failed", detail: bErr?.message }, 500);
+    // Fire the orchestrator self-chain (internal-resume path) so it advances.
+    fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "apikey": SERVICE_KEY,
+        "Content-Type": "application/json",
+        "x-internal-resume": "1",
+      },
+      body: JSON.stringify({ run_id: row.id }),
+    }).catch((e) => console.error("[start_quality_batch] orchestrator kick failed", e?.message));
+    return json({ ok: true, batch_id: row.id, tools, batch_size: batchSize, build_stamp: BUILD_STAMP }, 202);
+  }
+
+
+
+
   // In-runtime dispatch to regenerate-assessment using this runtime's own
   // SR key. Called by admins (same auth check as batch dispatch) and by
   // RC-D's QL3 second pass (dummy-answer revisions dispatched
