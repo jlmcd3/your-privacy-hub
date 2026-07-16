@@ -1,7 +1,23 @@
+import { Link } from "react-router-dom";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { formatFilterLabel } from "@/lib/filterLabels";
+
+interface TopEnforcementSignal {
+  id: string;
+  regulator: string;
+  jurisdiction: string;
+  subject: string | null;
+  summary: string | null;
+  fine: string | null;
+  fine_eur_equivalent: number | null;
+  decision_date: string | null;
+  precedent_significance: number | null;
+  sector: string | null;
+  violation_types: string[] | null;
+  source_url: string | null;
+}
 
 interface Props {
   customBrief: any;
@@ -10,6 +26,8 @@ interface Props {
   hideHeader?: boolean;
   /** @deprecated Briefs are immutable. Edit preferences from the dashboard or /brief-preferences. */
   showEditPreferencesLink?: boolean;
+  /** Optional Top 10 enforcement signals rendered as the FINAL section of the brief document. */
+  topEnforcementSignals?: TopEnforcementSignal[] | null;
 }
 
 /** Pretty-print a slug list, capping the visible count so the header stays tidy. */
