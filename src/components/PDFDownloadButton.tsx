@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 type ToolType =
   | "biometric_checker"
@@ -38,6 +39,7 @@ interface Props {
 
 export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGenerated, className, force }: Props) {
   const [busy, setBusy] = useState(false);
+  const fireConversion = useConversionEvent();
 
   const baseClass = className ??
     "inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg no-underline transition-colors disabled:opacity-60";
@@ -86,6 +88,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
       }
       if (!pdfUrl) toast.success("PDF ready");
       onGenerated?.(data.pdf_url);
+      fireConversion("report_download", { tool_slug: toolType, format: "pdf" });
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
       console.error("PDF generation failed:", e);

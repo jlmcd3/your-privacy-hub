@@ -20,6 +20,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check } from "lucide-react";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 const OFFICIAL_REG_URL =
   "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
@@ -190,6 +191,7 @@ export default function ADMTCheckerResult() {
   const [polling, setPolling] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const triggeredRef = useRef(false);
+  useToolCompletedOnce("cppa_admt", assessment?.status === "complete");
 
   useEffect(() => {
     if (!id || authLoading) return;

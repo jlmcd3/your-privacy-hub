@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 const LI_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 import { useParams, Link, useSearchParams } from "react-router-dom";
@@ -138,6 +139,7 @@ const LIAssessmentResult = () => {
     isTerminal: (r) => LI_TERMINAL.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete",
   });
+  useToolCompletedOnce("li_assessment", assessment?.status === "complete");
 
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const status = assessment?.status;

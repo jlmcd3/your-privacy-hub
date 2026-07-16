@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Loader2, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 interface Props {
   riskId?: string | null;
@@ -15,6 +16,7 @@ interface Props {
 
 export default function CPPASuitePDFButton({ riskId, cyberId, className }: Props) {
   const [busy, setBusy] = useState(false);
+  const fireConversion = useConversionEvent();
   if (!riskId && !cyberId) return null;
 
   const handle = async () => {
@@ -49,6 +51,7 @@ export default function CPPASuitePDFButton({ riskId, cyberId, className }: Props
       }
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
       if (!data.cached) toast.success("Combined Suite PDF ready");
+      fireConversion("report_download", { tool_slug: "cppa_suite", format: "pdf" });
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
       console.error(e);

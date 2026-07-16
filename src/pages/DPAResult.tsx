@@ -26,6 +26,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { detectDocumentType } from "@/lib/dpaDocumentType";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 
 const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
@@ -42,6 +43,7 @@ export default function DPAResult() {
     isTerminal: (r) => TERMINAL_STATUSES.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete" && (!!r?.document_text || !!r?.report_data),
   });
+  useToolCompletedOnce("dpa_generator", row?.status === "complete" && (!!row?.document_text || !!row?.report_data));
 
   const intake = row?.intake_data || {};
 

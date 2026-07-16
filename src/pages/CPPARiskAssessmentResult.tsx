@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -130,6 +131,7 @@ export default function CPPARiskAssessmentResult() {
     },
     isReportReady: (r) => r?.status === "complete" && computeReportReady(r),
   });
+  useToolCompletedOnce("cppa_risk", row?.status === "complete" && computeReportReady(row));
 
   // Doc P Step 4: standalone Risk result page entry point.
   // Flag stays OFF in production; Professional-only.

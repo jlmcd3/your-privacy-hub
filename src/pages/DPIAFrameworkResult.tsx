@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 const DPIA_TERMINAL = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 import { useParams, Link, useSearchParams } from "react-router-dom";
@@ -123,6 +124,7 @@ const DPIAFrameworkResult = () => {
     isTerminal: (r) => DPIA_TERMINAL.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
   });
+  useToolCompletedOnce("dpia_framework", dpia?.status === "complete" && !!dpia?.report_data);
 
   const report = (translated?.report_data ?? dpia?.report_data) || {};
   const meta = report?.dpia_metadata || {};

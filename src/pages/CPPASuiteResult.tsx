@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -201,6 +202,11 @@ export default function CPPASuiteResult() {
   const riskRow = risk.row;
   const cyberRow = cyber.row;
   const loading = (!!riskId && risk.loading) || (!!cyberId && cyber.loading);
+  useToolCompletedOnce(
+    "cppa_suite",
+    (riskRow?.status === "complete" && !!riskRow?.report_data) ||
+      (cyberRow?.status === "complete" && !!cyberRow?.report_data),
+  );
 
   // Doc P Step 4: result-page entry point, flag-gated AND Professional-only.
   // Flag stays OFF in production. Non-Professional users with the flag on

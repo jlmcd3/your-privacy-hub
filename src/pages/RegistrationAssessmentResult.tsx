@@ -17,6 +17,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import { PRICING_REGISTRY, PRICING } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 interface JurisdictionResult {
   code: string;
@@ -52,6 +53,7 @@ export default function RegistrationAssessmentResult() {
   const [emailUnlocked, setEmailUnlocked] = useState<boolean>(false);
   const [pendingEmail, setPendingEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
+  useToolCompletedOnce("registration_assessment", !loading && !!assessment);
 
   useEffect(() => {
     if (!token) return;

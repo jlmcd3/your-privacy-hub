@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { useConversionEvent } from "@/hooks/useConversionEvent";
 
 
 
@@ -66,6 +67,7 @@ export default function RopaDocuments() {
   const { toast } = useToast();
   const { clientName, isPersonalActive } = useActiveClient();
   const { isAdmin } = useIsAdmin();
+  const fireConversion = useConversionEvent();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
@@ -232,6 +234,9 @@ export default function RopaDocuments() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(objectUrl);
+      if (doc.document_format === "pdf" || doc.document_format === "docx") {
+        fireConversion("report_download", { tool_slug: "ropa", format: doc.document_format });
+      }
       void loadDocuments();
     } catch (err) {
       console.error("Download failed:", err);
