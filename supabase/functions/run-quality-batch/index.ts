@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qlb-f3-grader-payload@2026-07-15T02:00Z";
+export const BUILD_STAMP = "qlb-ena1-start-quality-batch@2026-07-16T00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -2275,7 +2275,7 @@ Deno.serve(async (req) => {
   // dispatch through here without needing an admin JWT. Every accepted call is
   // logged to function_runs. Any other action falls through to the normal
   // admin-JWT path below.
-  const INTERNAL_ALLOWED_ACTIONS = new Set(["revision_dispatch", "seed_contract_fixtures"]);
+  const INTERNAL_ALLOWED_ACTIONS = new Set(["revision_dispatch", "seed_contract_fixtures", "start_quality_batch"]);
   const isInternalSR =
     req.headers.get("x-internal-verification") === "1"
     && token === SERVICE_KEY
@@ -2371,6 +2371,43 @@ Deno.serve(async (req) => {
       fixtures: cfg.fixtures.map((f) => ({ id: f.fixture_id, scenario: f.contract_scenario })),
     });
   }
+
+
+  // ---------- ENA-1 task 1 — internal start_quality_batch ----------
+  // Mirrors the console Start button: full 9-tool batch × 5 docs, dispatched
+  // via quality-batch-orchestrator. Accepts SR bearer + x-internal-verification
+  // (already gated above). Inserts a quality_batch_runs row, then fires the
+  // orchestrator's internal-resume self-chain so the batch actually runs.
+  // No nonce required for this action. function_runs "started" row was already
+  // written above (the isInternalSR branch); no extra log needed here.
+  if (body?.action === "start_quality_batch") {
+    const DEFAULT_TOOLS = [
+      "cppa-risk", "cppa-cyber", "cppa-admt",
+      "governance", "dpia", "lia",
+      "dpa-generator", "ir-playbook", "biometric-checker",
+    ];
+    const tools = Array.isArray(body?.tools) && body.tools.length ? body.tools : DEFAULT_TOOLS;
+    const batchSize = Math.max(1, Math.min(50, Math.floor(Number(body?.batch_size) || 0) || 5));
+    const { data: row, error: bErr } = await admin.from("quality_batch_runs").insert({
+      tools, batch_size: batchSize, status: "running", phase: "kickoff",
+      current_tool_index: 0, tool_results: [], created_by: null,
+    }).select("id").single();
+    if (bErr || !row) return json({ error: "start_quality_batch_insert_failed", detail: bErr?.message }, 500);
+    // Fire the orchestrator self-chain (internal-resume path) so it advances.
+    fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "apikey": SERVICE_KEY,
+        "Content-Type": "application/json",
+        "x-internal-resume": "1",
+      },
+      body: JSON.stringify({ run_id: row.id }),
+    }).catch((e) => console.error("[start_quality_batch] orchestrator kick failed", e?.message));
+    return json({ ok: true, batch_id: row.id, tools, batch_size: batchSize, build_stamp: BUILD_STAMP }, 202);
+  }
+
+
 
 
   // In-runtime dispatch to regenerate-assessment using this runtime's own
