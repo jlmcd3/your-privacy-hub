@@ -202,6 +202,11 @@ export default function CPPASuiteResult() {
   const riskRow = risk.row;
   const cyberRow = cyber.row;
   const loading = (!!riskId && risk.loading) || (!!cyberId && cyber.loading);
+  useToolCompletedOnce(
+    "cppa_suite",
+    (riskRow?.status === "complete" && !!riskRow?.report_data) ||
+      (cyberRow?.status === "complete" && !!cyberRow?.report_data),
+  );
 
   // Doc P Step 4: result-page entry point, flag-gated AND Professional-only.
   // Flag stays OFF in production. Non-Professional users with the flag on
