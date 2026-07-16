@@ -162,13 +162,14 @@ export default function RegistrationAssessment() {
 
   async function submit() {
     if (!intake.organization_name.trim()) {
-      toast.error("Please enter your organization name.");
+      setValidationError("Please enter your organization name.");
       return;
     }
     if (!intake.organization_country && intake.markets_served.length === 0) {
-      toast.error("Tell us where you're based or which markets you serve");
+      setValidationError("Tell us where you're based or which markets you serve");
       return;
     }
+    setValidationError(null);
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -195,6 +196,7 @@ export default function RegistrationAssessment() {
       setSubmitting(false);
     }
   }
+
 
   return (
     <>
