@@ -67,7 +67,7 @@ export default function RecentReportsCard() {
   if (items.length === 0) return null;
 
   return (
-    <section className="bg-card border border-border rounded-2xl p-5 my-6">
+    <section className="bg-card border border-border rounded-2xl p-5 my-6 shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-display text-brand-navy text-[16px] flex items-center gap-2">
           <FileText className="w-4 h-4" /> Recent reports

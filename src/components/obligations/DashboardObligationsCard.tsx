@@ -40,7 +40,7 @@ export default function DashboardObligationsCard() {
   }, []);
 
   return (
-    <section className="bg-card border border-border rounded-2xl p-6 mb-6">
+    <section className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none">
       <div className="flex items-baseline justify-between mb-4">
         <h2 className="font-display text-lg text-brand-navy">Obligations</h2>
         <Link to="/obligations" className="text-sm text-brand-teal-text hover:underline">View all →</Link>
@@ -52,7 +52,7 @@ export default function DashboardObligationsCard() {
       ) : (
         <ul className="space-y-2">
           {items.map((o) => (
-            <li key={o.id} className="flex items-center gap-3 border-b last:border-b-0 pb-2 last:pb-0">
+            <li key={o.id} className="flex items-center gap-3 border-b last:border-b-0 pb-2 last:pb-0 px-2 -mx-2 rounded-md hover:bg-muted/40 motion-safe:transition-colors motion-reduce:transition-none">
               <Badge variant={variant(o.severity)}>{SEVERITY_LABEL[o.severity]}</Badge>
               <Link to={o.source_route} className="text-sm text-foreground hover:underline flex-1 min-w-0 truncate">
                 {o.title}

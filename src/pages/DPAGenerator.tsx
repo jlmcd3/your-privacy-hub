@@ -32,6 +32,8 @@ import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
 
@@ -243,10 +245,12 @@ export default function DPAGenerator() {
           if (currentStep === 3 && acknowledged) currentStep = 4;
           return (
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
+              <ol className="flex items-center gap-1.5" aria-label="Intake progress">
                 {[1, 2, 3, 4].map(n => (
-                  <span
+                  <li
                     key={n}
+                    aria-current={n === currentStep ? "step" : undefined}
+                    aria-label={`Step ${n} of 4: ${sectionNames[n - 1]}${n === currentStep ? " (current)" : n < currentStep ? " (complete)" : ""}`}
                     className="inline-block rounded-full"
                     style={{
                       width: 8, height: 8,
@@ -254,8 +258,9 @@ export default function DPAGenerator() {
                     }}
                   />
                 ))}
-              </div>
-              <p className="text-meta text-slate-400">Step {currentStep} of 4: {sectionNames[currentStep - 1]}</p>
+              </ol>
+              <p className="text-meta text-slate-400" aria-live="polite">Step {currentStep} of 4: {sectionNames[currentStep - 1]}</p>
+
             </div>
           );
         })()}
@@ -371,11 +376,8 @@ export default function DPAGenerator() {
             <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
             <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
-            {validationError && (
-              <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-sm" role="alert">
-                {validationError}
-              </div>
-            )}
+            <ValidationErrorSummary message={validationError} />
+
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
               <span className="font-semibold text-blue-900">Document type: {docType.label}</span>
               <p className="text-blue-700 mt-0.5">{docType.description}</p>

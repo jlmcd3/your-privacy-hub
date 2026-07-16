@@ -189,8 +189,9 @@ export default function PremiumToolsSection({ isPremium }: Props) {
           return (
             <div
               key={tool.title}
-              className="bg-card border border-border rounded-2xl p-5 flex flex-col"
+              className="bg-card border border-border rounded-2xl p-5 flex flex-col shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none"
             >
+
               <div className="text-[28px] mb-2">{tool.icon}</div>
               <h3 className="text-foreground text-[15px] leading-snug mb-2">
                 {tool.title}
@@ -240,12 +241,13 @@ export default function PremiumToolsSection({ isPremium }: Props) {
             No reports yet. Preview a sample and purchase above.
           </p>
         ) : (
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          <div className="bg-card border border-border rounded-xl divide-y divide-border shadow-eup-sm">
             {recent.map((row) => (
               <div
                 key={`${row.type}-${row.id}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap"
+                className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap hover:bg-muted/40 motion-safe:transition-colors motion-reduce:transition-none first:rounded-t-xl last:rounded-b-xl"
               >
+
                 <div className="flex items-center gap-3 flex-wrap">
                   <span
                     className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${TYPE_BADGE[row.type]}`}

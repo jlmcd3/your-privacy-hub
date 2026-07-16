@@ -115,7 +115,7 @@ export default function ObligationsList({ clientId }: Props) {
             <h3 className="text-sm font-semibold text-foreground mb-2">{SEVERITY_LABEL[sev]}</h3>
             <ul className="space-y-2">
               {items.map((o) => (
-                <li key={o.id} className="border rounded-md p-3 bg-card flex items-start gap-3 flex-wrap">
+                <li key={o.id} className="border rounded-md p-3 bg-card flex items-start gap-3 flex-wrap shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none">
                   <Badge variant={severityVariant(o.severity)}>{SEVERITY_LABEL[o.severity]}</Badge>
                   <div className="flex-1 min-w-0">
                     <Link to={o.source_route} className="font-medium text-foreground hover:underline">
@@ -134,12 +134,12 @@ export default function ObligationsList({ clientId }: Props) {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => ack(o.id, "completed")}>
+                    <Button size="sm" variant="ghost" className="min-h-11 min-w-11 md:min-h-9 md:min-w-9" onClick={() => ack(o.id, "completed")}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Mark complete
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="ghost"><MoreHorizontal className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="ghost" aria-label="More actions" className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"><MoreHorizontal className="w-3.5 h-3.5" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => ack(o.id, "snoozed", 30)}>Snooze 30 days</DropdownMenuItem>
@@ -149,7 +149,8 @@ export default function ObligationsList({ clientId }: Props) {
                     </DropdownMenu>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="ghost">Dismiss</Button>
+                        <Button size="sm" variant="ghost" className="min-h-11 md:min-h-9">Dismiss</Button>
+
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
