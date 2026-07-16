@@ -62,6 +62,7 @@ export default function CPPACybersecurityResult() {
     },
     isReportReady: (r) => r?.status === "complete" && computeReportReady(r),
   });
+  useToolCompletedOnce("cppa_cybersecurity", row?.status === "complete" && computeReportReady(row));
 
   // Look for an earlier cybersecurity assessment by the same user (for drift compare).
   useEffect(() => {
