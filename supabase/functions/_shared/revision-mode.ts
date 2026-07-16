@@ -63,7 +63,8 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // pre-apply patch-path shape validator (rejects ask-vocab writes against
 // mismatched report shapes as 409 revision_malformed_patch_shape).
 // RC-P3 stamp bump: server-side changed_paths allowlist (rejects undeclared-target writes).
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-p3";
+// REV-2b stamp bump: per-item allowlist echoed in prompt + verdict decision procedure + pre-emit self-check.
+export const REVISION_PROMPT_STAMP = "rev-scope@rev-2b";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
