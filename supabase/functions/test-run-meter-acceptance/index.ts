@@ -662,9 +662,7 @@ async function runStep(
     }
 
     if (step === "F") {
-      const inv = await svc.functions.invoke("run-li-assessment", {
-        body: { assessment_id: ZERO_UUID },
-      });
+      const inv = await invokeRunLI({ assessment_id: ZERO_UUID });
       await new Promise((r) => setTimeout(r, 2500));
       const { data: mZ } = await svc.from("tool_run_meter").select("id")
         .eq("tool_type", TOOL_TYPE).eq("assessment_id", ZERO_UUID).maybeSingle();
