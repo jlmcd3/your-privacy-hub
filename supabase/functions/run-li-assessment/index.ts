@@ -3,6 +3,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { invokeGated } from "../_shared/invoke-gated.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
