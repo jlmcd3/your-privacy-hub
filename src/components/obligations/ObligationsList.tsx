@@ -115,7 +115,7 @@ export default function ObligationsList({ clientId }: Props) {
             <h3 className="text-sm font-semibold text-foreground mb-2">{SEVERITY_LABEL[sev]}</h3>
             <ul className="space-y-2">
               {items.map((o) => (
-                <li key={o.id} className="border rounded-md p-3 bg-card flex items-start gap-3 flex-wrap">
+                <li key={o.id} className="border rounded-md p-3 bg-card flex items-start gap-3 flex-wrap shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none">
                   <Badge variant={severityVariant(o.severity)}>{SEVERITY_LABEL[o.severity]}</Badge>
                   <div className="flex-1 min-w-0">
                     <Link to={o.source_route} className="font-medium text-foreground hover:underline">
