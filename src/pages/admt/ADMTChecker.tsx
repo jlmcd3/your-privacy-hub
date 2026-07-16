@@ -616,7 +616,7 @@ export default function ADMTChecker() {
           <span className="text-muted-foreground"> bundles them at a discount.</span>
         </div>
 
-        <div className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
+        <div className="text-sm text-muted-foreground my-4" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <BenchLayout
           toolType="admt"
