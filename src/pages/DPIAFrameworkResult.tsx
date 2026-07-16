@@ -124,6 +124,7 @@ const DPIAFrameworkResult = () => {
     isTerminal: (r) => DPIA_TERMINAL.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete" && !!r?.report_data,
   });
+  useToolCompletedOnce("dpia_framework", dpia?.status === "complete" && !!dpia?.report_data);
 
   const report = (translated?.report_data ?? dpia?.report_data) || {};
   const meta = report?.dpia_metadata || {};
