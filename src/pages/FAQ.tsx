@@ -43,7 +43,7 @@ const faqs = [
   },
   {
     q: "How many generations do I get per Smart Tool report?",
-    a: "Every Smart Tool report includes 4 generations: one initial run plus up to 3 revisions. Use the Refine panel to change your answers or add context and regenerate at no extra cost. Once you've used all 4, you can purchase 4 additional generations as a top-up.",
+    a: "Includes 4 generations: your initial report plus up to 3 revisions at no extra cost. Use the Refine panel to change your answers or add context and regenerate. Need more? Add 4 additional generations for half the tool price.",
   },
   {
     q: "How do I cancel my subscription?",

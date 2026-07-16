@@ -35,7 +35,7 @@ export default function RunMeterBar({
       </div>
       <div className="text-body-small text-ink-soft max-w-sm">
         {exhausted
-          ? "You've used your included generations. Extend with 4 more to keep refining this report."
+          ? "Need more? Add 4 additional generations for half the tool price."
           : infoNeededCount && infoNeededCount > 0
           ? `This report names ${infoNeededCount} item${infoNeededCount === 1 ? "" : "s"} that would sharpen it — refine those answers and regenerate.`
           : last
@@ -57,7 +57,7 @@ export default function RunMeterBar({
             onClick={onExtend}
             className="px-4 py-2 rounded-lg bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white text-body-small font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-action focus-visible:ring-offset-2"
           >
-            Extend with 4 more
+            Add 4 additional generations
           </button>
         )}
       </div>

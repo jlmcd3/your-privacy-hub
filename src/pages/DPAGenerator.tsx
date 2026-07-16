@@ -203,7 +203,8 @@ export default function DPAGenerator() {
           <p className="text-slate-300 text-lg max-w-3xl">
             Draft a controller-processor data processing agreement tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions.
           </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
+          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
+          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
           <div className="mt-4"><SampleReportLink toolSlug="dpa" tone="onDark" variant="link" /></div>
         </div>
       </header>

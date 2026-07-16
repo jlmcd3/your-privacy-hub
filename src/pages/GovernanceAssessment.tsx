@@ -482,7 +482,7 @@ const GovernanceAssessment = () => {
           <h1 className="text-hero-h1 text-white mb-3">GDPR Governance Assessment</h1>
           <RequirementBadge variant="hero" tier="supports" text="GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
+          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
               ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."

@@ -47,7 +47,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The action layer: compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "4 generations per report. Refine and regenerate at no extra cost", free: true, intel: true, platform: true },
+  { feature: "Includes 4 generations per report: your initial report plus up to 3 revisions at no extra cost", free: true, intel: true, platform: true },
   { feature: "Governance Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
   { feature: "Legitimate Interest Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
