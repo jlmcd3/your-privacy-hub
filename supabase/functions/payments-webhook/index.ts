@@ -40,6 +40,10 @@ async function dispatchGenerator(
 ): Promise<void> {
   const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/${fn}`;
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const startedAt = new Date().toISOString();
+  let httpStatus = 0;
+  let snippet = "";
+  let errorMsg: string | null = null;
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -50,8 +54,11 @@ async function dispatchGenerator(
       },
       body: JSON.stringify({ [bodyKey]: rowId }),
     });
+    httpStatus = res.status;
+    const text = (await res.text()).slice(0, 300);
+    snippet = text;
     if (!res.ok) {
-      const text = (await res.text()).slice(0, 500);
+      errorMsg = `status=${res.status}`;
       console.error(JSON.stringify({
         evt: "generator_invoke_non_2xx",
         fn, table, row_id: rowId, status: res.status, body: text,
@@ -62,14 +69,42 @@ async function dispatchGenerator(
       }).eq("id", rowId);
     }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
+    errorMsg = e instanceof Error ? e.message : String(e);
     console.error(JSON.stringify({
-      evt: "generator_invoke_threw", fn, table, row_id: rowId, error: msg,
+      evt: "generator_invoke_threw", fn, table, row_id: rowId, error: errorMsg,
     }));
     await sb.from(table).update({
       status: "error",
-      last_error: `payments-webhook invoke ${fn} threw: ${msg}`.slice(0, 500),
+      last_error: `payments-webhook invoke ${fn} threw: ${errorMsg}`.slice(0, 500),
     }).eq("id", rowId);
+  }
+
+  // INC-2 durable dispatch record: telemetry row that survives edge log
+  // rotation, so we can prove after the fact whether a paid row's generator
+  // was ever invoked and what the response was. Discriminator lives in
+  // metadata.event='dispatch' (schema-additive; no migration needed).
+  try {
+    const finishedAt = new Date().toISOString();
+    await sb.from("function_runs").insert({
+      function_name: fn,
+      invoked_by: "payments-webhook",
+      status: errorMsg ? "error" : "success",
+      started_at: startedAt,
+      finished_at: finishedAt,
+      source_table: table,
+      source_row_id: rowId,
+      error_message: errorMsg ? `${errorMsg} :: ${snippet}`.slice(0, 2000) : null,
+      metadata: {
+        event: "dispatch",
+        tool: fn,
+        row_id: rowId,
+        http_status: httpStatus,
+        response_snippet: snippet,
+      },
+    });
+  } catch (telemetryErr) {
+    // Never let telemetry break dispatch.
+    console.error("[payments-webhook] function_runs dispatch insert failed:", telemetryErr);
   }
 }
 
