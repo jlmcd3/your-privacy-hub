@@ -43,6 +43,7 @@ export default function DPAResult() {
     isTerminal: (r) => TERMINAL_STATUSES.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete" && (!!r?.document_text || !!r?.report_data),
   });
+  useToolCompletedOnce("dpa_generator", row?.status === "complete" && (!!row?.document_text || !!row?.report_data));
 
   const intake = row?.intake_data || {};
 
