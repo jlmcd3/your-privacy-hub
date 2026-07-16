@@ -505,7 +505,7 @@ const GovernanceAssessment = () => {
           This assessment evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.
         </div>
 
-        <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
+        <div className="text-sm text-muted-foreground" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <IntakeMasthead
           kicker="GDPR Governance Assessment · Art. 5(2) accountability"
