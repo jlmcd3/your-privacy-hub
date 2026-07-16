@@ -16,6 +16,8 @@ export type SubmitRevisionOutcome =
   | { kind: "unknown_item_id"; item_id: string }
   | { kind: "no_answered_items" }
   | { kind: "not_found_or_forbidden" }
+  | { kind: "hollow_resolution" }
+  | { kind: "unauthorized_changed_path" }
   | { kind: "error"; message: string };
 
 export async function submitRevisionAnswers(args: {
@@ -42,6 +44,10 @@ export async function submitRevisionAnswers(args: {
         }
       } catch { /* ignore */ }
       if (status === 409 && bodyJson?.error === "revisions_disabled") return { kind: "revisions_disabled" };
+      // REV-2b: typed client branches for the two contract-guard 409s so the
+      // UI can render branded copy instead of a snake_case fallthrough.
+      if (bodyJson?.error === "revision_hollow_resolution") return { kind: "hollow_resolution" };
+      if (bodyJson?.error === "revision_unauthorized_changed_path") return { kind: "unauthorized_changed_path" };
       if (bodyJson?.error === "unknown_item_id") return { kind: "unknown_item_id", item_id: bodyJson?.item_id ?? "" };
       if (bodyJson?.error === "no_answered_items") return { kind: "no_answered_items" };
       if (bodyJson?.error === "not_found_or_forbidden") return { kind: "not_found_or_forbidden" };

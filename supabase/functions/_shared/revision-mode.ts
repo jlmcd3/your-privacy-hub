@@ -20,7 +20,8 @@
 // This module NEVER changes the frozen open_items array shape or count.
 import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding, validateChangedPathShapes } from "./revision-patch.ts";
 import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
-import { qcVerdictConsistency, qcChangedPathsAuthorized } from "./revision-qc.ts";
+import { qcVerdictConsistency, qcChangedPathsAuthorized, DERIVED_PATHS } from "./revision-qc.ts";
+import { candidateTargetPaths } from "./target-path-aliases.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { mapItemsToUnits } from "./dpia-unit-map.ts";
@@ -62,7 +63,8 @@ const DEFAULT_MODEL = "claude-sonnet-4-5";
 // pre-apply patch-path shape validator (rejects ask-vocab writes against
 // mismatched report shapes as 409 revision_malformed_patch_shape).
 // RC-P3 stamp bump: server-side changed_paths allowlist (rejects undeclared-target writes).
-export const REVISION_PROMPT_STAMP = "rev-scope@rc-p3";
+// REV-2b stamp bump: per-item allowlist echoed in prompt + verdict decision procedure + pre-emit self-check.
+export const REVISION_PROMPT_STAMP = "rev-scope@rev-2b";
 
 async function revertStatus(
   supabase: any, table: string, rowId: string, priorStatus: string | null,
@@ -153,6 +155,23 @@ function buildRevisionPrompt(opts: {
   ];
 
   const answeredIdList = answeredItems.map((a) => a.item.id);
+
+  // REV-2b H1 — machine-readable per-item allowlist echo. Built from the
+  // SAME sets qcChangedPathsAuthorized enforces (candidateTargetPaths for
+  // rule (a); DERIVED_PATHS for rule (b)) so prompt and guard share a
+  // single source of truth. `[*]` in a DERIVED_PATHS entry is a numeric-
+  // index wildcard (matches `[<digit>+]`); every other segment is literal.
+  const derivedForTool = DERIVED_PATHS[toolType] ?? [];
+  const allowedByItem = answeredItems.map((a) => {
+    const targetPath = a.item.target?.path ?? "";
+    const askUnion = targetPath ? candidateTargetPaths(toolType, targetPath) : [];
+    return {
+      item_id: a.item.id,
+      target_path: targetPath,
+      allowed_paths: [...askUnion, ...derivedForTool],
+    };
+  });
+
   const system = [
     `REVISION SCOPE [${REVISION_PROMPT_STAMP}] — this is a SCOPED-DELTA revision, NOT a re-generation.`,
     "You are re-determining ONLY the report determinations that the ANSWERED_ITEMS below feed. The server enforces BOTH invariants on every submission: (1) UNTOUCHED-SUBTREE HASH — a SHA-256 comparison over the untouched paths REJECTS any patch whose out-of-declaration prose or values differ from the prior report; (2) CHANGED-PATHS ALLOWLIST — every entry in changed_paths must equal or descend from the target.path of an answered_item (or one of its explicit aliases), or from a per-tool enumerated set of paths the generator legitimately re-derives alongside an answer. Writes to undeclared targets are REJECTED with `revision_unauthorized_changed_path` (409, no partial apply, row status reverts).",
@@ -168,9 +187,14 @@ function buildRevisionPrompt(opts: {
     `ADVISORY CAP for ${toolType}: ${advisoryCap}. Every advisory_note MUST cite a fact_ref drawn from the whitelist below. Ungrounded or over-cap notes are stripped server-side and logged as a QC failure.`,
     `FACT_REF WHITELIST: ${factRefWhitelist.slice(0, 60).join(", ")}${factRefWhitelist.length > 60 ? " …" : ""}`,
     "",
-    `ITEM VERDICTS — HARD CONTRACT: emit EXACTLY ONE verdict per answered item (${answeredItems.length} total). A missing verdict, a duplicate verdict, or a verdict for an unrecognised item_id is a MALFORMED PATCH and the server will REJECT the entire submission with no partial apply. Required item_ids: [${answeredIdList.join(", ")}]. 'resolved' means the user's response supplies the missing dimension; 'not_resolved' means it does not (explain briefly in reason). Contradictions with intake belong in the corresponding item's not_resolved reason, NEVER in advisory_notes.`,
-    // RC-C2.1 — hollow-resolution guard. A 'resolved' verdict is a claim that the report's determination at the item's target.path has been re-determined; that re-determination MUST appear in this same patch.
-    "RESOLUTION-CHANGE COUPLING — HARD CONTRACT: every 'resolved' verdict REQUIRES the re-determined content for that item's target.path (from open_items[].target.path) to appear in changed_paths (as that exact path or a descendant `path.leaf` / `path[i]`) with the new value in values{}. A 'resolved' verdict without a matching changed_path is a MALFORMED PATCH — the server runs qc_rc_2_verdict_consistency BEFORE applying and REJECTS the entire submission (409, no partial apply, row status reverts). Resolution and change arrive together, or not at all. If the answer clarified context without changing the determination, emit 'not_resolved' and explain in the reason.",
+    `ITEM VERDICTS — HARD CONTRACT: emit EXACTLY ONE verdict per answered item (${answeredItems.length} total). A missing verdict, a duplicate verdict, or a verdict for an unrecognised item_id is a MALFORMED PATCH and the server will REJECT the entire submission with no partial apply. Required item_ids: [${answeredIdList.join(", ")}]. Contradictions with intake belong in the corresponding item's not_resolved reason, NEVER in advisory_notes.`,
+    "",
+    "ALLOWED_CHANGED_PATHS_BY_ITEM — machine-readable per-item allowlist. Every changed_paths entry MUST fall under one of the item's listed paths (equal, or descendant via `.leaf` / `[i]`). `[*]` in a listed path is a numeric-index wildcard matching any `[<digit>+]` position; every other segment is literal. Edits outside the item's listed union are forbidden; if your intended edit is not listed, verdict MUST be not_resolved.",
+    JSON.stringify(allowedByItem, null, 2),
+    "",
+    "VERDICT DECISION PROCEDURE — for each answered item, in order: (1) compute the SMALLEST set of changed_paths, drawn EXCLUSIVELY from that item's allowed_paths in ALLOWED_CHANGED_PATHS_BY_ITEM, that faithfully reflects the answered content against the prior report; (2) if that set is EMPTY (the answer clarifies context but does not require any determination change within the allowed union), verdict is 'not_resolved' — write the register-style reason and emit NO changed_paths for this item; (3) otherwise, verdict is 'resolved' and changed_paths for this item is EXACTLY that set (no broader, no narrower).",
+    // RC-C2.1 — hollow-resolution guard preserved.
+    "RESOLUTION-CHANGE COUPLING — HARD CONTRACT: every 'resolved' verdict REQUIRES at least one changed_paths entry from that item's allowed_paths, with the new value in values{}. A 'resolved' verdict without a matching changed_path is a MALFORMED PATCH — the server runs qc_rc_2_verdict_consistency BEFORE applying and REJECTS the entire submission (409, no partial apply, row status reverts). Resolution and change arrive together, or not at all.",
     // RC-C1 C1.2 — cppa-risk record-register rule (11 CCR § 7157 auditability).
     toolType === "cppa_risk_assessment"
       ? "§ 7157 RECORD REGISTER (cppa-risk): each item_verdicts[].reason MUST be written as a record entry — a certifiable statement of what the answer established (or failed to establish) on the § 7152 record. Use factual past-tense record phrasing (e.g. 'Established annual gross revenue band at $100M–$500M under § 7120(b)(1).' or 'Did not establish the § 7152(a)(5) severity dimension; response omitted concrete harm magnitude.'). Do NOT write conversational or advisory text ('you should...', 'consider...', 'we recommend...'). Every reason must be self-contained and cite the operative provision from the item's provision_key."
@@ -190,6 +214,8 @@ function buildRevisionPrompt(opts: {
     dpiaUnitSubset && dpiaUnitSubset.length > 0
       ? `DPIA UNIT SUBSET (data-only routing): the following units are the ONLY units this revision may touch: ${dpiaUnitSubset.join(", ")}. Do not emit changed_paths outside these units. Prior-report context for units outside this subset has been elided for token economy — do not attempt to reconstruct it.`
       : "",
+    "",
+    "PRE-EMIT SELF-CHECK — before you return the JSON, verify BOTH conditions and revise if either fails: (a) every item with verdict 'resolved' has at least one changed_paths entry drawn from that item's allowed_paths in ALLOWED_CHANGED_PATHS_BY_ITEM; (b) every changed_paths entry falls under the union of allowed_paths across ALL answered items. On failure: for condition (a), flip the offending verdict to 'not_resolved' and rewrite its reason as a register entry explaining what the answer did NOT establish; for condition (b), prune the offending changed_paths entries (and their values{} entries) from the patch. Only emit the JSON after both conditions hold.",
   ].filter(Boolean).join("\n");
 
   // RC-C2 C2.3 — UNIT-SCOPE ECONOMY: for DPIA revisions, pass ONLY the
