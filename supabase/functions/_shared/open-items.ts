@@ -285,7 +285,7 @@ export function buildOpenItems(
       id,
       class: cls,
       target: { kind: "field", path: field },
-      why_insufficient: creditFirstPhrasing(field, String(e?.dimensions ?? ""), String(e?.enables ?? "")),
+      why_insufficient: creditFirstPhrasing(field, String(e?.dimensions ?? ""), String(e?.enables ?? ""), toolType),
       provision_key: norm.key,
       input_spec: pickInputSpec(toolType, field),
       status: "open",
