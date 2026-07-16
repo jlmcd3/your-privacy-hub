@@ -14,6 +14,65 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { createStripeClient, type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
+// Fire-and-forget dispatch of a downstream generator via RAW fetch.
+//
+// WHY NOT supabase.functions.invoke:
+//   The supabase-js `functions.invoke` wrapper, when called from inside a
+//   Deno edge function with a service-role client, silently drops the
+//   service-role bearer on the outbound request. Generators fronted by
+//   `verifyCaller` reject the call with 401 "missing_authorization", the
+//   wrapper surfaces this as a generic "Edge Function returned a non-2xx
+//   status code", and — because the call was fire-and-forget via
+//   EdgeRuntime.waitUntil — the failure is invisible: the paid row stays
+//   `pending` forever and neither the reaper (which watches `processing`)
+//   nor retry-failed-generations (which watches `error`/`failed`) can
+//   recover it. Rows are silently orphaned. Raw fetch with an explicit
+//   `Authorization: Bearer <SERVICE_ROLE_KEY>` header works.
+//
+// On invoke failure we flip the row to `status='error'` so
+// retry-failed-generations picks it up on its next cron sweep.
+async function dispatchGenerator(
+  sb: SupabaseClient,
+  fn: string,
+  table: string,
+  rowId: string,
+  bodyKey: string,
+): Promise<void> {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/${fn}`;
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${key}`,
+        "apikey": key,
+      },
+      body: JSON.stringify({ [bodyKey]: rowId }),
+    });
+    if (!res.ok) {
+      const text = (await res.text()).slice(0, 500);
+      console.error(JSON.stringify({
+        evt: "generator_invoke_non_2xx",
+        fn, table, row_id: rowId, status: res.status, body: text,
+      }));
+      await sb.from(table).update({
+        status: "error",
+        last_error: `payments-webhook invoke ${fn} → status=${res.status} body=${text}`.slice(0, 500),
+      }).eq("id", rowId);
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(JSON.stringify({
+      evt: "generator_invoke_threw", fn, table, row_id: rowId, error: msg,
+    }));
+    await sb.from(table).update({
+      status: "error",
+      last_error: `payments-webhook invoke ${fn} threw: ${msg}`.slice(0, 500),
+    }).eq("id", rowId);
+  }
+}
+
 // Lazy so importing this module in tests (which do not set SUPABASE_URL)
 // does not crash at load time.
 let _supabase: SupabaseClient | null = null;
