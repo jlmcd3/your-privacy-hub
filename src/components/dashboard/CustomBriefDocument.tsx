@@ -47,7 +47,7 @@ function summarizeList(values: unknown, max = 4): { visible: string[]; extra: nu
  * topics / role) the brief was generated for, so subscribers can tell at a
  * glance which of their criteria shaped this week's analysis.
  */
-export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader = false }: Props) {
+export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader = false, topEnforcementSignals = null }: Props) {
   if (!customBrief) return null;
   const sections = customBrief.custom_sections ?? {};
   const snapshot = customBrief.preferences_snapshot ?? null;
