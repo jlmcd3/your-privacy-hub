@@ -19,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
 import { AssistedInput } from "@/components/AssistedInput";
