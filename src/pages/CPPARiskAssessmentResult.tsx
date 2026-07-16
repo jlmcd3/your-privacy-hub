@@ -131,6 +131,7 @@ export default function CPPARiskAssessmentResult() {
     },
     isReportReady: (r) => r?.status === "complete" && computeReportReady(r),
   });
+  useToolCompletedOnce("cppa_risk", row?.status === "complete" && computeReportReady(row));
 
   // Doc P Step 4: standalone Risk result page entry point.
   // Flag stays OFF in production; Professional-only.
