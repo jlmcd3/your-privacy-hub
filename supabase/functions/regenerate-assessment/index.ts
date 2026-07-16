@@ -2,6 +2,7 @@
 // regenerate-assessment: single client-initiated path for every run after the first.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "../_shared/revision-gate.ts";
+import { invokeGated } from "../_shared/invoke-gated.ts";
 import { snapshotPriorReport } from "../_shared/report-versions.ts";
 import { writeActionLog } from "../_shared/write-action-log.ts";
 import { LOCKED_FIELDS_MAP } from "../_shared/locked-fields.ts";
@@ -633,13 +634,13 @@ Deno.serve(async (req) => {
     }
     // Async customer path — wrap the invoke so a failure reverts status
     // instead of leaving the row orphaned in processing.
+    // INC-3: swap SDK invoke → invokeGated (raw fetch + explicit service-role
+    // Authorization) so the verifyCaller-gated run-* callee doesn't silent-401.
     // @ts-ignore EdgeRuntime
     EdgeRuntime.waitUntil((async () => {
-      try {
-        const r = await supabase.functions.invoke(FN_MAP[tool_type], { body: invokeBody });
-        if ((r as any)?.error) throw (r as any).error;
-      } catch (e: any) {
-        console.error("[regen] async revision invoke failed:", e?.message ?? e);
+      const r = await invokeGated(FN_MAP[tool_type], invokeBody);
+      if (!r.ok) {
+        console.error("[regen] async revision invoke failed:", r.status, r.error ?? r.body);
         await revertProcessing("async_invoke_failed");
       }
     })());
@@ -725,12 +726,28 @@ Deno.serve(async (req) => {
   }
 
   const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
+  const fn = FN_MAP[tool_type];
+  const invokeBody = { [bodyKey]: assessment_id, is_regeneration: true };
+  // INC-3: swap SDK invoke → invokeGated (raw fetch + explicit service-role
+  // Authorization) so the verifyCaller-gated run-* callee doesn't silent-401.
+  // On failure, flip the row to 'error' with last_error so retry-failed-
+  // generations rescues it (mirrors payments-webhook dispatchGenerator).
   // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
-  EdgeRuntime.waitUntil(
-    supabase.functions.invoke(FN_MAP[tool_type], {
-      body: { [bodyKey]: assessment_id, is_regeneration: true },
-    }),
-  );
+  EdgeRuntime.waitUntil((async () => {
+    const r = await invokeGated(fn, invokeBody);
+    if (!r.ok) {
+      const detail = r.error ?? `status=${r.status} body=${r.body}`;
+      console.error(JSON.stringify({
+        evt: "regen_async_invoke_non_2xx", fn, table, row_id: assessment_id,
+        status: r.status, detail,
+      }));
+      await supabase.from(table).update({
+        status: "error",
+        last_error: `regenerate-assessment invoke ${fn} → ${detail}`.slice(0, 500),
+        updated_at: new Date().toISOString(),
+      }).eq("id", assessment_id);
+    }
+  })());
 
   logExit(200, { ok: true, runs_remaining: meter.runs_allowed - meter.runs_used - 1 });
   return json({ ok: true, runs_remaining: meter.runs_allowed - meter.runs_used - 1 });
