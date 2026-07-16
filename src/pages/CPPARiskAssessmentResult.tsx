@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
