@@ -246,7 +246,7 @@ export default function RegistrationAssessment() {
               >
             <Card>
               <CardHeader>
-                <CardTitle>Step {step} of 3</CardTitle>
+                <CardTitle aria-live="polite">Step {step} of 3</CardTitle>
                 <CardDescription>
                   {step === 1 && "About your organization"}
                   {step === 2 && "What data do you process?"}
