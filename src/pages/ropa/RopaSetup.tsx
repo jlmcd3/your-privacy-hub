@@ -162,6 +162,8 @@ export default function RopaSetup() {
     "idle"
   );
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const [hasExistingSession, setHasExistingSession] = useState<string | null>(null);
 
   // Load existing profile + session on mount.
