@@ -763,7 +763,7 @@ export default function CPPARiskAssessment() {
           meter={meter ?? null}
           preRunHint="The entity and subject line you set below are fixed once you first generate. Everything else stays editable across your included generations."
         />
-        <div ref={topRef} className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
+        <div ref={topRef} className="text-sm text-muted-foreground my-4" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <BenchLayout
           toolType="cppa_risk"
