@@ -52,7 +52,7 @@ export default function DashboardObligationsCard() {
       ) : (
         <ul className="space-y-2">
           {items.map((o) => (
-            <li key={o.id} className="flex items-center gap-3 border-b last:border-b-0 pb-2 last:pb-0">
+            <li key={o.id} className="flex items-center gap-3 border-b last:border-b-0 pb-2 last:pb-0 px-2 -mx-2 rounded-md hover:bg-muted/40 motion-safe:transition-colors motion-reduce:transition-none">
               <Badge variant={variant(o.severity)}>{SEVERITY_LABEL[o.severity]}</Badge>
               <Link to={o.source_route} className="text-sm text-foreground hover:underline flex-1 min-w-0 truncate">
                 {o.title}
