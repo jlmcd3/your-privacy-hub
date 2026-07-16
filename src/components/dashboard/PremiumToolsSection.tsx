@@ -189,8 +189,9 @@ export default function PremiumToolsSection({ isPremium }: Props) {
           return (
             <div
               key={tool.title}
-              className="bg-card border border-border rounded-2xl p-5 flex flex-col"
+              className="bg-card border border-border rounded-2xl p-5 flex flex-col shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none"
             >
+
               <div className="text-[28px] mb-2">{tool.icon}</div>
               <h3 className="text-foreground text-[15px] leading-snug mb-2">
                 {tool.title}
