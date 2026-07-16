@@ -1235,15 +1235,15 @@ Return JSON:
       body: { tool_type: 'li_assessment', assessment_id, user_id: assessment.user_id },
     }).catch((e: Error) => console.error('[lia] trigger-upsell failed (non-fatal):', e.message));
 
-    await supabase.functions.invoke("generate-report-pdf", {
-      body: {
-        tool_type: "li_assessment",
-        assessment_id,
-        user_email: userData?.user?.email || null,
-        user_name: userData?.user?.user_metadata?.full_name || null,
-        result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/li-assessment/result/${assessment_id}`,
-      },
-    }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
+    // INC-2: generate-report-pdf is verifyCaller-gated → raw fetch (SDK
+    // invoke drops the service-role bearer server-to-server).
+    await invokeGated("generate-report-pdf", {
+      tool_type: "li_assessment",
+      assessment_id,
+      user_email: userData?.user?.email || null,
+      user_name: userData?.user?.user_metadata?.full_name || null,
+      result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/li-assessment/result/${assessment_id}`,
+    }).then((r) => { if (!r.ok) console.error("[lia] PDF/email delivery failed (non-fatal):", r.status, r.body || r.error); });
 
     return;
 
