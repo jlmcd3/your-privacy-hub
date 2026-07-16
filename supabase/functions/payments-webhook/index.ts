@@ -766,9 +766,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv, eventId?: s
             }));
           } else {
             EdgeRuntime.waitUntil(
-              supabase.functions.invoke("run-cppa-cybersecurity", {
-                body: { assessment_id: suiteCyberId },
-              })
+              dispatchGenerator(supabase, "run-cppa-cybersecurity", "cppa_assessments", suiteCyberId, "assessment_id")
             );
           }
         }
