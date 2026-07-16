@@ -26,6 +26,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { detectDocumentType } from "@/lib/dpaDocumentType";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 
 const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
