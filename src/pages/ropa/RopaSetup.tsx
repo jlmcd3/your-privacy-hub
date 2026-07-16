@@ -345,10 +345,12 @@ export default function RopaSetup() {
 
   const handleConfirm = async () => {
     if (!clientId) {
-      toast.error("Select an organisation first");
+      setValidationError("Select an organisation first");
       return;
     }
+    setValidationError(null);
     setSubmitting(true);
+
     try {
       // Store sector on the workspace, but NEVER rename the workspace itself —
       // the org being documented in this RoPA is recorded on the session.
