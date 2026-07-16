@@ -218,7 +218,7 @@ export function ProcessingInterstitial({
 
       <div className="mt-6 rounded-md border border-amber-200 bg-amber-50/70 dark:bg-amber-950/20 p-4">
         <p className="text-sm text-amber-900 dark:text-amber-200">
-          Worth the wait — this runs a full analysis against our enforcement-decision corpus, so the findings are grounded in what regulators actually penalise.
+          Worth the wait — this runs a full analysis of the facts you have provided against actual laws, regulations, and enforcement actions so that your report provides you with a strong basis for compliance.
         </p>
         <p className="text-xs font-semibold text-foreground mt-3 mb-1.5">When your report is ready, you'll be able to:</p>
         <ul className="space-y-1">
