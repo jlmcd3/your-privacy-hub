@@ -43,6 +43,7 @@ export default function BiometricCheckerResult() {
     isTerminal: (r) => TERMINAL_STATUSES.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete" && (!!r?.analysis_text || !!r?.report_data),
   });
+  useToolCompletedOnce("biometric_checker", row?.status === "complete" && (!!row?.analysis_text || !!row?.report_data));
 
   const report = (translated?.report_data ?? row?.report_data) || {};
   const sourceText = (translated?.analysis_text ?? row?.analysis_text) || report?.assessment_text;
