@@ -82,6 +82,11 @@ async function sweepTable(table: string): Promise<SweepResult> {
 
 
   const stuckCutoff = new Date(Date.now() - STUCK_PROCESSING_MINUTES * 60_000).toISOString();
+  // INC-2 paid-pending rescue: rows that were paid (stripe_payment_intent_id
+  // NOT NULL) but the initial webhook dispatch never advanced them past
+  // 'pending' (silent 401, worker OOM, edge platform kill, etc.). Reap after
+  // 10 minutes and treat identically to error rows below.
+  const paidPendingCutoff = new Date(Date.now() - 10 * 60_000).toISOString();
 
   // Pull candidates. Cap to 25 per sweep per table to keep one invocation
   // bounded; the cron re-runs every few minutes.
@@ -89,7 +94,7 @@ async function sweepTable(table: string): Promise<SweepResult> {
     .from(table)
     .select("*")
     .or(
-      `status.eq.error,status.eq.failed,and(status.eq.processing,last_attempt_at.lt.${stuckCutoff})`,
+      `status.eq.error,status.eq.failed,and(status.eq.processing,last_attempt_at.lt.${stuckCutoff}),and(status.eq.pending,stripe_payment_intent_id.not.is.null,updated_at.lt.${paidPendingCutoff})`,
     )
     .lt("retry_count", MAX_ATTEMPTS)
     .limit(25);
