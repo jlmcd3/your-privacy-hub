@@ -51,6 +51,7 @@ export default function CPPASuitePDFButton({ riskId, cyberId, className }: Props
       }
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
       if (!data.cached) toast.success("Combined Suite PDF ready");
+      fireConversion("report_download", { tool_slug: "cppa_suite", format: "pdf" });
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
       console.error(e);
