@@ -241,12 +241,13 @@ export default function PremiumToolsSection({ isPremium }: Props) {
             No reports yet. Preview a sample and purchase above.
           </p>
         ) : (
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          <div className="bg-card border border-border rounded-xl divide-y divide-border shadow-eup-sm">
             {recent.map((row) => (
               <div
                 key={`${row.type}-${row.id}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap"
+                className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap hover:bg-muted/40 motion-safe:transition-colors motion-reduce:transition-none first:rounded-t-xl last:rounded-b-xl"
               >
+
                 <div className="flex items-center gap-3 flex-wrap">
                   <span
                     className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${TYPE_BADGE[row.type]}`}
