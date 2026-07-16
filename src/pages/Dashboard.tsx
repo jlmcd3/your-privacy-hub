@@ -643,6 +643,7 @@ const Dashboard = () => {
                             customBrief={b}
                             sourceMap={(b as any)?.source_map ?? brief?.source_map ?? {}}
                             hideHeader
+                            topEnforcementSignals={isLatest ? (brief?.top_enforcement_signals ?? null) : null}
                           />
                         </div>
                       )}
