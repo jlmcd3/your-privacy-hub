@@ -748,8 +748,10 @@ const GovernanceAssessment = () => {
             </div>
           )}
 
+          <ValidationErrorSummary message={validationError} className="mt-4" />
           <div className="flex justify-between pt-4 border-t">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
+
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
