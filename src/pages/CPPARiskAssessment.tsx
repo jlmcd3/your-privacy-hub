@@ -266,6 +266,8 @@ export default function CPPARiskAssessment() {
   const displayPrice = activePricing.price;
 
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const refine = useRefineMode("cppa_risk_assessment");
   const { isPro } = useSubscriptionTier();
   // Doc Q: highlighting is gated on both the Kit flag AND the Pro check.
