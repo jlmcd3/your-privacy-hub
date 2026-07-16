@@ -30,6 +30,31 @@ function j(body: unknown, status = 200) {
   });
 }
 
+// INC-2: run-li-assessment is verifyCaller-gated. supabase-js
+// `functions.invoke` drops the service-role bearer server-to-server; use raw
+// fetch to preserve the auth header. Returns the SDK-like shape callers use.
+async function invokeRunLI(body: Record<string, unknown>): Promise<{ data: unknown; error: { message: string } | null }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/run-li-assessment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SERVICE_ROLE}`,
+        "apikey": SERVICE_ROLE,
+      },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let parsed: unknown = null;
+    try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
+    if (!res.ok) return { data: parsed, error: { message: `status=${res.status} body=${text.slice(0, 300)}` } };
+    return { data: parsed, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : String(e) } };
+  }
+}
+
+
 // Settle-poll for meter/version reads. The generator writes meter+versions
 // immediately before status:complete, but PostgREST cache/eventual-consistency
 // can lag by a beat — poll every 2s up to 30s until the expected condition
