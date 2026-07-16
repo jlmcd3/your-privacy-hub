@@ -17,6 +17,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import { PRICING_REGISTRY, PRICING } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 interface JurisdictionResult {
   code: string;
