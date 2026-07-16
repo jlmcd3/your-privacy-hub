@@ -747,7 +747,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv, eventId?: s
           }));
         } else {
           EdgeRuntime.waitUntil(
-            supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } })
+            dispatchGenerator(supabase, fn, table, assessment_id, bodyKey)
           );
         }
 
