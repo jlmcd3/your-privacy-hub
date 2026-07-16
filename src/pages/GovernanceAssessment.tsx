@@ -87,6 +87,8 @@ const GovernanceAssessment = () => {
   const refine = useRefineMode("governance_assessment");
   const { meter } = useRunMeter("governance_assessment", refine.assessmentId);
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
