@@ -484,7 +484,8 @@ const DPIAFramework = () => {
           <h1 className="text-hero-h1 text-white mb-3">Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></h1>
           <RequirementBadge variant="hero" tier="required" text="A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements.</p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
+          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
+          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
           <div className="mt-4"><SampleReportLink toolSlug="dpia" tone="onDark" variant="link" /></div>
         </div>
       </header>
