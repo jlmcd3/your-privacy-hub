@@ -79,6 +79,7 @@ const GovernanceAssessmentResult = () => {
     isTerminal: (r) => GOV_TERMINAL.has(String(r?.status ?? "")),
     isReportReady: (r) => r?.status === "complete",
   });
+  useToolCompletedOnce("governance_assessment", assessment?.status === "complete");
 
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const intake = assessment?.intake_data || {};
