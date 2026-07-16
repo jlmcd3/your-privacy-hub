@@ -1541,8 +1541,10 @@ export default function ADMTChecker() {
                 </>
               )}
 
+              <ValidationErrorSummary message={validationError} className="mt-4" />
               <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
                 <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
+
                 <div className="flex items-center gap-3 ml-auto">
                   {user &&
                     (draftSaving ? (
