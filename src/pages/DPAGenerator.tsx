@@ -32,6 +32,8 @@ import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+
 
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
 
