@@ -2275,7 +2275,7 @@ Deno.serve(async (req) => {
   // dispatch through here without needing an admin JWT. Every accepted call is
   // logged to function_runs. Any other action falls through to the normal
   // admin-JWT path below.
-  const INTERNAL_ALLOWED_ACTIONS = new Set(["revision_dispatch", "seed_contract_fixtures"]);
+  const INTERNAL_ALLOWED_ACTIONS = new Set(["revision_dispatch", "seed_contract_fixtures", "start_quality_batch"]);
   const isInternalSR =
     req.headers.get("x-internal-verification") === "1"
     && token === SERVICE_KEY
