@@ -643,6 +643,7 @@ const Dashboard = () => {
                             customBrief={b}
                             sourceMap={(b as any)?.source_map ?? brief?.source_map ?? {}}
                             hideHeader
+                            topEnforcementSignals={isLatest ? (brief?.top_enforcement_signals ?? null) : null}
                           />
                         </div>
                       )}
@@ -654,43 +655,12 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* v9 Prompt 4.2: Top 10 enforcement signals — also shown to subscribers
-            with custom briefs (previously only rendered inside the public-brief
-            branch which is hidden once any custom brief exists). */}
-        {briefArchive.length > 0 && brief?.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
-          <div className="mb-8 bg-white rounded-2xl border border-slate-200 p-6">
-            <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
-              🔝 Top 10 Enforcement Signals
-            </h3>
-            <p className="text-meta text-slate-500 mb-4">
-              Ranked by precedent significance and recency across the last 90 days.
-            </p>
-            <ol className="space-y-3 list-none p-0 m-0">
-              {brief.top_enforcement_signals.map((s, i) => (
-                <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-navy text-white text-meta font-bold flex items-center justify-center">{i + 1}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <Link to={`/enforcement-intelligence/${s.id}`} className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline">
-                        {s.subject || s.regulator}
-                      </Link>
-                      {s.fine && (<span className="text-meta font-semibold text-brand-navy whitespace-nowrap tabular-nums">{s.fine}</span>)}
-                    </div>
-                    <div className="text-meta text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
-                      <span className="font-medium">{s.regulator}</span><span>·</span><span>{s.jurisdiction}</span>
-                      {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
-                      {s.precedent_significance != null && (<><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>)}
-                    </div>
-                    {s.summary && (<p className="text-xs text-slate-600 leading-relaxed line-clamp-2 m-0">{s.summary}</p>)}
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-4">
-              <Link to="/enforcement-intelligence" className="text-meta font-semibold text-brand-navy hover:underline">Browse all enforcement actions →</Link>
-            </div>
-          </div>
-        )}
+        {/* v9 Prompt 4.2 → BRIEF-1: Top 10 enforcement signals now render as the
+            FINAL section of each brief document (public brief render below and
+            CustomBriefDocument via topEnforcementSignals prop) rather than as a
+            standalone dashboard section. */}
+
+
 
 
         {loading && canShowPublicBrief && <BriefSkeleton />}
@@ -792,63 +762,8 @@ const Dashboard = () => {
                     </section>
                   )}
 
-                  {/* Top 10 enforcement signals — ranked by significance + recency */}
-                  {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
-                    <section className="py-7 border-b border-slate-100">
-                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
-                        🔝 Top 10 Enforcement Signals
-                      </h3>
-                      <p className="text-meta text-slate-500 mb-4">
-                        Ranked by precedent significance and recency across the last 90 days.
-                      </p>
-                      <ol className="space-y-3 list-none p-0 m-0">
-                        {brief.top_enforcement_signals.map((s, i) => (
-                          <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
-                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-navy text-white text-meta font-bold flex items-center justify-center">
-                              {i + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-3 mb-1">
-                                <Link
-                                  to={`/enforcement-intelligence/${s.id}`}
-                                  className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline"
-                                >
-                                  {s.subject || s.regulator}
-                                </Link>
-                                {s.fine && (
-                                  <span className="text-meta font-semibold text-brand-navy whitespace-nowrap tabular-nums">
-                                    {s.fine}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-meta text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
-                                <span className="font-medium">{s.regulator}</span>
-                                <span>·</span>
-                                <span>{s.jurisdiction}</span>
-                                {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
-                                {s.precedent_significance != null && (
-                                  <><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
-                                )}
-                              </div>
-                              {s.summary && (
-                                <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 m-0">
-                                  {s.summary}
-                                </p>
-                              )}
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-                      <div className="mt-4">
-                        <Link
-                          to="/enforcement-intelligence"
-                          className="text-meta font-semibold text-brand-navy hover:underline"
-                        >
-                          Browse all enforcement actions →
-                        </Link>
-                      </div>
-                    </section>
-                  )}
+                  {/* Top 10 enforcement signals moved to the END of the brief document — see block after "From the toolkit" below. */}
+
 
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
@@ -910,6 +825,66 @@ const Dashboard = () => {
                       </div>
                     </section>
                   )}
+
+                  {/* Top 10 enforcement signals — FINAL section of the weekly brief document */}
+                  {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
+                    <section className="py-7 border-t border-slate-100">
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
+                        🔝 Top 10 Enforcement Signals
+                      </h3>
+                      <p className="text-meta text-slate-500 mb-4">
+                        Ranked by precedent significance and recency across the last 90 days.
+                      </p>
+                      <ol className="space-y-3 list-none p-0 m-0">
+                        {brief.top_enforcement_signals.map((s, i) => (
+                          <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
+                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-navy text-white text-meta font-bold flex items-center justify-center">
+                              {i + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-3 mb-1">
+                                <Link
+                                  to={`/enforcement-intelligence/${s.id}`}
+                                  className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline"
+                                >
+                                  {s.subject || s.regulator}
+                                </Link>
+                                {s.fine && (
+                                  <span className="text-meta font-semibold text-brand-navy whitespace-nowrap tabular-nums">
+                                    {s.fine}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-meta text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                <span className="font-medium">{s.regulator}</span>
+                                <span>·</span>
+                                <span>{s.jurisdiction}</span>
+                                {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
+                                {s.precedent_significance != null && (
+                                  <><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
+                                )}
+                              </div>
+                              {s.summary && (
+                                <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 m-0">
+                                  {s.summary}
+                                </p>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                      <div className="mt-4">
+                        <Link
+                          to="/enforcement-intelligence"
+                          className="text-meta font-semibold text-brand-navy hover:underline"
+                        >
+                          Browse all enforcement actions →
+                        </Link>
+                      </div>
+                    </section>
+                  )}
+
+
 
                 </div>
               </div>

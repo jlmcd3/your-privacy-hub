@@ -79,11 +79,45 @@ function renderBriefHtml(brief: any): string {
     }
   }
 
+  // BRIEF-1: Top 10 enforcement signals — FINAL section of the emailed brief.
+  const signals: any[] = Array.isArray(brief.top_enforcement_signals) ? brief.top_enforcement_signals : [];
+  let signalsHtml = "";
+  if (signals.length > 0) {
+    const rows = signals.map((s, i) => {
+      const stars = typeof s.precedent_significance === "number"
+        ? "★".repeat(s.precedent_significance) + "☆".repeat(Math.max(0, 5 - s.precedent_significance))
+        : "";
+      const dateStr = s.decision_date
+        ? new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        : "";
+      const meta = [s.regulator, s.jurisdiction, dateStr, stars].filter(Boolean).join(" · ");
+      const title = s.subject || s.regulator || "";
+      const fine = s.fine
+        ? `<span style="font-weight:600;color:#0d2a45;white-space:nowrap;margin-left:8px">${s.fine}</span>`
+        : "";
+      const summary = s.summary
+        ? `<div style="font-size:13px;color:#475569;margin-top:4px">${s.summary}</div>`
+        : "";
+      return `<li style="padding:10px 0;border-bottom:1px solid #eee;list-style:none">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+          <div style="font-weight:600;color:#0d2a45"><span style="color:#888;margin-right:6px">${i + 1}.</span>${title}</div>
+          ${fine}
+        </div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">${meta}</div>
+        ${summary}
+      </li>`;
+    }).join("\n");
+    signalsHtml = `<h2>🔝 Top 10 Enforcement Signals</h2>
+<p style="color:#555;font-size:14px;margin:0 0 8px">Ranked by precedent significance and recency across the last 90 days.</p>
+<ol style="padding:0;margin:0">${rows}</ol>`;
+  }
+
   return `<!doctype html><html><body style="font-family:system-ui,-apple-system,sans-serif;max-width:680px;margin:0 auto;padding:24px;color:#111">
 <h1>${brief.headline}</h1>
 <p style="color:#666;font-size:14px">${brief.week_label}</p>
 ${body}
 ${toolkitHtml}
+${signalsHtml}
 <hr style="margin-top:32px;border:none;border-top:1px solid #eee">
 <p style="font-size:12px;color:#888">EndUserPrivacy Weekly Intelligence Brief</p>
 </body></html>`;

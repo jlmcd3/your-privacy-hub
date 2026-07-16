@@ -1,7 +1,23 @@
+import { Link } from "react-router-dom";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { formatFilterLabel } from "@/lib/filterLabels";
+
+interface TopEnforcementSignal {
+  id: string;
+  regulator: string;
+  jurisdiction: string;
+  subject: string | null;
+  summary: string | null;
+  fine: string | null;
+  fine_eur_equivalent: number | null;
+  decision_date: string | null;
+  precedent_significance: number | null;
+  sector: string | null;
+  violation_types: string[] | null;
+  source_url: string | null;
+}
 
 interface Props {
   customBrief: any;
@@ -10,6 +26,8 @@ interface Props {
   hideHeader?: boolean;
   /** @deprecated Briefs are immutable. Edit preferences from the dashboard or /brief-preferences. */
   showEditPreferencesLink?: boolean;
+  /** Optional Top 10 enforcement signals rendered as the FINAL section of the brief document. */
+  topEnforcementSignals?: TopEnforcementSignal[] | null;
 }
 
 /** Pretty-print a slug list, capping the visible count so the header stays tidy. */
@@ -29,7 +47,7 @@ function summarizeList(values: unknown, max = 4): { visible: string[]; extra: nu
  * topics / role) the brief was generated for, so subscribers can tell at a
  * glance which of their criteria shaped this week's analysis.
  */
-export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader = false }: Props) {
+export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader = false, topEnforcementSignals = null }: Props) {
   if (!customBrief) return null;
   const sections = customBrief.custom_sections ?? {};
   const snapshot = customBrief.preferences_snapshot ?? null;
@@ -230,6 +248,63 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
               <div className="text-sm text-amber-800 leading-relaxed">
                 <CitedParagraphs content={sections.look_ahead} sourceMap={sourceMap} />
               </div>
+            </div>
+          </section>
+        )}
+
+        {topEnforcementSignals && topEnforcementSignals.length > 0 && (
+          <section className="py-7">
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-1">
+              🔝 Top 10 Enforcement Signals
+            </h3>
+            <p className="text-[11px] text-slate-500 mb-4">
+              Ranked by precedent significance and recency across the last 90 days.
+            </p>
+            <ol className="space-y-3 list-none p-0 m-0">
+              {topEnforcementSignals.map((s, i) => (
+                <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-navy text-white text-[11px] font-bold flex items-center justify-center">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <Link
+                        to={`/enforcement-intelligence/${s.id}`}
+                        className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline"
+                      >
+                        {s.subject || s.regulator}
+                      </Link>
+                      {s.fine && (
+                        <span className="text-[11px] font-semibold text-brand-navy whitespace-nowrap tabular-nums">
+                          {s.fine}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                      <span className="font-medium">{s.regulator}</span>
+                      <span>·</span>
+                      <span>{s.jurisdiction}</span>
+                      {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
+                      {s.precedent_significance != null && (
+                        <><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
+                      )}
+                    </div>
+                    {s.summary && (
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 m-0">
+                        {s.summary}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4">
+              <Link
+                to="/enforcement-intelligence"
+                className="text-[11px] font-semibold text-brand-navy hover:underline"
+              >
+                Browse all enforcement actions →
+              </Link>
             </div>
           </section>
         )}
