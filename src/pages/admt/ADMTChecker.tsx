@@ -183,6 +183,8 @@ export default function ADMTChecker() {
   const refine = useRefineMode("cppa_admt");
   const { meter } = useRunMeter("cppa_admt", refine.assessmentId);
   const [step, setStep] = useState(1);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const totalSteps = 5;
 
   const [activeRailKey, setActiveRailKey] = useState<string | null>(null);
