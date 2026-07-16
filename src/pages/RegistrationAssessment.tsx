@@ -449,12 +449,14 @@ export default function RegistrationAssessment() {
                   </div>
                 )}
 
+                <ValidationErrorSummary message={validationError} className="mb-4" />
                 <div className="flex justify-between pt-4 border-t">
-                  <Button variant="ghost" onClick={() => setStep(Math.max(1, step - 1))} disabled={step === 1}>
+                  <Button variant="ghost" onClick={() => { setValidationError(null); setStep(Math.max(1, step - 1)); }} disabled={step === 1}>
                     Back
                   </Button>
                   {step < 3 ? (
-                    <Button onClick={() => setStep(step + 1)}>Next</Button>
+                    <Button onClick={() => { setValidationError(null); setStep(step + 1); }}>Next</Button>
+
                   ) : (
                     <Button onClick={submit} disabled={submitting}>
                       {submitting ? "Generating..." : "Show me where I need to register"}
