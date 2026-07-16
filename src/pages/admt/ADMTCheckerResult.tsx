@@ -191,6 +191,7 @@ export default function ADMTCheckerResult() {
   const [polling, setPolling] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const triggeredRef = useRef(false);
+  useToolCompletedOnce("cppa_admt", assessment?.status === "complete");
 
   useEffect(() => {
     if (!id || authLoading) return;
