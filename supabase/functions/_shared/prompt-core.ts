@@ -18,8 +18,16 @@
 // revision run; entries are treated as first-party intake facts of the same authority as the base
 // intake and must retire prior information_needed items they answer without becoming a fresh ask.
 
-export const PROMPT_CORE_VERSION = "3.8";
-export const BUILD_TAG = "qb15";
+// v3.9 (W3-F, 2026-07-16): GLOBAL CITATION DEPTH DISCIPLINE + NO INVENTED CASE LAW
+// added to CITATION & GROUNDING PROTOCOL, and a VERIFIED CITATION ANCHORS block
+// added at the end of the core carrying: § 1798.140 definition letters (business =
+// (d), (d)(1)(B) for the 50% revenue prong; service provider = (ag)); ADMT (11 CCR)
+// real section ranges (§ 7001, §§ 7150–7157, §§ 7200–7222); BIPA § 15(a) verbatim
+// retention rule ("last interaction", not "collection"); GDPR Art. 9(1) biometric
+// qualifier (special-category only when the purpose is uniquely identifying a
+// natural person). W2C exemptions in the language-variant rule are unchanged.
+export const PROMPT_CORE_VERSION = "3.9";
+export const BUILD_TAG = "qb16";
 
 
 
