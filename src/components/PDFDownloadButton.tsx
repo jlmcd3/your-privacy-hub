@@ -88,6 +88,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
       }
       if (!pdfUrl) toast.success("PDF ready");
       onGenerated?.(data.pdf_url);
+      fireConversion("report_download", { tool_slug: toolType, format: "pdf" });
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
       console.error("PDF generation failed:", e);
