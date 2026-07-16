@@ -166,7 +166,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                 key={r.id}
                 onClick={() => selectRole(r.id)}
                 title={selected ? "Click again to clear" : "Click to select this role"}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-11 md:min-h-8 rounded-full text-xs font-semibold border motion-safe:transition-all motion-reduce:transition-none cursor-pointer ${
                   selected
                     ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                     : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
@@ -200,7 +200,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                       : addItem(TYPE_FOR_KEY[type], s.slug, s.label, s.flag)
                   }
                   title={inList ? "Click to remove from your watchlist" : "Click to add to your watchlist"}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-11 md:min-h-8 rounded-full text-xs font-semibold border motion-safe:transition-all motion-reduce:transition-none cursor-pointer ${
                     inList
                       ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                       : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
@@ -231,7 +231,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                 key={f.id}
                 onClick={() => selectFormat(f.id)}
                 title="Click to choose this format"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-11 md:min-h-8 rounded-full text-xs font-semibold border motion-safe:transition-all motion-reduce:transition-none cursor-pointer ${
                   selected
                     ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30"
                     : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
