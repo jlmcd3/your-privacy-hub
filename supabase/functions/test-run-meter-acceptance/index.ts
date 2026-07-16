@@ -460,9 +460,7 @@ async function runAcceptance(
     }
 
     // ── (f) FAILED RUN IS FREE ────────────────────────────────────────────────
-    await svc.functions.invoke("run-li-assessment", {
-      body: { assessment_id: ZERO_UUID },
-    });
+    await invokeRunLI({ assessment_id: ZERO_UUID });
     // no polling needed — generator errors before any success path
     await new Promise((r) => setTimeout(r, 2000));
     const { data: mZ } = await svc
