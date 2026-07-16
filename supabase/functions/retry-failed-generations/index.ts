@@ -148,7 +148,7 @@ async function sweepTable(table: string): Promise<SweepResult> {
           last_error: null,
         })
         .eq("id", row.id)
-        .in("status", ["error", "failed", "processing"])
+        .in("status", ["error", "failed", "processing", "pending"])
         .eq("retry_count", attemptsSoFar)
         .select("id")
         .maybeSingle();
