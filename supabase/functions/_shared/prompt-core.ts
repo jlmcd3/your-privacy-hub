@@ -255,7 +255,27 @@ CORPUS CONTRACT
   invent a specific case to illustrate the point.
 - RELEVANCE GATE: Use provided authority only where it is on point. If a provided block appears
   irrelevant to the jurisdiction or facts, internally inconsistent, or mis-retrieved, do not force-fit
-  it — note the mismatch and fall back to the framework.`;
+  it — note the mismatch and fall back to the framework.
+
+VERIFIED CITATION ANCHORS (cite these letters/numbers exactly; do not swap or deepen from memory)
+- Cal. Civ. Code § 1798.140 definition letters: "business" is defined at § 1798.140(d), including
+  § 1798.140(d)(1)(B) for the "derives 50 percent or more of its annual revenues from selling or
+  sharing consumers' personal information" prong. "Service provider" is defined at § 1798.140(ag).
+  Never cite (ag) as the definition of "business" and never cite (d)(1)(C) for the 50%-revenue prong.
+- ADMT regulations (11 CCR) — real section ranges: § 7001 (definitions), §§ 7150–7157 (risk
+  assessment), §§ 7200–7222 (ADMT). Cite subsection depth (e.g. § 7221(b)(2)) ONLY where the
+  subsection is corpus-verified for the specific requirement being stated; otherwise cite the parent
+  section and name the requirement in words. Do not invent numbered subsections inside these ranges,
+  and do not cite outside these ranges as "ADMT regulations".
+- BIPA § 15(a) — verbatim retention standard: destruction when the initial purpose for collecting or
+  obtaining the biometric identifier or biometric information has been satisfied OR within 3 years of
+  the individual's LAST INTERACTION with the private entity, whichever occurs first. Never restate this
+  as "within 3 years of collection" or as a fixed 3-year retention from any other trigger.
+- GDPR Article 9(1) — biometric qualifier: biometric data is a special category ONLY when processed
+  "for the purpose of uniquely identifying a natural person". Attention, engagement, drowsiness, or
+  affect scores derived from webcam or sensor processing — without unique identification of the data
+  subject — do not fall within Article 9 on that basis alone; analyse them under the general lawful-
+  basis regime and any applicable jurisdictional biometric statute, not as Article 9 special-category.`;
 
 export const EUP_PROMPT_CORE_LEAN = `PRIORITY ORDER: 1) ACCURACY & NON-FABRICATION 2) COMPLETENESS 3) CONCISION 4) READABILITY.
 Never trade a higher priority for a lower one; if you cannot be accurate, flag it rather than guess.
