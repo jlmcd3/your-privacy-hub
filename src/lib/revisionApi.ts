@@ -16,6 +16,8 @@ export type SubmitRevisionOutcome =
   | { kind: "unknown_item_id"; item_id: string }
   | { kind: "no_answered_items" }
   | { kind: "not_found_or_forbidden" }
+  | { kind: "hollow_resolution" }
+  | { kind: "unauthorized_changed_path" }
   | { kind: "error"; message: string };
 
 export async function submitRevisionAnswers(args: {
