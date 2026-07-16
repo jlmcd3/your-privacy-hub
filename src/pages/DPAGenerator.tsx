@@ -245,10 +245,12 @@ export default function DPAGenerator() {
           if (currentStep === 3 && acknowledged) currentStep = 4;
           return (
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
+              <ol className="flex items-center gap-1.5" aria-label="Intake progress">
                 {[1, 2, 3, 4].map(n => (
-                  <span
+                  <li
                     key={n}
+                    aria-current={n === currentStep ? "step" : undefined}
+                    aria-label={`Step ${n} of 4: ${sectionNames[n - 1]}${n === currentStep ? " (current)" : n < currentStep ? " (complete)" : ""}`}
                     className="inline-block rounded-full"
                     style={{
                       width: 8, height: 8,
@@ -256,8 +258,9 @@ export default function DPAGenerator() {
                     }}
                   />
                 ))}
-              </div>
-              <p className="text-meta text-slate-400">Step {currentStep} of 4: {sectionNames[currentStep - 1]}</p>
+              </ol>
+              <p className="text-meta text-slate-400" aria-live="polite">Step {currentStep} of 4: {sectionNames[currentStep - 1]}</p>
+
             </div>
           );
         })()}
