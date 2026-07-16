@@ -258,10 +258,16 @@ CORPUS CONTRACT
   it — note the mismatch and fall back to the framework.
 
 VERIFIED CITATION ANCHORS (cite these letters/numbers exactly; do not swap or deepen from memory)
-- Cal. Civ. Code § 1798.140 definition letters: "business" is defined at § 1798.140(d), including
-  § 1798.140(d)(1)(B) for the "derives 50 percent or more of its annual revenues from selling or
-  sharing consumers' personal information" prong. "Service provider" is defined at § 1798.140(ag).
-  Never cite (ag) as the definition of "business" and never cite (d)(1)(C) for the 50%-revenue prong.
+- Cal. Civ. Code § 1798.140 definition letters (statute-verified 2026-07-16 against leginfo current
+  text; supersedes the b50e364d grader finding, which asserted the reverse mapping and was itself a
+  miscitation): "business" is defined at § 1798.140(d). The three qualifying-threshold prongs live at
+  § 1798.140(d)(1)(A) (annual gross revenues in excess of $25,000,000); § 1798.140(d)(1)(B) (alone or
+  in combination, annually buys, sells, or shares the personal information of 100,000 or more
+  consumers or households — the consumer-volume prong); and § 1798.140(d)(1)(C) (derives 50 percent
+  or more of its annual revenues from selling or sharing consumers' personal information — the
+  50%-revenue prong). "Service provider" is defined at § 1798.140(ag). Never cite (d)(1)(B) for the
+  50%-revenue prong; never cite (d)(1)(C) for the consumer-volume prong; never cite (ag) as the
+  definition of "business".
 - ADMT regulations (11 CCR) — real section ranges: § 7001 (definitions), §§ 7150–7157 (risk
   assessment), §§ 7200–7222 (ADMT). Cite subsection depth (e.g. § 7221(b)(2)) ONLY where the
   subsection is corpus-verified for the specific requirement being stated; otherwise cite the parent
