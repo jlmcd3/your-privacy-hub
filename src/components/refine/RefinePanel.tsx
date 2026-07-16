@@ -236,6 +236,16 @@ export default function RefinePanel({
               nav(resultPath.replace(":id", assessmentId));
             } else if (outcome.kind === "revisions_disabled") {
               toast({ title: "Revisions paused", description: REVISIONS_DISABLED_MESSAGE, variant: "destructive" });
+            } else if (outcome.kind === "hollow_resolution" || outcome.kind === "unauthorized_changed_path") {
+              // REV-2b — branded copy for the two contract-guard 409s. No
+              // revision credit is charged when either guard fires (the row
+              // status reverts server-side before the meter increment).
+              toast({
+                title: "We couldn't apply that revision safely",
+                description:
+                  "Your answers did not produce a clean change to the report, so we did not use a revision. Please try again with more specific answers to the open items.",
+                variant: "destructive",
+              });
             } else if (outcome.kind === "error") {
               toast({ title: "Couldn't submit", description: outcome.message, variant: "destructive" });
             }
