@@ -387,8 +387,9 @@ export default function RopaSetup() {
       navigate(withSession("/ropa/activities", sessionId));
 
     } catch (e) {
-      toast.error("Could not save setup. Please try again.");
+      setValidationError("Could not save setup. Please try again.");
       console.error(e);
+
     } finally {
       setSubmitting(false);
     }
