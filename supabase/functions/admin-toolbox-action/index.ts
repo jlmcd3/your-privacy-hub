@@ -15,7 +15,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const ALLOWED = new Set(["reap_sweep", "ping"]);
+const ALLOWED = new Set(["reap_sweep", "ping", "invoke_generator"]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -65,6 +65,38 @@ Deno.serve(async (req) => {
       });
       if (error) { ok = false; result = { error: error.message }; }
       else { result = { invoked: "reap-stuck-generations", response: data }; }
+    } else if (action === "invoke_generator") {
+      // Diagnostic: directly invoke any generator via raw fetch using the
+      // service key, so we can capture the true HTTP status + body when the
+      // supabase-js `functions.invoke` wrapper masks non-2xx responses as
+      // "Edge Function returned a non-2xx status code".
+      const params = (body.params ?? {}) as { fn?: string; payload?: Record<string, unknown> };
+      const fn = String(params.fn ?? "");
+      if (!fn) {
+        ok = false;
+        result = { error: "missing_fn" };
+      } else {
+        const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/${fn}`;
+        const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const t0 = Date.now();
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${key}`,
+            "apikey": key,
+          },
+          body: JSON.stringify(params.payload ?? {}),
+        });
+        const text = await res.text();
+        result = {
+          invoked: fn,
+          status: res.status,
+          elapsed_ms: Date.now() - t0,
+          body: text.slice(0, 2000),
+        };
+        if (!res.ok) ok = false;
+      }
     }
   } catch (err) {
     ok = false;
