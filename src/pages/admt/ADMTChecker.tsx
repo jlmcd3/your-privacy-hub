@@ -333,12 +333,14 @@ export default function ADMTChecker() {
   const next = () => {
     const err = stepValid();
     if (err) {
-      toast({ title: "Required", description: err, variant: "destructive" });
+      setValidationError(err);
       return;
     }
+    setValidationError(null);
     setStep((s) => s + 1);
   };
-  const back = () => setStep((s) => Math.max(1, s - 1));
+  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+
 
   const intake = useMemo(
     () => ({
