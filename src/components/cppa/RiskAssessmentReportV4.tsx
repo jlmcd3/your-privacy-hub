@@ -30,11 +30,44 @@ type Exception = {
   exception_name?: string;
   statutory_basis?: string;
   claimed?: boolean;
+  // New advocate-drafter shape (REBUILD-RISK C2)
+  facts_supporting?: string;
+  argument_strength?: "strong" | "colorable" | "counsel-review" | string;
+  argument_strength_rationale?: string;
+  strengthen_position?: string[];
+  // Legacy shape (back-compat for rows generated pre-rebuild)
   scope_described?: string;
   safeguards_described?: string;
   documentation_status?: string;
   validity_assessment?: string;
   flags?: string[];
+};
+
+// ── D1 enum display mapping (REBUILD-RISK-UI Task 3) ──
+// Stored enum values remain unchanged; map at render only.
+const displayInsufficientBasis = (v?: string): string => {
+  if (!v) return "";
+  if (v === "Insufficient basis to assess" || v === "Insufficient basis") {
+    return "Not yet resolved on the record";
+  }
+  return v;
+};
+
+// Human-readable argument-strength label.
+const argStrengthLabel = (s?: string): string => {
+  const x = (s || "").toLowerCase();
+  if (x === "strong") return "Strong";
+  if (x === "colorable") return "Colorable";
+  if (x === "counsel-review" || x === "counsel review") return "Counsel review recommended";
+  return s || "";
+};
+
+const argStrengthBadge = (s?: string): string => {
+  const x = (s || "").toLowerCase();
+  if (x === "strong") return "bg-green-100 text-green-800";
+  if (x === "colorable") return "bg-amber-100 text-amber-800";
+  if (x === "counsel-review" || x === "counsel review") return "bg-blue-100 text-blue-800";
+  return "bg-slate-100 text-slate-800";
 };
 
 type AdverseEffect = {
