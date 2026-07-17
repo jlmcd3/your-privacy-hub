@@ -15,7 +15,7 @@
 // with no JWT. run-quality-batch itself is not modified.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
+import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 
 export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
 
