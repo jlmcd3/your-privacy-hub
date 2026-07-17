@@ -121,3 +121,63 @@ Deno.test("REBUILD-DPIA T9: post_gen_lint meta shape — notes capped at 40", as
   assertEquals(meta.notes.length, 40);
   assertEquals(received.function_name, "run-dpia-framework");
 });
+
+// ── FF-4 pd6 — OSS template deterministic corrector ─────────────────────────
+
+const FALSE_PASSAGE =
+  "the controller's central administration is outside the EU and an EU establishment holds decision-making authority over this processing (Art. 4(16)(b)).";
+
+Deno.test("FF-4 pd6: Germany intake with false 4(16)(b) passage → corrected sentence WITHOUT authority clause (per-Land rule)", () => {
+  const report = { dpia_metadata: { supervisory_authority_consultation_trigger: FALSE_PASSAGE } };
+  const notes: Array<{ code: string; detail: string }> = [];
+  const out = correctOssTemplateFromRecord(report, { central_administration_country: "Germany" }, notes);
+  const s = out.dpia_metadata.supervisory_authority_consultation_trigger as string;
+  assert(/Art\.\s*4\(16\)\(a\)/.test(s), s);
+  assert(/central administration in Germany/.test(s), s);
+  assert(!/competent lead supervisory authority is/.test(s), "Germany must omit authority clause");
+  assert(!/4\(16\)\(b\)/.test(s));
+  assert(notes.some((n) => n.code === "oss_template_corrected"));
+});
+
+Deno.test("FF-4 pd6: Sweden intake → corrected sentence with IMY authority clause", () => {
+  const report = { dpia_metadata: { supervisory_authority_consultation_trigger: FALSE_PASSAGE } };
+  const notes: Array<{ code: string; detail: string }> = [];
+  const out = correctOssTemplateFromRecord(report, { central_administration_country: "Sweden" }, notes);
+  const s = out.dpia_metadata.supervisory_authority_consultation_trigger as string;
+  assert(/Art\.\s*4\(16\)\(a\)/.test(s), s);
+  assert(/central administration in Sweden/.test(s), s);
+  assert(/Integritetsskyddsmyndigheten \(IMY\)/.test(s), s);
+  assert(notes.some((n) => n.code === "oss_template_corrected"));
+});
+
+Deno.test("FF-4 pd6: non-EU controller (UK) → untouched", () => {
+  const report = { dpia_metadata: { supervisory_authority_consultation_trigger: FALSE_PASSAGE } };
+  const before = JSON.stringify(report);
+  const notes: Array<{ code: string; detail: string }> = [];
+  const out = correctOssTemplateFromRecord(report, { central_administration_country: "United Kingdom" }, notes);
+  assertEquals(JSON.stringify(out), before);
+  assertEquals(notes.length, 0);
+});
+
+Deno.test("FF-4 pd6: clean document (EU controller, no false passage) → untouched", () => {
+  const report = {
+    dpia_metadata: {
+      supervisory_authority_consultation_trigger:
+        "The record places the controller's central administration in France. Under Art. 4(16)(a) GDPR the main establishment is the place of central administration in the Union.",
+    },
+  };
+  const before = JSON.stringify(report);
+  const notes: Array<{ code: string; detail: string }> = [];
+  const out = correctOssTemplateFromRecord(report, { central_administration_country: "France" }, notes);
+  assertEquals(JSON.stringify(out), before);
+  assertEquals(notes.length, 0);
+});
+
+Deno.test("FF-4 pd6: falls back to controller_country when central_administration_country is absent", () => {
+  const report = { dpia_metadata: { supervisory_authority_consultation_trigger: FALSE_PASSAGE } };
+  const notes: Array<{ code: string; detail: string }> = [];
+  const out = correctOssTemplateFromRecord(report, { controller_country: "Ireland" }, notes);
+  const s = out.dpia_metadata.supervisory_authority_consultation_trigger as string;
+  assert(/central administration in Ireland/.test(s), s);
+  assert(/Data Protection Commission \(DPC\)/.test(s), s);
+});
