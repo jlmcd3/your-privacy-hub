@@ -249,32 +249,75 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
         <section className="bg-card border rounded-lg p-6">
           <h2 className="font-body text-display-card font-semibold mb-3">§ 7152 Exception Analysis</h2>
           <Accordion type="multiple">
-            {exceptions.map((e, i) => (
-              <AccordionItem key={i} value={`e${i}`}>
-                <AccordionTrigger>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span>{e.exception_name || "Exception"}</span>
-                    {e.statutory_basis && <span className="font-mono text-xs text-brand-teal-text">{e.statutory_basis}</span>}
-                    {e.documentation_status && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800">{e.documentation_status}</span>
-                    )}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="space-y-2 text-sm">
-                  {e.scope_described && <p><strong>Scope:</strong> {e.scope_described}</p>}
-                  {e.safeguards_described && <p><strong>Safeguards:</strong> {e.safeguards_described}</p>}
-                  {e.validity_assessment && <p><strong>Validity:</strong> {e.validity_assessment}</p>}
-                  {Array.isArray(e.flags) && e.flags.length > 0 && (
-                    <div>
-                      <p className="font-semibold">Flags</p>
-                      <ul className="list-disc pl-5">
-                        {e.flags.map((f, fi) => <li key={fi}>{f}</li>)}
-                      </ul>
+            {exceptions.map((e, i) => {
+              // Branch on field presence: new advocate-drafter shape vs legacy shape.
+              const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+              const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
+              return (
+                <AccordionItem key={i} value={`e${i}`}>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span>{e.exception_name || "Exception"}</span>
+                      {e.statutory_basis && <span className="font-mono text-xs text-brand-teal-text">{e.statutory_basis}</span>}
+                      {hasNew && e.argument_strength && (
+                        <span className={`text-xs px-2 py-0.5 rounded ${argStrengthBadge(e.argument_strength)}`}>
+                          {argStrengthLabel(e.argument_strength)}
+                        </span>
+                      )}
+                      {!hasNew && e.documentation_status && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800">{e.documentation_status}</span>
+                      )}
                     </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-2 text-sm">
+                    {hasNew ? (
+                      <>
+                        {e.facts_supporting && (
+                          <div>
+                            <p className="font-semibold">Facts supporting the exception</p>
+                            <p>{e.facts_supporting}</p>
+                          </div>
+                        )}
+                        {e.argument_strength && (
+                          <div>
+                            <p className="font-semibold">
+                              {argStrengthLabel(e.argument_strength) === "Counsel review recommended"
+                                ? "Counsel review recommended"
+                                : `Argument strength: ${argStrengthLabel(e.argument_strength)}`}
+                            </p>
+                            {e.argument_strength_rationale && <p>{e.argument_strength_rationale}</p>}
+                          </div>
+                        )}
+                        {Array.isArray(e.strengthen_position) && e.strengthen_position.length > 0 && (
+                          <div>
+                            <p className="font-semibold">What would strengthen the position</p>
+                            <ul className="list-disc pl-5">
+                              {e.strengthen_position.map((sp, si) => <li key={si}>{sp}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                      </>
+                    ) : hasOld ? (
+                      <>
+                        {e.scope_described && <p><strong>Scope:</strong> {e.scope_described}</p>}
+                        {e.safeguards_described && <p><strong>Safeguards:</strong> {e.safeguards_described}</p>}
+                        {e.validity_assessment && <p><strong>Validity:</strong> {e.validity_assessment}</p>}
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground italic">No detail recorded for this exception.</p>
+                    )}
+                    {Array.isArray(e.flags) && e.flags.length > 0 && (
+                      <div>
+                        <p className="font-semibold">Flags</p>
+                        <ul className="list-disc pl-5">
+                          {e.flags.map((f, fi) => <li key={fi}>{f}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
           </Accordion>
         </section>
       )}
