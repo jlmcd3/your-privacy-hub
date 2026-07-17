@@ -392,7 +392,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     { "item_id": string, "citation": string, "field_ids": string[], "recorded_basis": string }
   ]
 }
-Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`,
+Every indeterminate advocate-drafter finding elsewhere in this output (where a determination names a specific completing item under REBUILD-RISK C1) MUST have a corresponding information_needed entry anchored to that item; otherwise return an empty array.`,
 };
 
 function buildUserPrompt(intake: FiveStageIntake, subjectAnchor = "", q1RevenueBand = "Not specified"): string {
