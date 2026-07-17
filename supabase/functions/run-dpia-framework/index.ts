@@ -1726,7 +1726,7 @@ async function runStitch(dpia_id: string): Promise<void> {
           const r = applyDeterministicPostGenFallbackDpia(reportData, testStatesForFallback as any);
           Object.assign(reportData, r.parsed);
           dpiaFallbackApplied = true;
-          dpiaFallbackNotes = r.notes;
+          dpiaFallbackNotes = [...dpiaAuthorityNotes, ...r.notes];
           console.warn(JSON.stringify({
             evt: "post_gen_fallback_applied",
             fn: "run-dpia-framework",
