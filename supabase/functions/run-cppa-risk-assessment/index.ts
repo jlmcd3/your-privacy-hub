@@ -93,6 +93,124 @@ export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
 import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 
+// POSTBATCH-1 — deterministic post-generation fallback for TEST-STATES leakage
+// and resolved-source information_needed asks. Used when the T-1..T-5 retry is
+// skipped (elapsed budget exceeded) or when the retry result still violates.
+const M_TOKEN_MAP: Record<string, string> = {
+  M1: "the revenue determination",
+  M2: "the consumer-volume determination",
+  M3: "the consumer-volume determination",
+  M4: "the sensitive-PI determination",
+  M5: "the sale/share-revenue determination",
+  M6: "the audit-cohort determination",
+  M7: "the trigger review",
+  M8: "the exception review",
+  M9: "the § 7152(a) element review",
+  M10: "the canonical-dates review",
+};
+
+const STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
+  // Compound "is/are resolved <state>" forms first — most specific.
+  [/\bis\s+resolved[_\s]met\b/gi, "is established on the record"],
+  [/\bare\s+resolved[_\s]met\b/gi, "are established on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]met\b/gi, "is not met on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]met\b/gi, "are not met on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]applicable\b/gi, "is not applicable on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]applicable\b/gi, "are not applicable on the record"],
+  // Bare state tokens (upper or lower, underscored or spaced).
+  [/\bRESOLVED[_\s]NOT[_\s]APPLICABLE\b/g, "not applicable on the record"],
+  [/\bresolved[_\s]not[_\s]applicable\b/gi, "not applicable on the record"],
+  [/\bRESOLVED[_\s]NOT[_\s]MET\b/g, "not met on the record"],
+  [/\bresolved[_\s]not[_\s]met\b/gi, "not met on the record"],
+  [/\bRESOLVED[_\s]MET\b/g, "established on the record"],
+  [/\bresolved[_\s]met\b/gi, "established on the record"],
+  [/\bINDETERMINATE\b/g, "indeterminate on the record"],
+];
+
+function scrubTestTokensDeep(
+  node: unknown,
+  notes: Array<{ code: string; detail: string }>,
+): unknown {
+  if (typeof node === "string") {
+    let out = node;
+    for (const [re, repl] of STATE_TOKEN_REPLACEMENTS) {
+      if (re.test(out)) {
+        out = out.replace(re, repl);
+        notes.push({ code: "test_token_scrubbed", detail: `state→"${repl}"` });
+      }
+    }
+    // Standalone M-ids: M1..M10 (order M10 before M1 by using \b(M10|M[1-9]) via alt).
+    out = out.replace(/\b(M10|M[1-9])\b/g, (_m, id: string) => {
+      const human = M_TOKEN_MAP[id];
+      if (!human) return _m;
+      notes.push({ code: "test_token_scrubbed", detail: `${id}→"${human}"` });
+      return human;
+    });
+    // Bare literal "TEST-STATES" reference in prose.
+    if (/\bTEST-STATES\b/.test(out)) {
+      out = out.replace(/\bTEST-STATES\b/g, "the deterministic checks");
+      notes.push({ code: "test_token_scrubbed", detail: "TEST-STATES→\"the deterministic checks\"" });
+    }
+    return out;
+  }
+  if (Array.isArray(node)) return node.map((v) => scrubTestTokensDeep(v, notes));
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      out[k] = scrubTestTokensDeep(v, notes);
+    }
+    return out;
+  }
+  return node;
+}
+
+function dropResolvedSourceAsks(
+  report: any,
+  testStates: Record<string, TestState>,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  const resolvedSources = new Set<string>();
+  for (const ts of Object.values(testStates ?? {})) {
+    if (ts && typeof ts.state === "string" && ts.state.startsWith("resolved")) {
+      for (const f of ts.source_fields ?? []) resolvedSources.add(f);
+    }
+  }
+  if (resolvedSources.size === 0) return report;
+  const entries: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
+  const kept: any[] = [];
+  for (const e of entries) {
+    const fields: string[] = [];
+    if (typeof e?.field === "string") fields.push(e.field);
+    if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
+    const overlaps = fields.some((f) => resolvedSources.has(f));
+    if (overlaps) {
+      notes.push({
+        code: "resolved_source_ask_dropped",
+        detail: String(e?.field ?? e?.dimensions ?? "").slice(0, 120),
+      });
+    } else {
+      kept.push(e);
+    }
+  }
+  if (kept.length !== entries.length) {
+    report.information_needed = kept;
+  }
+  return report;
+}
+
+export function applyDeterministicPostGenFallback(
+  parsed: any,
+  testStates: Record<string, TestState>,
+): { parsed: any; notes: Array<{ code: string; detail: string }> } {
+  const notes: Array<{ code: string; detail: string }> = [];
+  let out = dropResolvedSourceAsks(parsed, testStates, notes);
+  out = scrubTestTokensDeep(out, notes) as any;
+  return { parsed: out, notes };
+}
+
+
+
+
 
 // ---------------------------------------------------------------------------
 // R1b1 — deterministic TEST-STATES computed from the normalised intake.
@@ -321,6 +439,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "INTERNAL-VOCAB CLASS BAN (REBUILD-RISK C5; extends TEST-STATES INTERNAL VOCAB): user-facing fields NEVER expose internal vocabulary. The banned classes are: (a) TEST-STATES tokens — the literal 'TEST-STATES', test ids (M1..M10, M-CA, M-GDPR), or state tokens (resolved_met, RESOLVED_NOT_MET, RESOLVED_CHECK_REQUIRED, INDETERMINATE, CANDIDATE); (b) schema field names — never emit strings like 'inconsistency_flags', 'benefits_outweigh_risks_rationale', 'i1b_min_pi', 'impact_intake', 'strengthen_items', 'exception_analysis' as visible words in prose; (c) UI mechanics — 'radio fields', 'dropdown', 'the toggle', 'select control'; (d) 'see <field_name>' cross-references. Cross-reference by human section name instead ('see the Inconsistencies to Resolve section', 'see the Priority Actions list'). Naming a specific INTAKE FIELD ID (q15c_spi_volume, i1_processing_purpose, etc.) in an information_needed.field / source_fields context is permitted because those fields are the technical anchors for the ask; prose narrative refers to them by human phrasing ('the sensitive-PI volume figure', 'the processing purpose').",
     "PROPORTIONATE ASKS (R1b1 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Only verdict-blocking and record-completeness items appear in information_needed (verdict-blocking listed first). Enhancement items appear ONLY in the strengthen/depth mechanism (strengthen_items), with no urgency language. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record establishes BEFORE the residual; the residual is incremental (e.g. 'Additional recipients should be named, with the categories of PI each processes'), and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element that blocks it rather than collapsing the whole determination.",
     "ADMT ASK ROUTING (R1b1 rule 2e): any information_needed entry arising from a q18-class ADMT determination anchors to `i5_admt_logic` (the free-text home for ADMT logic/description), NEVER to q18/q19/q20 radios. Where the ask genuinely concerns a radio's binary state (rare), route it via the record-completion action rather than an information_needed entry.",
+    "CONTRADICTION-ASK SHAPE (POSTBATCH-1): when narrative fields (e.g. q19_admt_description, i5_admt_logic) establish ADMT engagement while a structured field negates it (e.g. q18b_admt_training = No), the report TAKES ONE POSITION in the conclusion — the strong/colorable argument the trigger is engaged via the documented role, with a note that the contrary indicator should be reconciled — emits EXACTLY ONE inconsistency_flags entry naming the specific conflicting fields, and MAY name reconciliation in strengthen_items. NEVER emit an information_needed entry asking the controller/user to determine which provision applies or to choose between the conflicting answers. The assessment makes the legal determination; information_needed asks may request FACTS only, never legal conclusions. This complements TEST-STATES ARE BINDING: M7's source_fields span all six trigger fields, so any trigger-field information_needed entry is per se invalid.",
     "GUIDED-DIMENSIONS FOR OVERLOADED FREE-TEXT FIELDS (R1b1 rule 2f; W3-A revision): information_needed entries anchored to `i6_vendors`, `i2_retention_period`, or `i1b_min_pi` MUST enumerate the DIMENSIONS a sufficient answer covers (per ACTIONABLE FILL-IN GUIDANCE). Name the missing dimensions and stop. Never emit a bare 'provide more detail' ask for these fields, and NEVER close with platform-internal instruction phrasing such as 'enrich this field and re-run', 'provide these details and regenerate', or any other mechanism-referencing directive to the reader.",
     "VOCABULARY — 'GAP' IS BANNED IN PROSE: the word 'gap'/'gaps' must not appear anywhere in generated prose. Use 'deficiency', 'shortfall', or 'missing element' instead. The only permitted occurrence is the exact schema enum value 'Material gaps identified' where the schema requires it.",
     "SPI PRONG CITATION IS BINDING (QLB-W2A rule 1; GRADER-1 T6b — human phrasing only in prose): when the § 7120(b)(2)(B) sensitive-PI prong is resolved met on the current record, the report MUST reference § 7120(b)(2)(B) by name in its applicability/scope analysis (typically in cybersecurity_audit_rationale and any scope narrative that turns on the SPI-volume threshold), and MUST state the conclusion with its factual basis in human phrasing (e.g. 'the § 7120(b)(2)(B) sensitive-PI threshold is met: the intake records sensitive-PI volume at 50,000 or more'). Never state that the audit is triggered without naming the § 7120(b)(2)(B) subsection as the operative authority when the prong is resolved met. Raw intake field ids MUST NOT appear in this prose (they are permitted only in information_needed.field / source_fields anchors — see the INTERNAL-VOCAB CLASS BAN).",
@@ -882,7 +1001,38 @@ async function runPipeline(assessment_id: string) {
             rules: { t1: t1Violation, t2: t2Violation, t3: t3Violation, t4: t4Violation, t5: t5Violation },
           }));
         }
+
+        // POSTBATCH-1 — deterministic post-generation fallback. Runs whenever
+        // the retry is skipped (over budget) OR the retry result still has
+        // T-2 / T-5 residue (resolved-source ask OR TEST-STATES token leakage).
+        // Idempotent on a clean document.
+        const residualLeaks = detectTestStatesLeak(parsed);
+        const resolvedSources = new Set<string>();
+        for (const ts of Object.values(testStates ?? {})) {
+          if (ts && typeof ts.state === "string" && ts.state.startsWith("resolved")) {
+            for (const f of ts.source_fields ?? []) resolvedSources.add(f);
+          }
+        }
+        const residualResolvedAsks: any[] = (Array.isArray(parsed?.information_needed) ? parsed.information_needed : []).filter((e: any) => {
+          const fields: string[] = [];
+          if (typeof e?.field === "string") fields.push(e.field);
+          if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
+          return fields.some((f) => resolvedSources.has(f));
+        });
+        if (residualLeaks.length > 0 || residualResolvedAsks.length > 0) {
+          const result = applyDeterministicPostGenFallback(parsed, testStates);
+          parsed = result.parsed;
+          console.warn(JSON.stringify({
+            evt: "post_gen_fallback_applied",
+            fn: "run-cppa-risk-assessment",
+            retry_within_budget: retryWithinBudget,
+            residual_leaks: residualLeaks.length,
+            residual_resolved_asks: residualResolvedAsks.length,
+            notes: result.notes.slice(0, 40),
+          }));
+        }
       }
+
 
     } catch (e) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
