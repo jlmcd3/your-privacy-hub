@@ -1039,7 +1039,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record?.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
     <div class="summary-bar">
-      ${summary.overall_risk_level ? `<span class="pill">${text(summary.overall_risk_level)} risk</span>` : ""}
+      ${summary.overall_risk_level ? `<span class="pill">${text(displayInsufficientBasisPDF(summary.overall_risk_level))} risk</span>` : ""}
       ${summary.sector ? `<span class="pill">${text(summary.sector)}</span>` : ""}
       ${summary.admt_disclosure_required ? `<span class="pill">ADMT disclosure required</span>` : ""}
       ${summary.cybersecurity_audit_required ? `<span class="pill">Cybersecurity audit required</span>` : ""}
