@@ -3735,6 +3735,36 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_pdf_exports: {
+        Row: {
+          batch_id: string
+          content_base64: string
+          created_at: string
+          doc_number: number
+          file_name: string
+          id: string
+          tool: string
+        }
+        Insert: {
+          batch_id: string
+          content_base64: string
+          created_at?: string
+          doc_number: number
+          file_name: string
+          id?: string
+          tool: string
+        }
+        Update: {
+          batch_id?: string
+          content_base64?: string
+          created_at?: string
+          doc_number?: number
+          file_name?: string
+          id?: string
+          tool?: string
+        }
+        Relationships: []
+      }
       quality_applied_patches: {
         Row: {
           applied_at: string | null
