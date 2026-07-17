@@ -1029,7 +1029,17 @@ async function runPipeline(assessment_id: string) {
         console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "T-5", fn: "run-cppa-risk-assessment", count: t5Hits.length, hits: t5Hits.slice(0, 10) }));
       }
 
-      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation || t5Violation) {
+      // FF-2 T1 — HARD PROSE BLACKLIST post-gen check. User-facing prose only
+      // (walker excludes machine fields per MACHINE_PATH_RE). Feeds into the
+      // same retry machinery; over-budget or retry-still-hits ships with
+      // per-hit lint entries { code: "blacklist_phrase_shipped" }.
+      const blHits = detectBlacklistPhrases(parsed);
+      const blViolation = blHits.length > 0;
+      if (blViolation) {
+        console.warn(JSON.stringify({ evt: "post_gen_violation", rule: "BLACKLIST", fn: "run-cppa-risk-assessment", count: blHits.length, hits: blHits.slice(0, 10) }));
+      }
+
+      if (banned.length || hasHardViolations(lint) || t1Violation || t2Violation || t3Violation || t4Violation || t5Violation || blViolation) {
         // r1b1.1 time-budget guard (mirrors run-dpia-framework r1b2.1):
         // retry only if elapsed generation time at detection < 150s;
         // otherwise log post_gen_violation_retry_skipped, merge findings into
@@ -1049,12 +1059,14 @@ async function runPipeline(assessment_id: string) {
           t3: t3Violation,
           t4: t4Violation,
           t5: t5Violation,
+          blacklist: blViolation,
         }));
         if (retryWithinBudget) {
           const t5InstructionSuffix = t5Violation
             ? `\n\nPREVIOUS ATTEMPT REJECTED for TEST-STATES vocabulary leakage: internal tokens surfaced in user-facing prose (${t5Hits.slice(0, 6).map((h) => `${h.path}: "${h.match}"`).join("; ")}). Re-emit the assessment removing every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from all user-facing fields. State the conclusion with its factual basis instead. Do not mention this instruction in the output.`
             : "";
-          const retry = await callModel(system, userPrompt + t5InstructionSuffix, "generate-v4-retry");
+          const blInstructionSuffix = blViolation ? formatBlacklistRetrySuffix(blHits) : "";
+          const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry");
           const retryParsed = tryParseJson(retry.text);
           if (retryParsed && retryParsed.assessment_summary) {
             parsed = retryParsed;
@@ -1068,9 +1080,32 @@ async function runPipeline(assessment_id: string) {
             reason: "elapsed_budget_exceeded",
             elapsed_ms: elapsedAtViolationMs,
             retry_threshold_ms: CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS,
-            rules: { t1: t1Violation, t2: t2Violation, t3: t3Violation, t4: t4Violation, t5: t5Violation },
+            rules: { t1: t1Violation, t2: t2Violation, t3: t3Violation, t4: t4Violation, t5: t5Violation, blacklist: blViolation },
           }));
         }
+
+        // FF-2 T1 — after any retry attempt, if blacklist hits still surface
+        // in the final parsed doc, ship with per-hit lint entries. NO
+        // mechanical rewriting (REBUILD-DPIA D2 rationale).
+        const residualBlHits = detectBlacklistPhrases(parsed);
+        if (residualBlHits.length > 0) {
+          if (!Array.isArray((parsed as any).lint_warnings)) (parsed as any).lint_warnings = [];
+          for (const h of residualBlHits) {
+            (parsed as any).lint_warnings.push({
+              code: "blacklist_phrase_shipped",
+              field: h.path,
+              match: h.match,
+              context: h.context,
+            });
+          }
+          console.warn(JSON.stringify({
+            evt: "blacklist_phrase_shipped",
+            fn: "run-cppa-risk-assessment",
+            count: residualBlHits.length,
+            retry_within_budget: retryWithinBudget,
+          }));
+        }
+
 
         // POSTBATCH-1 — deterministic post-generation fallback. Runs whenever
         // the retry is skipped (over budget) OR the retry result still has
