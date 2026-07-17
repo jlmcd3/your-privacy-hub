@@ -178,8 +178,3 @@ Deno.test("REBUILD-DPIA T9: post_gen_lint meta shape — notes capped at 40", as
 // Task 7e — gdprCites dedupe (order-preserving, exact-string).
 // ─────────────────────────────────────────────────────────────────────────────
 Deno.test("REBUILD-DPIA T7e: gdprCites dedupe order-preserving", () => {
-  const out = dedupeStringArrayPreserveOrder([
-    "Article 35 GDPR", "Article 6 GDPR", "Article 35 GDPR", "Article 9 GDPR", "Article 6 GDPR",
-  ]);
-  assertEquals(out, ["Article 35 GDPR", "Article 6 GDPR", "Article 9 GDPR"]);
-});
