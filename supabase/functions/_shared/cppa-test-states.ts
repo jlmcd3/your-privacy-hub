@@ -218,7 +218,7 @@ export function computeTestStates(
 
 export function formatTestStatesBlock(map: Record<string, TestState>): string {
   const header =
-    "TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING: state its conclusion with the basis given, do NOT hedge, do NOT emit an information_needed entry for it, and do NOT ask the user to confirm/verify it. INDETERMINATE tests use insufficient-basis language and MUST generate exactly one information_needed entry anchored to the producing field.";
+    "TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING: state its conclusion with the basis given, do NOT hedge, do NOT emit an information_needed entry for it, and do NOT ask the user to confirm/verify it. For INDETERMINATE tests, do NOT use verdict language against the record. Instead, state what the recorded facts DO establish, then add one sentence of the form \"the record does not yet resolve [the specific threshold]; recording [the named intake field / fact] completes the determination.\" Still emit exactly ONE information_needed entry per indeterminate test anchored to the producing field(s).";
   const rows = Object.entries(map).map(([k, v]) => {
     const src = v.source_fields.length ? v.source_fields.join(", ") : "(computed)";
     return `- ${k} [${v.state.toUpperCase()}] — ${v.basis} [source: ${src}]${v.note ? ` {${v.note}}` : ""}`;
