@@ -356,13 +356,13 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "scope_notes": string
   },
   "exception_analysis": [
-    { "exception_name": string, "statutory_basis": string, "claimed": boolean, "scope_described": string, "safeguards_described": string, "documentation_status": "Documented" | "Undocumented" | "Insufficient basis" | "Not claimed", "missing_elements": string[], "validity_assessment": string, "flags": string[] }
+    { "exception_name": string, "statutory_basis": string, "claimed": boolean, "facts_supporting": string, "argument_strength": "strong" | "colorable" | "counsel-review", "argument_strength_rationale": string, "strengthen_position": string[], "flags": string[] }
   ],
   "risk_assessment_by_activity": [
     { "activity": string, "statutory_basis": string, "purpose": string, "benefits_to_business": string, "benefits_to_consumers": string,
       "adverse_effects": [ { "harm_type": string, "likelihood": string, "severity": string, "description": string } ],
       "current_safeguards": string, "safeguard_gaps": string,
-      "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Cannot be determined — record incomplete. See benefits_outweigh_risks_rationale for detail", "benefits_outweigh_risks_rationale": string,
+      "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Colorable argument — benefits appear to outweigh risks; completing the named items would allow this to be recorded as established", "benefits_outweigh_risks_rationale": string,
       "section_7152_mapping": string }
   ],
   "inconsistency_flags": [
