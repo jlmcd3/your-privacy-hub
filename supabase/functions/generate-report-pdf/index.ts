@@ -1105,14 +1105,32 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     </section>` : ""}
 
     ${exceptions.length ? `<section><h2>Exception Analysis</h2>
-      ${exceptions.map((e: any) => `<div class="card">
+      ${exceptions.map((e: any) => {
+        const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+        const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
+        const argLbl = argStrengthLabelPDF(e.argument_strength);
+        const argHeader = argLbl === "Counsel review recommended"
+          ? "Counsel review recommended"
+          : (argLbl ? `Argument strength: ${argLbl}` : "");
+        return `<div class="card">
         <h3>${text(e.exception_name || "")}</h3>
         <p><span class="label">Claimed:</span> ${e.claimed ? "Yes" : "No"}</p>
         ${e.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(e.statutory_basis)}</p>` : ""}
-        ${e.documentation_status ? `<p><span class="label">Documentation:</span> ${text(e.documentation_status)}</p>` : ""}
-        ${e.validity_assessment ? `<p><span class="label">Validity:</span> ${text(e.validity_assessment)}</p>` : ""}
+        ${hasNew ? `
+          ${e.facts_supporting ? `<p><span class="label">Facts supporting the exception:</span> ${text(e.facts_supporting)}</p>` : ""}
+          ${argHeader ? `<p><span class="label">${text(argHeader)}</span>${e.argument_strength_rationale ? ` — ${text(e.argument_strength_rationale)}` : ""}</p>` : ""}
+          ${Array.isArray(e.strengthen_position) && e.strengthen_position.length
+            ? `<p class="label" style="margin-top:6px;">What would strengthen the position</p><ul>${e.strengthen_position.map((sp: any) => `<li>${text(sp)}</li>`).join("")}</ul>`
+            : ""}
+        ` : (hasOld ? `
+          ${e.scope_described ? `<p><span class="label">Scope:</span> ${text(e.scope_described)}</p>` : ""}
+          ${e.safeguards_described ? `<p><span class="label">Safeguards:</span> ${text(e.safeguards_described)}</p>` : ""}
+          ${e.documentation_status ? `<p><span class="label">Documentation:</span> ${text(e.documentation_status)}</p>` : ""}
+          ${e.validity_assessment ? `<p><span class="label">Validity:</span> ${text(e.validity_assessment)}</p>` : ""}
+        ` : "")}
         ${Array.isArray(e.flags) && e.flags.length ? list(e.flags) : ""}
-      </div>`).join("")}
+      </div>`;
+      }).join("")}
     </section>` : ""}
 
     ${actions.length ? `<section><h2>Priority Actions</h2>
