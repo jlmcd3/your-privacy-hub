@@ -9,14 +9,19 @@
 // This helper posts directly with an explicit service-role bearer + apikey so
 // the callee's verifyCaller() accepts the request as an internal caller.
 // Callers should await it or attach explicit `.catch` logging.
+// FF-1 T1: maxBodyChars controls the returned body's slice length. Default 500
+// preserves prior behavior for existing callers (log-only usage). Callers that
+// need to parse the response body (e.g. qa-pdf-export must read a signed URL
+// that exceeds 500 chars) pass `maxBodyChars: 0` for unlimited.
 export async function invokeGated(
   fn: string,
   body: Record<string, unknown>,
-  opts: { timeoutMs?: number } = {},
+  opts: { timeoutMs?: number; maxBodyChars?: number } = {},
 ): Promise<{ ok: boolean; status: number; body: string; error?: string }> {
   const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/${fn}`;
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const timeoutMs = opts.timeoutMs ?? 60_000;
+  const maxChars = opts.maxBodyChars ?? 500; // default preserves prior behavior
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -28,10 +33,11 @@ export async function invokeGated(
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(timeoutMs),
     });
-    const text = (await res.text()).slice(0, 500);
+    const raw = await res.text();
+    const text = maxChars > 0 ? raw.slice(0, maxChars) : raw;
     if (!res.ok) {
       console.error(JSON.stringify({
-        evt: "invoke_gated_non_2xx", fn, status: res.status, body: text,
+        evt: "invoke_gated_non_2xx", fn, status: res.status, body: text.slice(0, 500),
       }));
       return { ok: false, status: res.status, body: text };
     }

@@ -98,15 +98,25 @@ export function shimLegacyIntake(intake: any): FiveStageIntake {
     prior_assessment_date: "",
   };
 
+  // FF-1 T5: absent governance booleans must emit null ("not recorded"),
+  // NEVER false. Downstream audit (rg: privacy_counsel_engaged / dpo_or_privacy_officer /
+  // board_level_oversight / cppa_audit_notification_received) confirms these are read
+  // ONLY by the run-cppa-risk-assessment prompt-render block (index.ts L678-682) and
+  // the run-quality-batch schema string; NO computed M-test consumes them. Behaviour
+  // change is therefore prompt-rendering only.
+  const readTriBool = (v: unknown): boolean | null =>
+    v === true || v === "Yes" || v === "yes" ? true
+      : v === false || v === "No" || v === "no" ? false
+      : null;
   const org_context = {
     company_name: String(intake.entity_name || "[FILL IN — business legal name]"),
     sector: String(intake.q3_sector ?? "Not specified"),
     annual_revenue_threshold: "", // DEPRECATED (RC-A A5) — read q1_revenue instead
-    privacy_counsel_engaged: false,
-    dpo_or_privacy_officer: false,
-    board_level_oversight: false,
+    privacy_counsel_engaged: readTriBool(intake.privacy_counsel_engaged),
+    dpo_or_privacy_officer: readTriBool(intake.dpo_or_privacy_officer),
+    board_level_oversight: readTriBool(intake.board_level_oversight),
     existing_privacy_programme: "Not specified",
-    cppa_audit_notification_received: false,
+    cppa_audit_notification_received: readTriBool(intake.cppa_audit_notification_received),
     additional_context: "",
   };
 

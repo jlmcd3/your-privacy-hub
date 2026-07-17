@@ -98,6 +98,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "EU-CONTROLLER PRIMARY RULE: Identify the controller's establishment from the sector field and organisation name. If the controller is established in an EU/EEA member state (Germany, France, Ireland, Netherlands, Spain, Italy, Sweden, Denmark, Belgium, Austria, Finland, etc.), the PRIMARY legal framework is EU GDPR (Regulation (EU) 2016/679). UK GDPR applies only where there is ALSO a UK-established controller or processor, or where the processing specifically targets UK data subjects and the controller has UK establishment. Do NOT produce a DPIA that references only UK GDPR for an EU-established controller. Where both EU and UK GDPR apply, state EU GDPR as primary and UK GDPR as supplementary.",
     // OSS routing through resolved block
     "SUPERVISORY AUTHORITY: name the SPECIFIC competent / lead supervisory authority from the RESOLVED JURISDICTION block — not a generic \"competent EU supervisory authority.\" Where the resolved block indicates the lead SA cannot be determined, instruct the organisation to identify the lead SA under the one-stop-shop mechanism (GDPR Article 56) and insert: [TO COMPLETE — identify lead supervisory authority based on controller's main establishment under GDPR Article 56].",
+    "FF-1 T4 — § 1798.130 IS NOT A PRIVACY-OFFICER MANDATE: Cal. Civ. Code § 1798.130 governs CONSUMER-REQUEST METHODS (notice, verification, response) — it contains NO privacy-officer, DPO, or governance-officer mandate. Never cite § 1798.130 as authority for a privacy-officer, CPO, or governance-role requirement. Privacy-officer / governance-role recommendations MUST be framed as governance best practice without a statutory mandate cite (e.g. 'Governance best practice — no CCPA statutory mandate creates this role'), or anchored to an actually applicable provision if one is on the record. This rule binds every DPIA field.",
     // Article 35 trigger
     "ARTICLE 35 MANDATORY TRIGGER RULE: Section 1 of the DPIA framework must identify the specific criterion or criteria that make a DPIA mandatory for this processing activity. Use EDPB WP248 rev.01 criteria: (1) Evaluation or scoring including profiling; (2) Automated decision-making with legal or significant effects (Article 22); (3) Systematic monitoring of publicly accessible areas; (4) Sensitive data or highly personal data (Article 9/10 or similar sensitivity); (5) Large-scale data processing; (6) Matching or combining datasets; (7) Data concerning vulnerable subjects; (8) Innovative use of technology; (9) Data transfer outside the EEA with insufficient protection. State in section_0_overview (technical sheet — reasons to conduct) and in dpia_metadata.article_35_3_trigger which criteria apply and why, using the format: \"DPIA mandatory under GDPR Article 35(1) and EDPB WP248 criterion [N]: [brief explanation].\" If Article 35(3) applies (systematic profiling with significant effects, large-scale special categories, or systematic monitoring of public areas), cite the specific sub-provision.",
     "SPECIAL-CATEGORY ARRAY RULE: In each processed_personal_data item's special_category object, when is_special is false the categories array MUST be empty ([]). Never place a \"[TO COMPLETE — …]\" string (or any value) inside categories when is_special is false; if a log-content audit or similar is needed to confirm special-category status, record that need in the item's explanation field, not in categories. categories may contain values ONLY when is_special is true.",
@@ -349,6 +350,60 @@ function dpiaDropResolvedSourceAsks(
   return report;
 }
 
+// FF-1 T3 — DPIA pd1: KNOWN-AUTHORITY DETERMINISTIC BACKFILL.
+// The prompt rule alone (Task 5f) failed in prod: docs left
+// "[TO COMPLETE — identify competent supervisory authority for UNITED KINGDOM]"
+// placeholders while the SAME doc's prose named the ICO. This post-gen pass
+// resolves the placeholder from a small verified authority map when the
+// record's country determination is unambiguous. Germany LEAVES the placeholder
+// (per-Land competency defensible). Ambiguous / multi-country records left as-is.
+export const DPIA_AUTHORITY_MAP: Record<string, string> = {
+  "UNITED KINGDOM": "Information Commissioner's Office (ICO)",
+  "UK": "Information Commissioner's Office (ICO)",
+  "IRELAND": "Data Protection Commission (DPC)",
+  "SWEDEN": "Integritetsskyddsmyndigheten (IMY)",
+  "FRANCE": "CNIL",
+  "NETHERLANDS": "Autoriteit Persoonsgegevens (AP)",
+  "SPAIN": "AEPD",
+  "ITALY": "Garante per la protezione dei dati personali",
+  "DENMARK": "Datatilsynet",
+  // GERMANY intentionally omitted — per-Land competency, leave placeholder.
+};
+
+const AUTHORITY_PLACEHOLDER_RE =
+  /\[TO COMPLETE[^\]]*?(?:supervisory\s+authority|competent\s+authority|lead\s+authority)[^\]]*?\]/gi;
+
+export function backfillDpiaAuthorities(
+  report: any,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  if (!report || typeof report !== "object") return report;
+  const walk = (node: unknown): unknown => {
+    if (typeof node === "string") {
+      let out = node;
+      out = out.replace(AUTHORITY_PLACEHOLDER_RE, (m: string) => {
+        const upper = m.toUpperCase();
+        for (const [country, name] of Object.entries(DPIA_AUTHORITY_MAP)) {
+          if (upper.includes(country)) {
+            notes.push({ code: "authority_backfilled", detail: `${country}→"${name}"` });
+            return name;
+          }
+        }
+        return m;
+      });
+      return out;
+    }
+    if (Array.isArray(node)) return node.map(walk);
+    if (node && typeof node === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(node as Record<string, unknown>)) out[k] = walk(v);
+      return out;
+    }
+    return node;
+  };
+  return walk(report);
+}
+
 export function applyDeterministicPostGenFallbackDpia(
   parsed: any,
   testStates: Record<string, { state: string; source_fields?: string[] }>,
@@ -356,6 +411,7 @@ export function applyDeterministicPostGenFallbackDpia(
   const notes: Array<{ code: string; detail: string }> = [];
   let out = dpiaDropResolvedSourceAsks(parsed, testStates, notes);
   out = dpiaScrubDeep(out, notes) as any;
+  out = backfillDpiaAuthorities(out, notes);
   return { parsed: out, notes };
 }
 
@@ -488,7 +544,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "rebuild-dpia-r1@2026-07-17T00:00Z";
+export const BUILD_STAMP = "ff-1-dpia@2026-07-17T00:00Z";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
