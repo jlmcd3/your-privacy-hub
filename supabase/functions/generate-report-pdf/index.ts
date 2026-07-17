@@ -522,8 +522,13 @@ Signature: ______________________
 // Mirrors the on-screen ReportShell + AssessmentReport styling.
 // ─────────────────────────────────────────────────────────────────────────
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+function escHtml(s: unknown): string {
+  if (s === null || s === undefined) return "";
+  const str = typeof s === "string" ? s : (
+    typeof s === "number" || typeof s === "boolean" ? String(s) :
+    (() => { try { return JSON.stringify(s); } catch { return String(s); } })()
+  );
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
