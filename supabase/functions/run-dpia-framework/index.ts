@@ -189,6 +189,189 @@ export const DPIA_TOOL_MODULE: ToolModule = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// REBUILD-DPIA T3 — deterministic post-generation fallback (mirrors cppa-risk
+// POSTBATCH-1). Strips resolved-source information_needed asks and scrubs
+// TEST-STATES internal vocabulary when the retry budget is exceeded.
+// M9 is CANDIDATE-class per rule 168: never scrub it into a resolved-sounding
+// phrase — "the profiling review" is the canonical human phrase.
+// ─────────────────────────────────────────────────────────────────────────────
+export const DPIA_M_TOKEN_MAP: Record<string, string> = {
+  M1: "the special-category determination",
+  M2: "the children's-data determination",
+  M3: "the Art. 9(2) condition determination",
+  M4: "the legal-basis determination",
+  M5: "the GDPR-applicability determination",
+  M6: "the transfer review",
+  M7: "the retention review",
+  M8: "the DPO review",
+  M9: "the profiling review", // CANDIDATE-class — do NOT humanise into resolved-sounding phrasing
+};
+
+const DPIA_STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bis\s+resolved[_\s]met\b/gi, "is established on the record"],
+  [/\bare\s+resolved[_\s]met\b/gi, "are established on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]met\b/gi, "is not met on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]met\b/gi, "are not met on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]applicable\b/gi, "is not applicable on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]applicable\b/gi, "are not applicable on the record"],
+  [/\bRESOLVED[_\s]NOT[_\s]APPLICABLE\b/g, "not applicable on the record"],
+  [/\bresolved[_\s]not[_\s]applicable\b/gi, "not applicable on the record"],
+  [/\bRESOLVED[_\s]NOT[_\s]MET\b/g, "not met on the record"],
+  [/\bresolved[_\s]not[_\s]met\b/gi, "not met on the record"],
+  [/\bRESOLVED[_\s]MET\b/g, "established on the record"],
+  [/\bresolved[_\s]met\b/gi, "established on the record"],
+  [/\bINDETERMINATE\b/g, "indeterminate on the record"],
+];
+
+const DPIA_M_COMPOUND_REPLACEMENTS: Array<[RegExp, (id: string) => string]> = [
+  [/\bthe\s+(M[1-9])\s+(special-category|children's-data|condition|legal-basis|GDPR-applicability|transfer|retention|DPO|profiling)\s+(determination|review)\b/gi,
+    (id: string) => DPIA_M_TOKEN_MAP[id] ?? id],
+  [/\bthe\s+(M[1-9])\s+determination\b/gi, (id: string) => DPIA_M_TOKEN_MAP[id] ?? id],
+];
+
+function dpiaPostScrubCleanup(s: string): string {
+  let out = s.replace(/\bthe\s+the\b/gi, "the");
+  out = out.replace(/(\b\w[\w-]*\s+(determination|review))(?:\s+\w+){0,4}\s+(determination|review)\b/gi, "$1");
+  return out;
+}
+
+function dpiaScrubDeep(
+  node: unknown,
+  notes: Array<{ code: string; detail: string }>,
+  parentKey?: string,
+  insideInformationNeeded: boolean = false,
+): unknown {
+  if (typeof node === "string") {
+    const isAnchor = insideInformationNeeded && (parentKey === "field" || parentKey === "source_fields");
+    let out = node;
+    for (const [re, fn] of DPIA_M_COMPOUND_REPLACEMENTS) {
+      out = out.replace(re, (_m: string, id: string) => {
+        const human = fn(id);
+        if (human && human !== id) notes.push({ code: "test_token_scrubbed", detail: `${id}-compound→"${human}"` });
+        return human ?? _m;
+      });
+    }
+    for (const [re, repl] of DPIA_STATE_TOKEN_REPLACEMENTS) {
+      if (re.test(out)) {
+        out = out.replace(re, repl);
+        notes.push({ code: "test_token_scrubbed", detail: `state→"${repl}"` });
+      }
+    }
+    // Bare M-ids. M9 CANDIDATE-safe: its human phrase is intentionally non-resolved.
+    out = out.replace(/\b(M[1-9])\b/g, (_m, id: string) => {
+      const human = DPIA_M_TOKEN_MAP[id];
+      if (!human) return _m;
+      notes.push({ code: "test_token_scrubbed", detail: `${id}→"${human}"` });
+      return human;
+    });
+    if (/\bTEST-STATES\b/.test(out)) {
+      out = out.replace(/\bTEST-STATES\b/g, "the deterministic checks");
+      notes.push({ code: "test_token_scrubbed", detail: "TEST-STATES→\"the deterministic checks\"" });
+    }
+    if (!isAnchor) {
+      out = dpiaPostScrubCleanup(out);
+    }
+    return out;
+  }
+  if (Array.isArray(node)) return node.map((v) => dpiaScrubDeep(v, notes, parentKey, insideInformationNeeded));
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      const inIN = insideInformationNeeded || parentKey === "information_needed" || k === "information_needed";
+      out[k] = dpiaScrubDeep(v, notes, k, inIN);
+    }
+    return out;
+  }
+  return node;
+}
+
+function dpiaDropResolvedSourceAsks(
+  report: any,
+  testStates: Record<string, { state: string; source_fields?: string[] }>,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  const resolvedSources = new Set<string>();
+  for (const ts of Object.values(testStates ?? {})) {
+    if (ts && typeof ts.state === "string" && ts.state.startsWith("resolved")) {
+      for (const f of ts.source_fields ?? []) resolvedSources.add(f);
+    }
+  }
+  if (resolvedSources.size === 0) return report;
+
+  // 1) information_needed[] — same shape as cppa-risk.
+  const entries: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
+  const kept: any[] = [];
+  for (const e of entries) {
+    const fields: string[] = [];
+    if (typeof e?.field === "string") fields.push(e.field);
+    if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
+    if (fields.some((f) => resolvedSources.has(f))) {
+      notes.push({ code: "resolved_source_ask_dropped", detail: String(e?.field ?? e?.dimensions ?? "").slice(0, 120) });
+    } else {
+      kept.push(e);
+    }
+  }
+  if (kept.length !== entries.length) report.information_needed = kept;
+
+  // 2) completion_guidance items keyed to a resolved source (courier T3a).
+  const scanCG = (obj: any) => {
+    if (!obj || typeof obj !== "object") return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === "completion_guidance" && Array.isArray(v)) {
+        const keptCG: any[] = [];
+        for (const item of v) {
+          const s = typeof item === "string" ? item : (item && typeof item === "object" ? String((item as any).field ?? "") : "");
+          const fieldRef = typeof item === "object" && item ? String((item as any).field ?? "") : "";
+          if (fieldRef && resolvedSources.has(fieldRef)) {
+            notes.push({ code: "resolved_source_ask_dropped", detail: `completion_guidance:${fieldRef}` });
+            continue;
+          }
+          // Bare "[TO COMPLETE ... <field>]" placeholders whose field ref matches a resolved source
+          if (typeof item === "string" && /\[TO COMPLETE/.test(item)) {
+            const anyResolved = [...resolvedSources].some((f) => item.includes(f));
+            if (anyResolved) {
+              notes.push({ code: "resolved_source_ask_dropped", detail: `to_complete_placeholder:${s.slice(0, 80)}` });
+              continue;
+            }
+          }
+          keptCG.push(item);
+        }
+        (obj as any)[k] = keptCG;
+      } else if (v && typeof v === "object") {
+        scanCG(v);
+      }
+    }
+  };
+  scanCG(report);
+  return report;
+}
+
+export function applyDeterministicPostGenFallbackDpia(
+  parsed: any,
+  testStates: Record<string, { state: string; source_fields?: string[] }>,
+): { parsed: any; notes: Array<{ code: string; detail: string }> } {
+  const notes: Array<{ code: string; detail: string }> = [];
+  let out = dpiaDropResolvedSourceAsks(parsed, testStates, notes);
+  out = dpiaScrubDeep(out, notes) as any;
+  return { parsed: out, notes };
+}
+
+// Deterministic dedupe helper — REBUILD-DPIA T7e (gdpr_meta.gdprCites).
+export function dedupeStringArrayPreserveOrder(arr: unknown): string[] {
+  if (!Array.isArray(arr)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of arr) {
+    if (typeof v !== "string") continue;
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 // R1b2 — deterministic TEST-STATES for the DPIA generator.
 // Computed from the intake shape produced by src/pages/DPIAFramework.tsx.
 // M1 special-category data (Art. 35(3)(b))     — data_categories ∩ {Health/medical, Biometric, Genetic}
