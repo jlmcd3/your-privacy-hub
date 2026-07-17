@@ -264,7 +264,7 @@ export function computeDpiaTestStates(intake: Record<string, any> | null | undef
 
 export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEntry>): string {
   const lines: string[] = [];
-  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: do NOT re-ask it in completion_guidance/information_needed/[TO COMPLETE] placeholders and do NOT contradict it in prose. INDETERMINATE tests use insufficient-basis language anchored to the producing field. CANDIDATE tests are NON-BINDING attention flags for JUDGMENT calls — assess the underlying narrative and either confirm or reject the associated prong, citing the language.");
+  lines.push("TEST-STATES (deterministic — computed from the record). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: do NOT re-ask it in completion_guidance/information_needed/[TO COMPLETE] placeholders and do NOT contradict it in prose. INDETERMINATE tests use ADVOCATE-DRAFTER voice — state what the record establishes, then 'the record does not yet resolve [the specific determination]; recording [the named field] completes it' — never 'insufficient basis' or clearance-verdict phrasing. CANDIDATE tests are NON-BINDING attention flags for JUDGMENT calls — assess the underlying narrative and either confirm or reject the associated prong, citing the language.");
   for (const id of Object.keys(states)) {
     const e = states[id];
     lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
