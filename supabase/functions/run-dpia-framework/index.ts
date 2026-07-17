@@ -426,6 +426,102 @@ export function backfillDpiaAuthorities(
   return walk(report);
 }
 
+// FF-4 pd6 — EU/EEA member-state list (record-driven OSS template corrector
+// input). Lives here (co-located with backfillDpiaAuthorities) rather than in
+// _shared, because only run-dpia-framework consumes it. Includes both country
+// names (matched against intake string fields) and ISO codes.
+export const EU_EEA_MEMBER_COUNTRIES: ReadonlySet<string> = new Set([
+  "AUSTRIA","AT","BELGIUM","BE","BULGARIA","BG","CROATIA","HR","CYPRUS","CY",
+  "CZECHIA","CZECH REPUBLIC","CZ","DENMARK","DK","ESTONIA","EE","FINLAND","FI",
+  "FRANCE","FR","GERMANY","DE","GREECE","GR","EL","HUNGARY","HU","IRELAND","IE",
+  "ITALY","IT","LATVIA","LV","LITHUANIA","LT","LUXEMBOURG","LU","MALTA","MT",
+  "NETHERLANDS","THE NETHERLANDS","NL","POLAND","PL","PORTUGAL","PT",
+  "ROMANIA","RO","SLOVAKIA","SK","SLOVENIA","SI","SPAIN","ES","SWEDEN","SE",
+  // EEA non-EU
+  "ICELAND","IS","LIECHTENSTEIN","LI","NORWAY","NO",
+]);
+
+// FF-4 pd6 — GERMANY intentionally omits an authority clause because the
+// competent SA is Land-specific (per-Land rule; see DPIA_AUTHORITY_MAP note).
+const AUTHORITY_CLAUSE_OMIT: ReadonlySet<string> = new Set(["GERMANY", "DE"]);
+
+// FF-4 pd6 — regex family that flags the false 4(16)(b) / non-EU template.
+const FALSE_4_16_B_PATTERNS: RegExp[] = [
+  /central\s+administration\s+is\s+outside\s+the\s+EU/i,
+  /Art(?:icle|\.)?\s*4\s*\(\s*16\s*\)\s*\(\s*b\s*\)/i,
+  /an\s+EU\s+establishment\s+holds\s+decision-making\s+authority/i,
+  /no\s+EU\s+main\s+establishment\s+has\s+been\s+identified/i,
+];
+
+function looksLikeFalseFourSixteenB(s: unknown): boolean {
+  if (typeof s !== "string" || !s) return false;
+  return FALSE_4_16_B_PATTERNS.some((re) => re.test(s));
+}
+
+function normaliseCountryToken(v: unknown): string {
+  return typeof v === "string" ? v.trim().toUpperCase() : "";
+}
+
+function authorityClauseForCountry(country: string): string {
+  const key = country.toUpperCase();
+  if (AUTHORITY_CLAUSE_OMIT.has(key)) return "";
+  // Try direct map, then try common name-form (title case) too.
+  const direct = DPIA_AUTHORITY_MAP[key];
+  if (direct) return `, and the competent lead supervisory authority is ${direct}`;
+  return "";
+}
+
+// FF-4 pd6 — deterministic, record-driven OSS-template corrector.
+// If the intake places the controller IN an EU/EEA member and the report
+// asserts the false 4(16)(b) template in any user-facing string, REPLACE
+// supervisory_authority_consultation_trigger with the corrected sentence and
+// note "oss_template_corrected". Facts-from-record substitution — never a
+// model-text rewrite.
+export function correctOssTemplateFromRecord(
+  report: any,
+  intake: Record<string, any> | null | undefined,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  if (!report || typeof report !== "object") return report;
+  const rawCentral = normaliseCountryToken((intake as any)?.central_administration_country);
+  const rawController = normaliseCountryToken((intake as any)?.controller_country);
+  const country = rawCentral || rawController;
+  if (!country) return report;
+  if (!EU_EEA_MEMBER_COUNTRIES.has(country)) return report;
+
+  // Detect the false passage anywhere in user-facing string fields.
+  let falseAssertionFound = false;
+  const walkDetect = (node: unknown): void => {
+    if (falseAssertionFound) return;
+    if (typeof node === "string") {
+      if (looksLikeFalseFourSixteenB(node)) falseAssertionFound = true;
+      return;
+    }
+    if (Array.isArray(node)) { for (const v of node) walkDetect(v); return; }
+    if (node && typeof node === "object") {
+      for (const v of Object.values(node as Record<string, unknown>)) walkDetect(v);
+    }
+  };
+  walkDetect(report);
+  if (!falseAssertionFound) return report;
+
+  const authClause = authorityClauseForCountry(country);
+  const displayCountry = country.length <= 3
+    ? country // ISO code — leave as is
+    : country.charAt(0) + country.slice(1).toLowerCase();
+  const corrected = `The record places the controller's central administration in ${displayCountry}. Under Art. 4(16)(a) GDPR the main establishment is the place of central administration in the Union${authClause}.`;
+
+  // Replace supervisory_authority_consultation_trigger on dpia_metadata (if
+  // present); clone shallowly to avoid aliasing surprises.
+  const out: any = { ...report };
+  const meta = out.dpia_metadata && typeof out.dpia_metadata === "object"
+    ? { ...out.dpia_metadata } : {};
+  meta.supervisory_authority_consultation_trigger = corrected;
+  out.dpia_metadata = meta;
+  notes.push({ code: "oss_template_corrected", detail: `${country}→Art.4(16)(a)` });
+  return out;
+}
+
 export function applyDeterministicPostGenFallbackDpia(
   parsed: any,
   testStates: Record<string, { state: string; source_fields?: string[] }>,
