@@ -381,22 +381,63 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${escHtml(dn.gap_description)
 function buildDPIAReportHTML(report: any, dpia: any): string {
   const meta = report.dpia_metadata || {};
   const cellHtml = (key: string, val: any): string => {
-    if (val === null || val === undefined || val === "") return "—";
-    if (Array.isArray(val)) return escHtml(val.join(", "));
-    if (typeof val === "object") {
-      if ("is_special" in val) return val.is_special ? "Yes" + (Array.isArray(val.categories) && val.categories.length ? ": " + escHtml(val.categories.join(", ")) : "") : "No";
-      return escHtml(JSON.stringify(val));
+    try {
+      if (val === null || val === undefined || val === "") return "—";
+      if (Array.isArray(val)) {
+        // Guard against arrays of objects (val.join collapses to [object Object])
+        return escHtml(val.map((x) => (x && typeof x === "object" ? JSON.stringify(x) : String(x))).join(", "));
+      }
+      if (typeof val === "object") {
+        if ("is_special" in val) return val.is_special ? "Yes" + (Array.isArray(val.categories) && val.categories.length ? ": " + escHtml(val.categories.join(", ")) : "") : "No";
+        return escHtml(JSON.stringify(val));
+      }
+      return sanitizeNarrative(String(val));
+    } catch (e) {
+      console.warn(`[dpia-pdf] cellHtml failed key=${key}`, (e as Error)?.message);
+      return "—";
     }
-    return sanitizeNarrative(String(val));
   };
-  const tbl = (cols: { key: string; label: string }[], rows: any[]): string =>
-    Array.isArray(rows) && rows.length
-      ? `<table class="dt"><thead><tr>${cols.map((c) => `<th>${escHtml(c.label)}</th>`).join("")}</tr></thead><tbody>${rows.map((r: any) => `<tr>${cols.map((c) => `<td>${cellHtml(c.key, r?.[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
-      : `<p style="font-style:italic;color:#5c6d7a;">[TO COMPLETE — no rows generated]</p>`;
-  const prose = (label: string, val: any): string =>
-    val ? `<p><span class="label">${escHtml(label)}:</span> ${sanitizeNarrative(String(val))}</p>` : "";
+  const tbl = (cols: { key: string; label: string }[], rows: any[]): string => {
+    try {
+      return Array.isArray(rows) && rows.length
+        ? `<table class="dt"><thead><tr>${cols.map((c) => `<th>${escHtml(c.label)}</th>`).join("")}</tr></thead><tbody>${rows.map((r: any) => `<tr>${cols.map((c) => `<td>${cellHtml(c.key, r?.[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+        : `<p style="font-style:italic;color:#5c6d7a;">[TO COMPLETE — no rows generated]</p>`;
+    } catch (e) {
+      console.warn("[dpia-pdf] tbl failed", (e as Error)?.message);
+      return `<p style="font-style:italic;color:#5c6d7a;">[table render error]</p>`;
+    }
+  };
+  const prose = (label: string, val: any): string => {
+    try {
+      if (val === null || val === undefined || val === "") return "";
+      const str = typeof val === "string" ? val
+        : typeof val === "number" || typeof val === "boolean" ? String(val)
+        : Array.isArray(val) ? val.map((x) => (x && typeof x === "object" ? JSON.stringify(x) : String(x))).join("; ")
+        : (() => { try { return JSON.stringify(val); } catch { return String(val); } })();
+      if (!str) return "";
+      return `<p><span class="label">${escHtml(label)}:</span> ${sanitizeNarrative(str)}</p>`;
+    } catch (e) {
+      console.warn(`[dpia-pdf] prose failed label=${label}`, (e as Error)?.message);
+      return "";
+    }
+  };
   const sec = (heading: string, s: any, inner: string): string =>
     !s ? "" : `<h2>${escHtml(heading)}</h2>${s.guidance_note ? `<div class="guidance">${escHtml(s.guidance_note)}</div>` : ""}${inner}${s.completion_guidance ? `<div class="completion"><strong>The organization must complete: </strong>${escHtml(s.completion_guidance)}</div>` : ""}`;
+  // PDF-FF-DPIA: per-section defensive wrapper. If a section's inner template
+  // throws for any reason (unexpected data shape from a generator variant),
+  // emit a compact placeholder for that section instead of failing the whole
+  // PDF. The upstream 500 previously stranded PAID exports (docs 2/3 of
+  // batch 3abe5259) with an opaque "Report generation failed" message.
+  const safeSec = (heading: string, s: any, build: () => string): string => {
+    if (!s) return "";
+    try {
+      return sec(heading, s, build());
+    } catch (e) {
+      const msg = (e as Error)?.message || "unknown";
+      console.error(`[dpia-pdf] section render failed heading="${heading}" err=${msg}`, (e as Error)?.stack);
+      return `<h2>${escHtml(heading)}</h2><div class="guidance">This section could not be rendered because the underlying data did not match the expected shape (${escHtml(msg)}). The rest of this DPIA framework remains valid — please rerun this section from the tool if needed.</div>`;
+    }
+  };
 
   const ov = report.section_0_overview, d1 = report.section_1_description, an = report.section_2_analysis;
   const np = report.section_3_necessity_proportionality, rm = report.section_4_risk_management;
