@@ -462,10 +462,13 @@ const CHECKS: Check[] = [
 
           const resolvedFields = new Set<string>();
           const resolvedIds: string[] = [];
+          const resolvedFieldsById: Record<string, string[]> = {};
           for (const [id, s] of Object.entries(states)) {
             if (isResolved(s.state)) {
               resolvedIds.push(id);
-              (s.source_fields ?? []).forEach((f: string) => resolvedFields.add(f));
+              const src = (s.source_fields ?? []) as string[];
+              resolvedFieldsById[id] = src;
+              src.forEach((f: string) => resolvedFields.add(f));
             }
           }
           const infoNeeded = collectInfoNeeded(report);
@@ -477,16 +480,17 @@ const CHECKS: Check[] = [
             const hit = fields.find(f => resolvedFields.has(f));
             if (hit) return { passed: false, evidence: `information_needed asks for resolved field "${hit}"` };
           }
-          const rat = rationaleText(report);
-          for (const id of resolvedIds) {
-            const idLc = id.toLowerCase();
-            if (rat.includes(idLc) && HEDGE.test(rat)) {
-              return { passed: false, evidence: `hedge language near resolved test ${id} in rationale prose` };
-            }
-          }
+          // GRADER-1 Task 4 — per-field co-occurrence.  A hedge sitting in a
+          // DIFFERENT rationale field about a genuinely INDETERMINATE test id
+          // must PASS; fail only when the hedge phrase and the resolved test
+          // id (or its source_fields) co-occur inside the SAME field string.
+          const entries = collectRationaleEntries(report);
+          const perField = evaluateResolvedHedgePerField(entries, resolvedIds, resolvedFieldsById, HEDGE);
+          if (!perField.passed) return perField;
           return { passed: true };
         },
       },
+
 
       // QC-R1-2 -- SPI prong (M4) utilization in cyber-audit section
       {
