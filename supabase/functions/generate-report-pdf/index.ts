@@ -972,6 +972,23 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 </div></body></html>`;
 }
 
+// ── D1 enum display mapping (REBUILD-RISK-UI Task 3) ──
+// Stored enum values remain unchanged; map at render only.
+function displayInsufficientBasisPDF(v?: string): string {
+  if (!v) return "";
+  if (v === "Insufficient basis to assess" || v === "Insufficient basis") {
+    return "Not yet resolved on the record";
+  }
+  return v;
+}
+function argStrengthLabelPDF(s?: string): string {
+  const x = (s || "").toLowerCase();
+  if (x === "strong") return "Strong";
+  if (x === "colorable") return "Colorable";
+  if (x === "counsel-review" || x === "counsel review") return "Counsel review recommended";
+  return s || "";
+}
+
 // Dispatch on schema: v4 rows carry risk_assessment_by_activity; v3 rows carry part_a; legacy rows carry domains.
 function buildCPPARiskReportHTML(report: any, record: any): string {
   if (report && (Array.isArray(report.risk_assessment_by_activity) || (report.assessment_summary && typeof report.assessment_summary === "object"))) {
@@ -982,6 +999,7 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
   }
   return buildCPPARiskLegacyHTML(report, record);
 }
+
 
 function buildCPPARiskV4HTML(report: any, record: any): string {
   const generatedDate = new Date(record?.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
