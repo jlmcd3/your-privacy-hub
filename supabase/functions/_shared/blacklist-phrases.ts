@@ -37,6 +37,34 @@ export const BLACKLIST_RE =
 export const MACHINE_PATH_RE =
   /(?:^|\.)_(?:meta|staging|debug|lint|raw|findings)(?:\.|$|\[)|(?:^|\.)(?:lint_warnings|lint_notes|source_fields|enforcement_meta|gdpr_meta|jurisdiction_validation|generated_at|dpia_id|assessment_id)(?:\.|$|\[)/;
 
+// FF-2-HF1 — Enumerated schema fields whose values legitimately contain
+// blacklist phrases as literal enum tokens (renderers branch on them; a
+// within-budget retry could induce the model to rewrite a schema token
+// and break the display-map / C2 shape stability). Enum rename is the
+// deferred D1 item, NOT in scope here. Match by leaf field NAME (last path
+// segment) so array indices and nesting don't matter.
+//
+// Repo sweep (see FF-2-HF1 courier report):
+//   • cppa-risk   overall_risk_level                 → "Insufficient basis"
+//   • cppa-risk   exceptions_status                  → "Insufficient basis to assess"
+//   • cppa-risk   benefits_outweigh_risks_conclusion → legacy "Insufficient basis" (schema now uses colorable-argument wording per REBUILD-RISK C9; stored rows and prompt reconciliation still reference the literal, so we exclude the field)
+//   • cppa-cyber  readiness_level                    → "Insufficient basis to assess"
+// LIA's "insufficient" strength token is a single word and does NOT match
+// any of the five blacklist phrases, so it needs no exclusion.
+export const ENUM_FIELD_EXCLUSIONS: ReadonlySet<string> = new Set([
+  "overall_risk_level",
+  "exceptions_status",
+  "benefits_outweigh_risks_conclusion",
+  "readiness_level",
+]);
+
+function leafKey(path: string): string {
+  if (!path) return "";
+  const noIdx = path.replace(/\[\d+\]$/g, "");
+  const idx = noIdx.lastIndexOf(".");
+  return idx >= 0 ? noIdx.slice(idx + 1) : noIdx;
+}
+
 export type BlacklistHit = { path: string; match: string; context: string };
 
 function walkStrings(value: unknown, path: string, out: Array<{ path: string; text: string }>): void {
