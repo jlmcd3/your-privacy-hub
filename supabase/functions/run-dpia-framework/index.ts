@@ -955,7 +955,7 @@ function buildSystemBlocksForUnit(shared: SharedContextData): SystemBlock[] {
   const blocks = buildSystemContent({
     toolModule: DPIA_TOOL_MODULE,
     currentDate: today,
-    injected: [gdprAuthorityContext, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
+    injected: [DPIA_POST_CUTOFF_AUTHORITIES, gdprAuthorityContext, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
   });
   // Prompt-caching breakpoint at the end of the shared prefix (courier §5).
   // buildSystemContent already caches blocks 1+2; force cache on block 3
