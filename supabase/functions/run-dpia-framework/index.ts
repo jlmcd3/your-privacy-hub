@@ -368,6 +368,9 @@ export const DPIA_AUTHORITY_MAP: Record<string, string> = {
   "SPAIN": "AEPD",
   "ITALY": "Garante per la protezione dei dati personali",
   "DENMARK": "Datatilsynet",
+  // FF-3 T2 — Run C doc3 evidence (extra-EEA jurisdictions).
+  "AUSTRALIA": "Office of the Australian Information Commissioner (OAIC)",
+  "SINGAPORE": "Personal Data Protection Commission (PDPC)",
   // GERMANY intentionally omitted — per-Land competency, leave placeholder.
 };
 
