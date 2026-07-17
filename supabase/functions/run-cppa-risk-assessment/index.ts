@@ -1339,6 +1339,58 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionFlags(report_data);
 
+    // REBUILD-RISK C6 — LABEL ACCURACY LINT: for each inconsistency_flags
+    // entry, verify that each conflicting_inputs field name (source_fields
+    // / intake_field_1 / intake_field_2) appears in the flag's own
+    // narrative (description / resolution_required), OR that any field id
+    // named in the narrative appears in source_fields. On mismatch, log a
+    // non-fatal lint_warning ("w3_label_mismatch") — the flag is never
+    // dropped. Mirrors the W3-A resolved-source strip pattern (try/catch,
+    // no status effect).
+    try {
+      const flagsArr: any[] = Array.isArray((report_data as any)?.inconsistency_flags) ? (report_data as any).inconsistency_flags : [];
+      const warnings: any[] = [];
+      // Match canonical intake field ids like q1_revenue, q15c_spi_volume, i1_processing_purpose, etc.
+      const FIELD_ID_RE = /\b(?:q\d+[a-z]?(?:_[a-z0-9_]+)?|i\d+[a-z]?(?:_[a-z0-9_]+)?|impact_intake(?:\.[a-z_]+)?|exceptions_intake(?:\.[a-z_]+)?)\b/gi;
+      for (let idx = 0; idx < flagsArr.length; idx++) {
+        const fl = flagsArr[idx];
+        if (!fl || typeof fl !== "object") continue;
+        const declared = new Set<string>();
+        const push = (v: any) => { if (typeof v === "string" && v.trim()) declared.add(v.trim()); };
+        push(fl.intake_field_1);
+        push(fl.intake_field_2);
+        if (Array.isArray(fl.source_fields)) for (const s of fl.source_fields) push(s);
+        const narrative = [fl.description, fl.resolution_required].filter((s) => typeof s === "string").join(" ");
+        const mentioned = new Set<string>();
+        const m = narrative.match(FIELD_ID_RE);
+        if (m) for (const t of m) mentioned.add(t);
+        // Only lint when we have BOTH sides; empty narrative or empty declared is out of scope.
+        if (declared.size === 0 || mentioned.size === 0) continue;
+        // Symmetric membership check.
+        const declaredArr = Array.from(declared);
+        const mentionedArr = Array.from(mentioned);
+        const declaredCovered = declaredArr.every((d) => mentionedArr.some((n) => n.toLowerCase().includes(d.toLowerCase()) || d.toLowerCase().includes(n.toLowerCase())));
+        const mentionedCovered = mentionedArr.every((n) => declaredArr.some((d) => d.toLowerCase().includes(n.toLowerCase()) || n.toLowerCase().includes(d.toLowerCase())));
+        if (!declaredCovered || !mentionedCovered) {
+          warnings.push({
+            code: "w3_label_mismatch",
+            index: idx,
+            declared: declaredArr,
+            narrative_field_ids: mentionedArr,
+          });
+          console.warn(`[RISK] REBUILD-RISK C6 w3_label_mismatch inconsistency_flags[${idx}]: declared=${JSON.stringify(declaredArr)} narrative=${JSON.stringify(mentionedArr)}`);
+        }
+      }
+      if (warnings.length) {
+        const meta: any = (report_data as any)._meta ?? ((report_data as any)._meta = {});
+        const existing: any[] = Array.isArray(meta.lint_warnings) ? meta.lint_warnings : [];
+        meta.lint_warnings = existing.concat(warnings);
+      }
+    } catch (e) {
+      console.warn("[RISK] REBUILD-RISK C6 label-accuracy lint error:", e);
+    }
+
+
     // QB12-4(a) v3 (Doc V Step 2): field-aware dedupe of the exception-citation
     // summary note. A "note occurrence" is any string containing both "1798.145"
     // and "under which" (whitespace-normalized).
