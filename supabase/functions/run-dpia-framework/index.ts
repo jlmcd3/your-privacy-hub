@@ -7,7 +7,7 @@ import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
-import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
@@ -131,7 +131,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "2.7b PREREQUISITE-BLOCKED MEASURES: Where a measure is blocked by a prerequisite gap (e.g. erasure pending retention-period definition), keep the schema's status value but state in the appropriateness text that the measure depends on the named prerequisite, so the same gap is not double-counted.",
     "2.7c TRANSFERS VOICE: Where processor data-centre regions are unconfirmed, write to the organisation in the second person: \"The organisation must not conclude that no international transfers occur until processor data-centre regions are confirmed.\" Do NOT use generator voice (\"Do not assert 'no transfers'…\").",
     "2.7d ART 13 vs ART 14 DISTINCTION: Privacy-notice conditions distinguish Art. 14 (primary, where data is not obtained from the data subject — e.g. monitoring data collected about individuals) from Art. 13 (where identifiers are collected directly from the data subject). Cite whichever applies to the specific data flow rather than defaulting to Art. 13.",
-    "2.7 S1 SCHEMA — INFORMATION NEEDED: In addition to the existing completion_guidance field, emit a top-level \"information_needed\" array. It is REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information; otherwise emit an empty array. One entry per gap: { field: <intake field key that exists in this DPIA's intake>, dimensions: <what specifically to add — dimensions, never suggested values>, provision: <already-cited provision making these dimensions relevant>, enables: <which section/determination completes with it> }. Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry. Do NOT merge information_needed into completion_guidance — the two coexist.",
+    "2.7 S1 SCHEMA — INFORMATION NEEDED (REBUILD-DPIA advocate-drafter voice): information_needed is keyed to VERDICT-BLOCKING gaps ONLY — record items whose absence prevents a specific determination from resolving on the record. Record-completeness residuals (add depth without changing a determination) DO NOT surface as information_needed entries; they fold into the credit-first narrative in the relevant section, named constructively without an ask. Enhancement items never surface as asks (kept). One entry per verdict-blocking gap: { field: <intake field key that exists in this DPIA's intake>, dimensions: <the specific facts to add — never legal conclusions, never determinations, never 'confirm whether [law] applies'>, provision: <already-cited provision the missing fact completes>, enables: <which section/determination completes with it> }. Asks request FACTS only, never legal conclusions. Emit an empty array when the record has no verdict-blocking gaps. Do NOT merge information_needed into completion_guidance — the two coexist.",
     "RESIDUAL-RISK ROW PARITY: every risk listed in the inherent risk assessment must have a corresponding entry in the residual risk assessment — same risk name, a proposed residual level, and the additional measures from the action plan that produce it. The two arrays must have matching membership; before emitting, reconcile them and never silently drop a risk between inherent and residual. Where the residual position genuinely cannot be assessed, the residual entry says so explicitly rather than being omitted.",
     "NOT-IMPLEMENTED MEASURES MUST HAVE PLAN ITEMS: any measure whose implementation_status is 'Not implemented' (or partially implemented) must map to at least one action-plan item that tasks its implementation, with the standard [TO COMPLETE — responsible team and deadline] placeholder. Before emitting, reconcile the measures list against the plan: a measure flagged as missing with no plan item tasking it is an internal inconsistency.",
     "UNRESOLVED DETERMINATIONS STAY UNRESOLVED EVERYWHERE: where a determination is left open as a fill-in (e.g. the controller's EU main-establishment status and one-stop-shop availability under Art. 56(1)), every field that references it must express the same open status — never assert it as settled fact in one field (dpia_metadata.supervisory_authority_consultation_trigger, section_6_conclusion) while another field carries the [TO COMPLETE] placeholder. Canonical form for the OSS case (scoped to THIS controller, not a general statement about OSS availability): 'On the facts of this intake, no EU main establishment has been identified for this controller; OSS availability for this controller cannot be determined until the controller's main-establishment status is confirmed. If no EU main establishment exists for this controller, or an EU establishment of this controller lacks decision-making authority over this processing, OSS is unavailable under Art. 56(1) for this controller and each concerned supervisory authority is independently competent. [TO COMPLETE — confirm main-establishment status for this controller and document the Art. 56(1) determination.]' Do NOT drop the 'for this controller' qualifier — a bare 'OSS is unavailable' reads as a general statement about OSS availability rather than a controller-specific determination.",
@@ -163,14 +163,213 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "UNCONFIRMED FACTS ARE NEVER MITIGATING FACTORS: an unverified assertion (e.g. 'data not shared with advertisers (unconfirmed)') never appears in a mitigating-factors list — move it to a to-be-confirmed note; its mitigating effect cannot be credited until confirmed.",
     "THE DPIA TRIGGER IS INDEPENDENT OF THE ART. 35(3) LIST: where a WP248 criterion (e.g. systematic monitoring) fires, state that the DPIA is mandatory under Art. 35(1) on that basis, independently of whether any Art. 35(3) enumerated type is engaged; never imply Art. 35(3) list-membership is required for the obligation.",
     "CAUSALLY LINKED RISKS STATE THEIR HIERARCHY: where one risk is a precondition of another's analysis (e.g. invalid legal basis vs downstream balancing risks), state the dependency — the threshold risk first, the dependent risk labelled as conditional on the threshold being resolved.",
-    "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination this tool computes from structured intake fields (M1 special-category data; M2 children's data; M3 Art. 9(2) condition selected; M4 legal basis selected; M5 GDPR applies; M6 international-transfer surface; M7 retention documented; M8 DPO named; M9 profiling narrative CANDIDATE). Tests marked RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — bind their determination and MUST NOT be re-asked in completion_guidance, information_needed, or [TO COMPLETE] placeholders, and MUST NOT be contradicted in prose. INDETERMINATE tests use insufficient-basis language and route to the specific intake field named in the block. M9 is a CANDIDATE, NOT a RESOLUTION: keyword presence directs attention to Art. 35(3)(a) as a JUDGMENT call — assess the description and confirm or reject the prong, citing the narrative language; keyword absence is NOT proof of non-profiling. All other WP248 prongs (large-scale, matching, vulnerable beyond children, innovative tech, systematic monitoring under 35(3)(c)) remain JUDGMENT calls governed by the existing ARTICLE 35 MANDATORY TRIGGER RULE — no mechanical test binds them.",
-    "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking and record-completeness items appear in completion_guidance and information_needed (verdict-blocking listed first). Enhancement items — depth improvements no cited provision requires — appear ONLY in method/methodology narrative, never as a completion_guidance or [TO COMPLETE] item. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the intake and RESOLVED tests establish BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies (e.g. do not [TO COMPLETE] the Art. 9(2) condition when M3 is RESOLVED_MET). (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element (e.g. 'the specific Art. 46 safeguard') rather than collapsing the whole determination.",
+    "TEST-STATES ARE BINDING (R1b2 rule 2a; REBUILD-DPIA advocate-drafter voice): the injected TEST-STATES block records the deterministic state of each mechanical determination this tool computes from structured intake fields (M1 special-category data; M2 children's data; M3 Art. 9(2) condition selected; M4 legal basis selected; M5 GDPR applies; M6 international-transfer surface; M7 retention documented; M8 DPO named; M9 profiling narrative CANDIDATE). Tests marked RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — bind their determination and MUST NOT be re-asked in completion_guidance, information_needed, or [TO COMPLETE] placeholders, and MUST NOT be contradicted in prose. INDETERMINATE TESTS USE ADVOCATE-DRAFTER VOICE: state what the recorded facts DO establish, then 'the record does not yet resolve [the specific determination]; recording [the named intake field/fact] completes it.' NEVER use clearance or sufficiency verdicts. HARD PROSE BLACKLIST across every user-facing field (executive_summary, section_0..section_9 prose, dpia_metadata, completion_guidance, information_needed, [TO COMPLETE] placeholders, and any body text the reader sees): 'insufficient basis', 'not substantiated', 'cannot be confirmed', 'no basis to assess', 'in the clear'. M9 is a CANDIDATE, NOT a RESOLUTION: keyword presence directs attention to Art. 35(3)(a) as a JUDGMENT call — assess the description and confirm or reject the prong, citing the narrative language; keyword absence is NOT proof of non-profiling. All other WP248 prongs (large-scale, matching, vulnerable beyond children, innovative tech, systematic monitoring under 35(3)(c)) remain JUDGMENT calls governed by the existing ARTICLE 35 MANDATORY TRIGGER RULE — no mechanical test binds them.",
+    "PROPORTIONATE ASKS (R1b2 rule 2b; REBUILD-DPIA advocate-drafter alignment): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. ONLY verdict-blocking items appear in information_needed (the ask surface). Record-completeness items appear in the section's narrative in credit-first form ('The record establishes X and Y; adding Z would deepen the DPIA'), never as an ask. Enhancement items appear ONLY in method/methodology narrative, never as a completion_guidance or [TO COMPLETE] item. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record and RESOLVED tests DO establish BEFORE stating what would complete it; the residual is incremental and NEVER re-requests content the record already supplies (e.g. do not [TO COMPLETE] the Art. 9(2) condition when M3 is RESOLVED_MET; do not ask for the supervisory authority when the record names it). (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element (e.g. 'the specific Art. 46 safeguard') in advocate-drafter voice — 'the record does not yet resolve which Art. 46 safeguard applies; recording the transfer instrument completes it.' (iv) ASKS REQUEST FACTS ONLY — never a legal conclusion, never 'confirm whether [law] applies', never 'determine whether the exception is met'.",
     "TRIGGER STATUS (R1b2 formalisation of ARTICLE 35 MANDATORY TRIGGER RULE): read TEST-STATES M1, M2, and M9 as the binding surface for the enumerated WP248 prongs this tool computes. Where M1 is RESOLVED_MET, cite Art. 35(3)(b) as engaged and name the special category from the intake; where M2 is RESOLVED_MET, cite Recital 38 and the heightened-protection duty; where M9 is CANDIDATE, treat Art. 35(3)(a) as a JUDGMENT call — quote or paraphrase the description language that raised the candidate and either confirm the prong (citing the language) or reject it (explaining why the language does not reach 'systematic and extensive profiling with significant effects'). Never assert Art. 35(3)(a) is engaged solely because M9 is CANDIDATE; never deny it solely because M9 is INDETERMINATE.",
-    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M2, M9, …), or the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE) anywhere in section_1..section_9 prose, completion_guidance, information_needed, [TO COMPLETE] placeholders, executive_summary, or any other user-visible output. State the conclusion with its factual basis instead — 'the intake declares processing of health data, engaging Art. 9(1)' — never '(M1 resolved met)' or 'per TEST-STATES M1'. Same philosophy as NO SYSTEM-ROUTING VOICE.",
+    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11; REBUILD-DPIA T7c internal-vocab class ban extension): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1..M9), the state tokens (resolved_met, resolved_not_met, RESOLVED_MET, RESOLVED_NOT_MET, INDETERMINATE, CANDIDATE), schema field names (completion_guidance, information_needed, dpia_metadata, section_0..section_9), or UI mechanics anywhere in user-visible output — cross-reference by human section name instead. Judgment-classification vocabulary in prose is likewise banned: 'candidate' as a classification label ('criterion 5 — candidate requiring volume confirmation') and drafting-process language ('before finalising', 'to be finalised') NEVER appear in user-facing text; state the judgment and its basis instead. State the conclusion with its factual basis — 'the record declares processing of health data, engaging Art. 9(1)' — never '(M1 resolved met)' or 'per TEST-STATES M1'.",
+    "CANONICAL RECORD REFERENCE (REBUILD-DPIA T4; CEO ruling D3, cross-tool): user-facing prose refers to intake content as 'the record' — 'the record shows…', 'on the record'. NEVER 'the intake states', 'the intake records', 'the submission', 'the form', or 'the questionnaire' in any user-facing prose. Intake field ids remain permitted ONLY in information_needed.field and source_fields anchors; never in narrative prose.",
+    "TEMPLATE-BASIS FIDELITY (REBUILD-DPIA T5a; W3-G folded): dpia_metadata.template_basis states ONLY verified, released template identity — never future-dated authority, never a draft/consultation label, never a version number or date unless corpus-verified. The safe canonical form is 'EDPB (endorsed) Guidelines on DPIA (WP248 rev.01)'.",
+    "ARTICLE 35(3) TRIGGER NAMES THE CATEGORIES (REBUILD-DPIA T5b): dpia_metadata.article_35_3_trigger names WHICH recorded data categories engage Art. 35(3)(b) when it is engaged — 'Art. 35(3)(b): the record declares processing of [health data / children's data / …] on a large scale'. Never cite Art. 35(3)(b) without naming the special category from the record.",
+    "NIS2 IS CONDITIONAL (REBUILD-DPIA T5c): NIS2 and sectoral cybersecurity obligations are never asserted from industry alone. State them conditionally: 'the record should be assessed to confirm whether NIS2 applies (whether the entity qualifies as an essential/important entity under the Directive's Annex I/II sectors and size thresholds)'. Do not write 'NIS2 applies' from a sector label.",
+    "W3-A FABRICATION BAN (REBUILD-DPIA T5d — carried verbatim): facts are never invented. Absent facts are named as absent, never filled with plausible substitutes. Where a magnitude, date, cadence, volume, or specific fact is not in the record, state it as absent and route the missing item — never a fabricated figure, approximation, or industry benchmark.",
+    "ART. 4(16) MAIN-ESTABLISHMENT LOGIC FOLLOWS THE RECORD (REBUILD-DPIA T5e; batch 4487d55d evidence): when controller_country / central_administration_country place the controller IN the EU/EEA, the main establishment is the place of central administration — Art. 4(16)(a). The Art. 4(16)(b) non-EU-establishment template is used ONLY when the record places the controller OUTSIDE the EU. NEVER assert 'central administration is outside the EU' against recorded facts. For a Sweden-established controller with Swedish central administration, the main establishment is Sweden and IMY (Integritetsskyddsmyndigheten) is the lead SA — do NOT route this through the Art. 4(16)(b) non-EU template.",
+    "KNOWN-AUTHORITY POPULATION (REBUILD-DPIA T5f; credit-first): where the record names or determines the competent / lead supervisory authority (whether by explicit reference or by controller_country → SA mapping — Sweden→IMY, Germany→relevant Land authority, France→CNIL, Ireland→DPC, Netherlands→AP, etc.), POPULATE the authority in every field that names it. NEVER emit '[TO COMPLETE — identify the supervisory authority]' when the record supplies it. Reserve the placeholder for the genuinely undetermined case.",
+    "FRAMEWORK FIDELITY FOLLOWS THE RECORD (REBUILD-DPIA T5b; same defect class as dpa W3-H): the frameworks applied to the DPIA are those the RECORDED jurisdictions engage. GDPR is applied as binding ONLY when the record engages it — an EU/UK jurisdiction is selected in the record, or the record establishes an EU establishment engaging Art. 3(1), in which case the Art. 3 basis is STATED explicitly. Where the record excludes EU/UK deployments (e.g. jurisdictions = United States — Federal / California / Canada with an explicit out-of-scope statement), GDPR obligations are framed as PROSPECTIVE / CONDITIONAL to any planned EU/UK expansion — never 'DPIA mandatory under GDPR Article 35(1)'. The primary framework of the document = the record's primary jurisdiction. Comparative references to non-engaged frameworks are LABELLED comparative ('for comparison, under GDPR Art. 35(1) …'). This rule governs the ARTICLE 35 MANDATORY TRIGGER RULE: WP248 criteria analysis proceeds under whichever framework the record engages.",
+    "NECESSITY — ADVOCATE-DRAFTER VOICE PER ACTIVITY (REBUILD-DPIA T6a): section_3 necessity states alternatives-considered reasoning PER processing activity. Where the record is thin, use advocate-drafter voice — 'the recorded facts support a colorable argument that [X] is necessary because [Y]; recording [the named alternatives / minimisation choices] would strengthen this' — NEVER 'the record is thin', 'inadequate', or clearance-verdict phrasing.",
+    "METHODOLOGY-ADOPTION IS A CONDITIONAL STATEMENT, NOT AN ASK (REBUILD-DPIA T6b): in section_4, the risk-methodology adoption is stated conditionally — 'the methodology described here should be formally adopted by the organisation if not already in force' — never as an ask, never as a completion_guidance item. Where the methodology yields residual risks that remain High after proposed measures, NAME the specific risks whose proposed residual is High.",
+    "IPv6 ANONYMISATION PRECISION (REBUILD-DPIA T6c): IPv6 masking covers the interface-identifier portion (typically the FINAL 64 BITS). Never describe IPv6 anonymisation as 'last-octet' masking (that is IPv4 terminology and technically incorrect for IPv6).",
+    "ART. 35(9) VIEWS — DOCUMENT THE JUSTIFICATION (REBUILD-DPIA T6d): where the record indicates the views of data subjects were not sought under Art. 35(9), document the justification the record supports (e.g. 'seeking views would prejudice commercial or public interests; alternative consultation mechanisms X and Y are documented') — never a compliance-failure verdict.",
+    "SINGLE-POSITION RULE (REBUILD-DPIA T7a): dpia_metadata, executive_summary, section_6_conclusion, and every body section STATE ONE POSITION per determination. Summary chrome NEVER exceeds body certainty. Where the body reads 'strong argument that Art. 35(3)(b) is engaged', the summary and metadata mirror that position; a summary that reads 'trigger not confirmed' beside a body arguing engagement is a defect.",
+    "STATE-ONCE (REBUILD-DPIA T7b): each determination and contradiction appears in FULL exactly once, in its designated home section. Later references from other sections are one-line pointers to that home section, never restatements.",
+    "SECTION 6 NAMES ITS BLOCKERS IN ADVOCATE-DRAFTER VOICE (REBUILD-DPIA T7d): where approval or conditional approval turns on specific missing inputs, section_6_conclusion NAMES each blocker constructively with its completion path — 'the specific Art. 46 safeguard is the remaining verdict-blocking item; recording the transfer instrument completes it' — NEVER 'cannot approve' or clearance-verdict phrasing.",
+    "GDPR-CITES DEDUPE (REBUILD-DPIA T7e): gdpr_meta.gdprCites values are deterministically deduplicated exact-string, order-preserving. Never emit the same cite twice in that array.",
   ].join("\n\n"),
 
   languageVariant: "american",
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REBUILD-DPIA T3 — deterministic post-generation fallback (mirrors cppa-risk
+// POSTBATCH-1). Strips resolved-source information_needed asks and scrubs
+// TEST-STATES internal vocabulary when the retry budget is exceeded.
+// M9 is CANDIDATE-class per rule 168: never scrub it into a resolved-sounding
+// phrase — "the profiling review" is the canonical human phrase.
+// ─────────────────────────────────────────────────────────────────────────────
+export const DPIA_M_TOKEN_MAP: Record<string, string> = {
+  M1: "the special-category determination",
+  M2: "the children's-data determination",
+  M3: "the Art. 9(2) condition determination",
+  M4: "the legal-basis determination",
+  M5: "the GDPR-applicability determination",
+  M6: "the transfer review",
+  M7: "the retention review",
+  M8: "the DPO review",
+  M9: "the profiling review", // CANDIDATE-class — do NOT humanise into resolved-sounding phrasing
+};
+
+const DPIA_STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bis\s+resolved[_\s]met\b/gi, "is established on the record"],
+  [/\bare\s+resolved[_\s]met\b/gi, "are established on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]met\b/gi, "is not met on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]met\b/gi, "are not met on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]applicable\b/gi, "is not applicable on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]applicable\b/gi, "are not applicable on the record"],
+  [/\bRESOLVED[_\s]NOT[_\s]APPLICABLE\b/g, "not applicable on the record"],
+  [/\bresolved[_\s]not[_\s]applicable\b/gi, "not applicable on the record"],
+  [/\bRESOLVED[_\s]NOT[_\s]MET\b/g, "not met on the record"],
+  [/\bresolved[_\s]not[_\s]met\b/gi, "not met on the record"],
+  [/\bRESOLVED[_\s]MET\b/g, "established on the record"],
+  [/\bresolved[_\s]met\b/gi, "established on the record"],
+  [/\bINDETERMINATE\b/g, "indeterminate on the record"],
+];
+
+const DPIA_M_COMPOUND_REPLACEMENTS: Array<[RegExp, (id: string) => string]> = [
+  [/\bthe\s+(M[1-9])\s+(special-category|children's-data|condition|legal-basis|GDPR-applicability|transfer|retention|DPO|profiling)\s+(determination|review)\b/gi,
+    (id: string) => DPIA_M_TOKEN_MAP[id] ?? id],
+  [/\bthe\s+(M[1-9])\s+determination\b/gi, (id: string) => DPIA_M_TOKEN_MAP[id] ?? id],
+];
+
+function dpiaPostScrubCleanup(s: string): string {
+  let out = s.replace(/\bthe\s+the\b/gi, "the");
+  out = out.replace(/(\b\w[\w-]*\s+(determination|review))(?:\s+\w+){0,4}\s+(determination|review)\b/gi, "$1");
+  return out;
+}
+
+function dpiaScrubDeep(
+  node: unknown,
+  notes: Array<{ code: string; detail: string }>,
+  parentKey?: string,
+  insideInformationNeeded: boolean = false,
+): unknown {
+  if (typeof node === "string") {
+    const isAnchor = insideInformationNeeded && (parentKey === "field" || parentKey === "source_fields");
+    let out = node;
+    for (const [re, fn] of DPIA_M_COMPOUND_REPLACEMENTS) {
+      out = out.replace(re, (_m: string, id: string) => {
+        const human = fn(id);
+        if (human && human !== id) notes.push({ code: "test_token_scrubbed", detail: `${id}-compound→"${human}"` });
+        return human ?? _m;
+      });
+    }
+    for (const [re, repl] of DPIA_STATE_TOKEN_REPLACEMENTS) {
+      if (re.test(out)) {
+        out = out.replace(re, repl);
+        notes.push({ code: "test_token_scrubbed", detail: `state→"${repl}"` });
+      }
+    }
+    // Bare M-ids. M9 CANDIDATE-safe: its human phrase is intentionally non-resolved.
+    out = out.replace(/\b(M[1-9])\b/g, (_m, id: string) => {
+      const human = DPIA_M_TOKEN_MAP[id];
+      if (!human) return _m;
+      notes.push({ code: "test_token_scrubbed", detail: `${id}→"${human}"` });
+      return human;
+    });
+    if (/\bTEST-STATES\b/.test(out)) {
+      out = out.replace(/\bTEST-STATES\b/g, "the deterministic checks");
+      notes.push({ code: "test_token_scrubbed", detail: "TEST-STATES→\"the deterministic checks\"" });
+    }
+    if (!isAnchor) {
+      out = dpiaPostScrubCleanup(out);
+    }
+    return out;
+  }
+  if (Array.isArray(node)) return node.map((v) => dpiaScrubDeep(v, notes, parentKey, insideInformationNeeded));
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      const inIN = insideInformationNeeded || parentKey === "information_needed" || k === "information_needed";
+      out[k] = dpiaScrubDeep(v, notes, k, inIN);
+    }
+    return out;
+  }
+  return node;
+}
+
+function dpiaDropResolvedSourceAsks(
+  report: any,
+  testStates: Record<string, { state: string; source_fields?: string[] }>,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  const resolvedSources = new Set<string>();
+  for (const ts of Object.values(testStates ?? {})) {
+    if (ts && typeof ts.state === "string" && ts.state.startsWith("resolved")) {
+      for (const f of ts.source_fields ?? []) resolvedSources.add(f);
+    }
+  }
+  if (resolvedSources.size === 0) return report;
+
+  // 1) information_needed[] — same shape as cppa-risk.
+  const entries: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
+  const kept: any[] = [];
+  for (const e of entries) {
+    const fields: string[] = [];
+    if (typeof e?.field === "string") fields.push(e.field);
+    if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
+    if (fields.some((f) => resolvedSources.has(f))) {
+      notes.push({ code: "resolved_source_ask_dropped", detail: String(e?.field ?? e?.dimensions ?? "").slice(0, 120) });
+    } else {
+      kept.push(e);
+    }
+  }
+  if (kept.length !== entries.length) report.information_needed = kept;
+
+  // 2) completion_guidance items keyed to a resolved source (courier T3a).
+  const scanCG = (obj: any) => {
+    if (!obj || typeof obj !== "object") return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === "completion_guidance" && Array.isArray(v)) {
+        const keptCG: any[] = [];
+        for (const item of v) {
+          const s = typeof item === "string" ? item : (item && typeof item === "object" ? String((item as any).field ?? "") : "");
+          const fieldRef = typeof item === "object" && item ? String((item as any).field ?? "") : "";
+          if (fieldRef && resolvedSources.has(fieldRef)) {
+            notes.push({ code: "resolved_source_ask_dropped", detail: `completion_guidance:${fieldRef}` });
+            continue;
+          }
+          // Bare "[TO COMPLETE ... <field>]" placeholders whose field ref matches a resolved source
+          if (typeof item === "string" && /\[TO COMPLETE/.test(item)) {
+            const anyResolved = [...resolvedSources].some((f) => item.includes(f));
+            if (anyResolved) {
+              notes.push({ code: "resolved_source_ask_dropped", detail: `to_complete_placeholder:${s.slice(0, 80)}` });
+              continue;
+            }
+          }
+          keptCG.push(item);
+        }
+        (obj as any)[k] = keptCG;
+      } else if (v && typeof v === "object") {
+        scanCG(v);
+      }
+    }
+  };
+  scanCG(report);
+  return report;
+}
+
+export function applyDeterministicPostGenFallbackDpia(
+  parsed: any,
+  testStates: Record<string, { state: string; source_fields?: string[] }>,
+): { parsed: any; notes: Array<{ code: string; detail: string }> } {
+  const notes: Array<{ code: string; detail: string }> = [];
+  let out = dpiaDropResolvedSourceAsks(parsed, testStates, notes);
+  out = dpiaScrubDeep(out, notes) as any;
+  return { parsed: out, notes };
+}
+
+// Deterministic dedupe helper — REBUILD-DPIA T7e (gdpr_meta.gdprCites).
+export function dedupeStringArrayPreserveOrder(arr: unknown): string[] {
+  if (!Array.isArray(arr)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of arr) {
+    if (typeof v !== "string") continue;
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // R1b2 — deterministic TEST-STATES for the DPIA generator.
@@ -264,7 +463,7 @@ export function computeDpiaTestStates(intake: Record<string, any> | null | undef
 
 export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEntry>): string {
   const lines: string[] = [];
-  lines.push("TEST-STATES (deterministic — computed from the intake). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: do NOT re-ask it in completion_guidance/information_needed/[TO COMPLETE] placeholders and do NOT contradict it in prose. INDETERMINATE tests use insufficient-basis language anchored to the producing field. CANDIDATE tests are NON-BINDING attention flags for JUDGMENT calls — assess the underlying narrative and either confirm or reject the associated prong, citing the language.");
+  lines.push("TEST-STATES (deterministic — computed from the record). A test whose state is RESOLVED (met / not met / not applicable) is BINDING per rule 2a: do NOT re-ask it in completion_guidance/information_needed/[TO COMPLETE] placeholders and do NOT contradict it in prose. INDETERMINATE tests use ADVOCATE-DRAFTER voice — state what the record establishes, then 'the record does not yet resolve [the specific determination]; recording [the named field] completes it' — never 'insufficient basis' or clearance-verdict phrasing. CANDIDATE tests are NON-BINDING attention flags for JUDGMENT calls — assess the underlying narrative and either confirm or reject the associated prong, citing the language.");
   for (const id of Object.keys(states)) {
     const e = states[id];
     lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
@@ -286,7 +485,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "qlb-w2-abcd-pdf1@2026-07-15T03:00Z";
+export const BUILD_STAMP = "rebuild-dpia-r1@2026-07-17T00:00Z";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -1362,7 +1561,58 @@ async function runStitch(dpia_id: string): Promise<void> {
       for (const v of t3) lintViolations.push({ rule: "T-3", ...v });
       for (const v of t4) lintViolations.push({ rule: "T-4", ...v });
       for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
+
+      // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
+      // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present
+      // OR any information_needed entry re-requests a source_field backing a
+      // RESOLVED test. Idempotent on a clean document. Fire-and-forget lint
+      // telemetry via logPostGenLint (fail-open).
+      let dpiaFallbackApplied = false;
+      let dpiaFallbackNotes: Array<{ code: string; detail?: string }> = [];
+      let dpiaResidualResolvedAsks = 0;
+      try {
+        const testStatesForFallback = computeDpiaTestStates((dpiaIntake as Record<string, any>) ?? {});
+        const resolvedSources = new Set<string>();
+        for (const ts of Object.values(testStatesForFallback ?? {})) {
+          if (ts && typeof (ts as any).state === "string" && (ts as any).state.startsWith("resolved")) {
+            for (const f of (ts as any).source_fields ?? []) resolvedSources.add(f);
+          }
+        }
+        const infoNeeded: any[] = Array.isArray((reportData as any)?.information_needed) ? (reportData as any).information_needed : [];
+        dpiaResidualResolvedAsks = infoNeeded.filter((e: any) => {
+          const fs: string[] = [];
+          if (typeof e?.field === "string") fs.push(e.field);
+          if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fs.push(f);
+          return fs.some((f) => resolvedSources.has(f));
+        }).length;
+        if (t5Hits.length > 0 || dpiaResidualResolvedAsks > 0) {
+          const r = applyDeterministicPostGenFallbackDpia(reportData, testStatesForFallback as any);
+          Object.assign(reportData, r.parsed);
+          dpiaFallbackApplied = true;
+          dpiaFallbackNotes = r.notes;
+          console.warn(JSON.stringify({
+            evt: "post_gen_fallback_applied",
+            fn: "run-dpia-framework",
+            residual_leaks: t5Hits.length,
+            residual_resolved_asks: dpiaResidualResolvedAsks,
+            notes: r.notes.slice(0, 40),
+          }));
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] post-gen fallback failed (non-fatal):", (e as Error)?.message);
+      }
+      // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
+      logPostGenLint(supabase, {
+        functionName: "run-dpia-framework",
+        fallbackApplied: dpiaFallbackApplied,
+        residualLeaks: t5Hits.length,
+        residualResolvedAsks: dpiaResidualResolvedAsks,
+        notes: dpiaFallbackNotes,
+        sourceTable: "dpia_frameworks",
+        sourceRowId: dpia_id ?? null,
+      });
     }
+
 
     // Hard-key validation (courier §7). Guard against a stitched-empty doc.
     if (!reportData.section_0_overview && !reportData.section_4_risk_management) {
@@ -1373,6 +1623,12 @@ async function runStitch(dpia_id: string): Promise<void> {
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
     reportData.enforcement_meta = enforcementMeta;
+    // REBUILD-DPIA T7e — deterministic dedupe of gdprCites (exact-string, order-preserving).
+    try {
+      if (gdprMeta && Array.isArray((gdprMeta as any).gdprCites)) {
+        (gdprMeta as any).gdprCites = dedupeStringArrayPreserveOrder((gdprMeta as any).gdprCites);
+      }
+    } catch { /* non-fatal */ }
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
     reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", STAMP) };

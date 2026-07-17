@@ -18,7 +18,7 @@
 // (tracked as a follow-up) before it can render the new output structure.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
@@ -109,6 +109,32 @@ const M_TOKEN_MAP: Record<string, string> = {
   M10: "the canonical-dates review",
 };
 
+// REBUILD-DPIA T10a — compound-first patterns BEFORE the bare-id pass.
+// Catches "the M<n> (cohort |audit |trigger )?determination" so the whole
+// phrase is replaced atomically, preventing double-noun artefacts
+// (batch 4487d55d: "the M6 cohort determination" formerly became
+// "the the audit-cohort determination cohort determination").
+const M_COMPOUND_REPLACEMENTS: Array<[RegExp, (id: string) => string]> = [
+  [/\bthe\s+(M10|M[1-9])\s+(cohort|audit|trigger)\s+determination\b/gi, (id: string) => M_TOKEN_MAP[id] ?? id],
+  [/\bthe\s+(M10|M[1-9])\s+determination\b/gi, (id: string) => M_TOKEN_MAP[id] ?? id],
+];
+
+// REBUILD-DPIA T10b — prose field-id scrub map. Raw intake field ids in prose
+// (outside information_needed.field / source_fields anchors) are C5 violations
+// and co-trigger qc_r1_1. This map applies to *prose* fields only; the
+// applyDeterministicPostGenFallback walker excludes information_needed
+// entries' `field`/`source_fields` values.
+export const PROSE_FIELD_ID_MAP: Record<string, string> = {
+  q18_admt_use: "the ADMT-use answer",
+  q18b_admt_training: "the ADMT-training answer",
+  q5_sell_share: "the sale/share answer",
+  q5c_share_revenue_50pct: "the 50%-revenue answer",
+  q15_sensitive_pi: "the sensitive-PI answer",
+  q15c_spi_volume: "the sensitive-PI volume figure",
+  q5b_profiling_observation: "the profiling-observation answer",
+  q15b_under16_knowledge: "the under-16 knowledge answer",
+};
+
 const STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
   // Compound "is/are resolved <state>" forms first — most specific.
   [/\bis\s+resolved[_\s]met\b/gi, "is established on the record"],
@@ -127,42 +153,82 @@ const STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
   [/\bINDETERMINATE\b/g, "indeterminate on the record"],
 ];
 
+// Post-scrub cleanup: collapse "the the" and immediate duplicated trailing
+// noun ("determination ... determination" within 6 words of a scrub site).
+function postScrubCleanup(s: string): string {
+  let out = s.replace(/\bthe\s+the\b/gi, "the");
+  // Collapse duplicated "determination" within 6 words:
+  //   "audit-cohort determination cohort determination" → "audit-cohort determination"
+  out = out.replace(/(\b\w[\w-]*\s+determination)(?:\s+\w+){0,4}\s+determination\b/gi, "$1");
+  return out;
+}
+
+// PROSE FIELDS ONLY: recurse into strings, but never rewrite the values of
+// information_needed[].field or information_needed[].source_fields (Task 10b).
 function scrubTestTokensDeep(
   node: unknown,
   notes: Array<{ code: string; detail: string }>,
+  parentKey?: string,
+  insideInformationNeededEntry: boolean = false,
 ): unknown {
   if (typeof node === "string") {
+    // Preserve raw intake-field ids inside information_needed entry anchors.
+    const isAnchor = insideInformationNeededEntry && (parentKey === "field" || parentKey === "source_fields");
     let out = node;
+
+    // Compound M-phrase pass (BEFORE bare-id pass; Task 10a).
+    for (const [re, replFn] of M_COMPOUND_REPLACEMENTS) {
+      out = out.replace(re, (_m: string, id: string) => {
+        const human = (replFn as any)(id);
+        if (human && human !== id) notes.push({ code: "test_token_scrubbed", detail: `${id}-compound→"${human}"` });
+        return human ?? _m;
+      });
+    }
+    // State-token pass.
     for (const [re, repl] of STATE_TOKEN_REPLACEMENTS) {
       if (re.test(out)) {
         out = out.replace(re, repl);
         notes.push({ code: "test_token_scrubbed", detail: `state→"${repl}"` });
       }
     }
-    // Standalone M-ids: M1..M10 (order M10 before M1 by using \b(M10|M[1-9]) via alt).
+    // Bare M-id pass.
     out = out.replace(/\b(M10|M[1-9])\b/g, (_m, id: string) => {
       const human = M_TOKEN_MAP[id];
       if (!human) return _m;
       notes.push({ code: "test_token_scrubbed", detail: `${id}→"${human}"` });
       return human;
     });
-    // Bare literal "TEST-STATES" reference in prose.
+    // TEST-STATES literal.
     if (/\bTEST-STATES\b/.test(out)) {
       out = out.replace(/\bTEST-STATES\b/g, "the deterministic checks");
       notes.push({ code: "test_token_scrubbed", detail: "TEST-STATES→\"the deterministic checks\"" });
     }
+    // Prose field-id pass (Task 10b) — NEVER touch anchors.
+    if (!isAnchor) {
+      for (const [fid, human] of Object.entries(PROSE_FIELD_ID_MAP)) {
+        const re = new RegExp("\\b" + fid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g");
+        if (re.test(out)) {
+          out = out.replace(re, human);
+          notes.push({ code: "prose_field_id_scrubbed", detail: `${fid}→"${human}"` });
+        }
+      }
+    }
+    // Cleanup pass (Task 10a).
+    out = postScrubCleanup(out);
     return out;
   }
-  if (Array.isArray(node)) return node.map((v) => scrubTestTokensDeep(v, notes));
+  if (Array.isArray(node)) return node.map((v) => scrubTestTokensDeep(v, notes, parentKey, insideInformationNeededEntry));
   if (node && typeof node === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
-      out[k] = scrubTestTokensDeep(v, notes);
+      const inIN = insideInformationNeededEntry || parentKey === "information_needed";
+      out[k] = scrubTestTokensDeep(v, notes, k, inIN);
     }
     return out;
   }
   return node;
 }
+
 
 function dropResolvedSourceAsks(
   report: any,
@@ -440,6 +506,8 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "PROPORTIONATE ASKS (R1b1 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Only verdict-blocking and record-completeness items appear in information_needed (verdict-blocking listed first). Enhancement items appear ONLY in the strengthen/depth mechanism (strengthen_items), with no urgency language. (ii) CREDIT-FIRST — for any partially evidenced determination, name what the record establishes BEFORE the residual; the residual is incremental (e.g. 'Additional recipients should be named, with the categories of PI each processes'), and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole determination when only an increment is missing. Where a missing piece IS verdict-blocking, name the specific element that blocks it rather than collapsing the whole determination.",
     "ADMT ASK ROUTING (R1b1 rule 2e): any information_needed entry arising from a q18-class ADMT determination anchors to `i5_admt_logic` (the free-text home for ADMT logic/description), NEVER to q18/q19/q20 radios. Where the ask genuinely concerns a radio's binary state (rare), route it via the record-completion action rather than an information_needed entry.",
     "CONTRADICTION-ASK SHAPE (POSTBATCH-1): when narrative fields (e.g. q19_admt_description, i5_admt_logic) establish ADMT engagement while a structured field negates it (e.g. q18b_admt_training = No), the report TAKES ONE POSITION in the conclusion — the strong/colorable argument the trigger is engaged via the documented role, with a note that the contrary indicator should be reconciled — emits EXACTLY ONE inconsistency_flags entry naming the specific conflicting fields, and MAY name reconciliation in strengthen_items. NEVER emit an information_needed entry asking the controller/user to determine which provision applies or to choose between the conflicting answers. The assessment makes the legal determination; information_needed asks may request FACTS only, never legal conclusions. This complements TEST-STATES ARE BINDING: M7's source_fields span all six trigger fields, so any trigger-field information_needed entry is per se invalid.",
+    "ADMT-RATIONALE SINGLE-POSITION RULE (REBUILD-DPIA T10c; batch 4487d55d): cross_tool_recommendations.admt_assessment_rationale takes ONE position in advocate-drafter voice. Where the record presents the training/engagement contradiction (narrative fields establish ADMT engagement while a structured field negates it), state the strong or colorable argument the § 7150(b) trigger analysis supports on the recorded facts, and point the reader to the Inconsistencies section for the reconciliation item. NEVER write 'cannot be determined on the current record', 'the record is inconclusive', or any equivalent hedge in this field. Contradiction hedges belong in inconsistency_flags, not in this rationale.",
+    "CITE-ONLY-ENGAGED-SUBSECTIONS (REBUILD-DPIA T10d; batch 4487d55d): when citing § 7150(b) triggers, cite ONLY the subsection(s) the record engages — never bundle a range that includes uninvolved subsections. If the record engages the (b)(4) profiling-class facts only, cite § 7150(b)(4); do not append (b)(5) sensitive-location trigger citations without sensitive-location facts. The same rule governs every enumerated-trigger citation across the document.",
     "GUIDED-DIMENSIONS FOR OVERLOADED FREE-TEXT FIELDS (R1b1 rule 2f; W3-A revision): information_needed entries anchored to `i6_vendors`, `i2_retention_period`, or `i1b_min_pi` MUST enumerate the DIMENSIONS a sufficient answer covers (per ACTIONABLE FILL-IN GUIDANCE). Name the missing dimensions and stop. Never emit a bare 'provide more detail' ask for these fields, and NEVER close with platform-internal instruction phrasing such as 'enrich this field and re-run', 'provide these details and regenerate', or any other mechanism-referencing directive to the reader.",
     "VOCABULARY — 'GAP' IS BANNED IN PROSE: the word 'gap'/'gaps' must not appear anywhere in generated prose. Use 'deficiency', 'shortfall', or 'missing element' instead. The only permitted occurrence is the exact schema enum value 'Material gaps identified' where the schema requires it.",
     "SPI PRONG CITATION IS BINDING (QLB-W2A rule 1; GRADER-1 T6b — human phrasing only in prose): when the § 7120(b)(2)(B) sensitive-PI prong is resolved met on the current record, the report MUST reference § 7120(b)(2)(B) by name in its applicability/scope analysis (typically in cybersecurity_audit_rationale and any scope narrative that turns on the SPI-volume threshold), and MUST state the conclusion with its factual basis in human phrasing (e.g. 'the § 7120(b)(2)(B) sensitive-PI threshold is met: the intake records sensitive-PI volume at 50,000 or more'). Never state that the audit is triggered without naming the § 7120(b)(2)(B) subsection as the operative authority when the prong is resolved met. Raw intake field ids MUST NOT appear in this prose (they are permitted only in information_needed.field / source_fields anchors — see the INTERNAL-VOCAB CLASS BAN).",
@@ -1019,9 +1087,12 @@ async function runPipeline(assessment_id: string) {
           if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
           return fields.some((f) => resolvedSources.has(f));
         });
-        if (residualLeaks.length > 0 || residualResolvedAsks.length > 0) {
+        const applied = residualLeaks.length > 0 || residualResolvedAsks.length > 0;
+        let fallbackNotes: Array<{ code: string; detail?: string }> = [];
+        if (applied) {
           const result = applyDeterministicPostGenFallback(parsed, testStates);
           parsed = result.parsed;
+          fallbackNotes = result.notes;
           console.warn(JSON.stringify({
             evt: "post_gen_fallback_applied",
             fn: "run-cppa-risk-assessment",
@@ -1031,7 +1102,19 @@ async function runPipeline(assessment_id: string) {
             notes: result.notes.slice(0, 40),
           }));
         }
+        // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
+        logPostGenLint(supabase, {
+          functionName: "run-cppa-risk-assessment",
+          fallbackApplied: applied,
+          retryWithinBudget,
+          residualLeaks: residualLeaks.length,
+          residualResolvedAsks: residualResolvedAsks.length,
+          notes: fallbackNotes,
+          sourceTable: "cppa_assessments",
+          sourceRowId: assessment_id ?? null,
+        });
       }
+
 
 
     } catch (e) {

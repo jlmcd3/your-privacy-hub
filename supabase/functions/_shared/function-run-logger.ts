@@ -197,5 +197,63 @@ export async function failFunctionRun(
     ...(run.startPayload ?? { function_name: run.function_name, metadata: {} }),
     ...patch,
     started_at: new Date(run.startedMs).toISOString(),
-  }, run.function_name);
+}, run.function_name);
 }
+
+// REBUILD-DPIA T9 (MC-G1) — persistent post-generation lint telemetry.
+// Fire-and-forget: a logging failure NEVER affects the generation. One row per
+// generation, event='post_gen_lint', metadata capped to the shape the courier
+// specifies (fallback_applied, retry_within_budget, residual_leaks,
+// residual_resolved_asks, notes ≤40).
+export interface PostGenLintPayload {
+  functionName: string;
+  fallbackApplied: boolean;
+  retryWithinBudget?: boolean;
+  residualLeaks: number;
+  residualResolvedAsks: number;
+  notes: Array<{ code: string; detail?: string }>;
+  sourceTable?: string;
+  sourceRowId?: string | null;
+  extra?: Record<string, unknown>;
+}
+
+export function logPostGenLint(supabase: any, payload: PostGenLintPayload): void {
+  try {
+    const meta = {
+      event: "post_gen_lint",
+      fallback_applied: !!payload.fallbackApplied,
+      retry_within_budget: payload.retryWithinBudget ?? null,
+      residual_leaks: payload.residualLeaks ?? 0,
+      residual_resolved_asks: payload.residualResolvedAsks ?? 0,
+      notes: (payload.notes ?? []).slice(0, 40),
+      ...(payload.extra ?? {}),
+    };
+    const nowIso = new Date().toISOString();
+    const row = {
+      function_name: payload.functionName,
+      status: "success",
+      started_at: nowIso,
+      finished_at: nowIso,
+      duration_ms: 0,
+      source_table: payload.sourceTable ?? null,
+      source_row_id: payload.sourceRowId ?? null,
+      metadata: meta,
+    };
+    // Fire-and-forget: try SDK first; then REST; both silent-on-failure.
+    Promise.resolve()
+      .then(async () => {
+        try {
+          const { error } = await supabase.from("function_runs").insert(row);
+          if (!error) return;
+          console.warn("[post-gen-lint] SDK insert failed:", error);
+        } catch (e) {
+          console.warn("[post-gen-lint] SDK insert threw:", e);
+        }
+        await insertViaRest(row);
+      })
+      .catch((e) => console.warn("[post-gen-lint] telemetry threw:", e));
+  } catch (e) {
+    console.warn("[post-gen-lint] telemetry setup failed:", e);
+  }
+}
+
