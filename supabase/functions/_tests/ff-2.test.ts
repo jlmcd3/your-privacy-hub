@@ -47,6 +47,32 @@ Deno.test("FF-2 T1: over-budget/still-hits path — caller emits blacklist_phras
   assert(parsed.lint_warnings.some((w: any) => w.code === "blacklist_phrase_shipped" && w.match.toLowerCase() === "insufficient basis"));
 });
 
+// FF-2-HF1 — enum-value field exclusion.
+Deno.test("FF-2-HF1: enum-value fields do NOT trigger detector", () => {
+  const doc = {
+    overall_risk_level: "Insufficient basis",
+    exceptions_status: "Insufficient basis to assess",
+    benefits_outweigh_risks_conclusion: "Insufficient basis",
+    readiness_level: "Insufficient basis to assess",
+    // nested / arrayed enum fields still excluded by leaf name.
+    domains: [{ readiness_level: "Insufficient basis to assess" }],
+    section: { overall_risk_level: "Insufficient basis" },
+  };
+  const hits = detectBlacklistPhrases(doc);
+  assertEquals(hits.length, 0, `unexpected hits: ${JSON.stringify(hits)}`);
+});
+
+Deno.test("FF-2-HF1: same phrase in a prose field is still detected", () => {
+  const doc = {
+    overall_risk_level: "Insufficient basis", // excluded (enum)
+    executive_summary: "This finding provides Insufficient Basis on the record.", // prose — detected
+  };
+  const hits = detectBlacklistPhrases(doc);
+  assertEquals(hits.length, 1);
+  assertEquals(hits[0].path, "executive_summary");
+});
+
+
 // FF-2 T3 — done-marker skip logic (pure predicate, mirrors sweep gate).
 type LogRow = { message: string };
 function shouldSkipForDoneMarker(logs: LogRow[]): boolean {
