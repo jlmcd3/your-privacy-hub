@@ -675,11 +675,11 @@ STAGE 5 — ORGANISATIONAL CONTEXT:
 Company: ${org_context.company_name}
 Sector: ${org_context.sector}
 Annual revenue band (§ 1798.140(d)(1)(A)): ${q1RevenueBand}
-Privacy counsel engaged: ${org_context.privacy_counsel_engaged ? "Yes" : "No"}
-DPO/Privacy Officer: ${org_context.dpo_or_privacy_officer ? "Yes" : "No"}
-Board-level privacy oversight: ${org_context.board_level_oversight ? "Yes" : "No"}
+Privacy counsel engaged: ${org_context.privacy_counsel_engaged === true ? "Yes" : org_context.privacy_counsel_engaged === false ? "No" : "Not recorded"}
+DPO/Privacy Officer: ${org_context.dpo_or_privacy_officer === true ? "Yes" : org_context.dpo_or_privacy_officer === false ? "No" : "Not recorded"}
+Board-level privacy oversight: ${org_context.board_level_oversight === true ? "Yes" : org_context.board_level_oversight === false ? "No" : "Not recorded"}
 Existing privacy programme: ${org_context.existing_privacy_programme}
-CPPA audit notification received: ${org_context.cppa_audit_notification_received ? "YES — URGENT" : "No"}
+CPPA audit notification received: ${org_context.cppa_audit_notification_received === true ? "YES — URGENT" : org_context.cppa_audit_notification_received === false ? "No" : "Not recorded"}
 ${org_context.additional_context ? `Additional context: ${org_context.additional_context}` : ""}
 ${intake.content_detail ? `
 § 7152(a)(1)–(9) CONTENT DETAIL (from the user's intake — map each to its required content element; treat blanks as fill-ins, not findings of absence):
