@@ -28,7 +28,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "ff-1-kickoff-pickup+export-retry@2026-07-17";
+export const BUILD_STAMP = "ff-3-hf1-partial-guard@2026-07-17";
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
 
@@ -144,14 +144,32 @@ async function runExportRetrySweep(admin: any): Promise<ExportSweepDecision> {
     // Fallback pre-marker guard: skip if any qa_pdf_exports row exists for
     // this batch (legacy path — write a done marker so future ticks short-
     // circuit above without re-querying qa_pdf_exports).
+    //
+    // FF-3-HF1 (PDF-partial guard): never write a done-marker when this
+    // batch has any prior log line recording a partial export
+    // (`failed=N` where N>0). A backfilled done-marker on a partial export
+    // strands PAID docs (batch 3abe5259 docs 2/3 lived here) because the
+    // retry sweep short-circuits above and never re-attempts them.
     const { count: exportCount } = await admin
       .from("qa_pdf_exports").select("id", { count: "exact", head: true }).eq("batch_id", b.id);
     if ((exportCount ?? 0) > 0) {
-      await admin.from("quality_batch_log").insert({
-        run_id: b.id, level: "info",
-        message: `pdf_export_done: ${b.id} inserted=${exportCount} (backfilled_from_row_presence)`,
+      const { data: failLogs } = await admin
+        .from("quality_batch_log").select("id, message")
+        .eq("run_id", b.id).ilike("message", "%failed=%");
+      const hadFailure = Array.isArray(failLogs) && failLogs.some((r: any) => {
+        const m = /failed=(\d+)/.exec(String(r?.message ?? ""));
+        return !!m && Number(m[1]) > 0;
       });
-      continue;
+      if (hadFailure) {
+        // Partial export — allow the retry sweep below to attempt again.
+        // Do NOT continue; fall through so this batch is considered for retry.
+      } else {
+        await admin.from("quality_batch_log").insert({
+          run_id: b.id, level: "info",
+          message: `pdf_export_done: ${b.id} inserted=${exportCount} (backfilled_from_row_presence)`,
+        });
+        continue;
+      }
     }
     // Skip if this batch has no runs/docs (nothing to export).
     const results: any[] = Array.isArray(b.tool_results) ? b.tool_results : [];
