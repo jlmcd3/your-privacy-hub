@@ -1561,7 +1561,58 @@ async function runStitch(dpia_id: string): Promise<void> {
       for (const v of t3) lintViolations.push({ rule: "T-3", ...v });
       for (const v of t4) lintViolations.push({ rule: "T-4", ...v });
       for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
+
+      // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
+      // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present
+      // OR any information_needed entry re-requests a source_field backing a
+      // RESOLVED test. Idempotent on a clean document. Fire-and-forget lint
+      // telemetry via logPostGenLint (fail-open).
+      let dpiaFallbackApplied = false;
+      let dpiaFallbackNotes: Array<{ code: string; detail?: string }> = [];
+      let dpiaResidualResolvedAsks = 0;
+      try {
+        const testStatesForFallback = computeDpiaTestStates((dpiaIntake as Record<string, any>) ?? {});
+        const resolvedSources = new Set<string>();
+        for (const ts of Object.values(testStatesForFallback ?? {})) {
+          if (ts && typeof (ts as any).state === "string" && (ts as any).state.startsWith("resolved")) {
+            for (const f of (ts as any).source_fields ?? []) resolvedSources.add(f);
+          }
+        }
+        const infoNeeded: any[] = Array.isArray((reportData as any)?.information_needed) ? (reportData as any).information_needed : [];
+        dpiaResidualResolvedAsks = infoNeeded.filter((e: any) => {
+          const fs: string[] = [];
+          if (typeof e?.field === "string") fs.push(e.field);
+          if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fs.push(f);
+          return fs.some((f) => resolvedSources.has(f));
+        }).length;
+        if (t5Hits.length > 0 || dpiaResidualResolvedAsks > 0) {
+          const r = applyDeterministicPostGenFallbackDpia(reportData, testStatesForFallback as any);
+          Object.assign(reportData, r.parsed);
+          dpiaFallbackApplied = true;
+          dpiaFallbackNotes = r.notes;
+          console.warn(JSON.stringify({
+            evt: "post_gen_fallback_applied",
+            fn: "run-dpia-framework",
+            residual_leaks: t5Hits.length,
+            residual_resolved_asks: dpiaResidualResolvedAsks,
+            notes: r.notes.slice(0, 40),
+          }));
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] post-gen fallback failed (non-fatal):", (e as Error)?.message);
+      }
+      // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
+      logPostGenLint(supabase, {
+        functionName: "run-dpia-framework",
+        fallbackApplied: dpiaFallbackApplied,
+        residualLeaks: t5Hits.length,
+        residualResolvedAsks: dpiaResidualResolvedAsks,
+        notes: dpiaFallbackNotes,
+        sourceTable: "dpia_frameworks",
+        sourceRowId: dpia_id ?? null,
+      });
     }
+
 
     // Hard-key validation (courier §7). Guard against a stitched-empty doc.
     if (!reportData.section_0_overview && !reportData.section_4_risk_management) {
