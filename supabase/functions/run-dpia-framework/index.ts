@@ -221,6 +221,9 @@ const DPIA_STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
   [/\bRESOLVED[_\s]MET\b/g, "established on the record"],
   [/\bresolved[_\s]met\b/gi, "established on the record"],
   [/\bINDETERMINATE\b/g, "indeterminate on the record"],
+  // REBUILD-DPIA-HF1: CANDIDATE is dpia-specific (M9 profiling narrative). UPPERCASE-ONLY —
+  // lowercase "candidate" is a common English word and is handled by the prompt-level ban.
+  [/\bCANDIDATE\b/g, "flagged for judgment review"],
 ];
 
 const DPIA_M_COMPOUND_REPLACEMENTS: Array<[RegExp, (id: string) => string]> = [
