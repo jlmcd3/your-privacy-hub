@@ -1001,7 +1001,38 @@ async function runPipeline(assessment_id: string) {
             rules: { t1: t1Violation, t2: t2Violation, t3: t3Violation, t4: t4Violation, t5: t5Violation },
           }));
         }
+
+        // POSTBATCH-1 — deterministic post-generation fallback. Runs whenever
+        // the retry is skipped (over budget) OR the retry result still has
+        // T-2 / T-5 residue (resolved-source ask OR TEST-STATES token leakage).
+        // Idempotent on a clean document.
+        const residualLeaks = detectTestStatesLeak(parsed);
+        const resolvedSources = new Set<string>();
+        for (const ts of Object.values(testStates ?? {})) {
+          if (ts && typeof ts.state === "string" && ts.state.startsWith("resolved")) {
+            for (const f of ts.source_fields ?? []) resolvedSources.add(f);
+          }
+        }
+        const residualResolvedAsks: any[] = (Array.isArray(parsed?.information_needed) ? parsed.information_needed : []).filter((e: any) => {
+          const fields: string[] = [];
+          if (typeof e?.field === "string") fields.push(e.field);
+          if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
+          return fields.some((f) => resolvedSources.has(f));
+        });
+        if (residualLeaks.length > 0 || residualResolvedAsks.length > 0) {
+          const result = applyDeterministicPostGenFallback(parsed, testStates);
+          parsed = result.parsed;
+          console.warn(JSON.stringify({
+            evt: "post_gen_fallback_applied",
+            fn: "run-cppa-risk-assessment",
+            retry_within_budget: retryWithinBudget,
+            residual_leaks: residualLeaks.length,
+            residual_resolved_asks: residualResolvedAsks.length,
+            notes: result.notes.slice(0, 40),
+          }));
+        }
       }
+
 
     } catch (e) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
