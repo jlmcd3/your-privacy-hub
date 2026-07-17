@@ -178,7 +178,9 @@ export function makeLiveDeps(admin: any): ExportDeps {
         .in("run_id", runIds);
       return (docs ?? []) as QaDocRow[];
     },
-    invokePdf: (body) => invokeGated("generate-report-pdf", body, { timeoutMs: 90_000 }),
+    // FF-1 T1: pass maxBodyChars=0 so the full response (including a signed URL
+    // longer than 500 chars) is preserved for JSON.parse.
+    invokePdf: (body) => invokeGated("generate-report-pdf", body, { timeoutMs: 90_000, maxBodyChars: 0 }),
     downloadPdf: async (signedUrl: string) => {
       const r = await fetch(signedUrl);
       if (!r.ok) throw new Error(`download ${r.status}`);
