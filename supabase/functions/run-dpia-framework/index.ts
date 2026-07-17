@@ -1677,13 +1677,35 @@ async function runStitch(dpia_id: string): Promise<void> {
       }
 
 
+      // FF-3 T1 (pd4) — UNCONDITIONAL authority backfill. Runs on EVERY
+      // document, not only when the violation gate trips. Idempotent and
+      // placeholder-gated; a clean document with no [TO COMPLETE — supervisory
+      // authority for X] placeholders is a no-op. Notes fold into
+      // dpiaFallbackNotes so post_gen_lint telemetry sees them.
+      const dpiaAuthorityNotes: Array<{ code: string; detail: string }> = [];
+      try {
+        const backfilled = backfillDpiaAuthorities(reportData, dpiaAuthorityNotes);
+        Object.assign(reportData, backfilled);
+        if (dpiaAuthorityNotes.length > 0) {
+          console.warn(JSON.stringify({
+            evt: "authority_backfill_unconditional",
+            fn: "run-dpia-framework",
+            notes: dpiaAuthorityNotes.slice(0, 40),
+          }));
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] unconditional authority backfill failed (non-fatal):", (e as Error)?.message);
+      }
+
       // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
       // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present
       // OR any information_needed entry re-requests a source_field backing a
       // RESOLVED test. Idempotent on a clean document. Fire-and-forget lint
-      // telemetry via logPostGenLint (fail-open).
+      // telemetry via logPostGenLint (fail-open). Authority backfill remains
+      // inside applyDeterministicPostGenFallbackDpia (idempotent — the earlier
+      // unconditional call already filled placeholders, so it's a no-op here).
       let dpiaFallbackApplied = false;
-      let dpiaFallbackNotes: Array<{ code: string; detail?: string }> = [];
+      let dpiaFallbackNotes: Array<{ code: string; detail?: string }> = [...dpiaAuthorityNotes];
       let dpiaResidualResolvedAsks = 0;
       try {
         const testStatesForFallback = computeDpiaTestStates((dpiaIntake as Record<string, any>) ?? {});
