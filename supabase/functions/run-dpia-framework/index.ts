@@ -368,6 +368,9 @@ export const DPIA_AUTHORITY_MAP: Record<string, string> = {
   "SPAIN": "AEPD",
   "ITALY": "Garante per la protezione dei dati personali",
   "DENMARK": "Datatilsynet",
+  // FF-3 T2 — Run C doc3 evidence (extra-EEA jurisdictions).
+  "AUSTRALIA": "Office of the Australian Information Commissioner (OAIC)",
+  "SINGAPORE": "Personal Data Protection Commission (PDPC)",
   // GERMANY intentionally omitted — per-Land competency, leave placeholder.
 };
 
@@ -561,7 +564,20 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "ff-1-dpia@2026-07-17T00:00Z";
+export const BUILD_STAMP = "ff-3-dpia@2026-07-17T00:00Z";
+
+// FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
+// The model's training cutoff predates the December 2025 UK adequacy renewals;
+// left un-anchored, dpia prose reverts to naming the June 2021 decision as
+// current. This block is authoritative and post-May-2025 items in it are
+// verified current law. Injected into every unit's system prefix by
+// buildSystemBlocksForUnit(); graders carry the same anchors independently.
+export const DPIA_POST_CUTOFF_AUTHORITIES = [
+  "POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped; post-May-2025 items in this block are verified CURRENT LAW — treat as authoritative and never as speculative or future-dated):",
+  "• UK ADEQUACY — RENEWED 19 DECEMBER 2025. On 19 December 2025 the European Commission adopted TWO renewed adequacy decisions for the United Kingdom (the GDPR decision and the Law Enforcement Directive decision), post-DUAA 2025 (Data (Use and Access) Act 2025) and after the June 2025 technical extension. The renewed decisions run for a SIX-YEAR term, expiring on 27 December 2031. When referring to the current EU→UK adequacy state, cite the 19 December 2025 renewal — NEVER present the 28 June 2021 Commission Implementing Decision (EU) 2021/1772 as the current state without also naming the 19 December 2025 renewal. Historical narrative may reference the June 2021 decision as the predecessor; current-state prose names the December 2025 renewal.",
+  "• CURRENCY RULE — do NOT flag the December 2025 renewal as 'draft', 'proposed', 'pending', 'unverified', or 'training-cutoff uncertain'. Do NOT append evergreen 'confirm at time of assessment' caveats to it in a way that implies its status is unresolved; the evergreen adequacy-caveat rule (adequacy decisions may be reviewed, suspended, or invalidated) still applies to ALL adequacy decisions equally.",
+].join("\n");
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -756,12 +772,19 @@ const UNIT_SKELETON: Record<UnitId, string> = {
   u1: U1_SKELETON, u2: U2_SKELETON, u3: U3_SKELETON, u4: U4_SKELETON, u5: U5_SKELETON,
 };
 
+// FF-3 T3 — per-unit blacklist reinforcement (pd5). dpia has no full-regen
+// path (FF-2 D-2), so the ban must ride the prompt. The five phrases are
+// quoted VERBATIM and paired with the REQUIRED advocate-drafter alternative
+// construction, in every unit that emits analysis prose (u1–u5).
+const PER_UNIT_BLACKLIST_BAN =
+  " HARD PROSE BLACKLIST (repeated per-unit — no unit is exempt): the five phrases \"insufficient basis\", \"not substantiated\", \"cannot be confirmed\", \"no basis to assess\", \"in the clear\" MUST NOT appear in ANY user-facing string emitted by this unit (executive_summary, section prose, table cells, completion_guidance, information_needed, [TO COMPLETE …] placeholders, dpia_metadata, framework_disclaimer — every reader-visible field). REQUIRED ALTERNATIVE CONSTRUCTION: (1) STATE what the record DOES establish, then (2) name the residual using the form \"the record does not yet establish/resolve [X]; [named fact, document, or intake field] completes it.\" Examples of substitutions you MUST make: instead of \"the Art. 6(1)(f) basis cannot be confirmed\" → \"the record establishes purposes A and B; the record does not yet resolve which Art. 6(1) basis applies to purpose C; recording the purpose-specific balancing test completes it.\" Instead of \"feed integrity cannot be confirmed\" → \"feed integrity remains unvalidated on the record; recording the source-data validation procedure completes it.\" Instead of \"insufficient basis for the Art. 9(2) condition\" → \"the record does not yet resolve the Art. 9(2) condition; recording the selected condition and its supporting facts completes it.\" Instead of \"no basis to assess the transfer\" → \"the record does not yet resolve the transfer mechanism; recording the destination country and Art. 46 instrument completes it.\" Instead of \"the DPIA is in the clear on retention\" → \"the record establishes a [N] retention period; adding the deletion procedure would deepen the DPIA.\" Instead of \"the safeguards are not substantiated\" → \"the record establishes safeguards X and Y; the record does not yet evidence safeguard Z; recording the implementation status completes it.\" This ban is not conditional on subject matter — it applies to legal-basis prose, transfer prose, risk prose, operational prose (feed integrity, monitoring, controls), and every other user-facing string this unit emits.";
+
 const UNIT_INSTRUCTION: Record<UnitId, string> = {
-  u1: "Generate the DPIA overview, metadata, and systematic description. Populate the repeatable tables (controllers, processors, data items, purposes) with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred from the intake. Return ONLY the JSON structure below, no preamble:",
-  u2: "Generate the compliance analysis section. Provide one row per Article 5(1)(a–f) principle for measures_article5, one row per data-subject right group for measures_rights, and one row per other GDPR requirement for measures_other. Populate every table with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred. Return ONLY the JSON structure below, no preamble:",
-  u3: "Generate the necessity & proportionality section. CRITICAL: design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context) — this list will be reused verbatim by Section 4. Return ONLY the JSON structure below, no preamble:",
-  u4: "Generate the risk assessment & management section. CRITICAL — keep the EDPB design-risk vs incident-risk distinction: incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors). inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts (supplied below verbatim) and incident_risk_impacts, each scored likelihood × severity with modulating factors. residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures. Return ONLY the JSON structure below, no preamble:",
-  u5: "Generate the interested-parties section, the conclusion, and the framework disclaimer. CONSISTENCY DUTIES (repair-only): conclusion conditions must link to section_4 measures; blockers named in section_6 must match information_needed entries in earlier sections; dpia_metadata ↔ section_6 must be consistent on unresolved determinations. You MAY reconcile contradictions between earlier units but MUST NOT introduce new legal determinations. Return ONLY the JSON structure below, no preamble:",
+  u1: "Generate the DPIA overview, metadata, and systematic description. Populate the repeatable tables (controllers, processors, data items, purposes) with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred from the intake. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
+  u2: "Generate the compliance analysis section. Provide one row per Article 5(1)(a–f) principle for measures_article5, one row per data-subject right group for measures_rights, and one row per other GDPR requirement for measures_other. Populate every table with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
+  u3: "Generate the necessity & proportionality section. CRITICAL: design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context) — this list will be reused verbatim by Section 4. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
+  u4: "Generate the risk assessment & management section. CRITICAL — keep the EDPB design-risk vs incident-risk distinction: incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors). inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts (supplied below verbatim) and incident_risk_impacts, each scored likelihood × severity with modulating factors. residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
+  u5: "Generate the interested-parties section, the conclusion, and the framework disclaimer. CONSISTENCY DUTIES (repair-only): conclusion conditions must link to section_4 measures; blockers named in section_6 must match information_needed entries in earlier sections; dpia_metadata ↔ section_6 must be consistent on unresolved determinations. You MAY reconcile contradictions between earlier units but MUST NOT introduce new legal determinations. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -932,7 +955,7 @@ function buildSystemBlocksForUnit(shared: SharedContextData): SystemBlock[] {
   const blocks = buildSystemContent({
     toolModule: DPIA_TOOL_MODULE,
     currentDate: today,
-    injected: [gdprAuthorityContext, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
+    injected: [DPIA_POST_CUTOFF_AUTHORITIES, gdprAuthorityContext, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
   });
   // Prompt-caching breakpoint at the end of the shared prefix (courier §5).
   // buildSystemContent already caches blocks 1+2; force cache on block 3
@@ -1654,13 +1677,35 @@ async function runStitch(dpia_id: string): Promise<void> {
       }
 
 
+      // FF-3 T1 (pd4) — UNCONDITIONAL authority backfill. Runs on EVERY
+      // document, not only when the violation gate trips. Idempotent and
+      // placeholder-gated; a clean document with no [TO COMPLETE — supervisory
+      // authority for X] placeholders is a no-op. Notes fold into
+      // dpiaFallbackNotes so post_gen_lint telemetry sees them.
+      const dpiaAuthorityNotes: Array<{ code: string; detail: string }> = [];
+      try {
+        const backfilled = backfillDpiaAuthorities(reportData, dpiaAuthorityNotes);
+        Object.assign(reportData, backfilled);
+        if (dpiaAuthorityNotes.length > 0) {
+          console.warn(JSON.stringify({
+            evt: "authority_backfill_unconditional",
+            fn: "run-dpia-framework",
+            notes: dpiaAuthorityNotes.slice(0, 40),
+          }));
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] unconditional authority backfill failed (non-fatal):", (e as Error)?.message);
+      }
+
       // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
       // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present
       // OR any information_needed entry re-requests a source_field backing a
       // RESOLVED test. Idempotent on a clean document. Fire-and-forget lint
-      // telemetry via logPostGenLint (fail-open).
+      // telemetry via logPostGenLint (fail-open). Authority backfill remains
+      // inside applyDeterministicPostGenFallbackDpia (idempotent — the earlier
+      // unconditional call already filled placeholders, so it's a no-op here).
       let dpiaFallbackApplied = false;
-      let dpiaFallbackNotes: Array<{ code: string; detail?: string }> = [];
+      let dpiaFallbackNotes: Array<{ code: string; detail?: string }> = [...dpiaAuthorityNotes];
       let dpiaResidualResolvedAsks = 0;
       try {
         const testStatesForFallback = computeDpiaTestStates((dpiaIntake as Record<string, any>) ?? {});
@@ -1681,7 +1726,7 @@ async function runStitch(dpia_id: string): Promise<void> {
           const r = applyDeterministicPostGenFallbackDpia(reportData, testStatesForFallback as any);
           Object.assign(reportData, r.parsed);
           dpiaFallbackApplied = true;
-          dpiaFallbackNotes = r.notes;
+          dpiaFallbackNotes = [...dpiaAuthorityNotes, ...r.notes];
           console.warn(JSON.stringify({
             evt: "post_gen_fallback_applied",
             fn: "run-dpia-framework",

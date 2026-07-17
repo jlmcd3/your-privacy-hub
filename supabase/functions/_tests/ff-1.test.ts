@@ -105,3 +105,48 @@ Deno.test("FF-1 T5 — recorded governance booleans pass through", () => {
   assertEquals(out.org_context.board_level_oversight, true);
   assertEquals(out.org_context.cppa_audit_notification_received, false);
 });
+
+// ─── FF-3 tests ────────────────────────────────────────────────────────────
+
+Deno.test("FF-3 T1 — clean document (zero violations) still gets UK placeholder filled unconditionally", () => {
+  // Simulates a clean doc: no T-5 leaks, no resolved-source asks. The UK
+  // placeholder must still be replaced because backfillDpiaAuthorities now
+  // runs unconditionally at stitch (not gated on the violation surface).
+  const notes: Array<{ code: string; detail: string }> = [];
+  const cleanDoc = {
+    executive_summary: "The record establishes the special-category determination on the record.",
+    section_5_interested_parties: {
+      supervisory_authority: "[TO COMPLETE — identify competent supervisory authority for UNITED KINGDOM]",
+    },
+    information_needed: [],
+  };
+  const out: any = backfillDpiaAuthorities(cleanDoc, notes);
+  assertEquals(out.section_5_interested_parties.supervisory_authority, "Information Commissioner's Office (ICO)");
+  assert(notes.some((n) => n.code === "authority_backfilled" && n.detail.includes("UNITED KINGDOM")));
+});
+
+Deno.test("FF-3 T2 — AUSTRALIA → OAIC", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for AUSTRALIA]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, "Office of the Australian Information Commissioner (OAIC)");
+  assert(notes.some((n) => n.code === "authority_backfilled" && n.detail.includes("AUSTRALIA")));
+  assertEquals(DPIA_AUTHORITY_MAP["AUSTRALIA"], "Office of the Australian Information Commissioner (OAIC)");
+});
+
+Deno.test("FF-3 T2 — SINGAPORE → PDPC", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for SINGAPORE]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, "Personal Data Protection Commission (PDPC)");
+  assert(notes.some((n) => n.code === "authority_backfilled" && n.detail.includes("SINGAPORE")));
+  assertEquals(DPIA_AUTHORITY_MAP["SINGAPORE"], "Personal Data Protection Commission (PDPC)");
+});
+
+Deno.test("FF-3 T2 — alias/distinct-count unchanged: AUSTRALIA + SINGAPORE together are ambiguous", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for AUSTRALIA / SINGAPORE]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, input);
+  assert(notes.some((n) => n.code === "authority_ambiguous_left"));
+});
