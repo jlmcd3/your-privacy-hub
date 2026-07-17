@@ -7,6 +7,7 @@ import {
   applyDeterministicPostGenFallbackDpia,
   DPIA_M_TOKEN_MAP,
   dedupeStringArrayPreserveOrder,
+  correctOssTemplateFromRecord,
 } from "../run-dpia-framework/index.ts";
 import { logPostGenLint } from "../_shared/function-run-logger.ts";
 
