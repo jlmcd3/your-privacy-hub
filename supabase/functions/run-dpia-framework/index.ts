@@ -564,7 +564,20 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "ff-1-dpia@2026-07-17T00:00Z";
+export const BUILD_STAMP = "ff-3-dpia@2026-07-17T00:00Z";
+
+// FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
+// The model's training cutoff predates the December 2025 UK adequacy renewals;
+// left un-anchored, dpia prose reverts to naming the June 2021 decision as
+// current. This block is authoritative and post-May-2025 items in it are
+// verified current law. Injected into every unit's system prefix by
+// buildSystemBlocksForUnit(); graders carry the same anchors independently.
+export const DPIA_POST_CUTOFF_AUTHORITIES = [
+  "POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped; post-May-2025 items in this block are verified CURRENT LAW — treat as authoritative and never as speculative or future-dated):",
+  "• UK ADEQUACY — RENEWED 19 DECEMBER 2025. On 19 December 2025 the European Commission adopted TWO renewed adequacy decisions for the United Kingdom (the GDPR decision and the Law Enforcement Directive decision), post-DUAA 2025 (Data (Use and Access) Act 2025) and after the June 2025 technical extension. The renewed decisions run for a SIX-YEAR term, expiring on 27 December 2031. When referring to the current EU→UK adequacy state, cite the 19 December 2025 renewal — NEVER present the 28 June 2021 Commission Implementing Decision (EU) 2021/1772 as the current state without also naming the 19 December 2025 renewal. Historical narrative may reference the June 2021 decision as the predecessor; current-state prose names the December 2025 renewal.",
+  "• CURRENCY RULE — do NOT flag the December 2025 renewal as 'draft', 'proposed', 'pending', 'unverified', or 'training-cutoff uncertain'. Do NOT append evergreen 'confirm at time of assessment' caveats to it in a way that implies its status is unresolved; the evergreen adequacy-caveat rule (adequacy decisions may be reviewed, suspended, or invalidated) still applies to ALL adequacy decisions equally.",
+].join("\n");
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
