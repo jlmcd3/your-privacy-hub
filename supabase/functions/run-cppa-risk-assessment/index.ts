@@ -93,6 +93,124 @@ export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
 import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 
 
+// POSTBATCH-1 — deterministic post-generation fallback for TEST-STATES leakage
+// and resolved-source information_needed asks. Used when the T-1..T-5 retry is
+// skipped (elapsed budget exceeded) or when the retry result still violates.
+const M_TOKEN_MAP: Record<string, string> = {
+  M1: "the revenue determination",
+  M2: "the consumer-volume determination",
+  M3: "the consumer-volume determination",
+  M4: "the sensitive-PI determination",
+  M5: "the sale/share-revenue determination",
+  M6: "the audit-cohort determination",
+  M7: "the trigger review",
+  M8: "the exception review",
+  M9: "the § 7152(a) element review",
+  M10: "the canonical-dates review",
+};
+
+const STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
+  // Compound "is/are resolved <state>" forms first — most specific.
+  [/\bis\s+resolved[_\s]met\b/gi, "is established on the record"],
+  [/\bare\s+resolved[_\s]met\b/gi, "are established on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]met\b/gi, "is not met on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]met\b/gi, "are not met on the record"],
+  [/\bis\s+resolved[_\s]not[_\s]applicable\b/gi, "is not applicable on the record"],
+  [/\bare\s+resolved[_\s]not[_\s]applicable\b/gi, "are not applicable on the record"],
+  // Bare state tokens (upper or lower, underscored or spaced).
+  [/\bRESOLVED[_\s]NOT[_\s]APPLICABLE\b/g, "not applicable on the record"],
+  [/\bresolved[_\s]not[_\s]applicable\b/gi, "not applicable on the record"],
+  [/\bRESOLVED[_\s]NOT[_\s]MET\b/g, "not met on the record"],
+  [/\bresolved[_\s]not[_\s]met\b/gi, "not met on the record"],
+  [/\bRESOLVED[_\s]MET\b/g, "established on the record"],
+  [/\bresolved[_\s]met\b/gi, "established on the record"],
+  [/\bINDETERMINATE\b/g, "indeterminate on the record"],
+];
+
+function scrubTestTokensDeep(
+  node: unknown,
+  notes: Array<{ code: string; detail: string }>,
+): unknown {
+  if (typeof node === "string") {
+    let out = node;
+    for (const [re, repl] of STATE_TOKEN_REPLACEMENTS) {
+      if (re.test(out)) {
+        out = out.replace(re, repl);
+        notes.push({ code: "test_token_scrubbed", detail: `state→"${repl}"` });
+      }
+    }
+    // Standalone M-ids: M1..M10 (order M10 before M1 by using \b(M10|M[1-9]) via alt).
+    out = out.replace(/\b(M10|M[1-9])\b/g, (_m, id: string) => {
+      const human = M_TOKEN_MAP[id];
+      if (!human) return _m;
+      notes.push({ code: "test_token_scrubbed", detail: `${id}→"${human}"` });
+      return human;
+    });
+    // Bare literal "TEST-STATES" reference in prose.
+    if (/\bTEST-STATES\b/.test(out)) {
+      out = out.replace(/\bTEST-STATES\b/g, "the deterministic checks");
+      notes.push({ code: "test_token_scrubbed", detail: "TEST-STATES→\"the deterministic checks\"" });
+    }
+    return out;
+  }
+  if (Array.isArray(node)) return node.map((v) => scrubTestTokensDeep(v, notes));
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      out[k] = scrubTestTokensDeep(v, notes);
+    }
+    return out;
+  }
+  return node;
+}
+
+function dropResolvedSourceAsks(
+  report: any,
+  testStates: Record<string, TestState>,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  const resolvedSources = new Set<string>();
+  for (const ts of Object.values(testStates ?? {})) {
+    if (ts && typeof ts.state === "string" && ts.state.startsWith("resolved")) {
+      for (const f of ts.source_fields ?? []) resolvedSources.add(f);
+    }
+  }
+  if (resolvedSources.size === 0) return report;
+  const entries: any[] = Array.isArray(report?.information_needed) ? report.information_needed : [];
+  const kept: any[] = [];
+  for (const e of entries) {
+    const fields: string[] = [];
+    if (typeof e?.field === "string") fields.push(e.field);
+    if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
+    const overlaps = fields.some((f) => resolvedSources.has(f));
+    if (overlaps) {
+      notes.push({
+        code: "resolved_source_ask_dropped",
+        detail: String(e?.field ?? e?.dimensions ?? "").slice(0, 120),
+      });
+    } else {
+      kept.push(e);
+    }
+  }
+  if (kept.length !== entries.length) {
+    report.information_needed = kept;
+  }
+  return report;
+}
+
+export function applyDeterministicPostGenFallback(
+  parsed: any,
+  testStates: Record<string, TestState>,
+): { parsed: any; notes: Array<{ code: string; detail: string }> } {
+  const notes: Array<{ code: string; detail: string }> = [];
+  let out = dropResolvedSourceAsks(parsed, testStates, notes);
+  out = scrubTestTokensDeep(out, notes) as any;
+  return { parsed: out, notes };
+}
+
+
+
+
 
 // ---------------------------------------------------------------------------
 // R1b1 — deterministic TEST-STATES computed from the normalised intake.
