@@ -114,7 +114,7 @@ const M_TOKEN_MAP: Record<string, string> = {
 // phrase is replaced atomically, preventing double-noun artefacts
 // (batch 4487d55d: "the M6 cohort determination" formerly became
 // "the the audit-cohort determination cohort determination").
-const M_COMPOUND_REPLACEMENTS: Array<[RegExp, string]> = [
+const M_COMPOUND_REPLACEMENTS: Array<[RegExp, (id: string) => string]> = [
   [/\bthe\s+(M10|M[1-9])\s+(cohort|audit|trigger)\s+determination\b/gi, (id: string) => M_TOKEN_MAP[id] ?? id],
   [/\bthe\s+(M10|M[1-9])\s+determination\b/gi, (id: string) => M_TOKEN_MAP[id] ?? id],
 ];
