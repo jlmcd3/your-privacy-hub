@@ -349,6 +349,60 @@ function dpiaDropResolvedSourceAsks(
   return report;
 }
 
+// FF-1 T3 — DPIA pd1: KNOWN-AUTHORITY DETERMINISTIC BACKFILL.
+// The prompt rule alone (Task 5f) failed in prod: docs left
+// "[TO COMPLETE — identify competent supervisory authority for UNITED KINGDOM]"
+// placeholders while the SAME doc's prose named the ICO. This post-gen pass
+// resolves the placeholder from a small verified authority map when the
+// record's country determination is unambiguous. Germany LEAVES the placeholder
+// (per-Land competency defensible). Ambiguous / multi-country records left as-is.
+export const DPIA_AUTHORITY_MAP: Record<string, string> = {
+  "UNITED KINGDOM": "Information Commissioner's Office (ICO)",
+  "UK": "Information Commissioner's Office (ICO)",
+  "IRELAND": "Data Protection Commission (DPC)",
+  "SWEDEN": "Integritetsskyddsmyndigheten (IMY)",
+  "FRANCE": "CNIL",
+  "NETHERLANDS": "Autoriteit Persoonsgegevens (AP)",
+  "SPAIN": "AEPD",
+  "ITALY": "Garante per la protezione dei dati personali",
+  "DENMARK": "Datatilsynet",
+  // GERMANY intentionally omitted — per-Land competency, leave placeholder.
+};
+
+const AUTHORITY_PLACEHOLDER_RE =
+  /\[TO COMPLETE[^\]]*?(?:supervisory\s+authority|competent\s+authority|lead\s+authority)[^\]]*?\]/gi;
+
+export function backfillDpiaAuthorities(
+  report: any,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  if (!report || typeof report !== "object") return report;
+  const walk = (node: unknown): unknown => {
+    if (typeof node === "string") {
+      let out = node;
+      out = out.replace(AUTHORITY_PLACEHOLDER_RE, (m: string) => {
+        const upper = m.toUpperCase();
+        for (const [country, name] of Object.entries(DPIA_AUTHORITY_MAP)) {
+          if (upper.includes(country)) {
+            notes.push({ code: "authority_backfilled", detail: `${country}→"${name}"` });
+            return name;
+          }
+        }
+        return m;
+      });
+      return out;
+    }
+    if (Array.isArray(node)) return node.map(walk);
+    if (node && typeof node === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(node as Record<string, unknown>)) out[k] = walk(v);
+      return out;
+    }
+    return node;
+  };
+  return walk(report);
+}
+
 export function applyDeterministicPostGenFallbackDpia(
   parsed: any,
   testStates: Record<string, { state: string; source_fields?: string[] }>,
@@ -356,6 +410,7 @@ export function applyDeterministicPostGenFallbackDpia(
   const notes: Array<{ code: string; detail: string }> = [];
   let out = dpiaDropResolvedSourceAsks(parsed, testStates, notes);
   out = dpiaScrubDeep(out, notes) as any;
+  out = backfillDpiaAuthorities(out, notes);
   return { parsed: out, notes };
 }
 
