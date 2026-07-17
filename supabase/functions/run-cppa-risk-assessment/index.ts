@@ -1000,9 +1000,14 @@ async function runPipeline(assessment_id: string) {
               if (!original) continue;
               let rewritten = original;
               if (isProspective) {
-                rewritten = rewritten.replace(/\b(operative|took effect|in force)\b/gi, "prospective as of the assessment date");
+                // REBUILD-RISK C7 — TEMPLATE-SEAM FIX: only rewrite framing
+                // tokens when they appear as a clean parenthetical or
+                // dash-set qualifier — never mid-sentence (which produced
+                // the garbled "the prospective as of the assessment date
+                // § X" splices).
+                rewritten = rewritten.replace(/([\(\[—–-])\s*(operative|took effect|in force)\s*(?=[\)\];,.])/gi, "$1prospective as of the assessment date");
               } else {
-                rewritten = rewritten.replace(/\bprospective(?: as of the assessment date)?\b/gi, "operative");
+                rewritten = rewritten.replace(/([\(\[—–-])\s*prospective(?:\s+as\s+of\s+the\s+assessment\s+date)?\s*(?=[\)\];,.])/gi, "$1operative");
               }
               if (rewritten !== original) {
                 console.warn(`[cppa-risk] 2027-date temporal framing rewrite on priority_actions[${idx}].${f} (target=${t.iso}, prospective=${isProspective})`);
