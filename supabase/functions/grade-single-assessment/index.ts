@@ -24,14 +24,17 @@ import {
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
 
-// Intake slice for grader prompts. Cap raised 2500 -> 8000 (Doc X, 2026-07-06)
-// to mirror run-quality-batch. Beyond 8000, keep HEAD (5000) + TAIL (3000).
-const INTAKE_SLICE_CAP = 8000;
+// GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
+// run-quality-batch). Safety cap only for pathological payloads.
+const INTAKE_HARD_CAP = 250_000;
 function sliceIntakeForGrader(intake: unknown): string {
   const s = JSON.stringify(intake ?? {});
-  if (s.length <= INTAKE_SLICE_CAP) return s;
-  return `${s.slice(0, 5000)}[...intake middle elided...]${s.slice(-3000)}`;
+  if (s.length <= INTAKE_HARD_CAP) return s;
+  return `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
 }
+// GRADER-1 Tasks 2/3 — shared authoritative context block (identical to
+// run-quality-batch's grader system prompt).
+import { SHARED_GRADER_CONTEXT } from "../_shared/grader/context.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
