@@ -51,6 +51,26 @@ Deno.test("REBUILD-DPIA T3b: M9 stays CANDIDATE-class ('the profiling review')",
   assert(!/established on the record/.test(out));
 });
 
+Deno.test("REBUILD-DPIA-HF1: bare CANDIDATE token scrubbed alongside M9 and RESOLVED MET", () => {
+  const report = {
+    executive_summary: "Per M9 the profiling flag is CANDIDATE and M1 is RESOLVED MET",
+    information_needed: [],
+  };
+  const { parsed, notes } = applyDeterministicPostGenFallbackDpia(report, {});
+  const out = parsed.executive_summary as string;
+  assert(!/\bCANDIDATE\b/.test(out), `expected no bare CANDIDATE in "${out}"`);
+  assert(!/\bM9\b/.test(out), `expected no M9 in "${out}"`);
+  assert(!/\bM1\b/.test(out), `expected no M1 in "${out}"`);
+  assert(!/RESOLVED[_\s]MET/i.test(out), `expected no RESOLVED MET in "${out}"`);
+  assert(/the profiling review/.test(out), `expected "the profiling review" in "${out}"`);
+  assert(/flagged for judgment review/.test(out), `expected "flagged for judgment review" in "${out}"`);
+  // Meaning preserved: profiling flag + special-category determination both surface.
+  assert(/profiling flag/.test(out));
+  assert(/special-category determination/.test(out));
+  assert(/established on the record/.test(out));
+  assert(notes.some((n) => n.code === "test_token_scrubbed"));
+});
+
 Deno.test("REBUILD-DPIA T3c: clean document is byte-identical", () => {
   const report = {
     executive_summary: "The record establishes the special-category determination on the record.",
