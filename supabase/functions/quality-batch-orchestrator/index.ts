@@ -15,8 +15,9 @@
 // with no JWT. run-quality-batch itself is not modified.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "9f4d1c02-3b7e-4a5a-a1b1-d5a6c9e2f014-qb-orchestrator@2026-07-15-p1.1";
+export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -383,6 +384,18 @@ async function finalizeIfDone(runId: string) {
   const status = anySuccess ? "complete" : "failed";
   await markTerminalAll(runId, { status, phase: "done" });
   await log(runId, `Batch ${status} — ${results.length} tool(s); ${results.filter((r) => r?.final_status === "complete").length} succeeded`);
+
+  // PDFEXPORT-1 Task 2: fire-and-forget PDF auto-export. Per-doc failures are
+  // logged into function_runs (event='pdf_export') and NEVER block completion.
+  // @ts-ignore
+  EdgeRuntime.waitUntil((async () => {
+    try {
+      const out = await exportBatchPdfs(runId, makeLiveDeps(db));
+      await log(runId, `PDF export: attempted=${out.attempted} inserted=${out.inserted} failed=${out.failed}`);
+    } catch (e) {
+      console.error("[qb-orchestrator] pdf export threw", (e as Error).message);
+    }
+  })());
 }
 
 async function startRun(userId: string, tools: string[], batchSizeRaw: number)
