@@ -972,6 +972,23 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 </div></body></html>`;
 }
 
+// ── D1 enum display mapping (REBUILD-RISK-UI Task 3) ──
+// Stored enum values remain unchanged; map at render only.
+function displayInsufficientBasisPDF(v?: string): string {
+  if (!v) return "";
+  if (v === "Insufficient basis to assess" || v === "Insufficient basis") {
+    return "Not yet resolved on the record";
+  }
+  return v;
+}
+function argStrengthLabelPDF(s?: string): string {
+  const x = (s || "").toLowerCase();
+  if (x === "strong") return "Strong";
+  if (x === "colorable") return "Colorable";
+  if (x === "counsel-review" || x === "counsel review") return "Counsel review recommended";
+  return s || "";
+}
+
 // Dispatch on schema: v4 rows carry risk_assessment_by_activity; v3 rows carry part_a; legacy rows carry domains.
 function buildCPPARiskReportHTML(report: any, record: any): string {
   if (report && (Array.isArray(report.risk_assessment_by_activity) || (report.assessment_summary && typeof report.assessment_summary === "object"))) {
@@ -982,6 +999,7 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
   }
   return buildCPPARiskLegacyHTML(report, record);
 }
+
 
 function buildCPPARiskV4HTML(report: any, record: any): string {
   const generatedDate = new Date(record?.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
@@ -1039,7 +1057,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record?.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
     <div class="summary-bar">
-      ${summary.overall_risk_level ? `<span class="pill">${text(summary.overall_risk_level)} risk</span>` : ""}
+      ${summary.overall_risk_level ? `<span class="pill">${text(displayInsufficientBasisPDF(summary.overall_risk_level))} risk</span>` : ""}
       ${summary.sector ? `<span class="pill">${text(summary.sector)}</span>` : ""}
       ${summary.admt_disclosure_required ? `<span class="pill">ADMT disclosure required</span>` : ""}
       ${summary.cybersecurity_audit_required ? `<span class="pill">Cybersecurity audit required</span>` : ""}
@@ -1051,7 +1069,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     <section><h2>Assessment Summary</h2>
       ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
       ${summary.assessment_date ? `<p><span class="label">Assessment date:</span> ${text(summary.assessment_date)}</p>` : ""}
-      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status === "Material gaps identified" ? "Material deficiencies identified" : summary.exceptions_status)}</p>` : ""}
+      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(displayInsufficientBasisPDF(summary.exceptions_status === "Material gaps identified" ? "Material deficiencies identified" : summary.exceptions_status))}</p>` : ""}
       ${Array.isArray(summary.triggered_activities) && summary.triggered_activities.length ? `<p><span class="label">Triggered activities:</span></p>${list(summary.triggered_activities)}` : ""}
       ${summary.corpus_enforcement_note ? `<div class="callout"><p class="label">Enforcement context note</p>${para(summary.corpus_enforcement_note)}</div>` : ""}
     </section>
@@ -1087,14 +1105,32 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     </section>` : ""}
 
     ${exceptions.length ? `<section><h2>Exception Analysis</h2>
-      ${exceptions.map((e: any) => `<div class="card">
+      ${exceptions.map((e: any) => {
+        const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+        const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
+        const argLbl = argStrengthLabelPDF(e.argument_strength);
+        const argHeader = argLbl === "Counsel review recommended"
+          ? "Counsel review recommended"
+          : (argLbl ? `Argument strength: ${argLbl}` : "");
+        return `<div class="card">
         <h3>${text(e.exception_name || "")}</h3>
         <p><span class="label">Claimed:</span> ${e.claimed ? "Yes" : "No"}</p>
         ${e.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(e.statutory_basis)}</p>` : ""}
-        ${e.documentation_status ? `<p><span class="label">Documentation:</span> ${text(e.documentation_status)}</p>` : ""}
-        ${e.validity_assessment ? `<p><span class="label">Validity:</span> ${text(e.validity_assessment)}</p>` : ""}
+        ${hasNew ? `
+          ${e.facts_supporting ? `<p><span class="label">Facts supporting the exception:</span> ${text(e.facts_supporting)}</p>` : ""}
+          ${argHeader ? `<p><span class="label">${text(argHeader)}</span>${e.argument_strength_rationale ? ` — ${text(e.argument_strength_rationale)}` : ""}</p>` : ""}
+          ${Array.isArray(e.strengthen_position) && e.strengthen_position.length
+            ? `<p class="label" style="margin-top:6px;">What would strengthen the position</p><ul>${e.strengthen_position.map((sp: any) => `<li>${text(sp)}</li>`).join("")}</ul>`
+            : ""}
+        ` : (hasOld ? `
+          ${e.scope_described ? `<p><span class="label">Scope:</span> ${text(e.scope_described)}</p>` : ""}
+          ${e.safeguards_described ? `<p><span class="label">Safeguards:</span> ${text(e.safeguards_described)}</p>` : ""}
+          ${e.documentation_status ? `<p><span class="label">Documentation:</span> ${text(e.documentation_status)}</p>` : ""}
+          ${e.validity_assessment ? `<p><span class="label">Validity:</span> ${text(e.validity_assessment)}</p>` : ""}
+        ` : "")}
         ${Array.isArray(e.flags) && e.flags.length ? list(e.flags) : ""}
-      </div>`).join("")}
+      </div>`;
+      }).join("")}
     </section>` : ""}
 
     ${actions.length ? `<section><h2>Priority Actions</h2>
