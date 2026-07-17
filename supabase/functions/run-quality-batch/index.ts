@@ -88,16 +88,17 @@ const SCENARIO_GUIDANCE: Record<string, string> = {
 };
 
 
-// Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
-// to stop the alphabetical tail (i5_/i7_/i8_/i9_ keys) from being dropped, which
-// produced structural "unsupported detail" deductions on wide-schema fixtures.
-// Beyond 8000, keep HEAD (first 5000) + TAIL (last 3000) with an elision marker
-// so both ends of the JSON serialization survive.
-const INTAKE_SLICE_CAP = 8000;
+// GRADER-1 Task 1 — Every rubric evaluation now receives the COMPLETE
+// intake JSON. Prior behavior (8000-char cap with head/tail elision) caused
+// the dpia grader to flag intake-supported facts as "fabricated" (batch
+// 4d54f360, run 593e6493). No slice, no elision: the whole payload goes.
+// Safety cap only for extreme pathological payloads (>250KB), well above
+// any real intake shape emitted by the nine tools.
+const INTAKE_HARD_CAP = 250_000;
 function sliceIntakeForGrader(intake: unknown): string {
   const s = JSON.stringify(intake ?? {});
-  if (s.length <= INTAKE_SLICE_CAP) return s;
-  return `${s.slice(0, 5000)}[...intake middle elided...]${s.slice(-3000)}`;
+  if (s.length <= INTAKE_HARD_CAP) return s;
+  return `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
 }
 
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
