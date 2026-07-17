@@ -33,6 +33,17 @@ Reports embed a normalised_intake object produced by the pipeline (resolveIntake
 
 FIELD-ROLE CONTEXT (do NOT flag as internal-reasoning leaks):
 Designed template chrome is NOT model prose: dpia guidance_note and completion_guidance section headers are fixed template strings defined in the generator schema and rendered as section guidance labels in the UI. Their roadmap style ("EDPB Section 1 / GDPR Art. 35(7)(a) — processed data, purposes…") is by design — NEVER flag designed scaffold fields as internal-reasoning leaks. Judge prose voice only in narrative/analysis fields.
+"the record" is the canonical professional reference to assessment inputs across all tools — it is professional drafting voice, not AI meta-commentary. Do NOT flag "the record shows", "on the record", or equivalent as internal-reasoning leaks in any tool.
+
+CPPA ADMT REGULATIONS — VERIFIED-ANCHOR MAP (primary-source verified 2026-07-17; OAL approval 2025-09-23, effective 2026-01-01, phased through 2030; do NOT flag as misapplied or verify):
+- 11 CCR § 7220 = ADMT Pre-use Notice requirements.
+- 11 CCR § 7221 = opt-out.
+- 11 CCR § 7222 = access/response.
+- COMPLIANCE DATE: businesses using ADMT for significant decisions before 2027-01-01 must comply by 2027-01-01; ADMT deployed on/after that date must comply at deployment. Reports citing § 7220 pre-use notice with the January 1, 2027 date are CORRECT.
+
+CYBER-AUDIT COHORT MAP (corpus-verified house standard; do NOT flag as misapplied):
+- 11 CCR § 7121(a) certification cohorts by revenue band: April 1, 2028 (>$100M) / April 1, 2029 ($50–100M) / April 1, 2030 (<$50M). Reports mapping the $100M–$500M band to April 1, 2028 are correct.
+
 
 CALIBRATION RULE (BINDING):
 A claim the grader cannot personally verify is flagged as "verify against primary sources" at LOW severity — NEVER scored as fabricated / hallucinated. A fabrication finding requires BOTH (i) absent-from-intake (including the normalised_intake and every intake source column shipped alongside the report) AND (ii) absent from the verified-authority context above. Statutory-definition scoping qualifiers in drafting tools (e.g. GDPR Art. 9(1) "to the extent processed for the purpose of uniquely identifying a natural person") and cautionary recitals are standard legal drafting, NOT unsupported business claims. Statutory-anchored placeholder phrasings ("[TO BE COMPLETED …]", "[TO BE ASSESSED]") are anti-fabrication scaffolding — not defects. For legal developments after May 2025, a conflict with your remembered pre-2025 state of the law is NOT fabrication evidence — the law may have changed. Check the POST-CUTOFF VERIFIED AUTHORITIES list first; if the claim is not listed, flag it "verify against primary sources" at LOW severity.
