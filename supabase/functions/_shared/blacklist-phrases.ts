@@ -35,7 +35,7 @@ export const BLACKLIST_RE =
 // "assessment_id", "*._debug*", "*._lint*", "lint_notes*",
 // "_findings*", "_raw*".
 export const MACHINE_PATH_RE =
-  /(?:^|\.)_(?:meta|staging|debug|lint|raw|findings)(?:\.|$|\[)|\.lint_warnings\b|\blint_warnings\b|\.lint_notes\b|\blint_notes\b|\.source_fields\b|\bsource_fields\b|\.enforcement_meta\b|\.gdpr_meta\b|\.jurisdiction_validation\b|\.generated_at\b|\bgenerated_at\b|\.dpia_id\b|\bdpia_id\b|\.assessment_id\b|\bassessment_id\b/;
+  /(?:^|\.)_(?:meta|staging|debug|lint|raw|findings)(?:\.|$|\[)|(?:^|\.)(?:lint_warnings|lint_notes|source_fields|enforcement_meta|gdpr_meta|jurisdiction_validation|generated_at|dpia_id|assessment_id)(?:\.|$|\[)/;
 
 export type BlacklistHit = { path: string; match: string; context: string };
 
