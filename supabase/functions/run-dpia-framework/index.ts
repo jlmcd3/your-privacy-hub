@@ -373,6 +373,12 @@ export const DPIA_AUTHORITY_MAP: Record<string, string> = {
 const AUTHORITY_PLACEHOLDER_RE =
   /\[TO COMPLETE[^\]]*?(?:supervisory\s+authority|competent\s+authority|lead\s+authority)[^\]]*?\]/gi;
 
+// FF-1-HF1: alias groups so "UK" and "UNITED KINGDOM" count as one country.
+const AUTHORITY_ALIAS_GROUP: Record<string, string> = {
+  "UNITED KINGDOM": "UNITED KINGDOM",
+  "UK": "UNITED KINGDOM",
+};
+
 export function backfillDpiaAuthorities(
   report: any,
   notes: Array<{ code: string; detail: string }>,
@@ -380,18 +386,28 @@ export function backfillDpiaAuthorities(
   if (!report || typeof report !== "object") return report;
   const walk = (node: unknown): unknown => {
     if (typeof node === "string") {
-      let out = node;
-      out = out.replace(AUTHORITY_PLACEHOLDER_RE, (m: string) => {
+      return node.replace(AUTHORITY_PLACEHOLDER_RE, (m: string) => {
         const upper = m.toUpperCase();
+        // Whole-word match per map key; count DISTINCT countries (aliases collapse).
+        const distinctHits = new Map<string, { key: string; name: string }>();
         for (const [country, name] of Object.entries(DPIA_AUTHORITY_MAP)) {
-          if (upper.includes(country)) {
-            notes.push({ code: "authority_backfilled", detail: `${country}→"${name}"` });
-            return name;
+          const re = new RegExp(`\\b${country.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
+          if (re.test(upper)) {
+            const group = AUTHORITY_ALIAS_GROUP[country] ?? country;
+            if (!distinctHits.has(group)) distinctHits.set(group, { key: country, name });
           }
+        }
+        if (distinctHits.size === 1) {
+          const only = distinctHits.values().next().value!;
+          notes.push({ code: "authority_backfilled", detail: `${only.key}→"${only.name}"` });
+          return only.name;
+        }
+        if (distinctHits.size > 1) {
+          const keys = Array.from(distinctHits.values()).map((v) => v.key).join(",");
+          notes.push({ code: "authority_ambiguous_left", detail: keys });
         }
         return m;
       });
-      return out;
     }
     if (Array.isArray(node)) return node.map(walk);
     if (node && typeof node === "object") {

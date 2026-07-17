@@ -42,6 +42,48 @@ Deno.test("FF-1 T3 — Ireland + Sweden mappings correct", () => {
   assertEquals(DPIA_AUTHORITY_MAP["SWEDEN"], "Integritetsskyddsmyndigheten (IMY)");
 });
 
+Deno.test("FF-1-HF1 — UKRAINE placeholder NOT falsely filled by UK substring", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for UKRAINE]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, input);
+  assertEquals(notes.length, 0);
+});
+
+Deno.test("FF-1-HF1 — 'UNITED KINGDOM / IRELAND' multi-match left with ambiguous note", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for UNITED KINGDOM / IRELAND]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, input);
+  assert(notes.some((n) => n.code === "authority_ambiguous_left"));
+  assert(!notes.some((n) => n.code === "authority_backfilled"));
+});
+
+Deno.test("FF-1-HF1 — single-country UK alias still fills ICO", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for UK]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, "Information Commissioner's Office (ICO)");
+  assert(notes.some((n) => n.code === "authority_backfilled"));
+});
+
+Deno.test("FF-1-HF1 — single-country SWEDEN still fills IMY", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for SWEDEN]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, "Integritetsskyddsmyndigheten (IMY)");
+});
+
+Deno.test("FF-1-HF1 — GERMANY still left untouched", () => {
+  const notes: Array<{ code: string; detail: string }> = [];
+  const input = "[TO COMPLETE — identify competent supervisory authority for GERMANY]";
+  const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
+  assertEquals(out.lead_authority, input);
+  assertEquals(notes.length, 0);
+});
+
+
+
 Deno.test("FF-1 T5 — absent governance booleans emit null, not false", () => {
   const out = shimLegacyIntake({ entity_name: "Acme", q3_sector: "Retail" });
   assertEquals(out.org_context.privacy_counsel_engaged, null as unknown as boolean);
