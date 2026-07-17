@@ -91,6 +91,7 @@ export type { ExceptionEntry, FiveStageIntake } from "../_shared/cppa-test-state
 export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
 import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
 
 
 // POSTBATCH-1 — deterministic post-generation fallback for TEST-STATES leakage
