@@ -181,12 +181,12 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           {s.overall_risk_level && (
             <span className={`inline-block px-3 py-1.5 rounded font-medium ${riskBadge(s.overall_risk_level)}`}>
-              Overall risk: {s.overall_risk_level}
+              Overall risk: {displayInsufficientBasis(s.overall_risk_level)}
             </span>
           )}
           {s.exceptions_status && (
             <span className="inline-block px-3 py-1.5 rounded font-medium bg-white/10">
-              Exceptions: {s.exceptions_status === "Material gaps identified" ? "Material deficiencies identified" : s.exceptions_status}
+              Exceptions: {displayInsufficientBasis(s.exceptions_status === "Material gaps identified" ? "Material deficiencies identified" : s.exceptions_status)}
             </span>
           )}
           <span className="inline-block px-3 py-1.5 rounded font-medium bg-white/10">
