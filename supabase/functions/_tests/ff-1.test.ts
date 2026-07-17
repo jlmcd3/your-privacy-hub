@@ -80,6 +80,9 @@ Deno.test("FF-1-HF1 — GERMANY still left untouched", () => {
   const out: any = backfillDpiaAuthorities({ lead_authority: input }, notes);
   assertEquals(out.lead_authority, input);
   assertEquals(notes.length, 0);
+});
+
+
 
 Deno.test("FF-1 T5 — absent governance booleans emit null, not false", () => {
   const out = shimLegacyIntake({ entity_name: "Acme", q3_sector: "Retail" });
