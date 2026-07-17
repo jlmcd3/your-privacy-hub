@@ -1358,10 +1358,15 @@ async function runPipeline(assessment_id: string) {
     function dedupeExceptionCitationNote(report: any): any {
       try {
         const POINTER = "Controlling statutory frame not documented in the record (see the claimed exception's pinned provision in the exception-citation summary note; the applicable frame is § 1798.140(e), § 1798.105(d), or § 1798.145(a)(1)(A)–(G) depending on the claim). Note: 11 CCR §§ 7150–7157 impose the documentation duty but do not create exceptions; the specific subparagraph of the pinned frame must be cited in the assessment record.";
+        // REBUILD-RISK C10 — DEDUPE MATCHER: recognise the exception-
+        // citation summary note whether it uses the legacy § 1798.145
+        // frame or the frame-neutral § 1798.140(e) / § 1798.105(d)
+        // framings introduced by W3-F3b.
         const isNote = (s: string) => {
           if (typeof s !== "string") return false;
           const n = s.replace(/\s+/g, " ").toLowerCase();
-          return n.includes("1798.145") && n.includes("under which");
+          const hasFrameCite = n.includes("1798.145") || n.includes("1798.140(e)") || n.includes("1798.105(d)");
+          return hasFrameCite && n.includes("under which");
         };
         // Extract every note substring occurrence for excision (case-insensitive
         // match on the sentence around "1798.145 ... under which ...").
