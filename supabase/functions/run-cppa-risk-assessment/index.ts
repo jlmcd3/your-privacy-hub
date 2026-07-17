@@ -109,6 +109,32 @@ const M_TOKEN_MAP: Record<string, string> = {
   M10: "the canonical-dates review",
 };
 
+// REBUILD-DPIA T10a — compound-first patterns BEFORE the bare-id pass.
+// Catches "the M<n> (cohort |audit |trigger )?determination" so the whole
+// phrase is replaced atomically, preventing double-noun artefacts
+// (batch 4487d55d: "the M6 cohort determination" formerly became
+// "the the audit-cohort determination cohort determination").
+const M_COMPOUND_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bthe\s+(M10|M[1-9])\s+(cohort|audit|trigger)\s+determination\b/gi, (id: string) => M_TOKEN_MAP[id] ?? id],
+  [/\bthe\s+(M10|M[1-9])\s+determination\b/gi, (id: string) => M_TOKEN_MAP[id] ?? id],
+];
+
+// REBUILD-DPIA T10b — prose field-id scrub map. Raw intake field ids in prose
+// (outside information_needed.field / source_fields anchors) are C5 violations
+// and co-trigger qc_r1_1. This map applies to *prose* fields only; the
+// applyDeterministicPostGenFallback walker excludes information_needed
+// entries' `field`/`source_fields` values.
+export const PROSE_FIELD_ID_MAP: Record<string, string> = {
+  q18_admt_use: "the ADMT-use answer",
+  q18b_admt_training: "the ADMT-training answer",
+  q5_sell_share: "the sale/share answer",
+  q5c_share_revenue_50pct: "the 50%-revenue answer",
+  q15_sensitive_pi: "the sensitive-PI answer",
+  q15c_spi_volume: "the sensitive-PI volume figure",
+  q5b_profiling_observation: "the profiling-observation answer",
+  q15b_under16_knowledge: "the under-16 knowledge answer",
+};
+
 const STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
   // Compound "is/are resolved <state>" forms first — most specific.
   [/\bis\s+resolved[_\s]met\b/gi, "is established on the record"],
@@ -127,42 +153,82 @@ const STATE_TOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
   [/\bINDETERMINATE\b/g, "indeterminate on the record"],
 ];
 
+// Post-scrub cleanup: collapse "the the" and immediate duplicated trailing
+// noun ("determination ... determination" within 6 words of a scrub site).
+function postScrubCleanup(s: string): string {
+  let out = s.replace(/\bthe\s+the\b/gi, "the");
+  // Collapse duplicated "determination" within 6 words:
+  //   "audit-cohort determination cohort determination" → "audit-cohort determination"
+  out = out.replace(/(\b\w[\w-]*\s+determination)(?:\s+\w+){0,4}\s+determination\b/gi, "$1");
+  return out;
+}
+
+// PROSE FIELDS ONLY: recurse into strings, but never rewrite the values of
+// information_needed[].field or information_needed[].source_fields (Task 10b).
 function scrubTestTokensDeep(
   node: unknown,
   notes: Array<{ code: string; detail: string }>,
+  parentKey?: string,
+  insideInformationNeededEntry: boolean = false,
 ): unknown {
   if (typeof node === "string") {
+    // Preserve raw intake-field ids inside information_needed entry anchors.
+    const isAnchor = insideInformationNeededEntry && (parentKey === "field" || parentKey === "source_fields");
     let out = node;
+
+    // Compound M-phrase pass (BEFORE bare-id pass; Task 10a).
+    for (const [re, replFn] of M_COMPOUND_REPLACEMENTS) {
+      out = out.replace(re, (_m: string, id: string) => {
+        const human = (replFn as any)(id);
+        if (human && human !== id) notes.push({ code: "test_token_scrubbed", detail: `${id}-compound→"${human}"` });
+        return human ?? _m;
+      });
+    }
+    // State-token pass.
     for (const [re, repl] of STATE_TOKEN_REPLACEMENTS) {
       if (re.test(out)) {
         out = out.replace(re, repl);
         notes.push({ code: "test_token_scrubbed", detail: `state→"${repl}"` });
       }
     }
-    // Standalone M-ids: M1..M10 (order M10 before M1 by using \b(M10|M[1-9]) via alt).
+    // Bare M-id pass.
     out = out.replace(/\b(M10|M[1-9])\b/g, (_m, id: string) => {
       const human = M_TOKEN_MAP[id];
       if (!human) return _m;
       notes.push({ code: "test_token_scrubbed", detail: `${id}→"${human}"` });
       return human;
     });
-    // Bare literal "TEST-STATES" reference in prose.
+    // TEST-STATES literal.
     if (/\bTEST-STATES\b/.test(out)) {
       out = out.replace(/\bTEST-STATES\b/g, "the deterministic checks");
       notes.push({ code: "test_token_scrubbed", detail: "TEST-STATES→\"the deterministic checks\"" });
     }
+    // Prose field-id pass (Task 10b) — NEVER touch anchors.
+    if (!isAnchor) {
+      for (const [fid, human] of Object.entries(PROSE_FIELD_ID_MAP)) {
+        const re = new RegExp("\\b" + fid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g");
+        if (re.test(out)) {
+          out = out.replace(re, human);
+          notes.push({ code: "prose_field_id_scrubbed", detail: `${fid}→"${human}"` });
+        }
+      }
+    }
+    // Cleanup pass (Task 10a).
+    out = postScrubCleanup(out);
     return out;
   }
-  if (Array.isArray(node)) return node.map((v) => scrubTestTokensDeep(v, notes));
+  if (Array.isArray(node)) return node.map((v) => scrubTestTokensDeep(v, notes, parentKey, insideInformationNeededEntry));
   if (node && typeof node === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
-      out[k] = scrubTestTokensDeep(v, notes);
+      const inIN = insideInformationNeededEntry || parentKey === "information_needed";
+      out[k] = scrubTestTokensDeep(v, notes, k, inIN);
     }
     return out;
   }
   return node;
 }
+
 
 function dropResolvedSourceAsks(
   report: any,
