@@ -311,8 +311,12 @@ export function renderCyberTestStatesBlock(states: Record<string, TestStateEntry
 // The regex is authoritative per the leg-(b) ratification.
 // ---------------------------------------------------------------------------
 
+// GRADER-1 Task 6(a) extension: also catches the space-form RESOLVED
+// tokens ("RESOLVED MET" / "RESOLVED NOT MET" / "RESOLVED NOT APPLICABLE"),
+// bare test ids in prose (\bM1..M10\b, \bM-CA\b, \bM-GDPR\b), and the
+// "M\d+ is RESOLVED" word order that evaded the original regex.
 const TEST_STATES_LEAK_RE =
-  /\bTEST-STATES\b|\bM-?[A-Z0-9]{1,4}\s+(resolved|state)\b|\bresolved_(met|not_met)\b|\bRESOLVED_[A-Z_]+\b/gi;
+  /\bTEST-STATES\b|\bM-?[A-Z0-9]{1,4}\s+(?:resolved|state)\b|\bresolved_(?:met|not_met|not_applicable)\b|\bRESOLVED_[A-Z_]+\b|\bRESOLVED\s+(?:MET|NOT\s+MET|NOT\s+APPLICABLE)\b|\bM(?:10|[1-9])\b|\bM-(?:CA|GDPR)\b|\bM\d+\s+is\s+RESOLVED\b/gi;
 
 export type TestStatesLeakHit = { path: string; match: string; context: string };
 
