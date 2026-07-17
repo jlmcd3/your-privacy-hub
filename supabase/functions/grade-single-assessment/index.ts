@@ -24,14 +24,17 @@ import {
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
 
-// Intake slice for grader prompts. Cap raised 2500 -> 8000 (Doc X, 2026-07-06)
-// to mirror run-quality-batch. Beyond 8000, keep HEAD (5000) + TAIL (3000).
-const INTAKE_SLICE_CAP = 8000;
+// GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
+// run-quality-batch). Safety cap only for pathological payloads.
+const INTAKE_HARD_CAP = 250_000;
 function sliceIntakeForGrader(intake: unknown): string {
   const s = JSON.stringify(intake ?? {});
-  if (s.length <= INTAKE_SLICE_CAP) return s;
-  return `${s.slice(0, 5000)}[...intake middle elided...]${s.slice(-3000)}`;
+  if (s.length <= INTAKE_HARD_CAP) return s;
+  return `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
 }
+// GRADER-1 Tasks 2/3 — shared authoritative context block (identical to
+// run-quality-batch's grader system prompt).
+import { SHARED_GRADER_CONTEXT } from "../_shared/grader/context.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -140,6 +143,7 @@ SPELLING NEUTRALITY (CEO Ruling R-15C-1 revised, QLB-F3): US and British spellin
 
 BRACKETED FILL-IN MARKERS (CEO Ruling R-15C-2, QLB-F3): bracketed fill-in placeholders — including "[TO BE COMPLETED …]", "[TO BE COMPLETED: <detail>]", "[TO COMPLETE — <detail>]", "[TO BE ASSESSED]", and equivalent square-bracketed forms — are MANDATED anti-fabrication placeholders emitted per the Product Prompt's Priority 1 fact-discipline rule. Their presence is NEVER a deduction under ANY rubric check (not an internal-reasoning leak, not incompleteness, not lack of actionability, not boilerplate, not any other dimension). Grade the substance PRESENT in the document; deferral density is policed by product lint, not by this rubric.
 
+${SHARED_GRADER_CONTEXT}
 
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
 ${rubricChecklistText(checks)}

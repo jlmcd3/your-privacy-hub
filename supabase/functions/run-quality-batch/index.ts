@@ -18,6 +18,14 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForBatchTool,
 } from "../_shared/grader/payload.ts";
+// GRADER-1 Tasks 2/3 — shared authoritative context block injected into
+// BOTH grader system prompts (Claude rubric + GPT cross-review).
+import { SHARED_GRADER_CONTEXT } from "../_shared/grader/context.ts";
+// GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
+import {
+  collectRationaleEntries,
+  evaluateResolvedHedgePerField,
+} from "../_shared/grader/qc-r1-per-field.ts";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -88,16 +96,17 @@ const SCENARIO_GUIDANCE: Record<string, string> = {
 };
 
 
-// Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
-// to stop the alphabetical tail (i5_/i7_/i8_/i9_ keys) from being dropped, which
-// produced structural "unsupported detail" deductions on wide-schema fixtures.
-// Beyond 8000, keep HEAD (first 5000) + TAIL (last 3000) with an elision marker
-// so both ends of the JSON serialization survive.
-const INTAKE_SLICE_CAP = 8000;
+// GRADER-1 Task 1 — Every rubric evaluation now receives the COMPLETE
+// intake JSON. Prior behavior (8000-char cap with head/tail elision) caused
+// the dpia grader to flag intake-supported facts as "fabricated" (batch
+// 4d54f360, run 593e6493). No slice, no elision: the whole payload goes.
+// Safety cap only for extreme pathological payloads (>250KB), well above
+// any real intake shape emitted by the nine tools.
+const INTAKE_HARD_CAP = 250_000;
 function sliceIntakeForGrader(intake: unknown): string {
   const s = JSON.stringify(intake ?? {});
-  if (s.length <= INTAKE_SLICE_CAP) return s;
-  return `${s.slice(0, 5000)}[...intake middle elided...]${s.slice(-3000)}`;
+  if (s.length <= INTAKE_HARD_CAP) return s;
+  return `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
 }
 
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
@@ -453,10 +462,13 @@ const CHECKS: Check[] = [
 
           const resolvedFields = new Set<string>();
           const resolvedIds: string[] = [];
+          const resolvedFieldsById: Record<string, string[]> = {};
           for (const [id, s] of Object.entries(states)) {
             if (isResolved(s.state)) {
               resolvedIds.push(id);
-              (s.source_fields ?? []).forEach((f: string) => resolvedFields.add(f));
+              const src = (s.source_fields ?? []) as string[];
+              resolvedFieldsById[id] = src;
+              src.forEach((f: string) => resolvedFields.add(f));
             }
           }
           const infoNeeded = collectInfoNeeded(report);
@@ -468,16 +480,17 @@ const CHECKS: Check[] = [
             const hit = fields.find(f => resolvedFields.has(f));
             if (hit) return { passed: false, evidence: `information_needed asks for resolved field "${hit}"` };
           }
-          const rat = rationaleText(report);
-          for (const id of resolvedIds) {
-            const idLc = id.toLowerCase();
-            if (rat.includes(idLc) && HEDGE.test(rat)) {
-              return { passed: false, evidence: `hedge language near resolved test ${id} in rationale prose` };
-            }
-          }
+          // GRADER-1 Task 4 — per-field co-occurrence.  A hedge sitting in a
+          // DIFFERENT rationale field about a genuinely INDETERMINATE test id
+          // must PASS; fail only when the hedge phrase and the resolved test
+          // id (or its source_fields) co-occur inside the SAME field string.
+          const entries = collectRationaleEntries(report);
+          const perField = evaluateResolvedHedgePerField(entries, resolvedIds, resolvedFieldsById, HEDGE);
+          if (!perField.passed) return perField;
           return { passed: true };
         },
       },
+
 
       // QC-R1-2 -- SPI prong (M4) utilization in cyber-audit section
       {
@@ -819,6 +832,7 @@ SPELLING NEUTRALITY (CEO Ruling R-15C-1 revised, QLB-F3): US and British spellin
 
 BRACKETED FILL-IN MARKERS (CEO Ruling R-15C-2, QLB-F3): bracketed fill-in placeholders — including "[TO BE COMPLETED …]", "[TO BE COMPLETED: <detail>]", "[TO COMPLETE — <detail>]", "[TO BE ASSESSED]", and equivalent square-bracketed forms — are MANDATED anti-fabrication placeholders emitted per the Product Prompt's Priority 1 fact-discipline rule. Their presence is NEVER a deduction under ANY rubric check (not an internal-reasoning leak, not incompleteness, not lack of actionability, not boilerplate, not any other dimension). Grade the substance PRESENT in the document; deferral density is policed by product lint, not by this rubric.
 
+${SHARED_GRADER_CONTEXT}
 
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
 ${rubricChecklistText(checks)}
@@ -1006,7 +1020,7 @@ annual_consumer_volume: string — MUST be one of the exact CONSUMER_OPTS enum v
 Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), Healthcare SaaS (sensitive PI, well-documented security/debugging/research/legal exceptions), HR/employment-context-only (single employment_context exception), FinTech credit scoring (profiling_significant_effects + ADMT + cybersecurity gaps), small retailer below thresholds (mostly false triggers — should result in voluntary review), and a high-risk profiling/minors scenario (children_in_scope=true). Mix posture: some weak/undocumented exception claims, some clear gaps, some well-controlled.`,
     "cppa-cyber": `CPPA Cybersecurity Audit — 11 CCR § 7123(c) 18-control schema. Return objects with EXACTLY these top-level keys: entity_name (string), industry (sector string), sector (string, may mirror industry), profile (object: { incidents_12mo: string like "0","1","2-5",">5"; framework: one of "SOC 2","ISO 27001","NIST CSF 2.0","CIS Controls","None"; last_audit: ISO date or "" }), controls (object mapping EACH of these 18 exact slug keys to { status: one of "Implemented","Mature","Partial","Gap","Insufficient information"; notes: string, >=20 chars describing the specific evidence or absence }). The 18 slugs are (use EVERY one, spelled EXACTLY): c1_auth, c2_encryption, c3_account_access, c4_inventory, c5_secure_config, c6_vuln_mgmt, c7_audit_logs, c8_network_mon, c9_anti_malware, c10_segmentation, c11_port_protocol, c12_awareness, c13_training, c14_secure_dev, c15_third_party, c16_retention, c17_incident, c18_continuity. Do NOT invent alternative slugs (no c14_third_party, no c16_training — those are legacy/typo aliases). Vary posture: some fully Mature/Implemented, some with clusters of Partial/Gap in specific domains (e.g. training and incident weak; access controls strong), some with several controls at "Insufficient information" (intake gaps), and vary framework across SOC 2, ISO 27001, NIST CSF 2.0, and one "None". Include both under-threshold small businesses and clearly-covered enterprises.`,
     "governance": `Governance Assessment — audit intake schema for run-governance-assessment. Return objects with EXACTLY these top-level keys (US spelling of organization_name): organization_name (string), sector (string), org_size (one of "1-10","11-50","51-250","251-1000","1000+"), jurisdictions (string[] from ["EU","GB","UK","US-CA","US-NY","US-CO","US-VA","US","CA","Other"] — include EU/UK on ~half of scenarios), eu_uk_data (one of "Yes","No"), tools (string[] of external technology tools in use, e.g. ["Google Workspace","Slack","Salesforce","HubSpot","OpenAI ChatGPT Enterprise","Anthropic Claude","Microsoft 365","AWS"]), data_categories (string[] from ["Contact details","Identifiers","Financial data","Health or medical data","Location data","Device/technical data","Behavioural / browsing data","Inferences","Sensitive data — other","Children's data","Employee data"]), special_category (one of "Yes","No"), special_categories_list (string[], populate only when special_category="Yes", subset of ["Health","Biometric","Racial/ethnic","Political opinions","Religious beliefs","Trade union","Sex life/orientation","Genetic"]), privacy_policy (one of "Yes, published and current","Yes, but outdated (>12 months)","Draft only","No"), privacy_notice_coverage (string when privacy_policy starts with "Yes"; else "n/a"), dpo_status (one of "Appointed DPO","Privacy lead (not formal DPO)","None","n/a"), dpia_status (one of "Yes, completed for high-risk processing","Partial — some activities covered","No"), dpia_ai_coverage (one of "Yes","Partial","No" when dpia_status starts with "Yes"; else "n/a"), incident_response (one of "Documented and tested","Documented but not tested","Ad-hoc","None"), training_status (one of "Yes, mandatory annual","Yes, ad-hoc","No"), training_ai_coverage (one of "Yes","Partial","No" when training_status starts with "Yes"; else "n/a"), tool_instruction (one of "Yes, written policy with specific prohibitions","Verbal guidance only","No instruction provided"), dpa_status (one of "Yes, all vendors","Most vendors","Some vendors","No","n/a"), dpa_art28_verified (one of "Yes, all clauses verified","Partial","No" when dpa_status is "Yes, all vendors" or "Most vendors"; else "n/a"), transfer_status (one of "Yes, US-based tools","Yes, other non-adequate countries","No cross-border transfers","n/a"), transfer_mechanism (one of "Standard Contractual Clauses","Adequacy decision","Binding Corporate Rules","None" when transfer_status starts with "Yes"; else "n/a"), technical_controls (one of "Yes — DLP/content filtering actively enforced","Partial — some tools or categories","No — policy and training only","Unsure"), technical_controls_list (string[] when technical_controls starts with "Yes" or "Partial", subset of ["DLP","Content filtering","API-based prevention","Tenant data-loss controls","Prompt/output scanning"]; else []), dsr_capability (one of "Yes — documented and tested across all vendors","Partial","No"), dsr_rights_tested (string[] when dsr_capability starts with "Yes — documented", subset of ["Access","Rectification","Erasure","Portability","Objection","Restriction"]; else []), inventory_audit (one of "Yes, current within 12 months","Yes, but >12 months old","No"), additional_context (string — user narrative, optional, per R1a coverage matrix: include on ~40% of scenarios). Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, SaaS, Retail) and posture — some mature programmes, some with concentrated gaps (no DPO + no DPIA + weak DPA), some EU-only, some US-multi-state, some mixed EU/UK/US. Do NOT emit fields named organisation_name, industry, has_privacy_policy, dpo_or_privacy_lead_assigned, governance_committee_exists, annual_revenue_usd, employee_count, company_name — these are not part of the governance intake schema.`,
-    "dpa-generator": `Data Processing Agreement (DPA) generator. Required camelCase fields exactly: entityName (string), controllerName (string), controllerJurisdiction (verbatim from DPA_JURISDICTIONS — e.g. "Germany","United Kingdom","California","Canada (federal / PIPEDA)"), processorName (string), processorJurisdiction (same enum), services (one-line description), dataCategories (array — subset of ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"]), retention (string — one of the three form shapes verbatim: "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period: <duration text>"), hasSubProcessors (boolean), subProcessorList (string when hasSubProcessors is true; else ""), auditRights (string — one of "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Other: <free-text description>"), transferMechanism (string — VERBATIM one of "" (when no transfers) | "EU Standard Contractual Clauses (SCCs)" | "UK IDTA / UK Addendum to EU SCCs" | "Binding Corporate Rules" | "Adequacy decision or regulations" | "None in place yet"). DO NOT emit legalFramework or includeTransferClause — those are DERIVED server-side (legalFramework from documentType via frameworkFor(); includeTransferClause from whether transferMechanism is non-empty). Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU (no transfer mechanism), some cross-border, and at least one "None in place yet" scenario.`,
+    "dpa-generator": `Data Processing Agreement (DPA) generator. Required camelCase fields exactly: entityName (string), controllerName (string), controllerJurisdiction (verbatim from DPA_JURISDICTIONS — e.g. "Germany","United Kingdom","California","Canada (federal / PIPEDA)"), processorName (string), processorJurisdiction (same enum), services (one-line description), dataCategories (array — subset of ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"]), retention (string — one of the three form shapes verbatim: "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period: <duration text>"), hasSubProcessors (boolean), subProcessorList (string when hasSubProcessors is true; else ""), auditRights (string — one of "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Other: <free-text description>"), transferMechanism (string — VERBATIM one of "" (when no transfers) | "EU Standard Contractual Clauses (SCCs)" | "UK IDTA / UK Addendum to EU SCCs" | "Binding Corporate Rules" | "Adequacy decision or regulations" | "None in place yet"). DO NOT emit legalFramework or includeTransferClause — those are DERIVED server-side (legalFramework from documentType via frameworkFor(); includeTransferClause from whether transferMechanism is non-empty). Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU (no transfer mechanism), some cross-border, and at least one "None in place yet" scenario. GRADER-1 T5: when the intake facts imply a Controller-to-Processor SCC arrangement (2021 EU SCCs, Commission Implementing Decision (EU) 2021/914), any free-text narrative in \`services\` or \`subProcessorList\` that references SCC modules MUST use "Module Two (Controller-to-Processor)" — NEVER "Modules 1 and 2" (Module 1 is Controller-to-Controller and is internally contradictory with a controller-to-processor arrangement). Module Three applies to Processor-to-(Sub-)Processor onward transfers; Module Four applies to Processor-to-Controller reverse flows. Do not conflate module numbers.`,
     "ir-playbook": `Incident Response Playbook generator. Required camelCase fields exactly: organizationName (string), discoveryDateTime (ISO date-time within the last 7 days), cause (e.g. "Ransomware attack","Phishing-led credential theft","Misconfigured S3 bucket","Insider exfiltration","Third-party vendor breach"), dataTypes (array, e.g. ["PII","health information","financial records","credentials"]), affectedCount (string range like "1000-10000"), jurisdictions (array of ISO codes like ["US-CA","US-TX","UK","EU"]), processorInvolved (boolean), processorName (string, only if processorInvolved), contained (one of "Yes","Partially","No","Under investigation"), organisationType (sector string). Vary sectors (Healthcare, Retail, FinTech, EdTech) and severity.`,
     "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array — MUST use these exact selection labels and NEVER bare state codes: "Illinois, USA (BIPA)", "Texas, USA (CUBI)", "Washington, USA", "California, USA (CCPA)", "Virginia, USA", "EU (GDPR)", "United Kingdom (UK GDPR)". Vary across single-jurisdiction and multi-jurisdiction mixes — e.g. ["Illinois, USA (BIPA)"], ["Texas, USA (CUBI)","California, USA (CCPA)"], ["EU (GDPR)","United Kingdom (UK GDPR)"]). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
 
