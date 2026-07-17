@@ -50,20 +50,25 @@ Deno.test("no generic rules duplicated into block 2", () => {
   assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE");
 });
 
-Deno.test("schema accepts Insufficient basis and exception missing_elements", () => {
+Deno.test("schema accepts advocate-drafter shape (REBUILD-RISK)", () => {
   const schema = CPPA_RISK_TOOL_MODULE.schema ?? "";
-  // overall_risk_level allows "Insufficient basis".
+  // overall_risk_level retains the "Insufficient basis" enum literal at the
+  // summary axis (schema-level shape only; the prose blacklist ban on the
+  // phrase applies to user-facing prose, not the enum literal name).
   assert(/"overall_risk_level":[^,}]*"Insufficient basis"/.test(schema));
-  // exceptions_status allows "Insufficient basis to assess".
+  // exceptions_status retains the "Insufficient basis to assess" literal.
   assertStringIncludes(schema, "Insufficient basis to assess");
-  // exception_analysis carries missing_elements: string[].
-  assertStringIncludes(schema, '"missing_elements": string[]');
-  // documentation_status accepts "Insufficient basis".
-  assert(/"documentation_status":[^,}]*"Insufficient basis"/.test(schema));
-  // benefits_outweigh_risks_conclusion uses the RC-C1 record-completeness
-  // label — "Cannot be determined — record incomplete." — not the bare
-  // "Insufficient basis" shorthand (see prompt-core rule at index.ts L311).
-  assert(/"benefits_outweigh_risks_conclusion":[^,}]*"Cannot be determined — record incomplete\./.test(schema));
+  // REBUILD-RISK C2 — exception_analysis carries the three advocate-drafter
+  // elements; the obsolete verdict fields are REMOVED.
+  assertStringIncludes(schema, '"facts_supporting": string');
+  assertStringIncludes(schema, '"argument_strength":');
+  assertStringIncludes(schema, '"strengthen_position": string[]');
+  assert(!/"documentation_status":/.test(schema));
+  assert(!/"validity_assessment":/.test(schema));
+  assert(!/"missing_elements": string\[\]/.test(schema));
+  // REBUILD-RISK C9 — benefits_outweigh_risks_conclusion uses the
+  // colorable-argument advocate-drafter enum.
+  assert(/"benefits_outweigh_risks_conclusion":[^,}]*"Colorable argument — benefits appear to outweigh risks/.test(schema));
 });
 
 Deno.test("citation framework forbids § 7221(c)(5)", () => {
