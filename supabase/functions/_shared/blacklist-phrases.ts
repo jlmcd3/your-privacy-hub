@@ -98,6 +98,7 @@ export function detectBlacklistPhrases(input: unknown): BlacklistHit[] {
   const out: BlacklistHit[] = [];
   for (const { path, text } of strings) {
     if (path && MACHINE_PATH_RE.test(path)) continue;
+    if (path && ENUM_FIELD_EXCLUSIONS.has(leafKey(path))) continue;
     BLACKLIST_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = BLACKLIST_RE.exec(text)) !== null) {
