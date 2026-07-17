@@ -1795,6 +1795,29 @@ async function runStitch(dpia_id: string): Promise<void> {
         console.warn("[run-dpia-framework] unconditional authority backfill failed (non-fatal):", (e as Error)?.message);
       }
 
+      // FF-4 pd6 — UNCONDITIONAL, record-driven OSS template correction. Runs
+      // on every document. If the intake places the controller in an EU/EEA
+      // member and the report still asserts the false 4(16)(b) / non-EU
+      // template anywhere in user-facing strings, replace
+      // dpia_metadata.supervisory_authority_consultation_trigger with the
+      // corrected Art. 4(16)(a) sentence. Idempotent on a clean document.
+      try {
+        const ossNotes: Array<{ code: string; detail: string }> = [];
+        const corrected = correctOssTemplateFromRecord(reportData, (dpiaIntake as Record<string, any>) ?? {}, ossNotes);
+        if (ossNotes.length > 0) {
+          Object.assign(reportData, corrected);
+          dpiaAuthorityNotes.push(...ossNotes);
+          console.warn(JSON.stringify({
+            evt: "oss_template_corrected",
+            fn: "run-dpia-framework",
+            notes: ossNotes,
+          }));
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] OSS template corrector failed (non-fatal):", (e as Error)?.message);
+      }
+
+
       // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
       // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present
       // OR any information_needed entry re-requests a source_field backing a
