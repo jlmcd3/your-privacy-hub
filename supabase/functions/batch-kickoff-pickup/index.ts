@@ -26,8 +26,11 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
+import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "pdfexport-1-kickoff-pickup@2026-07-17";
+export const BUILD_STAMP = "ff-1-kickoff-pickup+export-retry@2026-07-17";
+export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
+export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
