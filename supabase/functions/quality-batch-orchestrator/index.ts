@@ -384,6 +384,18 @@ async function finalizeIfDone(runId: string) {
   const status = anySuccess ? "complete" : "failed";
   await markTerminalAll(runId, { status, phase: "done" });
   await log(runId, `Batch ${status} — ${results.length} tool(s); ${results.filter((r) => r?.final_status === "complete").length} succeeded`);
+
+  // PDFEXPORT-1 Task 2: fire-and-forget PDF auto-export. Per-doc failures are
+  // logged into function_runs (event='pdf_export') and NEVER block completion.
+  // @ts-ignore
+  EdgeRuntime.waitUntil((async () => {
+    try {
+      const out = await exportBatchPdfs(runId, makeLiveDeps(db));
+      await log(runId, `PDF export: attempted=${out.attempted} inserted=${out.inserted} failed=${out.failed}`);
+    } catch (e) {
+      console.error("[qb-orchestrator] pdf export threw", (e as Error).message);
+    }
+  })());
 }
 
 async function startRun(userId: string, tools: string[], batchSizeRaw: number)
