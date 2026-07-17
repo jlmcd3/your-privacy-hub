@@ -15,8 +15,9 @@
 // with no JWT. run-quality-batch itself is not modified.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "9f4d1c02-3b7e-4a5a-a1b1-d5a6c9e2f014-qb-orchestrator@2026-07-15-p1.1";
+export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
