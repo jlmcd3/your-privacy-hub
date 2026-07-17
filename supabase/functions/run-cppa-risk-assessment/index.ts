@@ -1485,10 +1485,12 @@ async function runPipeline(assessment_id: string) {
         let excised = 0;
         let sentenceTruncated = 0;
         const PLACEHOLDER = /\[\s*TO\s+COMPLETE[^\]]*\]/i;
+        // REBUILD-RISK C10 — frame-neutral note matcher (same as above).
         const isNote = (s: string) => {
           if (typeof s !== "string") return false;
           const n = s.replace(/\s+/g, " ").toLowerCase();
-          return n.includes("1798.145") && n.includes("under which");
+          const hasFrameCite = n.includes("1798.145") || n.includes("1798.140(e)") || n.includes("1798.105(d)");
+          return hasFrameCite && n.includes("under which");
         };
         const stripNoteText = (s: string): string => {
           const parts = s.split(/(?<=[.!?])\s+/);
