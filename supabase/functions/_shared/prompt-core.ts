@@ -26,8 +26,8 @@
 // retention rule ("last interaction", not "collection"); GDPR Art. 9(1) biometric
 // qualifier (special-category only when the purpose is uniquely identifying a
 // natural person). W2C exemptions in the language-variant rule are unchanged.
-export const PROMPT_CORE_VERSION = "3.9.1";
-export const BUILD_TAG = "qb17";
+export const PROMPT_CORE_VERSION = "3.9.2";
+export const BUILD_TAG = "qb18";
 
 
 
@@ -268,6 +268,26 @@ VERIFIED CITATION ANCHORS (cite these letters/numbers exactly; do not swap or de
   50%-revenue prong). "Service provider" is defined at § 1798.140(ag). Never cite (d)(1)(B) for the
   50%-revenue prong; never cite (d)(1)(C) for the consumer-volume prong; never cite (ag) as the
   definition of "business".
+- CCPA exception frames (statute-verified 2026-07-16/17 against leginfo § 1798.140 and
+  Justia 2025 CA Code §§ 1798.145, 1798.105 — Stats. 2023 currency): three distinct
+  citation frames, never conflated. FRAME 1 — "business purposes" at Cal. Civ. Code
+  § 1798.140(e): (e)(2) security and integrity; (e)(3) debugging; (e)(4) short-term
+  transient use; (e)(7) internal research. FRAME 2 — deletion-request exceptions at
+  § 1798.105(d): (d)(1) complete transaction/warranty/provide the requested good or
+  service; (d)(2) security and integrity; (d)(3) debugging; (d)(4) free speech;
+  (d)(5) CalECPA; (d)(6) public or peer-reviewed research with informed consent;
+  (d)(7) solely internal uses aligned with consumer expectations; (d)(8) comply with
+  a legal obligation. FRAME 3 — § 1798.145(a)(1) is ONE paragraph with sub-letters
+  (A)–(G): (A) comply with federal/state/local laws, court order, or subpoena;
+  (B) civil/criminal/regulatory inquiry, investigation, subpoena, or summons;
+  (C) cooperate with law enforcement re conduct believed in good faith to violate
+  law; (D) government emergency-access requests (with conditions); (E) exercise or
+  defend legal claims; (F) deidentified or aggregate information; (G) commercial
+  conduct wholly outside California. There are NO § 1798.145(a)(2)–(a)(6) exemption
+  entries of the letter-pattern shape frame 1 uses — do not port the (e)(N) numbering
+  onto § 1798.145. § 1798.145(m) (employment) is INOPERATIVE since 2023-01-01: do
+  not cite it as a live exemption; § 1798.145(o) is commercial-credit-reporting,
+  NOT employment, and must never be cited for the employment context.
 - ADMT regulations (11 CCR) — real section ranges: § 7001 (definitions), §§ 7150–7157 (risk
   assessment), §§ 7200–7222 (ADMT). Cite subsection depth (e.g. § 7221(b)(2)) ONLY where the
   subsection is corpus-verified for the specific requirement being stated; otherwise cite the parent
