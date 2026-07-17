@@ -157,15 +157,28 @@ export function computeTestStates(
   };
 
   // M8 — § 7152 exception CLAIMED-set + pinned cite per claimed key
+  // EXCEPTION_PIN — statute-verified 2026-07-16/17 against primary text:
+  //   • leginfo.legislature.ca.gov current text of Cal. Civ. Code § 1798.140
+  //   • Justia 2025 CA Code §§ 1798.145 and 1798.105 (Stats. 2023 currency)
+  // Frame-labeled cites: § 1798.140(e) enumerates "business purposes"; § 1798.105(d)
+  // enumerates deletion-request exceptions; § 1798.145(a)(1)(A)–(G) is ONE paragraph
+  // with sub-letters (compliance with law, investigations, cooperation with law
+  // enforcement, government emergency access, legal claims, deidentified/aggregate,
+  // wholly-outside-California conduct). There are no § 1798.145(a)(2)–(a)(6)
+  // exemption entries of the shape previously pinned here — that mapping cribbed the
+  // § 1798.140(e) letter pattern onto § 1798.145 and is superseded by this pin.
+  // § 1798.145(m) (employment) is INOPERATIVE since 2023-01-01; § 1798.145(o) is
+  // commercial-credit-reporting, NOT employment — the employment_context key now
+  // carries a counsel-review flag rather than a statutory cite.
   const EXCEPTION_PIN: Record<string, string> = {
-    fraud_detection: "Cal. Civ. Code § 1798.145(a)(1)",
-    security_integrity: "Cal. Civ. Code § 1798.145(a)(2)",
-    debugging: "Cal. Civ. Code § 1798.145(a)(3)",
-    transient_use: "Cal. Civ. Code § 1798.145(a)(4)",
-    internal_research: "Cal. Civ. Code § 1798.145(a)(5)",
-    employment_context: "Cal. Civ. Code § 1798.145(o)",
-    legal_compliance: "Cal. Civ. Code § 1798.145(a)(6)",
-    consumer_request: "Cal. Civ. Code § 1798.145(a)(4)",
+    fraud_detection: "Cal. Civ. Code § 1798.140(e)(2) (security-and-integrity business purpose; see § 1798.140(ac)); deletion requests: § 1798.105(d)(2)",
+    security_integrity: "Cal. Civ. Code § 1798.140(e)(2) (security-and-integrity business purpose; see § 1798.140(ac)); deletion requests: § 1798.105(d)(2)",
+    debugging: "Cal. Civ. Code § 1798.140(e)(3); deletion requests: § 1798.105(d)(3)",
+    transient_use: "Cal. Civ. Code § 1798.140(e)(4)",
+    internal_research: "Cal. Civ. Code § 1798.140(e)(7); deletion requests: § 1798.105(d)(6) (informed consent) or (d)(7)",
+    legal_compliance: "Cal. Civ. Code § 1798.145(a)(1)(A)–(B); deletion requests: § 1798.105(d)(8)",
+    consumer_request: "Cal. Civ. Code § 1798.105(d)(1) (complete the transaction / provide the requested good or service)",
+    employment_context: "NO CURRENT STATUTORY EXEMPTION — § 1798.145(m) inoperative since 2023-01-01; flag for counsel review",
   };
   const exceptionsIntake = (rawIntake.exceptions_intake ?? {}) as Record<string, any>;
   const claimed = Object.entries(exceptionsIntake).filter(([, v]: any) => v?.claimed).map(([k]) => k);
