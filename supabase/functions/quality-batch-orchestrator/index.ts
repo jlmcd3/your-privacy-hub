@@ -15,7 +15,7 @@
 // with no JWT. run-quality-batch itself is not modified.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
+import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 
 export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
 
@@ -392,6 +392,11 @@ async function finalizeIfDone(runId: string) {
     try {
       const out = await exportBatchPdfs(runId, makeLiveDeps(db));
       await log(runId, `PDF export: attempted=${out.attempted} inserted=${out.inserted} failed=${out.failed}`);
+      // FF-2 T3 — done marker on any successful insertion so the sweep skips
+      // this batch even after ratified cleanup deletes qa_pdf_exports rows.
+      if (out.inserted > 0 && out.failed === 0) {
+        await writeExportDoneMarker(db, runId, out.inserted);
+      }
     } catch (e) {
       console.error("[qb-orchestrator] pdf export threw", (e as Error).message);
     }

@@ -19,6 +19,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -1621,21 +1622,37 @@ async function runStitch(dpia_id: string): Promise<void> {
       }
       walkForT4(reportData, "report");
       const t5Hits = detectTestStatesLeak(reportData);
-      const totalHits = t2.length + t3.length + t4.length + t5Hits.length;
+      const blHits = detectBlacklistPhrases(reportData);
+      const totalHits = t2.length + t3.length + t4.length + t5Hits.length + blHits.length;
       if (totalHits > 0) {
         console.warn(JSON.stringify({
           evt: "post_gen_violation_stitch_logonly",
           fn: "run-dpia-framework",
           stage: "stitch",
           reason: "sectioned_generation_no_full_regen_retry",
-          t2_count: t2.length, t3_count: t3.length, t4_count: t4.length, t5_count: t5Hits.length,
-          samples: { t2: t2.slice(0, 3), t3: t3.slice(0, 3), t4: t4.slice(0, 3), t5: t5Hits.slice(0, 3) },
+          t2_count: t2.length, t3_count: t3.length, t4_count: t4.length, t5_count: t5Hits.length, blacklist_count: blHits.length,
+          samples: { t2: t2.slice(0, 3), t3: t3.slice(0, 3), t4: t4.slice(0, 3), t5: t5Hits.slice(0, 3), blacklist: blHits.slice(0, 3) },
         }));
       }
       for (const v of t2) lintViolations.push({ rule: "T-2", ...v });
       for (const v of t3) lintViolations.push({ rule: "T-3", ...v });
       for (const v of t4) lintViolations.push({ rule: "T-4", ...v });
       for (const v of t5Hits) lintViolations.push({ rule: "T-5", field: v.path, match: v.match, context: v.context });
+      // FF-2 T1 — DPIA ships with per-hit blacklist_phrase_shipped lint
+      // (sectioned generation has no full-regen retry — over-budget path).
+      for (const h of blHits) lintViolations.push({ rule: "BLACKLIST", code: "blacklist_phrase_shipped", field: h.path, match: h.match, context: h.context });
+      if (blHits.length > 0) {
+        if (!Array.isArray((reportData as any).lint_warnings)) (reportData as any).lint_warnings = [];
+        for (const h of blHits) {
+          (reportData as any).lint_warnings.push({
+            code: "blacklist_phrase_shipped",
+            field: h.path,
+            match: h.match,
+            context: h.context,
+          });
+        }
+      }
+
 
       // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
       // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present

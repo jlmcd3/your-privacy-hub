@@ -161,6 +161,24 @@ export async function exportBatchPdfs(
 }
 
 /**
+ * FF-2 T3 — write a `pdf_export_done` quality_batch_log row so subsequent
+ * batch-kickoff-pickup ticks skip the batch even if qa_pdf_exports rows are
+ * later deleted by ratified cleanup. Idempotent-ish: caller decides when to
+ * call; passes an admin client. Never throws.
+ */
+export async function writeExportDoneMarker(admin: any, batchId: string, inserted: number): Promise<void> {
+  try {
+    await admin.from("quality_batch_log").insert({
+      run_id: batchId,
+      level: "info",
+      message: `pdf_export_done: ${batchId} inserted=${inserted}`,
+    });
+  } catch (e) {
+    console.error("[qa-pdf-export] done-marker insert failed", (e as Error).message);
+  }
+}
+
+/**
  * Wire-up factory that binds the deps to a live Supabase admin client + PDFShift
  * chain. Called by quality-batch-orchestrator.finalizeIfDone (fire-and-forget).
  */
