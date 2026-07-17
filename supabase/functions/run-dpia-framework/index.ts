@@ -1623,6 +1623,12 @@ async function runStitch(dpia_id: string): Promise<void> {
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
     reportData.enforcement_meta = enforcementMeta;
+    // REBUILD-DPIA T7e — deterministic dedupe of gdprCites (exact-string, order-preserving).
+    try {
+      if (gdprMeta && Array.isArray((gdprMeta as any).gdprCites)) {
+        (gdprMeta as any).gdprCites = dedupeStringArrayPreserveOrder((gdprMeta as any).gdprCites);
+      }
+    } catch { /* non-fatal */ }
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
     reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", STAMP) };
