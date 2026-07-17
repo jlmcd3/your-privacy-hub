@@ -2460,7 +2460,13 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    console.error("generate-report-pdf error:", e);
+    const err = e as Error;
+    console.error(JSON.stringify({
+      evt: "generate_report_pdf_error",
+      name: err?.name || "Error",
+      message: err?.message || String(e),
+      stack: err?.stack || null,
+    }));
     return new Response(JSON.stringify({ error: "Report generation failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
