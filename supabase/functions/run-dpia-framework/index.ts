@@ -174,7 +174,9 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "ARTICLE 35(3) TRIGGER NAMES THE CATEGORIES (REBUILD-DPIA T5b): dpia_metadata.article_35_3_trigger names WHICH recorded data categories engage Art. 35(3)(b) when it is engaged — 'Art. 35(3)(b): the record declares processing of [health data / children's data / …] on a large scale'. Never cite Art. 35(3)(b) without naming the special category from the record.",
     "NIS2 IS CONDITIONAL (REBUILD-DPIA T5c): NIS2 and sectoral cybersecurity obligations are never asserted from industry alone. State them conditionally: 'the record should be assessed to confirm whether NIS2 applies (whether the entity qualifies as an essential/important entity under the Directive's Annex I/II sectors and size thresholds)'. Do not write 'NIS2 applies' from a sector label.",
     "W3-A FABRICATION BAN (REBUILD-DPIA T5d — carried verbatim): facts are never invented. Absent facts are named as absent, never filled with plausible substitutes. Where a magnitude, date, cadence, volume, or specific fact is not in the record, state it as absent and route the missing item — never a fabricated figure, approximation, or industry benchmark.",
-    "ART. 4(16) MAIN-ESTABLISHMENT LOGIC FOLLOWS THE RECORD (REBUILD-DPIA T5e; batch 4487d55d evidence): when controller_country / central_administration_country place the controller IN the EU/EEA, the main establishment is the place of central administration — Art. 4(16)(a). The Art. 4(16)(b) non-EU-establishment template is used ONLY when the record places the controller OUTSIDE the EU. NEVER assert 'central administration is outside the EU' against recorded facts. For a Sweden-established controller with Swedish central administration, the main establishment is Sweden and IMY (Integritetsskyddsmyndigheten) is the lead SA — do NOT route this through the Art. 4(16)(b) non-EU template.",
+    "ART. 4(16) MAIN-ESTABLISHMENT LOGIC FOLLOWS THE RECORD (REBUILD-DPIA T5e; FF-4 pd6): Art. 4(16)(a) is the CONTROLLER limb — the main establishment is the place of the controller's central administration in the Union, UNLESS the decisions on the purposes and means of the processing are taken in ANOTHER establishment of the controller in the Union and that establishment has the power to have them implemented, in which case that other establishment is the main establishment. Art. 4(16)(b) is the PROCESSOR limb and does NOT govern controller main-establishment. When controller_country / central_administration_country places the controller IN the EU/EEA, the main establishment is the place of central administration under Art. 4(16)(a). Never assert 'central administration is outside the EU' against recorded facts, and never invoke Art. 4(16)(b) to describe a controller's main establishment.",
+    "ART. 9(1) PURPOSE RULE (FF-4 pd7): biometric data is characterised as processed 'for the purpose of uniquely identifying a natural person' — and therefore in the Art. 9(1) special-category set — ONLY when the record states an identification purpose (e.g. authentication, identity verification, one-to-one or one-to-many matching to identify an individual). Biometric-adjacent streams recorded for monitoring, clinical/triage, wellness, safety, ergonomic, or performance purposes (heart rate, SpO2, ECG, EEG, gaze/attention scores, gait, posture, temperature) are described by their RECORDED purpose — the Art. 9(1) purpose test is analysed EXPLICITLY where classification matters, and the field notes that Art. 9(1) is engaged only if the identification purpose is added. This is a purpose test, not a data-type reflex; same family as the attention-scores anchor.",
+    "ART. 4(22) / ESTABLISHMENT FACT-GROUNDING RULE (FF-4 pd6): Art. 4(22) concerned-authority claims and 'establishment' claims require a RECORDED establishment (branch, subsidiary, office, or other stable arrangement engaging in effective and real activity through stable arrangements) in the Member State in question. A freedom-of-services or cross-border service deployment WITHOUT a local establishment does not create one — describe the service model the record actually documents (e.g. 'the record documents cross-border service provision without a local establishment in {MS}; Art. 4(22) is engaged only if a stable arrangement in {MS} is added to the record'). Never infer an establishment from the existence of users, customers, or service reach in a Member State.",
     "KNOWN-AUTHORITY POPULATION (REBUILD-DPIA T5f; credit-first): where the record names or determines the competent / lead supervisory authority (whether by explicit reference or by controller_country → SA mapping — Sweden→IMY, Germany→relevant Land authority, France→CNIL, Ireland→DPC, Netherlands→AP, etc.), POPULATE the authority in every field that names it. NEVER emit '[TO COMPLETE — identify the supervisory authority]' when the record supplies it. Reserve the placeholder for the genuinely undetermined case.",
     "FRAMEWORK FIDELITY FOLLOWS THE RECORD (REBUILD-DPIA T5b; same defect class as dpa W3-H): the frameworks applied to the DPIA are those the RECORDED jurisdictions engage. GDPR is applied as binding ONLY when the record engages it — an EU/UK jurisdiction is selected in the record, or the record establishes an EU establishment engaging Art. 3(1), in which case the Art. 3 basis is STATED explicitly. Where the record excludes EU/UK deployments (e.g. jurisdictions = United States — Federal / California / Canada with an explicit out-of-scope statement), GDPR obligations are framed as PROSPECTIVE / CONDITIONAL to any planned EU/UK expansion — never 'DPIA mandatory under GDPR Article 35(1)'. The primary framework of the document = the record's primary jurisdiction. Comparative references to non-engaged frameworks are LABELLED comparative ('for comparison, under GDPR Art. 35(1) …'). This rule governs the ARTICLE 35 MANDATORY TRIGGER RULE: WP248 criteria analysis proceeds under whichever framework the record engages.",
     "NECESSITY — ADVOCATE-DRAFTER VOICE PER ACTIVITY (REBUILD-DPIA T6a): section_3 necessity states alternatives-considered reasoning PER processing activity. Where the record is thin, use advocate-drafter voice — 'the recorded facts support a colorable argument that [X] is necessary because [Y]; recording [the named alternatives / minimisation choices] would strengthen this' — NEVER 'the record is thin', 'inadequate', or clearance-verdict phrasing.",
@@ -424,6 +426,102 @@ export function backfillDpiaAuthorities(
   return walk(report);
 }
 
+// FF-4 pd6 — EU/EEA member-state list (record-driven OSS template corrector
+// input). Lives here (co-located with backfillDpiaAuthorities) rather than in
+// _shared, because only run-dpia-framework consumes it. Includes both country
+// names (matched against intake string fields) and ISO codes.
+export const EU_EEA_MEMBER_COUNTRIES: ReadonlySet<string> = new Set([
+  "AUSTRIA","AT","BELGIUM","BE","BULGARIA","BG","CROATIA","HR","CYPRUS","CY",
+  "CZECHIA","CZECH REPUBLIC","CZ","DENMARK","DK","ESTONIA","EE","FINLAND","FI",
+  "FRANCE","FR","GERMANY","DE","GREECE","GR","EL","HUNGARY","HU","IRELAND","IE",
+  "ITALY","IT","LATVIA","LV","LITHUANIA","LT","LUXEMBOURG","LU","MALTA","MT",
+  "NETHERLANDS","THE NETHERLANDS","NL","POLAND","PL","PORTUGAL","PT",
+  "ROMANIA","RO","SLOVAKIA","SK","SLOVENIA","SI","SPAIN","ES","SWEDEN","SE",
+  // EEA non-EU
+  "ICELAND","IS","LIECHTENSTEIN","LI","NORWAY","NO",
+]);
+
+// FF-4 pd6 — GERMANY intentionally omits an authority clause because the
+// competent SA is Land-specific (per-Land rule; see DPIA_AUTHORITY_MAP note).
+const AUTHORITY_CLAUSE_OMIT: ReadonlySet<string> = new Set(["GERMANY", "DE"]);
+
+// FF-4 pd6 — regex family that flags the false 4(16)(b) / non-EU template.
+const FALSE_4_16_B_PATTERNS: RegExp[] = [
+  /central\s+administration\s+is\s+outside\s+the\s+EU/i,
+  /Art(?:icle|\.)?\s*4\s*\(\s*16\s*\)\s*\(\s*b\s*\)/i,
+  /an\s+EU\s+establishment\s+holds\s+decision-making\s+authority/i,
+  /no\s+EU\s+main\s+establishment\s+has\s+been\s+identified/i,
+];
+
+function looksLikeFalseFourSixteenB(s: unknown): boolean {
+  if (typeof s !== "string" || !s) return false;
+  return FALSE_4_16_B_PATTERNS.some((re) => re.test(s));
+}
+
+function normaliseCountryToken(v: unknown): string {
+  return typeof v === "string" ? v.trim().toUpperCase() : "";
+}
+
+function authorityClauseForCountry(country: string): string {
+  const key = country.toUpperCase();
+  if (AUTHORITY_CLAUSE_OMIT.has(key)) return "";
+  // Try direct map, then try common name-form (title case) too.
+  const direct = DPIA_AUTHORITY_MAP[key];
+  if (direct) return `, and the competent lead supervisory authority is ${direct}`;
+  return "";
+}
+
+// FF-4 pd6 — deterministic, record-driven OSS-template corrector.
+// If the intake places the controller IN an EU/EEA member and the report
+// asserts the false 4(16)(b) template in any user-facing string, REPLACE
+// supervisory_authority_consultation_trigger with the corrected sentence and
+// note "oss_template_corrected". Facts-from-record substitution — never a
+// model-text rewrite.
+export function correctOssTemplateFromRecord(
+  report: any,
+  intake: Record<string, any> | null | undefined,
+  notes: Array<{ code: string; detail: string }>,
+): any {
+  if (!report || typeof report !== "object") return report;
+  const rawCentral = normaliseCountryToken((intake as any)?.central_administration_country);
+  const rawController = normaliseCountryToken((intake as any)?.controller_country);
+  const country = rawCentral || rawController;
+  if (!country) return report;
+  if (!EU_EEA_MEMBER_COUNTRIES.has(country)) return report;
+
+  // Detect the false passage anywhere in user-facing string fields.
+  let falseAssertionFound = false;
+  const walkDetect = (node: unknown): void => {
+    if (falseAssertionFound) return;
+    if (typeof node === "string") {
+      if (looksLikeFalseFourSixteenB(node)) falseAssertionFound = true;
+      return;
+    }
+    if (Array.isArray(node)) { for (const v of node) walkDetect(v); return; }
+    if (node && typeof node === "object") {
+      for (const v of Object.values(node as Record<string, unknown>)) walkDetect(v);
+    }
+  };
+  walkDetect(report);
+  if (!falseAssertionFound) return report;
+
+  const authClause = authorityClauseForCountry(country);
+  const displayCountry = country.length <= 3
+    ? country // ISO code — leave as is
+    : country.charAt(0) + country.slice(1).toLowerCase();
+  const corrected = `The record places the controller's central administration in ${displayCountry}. Under Art. 4(16)(a) GDPR the main establishment is the place of central administration in the Union${authClause}.`;
+
+  // Replace supervisory_authority_consultation_trigger on dpia_metadata (if
+  // present); clone shallowly to avoid aliasing surprises.
+  const out: any = { ...report };
+  const meta = out.dpia_metadata && typeof out.dpia_metadata === "object"
+    ? { ...out.dpia_metadata } : {};
+  meta.supervisory_authority_consultation_trigger = corrected;
+  out.dpia_metadata = meta;
+  notes.push({ code: "oss_template_corrected", detail: `${country}→Art.4(16)(a)` });
+  return out;
+}
+
 export function applyDeterministicPostGenFallbackDpia(
   parsed: any,
   testStates: Record<string, { state: string; source_fields?: string[] }>,
@@ -564,7 +662,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "ff-3-dpia@2026-07-17T00:00Z";
+export const BUILD_STAMP = "ff-4-dpia@2026-07-17T00:00Z";
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -1696,6 +1794,29 @@ async function runStitch(dpia_id: string): Promise<void> {
       } catch (e) {
         console.warn("[run-dpia-framework] unconditional authority backfill failed (non-fatal):", (e as Error)?.message);
       }
+
+      // FF-4 pd6 — UNCONDITIONAL, record-driven OSS template correction. Runs
+      // on every document. If the intake places the controller in an EU/EEA
+      // member and the report still asserts the false 4(16)(b) / non-EU
+      // template anywhere in user-facing strings, replace
+      // dpia_metadata.supervisory_authority_consultation_trigger with the
+      // corrected Art. 4(16)(a) sentence. Idempotent on a clean document.
+      try {
+        const ossNotes: Array<{ code: string; detail: string }> = [];
+        const corrected = correctOssTemplateFromRecord(reportData, (dpiaIntake as Record<string, any>) ?? {}, ossNotes);
+        if (ossNotes.length > 0) {
+          Object.assign(reportData, corrected);
+          dpiaAuthorityNotes.push(...ossNotes);
+          console.warn(JSON.stringify({
+            evt: "oss_template_corrected",
+            fn: "run-dpia-framework",
+            notes: ossNotes,
+          }));
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] OSS template corrector failed (non-fatal):", (e as Error)?.message);
+      }
+
 
       // REBUILD-DPIA T3 — deterministic post-generation fallback (mirror of
       // cppa-risk POSTBATCH-1). Runs whenever T-5 test-state leaks are present

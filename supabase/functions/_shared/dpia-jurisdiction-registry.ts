@@ -167,19 +167,24 @@ export function leadAuthorityAndOSS(input: {
     const lead = competentSA({ country: ca as CountryCode, sector: "private" });
     return {
       ossAvailable: true, leadAuthority: lead, concernedAuthorities: concerned,
-      rationale: `Central administration in ${ca} — main establishment under GDPR Art. 4(16); lead SA via Art. 56 one-stop-shop.`,
+      rationale: `Central administration in ${ca} — main establishment under GDPR Art. 4(16)(a) (controller limb: place of central administration in the Union); lead SA via Art. 56 one-stop-shop.`,
     };
   }
   if (input.euEstablishmentWithDecisionAuthority) {
     const lead = competentSA(input.euEstablishmentWithDecisionAuthority as SiteFacts);
     return {
       ossAvailable: true, leadAuthority: lead, concernedAuthorities: concerned,
-      rationale: `Central administration outside the EU, but an EU establishment holds decision-making authority over this processing → that establishment is the main establishment for OSS purposes (Art. 4(16)(b)).`,
+      // FF-4 pd6 — corrected: this is still the Art. 4(16)(a) controller limb.
+      // Where decisions on the purposes and means are taken in another
+      // establishment of the controller in the Union with power to have them
+      // implemented, that establishment is the main establishment. Art. 4(16)(b)
+      // is the PROCESSOR limb and does not govern controller main-establishment.
+      rationale: `Central administration outside the EU, but another establishment of the controller in the Union takes the decisions on the purposes and means of this processing and has the power to have them implemented → that establishment is the main establishment under GDPR Art. 4(16)(a) (controller limb, second clause).`,
     };
   }
   return {
     ossAvailable: false, leadAuthority: null, concernedAuthorities: concerned,
-    rationale: `Central administration outside the EU and no EU establishment holds decision-making authority over this processing → no EU main establishment under Art. 4(16); OSS is unavailable; each concerned SA is independently competent (EDPB Guidelines 8/2022).`,
+    rationale: `Central administration outside the EU and no EU establishment of the controller takes the decisions on the purposes and means of this processing → no main establishment under GDPR Art. 4(16)(a); OSS is unavailable; each concerned SA is independently competent (EDPB Guidelines 8/2022). (Art. 4(16)(b) governs the processor limb, not the controller.)`,
   };
 }
 
