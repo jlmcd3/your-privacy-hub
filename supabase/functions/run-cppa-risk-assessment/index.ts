@@ -1085,9 +1085,12 @@ async function runPipeline(assessment_id: string) {
           if (Array.isArray(e?.source_fields)) for (const f of e.source_fields) if (typeof f === "string") fields.push(f);
           return fields.some((f) => resolvedSources.has(f));
         });
-        if (residualLeaks.length > 0 || residualResolvedAsks.length > 0) {
+        const applied = residualLeaks.length > 0 || residualResolvedAsks.length > 0;
+        let fallbackNotes: Array<{ code: string; detail?: string }> = [];
+        if (applied) {
           const result = applyDeterministicPostGenFallback(parsed, testStates);
           parsed = result.parsed;
+          fallbackNotes = result.notes;
           console.warn(JSON.stringify({
             evt: "post_gen_fallback_applied",
             fn: "run-cppa-risk-assessment",
@@ -1097,7 +1100,19 @@ async function runPipeline(assessment_id: string) {
             notes: result.notes.slice(0, 40),
           }));
         }
+        // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
+        logPostGenLint(supabase, {
+          functionName: "run-cppa-risk-assessment",
+          fallbackApplied: applied,
+          retryWithinBudget,
+          residualLeaks: residualLeaks.length,
+          residualResolvedAsks: residualResolvedAsks.length,
+          notes: fallbackNotes,
+          sourceTable: "cppa_assessments",
+          sourceRowId: assessment_id ?? null,
+        });
       }
+
 
 
     } catch (e) {
