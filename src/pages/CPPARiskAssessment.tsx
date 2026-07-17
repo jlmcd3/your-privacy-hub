@@ -218,7 +218,7 @@ export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKe
   { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
   { key: "transient_use",     label: "Transient / short-term use (no profile built)",      cite: "Cal. Civ. Code § 1798.140(e)(4)", railKey: "exc_transient_use" },
   { key: "internal_research", label: "Internal research for technological development",    cite: "Cal. Civ. Code § 1798.140(e)(8)", railKey: "exc_internal_research" },
-  { key: "employment_context", label: "Employment-context processing",                     cite: "Cal. Civ. Code § 1798.145(m)",    railKey: "exc_employment_context" },
+  { key: "employment_context", label: "Employment-context processing",                     cite: "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — counsel review recommended", railKey: "exc_employment_context" },
   { key: "legal_compliance",  label: "Compliance with a legal obligation",                 cite: "Cal. Civ. Code § 1798.145(a)(1)", railKey: "exc_legal_compliance" },
   { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
