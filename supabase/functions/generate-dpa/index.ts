@@ -7,7 +7,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
-import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
@@ -18,6 +18,7 @@ import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
