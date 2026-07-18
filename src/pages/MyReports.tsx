@@ -527,6 +527,23 @@ export default function MyReports() {
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
       setLoading(false);
+
+      // Fetch completed translations for this user so we can badge translated
+      // reports in the list. Keyed by report_id (UUIDs are globally unique
+      // across tool tables).
+      const { data: trs } = await supabase
+        .from("report_translations")
+        .select("report_id, target_lang")
+        .eq("user_id", user.id)
+        .eq("status", "complete");
+      if (!cancelled) {
+        const map: Record<string, string[]> = {};
+        (trs || []).forEach((t: any) => {
+          if (!t?.report_id || !t?.target_lang) return;
+          (map[t.report_id] ||= []).push(t.target_lang);
+        });
+        setTranslationsByReportId(map);
+      }
     })();
     return () => { cancelled = true; };
   }, [user]);
