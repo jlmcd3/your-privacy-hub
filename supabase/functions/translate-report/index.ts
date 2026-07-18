@@ -36,10 +36,16 @@ import {
   failFunctionRun,
 } from "../_shared/function-run-logger.ts";
 
-export const BUILD_STAMP = "translate-2-resumable@2026-07-18";
-export const SLICE_BUDGET_MS = 3.5 * 60_000;   // 3.5 min per background slice
-export const MAX_RESUMES = 8;                   // ceiling on self-continuations
+export const BUILD_STAMP = "translate-2-hf1@2026-07-18";
+// TRANSLATE-2-HF1: measured platform background kill window ~120-150s.
+// Bodies observed dying at ~2-2.5min mid-slice in row 4e2eafa5. Set the slice
+// wall-clock to 90s and reserve PERSIST_MARGIN_MS for the terminal
+// persist+telemetry+kick path so it always runs before the platform kill.
+export const SLICE_BUDGET_MS = 90_000;              // 90s per background slice
+export const PERSIST_MARGIN_MS = 15_000;            // reserved for persist + kick
+export const MAX_RESUMES = 40;                       // self-continuations; hard-ceiling remains 45min in sweep
 export const RESUME_HEADER = "x-internal-resume";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -388,7 +394,9 @@ async function handleSliceRequest(
   isInitial: boolean,
 ): Promise<Response> {
   const sliceStart = Date.now();
-  const deadlineMs = sliceStart + SLICE_BUDGET_MS;
+  // Reserve PERSIST_MARGIN_MS at the tail so the graceful path (persist +
+  // telemetry + kick) always runs before the platform background-kill.
+  const deadlineMs = sliceStart + (SLICE_BUDGET_MS - PERSIST_MARGIN_MS);
 
   // Load row.
   const { data: trow, error: loadErr } = await admin
@@ -558,21 +566,22 @@ async function handleSliceRequest(
     return json({ status: "failed", error: msg }, 500);
   }
 
+  // TRANSLATE-2-HF1 ordering: persist slice_count/resume_count → durable
+  // 'continued' telemetry → THEN kick. A kill between persist and kick still
+  // leaves a healthy row that the sweep can pick up.
   await admin.from("report_translations").update({
     slice_count: newSliceCount,
     resume_count: resumeCountBefore + 1,
     last_progress_at: new Date().toISOString(),
   }).eq("id", translationRowId);
 
-  const kick = await kickResume(supabaseUrl, serviceKey, translationRowId);
-
   await finishFunctionRun(admin, run, {
-    status: kick.ok ? "success" : "error",
+    status: "success",
     sourceTable: "report_translations",
     sourceRowId: translationRowId,
     metadata: {
       event: "translate_slice",
-      outcome: kick.ok ? "continued" : "continue_kick_failed",
+      outcome: "continued",
       translation_row_id: translationRowId,
       tool_type: trow.report_type, report_id: trow.report_id, language_code: trow.target_lang,
       chunks_done: sliceResult.chunksDone,
@@ -580,10 +589,33 @@ async function handleSliceRequest(
       processed_this_slice: sliceResult.processedThisSlice,
       slice_count: newSliceCount,
       resume_count: resumeCountBefore + 1,
-      kick_status: kick.status,
+      slice_wall_ms: Date.now() - sliceStart,
       engine: TRANSLATION_ENGINE_VERSION,
     },
   });
+
+  const kick = await kickResume(supabaseUrl, serviceKey, translationRowId);
+  if (!kick.ok) {
+    // Kick failed — record it as a separate run so the sweep can still recover.
+    const failRun = await startFunctionRun(admin, "translate-report", {
+      userId: trow.user_id,
+      invokedBy: "internal",
+      metadata: { event: "translate_kick", translation_row_id: translationRowId },
+    });
+    await finishFunctionRun(admin, failRun, {
+      status: "error",
+      sourceTable: "report_translations",
+      sourceRowId: translationRowId,
+      metadata: {
+        event: "translate_kick",
+        outcome: "continue_kick_failed",
+        translation_row_id: translationRowId,
+        kick_status: kick.status,
+        kick_body: kick.body,
+      },
+    });
+  }
+
   return new Response(JSON.stringify({
     status: "translating",
     translation_row_id: translationRowId,
@@ -594,6 +626,7 @@ async function handleSliceRequest(
     continued: kick.ok,
   }), { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
+
 
 async function markFailed(admin: any, id: string, msg: string) {
   await admin.from("report_translations").update({
