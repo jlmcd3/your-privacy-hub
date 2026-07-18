@@ -5,10 +5,11 @@ import {
   failFunctionRun,
 } from "../_shared/function-run-logger.ts";
 
-// BUILD_STAMP: brief-model-1-hf2 @ 2026-07-18
-// HF2: return 202 immediately and orchestrate weekly chain inside
-// EdgeRuntime.waitUntil to escape the 150s gateway idle-timeout that killed
-// the weekly chain on 2026-07-13 (net._http_response 04:51 IDLE_TIMEOUT).
+// BUILD_STAMP: brief-model-1-hf3 @ 2026-07-18
+// HF3: generate-weekly-brief now returns 202 immediately and runs its pipeline
+// inside EdgeRuntime.waitUntil. Treat 202 (and defensively 504 IDLE_TIMEOUT)
+// as "generation started" and rely on the existing weekly_briefs poll as the
+// completion signal for BOTH generate_only and send modes.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
