@@ -165,6 +165,19 @@ export default function MyReports() {
     return r.client_id === activeClientId;
   });
 
+  // Family filter — cross-jurisdiction tools appear under "All" only.
+  const familyFilteredRows = useMemo(() => {
+    if (!activeFamily) return visibleRows;
+    return visibleRows.filter((r) => FAMILY_BY_TOOL[r.tool] === activeFamily);
+  }, [visibleRows, activeFamily]);
+
+  const setFamily = (fam: "cppa" | "gdpr" | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (fam) next.set("family", fam);
+    else next.delete("family");
+    setSearchParams(next, { replace: true });
+  };
+
   async function handleDelete(row: ReportRow) {
     const table = row.is_draft ? "tool_sessions" : TOOL_TABLE[row.tool];
     if (!table) return;
