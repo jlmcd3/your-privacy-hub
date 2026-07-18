@@ -437,11 +437,19 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const t1Start = Date.now();
     const today = new Date().toISOString().slice(0, 10);
 
-    // Determine jurisdiction for GDPR authority retrieval (UK if any verified
-    // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
+    // REBUILD-LIA T1(a): jurisdictions_scope is derived from the RECORDED intake
+    // jurisdictions, never from a semantic/EU default. The previous path let a
+    // US-only intake fall through to gdprJurisdiction="eu" and the reconciler
+    // then stamped classification.jurisdictions_scope = ["EU","EEA"]. Fix at
+    // source: enumerate the frameworks the intake actually engages.
     const liaJurisdictions: string[] = Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : [];
-    const isUk = liaJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
-    const isEu = liaJurisdictions.some((j: string) => /eu|gdpr|european/i.test(String(j))) && !isUk;
+    const engagedFrameworks = deriveEngagedFrameworks(liaJurisdictions);
+    const isUk = engagedFrameworks.includes("UK_GDPR");
+    const isEu = engagedFrameworks.includes("EU_GDPR");
+    // GDPR-context retrieval jurisdiction: only meaningful when EU/UK engaged.
+    // For non-EU/UK-only intakes we still resolve to "eu" for the retriever's
+    // required enum, but the analysis prompt is instructed not to cite GDPR
+    // articles as operative authority in that case (FRAMEWORK FIDELITY rule).
     const gdprJurisdiction: "eu" | "uk" = isUk ? "uk" : "eu";
     // Regime gates which enforcement precedents the LIA may cite. UK runs only
     // see UK GDPR / DPA 2018; EU runs only see EU/EEA GDPR enforcement.
@@ -450,7 +458,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     if (enforcementRegime !== "gdpr" && enforcementRegime !== "uk_gdpr") {
       throw new Error(`[LIA] invalid enforcementRegime '${enforcementRegime}' — must be 'gdpr' or 'uk_gdpr'`);
     }
-    const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
+    const regimeLabel = isUk ? "UK GDPR" : (isEu ? "EU GDPR" : "the engaged framework(s)");
 
     const classifySystemBlocks = buildSystemContent({
       toolModule: LIA_CLASSIFY_TOOL_MODULE,
