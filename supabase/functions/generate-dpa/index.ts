@@ -19,6 +19,7 @@ import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
+import { deriveEngagedStates, detectNonEngagedStateAssertions } from "../_shared/dpa-engaged-states.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,140 +56,17 @@ interface Body {
 
 // CEO ruling 2026-07-14 — legal framework derived from documentType.
 // FF-DPA nd6 — UK is a distinct framework (UK GDPR + DPA 2018), not EU GDPR.
-function frameworkFor(docType: string): string {
-  switch (docType) {
-    case "us-state": return "US state privacy law (CCPA/CPRA and applicable state acts)";
-    case "canada": return "PIPEDA";
-    case "dual-eu-us": return "Dual EU/US";
-    case "dual-eu-ca": return "Dual EU/Canada";
-    case "uk": return "UK GDPR and the Data Protection Act 2018";
-    case "gdpr":
-    default: return "GDPR";
-  }
-}
-
-// FF-DPA nd6 — UK removed from EU_JURS; UK gets its own set. The QL2-FIX-1
-// UK territorial-scope block inside GDPR_SYSTEM stays intact and fires for
-// EU+UK mixed derivations (routed to gdpr mode below) — explicit non-change.
-const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
-  "Belgium","Sweden","Denmark","Poland","Norway","Portugal",
-  "Austria","Finland","Luxembourg","Greece","Switzerland"]);
-const UK_JURS = new Set(["United Kingdom"]);
-const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado",
-  "Virginia","Florida","Washington","Illinois","Massachusetts","Oregon","Indiana",
-  "Montana","Iowa","Tennessee","Minnesota","Utah","Delaware","United States (federal)"]);
-const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
-  "British Columbia (PIPA)","Alberta (PIPA)"]);
-
-const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca","uk"]);
-
-// REBUILD-DPA T1a — alias table for natural variants → canonical DPA_JURISDICTIONS
-// enum value. Case-insensitive whole-value match after trimming. Only aliases that
-// resolve unambiguously to a single canonical value are listed; ambiguous
-// short forms (e.g. bare "Washington" — state vs. federal district) are NOT
-// listed and must arrive as the canonical intake string.
-const JURISDICTION_ALIASES: Record<string, string> = {
-  // US federal
-  "united states": "United States (federal)",
-  "united states of america": "United States (federal)",
-  "usa": "United States (federal)", "u.s.a.": "United States (federal)",
-  "u.s.": "United States (federal)", "us": "United States (federal)",
-  // UK
-  "united kingdom": "United Kingdom", "uk": "United Kingdom",
-  "great britain": "United Kingdom", "gb": "United Kingdom",
-  "england": "United Kingdom", "england and wales": "United Kingdom",
-  // US state short forms (unambiguous)
-  "ny": "New York", "new york, ny": "New York", "new york, usa": "New York",
-  "new york state": "New York",
-  "ca": "California", "california, usa": "California",
-  "tx": "Texas", "ct": "Connecticut", "co": "Colorado", "va": "Virginia",
-  "fl": "Florida", "wa": "Washington", "il": "Illinois", "ma": "Massachusetts",
-  "or": "Oregon", "in": "Indiana", "mt": "Montana", "ia": "Iowa",
-  "tn": "Tennessee", "mn": "Minnesota", "ut": "Utah", "de": "Delaware",
-  // Canada federal + provinces (natural forms → canonical)
-  "canada": "Canada (federal / PIPEDA)",
-  "canada (federal)": "Canada (federal / PIPEDA)",
-  "pipeda": "Canada (federal / PIPEDA)",
-  "quebec": "Quebec (Law 25)", "québec": "Quebec (Law 25)",
-  "quebec, canada": "Quebec (Law 25)", "quebec (law 25 / bill 64)": "Quebec (Law 25)",
-  "ontario": "Ontario (PHIPA)", "ontario, canada": "Ontario (PHIPA)",
-  "british columbia": "British Columbia (PIPA)", "bc": "British Columbia (PIPA)",
-  "british columbia, canada": "British Columbia (PIPA)",
-  "alberta": "Alberta (PIPA)", "alberta, canada": "Alberta (PIPA)",
-  // EU natural
-  "france": "France", "germany": "Germany", "deutschland": "Germany",
-  "ireland": "Ireland", "republic of ireland": "Ireland",
-  "spain": "Spain", "italy": "Italy", "netherlands": "Netherlands",
-  "the netherlands": "Netherlands", "holland": "Netherlands",
-  "belgium": "Belgium", "sweden": "Sweden", "denmark": "Denmark",
-  "poland": "Poland", "norway": "Norway", "portugal": "Portugal",
-  "austria": "Austria", "finland": "Finland", "luxembourg": "Luxembourg",
-  "greece": "Greece", "switzerland": "Switzerland",
-};
-
-function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolean } {
-  const trimmed = (raw ?? "").trim();
-  if (!trimmed) return { canonical: "", mapped: false };
-  // 1. Canonical enum match (case-sensitive) — accept as-is.
-  if (EU_JURS.has(trimmed) || UK_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
-    return { canonical: trimmed, mapped: true };
-  }
-  // 2. Canonical enum match (case-insensitive whole-value).
-  const lower = trimmed.toLowerCase();
-  for (const s of [...EU_JURS, ...UK_JURS, ...US_JURS, ...CA_JURS]) {
-    if (s.toLowerCase() === lower) return { canonical: s, mapped: true };
-  }
-  // 3. Alias table (case-insensitive whole-value; no substring traps).
-  const aliased = JURISDICTION_ALIASES[lower];
-  if (aliased) return { canonical: aliased, mapped: true };
-  return { canonical: trimmed, mapped: false };
-}
-
-// REBUILD-DPA T1b + FF-DPA nd6 — derivation matrix now branches UK from EU.
-// - UK-only or UK+unmapped         → "uk"
-// - UK+EU                          → "gdpr" (QL2-FIX-1 UK territorial-scope block fires)
-// - UK+US                          → "uk"  (cross-border module added inside uk mode)
-// - UK+CA                          → "uk"  (cross-border module added inside uk mode)
-// Cross-border treatment for UK+US and UK+CA is a listed design decision (see
-// FF-DPA nd6 report): uk-mode with a cross-border module rather than new
-// dual-uk-* types, to keep the derivation surface small and avoid a combinatorial
-// explosion of prompt templates. UK GDPR + DPA 2018 remains the operative law;
-// the module addresses transfers/onward flows to the US or Canadian party.
-function detectDocType(
-  ctrl: string,
-  proc: string,
-  explicit?: unknown,
-): { docType: string; ctrlCanonical: string; procCanonical: string; ctrlMapped: boolean; procMapped: boolean; explicitAccepted: boolean; explicitRawType: string } {
-  const explicitRawType = explicit === null || explicit === undefined ? "undefined" : (Array.isArray(explicit) ? "array" : typeof explicit);
-  const explicitAccepted = typeof explicit === "string" && VALID_DOC_TYPES.has(explicit);
-  const c = normalizeJurisdiction(ctrl);
-  const p = normalizeJurisdiction(proc);
-  if (explicitAccepted) {
-    return { docType: explicit as string, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
-  }
-  const ctrlEU = EU_JURS.has(c.canonical); const procEU = EU_JURS.has(p.canonical);
-  const ctrlUK = UK_JURS.has(c.canonical); const procUK = UK_JURS.has(p.canonical);
-  const ctrlUS = US_JURS.has(c.canonical); const procUS = US_JURS.has(p.canonical);
-  const ctrlCA = CA_JURS.has(c.canonical); const procCA = CA_JURS.has(p.canonical);
-  const anyEU = ctrlEU || procEU;
-  const anyUK = ctrlUK || procUK;
-  const anyUS = ctrlUS || procUS;
-  const anyCA = ctrlCA || procCA;
-  let docType = "gdpr";
-  // EU+UK → gdpr mode (existing QL2-FIX-1 UK territorial-scope block fires)
-  if (anyEU && anyUK) docType = "gdpr";
-  // Dual EU/US and EU/Canada retain existing routing
-  else if (anyEU && anyUS) docType = "dual-eu-us";
-  else if (anyEU && anyCA) docType = "dual-eu-ca";
-  // UK-primary derivations (UK-only, UK+US, UK+CA, UK+unmapped) → uk mode
-  else if (anyUK) docType = "uk";
-  else if (anyUS) docType = "us-state";
-  else if (anyCA) docType = "canada";
-  else if (anyEU) docType = "gdpr";
-  // else: neither party maps — docType stays "gdpr" as last-resort; the caller
-  // surfaces this via ctrlMapped/procMapped for the fallback note.
-  return { docType, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
-}
+// Task 9 (FF-DPA) — derivation logic extracted to _shared/dpa-derivation.ts
+// so the UK derivation matrix and 11-case REBUILD-DPA set are unit-testable
+// without loading the full edge-function module. Behaviour is unchanged; the
+// QL2-FIX-1 UK territorial-scope block inside GDPR_SYSTEM continues to fire
+// for EU+UK mixed derivations (routed to gdpr mode).
+import {
+  frameworkFor,
+  EU_JURS, UK_JURS, US_JURS, CA_JURS,
+  VALID_DOC_TYPES, JURISDICTION_ALIASES,
+  normalizeJurisdiction, detectDocType,
+} from "../_shared/dpa-derivation.ts";
 
 
 // Sector-specific data category detection for US DPA module injection
@@ -662,6 +540,8 @@ Audit rights: ${body.auditRights}${frameworkFallbackNote}`;
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
 - SPECULATIVE-CLAUSE BAN (REBUILD-DPA T2): the ONLY driver for a children's / COPPA / FERPA / Recital 38 / GDPR Article 8 module is the record establishing children's data in the data categories. Do NOT draft a children's-data module (or any COPPA/FERPA content, or a Recital 38 / Article 8 rationale) on any other basis — including "the services could conceivably involve minors" or "in the event children's data is collected in future". Likewise, do NOT draft an AI/ML-training scenario, HIPAA BAA / PHI content, or GLBA/FCRA content unless the record establishes the corresponding sector (services describe model training / ML training / inference platform for the AI clause; hasHealthData true for HIPAA; hasFinancialData true for GLBA/FCRA). The record is the ONLY basis for any sector-specific module. If the record is silent, the document is silent on that module — no hedged, "in the event", or "should the Processor…" alternative-scenario clauses. Speculative-clause content in prose is a deterministic HARD violation and will regenerate the document.
 - DRAFTING-NOTE DISCIPLINE (REBUILD-DPA T3): every sentence inside an operative clause, sub-clause, definition, schedule entry, or annex body asserts a record fact or a drafted obligation. Reasoning, inference, role doubts, legal-form analyses, framework choices, and consistency observations DO NOT belong inside operative text. Their only homes are (i) recitals in Section 1 (Parties and Recitals) and (ii) a "NOTE FOR LEGAL REVIEW: …" block placed immediately after the party identification or the affected recital. The legal-form flag pattern already used in this document is the model — follow that voice for every inference or record-grounded observation. Inside notes and recitals, refer to the intake as "the record"; never say "the intake data", "the questionnaire", "the input", or "the form".
+- FF-DPA nd2 — ENGAGED-STATES DISCIPLINE: US state privacy statutes (CCPA/CPRA, VCDPA, CTDPA, Colorado Privacy Act, TDPSA, FDBR, Washington MHMDA, Illinois BIPA, Oregon CPA, Indiana/Iowa/Tennessee/Montana/Minnesota/Utah/Delaware acts, New York SHIELD Act, Massachusetts DPA) may only be asserted as OPERATIVE where the corresponding state appears in the engaged US states derived from the record (controllerJurisdiction / processorJurisdiction). Do not cite a non-engaged state's statute as governing this DPA — non-engaged mentions are permitted only inside a general applicable-law savings clause ("…and any other applicable state privacy laws"), a clearly comparative sentence ("unlike the CCPA, …"), or a NOTE FOR LEGAL REVIEW / recital / comparative appendix. Operative-text assertion of a non-engaged state statute is a deterministic HARD violation and will regenerate the document.
+- FF-DPA nd3 — GEOGRAPHIC-SCOPE / MARKET RECORD-GROUNDING: every geographic-scope or market characterisation the document makes (e.g. "the Parties operate primarily in the EU", "the Processor's customer base is predominantly US", "cross-border transfers are limited to EEA↔UK flows", "operations are concentrated in [region]") must be traceable to a specific field of the record — the Parties' jurisdictions, the services description, or the data-categories entries. If the record does not supply the basis, the document is silent on that scope characterisation or notes the fact is unresolved in a NOTE FOR LEGAL REVIEW; the drafter may not infer market or operational-scope facts from priors, general knowledge, or the sector name.
 - Use professional legal drafting conventions throughout
 - CONTROLLER/PROCESSOR ROLE VERIFICATION: Before drafting, assess whether the stated Controller-Processor relationship is accurate for the described services. For the following sectors and service types, the model may not be a simple processor — include a recital noting the role determination and recommending legal review: (a) AdTech/programmatic advertising — the ad tech vendor may be an independent controller or joint controller for audience data, bidding decisions, or cross-client profiling; (b) Data brokers/data enrichment — the data broker typically acts as an independent controller, not a processor; a DPA may be insufficient and a controller-to-controller data sharing agreement may be more appropriate; (c) AI/ML model training — if the Processor uses the Controller's data to train models benefiting other clients, it may be acting as an independent controller for that purpose; (d) Social media platforms — platform-level data use for targeting, analytics, or product improvement may constitute independent controllership. For each of these sectors, add a recital in Section 1 stating: "The Parties acknowledge that the role characterisation of [Processor name] as a processor under GDPR Article 28 has been assumed for the purposes of this DPA and should be confirmed with qualified legal counsel, particularly if [Processor name] uses Personal Data for purposes beyond the immediate Services described herein."
 - Be specific – avoid vague obligations
@@ -1222,7 +1102,17 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       });
       const baseline = detectBaselineStandardMisuse(parsed.dpa_text, documentType);
       const blacklist = detectBlacklistViolations(parsed.dpa_text);
-      const extras = [...spec, ...baseline, ...blacklist];
+      // FF-DPA nd2 — engaged-states deterministic check. Engaged US states
+      // derive from the record (controllerJurisdiction / processorJurisdiction
+      // after alias resolution). Non-engaged state statutes asserted as
+      // operative are HARD violations that merge into the same `extras`
+      // collector, feeding the retry gate at hasHardViolations(lint).
+      const engagedStates = deriveEngagedStates([
+        detected.ctrlCanonical,
+        detected.procCanonical,
+      ]);
+      const engagedStateViolations = detectNonEngagedStateAssertions(parsed.dpa_text, engagedStates);
+      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations];
       if (extras.length) {
         lint.violations.push(...extras);
         try {
@@ -1344,7 +1234,14 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           });
           const baseline = detectBaselineStandardMisuse(retryParsed.dpa_text, documentType);
           const blacklist = detectBlacklistViolations(retryParsed.dpa_text);
-          const extras = [...spec, ...baseline, ...blacklist];
+          // FF-DPA nd2 — attempt-2 also runs the engaged-states check so a
+          // regenerated draft cannot slip a non-engaged state statute through.
+          const engagedStates2 = deriveEngagedStates([
+            detected.ctrlCanonical,
+            detected.procCanonical,
+          ]);
+          const engagedStateViolations2 = detectNonEngagedStateAssertions(retryParsed.dpa_text, engagedStates2);
+          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2];
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
