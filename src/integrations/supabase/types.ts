@@ -5850,10 +5850,12 @@ export type Database = {
         Row: {
           chunks_done: number
           chunks_total: number | null
+          consecutive_stall_kicks: number
           content_hash: string
           created_at: string
           error_message: string | null
           id: string
+          last_kick_chunks_done: number
           last_progress_at: string | null
           model: string | null
           report_id: string
@@ -5872,10 +5874,12 @@ export type Database = {
         Insert: {
           chunks_done?: number
           chunks_total?: number | null
+          consecutive_stall_kicks?: number
           content_hash: string
           created_at?: string
           error_message?: string | null
           id?: string
+          last_kick_chunks_done?: number
           last_progress_at?: string | null
           model?: string | null
           report_id: string
@@ -5894,10 +5898,12 @@ export type Database = {
         Update: {
           chunks_done?: number
           chunks_total?: number | null
+          consecutive_stall_kicks?: number
           content_hash?: string
           created_at?: string
           error_message?: string | null
           id?: string
+          last_kick_chunks_done?: number
           last_progress_at?: string | null
           model?: string | null
           report_id?: string
