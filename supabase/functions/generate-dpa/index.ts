@@ -7,7 +7,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
-import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
@@ -18,6 +18,7 @@ import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,32 +74,102 @@ const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado
 const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
   "British Columbia (PIPA)","Alberta (PIPA)"]);
 
-function detectDocType(ctrl: string, proc: string, explicit?: string): string {
-  if (explicit) return explicit;
-  const normalize = (raw: string): string => {
-    const trimmed = (raw ?? "").trim();
-    if (!trimmed) return trimmed;
-    if (/^(the )?united states( of america)?$|^usa$|^u\.?s\.?a?\.?$/i.test(trimmed)) {
-      return "United States (federal)";
-    }
-    if (/^(the )?united kingdom$|^uk$|^great britain$|^gb$/i.test(trimmed)) {
-      return "United Kingdom";
-    }
-    return trimmed;
-  };
-  const ctrlN = normalize(ctrl);
-  const procN = normalize(proc);
-  const ctrlEU = EU_JURS.has(ctrlN); const procEU = EU_JURS.has(procN);
-  const ctrlUS = US_JURS.has(ctrlN); const procUS = US_JURS.has(procN);
-  const ctrlCA = CA_JURS.has(ctrlN); const procCA = CA_JURS.has(procN);
-  if ((ctrlEU || procEU) && (ctrlUS || procUS)) return "dual-eu-us";
-  if ((ctrlEU || procEU) && (ctrlCA || procCA)) return "dual-eu-ca";
-  if (ctrlUS || procUS) return "us-state";
-  if (ctrlCA || procCA) return "canada";
-  if (ctrlN && procN && !ctrlEU && !procEU && !ctrlUS && !procUS && !ctrlCA && !procCA) {
-    console.warn(`[generate-dpa] detectDocType fell through to gdpr default — raw values: controller="${ctrl}", processor="${proc}"`);
+const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca"]);
+
+// REBUILD-DPA T1a — alias table for natural variants → canonical DPA_JURISDICTIONS
+// enum value. Case-insensitive whole-value match after trimming. Only aliases that
+// resolve unambiguously to a single canonical value are listed; ambiguous
+// short forms (e.g. bare "Washington" — state vs. federal district) are NOT
+// listed and must arrive as the canonical intake string.
+const JURISDICTION_ALIASES: Record<string, string> = {
+  // US federal
+  "united states": "United States (federal)",
+  "united states of america": "United States (federal)",
+  "usa": "United States (federal)", "u.s.a.": "United States (federal)",
+  "u.s.": "United States (federal)", "us": "United States (federal)",
+  // UK
+  "united kingdom": "United Kingdom", "uk": "United Kingdom",
+  "great britain": "United Kingdom", "gb": "United Kingdom",
+  "england": "United Kingdom", "england and wales": "United Kingdom",
+  // US state short forms (unambiguous)
+  "ny": "New York", "new york, ny": "New York", "new york, usa": "New York",
+  "new york state": "New York",
+  "ca": "California", "california, usa": "California",
+  "tx": "Texas", "ct": "Connecticut", "co": "Colorado", "va": "Virginia",
+  "fl": "Florida", "wa": "Washington", "il": "Illinois", "ma": "Massachusetts",
+  "or": "Oregon", "in": "Indiana", "mt": "Montana", "ia": "Iowa",
+  "tn": "Tennessee", "mn": "Minnesota", "ut": "Utah", "de": "Delaware",
+  // Canada federal + provinces (natural forms → canonical)
+  "canada": "Canada (federal / PIPEDA)",
+  "canada (federal)": "Canada (federal / PIPEDA)",
+  "pipeda": "Canada (federal / PIPEDA)",
+  "quebec": "Quebec (Law 25)", "québec": "Quebec (Law 25)",
+  "quebec, canada": "Quebec (Law 25)", "quebec (law 25 / bill 64)": "Quebec (Law 25)",
+  "ontario": "Ontario (PHIPA)", "ontario, canada": "Ontario (PHIPA)",
+  "british columbia": "British Columbia (PIPA)", "bc": "British Columbia (PIPA)",
+  "british columbia, canada": "British Columbia (PIPA)",
+  "alberta": "Alberta (PIPA)", "alberta, canada": "Alberta (PIPA)",
+  // EU natural
+  "france": "France", "germany": "Germany", "deutschland": "Germany",
+  "ireland": "Ireland", "republic of ireland": "Ireland",
+  "spain": "Spain", "italy": "Italy", "netherlands": "Netherlands",
+  "the netherlands": "Netherlands", "holland": "Netherlands",
+  "belgium": "Belgium", "sweden": "Sweden", "denmark": "Denmark",
+  "poland": "Poland", "norway": "Norway", "portugal": "Portugal",
+  "austria": "Austria", "finland": "Finland", "luxembourg": "Luxembourg",
+  "greece": "Greece", "switzerland": "Switzerland",
+};
+
+function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolean } {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return { canonical: "", mapped: false };
+  // 1. Canonical enum match (case-sensitive) — accept as-is.
+  if (EU_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
+    return { canonical: trimmed, mapped: true };
   }
-  return "gdpr";
+  // 2. Canonical enum match (case-insensitive whole-value).
+  const lower = trimmed.toLowerCase();
+  for (const s of [...EU_JURS, ...US_JURS, ...CA_JURS]) {
+    if (s.toLowerCase() === lower) return { canonical: s, mapped: true };
+  }
+  // 3. Alias table (case-insensitive whole-value; no substring traps).
+  const aliased = JURISDICTION_ALIASES[lower];
+  if (aliased) return { canonical: aliased, mapped: true };
+  return { canonical: trimmed, mapped: false };
+}
+
+// REBUILD-DPA T1b — returns the derived docType AND surfaces whether either
+// jurisdiction was unmappable. Callers must not swallow the unmapped signal —
+// it drives both the post-gen lint entry (function_runs) and the in-document
+// NOTE FOR LEGAL REVIEW.
+function detectDocType(
+  ctrl: string,
+  proc: string,
+  explicit?: unknown,
+): { docType: string; ctrlCanonical: string; procCanonical: string; ctrlMapped: boolean; procMapped: boolean; explicitAccepted: boolean; explicitRawType: string } {
+  // T1: explicit is trusted ONLY when it is one of the five valid strings.
+  // Fixture regression: intake_data.documentType arrived as an OBJECT
+  // ({type:"DPA",version:"2.1",...}); the previous `if (explicit) return explicit`
+  // returned the object and every subsequent branch fell to gdpr.
+  const explicitRawType = explicit === null || explicit === undefined ? "undefined" : (Array.isArray(explicit) ? "array" : typeof explicit);
+  const explicitAccepted = typeof explicit === "string" && VALID_DOC_TYPES.has(explicit);
+  const c = normalizeJurisdiction(ctrl);
+  const p = normalizeJurisdiction(proc);
+  if (explicitAccepted) {
+    return { docType: explicit as string, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
+  }
+  const ctrlEU = EU_JURS.has(c.canonical); const procEU = EU_JURS.has(p.canonical);
+  const ctrlUS = US_JURS.has(c.canonical); const procUS = US_JURS.has(p.canonical);
+  const ctrlCA = CA_JURS.has(c.canonical); const procCA = CA_JURS.has(p.canonical);
+  let docType = "gdpr";
+  if ((ctrlEU || procEU) && (ctrlUS || procUS)) docType = "dual-eu-us";
+  else if ((ctrlEU || procEU) && (ctrlCA || procCA)) docType = "dual-eu-ca";
+  else if (ctrlUS || procUS) docType = "us-state";
+  else if (ctrlCA || procCA) docType = "canada";
+  else if (ctrlEU || procEU) docType = "gdpr";
+  // else: neither party maps — docType stays "gdpr" as last-resort but the
+  // caller surfaces this via ctrlMapped/procMapped for the fallback note.
+  return { docType, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
 }
 
 
@@ -125,6 +196,70 @@ function detectDataSectorFlags(dataCategories: string[], services = ""): {
     complexRoleSectorName,
   };
 }
+
+// REBUILD-DPA T2/T5 — post-generation deterministic checks. Fire HARD
+// violations into the existing lintReportText/hasHardViolations retry gate
+// so the caller does not need bespoke retry plumbing. Every hit is also
+// echoed to logPostGenLint so the retry / fall-back is discoverable in
+// function_runs (parity with the risk/dpia MC-G1 pattern).
+type SpecViolation = { code: string; severity: "hard"; detail: string };
+
+// Word-boundary regex helpers — narrow scope to prose. `\b` around the
+// phrases keeps enum literals and machine tokens out of scope; casing is
+// case-insensitive.
+const RE_CHILDRENS_SIGNAL = /\b(COPPA|FERPA|Recital 38|Article 8 GDPR|Article 8(?:\(1\))? of the GDPR|children'?s data|children under 13|children under 18|minors?|under 18)\b/i;
+const RE_AI_TRAINING_SIGNAL = /\b(model training|ML training|machine learning training|training (?:its|the|our) models|use[s]? .* to train (?:its|the|our) models?|inference platform)\b/i;
+const RE_HIPAA_SIGNAL = /\b(HIPAA|Business Associate Agreement|Business Associate\b|BAA\b|Protected Health Information|\bPHI\b|Covered Entity|45 C\.?F\.?R\.? § 16[04])/i;
+const RE_GLBA_FCRA_SIGNAL = /\b(GLBA|Gramm[- ]Leach[- ]Bliley|Safeguards Rule|Nonpublic Personal Information|\bNPI\b|FCRA|Fair Credit Reporting Act|15 U\.?S\.?C\.? § 168)/i;
+
+function detectSpeculativeClauseViolations(
+  text: string,
+  flags: { hasChildrensData: boolean; hasHealthData: boolean; hasFinancialData: boolean; isAI: boolean },
+): SpecViolation[] {
+  const out: SpecViolation[] = [];
+  if (!flags.hasChildrensData) {
+    const m = text.match(RE_CHILDRENS_SIGNAL);
+    if (m) out.push({ code: "speculative_childrens_module", severity: "hard", detail: `children/COPPA/FERPA content without hasChildrensData flag (match: "${m[0]}")` });
+  }
+  if (!flags.isAI) {
+    const m = text.match(RE_AI_TRAINING_SIGNAL);
+    if (m) out.push({ code: "speculative_ai_training_scenario", severity: "hard", detail: `ML-training scenario without AI sector flag (match: "${m[0]}")` });
+  }
+  if (!flags.hasHealthData) {
+    const m = text.match(RE_HIPAA_SIGNAL);
+    if (m) out.push({ code: "speculative_health_module", severity: "hard", detail: `HIPAA/BAA/PHI content without hasHealthData flag (match: "${m[0]}")` });
+  }
+  if (!flags.hasFinancialData) {
+    const m = text.match(RE_GLBA_FCRA_SIGNAL);
+    if (m) out.push({ code: "speculative_financial_module", severity: "hard", detail: `GLBA/FCRA content without hasFinancialData flag (match: "${m[0]}")` });
+  }
+  return out;
+}
+
+// REBUILD-DPA T1c — the mandated "baseline standard" sentence may only appear
+// when framework is affirmatively GDPR. If a misclassified non-GDPR intake
+// ships with the sentence, treat as HARD so the retry regenerates.
+const RE_BASELINE_STANDARD =
+  /adopts the GDPR Article 28\(3\) framework as its contractual baseline standard/i;
+function detectBaselineStandardMisuse(text: string, docType: string): SpecViolation[] {
+  if (docType === "gdpr" || docType === "dual-eu-us" || docType === "dual-eu-ca") return [];
+  if (RE_BASELINE_STANDARD.test(text)) {
+    return [{ code: "baseline_standard_sentence_out_of_scope", severity: "hard", detail: `baseline-standard sentence emitted in docType=${docType}` }];
+  }
+  return [];
+}
+
+// REBUILD-DPA T5 — surface blacklist prose hits as HARD lint violations.
+function detectBlacklistViolations(text: string): SpecViolation[] {
+  const hits = detectBlacklistPhrases(text);
+  return hits.map((h) => ({
+    code: "blacklist_phrase",
+    severity: "hard" as const,
+    detail: `"${h.match}" @ ${h.path || "$"} — "${h.context.trim().slice(0, 80)}"`,
+  }));
+}
+
+
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -298,15 +433,30 @@ Deno.serve(async (req) => {
         }).eq("id", rowId);
       } catch (_e) { /* non-fatal */ }
       try {
-    // Resolve document type (from request or jurisdictional inference)
-    const documentType = detectDocType(
+    // Resolve document type (from request or jurisdictional inference).
+    // REBUILD-DPA T1 — non-string documentType (fixture regression: object
+    // {type:"DPA",version:"2.1",...}) is IGNORED, not returned. Unmapped
+    // jurisdictions are surfaced via mapped flags and route to both the
+    // in-document NOTE FOR LEGAL REVIEW and function_runs telemetry.
+    const detected = detectDocType(
       body.controllerJurisdiction,
       body.processorJurisdiction,
-      body.documentType
+      (body as any).documentType,
     );
+    const documentType = detected.docType;
+    const frameworkFallback = !detected.explicitAccepted && (!detected.ctrlMapped || !detected.procMapped);
+    const explicitTypeIgnored = ((body as any).documentType != null) && !detected.explicitAccepted;
+    if (frameworkFallback) {
+      console.warn(`[generate-dpa] framework fallback — ctrl="${body.controllerJurisdiction}" (mapped=${detected.ctrlMapped}) proc="${body.processorJurisdiction}" (mapped=${detected.procMapped}) → docType=${documentType}`);
+    }
+    if (explicitTypeIgnored) {
+      console.warn(`[generate-dpa] explicit documentType ignored (rawType=${detected.explicitRawType}) — derived docType=${documentType}`);
+    }
 
     // Sector-specific data category flags (used for US-mode module injection)
     const sectorFlags = detectDataSectorFlags(body.dataCategories || [], body.services || "");
+    const isAISector = /model training|machine learning|ai training|inference platform|llm/i.test(body.services || "");
+
 
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
@@ -457,6 +607,17 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
           : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
       : "";
 
+    // REBUILD-DPA T1b — when either jurisdiction is unmappable, the drafted
+    // document MUST carry a NOTE FOR LEGAL REVIEW naming the raw strings and
+    // the framework assumption made. Emitted through the PARTIES_BLOCK as an
+    // instruction to the model so it renders as a Section 1 recital note in
+    // the same voice as the legal-form flag pattern.
+    const frameworkFallbackNote = frameworkFallback
+      ? `
+
+NOTE FOR LEGAL REVIEW — FRAMEWORK ASSUMPTION FROM UNMAPPED JURISDICTION. The record supplied ${!detected.ctrlMapped ? `controller jurisdiction "${body.controllerJurisdiction}"` : ""}${(!detected.ctrlMapped && !detected.procMapped) ? " and " : ""}${!detected.procMapped ? `processor jurisdiction "${body.processorJurisdiction}"` : ""}, which the generator could not map to a canonical supported jurisdiction. This DPA has been drafted on the ${documentType.toUpperCase()} framework as the closest-fit baseline; render this NOTE FOR LEGAL REVIEW verbatim in Section 1 (Parties and Recitals) immediately after party identification, quoting the raw jurisdiction string(s) and directing counsel to confirm the correct governing framework before execution.`
+      : "";
+
     const PARTIES_BLOCK = `PARTIES
 Controller: ${body.controllerName} (${body.controllerJurisdiction})
 Processor: ${body.processorName} (${body.processorJurisdiction})
@@ -464,9 +625,12 @@ Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
 Retention: ${body.retention}
 Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None"}
-Audit rights: ${body.auditRights}`;
+Audit rights: ${body.auditRights}${frameworkFallbackNote}`;
+
 
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
+- SPECULATIVE-CLAUSE BAN (REBUILD-DPA T2): the ONLY driver for a children's / COPPA / FERPA / Recital 38 / GDPR Article 8 module is the record establishing children's data in the data categories. Do NOT draft a children's-data module (or any COPPA/FERPA content, or a Recital 38 / Article 8 rationale) on any other basis — including "the services could conceivably involve minors" or "in the event children's data is collected in future". Likewise, do NOT draft an AI/ML-training scenario, HIPAA BAA / PHI content, or GLBA/FCRA content unless the record establishes the corresponding sector (services describe model training / ML training / inference platform for the AI clause; hasHealthData true for HIPAA; hasFinancialData true for GLBA/FCRA). The record is the ONLY basis for any sector-specific module. If the record is silent, the document is silent on that module — no hedged, "in the event", or "should the Processor…" alternative-scenario clauses. Speculative-clause content in prose is a deterministic HARD violation and will regenerate the document.
+- DRAFTING-NOTE DISCIPLINE (REBUILD-DPA T3): every sentence inside an operative clause, sub-clause, definition, schedule entry, or annex body asserts a record fact or a drafted obligation. Reasoning, inference, role doubts, legal-form analyses, framework choices, and consistency observations DO NOT belong inside operative text. Their only homes are (i) recitals in Section 1 (Parties and Recitals) and (ii) a "NOTE FOR LEGAL REVIEW: …" block placed immediately after the party identification or the affected recital. The legal-form flag pattern already used in this document is the model — follow that voice for every inference or record-grounded observation. Inside notes and recitals, refer to the intake as "the record"; never say "the intake data", "the questionnaire", "the input", or "the form".
 - Use professional legal drafting conventions throughout
 - CONTROLLER/PROCESSOR ROLE VERIFICATION: Before drafting, assess whether the stated Controller-Processor relationship is accurate for the described services. For the following sectors and service types, the model may not be a simple processor — include a recital noting the role determination and recommending legal review: (a) AdTech/programmatic advertising — the ad tech vendor may be an independent controller or joint controller for audience data, bidding decisions, or cross-client profiling; (b) Data brokers/data enrichment — the data broker typically acts as an independent controller, not a processor; a DPA may be insufficient and a controller-to-controller data sharing agreement may be more appropriate; (c) AI/ML model training — if the Processor uses the Controller's data to train models benefiting other clients, it may be acting as an independent controller for that purpose; (d) Social media platforms — platform-level data use for targeting, analytics, or product improvement may constitute independent controllership. For each of these sectors, add a recital in Section 1 stating: "The Parties acknowledge that the role characterisation of [Processor name] as a processor under GDPR Article 28 has been assumed for the purposes of this DPA and should be confirmed with qualified legal counsel, particularly if [Processor name] uses Personal Data for purposes beyond the immediate Services described herein."
 - Be specific – avoid vague obligations
@@ -481,7 +645,7 @@ Audit rights: ${body.auditRights}`;
 - LEAD SA QUALIFICATION: when the Annex names a supervisory authority (e.g. CNIL) as competent for the controller, do not state it is unqualifiedly "the lead supervisory authority" without noting the Art. 55/56 basis: "Where [Controller]'s main establishment is in [Member State] and the processing is cross-border, [authority] will typically be the lead supervisory authority under Article 56 GDPR; the Parties should confirm the lead authority determination if the controller has establishments in other EU Member States."
 - NO UNVERIFIED CONCLUSIONS: do not assert a conclusion the intake cannot support — e.g. "No legal form mismatch is identified" or "the registration is current". Where a fact (registered seat, legal form, sub-processor location, transfer mechanism) is not established by the intake, state that the Parties must verify it before execution rather than concluding its status.
 - NO ENFORCEMENT FROM MEMORY — AND NO INTAKE META-COMMENTARY IN THE INSTRUMENT: do not assert that a regulator has taken enforcement action, issued decisions, or imposed penalties — neither a specific case nor a general characterisation such as "German regulatory authorities have issued significant enforcement decisions penalising…" — unless that action is supplied in the intake. Recitals must not describe a regulator's enforcement record from training knowledge. State the legal obligation itself and, where motivation is needed, note that the Parties should consult the regulator's published enforcement record — do not present enforcement history, specific or general, as fact. The ABSENCE of enforcement or intake material is never stated in the document either: a recital or clause never reports what the intake did or did not provide ("No specific enforcement precedents have been provided in the intake materials" is a fatal output error — it is generator meta-commentary inside an executable instrument). Recitals state only facts about the Parties, the Services, the purposes, and the governing framework. Where the intake supplies nothing on a topic, the document is silent on that topic or carries a [TO BE COMPLETED: …] placeholder — never a report about the intake.
-- NON-EEA PARTIES ON A GDPR FRAMEWORK SAY WHY: where neither Party is established in the EEA or the UK but the DPA is drafted on the GDPR Article 28(3) framework, the Legal Framework section must state the design rationale in one sentence so the framework choice and the applicability statement cannot read as contradictory: "Although neither Party is currently established in the EEA or the UK and the EU GDPR does not, on its face, engage, this DPA adopts the GDPR Article 28(3) framework as its contractual baseline standard; its GDPR-derived provisions apply as contractual obligations between the Parties, and additionally as statutory obligations if and to the extent the processing comes within the scope of the EU GDPR or UK GDPR (including under Article 3(2))." Never assert facial non-applicability and then deploy the full GDPR structure without this baseline-standard sentence.
+- NON-EEA PARTIES ON A GDPR FRAMEWORK SAY WHY: where neither Party is established in the EEA or the UK but the DPA is drafted on the GDPR Article 28(3) framework, the Legal Framework section must state the design rationale in one sentence so the framework choice and the applicability statement cannot read as contradictory: "Although neither Party is currently established in the EEA or the UK and the EU GDPR does not, on its face, engage, this DPA adopts the GDPR Article 28(3) framework as its contractual baseline standard; its GDPR-derived provisions apply as contractual obligations between the Parties, and additionally as statutory obligations if and to the extent the processing comes within the scope of the EU GDPR or UK GDPR (including under Article 3(2))." Never assert facial non-applicability and then deploy the full GDPR structure without this baseline-standard sentence. REBUILD-DPA T1c SCOPING: this baseline-standard sentence is emitted ONLY in a GDPR-mode draft (Legal framework = GDPR, or a dual-EU mode) where neither Party maps to the EEA/UK. It MUST NOT appear in a us-state, canada, or non-GDPR draft — the model must not use it as cover when the record establishes a non-GDPR framework. Where the record affirmatively selects or implies a non-GDPR framework, follow the record; do not import GDPR baseline language.
 - OPERATIVE VOICE ONLY: every sentence inside a clause, schedule, or annex is contract language — an obligation, representation, warranty, acknowledgment, definition, or condition. Rationale is expressed through the Parties' voice ('The Processor acknowledges that documented vendor due diligence and ongoing oversight are necessary to …', 'The Processor represents and warrants that …'), NEVER as a compliance advisory or drafter's note. 'The absence of X is a material compliance risk under Article 5(1)(e)' and 'This measure is required to address the risk of …' are fatal voice errors inside operative text. Where a risk observation has no operative home, it becomes a [TO BE COMPLETED: …] instruction to the Parties or is omitted — the executed document argues nothing; it binds.
 - DATA-SUBJECT REMEDY CARVE-OUT: where the agreement contains an exclusive-jurisdiction or governing-law clause, include a clause preserving data subjects' rights under GDPR Article 79(2) to bring proceedings in the courts of their habitual-residence Member State, and state that the exclusive-jurisdiction clause governs disputes between the Parties only. Where any transfer to or processing in the UK is possible, note that the UK is a separate third country requiring its own transfer mechanism (UK adequacy, IDTA, or the UK Addendum) assessed separately from EU transfers.
 - SCC INCORPORATION LANGUAGE: do not state that the EU SCCs are 'incorporated in Section 10' — Section 10 describes WHEN SCCs are required and references the annex/schedule for execution; the clauses themselves are not attached or executed as part of the generated draft. Use: 'Transfer mechanisms pursuant to Section 10 of this DPA, including EU Standard Contractual Clauses where required,' and clarify that SCCs must be separately executed for each onward transfer in accordance with Section 10 — do not imply the SCCs are already incorporated by reference alone. THE FULL SCC-INCORPORATION SENTENCE APPEARS EXACTLY ONCE IN THE DOCUMENT, wherever the incorporation-by-reference caveat is first stated (typically Section 10.4). Do NOT emit the sentence "Transfer mechanisms pursuant to this Section 10, including EU Standard Contractual Clauses where required, must be separately executed for each onward transfer in accordance with this Section 10 — the EU SCCs are not incorporated into this DPA by reference alone" (or any substantive paraphrase of it) in two consecutive sub-clauses, in the same sub-clause twice, or in both Section 10 and any subsequent Schedule that cross-references Section 10. Subsequent references cross-reference Section 10.4 by number ("as set out in Section 10.4") rather than restating the sentence. A verbatim or near-verbatim second emission of this sentence is a fatal duplication defect equivalent to the sub-processor note defect governed by "REPEATED CONTENT APPEARS ONCE".
@@ -676,7 +840,15 @@ FCRA FAIR CREDIT REPORTING ACT (15 U.S.C. § 1681 et seq.):
 - If FCRA applies, include a dedicated "FCRA Compliance" section citing the applicable permissible purpose under 15 U.S.C. § 1681b.
 
 Assess applicability based on the Controller's business type and the services described. If applicability is uncertain, include the provisions with a note that "parties should confirm applicability with counsel."
+` : ""}${(sectorFlags.hasFinancialData && (/(^|\W)(New York|NY)(\W|$)/.test(String(body.controllerJurisdiction ?? "")) || /(^|\W)(New York|NY)(\W|$)/.test(String(body.processorJurisdiction ?? "")))) ? `
+NYDFS CYBERSECURITY MODULE — 23 NYCRR PART 500 (New York jurisdiction engaged AND financial data present)
+The record establishes that (a) at least one Party is in New York and (b) financial/payment data is in scope. Where either Party is a "Covered Entity" under 23 NYCRR § 500.1(c) (an entity operating under a licence, registration, charter, or similar authorisation under the New York Banking Law, Insurance Law, or Financial Services Law), the New York Department of Financial Services (NYDFS) Cybersecurity Requirements for Financial Services Companies at 23 NYCRR Part 500 apply. Consolidate the following into the SECURITY MEASURES and SUB-PROCESSOR sections (per OUTPUT SCOPE AND LENGTH DISCIPLINE — no addendum, no per-section restatement):
+- Third-party service provider security policy under 23 NYCRR § 500.11: the Covered Entity's contract with the Processor as a "Third Party Service Provider" (as that term is used in § 500.1 and § 500.11) shall address, as applicable and to the extent required by § 500.11(a): (i) the Processor's access controls, including multi-factor authentication where required; (ii) encryption of Nonpublic Information both in transit over external networks and at rest, per § 500.15; (iii) prompt notice to the Covered Entity of any Cybersecurity Event directly impacting the Covered Entity's Information Systems or Nonpublic Information held by the Processor; (iv) representations and warranties addressing the Processor's cybersecurity practices related to the security of the Covered Entity's Information Systems or Nonpublic Information. Cite these as "23 NYCRR § 500.11(a)" and quote no subsection letter outside those verified against the primary source.
+- Cybersecurity event notification under 23 NYCRR § 500.17(a): the Processor shall notify the Covered Entity of any Cybersecurity Event affecting the Covered Entity without unreasonable delay and in any event in time to permit the Covered Entity to meet its own 72-hour notice obligation to the Superintendent of Financial Services under 23 NYCRR § 500.17(a).
+- Where a specific subsection letter or amendment date is not verified against the primary text of 23 NYCRR Part 500, use "[TO BE COMPLETED: verify subsection against 23 NYCRR Part 500 primary text]" rather than inventing a subsection. Do NOT cite 23 NYCRR Part 500 sections beyond §§ 500.1, 500.11, 500.15, and 500.17 in this draft; any additional section requires a [TO BE COMPLETED] flag.
+- If neither Party is a Covered Entity under § 500.1(c), state the § 500.11 obligation as a contractual baseline the Parties adopt for the security of financial data and note that the statutory obligation attaches only if either Party subsequently becomes a Covered Entity.
 ` : ""}
+
 Draft a complete US State Data Processing Agreement with ALL of the following sections. Number clauses hierarchically (1.1, 1.2, 1.2.1 etc.):
 
 1. PARTIES AND RECITALS — identify applicable state laws based on the parties' jurisdictions and the residency of data subjects likely affected.
@@ -971,6 +1143,29 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
     let parsed = parseDpa(fullText);
     let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
+    // REBUILD-DPA T2/T3/T5 — deterministic net: speculative modules,
+    // baseline-standard misuse, and blacklist-phrase hits merge in as HARD
+    // violations so the existing retry gate at hasHardViolations(lint)
+    // regenerates and logPostGenLint records the reason in function_runs.
+    {
+      const spec = detectSpeculativeClauseViolations(parsed.dpa_text, {
+        hasChildrensData: sectorFlags.hasChildrensData,
+        hasHealthData: sectorFlags.hasHealthData,
+        hasFinancialData: sectorFlags.hasFinancialData,
+        isAI: isAISector,
+      });
+      const baseline = detectBaselineStandardMisuse(parsed.dpa_text, documentType);
+      const blacklist = detectBlacklistViolations(parsed.dpa_text);
+      const extras = [...spec, ...baseline, ...blacklist];
+      if (extras.length) {
+        lint.violations.push(...extras);
+        try {
+          await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 1, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+        } catch (e) {
+          console.warn("[generate-dpa] logPostGenLint (attempt 1) failed:", (e as Error).message);
+        }
+      }
+    }
     let dpa_text = stripEnforcementTags(lint.clean);
     let parsedAnnotations = parsed.annotations;
 
@@ -1032,6 +1227,25 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         );
         const retryParsed = parseDpa(retryCall.text);
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
+        {
+          const spec = detectSpeculativeClauseViolations(retryParsed.dpa_text, {
+            hasChildrensData: sectorFlags.hasChildrensData,
+            hasHealthData: sectorFlags.hasHealthData,
+            hasFinancialData: sectorFlags.hasFinancialData,
+            isAI: isAISector,
+          });
+          const baseline = detectBaselineStandardMisuse(retryParsed.dpa_text, documentType);
+          const blacklist = detectBlacklistViolations(retryParsed.dpa_text);
+          const extras = [...spec, ...baseline, ...blacklist];
+          if (extras.length) {
+            retryLint.violations.push(...extras);
+            try {
+              await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 2, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+            } catch (e) {
+              console.warn("[generate-dpa] logPostGenLint (attempt 2) failed:", (e as Error).message);
+            }
+          }
+        }
         const repairedText = stripEnforcementTags(retryLint.clean);
         if (repairedText.trim()) {
           parsed = retryParsed;
