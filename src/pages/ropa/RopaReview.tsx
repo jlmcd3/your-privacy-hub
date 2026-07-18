@@ -280,7 +280,7 @@ export default function RopaReview() {
       if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
       // Modal keeps showing but swaps to GenerationStalledCard (see render).
     }
-  }, [genPhase, generating, sessionId, includeExcel, navigate, currentSession?.id, toast]);
+  }, [genPhase, generating, sessionId, navigate, currentSession?.id, toast]);
 
   useEffect(() => () => {
     if (tickTimerRef.current) clearInterval(tickTimerRef.current);
