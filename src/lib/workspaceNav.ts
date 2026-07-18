@@ -1,21 +1,34 @@
 // Shared workspace navigation definitions used by both the desktop grouped
 // sidebar (`WorkspaceSidebar`) and the mobile flat subnav (`DashboardSubnav`).
 //
-// Structure (LEFTNAV-1, CEO-approved):
+// Structure (LEFTNAV-2, CEO-approved — LIBRARY-first):
 //   Top level:
-//     1. Weekly Briefs  -> /dashboard
+//     1. Weekly Briefs  -> /dashboard (exact match)
 //     2. Watchlist      -> /watchlist
-//     3. Start New…     -> /start
-//   Three product-category groups (each with every product as a submenu item):
-//     - "U.S. – CPPA"
-//     - "EU & UK – GDPR"
-//     - "All Jurisdictions"
+//     3. Start New…     -> /start   (product catalog lives here)
+//   LIBRARY (group label, not clickable):
+//     - Reports         -> /dashboard/reports
+//         · U.S. – CPPA         -> /dashboard/reports?family=cppa
+//         · EU & UK – GDPR      -> /dashboard/reports?family=gdpr
+//         · All jurisdictions   -> /dashboard/reports
+//     - Notices & RoPA  -> /notices-ropa
+//     - Filings         -> /registration-manager/my-filings
+//     - Obligations     -> /obligations
 //   Bottom (after divider):
-//     - Obligations -> /obligations
-//     - Account     -> /account
+//     - Account         -> /account
 //
-// computeActiveTo() remains first-match-wins and must yield exactly one
-// active item per known route (see coverage test in src/test/workspaceNav.test.ts).
+// Active-state rules (LEFTNAV-2 Task 2):
+//   * /dashboard/reports (any ?family=)  -> Reports (parent)
+//     Sub-item highlight follows ?family (cppa / gdpr / all).
+//   * Every per-tool result/intake route the products previously claimed
+//     -> Reports (parent only; no sub-item highlight).
+//   * /notices-ropa, /us-notices/**, /eu-notices/**, /ropa/**
+//     -> Notices & RoPA.
+//   * /registration-manager/**            -> Filings.
+//   * /obligations/**                     -> Obligations.
+//   * /account, /brief-preferences        -> Account.
+// computeActiveTo() stays first-match-wins with exactly one active item
+// per known route (verified in src/test/workspaceNav.test.ts).
 
 import {
   FileText,
@@ -24,33 +37,17 @@ import {
   Building2,
   PlusCircle,
   CalendarClock,
-  ShieldCheck,
-  Scale,
-  ShieldAlert,
-  Cpu,
-  FileSignature,
   Scroll,
   Landmark,
-  BookOpen,
-  ClipboardList,
-  Globe,
   FileCheck,
-  AlertTriangle,
-  Fingerprint,
-  Building,
 } from "lucide-react";
 
 export type WorkspaceItem = {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  match: (pathname: string, hash: string) => boolean;
-};
-
-export type WorkspaceCategory = {
-  id: string;
-  label: string;
-  items: WorkspaceItem[];
+  /** search is the raw URL search string incl. leading `?` (may be empty). */
+  match: (pathname: string, hash: string, search: string) => boolean;
 };
 
 /** Strip trailing slash (except root) and lower-case for comparison. */
@@ -70,20 +67,32 @@ export function normalizeHash(h: string): string {
   return cut === -1 ? stripped : stripped.slice(0, cut);
 }
 
+/** Read a single URL search-param value (case-insensitive param name). */
+function readParam(search: string, name: string): string | null {
+  if (!search) return null;
+  const s = search.startsWith("?") ? search.slice(1) : search;
+  for (const part of s.split("&")) {
+    if (!part) continue;
+    const eq = part.indexOf("=");
+    const k = decodeURIComponent(eq === -1 ? part : part.slice(0, eq));
+    const v = eq === -1 ? "" : decodeURIComponent(part.slice(eq + 1));
+    if (k.toLowerCase() === name.toLowerCase()) return v.toLowerCase();
+  }
+  return null;
+}
+
 /** Exact-or-descendant path match helper. */
 const under = (base: string) => (p: string) =>
   p === base || p.startsWith(base + "/");
 
-/**
- * Top-level items rendered above the category groups. Order per spec.
- */
+// -- Top items --------------------------------------------------------------
+
 export const TOP_ITEMS: WorkspaceItem[] = [
   {
     to: "/dashboard",
     label: "Weekly Briefs",
     icon: FileText,
-    // Exact match only — /dashboard/reports intentionally does NOT highlight
-    // any nav item (legacy list page; see LEFTNAV-1 Task 4).
+    // Exact match — /dashboard/reports is claimed by the Reports library item.
     match: (p) => p === "/dashboard",
   },
   {
@@ -100,149 +109,114 @@ export const TOP_ITEMS: WorkspaceItem[] = [
   },
 ];
 
-// -- Product items ----------------------------------------------------------
-// Each product's match() claims BOTH its primary route AND its result/detail
-// routes so those pages highlight the correct submenu entry (splitting the
-// legacy aggregate REPORT_TOOL_PATH regex per LEFTNAV-1 Task 1).
+// -- Library items ----------------------------------------------------------
 
-const CPPA_SCOPE: WorkspaceItem = {
-  to: "/cppa-scope-checker",
-  label: "CPPA Scope Checker",
-  icon: ShieldCheck,
-  match: (p) => under("/cppa-scope-checker")(p),
+/**
+ * The set of paths that count as "a Reports view":
+ *   * /dashboard/reports (any ?family=)
+ *   * every per-tool result/intake route the sidebar previously listed as its
+ *     own product entry.
+ * These all highlight the Reports library item.
+ */
+function matchesReports(p: string): boolean {
+  if (p === "/dashboard/reports" || p.startsWith("/dashboard/reports/"))
+    return true;
+  const REPORT_PATHS = [
+    "/li-assessment",
+    "/dpia-framework",
+    "/governance-assessment",
+    "/dpa-generator",
+    "/ir-playbook",
+    "/biometric-checker",
+    "/cppa-risk-assessment",
+    "/cppa-cybersecurity",
+    "/cppa-admt-checker",
+    "/cppa-admt",
+    "/cppa-scope-checker",
+  ];
+  for (const base of REPORT_PATHS) {
+    // Result / detail routes (e.g. /li-assessment/result/abc) highlight
+    // Reports; the bare intake route (e.g. /li-assessment) does NOT — the
+    // creation UI belongs to /start.
+    if (p === base) {
+      // Only /cppa-scope-checker has its "result" on the base path itself.
+      if (base === "/cppa-scope-checker") return true;
+      return false;
+    }
+    if (p.startsWith(base + "/")) return true;
+  }
+  return false;
+}
+
+export const REPORTS_ITEM: WorkspaceItem = {
+  to: "/dashboard/reports",
+  label: "Reports",
+  icon: FileText,
+  match: (p) => matchesReports(p),
 };
 
-const CPPA_RISK: WorkspaceItem = {
-  to: "/cppa-risk-assessment",
-  label: "CPPA Risk Assessment",
-  icon: Scale,
-  match: (p) => under("/cppa-risk-assessment")(p),
-};
-
-const CPPA_CYBER: WorkspaceItem = {
-  to: "/cppa-cybersecurity",
-  label: "CPPA Cybersecurity Audit",
-  icon: ShieldAlert,
-  match: (p) => under("/cppa-cybersecurity")(p),
-};
-
-const CPPA_ADMT: WorkspaceItem = {
-  to: "/cppa-admt-checker",
-  label: "ADMT Compliance Assessment",
-  icon: Cpu,
-  // Claim both the canonical /cppa-admt-checker and the legacy /cppa-admt alias.
-  match: (p) => under("/cppa-admt-checker")(p) || under("/cppa-admt")(p),
-};
-
-const US_NOTICE: WorkspaceItem = {
-  to: "/us-notices",
-  label: "US Privacy Notice",
-  icon: FileSignature,
-  match: (p) => under("/us-notices")(p),
-};
-
-const LI: WorkspaceItem = {
-  to: "/li-assessment",
-  label: "Legitimate Interest Assessment",
-  icon: BookOpen,
-  match: (p) => under("/li-assessment")(p),
-};
-
-const DPIA: WorkspaceItem = {
-  to: "/dpia-framework",
-  label: "Impact Assessment Builder",
-  icon: ClipboardList,
-  match: (p) => under("/dpia-framework")(p),
-};
-
-const GOVERNANCE: WorkspaceItem = {
-  to: "/governance-assessment",
-  label: "Governance Assessment",
-  icon: Landmark,
-  match: (p) => under("/governance-assessment")(p),
-};
-
-const ROPA: WorkspaceItem = {
-  to: "/ropa",
-  label: "RoPA Builder",
+export const NOTICES_ROPA_ITEM: WorkspaceItem = {
+  to: "/notices-ropa",
+  label: "Notices & RoPA",
   icon: Scroll,
-  match: (p) => under("/ropa")(p),
+  match: (p) =>
+    p === "/notices-ropa" ||
+    p.startsWith("/notices-ropa/") ||
+    under("/us-notices")(p) ||
+    under("/eu-notices")(p) ||
+    under("/ropa")(p),
 };
 
-const EU_NOTICE: WorkspaceItem = {
-  to: "/eu-notices",
-  label: "EU Privacy Notice",
-  icon: Globe,
-  match: (p) => under("/eu-notices")(p),
-};
-
-const DPA: WorkspaceItem = {
-  to: "/dpa-generator",
-  label: "Custom DPA",
-  icon: FileCheck,
-  match: (p) => under("/dpa-generator")(p),
-};
-
-const IR: WorkspaceItem = {
-  to: "/ir-playbook",
-  label: "Incident Response Playbook",
-  icon: AlertTriangle,
-  match: (p) => under("/ir-playbook")(p),
-};
-
-const BIOMETRIC: WorkspaceItem = {
-  to: "/biometric-checker",
-  label: "Biometric Compliance Check",
-  icon: Fingerprint,
-  match: (p) => under("/biometric-checker")(p),
-};
-
-const REGISTRATION: WorkspaceItem = {
-  to: "/registration-manager",
-  label: "Registration Manager",
-  icon: Building,
+export const FILINGS_ITEM: WorkspaceItem = {
+  to: "/registration-manager/my-filings",
+  label: "Filings",
+  icon: Landmark,
   match: (p) => under("/registration-manager")(p),
 };
 
-/**
- * Product category groups. Order and labels are CEO-approved.
- */
-export const CATEGORY_GROUPS: WorkspaceCategory[] = [
-  {
-    id: "us_cppa",
-    label: "U.S. – CPPA",
-    items: [CPPA_SCOPE, CPPA_RISK, CPPA_CYBER, CPPA_ADMT, US_NOTICE],
-  },
-  {
-    id: "eu_gdpr",
-    label: "EU & UK – GDPR",
-    items: [LI, DPIA, GOVERNANCE, ROPA, EU_NOTICE, DPA],
-  },
-  {
-    id: "all_jurisdictions",
-    label: "All Jurisdictions",
-    items: [IR, BIOMETRIC, REGISTRATION],
-  },
+export const OBLIGATIONS_ITEM: WorkspaceItem = {
+  to: "/obligations",
+  label: "Obligations",
+  icon: CalendarClock,
+  match: (p) => p === "/obligations" || p.startsWith("/obligations/"),
+};
+
+export const LIBRARY_ITEMS: WorkspaceItem[] = [
+  REPORTS_ITEM,
+  NOTICES_ROPA_ITEM,
+  FILINGS_ITEM,
+  OBLIGATIONS_ITEM,
 ];
 
-/**
- * Flattened product list. Handy for the mobile subnav and for
- * computeActiveTo coverage.
- */
-export const PRODUCT_ITEMS: WorkspaceItem[] = CATEGORY_GROUPS.flatMap(
-  (g) => g.items,
-);
+// -- Reports sub-items (filtered views of /dashboard/reports) ---------------
 
-/**
- * Bottom items rendered after a divider under the categories.
- */
+export type ReportsFamily = "cppa" | "gdpr" | "all";
+
+export const REPORTS_SUBITEMS: Array<{
+  id: ReportsFamily;
+  label: string;
+  to: string;
+}> = [
+  { id: "cppa", label: "U.S. \u2013 CPPA", to: "/dashboard/reports?family=cppa" },
+  { id: "gdpr", label: "EU & UK \u2013 GDPR", to: "/dashboard/reports?family=gdpr" },
+  { id: "all", label: "All jurisdictions", to: "/dashboard/reports" },
+];
+
+export function computeActiveReportsSub(
+  pathname: string,
+  search: string = "",
+): ReportsFamily | null {
+  const p = normalizePath(pathname);
+  if (p !== "/dashboard/reports") return null;
+  const fam = readParam(search, "family");
+  if (fam === "cppa") return "cppa";
+  if (fam === "gdpr") return "gdpr";
+  return "all";
+}
+
+// -- Bottom items -----------------------------------------------------------
+
 export const BOTTOM_ITEMS: WorkspaceItem[] = [
-  {
-    to: "/obligations",
-    label: "Obligations",
-    icon: CalendarClock,
-    match: (p) => p === "/obligations" || p.startsWith("/obligations/"),
-  },
   {
     to: "/account",
     label: "Account",
@@ -251,34 +225,12 @@ export const BOTTOM_ITEMS: WorkspaceItem[] = [
   },
 ];
 
-// -- Legacy exports kept for back-compat ------------------------------------
-// DashboardSubnav still imports INTELLIGENCE_ITEMS and OPERATIONS_ITEMS in
-// some code paths; keep them defined but redirect to the new structure.
+// -- Aggregate list used by computeActiveTo (first-match-wins) --------------
 
-export const INTELLIGENCE_ITEMS = TOP_ITEMS;
-
-export const OPERATIONS_ITEMS: WorkspaceItem[] = [
-  ...PRODUCT_ITEMS,
-  {
-    to: "/clients",
-    label: "Clients",
-    icon: Building2,
-    match: (p) => p === "/clients" || p.startsWith("/clients/"),
-  },
-];
-
-export const ACCOUNT_ITEMS: WorkspaceItem[] = BOTTOM_ITEMS;
-
-/**
- * Every workspace item across all groups, in the order used by
- * `computeActiveTo` (first-match-wins).
- */
 export const ALL_WORKSPACE_ITEMS: WorkspaceItem[] = [
   ...TOP_ITEMS,
-  ...PRODUCT_ITEMS,
+  ...LIBRARY_ITEMS,
   ...BOTTOM_ITEMS,
-  // "Clients" is only reachable via the sidebar's own Clients management link,
-  // but include it here so /clients highlights nothing surprising elsewhere.
   {
     to: "/clients",
     label: "Clients",
@@ -294,11 +246,26 @@ export const ALL_WORKSPACE_ITEMS: WorkspaceItem[] = [
 export function computeActiveTo(
   pathname: string,
   hash: string = "",
+  search: string = "",
 ): string | null {
   const p = normalizePath(pathname);
   const h = normalizeHash(hash);
   for (const item of ALL_WORKSPACE_ITEMS) {
-    if (item.match(p, h)) return item.to;
+    if (item.match(p, h, search)) return item.to;
   }
   return null;
 }
+
+// -- Back-compat re-exports (unused by current sidebars but referenced by
+//    older callsites). ------------------------------------------------------
+
+export const INTELLIGENCE_ITEMS = TOP_ITEMS;
+export const OPERATIONS_ITEMS: WorkspaceItem[] = LIBRARY_ITEMS;
+export const ACCOUNT_ITEMS: WorkspaceItem[] = BOTTOM_ITEMS;
+
+/** Bare icon type kept for legacy typing. */
+export type WorkspaceCategory = {
+  id: string;
+  label: string;
+  items: WorkspaceItem[];
+};

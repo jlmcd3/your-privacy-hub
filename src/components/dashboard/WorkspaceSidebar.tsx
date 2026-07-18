@@ -4,36 +4,18 @@ import { ChevronRight, ChevronDown, Plus, User, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   TOP_ITEMS,
-  CATEGORY_GROUPS,
+  LIBRARY_ITEMS,
+  REPORTS_ITEM,
+  REPORTS_SUBITEMS,
   BOTTOM_ITEMS,
   computeActiveTo,
+  computeActiveReportsSub,
   type WorkspaceItem,
-  type WorkspaceCategory,
 } from "@/lib/workspaceNav";
 import { useClientStore, type Client } from "@/stores/clientStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-
-const GROUP_STORAGE_PREFIX = "leftnav.group.";
-
-function readGroupOpen(id: string): boolean {
-  try {
-    const v = localStorage.getItem(GROUP_STORAGE_PREFIX + id);
-    if (v === null) return true; // first-time visitors: expanded
-    return v === "1";
-  } catch {
-    return true;
-  }
-}
-
-function writeGroupOpen(id: string, open: boolean) {
-  try {
-    localStorage.setItem(GROUP_STORAGE_PREFIX + id, open ? "1" : "0");
-  } catch {
-    /* ignore */
-  }
-}
 
 /** Top-level item — full-width link. */
 function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
@@ -58,128 +40,103 @@ function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
 }
 
 /**
- * A collapsible product category. Header does NOT navigate; clicking
- * toggles expansion. When collapsed, a product-count badge is shown.
- * Product clicks setActiveClient(workspace) then navigate to the route.
+ * Library-section product row. Clicking calls setActiveClient(workspace)
+ * before navigating so the correct workspace context is applied.
  */
-function CategoryGroup({
-  category,
+function LibraryRow({
+  item,
   workspace,
-  isActiveWorkspace,
-  activeTo,
+  active,
 }: {
-  category: WorkspaceCategory;
+  item: WorkspaceItem;
   workspace: Client;
-  isActiveWorkspace: boolean;
-  activeTo: string | null;
+  active: boolean;
 }) {
-  const [open, setOpen] = useState<boolean>(() => readGroupOpen(category.id));
   const navigate = useNavigate();
   const setActiveClient = useClientStore((s) => s.setActiveClient);
+  const Icon = item.icon;
 
-  // If a product in this category becomes active, force-open the group so
-  // the highlighted row is visible.
-  const containsActive =
-    isActiveWorkspace &&
-    !!activeTo &&
-    category.items.some((it) => it.to === activeTo);
-
-  useEffect(() => {
-    if (containsActive && !open) {
-      setOpen(true);
-      writeGroupOpen(category.id, true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containsActive]);
-
-  const toggle = () => {
-    setOpen((v) => {
-      const next = !v;
-      writeGroupOpen(category.id, next);
-      return next;
-    });
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setActiveClient(workspace);
+    navigate(item.to);
   };
 
-  const handleProductClick = (e: React.MouseEvent, to: string) => {
+  return (
+    <li>
+      <a
+        href={item.to}
+        onClick={handleClick}
+        className={cn(
+          "inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors no-underline w-full",
+          active
+            ? "bg-brand-navy text-white font-medium"
+            : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
+        )}
+        aria-current={active ? "page" : undefined}
+      >
+        <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+        <span>{item.label}</span>
+      </a>
+    </li>
+  );
+}
+
+/** Reports sub-item (filtered view) — indented under Reports. */
+function ReportsSubRow({
+  to,
+  label,
+  workspace,
+  active,
+}: {
+  to: string;
+  label: string;
+  workspace: Client;
+  active: boolean;
+}) {
+  const navigate = useNavigate();
+  const setActiveClient = useClientStore((s) => s.setActiveClient);
+  const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setActiveClient(workspace);
     navigate(to);
   };
-
   return (
-    <div className="mb-1">
-      <button
-        type="button"
-        onClick={toggle}
-        title={category.label}
-        aria-expanded={open}
-        className="w-full inline-flex items-center gap-2 px-2 lg:px-3 py-1.5 rounded-md text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500 hover:bg-brand-cloud/60 hover:text-brand-navy bg-transparent border-none cursor-pointer text-left"
-      >
-        <span className="hidden lg:inline shrink-0 text-brand-mist">
-          {open ? (
-            <ChevronDown className="w-3 h-3" />
-          ) : (
-            <ChevronRight className="w-3 h-3" />
-          )}
-        </span>
-        <span className="hidden lg:inline flex-1 truncate">
-          {category.label}
-        </span>
-        {!open && (
-          <span className="hidden lg:inline shrink-0 rounded-full bg-brand-cloud text-brand-navy text-[10px] font-semibold px-1.5 py-0.5 leading-none">
-            {category.items.length}
-          </span>
+    <li>
+      <a
+        href={to}
+        onClick={handleClick}
+        className={cn(
+          "inline-flex items-center gap-2 pl-6 pr-2 py-1 rounded-md text-[13px] transition-colors no-underline w-full",
+          active
+            ? "text-brand-navy font-medium bg-brand-cloud/60"
+            : "text-slate-500 hover:bg-brand-cloud hover:text-brand-navy",
         )}
-      </button>
-
-      {open && (
-        <ul className="hidden lg:flex flex-col gap-0 mt-0.5 ml-3 pl-3 border-l border-brand-cloud">
-          {category.items.map((item) => {
-            const Icon = item.icon;
-            const active = isActiveWorkspace && activeTo === item.to;
-            return (
-              <li key={item.to}>
-                <a
-                  href={item.to}
-                  onClick={(e) => handleProductClick(e, item.to)}
-                  className={cn(
-                    "inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors no-underline w-full",
-                    active
-                      ? "bg-brand-navy text-white font-medium"
-                      : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
-                  )}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <Icon
-                    className="w-3.5 h-3.5 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span>{item.label}</span>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+        aria-current={active ? "page" : undefined}
+      >
+        <span className="text-brand-mist">·</span>
+        <span>{label}</span>
+      </a>
+    </li>
   );
 }
 
 /**
  * One workspace section (Personal or a Client). Clicking the header
- * expands/collapses the whole workspace (which contains three category
- * groups).
+ * expands/collapses the whole workspace which contains the LIBRARY items.
  */
 function WorkspaceSection({
   workspace,
   isActiveWorkspace,
   activeTo,
+  activeReportsSub,
   defaultOpen,
   icon: HeaderIcon,
 }: {
   workspace: Client;
   isActiveWorkspace: boolean;
   activeTo: string | null;
+  activeReportsSub: ReturnType<typeof computeActiveReportsSub>;
   defaultOpen: boolean;
   icon: React.ComponentType<{ className?: string }>;
 }) {
@@ -188,6 +145,9 @@ function WorkspaceSection({
   useEffect(() => {
     if (isActiveWorkspace) setOpen(true);
   }, [isActiveWorkspace]);
+
+  const isReportsActive =
+    isActiveWorkspace && activeTo === REPORTS_ITEM.to;
 
   return (
     <div
@@ -223,15 +183,39 @@ function WorkspaceSection({
 
       {open && (
         <div className="hidden lg:block mt-1 ml-2 pl-2 border-l border-brand-cloud/60">
-          {CATEGORY_GROUPS.map((cat) => (
-            <CategoryGroup
-              key={cat.id}
-              category={cat}
-              workspace={workspace}
-              isActiveWorkspace={isActiveWorkspace}
-              activeTo={activeTo}
-            />
-          ))}
+          <div className="px-2 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500">
+            Library
+          </div>
+          <ul className="flex flex-col gap-0 mt-0.5">
+            {LIBRARY_ITEMS.flatMap((item) => {
+              const nodes = [
+                <LibraryRow
+                  key={item.to}
+                  item={item}
+                  workspace={workspace}
+                  active={isActiveWorkspace && activeTo === item.to}
+                />,
+              ];
+              if (item.to === REPORTS_ITEM.to && isReportsActive) {
+                nodes.push(
+                  <li key={`${item.to}-subs`}>
+                    <ul className="flex flex-col gap-0 ml-3 pl-3 border-l border-brand-cloud">
+                      {REPORTS_SUBITEMS.map((s) => (
+                        <ReportsSubRow
+                          key={s.to}
+                          to={s.to}
+                          label={s.label}
+                          workspace={workspace}
+                          active={activeReportsSub === s.id}
+                        />
+                      ))}
+                    </ul>
+                  </li>,
+                );
+              }
+              return nodes;
+            })}
+          </ul>
         </div>
       )}
     </div>
@@ -255,8 +239,14 @@ export default function WorkspaceSidebar() {
   }, [user]);
 
   const activeTo = useMemo(
-    () => computeActiveTo(location.pathname, location.hash),
-    [location.pathname, location.hash],
+    () =>
+      computeActiveTo(location.pathname, location.hash, location.search),
+    [location.pathname, location.hash, location.search],
+  );
+
+  const activeReportsSub = useMemo(
+    () => computeActiveReportsSub(location.pathname, location.search),
+    [location.pathname, location.search],
   );
 
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
@@ -290,6 +280,7 @@ export default function WorkspaceSidebar() {
               workspace={personal}
               isActiveWorkspace={isPersonalActive}
               activeTo={activeTo}
+              activeReportsSub={activeReportsSub}
               defaultOpen={isPersonalActive}
               icon={User}
             />
@@ -326,6 +317,7 @@ export default function WorkspaceSidebar() {
                   workspace={c}
                   isActiveWorkspace={activeClient?.id === c.id}
                   activeTo={activeTo}
+                  activeReportsSub={activeReportsSub}
                   defaultOpen={activeClient?.id === c.id}
                   icon={Building2}
                 />
@@ -342,7 +334,7 @@ export default function WorkspaceSidebar() {
 
         <div className="border-t border-brand-cloud/40 my-3" />
 
-        {/* Bottom: Obligations, Account */}
+        {/* Bottom: Account */}
         <nav className="flex flex-col gap-0.5">
           {BOTTOM_ITEMS.map((item) => (
             <NavItem

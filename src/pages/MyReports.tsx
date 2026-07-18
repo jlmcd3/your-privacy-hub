@@ -1,8 +1,8 @@
 // Unified list of all assessments and tool outputs the signed-in user has generated.
 // Pulls from every tool table in parallel and links to the existing per-tool result pages.
 
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -104,6 +104,43 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
   return "secondary";
 }
 
+// LEFTNAV-2 family filter — maps each tool key to a jurisdictional family so
+// the sidebar's Reports sub-items can filter the same page without adding a
+// new data source.
+//   cppa family: cppa_risk, cppa_cyber, cppa_admt, cppa_scope, us_notice
+//                (+ their draft_ counterparts)
+//   gdpr family: li, dpia, governance, dpa, eu_notice, ropa
+//                (+ their draft_ counterparts)
+//   cross-jurisdiction (visible under "All" only): ir, biometric, registration,
+//                and any drafts for those tools.
+type Family = "cppa" | "gdpr" | "cross";
+const FAMILY_BY_TOOL: Record<string, Family> = {
+  cppa_risk: "cppa",
+  cppa_cyber: "cppa",
+  cppa_admt: "cppa",
+  cppa_scope: "cppa",
+  us_notice: "cppa",
+  draft_cppa_risk: "cppa",
+  draft_cppa_cyber: "cppa",
+  draft_cppa_admt: "cppa",
+  li: "gdpr",
+  dpia: "gdpr",
+  governance: "gdpr",
+  dpa: "gdpr",
+  eu_notice: "gdpr",
+  ropa: "gdpr",
+  draft_li: "gdpr",
+  draft_dpia: "gdpr",
+  draft_governance: "gdpr",
+  draft_dpa: "gdpr",
+  ir: "cross",
+  biometric: "cross",
+  registration: "cross",
+  draft_ir: "cross",
+  draft_biometric: "cross",
+  draft_registration: "cross",
+};
+
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
   const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
@@ -112,6 +149,10 @@ export default function MyReports() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const familyParam = (searchParams.get("family") || "").toLowerCase();
+  const activeFamily: "cppa" | "gdpr" | null =
+    familyParam === "cppa" ? "cppa" : familyParam === "gdpr" ? "gdpr" : null;
 
   // Scope reports to the active workspace. When the personal workspace is
   // active, hide anything tied to a real client (and vice versa). Rows with
@@ -123,6 +164,19 @@ export default function MyReports() {
     }
     return r.client_id === activeClientId;
   });
+
+  // Family filter — cross-jurisdiction tools appear under "All" only.
+  const familyFilteredRows = useMemo(() => {
+    if (!activeFamily) return visibleRows;
+    return visibleRows.filter((r) => FAMILY_BY_TOOL[r.tool] === activeFamily);
+  }, [visibleRows, activeFamily]);
+
+  const setFamily = (fam: "cppa" | "gdpr" | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (fam) next.set("family", fam);
+    else next.delete("family");
+    setSearchParams(next, { replace: true });
+  };
 
   async function handleDelete(row: ReportRow) {
     const table = row.is_draft ? "tool_sessions" : TOOL_TABLE[row.tool];
@@ -496,14 +550,44 @@ export default function MyReports() {
 
 
 
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
+            {[
+              { id: null as null | "cppa" | "gdpr", label: "All" },
+              { id: "cppa" as const, label: "U.S. \u2013 CPPA" },
+              { id: "gdpr" as const, label: "EU & UK \u2013 GDPR" },
+            ].map((chip) => {
+              const active = activeFamily === chip.id;
+              return (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => setFamily(chip.id)}
+                  className={
+                    "px-3 py-1 rounded-full text-xs font-medium border transition-colors " +
+                    (active
+                      ? "bg-brand-navy text-white border-brand-navy"
+                      : "bg-transparent text-slate border-brand-cloud hover:bg-brand-cloud hover:text-brand-navy")
+                  }
+                  aria-pressed={active}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
+
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
-          ) : visibleRows.length === 0 ? (
+          ) : familyFilteredRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
-                <p className="text-slate mb-4">You haven't generated any reports yet.</p>
-                <Button asChild><Link to="/tools">Browse tools</Link></Button>
+                <p className="text-slate mb-4">
+                  {activeFamily
+                    ? "No reports in this jurisdiction yet."
+                    : "You haven't generated any reports yet."}
+                </p>
+                <Button asChild><Link to="/start">Browse tools</Link></Button>
               </CardContent>
             </Card>
           ) : (
@@ -518,7 +602,7 @@ export default function MyReports() {
               ];
               const grouped = GROUPS.map((g) => ({
                 ...g,
-                rows: visibleRows.filter((r) => g.tools.includes(r.tool)),
+                rows: familyFilteredRows.filter((r) => g.tools.includes(r.tool)),
               })).filter((g) => g.rows.length > 0);
 
               return (

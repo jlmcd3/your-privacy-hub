@@ -1,91 +1,128 @@
 import { describe, it, expect } from "vitest";
 import {
   computeActiveTo,
+  computeActiveReportsSub,
   ALL_WORKSPACE_ITEMS,
-  PRODUCT_ITEMS,
+  LIBRARY_ITEMS,
+  REPORTS_SUBITEMS,
 } from "@/lib/workspaceNav";
 
 /**
- * LEFTNAV-1 coverage test (Task 5): every listed route must yield exactly
- * one active nav item — no double-highlights, no missing highlights for
- * known primary or result routes.
+ * LEFTNAV-2 coverage test: every listed route must yield exactly one active
+ * nav item — no double-highlights, no missing highlights for known primary
+ * or result routes. The sidebar is now LIBRARY-first: the sidebar contains
+ * no product-creation entries; result routes highlight "Reports".
  */
 
 // Routes that MUST resolve to a single specific nav item.
-// [pathname, expected `to`]
-const EXPECTED: Array<[string, string]> = [
-  ["/dashboard", "/dashboard"],
-  ["/watchlist", "/watchlist"],
-  ["/start", "/start"],
-  ["/obligations", "/obligations"],
-  ["/obligations/123", "/obligations"],
-  ["/account", "/account"],
-  ["/brief-preferences", "/account"],
+// [pathname, search, expected `to`]
+const EXPECTED: Array<[string, string, string]> = [
+  ["/dashboard", "", "/dashboard"],
+  ["/watchlist", "", "/watchlist"],
+  ["/start", "", "/start"],
 
-  // 14 product primary routes
-  ["/cppa-scope-checker", "/cppa-scope-checker"],
-  ["/cppa-risk-assessment", "/cppa-risk-assessment"],
-  ["/cppa-cybersecurity", "/cppa-cybersecurity"],
-  ["/cppa-admt-checker", "/cppa-admt-checker"],
-  ["/us-notices", "/us-notices"],
-  ["/li-assessment", "/li-assessment"],
-  ["/dpia-framework", "/dpia-framework"],
-  ["/governance-assessment", "/governance-assessment"],
-  ["/ropa", "/ropa"],
-  ["/eu-notices", "/eu-notices"],
-  ["/dpa-generator", "/dpa-generator"],
-  ["/ir-playbook", "/ir-playbook"],
-  ["/biometric-checker", "/biometric-checker"],
-  ["/registration-manager", "/registration-manager"],
+  // Library — Reports (parent claims all filter variants)
+  ["/dashboard/reports", "", "/dashboard/reports"],
+  ["/dashboard/reports", "?family=cppa", "/dashboard/reports"],
+  ["/dashboard/reports", "?family=gdpr", "/dashboard/reports"],
 
-  // One result / detail route per report-producing tool
-  ["/li-assessment/result/abc", "/li-assessment"],
-  ["/dpia-framework/result/abc", "/dpia-framework"],
-  ["/governance-assessment/result/abc", "/governance-assessment"],
-  ["/dpa-generator/result/abc", "/dpa-generator"],
-  ["/ir-playbook/result/abc", "/ir-playbook"],
-  ["/biometric-checker/result/abc", "/biometric-checker"],
-  ["/cppa-risk-assessment/result/abc", "/cppa-risk-assessment"],
-  ["/cppa-cybersecurity/result/abc", "/cppa-cybersecurity"],
-  ["/cppa-admt-checker/result/abc", "/cppa-admt-checker"],
-  ["/registration-manager/my-filings", "/registration-manager"],
-  ["/registration-manager/order/abc", "/registration-manager"],
-  ["/us-notices/mode", "/us-notices"],
-  ["/eu-notices/questions/abc", "/eu-notices"],
-  ["/ropa/activities", "/ropa"],
+  // Former per-tool result routes all now highlight Reports.
+  ["/li-assessment/result/abc", "", "/dashboard/reports"],
+  ["/dpia-framework/result/abc", "", "/dashboard/reports"],
+  ["/governance-assessment/result/abc", "", "/dashboard/reports"],
+  ["/dpa-generator/result/abc", "", "/dashboard/reports"],
+  ["/ir-playbook/result/abc", "", "/dashboard/reports"],
+  ["/biometric-checker/result/abc", "", "/dashboard/reports"],
+  ["/cppa-risk-assessment/result/abc", "", "/dashboard/reports"],
+  ["/cppa-cybersecurity/result/abc", "", "/dashboard/reports"],
+  ["/cppa-admt-checker/result/abc", "", "/dashboard/reports"],
+  ["/cppa-scope-checker", "", "/dashboard/reports"],
+
+  // Library — Notices & RoPA
+  ["/notices-ropa", "", "/notices-ropa"],
+  ["/us-notices/abc/documents", "", "/notices-ropa"],
+  ["/eu-notices/questions/abc", "", "/notices-ropa"],
+  ["/ropa/documents", "", "/notices-ropa"],
+  ["/ropa/activities", "", "/notices-ropa"],
+
+  // Library — Filings
+  ["/registration-manager", "", "/registration-manager/my-filings"],
+  ["/registration-manager/my-filings", "", "/registration-manager/my-filings"],
+  ["/registration-manager/order/abc", "", "/registration-manager/my-filings"],
+
+  // Library — Obligations
+  ["/obligations", "", "/obligations"],
+  ["/obligations/123", "", "/obligations"],
+
+  // Account
+  ["/account", "", "/account"],
+  ["/brief-preferences", "", "/account"],
 ];
 
-// Routes documented as intentionally NOT highlighting anything (Task 4).
+// Routes documented as intentionally NOT highlighting anything.
+// Product intake / creation pages live on /start, not the library.
 const NO_ACTIVE: string[] = [
-  "/dashboard/reports",
-  "/notices-ropa",
+  "/li-assessment",
+  "/dpia-framework",
+  "/governance-assessment",
+  "/dpa-generator",
+  "/ir-playbook",
+  "/biometric-checker",
+  "/cppa-risk-assessment",
+  "/cppa-cybersecurity",
+  "/cppa-admt-checker",
   "/cppa",
   "/cppa-suite/result",
-  "/ropa-builder",
 ];
 
-describe("workspaceNav.computeActiveTo — LEFTNAV-1 coverage", () => {
-  it.each(EXPECTED)("resolves %s -> %s (single match)", (path, expected) => {
-    expect(computeActiveTo(path, "")).toBe(expected);
+describe("workspaceNav.computeActiveTo — LEFTNAV-2 coverage", () => {
+  it.each(EXPECTED)(
+    "resolves %s%s -> %s (single match)",
+    (path, search, expected) => {
+      expect(computeActiveTo(path, "", search)).toBe(expected);
 
-    // Also assert exactly one item in ALL_WORKSPACE_ITEMS matches.
-    const matches = ALL_WORKSPACE_ITEMS.filter((it) => it.match(path, ""));
-    expect(matches.map((m) => m.to)).toEqual([expected]);
+      // Exactly one item in ALL_WORKSPACE_ITEMS matches.
+      const matches = ALL_WORKSPACE_ITEMS.filter((it) =>
+        it.match(path, "", search),
+      );
+      expect(matches.map((m) => m.to)).toEqual([expected]);
+    },
+  );
+
+  it.each(NO_ACTIVE)("returns null for non-library route %s", (path) => {
+    expect(computeActiveTo(path, "", "")).toBe(null);
   });
 
-  it.each(NO_ACTIVE)("returns null for legacy list route %s", (path) => {
-    expect(computeActiveTo(path, "")).toBe(null);
+  it("Library has exactly 4 items (Reports, Notices & RoPA, Filings, Obligations)", () => {
+    expect(LIBRARY_ITEMS.map((i) => i.label)).toEqual([
+      "Reports",
+      "Notices & RoPA",
+      "Filings",
+      "Obligations",
+    ]);
   });
 
-  it("has 14 products across the three category groups", () => {
-    expect(PRODUCT_ITEMS).toHaveLength(14);
+  it("Reports has three sub-items (CPPA, GDPR, All jurisdictions)", () => {
+    expect(REPORTS_SUBITEMS.map((s) => s.id)).toEqual(["cppa", "gdpr", "all"]);
   });
+});
 
-  it("has no product with a duplicate `to`", () => {
-    const seen = new Set<string>();
-    for (const p of PRODUCT_ITEMS) {
-      expect(seen.has(p.to)).toBe(false);
-      seen.add(p.to);
-    }
+describe("computeActiveReportsSub", () => {
+  it("returns null off the reports page", () => {
+    expect(computeActiveReportsSub("/dashboard", "")).toBe(null);
+    expect(computeActiveReportsSub("/li-assessment/result/x", "")).toBe(null);
+  });
+  it("returns 'all' on plain /dashboard/reports", () => {
+    expect(computeActiveReportsSub("/dashboard/reports", "")).toBe("all");
+  });
+  it("returns 'cppa' when family=cppa", () => {
+    expect(computeActiveReportsSub("/dashboard/reports", "?family=cppa")).toBe(
+      "cppa",
+    );
+  });
+  it("returns 'gdpr' when family=gdpr", () => {
+    expect(computeActiveReportsSub("/dashboard/reports", "?family=gdpr")).toBe(
+      "gdpr",
+    );
   });
 });
