@@ -42,6 +42,10 @@ interface SourceEntry {
   // When true, this entry only runs in backfill mode (skipped in monitor mode).
   // Used for page-2+ historical pagination pages.
   backfillOnly?: boolean;
+  // ENF-1d: when set, the response is parsed as the OAIC determinations
+  // register (structured rows — subject/citation/date/AustLII url). Bypasses
+  // the generic markdown-link extractor and headline-pattern gates.
+  registerParser?: "oaic";
 }
 
 // Privacy / data-protection terms used to filter generalist press-release feeds.
