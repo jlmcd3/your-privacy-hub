@@ -48,7 +48,7 @@ type SessionRow = {
 type DocVersion = {
   id: string;
   session_id: string;
-  document_format: "pdf" | "docx" | "xlsx";
+  document_format: "pdf" | "docx";
   file_path: string;
   file_size_bytes: number | null;
   jurisdictions_covered: string[];
