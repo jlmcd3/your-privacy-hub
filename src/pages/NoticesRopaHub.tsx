@@ -90,6 +90,12 @@ export default function NoticesRopaHub() {
   const [rows, setRows] = useState<FileRow[]>([]);
   const fireConversion = useConversionEvent();
   const userType = user ? "authenticated" : "anonymous";
+  const [searchParams] = useSearchParams();
+  const kindParam = (searchParams.get("kind") || "").toLowerCase();
+  const activeKind: FileRow["kind"] | null =
+    kindParam === "us" ? "us" :
+    kindParam === "eu" ? "eu" :
+    kindParam === "ropa" ? "ropa" : null;
 
   useEffect(() => {
     if (!user || !client) return;
