@@ -130,12 +130,12 @@ function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolea
   const trimmed = (raw ?? "").trim();
   if (!trimmed) return { canonical: "", mapped: false };
   // 1. Canonical enum match (case-sensitive) — accept as-is.
-  if (EU_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
+  if (EU_JURS.has(trimmed) || UK_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
     return { canonical: trimmed, mapped: true };
   }
   // 2. Canonical enum match (case-insensitive whole-value).
   const lower = trimmed.toLowerCase();
-  for (const s of [...EU_JURS, ...US_JURS, ...CA_JURS]) {
+  for (const s of [...EU_JURS, ...UK_JURS, ...US_JURS, ...CA_JURS]) {
     if (s.toLowerCase() === lower) return { canonical: s, mapped: true };
   }
   // 3. Alias table (case-insensitive whole-value; no substring traps).
@@ -144,19 +144,21 @@ function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolea
   return { canonical: trimmed, mapped: false };
 }
 
-// REBUILD-DPA T1b — returns the derived docType AND surfaces whether either
-// jurisdiction was unmappable. Callers must not swallow the unmapped signal —
-// it drives both the post-gen lint entry (function_runs) and the in-document
-// NOTE FOR LEGAL REVIEW.
+// REBUILD-DPA T1b + FF-DPA nd6 — derivation matrix now branches UK from EU.
+// - UK-only or UK+unmapped         → "uk"
+// - UK+EU                          → "gdpr" (QL2-FIX-1 UK territorial-scope block fires)
+// - UK+US                          → "uk"  (cross-border module added inside uk mode)
+// - UK+CA                          → "uk"  (cross-border module added inside uk mode)
+// Cross-border treatment for UK+US and UK+CA is a listed design decision (see
+// FF-DPA nd6 report): uk-mode with a cross-border module rather than new
+// dual-uk-* types, to keep the derivation surface small and avoid a combinatorial
+// explosion of prompt templates. UK GDPR + DPA 2018 remains the operative law;
+// the module addresses transfers/onward flows to the US or Canadian party.
 function detectDocType(
   ctrl: string,
   proc: string,
   explicit?: unknown,
 ): { docType: string; ctrlCanonical: string; procCanonical: string; ctrlMapped: boolean; procMapped: boolean; explicitAccepted: boolean; explicitRawType: string } {
-  // T1: explicit is trusted ONLY when it is one of the five valid strings.
-  // Fixture regression: intake_data.documentType arrived as an OBJECT
-  // ({type:"DPA",version:"2.1",...}); the previous `if (explicit) return explicit`
-  // returned the object and every subsequent branch fell to gdpr.
   const explicitRawType = explicit === null || explicit === undefined ? "undefined" : (Array.isArray(explicit) ? "array" : typeof explicit);
   const explicitAccepted = typeof explicit === "string" && VALID_DOC_TYPES.has(explicit);
   const c = normalizeJurisdiction(ctrl);
@@ -165,16 +167,26 @@ function detectDocType(
     return { docType: explicit as string, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
   }
   const ctrlEU = EU_JURS.has(c.canonical); const procEU = EU_JURS.has(p.canonical);
+  const ctrlUK = UK_JURS.has(c.canonical); const procUK = UK_JURS.has(p.canonical);
   const ctrlUS = US_JURS.has(c.canonical); const procUS = US_JURS.has(p.canonical);
   const ctrlCA = CA_JURS.has(c.canonical); const procCA = CA_JURS.has(p.canonical);
+  const anyEU = ctrlEU || procEU;
+  const anyUK = ctrlUK || procUK;
+  const anyUS = ctrlUS || procUS;
+  const anyCA = ctrlCA || procCA;
   let docType = "gdpr";
-  if ((ctrlEU || procEU) && (ctrlUS || procUS)) docType = "dual-eu-us";
-  else if ((ctrlEU || procEU) && (ctrlCA || procCA)) docType = "dual-eu-ca";
-  else if (ctrlUS || procUS) docType = "us-state";
-  else if (ctrlCA || procCA) docType = "canada";
-  else if (ctrlEU || procEU) docType = "gdpr";
-  // else: neither party maps — docType stays "gdpr" as last-resort but the
-  // caller surfaces this via ctrlMapped/procMapped for the fallback note.
+  // EU+UK → gdpr mode (existing QL2-FIX-1 UK territorial-scope block fires)
+  if (anyEU && anyUK) docType = "gdpr";
+  // Dual EU/US and EU/Canada retain existing routing
+  else if (anyEU && anyUS) docType = "dual-eu-us";
+  else if (anyEU && anyCA) docType = "dual-eu-ca";
+  // UK-primary derivations (UK-only, UK+US, UK+CA, UK+unmapped) → uk mode
+  else if (anyUK) docType = "uk";
+  else if (anyUS) docType = "us-state";
+  else if (anyCA) docType = "canada";
+  else if (anyEU) docType = "gdpr";
+  // else: neither party maps — docType stays "gdpr" as last-resort; the caller
+  // surfaces this via ctrlMapped/procMapped for the fallback note.
   return { docType, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
 }
 
