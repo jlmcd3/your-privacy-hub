@@ -433,15 +433,30 @@ Deno.serve(async (req) => {
         }).eq("id", rowId);
       } catch (_e) { /* non-fatal */ }
       try {
-    // Resolve document type (from request or jurisdictional inference)
-    const documentType = detectDocType(
+    // Resolve document type (from request or jurisdictional inference).
+    // REBUILD-DPA T1 — non-string documentType (fixture regression: object
+    // {type:"DPA",version:"2.1",...}) is IGNORED, not returned. Unmapped
+    // jurisdictions are surfaced via mapped flags and route to both the
+    // in-document NOTE FOR LEGAL REVIEW and function_runs telemetry.
+    const detected = detectDocType(
       body.controllerJurisdiction,
       body.processorJurisdiction,
-      body.documentType
+      (body as any).documentType,
     );
+    const documentType = detected.docType;
+    const frameworkFallback = !detected.explicitAccepted && (!detected.ctrlMapped || !detected.procMapped);
+    const explicitTypeIgnored = ((body as any).documentType != null) && !detected.explicitAccepted;
+    if (frameworkFallback) {
+      console.warn(`[generate-dpa] framework fallback — ctrl="${body.controllerJurisdiction}" (mapped=${detected.ctrlMapped}) proc="${body.processorJurisdiction}" (mapped=${detected.procMapped}) → docType=${documentType}`);
+    }
+    if (explicitTypeIgnored) {
+      console.warn(`[generate-dpa] explicit documentType ignored (rawType=${detected.explicitRawType}) — derived docType=${documentType}`);
+    }
 
     // Sector-specific data category flags (used for US-mode module injection)
     const sectorFlags = detectDataSectorFlags(body.dataCategories || [], body.services || "");
+    const isAISector = /model training|machine learning|ai training|inference platform|llm/i.test(body.services || "");
+
 
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
