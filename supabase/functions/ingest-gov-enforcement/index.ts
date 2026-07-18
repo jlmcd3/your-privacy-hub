@@ -559,14 +559,23 @@ Deno.serve(async (req) => {
         }
 
         const primarySourceUrl = (a as any).primarySourceUrl ?? null;
+        // ENF-1c: deterministic subject extraction per regulator. Falls back
+        // to null (never a headline copy) so downstream UI shows the correct
+        // "Undisclosed entity" rendering for genuinely anonymized cases.
+        let extractedSubject: string | null = null;
+        if (src.source === "OAIC") extractedSubject = extractOaicSubject(a.title);
+        else if (src.source === "FTC") extractedSubject = extractFtcSubject(a.title);
+        else if (src.source === "HHS-OCR") extractedSubject = extractHhsSubject(a.title);
         const baseRow: Record<string, unknown> = {
           etid,
           source_database: src.source,
           source_url: a.url,
-          regulator: src.regulator,
+          // ENF-1c Task 4: canonical short labels (e.g. "FTC" not
+          // "Federal Trade Commission (FTC)").
+          regulator: normalizeRegulatorLabel(src.regulator) ?? src.regulator,
           jurisdiction: src.jurisdiction,
           law: src.law,
-          subject: src.source === "OAIC" ? extractOaicSubject(a.title) : null,
+          subject: extractedSubject,
           violation: a.title,
           decision_date: a.date,
           fine_amount,
