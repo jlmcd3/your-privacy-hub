@@ -60,6 +60,7 @@ interface RequestBody {
   session_id: string;
   // Either-or:
   format?: Format; // generate a single format
+  download_only?: boolean; // refresh signed URL for an already generated file
   include_word?: boolean; // or generate PDF + (DOCX) + (XLSX)
   include_excel?: boolean;
   document_date?: string;
@@ -996,6 +997,57 @@ Deno.serve(async (req: Request) => {
     if (!isSubscriber) {
       return jsonResponse({ error: "Session is not paid" }, 402);
     }
+  }
+
+  // Existing-document download path: /ropa/documents should not re-render a
+  // completed PDF just to refresh an expired private-storage URL. Re-rendering
+  // requires document settings such as author_name, which are only collected on
+  // the review/generation screen and are not available during later downloads.
+  if (body.download_only === true) {
+    if (!body.format) {
+      return jsonResponse({ error: "format required for download" }, 400);
+    }
+
+    const { data: existing, error: existingErr } = await admin
+      .from("ropa_document_versions")
+      .select("id, file_path, document_format")
+      .eq("session_id", session.id)
+      .eq("document_format", body.format)
+      .eq("is_current", true)
+      .maybeSingle();
+
+    if (existingErr || !existing?.file_path) {
+      return jsonResponse({ error: "Generated document not found" }, 404);
+    }
+
+    const expiresInSec = 60 * 60;
+    const { data: signed, error: signErr } = await admin.storage
+      .from("ropa-documents")
+      .createSignedUrl(existing.file_path, expiresInSec);
+    if (signErr || !signed?.signedUrl) {
+      return jsonResponse(
+        { error: `Signed URL failed (${body.format}): ${signErr?.message ?? "unknown error"}` },
+        500,
+      );
+    }
+
+    const expiresAt = new Date(Date.now() + expiresInSec * 1000).toISOString();
+    await admin
+      .from("ropa_document_versions")
+      .update({
+        last_signed_url: signed.signedUrl,
+        last_signed_url_expires_at: expiresAt,
+      })
+      .eq("id", existing.id);
+
+    return jsonResponse({
+      success: true,
+      session_id: session.id,
+      status: "generated",
+      document_version_id: existing.id,
+      download_url: signed.signedUrl,
+      file_path: existing.file_path,
+    });
   }
 
   // ── Load supporting data in parallel ──
