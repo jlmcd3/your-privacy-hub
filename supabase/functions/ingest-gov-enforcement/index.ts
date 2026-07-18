@@ -533,7 +533,7 @@ Deno.serve(async (req) => {
       // OAIC gets a stricter enforcement-class gate (findings/orders/penalties/
       // undertakings) so statements, communiqués, awareness weeks, exposure
       // drafts, sweeps, guidance, and joint-oversight announcements are dropped.
-      if (src.requireRelevance) {
+      if (src.requireRelevance && !src.registerParser) {
         const before = actions.length;
         const gate = src.source === "OAIC" ? isOaicEnforcementTitle : isTitleRelevant;
         actions = actions.filter((a) => gate(a.title));
