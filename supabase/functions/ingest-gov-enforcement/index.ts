@@ -209,6 +209,16 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA", url: "https://www.priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/?page=3", source: "OPC Investigations", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
   { regulator: "Office of the Information and Privacy Commissioner of Alberta (OIPC AB)", jurisdiction: "Alberta", law: "PIPA / HIA / FOIP", url: "https://oipc.ab.ca/news-releases/page/2/", source: "OIPC Alberta", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
   { regulator: "Office of the Information and Privacy Commissioner of Alberta (OIPC AB)", jurisdiction: "Alberta", law: "PIPA / HIA / FOIP", url: "https://oipc.ab.ca/news-releases/page/3/", source: "OIPC Alberta", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
+  // OAIC media-centre historical backfill (ENF-1b, CEO-ratified 2026-07-18).
+  // Cutoff = 2026-01-19 (180 days). OAIC uses Funnelback pagination with
+  // start_rank=1,11,21,... (10 items/page, dmetapublishedDateISO sorted).
+  // Probe on 2026-07-18: page 2 (start_rank=11) reaches 4 February 2026;
+  // page 3 (start_rank=21) reaches 21 January 2026 then predates cutoff.
+  // Page 1 is already covered by the monitor entry. Two backfillOnly entries
+  // suffice; deeper pages predate the window and are omitted. backfillOnly
+  // flag ensures monitor cron (L462) never re-crawls these.
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre?&collection=113e9365-ffcc-4320-a995-5c1b98bea3bb~sp-oaic-web-new&form=result&num_ranks=10&profile=news-results-page&sort=dmetapublishedDateISO&start_rank=11", source: "OAIC", sourceGroup: "core", monitorPages: 1, requireRelevance: true, backfillOnly: true },
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre?&collection=113e9365-ffcc-4320-a995-5c1b98bea3bb~sp-oaic-web-new&form=result&num_ranks=10&profile=news-results-page&sort=dmetapublishedDateISO&start_rank=21", source: "OAIC", sourceGroup: "core", monitorPages: 1, requireRelevance: true, backfillOnly: true },
 ];
 
 // Second-hop fetcher: given an FTC case summary page URL, find the Decision and
