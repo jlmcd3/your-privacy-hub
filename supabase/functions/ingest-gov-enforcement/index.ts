@@ -7,6 +7,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { canonicalizeSourceUrl, isOaicEnforcementTitle, extractOaicSubject } from "./oaic.ts";
 import { isFtcEnforcementUrl, extractFtcSubject, isHhsOcrEnforcementUrl, extractHhsSubject, normalizeRegulatorLabel } from "./us-ingest.ts";
+import { parseRegisterDeterminations, normalizeEntity, datesWithin } from "./oaic-register.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -41,6 +42,10 @@ interface SourceEntry {
   // When true, this entry only runs in backfill mode (skipped in monitor mode).
   // Used for page-2+ historical pagination pages.
   backfillOnly?: boolean;
+  // ENF-1d: when set, the response is parsed as the OAIC determinations
+  // register (structured rows — subject/citation/date/AustLII url). Bypasses
+  // the generic markdown-link extractor and headline-pattern gates.
+  registerParser?: "oaic";
 }
 
 // Privacy / data-protection terms used to filter generalist press-release feeds.
@@ -123,6 +128,12 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn", sourceGroup: "core", monitorPages: 1 },
   { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland", sourceGroup: "core", monitorPages: 1 },
   { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+  // ENF-1d: OAIC privacy determinations register is the PRIMARY source for
+  // formal s.52 determinations (the media-centre feed is publicity, not
+  // exhaustive). Weekly monitor cadence — the register updates on the order
+  // of days/weeks between determinations. Register rows are canonical; media
+  // rows for the same matter get merged via the (subject, ±30d) rule below.
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/privacy/privacy-decisions/privacy-determinations", source: "OAIC Register", sourceGroup: "core", monitorPages: 1, registerParser: "oaic" },
   { regulator: "Datatilsynet DK", jurisdiction: "Denmark", law: "GDPR (Denmark)", url: "https://www.datatilsynet.dk/english/news", source: "Datatilsynet DK", sourceGroup: "core", monitorPages: 1 },
   { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1 },
   { regulator: "PDPC Singapore", jurisdiction: "Singapore", law: "PDPA 2012", url: "https://www.pdpc.gov.sg/news-and-events/announcements", source: "PDPC Singapore", sourceGroup: "core", monitorPages: 1 },
@@ -477,7 +488,24 @@ Deno.serve(async (req) => {
   for (const src of activeSources) {
     try {
       const md = await jinaFetch(src.url);
-      let actions = extractActions(md, src);
+      let actions: Array<{ title: string; url: string; date: string | null } & Record<string, unknown>>;
+
+      // ENF-1d: OAIC determinations register — structured parse (subject,
+      // citation, date come from register rows). Bypasses generic link
+      // extraction and headline gates; the AustLII URL is the canonical anchor.
+      if (src.registerParser === "oaic") {
+        const rows = parseRegisterDeterminations(md);
+        actions = rows.map((r) => ({
+          title: `${r.headingRaw}`,
+          url: r.austliiUrl,
+          date: r.decisionDate,
+          _registerSubject: r.subject,
+          _registerCitation: r.citation,
+        }));
+        console.log(`OAIC Register: parsed ${actions.length} determinations`);
+      } else {
+        actions = extractActions(md, src);
+      }
 
       // FTC cases-and-proceedings index pages: filter to real case-detail
       // links (nav, footer, blog, and policy links share the ftc.gov host).
@@ -505,7 +533,7 @@ Deno.serve(async (req) => {
       // OAIC gets a stricter enforcement-class gate (findings/orders/penalties/
       // undertakings) so statements, communiqués, awareness weeks, exposure
       // drafts, sweeps, guidance, and joint-oversight announcements are dropped.
-      if (src.requireRelevance) {
+      if (src.requireRelevance && !src.registerParser) {
         const before = actions.length;
         const gate = src.source === "OAIC" ? isOaicEnforcementTitle : isTitleRelevant;
         actions = actions.filter((a) => gate(a.title));
@@ -547,6 +575,43 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (existing) { skipped++; continue; }
 
+        // ENF-1d: register-row dedup against a same-matter media row.
+        // Rule: normalised subject match + decision date within ±30 days.
+        // On match → register row is CANONICAL: skip inserting the new
+        // register etid (a "merge" of the media row's URL onto a register
+        // ingest, rather than a duplicate), and backfill the media row's
+        // case_reference + regulator to the register value. The media row's
+        // etid stays intact so subscriber-feed history is preserved.
+        const registerSubject = (a as { _registerSubject?: string | null })._registerSubject ?? null;
+        const registerCitation = (a as { _registerCitation?: string })._registerCitation ?? null;
+        if (src.registerParser === "oaic" && registerSubject && a.date) {
+          const targetKey = normalizeEntity(registerSubject);
+          const { data: mediaCandidates } = await supabase
+            .from("enforcement_actions")
+            .select("id, subject, decision_date, case_reference, source_url")
+            .eq("regulator", "OAIC")
+            .eq("source_database", "OAIC")
+            .gte("decision_date", "2025-06-01");
+          const match = (mediaCandidates ?? []).find((m) => {
+            if (!m.subject || !m.decision_date) return false;
+            const nk = normalizeEntity(m.subject);
+            if (!nk) return false;
+            if (nk !== targetKey && !nk.includes(targetKey) && !targetKey.includes(nk)) return false;
+            return datesWithin(String(m.decision_date), a.date!, 30);
+          });
+          if (match) {
+            // Merge: annotate media row with citation; do not insert register etid.
+            const patch: Record<string, unknown> = {};
+            if (!match.case_reference && registerCitation) patch.case_reference = registerCitation;
+            if (Object.keys(patch).length > 0) {
+              await supabase.from("enforcement_actions").update(patch).eq("id", match.id);
+            }
+            skipped++;
+            console.log(`OAIC dedup merge: register ${registerCitation} → media row ${match.id} (${match.subject})`);
+            continue;
+          }
+        }
+
         const fineMatch = a.title.match(/[£$€]\s?([\d,.]+)\s?(million|m|k|thousand)?/i);
         let fine_eur: number | null = null;
         let fine_amount: string | null = null;
@@ -562,8 +627,11 @@ Deno.serve(async (req) => {
         // ENF-1c: deterministic subject extraction per regulator. Falls back
         // to null (never a headline copy) so downstream UI shows the correct
         // "Undisclosed entity" rendering for genuinely anonymized cases.
+        // ENF-1d: register subject wins when present (comes from the
+        // structured register row, not from a headline pattern guess).
         let extractedSubject: string | null = null;
-        if (src.source === "OAIC") extractedSubject = extractOaicSubject(a.title);
+        if (src.registerParser === "oaic") extractedSubject = registerSubject;
+        else if (src.source === "OAIC") extractedSubject = extractOaicSubject(a.title);
         else if (src.source === "FTC") extractedSubject = extractFtcSubject(a.title);
         else if (src.source === "HHS-OCR") extractedSubject = extractHhsSubject(a.title);
         const baseRow: Record<string, unknown> = {
@@ -581,12 +649,17 @@ Deno.serve(async (req) => {
           fine_amount,
           fine_eur,
         };
+        if (src.registerParser === "oaic" && registerCitation) {
+          baseRow.case_reference = registerCitation;
+          baseRow.case_reference_extraction_method = "register_deterministic";
+        }
         if (src.secondHop) {
           baseRow.primary_source_url = primarySourceUrl;
           baseRow.primary_source_status = primarySourceUrl ? "pending_fetch" : "pending_discovery";
           baseRow.primary_source_url_discovered_at = new Date().toISOString();
           baseRow.legacy_enrichment_version = 2;
         }
+
 
         if (dryRun) {
           inserted++; // count would-be inserts
