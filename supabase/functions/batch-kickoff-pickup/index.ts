@@ -397,7 +397,7 @@ async function runBriefChainSweep(admin: any): Promise<BriefChainSweepResult> {
 // Every action is logged; sweep never throws.
 // ────────────────────────────────────────────────────────────────────────
 export type TranslationSweepDecision =
-  | { kind: "resume"; row_id: string; stall_ms: number; resume_count_before: number }
+  | { kind: "resume"; row_id: string; stall_ms: number; resume_count_before: number; progressed: boolean }
   | { kind: "fail"; row_id: string; reason: string; resume_count: number };
 
 export type TranslationSweepResult = {
@@ -409,13 +409,21 @@ export type TranslationSweepResult = {
   errors: string[];
 };
 
-/** Pure decision for one row — unit-testable without a database. */
+/** Pure decision for one row — unit-testable without a database.
+ *  TRANSLATE-2-HF1: progress-aware. A re-kick where chunks_done advanced since
+ *  the previous re-kick is HEALTHY and does not count toward the consecutive
+ *  stall ceiling. Only consecutive no-progress kicks count.
+ */
 export function decideTranslationRow(
   row: {
     id: string;
     started_at: string | null;
     last_progress_at: string | null;
     resume_count: number | null;
+    chunks_done: number | null;
+    chunks_total: number | null;
+    consecutive_stall_kicks: number | null;
+    last_kick_chunks_done: number | null;
   },
   nowMs: number,
 ): TranslationSweepDecision | { kind: "skip"; row_id: string; reason: string } {
@@ -426,6 +434,11 @@ export function decideTranslationRow(
   const stallMs = nowMs - lastProgress;
   const totalMs = nowMs - started;
   const resumeCount = row.resume_count ?? 0;
+  const chunksDone = row.chunks_done ?? 0;
+  const lastKickAt = row.last_kick_chunks_done ?? 0;
+  const progressed = chunksDone > lastKickAt;
+  const consecutiveKicks = progressed ? 0 : (row.consecutive_stall_kicks ?? 0);
+  const totalCeiling = translationTotalResumeCeiling(row.chunks_total);
 
   if (stallMs < TRANSLATION_STALL_MS && totalMs < TRANSLATION_HARD_FAIL_MS) {
     return { kind: "skip", row_id: row.id, reason: `progressing (stall=${Math.round(stallMs/1000)}s)` };
@@ -433,10 +446,32 @@ export function decideTranslationRow(
   if (totalMs >= TRANSLATION_HARD_FAIL_MS) {
     return { kind: "fail", row_id: row.id, reason: `hard_fail_ceiling ${Math.round(totalMs/60_000)}min`, resume_count: resumeCount };
   }
-  if (resumeCount >= TRANSLATION_MAX_RESUMES) {
-    return { kind: "fail", row_id: row.id, reason: `stalled ${Math.round(stallMs/60_000)}min after ${resumeCount} re-kicks`, resume_count: resumeCount };
+  if (consecutiveKicks >= TRANSLATION_MAX_CONSECUTIVE_STALL_KICKS) {
+    return { kind: "fail", row_id: row.id, reason: `no_progress after ${consecutiveKicks} consecutive re-kicks (${chunksDone}/${row.chunks_total ?? "?"} chunks)`, resume_count: resumeCount };
   }
-  return { kind: "resume", row_id: row.id, stall_ms: stallMs, resume_count_before: resumeCount };
+  if (resumeCount >= totalCeiling) {
+    return { kind: "fail", row_id: row.id, reason: `total_resume_ceiling ${resumeCount}/${totalCeiling}`, resume_count: resumeCount };
+  }
+  return { kind: "resume", row_id: row.id, stall_ms: stallMs, resume_count_before: resumeCount, progressed };
+}
+
+async function finalizeOrphanRunningRows(admin: any, translationRowId: string): Promise<number> {
+  // TASK 3: killed slice bodies can leave function_runs rows stuck in
+  // 'running' for this translation. Finalize them to 'error' with a
+  // diagnostic outcome so telemetry isn't permanently poisoned.
+  const { data, error } = await admin
+    .from("function_runs")
+    .update({
+      status: "error",
+      finished_at: new Date().toISOString(),
+      metadata: { event: "translate_slice", outcome: "orphaned_killed" },
+    })
+    .eq("function_name", "translate-report")
+    .eq("source_row_id", translationRowId)
+    .eq("status", "running")
+    .select("id");
+  if (error) return 0;
+  return (data ?? []).length;
 }
 
 async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> {
@@ -445,7 +480,7 @@ async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> 
   };
   const { data: stuck, error } = await admin
     .from("report_translations")
-    .select("id, report_type, report_id, target_lang, started_at, last_progress_at, chunks_done, chunks_total, resume_count, slice_count")
+    .select("id, report_type, report_id, target_lang, started_at, last_progress_at, chunks_done, chunks_total, resume_count, slice_count, consecutive_stall_kicks, last_kick_chunks_done")
     .eq("status", "translating")
     .order("started_at", { ascending: true })
     .limit(25);
@@ -466,18 +501,32 @@ async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> 
         .eq("id", r.id).eq("status", "translating");
       if (upErr) result.errors.push(`fail_update ${r.id}: ${upErr.message}`);
       else result.failed++;
+      await finalizeOrphanRunningRows(admin, r.id);
       continue;
     }
 
-    // decision.kind === "resume" — bump resume_count and fire internal-resume kick.
+    // decision.kind === "resume" — bump counters, then fire internal-resume kick.
+    const chunksDoneNow = r.chunks_done ?? 0;
+    const lastKickAt = r.last_kick_chunks_done ?? 0;
+    const progressed = chunksDoneNow > lastKickAt;
     const nextResumeCount = (r.resume_count ?? 0) + 1;
+    const nextConsecutive = progressed ? 0 : (r.consecutive_stall_kicks ?? 0) + 1;
+
     const { error: bumpErr } = await admin.from("report_translations")
-      .update({ resume_count: nextResumeCount, last_progress_at: new Date().toISOString() })
+      .update({
+        resume_count: nextResumeCount,
+        consecutive_stall_kicks: nextConsecutive,
+        last_kick_chunks_done: chunksDoneNow,
+        last_progress_at: new Date().toISOString(),
+      })
       .eq("id", r.id).eq("status", "translating");
     if (bumpErr) {
       result.errors.push(`bump ${r.id}: ${bumpErr.message}`);
       continue;
     }
+    // Also finalize any orphaned 'running' function_runs from prior killed slices.
+    const orphanCount = await finalizeOrphanRunningRows(admin, r.id);
+
     try {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/translate-report`, {
         method: "POST",
@@ -503,6 +552,11 @@ async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> 
           event: "translation_sweep_resume",
           translation_row_id: r.id,
           resume_count: nextResumeCount,
+          consecutive_stall_kicks: nextConsecutive,
+          progressed_since_last_kick: progressed,
+          chunks_done: chunksDoneNow,
+          chunks_total: r.chunks_total,
+          orphan_runs_finalized: orphanCount,
           stall_ms: decision.stall_ms,
           kick_status: resp.status,
           kick_body: text,
