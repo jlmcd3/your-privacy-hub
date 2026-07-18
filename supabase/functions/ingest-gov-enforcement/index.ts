@@ -5,6 +5,7 @@
 // All eight DPA scrape sources added 2026-05-19: OAIC, Datatilsynet DK/NO,
 // PDPC Singapore, OPC Canada, Texas AG, Colorado AG, HHS OCR.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { canonicalizeSourceUrl, isOaicEnforcementTitle, extractOaicSubject } from "./oaic.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -120,7 +121,7 @@ const SOURCES: SourceEntry[] = [
   { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland", sourceGroup: "core", monitorPages: 1 },
   { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn", sourceGroup: "core", monitorPages: 1 },
   { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland", sourceGroup: "core", monitorPages: 1 },
-  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
   { regulator: "Datatilsynet DK", jurisdiction: "Denmark", law: "GDPR (Denmark)", url: "https://www.datatilsynet.dk/english/news", source: "Datatilsynet DK", sourceGroup: "core", monitorPages: 1 },
   { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1 },
   { regulator: "PDPC Singapore", jurisdiction: "Singapore", law: "PDPA 2012", url: "https://www.pdpc.gov.sg/news-and-events/announcements", source: "PDPC Singapore", sourceGroup: "core", monitorPages: 1 },
@@ -385,9 +386,13 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
       const months: Record<string, string> = { january:"01", february:"02", march:"03", april:"04", may:"05", june:"06", july:"07", august:"08", september:"09", october:"10", november:"11", december:"12" };
       date = `${dHuman[3]}-${months[dHuman[2].toLowerCase()]}-${dHuman[1].padStart(2,"0")}`;
     }
-    out.push({ title, url: href, date });
+    // Canonicalize URL: OAIC's /s/redirect wrapper carries rotating auth/rank
+    // params that break dedup. Store the decoded inner target; non-redirect
+    // URLs pass through with only fragment stripped.
+    const { canonical } = canonicalizeSourceUrl(href);
+    out.push({ title, url: canonical, date });
   }
-  // De-dup by url
+  // De-dup by url (now canonical)
   const seen = new Set<string>();
   return out.filter((r) => (seen.has(r.url) ? false : (seen.add(r.url), true)));
 }
@@ -477,9 +482,13 @@ Deno.serve(async (req) => {
       }
 
       // Generalist press-release feeds: keep only privacy-relevant titles.
+      // OAIC gets a stricter enforcement-class gate (findings/orders/penalties/
+      // undertakings) so statements, communiqués, awareness weeks, exposure
+      // drafts, sweeps, guidance, and joint-oversight announcements are dropped.
       if (src.requireRelevance) {
         const before = actions.length;
-        actions = actions.filter((a) => isTitleRelevant(a.title));
+        const gate = src.source === "OAIC" ? isOaicEnforcementTitle : isTitleRelevant;
+        actions = actions.filter((a) => gate(a.title));
         console.log(`${src.source}: relevance filter ${before} -> ${actions.length}`);
       }
 
@@ -537,7 +546,7 @@ Deno.serve(async (req) => {
           regulator: src.regulator,
           jurisdiction: src.jurisdiction,
           law: src.law,
-          subject: null,
+          subject: src.source === "OAIC" ? extractOaicSubject(a.title) : null,
           violation: a.title,
           decision_date: a.date,
           fine_amount,
