@@ -88,8 +88,9 @@ const SUBJECT_PATTERNS: RegExp[] = [
   /\bpenalis(?:e|ed|es|ing)\s+([A-Z][^,.]*?)(?:\s+for\s+|\s+over\s+|[,.]|$)/,
   // "civil penalty against {X}"
   /\bcivil\s+penalt(?:y|ies)\s+against\s+([A-Z][^,.]*?)(?:[,.]|$)/,
-  // "finalises investigation into {X}" — kept last, broadest match
-  /\bfinalises?\s+investigation\s+into\s+([A-Z0-9][^,.]*?)(?:[,.]|$)/,
+  // "finalises investigation into {X}" — allow domain-like dots; stop at
+  // comma, period+space, period+end, or end-of-string.
+  /\bfinalises?\s+investigation\s+into\s+([A-Z0-9][^,]*?)(?:,|\.\s|\.$|$)/,
   // "enforceable undertaking (from|by|with) {X}"
   /\benforceable\s+undertaking\s+(?:from|by|with)\s+([A-Z][^,.]*?)(?:[,.]|$)/,
 ];
