@@ -42,6 +42,7 @@ type SessionRow = {
   is_refresh: boolean;
   payment_confirmed: boolean;
   org_name: string | null;
+  client_id: string | null;
 };
 
 type DocVersion = {
