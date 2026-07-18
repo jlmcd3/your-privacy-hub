@@ -1,20 +1,20 @@
 // Persistent local navigation for the subscriber workspace (mobile).
-// Lives at the top of every "my stuff" page (Brief, Reports, Filings, Watchlist).
-// Each item is a real route change so browser back/forward works natively.
+// Lives at the top of every "my stuff" page.
+//
+// LEFTNAV-2: flat pills — top items, then Library items (Reports / Notices &
+// RoPA / Filings / Obligations), then Clients, Account.
 //
 // Active-state rules are defined once in `@/lib/workspaceNav` and shared with
 // the desktop `WorkspaceSidebar`, so both surfaces always highlight the same
-// item for any given URL. Account is shown as a separate trailing pill and
-// highlights only when no workspace tab matched (computeActiveTo returns
-// null) and the route is exactly /account.
+// item for any given URL.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { Settings, Building2, CalendarClock } from "lucide-react";
+import { Settings, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import {
   TOP_ITEMS,
-  CATEGORY_GROUPS,
+  LIBRARY_ITEMS,
   computeActiveTo,
 } from "@/lib/workspaceNav";
 
@@ -59,7 +59,11 @@ export default function DashboardSubnav() {
   const location = useLocation();
 
   const rawPath = location.pathname.toLowerCase();
-  const activeTo = computeActiveTo(location.pathname, location.hash);
+  const activeTo = computeActiveTo(
+    location.pathname,
+    location.hash,
+    location.search,
+  );
 
   if (!user) return null;
 
@@ -78,7 +82,6 @@ export default function DashboardSubnav() {
   if (isSuppressed) return null;
 
   const accountActive = activeTo === "/account";
-  const obligationsActive = activeTo === "/obligations";
   const clientsActive = rawPath === "/clients" || rawPath.startsWith("/clients/");
 
   const renderPill = (
@@ -86,8 +89,9 @@ export default function DashboardSubnav() {
     label: string,
     Icon: React.ComponentType<{ className?: string }>,
     active: boolean,
+    key?: string,
   ) => (
-    <li key={to} className="flex-shrink-0">
+    <li key={key ?? to} className="flex-shrink-0">
       <NavLink
         to={to}
         end
@@ -117,26 +121,28 @@ export default function DashboardSubnav() {
               renderPill(item.to, item.label, item.icon, activeTo === item.to),
             )}
 
-            {CATEGORY_GROUPS.map((cat) => (
-              <li
-                key={cat.id}
-                className="flex items-center gap-1 flex-shrink-0 pl-2 ml-1 border-l border-brand-cloud"
+            <li
+              className="flex items-center gap-1 flex-shrink-0 pl-2 ml-1 border-l border-brand-cloud"
+              key="library-group"
+            >
+              <span
+                className="text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500 pr-1 whitespace-nowrap"
+                aria-label="Library"
               >
-                <span
-                  className="text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500 pr-1 whitespace-nowrap"
-                  aria-label={cat.label}
-                >
-                  {cat.label}
-                </span>
-                <ul className="flex items-center gap-1 flex-nowrap">
-                  {cat.items.map((item) =>
-                    renderPill(item.to, item.label, item.icon, activeTo === item.to),
-                  )}
-                </ul>
-              </li>
-            ))}
+                Library
+              </span>
+              <ul className="flex items-center gap-1 flex-nowrap">
+                {LIBRARY_ITEMS.map((item) =>
+                  renderPill(
+                    item.to,
+                    item.label,
+                    item.icon,
+                    activeTo === item.to,
+                  ),
+                )}
+              </ul>
+            </li>
 
-            {renderPill("/obligations", "Obligations", CalendarClock, obligationsActive)}
             {renderPill("/clients", "Clients", Building2, clientsActive)}
           </ul>
 
@@ -159,4 +165,3 @@ export default function DashboardSubnav() {
     </nav>
   );
 }
-
