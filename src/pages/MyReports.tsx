@@ -1,8 +1,8 @@
 // Unified list of all assessments and tool outputs the signed-in user has generated.
 // Pulls from every tool table in parallel and links to the existing per-tool result pages.
 
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
