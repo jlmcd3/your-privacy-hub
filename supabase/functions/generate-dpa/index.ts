@@ -197,6 +197,70 @@ function detectDataSectorFlags(dataCategories: string[], services = ""): {
   };
 }
 
+// REBUILD-DPA T2/T5 — post-generation deterministic checks. Fire HARD
+// violations into the existing lintReportText/hasHardViolations retry gate
+// so the caller does not need bespoke retry plumbing. Every hit is also
+// echoed to logPostGenLint so the retry / fall-back is discoverable in
+// function_runs (parity with the risk/dpia MC-G1 pattern).
+type SpecViolation = { code: string; severity: "hard"; detail: string };
+
+// Word-boundary regex helpers — narrow scope to prose. `\b` around the
+// phrases keeps enum literals and machine tokens out of scope; casing is
+// case-insensitive.
+const RE_CHILDRENS_SIGNAL = /\b(COPPA|FERPA|Recital 38|Article 8 GDPR|Article 8(?:\(1\))? of the GDPR|children'?s data|children under 13|children under 18|minors?|under 18)\b/i;
+const RE_AI_TRAINING_SIGNAL = /\b(model training|ML training|machine learning training|training (?:its|the|our) models|use[s]? .* to train (?:its|the|our) models?|inference platform)\b/i;
+const RE_HIPAA_SIGNAL = /\b(HIPAA|Business Associate Agreement|Business Associate\b|BAA\b|Protected Health Information|\bPHI\b|Covered Entity|45 C\.?F\.?R\.? § 16[04])/i;
+const RE_GLBA_FCRA_SIGNAL = /\b(GLBA|Gramm[- ]Leach[- ]Bliley|Safeguards Rule|Nonpublic Personal Information|\bNPI\b|FCRA|Fair Credit Reporting Act|15 U\.?S\.?C\.? § 168)/i;
+
+function detectSpeculativeClauseViolations(
+  text: string,
+  flags: { hasChildrensData: boolean; hasHealthData: boolean; hasFinancialData: boolean; isAI: boolean },
+): SpecViolation[] {
+  const out: SpecViolation[] = [];
+  if (!flags.hasChildrensData) {
+    const m = text.match(RE_CHILDRENS_SIGNAL);
+    if (m) out.push({ code: "speculative_childrens_module", severity: "hard", detail: `children/COPPA/FERPA content without hasChildrensData flag (match: "${m[0]}")` });
+  }
+  if (!flags.isAI) {
+    const m = text.match(RE_AI_TRAINING_SIGNAL);
+    if (m) out.push({ code: "speculative_ai_training_scenario", severity: "hard", detail: `ML-training scenario without AI sector flag (match: "${m[0]}")` });
+  }
+  if (!flags.hasHealthData) {
+    const m = text.match(RE_HIPAA_SIGNAL);
+    if (m) out.push({ code: "speculative_health_module", severity: "hard", detail: `HIPAA/BAA/PHI content without hasHealthData flag (match: "${m[0]}")` });
+  }
+  if (!flags.hasFinancialData) {
+    const m = text.match(RE_GLBA_FCRA_SIGNAL);
+    if (m) out.push({ code: "speculative_financial_module", severity: "hard", detail: `GLBA/FCRA content without hasFinancialData flag (match: "${m[0]}")` });
+  }
+  return out;
+}
+
+// REBUILD-DPA T1c — the mandated "baseline standard" sentence may only appear
+// when framework is affirmatively GDPR. If a misclassified non-GDPR intake
+// ships with the sentence, treat as HARD so the retry regenerates.
+const RE_BASELINE_STANDARD =
+  /adopts the GDPR Article 28\(3\) framework as its contractual baseline standard/i;
+function detectBaselineStandardMisuse(text: string, docType: string): SpecViolation[] {
+  if (docType === "gdpr" || docType === "dual-eu-us" || docType === "dual-eu-ca") return [];
+  if (RE_BASELINE_STANDARD.test(text)) {
+    return [{ code: "baseline_standard_sentence_out_of_scope", severity: "hard", detail: `baseline-standard sentence emitted in docType=${docType}` }];
+  }
+  return [];
+}
+
+// REBUILD-DPA T5 — surface blacklist prose hits as HARD lint violations.
+function detectBlacklistViolations(text: string): SpecViolation[] {
+  const hits = detectBlacklistPhrases(text);
+  return hits.map((h) => ({
+    code: "blacklist_phrase",
+    severity: "hard" as const,
+    detail: `"${h.match}" @ ${h.path || "$"} — "${h.context.trim().slice(0, 80)}"`,
+  }));
+}
+
+
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
