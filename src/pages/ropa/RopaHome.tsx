@@ -50,7 +50,7 @@ interface SessionRow {
   payment_confirmed: boolean;
   generated_docx_path: string | null;
   generated_pdf_path: string | null;
-  generated_xlsx_path: string | null;
+  
 }
 
 const REFRESH_REMINDER_DAYS = 335; // ~11 months
@@ -84,7 +84,7 @@ export default function RopaHome() {
     const { data: sessions } = await supabase
       .from("ropa_sessions")
       .select(
-        "id,status,is_refresh,version_number,total_activities,completed_activities,open_flags_count,started_at,last_activity_at,completed_at,paid_at,payment_confirmed,generated_docx_path,generated_pdf_path,generated_xlsx_path"
+        "id,status,is_refresh,version_number,total_activities,completed_activities,open_flags_count,started_at,last_activity_at,completed_at,paid_at,payment_confirmed,generated_docx_path,generated_pdf_path"
       )
       .in("client_id", clientIds)
       .order("last_activity_at", { ascending: false });
@@ -148,7 +148,7 @@ export default function RopaHome() {
       title="RoPA Builder — End User Privacy"
       heading="RoPA Builder"
       chip="📒 Article 30 Record Builder"
-      description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record in .pdf and .xlsx."
+      description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record as a .pdf."
     >
       {loading ? (
         <div className="space-y-4">
@@ -299,15 +299,6 @@ export default function RopaHome() {
                     onClick={() => downloadDoc(latestGenerated.generated_pdf_path!)}
                   >
                     <Download className="mr-1.5 h-4 w-4" /> .pdf
-                  </Button>
-                )}
-                {latestGenerated.generated_xlsx_path && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadDoc(latestGenerated.generated_xlsx_path!)}
-                  >
-                    <Download className="mr-1.5 h-4 w-4" /> .xlsx
                   </Button>
                 )}
                 <Button asChild variant="ghost" size="sm" className="ml-auto">
