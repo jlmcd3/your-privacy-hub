@@ -69,7 +69,7 @@ describe("extractStringUnits", () => {
 
 describe("setAtPath", () => {
   it("round-trips through extractStringUnits", () => {
-    const src = { a: { b: [{ c: "old" }, "other"] } };
+    const src: any = { a: { b: [{ c: "old" }, "other"] } };
     const units = extractStringUnits(src);
     for (const u of units) {
       expect(setAtPath(src, u.path, `T:${u.value}`)).toBe(true);
