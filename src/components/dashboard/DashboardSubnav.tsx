@@ -136,7 +136,7 @@ export default function DashboardSubnav() {
               </li>
             ))}
 
-            {renderPill("/obligations", "Obligations", require("lucide-react").CalendarClock, obligationsActive)}
+            {renderPill("/obligations", "Obligations", CalendarClock, obligationsActive)}
             {renderPill("/clients", "Clients", Building2, clientsActive)}
           </ul>
 
