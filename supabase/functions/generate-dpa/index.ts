@@ -1219,9 +1219,51 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       if (extras.length) {
         lint.violations.push(...extras);
         try {
-          await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 1, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+          logPostGenLint(supabase, {
+            functionName: "generate-dpa",
+            fallbackApplied: !!frameworkFallback,
+            residualLeaks: extras.length,
+            residualResolvedAsks: 0,
+            notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
+            sourceTable: "dpa_documents",
+            sourceRowId: rowId,
+            extra: { attempt: 1, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+          });
         } catch (e) {
           console.warn("[generate-dpa] logPostGenLint (attempt 1) failed:", (e as Error).message);
+        }
+      }
+      // FF-DPA nd5 — UNCONDITIONAL framework-fallback telemetry. Whenever the
+      // framework fallback fired, write a durable function_runs event even if
+      // no lint violations occurred. Run B's two fallback docs were invisible
+      // to telemetry precisely because the previous call site was gated on
+      // `extras.length`. This row uses a distinct extra.event marker so it can
+      // be filtered from violation-triggered rows in queries.
+      if (frameworkFallback) {
+        try {
+          logPostGenLint(supabase, {
+            functionName: "generate-dpa",
+            fallbackApplied: true,
+            residualLeaks: 0,
+            residualResolvedAsks: 0,
+            notes: [],
+            sourceTable: "dpa_documents",
+            sourceRowId: rowId,
+            extra: {
+              event_subtype: "framework_fallback_notice",
+              framework_fallback: true,
+              doc_type: documentType,
+              framework_name: frameworkFor(documentType),
+              raw_controller_jurisdiction: !detected.ctrlMapped ? String(body.controllerJurisdiction ?? "") : null,
+              raw_processor_jurisdiction: !detected.procMapped ? String(body.processorJurisdiction ?? "") : null,
+              ctrl_mapped: detected.ctrlMapped,
+              proc_mapped: detected.procMapped,
+              attempt: 1,
+              tool_type: "dpa_generator",
+            },
+          });
+        } catch (e) {
+          console.warn("[generate-dpa] framework_fallback unconditional telemetry failed:", (e as Error).message);
         }
       }
     }
