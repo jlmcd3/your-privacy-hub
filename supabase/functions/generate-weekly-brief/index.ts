@@ -608,7 +608,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
     } catch {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        await failFunctionRun(supabase, fnRun, new Error("Failed to parse AI response"), { metadata: { stage: "brief_parse", raw_head: rawText.slice(0, 500) } });
+        await failFunctionRun(supabase, fnRun, new Error("Failed to parse AI response"), { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "brief_parse", model: MODEL_TAG, raw_head: rawText.slice(0, 500), stop_reason: aiData?.stop_reason ?? null, chars: rawText.length } });
         return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: rawText.slice(0, 500) }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
