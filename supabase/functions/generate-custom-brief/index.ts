@@ -596,7 +596,8 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
             model: "claude-sonnet-5",
-            max_tokens: 12000,
+            // HF5: raise ceiling for Sonnet-5 thinking-block budget consumption.
+            max_tokens: 24000,
             system: systemPrompt,
             messages: [{ role: "user", content: userPrompt }],
           }),
@@ -620,8 +621,15 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
         continue;
       }
       const data = await response.json();
-      const text = data.content?.[0]?.text || "";
-      console.log(`[generate-custom-brief] gen done stop=${data.stop_reason ?? null} chars=${text.length}`);
+      // HF5: concat every text-type content block; skip thinking/tool_use.
+      const text: string = Array.isArray(data.content)
+        ? data.content
+            .filter((b: any) => b?.type === "text" && typeof b.text === "string")
+            .map((b: any) => b.text)
+            .join("")
+        : (data.content?.[0]?.text || "");
+      const blockTypes = Array.isArray(data.content) ? data.content.map((b: any) => b?.type).join(",") : "n/a";
+      console.log(`[generate-custom-brief] gen done stop=${data.stop_reason ?? null} chars=${text.length} blocks=${blockTypes}`);
       const customSections = safeParseLlmJson(text);
       if (!customSections) {
         console.error(`Custom brief JSON parse failed for user ${user.id}. Length: ${text.length}. Tail: ${text.slice(-200)}`);
