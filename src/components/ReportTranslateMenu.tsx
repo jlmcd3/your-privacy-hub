@@ -204,7 +204,41 @@ export default function ReportTranslateMenu({
         )}
       </div>
 
-      {notice && activeLang && (
+      {loading && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="basis-full w-full mt-2 px-3 py-2.5 rounded-md border border-brand-teal/30 bg-brand-teal/5 text-foreground text-[12px] leading-snug print:hidden"
+        >
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-teal" aria-hidden="true" />
+            <span className="font-medium">
+              Translating to {getLanguageName(loading)}…
+            </span>
+            <span className="ml-auto text-muted-foreground text-[11px] tabular-nums">
+              {progress && progress.total > 0
+                ? `${progress.done}/${progress.total} segments`
+                : "preparing…"}
+              {elapsedSec > 0 && ` · ${elapsedSec}s`}
+            </span>
+          </div>
+          {progress && progress.total > 0 && (
+            <div className="mt-1.5 h-1.5 w-full rounded-full bg-brand-teal/15 overflow-hidden">
+              <div
+                className="h-full bg-brand-teal transition-all duration-500 ease-out"
+                style={{
+                  width: `${Math.min(100, Math.round((progress.done / progress.total) * 100))}%`,
+                }}
+              />
+            </div>
+          )}
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            Long documents can take up to a minute. You can leave this page open — the translation continues in the background.
+          </p>
+        </div>
+      )}
+
+      {notice && activeLang && !loading && (
         <div className="basis-full w-full mt-2 px-3 py-2 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-[12px] leading-snug">
           {notice}
         </div>
