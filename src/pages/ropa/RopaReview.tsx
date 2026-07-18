@@ -549,7 +549,7 @@ export default function RopaReview() {
                   <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
                   <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
                   <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
-                  {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
+                  
                 </ul>
               </>
             )}
