@@ -48,33 +48,39 @@ interface Body {
   auditRights?: string;
   includeTransferClause?: boolean;
   transferMechanism?: string;
-  documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca";
+  documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca" | "uk";
   assessment_id?: string;
   user_id?: string;
 }
 
 // CEO ruling 2026-07-14 — legal framework derived from documentType.
+// FF-DPA nd6 — UK is a distinct framework (UK GDPR + DPA 2018), not EU GDPR.
 function frameworkFor(docType: string): string {
   switch (docType) {
     case "us-state": return "US state privacy law (CCPA/CPRA and applicable state acts)";
     case "canada": return "PIPEDA";
     case "dual-eu-us": return "Dual EU/US";
     case "dual-eu-ca": return "Dual EU/Canada";
+    case "uk": return "UK GDPR and the Data Protection Act 2018";
     case "gdpr":
     default: return "GDPR";
   }
 }
 
+// FF-DPA nd6 — UK removed from EU_JURS; UK gets its own set. The QL2-FIX-1
+// UK territorial-scope block inside GDPR_SYSTEM stays intact and fires for
+// EU+UK mixed derivations (routed to gdpr mode below) — explicit non-change.
 const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
-  "United Kingdom","Belgium","Sweden","Denmark","Poland","Norway","Portugal",
+  "Belgium","Sweden","Denmark","Poland","Norway","Portugal",
   "Austria","Finland","Luxembourg","Greece","Switzerland"]);
+const UK_JURS = new Set(["United Kingdom"]);
 const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado",
   "Virginia","Florida","Washington","Illinois","Massachusetts","Oregon","Indiana",
   "Montana","Iowa","Tennessee","Minnesota","Utah","Delaware","United States (federal)"]);
 const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
   "British Columbia (PIPA)","Alberta (PIPA)"]);
 
-const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca"]);
+const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca","uk"]);
 
 // REBUILD-DPA T1a — alias table for natural variants → canonical DPA_JURISDICTIONS
 // enum value. Case-insensitive whole-value match after trimming. Only aliases that
