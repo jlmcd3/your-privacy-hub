@@ -1185,22 +1185,30 @@ Deno.serve(async (req: Request) => {
           .eq("is_current", true)
           .maybeSingle();
 
+        console.log(`[generate-ropa-document] session ${session.id} fmt=${fmt} step=build begin`);
         let payload: Uint8Array;
         let contentType: string;
-        if (fmt === "pdf") {
-          payload = await renderPdf(
-            buildHtml(data),
-            `RoPA — ${data.client?.name ?? "Client"}`,
-          );
-          contentType = "application/pdf";
-        } else if (fmt === "docx") {
-          payload = await buildDocx(data);
-          contentType =
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-        } else {
-          payload = buildXlsx(data);
-          contentType =
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        try {
+          if (fmt === "pdf") {
+            payload = await renderPdf(
+              buildHtml(data),
+              `RoPA — ${data.client?.name ?? "Client"}`,
+            );
+            contentType = "application/pdf";
+          } else if (fmt === "docx") {
+            payload = await buildDocx(data);
+            contentType =
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+          } else {
+            payload = buildXlsx(data);
+            contentType =
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+          }
+          console.log(`[generate-ropa-document] session ${session.id} fmt=${fmt} step=build ok bytes=${payload.byteLength}`);
+        } catch (buildErr) {
+          const bm = buildErr instanceof Error ? buildErr.message : String(buildErr);
+          console.error(`[generate-ropa-document] session ${session.id} fmt=${fmt} step=build FAIL: ${bm}`);
+          throw new Error(`Build failed (${fmt}): ${bm}`);
         }
 
         const filePath = `${session.client_id}/${session.id}/v${session.version_number}.${fmt}`;
