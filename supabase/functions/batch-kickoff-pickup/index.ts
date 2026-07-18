@@ -444,7 +444,16 @@ Deno.serve(async (req) => {
   }
   await logRun({ event: "export_retry_sweep", sweep });
 
-  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, build_stamp: BUILD_STAMP }), {
+  // BRIEF-MODEL-1-HF4 — brief_chain sweep. Never throws.
+  let briefSweep: BriefChainSweepResult;
+  try {
+    briefSweep = await runBriefChainSweep(admin);
+  } catch (e) {
+    briefSweep = { processed: 0, generated: 0, sent: 0, send_failed: 0, timed_out: 0, pending: 0, errors: [`threw:${(e as Error).message}`] };
+  }
+  await logRun({ event: "brief_chain_sweep", brief_sweep: briefSweep });
+
+  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, brief_chain_sweep: briefSweep, build_stamp: BUILD_STAMP }), {
     headers: { ...cors, "Content-Type": "application/json" },
   });
 });
