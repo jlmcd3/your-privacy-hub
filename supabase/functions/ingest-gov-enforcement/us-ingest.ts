@@ -85,9 +85,16 @@ const HHS_SUBJECT_PATTERNS: RegExp[] = [
   /^([A-Z][^,.]*?)\s+(?:pays|paid)\s+(?:OCR\s+)?\$/,
   // "{X} Settles ... for $N" / "{X} Settles HIPAA ..."
   /^([A-Z][^,.]*?)\s+Settles?\s+(?:Potential\s+Violations?\s+of\s+)?HIPAA/i,
-  // "requiring {X} to pay"
-  /\brequiring\s+([A-Z][^,.]*?)\s+to\s+pay\b/i,
+  // "requiring {X} to pay" — accept commas inside {X} (e.g. "Lincare, Inc.")
+  // and let the trailing comma-normaliser trim ", Inc." / ", LLC." tails.
+  /\brequiring\s+([A-Z][^.]+?)\s+to\s+pay\b/i,
 ];
+
+// Trim standard corporate-suffix tails (", Inc.", ", LLC", ", Ltd") from the
+// extracted subject. The subject stays a plain company name.
+function trimCorporateTail(s: string): string {
+  return s.replace(/,\s*(Inc\.?|LLC\.?|Ltd\.?|Corp\.?|Co\.?|LP|LLP|PLLC|N\.A\.)\s*$/i, "").trim();
+}
 
 const HHS_SUBJECT_BLOCKLIST = /^(HHS|OCR|HIPAA|Office|The)\b/i;
 
