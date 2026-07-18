@@ -104,6 +104,43 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
   return "secondary";
 }
 
+// LEFTNAV-2 family filter — maps each tool key to a jurisdictional family so
+// the sidebar's Reports sub-items can filter the same page without adding a
+// new data source.
+//   cppa family: cppa_risk, cppa_cyber, cppa_admt, cppa_scope, us_notice
+//                (+ their draft_ counterparts)
+//   gdpr family: li, dpia, governance, dpa, eu_notice, ropa
+//                (+ their draft_ counterparts)
+//   cross-jurisdiction (visible under "All" only): ir, biometric, registration,
+//                and any drafts for those tools.
+type Family = "cppa" | "gdpr" | "cross";
+const FAMILY_BY_TOOL: Record<string, Family> = {
+  cppa_risk: "cppa",
+  cppa_cyber: "cppa",
+  cppa_admt: "cppa",
+  cppa_scope: "cppa",
+  us_notice: "cppa",
+  draft_cppa_risk: "cppa",
+  draft_cppa_cyber: "cppa",
+  draft_cppa_admt: "cppa",
+  li: "gdpr",
+  dpia: "gdpr",
+  governance: "gdpr",
+  dpa: "gdpr",
+  eu_notice: "gdpr",
+  ropa: "gdpr",
+  draft_li: "gdpr",
+  draft_dpia: "gdpr",
+  draft_governance: "gdpr",
+  draft_dpa: "gdpr",
+  ir: "cross",
+  biometric: "cross",
+  registration: "cross",
+  draft_ir: "cross",
+  draft_biometric: "cross",
+  draft_registration: "cross",
+};
+
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
   const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
@@ -112,6 +149,10 @@ export default function MyReports() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const familyParam = (searchParams.get("family") || "").toLowerCase();
+  const activeFamily: "cppa" | "gdpr" | null =
+    familyParam === "cppa" ? "cppa" : familyParam === "gdpr" ? "gdpr" : null;
 
   // Scope reports to the active workspace. When the personal workspace is
   // active, hide anything tied to a real client (and vice versa). Rows with
