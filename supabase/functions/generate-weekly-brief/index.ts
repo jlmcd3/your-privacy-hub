@@ -189,6 +189,10 @@ Deno.serve(async (req) => {
       console.error(reason);
       await failFunctionRun(supabase, fnRun, new Error(reason), {
         metadata: {
+          event: "weekly_brief_generation",
+          outcome: "failed",
+          stage: "zero_updates_in_window",
+          model: MODEL_TAG,
           skipped: true,
           reason: "zero_updates_in_window",
           window_start: weekStart.toISOString(),
