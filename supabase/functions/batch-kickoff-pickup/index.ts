@@ -28,7 +28,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "ff-3-hf1-partial-guard@2026-07-17";
+export const BUILD_STAMP = "brief-model-1-hf4-brief-chain-sweep@2026-07-18";
+export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
 
@@ -224,6 +225,156 @@ async function runExportRetrySweep(admin: any): Promise<ExportSweepDecision> {
   return { kind: "noop", reason: "no_eligible_batch" };
 }
 
+// BRIEF-MODEL-1-HF4 — BRIEF-CHAIN SWEEP.
+// Complete the cron-tick pattern for the weekly brief chain. cron-generate-briefs
+// fires generate-weekly-brief and leaves a function_runs row with
+// status='running', metadata.event='brief_chain', target='weekly', carrying
+// t0 (ISO) and generate_only. This sweep resolves those rows every tick:
+//   - weekly_briefs row created_at > t0 exists → mark 'generated' (or call
+//     send-weekly-brief and mark 'sent'/'send_failed' when generate_only=false).
+//   - Age past BRIEF_CHAIN_TIMEOUT_MS (10 min) with no row → 'generate_timeout'.
+//   - Otherwise: leave running for the next tick.
+// Bounded to processing ALL currently-pending rows per tick (typically 0-1).
+// Never throws; every terminal transition writes durable metadata.
+export type BriefChainSweepResult = {
+  processed: number;
+  generated: number;
+  sent: number;
+  send_failed: number;
+  timed_out: number;
+  pending: number;
+  errors: string[];
+};
+
+async function runBriefChainSweep(admin: any): Promise<BriefChainSweepResult> {
+  const result: BriefChainSweepResult = {
+    processed: 0, generated: 0, sent: 0, send_failed: 0, timed_out: 0, pending: 0, errors: [],
+  };
+  const { data: pending, error } = await admin
+    .from("function_runs")
+    .select("id, started_at, metadata")
+    .eq("function_name", "cron-generate-briefs")
+    .eq("status", "running")
+    .contains("metadata", { event: "brief_chain", target: "weekly" })
+    .order("started_at", { ascending: true })
+    .limit(10);
+  if (error) {
+    result.errors.push(`query: ${error.message}`);
+    return result;
+  }
+  const rows: any[] = Array.isArray(pending) ? pending : [];
+  const nowMs = Date.now();
+  const adminSecret = Deno.env.get("ADMIN_SECRET_TOKEN");
+  for (const r of rows) {
+    result.processed++;
+    const meta = (r.metadata ?? {}) as Record<string, unknown>;
+    const t0 = String(meta.t0 ?? r.started_at ?? new Date().toISOString());
+    const generateOnly = meta.generate_only === true;
+    const ageMs = nowMs - new Date(t0).getTime();
+
+    // Look for a weekly_briefs row created after t0.
+    const { data: briefs, error: bErr } = await admin
+      .from("weekly_briefs")
+      .select("id, created_at")
+      .gt("created_at", t0)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (bErr) {
+      result.errors.push(`brief_query ${r.id}: ${bErr.message}`);
+      result.pending++;
+      continue;
+    }
+    const briefRow = Array.isArray(briefs) && briefs.length > 0 ? briefs[0] : null;
+
+    if (briefRow) {
+      // Terminal: generated or sent.
+      if (generateOnly) {
+        await admin.from("function_runs").update({
+          status: "success",
+          finished_at: new Date().toISOString(),
+          duration_ms: nowMs - new Date(r.started_at).getTime(),
+          source_table: "weekly_briefs",
+          source_row_id: briefRow.id,
+          metadata: {
+            ...meta,
+            event: "brief_chain",
+            outcome: "generated",
+            target: "weekly",
+            brief_id: briefRow.id,
+            resolved_by: "batch-kickoff-pickup",
+          },
+        }).eq("id", r.id).eq("status", "running");
+        result.generated++;
+        continue;
+      }
+      // Send path — call send-weekly-brief.
+      if (!adminSecret) {
+        result.errors.push(`send ${r.id}: ADMIN_SECRET_TOKEN not set`);
+        result.pending++;
+        continue;
+      }
+      let sendStatus = 0;
+      let sendBodyText = "";
+      try {
+        const resp = await fetch(`${SUPABASE_URL}/functions/v1/send-weekly-brief`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${adminSecret}` },
+          body: JSON.stringify({}),
+          signal: AbortSignal.timeout(60_000),
+        });
+        sendStatus = resp.status;
+        sendBodyText = (await resp.text()).slice(0, 300);
+      } catch (e) {
+        sendBodyText = `fetch_threw: ${(e as Error).message}`;
+      }
+      const sendOk = sendStatus === 200 || sendStatus === 202;
+      await admin.from("function_runs").update({
+        status: sendOk ? "success" : "error",
+        finished_at: new Date().toISOString(),
+        duration_ms: nowMs - new Date(r.started_at).getTime(),
+        source_table: "weekly_briefs",
+        source_row_id: briefRow.id,
+        error_message: sendOk ? null : `send-weekly-brief HTTP ${sendStatus}`,
+        metadata: {
+          ...meta,
+          event: "brief_chain",
+          outcome: sendOk ? "sent" : "send_failed",
+          target: "weekly",
+          brief_id: briefRow.id,
+          send_status: sendStatus,
+          send_body: sendBodyText,
+          resolved_by: "batch-kickoff-pickup",
+        },
+      }).eq("id", r.id).eq("status", "running");
+      if (sendOk) result.sent++;
+      else result.send_failed++;
+      continue;
+    }
+
+    if (ageMs >= BRIEF_CHAIN_TIMEOUT_MS) {
+      await admin.from("function_runs").update({
+        status: "error",
+        finished_at: new Date().toISOString(),
+        duration_ms: ageMs,
+        error_message: `brief_chain: weekly_briefs row did not appear within ${Math.round(ageMs / 60000)}min`,
+        metadata: {
+          ...meta,
+          event: "brief_chain",
+          outcome: "generate_timeout",
+          target: "weekly",
+          age_ms: ageMs,
+          resolved_by: "batch-kickoff-pickup",
+        },
+      }).eq("id", r.id).eq("status", "running");
+      result.timed_out++;
+      continue;
+    }
+    result.pending++;
+  }
+  return result;
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
@@ -293,7 +444,16 @@ Deno.serve(async (req) => {
   }
   await logRun({ event: "export_retry_sweep", sweep });
 
-  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, build_stamp: BUILD_STAMP }), {
+  // BRIEF-MODEL-1-HF4 — brief_chain sweep. Never throws.
+  let briefSweep: BriefChainSweepResult;
+  try {
+    briefSweep = await runBriefChainSweep(admin);
+  } catch (e) {
+    briefSweep = { processed: 0, generated: 0, sent: 0, send_failed: 0, timed_out: 0, pending: 0, errors: [`threw:${(e as Error).message}`] };
+  }
+  await logRun({ event: "brief_chain_sweep", brief_sweep: briefSweep });
+
+  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, brief_chain_sweep: briefSweep, build_stamp: BUILD_STAMP }), {
     headers: { ...cors, "Content-Type": "application/json" },
   });
 });

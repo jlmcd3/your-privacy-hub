@@ -5,11 +5,15 @@ import {
   failFunctionRun,
 } from "../_shared/function-run-logger.ts";
 
-// BUILD_STAMP: brief-model-1-hf3 @ 2026-07-18
-// HF3: generate-weekly-brief now returns 202 immediately and runs its pipeline
-// inside EdgeRuntime.waitUntil. Treat 202 (and defensively 504 IDLE_TIMEOUT)
-// as "generation started" and rely on the existing weekly_briefs poll as the
-// completion signal for BOTH generate_only and send modes.
+// BUILD_STAMP: brief-model-1-hf4 @ 2026-07-18
+// HF4: Live repro at 05:23:46Z proved the in-function 8-min poll exceeds the
+// EdgeRuntime background wall-clock — the chain's brief_chain row was left in
+// status='running' with no terminal outcome. Replace the poll with the
+// existing cron-tick pattern: this function now fires generate-weekly-brief,
+// leaves the brief_chain function_runs row in status='running' with metadata
+// {event:'brief_chain', target:'weekly', t0, generate_only, gen_status}, and
+// returns. batch-kickoff-pickup's every-2-min tick sweeps pending brief_chain
+// rows and writes the terminal outcome.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,8 +38,8 @@ async function callFn(
       Authorization: `Bearer ${ADMIN_SECRET}`,
     },
     body: JSON.stringify(body),
-    // Background runner - allow up to 8 minutes per callee.
-    signal: AbortSignal.timeout(480_000),
+    // Callee is background (202 immediately). 30s is enough to receive the ack.
+    signal: AbortSignal.timeout(30_000),
   });
   const text = await resp.text();
   return { status: resp.status, body: text.slice(0, 500) };
@@ -45,24 +49,9 @@ async function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms));
 }
 
-// Poll weekly_briefs for a row created after t0. Returns row id or null.
-async function waitForWeeklyBrief(t0Iso: string): Promise<string | null> {
-  const maxMs = 8 * 60 * 1000;
-  const intervalMs = 15_000;
-  const deadline = Date.now() + maxMs;
-  while (Date.now() < deadline) {
-    const { data, error } = await supabase
-      .from("weekly_briefs")
-      .select("id, created_at")
-      .gt("created_at", t0Iso)
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (!error && data && data.length > 0) return data[0].id as string;
-    await sleep(intervalMs);
-  }
-  return null;
-}
-
+// HF4: weekly chain now fires the generator and RETURNS, leaving the
+// brief_chain function_runs row in status='running'. batch-kickoff-pickup
+// resolves it on the next 2-min tick.
 async function runWeeklyChain(generateOnly: boolean) {
   const t0Iso = new Date().toISOString();
   const run = await startFunctionRun(supabase, "cron-generate-briefs", {
@@ -76,9 +65,8 @@ async function runWeeklyChain(generateOnly: boolean) {
   });
   try {
     const gen = await callFn("generate-weekly-brief");
-    // HF3: generate-weekly-brief returns 202 immediately (background pipeline).
-    // Accept 200 (legacy) and 202 as "started"; treat 504 idle-timeout as
-    // "started" defensively — poll is the true completion signal in every case.
+    // generate-weekly-brief returns 202 immediately (background pipeline).
+    // Accept 200 (legacy), 202, and 504 (idle-timeout) as "started".
     const started = gen.status === 200 || gen.status === 202 || gen.status === 504;
     if (!started) {
       await failFunctionRun(supabase, run, new Error(`generate-weekly-brief HTTP ${gen.status}`), {
@@ -94,64 +82,11 @@ async function runWeeklyChain(generateOnly: boolean) {
       });
       return;
     }
-
-    const briefId = await waitForWeeklyBrief(t0Iso);
-    if (!briefId) {
-      await failFunctionRun(supabase, run, new Error("weekly_briefs row did not appear within 8m"), {
-        metadata: {
-          event: "brief_chain",
-          outcome: "generate_timeout",
-          target: "weekly",
-          generate_only: generateOnly,
-          t0: t0Iso,
-          gen_status: gen.status,
-        },
-      });
-      return;
-    }
-
-    if (generateOnly) {
-      await finishFunctionRun(supabase, run, {
-        status: "success",
-        metadata: {
-          event: "brief_chain",
-          outcome: "generated",
-          target: "weekly",
-          generate_only: true,
-          t0: t0Iso,
-          brief_id: briefId,
-          gen_status: gen.status,
-        },
-      });
-      return;
-    }
-
-    const send = await callFn("send-weekly-brief");
-    if (send.status !== 200) {
-      await failFunctionRun(supabase, run, new Error(`send-weekly-brief HTTP ${send.status}`), {
-        metadata: {
-          event: "brief_chain",
-          outcome: "send_failed",
-          target: "weekly",
-          t0: t0Iso,
-          brief_id: briefId,
-          send_status: send.status,
-          send_body: send.body,
-        },
-      });
-      return;
-    }
-
-    await finishFunctionRun(supabase, run, {
-      status: "success",
-      metadata: {
-        event: "brief_chain",
-        outcome: "sent",
-        target: "weekly",
-        t0: t0Iso,
-        brief_id: briefId,
-      },
-    });
+    // Success: leave the row in status='running' with metadata carrying t0 and
+    // generate_only. batch-kickoff-pickup will complete it. We deliberately do
+    // NOT call finishFunctionRun here — the row is the awaiting-generation
+    // marker until the sweeper acts on it.
+    console.log(`[cron-generate-briefs] brief_chain kicked run_id=${run.id} t0=${t0Iso} gen_status=${gen.status} generate_only=${generateOnly}`);
   } catch (e) {
     await failFunctionRun(supabase, run, e, {
       metadata: {

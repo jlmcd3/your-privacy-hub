@@ -116,23 +116,54 @@ Deno.serve(async (req) => {
   }
   // ── End authentication ────────────────────────────────────────────────────
 
-  // BRIEF-MODEL-1-HF3: return 202 immediately; run full pipeline in background
-  // to escape the 150s gateway idle-timeout that killed the inner call under HF2.
+  // BRIEF-MODEL-1-HF4: startFunctionRun runs FIRST in the background body,
+  // guarded by its own try/catch that writes a durable failure row on ANY
+  // throw. Prior turn (HF3) put startFunctionRun inside waitUntil but did NOT
+  // guard it — a throw there would kill the body silently, matching John's
+  // "no weekly_brief_generation start row EVER appeared" evidence class.
   const startedMs = Date.now();
   const MODEL_TAG = "claude-sonnet-5";
 
   // @ts-ignore EdgeRuntime is a Supabase runtime global
   EdgeRuntime.waitUntil((async () => {
-  const fnRun = await startFunctionRun(supabase, "generate-weekly-brief", {
-    archetype: "async",
-    trustClass: "internal",
-    invokedBy: "internal",
-    metadata: {
-      event: "weekly_brief_generation",
-      model: MODEL_TAG,
-      t0: new Date(startedMs).toISOString(),
-    },
-  });
+  let fnRun: Awaited<ReturnType<typeof startFunctionRun>>;
+  try {
+    fnRun = await startFunctionRun(supabase, "generate-weekly-brief", {
+      archetype: "async",
+      trustClass: "internal",
+      invokedBy: "internal",
+      metadata: {
+        event: "weekly_brief_generation",
+        model: MODEL_TAG,
+        t0: new Date(startedMs).toISOString(),
+      },
+    });
+  } catch (e) {
+    console.error("[generate-weekly-brief] startFunctionRun threw:", e);
+    // Durable failure row via direct insert — bypasses fnRun state entirely.
+    try {
+      const nowIso = new Date().toISOString();
+      await supabase.from("function_runs").insert({
+        function_name: "generate-weekly-brief",
+        status: "error",
+        started_at: new Date(startedMs).toISOString(),
+        finished_at: nowIso,
+        duration_ms: Date.now() - startedMs,
+        error_message: `startFunctionRun threw: ${String((e as Error)?.message ?? e).slice(0, 500)}`,
+        metadata: {
+          event: "weekly_brief_generation",
+          outcome: "failed",
+          stage: "start_function_run",
+          model: MODEL_TAG,
+        },
+      });
+    } catch (ie) {
+      console.error("[generate-weekly-brief] durable fail-row insert threw:", ie);
+    }
+    return;
+  }
+
+
 
   try {
     // Anchor to PREVIOUS MONDAY 00:00 UTC (see getWeekStart). Monday runs cover
@@ -149,7 +180,7 @@ Deno.serve(async (req) => {
 
     if (fetchError) {
       console.error("Fetch articles error:", fetchError);
-      await failFunctionRun(supabase, fnRun, fetchError, { metadata: { stage: "fetch_updates", window_start: weekStart.toISOString(), window_end: now.toISOString() } });
+      await failFunctionRun(supabase, fnRun, fetchError, { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "fetch_updates", model: MODEL_TAG, window_start: weekStart.toISOString(), window_end: now.toISOString() } });
       return new Response(JSON.stringify({ error: "Failed to fetch updates", detail: String(fetchError.message ?? fetchError) }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -158,6 +189,10 @@ Deno.serve(async (req) => {
       console.error(reason);
       await failFunctionRun(supabase, fnRun, new Error(reason), {
         metadata: {
+          event: "weekly_brief_generation",
+          outcome: "failed",
+          stage: "zero_updates_in_window",
+          model: MODEL_TAG,
           skipped: true,
           reason: "zero_updates_in_window",
           window_start: weekStart.toISOString(),
@@ -270,7 +305,7 @@ Note: Based on ${enforcementHistory.briefCount} weeks of tracked data.`
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
-      await failFunctionRun(supabase, fnRun, new Error("ANTHROPIC_API_KEY not configured"), { metadata: { stage: "config" } });
+      await failFunctionRun(supabase, fnRun, new Error("ANTHROPIC_API_KEY not configured"), { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "config", model: MODEL_TAG } });
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -557,7 +592,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
     if (!aiResponse.ok) {
       const err = await aiResponse.text();
-      await failFunctionRun(supabase, fnRun, new Error(`AI API error: ${aiResponse.status}`), { metadata: { stage: "brief_gen", status: aiResponse.status, detail: err.slice(0, 500) } });
+      await failFunctionRun(supabase, fnRun, new Error(`AI API error: ${aiResponse.status}`), { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "brief_gen", model: MODEL_TAG, status: aiResponse.status, detail: err.slice(0, 500) } });
       return new Response(JSON.stringify({ error: "AI API error", detail: err }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -573,7 +608,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
     } catch {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        await failFunctionRun(supabase, fnRun, new Error("Failed to parse AI response"), { metadata: { stage: "brief_parse", raw_head: rawText.slice(0, 500) } });
+        await failFunctionRun(supabase, fnRun, new Error("Failed to parse AI response"), { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "brief_parse", model: MODEL_TAG, raw_head: rawText.slice(0, 500), stop_reason: aiData?.stop_reason ?? null, chars: rawText.length } });
         return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: rawText.slice(0, 500) }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
