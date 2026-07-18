@@ -28,16 +28,18 @@ export default function ReportTranslateMenu({
   const [loading, setLoading] = useState<string | null>(null);
   const [activeLang, setActiveLang] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [elapsedSec, setElapsedSec] = useState(0);
 
   // TRANSLATE-1 — async translation with polling.
   // POST kicks off translation and returns 202 with status='translating'.
   // A GET on the same function reports status until 'complete' or 'failed'.
-  async function pollUntilDone(code: string): Promise<any | null> {
+  async function pollUntilDone(code: string, startedAt: number): Promise<any | null> {
     const MAX_MS = 5 * 60_000;         // 5 min ceiling
     const INTERVAL_MS = 2500;
-    const started = Date.now();
-    while (Date.now() - started < MAX_MS) {
+    while (Date.now() - startedAt < MAX_MS) {
       await new Promise((r) => setTimeout(r, INTERVAL_MS));
+      setElapsedSec(Math.floor((Date.now() - startedAt) / 1000));
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       const url = new URL(
@@ -52,6 +54,9 @@ export default function ReportTranslateMenu({
       if (!r.ok) continue;
       const body = await r.json().catch(() => null);
       if (!body) continue;
+      const done = Number(body.chunks_done ?? 0);
+      const total = Number(body.chunks_total ?? 0);
+      if (total > 0) setProgress({ done, total });
       if (body.status === "complete") return body.translated_payload;
       if (body.status === "failed") throw new Error(body.error ?? "Translation failed");
       // still translating → keep polling
