@@ -731,21 +731,16 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const gdprBlock: string = (gdprCtxResult as any)?.block || "";
     const gdprMeta: any = (gdprCtxResult as any)?.meta || { attempted: false };
 
-    // Open-queue #5 — deterministically reconcile the model-emitted
-    // classification.jurisdictions_scope with the RESOLVED jurisdiction so the
-    // report never presents a framework that was not actually applied. The GDPR
-    // context resolver returns jurisdiction strictly as "eu" | "uk"; a UK
-    // assessment may cite retained-EU-law equivalents but is a single-framework
-    // UK GDPR analysis, not a separate EU GDPR application.
+    // REBUILD-LIA T1(a/b) — deterministically reconcile the model-emitted
+    // classification.jurisdictions_scope with the ENGAGED FRAMEWORKS derived
+    // from the RECORDED intake jurisdictions. This overrides any semantic/EU
+    // default the classifier LLM may have produced. gdpr_meta continues to
+    // carry the retriever's eu|uk resolution for citation-supply purposes.
     {
-      const resolvedJur = String(gdprMeta?.jurisdiction || "").toLowerCase();
-      const reconciledScope =
-        resolvedJur === "uk" ? ["UK"] :
-        resolvedJur === "eu" ? ["EU", "EEA"] : null;
-      if (reconciledScope) {
-        classification.jurisdictions_scope = reconciledScope;
-        gdprMeta.jurisdictions_scope = reconciledScope;
-      }
+      const scope = frameworksToScopeStrings(engagedFrameworks);
+      classification.jurisdictions_scope = scope;
+      gdprMeta.jurisdictions_scope = scope;
+      gdprMeta.engaged_frameworks = engagedFrameworks;
     }
 
     // Fetch precedents from li_tracker_entries
