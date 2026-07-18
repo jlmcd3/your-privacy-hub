@@ -546,7 +546,7 @@ Deno.serve(async (req) => {
           regulator: src.regulator,
           jurisdiction: src.jurisdiction,
           law: src.law,
-          subject: null,
+          subject: src.source === "OAIC" ? extractOaicSubject(a.title) : null,
           violation: a.title,
           decision_date: a.date,
           fine_amount,
