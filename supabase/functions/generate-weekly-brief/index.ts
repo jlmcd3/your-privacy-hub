@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
   // guard it — a throw there would kill the body silently, matching John's
   // "no weekly_brief_generation start row EVER appeared" evidence class.
   const startedMs = Date.now();
-  const MODEL_TAG = "claude-sonnet-5";
+  const MODEL_TAG = "claude-opus-4-7";
 
   // @ts-ignore EdgeRuntime is a Supabase runtime global
   EdgeRuntime.waitUntil((async () => {
