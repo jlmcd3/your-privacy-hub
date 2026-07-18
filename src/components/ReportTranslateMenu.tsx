@@ -29,6 +29,36 @@ export default function ReportTranslateMenu({
   const [activeLang, setActiveLang] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  // TRANSLATE-1 — async translation with polling.
+  // POST kicks off translation and returns 202 with status='translating'.
+  // A GET on the same function reports status until 'complete' or 'failed'.
+  async function pollUntilDone(code: string): Promise<any | null> {
+    const MAX_MS = 5 * 60_000;         // 5 min ceiling
+    const INTERVAL_MS = 2500;
+    const started = Date.now();
+    while (Date.now() - started < MAX_MS) {
+      await new Promise((r) => setTimeout(r, INTERVAL_MS));
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const url = new URL(
+        `${import.meta.env.VITE_SUPABASE_URL ?? ""}/functions/v1/translate-report`,
+      );
+      url.searchParams.set("report_type", toolType);
+      url.searchParams.set("report_id", reportId);
+      url.searchParams.set("language_code", code);
+      const r = await fetch(url.toString(), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!r.ok) continue;
+      const body = await r.json().catch(() => null);
+      if (!body) continue;
+      if (body.status === "complete") return body.translated_payload;
+      if (body.status === "failed") throw new Error(body.error ?? "Translation failed");
+      // still translating → keep polling
+    }
+    throw new Error("Translation timed out");
+  }
+
   async function handleSelect(code: string | null) {
     setOpen(false);
     if (code === null || code === "en") {
@@ -56,7 +86,16 @@ export default function ReportTranslateMenu({
         }
         return;
       }
-      const payload = (data as any)?.translated_payload;
+
+      // Two success shapes:
+      //   { status:'complete', translated_payload } — cache hit
+      //   { status:'translating', ... }             — kicked off, poll for result
+      let payload = (data as any)?.translated_payload;
+      const status = (data as any)?.status;
+      if (!payload && status === "translating") {
+        toast.info("Translating… this may take up to a minute for long documents.");
+        payload = await pollUntilDone(code);
+      }
       if (!payload) {
         toast.error("Translation failed. Please try again.");
         return;

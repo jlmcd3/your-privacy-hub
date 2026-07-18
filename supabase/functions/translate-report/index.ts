@@ -1,24 +1,33 @@
 // translate-report
-// User-callable, on-demand translation of any generated report into one of 23
-// languages. Mirrors translate-weekly-brief's structure-preservation prompt
-// + cache pattern, with two differences:
-//   - user JWT required (ownership check on the underlying report row)
-//   - a hard 4-language cap per (tool_type, report_id)
+// TRANSLATE-1 — Chunked async translation with function_runs telemetry.
 //
-// Cost model: Haiku ~$0.01–0.03/translation, cached forever per (report, language), capped at 4 languages/report.
+// Async model:
+//   POST /translate-report            → 202 with { status:'translating', translation_id, chunks_total }
+//                                       Server runs translation in background (EdgeRuntime.waitUntil).
+//   GET  /translate-report?report_type=..&report_id=..&language_code=..
+//                                     → 200 with { status:'complete'|'translating'|'failed', ... }
+//
+// Backward-compat: when the client sends { poll:true } as POST body, we treat
+// it as a status probe. This keeps the transport a single URL.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import {
+  translateDocument,
+  TRANSLATION_ENGINE_VERSION,
+  ANTHROPIC_MODEL,
+} from "../_shared/translation-engine.ts";
+import {
+  startFunctionRun,
+  finishFunctionRun,
+  failFunctionRun,
+} from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
-const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-
-// VERIFIED list: must match SampleBriefLanguageToggle.tsx (23 codes).
 const ALLOWED_LANGUAGES = new Set([
   "fr","de","es","pt","ja","zh-CN","ar","ko","it","nl","pl","sv",
   "da","no","fi","cs","ro","el","tr","th","id","hi","he",
@@ -36,9 +45,6 @@ const LANGUAGE_NAMES: Record<string, string> = {
 const TRANSLATION_NOTICE =
   "Machine translation provided for convenience. The English original is the authoritative version of this document. Statutory citations refer to the official texts; official language versions are available from EUR-Lex or the issuing regulator.";
 
-// Map tool_type -> result table + text columns. Ownership is via user_id
-// directly unless `ownerVia` says otherwise (sessions/documents that route
-// through `clients.owner_id`).
 type ToolSource = {
   table: string;
   textColumns: string[];
@@ -54,9 +60,6 @@ const TOOL_SOURCES: Record<string, ToolSource> = {
   biometric:             { table: "biometric_assessments",  textColumns: ["report_data", "analysis_text"] },
   cppa_risk:             { table: "cppa_assessments",       textColumns: ["report_data", "document_a_text", "document_b_text"] },
   cppa_cyber:            { table: "cppa_assessments",       textColumns: ["report_data", "document_a_text", "document_b_text"] },
-  // RoPA / notices: generated documents live as files in storage. The row
-  // itself carries no translatable prose, so we accept the request, verify
-  // ownership, and return NOT_TRANSLATABLE for now.
   ropa:        { table: "ropa_sessions",        textColumns: [], ownerVia: { joinTable: "clients", joinColumn: "client_id", ownerColumn: "owner_id" } },
   us_notice:   { table: "us_notice_sessions",   textColumns: [], ownerVia: { joinTable: "clients", joinColumn: "client_id", ownerColumn: "owner_id" } },
   eu_notice:   { table: "eu_notice_sessions",   textColumns: [], ownerVia: { joinTable: "clients", joinColumn: "client_id", ownerColumn: "owner_id" } },
@@ -69,23 +72,23 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function stripFences(s: string): string {
-  let t = s.trim();
-  // ```json\n...\n```
-  t = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-  return t;
+async function sha256(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+// deno-lint-ignore no-explicit-any
+declare const EdgeRuntime: any;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
   const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
-  // --- Auth: user JWT required ---
+  // --- Auth: user JWT required for both POST and GET ---
   const authHeader = req.headers.get("authorization") ?? "";
   if (!authHeader.toLowerCase().startsWith("bearer ")) {
     return json({ error: "Unauthorized" }, 401);
@@ -98,6 +101,45 @@ Deno.serve(async (req) => {
   const user = userRes?.user;
   if (userErr || !user) return json({ error: "Unauthorized" }, 401);
 
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+
+  // ─── GET: poll status ──────────────────────────────────────────────────
+  if (req.method === "GET") {
+    const url = new URL(req.url);
+    const tool_type = url.searchParams.get("report_type") ?? url.searchParams.get("tool_type");
+    const report_id = url.searchParams.get("report_id");
+    const language_code = url.searchParams.get("language_code");
+    if (!tool_type || !report_id || !language_code) {
+      return json({ error: "report_type, report_id, language_code required" }, 400);
+    }
+    const { data: row } = await admin
+      .from("report_translations")
+      .select("status, translated_content, chunks_total, chunks_done, error_message, user_id")
+      .eq("report_type", tool_type).eq("report_id", report_id).eq("target_lang", language_code)
+      .order("started_at", { ascending: false, nullsFirst: false })
+      .limit(1).maybeSingle();
+    if (!row) return json({ status: "not_found" }, 404);
+    if (row.user_id && row.user_id !== user.id) return json({ error: "Forbidden" }, 403);
+    if (row.status === "complete") {
+      return json({
+        status: "complete",
+        translated_payload: row.translated_content,
+        chunks_total: row.chunks_total,
+        chunks_done: row.chunks_done,
+      });
+    }
+    if (row.status === "failed") {
+      return json({ status: "failed", error: row.error_message ?? "Translation failed" });
+    }
+    return json({
+      status: "translating",
+      chunks_total: row.chunks_total,
+      chunks_done: row.chunks_done,
+    });
+  }
+
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
   // --- Body ---
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON body" }, 400); }
@@ -108,26 +150,16 @@ Deno.serve(async (req) => {
     return json({ error: "tool_type, report_id, and language_code are required" }, 400);
   }
 
-  // English shortcut
   if (language_code === "en") return json({ english: true });
-
   if (!ALLOWED_LANGUAGES.has(language_code)) {
     return json({ error: `Unsupported language: ${language_code}` }, 400);
   }
-
   const source = TOOL_SOURCES[tool_type];
   if (!source) return json({ error: `Unknown tool_type: ${tool_type}` }, 400);
 
-  const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
-    auth: { persistSession: false },
-  });
-
-  // --- Fetch row + ownership check ---
+  // --- Ownership + payload assembly ---
   const { data: row, error: rowErr } = await admin
-    .from(source.table)
-    .select("*")
-    .eq("id", report_id)
-    .maybeSingle();
+    .from(source.table).select("*").eq("id", report_id).maybeSingle();
   if (rowErr) return json({ error: "Lookup failed", detail: rowErr.message }, 500);
   if (!row) return json({ error: "Report not found" }, 404);
 
@@ -137,9 +169,7 @@ Deno.serve(async (req) => {
     if (clientId) {
       const { data: joinRow } = await admin
         .from(source.ownerVia.joinTable)
-        .select(source.ownerVia.ownerColumn)
-        .eq("id", clientId)
-        .maybeSingle();
+        .select(source.ownerVia.ownerColumn).eq("id", clientId).maybeSingle();
       isOwner = !!joinRow && (joinRow as any)[source.ownerVia.ownerColumn] === user.id;
     }
   } else {
@@ -147,32 +177,41 @@ Deno.serve(async (req) => {
   }
   if (!isOwner) return json({ error: "Forbidden" }, 403);
 
-  // --- Cache check (schema: report_type, target_lang, translated_content) ---
-  const { data: cached } = await admin
+  // --- Existing translation? ---
+  const { data: existing } = await admin
     .from("report_translations")
-    .select("translated_content")
-    .eq("report_type", tool_type)
-    .eq("report_id", report_id)
-    .eq("target_lang", language_code)
-    .maybeSingle();
-  if (cached?.translated_content) {
-    return json({ translated_payload: cached.translated_content, from_cache: true });
+    .select("status, translated_content, chunks_total, chunks_done, error_message")
+    .eq("report_type", tool_type).eq("report_id", report_id).eq("target_lang", language_code)
+    .order("started_at", { ascending: false, nullsFirst: false })
+    .limit(1).maybeSingle();
+  if (existing?.status === "complete" && existing.translated_content) {
+    return json({
+      status: "complete",
+      translated_payload: existing.translated_content,
+      from_cache: true,
+    });
+  }
+  if (existing?.status === "translating") {
+    return new Response(JSON.stringify({
+      status: "translating",
+      chunks_total: existing.chunks_total,
+      chunks_done: existing.chunks_done,
+    }), { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // --- 4-language cap (count existing distinct languages for this report) ---
-  const { count: cachedCount } = await admin
+  // --- 4-language cap (count COMPLETE translations only) ---
+  const { count: completeCount } = await admin
     .from("report_translations")
     .select("target_lang", { count: "exact", head: true })
-    .eq("report_type", tool_type)
-    .eq("report_id", report_id);
-  if ((cachedCount ?? 0) >= 4) {
+    .eq("report_type", tool_type).eq("report_id", report_id).eq("status", "complete");
+  if ((completeCount ?? 0) >= 4) {
     return json(
       { error: "TRANSLATION_LIMIT: This report has reached its limit of 4 translated languages." },
       403,
     );
   }
 
-  // --- Build translatable payload from text columns ---
+  // --- Build payload ---
   const payload: Record<string, unknown> = {};
   for (const col of source.textColumns) {
     const v = (row as any)[col];
@@ -187,91 +226,129 @@ Deno.serve(async (req) => {
     );
   }
 
-  if (!ANTHROPIC_KEY) {
-    return json({ error: "Translation service unavailable" }, 502);
-  }
+  if (!ANTHROPIC_KEY) return json({ error: "Translation service unavailable" }, 502);
 
-  const targetLanguageName = LANGUAGE_NAMES[language_code] ?? language_code;
-
-  const systemPrompt =
-`You are a professional legal and regulatory translator specialising in privacy law, data protection, and technology regulation. Translate the JSON payload below from English into ${targetLanguageName}.
-
-Requirements:
-- Translate ALL human-readable string values into ${targetLanguageName}.
-- Preserve JSON structure exactly: every key, array length, nesting, and non-string value unchanged.
-- NEVER translate: citation markers like [Art. 6(1)(f)], [Recital 47], [E1], [A2], [F3], [EDPB ...]; statutory citation strings (e.g. "GDPR Article 6(1)", "Cal. Civ. Code § 1798.140"); regulator names; URLs; dates; numbers; enum-like status values.
-- Return ONLY the translated JSON, no fences, no commentary.`;
-
-  async function translateOnce(): Promise<any> {
-    const r = await fetch(ANTHROPIC_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY!,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 16000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: JSON.stringify(payload) }],
-      }),
-    });
-    if (!r.ok) {
-      const t = await r.text().catch(() => "");
-      throw new Error(`Anthropic ${r.status}: ${t.slice(0, 400)}`);
-    }
-    const data = await r.json();
-    const block = Array.isArray(data?.content)
-      ? data.content.find((b: any) => b?.type === "text" && typeof b?.text === "string")
-      : null;
-    const text = block?.text?.trim();
-    if (!text) throw new Error("Empty translation text");
-    return JSON.parse(stripFences(text));
-  }
-
-  let translated: any;
-  try {
-    translated = await translateOnce();
-  } catch (e1) {
-    console.error("[translate-report] first attempt failed:", (e1 as Error).message);
-    try {
-      translated = await translateOnce();
-    } catch (e2) {
-      console.error("[translate-report] retry failed:", (e2 as Error).message);
-      return json({ error: "Translation failed" }, 502);
-    }
-  }
-
-  // --- Disclaimer injection ---
-  if (translated && typeof translated === "object" && !Array.isArray(translated)) {
-    (translated as Record<string, unknown>).translation_notice = TRANSLATION_NOTICE;
-  } else {
-    translated = { content: translated, translation_notice: TRANSLATION_NOTICE };
-  }
-
-  // --- Cache insert (best effort). content_hash is NOT NULL; derive from payload. ---
+  const languageName = LANGUAGE_NAMES[language_code] ?? language_code;
   const payloadJson = JSON.stringify(payload);
-  const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payloadJson));
-  const contentHash = Array.from(new Uint8Array(hashBuf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  const { error: insertErr } = await admin.from("report_translations").insert({
-    user_id: user.id,
-    report_type: tool_type,
-    report_id,
-    target_lang: language_code,
-    source_lang: "en",
-    content_hash: contentHash,
-    translated_content: translated,
-    model: ANTHROPIC_MODEL,
-  });
-  if (insertErr) {
-    const code = (insertErr as any)?.code ?? "";
-    if (code !== "23505") {
-      console.error("[translate-report] cache write failed:", insertErr.message);
+  const contentHash = await sha256(payloadJson);
+
+  // --- Insert in-flight row (unique key: report_type/report_id/target_lang/content_hash) ---
+  // If a previous 'failed' row exists for same hash, replace it.
+  await admin.from("report_translations").delete()
+    .eq("report_type", tool_type).eq("report_id", report_id)
+    .eq("target_lang", language_code).eq("content_hash", contentHash)
+    .in("status", ["failed"]);
+
+  const startedAt = new Date().toISOString();
+  const { data: inserted, error: insErr } = await admin
+    .from("report_translations")
+    .insert({
+      user_id: user.id,
+      report_type: tool_type,
+      report_id,
+      target_lang: language_code,
+      source_lang: "en",
+      content_hash: contentHash,
+      status: "translating",
+      chunks_total: null,
+      chunks_done: 0,
+      started_at: startedAt,
+      model: ANTHROPIC_MODEL,
+      translated_content: null,
+    })
+    .select("id")
+    .single();
+  if (insErr || !inserted) {
+    return json({ error: "Failed to record translation", detail: insErr?.message }, 500);
+  }
+  const translationRowId = inserted.id as string;
+
+  // --- Background execution: log function_run FIRST, then translate ---
+  const runBackground = async () => {
+    const run = await startFunctionRun(admin, "translate-report", {
+      userId: user.id,
+      invokedBy: "user",
+      metadata: {
+        event: "translate",
+        tool_type,
+        report_id,
+        language_code,
+        translation_row_id: translationRowId,
+        engine: TRANSLATION_ENGINE_VERSION,
+      },
+    });
+
+    try {
+      const result = await translateDocument(payload, {
+        apiKey: ANTHROPIC_KEY,
+        languageCode: language_code,
+        languageName,
+        onProgress: async (done, total) => {
+          await admin.from("report_translations").update({
+            chunks_total: total,
+            chunks_done: done,
+          }).eq("id", translationRowId);
+        },
+      });
+
+      // Disclaimer wrap
+      let translated: any = result.translated;
+      if (translated && typeof translated === "object" && !Array.isArray(translated)) {
+        (translated as Record<string, unknown>).translation_notice = TRANSLATION_NOTICE;
+      } else {
+        translated = { content: translated, translation_notice: TRANSLATION_NOTICE };
+      }
+
+      await admin.from("report_translations").update({
+        status: "complete",
+        translated_content: translated,
+        chunks_total: result.chunksTotal,
+        chunks_done: result.chunksDone,
+        error_message: null,
+      }).eq("id", translationRowId);
+
+      await finishFunctionRun(admin, run, {
+        status: "success",
+        sourceTable: "report_translations",
+        sourceRowId: translationRowId,
+        metadata: {
+          event: "translate",
+          tool_type,
+          report_id,
+          language_code,
+          chunks_total: result.chunksTotal,
+          chunks_done: result.chunksDone,
+          units: result.units,
+          engine: TRANSLATION_ENGINE_VERSION,
+        },
+      });
+    } catch (e) {
+      const msg = (e as Error).message ?? "unknown";
+      console.error("[translate-report] background failure:", msg);
+      await admin.from("report_translations").update({
+        status: "failed",
+        error_message: msg.slice(0, 1000),
+      }).eq("id", translationRowId);
+      await failFunctionRun(admin, run, e, {
+        metadata: {
+          event: "translate",
+          tool_type, report_id, language_code,
+          translation_row_id: translationRowId,
+          engine: TRANSLATION_ENGINE_VERSION,
+        },
+      });
     }
+  };
+
+  if (typeof EdgeRuntime !== "undefined" && typeof EdgeRuntime.waitUntil === "function") {
+    EdgeRuntime.waitUntil(runBackground());
+  } else {
+    // Local/test fallback — fire and forget.
+    runBackground().catch(() => {});
   }
 
-  return json({ translated_payload: translated, from_cache: false });
+  return new Response(JSON.stringify({
+    status: "translating",
+    translation_row_id: translationRowId,
+  }), { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });

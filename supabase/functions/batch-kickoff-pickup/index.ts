@@ -28,10 +28,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "brief-model-1-hf4-brief-chain-sweep@2026-07-18";
+export const BUILD_STAMP = "translate-1-translation-sweep@2026-07-18";
 export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
+export const TRANSLATION_STUCK_MS = 15 * 60_000; // TRANSLATE-1: 15 min → mark failed
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -374,6 +375,42 @@ async function runBriefChainSweep(admin: any): Promise<BriefChainSweepResult> {
   return result;
 }
 
+// ────────────────────────────────────────────────────────────────────────
+// TRANSLATE-1 — Translation sweep: reap report_translations rows stuck in
+// status='translating' for more than TRANSLATION_STUCK_MS.
+// ────────────────────────────────────────────────────────────────────────
+export type TranslationSweepResult = {
+  processed: number;
+  reaped: number;
+  errors: string[];
+};
+
+async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> {
+  const result: TranslationSweepResult = { processed: 0, reaped: 0, errors: [] };
+  const cutoff = new Date(Date.now() - TRANSLATION_STUCK_MS).toISOString();
+  const { data: stuck, error } = await admin
+    .from("report_translations")
+    .select("id, report_type, report_id, target_lang, started_at, chunks_done, chunks_total")
+    .eq("status", "translating")
+    .lt("started_at", cutoff)
+    .limit(25);
+  if (error) { result.errors.push(`query: ${error.message}`); return result; }
+  const rows: any[] = Array.isArray(stuck) ? stuck : [];
+  for (const r of rows) {
+    result.processed++;
+    const ageMin = Math.round((Date.now() - new Date(r.started_at).getTime()) / 60_000);
+    const note = `[translation-sweep: stuck ${ageMin}min in 'translating' (${r.chunks_done ?? 0}/${r.chunks_total ?? "?"} chunks); reaped]`;
+    const { error: upErr } = await admin.from("report_translations")
+      .update({ status: "failed", error_message: note })
+      .eq("id", r.id).eq("status", "translating");
+    if (upErr) result.errors.push(`update ${r.id}: ${upErr.message}`);
+    else result.reaped++;
+  }
+  return result;
+}
+
+
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -453,7 +490,16 @@ Deno.serve(async (req) => {
   }
   await logRun({ event: "brief_chain_sweep", brief_sweep: briefSweep });
 
-  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, brief_chain_sweep: briefSweep, build_stamp: BUILD_STAMP }), {
+  // TRANSLATE-1 — translation sweep. Never throws.
+  let translationSweep: TranslationSweepResult;
+  try {
+    translationSweep = await runTranslationSweep(admin);
+  } catch (e) {
+    translationSweep = { processed: 0, reaped: 0, errors: [`threw:${(e as Error).message}`] };
+  }
+  await logRun({ event: "translation_sweep", translation_sweep: translationSweep });
+
+  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, brief_chain_sweep: briefSweep, translation_sweep: translationSweep, build_stamp: BUILD_STAMP }), {
     headers: { ...cors, "Content-Type": "application/json" },
   });
 });

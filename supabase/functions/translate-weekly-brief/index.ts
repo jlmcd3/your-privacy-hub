@@ -134,63 +134,30 @@ Deno.serve(async (req) => {
     // continue to translation attempt
   }
 
-  // --- Step 2: Translate via Anthropic ---
+  // --- Step 2: Chunked translation via shared engine (TRANSLATE-1) ---
   if (!ANTHROPIC_KEY) {
     console.error("[translate-weekly-brief] ANTHROPIC_API_KEY missing");
     return fallback(english_content);
   }
 
   const targetLanguageName = LANGUAGE_NAMES[language_code] ?? language_code;
-
-  const systemPrompt =
-`You are a professional legal and regulatory translator specialising in privacy law, data protection, and technology regulation. Translate the following weekly privacy intelligence brief from English into ${targetLanguageName}.
-
-Requirements:
-- Preserve all legal and regulatory terminology with precision
-- Maintain the original structure, section headings, and formatting
-- Preserve any HTML or markdown formatting present in the source
-- Match the tone: authoritative, clear, professional
-- Do not add commentary, explanations, or translator's notes
-- Do not translate proper nouns: authority names (e.g. CNIL, BfDI, ICO), regulation names (e.g. GDPR, CCPA, LGPD), and organisation names should remain in their original form
-- Return only the translated text, nothing else`;
-
   let translated: string | null = null;
 
   try {
-    const r = await fetch(ANTHROPIC_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 8000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: english_content }],
-      }),
+    // Dynamic import avoids top-of-file churn; engine is deno-friendly.
+    const { translatePlainText } = await import("../_shared/translation-engine.ts");
+    const result = await translatePlainText(english_content, {
+      apiKey: ANTHROPIC_KEY,
+      languageCode: language_code,
+      languageName: targetLanguageName,
     });
-
-    if (!r.ok) {
-      const txt = await r.text().catch(() => "");
-      console.error("[translate-weekly-brief] Anthropic non-2xx:", r.status, txt.slice(0, 500));
-      return fallback(english_content);
-    }
-
-    const data = await r.json();
-    // Anthropic messages API: { content: [{ type: 'text', text: '...' }, ...] }
-    const block = Array.isArray(data?.content)
-      ? data.content.find((b: any) => b?.type === "text" && typeof b?.text === "string")
-      : null;
-    translated = block?.text?.trim() ?? null;
-
+    translated = typeof result.translated === "string" ? result.translated : null;
     if (!translated) {
-      console.error("[translate-weekly-brief] Anthropic returned empty text block");
+      console.error("[translate-weekly-brief] Engine returned empty text");
       return fallback(english_content);
     }
   } catch (e) {
-    console.error("[translate-weekly-brief] Anthropic call threw:", (e as Error).message);
+    console.error("[translate-weekly-brief] Chunked engine threw:", (e as Error).message);
     return fallback(english_content);
   }
 

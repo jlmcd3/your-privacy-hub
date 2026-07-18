@@ -5848,41 +5848,56 @@ export type Database = {
       }
       report_translations: {
         Row: {
+          chunks_done: number
+          chunks_total: number | null
           content_hash: string
           created_at: string
+          error_message: string | null
           id: string
           model: string | null
           report_id: string
           report_type: string
           source_lang: string
+          started_at: string | null
+          status: string
           target_lang: string
-          translated_content: Json
+          translated_content: Json | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          chunks_done?: number
+          chunks_total?: number | null
           content_hash: string
           created_at?: string
+          error_message?: string | null
           id?: string
           model?: string | null
           report_id: string
           report_type: string
           source_lang?: string
+          started_at?: string | null
+          status?: string
           target_lang: string
-          translated_content: Json
+          translated_content?: Json | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          chunks_done?: number
+          chunks_total?: number | null
           content_hash?: string
           created_at?: string
+          error_message?: string | null
           id?: string
           model?: string | null
           report_id?: string
           report_type?: string
           source_lang?: string
+          started_at?: string | null
+          status?: string
           target_lang?: string
-          translated_content?: Json
+          translated_content?: Json | null
           updated_at?: string
           user_id?: string | null
         }
