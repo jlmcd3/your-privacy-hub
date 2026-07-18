@@ -1,5 +1,6 @@
 // qb8 build active
 // run-meter deploy-check v1
+// REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -7,7 +8,8 @@ import { invokeGated } from "../_shared/invoke-gated.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
-import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint, type FnRunHandle } from "../_shared/function-run-logger.ts";
+import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
@@ -152,9 +154,12 @@ const LIA_ANALYSIS_EXTRA_RULES = [
   "EDPB CLAIMS QUOTE THE SUPPLIED EXCERPT: any statement that EDPB Guidelines 1/2024 'require' something must quote the relevant SUPPLIED AUTHORITY EXCERPTS text (e.g. the excerpt stating an interest must be 'clearly and precisely articulated') or be phrased as VERIFY-FIRST. A bare 'Section II.A requires…' assertion without the excerpt text is a defect under the citation rules.",
    "LIKELY IMPACT, NOT QUANTIFIED IMPACT: the guidelines require a careful assessment of the likely impact of processing (para. 39) — a qualitative standard covering nature, context, and consequences. Never state that the guidelines require a QUANTIFIED analysis of probability or severity, and never treat the absence of quantification as, by itself, a deficiency. Where quantification would strengthen the record, frame it as strengthening ('a quantified estimate would strengthen the documented balancing record'), never as a guidelines requirement.",
    "FLAG THE ABSENCE, DO NOT PERFORM THE OPERATIONAL ANALYSIS (QL2-FIX-1 Item 7.1): where the intake omits operational reasoning that the necessity or balancing test requires from the controller — e.g. why aggregate or anonymised signals would be insufficient for the stated purpose, why a less-intrusive alternative was rejected, why a shorter retention period would not meet the operational need — the assessment FLAGS the absence and directs the controller to document it, and it stops. It does NOT invent or infer the missing operational analysis on the controller's behalf ('presumably aggregate signals would not suffice because …' is a fatal defect). Canonical form: 'The record supplied to this assessment does not present the controller's operational reasoning for [the specific point]; document that reasoning in the balancing record before relying on legitimate interests for this processing.' This rule is a specific application of OUTPUT-ABSENCE, NOT CONTROLLER-FAILURE and NO EXPLANATORY / GENERATOR-REASONING VOICE — the assessment characterises what the record does not present and identifies what the controller must document, without supplying the controller's answer.",
-   "TEST-STATES ARE BINDING (R1b2 rule 2a): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 relationship_declared, M2 jurisdictions_declared, M3 data_categories_declared, M4 special_category_flag, M5 vulnerable_subjects_declared, M6 alternatives_considered, M7 safeguards_declared, M8 opt_out_mechanism_present, M9 reasonable_expectation_answered, M10 potential_harm_answered, M11 employment_context). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as concluded in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry that re-asks the intake field the state was computed from (e.g. do NOT ask for 'alternatives_considered' when M6 is RESOLVED_MET), and NEVER contradict it in test prose (e.g. do NOT ask the controller to 'confirm whether special-category data is in scope' when M4 is RESOLVED_MET or RESOLVED_NOT_MET). INDETERMINATE tests use insufficient-basis language anchored to the specific missing intake key. Argument-strength, verdict, and framework/regime remain JUDGMENT calls per the existing rules — no mechanical test binds them in this tool.",
-    "PROPORTIONATE ASKS (R1b2 rule 2b): (i) ASK CLASSES — classify every surfaced item as verdict-blocking, record-completeness, or enhancement. Verdict-blocking items belong in overall_assessment.blocking_issues with the cited provision they block; record-completeness items belong in information_needed with the intake field key and the provision that makes the missing dimension relevant; enhancement items — model-observed depth improvements that no cited provision requires — belong in documentation_recommendations prose ONLY when tied to a cited standard (e.g. Article 5(2) accountability, EDPB Guidelines 1/2024 balancing-record documentation) and NEVER as an open_question or information_needed entry. (ii) CREDIT-FIRST — where the intake supplies a partial answer (e.g. safeguards[] populated but retention period unquantified), name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED COLLAPSE — the phrases 'cannot be determined', 'no basis to assess', and 'not established' may NOT be applied to a whole test where the intake supplies the enum/presence answers the test binds to; where a specific missing piece IS verdict-blocking, name that element rather than collapsing the whole test.",
-    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M6, M9, …), or the state tokens (resolved, resolved_met, resolved_not_met, RESOLVED_MET, INDETERMINATE, CANDIDATE) anywhere in test analyses, strength_basis, blocking_issues, information_needed, documentation_recommendations, or any other user-visible output. State the conclusion with its factual basis instead — e.g. 'the intake records four alternatives considered before selecting legitimate interests as the basis' — never '(M6 resolved met)' or 'per TEST-STATES M6'. Inline parentheticals like '(M1 resolved)' are the exact defect this rule bans. Same philosophy as NO SYSTEM-ROUTING VOICE.",
+    "TEST-STATES ARE BINDING (R1b2 rule 2a; REBUILD-LIA voice swap): the injected TEST-STATES block records the deterministic state of each mechanical determination (M1 relationship, M2 jurisdictions, M3 data categories, M4 special-category flag, M5 vulnerable subjects, M6 alternatives, M7 safeguards, M8 opt-out mechanism, M9 reasonable expectation, M10 potential harm, M11 employment context). Any test whose state is RESOLVED — resolved_met, resolved_not_met, or resolved_not_applicable — is stated as CONCLUDED in the report with the basis given; NEVER hedge it, NEVER emit an information_needed entry that re-asks the intake field the state was computed from, and NEVER contradict it in test prose. INDETERMINATE tests use the ADVOCATE-DRAFTER pattern: state what the record ESTABLISHES, then name what would COMPLETE it — canonical form 'the record does not yet resolve [X]; recording [named intake field] would complete this determination.' NEVER use the collapse verdict phrases 'insufficient basis', 'not substantiated', 'cannot be confirmed', 'no basis to assess', or 'in the clear' in any user-facing field. Argument-strength, verdict, and framework/regime remain JUDGMENT calls per the existing rules — no mechanical test binds them in this tool.",
+    "PROPORTIONATE ASKS (R1b2 rule 2b; REBUILD-LIA voice swap): (i) ASK CLASSES — verdict-blocking items → overall_assessment.blocking_issues (facts present → what would strengthen → why it blocks reliance; purpose-bundling framed as a colorable single-purpose-articulation question, never as auditor 'does not meet this standard'); record-completeness items → information_needed with intake field key and the provision that makes the missing dimension relevant; enhancement items → documentation_recommendations prose ONLY, tied to a cited standard, NEVER surfaced as an ask. (ii) CREDIT-FIRST — where the intake supplies a partial answer, name what the intake establishes BEFORE the residual; the residual is incremental and NEVER re-requests content the intake already supplies. (iii) BANNED PROSE — the phrases 'cannot be determined', 'no basis to assess', 'not established', 'insufficient basis' MAY NOT be applied to a whole test where the intake supplies enum/presence answers; name the specific missing element in advocate-drafter voice instead.",
+    "ADVOCATE-DRAFTER VOICE (CEO-ratified; REBUILD-LIA): the tool speaks as an advocate-drafter, not a clearance auditor. Frame conclusions constructively: 'These facts present a strong/colorable/plausible argument that [issue], strengthened by [named recorded fact(s)]'. NEVER emit clearance verdicts ('the controller has met the standard'), sufficiency verdicts ('the analysis is sufficient/insufficient to conclude X'), or auditor rejections ('does not meet this standard'). Where the record does not yet establish a defensible claim, state what it ESTABLISHES and then name the specific fact or intake field that would COMPLETE the record — never open with what is missing.",
+    "CANONICAL RECORD REFERENCE (CEO D3): in every user-facing field, refer to the input as 'the record'. NEVER write 'the intake states', 'the intake records', 'the submission', 'the form', or 'the questionnaire'. Intake field ids (e.g. relationship_type, balancing_details.safeguards, opt_out_mechanism) appear ONLY in information_needed.field anchors — never in prose. Canonical forms already used in these instructions ('the record supplied to this assessment', 'the record as it stands') conform and remain verbatim.",
+    "FRAMEWORK FIDELITY (REBUILD-LIA T1b/c): the frameworks applied are those the RECORDED jurisdictions actually engage — the injected ENGAGED FRAMEWORKS block is authoritative. Anchor the three-part LI test per engaged framework: EU-engaged → GDPR Article 6(1)(f) + EDPB Guidelines 1/2024; UK-engaged → UK GDPR Article 6(1)(f) + ICO legitimate-interests guidance (EDPB Guidelines 1/2024 cited only as labelled 'persuasive comparative'); US-Federal / California → CCPA/CPRA analysis including sensitive-PI provisions (Cal. Civ. Code § 1798.121 right to limit; § 1798.140(ae) sensitive PI) where the record flags them, with FTC Section 5 unfairness/deception where relevant; Canada → PIPEDA appropriate-purposes / reasonable-person test (s. 5(3)) with an OPC 'legitimate business interest' framing where applicable. Non-engaged frameworks appear ONLY as labelled comparatives. Where the record engages NO EU/UK jurisdiction, GDPR articles NEVER appear as operative authority — cite the engaged framework's own provisions. Blocking issues, recommendations, and information_needed provisions MUST speak the engaged framework's language (e.g. do NOT tell a US-only retailer to document 'Article 9 conditions' or 'Article 21(1) rights'; use the engaged framework's equivalents).",
+    "TEST-STATES ARE INTERNAL VOCABULARY (leg-(b) 2026-07-11; REBUILD-LIA T4): the TEST-STATES machinery is internal — its tokens NEVER appear in any user-facing field. Do NOT emit the literal string 'TEST-STATES', the test ids (M1, M6, M9, …), or the state tokens (resolved, resolved_met, resolved_not_met, RESOLVED_MET, INDETERMINATE, CANDIDATE) anywhere in test analyses, strength_basis, blocking_issues, information_needed, documentation_recommendations, or any other user-visible output. Refer to determinations by their HUMAN name: M1→'the relationship determination', M2→'the jurisdictions determination', M3→'the data-categories determination', M4→'the special-category determination', M5→'the vulnerable-subjects determination', M6→'the alternatives review', M7→'the safeguards review', M8→'the opt-out review', M9→'the reasonable-expectation review', M10→'the potential-harm review', M11→'the employment-context review'. State the conclusion with its factual basis — never '(M6 resolved met)' or 'per TEST-STATES M6'.",
 ].join("\n\n");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -249,6 +254,182 @@ export function renderLiaTestStatesBlock(states: Record<string, LiaTestStateEntr
     lines.push(`- ${id} state=${e.state} basis="${e.basis}" source_fields=${JSON.stringify(e.source_fields)}`);
   }
   return lines.join("\n");
+}
+
+// REBUILD-LIA T1(a) — derive engaged frameworks from RECORDED intake
+// jurisdictions (LIAssessment.enums.ts JURISDICTIONS values). No semantic
+// defaults; unrecognised values fall through to OTHER only.
+export type LiaFramework =
+  | "EU_GDPR" | "UK_GDPR" | "US_FEDERAL" | "US_CALIFORNIA"
+  | "US_OTHER_STATES" | "CANADA_PIPEDA" | "BRAZIL_LGPD"
+  | "AUSTRALIA_PRIVACY_ACT" | "SINGAPORE_PDPA" | "OTHER";
+
+export function deriveEngagedFrameworks(jurisdictions: unknown): LiaFramework[] {
+  const arr = Array.isArray(jurisdictions) ? jurisdictions : [];
+  const out = new Set<LiaFramework>();
+  for (const raw of arr) {
+    const j = String(raw ?? "").trim();
+    if (!j) continue;
+    // EXACT-first match against LIAssessment.enums.ts JURISDICTIONS options.
+    if (/^EU\b|^EU \(GDPR\)|GDPR/i.test(j) && !/UK|United Kingdom/i.test(j)) out.add("EU_GDPR");
+    if (/UK|United Kingdom/i.test(j)) out.add("UK_GDPR");
+    if (/United States\s*[—-]\s*Federal|US[-\s]?Federal/i.test(j)) out.add("US_FEDERAL");
+    if (/California|CCPA|CPRA/i.test(j)) out.add("US_CALIFORNIA");
+    if (/Other US States/i.test(j)) out.add("US_OTHER_STATES");
+    if (/^Canada$|PIPEDA/i.test(j)) out.add("CANADA_PIPEDA");
+    if (/Brazil|LGPD/i.test(j)) out.add("BRAZIL_LGPD");
+    if (/^Australia$/i.test(j)) out.add("AUSTRALIA_PRIVACY_ACT");
+    if (/^Singapore$|PDPA/i.test(j)) out.add("SINGAPORE_PDPA");
+    if (/^Other$/i.test(j)) out.add("OTHER");
+  }
+  return Array.from(out);
+}
+
+// REBUILD-LIA T1(b) — user-facing "jurisdictions_scope" derived from engaged
+// frameworks. This is the field the reconciler stamps onto classification.
+export function frameworksToScopeStrings(fs: LiaFramework[]): string[] {
+  const map: Record<LiaFramework, string> = {
+    EU_GDPR: "EU (GDPR)",
+    UK_GDPR: "United Kingdom (UK GDPR)",
+    US_FEDERAL: "United States — Federal",
+    US_CALIFORNIA: "California (CCPA/CPRA)",
+    US_OTHER_STATES: "Other US States",
+    CANADA_PIPEDA: "Canada (PIPEDA)",
+    BRAZIL_LGPD: "Brazil (LGPD)",
+    AUSTRALIA_PRIVACY_ACT: "Australia (Privacy Act 1988)",
+    SINGAPORE_PDPA: "Singapore (PDPA)",
+    OTHER: "Other",
+  };
+  return fs.map((f) => map[f]).filter(Boolean);
+}
+
+// REBUILD-LIA T4 — M1–M11 human-name rewrite map. Applied as a
+// deterministic post-generation scrub on user-facing string fields so the
+// internal TEST-STATES vocabulary never reaches the report.
+export const LIA_M_HUMAN_MAP: Record<string, string> = {
+  M1: "the relationship determination",
+  M2: "the jurisdictions determination",
+  M3: "the data-categories determination",
+  M4: "the special-category determination",
+  M5: "the vulnerable-subjects determination",
+  M6: "the alternatives review",
+  M7: "the safeguards review",
+  M8: "the opt-out review",
+  M9: "the reasonable-expectation review",
+  M10: "the potential-harm review",
+  M11: "the employment-context review",
+};
+
+// State tokens rewritten to plain conclusions (shared token family with
+// dpia/risk). Applied by applyDeterministicPostGenFallbackLia below.
+const LIA_STATE_TOKEN_REWRITES: Array<[RegExp, string]> = [
+  [/\bRESOLVED_MET\b/g, "resolved on the record"],
+  [/\bRESOLVED_NOT_MET\b/g, "resolved on the record (not met)"],
+  [/\bRESOLVED_NOT_APPLICABLE\b/g, "not applicable on the record"],
+  [/\bresolved_met\b/g, "resolved on the record"],
+  [/\bresolved_not_met\b/g, "resolved on the record (not met)"],
+  [/\bresolved_not_applicable\b/g, "not applicable on the record"],
+  [/\bINDETERMINATE\b/gi, "not yet resolved on the record"],
+  [/\bCANDIDATE\b/g, "candidate"],
+  [/\bTEST-STATES\b/g, "the deterministic-state block"],
+];
+
+const LIA_RESOLVED_SOURCE_ASK_KEYS = new Set([
+  "relationship_type", "jurisdictions", "data_categories",
+  "balancing_details.special_category_data", "balancing_details.vulnerable_subjects",
+  "alternatives_considered", "necessity_details.alternatives",
+  "balancing_details.safeguards", "balancing_details.opt_out_mechanism",
+  "balancing_details.reasonable_expectation", "balancing_details.potential_harm",
+]);
+
+export interface LiaFallbackResult {
+  applied: boolean;
+  notes: Array<{ code: string; detail?: string }>;
+  residualAsks: number;
+}
+
+// Walks strings and rewrites tokens + M1–M11 references. Also strips
+// information_needed entries whose .field re-asks a RESOLVED source field.
+export function applyDeterministicPostGenFallbackLia(
+  report: any,
+  liaTestStates: Record<string, LiaTestStateEntry>,
+): LiaFallbackResult {
+  const notes: Array<{ code: string; detail?: string }> = [];
+  let applied = false;
+
+  const rewrite = (s: string): string => {
+    let out = s;
+    for (const [re, sub] of LIA_STATE_TOKEN_REWRITES) out = out.replace(re, sub);
+    // Replace parentheticals like "(M6 resolved)" first
+    out = out.replace(/\(\s*(M(?:1[01]|[1-9]))\b[^)]*\)/g, (_m, id) => LIA_M_HUMAN_MAP[id] ?? "");
+    // Replace bare Mn tokens (word-boundary) with human name
+    out = out.replace(/\bM(1[01]|[1-9])\b/g, (_m, n) => {
+      const id = `M${n}`;
+      return LIA_M_HUMAN_MAP[id] ?? _m;
+    });
+    return out.replace(/\s{2,}/g, " ").trim();
+  };
+
+  const walk = (v: any, path: string): any => {
+    if (v == null) return v;
+    if (typeof v === "string") {
+      const before = v;
+      const after = rewrite(v);
+      if (after !== before) { applied = true; }
+      return after;
+    }
+    if (Array.isArray(v)) return v.map((x, i) => walk(x, `${path}[${i}]`));
+    if (typeof v === "object") {
+      // Skip machine-only chrome
+      if (/^(_meta|lint_warnings|enforcement_meta|gdpr_meta|annotations)$/.test(path.split(".").pop() ?? "")) return v;
+      const out: any = {};
+      for (const [k, val] of Object.entries(v)) out[k] = walk(val, path ? `${path}.${k}` : k);
+      return out;
+    }
+    return v;
+  };
+
+  // Scrub three_part_test + docs branches; do not touch _meta / lint chrome.
+  if (report?.three_part_test) report.three_part_test = walk(report.three_part_test, "three_part_test");
+  if (report?.documentation_recommendations) report.documentation_recommendations = walk(report.documentation_recommendations, "documentation_recommendations");
+
+  // Strip resolved-source asks from information_needed (top-level).
+  let residualAsks = 0;
+  if (Array.isArray(report?.information_needed)) {
+    const before = report.information_needed.length;
+    const resolvedIds = new Set(
+      Object.entries(liaTestStates)
+        .filter(([, s]) => s.state === "resolved_met" || s.state === "resolved_not_met")
+        .map(([id]) => id),
+    );
+    const M_TO_FIELDS: Record<string, string[]> = {
+      M1: ["relationship_type"],
+      M2: ["jurisdictions"],
+      M3: ["data_categories"],
+      M4: ["balancing_details.special_category_data"],
+      M5: ["balancing_details.vulnerable_subjects"],
+      M6: ["alternatives_considered", "necessity_details.alternatives"],
+      M7: ["balancing_details.safeguards"],
+      M8: ["balancing_details.opt_out_mechanism"],
+      M9: ["balancing_details.reasonable_expectation"],
+      M10: ["balancing_details.potential_harm"],
+    };
+    const bannedFields = new Set<string>();
+    for (const id of resolvedIds) for (const f of (M_TO_FIELDS[id] ?? [])) bannedFields.add(f);
+    report.information_needed = report.information_needed.filter((it: any) => {
+      const f = String(it?.field ?? "").trim();
+      if (f && (bannedFields.has(f) || LIA_RESOLVED_SOURCE_ASK_KEYS.has(f) && resolvedIds.size > 0 && bannedFields.has(f))) {
+        applied = true;
+        notes.push({ code: "resolved_source_ask_stripped", detail: f });
+        return false;
+      }
+      return true;
+    });
+    residualAsks = report.information_needed.length;
+    if (before !== residualAsks) applied = true;
+  }
+
+  return { applied, notes, residualAsks };
 }
 
 
@@ -432,11 +613,19 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const t1Start = Date.now();
     const today = new Date().toISOString().slice(0, 10);
 
-    // Determine jurisdiction for GDPR authority retrieval (UK if any verified
-    // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
+    // REBUILD-LIA T1(a): jurisdictions_scope is derived from the RECORDED intake
+    // jurisdictions, never from a semantic/EU default. The previous path let a
+    // US-only intake fall through to gdprJurisdiction="eu" and the reconciler
+    // then stamped classification.jurisdictions_scope = ["EU","EEA"]. Fix at
+    // source: enumerate the frameworks the intake actually engages.
     const liaJurisdictions: string[] = Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : [];
-    const isUk = liaJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
-    const isEu = liaJurisdictions.some((j: string) => /eu|gdpr|european/i.test(String(j))) && !isUk;
+    const engagedFrameworks = deriveEngagedFrameworks(liaJurisdictions);
+    const isUk = engagedFrameworks.includes("UK_GDPR");
+    const isEu = engagedFrameworks.includes("EU_GDPR");
+    // GDPR-context retrieval jurisdiction: only meaningful when EU/UK engaged.
+    // For non-EU/UK-only intakes we still resolve to "eu" for the retriever's
+    // required enum, but the analysis prompt is instructed not to cite GDPR
+    // articles as operative authority in that case (FRAMEWORK FIDELITY rule).
     const gdprJurisdiction: "eu" | "uk" = isUk ? "uk" : "eu";
     // Regime gates which enforcement precedents the LIA may cite. UK runs only
     // see UK GDPR / DPA 2018; EU runs only see EU/EEA GDPR enforcement.
@@ -445,7 +634,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     if (enforcementRegime !== "gdpr" && enforcementRegime !== "uk_gdpr") {
       throw new Error(`[LIA] invalid enforcementRegime '${enforcementRegime}' — must be 'gdpr' or 'uk_gdpr'`);
     }
-    const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
+    const regimeLabel = isUk ? "UK GDPR" : (isEu ? "EU GDPR" : "the engaged framework(s)");
 
     const classifySystemBlocks = buildSystemContent({
       toolModule: LIA_CLASSIFY_TOOL_MODULE,
@@ -542,21 +731,16 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const gdprBlock: string = (gdprCtxResult as any)?.block || "";
     const gdprMeta: any = (gdprCtxResult as any)?.meta || { attempted: false };
 
-    // Open-queue #5 — deterministically reconcile the model-emitted
-    // classification.jurisdictions_scope with the RESOLVED jurisdiction so the
-    // report never presents a framework that was not actually applied. The GDPR
-    // context resolver returns jurisdiction strictly as "eu" | "uk"; a UK
-    // assessment may cite retained-EU-law equivalents but is a single-framework
-    // UK GDPR analysis, not a separate EU GDPR application.
+    // REBUILD-LIA T1(a/b) — deterministically reconcile the model-emitted
+    // classification.jurisdictions_scope with the ENGAGED FRAMEWORKS derived
+    // from the RECORDED intake jurisdictions. This overrides any semantic/EU
+    // default the classifier LLM may have produced. gdpr_meta continues to
+    // carry the retriever's eu|uk resolution for citation-supply purposes.
     {
-      const resolvedJur = String(gdprMeta?.jurisdiction || "").toLowerCase();
-      const reconciledScope =
-        resolvedJur === "uk" ? ["UK"] :
-        resolvedJur === "eu" ? ["EU", "EEA"] : null;
-      if (reconciledScope) {
-        classification.jurisdictions_scope = reconciledScope;
-        gdprMeta.jurisdictions_scope = reconciledScope;
-      }
+      const scope = frameworksToScopeStrings(engagedFrameworks);
+      classification.jurisdictions_scope = scope;
+      gdprMeta.jurisdictions_scope = scope;
+      gdprMeta.engaged_frameworks = engagedFrameworks;
     }
 
     // Fetch precedents from li_tracker_entries
@@ -606,10 +790,37 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       jurisdictions: liaJurisdictions,
     });
 
+    // REBUILD-LIA T1(b/c) — authoritative ENGAGED FRAMEWORKS block. The model
+    // is required to anchor per engaged framework and to treat non-engaged
+    // frameworks as labelled comparatives only.
+    const engagedFrameworksBlock = (() => {
+      const anchors: Record<LiaFramework, string> = {
+        EU_GDPR: "EU (GDPR): Article 6(1)(f) GDPR + EDPB Guidelines 1/2024 (three-step assessment II.A–II.C); operative authority.",
+        UK_GDPR: "UK (UK GDPR): UK GDPR Article 6(1)(f) + ICO legitimate-interests guidance (primary UK reference); EDPB Guidelines 1/2024 cited only as persuasive comparative post-Brexit; note Data (Use and Access) Act 2025 where relevant.",
+        US_FEDERAL: "United States — Federal: CCPA/CPRA does not apply federally; the operative federal frame is FTC Section 5 (unfairness/deception) plus any sectoral statute (GLBA, HIPAA, COPPA) engaged by the record. GDPR articles NEVER appear as operative authority for a US-Federal-only leg.",
+        US_CALIFORNIA: "California (CCPA/CPRA): analyse under Cal. Civ. Code § 1798.100 et seq., including § 1798.121 (right to limit use/disclosure of sensitive PI) and § 1798.140(ae) (sensitive PI definition) where the record flags such data; consumer rights (§ 1798.105 delete, § 1798.106 correct, § 1798.110 know, § 1798.120 opt-out of sale/share) frame the equivalent of GDPR objection. GDPR articles NEVER appear as operative authority for a California-only leg.",
+        US_OTHER_STATES: "Other US States: analyse under the specific state statute engaged by the record (VCDPA, CPA, CTDPA, UCPA, TDPSA, etc.); state which state law is being applied. GDPR articles NEVER appear as operative authority.",
+        CANADA_PIPEDA: "Canada (PIPEDA): analyse under the appropriate-purposes / reasonable-person test (PIPEDA s. 5(3)) and OPC guidance on legitimate business interest where applicable; consent-forward regime — a PIPEDA-only leg does not use GDPR Article 6(1)(f).",
+        BRAZIL_LGPD: "Brazil (LGPD): analyse under LGPD Art. 7, VI (legítimo interesse) with Art. 10 requirements (concrete situation, specific purposes, safeguards); ANPD guidance where applicable.",
+        AUSTRALIA_PRIVACY_ACT: "Australia (Privacy Act 1988): analyse under the Australian Privacy Principles (APPs), particularly APP 3 (collection) and APP 6 (use/disclosure); no direct GDPR-style legitimate-interests basis.",
+        SINGAPORE_PDPA: "Singapore (PDPA): analyse under the Personal Data Protection Act 2012 legitimate interests exception (First Schedule, Part 3) with the reasonableness assessment.",
+        OTHER: "Other: analyse under the framework the record names in narrative; do not import GDPR articles as operative authority.",
+      };
+      const lines: string[] = [];
+      lines.push("ENGAGED FRAMEWORKS (authoritative — computed from the recorded intake jurisdictions). Anchor the three-part LI test per engaged framework and treat non-engaged frameworks as labelled comparatives only. Where NO EU/UK jurisdiction is engaged, GDPR articles MUST NOT appear as operative authority. Blocking issues, recommendations, and information_needed provisions MUST speak the engaged framework's language.");
+      if (engagedFrameworks.length === 0) {
+        lines.push("- (no framework derived from the record; refuse to invent one and record this in information_needed with field='jurisdictions')");
+      } else {
+        for (const f of engagedFrameworks) lines.push(`- ${f}: ${anchors[f]}`);
+      }
+      return lines.join("\n");
+    })();
+
     const analysisInjected = [
-      gdprCitations,
+      engagedFrameworksBlock,
+      (isEu || isUk) ? gdprCitations : "",
       enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
-      gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
+      (isEu || isUk) && gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
       ukGuidanceFraming,
       liaTestStatesBlock,
     ].filter(Boolean).join("\n\n");
@@ -1010,6 +1221,36 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     }
     for (const v of t234Violations) lintViolations.push(v);
 
+    // REBUILD-LIA T2(e) — HARD PROSE BLACKLIST detection (five verdict-collapse
+    // phrases banned in user-facing prose). LIA's existing retry path is
+    // full-regeneration under runStage2 with a suffix; we reuse it once, then
+    // fall through to lint-only shipping if still hitting.
+    let blacklistRetryUsed = false;
+    let blacklistResidualHits = 0;
+    {
+      const hits = detectBlacklistPhrases(analysis);
+      if (hits.length > 0) {
+        console.warn(JSON.stringify({ evt: "blacklist_detected", fn: "run-li-assessment", count: hits.length, sample: hits.slice(0, 4) }));
+        try {
+          const retry = await runStage2(formatBlacklistRetrySuffix(hits));
+          const parsed = parseLlmJson(retry.text);
+          if (parsed) {
+            analysis = parsed;
+            lintAnalysis(analysis);
+            blacklistRetryUsed = true;
+          }
+        } catch (e) {
+          console.warn("[LIA] blacklist retry failed (non-fatal):", e);
+        }
+        const residual = detectBlacklistPhrases(analysis);
+        blacklistResidualHits = residual.length;
+        for (const h of residual) {
+          lintViolations.push({ code: "blacklist_phrase_shipped", field: h.path, detail: h.context });
+        }
+      }
+    }
+
+
 
 
 
@@ -1044,10 +1285,10 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     // Always attach a plain-language note explaining the argument-strength rating
     // so end users (especially non-specialists) understand what "uncertain" means.
     const STRENGTH_NOTES: Record<string, string> = {
-      strong: "Strong: the facts and precedents available support a defensible legitimate-interest claim.",
-      moderate: "Moderate: legitimate interest is plausibly available but rests on contested or fact-sensitive points; resolve open questions before deployment.",
-      weak: "Weak: significant factors weigh against a legitimate-interest claim on the facts provided; consider an alternative legal basis or additional safeguards.",
-      insufficient: "Insufficient: not enough information has been provided to reach a verdict; supply the open-question items and re-run.",
+      strong: "Strong: on the record as it stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
+      moderate: "Moderate: the record supports a colorable legitimate-interest argument on named recorded facts; the items in Information Needed would strengthen it before deployment.",
+      weak: "Weak: the record establishes some elements of the three-part test; the items in Information Needed would need to be recorded before a defensible legitimate-interest argument can be made.",
+      insufficient: "The record as it stands does not yet establish a defensible legitimate-interest claim; the items listed under Information Needed would complete the record.",
       uncertain: "Uncertain: blocking issues have been identified that must be resolved before a defensible LI claim can be established — this does NOT mean legitimate interest is categorically unavailable.",
     };
     oa.argument_strength_note = STRENGTH_NOTES[oa.argument_strength] ?? STRENGTH_NOTES.uncertain;
@@ -1162,6 +1403,28 @@ Return JSON:
     const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
+
+    // REBUILD-LIA T4 — deterministic post-gen scrub: M1–M11 token → human map,
+    // state-token rewrites, and resolved-source ask strip. Mirrors the
+    // dpia/risk family.
+    const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);
+    const finalBlacklistHits = detectBlacklistPhrases(reportData).length;
+    logPostGenLint(supabase, {
+      functionName: "run-li-assessment",
+      fallbackApplied: liaFallback.applied,
+      retryWithinBudget: blacklistRetryUsed,
+      residualLeaks: finalBlacklistHits,
+      residualResolvedAsks: liaFallback.residualAsks,
+      notes: [
+        ...liaFallback.notes,
+        ...(blacklistResidualHits > 0 ? [{ code: "blacklist_residual", detail: String(blacklistResidualHits) }] : []),
+        { code: "engaged_frameworks", detail: engagedFrameworks.join(",") || "none" },
+      ],
+      sourceTable: "li_assessments",
+      sourceRowId: assessment_id,
+    });
+
+
 
 
 
