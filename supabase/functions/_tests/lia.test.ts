@@ -94,3 +94,105 @@ Deno.test("enforcement regime guard — only 'gdpr' or 'uk_gdpr' permitted (stri
   assert(allowed.includes("uk_gdpr"));
   assert(!allowed.includes("ccpa"));
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// REBUILD-LIA acceptance tests
+// ─────────────────────────────────────────────────────────────────────────
+
+Deno.test("REBUILD-LIA T1(a): US-only intake yields no EU/UK scope", () => {
+  const fs = deriveEngagedFrameworks(["California (CCPA/CPRA)", "United States — Federal"]);
+  assert(fs.includes("US_CALIFORNIA"));
+  assert(fs.includes("US_FEDERAL"));
+  assert(!fs.includes("EU_GDPR"));
+  assert(!fs.includes("UK_GDPR"));
+  const scope = frameworksToScopeStrings(fs);
+  assert(!scope.some((s) => /^EU\b|EEA/.test(s)), "US-only intake must not scope to EU/EEA");
+});
+
+Deno.test("REBUILD-LIA T1(a): EU-only intake scopes to EU only", () => {
+  const fs = deriveEngagedFrameworks(["EU (GDPR)"]);
+  assertEquals(fs, ["EU_GDPR"]);
+});
+
+Deno.test("REBUILD-LIA T1(a): mixed EU/UK/CA intake preserves all engaged frameworks", () => {
+  const fs = deriveEngagedFrameworks(["EU (GDPR)", "United Kingdom (UK GDPR)", "Canada"]);
+  assert(fs.includes("EU_GDPR"));
+  assert(fs.includes("UK_GDPR"));
+  assert(fs.includes("CANADA_PIPEDA"));
+});
+
+Deno.test("REBUILD-LIA T1(a): empty intake yields empty scope (no default)", () => {
+  assertEquals(deriveEngagedFrameworks([]), []);
+  assertEquals(deriveEngagedFrameworks(null as unknown as string[]), []);
+});
+
+Deno.test("REBUILD-LIA T4: deterministic scrub rewrites M1–M11 tokens to human names", () => {
+  const report: any = {
+    three_part_test: {
+      purpose_test: { analysis: "Per M6 resolved_met the alternatives review is concluded; TEST-STATES binding." },
+      overall_assessment: {
+        strength_basis: "M8 resolved_met and M9 INDETERMINATE.",
+        blocking_issues: ["(M6 resolved) confirms alternatives"],
+      },
+    },
+    information_needed: [],
+  };
+  const states = computeLiaTestStates({ balancing_details: { opt_out_mechanism: "yes" }, necessity_details: { alternatives: "considered A/B/C" } });
+  const r = applyDeterministicPostGenFallbackLia(report, states);
+  assert(r.applied);
+  const flat = JSON.stringify(report);
+  assert(!/\bM6\b/.test(flat), `M6 leaked: ${flat}`);
+  assert(!/TEST-STATES/.test(flat));
+  assert(!/RESOLVED_MET|INDETERMINATE/i.test(flat));
+  assert(flat.includes(LIA_M_HUMAN_MAP.M6));
+});
+
+Deno.test("REBUILD-LIA T4: resolved-source asks stripped from information_needed", () => {
+  const states = computeLiaTestStates({
+    balancing_details: { safeguards: ["Encryption"], opt_out_mechanism: "yes" },
+    necessity_details: { alternatives: "considered A" },
+    relationship_type: "Existing customer",
+  });
+  const report: any = {
+    information_needed: [
+      { field: "alternatives_considered", dimensions: "list of alternatives" },
+      { field: "balancing_details.safeguards", dimensions: "safeguards" },
+      { field: "processing_description", dimensions: "the description" },
+    ],
+  };
+  applyDeterministicPostGenFallbackLia(report, states);
+  const fields = report.information_needed.map((it: any) => it.field);
+  assert(!fields.includes("alternatives_considered"), "resolved M6 ask must be stripped");
+  assert(!fields.includes("balancing_details.safeguards"), "resolved M7 ask must be stripped");
+  assert(fields.includes("processing_description"), "non-resolved asks preserved");
+});
+
+Deno.test("REBUILD-LIA T2: STRENGTH_NOTES.insufficient copy replaced with completion-path form", () => {
+  // The exported STRENGTH_NOTES is defined inside runAssessment; assert the
+  // canonical string appears verbatim in the module source, since it is the
+  // user-facing display copy shipped in report_data.
+  const src = Deno.readTextFileSync(new URL("../run-li-assessment/index.ts", import.meta.url));
+  assertStringIncludes(src, "The record as it stands does not yet establish a defensible legitimate-interest claim");
+  assertStringIncludes(src, "the items listed under Information Needed would complete the record");
+  // Old copy must be gone
+  assert(!/Insufficient: not enough information has been provided to reach a verdict/.test(src));
+});
+
+Deno.test("REBUILD-LIA T2/T3: prompt carries advocate-drafter, canonical-record, framework-fidelity rules", () => {
+  const blocks = buildSystemContent({ toolModule: LIA_ANALYSIS_TOOL_MODULE, currentDate: today });
+  const all = blocks.map((b) => b.text).join("\n");
+  assertStringIncludes(all, "ADVOCATE-DRAFTER VOICE");
+  assertStringIncludes(all, "CANONICAL RECORD REFERENCE");
+  assertStringIncludes(all, "FRAMEWORK FIDELITY");
+  // Banned prose phrases enumerated
+  assertStringIncludes(all, "'insufficient basis'");
+});
+
+Deno.test("REBUILD-LIA T2(e): blacklist detector catches ban phrases in prose", () => {
+  const hits = detectBlacklistPhrases({
+    three_part_test: {
+      overall_assessment: { blocking_issues: ["There is an insufficient basis to conclude."] },
+    },
+  });
+  assert(hits.length > 0);
+});
