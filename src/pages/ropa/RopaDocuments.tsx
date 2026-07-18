@@ -216,26 +216,12 @@ export default function RopaDocuments() {
   const handleDownload = async (doc: DocVersion) => {
     setDownloadingId(doc.id);
     try {
-      const { error: genError } = await supabase.functions.invoke("generate-ropa-document", {
-        body: { session_id: doc.session_id, format: doc.document_format },
+      const { data: downloadData, error: genError } = await supabase.functions.invoke("generate-ropa-document", {
+        body: { session_id: doc.session_id, format: doc.document_format, download_only: true },
       });
       if (genError) throw genError;
 
-      const terminal = await pollSessionUntilTerminal(doc.session_id);
-      if (terminal.outcome === "failed") {
-        throw new Error(terminal.error?.trim() || "Generation failed — please try again.");
-      }
-      if (terminal.outcome === "timeout") throw new Error("Generation timed out. Please try again.");
-
-      // Read the freshly written signed URL from the version row.
-      const { data: ver } = await supabase
-        .from("ropa_document_versions")
-        .select("last_signed_url")
-        .eq("session_id", doc.session_id)
-        .eq("document_format", doc.document_format)
-        .eq("is_current", true)
-        .maybeSingle();
-      const signedUrl = (ver as { last_signed_url?: string } | null)?.last_signed_url;
+      const signedUrl = (downloadData as { download_url?: string } | null)?.download_url;
       if (!signedUrl) throw new Error("No signed URL");
 
       const response = await fetch(signedUrl);
