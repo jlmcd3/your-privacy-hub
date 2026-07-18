@@ -19,7 +19,7 @@ import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
 
 
-type GenStep = "client" | "activities" | "transfers" | "pdf" | "xlsx";
+type GenStep = "client" | "activities" | "transfers" | "pdf";
 
 const SUPA = supabase as any;
 
@@ -59,8 +59,6 @@ export default function RopaReview() {
   const [docDate, setDocDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [authorName, setAuthorName] = useState("");
   const [internalRef, setInternalRef] = useState("");
-  
-  const [includeExcel] = useState(true);
 
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackHighlight, setAckHighlight] = useState(false);
@@ -74,7 +72,6 @@ export default function RopaReview() {
     activities: "pending",
     transfers: "pending",
     pdf: "pending",
-    xlsx: "pending",
   });
   const { toast } = useToast();
 
@@ -205,10 +202,8 @@ export default function RopaReview() {
       activities: "pending",
       transfers: "pending",
       pdf: "pending",
-      xlsx: "pending",
     });
     const updates: GenStep[] = ["client", "activities", "transfers", "pdf"];
-    if (includeExcel) updates.push("xlsx");
 
     // Optimistic step ticks for visual pacing while the server works.
     if (tickTimerRef.current) clearInterval(tickTimerRef.current);
@@ -228,7 +223,6 @@ export default function RopaReview() {
           document_date: docDate,
           author_name: authorName,
           internal_reference: internalRef || null,
-          include_excel: includeExcel,
         },
       });
       if (error) {
@@ -258,7 +252,6 @@ export default function RopaReview() {
         activities: "done",
         transfers: "done",
         pdf: "done",
-        xlsx: includeExcel ? "done" : "pending",
       });
       if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
       navigateTimerRef.current = setTimeout(
@@ -287,7 +280,7 @@ export default function RopaReview() {
       if (tickTimerRef.current) { clearInterval(tickTimerRef.current); tickTimerRef.current = null; }
       // Modal keeps showing but swaps to GenerationStalledCard (see render).
     }
-  }, [genPhase, generating, sessionId, includeExcel, navigate, currentSession?.id, toast]);
+  }, [genPhase, generating, sessionId, navigate, currentSession?.id, toast]);
 
   useEffect(() => () => {
     if (tickTimerRef.current) clearInterval(tickTimerRef.current);
@@ -556,7 +549,7 @@ export default function RopaReview() {
                   <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
                   <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
                   <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
-                  {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
+                  
                 </ul>
               </>
             )}
