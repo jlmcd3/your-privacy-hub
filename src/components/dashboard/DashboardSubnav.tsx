@@ -9,7 +9,7 @@
 // null) and the route is exactly /account.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { Settings, Building2 } from "lucide-react";
+import { Settings, Building2, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import {
