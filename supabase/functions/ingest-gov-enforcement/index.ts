@@ -479,17 +479,26 @@ Deno.serve(async (req) => {
       const md = await jinaFetch(src.url);
       let actions = extractActions(md, src);
 
-      // FTC cases-and-proceedings index pages: filter to real case-detail links
-      // (nav, footer, blog, and policy links share the ftc.gov host).
+      // FTC cases-and-proceedings index pages: filter to real case-detail
+      // links (nav, footer, blog, and policy links share the ftc.gov host).
+      // Uses the shared isFtcEnforcementUrl gate so the same rule protects
+      // the crawler and the corpus-cleanup path in us-ingest.ts.
       if (src.secondHop && src.source === "FTC") {
-        const enforcementRe = /^https:\/\/www\.ftc\.gov\/enforcement\/cases-proceedings\/\d{3}-\d{4}-[a-z0-9][^/?#]*\/?$/i;
-        const legalLibRe = /^https:\/\/www\.ftc\.gov\/legal-library\/browse\/cases-proceedings\/[a-z0-9][^/?#]*\/?$/i;
-        // Hub/landing pages under /legal-library/browse/cases-proceedings/ that
-        // are not real case-detail pages.
-        const hubRe = /\/cases-proceedings\/(closing-letters|commissioner-statements|adjudicative-proceedings|commission-letters|staff-letters|banned-debt-collectors|policy-statements)\/?$/i;
-        actions = actions.filter(
-          (a) => (enforcementRe.test(a.url) || legalLibRe.test(a.url)) && !hubRe.test(a.url),
-        );
+        const before = actions.length;
+        actions = actions.filter((a) => isFtcEnforcementUrl(a.url));
+        console.log(`FTC url gate: ${before} -> ${actions.length}`);
+      }
+
+      // HHS OCR: only /hipaa/for-professionals/compliance-enforcement/
+      // {agreements,examples,enforcement-highlights,enforcement-by-state}/
+      // case pages are enforcement. Everything else (nav, grant pages,
+      // accessibility statements, news, index landing pages) is dropped.
+      // This is the ENF-1c gate — prevents the legacy junk that populated
+      // 302 HHS OCR rows from being re-ingested after cleanup.
+      if (src.source === "HHS-OCR") {
+        const before = actions.length;
+        actions = actions.filter((a) => isHhsOcrEnforcementUrl(a.url));
+        console.log(`HHS-OCR url gate: ${before} -> ${actions.length}`);
       }
 
       // Generalist press-release feeds: keep only privacy-relevant titles.
