@@ -1,4 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  startFunctionRun,
+  finishFunctionRun,
+  failFunctionRun,
+} from "../_shared/function-run-logger.ts";
+
+// BUILD_STAMP: brief-model-1-hf2 @ 2026-07-18
+// HF2: return 202 immediately and orchestrate weekly chain inside
+// EdgeRuntime.waitUntil to escape the 150s gateway idle-timeout that killed
+// the weekly chain on 2026-07-13 (net._http_response 04:51 IDLE_TIMEOUT).
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,8 +33,8 @@ async function callFn(
       Authorization: `Bearer ${ADMIN_SECRET}`,
     },
     body: JSON.stringify(body),
-    // 4-minute timeout per user invocation – covers 3 API calls with margin
-    signal: AbortSignal.timeout(240_000),
+    // Background runner - allow up to 8 minutes per callee.
+    signal: AbortSignal.timeout(480_000),
   });
   const text = await resp.text();
   return { status: resp.status, body: text.slice(0, 500) };
@@ -32,6 +42,202 @@ async function callFn(
 
 async function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms));
+}
+
+// Poll weekly_briefs for a row created after t0. Returns row id or null.
+async function waitForWeeklyBrief(t0Iso: string): Promise<string | null> {
+  const maxMs = 8 * 60 * 1000;
+  const intervalMs = 15_000;
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const { data, error } = await supabase
+      .from("weekly_briefs")
+      .select("id, created_at")
+      .gt("created_at", t0Iso)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (!error && data && data.length > 0) return data[0].id as string;
+    await sleep(intervalMs);
+  }
+  return null;
+}
+
+async function runWeeklyChain(generateOnly: boolean) {
+  const t0Iso = new Date().toISOString();
+  const run = await startFunctionRun(supabase, "cron-generate-briefs", {
+    invokedBy: "cron",
+    metadata: {
+      event: "brief_chain",
+      target: "weekly",
+      generate_only: generateOnly,
+      t0: t0Iso,
+    },
+  });
+  try {
+    const gen = await callFn("generate-weekly-brief");
+    if (gen.status !== 200) {
+      await failFunctionRun(supabase, run, new Error(`generate-weekly-brief HTTP ${gen.status}`), {
+        metadata: {
+          event: "brief_chain",
+          outcome: "generate_failed",
+          target: "weekly",
+          generate_only: generateOnly,
+          t0: t0Iso,
+          gen_status: gen.status,
+          gen_body: gen.body,
+        },
+      });
+      return;
+    }
+
+    if (generateOnly) {
+      await finishFunctionRun(supabase, run, {
+        status: "success",
+        metadata: {
+          event: "brief_chain",
+          outcome: "generated",
+          target: "weekly",
+          generate_only: true,
+          t0: t0Iso,
+        },
+      });
+      return;
+    }
+
+    const briefId = await waitForWeeklyBrief(t0Iso);
+    if (!briefId) {
+      await failFunctionRun(supabase, run, new Error("weekly_briefs row did not appear within 8m"), {
+        metadata: {
+          event: "brief_chain",
+          outcome: "generate_timeout",
+          target: "weekly",
+          t0: t0Iso,
+        },
+      });
+      return;
+    }
+
+    const send = await callFn("send-weekly-brief");
+    if (send.status !== 200) {
+      await failFunctionRun(supabase, run, new Error(`send-weekly-brief HTTP ${send.status}`), {
+        metadata: {
+          event: "brief_chain",
+          outcome: "send_failed",
+          target: "weekly",
+          t0: t0Iso,
+          brief_id: briefId,
+          send_status: send.status,
+          send_body: send.body,
+        },
+      });
+      return;
+    }
+
+    await finishFunctionRun(supabase, run, {
+      status: "success",
+      metadata: {
+        event: "brief_chain",
+        outcome: "sent",
+        target: "weekly",
+        t0: t0Iso,
+        brief_id: briefId,
+      },
+    });
+  } catch (e) {
+    await failFunctionRun(supabase, run, e, {
+      metadata: {
+        event: "brief_chain",
+        outcome: "exception",
+        target: "weekly",
+        t0: t0Iso,
+      },
+    });
+  }
+}
+
+async function runCustomChain(generateOnly: boolean) {
+  const t0Iso = new Date().toISOString();
+  const run = await startFunctionRun(supabase, "cron-generate-briefs", {
+    invokedBy: "cron",
+    metadata: {
+      event: "brief_chain",
+      target: "custom",
+      generate_only: generateOnly,
+      t0: t0Iso,
+    },
+  });
+  try {
+    // NOTE (HF1 deviation #1 stands): generate-custom-brief does not yet
+    // support a generate_only passthrough; fan-out behavior is unchanged.
+    const { data: proUsers, error: usersError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("is_pro", true);
+
+    if (usersError) {
+      await failFunctionRun(supabase, run, usersError, {
+        metadata: { event: "brief_chain", outcome: "custom_query_failed", target: "custom", t0: t0Iso },
+      });
+      return;
+    }
+    if (!proUsers || proUsers.length === 0) {
+      await finishFunctionRun(supabase, run, {
+        status: "success",
+        metadata: {
+          event: "brief_chain",
+          outcome: "skipped",
+          target: "custom",
+          t0: t0Iso,
+          note: "No Pro subscribers found",
+          processed: 0, failed: 0, total: 0,
+        },
+      });
+      return;
+    }
+
+    const BATCH_SIZE = 10;
+    const BATCH_DELAY_MS = 4000;
+    let processed = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < proUsers.length; i += BATCH_SIZE) {
+      const batch = proUsers.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map(user => callFn("generate-custom-brief", { user_id: user.id }))
+      );
+      batchResults.forEach((result, idx) => {
+        if (result.status === "fulfilled" && result.value.status === 200) {
+          processed++;
+        } else {
+          failed++;
+          const msg = result.status === "rejected"
+            ? String(result.reason)
+            : `HTTP ${result.value.status}: ${result.value.body}`;
+          errors.push(`${batch[idx].id.slice(0, 8)}: ${msg.slice(0, 120)}`);
+          console.error(`Custom brief failed for user ${batch[idx].id}:`, msg);
+        }
+      });
+      if (i + BATCH_SIZE < proUsers.length) await sleep(BATCH_DELAY_MS);
+    }
+
+    await finishFunctionRun(supabase, run, {
+      status: failed > 0 ? "partial" : "success",
+      metadata: {
+        event: "brief_chain",
+        outcome: failed > 0 ? "custom_partial" : "sent",
+        target: "custom",
+        t0: t0Iso,
+        processed, failed, total: proUsers.length,
+        batches: Math.ceil(proUsers.length / BATCH_SIZE),
+        errors: errors.slice(0, 20),
+      },
+    });
+  } catch (e) {
+    await failFunctionRun(supabase, run, e, {
+      metadata: { event: "brief_chain", outcome: "exception", target: "custom", t0: t0Iso },
+    });
+  }
 }
 
 Deno.serve(async (req) => {
@@ -59,94 +265,18 @@ Deno.serve(async (req) => {
     url.searchParams.get("generate_only") === "true" ||
     bodyFlag;
 
-  try {
-    const results: Record<string, unknown> = { generate_only: generateOnly };
-
-    if (target === "weekly" || target === "all") {
-      results.weekly = await callFn("generate-weekly-brief");
-      if (!generateOnly) {
-        results.weekly_send = await callFn("send-weekly-brief");
-      }
+  // @ts-ignore EdgeRuntime is Supabase runtime global
+  EdgeRuntime.waitUntil((async () => {
+    try {
+      if (target === "weekly" || target === "all") await runWeeklyChain(generateOnly);
+      if (target === "custom" || target === "all") await runCustomChain(generateOnly);
+    } catch (e) {
+      console.error("cron-generate-briefs background error", e);
     }
+  })());
 
-    if (target === "custom" || target === "all") {
-      const { data: proUsers, error: usersError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("is_pro", true);
-
-      if (usersError) {
-        console.error("Failed to query Pro users:", usersError);
-        results.custom = { error: "Failed to query Pro users" };
-      } else if (!proUsers || proUsers.length === 0) {
-        results.custom = {
-          processed: 0, failed: 0, total: 0,
-          note: "No Pro subscribers found"
-        };
-      } else {
-        // Fan-out: one edge function invocation per user.
-        // Batch of 10 simultaneous Sonnet calls keeps within Anthropic Tier 3 limits.
-        // ~65s per user; 500 subscribers ~58 min, 1000 ~115 min.
-        const BATCH_SIZE = 10;
-        const BATCH_DELAY_MS = 4000;
-
-        let processed = 0;
-        let failed = 0;
-        const errors: string[] = [];
-
-        for (let i = 0; i < proUsers.length; i += BATCH_SIZE) {
-          const batch = proUsers.slice(i, i + BATCH_SIZE);
-
-          const batchResults = await Promise.allSettled(
-            batch.map(user =>
-              callFn("generate-custom-brief", { user_id: user.id })
-            )
-          );
-
-          batchResults.forEach((result, idx) => {
-            if (
-              result.status === "fulfilled" &&
-              result.value.status === 200
-            ) {
-              processed++;
-            } else {
-              failed++;
-              const msg =
-                result.status === "rejected"
-                  ? String(result.reason)
-                  : `HTTP ${result.value.status}: ${result.value.body}`;
-              errors.push(
-                `${batch[idx].id.slice(0, 8)}: ${msg.slice(0, 120)}`
-              );
-              console.error(
-                `Custom brief failed for user ${batch[idx].id}:`, msg
-              );
-            }
-          });
-
-          if (i + BATCH_SIZE < proUsers.length) {
-            await sleep(BATCH_DELAY_MS);
-          }
-        }
-
-        results.custom = {
-          processed,
-          failed,
-          total: proUsers.length,
-          batches: Math.ceil(proUsers.length / BATCH_SIZE),
-          errors: errors.slice(0, 20),
-        };
-      }
-    }
-
-    return new Response(JSON.stringify({ ok: true, results }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("cron-generate-briefs error", e);
-    return new Response(
-      JSON.stringify({ ok: false, error: String(e) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
+  return new Response(
+    JSON.stringify({ accepted: true, target, generate_only: generateOnly }),
+    { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 });
