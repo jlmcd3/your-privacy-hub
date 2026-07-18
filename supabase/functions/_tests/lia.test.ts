@@ -9,7 +9,13 @@ import {
   LIA_ANALYSIS_TOOL_MODULE,
   LIA_CLASSIFY_TOOL_MODULE,
   LIA_DOCS_TOOL_MODULE,
+  deriveEngagedFrameworks,
+  frameworksToScopeStrings,
+  applyDeterministicPostGenFallbackLia,
+  computeLiaTestStates,
+  LIA_M_HUMAN_MAP,
 } from "../run-li-assessment/index.ts";
+import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
 
 const today = "2026-06-26";
 
