@@ -128,6 +128,12 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn", sourceGroup: "core", monitorPages: 1 },
   { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland", sourceGroup: "core", monitorPages: 1 },
   { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+  // ENF-1d: OAIC privacy determinations register is the PRIMARY source for
+  // formal s.52 determinations (the media-centre feed is publicity, not
+  // exhaustive). Weekly monitor cadence — the register updates on the order
+  // of days/weeks between determinations. Register rows are canonical; media
+  // rows for the same matter get merged via the (subject, ±30d) rule below.
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/privacy/privacy-decisions/privacy-determinations", source: "OAIC Register", sourceGroup: "core", monitorPages: 1, registerParser: "oaic" },
   { regulator: "Datatilsynet DK", jurisdiction: "Denmark", law: "GDPR (Denmark)", url: "https://www.datatilsynet.dk/english/news", source: "Datatilsynet DK", sourceGroup: "core", monitorPages: 1 },
   { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1 },
   { regulator: "PDPC Singapore", jurisdiction: "Singapore", law: "PDPA 2012", url: "https://www.pdpc.gov.sg/news-and-events/announcements", source: "PDPC Singapore", sourceGroup: "core", monitorPages: 1 },
