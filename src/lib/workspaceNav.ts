@@ -1,18 +1,43 @@
 // Shared workspace navigation definitions used by both the desktop grouped
-// sidebar (`WorkspaceSidebar`) and the mobile horizontal subnav
-// (`DashboardSubnav`). Keeping items, route matchers, and active-route
-// computation in one place guarantees both surfaces always highlight the
-// same workspace item for any given URL.
+// sidebar (`WorkspaceSidebar`) and the mobile flat subnav (`DashboardSubnav`).
+//
+// Structure (LEFTNAV-1, CEO-approved):
+//   Top level:
+//     1. Weekly Briefs  -> /dashboard
+//     2. Watchlist      -> /watchlist
+//     3. Start New…     -> /start
+//   Three product-category groups (each with every product as a submenu item):
+//     - "U.S. – CPPA"
+//     - "EU & UK – GDPR"
+//     - "All Jurisdictions"
+//   Bottom (after divider):
+//     - Obligations -> /obligations
+//     - Account     -> /account
+//
+// computeActiveTo() remains first-match-wins and must yield exactly one
+// active item per known route (see coverage test in src/test/workspaceNav.test.ts).
 
 import {
   FileText,
-  FolderOpen,
-  FileCheck,
   Bookmark,
   Settings,
   Building2,
   PlusCircle,
-  ScrollText,
+  CalendarClock,
+  ShieldCheck,
+  Scale,
+  ShieldAlert,
+  Cpu,
+  FileSignature,
+  Scroll,
+  Landmark,
+  BookOpen,
+  ClipboardList,
+  Globe,
+  FileCheck,
+  AlertTriangle,
+  Fingerprint,
+  Building,
 } from "lucide-react";
 
 export type WorkspaceItem = {
@@ -22,13 +47,11 @@ export type WorkspaceItem = {
   match: (pathname: string, hash: string) => boolean;
 };
 
-// Tool result routes that conceptually belong under "My Reports".
-export const REPORT_TOOL_PATH =
-  /^\/(li-assessment|dpia-framework|governance-assessment|dpa-generator|ir-playbook|biometric-checker)\/result(\/|$)/;
-
-// Filing / registration paths that belong under "Filings".
-export const FILING_PATH =
-  /^\/registration-manager\/(my-filings|order|documents)(\/|$)/;
+export type WorkspaceCategory = {
+  id: string;
+  label: string;
+  items: WorkspaceItem[];
+};
 
 /** Strip trailing slash (except root) and lower-case for comparison. */
 export function normalizePath(p: string): string {
@@ -47,12 +70,20 @@ export function normalizeHash(h: string): string {
   return cut === -1 ? stripped : stripped.slice(0, cut);
 }
 
-export const INTELLIGENCE_ITEMS: WorkspaceItem[] = [
+/** Exact-or-descendant path match helper. */
+const under = (base: string) => (p: string) =>
+  p === base || p.startsWith(base + "/");
+
+/**
+ * Top-level items rendered above the category groups. Order per spec.
+ */
+export const TOP_ITEMS: WorkspaceItem[] = [
   {
     to: "/dashboard",
-    label: "Weekly Brief",
+    label: "Weekly Briefs",
     icon: FileText,
-    // Exact /dashboard only — sub-routes like /dashboard/reports belong elsewhere.
+    // Exact match only — /dashboard/reports intentionally does NOT highlight
+    // any nav item (legacy list page; see LEFTNAV-1 Task 4).
     match: (p) => p === "/dashboard",
   },
   {
@@ -61,64 +92,157 @@ export const INTELLIGENCE_ITEMS: WorkspaceItem[] = [
     icon: Bookmark,
     match: (p) => p === "/watchlist",
   },
-];
-
-/**
- * Work items rendered under each workspace (Personal + each Client).
- * The `to` is the global route; the active client context scopes the
- * page. Sidebar click handlers call setActiveClient before navigating.
- */
-export const WORK_ITEMS: WorkspaceItem[] = [
   {
     to: "/start",
-    label: "Start new\u2026",
+    label: "Start New\u2026",
     icon: PlusCircle,
     match: (p) => p === "/start",
   },
+];
+
+// -- Product items ----------------------------------------------------------
+// Each product's match() claims BOTH its primary route AND its result/detail
+// routes so those pages highlight the correct submenu entry (splitting the
+// legacy aggregate REPORT_TOOL_PATH regex per LEFTNAV-1 Task 1).
+
+const CPPA_SCOPE: WorkspaceItem = {
+  to: "/cppa-scope-checker",
+  label: "CPPA Scope Checker",
+  icon: ShieldCheck,
+  match: (p) => under("/cppa-scope-checker")(p),
+};
+
+const CPPA_RISK: WorkspaceItem = {
+  to: "/cppa-risk-assessment",
+  label: "CPPA Risk Assessment",
+  icon: Scale,
+  match: (p) => under("/cppa-risk-assessment")(p),
+};
+
+const CPPA_CYBER: WorkspaceItem = {
+  to: "/cppa-cybersecurity",
+  label: "CPPA Cybersecurity Audit",
+  icon: ShieldAlert,
+  match: (p) => under("/cppa-cybersecurity")(p),
+};
+
+const CPPA_ADMT: WorkspaceItem = {
+  to: "/cppa-admt-checker",
+  label: "ADMT Compliance Assessment",
+  icon: Cpu,
+  // Claim both the canonical /cppa-admt-checker and the legacy /cppa-admt alias.
+  match: (p) => under("/cppa-admt-checker")(p) || under("/cppa-admt")(p),
+};
+
+const US_NOTICE: WorkspaceItem = {
+  to: "/us-notices",
+  label: "US Privacy Notice",
+  icon: FileSignature,
+  match: (p) => under("/us-notices")(p),
+};
+
+const LI: WorkspaceItem = {
+  to: "/li-assessment",
+  label: "Legitimate Interest Assessment",
+  icon: BookOpen,
+  match: (p) => under("/li-assessment")(p),
+};
+
+const DPIA: WorkspaceItem = {
+  to: "/dpia-framework",
+  label: "Impact Assessment Builder",
+  icon: ClipboardList,
+  match: (p) => under("/dpia-framework")(p),
+};
+
+const GOVERNANCE: WorkspaceItem = {
+  to: "/governance-assessment",
+  label: "Governance Assessment",
+  icon: Landmark,
+  match: (p) => under("/governance-assessment")(p),
+};
+
+const ROPA: WorkspaceItem = {
+  to: "/ropa",
+  label: "RoPA Builder",
+  icon: Scroll,
+  match: (p) => under("/ropa")(p),
+};
+
+const EU_NOTICE: WorkspaceItem = {
+  to: "/eu-notices",
+  label: "EU Privacy Notice",
+  icon: Globe,
+  match: (p) => under("/eu-notices")(p),
+};
+
+const DPA: WorkspaceItem = {
+  to: "/dpa-generator",
+  label: "Custom DPA",
+  icon: FileCheck,
+  match: (p) => under("/dpa-generator")(p),
+};
+
+const IR: WorkspaceItem = {
+  to: "/ir-playbook",
+  label: "Incident Response Playbook",
+  icon: AlertTriangle,
+  match: (p) => under("/ir-playbook")(p),
+};
+
+const BIOMETRIC: WorkspaceItem = {
+  to: "/biometric-checker",
+  label: "Biometric Compliance Check",
+  icon: Fingerprint,
+  match: (p) => under("/biometric-checker")(p),
+};
+
+const REGISTRATION: WorkspaceItem = {
+  to: "/registration-manager",
+  label: "Registration Manager",
+  icon: Building,
+  match: (p) => under("/registration-manager")(p),
+};
+
+/**
+ * Product category groups. Order and labels are CEO-approved.
+ */
+export const CATEGORY_GROUPS: WorkspaceCategory[] = [
   {
-    to: "/dashboard/reports",
-    label: "Reports",
-    icon: FolderOpen,
-    match: (p) =>
-      p === "/dashboard/reports" ||
-      p.startsWith("/dashboard/reports/") ||
-      REPORT_TOOL_PATH.test(p),
+    id: "us_cppa",
+    label: "U.S. – CPPA",
+    items: [CPPA_SCOPE, CPPA_RISK, CPPA_CYBER, CPPA_ADMT, US_NOTICE],
   },
   {
-    to: "/registration-manager/my-filings",
-    label: "Filings",
-    icon: FileCheck,
-    match: (p) => FILING_PATH.test(p),
+    id: "eu_gdpr",
+    label: "EU & UK – GDPR",
+    items: [LI, DPIA, GOVERNANCE, ROPA, EU_NOTICE, DPA],
   },
   {
-    to: "/notices-ropa",
-    label: "Notices & RoPA",
-    icon: ScrollText,
-    match: (p) =>
-      p === "/notices-ropa" ||
-      p === "/ropa" ||
-      p.startsWith("/ropa/") ||
-      p.startsWith("/us-notices") ||
-      p.startsWith("/eu-notices"),
+    id: "all_jurisdictions",
+    label: "All Jurisdictions",
+    items: [IR, BIOMETRIC, REGISTRATION],
   },
 ];
 
 /**
- * Legacy alias kept so the mobile `DashboardSubnav` (which is a flat list
- * and doesn't show per-client expansion) keeps working. Mobile gets the
- * Work items plus Clients as a manage-list entry.
+ * Flattened product list. Handy for the mobile subnav and for
+ * computeActiveTo coverage.
  */
-export const OPERATIONS_ITEMS: WorkspaceItem[] = [
-  ...WORK_ITEMS,
-  {
-    to: "/clients",
-    label: "Clients",
-    icon: Building2,
-    match: (p) => p === "/clients" || p.startsWith("/clients/"),
-  },
-];
+export const PRODUCT_ITEMS: WorkspaceItem[] = CATEGORY_GROUPS.flatMap(
+  (g) => g.items,
+);
 
-export const ACCOUNT_ITEMS: WorkspaceItem[] = [
+/**
+ * Bottom items rendered after a divider under the categories.
+ */
+export const BOTTOM_ITEMS: WorkspaceItem[] = [
+  {
+    to: "/obligations",
+    label: "Obligations",
+    icon: CalendarClock,
+    match: (p) => p === "/obligations" || p.startsWith("/obligations/"),
+  },
   {
     to: "/account",
     label: "Account",
@@ -127,23 +251,45 @@ export const ACCOUNT_ITEMS: WorkspaceItem[] = [
   },
 ];
 
+// -- Legacy exports kept for back-compat ------------------------------------
+// DashboardSubnav still imports INTELLIGENCE_ITEMS and OPERATIONS_ITEMS in
+// some code paths; keep them defined but redirect to the new structure.
+
+export const INTELLIGENCE_ITEMS = TOP_ITEMS;
+
+export const OPERATIONS_ITEMS: WorkspaceItem[] = [
+  ...PRODUCT_ITEMS,
+  {
+    to: "/clients",
+    label: "Clients",
+    icon: Building2,
+    match: (p) => p === "/clients" || p.startsWith("/clients/"),
+  },
+];
+
+export const ACCOUNT_ITEMS: WorkspaceItem[] = BOTTOM_ITEMS;
+
 /**
- * Ordered list of every workspace item across all sidebar groups. Order
- * matters because `computeActiveTo` is first-match-wins, ensuring exactly
- * one item highlights per route.
+ * Every workspace item across all groups, in the order used by
+ * `computeActiveTo` (first-match-wins).
  */
 export const ALL_WORKSPACE_ITEMS: WorkspaceItem[] = [
-  ...INTELLIGENCE_ITEMS,
-  ...OPERATIONS_ITEMS,
-  ...ACCOUNT_ITEMS,
+  ...TOP_ITEMS,
+  ...PRODUCT_ITEMS,
+  ...BOTTOM_ITEMS,
+  // "Clients" is only reachable via the sidebar's own Clients management link,
+  // but include it here so /clients highlights nothing surprising elsewhere.
+  {
+    to: "/clients",
+    label: "Clients",
+    icon: Building2,
+    match: (p) => p === "/clients" || p.startsWith("/clients/"),
+  },
 ];
 
 /**
  * Compute the `to` of the active workspace item for a given URL.
  * Returns `null` when no item claims the route.
- *
- * Both the desktop sidebar and the mobile subnav use this so a single
- * route can never be active in two places (or none).
  */
 export function computeActiveTo(
   pathname: string,
