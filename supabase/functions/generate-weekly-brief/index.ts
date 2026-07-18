@@ -116,10 +116,22 @@ Deno.serve(async (req) => {
   }
   // ── End authentication ────────────────────────────────────────────────────
 
+  // BRIEF-MODEL-1-HF3: return 202 immediately; run full pipeline in background
+  // to escape the 150s gateway idle-timeout that killed the inner call under HF2.
+  const startedMs = Date.now();
+  const MODEL_TAG = "claude-sonnet-5";
+
+  // @ts-ignore EdgeRuntime is a Supabase runtime global
+  EdgeRuntime.waitUntil((async () => {
   const fnRun = await startFunctionRun(supabase, "generate-weekly-brief", {
-    archetype: "sync",
+    archetype: "async",
     trustClass: "internal",
     invokedBy: "internal",
+    metadata: {
+      event: "weekly_brief_generation",
+      model: MODEL_TAG,
+      t0: new Date(startedMs).toISOString(),
+    },
   });
 
   try {
