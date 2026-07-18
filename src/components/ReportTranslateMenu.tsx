@@ -6,11 +6,12 @@
 // drops to its own line directly below the button; it remains visible in
 // print/export (intentionally NOT print:hidden).
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Languages, Loader2, Check, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SUPPORTED_LANGUAGES, isRtl, getLanguageName } from "@/lib/languages";
+import { useSearchParams } from "react-router-dom";
 
 interface ReportTranslateMenuProps {
   toolType: string;
