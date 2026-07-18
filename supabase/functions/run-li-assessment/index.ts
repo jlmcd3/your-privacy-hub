@@ -1221,6 +1221,36 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     }
     for (const v of t234Violations) lintViolations.push(v);
 
+    // REBUILD-LIA T2(e) — HARD PROSE BLACKLIST detection (five verdict-collapse
+    // phrases banned in user-facing prose). LIA's existing retry path is
+    // full-regeneration under runStage2 with a suffix; we reuse it once, then
+    // fall through to lint-only shipping if still hitting.
+    let blacklistRetryUsed = false;
+    let blacklistResidualHits = 0;
+    {
+      const hits = detectBlacklistPhrases(analysis);
+      if (hits.length > 0) {
+        console.warn(JSON.stringify({ evt: "blacklist_detected", fn: "run-li-assessment", count: hits.length, sample: hits.slice(0, 4) }));
+        try {
+          const retry = await runStage2(formatBlacklistRetrySuffix(hits));
+          const parsed = parseLlmJson(retry.text);
+          if (parsed) {
+            analysis = parsed;
+            lintAnalysis(analysis);
+            blacklistRetryUsed = true;
+          }
+        } catch (e) {
+          console.warn("[LIA] blacklist retry failed (non-fatal):", e);
+        }
+        const residual = detectBlacklistPhrases(analysis);
+        blacklistResidualHits = residual.length;
+        for (const h of residual) {
+          lintViolations.push({ code: "blacklist_phrase_shipped", field: h.path, detail: h.context });
+        }
+      }
+    }
+
+
 
 
 
