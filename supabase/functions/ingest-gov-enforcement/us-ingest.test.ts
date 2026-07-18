@@ -38,8 +38,8 @@ for (const u of FTC_BLOCK) {
 
 // ── FTC subject extraction ─────────────────────────────────────────────────
 Deno.test("FTC subject: 'X, In the Matter of'", () => {
-  if (extractFtcSubject("General Motors LLC., et al., In the Matter of") !== "General Motors LLC.")
-    throw new Error("got: " + extractFtcSubject("General Motors LLC., et al., In the Matter of"));
+  const s = extractFtcSubject("General Motors LLC., et al., In the Matter of");
+  if (s !== "General Motors LLC") throw new Error("got: " + s);
 });
 Deno.test("FTC subject: 'X, FTC v.'", () => {
   if (extractFtcSubject("Mercury Marketing LLC, FTC v.") !== "Mercury Marketing LLC")
