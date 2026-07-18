@@ -59,8 +59,6 @@ export default function RopaReview() {
   const [docDate, setDocDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [authorName, setAuthorName] = useState("");
   const [internalRef, setInternalRef] = useState("");
-  
-  const [includeExcel] = useState(true);
 
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackHighlight, setAckHighlight] = useState(false);
@@ -74,7 +72,6 @@ export default function RopaReview() {
     activities: "pending",
     transfers: "pending",
     pdf: "pending",
-    xlsx: "pending",
   });
   const { toast } = useToast();
 
