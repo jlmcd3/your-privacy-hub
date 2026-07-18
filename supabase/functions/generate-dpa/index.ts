@@ -625,15 +625,28 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
           : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
       : "";
 
-    // REBUILD-DPA T1b — when either jurisdiction is unmappable, the drafted
-    // document MUST carry a NOTE FOR LEGAL REVIEW naming the raw strings and
-    // the framework assumption made. Emitted through the PARTIES_BLOCK as an
-    // instruction to the model so it renders as a Section 1 recital note in
-    // the same voice as the legal-form flag pattern.
+    // FF-DPA nd1 — the rendered NOTE FOR LEGAL REVIEW is a customer-facing
+    // instrument in professional voice. Machine tokens ("could not map",
+    // "canonical supported jurisdiction", "generator", raw docType tokens like
+    // "US-STATE" / "DUAL-EU-CA") are BANNED from prose. The framework name is
+    // rendered via frameworkFor(documentType), never the raw documentType.
+    // The wrapper below carries the render instruction to the model; the note
+    // itself is the exact literal customer-facing text and must not be paraphrased.
+    const _rawCtrl = String(body.controllerJurisdiction ?? "");
+    const _rawProc = String(body.processorJurisdiction ?? "");
+    const _ctrlClause = !detected.ctrlMapped ? `the Controller's jurisdiction as "${_rawCtrl}"` : "";
+    const _procClause = !detected.procMapped ? `the Processor's jurisdiction as "${_rawProc}"` : "";
+    const _joinClause = (!detected.ctrlMapped && !detected.procMapped) ? " and " : "";
+    const _idClause = `${_ctrlClause}${_joinClause}${_procClause}`;
+    const _frameworkName = frameworkFor(documentType);
+    const _fallbackLiteral = `NOTE FOR LEGAL REVIEW — GOVERNING FRAMEWORK TO BE CONFIRMED. The record identifies ${_idClause}, for which the governing data-protection framework has not been confirmed on the record. This DPA has been drafted under ${_frameworkName} as the closest-fit baseline. Counsel should confirm the correct governing framework for the jurisdiction(s) quoted above, and adapt this DPA as required, before execution.`;
     const frameworkFallbackNote = frameworkFallback
       ? `
 
-NOTE FOR LEGAL REVIEW — FRAMEWORK ASSUMPTION FROM UNMAPPED JURISDICTION. The record supplied ${!detected.ctrlMapped ? `controller jurisdiction "${body.controllerJurisdiction}"` : ""}${(!detected.ctrlMapped && !detected.procMapped) ? " and " : ""}${!detected.procMapped ? `processor jurisdiction "${body.processorJurisdiction}"` : ""}, which the generator could not map to a canonical supported jurisdiction. This DPA has been drafted on the ${documentType.toUpperCase()} framework as the closest-fit baseline; render this NOTE FOR LEGAL REVIEW verbatim in Section 1 (Parties and Recitals) immediately after party identification, quoting the raw jurisdiction string(s) and directing counsel to confirm the correct governing framework before execution.`
+RENDER THE FOLLOWING NOTE VERBATIM IN SECTION 1 (Parties and Recitals) IMMEDIATELY AFTER PARTY IDENTIFICATION — copy the text between the delimiters exactly, do not paraphrase, do not reword, do not add or remove any word:
+<<<NOTE_BEGIN>>>
+${_fallbackLiteral}
+<<<NOTE_END>>>`
       : "";
 
     const PARTIES_BLOCK = `PARTIES
