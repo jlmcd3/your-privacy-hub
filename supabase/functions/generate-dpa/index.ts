@@ -74,32 +74,102 @@ const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado
 const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
   "British Columbia (PIPA)","Alberta (PIPA)"]);
 
-function detectDocType(ctrl: string, proc: string, explicit?: string): string {
-  if (explicit) return explicit;
-  const normalize = (raw: string): string => {
-    const trimmed = (raw ?? "").trim();
-    if (!trimmed) return trimmed;
-    if (/^(the )?united states( of america)?$|^usa$|^u\.?s\.?a?\.?$/i.test(trimmed)) {
-      return "United States (federal)";
-    }
-    if (/^(the )?united kingdom$|^uk$|^great britain$|^gb$/i.test(trimmed)) {
-      return "United Kingdom";
-    }
-    return trimmed;
-  };
-  const ctrlN = normalize(ctrl);
-  const procN = normalize(proc);
-  const ctrlEU = EU_JURS.has(ctrlN); const procEU = EU_JURS.has(procN);
-  const ctrlUS = US_JURS.has(ctrlN); const procUS = US_JURS.has(procN);
-  const ctrlCA = CA_JURS.has(ctrlN); const procCA = CA_JURS.has(procN);
-  if ((ctrlEU || procEU) && (ctrlUS || procUS)) return "dual-eu-us";
-  if ((ctrlEU || procEU) && (ctrlCA || procCA)) return "dual-eu-ca";
-  if (ctrlUS || procUS) return "us-state";
-  if (ctrlCA || procCA) return "canada";
-  if (ctrlN && procN && !ctrlEU && !procEU && !ctrlUS && !procUS && !ctrlCA && !procCA) {
-    console.warn(`[generate-dpa] detectDocType fell through to gdpr default — raw values: controller="${ctrl}", processor="${proc}"`);
+const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca"]);
+
+// REBUILD-DPA T1a — alias table for natural variants → canonical DPA_JURISDICTIONS
+// enum value. Case-insensitive whole-value match after trimming. Only aliases that
+// resolve unambiguously to a single canonical value are listed; ambiguous
+// short forms (e.g. bare "Washington" — state vs. federal district) are NOT
+// listed and must arrive as the canonical intake string.
+const JURISDICTION_ALIASES: Record<string, string> = {
+  // US federal
+  "united states": "United States (federal)",
+  "united states of america": "United States (federal)",
+  "usa": "United States (federal)", "u.s.a.": "United States (federal)",
+  "u.s.": "United States (federal)", "us": "United States (federal)",
+  // UK
+  "united kingdom": "United Kingdom", "uk": "United Kingdom",
+  "great britain": "United Kingdom", "gb": "United Kingdom",
+  "england": "United Kingdom", "england and wales": "United Kingdom",
+  // US state short forms (unambiguous)
+  "ny": "New York", "new york, ny": "New York", "new york, usa": "New York",
+  "new york state": "New York",
+  "ca": "California", "california, usa": "California",
+  "tx": "Texas", "ct": "Connecticut", "co": "Colorado", "va": "Virginia",
+  "fl": "Florida", "wa": "Washington", "il": "Illinois", "ma": "Massachusetts",
+  "or": "Oregon", "in": "Indiana", "mt": "Montana", "ia": "Iowa",
+  "tn": "Tennessee", "mn": "Minnesota", "ut": "Utah", "de": "Delaware",
+  // Canada federal + provinces (natural forms → canonical)
+  "canada": "Canada (federal / PIPEDA)",
+  "canada (federal)": "Canada (federal / PIPEDA)",
+  "pipeda": "Canada (federal / PIPEDA)",
+  "quebec": "Quebec (Law 25)", "québec": "Quebec (Law 25)",
+  "quebec, canada": "Quebec (Law 25)", "quebec (law 25 / bill 64)": "Quebec (Law 25)",
+  "ontario": "Ontario (PHIPA)", "ontario, canada": "Ontario (PHIPA)",
+  "british columbia": "British Columbia (PIPA)", "bc": "British Columbia (PIPA)",
+  "british columbia, canada": "British Columbia (PIPA)",
+  "alberta": "Alberta (PIPA)", "alberta, canada": "Alberta (PIPA)",
+  // EU natural
+  "france": "France", "germany": "Germany", "deutschland": "Germany",
+  "ireland": "Ireland", "republic of ireland": "Ireland",
+  "spain": "Spain", "italy": "Italy", "netherlands": "Netherlands",
+  "the netherlands": "Netherlands", "holland": "Netherlands",
+  "belgium": "Belgium", "sweden": "Sweden", "denmark": "Denmark",
+  "poland": "Poland", "norway": "Norway", "portugal": "Portugal",
+  "austria": "Austria", "finland": "Finland", "luxembourg": "Luxembourg",
+  "greece": "Greece", "switzerland": "Switzerland",
+};
+
+function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolean } {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return { canonical: "", mapped: false };
+  // 1. Canonical enum match (case-sensitive) — accept as-is.
+  if (EU_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
+    return { canonical: trimmed, mapped: true };
   }
-  return "gdpr";
+  // 2. Canonical enum match (case-insensitive whole-value).
+  const lower = trimmed.toLowerCase();
+  for (const s of [...EU_JURS, ...US_JURS, ...CA_JURS]) {
+    if (s.toLowerCase() === lower) return { canonical: s, mapped: true };
+  }
+  // 3. Alias table (case-insensitive whole-value; no substring traps).
+  const aliased = JURISDICTION_ALIASES[lower];
+  if (aliased) return { canonical: aliased, mapped: true };
+  return { canonical: trimmed, mapped: false };
+}
+
+// REBUILD-DPA T1b — returns the derived docType AND surfaces whether either
+// jurisdiction was unmappable. Callers must not swallow the unmapped signal —
+// it drives both the post-gen lint entry (function_runs) and the in-document
+// NOTE FOR LEGAL REVIEW.
+function detectDocType(
+  ctrl: string,
+  proc: string,
+  explicit?: unknown,
+): { docType: string; ctrlCanonical: string; procCanonical: string; ctrlMapped: boolean; procMapped: boolean; explicitAccepted: boolean; explicitRawType: string } {
+  // T1: explicit is trusted ONLY when it is one of the five valid strings.
+  // Fixture regression: intake_data.documentType arrived as an OBJECT
+  // ({type:"DPA",version:"2.1",...}); the previous `if (explicit) return explicit`
+  // returned the object and every subsequent branch fell to gdpr.
+  const explicitRawType = explicit === null || explicit === undefined ? "undefined" : (Array.isArray(explicit) ? "array" : typeof explicit);
+  const explicitAccepted = typeof explicit === "string" && VALID_DOC_TYPES.has(explicit);
+  const c = normalizeJurisdiction(ctrl);
+  const p = normalizeJurisdiction(proc);
+  if (explicitAccepted) {
+    return { docType: explicit as string, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
+  }
+  const ctrlEU = EU_JURS.has(c.canonical); const procEU = EU_JURS.has(p.canonical);
+  const ctrlUS = US_JURS.has(c.canonical); const procUS = US_JURS.has(p.canonical);
+  const ctrlCA = CA_JURS.has(c.canonical); const procCA = CA_JURS.has(p.canonical);
+  let docType = "gdpr";
+  if ((ctrlEU || procEU) && (ctrlUS || procUS)) docType = "dual-eu-us";
+  else if ((ctrlEU || procEU) && (ctrlCA || procCA)) docType = "dual-eu-ca";
+  else if (ctrlUS || procUS) docType = "us-state";
+  else if (ctrlCA || procCA) docType = "canada";
+  else if (ctrlEU || procEU) docType = "gdpr";
+  // else: neither party maps — docType stays "gdpr" as last-resort but the
+  // caller surfaces this via ctrlMapped/procMapped for the fallback note.
+  return { docType, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
 }
 
 
