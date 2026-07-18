@@ -85,9 +85,9 @@ const HHS_SUBJECT_PATTERNS: RegExp[] = [
   /^([A-Z][^,.]*?)\s+(?:pays|paid)\s+(?:OCR\s+)?\$/,
   // "{X} Settles ... for $N" / "{X} Settles HIPAA ..."
   /^([A-Z][^,.]*?)\s+Settles?\s+(?:Potential\s+Violations?\s+of\s+)?HIPAA/i,
-  // "requiring {X} to pay" — accept commas inside {X} (e.g. "Lincare, Inc.")
-  // and let the trailing comma-normaliser trim ", Inc." / ", LLC." tails.
-  /\brequiring\s+([A-Z][^.]+?)\s+to\s+pay\b/i,
+  // "requiring {X} to pay" — allow commas/periods inside {X}
+  // (e.g. "Lincare, Inc."); trimCorporateTail strips corp suffixes.
+  /\brequiring\s+([A-Z].+?)\s+to\s+pay\b/i,
 ];
 
 // Trim standard corporate-suffix tails (", Inc.", ", LLC", ", Ltd") from the
