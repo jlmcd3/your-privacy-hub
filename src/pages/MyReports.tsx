@@ -139,6 +139,7 @@ export default function MyReports() {
   const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
   const { isAdmin } = useIsAdmin();
   const [rows, setRows] = useState<ReportRow[]>([]);
+  const [translationsByReportId, setTranslationsByReportId] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
