@@ -386,9 +386,13 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
       const months: Record<string, string> = { january:"01", february:"02", march:"03", april:"04", may:"05", june:"06", july:"07", august:"08", september:"09", october:"10", november:"11", december:"12" };
       date = `${dHuman[3]}-${months[dHuman[2].toLowerCase()]}-${dHuman[1].padStart(2,"0")}`;
     }
-    out.push({ title, url: href, date });
+    // Canonicalize URL: OAIC's /s/redirect wrapper carries rotating auth/rank
+    // params that break dedup. Store the decoded inner target; non-redirect
+    // URLs pass through with only fragment stripped.
+    const { canonical } = canonicalizeSourceUrl(href);
+    out.push({ title, url: canonical, date });
   }
-  // De-dup by url
+  // De-dup by url (now canonical)
   const seen = new Set<string>();
   return out.filter((r) => (seen.has(r.url) ? false : (seen.add(r.url), true)));
 }
