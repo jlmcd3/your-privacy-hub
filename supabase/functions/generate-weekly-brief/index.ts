@@ -305,7 +305,7 @@ Note: Based on ${enforcementHistory.briefCount} weeks of tracked data.`
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
-      await failFunctionRun(supabase, fnRun, new Error("ANTHROPIC_API_KEY not configured"), { metadata: { stage: "config" } });
+      await failFunctionRun(supabase, fnRun, new Error("ANTHROPIC_API_KEY not configured"), { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "config", model: MODEL_TAG } });
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
