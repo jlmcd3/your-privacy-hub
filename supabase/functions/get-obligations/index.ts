@@ -99,17 +99,27 @@ Deno.serve(async (req) => {
       }
     } catch (e) { console.warn("[obligations] registration error:", (e as Error).message); }
 
-    // b) CPPA TRIENNIAL REVIEW
+    // b) CPPA TRIENNIAL REVIEW — latest risk_assessment row per client only.
+    // (matches the LIA/DPIA/Governance "latest-per-tool" pattern below;
+    // without this collapse, every historical run of the tool emits its own
+    // duplicate obligation.)
     try {
       let q = admin
         .from("cppa_assessments")
-        .select("id, report_data, client_id")
+        .select("id, report_data, client_id, created_at")
         .eq("user_id", user.id)
         .eq("module", "risk_assessment")
-        .not("report_data", "is", null);
+        .not("report_data", "is", null)
+        .order("created_at", { ascending: false });
       if (requestedClientId) q = q.eq("client_id", requestedClientId);
       const { data } = await q;
+      const seenClientKey = new Set<string>();
       for (const r of (data as any[]) || []) {
+        // Bucket by client_id; treat null client_id as its own bucket so the
+        // latest personal-workspace row still surfaces exactly once.
+        const key = r.client_id ?? "__personal__";
+        if (seenClientKey.has(key)) continue;
+        seenClientKey.add(key);
         const rd: any = r.report_data || {};
         const dueRaw: string | undefined =
           rd?.sec_10_governance?.triennial_review_date || rd?.next_review_date;
