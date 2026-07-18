@@ -566,21 +566,22 @@ async function handleSliceRequest(
     return json({ status: "failed", error: msg }, 500);
   }
 
+  // TRANSLATE-2-HF1 ordering: persist slice_count/resume_count → durable
+  // 'continued' telemetry → THEN kick. A kill between persist and kick still
+  // leaves a healthy row that the sweep can pick up.
   await admin.from("report_translations").update({
     slice_count: newSliceCount,
     resume_count: resumeCountBefore + 1,
     last_progress_at: new Date().toISOString(),
   }).eq("id", translationRowId);
 
-  const kick = await kickResume(supabaseUrl, serviceKey, translationRowId);
-
   await finishFunctionRun(admin, run, {
-    status: kick.ok ? "success" : "error",
+    status: "success",
     sourceTable: "report_translations",
     sourceRowId: translationRowId,
     metadata: {
       event: "translate_slice",
-      outcome: kick.ok ? "continued" : "continue_kick_failed",
+      outcome: "continued",
       translation_row_id: translationRowId,
       tool_type: trow.report_type, report_id: trow.report_id, language_code: trow.target_lang,
       chunks_done: sliceResult.chunksDone,
@@ -588,10 +589,33 @@ async function handleSliceRequest(
       processed_this_slice: sliceResult.processedThisSlice,
       slice_count: newSliceCount,
       resume_count: resumeCountBefore + 1,
-      kick_status: kick.status,
+      slice_wall_ms: Date.now() - sliceStart,
       engine: TRANSLATION_ENGINE_VERSION,
     },
   });
+
+  const kick = await kickResume(supabaseUrl, serviceKey, translationRowId);
+  if (!kick.ok) {
+    // Kick failed — record it as a separate run so the sweep can still recover.
+    const failRun = await startFunctionRun(admin, "translate-report", {
+      userId: trow.user_id,
+      invokedBy: "internal",
+      metadata: { event: "translate_kick", translation_row_id: translationRowId },
+    });
+    await finishFunctionRun(admin, failRun, {
+      status: "error",
+      sourceTable: "report_translations",
+      sourceRowId: translationRowId,
+      metadata: {
+        event: "translate_kick",
+        outcome: "continue_kick_failed",
+        translation_row_id: translationRowId,
+        kick_status: kick.status,
+        kick_body: kick.body,
+      },
+    });
+  }
+
   return new Response(JSON.stringify({
     status: "translating",
     translation_row_id: translationRowId,
@@ -602,6 +626,7 @@ async function handleSliceRequest(
     continued: kick.ok,
   }), { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
+
 
 async function markFailed(admin: any, id: string, msg: string) {
   await admin.from("report_translations").update({
