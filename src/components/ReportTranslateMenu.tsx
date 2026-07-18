@@ -75,6 +75,9 @@ export default function ReportTranslateMenu({
     if (code === activeLang) return;
 
     setLoading(code);
+    setProgress(null);
+    setElapsedSec(0);
+    const startedAt = Date.now();
     try {
       const { data, error } = await supabase.functions.invoke("translate-report", {
         body: { tool_type: toolType, report_id: reportId, language_code: code },
@@ -97,9 +100,11 @@ export default function ReportTranslateMenu({
       //   { status:'translating', ... }             — kicked off, poll for result
       let payload = (data as any)?.translated_payload;
       const status = (data as any)?.status;
+      const initTotal = Number((data as any)?.chunks_total ?? 0);
+      if (initTotal > 0) setProgress({ done: Number((data as any)?.chunks_done ?? 0), total: initTotal });
       if (!payload && status === "translating") {
         toast.info("Translating… this may take up to a minute for long documents.");
-        payload = await pollUntilDone(code);
+        payload = await pollUntilDone(code, startedAt);
       }
       if (!payload) {
         toast.error("Translation failed. Please try again.");
@@ -119,6 +124,8 @@ export default function ReportTranslateMenu({
       toast.error("Translation failed. Please try again.");
     } finally {
       setLoading(null);
+      setProgress(null);
+      setElapsedSec(0);
     }
   }
 
