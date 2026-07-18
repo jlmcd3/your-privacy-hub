@@ -464,7 +464,7 @@ const Navbar = () => {
     >
       Skip to main content
     </a>
-    <nav aria-label="Primary" className="bg-brand-navy border-b border-brand-navy sticky top-0 z-50">
+    <nav aria-label="Navigation" className="bg-brand-navy border-b border-brand-navy sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14 md:h-16">
         {/* Logo */}
         <div className="flex items-center flex-1">
