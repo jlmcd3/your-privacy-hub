@@ -66,7 +66,7 @@ export default function RopaDocuments() {
   const navigate = useNavigate();
   const urlSessionId = useRopaSessionParam();
   const { toast } = useToast();
-  const { clientName, isPersonalActive } = useActiveClient();
+  const { clientId: activeClientId, clientName, isPersonalActive, personal, hasClients } = useActiveClient();
   const { isAdmin } = useIsAdmin();
   const fireConversion = useConversionEvent();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
