@@ -394,7 +394,9 @@ async function handleSliceRequest(
   isInitial: boolean,
 ): Promise<Response> {
   const sliceStart = Date.now();
-  const deadlineMs = sliceStart + SLICE_BUDGET_MS;
+  // Reserve PERSIST_MARGIN_MS at the tail so the graceful path (persist +
+  // telemetry + kick) always runs before the platform background-kill.
+  const deadlineMs = sliceStart + (SLICE_BUDGET_MS - PERSIST_MARGIN_MS);
 
   // Load row.
   const { data: trow, error: loadErr } = await admin
