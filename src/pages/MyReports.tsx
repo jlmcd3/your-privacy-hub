@@ -701,6 +701,40 @@ export default function MyReports() {
                                   <span className="text-[10px] text-slate-400">PDF</span>
                                 </a>
                               )}
+                              {(() => {
+                                const langs = translationsByReportId[r.id] || [];
+                                if (langs.length === 0) return null;
+                                return (
+                                  <div
+                                    className="inline-flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-md border border-brand-teal/30 bg-brand-teal/5"
+                                    title={`Translated to ${langs
+                                      .map((c) => SUPPORTED_LANGUAGES.find((l) => l.code === c)?.name ?? c)
+                                      .join(", ")}`}
+                                  >
+                                    <Languages
+                                      className="w-3 h-3 text-brand-teal-text"
+                                      aria-hidden="true"
+                                    />
+                                    {langs.slice(0, 4).map((code) => {
+                                      const chip = SUPPORTED_LANGUAGES.find((l) => l.code === code);
+                                      const label = chip ? `${chip.flag} ${code.toUpperCase()}` : code.toUpperCase();
+                                      return (
+                                        <Link
+                                          key={code}
+                                          to={`${r.view_path}${r.view_path.includes("?") ? "&" : "?"}lang=${encodeURIComponent(code)}`}
+                                          className="text-[10px] leading-none px-1 py-0.5 rounded hover:bg-brand-teal/15 text-brand-teal-text no-underline"
+                                          aria-label={`Open ${r.tool_label} translated to ${chip?.name ?? code}`}
+                                        >
+                                          {label}
+                                        </Link>
+                                      );
+                                    })}
+                                    {langs.length > 4 && (
+                                      <span className="text-[10px] text-muted-foreground">+{langs.length - 4}</span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                               <Button asChild size="sm" variant="outline" className="text-[12px] h-7">
                                 <Link to={r.view_path}>
                                   {r.status === "in_progress" ? "Continue →" : "View →"}
