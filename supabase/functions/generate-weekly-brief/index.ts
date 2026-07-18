@@ -592,7 +592,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
     if (!aiResponse.ok) {
       const err = await aiResponse.text();
-      await failFunctionRun(supabase, fnRun, new Error(`AI API error: ${aiResponse.status}`), { metadata: { stage: "brief_gen", status: aiResponse.status, detail: err.slice(0, 500) } });
+      await failFunctionRun(supabase, fnRun, new Error(`AI API error: ${aiResponse.status}`), { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "brief_gen", model: MODEL_TAG, status: aiResponse.status, detail: err.slice(0, 500) } });
       return new Response(JSON.stringify({ error: "AI API error", detail: err }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
