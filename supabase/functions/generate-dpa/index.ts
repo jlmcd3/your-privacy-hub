@@ -48,33 +48,39 @@ interface Body {
   auditRights?: string;
   includeTransferClause?: boolean;
   transferMechanism?: string;
-  documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca";
+  documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca" | "uk";
   assessment_id?: string;
   user_id?: string;
 }
 
 // CEO ruling 2026-07-14 — legal framework derived from documentType.
+// FF-DPA nd6 — UK is a distinct framework (UK GDPR + DPA 2018), not EU GDPR.
 function frameworkFor(docType: string): string {
   switch (docType) {
     case "us-state": return "US state privacy law (CCPA/CPRA and applicable state acts)";
     case "canada": return "PIPEDA";
     case "dual-eu-us": return "Dual EU/US";
     case "dual-eu-ca": return "Dual EU/Canada";
+    case "uk": return "UK GDPR and the Data Protection Act 2018";
     case "gdpr":
     default: return "GDPR";
   }
 }
 
+// FF-DPA nd6 — UK removed from EU_JURS; UK gets its own set. The QL2-FIX-1
+// UK territorial-scope block inside GDPR_SYSTEM stays intact and fires for
+// EU+UK mixed derivations (routed to gdpr mode below) — explicit non-change.
 const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
-  "United Kingdom","Belgium","Sweden","Denmark","Poland","Norway","Portugal",
+  "Belgium","Sweden","Denmark","Poland","Norway","Portugal",
   "Austria","Finland","Luxembourg","Greece","Switzerland"]);
+const UK_JURS = new Set(["United Kingdom"]);
 const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado",
   "Virginia","Florida","Washington","Illinois","Massachusetts","Oregon","Indiana",
   "Montana","Iowa","Tennessee","Minnesota","Utah","Delaware","United States (federal)"]);
 const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
   "British Columbia (PIPA)","Alberta (PIPA)"]);
 
-const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca"]);
+const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca","uk"]);
 
 // REBUILD-DPA T1a — alias table for natural variants → canonical DPA_JURISDICTIONS
 // enum value. Case-insensitive whole-value match after trimming. Only aliases that
@@ -124,12 +130,12 @@ function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolea
   const trimmed = (raw ?? "").trim();
   if (!trimmed) return { canonical: "", mapped: false };
   // 1. Canonical enum match (case-sensitive) — accept as-is.
-  if (EU_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
+  if (EU_JURS.has(trimmed) || UK_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
     return { canonical: trimmed, mapped: true };
   }
   // 2. Canonical enum match (case-insensitive whole-value).
   const lower = trimmed.toLowerCase();
-  for (const s of [...EU_JURS, ...US_JURS, ...CA_JURS]) {
+  for (const s of [...EU_JURS, ...UK_JURS, ...US_JURS, ...CA_JURS]) {
     if (s.toLowerCase() === lower) return { canonical: s, mapped: true };
   }
   // 3. Alias table (case-insensitive whole-value; no substring traps).
@@ -138,19 +144,21 @@ function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolea
   return { canonical: trimmed, mapped: false };
 }
 
-// REBUILD-DPA T1b — returns the derived docType AND surfaces whether either
-// jurisdiction was unmappable. Callers must not swallow the unmapped signal —
-// it drives both the post-gen lint entry (function_runs) and the in-document
-// NOTE FOR LEGAL REVIEW.
+// REBUILD-DPA T1b + FF-DPA nd6 — derivation matrix now branches UK from EU.
+// - UK-only or UK+unmapped         → "uk"
+// - UK+EU                          → "gdpr" (QL2-FIX-1 UK territorial-scope block fires)
+// - UK+US                          → "uk"  (cross-border module added inside uk mode)
+// - UK+CA                          → "uk"  (cross-border module added inside uk mode)
+// Cross-border treatment for UK+US and UK+CA is a listed design decision (see
+// FF-DPA nd6 report): uk-mode with a cross-border module rather than new
+// dual-uk-* types, to keep the derivation surface small and avoid a combinatorial
+// explosion of prompt templates. UK GDPR + DPA 2018 remains the operative law;
+// the module addresses transfers/onward flows to the US or Canadian party.
 function detectDocType(
   ctrl: string,
   proc: string,
   explicit?: unknown,
 ): { docType: string; ctrlCanonical: string; procCanonical: string; ctrlMapped: boolean; procMapped: boolean; explicitAccepted: boolean; explicitRawType: string } {
-  // T1: explicit is trusted ONLY when it is one of the five valid strings.
-  // Fixture regression: intake_data.documentType arrived as an OBJECT
-  // ({type:"DPA",version:"2.1",...}); the previous `if (explicit) return explicit`
-  // returned the object and every subsequent branch fell to gdpr.
   const explicitRawType = explicit === null || explicit === undefined ? "undefined" : (Array.isArray(explicit) ? "array" : typeof explicit);
   const explicitAccepted = typeof explicit === "string" && VALID_DOC_TYPES.has(explicit);
   const c = normalizeJurisdiction(ctrl);
@@ -159,16 +167,26 @@ function detectDocType(
     return { docType: explicit as string, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
   }
   const ctrlEU = EU_JURS.has(c.canonical); const procEU = EU_JURS.has(p.canonical);
+  const ctrlUK = UK_JURS.has(c.canonical); const procUK = UK_JURS.has(p.canonical);
   const ctrlUS = US_JURS.has(c.canonical); const procUS = US_JURS.has(p.canonical);
   const ctrlCA = CA_JURS.has(c.canonical); const procCA = CA_JURS.has(p.canonical);
+  const anyEU = ctrlEU || procEU;
+  const anyUK = ctrlUK || procUK;
+  const anyUS = ctrlUS || procUS;
+  const anyCA = ctrlCA || procCA;
   let docType = "gdpr";
-  if ((ctrlEU || procEU) && (ctrlUS || procUS)) docType = "dual-eu-us";
-  else if ((ctrlEU || procEU) && (ctrlCA || procCA)) docType = "dual-eu-ca";
-  else if (ctrlUS || procUS) docType = "us-state";
-  else if (ctrlCA || procCA) docType = "canada";
-  else if (ctrlEU || procEU) docType = "gdpr";
-  // else: neither party maps — docType stays "gdpr" as last-resort but the
-  // caller surfaces this via ctrlMapped/procMapped for the fallback note.
+  // EU+UK → gdpr mode (existing QL2-FIX-1 UK territorial-scope block fires)
+  if (anyEU && anyUK) docType = "gdpr";
+  // Dual EU/US and EU/Canada retain existing routing
+  else if (anyEU && anyUS) docType = "dual-eu-us";
+  else if (anyEU && anyCA) docType = "dual-eu-ca";
+  // UK-primary derivations (UK-only, UK+US, UK+CA, UK+unmapped) → uk mode
+  else if (anyUK) docType = "uk";
+  else if (anyUS) docType = "us-state";
+  else if (anyCA) docType = "canada";
+  else if (anyEU) docType = "gdpr";
+  // else: neither party maps — docType stays "gdpr" as last-resort; the caller
+  // surfaces this via ctrlMapped/procMapped for the fallback note.
   return { docType, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
 }
 
@@ -607,15 +625,28 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
           : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
       : "";
 
-    // REBUILD-DPA T1b — when either jurisdiction is unmappable, the drafted
-    // document MUST carry a NOTE FOR LEGAL REVIEW naming the raw strings and
-    // the framework assumption made. Emitted through the PARTIES_BLOCK as an
-    // instruction to the model so it renders as a Section 1 recital note in
-    // the same voice as the legal-form flag pattern.
+    // FF-DPA nd1 — the rendered NOTE FOR LEGAL REVIEW is a customer-facing
+    // instrument in professional voice. Machine tokens ("could not map",
+    // "canonical supported jurisdiction", "generator", raw docType tokens like
+    // "US-STATE" / "DUAL-EU-CA") are BANNED from prose. The framework name is
+    // rendered via frameworkFor(documentType), never the raw documentType.
+    // The wrapper below carries the render instruction to the model; the note
+    // itself is the exact literal customer-facing text and must not be paraphrased.
+    const _rawCtrl = String(body.controllerJurisdiction ?? "");
+    const _rawProc = String(body.processorJurisdiction ?? "");
+    const _ctrlClause = !detected.ctrlMapped ? `the Controller's jurisdiction as "${_rawCtrl}"` : "";
+    const _procClause = !detected.procMapped ? `the Processor's jurisdiction as "${_rawProc}"` : "";
+    const _joinClause = (!detected.ctrlMapped && !detected.procMapped) ? " and " : "";
+    const _idClause = `${_ctrlClause}${_joinClause}${_procClause}`;
+    const _frameworkName = frameworkFor(documentType);
+    const _fallbackLiteral = `NOTE FOR LEGAL REVIEW — GOVERNING FRAMEWORK TO BE CONFIRMED. The record identifies ${_idClause}, for which the governing data-protection framework has not been confirmed on the record. This DPA has been drafted under ${_frameworkName} as the closest-fit baseline. Counsel should confirm the correct governing framework for the jurisdiction(s) quoted above, and adapt this DPA as required, before execution.`;
     const frameworkFallbackNote = frameworkFallback
       ? `
 
-NOTE FOR LEGAL REVIEW — FRAMEWORK ASSUMPTION FROM UNMAPPED JURISDICTION. The record supplied ${!detected.ctrlMapped ? `controller jurisdiction "${body.controllerJurisdiction}"` : ""}${(!detected.ctrlMapped && !detected.procMapped) ? " and " : ""}${!detected.procMapped ? `processor jurisdiction "${body.processorJurisdiction}"` : ""}, which the generator could not map to a canonical supported jurisdiction. This DPA has been drafted on the ${documentType.toUpperCase()} framework as the closest-fit baseline; render this NOTE FOR LEGAL REVIEW verbatim in Section 1 (Parties and Recitals) immediately after party identification, quoting the raw jurisdiction string(s) and directing counsel to confirm the correct governing framework before execution.`
+RENDER THE FOLLOWING NOTE VERBATIM IN SECTION 1 (Parties and Recitals) IMMEDIATELY AFTER PARTY IDENTIFICATION — copy the text between the delimiters exactly, do not paraphrase, do not reword, do not add or remove any word:
+<<<NOTE_BEGIN>>>
+${_fallbackLiteral}
+<<<NOTE_END>>>`
       : "";
 
     const PARTIES_BLOCK = `PARTIES
@@ -998,12 +1029,40 @@ Where GDPR is stricter, GDPR prevails; where Canadian law adds requirements, bot
 
 ${ANNOTATIONS_INSTRUCTIONS}`;
 
+    // FF-DPA nd6 — UK mode: operative instrument is UK GDPR (section 3(10) DPA
+    // 2018) + DPA 2018; supervisory authority is the ICO; Article 28(3)
+    // structure is retained AS UK GDPR Article 28(3). Verified citations
+    // (legislation.gov.uk / ICO, July 2026): (a) UK GDPR as defined in section
+    // 3(10) of the Data Protection Act 2018 (c.12), retained in UK law by
+    // section 3 of the European Union (Withdrawal) Act 2018; (b) DPA 2018
+    // (c.12), Parts 1–7; (c) UK IDTA and UK Addendum to the EU SCCs, issued
+    // by the ICO under section 119A DPA 2018 (in force 21 March 2022);
+    // (d) EU→UK adequacy: Commission Implementing Decision (EU) 2021/914
+    // superseded by the renewed adequacy decision adopted 19 December 2025
+    // (valid until 27 December 2031). Anything unverified against these
+    // primary sources must be flagged [TO BE COMPLETED], never recalled.
+    const UK_SYSTEM = `You are a senior data protection counsel specialising in UK data-protection law. Draft a complete, legally rigorous controller-processor Data Processing Agreement compliant with UK GDPR Article 28. The agreement must be immediately usable as a professional document without further editing except where fields are explicitly marked [TO BE COMPLETED].
+
+UK-PRIMARY OPERATIVE LAW: The operative instrument for this DPA is the UK General Data Protection Regulation ("UK GDPR"), as defined in section 3(10) of the Data Protection Act 2018 (c.12), together with the Data Protection Act 2018 itself. The competent supervisory authority is the Information Commissioner's Office (the ICO). Every Article 28(3) obligation MUST be cited as "UK GDPR Article 28(3)" (never as Article 28(3) of Regulation (EU) 2016/679). Recitals must identify UK GDPR and DPA 2018 as the operative law; Regulation (EU) 2016/679 may appear ONLY in a clearly labelled comparative or transfer-context reference (for example, when describing an EU→UK adequacy decision), never as the operative instrument.
+
+TRANSFER MECHANISMS UNDER UK RULES: For restricted transfers from the UK to a third country, the UK's international transfer instruments are (a) the UK International Data Transfer Agreement (UK IDTA) or (b) the UK Addendum to the EU SCCs, each issued by the ICO under section 119A DPA 2018 and in force from 21 March 2022. For transfers from the UK to countries covered by UK adequacy regulations made under section 17A DPA 2018, no additional Article 46 UK GDPR safeguard is required while those regulations remain in force. Do NOT cite EU 2021/914 SCCs as the UK transfer mechanism; the EU SCCs apply to a UK transfer only through the UK Addendum.
+
+EU→UK ADEQUACY: The European Commission's adequacy decision for the United Kingdom was renewed on 19 December 2025 (valid until 27 December 2031). Where personal data flows from an EEA-established party to the UK party, the transfer is governed by that adequacy decision under Article 45 EU GDPR; no Article 46 safeguard is required while that decision remains in force. Never state or imply that EU→UK adequacy "does not apply post-Brexit" — that is factually incorrect.
+
+CITATION DISCIPLINE: Any UK GDPR or DPA 2018 citation you draft must be verifiable against legislation.gov.uk or the ICO. If a specific section, subsection, or paragraph number is not verified, use a section-level citation with a descriptive gloss and flag "[statutory reference to be confirmed with counsel]" — never invent a subsection. Do NOT recall UK enforcement figures from memory; only use figures that appear in the ENFORCEMENT CONTEXT block.
+
+CROSS-BORDER PARTY MODULE (UK+US or UK+CA derivations): Where the counterparty is established in the United States or Canada, the operative law remains UK GDPR + DPA 2018 with the ICO as competent authority. Address the cross-border character by adding an INTERNATIONAL TRANSFER section that (i) states the UK's transfer mechanism for the specific destination country under UK IDTA / UK Addendum or an applicable UK adequacy regulation, (ii) does NOT introduce US-state or Canadian federal/provincial statutes as operative for this DPA (they may be referenced only as onward-obligations of the counterparty in its own jurisdiction), and (iii) preserves UK-primary drafting throughout the operative clauses.
+
+BREACH NOTIFICATION PARTY RULE: Any sub-clause requiring description of remedial measures within the Processor's notification to the Controller must state those are the measures "taken or proposed to be taken by the Processor" — NOT "by the Controller."`;
+    const UK_USER = GDPR_USER;
+
     let systemPrompt = GDPR_SYSTEM;
     let userPrompt = GDPR_USER;
     if (documentType === "us-state") { systemPrompt = US_SYSTEM; userPrompt = US_USER; }
     else if (documentType === "canada") { systemPrompt = CA_SYSTEM; userPrompt = CA_USER; }
     else if (documentType === "dual-eu-us") { systemPrompt = DUAL_EU_US_SYSTEM; userPrompt = DUAL_EU_US_USER; }
     else if (documentType === "dual-eu-ca") { systemPrompt = DUAL_EU_CA_SYSTEM; userPrompt = DUAL_EU_CA_USER; }
+    else if (documentType === "uk") { systemPrompt = UK_SYSTEM; userPrompt = UK_USER; }
 
     const CITATION_INTEGRITY_RULE = `
 
@@ -1088,7 +1147,12 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
 
     function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
+      // FF-DPA nd1 — defensive strip of the NOTE_BEGIN/NOTE_END render-instruction
+      // delimiters used to fence the customer-facing fallback note. If the model
+      // copies the delimiters through, remove them (the enclosed text stays).
       let dpa_text = fullText
+        .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
+        .replace(/\s*<<<NOTE_END>>>/g, '')
         .replace(/^#{1,6}\s+/gm, '')
         .replace(/\*\*\*/g, '')
         .replace(/\*\*/g, '')
@@ -1100,6 +1164,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         const sepIdx = fullText.indexOf("===ANNOTATIONS===");
         if (sepIdx !== -1) {
           dpa_text = fullText.slice(0, sepIdx).trim()
+            .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
+            .replace(/\s*<<<NOTE_END>>>/g, '')
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
             .replace(/\*\*/g, '')
@@ -1160,9 +1226,51 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       if (extras.length) {
         lint.violations.push(...extras);
         try {
-          await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 1, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+          logPostGenLint(supabase, {
+            functionName: "generate-dpa",
+            fallbackApplied: !!frameworkFallback,
+            residualLeaks: extras.length,
+            residualResolvedAsks: 0,
+            notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
+            sourceTable: "dpa_documents",
+            sourceRowId: rowId,
+            extra: { attempt: 1, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+          });
         } catch (e) {
           console.warn("[generate-dpa] logPostGenLint (attempt 1) failed:", (e as Error).message);
+        }
+      }
+      // FF-DPA nd5 — UNCONDITIONAL framework-fallback telemetry. Whenever the
+      // framework fallback fired, write a durable function_runs event even if
+      // no lint violations occurred. Run B's two fallback docs were invisible
+      // to telemetry precisely because the previous call site was gated on
+      // `extras.length`. This row uses a distinct extra.event marker so it can
+      // be filtered from violation-triggered rows in queries.
+      if (frameworkFallback) {
+        try {
+          logPostGenLint(supabase, {
+            functionName: "generate-dpa",
+            fallbackApplied: true,
+            residualLeaks: 0,
+            residualResolvedAsks: 0,
+            notes: [],
+            sourceTable: "dpa_documents",
+            sourceRowId: rowId,
+            extra: {
+              event_subtype: "framework_fallback_notice",
+              framework_fallback: true,
+              doc_type: documentType,
+              framework_name: frameworkFor(documentType),
+              raw_controller_jurisdiction: !detected.ctrlMapped ? String(body.controllerJurisdiction ?? "") : null,
+              raw_processor_jurisdiction: !detected.procMapped ? String(body.processorJurisdiction ?? "") : null,
+              ctrl_mapped: detected.ctrlMapped,
+              proc_mapped: detected.procMapped,
+              attempt: 1,
+              tool_type: "dpa_generator",
+            },
+          });
+        } catch (e) {
+          console.warn("[generate-dpa] framework_fallback unconditional telemetry failed:", (e as Error).message);
         }
       }
     }
@@ -1240,7 +1348,16 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
-              await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 2, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+              logPostGenLint(supabase, {
+                functionName: "generate-dpa",
+                fallbackApplied: !!frameworkFallback,
+                residualLeaks: extras.length,
+                residualResolvedAsks: 0,
+                notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
+                sourceTable: "dpa_documents",
+                sourceRowId: rowId,
+                extra: { attempt: 2, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+              });
             } catch (e) {
               console.warn("[generate-dpa] logPostGenLint (attempt 2) failed:", (e as Error).message);
             }
