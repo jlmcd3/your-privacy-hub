@@ -133,6 +133,21 @@ export default function ReportTranslateMenu({
     }
   }
 
+  // Auto-apply translation when navigated with ?lang=xx (e.g. from the
+  // reports list). Cache hits resolve instantly; misses fall through to the
+  // normal translate flow.
+  useEffect(() => {
+    if (autoAppliedRef.current) return;
+    const requested = searchParams.get("lang");
+    if (!requested) return;
+    const known = SUPPORTED_LANGUAGES.some((l) => l.code === requested);
+    if (!known) return;
+    autoAppliedRef.current = true;
+    handleSelect(requested);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+
   const activeChip = SUPPORTED_LANGUAGES.find((l) => l.code === activeLang);
   const buttonLabel = activeChip
     ? `${activeChip.flag} ${activeChip.name}`
