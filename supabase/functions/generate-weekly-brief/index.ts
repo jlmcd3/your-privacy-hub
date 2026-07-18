@@ -116,23 +116,54 @@ Deno.serve(async (req) => {
   }
   // ── End authentication ────────────────────────────────────────────────────
 
-  // BRIEF-MODEL-1-HF3: return 202 immediately; run full pipeline in background
-  // to escape the 150s gateway idle-timeout that killed the inner call under HF2.
+  // BRIEF-MODEL-1-HF4: startFunctionRun runs FIRST in the background body,
+  // guarded by its own try/catch that writes a durable failure row on ANY
+  // throw. Prior turn (HF3) put startFunctionRun inside waitUntil but did NOT
+  // guard it — a throw there would kill the body silently, matching John's
+  // "no weekly_brief_generation start row EVER appeared" evidence class.
   const startedMs = Date.now();
   const MODEL_TAG = "claude-sonnet-5";
 
   // @ts-ignore EdgeRuntime is a Supabase runtime global
   EdgeRuntime.waitUntil((async () => {
-  const fnRun = await startFunctionRun(supabase, "generate-weekly-brief", {
-    archetype: "async",
-    trustClass: "internal",
-    invokedBy: "internal",
-    metadata: {
-      event: "weekly_brief_generation",
-      model: MODEL_TAG,
-      t0: new Date(startedMs).toISOString(),
-    },
-  });
+  let fnRun: Awaited<ReturnType<typeof startFunctionRun>>;
+  try {
+    fnRun = await startFunctionRun(supabase, "generate-weekly-brief", {
+      archetype: "async",
+      trustClass: "internal",
+      invokedBy: "internal",
+      metadata: {
+        event: "weekly_brief_generation",
+        model: MODEL_TAG,
+        t0: new Date(startedMs).toISOString(),
+      },
+    });
+  } catch (e) {
+    console.error("[generate-weekly-brief] startFunctionRun threw:", e);
+    // Durable failure row via direct insert — bypasses fnRun state entirely.
+    try {
+      const nowIso = new Date().toISOString();
+      await supabase.from("function_runs").insert({
+        function_name: "generate-weekly-brief",
+        status: "error",
+        started_at: new Date(startedMs).toISOString(),
+        finished_at: nowIso,
+        duration_ms: Date.now() - startedMs,
+        error_message: `startFunctionRun threw: ${String((e as Error)?.message ?? e).slice(0, 500)}`,
+        metadata: {
+          event: "weekly_brief_generation",
+          outcome: "failed",
+          stage: "start_function_run",
+          model: MODEL_TAG,
+        },
+      });
+    } catch (ie) {
+      console.error("[generate-weekly-brief] durable fail-row insert threw:", ie);
+    }
+    return;
+  }
+
+
 
   try {
     // Anchor to PREVIOUS MONDAY 00:00 UTC (see getWeekStart). Monday runs cover
