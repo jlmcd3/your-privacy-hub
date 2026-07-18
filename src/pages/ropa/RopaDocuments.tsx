@@ -42,6 +42,7 @@ type SessionRow = {
   is_refresh: boolean;
   payment_confirmed: boolean;
   org_name: string | null;
+  client_id: string | null;
 };
 
 type DocVersion = {
@@ -65,7 +66,7 @@ export default function RopaDocuments() {
   const navigate = useNavigate();
   const urlSessionId = useRopaSessionParam();
   const { toast } = useToast();
-  const { clientName, isPersonalActive } = useActiveClient();
+  const { clientId: activeClientId, clientName, isPersonalActive, personal, hasClients } = useActiveClient();
   const { isAdmin } = useIsAdmin();
   const fireConversion = useConversionEvent();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
@@ -122,16 +123,32 @@ export default function RopaDocuments() {
 
   useEffect(() => {
     void loadDocuments();
-  }, []);
+    // Re-run when the active workspace changes so docs are scoped to it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeClientId, isPersonalActive, personal?.id, hasClients]);
 
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const { data: sess, error: sErr } = await supabase
+      let query = supabase
         .from("ropa_sessions")
-        .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed,org_name")
+        .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed,org_name,client_id")
         .in("status", ["in_progress", "review", "generated"])
         .order("last_activity_at", { ascending: false });
+
+      // Scope to the active workspace. When the personal workspace is active
+      // (or the user has no clients yet), show personal-owned sessions:
+      // client_id IS NULL or client_id = personal workspace id. Otherwise
+      // strictly filter to the active client.
+      if (hasClients && !isPersonalActive && activeClientId) {
+        query = query.eq("client_id", activeClientId);
+      } else if (personal?.id) {
+        query = query.or(`client_id.is.null,client_id.eq.${personal.id}`);
+      } else {
+        query = query.is("client_id", null);
+      }
+
+      const { data: sess, error: sErr } = await query;
       if (sErr) throw sErr;
 
       const sessionList = (sess || []) as SessionRow[];
