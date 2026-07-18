@@ -56,140 +56,17 @@ interface Body {
 
 // CEO ruling 2026-07-14 — legal framework derived from documentType.
 // FF-DPA nd6 — UK is a distinct framework (UK GDPR + DPA 2018), not EU GDPR.
-function frameworkFor(docType: string): string {
-  switch (docType) {
-    case "us-state": return "US state privacy law (CCPA/CPRA and applicable state acts)";
-    case "canada": return "PIPEDA";
-    case "dual-eu-us": return "Dual EU/US";
-    case "dual-eu-ca": return "Dual EU/Canada";
-    case "uk": return "UK GDPR and the Data Protection Act 2018";
-    case "gdpr":
-    default: return "GDPR";
-  }
-}
-
-// FF-DPA nd6 — UK removed from EU_JURS; UK gets its own set. The QL2-FIX-1
-// UK territorial-scope block inside GDPR_SYSTEM stays intact and fires for
-// EU+UK mixed derivations (routed to gdpr mode below) — explicit non-change.
-const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
-  "Belgium","Sweden","Denmark","Poland","Norway","Portugal",
-  "Austria","Finland","Luxembourg","Greece","Switzerland"]);
-const UK_JURS = new Set(["United Kingdom"]);
-const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado",
-  "Virginia","Florida","Washington","Illinois","Massachusetts","Oregon","Indiana",
-  "Montana","Iowa","Tennessee","Minnesota","Utah","Delaware","United States (federal)"]);
-const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
-  "British Columbia (PIPA)","Alberta (PIPA)"]);
-
-const VALID_DOC_TYPES = new Set(["gdpr","us-state","canada","dual-eu-us","dual-eu-ca","uk"]);
-
-// REBUILD-DPA T1a — alias table for natural variants → canonical DPA_JURISDICTIONS
-// enum value. Case-insensitive whole-value match after trimming. Only aliases that
-// resolve unambiguously to a single canonical value are listed; ambiguous
-// short forms (e.g. bare "Washington" — state vs. federal district) are NOT
-// listed and must arrive as the canonical intake string.
-const JURISDICTION_ALIASES: Record<string, string> = {
-  // US federal
-  "united states": "United States (federal)",
-  "united states of america": "United States (federal)",
-  "usa": "United States (federal)", "u.s.a.": "United States (federal)",
-  "u.s.": "United States (federal)", "us": "United States (federal)",
-  // UK
-  "united kingdom": "United Kingdom", "uk": "United Kingdom",
-  "great britain": "United Kingdom", "gb": "United Kingdom",
-  "england": "United Kingdom", "england and wales": "United Kingdom",
-  // US state short forms (unambiguous)
-  "ny": "New York", "new york, ny": "New York", "new york, usa": "New York",
-  "new york state": "New York",
-  "ca": "California", "california, usa": "California",
-  "tx": "Texas", "ct": "Connecticut", "co": "Colorado", "va": "Virginia",
-  "fl": "Florida", "wa": "Washington", "il": "Illinois", "ma": "Massachusetts",
-  "or": "Oregon", "in": "Indiana", "mt": "Montana", "ia": "Iowa",
-  "tn": "Tennessee", "mn": "Minnesota", "ut": "Utah", "de": "Delaware",
-  // Canada federal + provinces (natural forms → canonical)
-  "canada": "Canada (federal / PIPEDA)",
-  "canada (federal)": "Canada (federal / PIPEDA)",
-  "pipeda": "Canada (federal / PIPEDA)",
-  "quebec": "Quebec (Law 25)", "québec": "Quebec (Law 25)",
-  "quebec, canada": "Quebec (Law 25)", "quebec (law 25 / bill 64)": "Quebec (Law 25)",
-  "ontario": "Ontario (PHIPA)", "ontario, canada": "Ontario (PHIPA)",
-  "british columbia": "British Columbia (PIPA)", "bc": "British Columbia (PIPA)",
-  "british columbia, canada": "British Columbia (PIPA)",
-  "alberta": "Alberta (PIPA)", "alberta, canada": "Alberta (PIPA)",
-  // EU natural
-  "france": "France", "germany": "Germany", "deutschland": "Germany",
-  "ireland": "Ireland", "republic of ireland": "Ireland",
-  "spain": "Spain", "italy": "Italy", "netherlands": "Netherlands",
-  "the netherlands": "Netherlands", "holland": "Netherlands",
-  "belgium": "Belgium", "sweden": "Sweden", "denmark": "Denmark",
-  "poland": "Poland", "norway": "Norway", "portugal": "Portugal",
-  "austria": "Austria", "finland": "Finland", "luxembourg": "Luxembourg",
-  "greece": "Greece", "switzerland": "Switzerland",
-};
-
-function normalizeJurisdiction(raw: string): { canonical: string; mapped: boolean } {
-  const trimmed = (raw ?? "").trim();
-  if (!trimmed) return { canonical: "", mapped: false };
-  // 1. Canonical enum match (case-sensitive) — accept as-is.
-  if (EU_JURS.has(trimmed) || UK_JURS.has(trimmed) || US_JURS.has(trimmed) || CA_JURS.has(trimmed)) {
-    return { canonical: trimmed, mapped: true };
-  }
-  // 2. Canonical enum match (case-insensitive whole-value).
-  const lower = trimmed.toLowerCase();
-  for (const s of [...EU_JURS, ...UK_JURS, ...US_JURS, ...CA_JURS]) {
-    if (s.toLowerCase() === lower) return { canonical: s, mapped: true };
-  }
-  // 3. Alias table (case-insensitive whole-value; no substring traps).
-  const aliased = JURISDICTION_ALIASES[lower];
-  if (aliased) return { canonical: aliased, mapped: true };
-  return { canonical: trimmed, mapped: false };
-}
-
-// REBUILD-DPA T1b + FF-DPA nd6 — derivation matrix now branches UK from EU.
-// - UK-only or UK+unmapped         → "uk"
-// - UK+EU                          → "gdpr" (QL2-FIX-1 UK territorial-scope block fires)
-// - UK+US                          → "uk"  (cross-border module added inside uk mode)
-// - UK+CA                          → "uk"  (cross-border module added inside uk mode)
-// Cross-border treatment for UK+US and UK+CA is a listed design decision (see
-// FF-DPA nd6 report): uk-mode with a cross-border module rather than new
-// dual-uk-* types, to keep the derivation surface small and avoid a combinatorial
-// explosion of prompt templates. UK GDPR + DPA 2018 remains the operative law;
-// the module addresses transfers/onward flows to the US or Canadian party.
-function detectDocType(
-  ctrl: string,
-  proc: string,
-  explicit?: unknown,
-): { docType: string; ctrlCanonical: string; procCanonical: string; ctrlMapped: boolean; procMapped: boolean; explicitAccepted: boolean; explicitRawType: string } {
-  const explicitRawType = explicit === null || explicit === undefined ? "undefined" : (Array.isArray(explicit) ? "array" : typeof explicit);
-  const explicitAccepted = typeof explicit === "string" && VALID_DOC_TYPES.has(explicit);
-  const c = normalizeJurisdiction(ctrl);
-  const p = normalizeJurisdiction(proc);
-  if (explicitAccepted) {
-    return { docType: explicit as string, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
-  }
-  const ctrlEU = EU_JURS.has(c.canonical); const procEU = EU_JURS.has(p.canonical);
-  const ctrlUK = UK_JURS.has(c.canonical); const procUK = UK_JURS.has(p.canonical);
-  const ctrlUS = US_JURS.has(c.canonical); const procUS = US_JURS.has(p.canonical);
-  const ctrlCA = CA_JURS.has(c.canonical); const procCA = CA_JURS.has(p.canonical);
-  const anyEU = ctrlEU || procEU;
-  const anyUK = ctrlUK || procUK;
-  const anyUS = ctrlUS || procUS;
-  const anyCA = ctrlCA || procCA;
-  let docType = "gdpr";
-  // EU+UK → gdpr mode (existing QL2-FIX-1 UK territorial-scope block fires)
-  if (anyEU && anyUK) docType = "gdpr";
-  // Dual EU/US and EU/Canada retain existing routing
-  else if (anyEU && anyUS) docType = "dual-eu-us";
-  else if (anyEU && anyCA) docType = "dual-eu-ca";
-  // UK-primary derivations (UK-only, UK+US, UK+CA, UK+unmapped) → uk mode
-  else if (anyUK) docType = "uk";
-  else if (anyUS) docType = "us-state";
-  else if (anyCA) docType = "canada";
-  else if (anyEU) docType = "gdpr";
-  // else: neither party maps — docType stays "gdpr" as last-resort; the caller
-  // surfaces this via ctrlMapped/procMapped for the fallback note.
-  return { docType, ctrlCanonical: c.canonical, procCanonical: p.canonical, ctrlMapped: c.mapped, procMapped: p.mapped, explicitAccepted, explicitRawType };
-}
+// Task 9 (FF-DPA) — derivation logic extracted to _shared/dpa-derivation.ts
+// so the UK derivation matrix and 11-case REBUILD-DPA set are unit-testable
+// without loading the full edge-function module. Behaviour is unchanged; the
+// QL2-FIX-1 UK territorial-scope block inside GDPR_SYSTEM continues to fire
+// for EU+UK mixed derivations (routed to gdpr mode).
+import {
+  frameworkFor,
+  EU_JURS, UK_JURS, US_JURS, CA_JURS,
+  VALID_DOC_TYPES, JURISDICTION_ALIASES,
+  normalizeJurisdiction, detectDocType,
+} from "../_shared/dpa-derivation.ts";
 
 
 // Sector-specific data category detection for US DPA module injection
