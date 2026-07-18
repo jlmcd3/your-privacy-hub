@@ -1341,7 +1341,16 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
-              await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 2, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+              logPostGenLint(supabase, {
+                functionName: "generate-dpa",
+                fallbackApplied: !!frameworkFallback,
+                residualLeaks: extras.length,
+                residualResolvedAsks: 0,
+                notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
+                sourceTable: "dpa_documents",
+                sourceRowId: rowId,
+                extra: { attempt: 2, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+              });
             } catch (e) {
               console.warn("[generate-dpa] logPostGenLint (attempt 2) failed:", (e as Error).message);
             }
