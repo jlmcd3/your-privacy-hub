@@ -9,12 +9,12 @@
 // null) and the route is exactly /account.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { Settings, Building2, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  INTELLIGENCE_ITEMS,
-  OPERATIONS_ITEMS,
+  TOP_ITEMS,
+  CATEGORY_GROUPS,
   computeActiveTo,
 } from "@/lib/workspaceNav";
 
@@ -54,22 +54,6 @@ const SUPPRESS_PATHS = [
   '/legitimate-interest-tracker',
 ];
 
-const APPSHELL_PREFIXES = [
-  '/dashboard',
-  '/watchlist',
-  '/clients',
-  '/brief-preferences',
-  '/account',
-  '/ropa',
-  '/us-notices',
-  '/eu-notices',
-  '/admin',
-];
-
-// Workspace tab list = Intelligence + Operations groups from the shared
-// definition. Account is rendered separately as the trailing pill below.
-const ITEMS = [...INTELLIGENCE_ITEMS, ...OPERATIONS_ITEMS];
-
 export default function DashboardSubnav() {
   const { user } = useAuth();
   const location = useLocation();
@@ -93,10 +77,33 @@ export default function DashboardSubnav() {
     rawPath.startsWith('/subscribe/');
   if (isSuppressed) return null;
 
-  // Account is its own trailing pill; highlight when the shared matcher
-  // resolved the route to the Account item (covers /account and
-  // /brief-preferences).
   const accountActive = activeTo === "/account";
+  const obligationsActive = activeTo === "/obligations";
+  const clientsActive = rawPath === "/clients" || rawPath.startsWith("/clients/");
+
+  const renderPill = (
+    to: string,
+    label: string,
+    Icon: React.ComponentType<{ className?: string }>,
+    active: boolean,
+  ) => (
+    <li key={to} className="flex-shrink-0">
+      <NavLink
+        to={to}
+        end
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline whitespace-nowrap",
+          active
+            ? "bg-brand-navy text-white"
+            : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
+        )}
+        aria-current={active ? "page" : undefined}
+      >
+        <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+        {label}
+      </NavLink>
+    </li>
+  );
 
   return (
     <nav
@@ -104,40 +111,40 @@ export default function DashboardSubnav() {
       className="border-b border-brand-cloud bg-card sticky top-14 md:top-16 z-30 backdrop-blur-sm bg-card/95"
     >
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2">
-          {/* Workspace tabs — horizontally scroll on small screens */}
-          <ul className="flex items-center gap-1 overflow-x-auto scrollbar-none -mx-1 px-1 py-2">
-            {ITEMS.map((item) => {
-              const active = activeTo === item.to;
-              const Icon = item.icon;
-              return (
-                <li key={item.to} className="flex-shrink-0">
-                  <NavLink
-                    to={item.to}
-                    // Disable NavLink's built-in active detection — we own it via `activeTo`.
-                    end
-                    className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline whitespace-nowrap",
-                      active
-                        ? "bg-brand-navy text-white"
-                        : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
-                    )}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-                    {item.label}
-                  </NavLink>
-                </li>
-              );
-            })}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-2">
+          <ul className="flex items-center gap-1 flex-nowrap">
+            {TOP_ITEMS.map((item) =>
+              renderPill(item.to, item.label, item.icon, activeTo === item.to),
+            )}
+
+            {CATEGORY_GROUPS.map((cat) => (
+              <li
+                key={cat.id}
+                className="flex items-center gap-1 flex-shrink-0 pl-2 ml-1 border-l border-brand-cloud"
+              >
+                <span
+                  className="text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500 pr-1 whitespace-nowrap"
+                  aria-label={cat.label}
+                >
+                  {cat.label}
+                </span>
+                <ul className="flex items-center gap-1 flex-nowrap">
+                  {cat.items.map((item) =>
+                    renderPill(item.to, item.label, item.icon, activeTo === item.to),
+                  )}
+                </ul>
+              </li>
+            ))}
+
+            {renderPill("/obligations", "Obligations", CalendarClock, obligationsActive)}
+            {renderPill("/clients", "Clients", Building2, clientsActive)}
           </ul>
 
-          {/* Account is settings, not workspace — separated on the right */}
           <NavLink
             to="/account"
             end
             className={cn(
-              "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline",
+              "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline ml-auto",
               accountActive
                 ? "bg-brand-cloud text-brand-navy"
                 : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
@@ -152,3 +159,4 @@ export default function DashboardSubnav() {
     </nav>
   );
 }
+
