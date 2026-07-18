@@ -610,7 +610,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
       : (aiData.content?.[0]?.text || "");
     const briefElapsed = Date.now() - briefStartedAt;
     const blockTypes = Array.isArray(aiData.content) ? aiData.content.map((b: any) => b?.type).join(",") : "n/a";
-    console.log(`[generate-weekly-brief] stage=brief model=claude-sonnet-5 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length} blocks=${blockTypes}`);
+    console.log(`[generate-weekly-brief] stage=brief model=${MODEL_TAG} elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length} blocks=${blockTypes}`);
 
     let brief: any;
     try {
