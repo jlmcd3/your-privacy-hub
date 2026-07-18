@@ -31,6 +31,9 @@ export default function ReportTranslateMenu({
   const [notice, setNotice] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [searchParams] = useSearchParams();
+  const autoAppliedRef = useRef(false);
+
 
   // TRANSLATE-1 — async translation with polling.
   // POST kicks off translation and returns 202 with status='translating'.
