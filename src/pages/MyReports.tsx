@@ -588,12 +588,12 @@ export default function MyReports() {
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
-          ) : familyFilteredRows.length === 0 ? (
+          ) : filteredRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
                 <p className="text-slate mb-4">
-                  {activeFamily
+                  {(activeGroup || activeFamily)
                     ? "No reports in this jurisdiction yet."
                     : "You haven't generated any reports yet."}
                 </p>
@@ -612,7 +612,7 @@ export default function MyReports() {
               ];
               const grouped = GROUPS.map((g) => ({
                 ...g,
-                rows: familyFilteredRows.filter((r) => g.tools.includes(r.tool)),
+                rows: filteredRows.filter((r) => g.tools.includes(r.tool)),
               })).filter((g) => g.rows.length > 0);
 
               return (
