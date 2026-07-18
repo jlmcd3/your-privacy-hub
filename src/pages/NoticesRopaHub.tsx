@@ -145,6 +145,11 @@ export default function NoticesRopaHub() {
     };
   }, [user, client?.id]);
 
+  const displayRows = useMemo(
+    () => (activeKind ? rows.filter((r) => r.kind === activeKind) : rows),
+    [rows, activeKind],
+  );
+
   const WorkspaceIcon = isPersonalActive ? User : Briefcase;
   const workspaceLabel = isPersonalActive ? "your personal workspace" : clientName;
 
