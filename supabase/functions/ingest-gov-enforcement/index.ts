@@ -6,6 +6,7 @@
 // PDPC Singapore, OPC Canada, Texas AG, Colorado AG, HHS OCR.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { canonicalizeSourceUrl, isOaicEnforcementTitle, extractOaicSubject } from "./oaic.ts";
+import { isFtcEnforcementUrl, extractFtcSubject, isHhsOcrEnforcementUrl, extractHhsSubject, normalizeRegulatorLabel } from "./us-ingest.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
