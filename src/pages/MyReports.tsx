@@ -550,14 +550,44 @@ export default function MyReports() {
 
 
 
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
+            {[
+              { id: null as null | "cppa" | "gdpr", label: "All" },
+              { id: "cppa" as const, label: "U.S. \u2013 CPPA" },
+              { id: "gdpr" as const, label: "EU & UK \u2013 GDPR" },
+            ].map((chip) => {
+              const active = activeFamily === chip.id;
+              return (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => setFamily(chip.id)}
+                  className={
+                    "px-3 py-1 rounded-full text-xs font-medium border transition-colors " +
+                    (active
+                      ? "bg-brand-navy text-white border-brand-navy"
+                      : "bg-transparent text-slate border-brand-cloud hover:bg-brand-cloud hover:text-brand-navy")
+                  }
+                  aria-pressed={active}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
+
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
-          ) : visibleRows.length === 0 ? (
+          ) : familyFilteredRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
-                <p className="text-slate mb-4">You haven't generated any reports yet.</p>
-                <Button asChild><Link to="/tools">Browse tools</Link></Button>
+                <p className="text-slate mb-4">
+                  {activeFamily
+                    ? "No reports in this jurisdiction yet."
+                    : "You haven't generated any reports yet."}
+                </p>
+                <Button asChild><Link to="/start">Browse tools</Link></Button>
               </CardContent>
             </Card>
           ) : (
@@ -572,7 +602,7 @@ export default function MyReports() {
               ];
               const grouped = GROUPS.map((g) => ({
                 ...g,
-                rows: visibleRows.filter((r) => g.tools.includes(r.tool)),
+                rows: familyFilteredRows.filter((r) => g.tools.includes(r.tool)),
               })).filter((g) => g.rows.length > 0);
 
               return (
