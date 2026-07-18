@@ -39,7 +39,10 @@ export default function ReportTranslateMenu({
   // POST kicks off translation and returns 202 with status='translating'.
   // A GET on the same function reports status until 'complete' or 'failed'.
   async function pollUntilDone(code: string, startedAt: number): Promise<any | null> {
-    const MAX_MS = 5 * 60_000;         // 5 min ceiling
+    // TRANSLATE-2 — raised from 5m to 25m to accommodate DPIA p95 (~9m) and
+    // CPPA Risk max (~17m) with a comfortable margin above the server-side
+    // 45m hard-fail ceiling minus resume overhead.
+    const MAX_MS = 25 * 60_000;
     const INTERVAL_MS = 2500;
     while (Date.now() - startedAt < MAX_MS) {
       await new Promise((r) => setTimeout(r, INTERVAL_MS));

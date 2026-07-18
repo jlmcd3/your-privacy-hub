@@ -417,3 +417,134 @@ export async function translatePlainText(
   }
   return { translated: parts.join(""), chunksTotal, chunksDone, units: chunksTotal };
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// TRANSLATE-2 — Sliced / resumable execution.
+//
+// The engine below is DETERMINISTIC given the source payload: extractStringUnits
+// + planChunks yields the same chunk array (in the same order) every call.
+// That determinism is what lets us persist per-chunk results by INDEX and
+// resume across background slices.
+//
+// Storage shape for translated_chunks (jsonb column on report_translations):
+//   { "0": { kind:"map",   map:{ "path.a":"...", "path.b":"..." } },
+//     "1": { kind:"prose", text:"..." },
+//     ...
+//   }
+// ─────────────────────────────────────────────────────────────────────────
+
+export type PersistedChunk =
+  | { kind: "map"; map: Record<string, string> }
+  | { kind: "prose"; text: string };
+
+export interface SliceOptions {
+  apiKey: string;
+  languageCode: string;
+  languageName: string;
+  /** Absolute wall-clock deadline (Date.now() >= this → stop). */
+  deadlineMs: number;
+  /** Called after every completed chunk with { index, chunk, chunksDone, chunksTotal }. */
+  onChunkComplete: (arg: {
+    index: number;
+    chunk: PersistedChunk;
+    chunksDone: number;
+    chunksTotal: number;
+  }) => Promise<void> | void;
+}
+
+export interface SliceResult {
+  chunksTotal: number;
+  chunksDone: number;
+  processedThisSlice: number;
+  allDone: boolean;
+  timedOut: boolean;
+}
+
+/**
+ * Plan chunks deterministically from source, then process only the indices
+ * missing from `translatedChunks`, stopping at `deadlineMs`. Each completed
+ * chunk is handed to `onChunkComplete` for durable persistence BEFORE the
+ * next chunk starts.
+ */
+export async function runTranslationSlice(
+  source: unknown,
+  translatedChunks: Record<string, PersistedChunk>,
+  opts: SliceOptions,
+): Promise<SliceResult> {
+  const units = extractStringUnits(source);
+  const chunks = planChunks(units);
+  const chunksTotal = chunks.length;
+  let chunksDone = Object.keys(translatedChunks).length;
+  let processedThisSlice = 0;
+
+  if (chunksTotal === 0) {
+    return { chunksTotal: 0, chunksDone: 0, processedThisSlice: 0, allDone: true, timedOut: false };
+  }
+
+  for (let i = 0; i < chunksTotal; i++) {
+    if (translatedChunks[String(i)] !== undefined) continue; // idempotency: skip persisted
+
+    if (Date.now() >= opts.deadlineMs) {
+      return { chunksTotal, chunksDone, processedThisSlice, allDone: false, timedOut: true };
+    }
+
+    const chunk = chunks[i];
+    let persisted: PersistedChunk;
+    if (chunk.kind === "json_map") {
+      const translated = await withRetry(
+        () => translateJsonMapChunk(opts.apiKey, opts.languageName, chunk.units),
+        `slice/json_map#${i}(${chunk.units.length} units)`,
+      );
+      persisted = { kind: "map", map: translated };
+    } else {
+      const joined = await withRetry(
+        () => translateProseChunk(opts.apiKey, opts.languageName, chunk.segments),
+        `slice/prose#${i}(${chunk.segments.length} segs @${chunk.path})`,
+      );
+      persisted = { kind: "prose", text: joined };
+    }
+    chunksDone++;
+    processedThisSlice++;
+    await opts.onChunkComplete({ index: i, chunk: persisted, chunksDone, chunksTotal });
+  }
+  return { chunksTotal, chunksDone, processedThisSlice, allDone: true, timedOut: false };
+}
+
+/**
+ * Rebuild the translated document from the source payload + the persisted
+ * chunk record. Throws if any chunk is missing.
+ */
+export function assembleTranslated(
+  source: unknown,
+  translatedChunks: Record<string, PersistedChunk>,
+): unknown {
+  const cloned = JSON.parse(JSON.stringify(source));
+  const units = extractStringUnits(cloned);
+  const chunks = planChunks(units);
+  for (let i = 0; i < chunks.length; i++) {
+    const stored = translatedChunks[String(i)];
+    if (!stored) throw new Error(`assembleTranslated: chunk #${i} missing`);
+    const chunk = chunks[i];
+    if (chunk.kind === "json_map") {
+      if (stored.kind !== "map") throw new Error(`assembleTranslated: kind mismatch at #${i}`);
+      for (const u of chunk.units) {
+        const v = stored.map[u.path];
+        if (typeof v !== "string") throw new Error(`assembleTranslated: path ${u.path} missing`);
+        setAtPath(cloned, u.path, v);
+      }
+    } else {
+      if (stored.kind !== "prose") throw new Error(`assembleTranslated: kind mismatch at #${i}`);
+      setAtPath(cloned, chunk.path, stored.text);
+    }
+  }
+  return cloned;
+}
+
+/**
+ * Return the planned chunk count for a source payload — exposed so the
+ * initial POST can pre-write chunks_total before background execution.
+ */
+export function computeChunksTotal(source: unknown): number {
+  return planChunks(extractStringUnits(source)).length;
+}
+

@@ -5854,13 +5854,17 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
+          last_progress_at: string | null
           model: string | null
           report_id: string
           report_type: string
+          resume_count: number
+          slice_count: number
           source_lang: string
           started_at: string | null
           status: string
           target_lang: string
+          translated_chunks: Json
           translated_content: Json | null
           updated_at: string
           user_id: string | null
@@ -5872,13 +5876,17 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          last_progress_at?: string | null
           model?: string | null
           report_id: string
           report_type: string
+          resume_count?: number
+          slice_count?: number
           source_lang?: string
           started_at?: string | null
           status?: string
           target_lang: string
+          translated_chunks?: Json
           translated_content?: Json | null
           updated_at?: string
           user_id?: string | null
@@ -5890,13 +5898,17 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          last_progress_at?: string | null
           model?: string | null
           report_id?: string
           report_type?: string
+          resume_count?: number
+          slice_count?: number
           source_lang?: string
           started_at?: string | null
           status?: string
           target_lang?: string
+          translated_chunks?: Json
           translated_content?: Json | null
           updated_at?: string
           user_id?: string | null
