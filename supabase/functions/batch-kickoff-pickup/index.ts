@@ -375,6 +375,42 @@ async function runBriefChainSweep(admin: any): Promise<BriefChainSweepResult> {
   return result;
 }
 
+// ────────────────────────────────────────────────────────────────────────
+// TRANSLATE-1 — Translation sweep: reap report_translations rows stuck in
+// status='translating' for more than TRANSLATION_STUCK_MS.
+// ────────────────────────────────────────────────────────────────────────
+export type TranslationSweepResult = {
+  processed: number;
+  reaped: number;
+  errors: string[];
+};
+
+async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> {
+  const result: TranslationSweepResult = { processed: 0, reaped: 0, errors: [] };
+  const cutoff = new Date(Date.now() - TRANSLATION_STUCK_MS).toISOString();
+  const { data: stuck, error } = await admin
+    .from("report_translations")
+    .select("id, report_type, report_id, target_lang, started_at, chunks_done, chunks_total")
+    .eq("status", "translating")
+    .lt("started_at", cutoff)
+    .limit(25);
+  if (error) { result.errors.push(`query: ${error.message}`); return result; }
+  const rows: any[] = Array.isArray(stuck) ? stuck : [];
+  for (const r of rows) {
+    result.processed++;
+    const ageMin = Math.round((Date.now() - new Date(r.started_at).getTime()) / 60_000);
+    const note = `[translation-sweep: stuck ${ageMin}min in 'translating' (${r.chunks_done ?? 0}/${r.chunks_total ?? "?"} chunks); reaped]`;
+    const { error: upErr } = await admin.from("report_translations")
+      .update({ status: "failed", error_message: note })
+      .eq("id", r.id).eq("status", "translating");
+    if (upErr) result.errors.push(`update ${r.id}: ${upErr.message}`);
+    else result.reaped++;
+  }
+  return result;
+}
+
+
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
