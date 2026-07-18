@@ -790,10 +790,37 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       jurisdictions: liaJurisdictions,
     });
 
+    // REBUILD-LIA T1(b/c) — authoritative ENGAGED FRAMEWORKS block. The model
+    // is required to anchor per engaged framework and to treat non-engaged
+    // frameworks as labelled comparatives only.
+    const engagedFrameworksBlock = (() => {
+      const anchors: Record<LiaFramework, string> = {
+        EU_GDPR: "EU (GDPR): Article 6(1)(f) GDPR + EDPB Guidelines 1/2024 (three-step assessment II.A–II.C); operative authority.",
+        UK_GDPR: "UK (UK GDPR): UK GDPR Article 6(1)(f) + ICO legitimate-interests guidance (primary UK reference); EDPB Guidelines 1/2024 cited only as persuasive comparative post-Brexit; note Data (Use and Access) Act 2025 where relevant.",
+        US_FEDERAL: "United States — Federal: CCPA/CPRA does not apply federally; the operative federal frame is FTC Section 5 (unfairness/deception) plus any sectoral statute (GLBA, HIPAA, COPPA) engaged by the record. GDPR articles NEVER appear as operative authority for a US-Federal-only leg.",
+        US_CALIFORNIA: "California (CCPA/CPRA): analyse under Cal. Civ. Code § 1798.100 et seq., including § 1798.121 (right to limit use/disclosure of sensitive PI) and § 1798.140(ae) (sensitive PI definition) where the record flags such data; consumer rights (§ 1798.105 delete, § 1798.106 correct, § 1798.110 know, § 1798.120 opt-out of sale/share) frame the equivalent of GDPR objection. GDPR articles NEVER appear as operative authority for a California-only leg.",
+        US_OTHER_STATES: "Other US States: analyse under the specific state statute engaged by the record (VCDPA, CPA, CTDPA, UCPA, TDPSA, etc.); state which state law is being applied. GDPR articles NEVER appear as operative authority.",
+        CANADA_PIPEDA: "Canada (PIPEDA): analyse under the appropriate-purposes / reasonable-person test (PIPEDA s. 5(3)) and OPC guidance on legitimate business interest where applicable; consent-forward regime — a PIPEDA-only leg does not use GDPR Article 6(1)(f).",
+        BRAZIL_LGPD: "Brazil (LGPD): analyse under LGPD Art. 7, VI (legítimo interesse) with Art. 10 requirements (concrete situation, specific purposes, safeguards); ANPD guidance where applicable.",
+        AUSTRALIA_PRIVACY_ACT: "Australia (Privacy Act 1988): analyse under the Australian Privacy Principles (APPs), particularly APP 3 (collection) and APP 6 (use/disclosure); no direct GDPR-style legitimate-interests basis.",
+        SINGAPORE_PDPA: "Singapore (PDPA): analyse under the Personal Data Protection Act 2012 legitimate interests exception (First Schedule, Part 3) with the reasonableness assessment.",
+        OTHER: "Other: analyse under the framework the record names in narrative; do not import GDPR articles as operative authority.",
+      };
+      const lines: string[] = [];
+      lines.push("ENGAGED FRAMEWORKS (authoritative — computed from the recorded intake jurisdictions). Anchor the three-part LI test per engaged framework and treat non-engaged frameworks as labelled comparatives only. Where NO EU/UK jurisdiction is engaged, GDPR articles MUST NOT appear as operative authority. Blocking issues, recommendations, and information_needed provisions MUST speak the engaged framework's language.");
+      if (engagedFrameworks.length === 0) {
+        lines.push("- (no framework derived from the record; refuse to invent one and record this in information_needed with field='jurisdictions')");
+      } else {
+        for (const f of engagedFrameworks) lines.push(`- ${f}: ${anchors[f]}`);
+      }
+      return lines.join("\n");
+    })();
+
     const analysisInjected = [
-      gdprCitations,
+      engagedFrameworksBlock,
+      (isEu || isUk) ? gdprCitations : "",
       enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
-      gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
+      (isEu || isUk) && gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
       ukGuidanceFraming,
       liaTestStatesBlock,
     ].filter(Boolean).join("\n\n");
