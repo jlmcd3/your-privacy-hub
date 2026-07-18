@@ -256,6 +256,182 @@ export function renderLiaTestStatesBlock(states: Record<string, LiaTestStateEntr
   return lines.join("\n");
 }
 
+// REBUILD-LIA T1(a) — derive engaged frameworks from RECORDED intake
+// jurisdictions (LIAssessment.enums.ts JURISDICTIONS values). No semantic
+// defaults; unrecognised values fall through to OTHER only.
+export type LiaFramework =
+  | "EU_GDPR" | "UK_GDPR" | "US_FEDERAL" | "US_CALIFORNIA"
+  | "US_OTHER_STATES" | "CANADA_PIPEDA" | "BRAZIL_LGPD"
+  | "AUSTRALIA_PRIVACY_ACT" | "SINGAPORE_PDPA" | "OTHER";
+
+export function deriveEngagedFrameworks(jurisdictions: unknown): LiaFramework[] {
+  const arr = Array.isArray(jurisdictions) ? jurisdictions : [];
+  const out = new Set<LiaFramework>();
+  for (const raw of arr) {
+    const j = String(raw ?? "").trim();
+    if (!j) continue;
+    // EXACT-first match against LIAssessment.enums.ts JURISDICTIONS options.
+    if (/^EU\b|^EU \(GDPR\)|GDPR/i.test(j) && !/UK|United Kingdom/i.test(j)) out.add("EU_GDPR");
+    if (/UK|United Kingdom/i.test(j)) out.add("UK_GDPR");
+    if (/United States\s*[—-]\s*Federal|US[-\s]?Federal/i.test(j)) out.add("US_FEDERAL");
+    if (/California|CCPA|CPRA/i.test(j)) out.add("US_CALIFORNIA");
+    if (/Other US States/i.test(j)) out.add("US_OTHER_STATES");
+    if (/^Canada$|PIPEDA/i.test(j)) out.add("CANADA_PIPEDA");
+    if (/Brazil|LGPD/i.test(j)) out.add("BRAZIL_LGPD");
+    if (/^Australia$/i.test(j)) out.add("AUSTRALIA_PRIVACY_ACT");
+    if (/^Singapore$|PDPA/i.test(j)) out.add("SINGAPORE_PDPA");
+    if (/^Other$/i.test(j)) out.add("OTHER");
+  }
+  return Array.from(out);
+}
+
+// REBUILD-LIA T1(b) — user-facing "jurisdictions_scope" derived from engaged
+// frameworks. This is the field the reconciler stamps onto classification.
+export function frameworksToScopeStrings(fs: LiaFramework[]): string[] {
+  const map: Record<LiaFramework, string> = {
+    EU_GDPR: "EU (GDPR)",
+    UK_GDPR: "United Kingdom (UK GDPR)",
+    US_FEDERAL: "United States — Federal",
+    US_CALIFORNIA: "California (CCPA/CPRA)",
+    US_OTHER_STATES: "Other US States",
+    CANADA_PIPEDA: "Canada (PIPEDA)",
+    BRAZIL_LGPD: "Brazil (LGPD)",
+    AUSTRALIA_PRIVACY_ACT: "Australia (Privacy Act 1988)",
+    SINGAPORE_PDPA: "Singapore (PDPA)",
+    OTHER: "Other",
+  };
+  return fs.map((f) => map[f]).filter(Boolean);
+}
+
+// REBUILD-LIA T4 — M1–M11 human-name rewrite map. Applied as a
+// deterministic post-generation scrub on user-facing string fields so the
+// internal TEST-STATES vocabulary never reaches the report.
+export const LIA_M_HUMAN_MAP: Record<string, string> = {
+  M1: "the relationship determination",
+  M2: "the jurisdictions determination",
+  M3: "the data-categories determination",
+  M4: "the special-category determination",
+  M5: "the vulnerable-subjects determination",
+  M6: "the alternatives review",
+  M7: "the safeguards review",
+  M8: "the opt-out review",
+  M9: "the reasonable-expectation review",
+  M10: "the potential-harm review",
+  M11: "the employment-context review",
+};
+
+// State tokens rewritten to plain conclusions (shared token family with
+// dpia/risk). Applied by applyDeterministicPostGenFallbackLia below.
+const LIA_STATE_TOKEN_REWRITES: Array<[RegExp, string]> = [
+  [/\bRESOLVED_MET\b/g, "resolved on the record"],
+  [/\bRESOLVED_NOT_MET\b/g, "resolved on the record (not met)"],
+  [/\bRESOLVED_NOT_APPLICABLE\b/g, "not applicable on the record"],
+  [/\bresolved_met\b/g, "resolved on the record"],
+  [/\bresolved_not_met\b/g, "resolved on the record (not met)"],
+  [/\bresolved_not_applicable\b/g, "not applicable on the record"],
+  [/\bINDETERMINATE\b/gi, "not yet resolved on the record"],
+  [/\bCANDIDATE\b/g, "candidate"],
+  [/\bTEST-STATES\b/g, "the deterministic-state block"],
+];
+
+const LIA_RESOLVED_SOURCE_ASK_KEYS = new Set([
+  "relationship_type", "jurisdictions", "data_categories",
+  "balancing_details.special_category_data", "balancing_details.vulnerable_subjects",
+  "alternatives_considered", "necessity_details.alternatives",
+  "balancing_details.safeguards", "balancing_details.opt_out_mechanism",
+  "balancing_details.reasonable_expectation", "balancing_details.potential_harm",
+]);
+
+export interface LiaFallbackResult {
+  applied: boolean;
+  notes: Array<{ code: string; detail?: string }>;
+  residualAsks: number;
+}
+
+// Walks strings and rewrites tokens + M1–M11 references. Also strips
+// information_needed entries whose .field re-asks a RESOLVED source field.
+export function applyDeterministicPostGenFallbackLia(
+  report: any,
+  liaTestStates: Record<string, LiaTestStateEntry>,
+): LiaFallbackResult {
+  const notes: Array<{ code: string; detail?: string }> = [];
+  let applied = false;
+
+  const rewrite = (s: string): string => {
+    let out = s;
+    for (const [re, sub] of LIA_STATE_TOKEN_REWRITES) out = out.replace(re, sub);
+    // Replace parentheticals like "(M6 resolved)" first
+    out = out.replace(/\(\s*(M(?:1[01]|[1-9]))\b[^)]*\)/g, (_m, id) => LIA_M_HUMAN_MAP[id] ?? "");
+    // Replace bare Mn tokens (word-boundary) with human name
+    out = out.replace(/\bM(1[01]|[1-9])\b/g, (_m, n) => {
+      const id = `M${n}`;
+      return LIA_M_HUMAN_MAP[id] ?? _m;
+    });
+    return out.replace(/\s{2,}/g, " ").trim();
+  };
+
+  const walk = (v: any, path: string): any => {
+    if (v == null) return v;
+    if (typeof v === "string") {
+      const before = v;
+      const after = rewrite(v);
+      if (after !== before) { applied = true; }
+      return after;
+    }
+    if (Array.isArray(v)) return v.map((x, i) => walk(x, `${path}[${i}]`));
+    if (typeof v === "object") {
+      // Skip machine-only chrome
+      if (/^(_meta|lint_warnings|enforcement_meta|gdpr_meta|annotations)$/.test(path.split(".").pop() ?? "")) return v;
+      const out: any = {};
+      for (const [k, val] of Object.entries(v)) out[k] = walk(val, path ? `${path}.${k}` : k);
+      return out;
+    }
+    return v;
+  };
+
+  // Scrub three_part_test + docs branches; do not touch _meta / lint chrome.
+  if (report?.three_part_test) report.three_part_test = walk(report.three_part_test, "three_part_test");
+  if (report?.documentation_recommendations) report.documentation_recommendations = walk(report.documentation_recommendations, "documentation_recommendations");
+
+  // Strip resolved-source asks from information_needed (top-level).
+  let residualAsks = 0;
+  if (Array.isArray(report?.information_needed)) {
+    const before = report.information_needed.length;
+    const resolvedIds = new Set(
+      Object.entries(liaTestStates)
+        .filter(([, s]) => s.state === "resolved_met" || s.state === "resolved_not_met")
+        .map(([id]) => id),
+    );
+    const M_TO_FIELDS: Record<string, string[]> = {
+      M1: ["relationship_type"],
+      M2: ["jurisdictions"],
+      M3: ["data_categories"],
+      M4: ["balancing_details.special_category_data"],
+      M5: ["balancing_details.vulnerable_subjects"],
+      M6: ["alternatives_considered", "necessity_details.alternatives"],
+      M7: ["balancing_details.safeguards"],
+      M8: ["balancing_details.opt_out_mechanism"],
+      M9: ["balancing_details.reasonable_expectation"],
+      M10: ["balancing_details.potential_harm"],
+    };
+    const bannedFields = new Set<string>();
+    for (const id of resolvedIds) for (const f of (M_TO_FIELDS[id] ?? [])) bannedFields.add(f);
+    report.information_needed = report.information_needed.filter((it: any) => {
+      const f = String(it?.field ?? "").trim();
+      if (f && (bannedFields.has(f) || LIA_RESOLVED_SOURCE_ASK_KEYS.has(f) && resolvedIds.size > 0 && bannedFields.has(f))) {
+        applied = true;
+        notes.push({ code: "resolved_source_ask_stripped", detail: f });
+        return false;
+      }
+      return true;
+    });
+    residualAsks = report.information_needed.length;
+    if (before !== residualAsks) applied = true;
+  }
+
+  return { applied, notes, residualAsks };
+}
+
 
 
 const LIA_ANALYSIS_TOOL_MODULE: ToolModule = {
