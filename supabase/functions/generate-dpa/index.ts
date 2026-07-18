@@ -1227,6 +1227,25 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         );
         const retryParsed = parseDpa(retryCall.text);
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
+        {
+          const spec = detectSpeculativeClauseViolations(retryParsed.dpa_text, {
+            hasChildrensData: sectorFlags.hasChildrensData,
+            hasHealthData: sectorFlags.hasHealthData,
+            hasFinancialData: sectorFlags.hasFinancialData,
+            isAI: isAISector,
+          });
+          const baseline = detectBaselineStandardMisuse(retryParsed.dpa_text, documentType);
+          const blacklist = detectBlacklistViolations(retryParsed.dpa_text);
+          const extras = [...spec, ...baseline, ...blacklist];
+          if (extras.length) {
+            retryLint.violations.push(...extras);
+            try {
+              await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 2, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+            } catch (e) {
+              console.warn("[generate-dpa] logPostGenLint (attempt 2) failed:", (e as Error).message);
+            }
+          }
+        }
         const repairedText = stripEnforcementTags(retryLint.clean);
         if (repairedText.trim()) {
           parsed = retryParsed;
