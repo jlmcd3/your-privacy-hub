@@ -607,6 +607,17 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
           : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
       : "";
 
+    // REBUILD-DPA T1b — when either jurisdiction is unmappable, the drafted
+    // document MUST carry a NOTE FOR LEGAL REVIEW naming the raw strings and
+    // the framework assumption made. Emitted through the PARTIES_BLOCK as an
+    // instruction to the model so it renders as a Section 1 recital note in
+    // the same voice as the legal-form flag pattern.
+    const frameworkFallbackNote = frameworkFallback
+      ? `
+
+NOTE FOR LEGAL REVIEW — FRAMEWORK ASSUMPTION FROM UNMAPPED JURISDICTION. The record supplied ${!detected.ctrlMapped ? `controller jurisdiction "${body.controllerJurisdiction}"` : ""}${(!detected.ctrlMapped && !detected.procMapped) ? " and " : ""}${!detected.procMapped ? `processor jurisdiction "${body.processorJurisdiction}"` : ""}, which the generator could not map to a canonical supported jurisdiction. This DPA has been drafted on the ${documentType.toUpperCase()} framework as the closest-fit baseline; render this NOTE FOR LEGAL REVIEW verbatim in Section 1 (Parties and Recitals) immediately after party identification, quoting the raw jurisdiction string(s) and directing counsel to confirm the correct governing framework before execution.`
+      : "";
+
     const PARTIES_BLOCK = `PARTIES
 Controller: ${body.controllerName} (${body.controllerJurisdiction})
 Processor: ${body.processorName} (${body.processorJurisdiction})
@@ -614,7 +625,8 @@ Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
 Retention: ${body.retention}
 Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None"}
-Audit rights: ${body.auditRights}`;
+Audit rights: ${body.auditRights}${frameworkFallbackNote}`;
+
 
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
 - Use professional legal drafting conventions throughout
