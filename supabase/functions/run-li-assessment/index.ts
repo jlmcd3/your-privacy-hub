@@ -1404,6 +1404,28 @@ Return JSON:
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
 
+    // REBUILD-LIA T4 — deterministic post-gen scrub: M1–M11 token → human map,
+    // state-token rewrites, and resolved-source ask strip. Mirrors the
+    // dpia/risk family.
+    const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);
+    const finalBlacklistHits = detectBlacklistPhrases(reportData).length;
+    logPostGenLint(supabase, {
+      functionName: "run-li-assessment",
+      fallbackApplied: liaFallback.applied,
+      retryWithinBudget: blacklistRetryUsed,
+      residualLeaks: finalBlacklistHits,
+      residualResolvedAsks: liaFallback.residualAsks,
+      notes: [
+        ...liaFallback.notes,
+        ...(blacklistResidualHits > 0 ? [{ code: "blacklist_residual", detail: String(blacklistResidualHits) }] : []),
+        { code: "engaged_frameworks", detail: engagedFrameworks.join(",") || "none" },
+      ],
+      sourceTable: "li_assessments",
+      sourceRowId: assessment_id,
+    });
+
+
+
 
 
     // Stage 1: metering + version retention (successful runs only).
