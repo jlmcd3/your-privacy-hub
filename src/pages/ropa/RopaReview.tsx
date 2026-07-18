@@ -252,7 +252,6 @@ export default function RopaReview() {
         activities: "done",
         transfers: "done",
         pdf: "done",
-        xlsx: includeExcel ? "done" : "pending",
       });
       if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
       navigateTimerRef.current = setTimeout(
