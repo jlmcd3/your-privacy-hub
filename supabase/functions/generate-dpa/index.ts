@@ -1354,7 +1354,14 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           });
           const baseline = detectBaselineStandardMisuse(retryParsed.dpa_text, documentType);
           const blacklist = detectBlacklistViolations(retryParsed.dpa_text);
-          const extras = [...spec, ...baseline, ...blacklist];
+          // FF-DPA nd2 — attempt-2 also runs the engaged-states check so a
+          // regenerated draft cannot slip a non-engaged state statute through.
+          const engagedStates2 = deriveEngagedStates([
+            detected.ctrlCanonical,
+            detected.procCanonical,
+          ]);
+          const engagedStateViolations2 = detectNonEngagedStateAssertions(retryParsed.dpa_text, engagedStates2);
+          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2];
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
