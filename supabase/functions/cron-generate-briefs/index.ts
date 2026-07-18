@@ -47,13 +47,26 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
   const target = url.searchParams.get("target") || "weekly";
+  let bodyFlag = false;
+  try {
+    if (req.headers.get("content-type")?.includes("application/json")) {
+      const b = await req.clone().json();
+      bodyFlag = !!(b?.generate_only);
+    }
+  } catch { /* ignore */ }
+  const generateOnly =
+    url.searchParams.get("generate_only") === "1" ||
+    url.searchParams.get("generate_only") === "true" ||
+    bodyFlag;
 
   try {
-    const results: Record<string, unknown> = {};
+    const results: Record<string, unknown> = { generate_only: generateOnly };
 
     if (target === "weekly" || target === "all") {
       results.weekly = await callFn("generate-weekly-brief");
-      results.weekly_send = await callFn("send-weekly-brief");
+      if (!generateOnly) {
+        results.weekly_send = await callFn("send-weekly-brief");
+      }
     }
 
     if (target === "custom" || target === "all") {
