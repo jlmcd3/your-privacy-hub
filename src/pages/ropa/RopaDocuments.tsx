@@ -490,7 +490,7 @@ export default function RopaDocuments() {
                 {generated && (
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {(["pdf", "xlsx"] as const).map((fmt) => {
+                      {(["pdf"] as const).map((fmt) => {
                         const doc = sessionDocs.find((d) => d.document_format === fmt);
                         const meta = FORMAT_META[fmt];
                         const Icon = meta.icon;
