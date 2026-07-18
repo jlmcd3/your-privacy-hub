@@ -1,5 +1,6 @@
 // qb8 build active
 // run-meter deploy-check v1
+// REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
