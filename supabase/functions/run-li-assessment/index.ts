@@ -1255,10 +1255,10 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     // Always attach a plain-language note explaining the argument-strength rating
     // so end users (especially non-specialists) understand what "uncertain" means.
     const STRENGTH_NOTES: Record<string, string> = {
-      strong: "Strong: the facts and precedents available support a defensible legitimate-interest claim.",
-      moderate: "Moderate: legitimate interest is plausibly available but rests on contested or fact-sensitive points; resolve open questions before deployment.",
-      weak: "Weak: significant factors weigh against a legitimate-interest claim on the facts provided; consider an alternative legal basis or additional safeguards.",
-      insufficient: "Insufficient: not enough information has been provided to reach a verdict; supply the open-question items and re-run.",
+      strong: "Strong: on the record as it stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
+      moderate: "Moderate: the record supports a colorable legitimate-interest argument on named recorded facts; the items in Information Needed would strengthen it before deployment.",
+      weak: "Weak: the record establishes some elements of the three-part test; the items in Information Needed would need to be recorded before a defensible legitimate-interest argument can be made.",
+      insufficient: "The record as it stands does not yet establish a defensible legitimate-interest claim; the items listed under Information Needed would complete the record.",
       uncertain: "Uncertain: blocking issues have been identified that must be resolved before a defensible LI claim can be established — this does NOT mean legitimate interest is categorically unavailable.",
     };
     oa.argument_strength_note = STRENGTH_NOTES[oa.argument_strength] ?? STRENGTH_NOTES.uncertain;
