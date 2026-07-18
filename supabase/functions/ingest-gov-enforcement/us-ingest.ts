@@ -24,20 +24,23 @@ export function isFtcEnforcementUrl(u: string): boolean {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FTC subject extractor. Titles on the FTC case listings take a small set of
-// forms. Pattern order matters (most specific first).
-//   "{X}, FTC v."                   → X
-//   "FTC v. {X}"                    → X
-//   "{X}, In the Matter of"         → X
-//   "In the Matter of {X}"          → X
-//   "{X}, U.S. v." / ", United States v." → X
-//   "U.S. v. {X}" / "United States v. {X}" → X
-//   "United States and State of {S} v. {X}" → X
-// Trailing ", et al." and dockets are trimmed.
+// forms. Pattern order matters (most specific first). Trailing ", et al." and
+// " et al" markers are absorbed by the trimmer so the capture is the entity.
+//   "{X}, FTC v."                          → X
+//   "{X} et al, FTC v."                    → X
+//   "FTC v. {X}"                           → X (stops at first comma)
+//   "{X}, In the Matter of"                → X
+//   "In the Matter of {X}"                 → X (stops at first comma)
+//   "United States and State of {S} v. {X}" / trailing form → X
 const FTC_SUBJECT_PATTERNS: RegExp[] = [
-  /^(?:FTC|U\.S\.|United States)(?:\s+and\s+State\s+of\s+[A-Za-z ]+)?\s+v\.?\s+([^,]+?)(?:\s*,\s*et\s+al\.?)?\s*$/i,
-  /^In\s+the\s+Matter\s+of\s+([^,]+?)(?:\s*,\s*et\s+al\.?)?\s*$/i,
-  /^([^,]+?)(?:\s*,\s*et\s+al\.?)?\s*,\s*(?:FTC|U\.S\.|United\s+States)(?:\s+and\s+State\s+of\s+[A-Za-z ]+)?\s+v\.?\s*$/i,
-  /^([^,]+?)(?:\s*,\s*et\s+al\.?)?\s*,\s*In\s+the\s+Matter\s+of\s*$/i,
+  // trailing "..., FTC v." / "..., U.S. v." / "... United States (and State of S) v."
+  /^(.+?)(?:\s*(?:,\s*)?et\s+al\.?)?\s*,\s*(?:FTC|U\.S\.|United\s+States)(?:\s+and\s+State\s+of\s+[A-Za-z ]+?)?\s+v\.?\s*$/i,
+  // trailing "..., In the Matter of"
+  /^(.+?)(?:\s*(?:,\s*)?et\s+al\.?)?\s*,\s*In\s+the\s+Matter\s+of\s*$/i,
+  // leading "FTC v. X" / "U.S. v. X" / "United States (and State of S) v. X"
+  /^(?:FTC|U\.S\.|United\s+States)(?:\s+and\s+State\s+of\s+[A-Za-z ]+?)?\s+v\.?\s+([^,]+?)(?:[,.].*)?$/i,
+  // leading "In the Matter of X"
+  /^In\s+the\s+Matter\s+of\s+([^,]+?)(?:[,.].*)?$/i,
 ];
 
 export function extractFtcSubject(title: string): string | null {
