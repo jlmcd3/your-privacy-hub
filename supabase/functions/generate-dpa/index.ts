@@ -1143,6 +1143,29 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
     let parsed = parseDpa(fullText);
     let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
+    // REBUILD-DPA T2/T3/T5 — deterministic net: speculative modules,
+    // baseline-standard misuse, and blacklist-phrase hits merge in as HARD
+    // violations so the existing retry gate at hasHardViolations(lint)
+    // regenerates and logPostGenLint records the reason in function_runs.
+    {
+      const spec = detectSpeculativeClauseViolations(parsed.dpa_text, {
+        hasChildrensData: sectorFlags.hasChildrensData,
+        hasHealthData: sectorFlags.hasHealthData,
+        hasFinancialData: sectorFlags.hasFinancialData,
+        isAI: isAISector,
+      });
+      const baseline = detectBaselineStandardMisuse(parsed.dpa_text, documentType);
+      const blacklist = detectBlacklistViolations(parsed.dpa_text);
+      const extras = [...spec, ...baseline, ...blacklist];
+      if (extras.length) {
+        lint.violations.push(...extras);
+        try {
+          await logPostGenLint(supabase, rowId, "dpa_generator", { attempt: 1, violations: extras, framework_fallback: frameworkFallback, doc_type: documentType });
+        } catch (e) {
+          console.warn("[generate-dpa] logPostGenLint (attempt 1) failed:", (e as Error).message);
+        }
+      }
+    }
     let dpa_text = stripEnforcementTags(lint.clean);
     let parsedAnnotations = parsed.annotations;
 
