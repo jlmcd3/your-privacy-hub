@@ -1164,6 +1164,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         const sepIdx = fullText.indexOf("===ANNOTATIONS===");
         if (sepIdx !== -1) {
           dpa_text = fullText.slice(0, sepIdx).trim()
+            .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
+            .replace(/\s*<<<NOTE_END>>>/g, '')
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
             .replace(/\*\*/g, '')
