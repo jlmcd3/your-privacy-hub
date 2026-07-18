@@ -482,9 +482,13 @@ Deno.serve(async (req) => {
       }
 
       // Generalist press-release feeds: keep only privacy-relevant titles.
+      // OAIC gets a stricter enforcement-class gate (findings/orders/penalties/
+      // undertakings) so statements, communiqués, awareness weeks, exposure
+      // drafts, sweeps, guidance, and joint-oversight announcements are dropped.
       if (src.requireRelevance) {
         const before = actions.length;
-        actions = actions.filter((a) => isTitleRelevant(a.title));
+        const gate = src.source === "OAIC" ? isOaicEnforcementTitle : isTitleRelevant;
+        actions = actions.filter((a) => gate(a.title));
         console.log(`${src.source}: relevance filter ${before} -> ${actions.length}`);
       }
 
