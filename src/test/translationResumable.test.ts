@@ -14,16 +14,29 @@ import {
 // import it into the vitest environment). If the constants below drift from
 // batch-kickoff-pickup/index.ts, this test file must be updated too.
 const TRANSLATION_STALL_MS = 4 * 60_000;
-const TRANSLATION_MAX_RESUMES = 3;
+const TRANSLATION_MAX_CONSECUTIVE_STALL_KICKS = 3;
 const TRANSLATION_HARD_FAIL_MS = 45 * 60_000;
+function translationTotalResumeCeiling(chunksTotal: number | null | undefined): number {
+  const n = Math.max(0, Number(chunksTotal ?? 0));
+  return Math.max(20, Math.ceil(n * 1.5));
+}
 
 type SweepDecision =
-  | { kind: "resume"; row_id: string; stall_ms: number; resume_count_before: number }
+  | { kind: "resume"; row_id: string; stall_ms: number; resume_count_before: number; progressed: boolean }
   | { kind: "fail"; row_id: string; reason: string; resume_count: number }
   | { kind: "skip"; row_id: string; reason: string };
 
 function decideTranslationRow(
-  row: { id: string; started_at: string | null; last_progress_at: string | null; resume_count: number | null },
+  row: {
+    id: string;
+    started_at: string | null;
+    last_progress_at: string | null;
+    resume_count: number | null;
+    chunks_done: number | null;
+    chunks_total: number | null;
+    consecutive_stall_kicks: number | null;
+    last_kick_chunks_done: number | null;
+  },
   nowMs: number,
 ): SweepDecision {
   const started = row.started_at ? new Date(row.started_at).getTime() : nowMs;
@@ -31,16 +44,32 @@ function decideTranslationRow(
   const stallMs = nowMs - lastProgress;
   const totalMs = nowMs - started;
   const resumeCount = row.resume_count ?? 0;
+  const chunksDone = row.chunks_done ?? 0;
+  const lastKickAt = row.last_kick_chunks_done ?? 0;
+  const progressed = chunksDone > lastKickAt;
+  const consecutiveKicks = progressed ? 0 : (row.consecutive_stall_kicks ?? 0);
+  const totalCeiling = translationTotalResumeCeiling(row.chunks_total);
   if (stallMs < TRANSLATION_STALL_MS && totalMs < TRANSLATION_HARD_FAIL_MS) {
     return { kind: "skip", row_id: row.id, reason: "progressing" };
   }
   if (totalMs >= TRANSLATION_HARD_FAIL_MS) {
     return { kind: "fail", row_id: row.id, reason: "hard_fail_ceiling", resume_count: resumeCount };
   }
-  if (resumeCount >= TRANSLATION_MAX_RESUMES) {
-    return { kind: "fail", row_id: row.id, reason: "max_resumes", resume_count: resumeCount };
+  if (consecutiveKicks >= TRANSLATION_MAX_CONSECUTIVE_STALL_KICKS) {
+    return { kind: "fail", row_id: row.id, reason: "no_progress", resume_count: resumeCount };
   }
-  return { kind: "resume", row_id: row.id, stall_ms: stallMs, resume_count_before: resumeCount };
+  if (resumeCount >= totalCeiling) {
+    return { kind: "fail", row_id: row.id, reason: "total_resume_ceiling", resume_count: resumeCount };
+  }
+  return { kind: "resume", row_id: row.id, stall_ms: stallMs, resume_count_before: resumeCount, progressed };
+}
+
+function baseRow(overrides: any = {}) {
+  return {
+    id: "r", started_at: null, last_progress_at: null, resume_count: 0,
+    chunks_done: 0, chunks_total: 10, consecutive_stall_kicks: 0, last_kick_chunks_done: 0,
+    ...overrides,
+  };
 }
 
 // ─── Mock Anthropic: echo with "[FR] " prefix ─────────────────────────────
