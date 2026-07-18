@@ -39,6 +39,13 @@ export function canonicalizeSourceUrl(rawUrl: string): { canonical: string; wrap
 const OAIC_ENFORCEMENT_TERMS: RegExp[] = [
   /\bfinds?\s+against\b/i,
   /\bfinds?\s+privacy\s+breach(es)?\b/i,
+  // ENF-1c Task 7(a): widen to bare "Privacy Commissioner finds …" (without
+  // "against"), which the OAIC uses for findings that don't name a respondent
+  // in the headline.
+  /\bPrivacy\s+Commissioner\s+finds\b/i,
+  // ENF-1c Task 7(a): "ordered to pay/cease/comply" forms in addition to the
+  // active "orders X to …" shape already covered below.
+  /\bordered\s+to\s+(pay|cease|comply)\b/i,
   /\borders?\s+.+?\s+to\s+(compensate|pay|cease|stop|refrain|comply)/i,
   /\bcivil\s+penalt(y|ies)\s+(against|proceedings)\b/i,
   /\benforceable\s+undertaking\b/i,
