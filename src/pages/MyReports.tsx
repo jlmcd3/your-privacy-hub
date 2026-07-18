@@ -554,16 +554,23 @@ export default function MyReports() {
 
           <div className="mb-4 flex items-center gap-2 flex-wrap">
             {[
-              { id: null as null | "cppa" | "gdpr", label: "All" },
-              { id: "cppa" as const, label: "U.S. \u2013 CPPA" },
-              { id: "gdpr" as const, label: "EU & UK \u2013 GDPR" },
+              { group: null as ReportGroup | null, family: null as ReportFamily | null, label: "All" },
+              { group: "assessments" as const, family: "gdpr" as const, label: "GDPR" },
+              { group: "assessments" as const, family: "cppa" as const, label: "CPPA" },
+              { group: "assessments" as const, family: "biometric" as const, label: "Biometric" },
+              { group: "playbooks" as const, family: null, label: "Playbooks" },
+              { group: "dpas" as const, family: null, label: "DPAs" },
             ].map((chip) => {
-              const active = activeFamily === chip.id;
+              const active =
+                activeGroup === chip.group &&
+                (chip.group === "assessments"
+                  ? activeFamily === chip.family
+                  : true);
               return (
                 <button
                   key={chip.label}
                   type="button"
-                  onClick={() => setFamily(chip.id)}
+                  onClick={() => setFilter(chip.group, chip.family)}
                   className={
                     "px-3 py-1 rounded-full text-xs font-medium border transition-colors " +
                     (active
@@ -577,6 +584,7 @@ export default function MyReports() {
               );
             })}
           </div>
+
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
