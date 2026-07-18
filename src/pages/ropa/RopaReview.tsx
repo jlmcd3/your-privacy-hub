@@ -202,10 +202,8 @@ export default function RopaReview() {
       activities: "pending",
       transfers: "pending",
       pdf: "pending",
-      xlsx: "pending",
     });
     const updates: GenStep[] = ["client", "activities", "transfers", "pdf"];
-    if (includeExcel) updates.push("xlsx");
 
     // Optimistic step ticks for visual pacing while the server works.
     if (tickTimerRef.current) clearInterval(tickTimerRef.current);
@@ -225,7 +223,6 @@ export default function RopaReview() {
           document_date: docDate,
           author_name: authorName,
           internal_reference: internalRef || null,
-          include_excel: includeExcel,
         },
       });
       if (error) {
