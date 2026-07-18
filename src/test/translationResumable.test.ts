@@ -241,39 +241,128 @@ describe("TRANSLATE-2 · slice budget cutoff", () => {
   });
 });
 
-describe("TRANSLATE-2 · sweep decision matrix", () => {
+describe("TRANSLATE-2-HF1 · progress-aware sweep decisions", () => {
   const now = 1_800_000_000_000;
 
   it("skips a row whose last_progress_at is recent", () => {
     const d = decideTranslationRow(
-      { id: "r1", started_at: new Date(now - 60_000).toISOString(), last_progress_at: new Date(now - 30_000).toISOString(), resume_count: 0 },
+      baseRow({ id: "r1", started_at: new Date(now - 60_000).toISOString(), last_progress_at: new Date(now - 30_000).toISOString() }),
       now,
     );
     expect(d.kind).toBe("skip");
   });
 
-  it("resumes a stalled row under the resume cap", () => {
+  it("resumes a stalled row under the ceilings", () => {
     const d = decideTranslationRow(
-      { id: "r2", started_at: new Date(now - 6 * 60_000).toISOString(), last_progress_at: new Date(now - (TRANSLATION_STALL_MS + 60_000)).toISOString(), resume_count: 1 },
+      baseRow({ id: "r2", started_at: new Date(now - 6 * 60_000).toISOString(), last_progress_at: new Date(now - (TRANSLATION_STALL_MS + 60_000)).toISOString(), resume_count: 1 }),
       now,
     );
     expect(d.kind).toBe("resume");
     if (d.kind === "resume") expect(d.resume_count_before).toBe(1);
   });
 
-  it("fails a row that has exceeded the resume cap", () => {
+  it("PROGRESS-AWARE: advancing chunks_done resets consecutive_stall_kicks → resume, not fail", () => {
+    // consecutive_stall_kicks is at the cap, but chunks_done > last_kick_chunks_done → healthy
     const d = decideTranslationRow(
-      { id: "r3", started_at: new Date(now - 20 * 60_000).toISOString(), last_progress_at: new Date(now - (TRANSLATION_STALL_MS + 60_000)).toISOString(), resume_count: TRANSLATION_MAX_RESUMES },
+      baseRow({
+        id: "healthy",
+        started_at: new Date(now - 15 * 60_000).toISOString(),
+        last_progress_at: new Date(now - (TRANSLATION_STALL_MS + 30_000)).toISOString(),
+        resume_count: 5,
+        chunks_done: 30, last_kick_chunks_done: 20,
+        consecutive_stall_kicks: TRANSLATION_MAX_CONSECUTIVE_STALL_KICKS,
+        chunks_total: 49,
+      }),
+      now,
+    );
+    expect(d.kind).toBe("resume");
+    if (d.kind === "resume") expect(d.progressed).toBe(true);
+  });
+
+  it("CONSECUTIVE-STALL: no progress since last kick AND at cap → fail", () => {
+    const d = decideTranslationRow(
+      baseRow({
+        id: "stuck",
+        started_at: new Date(now - 20 * 60_000).toISOString(),
+        last_progress_at: new Date(now - (TRANSLATION_STALL_MS + 30_000)).toISOString(),
+        resume_count: 5,
+        chunks_done: 20, last_kick_chunks_done: 20,
+        consecutive_stall_kicks: TRANSLATION_MAX_CONSECUTIVE_STALL_KICKS,
+        chunks_total: 49,
+      }),
       now,
     );
     expect(d.kind).toBe("fail");
   });
 
-  it("fails a row past the hard wall-clock ceiling", () => {
+  it("HARD CEILING: 45min wall-clock always fails regardless of progress", () => {
     const d = decideTranslationRow(
-      { id: "r4", started_at: new Date(now - (TRANSLATION_HARD_FAIL_MS + 60_000)).toISOString(), last_progress_at: new Date(now - 10_000).toISOString(), resume_count: 0 },
+      baseRow({
+        id: "old",
+        started_at: new Date(now - (TRANSLATION_HARD_FAIL_MS + 60_000)).toISOString(),
+        last_progress_at: new Date(now - 10_000).toISOString(),
+        chunks_done: 40, last_kick_chunks_done: 30,
+      }),
+      now,
+    );
+    expect(d.kind).toBe("fail");
+  });
+
+  it("TOTAL-RESUME CEILING scales with chunks_total: 49-chunk doc allows ≥20 resumes", () => {
+    expect(translationTotalResumeCeiling(49)).toBeGreaterThanOrEqual(20);
+    expect(translationTotalResumeCeiling(200)).toBe(300);
+    // At the ceiling with no progress → fail via total_resume_ceiling
+    const d = decideTranslationRow(
+      baseRow({
+        id: "capped", started_at: new Date(now - 30 * 60_000).toISOString(),
+        last_progress_at: new Date(now - (TRANSLATION_STALL_MS + 30_000)).toISOString(),
+        chunks_total: 49, resume_count: translationTotalResumeCeiling(49),
+        chunks_done: 30, last_kick_chunks_done: 30,
+        consecutive_stall_kicks: 0,
+      }),
       now,
     );
     expect(d.kind).toBe("fail");
   });
 });
+
+describe("TRANSLATE-2-HF1 · slice-loop margin", () => {
+  it("exits before deadline leaving margin for persist+kick (no chunks started once past deadline)", async () => {
+    const original = globalThis.fetch;
+    globalThis.fetch = vi.fn(async (_u: any, init: any) => {
+      await new Promise((r) => setTimeout(r, 60));
+      const body = JSON.parse(init.body);
+      const userText: string = body.messages[0].content;
+      let echoed: string;
+      try {
+        const parsed = JSON.parse(userText);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          const out: Record<string, string> = {};
+          for (const [k, v] of Object.entries(parsed)) out[k] = `[FR] ${String(v)}`;
+          echoed = JSON.stringify(out);
+        } else echoed = `[FR] ${userText}`;
+      } catch { echoed = `[FR] ${userText}`; }
+      return new Response(JSON.stringify({ content: [{ type: "text", text: echoed }] }), { status: 200 });
+    }) as any;
+    try {
+      const src: Record<string, string> = {};
+      for (let i = 0; i < 20; i++) src[`p${i}`] = "sentence. ".repeat(300);
+      const persisted: Record<string, PersistedChunk> = {};
+      const start = Date.now();
+      const budget = 200;
+      const deadlineMs = start + budget;
+      const result = await runTranslationSlice(src, persisted, {
+        apiKey: "test", languageCode: "fr", languageName: "French",
+        deadlineMs,
+        onChunkComplete: async ({ index, chunk }) => { persisted[String(index)] = chunk; },
+      });
+      // No chunk should have STARTED past the deadline.
+      expect(Date.now()).toBeGreaterThanOrEqual(deadlineMs - 60);
+      expect(result.timedOut).toBe(true);
+      expect(result.chunksDone).toBe(Object.keys(persisted).length);
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+});
+
