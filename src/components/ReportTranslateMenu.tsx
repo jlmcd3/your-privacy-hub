@@ -146,12 +146,16 @@ export default function ReportTranslateMenu({
           aria-expanded={open}
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
           ) : (
-            <Languages className="w-4 h-4" />
+            <Languages className="w-4 h-4" aria-hidden="true" />
           )}
-          <span>{buttonLabel}</span>
-          <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+          <span>
+            {loading
+              ? `Translating to ${getLanguageName(loading)}…`
+              : buttonLabel}
+          </span>
+          {!loading && <ChevronDown className="w-3.5 h-3.5 opacity-60" />}
         </button>
 
         {open && !loading && (
