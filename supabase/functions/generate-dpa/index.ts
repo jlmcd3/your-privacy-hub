@@ -1147,7 +1147,12 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
 
     function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
+      // FF-DPA nd1 — defensive strip of the NOTE_BEGIN/NOTE_END render-instruction
+      // delimiters used to fence the customer-facing fallback note. If the model
+      // copies the delimiters through, remove them (the enclosed text stays).
       let dpa_text = fullText
+        .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
+        .replace(/\s*<<<NOTE_END>>>/g, '')
         .replace(/^#{1,6}\s+/gm, '')
         .replace(/\*\*\*/g, '')
         .replace(/\*\*/g, '')
