@@ -187,32 +187,34 @@ function WorkspaceSection({
             Library
           </div>
           <ul className="flex flex-col gap-0 mt-0.5">
-            {LIBRARY_ITEMS.map((item) => (
-              <>
+            {LIBRARY_ITEMS.flatMap((item) => {
+              const nodes = [
                 <LibraryRow
                   key={item.to}
                   item={item}
                   workspace={workspace}
                   active={isActiveWorkspace && activeTo === item.to}
-                />
-                {item.to === REPORTS_ITEM.to && isReportsActive && (
-                  <ul
-                    key={`${item.to}-subs`}
-                    className="flex flex-col gap-0 ml-3 pl-3 border-l border-brand-cloud"
-                  >
-                    {REPORTS_SUBITEMS.map((s) => (
-                      <ReportsSubRow
-                        key={s.to}
-                        to={s.to}
-                        label={s.label}
-                        workspace={workspace}
-                        active={activeReportsSub === s.id}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </>
-            ))}
+                />,
+              ];
+              if (item.to === REPORTS_ITEM.to && isReportsActive) {
+                nodes.push(
+                  <li key={`${item.to}-subs`}>
+                    <ul className="flex flex-col gap-0 ml-3 pl-3 border-l border-brand-cloud">
+                      {REPORTS_SUBITEMS.map((s) => (
+                        <ReportsSubRow
+                          key={s.to}
+                          to={s.to}
+                          label={s.label}
+                          workspace={workspace}
+                          active={activeReportsSub === s.id}
+                        />
+                      ))}
+                    </ul>
+                  </li>,
+                );
+              }
+              return nodes;
+            })}
           </ul>
         </div>
       )}
