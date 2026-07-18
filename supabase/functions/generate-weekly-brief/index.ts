@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
   // guard it — a throw there would kill the body silently, matching John's
   // "no weekly_brief_generation start row EVER appeared" evidence class.
   const startedMs = Date.now();
-  const MODEL_TAG = "claude-sonnet-5";
+  const MODEL_TAG = "claude-opus-4-7";
 
   // @ts-ignore EdgeRuntime is a Supabase runtime global
   EdgeRuntime.waitUntil((async () => {
@@ -582,7 +582,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5",
+        model: "claude-opus-4-7",
         // HF5: Sonnet-5 emits thinking blocks by default and can consume the
         // entire budget before any text block. Raise ceiling and read ALL
         // text blocks (not just content[0]).
@@ -610,7 +610,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
       : (aiData.content?.[0]?.text || "");
     const briefElapsed = Date.now() - briefStartedAt;
     const blockTypes = Array.isArray(aiData.content) ? aiData.content.map((b: any) => b?.type).join(",") : "n/a";
-    console.log(`[generate-weekly-brief] stage=brief model=claude-sonnet-5 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length} blocks=${blockTypes}`);
+    console.log(`[generate-weekly-brief] stage=brief model=${MODEL_TAG} elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length} blocks=${blockTypes}`);
 
     let brief: any;
     try {
