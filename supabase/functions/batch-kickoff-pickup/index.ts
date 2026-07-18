@@ -28,11 +28,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "translate-1-translation-sweep@2026-07-18";
+export const BUILD_STAMP = "translate-2-resumable-sweep@2026-07-18";
 export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
-export const TRANSLATION_STUCK_MS = 15 * 60_000; // TRANSLATE-1: 15 min → mark failed
+// TRANSLATE-2 — sweep as resumer, not just reaper.
+export const TRANSLATION_STALL_MS = 4 * 60_000;    // no progress in 4 min → re-kick
+export const TRANSLATION_MAX_RESUMES = 3;          // sweep gives up after 3 re-kicks
+export const TRANSLATION_HARD_FAIL_MS = 45 * 60_000; // absolute wall-clock ceiling
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -376,35 +379,132 @@ async function runBriefChainSweep(admin: any): Promise<BriefChainSweepResult> {
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// TRANSLATE-1 — Translation sweep: reap report_translations rows stuck in
-// status='translating' for more than TRANSLATION_STUCK_MS.
+// TRANSLATE-2 — Translation sweep: RESUMER, not just reaper.
+//
+// Decision matrix (per row in status='translating'):
+//   • age since last_progress_at < TRANSLATION_STALL_MS → leave alone
+//   • stalled >= TRANSLATION_STALL_MS AND resume_count < TRANSLATION_MAX_RESUMES
+//         → re-kick translate-report (internal-resume) and bump resume_count
+//   • stalled after re-kicks are exhausted, OR wall-clock > TRANSLATION_HARD_FAIL_MS
+//         → mark failed with a diagnostic error_message
+//
+// Every action is logged; sweep never throws.
 // ────────────────────────────────────────────────────────────────────────
+export type TranslationSweepDecision =
+  | { kind: "resume"; row_id: string; stall_ms: number; resume_count_before: number }
+  | { kind: "fail"; row_id: string; reason: string; resume_count: number };
+
 export type TranslationSweepResult = {
   processed: number;
-  reaped: number;
+  resumed: number;
+  failed: number;
+  skipped: number;
+  decisions: TranslationSweepDecision[];
   errors: string[];
 };
 
+/** Pure decision for one row — unit-testable without a database. */
+export function decideTranslationRow(
+  row: {
+    id: string;
+    started_at: string | null;
+    last_progress_at: string | null;
+    resume_count: number | null;
+  },
+  nowMs: number,
+): TranslationSweepDecision | { kind: "skip"; row_id: string; reason: string } {
+  const started = row.started_at ? new Date(row.started_at).getTime() : nowMs;
+  const lastProgress = row.last_progress_at
+    ? new Date(row.last_progress_at).getTime()
+    : started;
+  const stallMs = nowMs - lastProgress;
+  const totalMs = nowMs - started;
+  const resumeCount = row.resume_count ?? 0;
+
+  if (stallMs < TRANSLATION_STALL_MS && totalMs < TRANSLATION_HARD_FAIL_MS) {
+    return { kind: "skip", row_id: row.id, reason: `progressing (stall=${Math.round(stallMs/1000)}s)` };
+  }
+  if (totalMs >= TRANSLATION_HARD_FAIL_MS) {
+    return { kind: "fail", row_id: row.id, reason: `hard_fail_ceiling ${Math.round(totalMs/60_000)}min`, resume_count: resumeCount };
+  }
+  if (resumeCount >= TRANSLATION_MAX_RESUMES) {
+    return { kind: "fail", row_id: row.id, reason: `stalled ${Math.round(stallMs/60_000)}min after ${resumeCount} re-kicks`, resume_count: resumeCount };
+  }
+  return { kind: "resume", row_id: row.id, stall_ms: stallMs, resume_count_before: resumeCount };
+}
+
 async function runTranslationSweep(admin: any): Promise<TranslationSweepResult> {
-  const result: TranslationSweepResult = { processed: 0, reaped: 0, errors: [] };
-  const cutoff = new Date(Date.now() - TRANSLATION_STUCK_MS).toISOString();
+  const result: TranslationSweepResult = {
+    processed: 0, resumed: 0, failed: 0, skipped: 0, decisions: [], errors: [],
+  };
   const { data: stuck, error } = await admin
     .from("report_translations")
-    .select("id, report_type, report_id, target_lang, started_at, chunks_done, chunks_total")
+    .select("id, report_type, report_id, target_lang, started_at, last_progress_at, chunks_done, chunks_total, resume_count, slice_count")
     .eq("status", "translating")
-    .lt("started_at", cutoff)
+    .order("started_at", { ascending: true })
     .limit(25);
   if (error) { result.errors.push(`query: ${error.message}`); return result; }
   const rows: any[] = Array.isArray(stuck) ? stuck : [];
+  const nowMs = Date.now();
+
   for (const r of rows) {
     result.processed++;
-    const ageMin = Math.round((Date.now() - new Date(r.started_at).getTime()) / 60_000);
-    const note = `[translation-sweep: stuck ${ageMin}min in 'translating' (${r.chunks_done ?? 0}/${r.chunks_total ?? "?"} chunks); reaped]`;
-    const { error: upErr } = await admin.from("report_translations")
-      .update({ status: "failed", error_message: note })
+    const decision = decideTranslationRow(r, nowMs);
+    if (decision.kind === "skip") { result.skipped++; continue; }
+    result.decisions.push(decision);
+
+    if (decision.kind === "fail") {
+      const note = `[translation-sweep: ${decision.reason}; ${r.chunks_done ?? 0}/${r.chunks_total ?? "?"} chunks]`;
+      const { error: upErr } = await admin.from("report_translations")
+        .update({ status: "failed", error_message: note, last_progress_at: new Date().toISOString() })
+        .eq("id", r.id).eq("status", "translating");
+      if (upErr) result.errors.push(`fail_update ${r.id}: ${upErr.message}`);
+      else result.failed++;
+      continue;
+    }
+
+    // decision.kind === "resume" — bump resume_count and fire internal-resume kick.
+    const nextResumeCount = (r.resume_count ?? 0) + 1;
+    const { error: bumpErr } = await admin.from("report_translations")
+      .update({ resume_count: nextResumeCount, last_progress_at: new Date().toISOString() })
       .eq("id", r.id).eq("status", "translating");
-    if (upErr) result.errors.push(`update ${r.id}: ${upErr.message}`);
-    else result.reaped++;
+    if (bumpErr) {
+      result.errors.push(`bump ${r.id}: ${bumpErr.message}`);
+      continue;
+    }
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/translate-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          apikey: SERVICE_KEY,
+          "x-internal-resume": "1",
+        },
+        body: JSON.stringify({ resume: true, translation_row_id: r.id }),
+      });
+      const text = (await resp.text().catch(() => "")).slice(0, 200);
+      result.resumed++;
+      await admin.from("function_runs").insert({
+        function_name: "batch-kickoff-pickup",
+        status: resp.ok ? "success" : "error",
+        started_at: new Date().toISOString(),
+        finished_at: new Date().toISOString(),
+        duration_ms: 0,
+        source_table: "report_translations",
+        source_row_id: r.id,
+        metadata: {
+          event: "translation_sweep_resume",
+          translation_row_id: r.id,
+          resume_count: nextResumeCount,
+          stall_ms: decision.stall_ms,
+          kick_status: resp.status,
+          kick_body: text,
+        },
+      });
+    } catch (e) {
+      result.errors.push(`resume ${r.id}: ${(e as Error).message}`);
+    }
   }
   return result;
 }
@@ -495,7 +595,7 @@ Deno.serve(async (req) => {
   try {
     translationSweep = await runTranslationSweep(admin);
   } catch (e) {
-    translationSweep = { processed: 0, reaped: 0, errors: [`threw:${(e as Error).message}`] };
+    translationSweep = { processed: 0, resumed: 0, failed: 0, skipped: 0, decisions: [], errors: [`threw:${(e as Error).message}`] };
   }
   await logRun({ event: "translation_sweep", translation_sweep: translationSweep });
 
