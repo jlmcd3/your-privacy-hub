@@ -36,10 +36,16 @@ import {
   failFunctionRun,
 } from "../_shared/function-run-logger.ts";
 
-export const BUILD_STAMP = "translate-2-resumable@2026-07-18";
-export const SLICE_BUDGET_MS = 3.5 * 60_000;   // 3.5 min per background slice
-export const MAX_RESUMES = 8;                   // ceiling on self-continuations
+export const BUILD_STAMP = "translate-2-hf1@2026-07-18";
+// TRANSLATE-2-HF1: measured platform background kill window ~120-150s.
+// Bodies observed dying at ~2-2.5min mid-slice in row 4e2eafa5. Set the slice
+// wall-clock to 90s and reserve PERSIST_MARGIN_MS for the terminal
+// persist+telemetry+kick path so it always runs before the platform kill.
+export const SLICE_BUDGET_MS = 90_000;              // 90s per background slice
+export const PERSIST_MARGIN_MS = 15_000;            // reserved for persist + kick
+export const MAX_RESUMES = 40;                       // self-continuations; hard-ceiling remains 45min in sweep
 export const RESUME_HEADER = "x-internal-resume";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
