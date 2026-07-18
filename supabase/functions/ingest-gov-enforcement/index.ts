@@ -488,7 +488,24 @@ Deno.serve(async (req) => {
   for (const src of activeSources) {
     try {
       const md = await jinaFetch(src.url);
-      let actions = extractActions(md, src);
+      let actions: Array<{ title: string; url: string; date: string | null } & Record<string, unknown>>;
+
+      // ENF-1d: OAIC determinations register — structured parse (subject,
+      // citation, date come from register rows). Bypasses generic link
+      // extraction and headline gates; the AustLII URL is the canonical anchor.
+      if (src.registerParser === "oaic") {
+        const rows = parseRegisterDeterminations(md);
+        actions = rows.map((r) => ({
+          title: `${r.headingRaw}`,
+          url: r.austliiUrl,
+          date: r.decisionDate,
+          _registerSubject: r.subject,
+          _registerCitation: r.citation,
+        }));
+        console.log(`OAIC Register: parsed ${actions.length} determinations`);
+      } else {
+        actions = extractActions(md, src);
+      }
 
       // FTC cases-and-proceedings index pages: filter to real case-detail
       // links (nav, footer, blog, and policy links share the ftc.gov host).
