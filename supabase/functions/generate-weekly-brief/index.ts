@@ -582,7 +582,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5",
+        model: "claude-opus-4-7",
         // HF5: Sonnet-5 emits thinking blocks by default and can consume the
         // entire budget before any text block. Raise ceiling and read ALL
         // text blocks (not just content[0]).
