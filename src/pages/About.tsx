@@ -168,10 +168,10 @@ const About = () => {
             <p className="text-[15px] text-brand-navy leading-relaxed">
               Questions about coverage, methodology, or your subscription? Reach us at{" "}
               <a
-                href="mailto:hello@enduserprivacy.com"
+                href="mailto:support@enduserprivacy.com"
                 className="text-brand-mist font-semibold hover:underline"
               >
-                hello@enduserprivacy.com
+                support@enduserprivacy.com
               </a>{" "}
               . We respond within one business day.
             </p>
@@ -217,8 +217,8 @@ const About = () => {
             <h2 className="font-display text-brand-navy pt-4">Contact</h2>
             <p>
               Have questions or feedback? Reach us at{" "}
-              <a href="mailto:hello@enduserprivacy.com" className="text-brand-mist hover:underline">
-                hello@enduserprivacy.com
+              <a href="mailto:support@enduserprivacy.com" className="text-brand-mist hover:underline">
+                support@enduserprivacy.com
               </a>
             </p>
           </div>

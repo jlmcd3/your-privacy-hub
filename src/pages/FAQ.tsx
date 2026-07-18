@@ -47,7 +47,7 @@ const faqs = [
   },
   {
     q: "How do I cancel my subscription?",
-    a: "You can cancel anytime, with no cancellation fees and no notice period required. Cancel directly from your account settings or by emailing hello@enduserprivacy.com. If you cancel, you retain access until the end of your current billing period.",
+    a: "You can cancel anytime, with no cancellation fees and no notice period required. Cancel directly from your account settings or by emailing support@enduserprivacy.com. If you cancel, you retain access until the end of your current billing period.",
   },
   {
     q: "Is my payment information secure?",
@@ -110,8 +110,8 @@ const FAQ = () => {
         </h1>
         <p className="text-brand-mist text-[15px]">
           Can't find your answer? Email us at{" "}
-          <a href="mailto:hello@enduserprivacy.com" className="text-brand-mist hover:underline">
-            hello@enduserprivacy.com
+          <a href="mailto:support@enduserprivacy.com" className="text-brand-mist hover:underline">
+            support@enduserprivacy.com
           </a>
         </p>
         </div>
@@ -186,7 +186,7 @@ const FAQ = () => {
           <h2 className="text-white font-display mb-2">Still have questions?</h2>
           <p className="text-brand-mist text-[14px] mb-4">We're happy to help.</p>
           <a
-            href="mailto:hello@enduserprivacy.com"
+            href="mailto:support@enduserprivacy.com"
             className="inline-block px-6 py-3 bg-white text-brand-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
           >
             Email us →

@@ -20,7 +20,7 @@ Deno.serve(async () => {
 
     const res = await fetch(searchUrl, {
       headers: {
-        "User-Agent": "EndUserPrivacy/1.0 contact@enduserprivacy.com",
+        "User-Agent": "EndUserPrivacy/1.0 support@enduserprivacy.com",
         "Accept": "application/json",
       },
       signal: AbortSignal.timeout(12000),

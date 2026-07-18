@@ -309,7 +309,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "End User Privacy <alerts@enduserprivacy.com>",
+          from: "End User Privacy <support@enduserprivacy.com>",
           to: [alertEmail],
           subject: `[Calendar] ${autoApplied} auto-update${autoApplied === 1 ? "" : "s"}, ${lowConfidence} discarded`,
           html,

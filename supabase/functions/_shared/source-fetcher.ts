@@ -16,7 +16,7 @@ export type FetcherResult = {
 };
 
 const IDENTIFYING_UA =
-  "EUP-Verification-Scanner/1.0 (verification@enduserprivacy.com)";
+  "EUP-Verification-Scanner/1.0 (support@enduserprivacy.com)";
 const BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const USER_AGENT = IDENTIFYING_UA; // backward-compatible alias

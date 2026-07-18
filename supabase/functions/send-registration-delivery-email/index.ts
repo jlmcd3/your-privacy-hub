@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
             Authorization: `Bearer ${resendKey}`,
           },
           body: JSON.stringify({
-            from: "EndUserPrivacy <notify@enduserprivacy.com>",
+            from: "End User Privacy <support@enduserprivacy.com>",
             to: [recipient],
             subject: "Your privacy registration documents are ready",
             html,

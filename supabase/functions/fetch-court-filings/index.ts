@@ -21,7 +21,7 @@ Deno.serve(async () => {
     try {
       const url = `https://www.courtlistener.com/api/rest/v4/dockets/?q=${encodeURIComponent(term)}&type=r&order_by=date_created&filed_after=${since}`;
       const res = await fetch(url, {
-        headers: { "User-Agent": "EndUserPrivacy/1.0 (contact@enduserprivacy.com)" },
+        headers: { "User-Agent": "EndUserPrivacy/1.0 (support@enduserprivacy.com)" },
         signal: AbortSignal.timeout(12000),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
