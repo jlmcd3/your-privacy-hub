@@ -1222,7 +1222,17 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       });
       const baseline = detectBaselineStandardMisuse(parsed.dpa_text, documentType);
       const blacklist = detectBlacklistViolations(parsed.dpa_text);
-      const extras = [...spec, ...baseline, ...blacklist];
+      // FF-DPA nd2 — engaged-states deterministic check. Engaged US states
+      // derive from the record (controllerJurisdiction / processorJurisdiction
+      // after alias resolution). Non-engaged state statutes asserted as
+      // operative are HARD violations that merge into the same `extras`
+      // collector, feeding the retry gate at hasHardViolations(lint).
+      const engagedStates = deriveEngagedStates([
+        detected.ctrlCanonical,
+        detected.procCanonical,
+      ]);
+      const engagedStateViolations = detectNonEngagedStateAssertions(parsed.dpa_text, engagedStates);
+      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations];
       if (extras.length) {
         lint.violations.push(...extras);
         try {
