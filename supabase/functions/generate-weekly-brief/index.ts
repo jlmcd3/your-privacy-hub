@@ -583,7 +583,10 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-5",
-        max_tokens: 16000,
+        // HF5: Sonnet-5 emits thinking blocks by default and can consume the
+        // entire budget before any text block. Raise ceiling and read ALL
+        // text blocks (not just content[0]).
+        max_tokens: 32000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
@@ -598,9 +601,16 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
     }
 
     const aiData = await aiResponse.json();
-    const rawText = aiData.content?.[0]?.text || "";
+    // HF5: concat every text-type content block; skip thinking/tool_use blocks.
+    const rawText: string = Array.isArray(aiData.content)
+      ? aiData.content
+          .filter((b: any) => b?.type === "text" && typeof b.text === "string")
+          .map((b: any) => b.text)
+          .join("")
+      : (aiData.content?.[0]?.text || "");
     const briefElapsed = Date.now() - briefStartedAt;
-    console.log(`[generate-weekly-brief] stage=brief model=claude-sonnet-5 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
+    const blockTypes = Array.isArray(aiData.content) ? aiData.content.map((b: any) => b?.type).join(",") : "n/a";
+    console.log(`[generate-weekly-brief] stage=brief model=claude-sonnet-5 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length} blocks=${blockTypes}`);
 
     let brief: any;
     try {
