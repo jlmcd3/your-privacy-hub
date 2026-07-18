@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, FileText, Trash2 } from "lucide-react";
+import { Loader2, FileText, Trash2, Languages } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@/lib/languages";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import DriftReminderBanner from "@/components/cppa/DriftReminderBanner";
 import { useActiveClient } from "@/hooks/useActiveClient";
@@ -138,6 +139,7 @@ export default function MyReports() {
   const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
   const { isAdmin } = useIsAdmin();
   const [rows, setRows] = useState<ReportRow[]>([]);
+  const [translationsByReportId, setTranslationsByReportId] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -525,6 +527,23 @@ export default function MyReports() {
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
       setLoading(false);
+
+      // Fetch completed translations for this user so we can badge translated
+      // reports in the list. Keyed by report_id (UUIDs are globally unique
+      // across tool tables).
+      const { data: trs } = await supabase
+        .from("report_translations")
+        .select("report_id, target_lang")
+        .eq("user_id", user.id)
+        .eq("status", "complete");
+      if (!cancelled) {
+        const map: Record<string, string[]> = {};
+        (trs || []).forEach((t: any) => {
+          if (!t?.report_id || !t?.target_lang) return;
+          (map[t.report_id] ||= []).push(t.target_lang);
+        });
+        setTranslationsByReportId(map);
+      }
     })();
     return () => { cancelled = true; };
   }, [user]);
@@ -682,6 +701,40 @@ export default function MyReports() {
                                   <span className="text-[10px] text-slate-400">PDF</span>
                                 </a>
                               )}
+                              {(() => {
+                                const langs = translationsByReportId[r.id] || [];
+                                if (langs.length === 0) return null;
+                                return (
+                                  <div
+                                    className="inline-flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-md border border-brand-teal/30 bg-brand-teal/5"
+                                    title={`Translated to ${langs
+                                      .map((c) => SUPPORTED_LANGUAGES.find((l) => l.code === c)?.name ?? c)
+                                      .join(", ")}`}
+                                  >
+                                    <Languages
+                                      className="w-3 h-3 text-brand-teal-text"
+                                      aria-hidden="true"
+                                    />
+                                    {langs.slice(0, 4).map((code) => {
+                                      const chip = SUPPORTED_LANGUAGES.find((l) => l.code === code);
+                                      const label = chip ? `${chip.flag} ${code.toUpperCase()}` : code.toUpperCase();
+                                      return (
+                                        <Link
+                                          key={code}
+                                          to={`${r.view_path}${r.view_path.includes("?") ? "&" : "?"}lang=${encodeURIComponent(code)}`}
+                                          className="text-[10px] leading-none px-1 py-0.5 rounded hover:bg-brand-teal/15 text-brand-teal-text no-underline"
+                                          aria-label={`Open ${r.tool_label} translated to ${chip?.name ?? code}`}
+                                        >
+                                          {label}
+                                        </Link>
+                                      );
+                                    })}
+                                    {langs.length > 4 && (
+                                      <span className="text-[10px] text-muted-foreground">+{langs.length - 4}</span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                               <Button asChild size="sm" variant="outline" className="text-[12px] h-7">
                                 <Link to={r.view_path}>
                                   {r.status === "in_progress" ? "Continue →" : "View →"}

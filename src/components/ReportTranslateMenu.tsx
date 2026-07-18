@@ -6,11 +6,12 @@
 // drops to its own line directly below the button; it remains visible in
 // print/export (intentionally NOT print:hidden).
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Languages, Loader2, Check, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SUPPORTED_LANGUAGES, isRtl, getLanguageName } from "@/lib/languages";
+import { useSearchParams } from "react-router-dom";
 
 interface ReportTranslateMenuProps {
   toolType: string;
@@ -30,6 +31,9 @@ export default function ReportTranslateMenu({
   const [notice, setNotice] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [searchParams] = useSearchParams();
+  const autoAppliedRef = useRef(false);
+
 
   // TRANSLATE-1 — async translation with polling.
   // POST kicks off translation and returns 202 with status='translating'.
@@ -128,6 +132,21 @@ export default function ReportTranslateMenu({
       setElapsedSec(0);
     }
   }
+
+  // Auto-apply translation when navigated with ?lang=xx (e.g. from the
+  // reports list). Cache hits resolve instantly; misses fall through to the
+  // normal translate flow.
+  useEffect(() => {
+    if (autoAppliedRef.current) return;
+    const requested = searchParams.get("lang");
+    if (!requested) return;
+    const known = SUPPORTED_LANGUAGES.some((l) => l.code === requested);
+    if (!known) return;
+    autoAppliedRef.current = true;
+    handleSelect(requested);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
 
   const activeChip = SUPPORTED_LANGUAGES.find((l) => l.code === activeLang);
   const buttonLabel = activeChip
