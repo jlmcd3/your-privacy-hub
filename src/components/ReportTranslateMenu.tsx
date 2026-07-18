@@ -28,16 +28,18 @@ export default function ReportTranslateMenu({
   const [loading, setLoading] = useState<string | null>(null);
   const [activeLang, setActiveLang] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [elapsedSec, setElapsedSec] = useState(0);
 
   // TRANSLATE-1 — async translation with polling.
   // POST kicks off translation and returns 202 with status='translating'.
   // A GET on the same function reports status until 'complete' or 'failed'.
-  async function pollUntilDone(code: string): Promise<any | null> {
+  async function pollUntilDone(code: string, startedAt: number): Promise<any | null> {
     const MAX_MS = 5 * 60_000;         // 5 min ceiling
     const INTERVAL_MS = 2500;
-    const started = Date.now();
-    while (Date.now() - started < MAX_MS) {
+    while (Date.now() - startedAt < MAX_MS) {
       await new Promise((r) => setTimeout(r, INTERVAL_MS));
+      setElapsedSec(Math.floor((Date.now() - startedAt) / 1000));
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       const url = new URL(
@@ -52,6 +54,9 @@ export default function ReportTranslateMenu({
       if (!r.ok) continue;
       const body = await r.json().catch(() => null);
       if (!body) continue;
+      const done = Number(body.chunks_done ?? 0);
+      const total = Number(body.chunks_total ?? 0);
+      if (total > 0) setProgress({ done, total });
       if (body.status === "complete") return body.translated_payload;
       if (body.status === "failed") throw new Error(body.error ?? "Translation failed");
       // still translating → keep polling
@@ -70,6 +75,9 @@ export default function ReportTranslateMenu({
     if (code === activeLang) return;
 
     setLoading(code);
+    setProgress(null);
+    setElapsedSec(0);
+    const startedAt = Date.now();
     try {
       const { data, error } = await supabase.functions.invoke("translate-report", {
         body: { tool_type: toolType, report_id: reportId, language_code: code },
@@ -92,9 +100,11 @@ export default function ReportTranslateMenu({
       //   { status:'translating', ... }             — kicked off, poll for result
       let payload = (data as any)?.translated_payload;
       const status = (data as any)?.status;
+      const initTotal = Number((data as any)?.chunks_total ?? 0);
+      if (initTotal > 0) setProgress({ done: Number((data as any)?.chunks_done ?? 0), total: initTotal });
       if (!payload && status === "translating") {
         toast.info("Translating… this may take up to a minute for long documents.");
-        payload = await pollUntilDone(code);
+        payload = await pollUntilDone(code, startedAt);
       }
       if (!payload) {
         toast.error("Translation failed. Please try again.");
@@ -114,6 +124,8 @@ export default function ReportTranslateMenu({
       toast.error("Translation failed. Please try again.");
     } finally {
       setLoading(null);
+      setProgress(null);
+      setElapsedSec(0);
     }
   }
 
@@ -134,12 +146,16 @@ export default function ReportTranslateMenu({
           aria-expanded={open}
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
           ) : (
-            <Languages className="w-4 h-4" />
+            <Languages className="w-4 h-4" aria-hidden="true" />
           )}
-          <span>{buttonLabel}</span>
-          <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+          <span>
+            {loading
+              ? `Translating to ${getLanguageName(loading)}…`
+              : buttonLabel}
+          </span>
+          {!loading && <ChevronDown className="w-3.5 h-3.5 opacity-60" />}
         </button>
 
         {open && !loading && (
@@ -188,7 +204,41 @@ export default function ReportTranslateMenu({
         )}
       </div>
 
-      {notice && activeLang && (
+      {loading && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="basis-full w-full mt-2 px-3 py-2.5 rounded-md border border-brand-teal/30 bg-brand-teal/5 text-foreground text-[12px] leading-snug print:hidden"
+        >
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-teal" aria-hidden="true" />
+            <span className="font-medium">
+              Translating to {getLanguageName(loading)}…
+            </span>
+            <span className="ml-auto text-muted-foreground text-[11px] tabular-nums">
+              {progress && progress.total > 0
+                ? `${progress.done}/${progress.total} segments`
+                : "preparing…"}
+              {elapsedSec > 0 && ` · ${elapsedSec}s`}
+            </span>
+          </div>
+          {progress && progress.total > 0 && (
+            <div className="mt-1.5 h-1.5 w-full rounded-full bg-brand-teal/15 overflow-hidden">
+              <div
+                className="h-full bg-brand-teal transition-all duration-500 ease-out"
+                style={{
+                  width: `${Math.min(100, Math.round((progress.done / progress.total) * 100))}%`,
+                }}
+              />
+            </div>
+          )}
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            Long documents can take up to a minute. You can leave this page open — the translation continues in the background.
+          </p>
+        </div>
+      )}
+
+      {notice && activeLang && !loading && (
         <div className="basis-full w-full mt-2 px-3 py-2 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-[12px] leading-snug">
           {notice}
         </div>
