@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
 
     if (fetchError) {
       console.error("Fetch articles error:", fetchError);
-      await failFunctionRun(supabase, fnRun, fetchError, { metadata: { stage: "fetch_updates", window_start: weekStart.toISOString(), window_end: now.toISOString() } });
+      await failFunctionRun(supabase, fnRun, fetchError, { metadata: { event: "weekly_brief_generation", outcome: "failed", stage: "fetch_updates", model: MODEL_TAG, window_start: weekStart.toISOString(), window_end: now.toISOString() } });
       return new Response(JSON.stringify({ error: "Failed to fetch updates", detail: String(fetchError.message ?? fetchError) }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
