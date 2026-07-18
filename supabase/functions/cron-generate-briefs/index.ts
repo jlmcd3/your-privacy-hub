@@ -5,10 +5,11 @@ import {
   failFunctionRun,
 } from "../_shared/function-run-logger.ts";
 
-// BUILD_STAMP: brief-model-1-hf2 @ 2026-07-18
-// HF2: return 202 immediately and orchestrate weekly chain inside
-// EdgeRuntime.waitUntil to escape the 150s gateway idle-timeout that killed
-// the weekly chain on 2026-07-13 (net._http_response 04:51 IDLE_TIMEOUT).
+// BUILD_STAMP: brief-model-1-hf3 @ 2026-07-18
+// HF3: generate-weekly-brief now returns 202 immediately and runs its pipeline
+// inside EdgeRuntime.waitUntil. Treat 202 (and defensively 504 IDLE_TIMEOUT)
+// as "generation started" and rely on the existing weekly_briefs poll as the
+// completion signal for BOTH generate_only and send modes.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,7 +76,11 @@ async function runWeeklyChain(generateOnly: boolean) {
   });
   try {
     const gen = await callFn("generate-weekly-brief");
-    if (gen.status !== 200) {
+    // HF3: generate-weekly-brief returns 202 immediately (background pipeline).
+    // Accept 200 (legacy) and 202 as "started"; treat 504 idle-timeout as
+    // "started" defensively — poll is the true completion signal in every case.
+    const started = gen.status === 200 || gen.status === 202 || gen.status === 504;
+    if (!started) {
       await failFunctionRun(supabase, run, new Error(`generate-weekly-brief HTTP ${gen.status}`), {
         metadata: {
           event: "brief_chain",
@@ -90,6 +95,21 @@ async function runWeeklyChain(generateOnly: boolean) {
       return;
     }
 
+    const briefId = await waitForWeeklyBrief(t0Iso);
+    if (!briefId) {
+      await failFunctionRun(supabase, run, new Error("weekly_briefs row did not appear within 8m"), {
+        metadata: {
+          event: "brief_chain",
+          outcome: "generate_timeout",
+          target: "weekly",
+          generate_only: generateOnly,
+          t0: t0Iso,
+          gen_status: gen.status,
+        },
+      });
+      return;
+    }
+
     if (generateOnly) {
       await finishFunctionRun(supabase, run, {
         status: "success",
@@ -99,19 +119,8 @@ async function runWeeklyChain(generateOnly: boolean) {
           target: "weekly",
           generate_only: true,
           t0: t0Iso,
-        },
-      });
-      return;
-    }
-
-    const briefId = await waitForWeeklyBrief(t0Iso);
-    if (!briefId) {
-      await failFunctionRun(supabase, run, new Error("weekly_briefs row did not appear within 8m"), {
-        metadata: {
-          event: "brief_chain",
-          outcome: "generate_timeout",
-          target: "weekly",
-          t0: t0Iso,
+          brief_id: briefId,
+          gen_status: gen.status,
         },
       });
       return;
