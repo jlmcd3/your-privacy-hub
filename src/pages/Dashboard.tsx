@@ -363,7 +363,7 @@ const Dashboard = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* V7-C3: Obligations placeholder (free users) */}
           <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-            <h2 className="font-display text-lg text-brand-navy mb-1">Obligations</h2>
+            <h2 className="font-display text-lg text-brand-navy mb-1">Deadlines &amp; Reminders</h2>
             <p className="text-sm text-muted-foreground">
               Subscribers see renewal and review deadlines derived from their documents here.{" "}
               <Link to="/subscribe" className="text-brand-teal-text hover:underline">See plans →</Link>

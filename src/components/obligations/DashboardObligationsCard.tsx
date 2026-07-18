@@ -42,7 +42,7 @@ export default function DashboardObligationsCard() {
   return (
     <section className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-eup-sm hover:shadow-eup-md motion-safe:transition-shadow motion-reduce:transition-none">
       <div className="flex items-baseline justify-between mb-4">
-        <h2 className="font-display text-lg text-brand-navy">Obligations</h2>
+        <h2 className="font-display text-lg text-brand-navy">Deadlines &amp; Reminders</h2>
         <Link to="/obligations" className="text-sm text-brand-teal-text hover:underline">View all →</Link>
       </div>
       {items === null ? (

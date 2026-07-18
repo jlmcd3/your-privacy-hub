@@ -4,20 +4,20 @@ import { ChevronRight, ChevronDown, Plus, User, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   TOP_ITEMS,
-  LIBRARY_ITEMS,
-  REPORTS_ITEM,
-  REPORTS_SUBITEMS,
+  START_NEW_ITEM,
+  WORKSPACE_GROUPS,
+  STANDALONE_ITEMS,
   BOTTOM_ITEMS,
   computeActiveTo,
-  computeActiveReportsSub,
   type WorkspaceItem,
+  type WorkspaceGroup,
 } from "@/lib/workspaceNav";
 import { useClientStore, type Client } from "@/stores/clientStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
-/** Top-level item — full-width link. */
+/** Top-level (chrome) item — full-width link. */
 function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
   const Icon = item.icon;
   return (
@@ -26,7 +26,7 @@ function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
       end
       title={item.label}
       className={cn(
-        "inline-flex items-center gap-2 px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline justify-center lg:justify-start",
+        "inline-flex items-center gap-2 px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline justify-center lg:justify-start whitespace-nowrap",
         active
           ? "bg-brand-navy text-white"
           : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
@@ -34,23 +34,25 @@ function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
       aria-current={active ? "page" : undefined}
     >
       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-      <span className="hidden lg:inline">{item.label}</span>
+      <span className="hidden lg:inline truncate">{item.label}</span>
     </NavLink>
   );
 }
 
 /**
- * Library-section product row. Clicking calls setActiveClient(workspace)
- * before navigating so the correct workspace context is applied.
+ * A library row inside a workspace (either a standalone item or a group
+ * sub-item). Clicking calls setActiveClient(workspace) before navigating.
  */
 function LibraryRow({
   item,
   workspace,
   active,
+  indent,
 }: {
   item: WorkspaceItem;
   workspace: Client;
   active: boolean;
+  indent?: boolean;
 }) {
   const navigate = useNavigate();
   const setActiveClient = useClientStore((s) => s.setActiveClient);
@@ -67,76 +69,57 @@ function LibraryRow({
       <a
         href={item.to}
         onClick={handleClick}
+        title={item.label}
         className={cn(
-          "inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors no-underline w-full",
+          "inline-flex items-center gap-2 py-1 rounded-md text-sm transition-colors no-underline w-full whitespace-nowrap overflow-hidden",
+          indent ? "pl-5 pr-2" : "px-2",
           active
-            ? "bg-brand-navy text-white font-medium"
+            ? indent
+              ? "text-brand-navy font-medium bg-brand-cloud/60"
+              : "bg-brand-navy text-white font-medium"
             : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
         )}
         aria-current={active ? "page" : undefined}
       >
-        <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-        <span>{item.label}</span>
+        {indent ? (
+          <span className="text-brand-mist shrink-0">·</span>
+        ) : (
+          <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+        )}
+        <span className="truncate">{item.label}</span>
       </a>
     </li>
   );
 }
 
-/** Reports sub-item (filtered view) — indented under Reports. */
-function ReportsSubRow({
-  to,
-  label,
-  workspace,
-  active,
-}: {
-  to: string;
-  label: string;
-  workspace: Client;
-  active: boolean;
-}) {
-  const navigate = useNavigate();
-  const setActiveClient = useClientStore((s) => s.setActiveClient);
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setActiveClient(workspace);
-    navigate(to);
-  };
+/** Non-clickable group header. */
+function GroupHeader({ label }: { label: string }) {
   return (
-    <li>
-      <a
-        href={to}
-        onClick={handleClick}
-        className={cn(
-          "inline-flex items-center gap-2 pl-6 pr-2 py-1 rounded-md text-[13px] transition-colors no-underline w-full",
-          active
-            ? "text-brand-navy font-medium bg-brand-cloud/60"
-            : "text-slate-500 hover:bg-brand-cloud hover:text-brand-navy",
-        )}
-        aria-current={active ? "page" : undefined}
-      >
-        <span className="text-brand-mist">·</span>
-        <span>{label}</span>
-      </a>
+    <li
+      className="px-2 py-1 text-[11px] font-semibold tracking-wide text-brand-navy/70 whitespace-nowrap overflow-hidden text-ellipsis"
+      title={label}
+      role="presentation"
+    >
+      {label}
     </li>
   );
 }
 
 /**
- * One workspace section (Personal or a Client). Clicking the header
- * expands/collapses the whole workspace which contains the LIBRARY items.
+ * One workspace section (Personal or a Client). Renders Start New…, then the
+ * three groups (with non-clickable headers + sub-items), then the standalone
+ * items (Registrations, Deadlines & Reminders).
  */
 function WorkspaceSection({
   workspace,
   isActiveWorkspace,
   activeTo,
-  activeReportsSub,
   defaultOpen,
   icon: HeaderIcon,
 }: {
   workspace: Client;
   isActiveWorkspace: boolean;
   activeTo: string | null;
-  activeReportsSub: ReturnType<typeof computeActiveReportsSub>;
   defaultOpen: boolean;
   icon: React.ComponentType<{ className?: string }>;
 }) {
@@ -145,9 +128,6 @@ function WorkspaceSection({
   useEffect(() => {
     if (isActiveWorkspace) setOpen(true);
   }, [isActiveWorkspace]);
-
-  const isReportsActive =
-    isActiveWorkspace && activeTo === REPORTS_ITEM.to;
 
   return (
     <div
@@ -183,38 +163,39 @@ function WorkspaceSection({
 
       {open && (
         <div className="hidden lg:block mt-1 ml-2 pl-2 border-l border-brand-cloud/60">
-          <div className="px-2 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500">
-            Library
-          </div>
           <ul className="flex flex-col gap-0 mt-0.5">
-            {LIBRARY_ITEMS.flatMap((item) => {
-              const nodes = [
-                <LibraryRow
-                  key={item.to}
-                  item={item}
-                  workspace={workspace}
-                  active={isActiveWorkspace && activeTo === item.to}
-                />,
-              ];
-              if (item.to === REPORTS_ITEM.to && isReportsActive) {
-                nodes.push(
-                  <li key={`${item.to}-subs`}>
-                    <ul className="flex flex-col gap-0 ml-3 pl-3 border-l border-brand-cloud">
-                      {REPORTS_SUBITEMS.map((s) => (
-                        <ReportsSubRow
-                          key={s.to}
-                          to={s.to}
-                          label={s.label}
-                          workspace={workspace}
-                          active={activeReportsSub === s.id}
-                        />
-                      ))}
-                    </ul>
-                  </li>,
-                );
-              }
-              return nodes;
-            })}
+            <LibraryRow
+              item={START_NEW_ITEM}
+              workspace={workspace}
+              active={isActiveWorkspace && activeTo === START_NEW_ITEM.to}
+            />
+
+            {WORKSPACE_GROUPS.map((g: WorkspaceGroup) => (
+              <li key={g.id}>
+                <ul className="flex flex-col gap-0 mt-1">
+                  <GroupHeader label={g.label} />
+                  {g.items.map((sub) => (
+                    <LibraryRow
+                      key={sub.to}
+                      item={sub}
+                      workspace={workspace}
+                      active={isActiveWorkspace && activeTo === sub.to}
+                      indent
+                    />
+                  ))}
+                </ul>
+              </li>
+            ))}
+
+            <li key="standalone-spacer" className="mt-1" />
+            {STANDALONE_ITEMS.map((item) => (
+              <LibraryRow
+                key={item.to}
+                item={item}
+                workspace={workspace}
+                active={isActiveWorkspace && activeTo === item.to}
+              />
+            ))}
           </ul>
         </div>
       )}
@@ -244,11 +225,6 @@ export default function WorkspaceSidebar() {
     [location.pathname, location.hash, location.search],
   );
 
-  const activeReportsSub = useMemo(
-    () => computeActiveReportsSub(location.pathname, location.search),
-    [location.pathname, location.search],
-  );
-
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
 
   if (!user || isLoading || adminLoading || (!isPremium && !isAdmin))
@@ -257,11 +233,11 @@ export default function WorkspaceSidebar() {
   return (
     <aside
       aria-label="Workspace navigation"
-      className="hidden md:flex flex-col w-14 lg:w-[240px] shrink-0 border-r border-brand-cloud bg-card sticky top-14 md:top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto transition-[width] duration-200"
+      className="hidden md:flex flex-col w-14 lg:w-[272px] shrink-0 border-r border-brand-cloud bg-card sticky top-14 md:top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto transition-[width] duration-200"
     >
       <div className="p-2 lg:p-3">
-        {/* Top items: Weekly Briefs, Watchlist, Start New… */}
-        <nav className="flex flex-col gap-0.5 mb-4">
+        {/* Top items: Weekly Briefs, Watchlist */}
+        <nav className="flex flex-col gap-0.5 mb-3">
           {TOP_ITEMS.map((item) => (
             <NavItem
               key={item.to}
@@ -280,7 +256,6 @@ export default function WorkspaceSidebar() {
               workspace={personal}
               isActiveWorkspace={isPersonalActive}
               activeTo={activeTo}
-              activeReportsSub={activeReportsSub}
               defaultOpen={isPersonalActive}
               icon={User}
             />
@@ -317,7 +292,6 @@ export default function WorkspaceSidebar() {
                   workspace={c}
                   isActiveWorkspace={activeClient?.id === c.id}
                   activeTo={activeTo}
-                  activeReportsSub={activeReportsSub}
                   defaultOpen={activeClient?.id === c.id}
                   icon={Building2}
                 />

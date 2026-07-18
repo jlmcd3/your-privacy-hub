@@ -1,12 +1,6 @@
 // Persistent local navigation for the subscriber workspace (mobile).
-// Lives at the top of every "my stuff" page.
-//
-// LEFTNAV-2: flat pills — top items, then Library items (Reports / Notices &
-// RoPA / Filings / Obligations), then Clients, Account.
-//
-// Active-state rules are defined once in `@/lib/workspaceNav` and shared with
-// the desktop `WorkspaceSidebar`, so both surfaces always highlight the same
-// item for any given URL.
+// LEFTNAV-3: flat pills — Top items, Start New…, each group's sub-items with a
+// small inline group label, Standalones, Clients, Account.
 
 import { NavLink, useLocation } from "react-router-dom";
 import { Settings, Building2 } from "lucide-react";
@@ -14,7 +8,9 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import {
   TOP_ITEMS,
-  LIBRARY_ITEMS,
+  START_NEW_ITEM,
+  WORKSPACE_GROUPS,
+  STANDALONE_ITEMS,
   computeActiveTo,
 } from "@/lib/workspaceNav";
 
@@ -95,6 +91,7 @@ export default function DashboardSubnav() {
       <NavLink
         to={to}
         end
+        title={label}
         className={cn(
           "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline whitespace-nowrap",
           active
@@ -120,25 +117,36 @@ export default function DashboardSubnav() {
             {TOP_ITEMS.map((item) =>
               renderPill(item.to, item.label, item.icon, activeTo === item.to),
             )}
+            {renderPill(
+              START_NEW_ITEM.to,
+              START_NEW_ITEM.label,
+              START_NEW_ITEM.icon,
+              activeTo === START_NEW_ITEM.to,
+            )}
 
-            <li
-              className="flex items-center gap-1 flex-shrink-0 pl-2 ml-1 border-l border-brand-cloud"
-              key="library-group"
-            >
-              <span
-                className="text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500 pr-1 whitespace-nowrap"
-                aria-label="Library"
+            {WORKSPACE_GROUPS.map((g) => (
+              <li
+                key={g.id}
+                className="flex items-center gap-1 flex-shrink-0 pl-2 ml-1 border-l border-brand-cloud"
               >
-                Library
-              </span>
+                <span
+                  className="text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-500 pr-1 whitespace-nowrap"
+                  aria-label={g.label}
+                >
+                  {g.label}
+                </span>
+                <ul className="flex items-center gap-1 flex-nowrap">
+                  {g.items.map((sub) =>
+                    renderPill(sub.to, sub.label, sub.icon, activeTo === sub.to),
+                  )}
+                </ul>
+              </li>
+            ))}
+
+            <li className="flex items-center gap-1 flex-shrink-0 pl-2 ml-1 border-l border-brand-cloud">
               <ul className="flex items-center gap-1 flex-nowrap">
-                {LIBRARY_ITEMS.map((item) =>
-                  renderPill(
-                    item.to,
-                    item.label,
-                    item.icon,
-                    activeTo === item.to,
-                  ),
+                {STANDALONE_ITEMS.map((item) =>
+                  renderPill(item.to, item.label, item.icon, activeTo === item.to),
                 )}
               </ul>
             </li>

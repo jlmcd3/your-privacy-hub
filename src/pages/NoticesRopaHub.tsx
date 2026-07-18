@@ -3,7 +3,7 @@
 // quick links to view documents or start a new one.
 
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
   Loader2,
@@ -90,6 +90,12 @@ export default function NoticesRopaHub() {
   const [rows, setRows] = useState<FileRow[]>([]);
   const fireConversion = useConversionEvent();
   const userType = user ? "authenticated" : "anonymous";
+  const [searchParams] = useSearchParams();
+  const kindParam = (searchParams.get("kind") || "").toLowerCase();
+  const activeKind: FileRow["kind"] | null =
+    kindParam === "us" ? "us" :
+    kindParam === "eu" ? "eu" :
+    kindParam === "ropa" ? "ropa" : null;
 
   useEffect(() => {
     if (!user || !client) return;
@@ -138,6 +144,11 @@ export default function NoticesRopaHub() {
       cancelled = true;
     };
   }, [user, client?.id]);
+
+  const displayRows = useMemo(
+    () => (activeKind ? rows.filter((r) => r.kind === activeKind) : rows),
+    [rows, activeKind],
+  );
 
   const WorkspaceIcon = isPersonalActive ? User : Briefcase;
   const workspaceLabel = isPersonalActive ? "your personal workspace" : clientName;
@@ -203,7 +214,7 @@ export default function NoticesRopaHub() {
             <div className="py-20 flex justify-center">
               <Loader2 className="w-6 h-6 animate-spin text-brand-navy" />
             </div>
-          ) : rows.length === 0 ? (
+          ) : displayRows.length === 0 ? (
             <div className="rounded-lg border border-brand-cloud bg-white p-10 text-center">
               <p className="text-sm text-slate">
                 No notices or RoPA records yet for this workspace.
@@ -222,7 +233,7 @@ export default function NoticesRopaHub() {
                 <span className="text-right">Actions</span>
               </div>
               <ul className="divide-y divide-brand-cloud">
-                {rows.map((row) => {
+                {displayRows.map((row) => {
                   const meta = KIND_META[row.kind];
                   const Icon = meta.icon;
                   const subtitle = subtitleByKind(row);

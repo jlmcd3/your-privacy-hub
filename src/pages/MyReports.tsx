@@ -104,41 +104,33 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
   return "secondary";
 }
 
-// LEFTNAV-2 family filter — maps each tool key to a jurisdictional family so
-// the sidebar's Reports sub-items can filter the same page without adding a
-// new data source.
-//   cppa family: cppa_risk, cppa_cyber, cppa_admt, cppa_scope, us_notice
-//                (+ their draft_ counterparts)
-//   gdpr family: li, dpia, governance, dpa, eu_notice, ropa
-//                (+ their draft_ counterparts)
-//   cross-jurisdiction (visible under "All" only): ir, biometric, registration,
-//                and any drafts for those tools.
-type Family = "cppa" | "gdpr" | "cross";
-const FAMILY_BY_TOOL: Record<string, Family> = {
-  cppa_risk: "cppa",
-  cppa_cyber: "cppa",
-  cppa_admt: "cppa",
-  cppa_scope: "cppa",
-  us_notice: "cppa",
-  draft_cppa_risk: "cppa",
-  draft_cppa_cyber: "cppa",
-  draft_cppa_admt: "cppa",
-  li: "gdpr",
-  dpia: "gdpr",
-  governance: "gdpr",
-  dpa: "gdpr",
-  eu_notice: "gdpr",
-  ropa: "gdpr",
-  draft_li: "gdpr",
-  draft_dpia: "gdpr",
-  draft_governance: "gdpr",
-  draft_dpa: "gdpr",
-  ir: "cross",
-  biometric: "cross",
-  registration: "cross",
-  draft_ir: "cross",
-  draft_biometric: "cross",
-  draft_registration: "cross",
+// LEFTNAV-3 two-param filter model:
+//   ?group=  assessments | playbooks | dpas  (absent = all)
+//   ?family= gdpr | cppa | biometric         (meaningful within assessments)
+//
+// Tool -> (group, family) mapping. Drafts inherit their parent tool's mapping.
+type ReportGroup = "assessments" | "playbooks" | "dpas";
+type ReportFamily = "gdpr" | "cppa" | "biometric";
+const TOOL_GROUP: Record<string, ReportGroup> = {
+  // Assessments
+  li: "assessments", dpia: "assessments", governance: "assessments",
+  cppa_risk: "assessments", cppa_cyber: "assessments",
+  cppa_admt: "assessments", cppa_scope: "assessments",
+  biometric: "assessments",
+  draft_li: "assessments", draft_dpia: "assessments", draft_governance: "assessments",
+  draft_cppa_risk: "assessments", draft_cppa_cyber: "assessments",
+  draft_cppa_admt: "assessments", draft_biometric: "assessments",
+  // Playbooks
+  ir: "playbooks", draft_ir: "playbooks",
+  // DPAs
+  dpa: "dpas", draft_dpa: "dpas",
+};
+const TOOL_FAMILY: Record<string, ReportFamily | undefined> = {
+  li: "gdpr", dpia: "gdpr", governance: "gdpr",
+  draft_li: "gdpr", draft_dpia: "gdpr", draft_governance: "gdpr",
+  cppa_risk: "cppa", cppa_cyber: "cppa", cppa_admt: "cppa", cppa_scope: "cppa",
+  draft_cppa_risk: "cppa", draft_cppa_cyber: "cppa", draft_cppa_admt: "cppa",
+  biometric: "biometric", draft_biometric: "biometric",
 };
 
 export default function MyReports() {
@@ -150,13 +142,18 @@ export default function MyReports() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
+  const groupParam = (searchParams.get("group") || "").toLowerCase();
   const familyParam = (searchParams.get("family") || "").toLowerCase();
-  const activeFamily: "cppa" | "gdpr" | null =
-    familyParam === "cppa" ? "cppa" : familyParam === "gdpr" ? "gdpr" : null;
+  const activeGroup: ReportGroup | null =
+    groupParam === "assessments" ? "assessments" :
+    groupParam === "playbooks" ? "playbooks" :
+    groupParam === "dpas" ? "dpas" : null;
+  const activeFamily: ReportFamily | null =
+    familyParam === "gdpr" ? "gdpr" :
+    familyParam === "cppa" ? "cppa" :
+    familyParam === "biometric" ? "biometric" : null;
 
-  // Scope reports to the active workspace. When the personal workspace is
-  // active, hide anything tied to a real client (and vice versa). Rows with
-  // no client_id are treated as personal.
+  // Scope reports to the active workspace.
   const visibleRows = rows.filter((r) => {
     if (!hasClients) return true;
     if (isPersonalActive) {
@@ -165,16 +162,21 @@ export default function MyReports() {
     return r.client_id === activeClientId;
   });
 
-  // Family filter — cross-jurisdiction tools appear under "All" only.
-  const familyFilteredRows = useMemo(() => {
-    if (!activeFamily) return visibleRows;
-    return visibleRows.filter((r) => FAMILY_BY_TOOL[r.tool] === activeFamily);
-  }, [visibleRows, activeFamily]);
+  const filteredRows = useMemo(() => {
+    let out = visibleRows;
+    if (activeGroup) {
+      out = out.filter((r) => TOOL_GROUP[r.tool] === activeGroup);
+    }
+    if (activeGroup === "assessments" && activeFamily) {
+      out = out.filter((r) => TOOL_FAMILY[r.tool] === activeFamily);
+    }
+    return out;
+  }, [visibleRows, activeGroup, activeFamily]);
 
-  const setFamily = (fam: "cppa" | "gdpr" | null) => {
+  const setFilter = (group: ReportGroup | null, family: ReportFamily | null) => {
     const next = new URLSearchParams(searchParams);
-    if (fam) next.set("family", fam);
-    else next.delete("family");
+    if (group) next.set("group", group); else next.delete("group");
+    if (family) next.set("family", family); else next.delete("family");
     setSearchParams(next, { replace: true });
   };
 
@@ -552,16 +554,23 @@ export default function MyReports() {
 
           <div className="mb-4 flex items-center gap-2 flex-wrap">
             {[
-              { id: null as null | "cppa" | "gdpr", label: "All" },
-              { id: "cppa" as const, label: "U.S. \u2013 CPPA" },
-              { id: "gdpr" as const, label: "EU & UK \u2013 GDPR" },
+              { group: null as ReportGroup | null, family: null as ReportFamily | null, label: "All" },
+              { group: "assessments" as const, family: "gdpr" as const, label: "GDPR" },
+              { group: "assessments" as const, family: "cppa" as const, label: "CPPA" },
+              { group: "assessments" as const, family: "biometric" as const, label: "Biometric" },
+              { group: "playbooks" as const, family: null, label: "Playbooks" },
+              { group: "dpas" as const, family: null, label: "DPAs" },
             ].map((chip) => {
-              const active = activeFamily === chip.id;
+              const active =
+                activeGroup === chip.group &&
+                (chip.group === "assessments"
+                  ? activeFamily === chip.family
+                  : true);
               return (
                 <button
                   key={chip.label}
                   type="button"
-                  onClick={() => setFamily(chip.id)}
+                  onClick={() => setFilter(chip.group, chip.family)}
                   className={
                     "px-3 py-1 rounded-full text-xs font-medium border transition-colors " +
                     (active
@@ -576,14 +585,15 @@ export default function MyReports() {
             })}
           </div>
 
+
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
-          ) : familyFilteredRows.length === 0 ? (
+          ) : filteredRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
                 <p className="text-slate mb-4">
-                  {activeFamily
+                  {(activeGroup || activeFamily)
                     ? "No reports in this jurisdiction yet."
                     : "You haven't generated any reports yet."}
                 </p>
@@ -602,7 +612,7 @@ export default function MyReports() {
               ];
               const grouped = GROUPS.map((g) => ({
                 ...g,
-                rows: familyFilteredRows.filter((r) => g.tools.includes(r.tool)),
+                rows: filteredRows.filter((r) => g.tools.includes(r.tool)),
               })).filter((g) => g.rows.length > 0);
 
               return (
