@@ -535,7 +535,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-opus-4-7",
+        model: "claude-sonnet-5",
         max_tokens: 16000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
@@ -553,7 +553,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
     const aiData = await aiResponse.json();
     const rawText = aiData.content?.[0]?.text || "";
     const briefElapsed = Date.now() - briefStartedAt;
-    console.log(`[generate-weekly-brief] stage=brief model=claude-opus-4-7 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
+    console.log(`[generate-weekly-brief] stage=brief model=claude-sonnet-5 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
 
     let brief: any;
     try {
