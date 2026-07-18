@@ -75,7 +75,7 @@ async function sendEmail(subject: string, body: string) {
       method: "POST",
       headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "End User Privacy <alerts@enduserprivacy.com>",
+        from: "End User Privacy <support@enduserprivacy.com>",
         to: [ALERT_EMAIL],
         subject,
         text: body,

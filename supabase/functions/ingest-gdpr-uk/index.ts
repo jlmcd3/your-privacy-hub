@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
   allIds.push(...UK_INSERTED_IDS);
   const ids = only_articles ? allIds.filter((id) => only_articles.includes(id)) : allIds;
 
-  const userAgent = "EndUserPrivacy-UKGDPRIngest/1.0 (+https://enduserprivacy.com; contact: ops@enduserprivacy.com)";
+  const userAgent = "EndUserPrivacy-UKGDPRIngest/1.0 (+https://enduserprivacy.com; contact: support@enduserprivacy.com)";
 
   const parsed: ParsedArticle[] = [];
   const fetch_skipped: Array<{ id: string; status: number }> = [];

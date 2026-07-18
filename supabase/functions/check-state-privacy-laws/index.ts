@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "EUP Monitor <onboarding@resend.dev>",
+          from: "End User Privacy <support@enduserprivacy.com>",
           to: [ADMIN_EMAIL],
           subject: `EUP: ${inserted.length} new state privacy law(s) detected — confirmation required`,
           text: body,

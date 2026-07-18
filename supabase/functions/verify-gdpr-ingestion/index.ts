@@ -18,7 +18,7 @@ const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
 
 const FETCH_GAP_MS = 250;
 const USER_AGENT =
-  "EndUserPrivacy-GDPRVerify/1.0 (+https://enduserprivacy.com; contact: ops@enduserprivacy.com)";
+  "EndUserPrivacy-GDPRVerify/1.0 (+https://enduserprivacy.com; contact: support@enduserprivacy.com)";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

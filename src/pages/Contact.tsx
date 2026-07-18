@@ -26,7 +26,7 @@ const Contact = () => {
     // pre-populated mailto so the enquiry still reaches the team. See D-C1.
     const subject = `[${enquiryType}] Contact — ${name || "no name"}`;
     const body = `Enquiry type: ${enquiryType}\nName: ${name}\nEmail: ${email}\n\n${message}`;
-    const mailto = `mailto:hello@enduserprivacy.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailto = `mailto:support@enduserprivacy.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
     setSubmitted(true);
   };
@@ -61,8 +61,8 @@ const Contact = () => {
                 <h2 className="font-display text-brand-navy mb-2">Thanks. Your message is on its way.</h2>
                 <p className="text-slate text-[14px] leading-relaxed mb-4">
                   Your email client should have opened with a pre-filled message. If it didn't, you can email us directly at{" "}
-                  <a href="mailto:hello@enduserprivacy.com" className="text-brand-teal-text hover:underline no-underline">
-                    hello@enduserprivacy.com
+                  <a href="mailto:support@enduserprivacy.com" className="text-brand-teal-text hover:underline no-underline">
+                    support@enduserprivacy.com
                   </a>
                   .
                 </p>

@@ -509,10 +509,10 @@ const Terms = () => {
               If you have any questions regarding these TOS or your dealings with the Service,
               please contact us at{" "}
               <a
-                href="mailto:orders@enduserprivacy.com"
+                href="mailto:support@enduserprivacy.com"
                 className="text-primary hover:underline"
               >
-                orders@enduserprivacy.com
+                support@enduserprivacy.com
               </a>
               .
             </p>

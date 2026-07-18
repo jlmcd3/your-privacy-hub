@@ -26,10 +26,10 @@ const ExtLink = ({ href, children }: { href: string; children: React.ReactNode }
 
 const Mail = ({ subject }: { subject?: string }) => (
   <a
-    href={`mailto:hello@enduserprivacy.com${subject ? `?subject=${encodeURIComponent(subject)}` : ""}`}
+    href={`mailto:privacy@enduserprivacy.com${subject ? `?subject=${encodeURIComponent(subject)}` : ""}`}
     className="text-primary hover:underline"
   >
-    hello@enduserprivacy.com
+    privacy@enduserprivacy.com
   </a>
 );
 

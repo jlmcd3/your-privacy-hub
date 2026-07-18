@@ -44,7 +44,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "EndUserPrivacy Intelligence <intelligence@enduserprivacy.com>",
+            from: "End User Privacy <support@enduserprivacy.com>",
             to: email,
             subject: "Your Privacy Intelligence preview is ready",
             text: [
@@ -61,7 +61,7 @@ serve(async (req) => {
               "",
               "Get My Report → https://enduserprivacy.com/get-intelligence",
               "",
-              "Cancel anytime. Questions? hello@enduserprivacy.com",
+              "Cancel anytime. Questions? support@enduserprivacy.com",
             ].join("\n"),
           }),
         });

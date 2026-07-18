@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
     : SEED_REGISTRY;
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  const userAgent = "EndUserPrivacy-EDPBIngest/1.0 (+https://enduserprivacy.com; contact: ops@enduserprivacy.com)";
+  const userAgent = "EndUserPrivacy-EDPBIngest/1.0 (+https://enduserprivacy.com; contact: support@enduserprivacy.com)";
 
   const perGuideline: Array<Record<string, unknown>> = [];
 
