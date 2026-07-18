@@ -104,7 +104,7 @@ export function extractHhsSubject(title: string): string | null {
   for (const re of HHS_SUBJECT_PATTERNS) {
     const m = t.match(re);
     if (m && m[1]) {
-      const s = m[1].trim().replace(/\s+/g, " ").replace(/[.,;:]+$/, "");
+      const s = trimCorporateTail(m[1].trim().replace(/\s+/g, " ").replace(/[.,;:]+$/, ""));
       if (s.length < 3) continue;
       if (HHS_SUBJECT_BLOCKLIST.test(s)) continue;
       return s;
