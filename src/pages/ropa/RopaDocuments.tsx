@@ -59,7 +59,6 @@ type DocVersion = {
 
 const FORMAT_META: Record<string, { label: string; icon: typeof FileText; ext: string }> = {
   pdf: { label: "PDF", icon: FileText, ext: "pdf" },
-  xlsx: { label: "Excel", icon: FileSpreadsheet, ext: "xlsx" },
 };
 
 export default function RopaDocuments() {
