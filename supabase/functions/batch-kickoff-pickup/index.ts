@@ -490,7 +490,16 @@ Deno.serve(async (req) => {
   }
   await logRun({ event: "brief_chain_sweep", brief_sweep: briefSweep });
 
-  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, brief_chain_sweep: briefSweep, build_stamp: BUILD_STAMP }), {
+  // TRANSLATE-1 — translation sweep. Never throws.
+  let translationSweep: TranslationSweepResult;
+  try {
+    translationSweep = await runTranslationSweep(admin);
+  } catch (e) {
+    translationSweep = { processed: 0, reaped: 0, errors: [`threw:${(e as Error).message}`] };
+  }
+  await logRun({ event: "translation_sweep", translation_sweep: translationSweep });
+
+  return new Response(JSON.stringify({ decision, kick_ok: kickOk, kick_status: kickStatus, export_sweep: sweep, brief_chain_sweep: briefSweep, translation_sweep: translationSweep, build_stamp: BUILD_STAMP }), {
     headers: { ...cors, "Content-Type": "application/json" },
   });
 });
