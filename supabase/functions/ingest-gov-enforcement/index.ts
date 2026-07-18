@@ -5,6 +5,7 @@
 // All eight DPA scrape sources added 2026-05-19: OAIC, Datatilsynet DK/NO,
 // PDPC Singapore, OPC Canada, Texas AG, Colorado AG, HHS OCR.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { canonicalizeSourceUrl, isOaicEnforcementTitle, extractOaicSubject } from "./oaic.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
