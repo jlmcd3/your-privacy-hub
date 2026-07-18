@@ -121,7 +121,7 @@ const SOURCES: SourceEntry[] = [
   { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland", sourceGroup: "core", monitorPages: 1 },
   { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn", sourceGroup: "core", monitorPages: 1 },
   { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland", sourceGroup: "core", monitorPages: 1 },
-  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
   { regulator: "Datatilsynet DK", jurisdiction: "Denmark", law: "GDPR (Denmark)", url: "https://www.datatilsynet.dk/english/news", source: "Datatilsynet DK", sourceGroup: "core", monitorPages: 1 },
   { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1 },
   { regulator: "PDPC Singapore", jurisdiction: "Singapore", law: "PDPA 2012", url: "https://www.pdpc.gov.sg/news-and-events/announcements", source: "PDPC Singapore", sourceGroup: "core", monitorPages: 1 },
