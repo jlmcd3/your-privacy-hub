@@ -33,9 +33,15 @@ export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows p
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
 // TRANSLATE-2 — sweep as resumer, not just reaper.
-export const TRANSLATION_STALL_MS = 4 * 60_000;    // no progress in 4 min → re-kick
-export const TRANSLATION_MAX_RESUMES = 3;          // sweep gives up after 3 re-kicks
-export const TRANSLATION_HARD_FAIL_MS = 45 * 60_000; // absolute wall-clock ceiling
+export const TRANSLATION_STALL_MS = 4 * 60_000;              // no progress in 4 min → re-kick
+export const TRANSLATION_MAX_CONSECUTIVE_STALL_KICKS = 3;    // only consecutive no-progress re-kicks count
+export const TRANSLATION_HARD_FAIL_MS = 45 * 60_000;         // absolute wall-clock ceiling
+// Total-resume ceiling scales with document size — a 49-chunk doc legitimately
+// needs many slices. Formula: max(20, ceil(chunks_total * 1.5)).
+export function translationTotalResumeCeiling(chunksTotal: number | null | undefined): number {
+  const n = Math.max(0, Number(chunksTotal ?? 0));
+  return Math.max(20, Math.ceil(n * 1.5));
+}
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
