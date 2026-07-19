@@ -2275,7 +2275,7 @@ Deno.serve(async (req) => {
         metaLine: `${metaLine}${orgNameForPdf ? ` · Prepared for: ${orgNameForPdf}` : ""}`,
         text,
         showJurisdictionChip: true,
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This biometric compliance assessment is generated for informational purposes only. Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction. This document does not create an attorney-client relationship and does not constitute legal advice.`,
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This biometric compliance assessment is generated for informational purposes only. Biometric data obligations vary by jurisdiction, sector, and specific processing context — applicability determinations (including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing) depend on facts named in each jurisdiction and should be validated against your organization's authoritative records before operational reliance. This document does not create an attorney-client relationship and does not constitute legal advice.`,
         // BIPA risk callout branch retired 2026-07-14
         callout: undefined,
       });
