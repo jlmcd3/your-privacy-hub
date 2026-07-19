@@ -46,6 +46,7 @@ const STATE_FLAGS: Record<string, string> = {
   TX: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Texas.svg?width=32",
   UT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Utah.svg?width=32",
   VA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Virginia.svg?width=32",
+  VT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Vermont.svg?width=32",
 };
 
 const USStateComparison = () => {
