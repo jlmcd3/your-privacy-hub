@@ -1551,7 +1551,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${orgName ? `<p style="margin-top:6px;font-size:11px;color:#93b5c6;">Prepared for: <strong>${escHtml(orgName)}</strong></p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice. This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be reviewed with qualified legal counsel before reliance.</div>
+    <div class="notice"><span class="label">Not legal advice. This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${scorecardBlock}
     ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
