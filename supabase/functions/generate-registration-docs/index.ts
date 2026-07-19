@@ -529,8 +529,8 @@ Deno.serve(async (req) => {
           const DISCLAIMER =
             "\n\n---\n\nLEGAL DISCLAIMER: This document is generated for informational purposes only and " +
             "does not constitute legal advice. Data-protection registration and record-keeping obligations " +
-            "vary by jurisdiction and change over time. Verify current requirements with the relevant " +
-            "supervisory authority and consult qualified legal counsel before filing or relying on this document.";
+            "vary by jurisdiction and change over time. Confirm current requirements with the relevant " +
+            "supervisory authority before filing or relying on this document; further clarification is advisable.";
           const contentWithDisclaimer = cleaned + DISCLAIMER;
 
 
