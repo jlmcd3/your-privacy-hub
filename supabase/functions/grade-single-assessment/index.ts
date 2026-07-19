@@ -233,7 +233,11 @@ async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, repo
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
   const overall = computeOverall(parsed.dimension_scores, tool);
-  return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: parsed.findings ?? [], strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
+  const { kept, dropped } = applyGraderCal1Filter((parsed.findings ?? []) as any);
+  if (dropped.a2 || dropped.a3 || dropped.a4) {
+    console.log(`[GRADER-CAL-1][${role}] tool=${tool} dropped a2=${dropped.a2} a3=${dropped.a3} a4=${dropped.a4}`);
+  }
+  return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: kept, strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
 }
 
 function isKnownTool(x: unknown): x is QL3Tool {
