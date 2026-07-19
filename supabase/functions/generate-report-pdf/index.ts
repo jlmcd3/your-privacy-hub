@@ -2353,7 +2353,7 @@ Deno.serve(async (req) => {
         metaLine: frameworkLabel ? `${generatedLine} · ${frameworkLabel}` : generatedLine,
         text: record.document_text || "",
         showJurisdictionChip: false,
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs for review by qualified counsel. It is not a negotiated agreement and must not be executed without legal review. It does not create an attorney-client relationship.`,
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs. It is not a negotiated agreement and must not be executed without independent legal review. It does not create an attorney-client relationship.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_risk") {
