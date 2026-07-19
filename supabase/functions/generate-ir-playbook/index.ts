@@ -915,8 +915,17 @@ Deno.serve(async (req) => {
 
 
 
-        // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
-        // wall-clock budget.
+        // IR-HF1 T1 — DELIMITER REFACTOR (v3.7): the previous scheme concatenated
+        // meta-instructions ("Output ONLY Sections 1–3", "Do NOT output Sections 4–7"),
+        // per-part rules, and the INTAKE_BLOCK into a single user turn. That single-
+        // channel shape let ban-list phrases from the instruction text bleed into
+        // generated prose (REBUILD-IR D2 residual). The refactor moves ALL meta-
+        // instructions and per-part rules into a dedicated system-role block (Anthropic
+        // system[] array); the user turn now carries ONLY the sentinel-wrapped intake
+        // block plus a minimal production directive ("Produce PART X now."). Sentinel
+        // markers <<<INTAKE_BEGIN>>>/<<<INTAKE_END>>> are stripped at assembly so any
+        // residual echo is deterministically cleaned. INSTRUCTION_LEAK_RE + single-round
+        // per-part regen (Task 3 in the REBUILD-IR pass) remain unchanged as a backstop.
         const INTAKE_BLOCK = `INCIDENT DETAILS
 Organisation (controller) being assessed: ${body.organizationName || "not specified"}
 Discovery: ${body.discoveryDateTime}
