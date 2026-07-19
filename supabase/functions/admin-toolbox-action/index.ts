@@ -156,20 +156,26 @@ Deno.serve(async (req) => {
       result = { status: res.status, body: text.slice(0, 2000) };
       if (!res.ok) ok = false;
     } else if (action === "resnap_baseline") {
-      // MC-S1b Task 3 — write an epoch marker into quality_batch_baselines
-      // stamped with the current GRADER_CONTEXT_VERSION.
-      const params = (body.params ?? {}) as { confirm?: string; note?: string };
+      // MC-S1b Task 3 + HF2 Task 7(d) — write an epoch marker into
+      // quality_batch_baselines stamped with the current
+      // GRADER_CONTEXT_VERSION. quality_batch_baselines has (tool PRIMARY
+      // KEY, claude_score, gpt_score, avg_score, captured_at, instrument_version)
+      // — no `id`, no `note` column. Callers must pass a `tool` value; we
+      // UPSERT so a resnap replaces the prior baseline row for that tool.
+      const params = (body.params ?? {}) as { confirm?: string; tool?: string };
       if (params.confirm !== "RESNAP-BASELINE") {
         ok = false; result = { error: "missing_confirmation", expected: "RESNAP-BASELINE" };
+      } else if (!params.tool || typeof params.tool !== "string") {
+        ok = false; result = { error: "missing_tool", expected: "tool: 'cppa-risk'|'dpia'|'lia'|'dpa'|..." };
       } else {
-        // Deferred import to avoid a hard dep at module top.
         const { GRADER_CONTEXT_VERSION } = await import("../_shared/grader/context.ts");
-        const { data, error } = await supabase.from("quality_batch_baselines").insert({
+        const { error } = await supabase.from("quality_batch_baselines").upsert({
+          tool: params.tool,
           instrument_version: GRADER_CONTEXT_VERSION,
-          note: params.note ?? "epoch resnap via /admin/ops",
-        } as any).select("id").maybeSingle();
+          captured_at: new Date().toISOString(),
+        }, { onConflict: "tool" });
         if (error) { ok = false; result = { error: error.message }; }
-        else result = { baseline_id: (data as any)?.id, instrument_version: GRADER_CONTEXT_VERSION };
+        else result = { tool: params.tool, instrument_version: GRADER_CONTEXT_VERSION };
       }
     } else if (action === "invoke_backfill") {
       // MC-S1b Task 3 — wire /admin/ops Backfill buttons. Body: { fn, batch_size? }
