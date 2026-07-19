@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Minus } from "lucide-react";
 import { Helmet } from "react-helmet-async";
@@ -8,6 +9,13 @@ import { QUALIFIER_NOTES } from "@/data/statuteQualifiers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StateReviewPastDueBanner from "@/components/admin/StateReviewPastDueBanner";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDateOnlyLong, formatTimestampDateOnly } from "@/lib/dateOnly";
+import {
+  computeReviewRollup,
+  REVIEW_CADENCE_DAYS,
+  type ReviewLogRow,
+} from "@/lib/stateReviewStatus";
 
 /** Normalize provision cell to a canonical mark. */
 type Mark = "yes" | "no" | "limited" | "conditional" | "text";
@@ -51,6 +59,19 @@ const STATE_FLAGS: Record<string, string> = {
 
 const USStateComparison = () => {
   const states = comparisonData.states.filter((s) => s.status === "enacted");
+  const [reviewRows, setReviewRows] = useState<ReviewLogRow[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("state_law_review_log")
+        .select("state_slug, status, reviewed_at")
+        .order("reviewed_at", { ascending: false });
+      setReviewRows((data ?? []) as ReviewLogRow[]);
+    })();
+  }, []);
+  const rollup = computeReviewRollup(reviewRows);
+  const jsonLastReviewed = (comparisonData as any).lastReviewed as string;
+  const jsonNextReviewDue = (comparisonData as any).nextReviewDue as string;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
