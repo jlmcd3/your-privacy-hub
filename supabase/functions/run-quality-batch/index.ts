@@ -21,6 +21,8 @@ import {
 // GRADER-1 Tasks 2/3 — shared authoritative context block injected into
 // BOTH grader system prompts (Claude rubric + GPT cross-review).
 import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+// GRADER-CAL-1 A2/A3/A4 — shared post-filter over LLM findings.
+import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
@@ -889,11 +891,17 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
 
   // F2: unified `findings` (no more llm_findings); enforce fixed ids
   const rawLlmFindings: any[] = claudeResult?.findings ?? claudeResult?.llm_findings ?? [];
-  const llmFindings = rawLlmFindings
-    .filter(f => rubricMeta.has(f.check_id))
+  // GRADER-CAL-1 A2/A3/A4 — drop NOTE-block leaks, whitelisted authorities,
+  // and affirmation-shaped "findings" before mapping to schema.
+  const { kept: filteredRaw, dropped: cal1Dropped } = applyGraderCal1Filter(rawLlmFindings as any);
+  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4) {
+    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4}`);
+  }
+  const llmFindings = filteredRaw
+    .filter(f => rubricMeta.has((f as any).check_id))
     .map(f => {
-      const meta = rubricMeta.get(f.check_id)!;
-      return { check_id: f.check_id, check_type: "llm", dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null, proposed_fix: null };
+      const meta = rubricMeta.get((f as any).check_id)!;
+      return { check_id: (f as any).check_id, check_type: "llm", dimension: meta.dimension, severity: meta.severity, passed: !!(f as any).passed, evidence: (f as any).evidence ?? null, proposed_fix: null };
     });
 
   const scores = {
@@ -937,9 +945,16 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
     }
-    // Normalize findings to only the fixed checklist ids (drop invented ones)
+    // Normalize findings to only the fixed checklist ids (drop invented ones).
+    // GRADER-CAL-1 A2/A3/A4 filter also runs here so the GPT cross-review path
+    // mirrors the Claude path exactly.
     const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
-    parsed.findings = (parsed.findings ?? [])
+    const rawGpt = parsed.findings ?? [];
+    const { kept: gptKept, dropped: gptDropped } = applyGraderCal1Filter(rawGpt as any);
+    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4) {
+      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4}`);
+    }
+    parsed.findings = gptKept
       .filter((f: any) => rubricMeta.has(f.check_id))
       .map((f: any) => {
         const meta = rubricMeta.get(f.check_id)!;
