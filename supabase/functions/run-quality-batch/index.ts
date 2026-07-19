@@ -1869,6 +1869,94 @@ async function runBatch(runId: string): Promise<void> {
         return;
       }
 
+      // ---------- CV1-R2 T4c: counsel-voice auto-regen (single round) ----------
+      // Trigger only when ALL failing deterministic checks are counsel-voice
+      // (e5_bare_advisory_close / e6_counsel_referral) and every non-CV
+      // deterministic check passed. Hard cap: one round per doc, per batch —
+      // enforced by the `regen_round` marker on report_data (persisted, so a
+      // resumed isolate cannot re-trigger). Never targets a score; the
+      // trigger is deterministic-check failure only.
+      try {
+        const detChecksAttempt1: any[] = Array.isArray((reportData as any)?.deterministic_checks)
+          ? (reportData as any).deterministic_checks
+          : [];
+        const alreadyRegenerated = Number((reportData as any)?.regen_round ?? 0) > 0;
+        if (
+          !evalOnly
+          && !alreadyRegenerated
+          && isCounselVoiceRegenEligible(detChecksAttempt1)
+        ) {
+          const nonce = crypto.randomUUID();
+          await log("info", `${docLabel}: CV1-R2 counsel-voice regen eligible — dispatching single regeneration round (nonce=${nonce})`);
+          // Claim the nonce in revision_dispatch_ledger BEFORE any dispatch,
+          // matching the existing regenerate-assessment discipline. If the
+          // insert fails (unique violation / race), skip regen for this doc.
+          const { error: ledgerErr } = await admin
+            .from("revision_dispatch_ledger")
+            .insert({ nonce, actor: "run-quality-batch:cv1-r2", context: { run_id: runId, doc_id: docRowId, tool } });
+          if (ledgerErr) {
+            await log("warn", `${docLabel}: CV1-R2 ledger claim failed (${ledgerErr.message}) — leaving attempt-1 findings intact`);
+          } else {
+            // Second attempt via the same generator path. This is the
+            // "regeneration round for that document" — the harness path the
+            // instruction identifies. buildDocument/dispatchGeneration are
+            // the in-runtime dispatch surface; regenerate-assessment is
+            // scoped to revision-with-answered-items and cannot be used
+            // for a plain re-draft.
+            let reportData2: any = null;
+            try {
+              if (POLL_TOOLS.has(tool)) {
+                const d2 = await dispatchGeneration(admin, tool, intake, userId);
+                if (d2) {
+                  const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS);
+                  if (outcome2.status === "complete") reportData2 = outcome2.reportData;
+                }
+              } else {
+                const b2 = await buildDocument(admin, tool, intake, userId);
+                if (b2) reportData2 = b2.reportData;
+              }
+            } catch (e) {
+              await log("warn", `${docLabel}: CV1-R2 regen dispatch threw — ${(e as Error).message}`);
+            }
+            if (reportData2) {
+              // Stamp regen_round=1 on the fresh reportData and persist onto
+              // the SAME quality_run_documents row. Attempt-1 findings are
+              // preserved separately below with a regen_round=0 marker.
+              reportData2.regen_round = 1;
+              reportData2.regen_nonce = nonce;
+              reportData2.regen_prior_deterministic_checks = detChecksAttempt1;
+              await admin.from("quality_run_documents").update({
+                report_data: reportData2,
+              }).eq("id", docRowId);
+              // Persist attempt-1 deterministic checks as a distinct finding
+              // batch so reviewers can tell the two attempts apart. Downstream
+              // merge (below) will add attempt-2 checks in the normal path.
+              const priorRows = detChecksAttempt1.map((f: any) => ({
+                run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
+                check_id: f.check_id, check_type: "deterministic",
+                dimension: f.dimension ?? "formatting",
+                severity: f.severity ?? "medium",
+                passed: !!f.passed,
+                evidence: f.evidence
+                  ? `[regen_round=0] ${String(f.evidence).slice(0, 380)}`
+                  : "[regen_round=0]",
+                scenario_set: scenarioSet,
+              }));
+              if (priorRows.length) {
+                try { await admin.from("quality_findings").insert(priorRows); }
+                catch (e) { console.warn("[cv1-r2] prior-attempt findings insert non-fatal:", (e as Error).message); }
+              }
+              await log("success", `${docLabel}: CV1-R2 regeneration complete — evaluating attempt 2`);
+              reportData = reportData2;
+            } else {
+              await log("warn", `${docLabel}: CV1-R2 regeneration did not produce a doc — recording attempt-1 result and moving on`);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[cv1-r2] auto-regen block non-fatal:", (e as Error).message);
+      }
+
       // ---------- Evaluation phase ----------
       await log("info", `${docLabel}: evaluating Claude + GPT-4o + cross-review in parallel…`);
 
