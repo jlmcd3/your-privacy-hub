@@ -208,8 +208,38 @@ export function checkH5InternalNoteBlock(text: string): FormatFinding[] {
   return [pass("h5_internal_note_ok")];
 }
 
+// ── H6 (CPPA-HF4 Task B1) ─────────────────────────────────────────────
+// § 7001 subdivisions are DEFINITIONAL; they may never appear as the sole
+// governing authority for §§ 7220–7222 action requirements (access
+// response, pre-use notice, opt-out). Action-anchor cites belong in the
+// verified §§ 7220–7222 map. This check flags a sentence that (a) cites
+// § 7001(x) and (b) uses an action verb bound to an ADMT duty and (c)
+// does NOT also cite a § 7220/7221/7222 anchor in the same sentence.
+const HF4_H6_ADMT_DUTY_VERBS =
+  /\b(?:must\s+(?:disclose|provide|notify|respond|confirm|deliver|honor|honour|allow|permit)|shall\s+(?:disclose|provide|notify|respond|honor|honour)|the\s+business\s+must|response\s+must|access\s+response|opt[-\s]?out\s+response|pre[-\s]?use\s+notice|access\s+request)\b/i;
+const HF4_H6_S7001_RE = /\bs?§?\s*7001(?:\([a-z0-9]+\))*/i;
+const HF4_H6_ADMT_ANCHOR_RE = /\bs?§?\s*722[012](?:\([a-z0-9]+\))*/i;
+
+export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
+  if (!text) return [pass("h6_admt_governing_anchor_ok", "citation_accuracy")];
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const findings: FormatFinding[] = [];
+  for (const s of sentences) {
+    if (!HF4_H6_S7001_RE.test(s)) continue;
+    if (!HF4_H6_ADMT_DUTY_VERBS.test(s)) continue;
+    if (HF4_H6_ADMT_ANCHOR_RE.test(s)) continue;
+    findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
+      `§ 7001 cited as sole governing anchor for an ADMT action duty: "${s.slice(0, 200)}"`));
+    if (findings.length >= 5) break;
+  }
+  if (findings.length === 0) {
+    findings.push(pass("h6_admt_governing_anchor_ok", "citation_accuracy"));
+  }
+  return findings;
+}
+
 // ── Runners ───────────────────────────────────────────────────────────
-/** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 + H5 (no H3 — H3 is ADMT-scoped). */
+/** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 + H5 (no H3/H6 — ADMT-scoped). */
 export function runCppaHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
@@ -219,7 +249,7 @@ export function runCppaHf1Checks(text: string): FormatFinding[] {
   ];
 }
 
-/** ADMT: H1 + H2 + H3 + H4 + H5. */
+/** ADMT: H1 + H2 + H3 + H4 + H5 + H6. */
 export function runAdmtHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
