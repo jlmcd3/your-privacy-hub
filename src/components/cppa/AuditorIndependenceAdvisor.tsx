@@ -136,7 +136,7 @@ export default function AuditorIndependenceAdvisor() {
         Six-question check against the auditor independence requirements at 11 CCR § 7122(b). Answer for the
         candidate auditor (internal team or external firm) you are considering for the audit. Output is a short
         memo you can attach to the engagement letter or board record. This is a compliance-readiness aid, not
-        legal advice — review with counsel before signing.
+        legal advice — validate against your authoritative records before signing.
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3 mb-4">
