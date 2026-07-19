@@ -104,7 +104,7 @@ export const ADMT_VERIFIED_CITES: ReadonlySet<string> = new Set([
   "7222(c)", "7222(c)(1)", "7222(j)",
 ]);
 
-const ADMT_CITE_RE = /(?<!\d)(722[012])((?:\([A-Za-z0-9]+\))+)?/g;
+const ADMT_CITE_RE_SRC = /(?<!\d)(722[012])((?:\([A-Za-z0-9]+\))+)?/;
 
 /** Normalise a captured cite: "7220(c)(5)(A)" → "7220(c)(5)(A)". */
 function normaliseAdmtCite(section: string, suffix: string | undefined): string {
@@ -115,8 +115,11 @@ export function checkH3AdmtCitationDepth(text: string): FormatFinding[] {
   if (!text) return [pass("h3_admt_citation_depth_ok", "citation_accuracy")];
   const findings: FormatFinding[] = [];
   const seen = new Set<string>();
+  // Fresh /g regex per invocation — module-level /g regexes retain lastIndex
+  // across calls and cause spurious misses.
+  const re = new RegExp(ADMT_CITE_RE_SRC.source, "g");
   let m: RegExpExecArray | null;
-  while ((m = ADMT_CITE_RE.exec(text)) !== null) {
+  while ((m = re.exec(text)) !== null) {
     const cite = normaliseAdmtCite(m[1], m[2]);
     if (ADMT_VERIFIED_CITES.has(cite)) continue;
     if (seen.has(cite)) continue;
