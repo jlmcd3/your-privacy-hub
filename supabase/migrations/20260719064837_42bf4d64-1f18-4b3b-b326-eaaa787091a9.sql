@@ -1,0 +1,2 @@
+INSERT INTO public.quality_batch_runs (id, tools, batch_size, status, phase, created_by)
+VALUES ('5eeeeee0-0000-0000-0000-000000000001', ARRAY['synthetic-gate-test']::text[], 0, 'pending', 'synthetic-gate-test', '02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122');
