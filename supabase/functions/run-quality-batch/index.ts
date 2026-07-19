@@ -1709,15 +1709,20 @@ async function runBatch(runId: string): Promise<void> {
       let reportData: any;
       let docLabel: string;
       let evalOnly = false;
+      // CV1-R2 T4c — source refs also required in eval-resume for auto-regen.
+      let evalSourceTable: string | null = null;
+      let evalSourceRowId: string | null = null;
 
       if (isResumingEval) {
         const { data: existing } = await admin.from("quality_run_documents")
-          .select("id, doc_number, intake_data, report_data, scenario_set")
+          .select("id, doc_number, intake_data, report_data, scenario_set, source_table, source_row_id")
           .eq("id", pendingEvalId!).single();
         if (existing && (existing as any).report_data) {
           docRowId = (existing as any).id;
           intake = (existing as any).intake_data;
           reportData = (existing as any).report_data;
+          evalSourceTable = (existing as any).source_table ?? null;
+          evalSourceRowId = (existing as any).source_row_id ?? null;
           docLabel = `Doc ${(existing as any).doc_number}/${intakes.length} [${(existing as any).scenario_set ?? scenarioSet}] (eval-resume)`;
           evalOnly = true;
           delete (state as any).pending_eval_doc_id;
