@@ -1,0 +1,130 @@
+// COUNSEL-VOICE-1 — canonical advisory-formula infrastructure.
+//
+// Per CEO directive (2026-07-19): product documents ARE the deliverable.
+// Body text must never direct the reader to legal counsel or privacy
+// professionals; page-level "not legal advice" disclaimers are retained
+// verbatim and sufficient. Epistemic honesty is preserved via advisory
+// sentences that name a specific fact and the current assumption, closed
+// with one of two canonical strings.
+//
+// This module is imported by generators (system-prompt rule block +
+// deterministic post-gen check) and by the grader (post-filter retarget).
+
+/** The two canonical closes. All body-text advisories MUST end with one. */
+export const ADVISORY_CLOSE_CLARIFICATION = "further clarification is advisable.";
+export const ADVISORY_CLOSE_INVESTIGATION = "further internal investigation is advisable.";
+
+/** Regexes that match those closes at the end of a sentence (case-insensitive). */
+export const ADVISORY_CLOSE_CLARIFICATION_RE =
+  /further clarification is advisable\./i;
+export const ADVISORY_CLOSE_INVESTIGATION_RE =
+  /further internal investigation is advisable\./i;
+export const ADVISORY_CLOSE_ANY_RE =
+  /further (?:clarification|internal investigation) is advisable\./i;
+
+/**
+ * Counsel-referral prohibition: body-text patterns that direct the reader
+ * to seek human legal counsel or a privacy professional. Page-level
+ * disclaimer components (see src/components/ToolDisclaimer.tsx) are
+ * exempt — those are not scanned; only generator output is.
+ */
+export const COUNSEL_REFERRAL_RE =
+  /\b(?:legal\s+counsel|qualified\s+counsel|consult\s+(?:a|an|your|with)?\s*(?:lawyer|attorney|counsel)|(?:review|reviewed|reviewing)\s+by\s+(?:counsel|an?\s+attorney|a\s+lawyer|legal\s+counsel|qualified\s+counsel)|privacy\s+(?:counsel|officer|consultant|professional)s?\s+(?:should|must|need)|counsel\s+should\s+(?:confirm|review|advise|verify|adapt|assess))\b/i;
+
+/**
+ * Prompt rule block. Inject into every generative-tool system prompt near
+ * the drafting-voice section. Instructs the model to (a) recast former
+ * "NOTE FOR LEGAL REVIEW" annotations as inline advisory prose using one
+ * of the two canonical closes, (b) name a specific fact and assumption
+ * before the close, and (c) never direct the reader to counsel/privacy
+ * professionals in body text.
+ */
+export const ADVISORY_VOICE_RULES = `
+COUNSEL-VOICE-1 — ADVISORY VOICE (BINDING, applies to every generated body sentence):
+- Product documents ARE the deliverable. NEVER instruct the reader to consult legal counsel, an attorney, a lawyer, a privacy officer, a privacy consultant, or any human professional in body text. The page-level disclaimer is separate and sufficient.
+- Do NOT emit "NOTE FOR LEGAL REVIEW — …" headed blocks or any equivalent counsel-referral heading. Recast such observations as ordinary drafting-voice prose.
+- Epistemic honesty is preserved by ADVISORY SENTENCES using EXACTLY these two canonical closes:
+    (i)  "<specific fact + what the record shows or was assumed>; further clarification is advisable."
+         — use for record/document ambiguity.
+    (ii) "<specific fact + context>; further internal investigation is advisable."
+         — use for facts internal to the subscriber's organization (retention practice, vendor list, processing volumes, etc.).
+- SPECIFICITY INVARIANT: every advisory sentence names the fact and the current assumption. Example: "The record identifies the Processor's jurisdiction of incorporation as Ireland; further clarification is advisable." A bare close without a named fact is a defect.
+- [TO BE COMPLETED — …] hard blanks and verification-gated citation placeholders are unchanged; use them for missing statutory or party-identity data.
+`.trim();
+
+/** Split a body of text into sentences (best-effort, punctuation-based). */
+export function splitSentences(text: string): string[] {
+  if (!text) return [];
+  return text
+    .split(/(?<=[.!?])\s+(?=[A-Z\[])/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export type AdvisoryFinding = {
+  code: string;
+  detail: string;
+  evidence?: string;
+};
+
+/**
+ * Deterministic checks for COUNSEL-VOICE-1:
+ *  - counsel_referral_in_body: any COUNSEL_REFERRAL_RE match in text.
+ *  - bare_advisory_close: a canonical close with fewer than ~4 words of
+ *    named-fact material before the semicolon in the same sentence.
+ *  - note_for_legal_review_leftover: any "NOTE FOR LEGAL REVIEW" heading
+ *    remaining in body text.
+ */
+export function scanAdvisoryVoice(text: string): AdvisoryFinding[] {
+  const findings: AdvisoryFinding[] = [];
+  if (!text) return findings;
+
+  // NOTE-block leftovers
+  const noteRe = /NOTE\s+FOR\s+LEGAL\s+REVIEW[^\n]*/gi;
+  let m: RegExpExecArray | null;
+  while ((m = noteRe.exec(text)) !== null) {
+    findings.push({
+      code: "note_for_legal_review_leftover",
+      detail: "residual NOTE FOR LEGAL REVIEW heading in body text",
+      evidence: m[0].slice(0, 200),
+    });
+    if (findings.length > 40) break;
+  }
+
+  // Counsel-referral prohibition
+  const sentences = splitSentences(text);
+  for (const s of sentences) {
+    if (COUNSEL_REFERRAL_RE.test(s)) {
+      findings.push({
+        code: "counsel_referral_in_body",
+        detail: "body-text counsel/privacy-professional referral",
+        evidence: s.slice(0, 240),
+      });
+    }
+    // Bare advisory close: canonical close present, but preceded by very
+    // little named-fact material (heuristic: <=3 words between sentence
+    // start / preceding semicolon and the close phrase).
+    const closeMatch = s.match(/([^;]*);\s*further (?:clarification|internal investigation) is advisable\./i);
+    if (closeMatch) {
+      const preclause = closeMatch[1].trim();
+      const words = preclause.split(/\s+/).filter(Boolean);
+      if (words.length < 5) {
+        findings.push({
+          code: "bare_advisory_close",
+          detail: `advisory close without named fact (pre-clause words=${words.length})`,
+          evidence: s.slice(0, 240),
+        });
+      }
+    }
+  }
+
+  return findings;
+}
+
+/**
+ * True if the text contains any counsel-referral prohibition hit. Used
+ * as a single-round regeneration gate in generators.
+ */
+export function hasCounselReferral(text: string): boolean {
+  return COUNSEL_REFERRAL_RE.test(text ?? "");
+}
