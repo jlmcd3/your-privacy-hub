@@ -1033,7 +1033,7 @@ Return this JSON structure exactly:
     }
 
     // QB11-3: Step-2 hard rule enforcement — when triggers_significant_decision is false,
-    // the three Article 11 gap arrays MUST be empty (rule text already mandates this; this
+    // the three ADMT gap arrays (§§ 7200–7222) MUST be empty (rule text already mandates this; this
     // makes it structural).
     function enforceScopeGateOnGaps(report: any): any {
       try {
