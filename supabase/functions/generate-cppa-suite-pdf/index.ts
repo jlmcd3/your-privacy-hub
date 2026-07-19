@@ -194,7 +194,7 @@ function buildHTML(riskRow: any, cyberRow: any) {
 
   <div class="notice">
     <strong>Not legal advice.</strong> This report does not constitute legal advice.
-    Findings should be reviewed with qualified legal counsel and an independent CPPA cybersecurity auditor.
+    Findings should be validated against your organization's authoritative records and, where applicable, an independent CPPA cybersecurity auditor's assessment before operational reliance.
   </div>
 </div>
 </body></html>`;

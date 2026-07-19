@@ -11,8 +11,8 @@ export default function RegistrationDisclaimer({
       <p className="text-meta text-muted-foreground leading-relaxed border-t border-border/40 pt-3 mt-4">
         End User Privacy's Registration Manager generates draft filings and checklists tailored to your inputs.
         It is not legal advice, does not create an attorney-client relationship, and does not guarantee
-        acceptance by any data protection authority. Filing requirements change — always verify with the
-        relevant authority and consult qualified counsel before submission.
+        acceptance by any data protection authority. Filing requirements change — always verify current
+        requirements with the relevant authority before submission.
       </p>
     );
   }
@@ -27,10 +27,10 @@ export default function RegistrationDisclaimer({
       </p>
       <p className="mt-2">
         Registration requirements, fees, deadlines, and acceptance criteria change frequently and vary by
-        authority. Before filing, you must independently verify the requirements with the relevant data
-        protection authority and consult qualified privacy counsel — particularly for higher-risk activities
-        (special-category data, AI Act high-risk systems, or cross-border transfers). End User Privacy is not
-        responsible for filings rejected, delayed, or otherwise affected by changes in the underlying law.
+        authority. Before filing, independently verify the current requirements with the relevant data
+        protection authority — particularly for higher-risk activities (special-category data, AI Act
+        high-risk systems, or cross-border transfers). End User Privacy is not responsible for filings
+        rejected, delayed, or otherwise affected by changes in the underlying law.
       </p>
     </div>
   );

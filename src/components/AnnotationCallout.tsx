@@ -12,8 +12,7 @@ interface Annotation {
 
 const DISCLAIMER =
   "Enforcement citations are drawn from enforcement actions tracked by EUP on a regular basis. " +
-  "Actual enforcement actions can lag publication, so please review primary sources and consult " +
-  "qualified legal counsel before relying on any regulatory position.";
+  "Actual enforcement actions can lag publication; verify primary sources before relying on any regulatory position.";
 
 export function AnnotationCallout({
   annotations,
