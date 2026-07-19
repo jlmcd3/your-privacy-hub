@@ -1,0 +1,30 @@
+import type { QualifierNotes } from "./statutes.types";
+
+/**
+ * STATES-1a qualifier notes for the U.S. state comparison matrix.
+ *
+ * Keys are "STATE_ABBR:PROVISION_INDEX" and match the STATUTES map in
+ * `statutes.ts`. Notes render inside the ✓ / Limited / Conditional tooltip
+ * beneath the cite. Keep concise (<120 chars).
+ */
+export const QUALIFIER_NOTES: QualifierNotes = {
+  // California — private right of action is limited to defined data-breach categories.
+  "CA:10":
+    "Limited: private right of action lies only for breaches of specified unencrypted/unredacted PI (§ 1798.150(a)).",
+
+  // Delaware — DPIA required only when the processing activity presents a heightened risk of harm.
+  "DE:8":
+    "Conditional: DPIA required only for heightened-risk processing (targeted ads, sale, sensitive data, profiling with legal effects).",
+
+  // Florida — no private cause of action.
+  "FL:10":
+    "No private cause of action; enforcement by the Department of Legal Affairs (§ 501.72(8)).",
+
+  // Vermont — Attorney General enforcement; the Act expressly bars a private right of action.
+  "VT:10":
+    "No private right of action (§ 2415j(a)); AG enforces via Vermont Consumer Protection Act, ch. 63.",
+
+  // Minnesota — PRoA absent; statute confirms exclusive AG enforcement.
+  "MN:10":
+    "No private right of action (§ 325M.20(d)); AG has exclusive enforcement.",
+};
