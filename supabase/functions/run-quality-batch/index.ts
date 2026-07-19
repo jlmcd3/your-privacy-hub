@@ -2405,7 +2405,9 @@ Deno.serve(async (req) => {
     const { data: row, error: bErr } = await admin.from("quality_batch_runs").insert({
       tools, batch_size: batchSize, status: "running", phase: "kickoff",
       current_tool_index: 0, tool_results: [], created_by: null,
+      instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
     }).select("id").single();
+
     if (bErr || !row) return json({ error: "start_quality_batch_insert_failed", detail: bErr?.message }, 500);
     // Fire the orchestrator self-chain (internal-resume path) so it advances.
     fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
