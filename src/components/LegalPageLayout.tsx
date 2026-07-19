@@ -57,20 +57,17 @@ export default function LegalPageLayout({
         <h1 className="font-display text-foreground mb-2">{title}</h1>
         <p className="text-sm text-muted-foreground mb-8">Last updated: {lastUpdated}</p>
 
-        <aside
-          aria-label="Summary"
-          className="mb-8 rounded-lg border border-border bg-muted/40 p-5"
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Summary (not a substitute for the full terms below)
-          </p>
-          {summary ?? (
-            <p className="text-sm text-muted-foreground italic">
-              {/* Placeholder marker — summary text supplied by Legal. */}
-              [ Summary pending. ]
+        {summary && (
+          <aside
+            aria-label="Summary"
+            className="mb-8 rounded-lg border border-border bg-muted/40 p-5"
+          >
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Summary (not a substitute for the full terms below)
             </p>
-          )}
-        </aside>
+            {summary}
+          </aside>
+        )}
 
         <nav
           aria-label="Section navigation"
