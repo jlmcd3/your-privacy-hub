@@ -5,7 +5,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
-import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
+import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
@@ -34,7 +35,14 @@ const IR_IDENTITY = `You are a senior data protection incident response speciali
 // the deliverable, not resolution-method prescription under Synthesis Principle 1. Any future
 // counsel-scrub prompt must leave these two categories intact. Motivating finding: run 552cb9e9
 // seat adjudication; principle recorded in EUP_Battery5_Seat_Findings_Adjudication.md.
-const IR_RULEBOOK = `US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3) — Last verified: June 2026:
+const IR_RULEBOOK = `TEMPORAL ANCHORING — THE INCIDENT DATE CONTROLS. Every statement of law, adequacy status, regulatory regime, deadline, or threshold in this playbook must be stated as of the INCIDENT DATE in the record. Where a rule changed within a plausible incident window (statutory amendment, adequacy renewal or expiry, effective-date transition), identify the regime in force on the incident date and apply that regime; a later change may be mentioned only as an expressly dated subsequent development and must never be applied to the incident retroactively. If the record lacks an incident date, state the assumption used and flag it in a NOTE FOR LEGAL REVIEW.
+
+POST-CUTOFF AUTHORITIES — VERIFIED ENTRIES ONLY. The authorities in this block post-date the model's reliable knowledge and have each been verified against the cited primary source; cite them exactly as pinned (citation + date), and only where the incident-date analysis engages them. Any legal development not listed in this block must never be asserted from memory: where the analysis would depend on such a development, render "[TO BE COMPLETED: verify {authority/development} against the primary source before execution]" and flag it in a NOTE FOR LEGAL REVIEW. An unverified post-cutoff authority presented as current law is a HARD violation.
+- N.Y. Gen. Bus. Law § 899-aa as amended by S2659B (Chapter 647 of 2024): signed by the Governor on 2024-12-21 (verified against https://www.nysenate.gov/legislation/bills/2023/S2659 — Actions record "Dec 21, 2024: approval memo.78; signed chap.647"). The amendment imposes a 30-day outer limit on consumer notification, effective upon signing; the companion data-element expansion took effect 90 days after signing. Cite as: "N.Y. Gen. Bus. Law § 899-aa, as amended by S2659B (Chapter 647 of 2024, signed 21 Dec 2024)". Do NOT cite the "December 2025 EU-UK adequacy extension" — it is NOT verified against an official EU source in this build; where the analysis would engage it, render the [TO BE COMPLETED] placeholder above.
+
+INSTRUCTION/LITERAL SEPARATION — HARD RULE. These system rules and their operative meta-phrases are internal machinery. They must NEVER appear verbatim in the user-facing playbook. Specifically ban from the output prose: "Do not frame", "Do NOT output", "Output ONLY", "as instructed", "per the rulebook", "per these instructions", "the system prompt", "meta-instruction", "internal machinery", and any verbatim quotation of a rule statement. State the CONCLUSION the rule produces, never the rule itself.
+
+US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3) — Last verified: June 2026:
 - California: notify individuals within 30 CALENDAR DAYS of discovery or notification of the breach (Cal. Civ. Code §1798.82, as amended by SB 446, effective 1 Jan 2026); delay only for law enforcement needs or to determine scope/restore system integrity. If MORE THAN 500 CA residents (strictly greater than 500; exactly 500 does not trigger this duty): electronically submit a sample copy to the CA AG within 15 calendar days of notifying consumers (§1798.82(f)).
 - Texas: notify individuals without unreasonable delay and no later than 60 DAYS after determining the breach occurred (Tex. Bus. & Com. Code §521.053(b), Texas Identity Theft Enforcement and Protection Act — NOT the TDPSA, which does not create breach notification obligations); notify the TX Attorney General as soon as practicable and no later than 30 DAYS after determination — NOT 60 days (§521.053(i), as amended by SB 768 effective 1 Sep 2023) — if the breach involves at least 250 TX residents, submitted via the mandatory electronic form on the AG's website. The AG deadline (30 days) is SHORTER than the individual-notice deadline (60 days). Note: the TDPSA (Texas Data Privacy and Security Act, Tex. Bus. & Com. Code Ch. 541) governs data processing rights and obligations but does NOT independently create breach notification duties.
 - New York: notify individuals in the most expedient time possible and no later than 30 CALENDAR DAYS after discovery of the breach (N.Y. Gen. Bus. Law §899-aa, as amended by S2659B effective 21 Dec 2024); delay only for legitimate law enforcement needs — the former allowance to delay while determining breach scope or restoring system integrity was REMOVED by the 2024 amendment. Do NOT describe New York as having no fixed deadline — that was the pre-amendment standard. Regulator notice under §899-aa(8)(a): WHENEVER any NY residents are notified, the current list is FOUR agencies (not three), per S2659B (effective 21 Dec 2024), as clarified in Feb 2025 — the NY Attorney General, the Department of State, the Division of State Police, AND the Department of Financial Services (NYDFS). The NYDFS notification requirement applies ONLY to "covered entities" as defined in 23 NYCRR 500.1 (NYDFS-licensed banks, insurers, and other regulated financial-services entities); for those covered entities, the NYDFS notification is made via the existing 23 NYCRR Part 500 process (not as a new §899-aa channel) on the Part 500 cybersecurity-event clock of 72 HOURS from determination, which is stricter than the §899-aa consumer clock and controls for the NYDFS filing specifically. Non-covered entities are NOT required to notify NYDFS under §899-aa(8)(a); state their §899-aa(8)(a) list as the other three agencies. This is NOT limited to 500+ residents. If 5,000+ NY residents: also notify nationwide consumer reporting agencies. SHIELD Act reasonable-safeguards duties apply independently.
@@ -67,7 +75,17 @@ QUALITY STANDARDS:
 5. DPA portal URLs: use only URLs provided in the prompt. Do not fabricate or recall URLs from training.
 
 CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective 1 Jan 2026): individuals within 30 calendar days of discovery; AG sample copy within 15 calendar days of consumer notice when 500+ CA residents affected. Do NOT describe California as having no fixed deadline — that was the pre-2026 standard. 72 hours remains a GDPR Article 33 concept only. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number. (9) When stating a computed notification deadline, give the date and time only — NEVER state the day of the week, as computing weekday names is error-prone; if the input data explicitly provides a weekday you may repeat it verbatim. (10) Danish Data Protection Act (Databeskyttelsesloven, Act No. 502 of 23 May 2018): cite the employment-context processing provision as §12. NEVER cite this Act by chapter number — refer to numbered sections (§) only, and if uncertain of the section, describe the obligation and flag [statutory reference to be confirmed with counsel].
-(11) HIPAA CITATION ANCHORS: Under HIPAA, cite specific provisions as follows — PHI definition: 45 C.F.R. §160.103 (NOT §164.514); breach definition: 45 C.F.R. §164.402; breach risk assessment methodology: 45 C.F.R. §164.402; individual notice obligation: 45 C.F.R. §164.404; HHS and media notice: 45 C.F.R. §164.408; business associate breach-to-covered-entity notice: 45 C.F.R. §164.410; de-identification safe harbour: 45 C.F.R. §164.514(b) — cite §164.514 ONLY for the de-identification rule, never as the basis for PHI status. Never cite §164.514 to support a conclusion that data constitutes PHI; that citation is backwards — §164.514 describes when data is NOT PHI.
+(11) HIPAA BREACH NOTIFICATION — FOUR DISTINCT NOTICE DUTIES (45 C.F.R. Part 164, Subpart D; each subject to the § 164.412 law-enforcement delay):
+
+§ 164.404 — NOTICE TO INDIVIDUALS. The covered entity notifies each individual whose unsecured PHI has been, or is reasonably believed to have been, accessed, acquired, used, or disclosed, without unreasonable delay and in no case later than 60 calendar days after discovery (§ 164.404(b)). Discovery is defined at § 164.404(a)(2) (first day the breach is known or would have been known with reasonable diligence). Content elements per § 164.404(c); written/substitute notice mechanics per § 164.404(d).
+
+§ 164.406 — NOTICE TO THE MEDIA. Triggered ONLY where the breach involves MORE THAN 500 residents of a single State or jurisdiction. The covered entity notifies prominent media outlets serving that State or jurisdiction, without unreasonable delay and no later than 60 calendar days after discovery (§ 164.406(b)); content per § 164.404(c). The trigger is PER STATE/JURISDICTION: a breach of 600 individuals spread across three states at ≤500 each does NOT trigger media notice.
+
+§ 164.408 — NOTICE TO THE SECRETARY (HHS). Applies to every breach. For breaches involving 500 OR MORE individuals IN TOTAL (regardless of state distribution), notice to the Secretary is provided contemporaneously with the § 164.404 individual notice, in the manner specified on the HHS website (§ 164.408(b)). For breaches involving FEWER than 500 individuals, the covered entity maintains a log and submits it to the Secretary no later than 60 days after the end of the calendar year in which the breaches were DISCOVERED (§ 164.408(c)).
+
+§ 164.410 — BUSINESS ASSOCIATE TO COVERED ENTITY. A business associate notifies the covered entity without unreasonable delay and no later than 60 calendar days after the BA's discovery (§ 164.410(b)), identifying each affected individual to the extent possible plus any information the CE needs for its own § 164.404(c) notice (§ 164.410(c)). The CE's §§ 164.404/406/408 clocks run from the CE's discovery per § 164.404(a)(2).
+
+CRITICAL DISTINCTION the playbook must preserve: § 164.406 media trigger = MORE THAN 500 residents of ONE State or jurisdiction; § 164.408(b) contemporaneous-Secretary trigger = 500 OR MORE individuals AGGREGATE. Never conflate them. Never cite § 164.408 for the media trigger — that is § 164.406. Never cite § 164.514 to support a conclusion that data constitutes PHI; that citation is backwards — § 164.514 describes when data is NOT PHI. PHI definition anchor is 45 C.F.R. § 160.103; breach definition and risk-assessment methodology anchor is § 164.402.
 (12) ENFORCEMENT CITATION COMPLETENESS RULE: every named-decision citation follows the single standard in ENFORCEMENT CITATION GROUNDING — STRICT. A named-decision citation carries the matter name, the decision date (the "Decided:" value), AND the official source reference (the "Official source:" URL or decision reference) exactly as they appear in the supplied block — all three. Names are reproduced character-for-character as the block records them: never re-spell, transliterate, translate, or "correct" an entity or matter name (a Polish "Fundacja" never becomes a Portuguese "Fundação"). Where the block supplies a subject but its Decided line reads "date not recorded in corpus" or its reference line reads "No decision reference or source URL recorded in corpus", do NOT present the entry as a specifically identified case — frame it as a general principle attributed to the corpus per PRECEDENTS CITE ONLY WHAT IS CITABLE. Where the block supplies only a regulator and year with no subject, cite it as "the [Regulator]'s enforcement posture in this area" — never "[Regulator] ([Year]) decision". The bare "[Regulator] ([Year]) — [Matter Name]" format without the decision date and official source reference is no longer a permitted citation form. DOCKET YEAR IS NOT DECISION YEAR: where the official-source URL or document identifier embeds a docket or filing year that differs from the decision year (e.g. a document identifier containing '2025' for a decision decided in 2026 — Polish UODO docket signatures embed the year the proceeding was opened), reproduce BOTH exactly as supplied; the difference is not an inconsistency and must never be 'corrected'. Where the supplied block carries a docket signature, the citation may include it in the form 'docket [signature]' so the year duality is explicit.
 
 VERIFIED JURISDICTION FACTS (use these anchors verbatim where relevant):
@@ -335,7 +353,7 @@ const IR_TOOL_MODULE: ToolModule = {
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.5-dock-numbering-credential-elements-2026-07-06";
+const IR_VERSION = "v3.6-rebuild-ir-hipaa-4way-temporal-2026-07-19";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1217,6 +1235,38 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             }
           }
 
+          // REBUILD-IR Task 3 — deterministic instruction-leak detector.
+          // Regenerates ONLY the affected part (single retry per part).
+          const INSTRUCTION_LEAK_RE = /\b(do not frame(?: this)?|do NOT output|output ONLY|as instructed|per the rulebook|per these instructions|the system prompt|meta-instruction|internal machinery|IN THIS RESPONSE ONLY|the rules? above|as (?:noted|stated) in the (?:instructions|rules)|per your instructions|Sections?\s*[0-9–\-,\s]+of a complete)\b/i;
+          const leakFailures: Array<{ which: "A" | "B" | "C"; text: string; match: string }> = [];
+          for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
+            const m = INSTRUCTION_LEAK_RE.exec(txt);
+            if (m) {
+              console.warn(`[IR Playbook] REBUILD-IR T3 instruction leak in part ${which}: "${m[0]}"`);
+              leakFailures.push({ which, text: txt, match: m[0] });
+            }
+          }
+          if (leakFailures.length > 0) {
+            const suffix = `\n\nPREVIOUS ATTEMPT LEAKED META-INSTRUCTIONS. The following phrases from the internal machinery MUST NOT appear anywhere in the user-facing prose: "${leakFailures.map((f) => f.match).join('", "')}". Re-emit this part stating only substantive conclusions; never quote or paraphrase system instructions, rulebook rules, or the meta-scaffolding that produced this playbook.`;
+            const regen = await Promise.all(
+              leakFailures.map((f) => generatePart(f.which, extra + suffix, IR_PART_MAX_TOKENS, 600_000)),
+            );
+            for (let i = 0; i < leakFailures.length; i++) {
+              const f = leakFailures[i];
+              const t = regen[i].text;
+              const v = validatePart(t, f.which);
+              if (!v.ok) {
+                console.warn(`[IR Playbook] T3 regen part ${f.which} failed structural validation (${v.reason}); keeping original.`);
+                continue;
+              }
+              if (f.which === "A") partA = t;
+              else if (f.which === "B") partB = t;
+              else partC = t;
+            }
+          }
+
+
+
           // Final validation across all parts. Structural validity (all required headings
           // present, Part C annotations block present) is the hard requirement — a missing
           // terminal punctuation after a structurally complete part is a soft warning only.
@@ -1446,6 +1496,71 @@ const playbook_text = lint.clean;
         } catch (e) {
           console.error("[IR Playbook][T-5 post-check] errored (non-fatal):", e);
         }
+
+        // REBUILD-IR Task 3 (post-gen) + Task 4 — deterministic instruction-leak + blacklist
+        // detection on the assembled playbook_text, plus meta-instruction leak scan on the
+        // annotations block. Log-only at this stage (per-part regen already ran inside
+        // generateHalves); results are persisted via logPostGenLint for observability.
+        let residualLeakCount = 0;
+        let blacklistHitCount = 0;
+        const postGenNotes: Array<{ code: string; detail?: string }> = [];
+        try {
+          const INSTRUCTION_LEAK_RE = /\b(do not frame(?: this)?|do NOT output|output ONLY|as instructed|per the rulebook|per these instructions|the system prompt|meta-instruction|internal machinery|IN THIS RESPONSE ONLY|as (?:noted|stated) in the (?:instructions|rules)|per your instructions)\b/i;
+          const leakMatch = INSTRUCTION_LEAK_RE.exec(playbook_text);
+          if (leakMatch) {
+            residualLeakCount = 1;
+            const ctx = playbook_text.slice(Math.max(0, leakMatch.index - 40), leakMatch.index + leakMatch[0].length + 40);
+            lintWarnings.push({ rule: "REBUILD-IR-T3", posture: "log_only", match: leakMatch[0], context: ctx });
+            postGenNotes.push({ code: "instruction_leak_residual", detail: leakMatch[0] });
+          }
+          const blHits = detectBlacklistPhrases(playbook_text);
+          if (blHits.length > 0) {
+            blacklistHitCount = blHits.length;
+            for (const h of blHits.slice(0, 10)) {
+              lintWarnings.push({ rule: "REBUILD-IR-T4-blacklist", posture: "log_only", match: h.match, context: h.context });
+            }
+            postGenNotes.push({ code: "blacklist_phrase_shipped", detail: `${blHits.length} hit(s)` });
+          }
+          // Task 4b — enforcement-citation fidelity (log-only): every "Regulator (YYYY)"
+          // style citation should map to an injected enforcement-context row.
+          const injectedNames = new Set(
+            (enforcement_context || []).map((r: any) =>
+              String(r?.regulator ?? "").toLowerCase().trim()
+            ).filter(Boolean),
+          );
+          const citeRe = /\b(ICO|CNIL|AEPD|Garante|DPC|EDPB|OAIC|FTC|HHS OCR|CPPA|NYDFS|Datatilsynet|BfDI|UODO|APD|IMY|Cal\.\s*AG|Attorney General)\s*\((?:19|20)\d{2}\)/g;
+          const unknownCites: string[] = [];
+          let cm: RegExpExecArray | null;
+          while ((cm = citeRe.exec(playbook_text)) !== null) {
+            const name = cm[1].toLowerCase().trim();
+            const matched = Array.from(injectedNames).some((n) => n.includes(name) || name.includes(n));
+            if (!matched) unknownCites.push(cm[0]);
+          }
+          if (unknownCites.length > 0) {
+            for (const u of unknownCites.slice(0, 5)) {
+              lintWarnings.push({ rule: "REBUILD-IR-T4b-uninjected-citation", posture: "log_only", match: u });
+            }
+            postGenNotes.push({ code: "uninjected_enforcement_citation", detail: `${unknownCites.length}` });
+          }
+        } catch (e) {
+          console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
+        }
+        try {
+          logPostGenLint(supabase, {
+            functionName: "generate-ir-playbook",
+            fallbackApplied: false,
+            residualLeaks: residualLeakCount,
+            residualResolvedAsks: 0,
+            notes: postGenNotes,
+            sourceTable: "ir_playbooks",
+            sourceRowId: rowId,
+            extra: { blacklist_hits: blacklistHitCount, ir_version: IR_VERSION },
+          });
+        } catch (e) {
+          console.warn("[IR Playbook] logPostGenLint threw (non-fatal):", e);
+        }
+
+
 
 
 
