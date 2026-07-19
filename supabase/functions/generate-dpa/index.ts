@@ -1235,7 +1235,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       // HF1 Task 2 — sub-processor contradiction (Schedule-1 / general-authorisation
       // framework where hasSubProcessors===false).
       const subprocContradictions = detectSubProcessorContradiction(parsed.dpa_text, !!body.hasSubProcessors);
-      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions];
+      const s150 = detectSection150BreachMisapplication(parsed.dpa_text);
+      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions, ...s150];
       if (extras.length) {
         lint.violations.push(...extras);
         try {
@@ -1369,7 +1370,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           ]);
           const engagedStateViolations2 = detectNonEngagedStateAssertions(retryParsed.dpa_text, engagedStates2);
           const subprocContradictions2 = detectSubProcessorContradiction(retryParsed.dpa_text, !!body.hasSubProcessors);
-          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2, ...subprocContradictions2];
+          const s150_2 = detectSection150BreachMisapplication(retryParsed.dpa_text);
+          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2, ...subprocContradictions2, ...s150_2];
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
