@@ -117,7 +117,7 @@ Deno.test("COUNSEL-VOICE-1 §3: genuine self-narration outside formulas still fi
 // ─── §3: version bump ────────────────────────────────────────────────
 
 Deno.test("COUNSEL-VOICE-1: GRADER_CONTEXT_VERSION bumped", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-19-counsel-voice-1");
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-20-cv1-all");
 });
 
 // ─── §4: E-checks per tool ───────────────────────────────────────────
