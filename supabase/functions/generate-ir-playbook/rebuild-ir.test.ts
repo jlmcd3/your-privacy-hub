@@ -79,14 +79,17 @@ Deno.test("REBUILD-IR: CRITICAL DISTINCTION separates § 164.406 vs § 164.408 t
 });
 
 Deno.test("REBUILD-IR: IR_RULEBOOK is wired through buildSystemContent as extraRules for every part", () => {
-  // irSystem is built ONCE (index.ts:1050) and reused for parts A/B/C
-  // (all three callClaude invocations pass the same `system: irSystem`).
-  // Confirm the single build call and the extraRules wiring exist.
+  // irSystem is built ONCE (index.ts:1050) and reused for parts A/B/C via
+  // the shared `callClaude` closure, which sends `system: irSystem` on
+  // every request. Proof: one build, one system-block reference inside
+  // callClaude, and multiple callClaude invocations.
   assert(/extraRules:\s*IR_RULEBOOK/.test(SRC), "extraRules: IR_RULEBOOK wiring missing");
   const buildCallCount = (SRC.match(/buildSystemContent\s*\(/g) || []).length;
   assertEquals(buildCallCount, 1, "irSystem must be built exactly once and reused across parts");
   const systemUseCount = (SRC.match(/system:\s*irSystem/g) || []).length;
-  assert(systemUseCount >= 3, `expected ≥3 system: irSystem usages (parts A/B/C); saw ${systemUseCount}`);
+  assertEquals(systemUseCount, 1, "irSystem must be referenced exactly once inside the shared callClaude closure");
+  const callClaudeInvocations = (SRC.match(/\bawait\s+callClaude\s*\(/g) || []).length;
+  assert(callClaudeInvocations >= 2, `expected ≥2 callClaude invocations reusing irSystem; saw ${callClaudeInvocations}`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
