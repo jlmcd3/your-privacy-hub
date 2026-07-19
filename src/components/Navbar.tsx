@@ -701,10 +701,10 @@ const Navbar = () => {
             </>
           ) : (
             <Link
-              to="/signup"
+              to="/contact"
               className="text-sm font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
             >
-              Sign up free
+              Request beta access
             </Link>
           )}
         </div>
