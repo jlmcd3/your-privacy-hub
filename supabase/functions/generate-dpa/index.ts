@@ -622,7 +622,7 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
     const _joinClause = (!detected.ctrlMapped && !detected.procMapped) ? " and " : "";
     const _idClause = `${_ctrlClause}${_joinClause}${_procClause}`;
     const _frameworkName = frameworkFor(documentType);
-    const _fallbackLiteral = `NOTE FOR LEGAL REVIEW — GOVERNING FRAMEWORK TO BE CONFIRMED. The record identifies ${_idClause}, for which the governing data-protection framework has not been confirmed on the record. This DPA has been drafted under ${_frameworkName} as the closest-fit baseline. Counsel should confirm the correct governing framework for the jurisdiction(s) quoted above, and adapt this DPA as required, before execution.`;
+    const _fallbackLiteral = `The record identifies ${_idClause}, for which the governing data-protection framework has not been confirmed on the record, and this DPA has been drafted under ${_frameworkName} as the closest-fit baseline; further clarification is advisable.`;
     const frameworkFallbackNote = frameworkFallback
       ? `
 
