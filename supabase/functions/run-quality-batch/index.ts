@@ -1867,6 +1867,17 @@ async function runBatch(runId: string): Promise<void> {
           report_data: reportData, source_table: sourceTable,
           source_row_id: sourceRowId, status: "evaluating",
         }).eq("id", docRowId);
+        // CV1-R3 F1: propagate fresh-gen source refs to the outer eval
+        // locals so the counsel-voice auto-regen gate (below) sees a
+        // non-null source on the dispatch/poll fresh-generation path.
+        const _resolved = resolveEvalSourceRef(
+          { table: evalSourceTable, rowId: evalSourceRowId },
+          { table: sourceTable, rowId: sourceRowId },
+        );
+        if (_resolved) {
+          evalSourceTable = _resolved.table || evalSourceTable;
+          evalSourceRowId = _resolved.rowId;
+        }
 
         // GEN/EVAL CHUNK BOUNDARY (r1b1.2): hand off to a fresh isolate so
         // dual-model evaluation (~200-250s) gets a full ~400s budget.
