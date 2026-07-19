@@ -1859,7 +1859,7 @@ function buildRegistrationReportHTML(record: any): string {
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
 <p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
   Not legal advice. This document is provided to support your organization's compliance review.
-  It does not create an attorney-client relationship. Always consult qualified legal counsel for advice specific to your situation.
+  It does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.
 </p>
 
 <h2>Recommended Jurisdictions</h2>
