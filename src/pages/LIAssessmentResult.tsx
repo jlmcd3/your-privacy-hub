@@ -173,6 +173,7 @@ const LIAssessmentResult = () => {
           pdfUrl={assessment.pdf_url}
           onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
         />
+        <WordConversionPromptButton documentType="li_assessment" />
       )}
     </>
   );

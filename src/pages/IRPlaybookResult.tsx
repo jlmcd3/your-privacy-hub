@@ -106,6 +106,7 @@ export default function IRPlaybookResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <WordConversionPromptButton documentType="ir_playbook" />
                 
                 {(translated?.playbook_text ?? row.playbook_text) && <CopyButton text={translated?.playbook_text ?? row.playbook_text} />}
               </>

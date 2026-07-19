@@ -165,6 +165,7 @@ const DPIAFrameworkResult = () => {
         pdfUrl={dpia?.pdf_url}
         onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
       />
+      <WordConversionPromptButton documentType="dpia_framework" />
       <Button onClick={() => window.print()} variant="outline" size="sm">Print</Button>
     </>
   ) : undefined;

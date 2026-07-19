@@ -259,6 +259,7 @@ export default function RegistrationDocuments() {
                           }}
                           className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-navy hover:bg-brand-navy/90 border border-brand-navy rounded-lg no-underline transition-colors disabled:opacity-60"
                         />
+                        <WordConversionPromptButton documentType="registration_document" />
                         <Button
                           variant="outline"
                           size="sm"

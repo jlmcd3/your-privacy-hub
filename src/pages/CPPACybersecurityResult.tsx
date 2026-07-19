@@ -114,6 +114,7 @@ export default function CPPACybersecurityResult() {
         pdfUrl={row.pdf_url}
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
       />
+      <WordConversionPromptButton documentType="cppa_cybersecurity" />
       <Button asChild variant="outline" size="sm"><Link to="/cppa-cybersecurity">Run New Assessment</Link></Button>
     </>
   ) : undefined;

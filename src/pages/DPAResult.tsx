@@ -105,6 +105,7 @@ export default function DPAResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <WordConversionPromptButton documentType="dpa_generator" />
                 
                 {(translated?.document_text ?? row.document_text) && <CopyButton text={translated?.document_text ?? row.document_text} />}
               </>

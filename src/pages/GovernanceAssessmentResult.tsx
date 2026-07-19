@@ -115,6 +115,7 @@ const GovernanceAssessmentResult = () => {
           pdfUrl={assessment?.pdf_url}
           onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
         />
+        <WordConversionPromptButton documentType="governance_assessment" />
       )}
     </>
   );
