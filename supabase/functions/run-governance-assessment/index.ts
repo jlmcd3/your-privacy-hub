@@ -1181,8 +1181,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           || String(intake?.eu_uk_data || "").toLowerCase() === "yes"
           || _juris.some((j: string) => ["EU", "GB", "UK"].includes(String(j).toUpperCase()));
         return _hasEuUk
-          ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel."
-          : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.";
+          ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. Findings should be validated against your organisation's authoritative records before operational reliance."
+          : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. Findings should be validated against your organisation's authoritative records before operational reliance.";
       })(),
     };
 
