@@ -377,14 +377,14 @@ const UpdateDetail = () => {
                       The Brief, Next Steps, Watch, and Contextual Record are available to registered users.
                     </p>
                     <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-                      Sign up free to see analysis on every update.
+                      End User Privacy is currently in private beta. Request access to see analysis on every update.
                     </p>
                     <Link
-                      to="/signup"
+                      to="/contact"
                       className="inline-block text-sm font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors hover:opacity-90"
                       style={{ background: 'hsl(var(--accent))' }}
                     >
-                      Sign up free →
+                      Request beta access →
                     </Link>
                   </div>
                 </div>
