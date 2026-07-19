@@ -226,7 +226,8 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
       // directive verb (consult, review with, etc.).
       const rosterMatch = ROLE_ROSTER_EXEMPT_RE.test(s) ||
                           ROLE_LABEL_EXEMPT_RE.test(s) ||
-                          ROLE_FIELD_EXEMPT_RE.test(s);
+                          ROLE_FIELD_EXEMPT_RE.test(s) ||
+                          PARTICIPANT_ROSTER_EXEMPT_RE.test(s);
       if (rosterMatch && !DIRECTIVE_VERB_RE.test(s)) continue;
       hits++;
       findings.push(fail("e6_counsel_referral", dim, "high",
