@@ -73,12 +73,18 @@ const USStateComparison = () => {
   const jsonLastReviewed = (comparisonData as any).lastReviewed as string;
   const jsonNextReviewDue = (comparisonData as any).nextReviewDue as string;
 
+  // Item 10 — as-of date DERIVED from live freshness data (rollup), with
+  // JSON fallback anchor for first-paint / offline states.
+  const asOfDisplay = rollup.cycleCompletedAt
+    ? formatTimestampDateOnly(rollup.cycleCompletedAt)
+    : formatDateOnlyLong(jsonLastReviewed);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>US State Privacy Laws Comparison 2026 | End User Privacy</title>
         <meta name="description" content={`Compare all ${states.length} enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free.`} />
-        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of ${states.length} enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
+        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of ${states.length} enacted US state comprehensive privacy laws across 12 provisions. Inclusion criteria: enacted comprehensive consumer privacy statutes; excludes sectoral, biometric-only, and pending bills. Florida FDBR applies only to controllers meeting the >$1B global gross annual revenue threshold plus one enumerated adtech / sale / theme-park criterion (Fla. Stat. § 501.702(9)).","url":"https://enduserprivacy.com/compare/us-states","dateModified":"${(rollup.cycleCompletedAt ?? jsonLastReviewed) || ""}","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
       </Helmet>
       <Navbar />
 
@@ -92,7 +98,7 @@ const USStateComparison = () => {
             Side-by-side comparison of all {states.length} enacted US comprehensive state privacy laws across 12 standard provisions.
           </p>
           <p className="text-slate-400 text-sm mt-2">
-            Hover any ✓ to see the statute citation. Click to open the law.
+            Hover or focus any ✓ to see the statute citation. Press <kbd className="px-1 bg-white/10 rounded">Enter</kbd> or click to open the law in a new tab.
           </p>
         </div>
       </header>
