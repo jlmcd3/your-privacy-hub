@@ -1110,7 +1110,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.")}</div>
+    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.")}</div>
 
     <section><h2>Assessment Summary</h2>
       ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
