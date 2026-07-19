@@ -10,6 +10,8 @@ import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { ADVISORY_VOICE_RULES, hasCounselReferral } from "../_shared/advisory-voice.ts";
+import { runFormatChecksIR } from "../_shared/grader/format-checks.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import {
   renderAiActCitationBlock,
@@ -353,7 +355,7 @@ const IR_TOOL_MODULE: ToolModule = {
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.8-grader-cal-1-2026-07-19";
+const IR_VERSION = "v3.9-counsel-voice-1-2026-07-19";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1069,7 +1071,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const irSystem: SystemBlock[] = buildSystemContent({
           toolModule: IR_TOOL_MODULE,
           currentDate: today,
-          injected: registryInjections,
+          injected: registryInjections + "\n\n" + ADVISORY_VOICE_RULES,
           cache: true,
         });
 
@@ -1739,6 +1741,14 @@ let playbook_text = lint.clean;
           .filter((j) => DPA_PORTALS[j])
           .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
 
+        // COUNSEL-VOICE-1 E-checks — deterministic format-check emission.
+        let ir_deterministic_checks: any[] = [];
+        try {
+          ir_deterministic_checks = runFormatChecksIR(playbook_text ?? "");
+        } catch (e) {
+          console.warn("[generate-ir-playbook] format-checks non-fatal:", (e as Error).message);
+        }
+
         const report_data: Record<string, any> = {
           portals,
           enforcement_precedents: enforcement_context.slice(0, 5),
@@ -1748,8 +1758,9 @@ let playbook_text = lint.clean;
           information_needed: Array.isArray((assembled as any)?.information_needed)
             ? (assembled as any).information_needed
             : [],
+          deterministic_checks: ir_deterministic_checks,
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.4-rcb") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", IR_VERSION) },
         };
         try {
           const guarded = guardInformationNeeded(

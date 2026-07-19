@@ -12,12 +12,15 @@ export type LlmFinding = {
   [k: string]: unknown;
 };
 
-// A2 — NOTE-block leak filter. rubric_internal_reasoning_leak must NEVER fire
-// when the quoted evidence sits inside a "NOTE FOR LEGAL REVIEW" annotation.
-// These are designed counsel-voice product output (IR-HF1 T5), not model
-// self-narration. Kept case-insensitive; matches the leader with or without
-// the "— <topic>" suffix.
-const NOTE_BLOCK_RE = /note\s+for\s+legal\s+review/i;
+// A2 (COUNSEL-VOICE-1 retarget) — advisory-formula leak filter.
+// rubric_internal_reasoning_leak must NEVER fire when the quoted evidence
+// contains one of the two canonical advisory closes ("further clarification
+// is advisable." / "further internal investigation is advisable."). These
+// are designed drafting-voice product output surfaced to the reader by the
+// generator itself, not model self-narration. Legacy "NOTE FOR LEGAL REVIEW"
+// evidence is also whitelisted for back-compat with pre-retarget batches.
+const ADVISORY_FORMULA_RE = /further (?:clarification|internal investigation) is advisable\./i;
+const LEGACY_NOTE_BLOCK_RE = /note\s+for\s+legal\s+review/i;
 
 // A3 — verified-authority whitelist. Additive to SHARED_GRADER_CONTEXT prose:
 // if an evidence quote references any of the tokens below, drop the finding
@@ -68,8 +71,11 @@ export function applyGraderCal1Filter(
         dropped.a4++;
         continue;
       }
-      // A2 — NOTE FOR LEGAL REVIEW blocks are not leaks.
-      if (f.check_id === "rubric_internal_reasoning_leak" && NOTE_BLOCK_RE.test(ev)) {
+      // A2 — advisory-formula sentences (and legacy NOTE blocks) are not leaks.
+      if (
+        f.check_id === "rubric_internal_reasoning_leak" &&
+        (ADVISORY_FORMULA_RE.test(ev) || LEGACY_NOTE_BLOCK_RE.test(ev))
+      ) {
         dropped.a2++;
         continue;
       }

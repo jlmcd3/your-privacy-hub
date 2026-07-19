@@ -712,7 +712,7 @@ type Evaluation = {
 const STATUS_LABEL: Record<TriState, string> = {
   required: "Required",
   not_triggered_on_answers: "Not triggered on your answers",
-  needs_counsel_review: "Review with counsel — insufficient facts",
+  needs_counsel_review: "Additional information required",
 };
 
 function statusPill(status: TriState) {

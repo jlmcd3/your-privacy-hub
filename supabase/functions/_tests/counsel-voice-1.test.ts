@@ -1,0 +1,182 @@
+// COUNSEL-VOICE-1 — regression tests for the advisory-voice recast and the
+// E-completion deterministic checks. Kept under supabase/functions/_tests/
+// so `deno test` picks it up alongside grader-cal-1.test.ts.
+
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  ADVISORY_CLOSE_CLARIFICATION,
+  ADVISORY_CLOSE_INVESTIGATION,
+  ADVISORY_CLOSE_ANY_RE,
+  COUNSEL_REFERRAL_RE,
+  hasCounselReferral,
+  scanAdvisoryVoice,
+} from "../_shared/advisory-voice.ts";
+import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
+import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+import {
+  runFormatChecksDPA,
+  runFormatChecksIR,
+} from "../_shared/grader/format-checks.ts";
+
+// ─── §1: advisory formulas exist and are correctly spelled ───────────
+
+Deno.test("COUNSEL-VOICE-1: canonical closes have exact spelling", () => {
+  assertEquals(ADVISORY_CLOSE_CLARIFICATION, "further clarification is advisable.");
+  assertEquals(ADVISORY_CLOSE_INVESTIGATION, "further internal investigation is advisable.");
+  assert(ADVISORY_CLOSE_ANY_RE.test("...; further clarification is advisable."));
+  assert(ADVISORY_CLOSE_ANY_RE.test("...; further internal investigation is advisable."));
+});
+
+// ─── §1c: counsel-referral prohibition ───────────────────────────────
+
+Deno.test("COUNSEL-VOICE-1 §1c: prohibition fires on counsel/lawyer/attorney patterns", () => {
+  assert(hasCounselReferral("Counsel should confirm the framework before execution."));
+  assert(hasCounselReferral("Consult your lawyer before relying on this agreement."));
+  assert(hasCounselReferral("This should be reviewed by an attorney."));
+  assert(hasCounselReferral("Privacy counsel should assess this before execution."));
+  assert(hasCounselReferral("Confirmed with legal counsel."));
+});
+
+Deno.test("COUNSEL-VOICE-1 §1c: prohibition does NOT fire on advisory prose", () => {
+  const advisory =
+    "The record identifies the Processor's jurisdiction of incorporation as Ireland; further clarification is advisable.";
+  assert(!hasCounselReferral(advisory));
+  const advisory2 =
+    "The record does not specify retention practices for backups; further internal investigation is advisable.";
+  assert(!hasCounselReferral(advisory2));
+});
+
+Deno.test("COUNSEL-VOICE-1 §1c: page-level disclaimer text does NOT fire the check", () => {
+  // Text mirroring src/components/ToolDisclaimer.tsx first paragraph — the
+  // page-level disclaimer sits OUTSIDE generator output; but even if the
+  // substring appeared in body text, the guarded checker scans only the
+  // body-text tokens listed in COUNSEL_REFERRAL_RE. The disclaimer's
+  // literal string does mention "qualified legal counsel"; that's why we
+  // scan generator output, not the disclaimer component itself. This test
+  // documents that the regex intentionally captures that phrase — the
+  // disclaimer is exempt because it's rendered by a separate component,
+  // not concatenated into body text.
+  const disclaimerPhrase =
+    "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
+  assert(COUNSEL_REFERRAL_RE.test(disclaimerPhrase));
+});
+
+// ─── §1b: specificity invariant ──────────────────────────────────────
+
+Deno.test("COUNSEL-VOICE-1 §1b: bare advisory close is flagged", () => {
+  const bare = "Unknown; further clarification is advisable.";
+  const findings = scanAdvisoryVoice(bare);
+  assert(findings.some((f) => f.code === "bare_advisory_close"));
+});
+
+Deno.test("COUNSEL-VOICE-1 §1b: named-fact advisory sentence passes", () => {
+  const good =
+    "The record identifies the Processor's jurisdiction of incorporation as Ireland; further clarification is advisable.";
+  const findings = scanAdvisoryVoice(good);
+  assert(!findings.some((f) => f.code === "bare_advisory_close"));
+});
+
+// ─── §3: grader post-filter retarget ─────────────────────────────────
+
+Deno.test("COUNSEL-VOICE-1 §3: advisory-formula sentences are protected from leak-rubric", () => {
+  const { kept, dropped } = applyGraderCal1Filter([{
+    check_id: "rubric_internal_reasoning_leak",
+    dimension: "hallucination",
+    severity: "high",
+    passed: false,
+    evidence:
+      "The record identifies the Processor's jurisdiction of incorporation as Ireland; further clarification is advisable.",
+  }]);
+  assertEquals(kept.length, 0);
+  assertEquals(dropped.a2, 1);
+});
+
+Deno.test("COUNSEL-VOICE-1 §3: legacy NOTE FOR LEGAL REVIEW is still whitelisted (back-compat)", () => {
+  const { kept, dropped } = applyGraderCal1Filter([{
+    check_id: "rubric_internal_reasoning_leak",
+    dimension: "hallucination",
+    severity: "high",
+    passed: false,
+    evidence: "NOTE FOR LEGAL REVIEW — Framework selection: …",
+  }]);
+  assertEquals(kept.length, 0);
+  assertEquals(dropped.a2, 1);
+});
+
+Deno.test("COUNSEL-VOICE-1 §3: genuine self-narration outside formulas still fires", () => {
+  const { kept } = applyGraderCal1Filter([{
+    check_id: "rubric_internal_reasoning_leak",
+    dimension: "hallucination",
+    severity: "high",
+    passed: false,
+    evidence: "As an AI language model, I cannot advise on …",
+  }]);
+  assertEquals(kept.length, 1);
+});
+
+// ─── §3: version bump ────────────────────────────────────────────────
+
+Deno.test("COUNSEL-VOICE-1: GRADER_CONTEXT_VERSION bumped", () => {
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-19-counsel-voice-1");
+});
+
+// ─── §4: E-checks per tool ───────────────────────────────────────────
+
+Deno.test("COUNSEL-VOICE-1 E1 (DPA): missing required section is flagged", () => {
+  const stub = "# Parties and Recitals\n\nStub body.";
+  const findings = runFormatChecksDPA(stub);
+  assert(findings.some((f) => f.check_id === "e1_section_present" && !f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1 E3: unclosed [TO BE COMPLETED bracket is flagged", () => {
+  const bad = "This shall be finalised by [TO BE COMPLETED — insert deadline\n\nEnd of paragraph.";
+  const findings = runFormatChecksDPA(bad);
+  assert(findings.some((f) => f.check_id === "e3_tbc_unclosed" && !f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1 E3: properly closed [TO BE COMPLETED passes", () => {
+  const good = "This shall be finalised by [TO BE COMPLETED — insert deadline].";
+  const findings = runFormatChecksDPA(good);
+  assert(findings.some((f) => f.check_id === "e3_tbc_brackets_ok" && f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1 E4: instruction leak is flagged", () => {
+  const bad = "As an AI language model, I cannot advise on this obligation.";
+  const findings = runFormatChecksDPA(bad);
+  assert(findings.some((f) => f.check_id === "e4_instruction_leak" && !f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1 E5: bare advisory close is flagged", () => {
+  const bad = "Unknown; further clarification is advisable.";
+  const findings = runFormatChecksDPA(bad);
+  assert(findings.some((f) => f.check_id === "e5_bare_advisory_close" && !f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1 E6: body-text counsel referral is flagged", () => {
+  const bad = "Consult your lawyer before relying on this document.";
+  const findings = runFormatChecksDPA(bad);
+  assert(findings.some((f) => f.check_id === "e6_counsel_referral" && !f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1 E1 (IR): PART A..PART F presence", () => {
+  const good = "PART A\ncontent\nPART B\ncontent\nPART C\nx\nPART D\nx\nPART E\nx\nPART F\nx";
+  const findings = runFormatChecksIR(good);
+  assert(findings.some((f) => f.check_id === "e1_sections_ok" && f.passed));
+});
+
+// ─── §4 E-check list emitted per tool (report for humans) ────────────
+
+Deno.test("COUNSEL-VOICE-1: DPA emits the expected E1-E6 check ids", () => {
+  const findings = runFormatChecksDPA(
+    "# Parties and Recitals\n## Definitions\n### Subject Matter\n" +
+    "# Data Processing\n# Sub-processing\n# Data Subject Rights\n" +
+    "# Security\n# Data Transfers\n# Return or Deletion\n# Term and Termination\n" +
+    "The record identifies X; further clarification is advisable."
+  );
+  const ids = new Set(findings.map((f) => f.check_id));
+  for (const id of ["e1_sections_ok", "e2_heading_hierarchy_ok", "e3_tbc_brackets_ok",
+                    "e4_no_instruction_leak", "e5_advisory_formula_ok", "e6_no_counsel_referral"]) {
+    assert(ids.has(id) || findings.some((f) => f.check_id.startsWith(id.split("_")[0])),
+      `expected an E-check row for ${id}`);
+  }
+});

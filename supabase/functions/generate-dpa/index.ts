@@ -20,6 +20,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
 import { deriveEngagedStates, detectNonEngagedStateAssertions } from "../_shared/dpa-engaged-states.ts";
+import { ADVISORY_VOICE_RULES, hasCounselReferral } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1076,7 +1077,9 @@ GRADER-CAL-1 C3 — Art. 35(3)(b) SPECIAL-CATEGORY HEDGE (BINDING):
 Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the record shows special-category (Art. 9) or criminal-offence (Art. 10) data processed on a large scale. Absent that record predicate, frame the reference as: "If in future the processing expands to include large-scale special-category or criminal-offence data, Art. 35(3)(b) would engage — on the current record it does not."
 
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
-Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.`;
+Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.
+
+${ADVISORY_VOICE_RULES}`;
     if (gdprBlock) {
       systemPrompt = systemPrompt +
         `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` +
@@ -1308,6 +1311,16 @@ Where a point is drawn from a Recital rather than an operative Article, prefer s
       throw new Error("AI generation returned an empty document");
     }
 
+    // COUNSEL-VOICE-1 E-checks — deterministic format checks emitted for
+    // consumption by run-quality-batch (checks_total / checks_passed).
+    let deterministic_checks: any[] = [];
+    try {
+      const { runFormatChecksDPA } = await import("../_shared/grader/format-checks.ts");
+      deterministic_checks = runFormatChecksDPA(dpa_text);
+    } catch (e) {
+      console.warn("[generate-dpa] format-checks failed non-fatal:", (e as Error).message);
+    }
+
     const buildReportData = () => ({
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
@@ -1316,10 +1329,12 @@ Where a point is drawn from a Recital rather than an operative Article, prefer s
       information_needed: Array.isArray((parsed as any)?.information_needed)
         ? (parsed as any).information_needed
         : [],
+      deterministic_checks,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.2-grader-cal-1") },
+      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-counsel-voice-1") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
+
 
     try {
       const guarded = guardInformationNeeded(

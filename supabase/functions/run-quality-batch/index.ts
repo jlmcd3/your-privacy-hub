@@ -1981,6 +1981,36 @@ async function runBatch(runId: string): Promise<void> {
         });
       }
 
+      // COUNSEL-VOICE-1 E-completion: merge per-tool deterministic format
+      // checks emitted by the generator into report_data.deterministic_checks
+      // so they count toward checks_total / checks_passed alongside grader
+      // findings. Deterministic here means "computed in code" — no LLM.
+      try {
+        const detChecks: any[] = Array.isArray((reportData as any)?.deterministic_checks)
+          ? (reportData as any).deterministic_checks
+          : [];
+        if (detChecks.length) {
+          const detRows = detChecks.map((f: any) => ({
+            run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
+            check_id: f.check_id, check_type: "deterministic",
+            dimension: f.dimension ?? "formatting",
+            severity: f.severity ?? "medium",
+            passed: !!f.passed, evidence: f.evidence ?? null,
+            scenario_set: scenarioSet,
+          }));
+          await admin.from("quality_findings").insert(detRows);
+          for (const f of detRows) {
+            state.allDocFindings.push({
+              ...f, cross_category: f.passed ? null : "deterministic",
+              cross_evidence_gpt: null, rubric_addition: null,
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("[run-quality-batch] deterministic_checks merge non-fatal:", (e as Error).message);
+      }
+
+
       // GPT-only failures: rubric findings the model flagged that Claude didn't (claude passed
       // or didn't return that id at all).
       for (const gptFinding of gptFindings.filter((f: any) => !f.passed)) {
