@@ -97,24 +97,24 @@ SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_d
 
 Where the intake does not allow a significant-decision determination, say so in scope_analysis.summary rather than guessing.
 
-9a. ARTICLE 10 vs ARTICLE 11 — SEPARATE GATES (CRITICAL):
+9a. §§ 7150–7157 vs §§ 7200–7222 — SEPARATE GATES (CRITICAL):
 
-Article 11 (§§ 7200–7222) creates ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
+§§ 7200–7222 (the ADMT subchapter) create ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
 
-Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
+§§ 7150–7157 (the risk-assessment subchapter) create risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
 - § 7150(b)(1): selling or sharing personal information
 - § 7150(b)(2): processing sensitive personal information
-- § 7150(b)(3): using ADMT to make a significant decision [overlaps with Art. 11]
+- § 7150(b)(3): using ADMT to make a significant decision [overlaps with the ADMT subchapter]
 - § 7150(b)(4): profiling a consumer through systematic observation in their capacity as an applicant, employee, student, or independent contractor
 - § 7150(b)(5): profiling a consumer based on their presence in a sensitive location
 - § 7150(b)(6): processing personal information to train an ADMT for a significant decision, or to train facial-recognition, emotion-recognition, identity-verification, or other physical/biological identification or profiling technology (per the § 7150(b)(6) / § 7153 "train" definition)
 
-CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
+CONSEQUENCE: An AdTech or gaming business may have NO §§ 7200–7222 ADMT obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have §§ 7150–7157 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
 
 When triggers_significant_decision = false:
 - Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
 - Populate risk_assessment_obligation even when notice_gaps, opt_out_gaps, and access_gaps are all empty.
-- In scope_analysis.summary, explicitly distinguish: "Article 11 ADMT obligations are NOT triggered because [reason]. However, Article 10 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
+- In scope_analysis.summary, explicitly distinguish: "§§ 7200–7222 ADMT obligations are NOT triggered because [reason]. However, §§ 7150–7157 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
 
 9b. TRADE-SECRET CARVE-OUTS — CORRECT CITATIONS ONLY:
 
