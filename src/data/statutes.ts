@@ -168,18 +168,20 @@ export const STATUTES: Record<string, StatuteEntry> = {
   // New Hampshire DPIA — required for heightened-risk processing per RSA 507-H:6.
   "NH:8": { cite: "RSA 507-H:6", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
 
-  // ── NEW JERSEY (NJDPA) ────────────────────────────────────────────────────
-  // Note: NJ chapter 8, article on data privacy is not yet indexed on njleg.state.nj.us
-  // section-level URLs. Justia URLs preserved pending an official-source swap.
-  "NJ:0": { cite: "N.J. Stat. § 56:8-166.10(a)(1)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:1": { cite: "N.J. Stat. § 56:8-166.10(a)(3)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:2": { cite: "N.J. Stat. § 56:8-166.10(a)(4)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:3": { cite: "N.J. Stat. § 56:8-166.10(a)(2)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:4": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(b)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:5": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(a)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:6": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(c)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:7": { cite: "N.J. Stat. § 56:8-166.12(b)(5)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-12/" },
-  "NJ:8": { cite: "N.J. Stat. § 56:8-166.14", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-14/" },
+  // ── NEW JERSEY (NJDPA — P.L.2023, c.266; S.B. 332) ────────────────────────
+  // Official enacted-act PDF from the New Jersey Legislature (pub.njleg.gov).
+  // Chapter-level source per project standard; pinpoint retained on cite label.
+  // Verified 2026-07-19.
+  "NJ:0": { cite: "N.J. Stat. § 56:8-166.10(a)(1)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:1": { cite: "N.J. Stat. § 56:8-166.10(a)(3)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:2": { cite: "N.J. Stat. § 56:8-166.10(a)(4)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:3": { cite: "N.J. Stat. § 56:8-166.10(a)(2)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:4": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(b)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:5": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(a)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:6": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(c)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:7": { cite: "N.J. Stat. § 56:8-166.12(b)(5)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:8": { cite: "N.J. Stat. § 56:8-166.14", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+
 
   // ── OREGON (OCPA) ─────────────────────────────────────────────────────────
   "OR:0": { cite: "ORS § 646A.574(1)(a)", url: "https://www.oregonlegislature.gov/bills_laws/ors/ors646a.html" },
