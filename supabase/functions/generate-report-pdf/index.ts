@@ -1210,7 +1210,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
       ${xrec.cybersecurity_audit_rationale ? `<div class="card"><h3>Cybersecurity audit ${xrec.cybersecurity_audit ? "(recommended)" : ""}</h3>${para(xrec.cybersecurity_audit_rationale)}</div>` : ""}
     </section>` : ""}
 
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.")}</div>
+    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.")}</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.assessment_version ? ` · v${text(meta.assessment_version)}` : ""}</div>
   </div>
 </div></body></html>`;
