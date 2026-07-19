@@ -1331,7 +1331,7 @@ ${ADVISORY_VOICE_RULES}`;
         : [],
       deterministic_checks,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-counsel-voice-1") },
+      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-cv1-ff-2026-07-19") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
 
