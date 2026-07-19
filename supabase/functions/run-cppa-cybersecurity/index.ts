@@ -7,7 +7,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "cyber-cppa-hf2@2026-07-20T12:00Z";
+export const BUILD_STAMP = "cyber-cppa-hf3@2026-07-19T21:23Z";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
@@ -39,6 +39,9 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
   outputMode: "strict-JSON",
   includeEuTransfers: false,
   extraRules: [
+    "CPPA-HF3 E — ADVISORY CLOSE NAMED-FACT SPECIFICITY (SUPPLEMENTS advisory-voice rule E5): every advisory close ('further clarification is advisable', 'further internal investigation is advisable', 'should be confirmed', 'warrants further review', 'further investigation is advisable') NAMES the specific fact, field, document, control, or determination whose confirmation is being requested. Bare closes ('should be confirmed' / 'further internal investigation is advisable' with no named object) are non-compliant. Correct form: 'the [named control or evidence artefact] should be confirmed to determine whether [named readiness element under § 7123(c)(N)]'.",
+    "CPPA-HF3 B1 — FABRICATED PROFESSIONAL ATTRIBUTION BAN: NEVER assert that legal counsel, outside counsel, in-house counsel, a privacy officer, a DPO, a compliance officer, an auditor, an engineer, or any other named or generic professional has reviewed, flagged, advised, opined on, escalated, cleared, or approved any element of the record unless that fact appears as a value in the intake fields. Correct form: state the gap or determination directly, tied to the record and the provision.",
+    "CPPA-HF3 B2 — INTERNAL-NOTE / ANNOTATION BLOCK BAN: never emit bracketed internal-annotation blocks ('[INTERNAL NOTE: …]', '[NOTE TO REVIEWER: …]', '[TODO: …]', '[FOR INTERNAL USE: …]', etc.) in user-rendered output. Substantive content that would otherwise sit inside such a block is rendered as normal advisory prose in the appropriate field.",
     "PROSE CITATION HYGIENE: In finding, remediation, top_risks, next_steps, and executive_summary, refer to each cybersecurity component by its NAME only. NEVER write a component subsection number — no \"11 CCR § 7123(c)(N)\", \"§ 7123(c)(N)\", or \"(c)(N)\" — in any of these prose fields; the correct per-control citation is supplied by the system in the fsor_citation and regulatory_basis fields. In prose you may cite only the procedural range 11 CCR §§ 7120–7124 (e.g. § 7122, § 7123(e), § 7124) where unavoidable. Writing a § 7123(c)(N) subsection in prose is a defect.",
     "PHASE-IN: first audit certifications are due April 1, 2028 (>$100M 2026 gross revenue), April 1, 2029 ($50–100M), April 1, 2030 (<$50M), under 11 CCR § 7121(a). Never present a readiness deadline earlier than the business's applicable phase-in date (a prospective obligation).",
     "FRAMEWORK: when the intake specifies a primary framework (SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls), frame remediation and control-mapping in THAT framework; default to NIST CSF 2.0 only when none is given. Under § 7123(f) a business may leverage an existing aligned audit only if all Article 9 requirements are met independently or by supplementation — test each element.",
@@ -1340,7 +1343,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf2@2026-07-20"), build_stamp: BUILD_STAMP };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf3@2026-07-19"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

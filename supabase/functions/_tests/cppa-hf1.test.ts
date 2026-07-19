@@ -1,10 +1,11 @@
-// CPPA-HF1/HF2 — deterministic-check coverage for H1/H2/H3/H4.
+// CPPA-HF1/HF2/HF3 — deterministic-check coverage.
 import { assertEquals } from "https://deno.land/std@0.208.0/testing/asserts.ts";
 import {
   checkH1ArticlePhrasing,
   checkH2InternalVocab,
   checkH3AdmtCitationDepth,
   checkH4EvasivePlaceholder,
+  checkH5InternalNoteBlock,
   runCppaHf1Checks,
   runAdmtHf1Checks,
   ADMT_VERIFIED_CITES,
@@ -96,4 +97,63 @@ Deno.test("runAdmtHf1Checks — chained failures aggregate", () => {
   assertEquals(failed.includes("h1_article_phrasing"), true);
   assertEquals(failed.includes("h2_internal_vocab"), true);
   assertEquals(failed.includes("h3_admt_citation_depth"), true);
+});
+
+// ─── CPPA-HF3 tests ────────────────────────────────────────────────────
+
+Deno.test("HF3 B2 — H5 flags '[INTERNAL NOTE: …]' block", () => {
+  const bad = "The controller must proceed. [INTERNAL NOTE: HIPAA overlay — coordinate with HIM.]";
+  const [f] = checkH5InternalNoteBlock(bad);
+  assertEquals(f.passed, false);
+  assertEquals(f.check_id, "h5_internal_note_block");
+});
+
+Deno.test("HF3 B2 — H5 flags '[INTERNAL: …]' variant", () => {
+  const bad = "[INTERNAL - see routing memo].";
+  const [f] = checkH5InternalNoteBlock(bad);
+  assertEquals(f.passed, false);
+});
+
+Deno.test("HF3 B2 — H5 clean text passes", () => {
+  const ok = "Where the ADMT is used in a HIPAA context, coordinate with the health-information management function.";
+  const [f] = checkH5InternalNoteBlock(ok);
+  assertEquals(f.passed, true);
+});
+
+Deno.test("HF3 D — H2 flags i5_admt_logic in prose", () => {
+  const bad = "See i5_admt_logic for the description.";
+  const findings = checkH2InternalVocab(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("HF3 D — H2 flags q19_admt_description in prose", () => {
+  const bad = "The q19_admt_description field is silent on retention.";
+  const findings = checkH2InternalVocab(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("HF3 D — H2 flags 'the audit-cohort determination'", () => {
+  const bad = "the audit-cohort determination applies here.";
+  const findings = checkH2InternalVocab(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("HF3 A — run-admt-checker source contains no 'Article 10/11' shorthand outside HF1/HF2 warning rules", async () => {
+  const src = await Deno.readTextFile(new URL("../run-admt-checker/index.ts", import.meta.url));
+  // Only permitted occurrences are inside the two lines that describe the ban itself
+  // (CPPA-HF1 A2 and CPPA-HF2 E rulebook self-check). Everywhere else is a defect.
+  const lines = src.split("\n");
+  const violations = lines.filter((ln, i) => {
+    if (!/Article 1[01]/.test(ln)) return false;
+    // Whitelist the two ban-description lines
+    if (/CPPA-HF1 A2/.test(ln) || /CPPA-HF2 E/.test(ln) || /CPPA-HF3/.test(ln)) return false;
+    return true;
+  });
+  assertEquals(violations.length, 0);
+});
+
+Deno.test("HF3 runners — CPPA runner includes H5", () => {
+  const findings = runCppaHf1Checks("[INTERNAL NOTE: foo]");
+  const ids = findings.map((f) => f.check_id);
+  assertEquals(ids.includes("h5_internal_note_block"), true);
 });

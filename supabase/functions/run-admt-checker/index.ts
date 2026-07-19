@@ -7,7 +7,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-cppa-hf2@2026-07-20T12:00Z";
+export const BUILD_STAMP = "admt-cppa-hf3@2026-07-19T21:23Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -90,31 +90,31 @@ THE FOLLOWING ARE EXPRESSLY NOT SIGNIFICANT DECISIONS — PERIOD:
 
 STRUCTURAL ENFORCEMENT — READ BEFORE GENERATING ANY GAP:
 Step 1: Set triggers_significant_decision = true ONLY if the system description connects the ADMT output to one of the five enumerated § 7001(ddd) categories.
-Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that Article 11 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) Article 10 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
+Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that the §§ 7200–7222 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) §§ 7150–7157 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
 Step 3: If triggers_significant_decision = true, proceed normally with the full gap analysis.
 
 SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_decision = true for an advertising or gaming service-eligibility use case, STOP. Re-read this rule. The answer is false.
 
 Where the intake does not allow a significant-decision determination, say so in scope_analysis.summary rather than guessing.
 
-9a. ARTICLE 10 vs ARTICLE 11 — SEPARATE GATES (CRITICAL):
+9a. §§ 7150–7157 vs §§ 7200–7222 — SEPARATE GATES (CRITICAL):
 
-Article 11 (§§ 7200–7222) creates ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
+§§ 7200–7222 (the ADMT subchapter) create ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
 
-Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
+§§ 7150–7157 (the risk-assessment subchapter) create risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
 - § 7150(b)(1): selling or sharing personal information
 - § 7150(b)(2): processing sensitive personal information
-- § 7150(b)(3): using ADMT to make a significant decision [overlaps with Art. 11]
+- § 7150(b)(3): using ADMT to make a significant decision [overlaps with the ADMT subchapter]
 - § 7150(b)(4): profiling a consumer through systematic observation in their capacity as an applicant, employee, student, or independent contractor
 - § 7150(b)(5): profiling a consumer based on their presence in a sensitive location
 - § 7150(b)(6): processing personal information to train an ADMT for a significant decision, or to train facial-recognition, emotion-recognition, identity-verification, or other physical/biological identification or profiling technology (per the § 7150(b)(6) / § 7153 "train" definition)
 
-CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
+CONSEQUENCE: An AdTech or gaming business may have NO §§ 7200–7222 ADMT obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have §§ 7150–7157 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
 
 When triggers_significant_decision = false:
 - Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
 - Populate risk_assessment_obligation even when notice_gaps, opt_out_gaps, and access_gaps are all empty.
-- In scope_analysis.summary, explicitly distinguish: "Article 11 ADMT obligations are NOT triggered because [reason]. However, Article 10 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
+- In scope_analysis.summary, explicitly distinguish: "§§ 7200–7222 ADMT obligations are NOT triggered because [reason]. However, §§ 7150–7157 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
 
 9b. TRADE-SECRET CARVE-OUTS — CORRECT CITATIONS ONLY:
 
@@ -142,8 +142,8 @@ When a trade-secret carve-out finding is generated:
 11. PRE-USE NOTICE COMPLETENESS: When triggers_significant_decision is TRUE, the notice_gaps array MUST always be populated — either with specific gaps, or with a "compliant" entry for each assessed element. Never return an empty notice_gaps array for an in-scope ADMT deployment that makes significant decisions. If the intake answers indicate the Pre-use Notice satisfies all § 7220(c) elements, populate the array with compliant entries. An empty array signals an assessment error, not full compliance.
 
 13. USE THE ADMT DETAIL INPUTS — incorporate the structured detail fields, and never invent values not provided:
-    - Human-involvement self-test → drive scope_analysis.human_review_qualifies and human_review_reasoning. Qualifying human involvement under § 7001(e)(1) requires ALL THREE: (A) knows how to interpret the output, (B) reviews the output plus other relevant information, and (C) has authority to change the decision — applied BEFORE the decision is issued. If any element is "No", or the reviewer acts only after the decision, conclude the review does NOT qualify and Article 11 obligations apply.
-    - Decision profile → if "solely advertising" is "Yes", set triggers_significant_decision=false and explain Article 11 does not attach. Use the sole-factor answer to calibrate the § 7222(b)(3) access-response findings (the response must state whether the output was the sole factor).
+    - Human-involvement self-test → drive scope_analysis.human_review_qualifies and human_review_reasoning. Qualifying human involvement under § 7001(e)(1) requires ALL THREE: (A) knows how to interpret the output, (B) reviews the output plus other relevant information, and (C) has authority to change the decision — applied BEFORE the decision is issued. If any element is "No", or the reviewer acts only after the decision, conclude the review does NOT qualify and §§ 7200–7222 ADMT obligations apply.
+    - Decision profile → if "solely advertising" is "Yes", set triggers_significant_decision=false and explain the §§ 7200–7222 ADMT subchapter does not attach. Use the sole-factor answer to calibrate the § 7222(b)(3) access-response findings (the response must state whether the output was the sole factor).
     - Vendor diligence → expand third_party_responsibility_note: the business remains responsible; if the vendor makes the ADMT available to other businesses, note the § 7150(b)(6) / § 7153 recipient-facts obligation and flag any missing contract terms (audit, consumer-request assistance, opt-out propagation, appeal support, incident notification).
     - Validity & non-discrimination detail → when an employment/education exception (§ 7221(b)(2)-(3)) is claimed, use it for exception_qualifies and exception_reasoning: the exception requires evidence the ADMT works for its purpose AND does not unlawfully discriminate. Thin or vendor-only testing weakens the claim — say so.
     - Appeal mechanics → when the human-appeal exception (§ 7221(b)(1)) is claimed, test the three-part standard the same way as the human-involvement self-test.
@@ -170,7 +170,7 @@ When a trade-secret carve-out finding is generated:
 
     (i) TWO OPT-OUT ELEMENTS — use the precise subsection: opt-out CONFIRMATION MECHANISM → § 7221(h); opt-out LINK TITLE → § 7221(c)(1) (the title must state what the consumer is opting out of). Replace bare "§ 7221" in these contexts.
 
-    (j) SERVICE-PROVIDER CONTRACT GAPS → anchor to § 7051(a) IN ADDITION TO § 7221(n)(2). The missing contract terms (audit/testing rights, consumer-request assistance, ADMT opt-out propagation, appeal support, incident notification) are governed by § 7051(a) — in particular the requirement that the service provider assist the business in complying with its Article 11 ADMT obligations and the business's right to audit/test at least once every 12 months. Cite § 7051(a) for the contract-amendment recommendation; cite § 7221(n)(2) for the opt-out NOTIFICATION duty.
+    (j) SERVICE-PROVIDER CONTRACT GAPS → anchor to § 7051(a) IN ADDITION TO § 7221(n)(2). The missing contract terms (audit/testing rights, consumer-request assistance, ADMT opt-out propagation, appeal support, incident notification) are governed by § 7051(a) — in particular the requirement that the service provider assist the business in complying with its §§ 7200–7222 ADMT obligations and the business's right to audit/test at least once every 12 months. Cite § 7051(a) for the contract-amendment recommendation; cite § 7221(n)(2) for the opt-out NOTIFICATION duty.
 
     (k) ACCESS-RESPONSE ANTI-RETALIATION DISCLOSURE (access_antiretaliation) → cite 11 CCR § 7222(b)(4). § 7222(b)(4) is the DISCLOSURE duty inside the access response and requires BOTH (i) an explanation that the business is prohibited from retaliating against the consumer for exercising CCPA rights, AND (ii) instructions — including a direct link to the specific privacy-policy section for exercising those rights (a link to the top of the privacy policy does NOT satisfy this). Findings for access_antiretaliation MUST evaluate and, where deficient, remediate BOTH prongs. NEVER cite § 7222(k) for this disclosure element: § 7222(k) is the separate substantive PROHIBITION on retaliation and is not the disclosure duty. § 7220(c)(4) is the pre-use-notice counterpart and belongs to notice_antiretaliation, not access_antiretaliation. Cal. Civ. Code § 1798.125 is the statutory anti-retaliation prohibition and may be cited as a related authority.
 
@@ -184,7 +184,7 @@ When a trade-secret carve-out finding is generated:
 
 17. GUARDRAILS — preserve the adopted section architecture: § 7200 (scope), § 7220 (Pre-use Notice), § 7221 (opt-out), § 7222 (access), §§ 7150–7157 (risk assessments); ADMT defined at § 7001(e); human involvement at § 7001(e)(1); significant decision at § 7001(ddd); financial/lending services at § 7001(ddd)(1). Retain the "not legal advice" disclaimer and the December 31, 2027 / before-initiation deadlines under § 7155(b) and § 7155(a)(1).
 
-SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE: triggers_significant_decision is a definitive true/false determination, not a hedged one. Do not emit the boolean as true while also describing the finding as "conditional," "must be confirmed," or "assumed." If in-scope status genuinely depends on a service characteristic the intake does not specify, make the conservative determination, record the assumption ONCE in scope_analysis.summary (e.g. "This assessment assumes the service falls within an enumerated significant-decision category; if it does not, Article 11 obligations do not attach and these findings should be disregarded"), and keep every downstream finding consistent with the boolean. Never scatter a per-finding "this is conditional" caveat through an output whose boolean asserts true.
+SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE: triggers_significant_decision is a definitive true/false determination, not a hedged one. Do not emit the boolean as true while also describing the finding as "conditional," "must be confirmed," or "assumed." If in-scope status genuinely depends on a service characteristic the intake does not specify, make the conservative determination, record the assumption ONCE in scope_analysis.summary (e.g. "This assessment assumes the service falls within an enumerated significant-decision category; if it does not, §§ 7200–7222 ADMT obligations do not attach and these findings should be disregarded"), and keep every downstream finding consistent with the boolean. Never scatter a per-finding "this is conditional" caveat through an output whose boolean asserts true.
 
 FLAG ABSENCE, DO NOT ASSERT AN UNCONFIRMED PRACTICE: when the intake does not describe how an element is handled, flag the ABSENCE of documented information — do NOT assert that the business follows a specific non-compliant practice the intake never stated. For example, where the intake is silent on whether the access response links to the CCPA rights section, write "the intake does not document whether the response includes instructions and a direct link to the relevant rights section; this element cannot be assessed as compliant," NOT "the business directs consumers to the beginning of the policy without a direct link." Absence of confirmation is not evidence of a defective practice.
 
@@ -219,13 +219,13 @@ RECORD FIGURES ARE STATED, NOT ESTIMATED: a numeric value taken from the record 
 
 ONE VERDICT PER FINDING: each gap finding states its conclusion once and stands by it. Never follow a definitive assessment ('the link title does not identify the specific use with the specificity the cited provision contemplates') with a hedge that reopens it ('the adequacy of this title is borderline and should be assessed'). Where the position genuinely is borderline, say only that — state the standard, state why the item sits at the line, and identify the single fact that would resolve it. One verdict, one voice.
 
-THE CONDITION IS STATED ONCE, UP FRONT: where the assessment proceeds on a stated unresolved threshold (e.g. whether the service falls within an enumerated significant-decision category), state that condition ONCE, prominently, at the top of the findings ('This assessment proceeds on the assumption that …; if the business determines otherwise, the Article 11 findings below do not apply.'), and let individual findings proceed cleanly without each repeating the disclaimer. Findings may reference the condition ('subject to the scope condition above') but never restate it.
+THE CONDITION IS STATED ONCE, UP FRONT: where the assessment proceeds on a stated unresolved threshold (e.g. whether the service falls within an enumerated significant-decision category), state that condition ONCE, prominently, at the top of the findings ('This assessment proceeds on the assumption that …; if the business determines otherwise, the §§ 7200–7222 ADMT findings below do not apply.'), and let individual findings proceed cleanly without each repeating the disclaimer. Findings may reference the condition ('subject to the scope condition above') but never restate it.
 
 DEADLINES DISTINGUISH EXISTING FROM NEW PROCESSING — AND WARNINGS ARE PROSPECTIVE: state the two compliance clocks as two clean clauses: 'For processing already underway before January 1, 2026: by December 31, 2027. For processing commenced or materially changed on or after January 1, 2026: before the processing begins.' Never a compound sentence whose conditions can be read against each other. And phrase prospective obligations as forward guidance ('When consolidating notices, the business must retain the per-system specific-purpose, how-it-works, and alternative-process disclosures'), never as an accusation of an attempt not in evidence ('cannot use consolidation to simplify away …').`;
 
 export const ADMT_TOOL_MODULE: ToolModule = {
   identity:
-    "You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under the CPPA final regulations (11 CCR Article 11, §§ 7200–7222). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).",
+    "You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under the CPPA final regulations (11 CCR §§ 7200–7222, the ADMT subchapter). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).",
   citationFramework:
     "You author NO citations. Leave every `citation` field as the empty string \"\"; the system injects the canonical 11 CCR section from the citation registry post-generation. Never write any \"§\", section number, \"11 CCR § 7xxx\", or subsection like \"(b)(1)\" in ANY field (finding, remediation, enforcement_exposure, summary, citation, or elsewhere) — any authored citation is stripped. Refer to a provision only by its plain-English element name or as \"the cited provision.\"",
   outputMode: "strict-JSON",
@@ -262,7 +262,7 @@ ENUMERATED-CATEGORY COMPLETENESS: where a significant-decision determination pro
 
 CITE THE OBLIGATION, NOT THE DEFINITION: every documentation or remediation item cites the provision that IMPOSES the obligation (e.g. 11 CCR 7220(d)(1) or 7222(c)(1) for trade-secret carve-outs; 11 CCR 7221(n)(1) for the as-soon-as-feasibly-possible / 15-business-day cessation standard and 7221(n)(2) for service-provider notification — note 7221(m) is the separate PRE-initiation branch (business must not initiate processing) and imposes no 15-day timeline; 7222(b)(3)(A) for future-use disclosure). Definitional provisions (11 CCR 7001 subsections) are cited ONLY when the point being made is the meaning of a defined term — never as authority for an obligation. CONDITIONAL FINDINGS STAY CONDITIONAL: where a trigger or classification is assumption-dependent or unconfirmed by intake, every downstream finding that depends on it is labeled as contingent on that confirmation — never stated as a definitive gap; unconfirmed trigger elements are listed as conditional, not definite, and unanswered intake fields produce information_needed entries, not confirmed gaps.
 
-OUT-OF-SCOPE DETERMINATION IS CONDITIONAL PENDING BUSINESS CONFIRMATION: symmetric to the SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE rule for the conservative in-scope path. Where triggers_significant_decision is set to FALSE because the service does not fall within any of the five enumerated § 7001(ddd) categories (financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services), the scope_analysis.summary MUST state that this determination is CONDITIONAL and PENDING CONFIRMATION BY THE BUSINESS — not a definitive conclusion — and MUST name what the business must confirm (that the service does not have any downstream use in one of the five enumerated categories via a customer, partner, or integrator). Canonical phrasing: 'On the intake as supplied, the service is not identified as falling within any of the five enumerated § 7001(ddd) significant-decision categories, so Article 11 ADMT obligations are not triggered on this record. This scope determination is conditional and pending business confirmation — if the business (or a customer/partner using the ADMT output) determines the output IS in fact used for a decision concerning financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services, Article 11 obligations attach and these findings should be revisited.' Do NOT emit the out-of-scope determination as definitive language ('Article 11 obligations are not triggered' full stop) without the conditional-pending-confirmation clause; do NOT scatter per-finding conditional caveats — the condition is stated once in scope_analysis.summary and referenced elsewhere (per THE CONDITION IS STATED ONCE, UP FRONT).
+OUT-OF-SCOPE DETERMINATION IS CONDITIONAL PENDING BUSINESS CONFIRMATION: symmetric to the SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE rule for the conservative in-scope path. Where triggers_significant_decision is set to FALSE because the service does not fall within any of the five enumerated § 7001(ddd) categories (financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services), the scope_analysis.summary MUST state that this determination is CONDITIONAL and PENDING CONFIRMATION BY THE BUSINESS — not a definitive conclusion — and MUST name what the business must confirm (that the service does not have any downstream use in one of the five enumerated categories via a customer, partner, or integrator). Canonical phrasing: 'On the intake as supplied, the service is not identified as falling within any of the five enumerated § 7001(ddd) significant-decision categories, so the §§ 7200–7222 ADMT obligations are not triggered on this record. This scope determination is conditional and pending business confirmation — if the business (or a customer/partner using the ADMT output) determines the output IS in fact used for a decision concerning financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services, the §§ 7200–7222 obligations attach and these findings should be revisited.' Do NOT emit the out-of-scope determination as definitive language ('the §§ 7200–7222 obligations are not triggered' full stop) without the conditional-pending-confirmation clause; do NOT scatter per-finding conditional caveats — the condition is stated once in scope_analysis.summary and referenced elsewhere (per THE CONDITION IS STATED ONCE, UP FRONT).
 
 IMMEDIATE ACTIONS CARRY A CONSEQUENCES-OF-NON-COMPLIANCE NOTE: the priority_actions list, or the header text immediately preceding it, MUST include a brief note on the potential consequences of non-compliance next to any actions labelled 'IMMEDIATE' — the current list format states actions without stating what happens if they are not taken, which understates urgency. Canonical form of the note (emit once, at the top of priority_actions or as its introductory sentence — never per action, and cross-reference the enforcement-exposure summary rather than restating figures per the ENFORCEMENT EXPOSURE STATED ONCE rule): 'Failure to complete the IMMEDIATE actions below by the compliance deadlines cited (§ 7200(b) — January 1, 2027, for existing ADMT use; § 7155(a)(1) — before initiation, for new processing) exposes the business to CPPA administrative enforcement under Cal. Civ. Code § 1798.155 (per-violation penalties — see the enforcement-exposure summary above), and — for continuing violations — daily accrual until remediation is documented.' Do NOT elaborate beyond the note; the per-action deadline remains the operational lever. Do NOT cite Cal. Civ. Code § 1798.150 in this note — the CCPA private right of action attaches to unencrypted-PI breaches, not ADMT notice/assessment non-compliance.
 
@@ -300,9 +300,15 @@ CPPA-HF2 B — EVASIVE-PLACEHOLDER BAN: NEVER emit narrative substitutes for a r
 
 CPPA-HF2 D — APPENDIX / TEMPLATE COMPLETION LANGUAGE: appendix and sample_language blocks NEVER emit "[LEGAL COUNSEL NAME/FIRM]", "[LAW-FIRM NAME]", "signed by legal counsel", "complete this document with legal counsel before …", or any equivalent completion instruction that directs the reader to counsel. The page-level "not legal advice" disclaimer is separate and sufficient. Completion instructions in appendix templates address the implementer plainly in one imperative sentence and refer to organizational roles by function ("the individual authorised to sign attestations on behalf of the business"), never by a "legal counsel" placeholder. This applies to every appendix, sample-language template, attestation template, and completion-instruction line.
 
-CPPA-HF2 E — INTERNAL RULEBOOK ARTICLE-N RECAST (SELF-CHECK): this rulebook itself uses "Article 10" / "Article 11" shorthand internally to refer to the § 7150–§ 7157 risk-assessment subchapter and the § 7200–§ 7222 ADMT subchapter respectively. In OUTPUT prose, always render as "§§ 7200–7222 (the ADMT subchapter)" or "§§ 7150–7157 (the risk-assessment subchapter)" — never "Article 11" or "Article 10". This is a hard ban on output text; internal rule references above are for your grounding only.
+CPPA-HF2 E — INTERNAL RULEBOOK ARTICLE-N RECAST (SELF-CHECK): this rulebook has been recast under CPPA-HF3 scope A so that internal instruction lines refer to the § 7150–§ 7157 risk-assessment subchapter and the § 7200–§ 7222 ADMT subchapter by section number, not by "Article 10" / "Article 11" shorthand. In OUTPUT prose, always render as "§§ 7200–7222 (the ADMT subchapter)" or "§§ 7150–7157 (the risk-assessment subchapter)" — never "Article 11" or "Article 10". The h1_article_phrasing deterministic check enforces this against emitted text; do not defeat it.
 
-CPPA-HF2 F — INTAKE-VOCAB LEAK: raw intake field ids (q19_admt_description, q20_admt_opt_out, i1_processing_purpose, etc.) appear ONLY in the source_fields anchor, information_needed.field, or an equivalent technical-anchor context. Narrative prose refers to the same content by human phrasing ("the ADMT description", "the retention-period figure"). Sequences that read like pipeline vocabulary ("the audit-cohort determination", "the sensitive-PI determination resolved") NEVER appear in customer-facing prose — restate the conclusion in plain regulatory language.`,
+CPPA-HF2 F — INTAKE-VOCAB LEAK: raw intake field ids (q19_admt_description, q20_admt_opt_out, i1_processing_purpose, etc.) appear ONLY in the source_fields anchor, information_needed.field, or an equivalent technical-anchor context. Narrative prose refers to the same content by human phrasing ("the ADMT description", "the retention-period figure"). Sequences that read like pipeline vocabulary ("the audit-cohort determination", "the sensitive-PI determination resolved") NEVER appear in customer-facing prose — restate the conclusion in plain regulatory language.
+
+CPPA-HF3 B2 — INTERNAL-NOTE / ANNOTATION BLOCK BAN: never emit user-rendered output containing bracketed internal-annotation blocks such as "[INTERNAL NOTE: …]", "[INTERNAL: …]", "[NOTE TO REVIEWER: …]", "[EDITOR NOTE: …]", "[TODO: …]", "[FOR INTERNAL USE: …]", or any equivalent bracketed meta-annotation directed at an internal audience. Substantive content that the model would otherwise place inside such a block (e.g. a HIPAA-overlay coordination point, a cross-team routing suggestion) is rendered as normal advisory prose in the appropriate field, framed as forward guidance to the business ("Where the ADMT is used in a HIPAA-regulated context, coordinate the access-response workflow with the organization's health-information management function so covered-entity obligations are addressed alongside § 7222 obligations"). No bracketed internal notes anywhere in output.
+
+CPPA-HF3 B3 — TEMPLATE COMPLETION LANGUAGE, EXPANDED (SUPPLEMENTS CPPA-HF2 D): appendix, sample-language, and template blocks NEVER emit directive completion instructions that (a) reference internal roles or functions by proper name or organizational unit ("Stratum's ADMT access response procedures manual", "Veridian's formal trade-secret designation"), (b) direct the implementer to complete bracketed components "based on" a specific internal determination the tool itself did not verify ("the bracketed components in item 1 must be completed based on [X]'s formal trade-secret designation before the policy is issued"), or (c) address the implementer with the imperative "Incorporate this policy into …" naming a specific manual, procedure, or team. Rewrite as plain advisory prose that describes what the receiving business must do in generic operational terms ("Complete the bracketed components in item 1 once the business has formally designated the withheld information as a trade secret under Civil Code § 3426.1(d); the completed policy is then filed with the business's ADMT access-response procedures."). Do not name specific manuals, teams, or persons that the tool did not receive as intake facts.
+
+CPPA-HF3 E — ADVISORY CLOSE MUST NAME THE SPECIFIC FACT, FIELD, OR DOCUMENT (SUPPLEMENTS advisory-voice rule E5): every advisory close (canonical closes "further clarification is advisable" / "further internal investigation is advisable" and their variants including "should be confirmed", "further investigation is advisable", "warrants further review") NAMES the specific fact, field, document, or determination to be confirmed. Bare closes without a named object are non-compliant. Correct form: "further internal investigation is advisable to confirm whether the [named field or document] establishes [named fact]"; "the [named document] should be confirmed to determine whether [named determination]". The E5 deterministic check enforces this.`,
   languageVariant: "american",
 };
 
@@ -427,6 +433,22 @@ Deno.serve(async (req) => {
   // Return 202 immediately; run generation in background
   // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
   EdgeRuntime.waitUntil((async () => {
+   // CPPA-HF3 scope F — wall-clock termination guard. If pipeline exceeds this
+   // budget it aborts with a diagnostic instead of burning the full function
+   // budget. 900s covers 2× 450s Anthropic calls plus overhead; the observed
+   // 1204s non-termination sat outside this envelope.
+   const PIPELINE_BUDGET_MS = 900_000;
+   const pipelineStart = Date.now();
+   const budgetTimer = setTimeout(() => {
+     console.error(`[run-admt-checker] HF3-F: pipeline exceeded ${PIPELINE_BUDGET_MS}ms budget — forcing terminal error`);
+     try {
+       lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+         status: "error",
+         report_data: { error: "pipeline_budget_exceeded", elapsed_ms: Date.now() - pipelineStart, budget_ms: PIPELINE_BUDGET_MS, phase: "hf3_f_termination_guard" },
+       }, { fn: "run-admt-checker", phase: "hf3_f_budget_exceeded" });
+       failFunctionRun(supabase, fnRun, new Error("pipeline_budget_exceeded"), { metadata: { assessment_id, budget_ms: PIPELINE_BUDGET_MS } });
+     } catch (_) { /* swallow — best-effort diagnostic write */ }
+   }, PIPELINE_BUDGET_MS);
    try {
     const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
     if (!procWrite.ok) {
@@ -1033,7 +1055,7 @@ Return this JSON structure exactly:
     }
 
     // QB11-3: Step-2 hard rule enforcement — when triggers_significant_decision is false,
-    // the three Article 11 gap arrays MUST be empty (rule text already mandates this; this
+    // the three ADMT gap arrays (§§ 7200–7222) MUST be empty (rule text already mandates this; this
     // makes it structural).
     function enforceScopeGateOnGaps(report: any): any {
       try {
@@ -1080,7 +1102,7 @@ Return this JSON structure exactly:
     });
 
     // CPPA-HF2 I3 — prompt_version _meta stamp on ADMT reports.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf2@2026-07-20"), build_stamp: BUILD_STAMP };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf3@2026-07-19"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
@@ -1113,6 +1135,9 @@ Return this JSON structure exactly:
       report_data: { error: String(e) },
     }, { fn: "run-admt-checker", phase: "terminal_error_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+   } finally {
+    clearTimeout(budgetTimer);
+    console.log(`[run-admt-checker] HF3-F: pipeline elapsed=${Date.now() - pipelineStart}ms budget=${PIPELINE_BUDGET_MS}ms`);
    }
   })());
 
