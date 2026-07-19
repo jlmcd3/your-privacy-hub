@@ -16,6 +16,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
+import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+
 
 export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
 
