@@ -219,19 +219,45 @@ const USStateComparison = () => {
           Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
         </p>
 
-        <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p>
-            <span className="font-medium text-foreground">Last reviewed:</span>{" "}
-            {new Date((comparisonData as any).lastReviewed).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-            {" · "}
-            <span className="font-medium text-foreground">Next review due:</span>{" "}
-            {new Date((comparisonData as any).nextReviewDue).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-            {" · "}Reviewed {(comparisonData as any).reviewCadence}.
-          </p>
+        <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+          <div>
+            {(() => {
+              if (rollup.materialChangeCount > 0) {
+                return (
+                  <p>
+                    <span className="font-medium text-destructive">Comparison flagged for review:</span>{" "}
+                    {rollup.materialChangeCount} state{rollup.materialChangeCount === 1 ? "" : "s"} with a
+                    reported material change (newly enacted law, amendment, effective-date change, or repeal).
+                    Fallback anchor: {formatDateOnlyLong(jsonLastReviewed)}.
+                  </p>
+                );
+              }
+              if (rollup.fullyReviewed && rollup.cycleCompletedAt) {
+                return (
+                  <p>
+                    <span className="font-medium text-foreground">Fully reviewed as of:</span>{" "}
+                    {formatTimestampDateOnly(rollup.cycleCompletedAt)}
+                    {" · "}
+                    <span className="font-medium text-foreground">Next review due:</span>{" "}
+                    {formatDateOnlyLong(jsonNextReviewDue)}
+                    {" · "}Reviewed every {REVIEW_CADENCE_DAYS} days.
+                  </p>
+                );
+              }
+              return (
+                <p>
+                  <span className="font-medium text-foreground">Partially reviewed as of:</span>{" "}
+                  {formatDateOnlyLong(jsonLastReviewed)} — {rollup.reviewedInCycleCount} of{" "}
+                  {rollup.totalEnacted} states verified within the current {REVIEW_CADENCE_DAYS}-day cycle.
+                </p>
+              );
+            })()}
+          </div>
           <p className="italic">
             Spot an outdated entry? <Link to="/contact" className="underline hover:text-accent">Let us know</Link>.
           </p>
         </div>
+
 
 
       </div>
