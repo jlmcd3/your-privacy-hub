@@ -830,7 +830,23 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify(finalResult),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    await finishFunctionRun(supabase, fnRun, {
+      status: errors > 0 ? "partial" : "success",
+      sourceTable: "enforcement_actions",
+      metadata: {
+        dry_run: dryRun, mode, source_group: sourceGroupParam, source: sourceKeyParam,
+        inserted, skipped, errors, legacy_updated: legacyUpdated,
+        pdf_found: pdfFound, pdf_missing: pdfMissing,
+      },
+    });
+
+    return new Response(JSON.stringify(finalResult),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (err) {
+    await failFunctionRun(supabase, fnRun, err);
+    console.error("ingest-gov-enforcement fatal:", err);
+    return new Response(JSON.stringify({ error: (err as Error).message ?? String(err) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 });
 
