@@ -1071,7 +1071,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const irSystem: SystemBlock[] = buildSystemContent({
           toolModule: IR_TOOL_MODULE,
           currentDate: today,
-          injected: registryInjections,
+          injected: registryInjections + "\n\n" + ADVISORY_VOICE_RULES,
           cache: true,
         });
 
