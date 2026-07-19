@@ -471,7 +471,7 @@ Deno.serve(async (req) => {
 <div class="meta">${escapeHtml(businessName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${states.length} state${states.length === 1 ? "" : "s"} covered</div>
 ${states.length < 10
   ? `<div style="background:#fff8e1;border:1px solid #f59e0b;border-radius:0.375rem;padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#92400e;">
-      <strong>Scope note:</strong> This suite covers ${states.length} state${states.length === 1 ? "" : "s"} (${states.map((s) => escapeHtml(s.state_name)).join(", ")}). As of 2024–2026, approximately 20 US states have enacted comprehensive privacy laws. This document does not constitute a complete US national privacy notice — consult qualified counsel to determine which additional state laws apply to your organisation.
+      <strong>Scope note:</strong> This suite covers ${states.length} state${states.length === 1 ? "" : "s"} (${states.map((s) => escapeHtml(s.state_name)).join(", ")}). As of 2024–2026, approximately 20 US states have enacted comprehensive privacy laws. This document does not constitute a complete US national privacy notice; the applicability of additional state laws depends on where your organisation directs business and processes residents' personal information, and further clarification is advisable.
     </div>`
   : ""
 }
