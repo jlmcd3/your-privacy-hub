@@ -180,7 +180,7 @@ export default function JurisdictionsHub() {
             <p className="text-xs text-brand-mist text-center mt-3">
               Some small jurisdictions (e.g. Singapore, Luxembourg city-state areas) are
               tracked in our database but are too small to render at this map scale.
-              Use Grid view or search to find them.
+              Use the search field above to find them by name.
             </p>
           </div>
 
