@@ -45,7 +45,11 @@ interface Body {
   retention?: string;
   hasSubProcessors: boolean;
   subProcessorList?: string;
-  legalFramework?: string; // ignored (derived from documentType); accepted for BC
+  // HF1 Task 3 — legalFramework accepted as an object ({ primary, additionalFrameworks[] })
+  // from the DPA intake; legacy string form remains accepted (BC only, framework is
+  // still derived from documentType). additionalFrameworks[] is READ from intake and
+  // surfaced into the prompt via renderAdditionalFrameworksBlock.
+  legalFramework?: string | { primary?: string; additionalFrameworks?: string[] };
   auditRights?: string;
   includeTransferClause?: boolean;
   transferMechanism?: string;
@@ -153,6 +157,24 @@ function detectBlacklistViolations(text: string): SpecViolation[] {
     severity: "hard" as const,
     detail: `"${h.match}" @ ${h.path || "$"} — "${h.context.trim().slice(0, 80)}"`,
   }));
+}
+
+// HF1 Task 2 — sub-processor contradiction detector.
+// When hasSubProcessors===false, the model must NOT emit a sub-processor
+// authorisation framework (Schedule 1 / general-authorisation list). Fires
+// HARD violations that merge into the same `extras` collector.
+const RE_SCHEDULE1_SUBPROC =
+  /\bSchedule\s*1\b(?:[^\n]{0,80}(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors))/i;
+const RE_GENERAL_AUTH_SUBPROC =
+  /\bgeneral\s+authorisation\b[^.\n]{0,120}\bsub[- ]?processor/i;
+function detectSubProcessorContradiction(text: string, hasSubProcessors: boolean): SpecViolation[] {
+  if (hasSubProcessors) return [];
+  const hits: SpecViolation[] = [];
+  const m1 = text.match(RE_SCHEDULE1_SUBPROC);
+  if (m1) hits.push({ code: "sub_processor_framework_when_disabled", severity: "hard", detail: `Schedule-1/list-of-sub-processors framework emitted when hasSubProcessors=false (match: "${m1[0].slice(0, 120)}")` });
+  const m2 = text.match(RE_GENERAL_AUTH_SUBPROC);
+  if (m2) hits.push({ code: "sub_processor_framework_when_disabled", severity: "hard", detail: `general-authorisation sub-processor clause emitted when hasSubProcessors=false (match: "${m2[0].slice(0, 120)}")` });
+  return hits;
 }
 
 
@@ -527,20 +549,32 @@ ${_fallbackLiteral}
 <<<NOTE_END>>>`
       : "";
 
+    // HF1 Task 3 — additional frameworks are surfaced verbatim from the record so
+    // the drafter must address each one (incorporate where anchors exist, or
+    // acknowledge with a NOTE FOR LEGAL REVIEW placeholder). Legacy string-form
+    // legalFramework values carry no additional frameworks.
+    const _lfObj = (body.legalFramework && typeof body.legalFramework === "object") ? body.legalFramework as { additionalFrameworks?: string[] } : null;
+    const _additionalFrameworks = Array.isArray(_lfObj?.additionalFrameworks) ? (_lfObj!.additionalFrameworks as string[]).filter((x) => typeof x === "string" && x.trim().length) : [];
+    const additionalFrameworksLine = _additionalFrameworks.length
+      ? `\nAdditional frameworks named on the record: ${_additionalFrameworks.map((f) => `"${f}"`).join(", ")}`
+      : "";
+
     const PARTIES_BLOCK = `PARTIES
 Controller: ${body.controllerName} (${body.controllerJurisdiction})
 Processor: ${body.processorName} (${body.processorJurisdiction})
 Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
 Retention: ${body.retention}
-Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None"}
-Audit rights: ${body.auditRights}${frameworkFallbackNote}`;
+Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None — the Controller has confirmed on the record that no sub-processors are engaged for the Services"}
+Audit rights: ${body.auditRights}${additionalFrameworksLine}${frameworkFallbackNote}`;
 
 
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
 - SPECULATIVE-CLAUSE BAN (REBUILD-DPA T2): the ONLY driver for a children's / COPPA / FERPA / Recital 38 / GDPR Article 8 module is the record establishing children's data in the data categories. Do NOT draft a children's-data module (or any COPPA/FERPA content, or a Recital 38 / Article 8 rationale) on any other basis — including "the services could conceivably involve minors" or "in the event children's data is collected in future". Likewise, do NOT draft an AI/ML-training scenario, HIPAA BAA / PHI content, or GLBA/FCRA content unless the record establishes the corresponding sector (services describe model training / ML training / inference platform for the AI clause; hasHealthData true for HIPAA; hasFinancialData true for GLBA/FCRA). The record is the ONLY basis for any sector-specific module. If the record is silent, the document is silent on that module — no hedged, "in the event", or "should the Processor…" alternative-scenario clauses. Speculative-clause content in prose is a deterministic HARD violation and will regenerate the document.
 - DRAFTING-NOTE DISCIPLINE (REBUILD-DPA T3): every sentence inside an operative clause, sub-clause, definition, schedule entry, or annex body asserts a record fact or a drafted obligation. Reasoning, inference, role doubts, legal-form analyses, framework choices, and consistency observations DO NOT belong inside operative text. Their only homes are (i) recitals in Section 1 (Parties and Recitals) and (ii) a "NOTE FOR LEGAL REVIEW: …" block placed immediately after the party identification or the affected recital. The legal-form flag pattern already used in this document is the model — follow that voice for every inference or record-grounded observation. Inside notes and recitals, refer to the intake as "the record"; never say "the intake data", "the questionnaire", "the input", or "the form".
-- FF-DPA nd2 — ENGAGED-STATES DISCIPLINE: US state privacy statutes (CCPA/CPRA, VCDPA, CTDPA, Colorado Privacy Act, TDPSA, FDBR, Washington MHMDA, Illinois BIPA, Oregon CPA, Indiana/Iowa/Tennessee/Montana/Minnesota/Utah/Delaware acts, New York SHIELD Act, Massachusetts DPA) may only be asserted as OPERATIVE where the corresponding state appears in the engaged US states derived from the record (controllerJurisdiction / processorJurisdiction). Do not cite a non-engaged state's statute as governing this DPA — non-engaged mentions are permitted only inside a general applicable-law savings clause ("…and any other applicable state privacy laws"), a clearly comparative sentence ("unlike the CCPA, …"), or a NOTE FOR LEGAL REVIEW / recital / comparative appendix. Operative-text assertion of a non-engaged state statute is a deterministic HARD violation and will regenerate the document.
+- FF-DPA nd2 — ENGAGED-STATES DISCIPLINE (HF1 Task 1 tightened): US state privacy statutes (CCPA/CPRA, VCDPA, CTDPA, Colorado Privacy Act, TDPSA, FDBR, Washington MHMDA, Illinois BIPA, Oregon CPA, Indiana/Iowa/Tennessee/Montana/Minnesota/Utah/Delaware acts, New York SHIELD Act, Massachusetts DPA) may only be asserted as OPERATIVE where the corresponding state appears in the engaged US states derived from the record (controllerJurisdiction / processorJurisdiction). Do NOT enumerate or summarise statutes beyond the engaged states in ANY form — including inside a definitions block, an obligations mapping, a purpose-scope clause, or trailing an "and any other applicable state privacy laws" savings tail. The only permitted homes for a non-engaged state's statute mention are (i) an explicitly comparative sentence within an operative clause ("unlike the CCPA, …") and (ii) a NOTE FOR LEGAL REVIEW block, a Recital, or a labelled Comparative Appendix. A savings clause is permitted ONLY in its canonical generic form — "The Processor shall comply with all applicable state privacy laws" — with NO enumerated state names or statute abbreviations. Emitting a non-engaged state statute anywhere else in operative text (including definitions, obligations blocks, and general-applicability sentences that name the statute) is a deterministic HARD violation and will regenerate the document.
+- HF1 Task 2 — SUB-PROCESSOR AUTHORISATION SCOPE: where the record's Sub-processors field states "None — the Controller has confirmed on the record that no sub-processors are engaged for the Services", the DPA must draft the sub-processor section to state that no sub-processors are engaged as of the Effective Date and that any future engagement requires the Controller's prior specific written authorisation obtained before the engagement commences. Do NOT draft a general-authorisation framework, a Schedule 1 / Schedule A list-of-sub-processors, a notice-with-objection right against a pre-authorised list, or any prose that presupposes an existing list — those clauses are prohibited for this configuration. Emitting a Schedule-1 list-of-sub-processors or general-authorisation framework when the record confirms no sub-processors are engaged is a deterministic HARD violation and will regenerate the document.
+- HF1 Task 3 — ADDITIONAL FRAMEWORK FIDELITY: every framework listed in "Additional frameworks named on the record" above MUST be addressed in the document. If the drafter has verified anchors for the named framework, incorporate its material obligations in the appropriate operative clause and cite by section number only. If the drafter does not have verified anchors, add a NOTE FOR LEGAL REVIEW in Section 1 in the exact form: "NOTE FOR LEGAL REVIEW — confirm obligations under {named framework}. The record names this framework as applicable; counsel should confirm the {named framework} obligations applicable to the processing described in this DPA and adapt this Agreement as required before execution." Follow that note with a "[TO BE COMPLETED: confirm obligations under {named framework}]" pointer sited in the clause the framework would most naturally engage. Never silently substitute another framework for a named one, never drop a named framework from the analysis, and never re-name a framework the record supplies verbatim.
 - FF-DPA nd3 — GEOGRAPHIC-SCOPE / MARKET RECORD-GROUNDING: every geographic-scope or market characterisation the document makes (e.g. "the Parties operate primarily in the EU", "the Processor's customer base is predominantly US", "cross-border transfers are limited to EEA↔UK flows", "operations are concentrated in [region]") must be traceable to a specific field of the record — the Parties' jurisdictions, the services description, or the data-categories entries. If the record does not supply the basis, the document is silent on that scope characterisation or notes the fact is unresolved in a NOTE FOR LEGAL REVIEW; the drafter may not infer market or operational-scope facts from priors, general knowledge, or the sector name.
 - Use professional legal drafting conventions throughout
 - CONTROLLER/PROCESSOR ROLE VERIFICATION: Before drafting, assess whether the stated Controller-Processor relationship is accurate for the described services. For the following sectors and service types, the model may not be a simple processor — include a recital noting the role determination and recommending legal review: (a) AdTech/programmatic advertising — the ad tech vendor may be an independent controller or joint controller for audience data, bidding decisions, or cross-client profiling; (b) Data brokers/data enrichment — the data broker typically acts as an independent controller, not a processor; a DPA may be insufficient and a controller-to-controller data sharing agreement may be more appropriate; (c) AI/ML model training — if the Processor uses the Controller's data to train models benefiting other clients, it may be acting as an independent controller for that purpose; (d) Social media platforms — platform-level data use for targeting, analytics, or product improvement may constitute independent controllership. For each of these sectors, add a recital in Section 1 stating: "The Parties acknowledge that the role characterisation of [Processor name] as a processor under GDPR Article 28 has been assumed for the purposes of this DPA and should be confirmed with qualified legal counsel, particularly if [Processor name] uses Personal Data for purposes beyond the immediate Services described herein."
@@ -654,8 +688,9 @@ Output format:
 - AS → Norway or Denmark.
 - NV → Netherlands or Belgium.
 - PLC → England and Wales or Ireland.
-If a detected mismatch exists between the entity's legal form and the stated incorporation jurisdiction, include a flagging recital in Section 1 (Parties and Recitals) immediately after the party identification:
-"NOTE FOR LEGAL REVIEW: The [Controller/Processor] entity [name] uses the legal form [form], which is typically associated with [expected jurisdiction]. The stated incorporation jurisdiction ([stated jurisdiction]) appears inconsistent with this legal form. The parties should confirm the correct incorporation jurisdiction and legal form before executing this agreement."
+If a detected mismatch exists between the entity's legal form and the stated incorporation jurisdiction, include a NOTE FOR LEGAL REVIEW in Section 1 (Parties and Recitals) immediately after the party identification in counsel voice — state the verification ask WITHOUT reasoning-chain analysis of the legal-form suffix, the "typically associated with" mapping, or an "appears inconsistent with" conclusion. Use exactly this template (substituting the party role, name, and jurisdiction verbatim from the record):
+"NOTE FOR LEGAL REVIEW — confirm the [Controller/Processor]'s jurisdiction of incorporation: the record identifies [name] with jurisdiction '[stated jurisdiction]'; counsel should confirm the correct incorporation jurisdiction before execution."
+Do NOT emit a suffix-decoding chain ("'Oy' (Osakeyhtiö), which is consistent with Finnish incorporation"), a legal-form mapping table, or an "appears inconsistent" phrasing anywhere in the note; the verification ask stands on its own.
 13. CHILD-NUMBERING DISCIPLINE (2.4a). A heading number is never reused by its own child items — children of a numbered heading are numbered heading.1, heading.2, …
 14. SUB-PROCESSOR VERIFICATION CONSOLIDATION (2.4b). Where the same verification instruction applies to every listed Sub-processor, state it once in a closing subsection covering all of them instead of repeating verbatim per entry.
 15. FORMAL CONTRACT LANGUAGE ONLY (2.4c). Headings and body use only formal contract language — no meta-commentary headings. Do NOT emit any heading of the form "Transfer Status — No Redundant Restatement" or any similar meta-commentary. Replace such a heading with a formal cross-reference: "International Transfers. The international transfer provisions applicable to this DPA are set out in Section 10."
@@ -1112,7 +1147,10 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         detected.procCanonical,
       ]);
       const engagedStateViolations = detectNonEngagedStateAssertions(parsed.dpa_text, engagedStates);
-      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations];
+      // HF1 Task 2 — sub-processor contradiction (Schedule-1 / general-authorisation
+      // framework where hasSubProcessors===false).
+      const subprocContradictions = detectSubProcessorContradiction(parsed.dpa_text, !!body.hasSubProcessors);
+      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions];
       if (extras.length) {
         lint.violations.push(...extras);
         try {
@@ -1241,7 +1279,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
             detected.procCanonical,
           ]);
           const engagedStateViolations2 = detectNonEngagedStateAssertions(retryParsed.dpa_text, engagedStates2);
-          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2];
+          const subprocContradictions2 = detectSubProcessorContradiction(retryParsed.dpa_text, !!body.hasSubProcessors);
+          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2, ...subprocContradictions2];
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
