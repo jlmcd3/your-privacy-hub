@@ -17,6 +17,7 @@ import InformationNeededBlock from "@/components/InformationNeededBlock";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check } from "lucide-react";

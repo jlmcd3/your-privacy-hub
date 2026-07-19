@@ -17,6 +17,7 @@ import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { adminDelete } from "@/lib/adminDelete";
 import {
