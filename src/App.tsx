@@ -221,7 +221,7 @@ const App = () => (
             <Route path="/lia-tool" element={<Navigate to="/li-assessment" replace />} />
             <Route path="/governance" element={<Navigate to="/governance-assessment" replace />} />
             <Route path="/registration-documents" element={<Navigate to="/registration-manager" replace />} />
-            <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
+            <Route path="/enforcement-intelligence/:id" element={<LegacyEnforcementRedirect />} />
             <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
             <Route path="/us-privacy-laws/:slug" element={<USStateLawPage />} />
             <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
