@@ -220,3 +220,35 @@ Deno.test("COUNSEL-VOICE-1B: extractProseFromReport skips reserved keys", async 
   assert(prose.includes("Consult your attorney"), "should include body strings");
   assert(!prose.includes("should-be-skipped"), "should skip _meta");
 });
+
+// ─── CV1-FF: rulebook prohibition on NOTE FOR LEGAL REVIEW emission ─────
+
+Deno.test("CV1-FF: DPA + IR rulebooks contain zero NOTE-FOR-LEGAL-REVIEW emission instructions", async () => {
+  const files = [
+    new URL("../generate-dpa/index.ts", import.meta.url),
+    new URL("../generate-ir-playbook/index.ts", import.meta.url),
+  ];
+  const badges = /NOTE FOR LEGAL REVIEW/i;
+  // A line is an "instruction context" if it mentions the retired heading
+  // and is NOT explicitly a prohibition / comment / description of prior state.
+  const isExempt = (line: string) =>
+    /\/\//.test(line) ||               // comment marker
+    /Do NOT emit/i.test(line) ||
+    /NEVER emit/i.test(line) ||
+    /retired heading is prohibited/i.test(line) ||
+    /is a customer-facing/i.test(line) || // FF-DPA nd1 comment
+    /placeholder\)/i.test(line);          // legacy string-form comment
+
+  for (const url of files) {
+    const src = await Deno.readTextFile(url);
+    const offenders = src.split("\n")
+      .map((line, i) => ({ line, no: i + 1 }))
+      .filter(({ line }) => badges.test(line) && !isExempt(line));
+    assertEquals(
+      offenders.length,
+      0,
+      `Rulebook in ${url.pathname} still emits NOTE FOR LEGAL REVIEW instructions:\n` +
+        offenders.map((o) => `  L${o.no}: ${o.line.trim().slice(0, 200)}`).join("\n"),
+    );
+  }
+});

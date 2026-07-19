@@ -387,8 +387,8 @@ export function MethodologySection({
           </p>
           <p className="text-muted-foreground mt-1">
             All legal statements derive from the retrieved authorities above;
-            items marked [FILL-IN] had no on-point authority and require
-            counsel review.
+            items marked [FILL-IN] had no on-point authority and additional
+            information is required.
           </p>
         </div>
       </div>

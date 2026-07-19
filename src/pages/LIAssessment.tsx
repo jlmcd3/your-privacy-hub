@@ -497,7 +497,7 @@ const LIAssessment = () => {
                 <strong>What's next.</strong> The preliminary signal cannot tell you whether <em>your specific facts</em> pass the
                 necessity and balancing tests — that requires the deeper questions on safeguards, reasonable expectations,
                 data minimisation, and harm severity. Continue to the full assessment to capture those facts and produce a
-                report you can review with counsel.
+                report grounded in your record.
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-brand-cloud">

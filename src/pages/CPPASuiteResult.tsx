@@ -133,7 +133,7 @@ function RiskReportBody({ row }: { row: any }) {
       )}
 
       <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-        ⚠️ This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.
+        ⚠️ This compliance framework report does not constitute legal advice; additional information may be required to confirm findings against your specific facts.
       </section>
     </div>
   );

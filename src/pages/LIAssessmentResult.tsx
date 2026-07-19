@@ -86,7 +86,7 @@ const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any
         );
       })}
       <p className="text-[10px] text-muted-foreground italic mt-1 leading-relaxed">
-        Enforcement citations are drawn from enforcement actions tracked by EUP on a regular basis. Actual enforcement actions can lag publication, so please review primary sources and consult qualified legal counsel before relying on any regulatory position.
+        Enforcement citations are drawn from enforcement actions tracked by EUP on a regular basis. Actual enforcement actions can lag publication; further clarification against primary sources is advisable before relying on any regulatory position.
       </p>
     </div>
   );
@@ -330,7 +330,7 @@ const LIAssessmentResult = () => {
                     ))}
                   </ul>
                   <p className="text-xs text-red-700 dark:text-red-400 mt-3">
-                    These issues must be resolved before you can lawfully rely on legitimate interest as a processing basis. Consult qualified legal counsel before proceeding.
+                    These issues must be resolved before you can lawfully rely on legitimate interest as a processing basis; additional information is required before proceeding.
                   </p>
                 </section>
               )}
