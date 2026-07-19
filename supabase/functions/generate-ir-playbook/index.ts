@@ -951,9 +951,15 @@ ${formatEnforcementContext(enforcement_context)}
 
 CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}${edpbGuidelineBlock}${caBreachBlock}`;
 
-        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        // IR-HF1 T1 (v3.7): PROMPT_PART_A/B/C are now pure INSTRUCTION blocks.
+        // The intake reference "${INTAKE_BLOCK}" that previously lived inside each
+        // constant was removed — the intake is delivered to the model separately
+        // via a sentinel-wrapped USER message (see generatePart below), so that
+        // the meta-instruction text and the incident-fact content ride distinct
+        // channels of the request. The model receives INSTRUCTIONS as a system
+        // block and INTAKE as user content.
+        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident. Use the incident facts supplied in the accompanying user turn (delimited by <<<INTAKE_BEGIN>>> / <<<INTAKE_END>>> sentinels); do NOT echo those sentinels or any of the meta-instructions in this system block in your output.
 
-${INTAKE_BLOCK}
 
 Generate ONLY the following three sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 4, 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts B and C, since all three parts are generated from the same incident facts and system instructions.
 
