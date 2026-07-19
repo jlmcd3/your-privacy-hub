@@ -169,9 +169,13 @@ const EDITORIAL_TOOLS = new Set([
 ]);
 const isEditorial = (tool: string) => EDITORIAL_TOOLS.has(tool);
 function weightsFor(tool: string) {
+  // GRADER-CAL-1 A1 — formatting axis carries ZERO weight for every tool.
+  // The 5pp from the non-editorial vector rolls into hallucination so leaks
+  // (recategorized to hallucination) and unsupported-business-claim defects
+  // exert stronger scoring pull. Overall still sums to 1.00.
   return isEditorial(tool)
     ? { accuracy: 0.35, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0 }
-    : { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+    : { accuracy: 0.30, citation: 0.25, hallucination: 0.25, analysis: 0.15, intelligence: 0.05, formatting: 0 };
 }
 
 
@@ -772,8 +776,8 @@ const RUBRIC_GENERAL: RubricCheck[] = [
     description: "Document asserts facts about the business that are not in the intake (invented users, revenue, jurisdictions, etc.)." },
   { id: "rubric_actionability",             dimension: "intelligence",  severity: "medium",
     description: "Recommendations are not actionable for a real compliance professional (vague, no owner, no trigger)." },
-  { id: "rubric_internal_reasoning_leak",   dimension: "formatting",    severity: "high",
-    description: "Internal AI reasoning/meta-commentary visible in customer-facing text (\"as an AI\", \"based on the provided\", \"my analysis\")." },
+  { id: "rubric_internal_reasoning_leak",   dimension: "hallucination", severity: "high",
+    description: "Internal AI reasoning/meta-commentary visible in customer-facing text (\"as an AI\", \"based on the provided\", \"my analysis\"). Scored under hallucination per GRADER-CAL-1 A1. NEVER fires on \"NOTE FOR LEGAL REVIEW — <topic>\" blocks (designed counsel-voice product output, not model self-narration)." },
   { id: "rubric_citation_misapplied",       dimension: "citation",      severity: "high",
     description: "A real cited section is applied to the wrong proposition (right citation, wrong claim)." },
 ];
