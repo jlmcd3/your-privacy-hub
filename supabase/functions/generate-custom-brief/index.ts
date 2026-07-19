@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { ADVISORY_VOICE_RULES } from "../_shared/advisory-voice.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 
 // Robustly parse a JSON object from an LLM response, tolerating code fences,
