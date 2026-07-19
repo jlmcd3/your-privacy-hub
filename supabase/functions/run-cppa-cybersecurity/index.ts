@@ -1343,7 +1343,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf2@2026-07-20"), build_stamp: BUILD_STAMP };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf3@2026-07-19"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
