@@ -257,5 +257,6 @@ export function runAdmtHf1Checks(text: string): FormatFinding[] {
     ...checkH3AdmtCitationDepth(text),
     ...checkH4EvasivePlaceholder(text),
     ...checkH5InternalNoteBlock(text),
+    ...checkH6AdmtGoverningAnchor(text),
   ];
 }
