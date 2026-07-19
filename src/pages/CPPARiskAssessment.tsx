@@ -711,7 +711,7 @@ export default function CPPARiskAssessment() {
             "Covers the risk-assessment obligation in Article 10 of the CCPA regulations (11 CCR §§ 7150–7157).",
             "Your intake is validated before generation; contradictions are flagged with citations, never resolved for you.",
             "Output: a Part A stakeholder summary and a Part B full assessment record.",
-            "This tool documents your record — it does not provide legal advice; review with counsel before relying on it.",
+            "This tool documents your record — it is an analytical aid, not legal advice.",
           ]}
         />
         <IntakeGuidance>Where a field asks you to describe something, be specific and complete: name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
