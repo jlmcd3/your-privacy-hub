@@ -433,6 +433,22 @@ Deno.serve(async (req) => {
   // Return 202 immediately; run generation in background
   // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
   EdgeRuntime.waitUntil((async () => {
+   // CPPA-HF3 scope F — wall-clock termination guard. If pipeline exceeds this
+   // budget it aborts with a diagnostic instead of burning the full function
+   // budget. 900s covers 2× 450s Anthropic calls plus overhead; the observed
+   // 1204s non-termination sat outside this envelope.
+   const PIPELINE_BUDGET_MS = 900_000;
+   const pipelineStart = Date.now();
+   const budgetTimer = setTimeout(() => {
+     console.error(`[run-admt-checker] HF3-F: pipeline exceeded ${PIPELINE_BUDGET_MS}ms budget — forcing terminal error`);
+     try {
+       lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+         status: "error",
+         report_data: { error: "pipeline_budget_exceeded", elapsed_ms: Date.now() - pipelineStart, budget_ms: PIPELINE_BUDGET_MS, phase: "hf3_f_termination_guard" },
+       }, { fn: "run-admt-checker", phase: "hf3_f_budget_exceeded" });
+       failFunctionRun(supabase, fnRun, new Error("pipeline_budget_exceeded"), { metadata: { assessment_id, budget_ms: PIPELINE_BUDGET_MS } });
+     } catch (_) { /* swallow — best-effort diagnostic write */ }
+   }, PIPELINE_BUDGET_MS);
    try {
     const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
     if (!procWrite.ok) {
