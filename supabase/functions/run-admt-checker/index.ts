@@ -7,12 +7,13 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-cppa-hf1@2026-07-19T22:00Z";
+export const BUILD_STAMP = "admt-cppa-hf2@2026-07-20T12:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import {
   resolveCitations,
@@ -295,7 +296,13 @@ CPPA-HF1 A1 — CITATION GRANULARITY (VERIFIED-DEPTH RULE, §§ 7220–7222): ci
 
 CPPA-HF1 A2 — CITATION MISAPPLICATION AND "ARTICLE N" PHRASING BAN: (a) The ADMT access-request response timeline lives in § 7222 (with the general CCPA response provisions); NEVER cite § 7021 for the ADMT access-response timeline. § 7021 is not the home of the ADMT response timing. (b) In output prose, NEVER use "Article N" phrasing to refer to CPPA subchapters — refer to obligations by their section numbers ("§§ 7200–7222 (the ADMT subchapter)" or simply "the ADMT obligations under § 7220 et seq."). "Article 11 ADMT obligations", "Article 10 risk assessment obligations", and any "Article \\d+ (ADMT|CCPA|CPPA)" phrasing are BANNED in output text.
 
-CPPA-HF1 A3 — SUPPORTED-CLAIM DISCIPLINE: (a) Service-provider or vendor relationships (e.g. Experian, Plaid, or similar third-party services identified in the intake) do NOT by themselves establish that the business "sells or shares" personal information under § 1798.140(ad)/(ah). "Sells or shares" is a specific statutory determination requiring the enumerated elements — never asserted from the mere existence of a service-provider relationship. Where the intake does not affirmatively state that the business sells or shares PI, treat § 7220-adjacent findings as service-provider governance findings under § 7051, not sale/share findings. (b) Before asserting that any self-test or intake field was "not answered", RE-CHECK the normalised intake for that specific field (e.g. human_review, sole_factor, profiling_use). Where the field is explicitly answered — even to a "No" — the finding must state the answer, not assert absence; contradicting an explicitly answered intake field is a factual error.`,
+CPPA-HF2 B — EVASIVE-PLACEHOLDER BAN: NEVER emit narrative substitutes for a real citation. Banned phrasings include "the cited provision governing [X]", "under the cited provision", "pursuant to the cited provision", and "the cited section above". The template injects the canonical citation from the registry post-generation — write in plain-English element names ("the Pre-use Notice specific-purpose requirement", "the access-response future-use disclosure") until the registry runs. A narrative that reads to the consumer as a concrete citation but resolves to nothing is a defect.
+
+CPPA-HF2 D — APPENDIX / TEMPLATE COMPLETION LANGUAGE: appendix and sample_language blocks NEVER emit "[LEGAL COUNSEL NAME/FIRM]", "[LAW-FIRM NAME]", "signed by legal counsel", "complete this document with legal counsel before …", or any equivalent completion instruction that directs the reader to counsel. The page-level "not legal advice" disclaimer is separate and sufficient. Completion instructions in appendix templates address the implementer plainly in one imperative sentence and refer to organizational roles by function ("the individual authorised to sign attestations on behalf of the business"), never by a "legal counsel" placeholder. This applies to every appendix, sample-language template, attestation template, and completion-instruction line.
+
+CPPA-HF2 E — INTERNAL RULEBOOK ARTICLE-N RECAST (SELF-CHECK): this rulebook itself uses "Article 10" / "Article 11" shorthand internally to refer to the § 7150–§ 7157 risk-assessment subchapter and the § 7200–§ 7222 ADMT subchapter respectively. In OUTPUT prose, always render as "§§ 7200–7222 (the ADMT subchapter)" or "§§ 7150–7157 (the risk-assessment subchapter)" — never "Article 11" or "Article 10". This is a hard ban on output text; internal rule references above are for your grounding only.
+
+CPPA-HF2 F — INTAKE-VOCAB LEAK: raw intake field ids (q19_admt_description, q20_admt_opt_out, i1_processing_purpose, etc.) appear ONLY in the source_fields anchor, information_needed.field, or an equivalent technical-anchor context. Narrative prose refers to the same content by human phrasing ("the ADMT description", "the retention-period figure"). Sequences that read like pipeline vocabulary ("the audit-cohort determination", "the sensitive-PI determination resolved") NEVER appear in customer-facing prose — restate the conclusion in plain regulatory language.`,
   languageVariant: "american",
 };
 
@@ -1072,6 +1079,8 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
+    // CPPA-HF2 I3 — prompt_version _meta stamp on ADMT reports.
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf2@2026-07-20"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",

@@ -197,11 +197,17 @@ function checkE5(text: string, dim = "hallucination"): FormatFinding[] {
 // counsel referral. Directive verbs (consult, review with, confirm with,
 // seek advice from) still fail; passive role labels do not.
 export const ROLE_ROSTER_EXEMPT_RE =
-  /(?:^|[\n\r])\s*(?:\d+\.\s*)?[A-Z][A-Za-z.'’\-]+(?:\s+[A-Z][A-Za-z.'’\-]+){0,3}\s*[—\-:]\s*(?:legal\s+counsel|qualified\s+counsel|privacy\s+counsel|privacy\s+officer)\b/i;
+  /(?:^|[\n\r])\s*(?:[-•*]|\d+\.)?\s*[A-Z][A-Za-z.'’\-]+(?:\s+[A-Z][A-Za-z.'’\-]+){0,3}\s*[—\-:(]\s*(?:(?:outside|external|internal|senior)\s+)?(?:legal|qualified|privacy|outside\s+privacy)\s+(?:counsel|officer)\b/i;
 export const ROLE_LABEL_EXEMPT_RE =
-  /\b(?:legal\s+counsel|privacy\s+counsel|qualified\s+counsel|privacy\s+officer)\s*\((?:[^)]{1,200})\)/i;
+  /\b(?:outside|external|internal|senior)?\s*(?:legal|privacy|qualified)\s+(?:counsel|officer)\s*\((?:[^)]{1,200})\)/i;
 export const ROLE_FIELD_EXEMPT_RE =
-  /\b(?:role|title|position|assigned\s+to|owner|responsible)\s*[:\-]\s*[^.\n]{0,80}\b(?:legal|privacy)\s+counsel\b/i;
+  /\b(?:role|title|position|assigned\s+to|owner|responsible|participant|contributor|consulted|stakeholder)\s*[:\-]\s*[^.\n]{0,120}\b(?:legal|privacy|qualified)\s+(?:counsel|officer)\b/i;
+// CPPA-HF2 Task C: participant-roster exemption — "assessment participants
+// include ... outside privacy counsel", "the § 7152(a) stakeholder roster
+// lists ... legal counsel". A passive listing of counsel as a participant
+// is required content, not a referral.
+export const PARTICIPANT_ROSTER_EXEMPT_RE =
+  /\b(?:assessment\s+participants?|stakeholder\s+roster|consulted(?:\s+parties)?|contributors?|participants?\s+included?|(?:internal|external)\s+contributors?|§\s*7152\(a\)|risk\s+assessment\s+team)\b[^.\n]{0,200}\b(?:legal|privacy|outside\s+privacy)\s+(?:counsel|officer)\b/i;
 // Directive verbs — these override any exempt hit and force the finding.
 const DIRECTIVE_VERB_RE =
   /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
@@ -220,7 +226,8 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
       // directive verb (consult, review with, etc.).
       const rosterMatch = ROLE_ROSTER_EXEMPT_RE.test(s) ||
                           ROLE_LABEL_EXEMPT_RE.test(s) ||
-                          ROLE_FIELD_EXEMPT_RE.test(s);
+                          ROLE_FIELD_EXEMPT_RE.test(s) ||
+                          PARTICIPANT_ROSTER_EXEMPT_RE.test(s);
       if (rosterMatch && !DIRECTIVE_VERB_RE.test(s)) continue;
       hits++;
       findings.push(fail("e6_counsel_referral", dim, "high",

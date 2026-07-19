@@ -55,10 +55,12 @@ export function checkH1ArticlePhrasing(text: string): FormatFinding[] {
 export const HF1_INTERNAL_VOCAB_PATTERNS: RegExp[] = [
   // "the sale/share-revenue determination-resolved determination"
   // "the sensitive-PI determination resolved:"
-  // "the audit-cohort determination"
+  // "the audit-cohort determination resolved"
   /\bthe\s+[a-z][a-z0-9/\-]*\s+determination[-\s]resolved\b/i,
   /\b[a-z][a-z0-9/\-]*-determination[-\s]resolved\b/i,
   /\bdetermination[-\s]resolved\s+determination\b/i,
+  // CPPA-HF2 F1: explicit "the audit-cohort determination" leakage (with or without trailing "resolved")
+  /\bthe\s+audit-cohort\s+determination\b/i,
   // Pipeline field / stage names surfaced in prose
   /\bnormalised_intake\b/i,
   /\bnormalized_intake\b/i,
@@ -87,21 +89,74 @@ export function checkH2InternalVocab(text: string): FormatFinding[] {
   return findings;
 }
 
+// ── H4 (CPPA-HF2 Task B) ─────────────────────────────────────────────
+// Evasive-placeholder ban. Model attempts to sidestep the citation
+// registry by writing "the cited provision governing [topic]" or
+// "under the cited provision" in narrative fields. These read as
+// concrete citations to a reader but resolve to nothing.
+export const HF1_EVASIVE_PLACEHOLDER_PATTERNS: RegExp[] = [
+  /\bthe\s+cited\s+provision\s+governing\b/i,
+  /\bunder\s+the\s+cited\s+provision\b/i,
+  /\bpursuant\s+to\s+the\s+cited\s+provision\b/i,
+  /\bthe\s+cited\s+(?:provision|section|subsection)\s+(?:above|below|referenced)\b/i,
+];
+
+export function checkH4EvasivePlaceholder(text: string): FormatFinding[] {
+  if (!text) return [pass("h4_evasive_placeholder_ok", "citation_accuracy")];
+  const findings: FormatFinding[] = [];
+  for (const re of HF1_EVASIVE_PLACEHOLDER_PATTERNS) {
+    const m = text.match(re);
+    if (m) {
+      findings.push(fail("h4_evasive_placeholder", "citation_accuracy", "high",
+        `evasive-placeholder leakage: "${m[0]}"`));
+      if (findings.length >= 5) break;
+    }
+  }
+  if (findings.length === 0) {
+    findings.push(pass("h4_evasive_placeholder_ok", "citation_accuracy"));
+  }
+  return findings;
+}
+
 // ── H3 ────────────────────────────────────────────────────────────────
 // ADMT verified §§ 7220–7222 citation whitelist. Any § 7220/7221/7222 cite
 // whose full path (parent + sub-parts) does not appear here is flagged.
 // The list mirrors the sub-subsections actually referenced in the current
 // ADMT rulebook (see run-admt-checker/index.ts).
+// CPPA-HF2 Task A — expanded whitelist verified against 11 CCR final
+// text (OAL-approved 2025-09) fetched from Westlaw. Each entry below is
+// confirmed against the operative subsection structure.
 export const ADMT_VERIFIED_CITES: ReadonlySet<string> = new Set([
-  // § 7220 — Pre-use notice
-  "7220", "7220(b)", "7220(c)", "7220(c)(1)", "7220(c)(2)", "7220(c)(3)",
-  "7220(c)(4)", "7220(c)(5)", "7220(d)", "7220(d)(1)", "7220(e)",
-  // § 7221 — Opt-out
-  "7221", "7221(b)", "7221(b)(1)", "7221(b)(2)", "7221(b)(3)",
-  "7221(c)", "7221(g)", "7221(m)", "7221(n)", "7221(n)(1)", "7221(n)(2)",
-  // § 7222 — Access
-  "7222", "7222(b)", "7222(b)(3)", "7222(b)(3)(A)", "7222(b)(4)",
-  "7222(c)", "7222(c)(1)", "7222(j)",
+  // § 7220 — Pre-use Notice
+  "7220",
+  "7220(a)", "7220(b)", "7220(b)(1)", "7220(b)(2)", "7220(b)(3)",
+  "7220(c)", "7220(c)(1)", "7220(c)(2)", "7220(c)(2)(A)", "7220(c)(2)(B)",
+  "7220(c)(3)", "7220(c)(4)",
+  "7220(c)(5)", "7220(c)(5)(A)", "7220(c)(5)(B)", "7220(c)(5)(C)",
+  "7220(d)", "7220(d)(1)",
+  "7220(d)(2)", "7220(d)(2)(A)", "7220(d)(2)(B)", "7220(d)(2)(C)",
+  "7220(e)", "7220(e)(1)", "7220(e)(2)", "7220(e)(3)", "7220(e)(4)",
+  // § 7221 — Requests to Opt-Out of ADMT
+  "7221",
+  "7221(a)",
+  "7221(b)",
+  "7221(b)(1)", "7221(b)(1)(A)", "7221(b)(1)(B)",
+  "7221(b)(2)", "7221(b)(2)(A)", "7221(b)(2)(B)",
+  "7221(b)(3)", "7221(b)(3)(A)", "7221(b)(3)(B)",
+  "7221(c)", "7221(c)(1)", "7221(c)(2)", "7221(c)(3)", "7221(c)(4)",
+  "7221(d)", "7221(e)", "7221(f)", "7221(g)", "7221(h)", "7221(i)",
+  "7221(j)", "7221(k)", "7221(l)", "7221(m)",
+  "7221(n)", "7221(n)(1)", "7221(n)(2)",
+  // § 7222 — Requests to Access ADMT
+  "7222",
+  "7222(a)",
+  "7222(b)", "7222(b)(1)", "7222(b)(2)",
+  "7222(b)(3)", "7222(b)(3)(A)",
+  "7222(b)(4)", "7222(b)(4)(A)",
+  "7222(c)", "7222(c)(1)",
+  "7222(c)(2)", "7222(c)(2)(A)", "7222(c)(2)(B)", "7222(c)(2)(C)",
+  "7222(d)", "7222(e)", "7222(f)", "7222(g)", "7222(h)", "7222(i)",
+  "7222(j)", "7222(k)", "7222(l)",
 ]);
 
 const ADMT_CITE_RE_SRC = /(?<!\d)(722[012])((?:\([A-Za-z0-9]+\))+)?/;
@@ -135,19 +190,21 @@ export function checkH3AdmtCitationDepth(text: string): FormatFinding[] {
 }
 
 // ── Runners ───────────────────────────────────────────────────────────
-/** CPPA-Risk / CPPA-Cyber: H1 + H2 (no H3 — H3 is ADMT-scoped). */
+/** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 (no H3 — H3 is ADMT-scoped). */
 export function runCppaHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
     ...checkH2InternalVocab(text),
+    ...checkH4EvasivePlaceholder(text),
   ];
 }
 
-/** ADMT: H1 + H2 + H3. */
+/** ADMT: H1 + H2 + H3 + H4. */
 export function runAdmtHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
     ...checkH2InternalVocab(text),
     ...checkH3AdmtCitationDepth(text),
+    ...checkH4EvasivePlaceholder(text),
   ];
 }

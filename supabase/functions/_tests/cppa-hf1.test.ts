@@ -1,9 +1,10 @@
-// CPPA-HF1 — deterministic-check coverage for H1/H2/H3.
+// CPPA-HF1/HF2 — deterministic-check coverage for H1/H2/H3/H4.
 import { assertEquals } from "https://deno.land/std@0.208.0/testing/asserts.ts";
 import {
   checkH1ArticlePhrasing,
   checkH2InternalVocab,
   checkH3AdmtCitationDepth,
+  checkH4EvasivePlaceholder,
   runCppaHf1Checks,
   runAdmtHf1Checks,
   ADMT_VERIFIED_CITES,
@@ -46,16 +47,38 @@ Deno.test("H3 — verified § 7222(b)(3)(A) passes", () => {
   assertEquals(findings.every((f) => f.passed), true);
 });
 
-Deno.test("H3 — unverified § 7220(c)(5)(A) is flagged", () => {
-  const bad = "The disclosure elements at § 7220(c)(5)(A)-(C) require …";
-  const findings = checkH3AdmtCitationDepth(bad);
-  const failed = findings.filter((f) => !f.passed);
-  assertEquals(failed.length >= 1, true);
-  assertEquals(failed[0].check_id, "h3_admt_citation_depth");
+Deno.test("H3 — verified § 7220(c)(5)(A) now passes (HF2 whitelist expansion)", () => {
+  const ok = "The disclosure elements at § 7220(c)(5)(A) require specific plain-language explanation.";
+  const findings = checkH3AdmtCitationDepth(ok);
+  assertEquals(findings.every((f) => f.passed), true);
 });
 
-Deno.test("ADMT_VERIFIED_CITES contains parent sections", () => {
-  for (const cite of ["7220", "7221", "7222", "7222(b)(3)(A)"]) {
+Deno.test("H3 — verified § 7221(h) opt-out confirmation passes", () => {
+  const ok = "The business must confirm the opt-out under § 7221(h).";
+  const findings = checkH3AdmtCitationDepth(ok);
+  assertEquals(findings.every((f) => f.passed), true);
+});
+
+Deno.test("H3 — unverified § 7222(m) is flagged (does not exist)", () => {
+  const bad = "See § 7222(m) for aggregate responses.";
+  const findings = checkH3AdmtCitationDepth(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("H4 — 'the cited provision governing X' is flagged", () => {
+  const bad = "Under the cited provision governing pre-use notice, the disclosure must be plain-language.";
+  const findings = checkH4EvasivePlaceholder(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("H4 — clean prose with concrete citation passes", () => {
+  const ok = "Under § 7220(c)(1), the notice must state the specific decision.";
+  const findings = checkH4EvasivePlaceholder(ok);
+  assertEquals(findings.every((f) => f.passed), true);
+});
+
+Deno.test("ADMT_VERIFIED_CITES contains HF2-expanded entries", () => {
+  for (const cite of ["7220(c)(5)(A)", "7220(c)(5)(B)", "7220(c)(5)(C)", "7221(h)", "7222(c)(2)(A)", "7221(b)(1)(A)"]) {
     assertEquals(ADMT_VERIFIED_CITES.has(cite), true);
   }
 });
@@ -67,7 +90,7 @@ Deno.test("runCppaHf1Checks — clean report passes all", () => {
 });
 
 Deno.test("runAdmtHf1Checks — chained failures aggregate", () => {
-  const bad = "Article 11 CCPA obligations. See § 7220(c)(5)(B). the sensitive-PI determination-resolved determination applies.";
+  const bad = "Article 11 CCPA obligations. See § 7220(z)(9). the sensitive-PI determination-resolved determination applies.";
   const findings = runAdmtHf1Checks(bad);
   const failed = findings.filter((f) => !f.passed).map((f) => f.check_id);
   assertEquals(failed.includes("h1_article_phrasing"), true);
