@@ -27,7 +27,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+
 
 
 
