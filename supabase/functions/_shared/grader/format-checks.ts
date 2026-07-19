@@ -204,10 +204,12 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
 }
 
 // IR privilege-carveout regex — scoped tightly to sentences that discuss
-// privilege determination, privilege labelling, or the secure/restricted
-// incident-communication channel. See advisory-voice.ts §"IR carve-out".
+// privilege determination, privilege labelling, the secure/restricted
+// incident-communication channel, or the IR-role assignment of Senior
+// Legal Counsel (Incident Response Team role). See advisory-voice.ts
+// §"IR carve-out".
 export const IR_PRIVILEGE_EXEMPT_RE =
-  /\b(privileg(?:e|ed)|secure,?\s+restricted\s+communication|privilege\s+determination|LEGALLY\s+PRIVILEGED)\b/i;
+  /\b(privileg(?:e|ed)|secure,?\s+restricted\s+communication|privilege\s+determination|LEGALLY\s+PRIVILEGED|Senior\s+Legal\s+Counsel|Incident\s+Response\s+Team|role[:\-]\s*(?:legal|counsel))\b/i;
 
 export function runFormatChecksDPA(text: string): FormatFinding[] {
   return [
