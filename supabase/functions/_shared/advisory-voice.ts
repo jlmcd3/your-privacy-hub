@@ -124,7 +124,47 @@ export function scanAdvisoryVoice(text: string): AdvisoryFinding[] {
 /**
  * True if the text contains any counsel-referral prohibition hit. Used
  * as a single-round regeneration gate in generators.
+ *
+ * IR carve-out (COUNSEL-VOICE-1B Task 3, logged): the IR playbook's
+ * legal-privilege determination step and secure/restricted communication-
+ * channel guidance are operational incident-response substance, NOT
+ * counsel-referral framing. The E6 deterministic check accepts an
+ * `exemptRe` (see grader/format-checks.ts → IR_PRIVILEGE_EXEMPT_RE) to
+ * suppress hits in sentences whose context matches
+ * `privilege|privileged|secure, restricted communication|LEGALLY PRIVILEGED`.
+ * The regen-gate helper below is intentionally NOT carved out — regen
+ * decisions are made downstream after the section-scoped E6 result.
  */
 export function hasCounselReferral(text: string): boolean {
   return COUNSEL_REFERRAL_RE.test(text ?? "");
 }
+
+/**
+ * Deterministic-checks emit helper. Given a report-data object and the
+ * generated body text, computes the per-tool format checks and attaches
+ * them under `_meta.deterministic_checks` (and mirrors to the legacy
+ * `deterministic_checks` top-level key expected by run-quality-batch).
+ * Returns the finding list so callers can decide on regen.
+ */
+export type DeterministicFinding = {
+  check_id: string;
+  check_type: "deterministic";
+  dimension: string;
+  severity: "high" | "medium" | "low";
+  passed: boolean;
+  evidence: string | null;
+};
+
+export function attachDeterministicChecks(
+  reportData: Record<string, unknown> | null | undefined,
+  findings: DeterministicFinding[],
+): DeterministicFinding[] {
+  if (!reportData || typeof reportData !== "object") return findings;
+  const rd = reportData as Record<string, unknown>;
+  rd.deterministic_checks = findings;
+  const meta = (rd._meta as Record<string, unknown> | undefined) ?? {};
+  meta.deterministic_checks = findings;
+  rd._meta = meta;
+  return findings;
+}
+
