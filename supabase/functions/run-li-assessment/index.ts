@@ -1340,7 +1340,7 @@ Return JSON:
   "review_triggers": [
     "circumstances that would require this LIA to be revisited"
   ],
-  "disclaimer": "This analysis helps your organisation assess whether legitimate interest is an appropriate processing basis. It does not constitute legal advice. Review the findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
+  "disclaimer": "This analysis helps your organisation assess whether legitimate interest is an appropriate processing basis. It does not constitute legal advice. Confirm the specific facts in the record (purpose, necessity, and balancing evidence) before relying on legitimate interest as a processing legal basis; further clarification is advisable."
 }`;
 
     const t3Start = Date.now();
