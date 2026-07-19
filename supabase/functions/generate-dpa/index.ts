@@ -1177,6 +1177,9 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
     let parsed = parseDpa(fullText);
+    // IR-HF1 T4 — deterministic sub-processor framework suppression BEFORE lint.
+    const subprocSup1 = suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors);
+    parsed = { ...parsed, dpa_text: subprocSup1.text } as typeof parsed;
     let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
     // REBUILD-DPA T2/T3/T5 — deterministic net: speculative modules,
     // baseline-standard misuse, and blacklist-phrase hits merge in as HARD
