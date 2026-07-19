@@ -1342,7 +1342,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <section class="section"><h2>Cover — Assessment Record</h2>
       <p><span class="label">Business legal name:</span> ${fillIn(cover.business_legal_name, "[FILL IN]")}</p>
       <p><span class="label">Processing activity:</span> ${text(cover.activity_name)}</p>
