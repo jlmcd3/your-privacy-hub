@@ -63,6 +63,9 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "FL:4": { cite: "Fla. Stat. § 501.705(1)(e)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
   "FL:5": { cite: "Fla. Stat. § 501.705(1)(e)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
   "FL:7": { cite: "Fla. Stat. § 501.71(4)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.71.html" },
+  // FDBR "data protection assessments" — required for sale of PI, targeted advertising,
+  // profiling with heightened risks, and sensitive-data processing (§ 501.713).
+  "FL:8": { cite: "Fla. Stat. § 501.713", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.713.html" },
   // No private cause of action — § 501.72(8).
   "FL:10": { cite: "Fla. Stat. § 501.72(8)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.72.html" },
 
@@ -83,6 +86,9 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "IN:5": { cite: "IC § 24-15-4-1(a)(5)(A)", url: "https://iga.in.gov/laws/2024/ic/titles/24#24-15" },
   "IN:6": { cite: "IC § 24-15-4-1(a)(5)(C)", url: "https://iga.in.gov/laws/2024/ic/titles/24#24-15" },
   "IN:7": { cite: "IC § 24-15-6-1", url: "https://iga.in.gov/laws/2024/ic/titles/24#24-15" },
+  // Indiana DPIA — required for heightened-risk processing (sale, targeted advertising,
+  // sensitive data, profiling with legal/similarly significant effects).
+  "IN:8": { cite: "IC § 24-15-6-1", url: "https://iga.in.gov/laws/2024/ic/titles/24#24-15" },
 
   // ── KENTUCKY (KCDPA) ──────────────────────────────────────────────────────
   "KY:0": { cite: "KRS § 367.3614(1)(a)", url: "https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=39357" },
@@ -93,6 +99,8 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "KY:5": { cite: "KRS § 367.3614(1)(e)(1)", url: "https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=39357" },
   "KY:6": { cite: "KRS § 367.3614(1)(e)(3)", url: "https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=39357" },
   "KY:7": { cite: "KRS § 367.3618", url: "https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=39357" },
+  // Kentucky DPIA — required for heightened-risk processing per KRS § 367.3617.
+  "KY:8": { cite: "KRS § 367.3617", url: "https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=39357" },
 
   // ── MARYLAND (MODPA) ──────────────────────────────────────────────────────
   "MD:0": { cite: "Md. Code, Com. Law § 14-4705(a)(1)", url: "https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&section=14-4705" },
@@ -130,6 +138,8 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "MT:5": { cite: "Mont. Code § 30-14-2804(1)(e)(i)", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0040/0300-0140-0280-0040.html" },
   "MT:6": { cite: "Mont. Code § 30-14-2804(1)(e)(iii)", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0040/0300-0140-0280-0040.html" },
   "MT:7": { cite: "Mont. Code § 30-14-2806(1)(d)", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0060/0300-0140-0280-0060.html" },
+  // Montana DPIA — required for heightened-risk processing per § 30-14-2812.
+  "MT:8": { cite: "Mont. Code § 30-14-2812", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0120/0300-0140-0280-0120.html" },
 
   // ── NEBRASKA (NEDPA) ──────────────────────────────────────────────────────
   // Consumer rights sit at § 87-1107; § 87-1103 is definitions. Enforcement at § 87-1114.
