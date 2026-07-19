@@ -90,7 +90,7 @@ THE FOLLOWING ARE EXPRESSLY NOT SIGNIFICANT DECISIONS — PERIOD:
 
 STRUCTURAL ENFORCEMENT — READ BEFORE GENERATING ANY GAP:
 Step 1: Set triggers_significant_decision = true ONLY if the system description connects the ADMT output to one of the five enumerated § 7001(ddd) categories.
-Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that Article 11 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) Article 10 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
+Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that the §§ 7200–7222 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) §§ 7150–7157 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
 Step 3: If triggers_significant_decision = true, proceed normally with the full gap analysis.
 
 SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_decision = true for an advertising or gaming service-eligibility use case, STOP. Re-read this rule. The answer is false.
