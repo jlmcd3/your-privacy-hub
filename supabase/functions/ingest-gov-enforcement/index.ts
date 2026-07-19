@@ -423,6 +423,15 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // HF2 Task 3 — unconditional function_runs telemetry. Wraps the entire
+  // handler so every invocation (including dry-runs and 5xx paths) writes
+  // start + finish rows. Fail-open: telemetry errors never block ingestion.
+  const fnRun = await startFunctionRun(supabase, "ingest-gov-enforcement", {
+    invokedBy: req.headers.get("x-invoked-by") ?? "http",
+    metadata: { method: req.method, url_path: new URL(req.url).pathname },
+  });
+  try {
+
   const url = new URL(req.url);
   let body: Record<string, unknown> = {};
   if (req.method === "POST") {
