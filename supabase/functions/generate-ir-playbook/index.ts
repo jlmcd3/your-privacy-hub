@@ -1741,6 +1741,14 @@ let playbook_text = lint.clean;
           .filter((j) => DPA_PORTALS[j])
           .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
 
+        // COUNSEL-VOICE-1 E-checks — deterministic format-check emission.
+        let ir_deterministic_checks: any[] = [];
+        try {
+          ir_deterministic_checks = runFormatChecksIR(playbook_text ?? "");
+        } catch (e) {
+          console.warn("[generate-ir-playbook] format-checks non-fatal:", (e as Error).message);
+        }
+
         const report_data: Record<string, any> = {
           portals,
           enforcement_precedents: enforcement_context.slice(0, 5),
@@ -1750,8 +1758,9 @@ let playbook_text = lint.clean;
           information_needed: Array.isArray((assembled as any)?.information_needed)
             ? (assembled as any).information_needed
             : [],
+          deterministic_checks: ir_deterministic_checks,
           generated_at: new Date().toISOString(),
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", "r1b2.4-rcb") },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", IR_VERSION) },
         };
         try {
           const guarded = guardInformationNeeded(
