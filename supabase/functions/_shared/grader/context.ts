@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-19-ir-hf1";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-19-grader-cal-1";
 
 
 export const SHARED_GRADER_CONTEXT = `
@@ -66,4 +66,14 @@ FF-1 T6 GRADER CONTEXT ADDITIONS (verified against document text on file; do NOT
 
 IR-HF1 T5 — DESIGNED COUNSEL-VOICE ANNOTATIONS ARE PRODUCT FEATURES, NOT LEAKS (BINDING):
 The "NOTE FOR LEGAL REVIEW" template family (including "NOTE FOR LEGAL REVIEW — Role characterisation", "NOTE FOR LEGAL REVIEW — Framework selection", "NOTE FOR LEGAL REVIEW — Sub-processor authorisation model", and other headed "NOTE FOR LEGAL REVIEW — <topic>" blocks) is designed counsel-voice product output surfaced to the reviewing attorney by the generator itself — it is NOT internal-reasoning leakage, NOT system-prompt leakage, and NOT model self-narration. rubric_internal_reasoning_leak MUST NOT fire on any "NOTE FOR LEGAL REVIEW — …" block regardless of its topic or length; the block is a first-class deliverable field, on the same footing as an "[TO BE COMPLETED …]" statutory placeholder. Applies to every drafting tool that ships this annotation family (DPA generator, DPIA framework, IR playbook, LI assessment). This anchor is scoped to that block family only — genuine model self-narration outside a "NOTE FOR LEGAL REVIEW — …" heading remains flaggable under the existing rubric line.
+
+GRADER-CAL-1 A1 — AXIS CONSOLIDATION (BINDING):
+The "formatting" axis carries ZERO weight in the overall score across every tool (both editorial and non-editorial). The rubric_internal_reasoning_leak check now scores under the HALLUCINATION dimension — leaked internal reasoning is a hallucination-adjacent defect, never a formatting defect. Continue to emit dimension_scores.formatting for schema back-compat (rendered as an advisory read-out only); do NOT treat formatting deductions as producing overall-score movement.
+
+GRADER-CAL-1 A3 — POST-CUTOFF VERIFIED AUTHORITY ADDITIONS (do NOT flag; do NOT deduct):
+- New York S2659B (Chapter 647 of the Laws of 2024, signed 2024-12-21) — amends N.Y. Gen. Bus. Law § 899-aa (SHIELD-Act breach-notification chain) to expand the "private information" definition to include medical information and health-insurance information, and to require notice to the Department of Financial Services in addition to the Attorney General / Department of State / Division of State Police. Reports citing S2659B / Chapter 647 / 2024-12-21 as current NY breach-notification law are CORRECT.
+- New York A8872A (signed December 2024) — companion legislation shortening the outside notice window for breaches affecting NY residents to 30 days from discovery. Reports citing A8872A with the 30-day figure are CORRECT current law. Do NOT reconcile these against pre-2024 SHIELD-Act summaries in your training corpus.
+
+GRADER-CAL-1 A4 — EMIT-GUARD (BINDING):
+A "finding" that concludes the document was CORRECT on the point in question ("this citation is correct", "the report properly cites …", "no issue found") is not a finding — do NOT emit it. Findings surface DEFECTS; affirmations belong in strengths, if anywhere. This rule is enforced deterministically in the post-filter regardless of what the model emits.
 `.trim();

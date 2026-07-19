@@ -23,6 +23,8 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
+// GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
+import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 
 // GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
 // run-quality-batch). Safety cap only for pathological payloads.
@@ -115,8 +117,8 @@ const RUBRIC_GENERAL: RubricCheck[] = [
     description: "Document asserts facts about the business that are not in the intake (invented users, revenue, jurisdictions, etc.)." },
   { id: "rubric_actionability",             dimension: "intelligence",  severity: "medium",
     description: "Recommendations are not actionable for a real compliance professional (vague, no owner, no trigger)." },
-  { id: "rubric_internal_reasoning_leak",   dimension: "formatting",    severity: "high",
-    description: "Internal AI reasoning/meta-commentary visible in customer-facing text (\"as an AI\", \"based on the provided\", \"my analysis\")." },
+  { id: "rubric_internal_reasoning_leak",   dimension: "hallucination", severity: "high",
+    description: "Internal AI reasoning/meta-commentary visible in customer-facing text (\"as an AI\", \"based on the provided\", \"my analysis\"). Scored under hallucination per GRADER-CAL-1 A1. NEVER fires on \"NOTE FOR LEGAL REVIEW — <topic>\" blocks (designed counsel-voice product output, not model self-narration)." },
   { id: "rubric_citation_misapplied",       dimension: "citation",      severity: "high",
     description: "A real cited section is applied to the wrong proposition (right citation, wrong claim)." },
 ];
@@ -166,7 +168,9 @@ Return ONLY valid JSON of this exact shape:
 // weights are identical across the nine — but we still parameterize by
 // tool so any future editorial reclassification propagates via a code
 // re-mirror rather than a silent divergence.
-const NON_EDITORIAL_WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+// GRADER-CAL-1 A1 — formatting weight zeroed; the 5pp rolls into hallucination
+// so leaks (now scored under hallucination) exert stronger overall pull.
+const NON_EDITORIAL_WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.25, analysis: 0.15, intelligence: 0.05, formatting: 0 };
 function weightsFor(_tool: QL3Tool) {
   return NON_EDITORIAL_WEIGHTS;
 }
@@ -229,7 +233,11 @@ async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, repo
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
   const overall = computeOverall(parsed.dimension_scores, tool);
-  return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: parsed.findings ?? [], strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
+  const { kept, dropped } = applyGraderCal1Filter((parsed.findings ?? []) as any);
+  if (dropped.a2 || dropped.a3 || dropped.a4) {
+    console.log(`[GRADER-CAL-1][${role}] tool=${tool} dropped a2=${dropped.a2} a3=${dropped.a3} a4=${dropped.a4}`);
+  }
+  return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: kept, strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
 }
 
 function isKnownTool(x: unknown): x is QL3Tool {

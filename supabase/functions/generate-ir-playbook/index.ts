@@ -353,7 +353,7 @@ const IR_TOOL_MODULE: ToolModule = {
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.7-ir-hf1-delimiter-refactor-2026-07-19";
+const IR_VERSION = "v3.8-grader-cal-1-2026-07-19";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -949,7 +949,13 @@ The following cases show where organisations were penalised for breach notificat
 CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block at the very end of the playbook.
 ${formatEnforcementContext(enforcement_context)}
 
-CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}${edpbGuidelineBlock}${caBreachBlock}`;
+CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.
+
+GRADER-CAL-1 D2 — NEW YORK DUAL-REGIME BREACH-NOTIFICATION ANCHORS (BINDING):
+For New York breaches, cite BOTH statutory anchors as the correct dual-regime pair: N.Y. Gen. Bus. Law § 899-aa (SHIELD-Act general breach-notification duty, as expanded by S2659B / Chapter 647 of the Laws of 2024, signed 2024-12-21, adding medical information and health-insurance information to "private information" and requiring notice to the Department of Financial Services alongside the AG / DOS / State Police) AND A8872A (signed December 2024) which set a 30-day outside notice window from discovery. NEVER describe pre-2024 SHIELD-Act figures ("without unreasonable delay" alone) as the current standard — the 30-day outside window controls, and DFS is now part of the notice chain.
+
+GRADER-CAL-1 D3 — TEMPORAL-APPLICATION DISCIPLINE (BINDING):
+For every statutory anchor cited, respect the effective date. A law's amended text applies ONLY to breaches with a discoveryDateTime on or after the effective date. If the record's discoveryDateTime PREDATES an amendment's effective date, cite the version-of-law in force on the discovery date; do not project post-amendment obligations backwards. When both regimes are analytically relevant, split the analysis explicitly: "Under the version of § 899-aa in force on the discovery date … / Under the version currently in force (as amended by S2659B/A8872A) …". This applies to Cal. Civ. Code § 1798.82 (SB 446 effective 2026-01-01), N.Y. Gen. Bus. Law § 899-aa (S2659B / A8872A), and every other amended anchor.${gdprBreachBlock}${edpbGuidelineBlock}${caBreachBlock}`;
 
         // IR-HF1 T1 (v3.7): PROMPT_PART_A/B/C are now pure INSTRUCTION blocks.
         // The intake reference "${INTAKE_BLOCK}" that previously lived inside each
@@ -1435,7 +1441,8 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);
-const playbook_text = lint.clean;
+let playbook_text = lint.clean;
+        let cal1D1HardReplacements = 0;
         const parsedAnnotations = assembled.parsedAnnotations;
 
         // R1b2 post-check gate — T-2/T-3/T-4 for the IR playbook. Log-only detection
@@ -1572,9 +1579,21 @@ const playbook_text = lint.clean;
           }
           if (unknownCites.length > 0) {
             for (const u of unknownCites.slice(0, 5)) {
-              lintWarnings.push({ rule: "REBUILD-IR-T4b-uninjected-citation", posture: "log_only", match: u });
+              lintWarnings.push({ rule: "GRADER-CAL-1-D1-uninjected-citation-hard-replace", posture: "hard", match: u });
             }
-            postGenNotes.push({ code: "uninjected_enforcement_citation", detail: `${unknownCites.length}` });
+            postGenNotes.push({ code: "uninjected_enforcement_citation_hard_replaced", detail: `${unknownCites.length}` });
+            // GRADER-CAL-1 D1 — HARD replacement. Every unsupplied "[Regulator]
+            // (YYYY)" cite form is rewritten to a statutory placeholder that
+            // tells the reviewing attorney precedent verification is required.
+            const HARD_PLACEHOLDER =
+              "[TO BE COMPLETED — enforcement precedent requires verification against official regulator source]";
+            for (const u of unknownCites) {
+              const esc = u.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const re = new RegExp(esc, "g");
+              const before = playbook_text.length;
+              playbook_text = playbook_text.replace(re, HARD_PLACEHOLDER);
+              if (playbook_text.length !== before) cal1D1HardReplacements++;
+            }
           }
 
           // IR-HF1 T2 — CROSS-PART CONSISTENCY LINT (log-only, report-only-first
@@ -1693,6 +1712,7 @@ const playbook_text = lint.clean;
             }
           } catch (e) {
             console.error("[IR Playbook][IR-HF1 T2 cross-part] errored (non-fatal):", e);
+          }
         } catch (e) {
           console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
         }
@@ -1705,7 +1725,7 @@ const playbook_text = lint.clean;
             notes: postGenNotes,
             sourceTable: "ir_playbooks",
             sourceRowId: rowId,
-            extra: { blacklist_hits: blacklistHitCount, ir_version: IR_VERSION },
+            extra: { blacklist_hits: blacklistHitCount, ir_version: IR_VERSION, drove_regen: cal1D1HardReplacements > 0, cal1_d1_hard_replacements: cal1D1HardReplacements },
           });
         } catch (e) {
           console.warn("[IR Playbook] logPostGenLint threw (non-fatal):", e);
