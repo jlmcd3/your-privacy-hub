@@ -991,7 +991,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${Object.keys(scope).length ? `<section class="section"><h2>Scope Confirmation</h2>
       <p><span class="label">In scope:</span> ${text(scope.in_scope)}</p>
