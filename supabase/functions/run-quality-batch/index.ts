@@ -24,7 +24,7 @@ import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter over LLM findings.
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // CV1-R2 T4c — counsel-voice auto-regen trigger predicate.
-import { isCounselVoiceRegenEligible } from "../_shared/grader/counsel-voice-regen.ts";
+import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "../_shared/grader/counsel-voice-regen.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
