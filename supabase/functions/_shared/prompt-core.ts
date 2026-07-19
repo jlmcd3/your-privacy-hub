@@ -26,8 +26,11 @@
 // retention rule ("last interaction", not "collection"); GDPR Art. 9(1) biometric
 // qualifier (special-category only when the purpose is uniquely identifying a
 // natural person). W2C exemptions in the language-variant rule are unchanged.
-export const PROMPT_CORE_VERSION = "3.9.2";
+export const PROMPT_CORE_VERSION = "3.9.3-counsel-voice-1";
 export const BUILD_TAG = "qb18";
+
+import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
+
 
 
 
