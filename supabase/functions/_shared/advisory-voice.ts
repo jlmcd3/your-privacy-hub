@@ -168,3 +168,36 @@ export function attachDeterministicChecks(
   return findings;
 }
 
+/**
+ * Extract concatenated body-text prose from a heterogenous report_data
+ * shape. String leaves are joined with newlines; arrays and objects are
+ * recursed. Reserved bookkeeping keys are skipped. Budget-bounded.
+ */
+const _RESERVED_KEYS = new Set([
+  "_meta", "deterministic_checks", "prompt_version", "build_stamp",
+  "generated_at", "enforcement_meta", "lint_warnings", "annotations",
+  "citation_lints", "information_needed", "enforcement_precedents",
+]);
+
+export function extractProseFromReport(report: unknown, budget = 200_000): string {
+  const parts: string[] = [];
+  let remaining = budget;
+  const walk = (v: unknown, key?: string) => {
+    if (remaining <= 0) return;
+    if (key && _RESERVED_KEYS.has(key)) return;
+    if (typeof v === "string") {
+      const t = v.slice(0, Math.max(0, remaining));
+      parts.push(t);
+      remaining -= t.length + 1;
+      return;
+    }
+    if (Array.isArray(v)) { for (const it of v) walk(it); return; }
+    if (v && typeof v === "object") {
+      for (const [k, val] of Object.entries(v as Record<string, unknown>)) walk(val, k);
+    }
+  };
+  walk(report);
+  return parts.join("\n");
+}
+
+
