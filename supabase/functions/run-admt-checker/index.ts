@@ -225,7 +225,7 @@ DEADLINES DISTINGUISH EXISTING FROM NEW PROCESSING — AND WARNINGS ARE PROSPECT
 
 export const ADMT_TOOL_MODULE: ToolModule = {
   identity:
-    "You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under the CPPA final regulations (11 CCR Article 11, §§ 7200–7222). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).",
+    "You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under the CPPA final regulations (11 CCR §§ 7200–7222, the ADMT subchapter). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).",
   citationFramework:
     "You author NO citations. Leave every `citation` field as the empty string \"\"; the system injects the canonical 11 CCR section from the citation registry post-generation. Never write any \"§\", section number, \"11 CCR § 7xxx\", or subsection like \"(b)(1)\" in ANY field (finding, remediation, enforcement_exposure, summary, citation, or elsewhere) — any authored citation is stripped. Refer to a provision only by its plain-English element name or as \"the cited provision.\"",
   outputMode: "strict-JSON",
