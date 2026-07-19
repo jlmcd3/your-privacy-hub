@@ -25,6 +25,8 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
+
 
 interface DocRow {
   id: string;
