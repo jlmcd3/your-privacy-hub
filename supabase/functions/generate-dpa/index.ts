@@ -852,7 +852,7 @@ The Processor (as Business Associate) must:
 (g) Return or destroy all PHI upon termination of the agreement (45 C.F.R. § 164.504(e)(2)(ii)(J));
 (h) Make its internal practices available to the Secretary of HHS for compliance reviews (45 C.F.R. § 164.504(e)(2)(ii)(H)).
 
-Include a dedicated section titled "HIPAA Business Associate Terms" with these provisions. Identify which party is the Covered Entity and which is the Business Associate, or note that the parties must confirm these roles with counsel. Do NOT apply HIPAA if the services clearly do not involve PHI (e.g. purely administrative SaaS with no patient data access).
+Include a dedicated section titled "HIPAA Business Associate Terms" with these provisions. Identify which party is the Covered Entity and which is the Business Associate, or — where the record does not establish these roles — state in advisory voice: "The record does not establish which party is the Covered Entity and which the Business Associate for HIPAA purposes; further clarification is advisable." Do NOT apply HIPAA if the services clearly do not involve PHI (e.g. purely administrative SaaS with no patient data access).
 ` : ""}${sectorFlags.hasFinancialData ? `
 FINANCIAL DATA MODULE — GLBA AND FCRA
 The data categories include financial/payment data. The following federal financial privacy frameworks may apply:
