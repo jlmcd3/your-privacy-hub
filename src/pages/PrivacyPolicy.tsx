@@ -345,9 +345,9 @@ const PrivacyPolicy = () => {
               necessary cookies will prevent you from logging in or using authenticated features.
             </p>
             <p>
-              For EU/EEA/UK users: you may refuse non-essential cookies by adjusting your browser
-              settings. Because we do not serve personalized ads, no advertising consent banner is
-              displayed.
+              For EU/EEA/UK/Switzerland users: no advertising is served in these regions pending
+              deployment of a Google-certified Privacy &amp; Messaging consent flow. Outside those
+              regions, any advertising is non-personalized only.
             </p>
           </section>
 
