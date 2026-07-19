@@ -1077,7 +1077,9 @@ GRADER-CAL-1 C3 — Art. 35(3)(b) SPECIAL-CATEGORY HEDGE (BINDING):
 Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the record shows special-category (Art. 9) or criminal-offence (Art. 10) data processed on a large scale. Absent that record predicate, frame the reference as: "If in future the processing expands to include large-scale special-category or criminal-offence data, Art. 35(3)(b) would engage — on the current record it does not."
 
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
-Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.`;
+Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.
+
+${ADVISORY_VOICE_RULES}`;
     if (gdprBlock) {
       systemPrompt = systemPrompt +
         `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` +
