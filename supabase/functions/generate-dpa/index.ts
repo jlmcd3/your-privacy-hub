@@ -1318,7 +1318,10 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
           360_000,
         );
-        const retryParsed = parseDpa(retryCall.text);
+        const retryParsedRaw = parseDpa(retryCall.text);
+        // IR-HF1 T4 — attempt-2 suppression BEFORE lint (idempotent).
+        const subprocSup2 = suppressSubProcessorFramework(retryParsedRaw.dpa_text, !!body.hasSubProcessors);
+        const retryParsed = { ...retryParsedRaw, dpa_text: subprocSup2.text } as typeof retryParsedRaw;
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
         {
           const spec = detectSpeculativeClauseViolations(retryParsed.dpa_text, {
