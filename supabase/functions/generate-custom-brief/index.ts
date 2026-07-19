@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { ADVISORY_VOICE_RULES } from "../_shared/advisory-voice.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 
 // Robustly parse a JSON object from an LLM response, tolerating code fences,
@@ -598,7 +599,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
             model: "claude-sonnet-4-6",
             // HF5: raise ceiling for Sonnet-5 thinking-block budget consumption.
             max_tokens: 24000,
-            system: systemPrompt,
+            system: systemPrompt + "\n\n" + ADVISORY_VOICE_RULES,
             messages: [{ role: "user", content: userPrompt }],
           }),
           signal: AbortSignal.timeout(180000),

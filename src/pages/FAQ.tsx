@@ -39,7 +39,7 @@ const faqs = [
   },
   {
     q: "What are the enforcement citations in tool outputs?",
-    a: "Smart Tools (LIA, DPIA, Governance Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources and legal counsel review are still required before relying on any regulatory position.",
+    a: "Smart Tools (LIA, DPIA, Governance Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources should be validated before relying on any regulatory position.",
   },
   {
     q: "How many generations do I get per Smart Tool report?",

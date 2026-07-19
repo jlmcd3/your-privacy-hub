@@ -90,7 +90,7 @@ const tierColor = (t: ConfidenceTier) => {
 const tierBlurb: Record<ConfidenceTier, string> = {
   "High-confidence": "Statutory or regulatory authority on point AND agency commentary (FSOR) reinforces the conclusion.",
   "Inference": "Statutory or regulatory authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
-  "Heuristic": "Conclusion is a best-effort interpretation and requires attorney review before relying on it.",
+  "Heuristic": "Conclusion is a best-effort interpretation; additional information is required before operational reliance.",
 };
 
 
@@ -597,7 +597,7 @@ export default function CPPARiskAssessmentResult() {
 
 
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-              ⚠️ This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.
+              ⚠️ This compliance framework report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.
             </section>
 
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />

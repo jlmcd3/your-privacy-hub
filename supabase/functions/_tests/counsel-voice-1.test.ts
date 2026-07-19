@@ -117,7 +117,7 @@ Deno.test("COUNSEL-VOICE-1 §3: genuine self-narration outside formulas still fi
 // ─── §3: version bump ────────────────────────────────────────────────
 
 Deno.test("COUNSEL-VOICE-1: GRADER_CONTEXT_VERSION bumped", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-19-counsel-voice-1");
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-20-cv1-all");
 });
 
 // ─── §4: E-checks per tool ───────────────────────────────────────────
@@ -251,4 +251,28 @@ Deno.test("CV1-FF: DPA + IR rulebooks contain zero NOTE-FOR-LEGAL-REVIEW emissio
         offenders.map((o) => `  L${o.no}: ${o.line.trim().slice(0, 200)}`).join("\n"),
     );
   }
+});
+
+// ─── §5 (CV1-ALL): role-roster exemption + unified E6 id ─────────────
+
+Deno.test("CV1-ALL: role-roster labels do NOT fail E6", () => {
+  const text = "The Incident Response Team includes: Miriam Schulz — Legal Counsel; Alex Rossi — Security Lead.";
+  const findings = runFormatChecksIR(text);
+  const e6 = findings.filter((f) => f.check_id === "e6_counsel_referral" || f.check_id === "e6_no_counsel_referral");
+  // No failing counsel-referral finding should be emitted for a role roster.
+  assert(!e6.some((f) => f.passed === false), `role roster incorrectly flagged: ${JSON.stringify(e6)}`);
+});
+
+Deno.test("CV1-ALL: directive counsel referral still fails E6", () => {
+  const text = "All findings should be reviewed with qualified legal counsel before operational use.";
+  const findings = runFormatChecksDPA(text);
+  const failing = findings.filter((f) => f.check_id === "e6_counsel_referral" && f.passed === false);
+  assert(failing.length > 0, "directive counsel referral must fail");
+});
+
+Deno.test("CV1-ALL: E5 accepts named-fact anywhere in sentence", () => {
+  const text = "Automated deletion of raw telemetry at 90 days must be confirmed as technically implemented — further internal investigation is advisable.";
+  const findings = runFormatChecksDPA(text);
+  const e5Fails = findings.filter((f) => f.check_id === "e5_bare_advisory_close" && f.passed === false);
+  assertEquals(e5Fails.length, 0, `E5 wrongly flagged a well-formed close: ${JSON.stringify(e5Fails)}`);
 });

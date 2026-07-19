@@ -1340,7 +1340,7 @@ Return JSON:
   "review_triggers": [
     "circumstances that would require this LIA to be revisited"
   ],
-  "disclaimer": "This analysis helps your organisation assess whether legitimate interest is an appropriate processing basis. It does not constitute legal advice. Review the findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
+  "disclaimer": "This analysis helps your organisation assess whether legitimate interest is an appropriate processing basis. It does not constitute legal advice. Confirm the specific facts in the record (purpose, necessity, and balancing evidence) before relying on legitimate interest as a processing legal basis; further clarification is advisable."
 }`;
 
     const t3Start = Date.now();
@@ -1384,7 +1384,7 @@ Return JSON:
       annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
       information_needed: Array.isArray((analysis as any)?.information_needed) ? (analysis as any).information_needed : [],
       documentation_recommendations: docRecs,
-      disclaimer: "This report helps your organisation identify areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions.",
+      disclaimer: "This report helps your organisation identify areas for further review. It does not constitute legal advice. Confirm the specific facts in the record (purpose, necessity, and balancing evidence) before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions; further clarification is advisable.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
       _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2.1-rcb") },
     };

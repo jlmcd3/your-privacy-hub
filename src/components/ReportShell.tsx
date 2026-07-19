@@ -146,9 +146,9 @@ export default function ReportShell({
             {topDisclaimer ?? (
               <>
                 This document is a starting point for your organisation's compliance
-                work, not a finished or authoritative compliance document. It does
-                not create an attorney-client relationship. Have qualified legal
-                counsel review it before you rely on it.
+                work, not a finished or authoritative compliance document. Validate
+                findings against your authoritative records before operational reliance;
+                additional information may be required.
               </>
             )}
           </p>

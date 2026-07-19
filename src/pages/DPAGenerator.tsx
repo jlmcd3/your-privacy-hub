@@ -273,8 +273,8 @@ export default function DPAGenerator() {
         const docType = detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction);
         const disclaimerAddition =
           docType.type === "us-state"
-            ? "US state privacy laws vary significantly. This agreement addresses commonly required provisions but may not capture all obligations under every applicable state law. Review with counsel licensed in the relevant states before execution."
-            : "This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel.";
+            ? "US state privacy laws vary significantly. This agreement addresses commonly required provisions but may not capture all obligations under every applicable state law. Validate the draft against the requirements of the relevant states before execution."
+            : "This draft must not be presented to any counterparty or executed without prior validation against your authoritative records and applicable law.";
         return phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">

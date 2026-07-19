@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { ADVISORY_VOICE_RULES } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -587,7 +588,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         // entire budget before any text block. Raise ceiling and read ALL
         // text blocks (not just content[0]).
         max_tokens: 32000,
-        system: systemPrompt,
+        system: systemPrompt + "\n\n" + ADVISORY_VOICE_RULES,
         messages: [{ role: "user", content: userPrompt }],
       }),
       signal: AbortSignal.timeout(briefTimeoutMs),

@@ -5,6 +5,7 @@
 // Output: rows inserted into public.horizon_intelligence for the current ISO week.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { ADVISORY_VOICE_RULES } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              `You are a senior privacy regulatory analyst at a leading intelligence firm. You produce forward-looking intelligence cards for a privacy compliance platform. Your readers are DPOs, privacy counsel, and compliance managers who use your output to prepare for regulatory developments before they arrive.
+              `${ADVISORY_VOICE_RULES}\n\nYou are a senior privacy regulatory analyst at a leading intelligence firm. You produce forward-looking intelligence cards for a privacy compliance platform. Your readers are DPOs, privacy counsel, and compliance managers who use your output to prepare for regulatory developments before they arrive.
 
 VOICE:
 Write in direct, active voice. Each anticipated_development must state what is expected to happen and why it matters for compliance professionals — not merely describe the regulatory environment.
