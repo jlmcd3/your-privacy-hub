@@ -1,19 +1,21 @@
 // Admin-only banner shown on /compare/us-states when any enacted state is
-// past its quarterly review cadence. Reads state_law_review_log directly;
-// non-admins simply see nothing.
+// past its review cadence, needs an update, or has been flagged with a
+// material change. Reads state_law_review_log directly; non-admins see nothing.
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import stateData from "@/data/us_state_comparison.json";
-
-const CADENCE_DAYS = 90;
+import {
+  computeReviewRollup,
+  REVIEW_CADENCE_DAYS,
+  type ReviewLogRow,
+} from "@/lib/stateReviewStatus";
 
 export default function StateReviewPastDueBanner() {
   const { isAdmin } = useIsAdmin();
-  const [overdueCount, setOverdueCount] = useState<number | null>(null);
+  const [rollup, setRollup] = useState<ReturnType<typeof computeReviewRollup> | null>(null);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -22,39 +24,43 @@ export default function StateReviewPastDueBanner() {
         .from("state_law_review_log")
         .select("state_slug, status, reviewed_at")
         .order("reviewed_at", { ascending: false });
-      const rows = (data ?? []) as Array<{
-        state_slug: string;
-        status: "ok" | "needs_update";
-        reviewed_at: string;
-      }>;
-      const latest = new Map<string, typeof rows[number]>();
-      for (const r of rows) if (!latest.has(r.state_slug)) latest.set(r.state_slug, r);
-
-      const enacted = (stateData.states as Array<{ abbr: string; status: string }>)
-        .filter((s) => s.status === "enacted");
-
-      const now = Date.now();
-      let overdue = 0;
-      for (const s of enacted) {
-        const slug = s.abbr.toLowerCase();
-        const last = latest.get(slug);
-        if (!last) { overdue++; continue; }
-        const ageDays = (now - new Date(last.reviewed_at).getTime()) / 86400000;
-        if (ageDays > CADENCE_DAYS || last.status === "needs_update") overdue++;
-      }
-      setOverdueCount(overdue);
+      setRollup(computeReviewRollup((data ?? []) as ReviewLogRow[]));
     })();
   }, [isAdmin]);
 
-  if (!isAdmin || !overdueCount) return null;
+  if (!isAdmin || !rollup) return null;
+
+  const problem =
+    rollup.materialChangeCount +
+    rollup.needsUpdateCount +
+    rollup.overdueCount +
+    rollup.neverReviewedCount;
+  if (problem === 0) return null;
+
+  const parts: string[] = [];
+  if (rollup.materialChangeCount)
+    parts.push(
+      `${rollup.materialChangeCount} flagged material change${rollup.materialChangeCount === 1 ? "" : "s"}`,
+    );
+  if (rollup.needsUpdateCount)
+    parts.push(
+      `${rollup.needsUpdateCount} needs-update`,
+    );
+  if (rollup.overdueCount)
+    parts.push(
+      `${rollup.overdueCount} past the ${REVIEW_CADENCE_DAYS}-day cadence`,
+    );
+  if (rollup.neverReviewedCount)
+    parts.push(
+      `${rollup.neverReviewedCount} never reviewed`,
+    );
 
   return (
     <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/5 px-5 py-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3 text-sm">
         <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
         <span>
-          <strong>{overdueCount}</strong> state{overdueCount === 1 ? " is" : "s are"} past
-          the {CADENCE_DAYS}-day review cadence.
+          <strong>State review needs attention:</strong> {parts.join(" · ")}.
         </span>
       </div>
       <Link
