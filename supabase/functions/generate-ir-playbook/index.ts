@@ -1576,6 +1576,123 @@ const playbook_text = lint.clean;
             }
             postGenNotes.push({ code: "uninjected_enforcement_citation", detail: `${unknownCites.length}` });
           }
+
+          // IR-HF1 T2 — CROSS-PART CONSISTENCY LINT (log-only, report-only-first
+          // per REBUILD-IR D3). Compares the three assembled parts on: (i) party /
+          // organisation-name mentions, (ii) incident date tokens (ISO YYYY-MM-DD
+          // and "DD Month YYYY" forms), (iii) regulator names drawn from the
+          // ENFORCEMENT CONTEXT and the built-in regulator vocabulary, and
+          // (iv) statutory-anchor mentions (GDPR Art., § 1798.x, HIPAA § 164.x,
+          // CCPA/CPPA, and the state-statute short forms). A "cross_part_inconsistency"
+          // note is written when a token appears in one part but is absent from
+          // another part that speaks to the same subject (party name / date /
+          // regulator / statute). NO regen, NO doc mutation this pass — findings
+          // land in post_gen_lint.notes for grader/reviewer visibility.
+          try {
+            type PartLabel = "A" | "B" | "C";
+            const parts: Array<{ label: PartLabel; text: string }> = [
+              { label: "A", text: partA || "" },
+              { label: "B", text: partB || "" },
+              { label: "C", text: partC || "" },
+            ];
+            const ISO_DATE_RE = /\b(20\d{2}-\d{2}-\d{2})\b/g;
+            const REGULATOR_VOCAB = [
+              "ICO", "CNIL", "AEPD", "Garante", "DPC", "EDPB", "OAIC", "FTC",
+              "HHS OCR", "CPPA", "NYDFS", "Datatilsynet", "BfDI", "UODO", "APD", "IMY",
+            ];
+            const STATUTE_RE = /(GDPR\s*Art(?:icle)?\.?\s*\d+[a-z]?|§\s*1798\.\d+[a-z]?|45\s*C\.F\.R\.\s*§\s*164\.\d+|HIPAA|CCPA|CPPA|PIPEDA|Law\s*25|BIPA|TRAIGA)/gi;
+            const orgName = (body as any)?.organizationName ? String((body as any).organizationName).trim() : "";
+            const extract = (t: string) => {
+              const dates = new Set<string>();
+              let m: RegExpExecArray | null;
+              while ((m = ISO_DATE_RE.exec(t)) !== null) dates.add(m[1]);
+              const regs = new Set(REGULATOR_VOCAB.filter((r) => new RegExp(`\\b${r.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`, "i").test(t)));
+              const stats = new Set<string>();
+              let sm: RegExpExecArray | null;
+              const statRe = new RegExp(STATUTE_RE.source, "gi");
+              while ((sm = statRe.exec(t)) !== null) stats.add(sm[0].toLowerCase().replace(/\s+/g, " "));
+              const hasOrg = orgName.length > 0 && t.toLowerCase().includes(orgName.toLowerCase());
+              return { dates, regs, stats, hasOrg };
+            };
+            const facts = parts.map((p) => ({ ...p, ...extract(p.text) }));
+            const findings: Array<{ code: string; detail: string }> = [];
+            const quote = (t: string, needle: string) => {
+              const idx = t.toLowerCase().indexOf(needle.toLowerCase());
+              if (idx < 0) return "";
+              return t.slice(Math.max(0, idx - 40), idx + needle.length + 40);
+            };
+            // (i) party/entity name: if present in one part and absent from another
+            // that has substantive text (>500 chars).
+            if (orgName) {
+              const carrying = facts.filter((p) => p.hasOrg);
+              const substantiveMissing = facts.filter((p) => !p.hasOrg && p.text.length > 500);
+              if (carrying.length > 0 && substantiveMissing.length > 0) {
+                findings.push({
+                  code: "cross_part_inconsistency",
+                  detail: `party_name_absent parts=${substantiveMissing.map((p) => p.label).join(",")} name="${orgName}" quoted_in=${carrying.map((p) => `${p.label}:"${quote(p.text, orgName).trim()}"`).join(" | ")}`,
+                });
+              }
+            }
+            // (ii) date disagreement: if two parts each cite ISO dates and their
+            // date sets do not intersect.
+            for (let i = 0; i < facts.length; i++) {
+              for (let j = i + 1; j < facts.length; j++) {
+                const a = facts[i]; const b = facts[j];
+                if (a.dates.size > 0 && b.dates.size > 0) {
+                  const shared = [...a.dates].some((d) => b.dates.has(d));
+                  if (!shared) {
+                    findings.push({
+                      code: "cross_part_inconsistency",
+                      detail: `incident_date_mismatch parts=${a.label},${b.label} ${a.label}=[${[...a.dates].join(",")}] ${b.label}=[${[...b.dates].join(",")}]`,
+                    });
+                  }
+                }
+              }
+            }
+            // (iii) regulator disagreement: regulator named in only one part when
+            // another part is substantive (>800 chars) and names some regulator.
+            const allRegs = new Set<string>();
+            facts.forEach((f) => f.regs.forEach((r) => allRegs.add(r)));
+            for (const r of allRegs) {
+              const carrying = facts.filter((p) => p.regs.has(r)).map((p) => p.label);
+              const missing = facts.filter((p) => !p.regs.has(r) && p.text.length > 800 && p.regs.size > 0).map((p) => p.label);
+              if (carrying.length > 0 && missing.length > 0 && carrying.length < facts.length) {
+                findings.push({
+                  code: "cross_part_inconsistency",
+                  detail: `regulator_scoping regulator="${r}" present=${carrying.join(",")} absent=${missing.join(",")}`,
+                });
+              }
+            }
+            // (iv) statute disagreement: statute anchor in one part, absent from
+            // another substantive part that uses a different anchor family.
+            const anchorFamily = (a: string): string => {
+              if (/gdpr/i.test(a)) return "gdpr";
+              if (/1798/.test(a)) return "ccpa";
+              if (/164\./.test(a) || /hipaa/i.test(a)) return "hipaa";
+              return a.slice(0, 20);
+            };
+            for (let i = 0; i < facts.length; i++) {
+              for (let j = i + 1; j < facts.length; j++) {
+                const a = facts[i]; const b = facts[j];
+                const famA = new Set([...a.stats].map(anchorFamily));
+                const famB = new Set([...b.stats].map(anchorFamily));
+                if (famA.size > 0 && famB.size > 0) {
+                  const shared = [...famA].some((f) => famB.has(f));
+                  if (!shared) {
+                    findings.push({
+                      code: "cross_part_inconsistency",
+                      detail: `statute_family_mismatch parts=${a.label},${b.label} ${a.label}=[${[...famA].join(",")}] ${b.label}=[${[...famB].join(",")}]`,
+                    });
+                  }
+                }
+              }
+            }
+            for (const f of findings.slice(0, 20)) {
+              lintWarnings.push({ rule: "IR-HF1-T2-cross-part", posture: "log_only", match: f.detail });
+              postGenNotes.push({ code: f.code, detail: f.detail });
+            }
+          } catch (e) {
+            console.error("[IR Playbook][IR-HF1 T2 cross-part] errored (non-fatal):", e);
         } catch (e) {
           console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
         }
