@@ -153,10 +153,16 @@ describe("Correctness spot-checks (STATES-1a courier)", () => {
     }
   });
 
-  it("NE consumer-rights cites live at § 87-1107", () => {
+  it("NE consumer-rights cites live at § 87-1107(2) — not (1)", () => {
     for (const pi of [0, 1, 2, 3, 4, 5, 6]) {
-      expect(STATUTES[`NE:${pi}`].cite, `NE:${pi}`).toMatch(/§\s*87-1107/);
+      const c = STATUTES[`NE:${pi}`].cite;
+      expect(c, `NE:${pi}`).toMatch(/§\s*87-1107\(2\)/);
+      expect(c, `NE:${pi} still targets subsection (1)`).not.toMatch(/§\s*87-1107\(1\)/);
     }
+  });
+
+  it("NE DPIA cite exists at § 87-1112", () => {
+    expect(STATUTES["NE:8"]?.cite ?? "").toMatch(/§\s*87-1112/);
   });
 
   it("MT law abbreviation is MTCDPA (Consumer Data Privacy Act)", () => {
@@ -202,5 +208,21 @@ describe("Qualifier notes", () => {
         expect(QUALIFIER_NOTES[key], `${key} missing qualifier note`).toBeDefined();
       }
     }
+  });
+});
+
+describe("DPIA (index 8) — cite-required invariant (STATES-1b)", () => {
+  const DPIA = 8;
+  it("every DPIA cell that is not a hard 'no' has a STATUTES entry with a non-empty cite", () => {
+    const missing: string[] = [];
+    for (const s of comparison.states) {
+      const v = s.provisions[DPIA];
+      const isNo = v === false || (typeof v === "string" && v.toLowerCase() === "no");
+      if (isNo) continue;
+      const key = `${s.abbr}:${DPIA}`;
+      const entry = STATUTES[key];
+      if (!entry || !entry.cite || entry.cite.trim().length === 0) missing.push(key);
+    }
+    expect(missing, `Uncited DPIA cells: ${missing.join(", ")}`).toEqual([]);
   });
 });
