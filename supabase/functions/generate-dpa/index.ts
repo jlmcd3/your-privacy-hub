@@ -1352,7 +1352,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
                 notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
                 sourceTable: "dpa_documents",
                 sourceRowId: rowId,
-                extra: { attempt: 2, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+                extra: { attempt: 2, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator", retry_within_budget: false, subproc_suppressed: subprocSup2.suppressed },
               });
             } catch (e) {
               console.warn("[generate-dpa] logPostGenLint (attempt 2) failed:", (e as Error).message);
