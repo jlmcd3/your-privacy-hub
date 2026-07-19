@@ -1252,6 +1252,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
               proc_mapped: detected.procMapped,
               attempt: 1,
               tool_type: "dpa_generator",
+              retry_within_budget: true,
             },
           });
         } catch (e) {
