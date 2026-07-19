@@ -1279,7 +1279,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
             detected.procCanonical,
           ]);
           const engagedStateViolations2 = detectNonEngagedStateAssertions(retryParsed.dpa_text, engagedStates2);
-          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2];
+          const subprocContradictions2 = detectSubProcessorContradiction(retryParsed.dpa_text, !!body.hasSubProcessors);
+          const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2, ...subprocContradictions2];
           if (extras.length) {
             retryLint.violations.push(...extras);
             try {
