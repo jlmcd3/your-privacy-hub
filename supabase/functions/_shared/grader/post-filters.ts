@@ -71,8 +71,11 @@ export function applyGraderCal1Filter(
         dropped.a4++;
         continue;
       }
-      // A2 — NOTE FOR LEGAL REVIEW blocks are not leaks.
-      if (f.check_id === "rubric_internal_reasoning_leak" && NOTE_BLOCK_RE.test(ev)) {
+      // A2 — advisory-formula sentences (and legacy NOTE blocks) are not leaks.
+      if (
+        f.check_id === "rubric_internal_reasoning_leak" &&
+        (ADVISORY_FORMULA_RE.test(ev) || LEGACY_NOTE_BLOCK_RE.test(ev))
+      ) {
         dropped.a2++;
         continue;
       }
