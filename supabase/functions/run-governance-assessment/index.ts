@@ -1219,6 +1219,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       reportData,
     });
 
+    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
@@ -1226,7 +1227,6 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       updated_at: new Date().toISOString(),
     }, { fn: "run-governance-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
-    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
       await lifecycleUpdate(supabase, "governance_assessments", assessment_id, { status: "failed" }, { fn: "run-governance-assessment", phase: "terminal_fallback" });
     }
 

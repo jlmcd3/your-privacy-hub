@@ -1441,13 +1441,13 @@ Return JSON:
       reportData,
     });
 
+    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }, { fn: "run-li-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
-    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
       await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_fallback" });
     }
 

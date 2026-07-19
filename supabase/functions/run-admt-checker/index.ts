@@ -1065,13 +1065,13 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
+    try { const _prose = extractProseFromReport(report); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,
       updated_at: new Date().toISOString(),
     }, { fn: "run-admt-checker", phase: "terminal_complete" });
     if (!completeWrite.ok) {
-    try { const _prose = extractProseFromReport(report); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-admt-checker", phase: "terminal_fallback" });
     }
 
