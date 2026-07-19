@@ -6,6 +6,16 @@
 // Kept in ONE place so the two grader paths stay behaviorally identical.
 // Edit here; both paths pick it up on next deploy.
 
+// MC-S1b Task 4 — GRADER_CONTEXT_VERSION.
+//
+// BUMP DISCIPLINE: increment this string on EVERY substantive edit to the
+// shared grader context below. The version stamps quality_batch_runs and
+// quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
+// CHANGE" dividers between batches that ran under different instruments.
+// Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-17-ff3";
+
+
 export const SHARED_GRADER_CONTEXT = `
 VERIFIED-ANCHOR MAP (X10a; do NOT flag these as misapplied):
 - § 1798.140(d)(1)(A) — annual gross revenue threshold ($25M).
