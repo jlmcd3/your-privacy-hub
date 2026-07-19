@@ -1887,8 +1887,8 @@ async function runBatch(runId: string): Promise<void> {
           : [];
         const alreadyRegenerated = Number((reportData as any)?.regen_round ?? 0) > 0;
         if (
-          !evalOnly
-          && !alreadyRegenerated
+          !alreadyRegenerated
+          && evalSourceRowId
           && isCounselVoiceRegenEligible(detChecksAttempt1)
         ) {
           const nonce = crypto.randomUUID();
@@ -1898,7 +1898,12 @@ async function runBatch(runId: string): Promise<void> {
           // insert fails (unique violation / race), skip regen for this doc.
           const { error: ledgerErr } = await admin
             .from("revision_dispatch_ledger")
-            .insert({ nonce, actor: "run-quality-batch:cv1-r2", context: { run_id: runId, doc_id: docRowId, tool } });
+            .insert({
+              nonce,
+              assessment_id: evalSourceRowId,
+              tool_type: tool,
+              action: "cv1_r2_auto_regen",
+            });
           if (ledgerErr) {
             await log("warn", `${docLabel}: CV1-R2 ledger claim failed (${ledgerErr.message}) — leaving attempt-1 findings intact`);
           } else {
