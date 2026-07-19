@@ -297,12 +297,15 @@ export default function CPPASuiteResult() {
 
         <div className="flex gap-2 flex-wrap pt-4 border-t">
           {(riskRow?.status === "complete" || cyberRow?.status === "complete") && (
-            <CPPASuitePDFButton
-              riskId={riskRow?.status === "complete" ? riskRow?.id : null}
-              cyberId={cyberRow?.status === "complete" ? cyberRow?.id : null}
-            />
-            <WordConversionPromptButton documentType="cppa_suite" />
+            <>
+              <CPPASuitePDFButton
+                riskId={riskRow?.status === "complete" ? riskRow?.id : null}
+                cyberId={cyberRow?.status === "complete" ? cyberRow?.id : null}
+              />
+              <WordConversionPromptButton documentType="cppa_suite" />
+            </>
           )}
+
           {riskRow?.id && riskRow.status === "complete" && (
             <>
               <PDFDownloadButton
