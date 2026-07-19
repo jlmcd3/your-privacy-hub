@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { ADSENSE_CONFIG, type AdVariant } from '@/config/ads';
+import { getAdRegion } from '@/lib/adRegion';
 
 const DIMENSIONS: Record<AdVariant, { w: number; h: number }> = {
   leaderboard: { w: 728, h: 90 },
