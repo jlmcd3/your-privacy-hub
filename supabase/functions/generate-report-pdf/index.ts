@@ -849,8 +849,8 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   <div class="body">
     <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
       This document is provided to support your organization's compliance review.
-      It does not create an attorney-client relationship. Always consult qualified legal
-      counsel for advice specific to your situation.`}</div>
+      It does not create an attorney-client relationship. Findings should be
+      validated against your organization's authoritative records before operational reliance.`}</div>
     ${calloutHtml}
     ${opts.htmlPrefix ?? ""}
     ${sectionsHtml}
