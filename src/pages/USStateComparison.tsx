@@ -194,8 +194,10 @@ const USStateComparison = () => {
                                   href={statute!.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center justify-center hover:scale-110 transition-transform"
-                                  aria-label={`${statute!.cite} — click to view statute`}
+                                  // Item 9 — accessible name: state + provision + pinpoint.
+                                  aria-label={`${s.name} — ${provision}: ${statute!.cite}. Opens statute in a new tab.`}
+                                  title={`${statute!.cite}${qualifier ? ` — ${qualifier}` : ""}`}
+                                  className="inline-flex items-center justify-center min-w-[28px] min-h-[28px] rounded hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:bg-accent/10"
                                 >
                                   {body}
                                 </a>
@@ -205,7 +207,7 @@ const USStateComparison = () => {
                                 {qualifier && (
                                   <p className="text-[11px] text-muted-foreground mt-0.5 font-sans">{qualifier}</p>
                                 )}
-                                <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">Press Enter or click to view statute ↗</p>
                               </TooltipContent>
                             </Tooltip>
                           ) : (
