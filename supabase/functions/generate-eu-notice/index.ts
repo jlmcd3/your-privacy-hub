@@ -465,7 +465,7 @@ const DRAFT_BANNER_HTML = `<div style="background:#7c1a1a;color:#fff;padding:12p
   border-left:6px solid #f87171;">
   ⚠ DRAFT — REQUIRED FIELDS MISSING — DO NOT PUBLISH this notice until controller
   name, contact email, data categories, purposes, lawful basis, and retention are
-  completed by qualified legal counsel.
+  completed.
 </div>`;
 
 function renderSections(sections: NoticeSection[], startNumber = 1): string {
