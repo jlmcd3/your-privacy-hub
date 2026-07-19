@@ -172,13 +172,10 @@ const FAQ = () => {
           </div>
         ))}
 
-        <h2 className="font-display text-brand-navy mt-10 mb-4">Security &amp; Data Handling</h2>
-        <div className="bg-card border border-brand-cloud rounded-xl mb-3 overflow-hidden p-6">
-          <p className="text-[14px] text-slate italic leading-relaxed">
-            {/* Placeholder marker — content supplied by Legal. */}
-            [ Content pending legal review. ]
-          </p>
-        </div>
+        {/* Security & Data Handling entries are hidden until Legal-approved
+            content ships. Rendering the pending-review placeholder invents an
+            answer we don't have. */}
+
 
 
         {/* Bottom CTA */}
