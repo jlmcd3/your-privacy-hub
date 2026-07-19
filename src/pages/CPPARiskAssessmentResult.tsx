@@ -597,7 +597,7 @@ export default function CPPARiskAssessmentResult() {
 
 
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-              ⚠️ This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.
+              ⚠️ This compliance framework report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.
             </section>
 
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
