@@ -72,6 +72,8 @@ export const HF1_INTERNAL_VOCAB_PATTERNS: RegExp[] = [
   /\bi1b_min_pi\b/i,
   /\bimpact_intake\b/i,
   /\bq1[5-9][a-z]?_[a-z_]+\b/i,
+  // CPPA-HF4 Task F — ADMT pipeline element ids surfaced in prose.
+  /\baccess_verify(?:_nonacct)?\b/i,
 ];
 
 export function checkH2InternalVocab(text: string): FormatFinding[] {
