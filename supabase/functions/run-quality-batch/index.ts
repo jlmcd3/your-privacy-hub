@@ -2695,6 +2695,7 @@ Deno.serve(async (req) => {
     started_at: new Date().toISOString(),
     last_heartbeat_at: new Date().toISOString(),
     next_doc_index: 0,
+    grader_context_version: GRADER_CONTEXT_VERSION, // CV1-ALL T6
   }).select("id").single();
   if (rErr || !run) return json({ error: `run insert: ${rErr?.message}` }, 500);
 
