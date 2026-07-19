@@ -229,7 +229,7 @@ const CategoryPage = () => {
         <div className="hidden md:block">
           <div className="sticky top-24 border border-border rounded-xl p-5 bg-card">
             <p className="text-xs font-semibold text-primary mb-2">
-              ⭐ Intelligence Intelligence
+              ⭐ Intelligence
             </p>
             <p className="text-sm font-bold text-foreground mb-2">
               Get {meta.title} analysis in your Privacy Intelligence Report
