@@ -1357,7 +1357,7 @@ export default function CPPARiskAssessment() {
         </BenchLayout>
 
         <p className="text-xs text-muted-foreground italic">
-          This is a compliance framework tool. It does not constitute legal advice and is not a substitute for review by qualified California privacy counsel.
+          This is a compliance framework tool aligned to the CPPA audit regulations (11 CCR §§ 7150-7157); the page-level disclaimer above governs its status.
         </p>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} />
