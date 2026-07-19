@@ -224,7 +224,7 @@ const USStateComparison = () => {
         </div>
 
         <p className="text-xs text-muted-foreground mt-4">
-          Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
+          Hover or keyboard-focus any ✓ checkmark to see the applicable statutory citation. Press Enter or click to open the full statute in a new tab.
         </p>
 
         <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
@@ -266,7 +266,57 @@ const USStateComparison = () => {
           </p>
         </div>
 
-
+        {/* Item 10 — Methodology & scope caveats */}
+        <section aria-labelledby="methodology-heading" className="mt-10 border-t border-border pt-6">
+          <h2 id="methodology-heading" className="font-serif text-xl text-foreground mb-3">Methodology &amp; scope</h2>
+          <div className="text-sm text-muted-foreground space-y-3 max-w-3xl">
+            <p>
+              <span className="font-medium text-foreground">Inclusion criteria.</span>{" "}
+              The comparison covers every enacted U.S. <em>comprehensive consumer</em> privacy
+              statute — a state law that regulates the collection, use, and sharing of personal
+              information across sectors and grants consumers a defined set of rights (access,
+              deletion, correction, opt-out). We exclude sectoral statutes (biometric-only,
+              children-only, health-only, data-broker registration), pre-enactment bills, and
+              non-comprehensive amendments.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">As of:</span>{" "}
+              {asOfDisplay}. Data is reviewed on a rolling {REVIEW_CADENCE_DAYS}-day cadence;
+              live review status is shown above the table.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Checkmark scope.</span>{" "}
+              A ✓ indicates the statute contains the listed provision as a general rule.
+              Coverage is often conditional in the underlying text — thresholds, definitions,
+              exemptions, and effective dates vary by state. <span className="font-medium">Limited</span>{" "}
+              and <span className="font-medium">Conditional</span> pills flag common qualifiers;
+              hover or focus any citation for the pinpoint reference and treat the linked
+              statute as controlling.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Narrow-scope statutes — Florida FDBR.</span>{" "}
+              The Florida Digital Bill of Rights applies only to a narrow set of controllers.
+              Under <a
+                href="http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.702.html"
+                target="_blank" rel="noopener noreferrer"
+                className="underline hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+              >Fla. Stat. § 501.702(9)</a>, a covered "controller" must have more than
+              $1&nbsp;billion in global gross annual revenues <em>and</em> meet at least one of
+              the enumerated criteria (derives ≥50% of global revenues from online ad sales,
+              operates a smart speaker with an integrated virtual assistant, or operates an
+              app store or digital distribution platform offering ≥250,000 different software
+              applications). Provisions marked ✓ for Florida apply <em>only</em> to entities
+              inside that scope.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Corrections process.</span>{" "}
+              If you spot an outdated entry, a miscited pinpoint, or a coverage change we
+              have not yet reflected, <Link to="/contact" className="underline hover:text-accent">let us know</Link>.
+              Reported material changes trigger a re-review that is logged in our public
+              review ledger and reflected in the freshness banner above.
+            </p>
+          </div>
+        </section>
 
       </div>
 
