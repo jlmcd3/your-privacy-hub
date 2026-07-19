@@ -1064,7 +1064,19 @@ BREACH NOTIFICATION PARTY RULE: Any sub-clause requiring description of remedial
     const CITATION_INTEGRITY_RULE = `
 
 CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective 1 Jan 2026): notify affected individuals within 30 calendar days of discovery; for breaches affecting 500+ California residents, submit a sample copy to the California Attorney General within 15 calendar days of notifying consumers. The two statutory delay exceptions (legitimate needs of law enforcement; time necessary to determine the breach scope and restore system integrity) are retained. Do NOT describe California as having no fixed deadline or use the "most expedient time possible" phrasing — that was the pre-2026 standard. 72 hours remains a GDPR Article 33 concept only. (6) The EU Artificial Intelligence Act must always be cited as "Regulation (EU) 2024/1689" — never 2024/900 or any other number. (7) MONETARY PENALTY RULE: Never state a specific monetary fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT CONTEXT block provided in this prompt. Training knowledge of regulatory fines is unreliable. If a relevant case exists but its amount is not in the provided block, write "[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register" instead of recalling an amount. Known correct figures (use only if the case is in your enforcement block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000 (NOT £5.03M); ICO Capita Pension Solutions (2024) £6,090,000 (NOT £6.88M); ICO British Airways (2020) £20,000,000. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number.`;
-    systemPrompt = systemPrompt + CITATION_INTEGRITY_RULE;
+    systemPrompt = systemPrompt + CITATION_INTEGRITY_RULE + `
+
+GRADER-CAL-1 C1 — CCPA BREACH-NOTIFICATION vs. PRIVATE RIGHT OF ACTION (BINDING):
+Cal. Civ. Code § 1798.82 is the BREACH-NOTIFICATION section. Cal. Civ. Code § 1798.150 is the CCPA PRIVATE RIGHT OF ACTION — it provides a consumer cause of action for statutorily-defined unauthorized access following inadequate security, NOT a notification duty and NOT a notification deadline. NEVER cite § 1798.150 as the source of a notification obligation, notification deadline, or notification window. Where the drafting concerns notifying individuals, the Attorney General, or affected consumers, the correct anchor is § 1798.82 (with SB 446 as amended per the CITATION INTEGRITY RULE above).
+
+GRADER-CAL-1 C2 — FRAMEWORK-ASSERTION HEDGE (BINDING):
+When the record does NOT engage a particular framework (e.g. GDPR is not engaged because no EU/UK data subjects appear in the record), do NOT assert that framework's obligations as governing law. Where a comparative note is helpful, frame it explicitly as comparative / prospective and label it: "For comparison, the GDPR framework would require … — this DPA is not currently governed by that framework on the record supplied."
+
+GRADER-CAL-1 C3 — Art. 35(3)(b) SPECIAL-CATEGORY HEDGE (BINDING):
+Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the record shows special-category (Art. 9) or criminal-offence (Art. 10) data processed on a large scale. Absent that record predicate, frame the reference as: "If in future the processing expands to include large-scale special-category or criminal-offence data, Art. 35(3)(b) would engage — on the current record it does not."
+
+GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
+Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.`;
     if (gdprBlock) {
       systemPrompt = systemPrompt +
         `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` +
@@ -1305,7 +1317,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         ? (parsed as any).information_needed
         : [],
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.1-rcb") },
+      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.2-grader-cal-1") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
 
