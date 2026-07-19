@@ -1147,7 +1147,10 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         detected.procCanonical,
       ]);
       const engagedStateViolations = detectNonEngagedStateAssertions(parsed.dpa_text, engagedStates);
-      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations];
+      // HF1 Task 2 — sub-processor contradiction (Schedule-1 / general-authorisation
+      // framework where hasSubProcessors===false).
+      const subprocContradictions = detectSubProcessorContradiction(parsed.dpa_text, !!body.hasSubProcessors);
+      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions];
       if (extras.length) {
         lint.violations.push(...extras);
         try {
