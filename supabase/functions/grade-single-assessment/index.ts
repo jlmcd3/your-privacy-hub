@@ -23,6 +23,8 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
+// GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
+import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 
 // GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
 // run-quality-batch). Safety cap only for pathological payloads.
