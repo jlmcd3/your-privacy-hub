@@ -1,4 +1,6 @@
 // qb8 build active
+import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // build-marker: cyber-qi3-observations-not-directives-2026-07-03
 console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directives-2026-07-03");
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
