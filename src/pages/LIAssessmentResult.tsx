@@ -330,7 +330,7 @@ const LIAssessmentResult = () => {
                     ))}
                   </ul>
                   <p className="text-xs text-red-700 dark:text-red-400 mt-3">
-                    These issues must be resolved before you can lawfully rely on legitimate interest as a processing basis. Consult qualified legal counsel before proceeding.
+                    These issues must be resolved before you can lawfully rely on legitimate interest as a processing basis; additional information is required before proceeding.
                   </p>
                 </section>
               )}
