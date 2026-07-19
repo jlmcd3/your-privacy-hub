@@ -1422,7 +1422,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
          ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
          <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
          ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}`}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
