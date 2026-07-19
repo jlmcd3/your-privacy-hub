@@ -716,7 +716,7 @@ export default function CPPARiskAssessment() {
         />
         <IntakeGuidance>Where a field asks you to describe something, be specific and complete: name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
-        <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
+        <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid and does not constitute a certified audit or regulatory submission." />
         {refine.isRefine && refine.intake && !refine.loading && (
           <RefinePanel
             toolType="cppa_risk_assessment"
