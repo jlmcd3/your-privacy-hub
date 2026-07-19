@@ -420,8 +420,9 @@ const PrivacyPolicy = () => {
             <p>
               Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), and other US state privacy
               laws: You have similar rights to access, correct, delete, and port your personal data,
-              and to opt out of targeted advertising. Because we serve non-personalized ads, we do
-              not engage in targeted advertising as defined under these laws.
+              and to opt out of targeted advertising. We do not engage in targeted advertising as
+              defined under these laws — any advertising we serve is non-personalized only, and no
+              advertising is served in the EEA, UK, or Switzerland pending a consent flow.
             </p>
             <p>
               To exercise your US state privacy rights, email{" "}
