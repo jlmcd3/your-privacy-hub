@@ -20,6 +20,7 @@ import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
@@ -105,6 +106,7 @@ export default function IRPlaybookResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <WordConversionPromptButton documentType="ir_playbook" />
                 
                 {(translated?.playbook_text ?? row.playbook_text) && <CopyButton text={translated?.playbook_text ?? row.playbook_text} />}
               </>

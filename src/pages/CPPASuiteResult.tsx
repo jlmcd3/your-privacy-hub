@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 
 import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
@@ -296,11 +297,15 @@ export default function CPPASuiteResult() {
 
         <div className="flex gap-2 flex-wrap pt-4 border-t">
           {(riskRow?.status === "complete" || cyberRow?.status === "complete") && (
-            <CPPASuitePDFButton
-              riskId={riskRow?.status === "complete" ? riskRow?.id : null}
-              cyberId={cyberRow?.status === "complete" ? cyberRow?.id : null}
-            />
+            <>
+              <CPPASuitePDFButton
+                riskId={riskRow?.status === "complete" ? riskRow?.id : null}
+                cyberId={cyberRow?.status === "complete" ? cyberRow?.id : null}
+              />
+              <WordConversionPromptButton documentType="cppa_suite" />
+            </>
           )}
+
           {riskRow?.id && riskRow.status === "complete" && (
             <>
               <PDFDownloadButton
@@ -310,6 +315,7 @@ export default function CPPASuiteResult() {
                 onGenerated={(url) => risk.setRow((prev: any) => ({ ...(prev ?? riskRow), pdf_url: url }))}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
+              <WordConversionPromptButton documentType="cppa_risk" />
             </>
           )}
           {cyberRow?.id && cyberRow.status === "complete" && (
@@ -321,6 +327,7 @@ export default function CPPASuiteResult() {
                 onGenerated={(url) => cyber.setRow((prev: any) => ({ ...(prev ?? cyberRow), pdf_url: url }))}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
+              <WordConversionPromptButton documentType="cppa_cybersecurity" />
             </>
           )}
           {kitAvailable && (

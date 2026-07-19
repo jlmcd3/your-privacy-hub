@@ -15,6 +15,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
@@ -166,13 +167,16 @@ const LIAssessmentResult = () => {
       {/* SEC-1b: PDF affordance requires an owner. Preview-stage (user_id NULL)
           rows never render the button and no replacement CTA per §3b ruling. */}
       {status === "complete" && assessment?.user_id && (
-        <PDFDownloadButton
+<>
+<PDFDownloadButton
           toolType="li_assessment"
           assessmentId={assessment.id}
           pdfUrl={assessment.pdf_url}
           onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
         />
-      )}
+<WordConversionPromptButton documentType="li_assessment" />
+</>
+)}
     </>
   );
 

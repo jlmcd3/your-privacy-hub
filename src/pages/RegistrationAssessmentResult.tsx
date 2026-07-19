@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Copy, Loader2, Mail } from "lucide-react";
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 
 import { PRICING_REGISTRY, PRICING } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
@@ -253,6 +254,7 @@ export default function RegistrationAssessmentResult() {
                         pdfUrl={null}
                         className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
                       />
+                      <WordConversionPromptButton documentType="registration_assessment" />
                     </>
                   )}
                 </div>

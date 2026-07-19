@@ -20,6 +20,7 @@ import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
@@ -104,6 +105,7 @@ export default function DPAResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <WordConversionPromptButton documentType="dpa_generator" />
                 
                 {(translated?.document_text ?? row.document_text) && <CopyButton text={translated?.document_text ?? row.document_text} />}
               </>

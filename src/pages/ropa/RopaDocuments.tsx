@@ -27,7 +27,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+
 
 
 
@@ -511,6 +513,9 @@ export default function RopaDocuments() {
                         );
                       })}
                     </div>
+                    <div className="mt-3 flex justify-end">
+                      <WordConversionPromptButton documentType="ropa_document" compact />
+                    </div>
                     {sessionDocs[0]?.jurisdictions_covered?.length > 0 && (
                       <p className="font-mono text-xs text-muted-foreground mt-3">
                         Jurisdictions: {sessionDocs[0].jurisdictions_covered.join(", ")}
@@ -518,6 +523,7 @@ export default function RopaDocuments() {
                     )}
                   </CardContent>
                 )}
+
               </Card>
             );
           })}

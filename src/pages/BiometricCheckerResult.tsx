@@ -20,6 +20,7 @@ import InformationNeededBlock from "@/components/InformationNeededBlock";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
@@ -80,6 +81,7 @@ export default function BiometricCheckerResult() {
         pdfUrl={row.pdf_url}
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
       />
+      <WordConversionPromptButton documentType="biometric_checker" />
       {text && <CopyButton text={text} />}
     </>
   );

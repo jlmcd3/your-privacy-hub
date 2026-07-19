@@ -25,6 +25,8 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
+
 
 interface DocRow {
   id: string;
@@ -203,13 +205,17 @@ export default function EUNoticeDocuments() {
           <Link to="/dashboard"><ArrowLeft className="h-4 w-4 mr-1.5" /> Back to dashboard</Link>
         </Button>
         {docs[0]?.session_id && (
-          <ReportTranslateMenu
-            toolType="eu_notice"
-            reportId={docs[0].session_id}
-            onTranslated={() => { /* file-based notices: payload swap not yet wired */ }}
-          />
+          <div className="flex items-center gap-2">
+            <ReportTranslateMenu
+              toolType="eu_notice"
+              reportId={docs[0].session_id}
+              onTranslated={() => { /* file-based notices: payload swap not yet wired */ }}
+            />
+            <WordConversionPromptButton documentType="eu_notice" compact />
+          </div>
         )}
       </div>
+
 
       {loading ? (
         <Skeleton className="h-48 w-full" />

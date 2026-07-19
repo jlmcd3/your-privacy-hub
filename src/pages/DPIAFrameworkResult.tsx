@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
@@ -164,6 +165,7 @@ const DPIAFrameworkResult = () => {
         pdfUrl={dpia?.pdf_url}
         onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
       />
+      <WordConversionPromptButton documentType="dpia_framework" />
       <Button onClick={() => window.print()} variant="outline" size="sm">Print</Button>
     </>
   ) : undefined;

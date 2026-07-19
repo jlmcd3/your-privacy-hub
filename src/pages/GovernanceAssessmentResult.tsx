@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
@@ -108,13 +109,16 @@ const GovernanceAssessmentResult = () => {
         />
       )}
       {status === "complete" && (
-        <PDFDownloadButton
+<>
+<PDFDownloadButton
           toolType="governance_assessment"
           assessmentId={assessment?.id}
           pdfUrl={assessment?.pdf_url}
           onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
         />
-      )}
+<WordConversionPromptButton documentType="governance_assessment" />
+</>
+)}
     </>
   );
 

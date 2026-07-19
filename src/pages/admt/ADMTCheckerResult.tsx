@@ -17,6 +17,7 @@ import InformationNeededBlock from "@/components/InformationNeededBlock";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check } from "lucide-react";
@@ -331,14 +332,18 @@ export default function ADMTCheckerResult() {
         disclaimerAddition="This gap analysis is an analytical aid, not legal advice. Review with qualified California privacy counsel before relying on it for regulatory compliance decisions."
         actions={
           assessment.status === "complete" ? (
-            <PDFDownloadButton
-              toolType="cppa_admt"
-              assessmentId={id!}
-              pdfUrl={assessment.pdf_url}
-              onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
-            />
+            <>
+              <PDFDownloadButton
+                toolType="cppa_admt"
+                assessmentId={id!}
+                pdfUrl={assessment.pdf_url}
+                onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
+              />
+              <WordConversionPromptButton documentType="cppa_admt" />
+            </>
           ) : undefined
         }
+
       >
         {(() => {
           const { meter } = useRunMeter("cppa_admt", id);

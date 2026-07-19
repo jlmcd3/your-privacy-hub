@@ -13,6 +13,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { AdminOnly } from "@/components/AdminOnly";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
@@ -247,6 +248,7 @@ export default function CPPARiskAssessmentResult() {
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
                 />
+                <WordConversionPromptButton documentType="cppa_risk" />
                 <ReportTranslateMenu
                   toolType="cppa_risk"
                   reportId={row.id}
@@ -609,6 +611,7 @@ export default function CPPARiskAssessmentResult() {
                 onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
+              <WordConversionPromptButton documentType="cppa_risk" />
 
               {/* Sprint 1 #2 — Regulator-Rationale Memo */}
               {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (() => {

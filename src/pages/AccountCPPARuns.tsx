@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { Loader2 } from "lucide-react";
 
 type Row = {
@@ -152,6 +153,7 @@ export default function AccountCPPARuns() {
                         <Link to={`/cppa/suite/result?risk_id=${s.risk.id}&cyber_id=${s.cyber.id}`}>Re-open</Link>
                       </Button>
                       <CPPASuitePDFButton riskId={s.risk.id} cyberId={s.cyber.id} />
+                      <WordConversionPromptButton documentType="cppa_suite" />
                     </div>
                   </div>
                 </div>

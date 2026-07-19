@@ -12,6 +12,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
@@ -113,6 +114,7 @@ export default function CPPACybersecurityResult() {
         pdfUrl={row.pdf_url}
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
       />
+      <WordConversionPromptButton documentType="cppa_cybersecurity" />
       <Button asChild variant="outline" size="sm"><Link to="/cppa-cybersecurity">Run New Assessment</Link></Button>
     </>
   ) : undefined;
