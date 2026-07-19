@@ -163,15 +163,24 @@ function checkE4(text: string, dim = "hallucination"): FormatFinding[] {
 }
 
 function checkE5(text: string, dim = "hallucination"): FormatFinding[] {
+  // CV1-ALL T5 — named-fact predicate now scans the ENTIRE closing sentence,
+  // not only the pre-close clause. A close is "bare" only if no substantive
+  // noun material precedes it anywhere in the sentence. Threshold: >=6 words
+  // of non-boilerplate text before "further ... is advisable." anywhere in
+  // the sentence. This allows em-dash-joined closes ("<fact> — further ...")
+  // and comma/period-separated named facts to pass while still catching
+  // bare closes like "; further clarification is advisable." with no fact.
   const findings: FormatFinding[] = [];
   const sentences = splitSentences(text ?? "");
   let bare = 0;
+  const CLOSE_RE = /further (?:clarification|internal investigation) is advisable\./i;
   for (const s of sentences) {
-    if (!ADVISORY_CLOSE_ANY_RE.test(s)) continue;
-    const m = s.match(/([^;]*);\s*further (?:clarification|internal investigation) is advisable\./i);
-    const preclause = (m?.[1] ?? "").trim();
-    const words = preclause.split(/\s+/).filter(Boolean);
-    if (words.length < 5) {
+    if (!CLOSE_RE.test(s)) continue;
+    const preClose = s.replace(CLOSE_RE, "").trim();
+    // Strip trailing punctuation/dashes/semicolons/hyphens
+    const trimmed = preClose.replace(/[\s;:,\-—–]+$/g, "").trim();
+    const words = trimmed.split(/\s+/).filter(Boolean);
+    if (words.length < 6) {
       bare++;
       findings.push(fail("e5_bare_advisory_close", dim, "medium",
         `advisory close without named fact: "${s.slice(0, 200)}"`));
@@ -182,6 +191,21 @@ function checkE5(text: string, dim = "hallucination"): FormatFinding[] {
   return findings;
 }
 
+// CV1-ALL T4a — role-roster / named-person exemption. A stakeholder listing
+// ("Miriam Schulz — Legal Counsel", "Legal Counsel (HIPAA gap analysis)",
+// "Role: Senior Legal Counsel", DPIA consultation-record rosters) is NOT a
+// counsel referral. Directive verbs (consult, review with, confirm with,
+// seek advice from) still fail; passive role labels do not.
+export const ROLE_ROSTER_EXEMPT_RE =
+  /(?:^|[\n\r])\s*(?:\d+\.\s*)?[A-Z][A-Za-z.'’\-]+(?:\s+[A-Z][A-Za-z.'’\-]+){0,3}\s*[—\-:]\s*(?:legal\s+counsel|qualified\s+counsel|privacy\s+counsel|privacy\s+officer)\b/i;
+export const ROLE_LABEL_EXEMPT_RE =
+  /\b(?:legal\s+counsel|privacy\s+counsel|qualified\s+counsel|privacy\s+officer)\s*\((?:[^)]{1,200})\)/i;
+export const ROLE_FIELD_EXEMPT_RE =
+  /\b(?:role|title|position|assigned\s+to|owner|responsible)\s*[:\-]\s*[^.\n]{0,80}\b(?:legal|privacy)\s+counsel\b/i;
+// Directive verbs — these override any exempt hit and force the finding.
+const DIRECTIVE_VERB_RE =
+  /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
+
 function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp } = {}): FormatFinding[] {
   const findings: FormatFinding[] = [];
   const sentences = splitSentences(text ?? "");
@@ -189,17 +213,26 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
-      // privilege guidance (secure/restricted channel, privilege
-      // determination step at Section 1) is operational IR substance and
-      // stays. Sentences matching opts.exemptRe are skipped.
+      // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;
+      // CV1-ALL T4a — role-roster / named-person exemption. A stakeholder
+      // listing is not a referral UNLESS the sentence also contains a
+      // directive verb (consult, review with, etc.).
+      const rosterMatch = ROLE_ROSTER_EXEMPT_RE.test(s) ||
+                          ROLE_LABEL_EXEMPT_RE.test(s) ||
+                          ROLE_FIELD_EXEMPT_RE.test(s);
+      if (rosterMatch && !DIRECTIVE_VERB_RE.test(s)) continue;
       hits++;
       findings.push(fail("e6_counsel_referral", dim, "high",
         `body-text counsel referral: "${s.slice(0, 200)}"`));
       if (hits > 10) break;
     }
   }
-  if (findings.length === 0) findings.push(pass("e6_no_counsel_referral", dim));
+  // CV1-ALL T4b — unified check_id. Both pass and fail share
+  // "e6_counsel_referral"; the `passed` boolean carries the state.
+  // Legacy id "e6_no_counsel_referral" is retired; harnesses read the
+  // unified id and inspect `passed`.
+  if (findings.length === 0) findings.push(pass("e6_counsel_referral", dim));
   return findings;
 }
 
