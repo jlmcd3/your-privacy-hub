@@ -281,8 +281,8 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                         {e.argument_strength && (
                           <div>
                             <p className="font-semibold">
-                              {argStrengthLabel(e.argument_strength) === "Counsel review recommended"
-                                ? "Counsel review recommended"
+                              {argStrengthLabel(e.argument_strength) === "Additional information required"
+                                ? "Additional information required"
                                 : `Argument strength: ${argStrengthLabel(e.argument_strength)}`}
                             </p>
                             {e.argument_strength_rationale && <p>{e.argument_strength_rationale}</p>}
