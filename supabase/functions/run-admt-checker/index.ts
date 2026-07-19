@@ -1101,8 +1101,51 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
-    // CPPA-HF2 I3 — prompt_version _meta stamp on ADMT reports.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf3@2026-07-19"), build_stamp: BUILD_STAMP };
+    // CPPA-HF4 Task C + D2 + F — post-gen artifact scrub. Cleans HF3
+    // Article-N recast artifacts, bracketed counsel placeholders, and ADMT
+    // pipeline element ids that leak into prose.
+    try {
+      const REPLACEMENTS: Array<[RegExp, string]> = [
+        // C — mechanical substitution artifacts
+        [/\bThe\s+the\s+cited\s+provision\b/g, "The cited provision"],
+        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, "the cited provision"],
+        [/\bthe\s+applicable\s+regulation\s+section\b/gi, "the cited provision"],
+        // D2 — bracketed counsel placeholders → generic authorised-signatory
+        [/\[\s*(?:BUSINESS\s+)?LEGAL\s+COUNSEL(?:\s+OR\s+DESIGNATED\s+OFFICER)?\s*\]/gi, "[AUTHORISED SIGNATORY]"],
+        [/\[\s*(?:CONFIRM|COORDINATE|CHECK)\s+WITH\s+LEGAL\s+COUNSEL[^\]]*\]/gi, ""],
+        [/\[\s*LAW[-\s]?FIRM\s+NAME\s*\]/gi, ""],
+        // F — ADMT element ids surfaced in prose
+        [/\baccess_verify_nonacct\b/g, "the non-account access verification step"],
+        [/\baccess_verify\b/g, "the access-response verification step"],
+      ];
+      let scrubbedAdmt = 0;
+      const walkAdmt = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) { for (const v of node) walkAdmt(v); return; }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") {
+            let next = v;
+            for (const [re, sub] of REPLACEMENTS) next = next.replace(re, sub);
+            // Compact residual doubled spaces from empty-string substitutions.
+            next = next.replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
+            if (next !== v) { (node as any)[k] = next; scrubbedAdmt++; }
+          } else if (v && typeof v === "object") {
+            walkAdmt(v);
+          }
+        }
+      };
+      walkAdmt(report);
+      if (scrubbedAdmt > 0) {
+        console.warn(`[run-admt-checker] CPPA-HF4 post-gen scrub: ${scrubbedAdmt} occurrence(s) cleaned`);
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] CPPA-HF4 post-gen scrub failed (non-fatal):", e);
+    }
+
+    // CPPA-HF4 I3 — prompt_version _meta stamp on ADMT reports.
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf4@2026-07-19"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
