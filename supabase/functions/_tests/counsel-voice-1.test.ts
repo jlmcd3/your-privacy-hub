@@ -303,8 +303,13 @@ Deno.test("CV1-R: generate-report-pdf disclaimer constants have no counsel-refer
 
 Deno.test("CV1-R: run-governance-assessment disclaimer constants have no counsel-referral directive", async () => {
   const src = await Deno.readTextFile(new URL("../run-governance-assessment/index.ts", import.meta.url));
-  // Rulebook lines describing what the generator MUST NOT emit are exempt.
-  const scanned = src.split("\n").filter((l) => !/NEVER direct|no 'consult legal counsel'|NEVER emit|Do not direct/i.test(l)).join("\n");
+  // Rulebook lines describing what the generator MUST NOT emit are exempt,
+  // as are role-roster labels ("Legal Counsel" as owner) per CV1-ALL T4.
+  const scanned = src.split("\n").filter((l) =>
+    !/NEVER direct|no 'consult legal counsel'|NEVER emit|Do not direct/i.test(l)
+    && !/owner['"]?\s*[:=]\s*['"][^'"]*Legal Counsel/i.test(l)
+    && !/["']Legal Counsel["']/.test(l)
+  ).join("\n");
   const hits = scanned.match(COUNSEL_REFERRAL_RE);
   if (hits) {
     const lines = scanned.split("\n")
