@@ -4,9 +4,26 @@ import { Helmet } from "react-helmet-async";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import comparisonData from "@/data/us_state_comparison.json";
 import { STATUTES } from "@/data/statutes";
+import { QUALIFIER_NOTES } from "@/data/statuteQualifiers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StateReviewPastDueBanner from "@/components/admin/StateReviewPastDueBanner";
+
+/** Normalize provision cell to a canonical mark. */
+type Mark = "yes" | "no" | "limited" | "conditional" | "text";
+function classifyValue(v: unknown): { mark: Mark; text: string } {
+  if (v === true) return { mark: "yes", text: "" };
+  if (v === false) return { mark: "no", text: "" };
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "yes" || s === "true") return { mark: "yes", text: "" };
+    if (s === "no" || s === "false") return { mark: "no", text: "" };
+    if (s === "limited") return { mark: "limited", text: "Limited" };
+    if (s === "conditional") return { mark: "conditional", text: "Conditional" };
+    return { mark: "text", text: v };
+  }
+  return { mark: "text", text: String(v) };
+}
 
 const STATE_FLAGS: Record<string, string> = {
   CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_California.svg?width=32",
