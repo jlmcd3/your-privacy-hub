@@ -13,6 +13,7 @@ console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", bu
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import {
   resolveCitations,
