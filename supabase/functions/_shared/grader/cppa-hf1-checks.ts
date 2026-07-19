@@ -190,19 +190,21 @@ export function checkH3AdmtCitationDepth(text: string): FormatFinding[] {
 }
 
 // ── Runners ───────────────────────────────────────────────────────────
-/** CPPA-Risk / CPPA-Cyber: H1 + H2 (no H3 — H3 is ADMT-scoped). */
+/** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 (no H3 — H3 is ADMT-scoped). */
 export function runCppaHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
     ...checkH2InternalVocab(text),
+    ...checkH4EvasivePlaceholder(text),
   ];
 }
 
-/** ADMT: H1 + H2 + H3. */
+/** ADMT: H1 + H2 + H3 + H4. */
 export function runAdmtHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
     ...checkH2InternalVocab(text),
     ...checkH3AdmtCitationDepth(text),
+    ...checkH4EvasivePlaceholder(text),
   ];
 }
