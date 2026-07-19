@@ -149,6 +149,34 @@ function detectBaselineStandardMisuse(text: string, docType: string): SpecViolat
   return [];
 }
 
+// GRADER-CAL-1 C1 — Cal. Civ. Code §1798.150 is the CCPA private right of
+// action, NOT the breach-notification section. §1798.82 is the breach-
+// notification section. Any co-occurrence of §1798.150 with a breach /
+// notification verb in the same clause is a HARD misapplication so the
+// retry gate regenerates.
+const RE_1798_150 = /\b1798\.150\b/g;
+const RE_BREACH_NOTIFICATION_VERB =
+  /\b(breach\s+notification|notify(?:\s+the)?\s+(?:individuals?|affected|regulator|attorney\s+general)|breach[- ]notification\s+(?:deadline|requirement|obligation|window))\b/i;
+function detectSection150BreachMisapplication(text: string): SpecViolation[] {
+  const out: SpecViolation[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = RE_1798_150.exec(text)) !== null) {
+    // Look at a 180-char window on either side of the citation.
+    const start = Math.max(0, m.index - 180);
+    const end = Math.min(text.length, m.index + 180);
+    const window = text.slice(start, end);
+    if (RE_BREACH_NOTIFICATION_VERB.test(window)) {
+      out.push({
+        code: "misapplied_1798_150_as_breach_notice",
+        severity: "hard",
+        detail: `§1798.150 (private right of action) co-occurs with a breach-notification verb — cite §1798.82 for breach notification. Window: "${window.replace(/\s+/g, " ").slice(0, 140)}"`,
+      });
+      break; // one is enough to force a regen
+    }
+  }
+  return out;
+}
+
 // REBUILD-DPA T5 — surface blacklist prose hits as HARD lint violations.
 function detectBlacklistViolations(text: string): SpecViolation[] {
   const hits = detectBlacklistPhrases(text);
