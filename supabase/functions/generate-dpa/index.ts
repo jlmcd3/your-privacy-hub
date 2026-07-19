@@ -187,6 +187,50 @@ function detectSubProcessorContradiction(text: string, hasSubProcessors: boolean
   return hits;
 }
 
+// IR-HF1 T4 (F1) — DETERMINISTIC SUB-PROCESSOR SUPPRESSION.
+// When hasSubProcessors===false, the final DPA must (a) NOT contain the
+// Schedule-1 sub-processor authorisation framework or general-authorisation
+// clause and (b) contain the exact literal "None — confirmed on the record".
+// Run D shipped the Schedule-1 framework in 2/5 docs and the confirmed
+// literal in 0/5 despite the hard-severity lint firing — retry_within_budget
+// was null because the hard lint never drove a regen. We now suppress
+// mechanically at assembly (does not rely on model compliance); the hard
+// lint below acts as a true backstop.
+const SUBPROC_CONFIRMED_LITERAL =
+  "Sub-processors: None — confirmed on the record that no Sub-processors are engaged as of the Effective Date. Any future engagement by the Processor requires the Controller's prior specific written authorisation obtained before the engagement commences.";
+function suppressSubProcessorFramework(text: string, hasSubProcessors: boolean): { text: string; suppressed: boolean } {
+  if (hasSubProcessors) return { text, suppressed: false };
+  const paras = text.split(/\n{2,}/);
+  const offending = (p: string) =>
+    RE_SCHEDULE1_SUBPROC_FWD.test(p) ||
+    RE_SCHEDULE1_SUBPROC_REV.test(p) ||
+    RE_GENERAL_AUTH_SUBPROC_FWD.test(p) ||
+    RE_GENERAL_AUTH_SUBPROC_REV.test(p) ||
+    /SCHEDULE\s*1\s*[—\-–]\s*(APPROVED\s+)?SUB[- ]?PROCESSORS?/i.test(p) ||
+    /LIST\s+OF\s+SUB[- ]?PROCESSORS/i.test(p);
+  let suppressed = false;
+  let inserted = false;
+  const out: string[] = [];
+  for (const p of paras) {
+    if (offending(p)) {
+      suppressed = true;
+      if (!inserted) {
+        out.push(SUBPROC_CONFIRMED_LITERAL);
+        inserted = true;
+      }
+      continue;
+    }
+    out.push(p);
+  }
+  let joined = out.join("\n\n");
+  if (!/None\s+—\s+confirmed\s+on\s+the\s+record/i.test(joined)) {
+    joined = joined.trimEnd() + `\n\n${SUBPROC_CONFIRMED_LITERAL}`;
+    suppressed = true;
+  }
+  return { text: joined, suppressed };
+}
+
+
 
 
 const supabase = createClient(
