@@ -1012,7 +1012,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
