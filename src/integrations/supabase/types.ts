@@ -4772,6 +4772,7 @@ export type Database = {
           gpt_score_hallucination: number | null
           gpt_score_intelligence: number | null
           gpt_score_overall: number | null
+          grader_context_version: string | null
           id: string
           intakes: Json | null
           last_heartbeat_at: string | null
@@ -4813,6 +4814,7 @@ export type Database = {
           gpt_score_hallucination?: number | null
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
+          grader_context_version?: string | null
           id?: string
           intakes?: Json | null
           last_heartbeat_at?: string | null
@@ -4854,6 +4856,7 @@ export type Database = {
           gpt_score_hallucination?: number | null
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
+          grader_context_version?: string | null
           id?: string
           intakes?: Json | null
           last_heartbeat_at?: string | null

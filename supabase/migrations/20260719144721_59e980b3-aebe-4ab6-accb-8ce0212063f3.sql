@@ -1,0 +1,1 @@
+ALTER TABLE public.quality_runs ADD COLUMN IF NOT EXISTS grader_context_version text;
