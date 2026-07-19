@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { ADVISORY_VOICE_RULES } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
