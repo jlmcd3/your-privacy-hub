@@ -73,12 +73,18 @@ const USStateComparison = () => {
   const jsonLastReviewed = (comparisonData as any).lastReviewed as string;
   const jsonNextReviewDue = (comparisonData as any).nextReviewDue as string;
 
+  // Item 10 — as-of date DERIVED from live freshness data (rollup), with
+  // JSON fallback anchor for first-paint / offline states.
+  const asOfDisplay = rollup.cycleCompletedAt
+    ? formatTimestampDateOnly(rollup.cycleCompletedAt)
+    : formatDateOnlyLong(jsonLastReviewed);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>US State Privacy Laws Comparison 2026 | End User Privacy</title>
         <meta name="description" content={`Compare all ${states.length} enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free.`} />
-        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of ${states.length} enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
+        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of ${states.length} enacted US state comprehensive privacy laws across 12 provisions. Inclusion criteria: enacted comprehensive consumer privacy statutes; excludes sectoral, biometric-only, and pending bills. Florida FDBR applies only to controllers meeting the >$1B global gross annual revenue threshold plus one enumerated adtech / sale / theme-park criterion (Fla. Stat. § 501.702(9)).","url":"https://enduserprivacy.com/compare/us-states","dateModified":"${(rollup.cycleCompletedAt ?? jsonLastReviewed) || ""}","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
       </Helmet>
       <Navbar />
 
@@ -92,7 +98,7 @@ const USStateComparison = () => {
             Side-by-side comparison of all {states.length} enacted US comprehensive state privacy laws across 12 standard provisions.
           </p>
           <p className="text-slate-400 text-sm mt-2">
-            Hover any ✓ to see the statute citation. Click to open the law.
+            Hover or focus any ✓ to see the statute citation. Press <kbd className="px-1 bg-white/10 rounded">Enter</kbd> or click to open the law in a new tab.
           </p>
         </div>
       </header>
@@ -188,8 +194,10 @@ const USStateComparison = () => {
                                   href={statute!.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center justify-center hover:scale-110 transition-transform"
-                                  aria-label={`${statute!.cite} — click to view statute`}
+                                  // Item 9 — accessible name: state + provision + pinpoint.
+                                  aria-label={`${s.name} — ${provision}: ${statute!.cite}. Opens statute in a new tab.`}
+                                  title={`${statute!.cite}${qualifier ? ` — ${qualifier}` : ""}`}
+                                  className="inline-flex items-center justify-center min-w-[28px] min-h-[28px] rounded hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:bg-accent/10"
                                 >
                                   {body}
                                 </a>
@@ -199,7 +207,7 @@ const USStateComparison = () => {
                                 {qualifier && (
                                   <p className="text-[11px] text-muted-foreground mt-0.5 font-sans">{qualifier}</p>
                                 )}
-                                <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">Press Enter or click to view statute ↗</p>
                               </TooltipContent>
                             </Tooltip>
                           ) : (
@@ -216,7 +224,7 @@ const USStateComparison = () => {
         </div>
 
         <p className="text-xs text-muted-foreground mt-4">
-          Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
+          Hover or keyboard-focus any ✓ checkmark to see the applicable statutory citation. Press Enter or click to open the full statute in a new tab.
         </p>
 
         <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
@@ -258,7 +266,57 @@ const USStateComparison = () => {
           </p>
         </div>
 
-
+        {/* Item 10 — Methodology & scope caveats */}
+        <section aria-labelledby="methodology-heading" className="mt-10 border-t border-border pt-6">
+          <h2 id="methodology-heading" className="font-serif text-xl text-foreground mb-3">Methodology &amp; scope</h2>
+          <div className="text-sm text-muted-foreground space-y-3 max-w-3xl">
+            <p>
+              <span className="font-medium text-foreground">Inclusion criteria.</span>{" "}
+              The comparison covers every enacted U.S. <em>comprehensive consumer</em> privacy
+              statute — a state law that regulates the collection, use, and sharing of personal
+              information across sectors and grants consumers a defined set of rights (access,
+              deletion, correction, opt-out). We exclude sectoral statutes (biometric-only,
+              children-only, health-only, data-broker registration), pre-enactment bills, and
+              non-comprehensive amendments.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">As of:</span>{" "}
+              {asOfDisplay}. Data is reviewed on a rolling {REVIEW_CADENCE_DAYS}-day cadence;
+              live review status is shown above the table.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Checkmark scope.</span>{" "}
+              A ✓ indicates the statute contains the listed provision as a general rule.
+              Coverage is often conditional in the underlying text — thresholds, definitions,
+              exemptions, and effective dates vary by state. <span className="font-medium">Limited</span>{" "}
+              and <span className="font-medium">Conditional</span> pills flag common qualifiers;
+              hover or focus any citation for the pinpoint reference and treat the linked
+              statute as controlling.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Narrow-scope statutes — Florida FDBR.</span>{" "}
+              The Florida Digital Bill of Rights applies only to a narrow set of controllers.
+              Under <a
+                href="http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.702.html"
+                target="_blank" rel="noopener noreferrer"
+                className="underline hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+              >Fla. Stat. § 501.702(9)</a>, a covered "controller" must have more than
+              $1&nbsp;billion in global gross annual revenues <em>and</em> meet at least one of
+              the enumerated criteria (derives ≥50% of global revenues from online ad sales,
+              operates a smart speaker with an integrated virtual assistant, or operates an
+              app store or digital distribution platform offering ≥250,000 different software
+              applications). Provisions marked ✓ for Florida apply <em>only</em> to entities
+              inside that scope.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Corrections process.</span>{" "}
+              If you spot an outdated entry, a miscited pinpoint, or a coverage change we
+              have not yet reflected, <Link to="/contact" className="underline hover:text-accent">let us know</Link>.
+              Reported material changes trigger a re-review that is logged in our public
+              review ledger and reflected in the freshness banner above.
+            </p>
+          </div>
+        </section>
 
       </div>
 
