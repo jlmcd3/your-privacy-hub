@@ -11,8 +11,8 @@ export default function RegistrationDisclaimer({
       <p className="text-meta text-muted-foreground leading-relaxed border-t border-border/40 pt-3 mt-4">
         End User Privacy's Registration Manager generates draft filings and checklists tailored to your inputs.
         It is not legal advice, does not create an attorney-client relationship, and does not guarantee
-        acceptance by any data protection authority. Filing requirements change — always verify with the
-        relevant authority and consult qualified counsel before submission.
+        acceptance by any data protection authority. Filing requirements change — always verify current
+        requirements with the relevant authority before submission.
       </p>
     );
   }
