@@ -142,15 +142,19 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "MT:8": { cite: "Mont. Code § 30-14-2812", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0120/0300-0140-0280-0120.html" },
 
   // ── NEBRASKA (NEDPA) ──────────────────────────────────────────────────────
-  // Consumer rights sit at § 87-1107; § 87-1103 is definitions. Enforcement at § 87-1114.
-  "NE:0": { cite: "Neb. Rev. Stat. § 87-1107(1)(a)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
-  "NE:1": { cite: "Neb. Rev. Stat. § 87-1107(1)(c)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
-  "NE:2": { cite: "Neb. Rev. Stat. § 87-1107(1)(d)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
-  "NE:3": { cite: "Neb. Rev. Stat. § 87-1107(1)(b)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
-  "NE:4": { cite: "Neb. Rev. Stat. § 87-1107(1)(e)(ii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
-  "NE:5": { cite: "Neb. Rev. Stat. § 87-1107(1)(e)(i)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
-  "NE:6": { cite: "Neb. Rev. Stat. § 87-1107(1)(e)(iii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  // Consumer rights sit at § 87-1107(2)(a)–(e). Subsection (1) is the
+  // request-submission rule; consumer rights themselves are enumerated in (2).
+  // DPIA duty at § 87-1112. Enforcement at § 87-1114.
+  "NE:0": { cite: "Neb. Rev. Stat. § 87-1107(2)(a)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:1": { cite: "Neb. Rev. Stat. § 87-1107(2)(c)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:2": { cite: "Neb. Rev. Stat. § 87-1107(2)(d)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:3": { cite: "Neb. Rev. Stat. § 87-1107(2)(b)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:4": { cite: "Neb. Rev. Stat. § 87-1107(2)(e)(ii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:5": { cite: "Neb. Rev. Stat. § 87-1107(2)(e)(i)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:6": { cite: "Neb. Rev. Stat. § 87-1107(2)(e)(iii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
   "NE:7": { cite: "Neb. Rev. Stat. § 87-1105(3)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1105" },
+  // Nebraska DPIA — required for heightened-risk processing per § 87-1112.
+  "NE:8": { cite: "Neb. Rev. Stat. § 87-1112", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1112" },
 
   // ── NEW HAMPSHIRE (NHPA) ──────────────────────────────────────────────────
   "NH:0": { cite: "RSA 507-H:3(I)(a)", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
@@ -161,6 +165,8 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "NH:5": { cite: "RSA 507-H:3(I)(e)(1)", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
   "NH:6": { cite: "RSA 507-H:3(I)(e)(3)", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
   "NH:7": { cite: "RSA 507-H:5(IV)", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
+  // New Hampshire DPIA — required for heightened-risk processing per RSA 507-H:6.
+  "NH:8": { cite: "RSA 507-H:6", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
 
   // ── NEW JERSEY (NJDPA) ────────────────────────────────────────────────────
   // Note: NJ chapter 8, article on data privacy is not yet indexed on njleg.state.nj.us
