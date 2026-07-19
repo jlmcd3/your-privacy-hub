@@ -15,7 +15,16 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const ALLOWED = new Set(["reap_sweep", "ping", "invoke_generator"]);
+// MC-S1b — Task 3/6/7: extended action set. `redeploy_request` fronts
+// admin-redeploy (which owns the two-source conflict gate). `cancel_stale_run`
+// marks a quality_batch_runs row cancelled after typed confirmation.
+// `resnap_baseline` writes an epoch marker to quality_batch_baselines.
+// `invoke_backfill` is the wired handler for the /admin/ops Backfill buttons.
+const ALLOWED = new Set([
+  "reap_sweep", "ping", "invoke_generator",
+  "cancel_stale_run", "redeploy_request", "resnap_baseline", "invoke_backfill",
+]);
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
