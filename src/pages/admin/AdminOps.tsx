@@ -566,13 +566,460 @@ function EnrichmentPanel() {
                     ) : "—"}
                   </td>
                   <td className="px-3 py-2 text-right">
-                    <span title="wired in S1b">
-                      <Button disabled variant="outline" size="sm">Backfill</Button>
-                    </span>
+                    {c.enrichFn ? (
+                      <BackfillButton fn={c.enrichFn} onDone={load} />
+                    ) : <span className="text-xs text-gray-500">no fn</span>}
                   </td>
+
                 </tr>
               );
             })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// ---------- MC-S1b Task 3 — Backfill button wired through admin-toolbox-action ----------
+function BackfillButton({ fn, onDone }: { fn: string; onDone?: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [lastClickAt, setLastClickAt] = useState(0);
+  async function run() {
+    // Double-click guard (30s).
+    if (Date.now() - lastClickAt < 30_000) {
+      setNotice("Slow down — 30s guard active");
+      return;
+    }
+    setLastClickAt(Date.now());
+    setBusy(true); setNotice(null);
+    const invoke = async () =>
+      await supabase.functions.invoke("admin-toolbox-action", {
+        body: { action: "invoke_backfill", params: { fn, batch_size: 25 } },
+      });
+    let { data, error } = await invoke();
+    // Single silent-401 retry (Task 3 requirement).
+    if (error && /401|unauthor/i.test(error.message)) {
+      await supabase.auth.refreshSession();
+      ({ data, error } = await invoke());
+    }
+    setBusy(false);
+    if (error) setNotice(error.message);
+    else setNotice(`ok · status ${(data as any)?.result?.status ?? "?"} · batch`);
+    onDone?.();
+  }
+  return (
+    <div className="inline-flex flex-col items-end">
+      <Button size="sm" variant="outline" onClick={run} disabled={busy}>
+        {busy ? "Running…" : "Backfill"}
+      </Button>
+      {notice && <span className="text-xs text-gray-500 mt-1 max-w-[220px] truncate" title={notice}>{notice}</span>}
+    </div>
+  );
+}
+
+// ---------- MC-S1b Task 3 — Ops actions (redeploy_request + resnap_baseline) ----------
+function OpsActionsPanel() {
+  const [fnName, setFnName] = useState("");
+  const [reason, setReason] = useState("");
+  const [override, setOverride] = useState("");
+  const [showOverride, setShowOverride] = useState(false);
+  const [queue, setQueue] = useState<Array<{ id: string; function_name: string; status: string; requested_at: string; reason: string; override_used: boolean }>>([]);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [resnapNote, setResnapNote] = useState("");
+  const [resnapBusy, setResnapBusy] = useState(false);
+
+  const loadQueue = useCallback(async () => {
+    const { data } = await supabase.from("redeploy_queue")
+      .select("id,function_name,status,requested_at,reason,override_used")
+      .order("requested_at", { ascending: false }).limit(20);
+    setQueue((data ?? []) as any);
+  }, []);
+  useEffect(() => { loadQueue(); }, [loadQueue]);
+
+  async function submitRedeploy() {
+    if (!fnName.trim() || !reason.trim()) { setNotice("function_name and reason required"); return; }
+    setBusy(true); setNotice(null);
+    const { data, error } = await supabase.functions.invoke("admin-toolbox-action", {
+      body: { action: "redeploy_request", params: { function_name: fnName.trim(), reason: reason.trim(), override: override.trim() || undefined } },
+    });
+    setBusy(false);
+    if (error) { setNotice(error.message); return; }
+    const inner = (data as any)?.result;
+    if (inner?.status === 409) {
+      setShowOverride(true);
+      setNotice(`Conflicts detected. Type OVERRIDE-REDEPLOY to force. ${inner.body?.slice(0, 200) ?? ""}`);
+    } else {
+      setNotice(`queued · ${inner?.body?.slice(0, 200) ?? ""}`);
+      setFnName(""); setReason(""); setOverride(""); setShowOverride(false);
+    }
+    loadQueue();
+  }
+
+  async function submitResnap() {
+    if (!confirm("Type RESNAP-BASELINE on the next line to confirm epoch resnap.")) return;
+    const typed = window.prompt("Type RESNAP-BASELINE to confirm:") ?? "";
+    if (typed !== "RESNAP-BASELINE") { setNotice("resnap: confirmation not typed"); return; }
+    setResnapBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-toolbox-action", {
+      body: { action: "resnap_baseline", params: { confirm: "RESNAP-BASELINE", note: resnapNote || undefined } },
+    });
+    setResnapBusy(false);
+    if (error) setNotice(error.message);
+    else setNotice(`resnap · ${JSON.stringify((data as any)?.result).slice(0, 200)}`);
+  }
+
+  return (
+    <section className="mb-10">
+      <h2 className="text-lg font-semibold text-white mb-3">Ops actions</h2>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded border border-gray-800 p-4">
+          <h3 className="text-sm font-semibold text-white mb-2">Request redeploy (queued marker)</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Runs the two-source conflict gate; if clear (or override typed), writes a queued row to
+            <code className="mx-1">redeploy_queue</code> for courier execution. Management-API auto-execute is intentionally not wired.
+          </p>
+          <input value={fnName} onChange={(e) => setFnName(e.target.value)} placeholder="function_name (e.g. run-dpia-framework)" className="w-full mb-2 rounded border border-gray-700 bg-transparent px-2 py-1 text-sm text-white" />
+          <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="reason (required)" className="w-full mb-2 rounded border border-gray-700 bg-transparent px-2 py-1 text-sm text-white" />
+          {showOverride && (
+            <input value={override} onChange={(e) => setOverride(e.target.value)} placeholder="OVERRIDE-REDEPLOY" className="w-full mb-2 rounded border border-amber-600 bg-transparent px-2 py-1 text-sm text-amber-300" />
+          )}
+          <Button size="sm" onClick={submitRedeploy} disabled={busy}>{busy ? "…" : "Request redeploy"}</Button>
+          {notice && <div className="mt-2 text-xs text-gray-400 whitespace-pre-wrap">{notice}</div>}
+        </div>
+        <div className="rounded border border-gray-800 p-4">
+          <h3 className="text-sm font-semibold text-white mb-2">Re-snapshot baseline (epoch marker)</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Writes an epoch marker into <code>quality_batch_baselines</code> stamped with the current
+            GRADER_CONTEXT_VERSION. Requires typed confirmation.
+          </p>
+          <input value={resnapNote} onChange={(e) => setResnapNote(e.target.value)} placeholder="note (optional)" className="w-full mb-2 rounded border border-gray-700 bg-transparent px-2 py-1 text-sm text-white" />
+          <Button size="sm" variant="outline" onClick={submitResnap} disabled={resnapBusy}>{resnapBusy ? "…" : "Resnap baseline"}</Button>
+        </div>
+      </div>
+
+      <h3 className="text-sm font-semibold text-white mt-6 mb-2">Redeploy queue (recent 20)</h3>
+      <div className="overflow-x-auto rounded border border-gray-800">
+        <table className="w-full text-sm text-black">
+          <thead className="bg-gray-100"><tr>
+            <th className="text-left px-3 py-2 font-medium">Requested</th>
+            <th className="text-left px-3 py-2 font-medium">Function</th>
+            <th className="text-left px-3 py-2 font-medium">Status</th>
+            <th className="text-left px-3 py-2 font-medium">Override</th>
+            <th className="text-left px-3 py-2 font-medium">Reason</th>
+          </tr></thead>
+          <tbody>
+            {queue.map((q) => (
+              <tr key={q.id} className="border-t border-gray-800">
+                <td className="px-3 py-2">{fmtTime(q.requested_at)}</td>
+                <td className="px-3 py-2 font-mono text-xs">{q.function_name}</td>
+                <td className="px-3 py-2"><span className={`px-2 py-0.5 rounded text-xs ${statusColor(q.status === "executed" ? "success" : q.status === "cancelled" ? "partial" : "running")}`}>{q.status}</span></td>
+                <td className="px-3 py-2 text-xs">{q.override_used ? "yes" : "—"}</td>
+                <td className="px-3 py-2 text-xs">{q.reason}</td>
+              </tr>
+            ))}
+            {queue.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-500">No requests.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// ---------- MC-G3 — Paid-Run Health ----------
+function PaidRunHealthPanel() {
+  const [tiles, setTiles] = useState<{ paidPending15m: number; rescue7d: number; silent24h: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const now = Date.now();
+    const t15 = new Date(now - 15 * 60_000).toISOString();
+    const t7d = new Date(now - 7 * 24 * MS_HOUR).toISOString();
+    const t24 = new Date(now - 24 * MS_HOUR).toISOString();
+    const [pending, rescue, silent] = await Promise.all([
+      supabase.from("function_runs").select("id", { count: "exact", head: true })
+        .eq("status", "running").lt("started_at", t15),
+      supabase.from("function_runs").select("id", { count: "exact", head: true })
+        .in("function_name", ["reap-stuck-generations", "batch-kickoff-pickup", "retry-failed-generations"])
+        .gte("started_at", t7d),
+      supabase.from("function_runs").select("id", { count: "exact", head: true })
+        .eq("status", "error").gte("started_at", t24),
+    ]);
+    setTiles({
+      paidPending15m: pending.count ?? 0,
+      rescue7d: rescue.count ?? 0,
+      silent24h: silent.count ?? 0,
+    });
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <section className="mb-10">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold text-white">Paid-run health</h2>
+        <Button onClick={load} disabled={loading} variant="outline" size="sm">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
+        </Button>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <Tile label="Runs pending >15m" value={tiles?.paidPending15m} tone={tiles && tiles.paidPending15m > 0 ? "warn" : "ok"} />
+        <Tile label="Rescue-cron activity (7d)" value={tiles?.rescue7d} tone="info" />
+        <Tile label="Errored runs (24h)" value={tiles?.silent24h} tone={tiles && tiles.silent24h > 0 ? "warn" : "ok"} />
+      </div>
+    </section>
+  );
+}
+function Tile({ label, value, tone }: { label: string; value: number | null | undefined; tone: "ok" | "warn" | "info" }) {
+  const cls = tone === "warn" ? "border-amber-500/40 text-amber-300"
+    : tone === "info" ? "border-blue-500/40 text-blue-300"
+    : "border-green-500/40 text-green-300";
+  return (
+    <div className={`rounded border ${cls} p-4`}>
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-3xl font-serif mt-1">{value == null ? "…" : value.toLocaleString()}</div>
+    </div>
+  );
+}
+
+// ---------- MC-G4 — Manual Entitlements Panel ----------
+function ManualEntitlementsPanel() {
+  const [rows, setRows] = useState<Array<{ user_id: string; subscription_type: string | null; updated_at: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from("user_entitlements")
+      .select("user_id, subscription_type, updated_at")
+      .is("stripe_subscription_id", null)
+      .order("updated_at", { ascending: false })
+      .limit(100);
+    setRows((data ?? []) as any);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <section className="mb-10">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Manual entitlements</h2>
+          <p className="text-xs text-gray-500">
+            Rows in <code>user_entitlements</code> with no Stripe subscription id.
+          </p>
+        </div>
+        <Button onClick={load} disabled={loading} variant="outline" size="sm">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
+        </Button>
+      </div>
+      <div className="overflow-x-auto rounded border border-gray-800">
+        <table className="w-full text-sm text-black">
+          <thead className="bg-gray-100"><tr>
+            <th className="text-left px-3 py-2 font-medium">User</th>
+            <th className="text-left px-3 py-2 font-medium">Type</th>
+            <th className="text-left px-3 py-2 font-medium">Updated</th>
+            <th className="text-left px-3 py-2 font-medium">Flag</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.user_id} className="border-t border-gray-800">
+                <td className="px-3 py-2 font-mono text-xs">{r.user_id.slice(0, 12)}…</td>
+                <td className="px-3 py-2 text-xs">{r.subscription_type ?? "—"}</td>
+                <td className="px-3 py-2 text-xs">{fmtTime(r.updated_at)}</td>
+                <td className="px-3 py-2">
+                  <span className="rounded bg-red-500/15 text-red-400 border border-red-500/30 px-2 py-0.5 text-xs">
+                    manual grant — delete before real checkout testing
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && !loading && (
+              <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-500">No manual entitlements.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// ---------- MC-G2 + MC-G5 — Recent batches with epoch dividers + stale-run cancel ----------
+interface BatchRow {
+  id: string; status: string; phase: string | null; started_at: string;
+  last_heartbeat_at: string | null; instrument_version: string | null;
+  tools: string[] | null; batch_size: number | null;
+}
+function RecentBatchesPanel() {
+  const [rows, setRows] = useState<BatchRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from("quality_batch_runs")
+      .select("id,status,phase,started_at,last_heartbeat_at,instrument_version,tools,batch_size")
+      .order("started_at", { ascending: false }).limit(20);
+    setRows((data ?? []) as any);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function cancelStale(id: string) {
+    const typed = window.prompt("Type CANCEL-STALE to confirm cancel of stale run:") ?? "";
+    if (typed !== "CANCEL-STALE") return;
+    setCancellingId(id);
+    const { data, error } = await supabase.functions.invoke("admin-toolbox-action", {
+      body: { action: "cancel_stale_run", params: { run_id: id, confirm: "CANCEL-STALE" } },
+    });
+    setCancellingId(null);
+    if (error) alert(error.message);
+    else alert(`result: ${JSON.stringify((data as any)?.result).slice(0, 200)}`);
+    load();
+  }
+
+  const now = Date.now();
+  return (
+    <section className="mb-10">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Recent batches — epoch ledger (MC-G2 / MC-G5)</h2>
+          <p className="text-xs text-gray-500">
+            Newest 20 <code>quality_batch_runs</code>. Rows are grouped by <code>instrument_version</code>; a
+            ◈ EPOCH CHANGE divider marks version transitions. Running rows whose heartbeat is &gt;30 min stale
+            expose a Cancel button (typed confirmation).
+          </p>
+        </div>
+        <Button onClick={load} disabled={loading} variant="outline" size="sm">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
+        </Button>
+      </div>
+      <div className="overflow-x-auto rounded border border-gray-800">
+        <table className="w-full text-sm text-black">
+          <thead className="bg-gray-100"><tr>
+            <th className="text-left px-3 py-2 font-medium">Started</th>
+            <th className="text-left px-3 py-2 font-medium">Batch</th>
+            <th className="text-left px-3 py-2 font-medium">Status</th>
+            <th className="text-left px-3 py-2 font-medium">Phase</th>
+            <th className="text-left px-3 py-2 font-medium">Heartbeat</th>
+            <th className="text-left px-3 py-2 font-medium">Epoch</th>
+            <th className="text-right px-3 py-2 font-medium">Action</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r, i) => {
+              const prev = rows[i - 1];
+              const epochChanged = prev && prev.instrument_version !== r.instrument_version;
+              const hb = r.last_heartbeat_at ? new Date(r.last_heartbeat_at).getTime() : new Date(r.started_at).getTime();
+              const staleMs = now - hb;
+              const isStale = r.status === "running" && staleMs > 30 * 60_000;
+              return (
+                <>
+                  {epochChanged && (
+                    <tr key={`${r.id}-div`}>
+                      <td colSpan={7} className="px-3 py-1 text-center text-xs tracking-widest text-amber-400 bg-amber-500/5 border-t border-amber-500/40">
+                        ◈ EPOCH CHANGE — {prev!.instrument_version ?? "(pre-epoch)"} → {r.instrument_version ?? "(pre-epoch)"}
+                      </td>
+                    </tr>
+                  )}
+                  <tr key={r.id} className="border-t border-gray-800">
+                    <td className="px-3 py-2 text-xs">{fmtTime(r.started_at)}</td>
+                    <td className="px-3 py-2 font-mono text-xs">{r.id.slice(0, 8)}… ({r.tools?.length ?? 0}×{r.batch_size ?? "?"})</td>
+                    <td className="px-3 py-2"><span className={`px-2 py-0.5 rounded text-xs ${statusColor(r.status)}`}>{r.status}</span></td>
+                    <td className="px-3 py-2 text-xs">{r.phase ?? "—"}</td>
+                    <td className="px-3 py-2 text-xs">{isStale ? <span className="text-red-400">stale {fmtMs(staleMs)}</span> : fmtTime(r.last_heartbeat_at)}</td>
+                    <td className="px-3 py-2 font-mono text-xs">{r.instrument_version ?? "(pre-epoch)"}</td>
+                    <td className="px-3 py-2 text-right">
+                      {isStale ? (
+                        <Button size="sm" variant="outline" onClick={() => cancelStale(r.id)} disabled={cancellingId === r.id}>
+                          {cancellingId === r.id ? "…" : "Cancel stale"}
+                        </Button>
+                      ) : "—"}
+                    </td>
+                  </tr>
+                </>
+              );
+            })}
+            {rows.length === 0 && !loading && (
+              <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-500">No batches.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// ---------- MC-G1 — Post-generation lint telemetry surfacing ----------
+interface LintRow {
+  id: string; function_name: string; started_at: string; source_row_id: string | null;
+  metadata: {
+    event?: string; fallback_applied?: boolean; retry_within_budget?: boolean | null;
+    residual_leaks?: number; residual_resolved_asks?: number;
+    notes?: Array<{ code: string; detail?: string }>;
+  } | null;
+}
+function LintTelemetryPanel() {
+  const [rows, setRows] = useState<LintRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const since = new Date(Date.now() - 7 * 24 * MS_HOUR).toISOString();
+    const { data } = await supabase.from("function_runs")
+      .select("id,function_name,started_at,source_row_id,metadata")
+      .gte("started_at", since)
+      .order("started_at", { ascending: false })
+      .limit(500);
+    const filtered = (data ?? []).filter((r: any) => r?.metadata?.event === "post_gen_lint");
+    setRows(filtered as any);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <section className="mb-10">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Post-gen lint telemetry (MC-G1)</h2>
+          <p className="text-xs text-gray-500">
+            <code>function_runs</code> where <code>metadata.event = 'post_gen_lint'</code>, last 7 days.
+            Source-row ids join to <code>quality_run_documents</code> when a batch context is needed.
+          </p>
+        </div>
+        <Button onClick={load} disabled={loading} variant="outline" size="sm">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
+        </Button>
+      </div>
+      <div className="overflow-x-auto rounded border border-gray-800">
+        <table className="w-full text-sm text-black">
+          <thead className="bg-gray-100"><tr>
+            <th className="text-left px-3 py-2 font-medium">When</th>
+            <th className="text-left px-3 py-2 font-medium">Function</th>
+            <th className="text-left px-3 py-2 font-medium">Doc</th>
+            <th className="text-right px-3 py-2 font-medium">Fallback</th>
+            <th className="text-right px-3 py-2 font-medium">Leaks</th>
+            <th className="text-right px-3 py-2 font-medium">Resolved-asks</th>
+            <th className="text-left px-3 py-2 font-medium">Notes</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-t border-gray-800">
+                <td className="px-3 py-2 text-xs">{fmtTime(r.started_at)}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.function_name}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.source_row_id ? r.source_row_id.slice(0, 8) + "…" : "—"}</td>
+                <td className="px-3 py-2 text-right text-xs">{r.metadata?.fallback_applied ? "yes" : "no"}</td>
+                <td className="px-3 py-2 text-right text-xs">{r.metadata?.residual_leaks ?? 0}</td>
+                <td className="px-3 py-2 text-right text-xs">{r.metadata?.residual_resolved_asks ?? 0}</td>
+                <td className="px-3 py-2 text-xs">
+                  {(r.metadata?.notes ?? []).slice(0, 8).map((n, i) => (
+                    <span key={i} className="mr-2 rounded bg-gray-800/70 border border-gray-700 px-1.5 py-0.5">
+                      {n.code}
+                    </span>
+                  ))}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && !loading && (
+              <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-500">No lint telemetry in window.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -588,10 +1035,14 @@ function AdminOpsInner() {
         <header className="mb-6">
           <h1 className="text-2xl font-serif text-white">Operations</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Read-only launch-week operator console (MC-S1a). Composes function_runs, generation
-            telemetry, cron/pipeline health, and enrichment/backfill views.
+            Launch-week operator console. MC-S1a read panels + MC-S1b action wiring + MC-G1–G5 gaps.
           </p>
         </header>
+        <PaidRunHealthPanel />
+        <OpsActionsPanel />
+        <RecentBatchesPanel />
+        <LintTelemetryPanel />
+        <ManualEntitlementsPanel />
         <FunctionsPanel />
         <GenerationPanel />
         <CronsPanel />
@@ -608,3 +1059,4 @@ export default function AdminOps() {
     </AdminOnly>
   );
 }
+

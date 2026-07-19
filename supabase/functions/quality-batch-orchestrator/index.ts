@@ -16,6 +16,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
+import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+
 
 export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
 
@@ -416,7 +418,9 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number)
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: userId,
+    instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
   }).select("id").single();
+
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}`);
   // @ts-ignore

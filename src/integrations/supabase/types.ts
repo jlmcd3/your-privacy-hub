@@ -3867,6 +3867,7 @@ export type Database = {
           captured_at: string
           claude_score: number | null
           gpt_score: number | null
+          instrument_version: string | null
           tool: string
         }
         Insert: {
@@ -3874,6 +3875,7 @@ export type Database = {
           captured_at?: string
           claude_score?: number | null
           gpt_score?: number | null
+          instrument_version?: string | null
           tool: string
         }
         Update: {
@@ -3881,6 +3883,7 @@ export type Database = {
           captured_at?: string
           claude_score?: number | null
           gpt_score?: number | null
+          instrument_version?: string | null
           tool?: string
         }
         Relationships: []
@@ -3929,6 +3932,7 @@ export type Database = {
           current_quality_run_id: string | null
           current_tool_index: number
           id: string
+          instrument_version: string | null
           last_error: string | null
           last_heartbeat_at: string
           phase: string
@@ -3945,6 +3949,7 @@ export type Database = {
           current_quality_run_id?: string | null
           current_tool_index?: number
           id?: string
+          instrument_version?: string | null
           last_error?: string | null
           last_heartbeat_at?: string
           phase?: string
@@ -3961,6 +3966,7 @@ export type Database = {
           current_quality_run_id?: string | null
           current_tool_index?: number
           id?: string
+          instrument_version?: string | null
           last_error?: string | null
           last_heartbeat_at?: string
           phase?: string
@@ -5027,6 +5033,48 @@ export type Database = {
           notes?: string | null
           schema?: Json
           version?: string
+        }
+        Relationships: []
+      }
+      redeploy_queue: {
+        Row: {
+          conflicts: Json
+          executed_at: string | null
+          executed_note: string | null
+          function_name: string
+          id: string
+          override_used: boolean
+          reason: string
+          requested_at: string
+          requested_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          conflicts?: Json
+          executed_at?: string | null
+          executed_note?: string | null
+          function_name: string
+          id?: string
+          override_used?: boolean
+          reason: string
+          requested_at?: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          conflicts?: Json
+          executed_at?: string | null
+          executed_note?: string | null
+          function_name?: string
+          id?: string
+          override_used?: boolean
+          reason?: string
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

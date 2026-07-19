@@ -20,7 +20,7 @@ import {
 } from "../_shared/grader/payload.ts";
 // GRADER-1 Tasks 2/3 — shared authoritative context block injected into
 // BOTH grader system prompts (Claude rubric + GPT cross-review).
-import { SHARED_GRADER_CONTEXT } from "../_shared/grader/context.ts";
+import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
@@ -2405,7 +2405,9 @@ Deno.serve(async (req) => {
     const { data: row, error: bErr } = await admin.from("quality_batch_runs").insert({
       tools, batch_size: batchSize, status: "running", phase: "kickoff",
       current_tool_index: 0, tool_results: [], created_by: null,
+      instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
     }).select("id").single();
+
     if (bErr || !row) return json({ error: "start_quality_batch_insert_failed", detail: bErr?.message }, 500);
     // Fire the orchestrator self-chain (internal-resume path) so it advances.
     fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
