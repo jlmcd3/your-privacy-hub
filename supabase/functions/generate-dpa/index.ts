@@ -549,14 +549,24 @@ ${_fallbackLiteral}
 <<<NOTE_END>>>`
       : "";
 
+    // HF1 Task 3 — additional frameworks are surfaced verbatim from the record so
+    // the drafter must address each one (incorporate where anchors exist, or
+    // acknowledge with a NOTE FOR LEGAL REVIEW placeholder). Legacy string-form
+    // legalFramework values carry no additional frameworks.
+    const _lfObj = (body.legalFramework && typeof body.legalFramework === "object") ? body.legalFramework as { additionalFrameworks?: string[] } : null;
+    const _additionalFrameworks = Array.isArray(_lfObj?.additionalFrameworks) ? (_lfObj!.additionalFrameworks as string[]).filter((x) => typeof x === "string" && x.trim().length) : [];
+    const additionalFrameworksLine = _additionalFrameworks.length
+      ? `\nAdditional frameworks named on the record: ${_additionalFrameworks.map((f) => `"${f}"`).join(", ")}`
+      : "";
+
     const PARTIES_BLOCK = `PARTIES
 Controller: ${body.controllerName} (${body.controllerJurisdiction})
 Processor: ${body.processorName} (${body.processorJurisdiction})
 Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
 Retention: ${body.retention}
-Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None"}
-Audit rights: ${body.auditRights}${frameworkFallbackNote}`;
+Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None — the Controller has confirmed on the record that no sub-processors are engaged for the Services"}
+Audit rights: ${body.auditRights}${additionalFrameworksLine}${frameworkFallbackNote}`;
 
 
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
