@@ -69,7 +69,7 @@ async function generateSynthesis(
   // Pass an explicit id index so the model can attribute headlines back to article rows.
   const idIndex = articles.map((a: any, i: number) => `[${i + 1}] id=${a.id}`).join("\n");
 
-  const systemPrompt = `You are a senior privacy regulatory analyst at a leading intelligence firm. You write tiered research topic intelligence for DPOs and privacy counsel.
+  const systemPrompt = `${ADVISORY_VOICE_RULES}\n\nYou are a senior privacy regulatory analyst at a leading intelligence firm. You write tiered research topic intelligence for DPOs and privacy counsel.
 
 You will return STRICT JSON ONLY, with this exact shape:
 {
