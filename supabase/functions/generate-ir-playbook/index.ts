@@ -1712,6 +1712,7 @@ let playbook_text = lint.clean;
             }
           } catch (e) {
             console.error("[IR Playbook][IR-HF1 T2 cross-part] errored (non-fatal):", e);
+          }
         } catch (e) {
           console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
         }
