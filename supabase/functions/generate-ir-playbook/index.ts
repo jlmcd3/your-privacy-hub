@@ -353,7 +353,7 @@ const IR_TOOL_MODULE: ToolModule = {
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.5-dock-numbering-credential-elements-2026-07-06";
+const IR_VERSION = "v3.6-rebuild-ir-hipaa-4way-temporal-2026-07-19";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
