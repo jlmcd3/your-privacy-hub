@@ -16,20 +16,24 @@
 //   `generate-dpa/index.ts`: `body.additionalJurisdictions`, `multiState*`,
 //   and `body.jurisdictions` do NOT exist).
 //
-// EXCLUSIONS (per courier Task 2(c)):
-//   1. Savings-clause context — the mention is enumerated inside a general
-//      "and any other applicable US state privacy laws" clause, i.e. the
-//      sentence trailing the citation contains "applicable state privacy
-//      laws" / "as applicable" / "to the extent applicable" language.
-//   2. Comparative / contrastive context — the citation is preceded (within
+// EXCLUSIONS (per FF-DPA-HF1 Task 1 — narrowed nd2 exclusion set):
+//   1. Comparative / contrastive context — the citation is preceded (within
 //      the same sentence) by "unlike ", "similar to ", "modeled on ",
 //      "modelled on ", "in contrast to ", "compared to ", "analogous to ",
-//      or "as with ".
-//   3. Legal-review / recital context — the citation appears inside a
+//      "as with ", or "whereas ".
+//   2. Legal-review / recital context — the citation appears inside a
 //      "NOTE FOR LEGAL REVIEW:" block, a Recital paragraph, or a labelled
-//      Comparative Appendix. These are non-operative homes per REBUILD-DPA
-//      T3 DRAFTING-NOTE DISCIPLINE and legitimate places for framework
-//      comparison.
+//      Comparative Appendix.
+//
+// HF1 Task 1 change: the previous savings-clause exclusion is REMOVED. The
+// canonical generic savings sentence ("…and any other applicable state
+// privacy laws") contains no state or statute names and matches no pattern
+// in STATE_PATTERNS — the exclusion was dead code for the canonical form
+// and was wrongly saving specific-statute enumerations that ride behind an
+// "applicable state privacy laws" tail (Run C docs bee94e1e §1.3.4 /
+// §1.3.6 and 74f0b87a §2.2). Any sentence naming a specific non-engaged
+// state statute is a violation regardless of savings-clause phrasing
+// elsewhere in the paragraph.
 
 export type EngagedStateViolation = {
   code: "non_engaged_state_statute";
