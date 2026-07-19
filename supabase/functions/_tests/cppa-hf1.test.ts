@@ -158,3 +158,46 @@ Deno.test("HF3 runners — CPPA runner includes H5", () => {
   const ids = findings.map((f) => f.check_id);
   assertEquals(ids.includes("h5_internal_note_block"), true);
 });
+
+// ─── CPPA-HF4 tests ────────────────────────────────────────────────────
+
+Deno.test("HF4 F — H2 flags access_verify token in prose", () => {
+  const bad = "The access_verify step must be documented.";
+  const findings = checkH2InternalVocab(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("HF4 F — H2 flags access_verify_nonacct token", () => {
+  const bad = "See access_verify_nonacct for non-account cases.";
+  const findings = checkH2InternalVocab(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("HF4 B1 — H6 flags § 7001 as sole governing anchor for ADMT duty", () => {
+  const bad = "Under § 7001(e)(1), the business must disclose the categories of personal information used.";
+  const findings = checkH6AdmtGoverningAnchor(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("HF4 B1 — H6 passes when § 7001 accompanies a § 7222 anchor", () => {
+  const ok = "The access response under § 7222(b) must include, per § 7001(e)(1) definition, the personal information categories.";
+  const findings = checkH6AdmtGoverningAnchor(ok);
+  assertEquals(findings.every((f) => f.passed), true);
+});
+
+Deno.test("HF4 B1 — H6 passes when § 7001 appears without an action verb", () => {
+  const ok = "The term 'personal information' is defined at § 7001(e)(1).";
+  const findings = checkH6AdmtGoverningAnchor(ok);
+  assertEquals(findings.every((f) => f.passed), true);
+});
+
+Deno.test("HF4 E adjudication — § 7221(c)/(e)/(h)/(m)/(n)(1)/(n)(2) are all whitelisted", () => {
+  for (const c of ["7221(c)", "7221(e)", "7221(h)", "7221(m)", "7221(n)(1)", "7221(n)(2)"]) {
+    assertEquals(ADMT_VERIFIED_CITES.has(c), true);
+  }
+});
+
+Deno.test("HF4 runAdmtHf1Checks includes H6 in output", () => {
+  const findings = runAdmtHf1Checks("Under § 7001(a), the business must respond to access requests.");
+  assertEquals(findings.some((f) => f.check_id === "h6_admt_governing_anchor"), true);
+});
