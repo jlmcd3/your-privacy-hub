@@ -58,7 +58,7 @@ const argStrengthLabel = (s?: string): string => {
   const x = (s || "").toLowerCase();
   if (x === "strong") return "Strong";
   if (x === "colorable") return "Colorable";
-  if (x === "counsel-review" || x === "counsel review") return "Counsel review recommended";
+  if (x === "counsel-review" || x === "counsel review") return "Additional information required";
   return s || "";
 };
 
