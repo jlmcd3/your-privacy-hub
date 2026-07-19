@@ -313,13 +313,17 @@ export default function USNoticeDocuments() {
           legal framework that applies in that jurisdiction based on your answers.
         </p>
         {sessionId && (
-          <ReportTranslateMenu
-            toolType="us_notice"
-            reportId={sessionId}
-            onTranslated={() => { /* file-based notices: payload not yet swapped client-side */ }}
-          />
+          <div className="flex items-center gap-2">
+            <ReportTranslateMenu
+              toolType="us_notice"
+              reportId={sessionId}
+              onTranslated={() => { /* file-based notices: payload not yet swapped client-side */ }}
+            />
+            <WordConversionPromptButton documentType="us_notice" compact />
+          </div>
         )}
       </div>
+
 
       <CrossToolPrompt
         visitKey={`/us-notices/${sessionId}/documents`}
