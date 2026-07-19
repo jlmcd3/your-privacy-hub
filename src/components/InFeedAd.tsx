@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { ADSENSE_CONFIG } from '@/config/ads';
+import { getAdRegion } from '@/lib/adRegion';
 
 interface InFeedAdProps {
   /** Legacy props — accepted for backwards compatibility, ignored. */
