@@ -9,6 +9,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import {
   isCounselVoiceRegenEligible,
+  resolveEvalSourceRef,
   CV_REGEN_TRIGGER_CHECKS,
   type DetCheck,
 } from "../_shared/grader/counsel-voice-regen.ts";
