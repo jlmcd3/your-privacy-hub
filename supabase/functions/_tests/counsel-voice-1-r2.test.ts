@@ -91,3 +91,38 @@ Deno.test("cv1-r2 one-round cap: regen_round marker on report_data blocks re-ent
   assertEquals(capGuard({ regen_round: 1 }), true);
   assertEquals(capGuard({ regen_round: 2 }), true); // defense-in-depth
 });
+
+// -------- CV1-R3 F1: source-ref resolution --------
+// Defect: evalSource* was assigned only in the eval-resume branch, so the
+// CV1-R2 gate saw null on the fresh-generation path. resolveEvalSourceRef
+// picks the first non-null ref (eval-resume wins when both present, fresh
+// otherwise), so the auto-regen predicate is source-populated on BOTH
+// paths.
+
+Deno.test("cv1-r3 resolveEvalSourceRef: null when neither ref populated", () => {
+  assertEquals(resolveEvalSourceRef(null, null), null);
+  assertEquals(resolveEvalSourceRef({ table: null, rowId: null }, { table: null, rowId: null }), null);
+  assertEquals(resolveEvalSourceRef({ table: "cppa_assessments", rowId: null }, null), null);
+});
+
+Deno.test("cv1-r3 resolveEvalSourceRef: fresh-gen path (eval null) resolves", () => {
+  const r = resolveEvalSourceRef(
+    { table: null, rowId: null },
+    { table: "cppa_assessments", rowId: "abc-123" },
+  );
+  assertEquals(r, { table: "cppa_assessments", rowId: "abc-123" });
+});
+
+Deno.test("cv1-r3 resolveEvalSourceRef: eval-resume path resolves and wins over fresh", () => {
+  const r = resolveEvalSourceRef(
+    { table: "dpia_frameworks", rowId: "eval-1" },
+    { table: "dpia_frameworks", rowId: "fresh-1" },
+  );
+  assertEquals(r, { table: "dpia_frameworks", rowId: "eval-1" });
+});
+
+Deno.test("cv1-r3 resolveEvalSourceRef: empty table string tolerated when rowId present", () => {
+  const r = resolveEvalSourceRef(null, { table: null, rowId: "row-x" });
+  assert(r);
+  assertEquals(r!.rowId, "row-x");
+});
