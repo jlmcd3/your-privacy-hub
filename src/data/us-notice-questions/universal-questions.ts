@@ -67,7 +67,7 @@ export const UNIVERSAL_US_NOTICE_QUESTIONS: Question[] = [
         severity: "warning",
         message: "Children's data requires special treatment.",
         consequence:
-          "CCPA requires opt-in consent for data from children 13–15. COPPA requires verifiable parental consent for under-13. Consult legal counsel.",
+          "CCPA requires opt-in consent for data from children 13–15. COPPA requires verifiable parental consent for under-13. Confirm applicability against your organization's authoritative records before relying on this determination.",
       },
     ],
   },
