@@ -1178,6 +1178,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             ],
             maxTokens,
             timeoutMs,
+            partInstructionsFor(which),
           );
           // Overlap guard: strip the longest overlap between tail of truncated (up to
           // 300 chars) and head of continuation, then join.
