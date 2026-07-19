@@ -784,7 +784,7 @@ Legal framework: ${frameworkFor(documentType)}
 ${sectorFlags.isComplexRoleSector ? `
 CONTROLLER/PROCESSOR ROLE ALERT — ${sectorFlags.complexRoleSectorName.toUpperCase()}
 The services described suggest a ${sectorFlags.complexRoleSectorName} context where the Processor's role as a pure processor under GDPR Article 28 may be uncertain. Include in Section 1 (Parties and Recitals) the following recital:
-"(D) The Parties acknowledge that the characterisation of ${body.processorName} as a data processor under GDPR Article 28 is based on the scope of the Services as described herein. Where ${body.processorName} processes Personal Data for purposes beyond the immediate Services — including but not limited to model training on aggregated data, cross-client audience profiling, or independent commercial use of Personal Data — such processing may constitute independent controllership and would not be governed by this DPA. The Parties should seek qualified legal counsel to confirm the appropriate role characterisation before reliance on this agreement."
+"(D) The Parties acknowledge that the characterisation of ${body.processorName} as a data processor under GDPR Article 28 is based on the scope of the Services as described herein. Where ${body.processorName} processes Personal Data for purposes beyond the immediate Services — including but not limited to model training on aggregated data, cross-client audience profiling, or independent commercial use of Personal Data — such processing may constitute independent controllership and would not be governed by this DPA; further clarification is advisable."
 ` : ""}
 Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "Not required"}
 
