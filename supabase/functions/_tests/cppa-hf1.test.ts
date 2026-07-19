@@ -6,6 +6,7 @@ import {
   checkH3AdmtCitationDepth,
   checkH4EvasivePlaceholder,
   checkH5InternalNoteBlock,
+  checkH6AdmtGoverningAnchor,
   runCppaHf1Checks,
   runAdmtHf1Checks,
   ADMT_VERIFIED_CITES,
