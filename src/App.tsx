@@ -193,6 +193,13 @@ function PaymentReturnRedirect({ to }: { to: string }) {
   return <Navigate to={`${target}${search}`} replace />;
 }
 
+// Legacy inbound URLs (/enforcement-intelligence/:id) redirect to the
+// canonical /enforcement/:id form, preserving the id from the URL.
+const LegacyEnforcementRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/enforcement/${id ?? ""}`} replace />;
+};
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
