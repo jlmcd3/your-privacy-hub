@@ -2331,7 +2331,7 @@ Deno.serve(async (req) => {
         text: stripBodyHtml(record.playbook_text || ""),
         showJurisdictionChip: false,
         callout: { kind: "muted", html: calloutText },
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be confirmed with qualified legal counsel before reliance during a live incident.`,
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be validated against your organization's authoritative records and the current statutory text before reliance during a live incident.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
