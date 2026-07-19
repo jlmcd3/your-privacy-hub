@@ -136,7 +136,7 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-brand-navy to-brand-ocean py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[800px] mx-auto">
           <h1 className="font-display text-white mb-4 leading-tight">
-            Two plans. One Mission.
+            Two plans. One mission.
           </h1>
           <p className="text-base text-brand-mist max-w-[600px] leading-relaxed mb-10">
             Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.

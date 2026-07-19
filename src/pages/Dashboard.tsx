@@ -179,26 +179,37 @@ function describeBriefFreshness(publishedAt: string | null | undefined): string 
  * publication date. Replaces opaque labels like "Week 18 · 2026" with text
  * users can act on.
  */
-function describeBriefPeriod(publishedAt: string | null | undefined): string {
+// Exported so unit tests can cover every date-range branch (same-month,
+// cross-month same-year, cross-year, invalid). Explicit option objects avoid
+// the earlier `undefined`-field pattern which produced malformed ranges in
+// some engines.
+export function describeBriefPeriod(publishedAt: string | null | undefined): string {
   if (!publishedAt) return "the past 7 days";
   const end = new Date(publishedAt);
   if (isNaN(end.getTime())) return "the past 7 days";
   const start = new Date(end);
   start.setDate(end.getDate() - 6);
+
   const sameYear = start.getFullYear() === end.getFullYear();
   const sameMonth = sameYear && start.getMonth() === end.getMonth();
-  // When the range stays inside one month, drop the redundant month on the end date.
-  const startFmt = start.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: sameYear ? undefined : "numeric",
-  });
-  const endFmt = end.toLocaleDateString("en-US", {
-    month: sameMonth ? undefined : "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  return `${startFmt} – ${endFmt}`;
+
+  const monthDay = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const monthDayYear = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const dayOnly = (d: Date) =>
+    d.toLocaleDateString("en-US", { day: "numeric" });
+
+  if (sameMonth) {
+    // e.g. "Jul 7–13, 2026"
+    return `${monthDay(start)}–${dayOnly(end)}, ${end.getFullYear()}`;
+  }
+  if (sameYear) {
+    // e.g. "Aug 28 – Sep 3, 2026"
+    return `${monthDay(start)} – ${monthDay(end)}, ${end.getFullYear()}`;
+  }
+  // e.g. "Dec 29, 2026 – Jan 4, 2027"
+  return `${monthDayYear(start)} – ${monthDayYear(end)}`;
 }
 
 const Dashboard = () => {
@@ -495,11 +506,11 @@ const Dashboard = () => {
             <p className="text-meta font-semibold tracking-widest uppercase text-primary mb-2">
               📋 Weekly Privacy Intelligence Report
             </p>
-            <h1 className="font-display text-foreground leading-tight">
+            <h2 className="font-display text-foreground leading-tight">
               {loading
                 ? "Loading your latest brief…"
                 : brief?.headline ?? "Your next brief is on the way"}
-            </h1>
+            </h2>
             {!loading && brief && (
               <p className="mt-3 text-sm text-muted-foreground">
                 Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
@@ -844,7 +855,7 @@ const Dashboard = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-3 mb-1">
                                 <Link
-                                  to={`/enforcement-intelligence/${s.id}`}
+                                  to={`/enforcement/${s.id}`}
                                   className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline"
                                 >
                                   {s.subject || s.regulator}
@@ -875,7 +886,7 @@ const Dashboard = () => {
                       </ol>
                       <div className="mt-4">
                         <Link
-                          to="/enforcement-intelligence"
+                          to="/enforcement"
                           className="text-meta font-semibold text-brand-navy hover:underline"
                         >
                           Browse all enforcement actions →

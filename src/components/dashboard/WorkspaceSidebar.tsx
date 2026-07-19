@@ -265,7 +265,7 @@ export default function WorkspaceSidebar() {
         {/* Clients */}
         <div className="mb-4">
           <div className="flex items-center justify-between px-3 mb-2">
-            <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-slate-400/70 pb-1 border-b border-brand-cloud/60 hidden lg:block">
+            <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400/70 pb-1 border-b border-brand-cloud/60 hidden lg:block">
               Clients
             </p>
             <NavLink

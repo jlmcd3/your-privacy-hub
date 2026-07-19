@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { ADSENSE_CONFIG, type AdVariant } from '@/config/ads';
+import { getAdRegion } from '@/lib/adRegion';
 
 const DIMENSIONS: Record<AdVariant, { w: number; h: number }> = {
   leaderboard: { w: 728, h: 90 },
@@ -50,6 +51,9 @@ export default function AdBanner({ variant = 'leaderboard', className = '' }: Ad
   useEffect(() => {
     if (!ADSENSE_CONFIG.enabled) return;
     if (isPremium) return;
+    // Belt-and-braces: never touch the AdSense queue in excluded regions
+    // (EEA/UK/CH) even if ADSENSE_CONFIG.enabled flips true before a CMP ships.
+    if (getAdRegion() === 'excluded') return;
     try {
       if (insRef.current && insRef.current.getAttribute('data-adsbygoogle-status') !== 'done') {
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
@@ -63,6 +67,8 @@ export default function AdBanner({ variant = 'leaderboard', className = '' }: Ad
   if (isLoading) return null;
   // Paid subscribers never see ads.
   if (isPremium) return null;
+  // Region-excluded users never see any ad chrome — no placeholder either.
+  if (getAdRegion() === 'excluded') return null;
 
   const { w, h } = DIMENSIONS[resolvedVariant];
   const slot = ADSENSE_CONFIG.slots[resolvedVariant];

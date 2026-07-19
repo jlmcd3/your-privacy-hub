@@ -95,13 +95,13 @@ const SpotlightCard = ({
             href={article.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[9px] font-bold text-brand-navy hover:text-brand-teal-text leading-snug block mb-2 no-underline transition-colors"
+            className="text-[11px] font-bold text-brand-navy hover:text-brand-teal-text leading-snug block mb-2 no-underline transition-colors"
           >
             {normalizeTitle(article.title)}
             <ExternalLink className="w-3 h-3 inline ml-1 opacity-40" />
           </a>
         ) : (
-          <p className="text-[9px] font-bold text-brand-navy leading-snug mb-2">
+          <p className="text-[11px] font-bold text-brand-navy leading-snug mb-2">
             {normalizeTitle(article.title)}
           </p>
         )}

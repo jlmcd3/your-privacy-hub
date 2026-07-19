@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
+import usStateComparison from "@/data/us_state_comparison.json";
 
 interface OnboardingModalProps {
   userId: string;
@@ -26,17 +28,34 @@ const JURISDICTIONS = [
   "Global",
 ];
 
-const FEATURES = [
-  { icon: "📋", label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
-  { icon: "📊", label: "Comparison Tools", desc: "20 US states and 10 global jurisdictions, side by side" },
-  { icon: "🌍", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
-];
-
 export default function OnboardingModal({ userId, onComplete }: OnboardingModalProps) {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("");
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Derive the "US states covered" count from the canonical dataset so onboarding
+  // copy stays truthful when we add or drop states.
+  const usStatesCount = useMemo(() => {
+    const rows = (usStateComparison as { states?: unknown[] }).states;
+    return Array.isArray(rows) ? rows.length : 0;
+  }, []);
+
+  const FEATURES = useMemo(
+    () => [
+      { icon: "📋", label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
+      {
+        icon: "📊",
+        label: "Comparison Tools",
+        desc: usStatesCount > 0
+          ? `${usStatesCount} US states and global jurisdictions, side by side`
+          : "US states and global jurisdictions, side by side",
+      },
+      { icon: "🌍", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
+    ],
+    [usStatesCount],
+  );
 
   const toggleJurisdiction = (j: string) => {
     setJurisdictions(prev => prev.includes(j) ? prev.filter(x => x !== j) : [...prev, j]);
@@ -44,15 +63,24 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
 
   const finish = async () => {
     setSaving(true);
-    await (supabase as any)
+    setSaveError(null);
+    // Save role to `user_role` (verified column). Do NOT overwrite `industry`.
+    // Set `onboarding_complete` only when the write succeeds.
+    const { error } = await (supabase as any)
       .from("profiles")
       .update({
         onboarding_complete: true,
-        industry: role,
+        user_role: role,
         jurisdictions,
       })
       .eq("id", userId);
     setSaving(false);
+    if (error) {
+      // Keep the modal open, preserve selections, announce via role="alert".
+      setSaveError(error.message || "We couldn't save your preferences. Please try again.");
+      return;
+    }
+    void trackEvent("onboarding_completed", { role, jurisdictions_count: jurisdictions.length });
     onComplete();
   };
 
@@ -165,12 +193,21 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
                 </div>
               ))}
             </div>
+            {saveError && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-800"
+              >
+                {saveError}
+              </div>
+            )}
             <button
               onClick={finish}
               disabled={saving}
               className="w-full py-3 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 mb-3"
             >
-              {saving ? "Saving…" : "Go to my dashboard →"}
+              {saving ? "Saving…" : saveError ? "Retry" : "Go to my dashboard →"}
             </button>
             <div className="text-center">
               <a href="/#brief" className="text-sm text-muted-foreground hover:text-foreground no-underline transition-colors">

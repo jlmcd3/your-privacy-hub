@@ -345,9 +345,9 @@ const PrivacyPolicy = () => {
               necessary cookies will prevent you from logging in or using authenticated features.
             </p>
             <p>
-              For EU/EEA/UK users: you may refuse non-essential cookies by adjusting your browser
-              settings. Because we do not serve personalized ads, no advertising consent banner is
-              displayed.
+              For EU/EEA/UK/Switzerland users: no advertising is served in these regions pending
+              deployment of a Google-certified Privacy &amp; Messaging consent flow. Outside those
+              regions, any advertising is non-personalized only.
             </p>
           </section>
 
@@ -420,8 +420,9 @@ const PrivacyPolicy = () => {
             <p>
               Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), and other US state privacy
               laws: You have similar rights to access, correct, delete, and port your personal data,
-              and to opt out of targeted advertising. Because we serve non-personalized ads, we do
-              not engage in targeted advertising as defined under these laws.
+              and to opt out of targeted advertising. We do not engage in targeted advertising as
+              defined under these laws — any advertising we serve is non-personalized only, and no
+              advertising is served in the EEA, UK, or Switzerland pending a consent flow.
             </p>
             <p>
               To exercise your US state privacy rights, email{" "}

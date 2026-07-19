@@ -248,7 +248,7 @@ const TopicHub = () => {
 
           {/* Premium CTA */}
           <div className="border border-border rounded-xl p-5 bg-card">
-            <p className="text-xs font-semibold text-primary mb-2">⭐ Intelligence Intelligence</p>
+            <p className="text-xs font-semibold text-primary mb-2">⭐ Intelligence</p>
             <p className="text-sm font-bold text-foreground mb-2">
               Get {meta.name} updates in your weekly brief
             </p>

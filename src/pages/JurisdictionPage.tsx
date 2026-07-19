@@ -765,7 +765,7 @@ const JurisdictionPage = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-brand-navy to-brand-ocean rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-eyebrow text-brand-mist mb-2">⭐ Intelligence Intelligence</div>
+          <div className="text-eyebrow text-brand-mist mb-2">⭐ Intelligence</div>
           <h3 className="text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
           <p className="text-sm text-brand-mist mb-2 max-w-[500px] mx-auto">
             Intelligence subscribers receive the weekly Privacy Intelligence Report covering all global developments.

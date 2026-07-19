@@ -251,7 +251,7 @@ export default function Horizon() {
 
         {/* Companion card → Enforcement Intelligence */}
         <Link
-          to="/enforcement-intelligence"
+          to="/enforcement"
           className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-brand-cloud bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
         >
           <div className="flex items-center gap-3 min-w-0">

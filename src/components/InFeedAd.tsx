@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { ADSENSE_CONFIG } from '@/config/ads';
+import { getAdRegion } from '@/lib/adRegion';
 
 interface InFeedAdProps {
   /** Legacy props — accepted for backwards compatibility, ignored. */
@@ -22,6 +23,7 @@ export default function InFeedAd(_props: InFeedAdProps = {}) {
   useEffect(() => {
     if (!ADSENSE_CONFIG.enabled) return;
     if (isPremium) return;
+    if (getAdRegion() === 'excluded') return;
     try {
       if (insRef.current && insRef.current.getAttribute('data-adsbygoogle-status') !== 'done') {
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
@@ -30,6 +32,7 @@ export default function InFeedAd(_props: InFeedAdProps = {}) {
   }, [location.pathname, isPremium]);
 
   if (isLoading || isPremium) return null;
+  if (getAdRegion() === 'excluded') return null;
 
   if (!ADSENSE_CONFIG.enabled) {
     return (

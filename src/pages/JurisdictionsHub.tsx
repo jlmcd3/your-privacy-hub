@@ -168,7 +168,7 @@ export default function JurisdictionsHub() {
               <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
                 150+ jurisdictions tracked. Click any country on the map to explore its
                 privacy law, regulator, and recent enforcement actions.
-                Switch to Grid view to browse or filter by region.
+                Use the recently-updated list below or search to find a specific jurisdiction.
               </p>
             </div>
           </header>
@@ -180,7 +180,7 @@ export default function JurisdictionsHub() {
             <p className="text-xs text-brand-mist text-center mt-3">
               Some small jurisdictions (e.g. Singapore, Luxembourg city-state areas) are
               tracked in our database but are too small to render at this map scale.
-              Use Grid view or search to find them.
+              Use the search field above to find them by name.
             </p>
           </div>
 

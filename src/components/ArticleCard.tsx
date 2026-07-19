@@ -268,7 +268,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   return (
     <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-[9px] font-semibold text-gray-900 leading-snug group-hover:text-brand-teal-text transition-colors line-clamp-2 flex-1">
+        <p className="text-[11px] font-semibold text-gray-900 leading-snug group-hover:text-brand-teal-text transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
@@ -653,7 +653,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
         <a
           href={item.source_url || `/updates/${item.id}`}
           {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal-text no-underline leading-snug block">
+          className="text-[11px] font-semibold text-gray-900 hover:text-brand-teal-text no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </a>
         {item.summary && (
@@ -709,7 +709,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               </span>
             )}
           </div>
-          <p className="text-[9px] font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          <p className="text-[11px] font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
             {normalizeTitle(item.title)}
           </p>
           {item.summary && (
@@ -783,7 +783,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
+            <p className="text-[11px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
               <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
             )}
@@ -859,7 +859,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal-text leading-snug block no-underline transition-colors"
+          className="text-[11px] font-semibold text-gray-900 hover:text-brand-teal-text leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}

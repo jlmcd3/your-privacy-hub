@@ -81,11 +81,10 @@ const Terms = () => {
               We reserve the right to update, change or replace any part of this Agreement by
               posting updates and/or changes to the Site. It is your responsibility to check this
               page periodically for changes. Your continued use of or access to the Site following
-              the posting of any changes constitutes acceptance of those changes. Our store is
-              hosted on Shopify Inc. They provide us with the online e-commerce platform that
-              allows us to sell our products and services to you. You may not use our products for
-              any illegal or unauthorized purpose nor may you, in the use of the Service, violate
-              any laws in your jurisdiction (including but not limited to copyright laws).
+              the posting of any changes constitutes acceptance of those changes. You may not use
+              our products for any illegal or unauthorized purpose nor may you, in the use of the
+              Service, violate any laws in your jurisdiction (including but not limited to
+              copyright laws).
             </p>
             <p>
               You must not transmit any worms or viruses or any code of a destructive nature. A

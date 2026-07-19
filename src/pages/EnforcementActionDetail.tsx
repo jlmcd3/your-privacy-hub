@@ -170,7 +170,7 @@ export default function EnforcementActionDetail() {
       <Helmet>
         <title>{title} — {action.regulator} | Enforcement Intelligence</title>
         <meta name="description" content={desc} />
-        <link rel="canonical" href={`https://enduserprivacy.com/enforcement-intelligence/${action.id}`} />
+        <link rel="canonical" href={`https://enduserprivacy.com/enforcement/${action.id}`} />
         <meta property="og:title" content={`${title} — ${action.regulator}`} />
         <meta property="og:description" content={desc} />
         <meta property="og:type" content="article" />
@@ -182,22 +182,22 @@ export default function EnforcementActionDetail() {
           ...(action.decision_date ? { datePublished: action.decision_date } : {}),
           about: { "@type": "Thing", name: `${action.regulator} enforcement action` },
           publisher: { "@type": "Organization", name: "End User Privacy" },
-          url: `https://enduserprivacy.com/enforcement-intelligence/${action.id}`,
+          url: `https://enduserprivacy.com/enforcement/${action.id}`,
         })}</script>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
             { "@type": "ListItem", position: 1, name: "Home", item: "https://enduserprivacy.com/" },
-            { "@type": "ListItem", position: 2, name: "Enforcement Intelligence", item: "https://enduserprivacy.com/enforcement-intelligence" },
-            { "@type": "ListItem", position: 3, name: title, item: `https://enduserprivacy.com/enforcement-intelligence/${action.id}` },
+            { "@type": "ListItem", position: 2, name: "Enforcement Intelligence", item: "https://enduserprivacy.com/enforcement" },
+            { "@type": "ListItem", position: 3, name: title, item: `https://enduserprivacy.com/enforcement/${action.id}` },
           ],
         })}</script>
       </Helmet>
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link to="/enforcement-intelligence" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/enforcement" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4" /> Back to Enforcement Intelligence
         </Link>
 
@@ -355,7 +355,7 @@ export default function EnforcementActionDetail() {
             <h2 className="font-serif mb-4">More from {action.jurisdiction}</h2>
             <div className="space-y-2">
               {related.map((r) => (
-                <Link key={r.id} to={`/enforcement-intelligence/${r.id}`} className="block">
+                <Link key={r.id} to={`/enforcement/${r.id}`} className="block">
                   <Card className="hover:border-primary/40 transition">
                     <CardContent className="p-4 flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">

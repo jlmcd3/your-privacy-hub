@@ -23,10 +23,10 @@ export default function NewsfeedPaywallCard() {
             Subscribe to Privacy Intelligence Feed →
           </Link>
           <Link
-            to="/signup"
+            to="/contact"
             className="border border-brand-cloud text-brand-navy font-medium text-sm px-6 py-2.5 rounded-lg no-underline hover:bg-brand-cloud transition-all"
           >
-            Sign up free
+            Request beta access
           </Link>
         </div>
       </div>
