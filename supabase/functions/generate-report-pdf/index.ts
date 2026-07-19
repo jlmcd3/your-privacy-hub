@@ -1697,7 +1697,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${orgName ? `<p class="prepared-for">Prepared for: ${escHtml(orgName)}</p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is provided to support your review. Review all findings with qualified California privacy counsel before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is provided to support your review. Findings should be validated against your organization's authoritative records before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
     ${scopeBlock}
     ${priorityBlock}
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
