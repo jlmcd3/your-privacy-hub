@@ -151,8 +151,8 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact, on
             </p>
           )}
           <p className="text-meta mt-3">
-            <Link to="/signup" className="font-semibold hover:underline" style={{ color: "hsl(var(--cobalt))" }}>
-              Sign up free →
+            <Link to="/contact" className="font-semibold hover:underline" style={{ color: "hsl(var(--cobalt))" }}>
+              Request beta access →
             </Link>{" "}
             <span className="text-gray-500">to see why each of these matters for compliance.</span>
           </p>
