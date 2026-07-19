@@ -566,10 +566,11 @@ function EnrichmentPanel() {
                     ) : "—"}
                   </td>
                   <td className="px-3 py-2 text-right">
-                    <span title="wired in S1b">
-                      <Button disabled variant="outline" size="sm">Backfill</Button>
-                    </span>
+                    {c.enrichFn ? (
+                      <BackfillButton fn={c.enrichFn} onDone={load} />
+                    ) : <span className="text-xs text-gray-500">no fn</span>}
                   </td>
+
                 </tr>
               );
             })}
