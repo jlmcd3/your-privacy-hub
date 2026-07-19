@@ -10,6 +10,8 @@ import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { ADVISORY_VOICE_RULES, hasCounselReferral } from "../_shared/advisory-voice.ts";
+import { runFormatChecksIR } from "../_shared/grader/format-checks.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import {
   renderAiActCitationBlock,
