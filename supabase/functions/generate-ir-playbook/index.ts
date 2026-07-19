@@ -1136,22 +1136,47 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { ok: true };
         }
 
+        // IR-HF1 T1: assemble a two-channel request per part.
+        // - SYSTEM channel (extraSystem): the PROMPT_PART_X instruction block.
+        //   Anthropic system[] content is not part of the assistant's own prose
+        //   surface; instruction phrases delivered here do not appear in output
+        //   unless the model deliberately echoes them (which the INSTRUCTION_LEAK_RE
+        //   detector + single-round regen already catches as a backstop).
+        // - USER channel: the sentinel-wrapped intake block, an optional `extra`
+        //   corrective suffix, the supplemental block, and a minimal production
+        //   directive. INTAKE sentinels are stripped at assembly.
+        function buildPartUser(which: "A" | "B" | "C", extra: string): string {
+          const directive = which === "A"
+            ? "Produce PART A (Sections 1–3) now."
+            : which === "B"
+              ? "Produce PART B (Sections 4–5) now."
+              : "Produce PART C (Sections 6–7 followed by the ===ANNOTATIONS=== JSON block) now.";
+          const extraTail = extra ? `\n\n${extra}` : "";
+          return `<<<INTAKE_BEGIN>>>\n${INTAKE_BLOCK}\n<<<INTAKE_END>>>${extraTail}${_suppWs6}\n\n${directive}`;
+        }
         const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
-        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
+        function partInstructionsFor(which: "A" | "B" | "C"): SystemBlock[] {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
-          const prompt = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
-          return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
+          return [{ type: "text", text: base }];
+        }
+        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
+          const userPrompt = buildPartUser(which, extra);
+          return await callClaude(
+            [{ role: "user", content: userPrompt }],
+            maxTokens,
+            timeoutMs,
+            partInstructionsFor(which),
+          );
         }
 
         // Tail-continuation retry: replay the model's truncated output as an assistant
         // turn and ask for a continuation in a final user turn (claude-sonnet-4-6 does
         // not support assistant prefill — conversation must end with user message).
         async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<{ text: string; stopReason: string | null }> {
-          const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}${_suppWs6}\n\n(Generating part ${which}.)`;
+          const userPrompt = buildPartUser(which, extra);
           const truncatedClean = truncated.replace(/\s+$/, "");
           const continueInstruction = `Your previous attempt was cut off mid-output. ${tail} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
           const { text: continuation, stopReason } = await callClaude(
