@@ -1960,6 +1960,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     delete (reportData as any)._staging;
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
+      try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }, { fn: "run-dpia-framework", phase: "terminal_complete" });

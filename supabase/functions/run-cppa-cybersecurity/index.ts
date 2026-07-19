@@ -1347,6 +1347,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     });
 
 
+    try { const _prose = extractProseFromReport(report); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });

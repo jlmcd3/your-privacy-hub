@@ -1067,6 +1067,7 @@ Return this JSON structure exactly:
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
+      try { const _prose = extractProseFromReport(report); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
       report_data: report,
       updated_at: new Date().toISOString(),
     }, { fn: "run-admt-checker", phase: "terminal_complete" });
