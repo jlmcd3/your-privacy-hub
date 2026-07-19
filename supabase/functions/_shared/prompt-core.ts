@@ -466,6 +466,14 @@ export function buildSystemContent(opts: {
     blocks.push({ type: "text", text: injected });
   }
 
+  // COUNSEL-VOICE-1B — universal advisory-voice injection. Appended after
+  // per-tool injected content so every generative tool built on this core
+  // (dpia, governance, cppa-risk, cppa-cyber, biometric, li, admt, ir)
+  // gets the binding rules. DPA composes its own systemPrompt outside this
+  // helper and wires ADVISORY_VOICE_RULES directly.
+  blocks.push({ type: "text", text: ADVISORY_VOICE_RULES });
+
   return blocks;
 }
+
 
