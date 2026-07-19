@@ -1789,6 +1789,11 @@ async function runBatch(runId: string): Promise<void> {
               report_data: result.reportData, source_table: result.sourceTable,
               source_row_id: result.sourceRowId, status: "evaluating",
             }).eq("id", docRowId);
+            // CV1-R3 F1: propagate fresh-gen source refs to the outer eval
+            // locals so the counsel-voice auto-regen gate (below) sees a
+            // non-null source on the fresh-generation path.
+            evalSourceTable = result.sourceTable;
+            evalSourceRowId = result.sourceRowId;
             (state as any).pending_eval_doc_id = docRowId;
             (state as any).pending_eval_doc_index = i;
             await log("info", `${docLabel}: built & persisted — self-reinvoking so evaluation runs in a fresh isolate (gen/eval boundary)`);
