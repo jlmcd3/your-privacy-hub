@@ -336,13 +336,11 @@ export function detectNonEngagedStateAssertions(
         if (ambiguous && !abbreviationContextGuard(text, idx, matched.length, entry.state)) {
           continue;
         }
-        // Exclusion 2 — comparative prefix within the sentence.
+        // Exclusion 1 — comparative prefix within the sentence.
         const sentenceStart = Math.max(0, text.lastIndexOf(".", idx - 1) + 1);
         const sentenceLead = text.slice(sentenceStart, idx);
         if (RE_COMPARATIVE_PREFIX.test(sentenceLead)) continue;
-        // Exclusion 1 — savings-clause language trailing the citation.
-        const trailing = nextSentenceWindow(text, idx, matched.length);
-        if (RE_SAVINGS_CLAUSE.test(trailing) || RE_SAVINGS_CLAUSE.test(sentenceLead)) continue;
+        // (HF1 Task 1: savings-clause exclusion removed — see file header.)
 
         const key = `${entry.state}|${matched.toLowerCase()}`;
         if (seen.has(key)) continue;
