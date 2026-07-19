@@ -578,10 +578,15 @@ Deno.serve(async (req) => {
 
       for (const a of actions) {
         const etid = `${src.source.toLowerCase()}:${a.url}`;
+        // HF2 Task 2 — dedup fallback: legacy rows (2026-05-27 backfill and
+        // earlier) have NULL etid, so an etid-only lookup misses them and
+        // re-inserts. Match on etid OR (regulator, source_url) so any
+        // pre-existing row for this URL is caught.
+        const canonicalRegulator = normalizeRegulatorLabel(src.regulator) ?? src.regulator;
         const { data: existing } = await supabase
           .from("enforcement_actions")
           .select("id")
-          .eq("etid", etid)
+          .or(`etid.eq.${etid},and(regulator.eq.${canonicalRegulator},source_url.eq.${a.url})`)
           .maybeSingle();
         if (existing) { skipped++; continue; }
 
