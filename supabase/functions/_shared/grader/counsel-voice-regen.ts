@@ -42,3 +42,23 @@ export function isCounselVoiceRegenEligible(checks: DetCheck[] | undefined | nul
   if (!anyTrigger) return false;
   return failing.every((c) => CV_REGEN_TRIGGER_CHECKS.has(c.check_id));
 }
+
+/**
+ * CV1-R3 F1 helper: resolve the effective source ref for the CV1-R2 regen
+ * gate. In run-quality-batch the outer `evalSource*` locals are assigned
+ * only in the eval-resume branch; the fresh-generation path uses its own
+ * block-scoped locals. This helper picks the eval-resume ref when present
+ * and otherwise falls back to the fresh path's ref, so the auto-regen
+ * predicate sees a non-null source on BOTH paths.
+ *
+ * Returns { table, rowId } with rowId non-empty, or null when neither
+ * source is populated.
+ */
+export function resolveEvalSourceRef(
+  evalRef: { table: string | null; rowId: string | null } | null | undefined,
+  freshRef: { table: string | null; rowId: string | null } | null | undefined,
+): { table: string; rowId: string } | null {
+  const pick = (r: { table: string | null; rowId: string | null } | null | undefined) =>
+    r && r.rowId ? { table: r.table ?? "", rowId: r.rowId } : null;
+  return pick(evalRef) ?? pick(freshRef);
+}

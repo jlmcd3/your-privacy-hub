@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qlb-cv1-r2-auto-regen@2026-07-19T16:40Z";
+export const BUILD_STAMP = "qlb-cv1-r3-auto-regen-sourceref-fix@2026-07-19T17:20Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -24,7 +24,7 @@ import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter over LLM findings.
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // CV1-R2 T4c — counsel-voice auto-regen trigger predicate.
-import { isCounselVoiceRegenEligible } from "../_shared/grader/counsel-voice-regen.ts";
+import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "../_shared/grader/counsel-voice-regen.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
@@ -1789,6 +1789,11 @@ async function runBatch(runId: string): Promise<void> {
               report_data: result.reportData, source_table: result.sourceTable,
               source_row_id: result.sourceRowId, status: "evaluating",
             }).eq("id", docRowId);
+            // CV1-R3 F1: propagate fresh-gen source refs to the outer eval
+            // locals so the counsel-voice auto-regen gate (below) sees a
+            // non-null source on the fresh-generation path.
+            evalSourceTable = result.sourceTable;
+            evalSourceRowId = result.sourceRowId;
             (state as any).pending_eval_doc_id = docRowId;
             (state as any).pending_eval_doc_index = i;
             await log("info", `${docLabel}: built & persisted — self-reinvoking so evaluation runs in a fresh isolate (gen/eval boundary)`);
@@ -1862,6 +1867,17 @@ async function runBatch(runId: string): Promise<void> {
           report_data: reportData, source_table: sourceTable,
           source_row_id: sourceRowId, status: "evaluating",
         }).eq("id", docRowId);
+        // CV1-R3 F1: propagate fresh-gen source refs to the outer eval
+        // locals so the counsel-voice auto-regen gate (below) sees a
+        // non-null source on the dispatch/poll fresh-generation path.
+        const _resolved = resolveEvalSourceRef(
+          { table: evalSourceTable, rowId: evalSourceRowId },
+          { table: sourceTable, rowId: sourceRowId },
+        );
+        if (_resolved) {
+          evalSourceTable = _resolved.table || evalSourceTable;
+          evalSourceRowId = _resolved.rowId;
+        }
 
         // GEN/EVAL CHUNK BOUNDARY (r1b1.2): hand off to a fresh isolate so
         // dual-model evaluation (~200-250s) gets a full ~400s budget.
