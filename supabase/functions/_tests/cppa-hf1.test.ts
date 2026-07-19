@@ -67,7 +67,7 @@ Deno.test("runCppaHf1Checks — clean report passes all", () => {
 });
 
 Deno.test("runAdmtHf1Checks — chained failures aggregate", () => {
-  const bad = "Article 11 CCPA obligations. See § 7220(c)(5)(B). the audit-cohort determination is engaged.";
+  const bad = "Article 11 CCPA obligations. See § 7220(c)(5)(B). the sensitive-PI determination-resolved determination applies.";
   const findings = runAdmtHf1Checks(bad);
   const failed = findings.filter((f) => !f.passed).map((f) => f.check_id);
   assertEquals(failed.includes("h1_article_phrasing"), true);
