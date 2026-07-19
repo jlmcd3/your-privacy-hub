@@ -8,6 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { canonicalizeSourceUrl, isOaicEnforcementTitle, extractOaicSubject } from "./oaic.ts";
 import { isFtcEnforcementUrl, extractFtcSubject, isHhsOcrEnforcementUrl, extractHhsSubject, normalizeRegulatorLabel } from "./us-ingest.ts";
 import { parseRegisterDeterminations, normalizeEntity, datesWithin } from "./oaic-register.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -422,6 +423,15 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // HF2 Task 3 — unconditional function_runs telemetry. Wraps the entire
+  // handler so every invocation (including dry-runs and 5xx paths) writes
+  // start + finish rows. Fail-open: telemetry errors never block ingestion.
+  const fnRun = await startFunctionRun(supabase, "ingest-gov-enforcement", {
+    invokedBy: req.headers.get("x-invoked-by") ?? "http",
+    metadata: { method: req.method, url_path: new URL(req.url).pathname },
+  });
+  try {
+
   const url = new URL(req.url);
   let body: Record<string, unknown> = {};
   if (req.method === "POST") {
@@ -568,10 +578,15 @@ Deno.serve(async (req) => {
 
       for (const a of actions) {
         const etid = `${src.source.toLowerCase()}:${a.url}`;
+        // HF2 Task 2 — dedup fallback: legacy rows (2026-05-27 backfill and
+        // earlier) have NULL etid, so an etid-only lookup misses them and
+        // re-inserts. Match on etid OR (regulator, source_url) so any
+        // pre-existing row for this URL is caught.
+        const canonicalRegulator = normalizeRegulatorLabel(src.regulator) ?? src.regulator;
         const { data: existing } = await supabase
           .from("enforcement_actions")
           .select("id")
-          .eq("etid", etid)
+          .or(`etid.eq.${etid},and(regulator.eq.${canonicalRegulator},source_url.eq.${a.url})`)
           .maybeSingle();
         if (existing) { skipped++; continue; }
 
@@ -815,7 +830,23 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify(finalResult),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    await finishFunctionRun(supabase, fnRun, {
+      status: errors > 0 ? "partial" : "success",
+      sourceTable: "enforcement_actions",
+      metadata: {
+        dry_run: dryRun, mode, source_group: sourceGroupParam, source: sourceKeyParam,
+        inserted, skipped, errors, legacy_updated: legacyUpdated,
+        pdf_found: pdfFound, pdf_missing: pdfMissing,
+      },
+    });
+
+    return new Response(JSON.stringify(finalResult),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (err) {
+    await failFunctionRun(supabase, fnRun, err);
+    console.error("ingest-gov-enforcement fatal:", err);
+    return new Response(JSON.stringify({ error: (err as Error).message ?? String(err) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 });
 

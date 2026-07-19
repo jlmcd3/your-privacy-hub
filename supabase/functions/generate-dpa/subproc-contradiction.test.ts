@@ -1,31 +1,34 @@
-// HF1 Task 2 — Sub-processor contradiction detector unit tests.
+// HF2 Task 6 — Sub-processor contradiction detector unit tests (BIDIRECTIONAL).
 //
-// Behavioral fixtures required by the courier:
-//   1. CAUGHT — Run C doc 2c935e29 verbatim Section 4.1 (Schedule 1 /
-//      general-authorisation) on hasSubProcessors===false → violation.
-//   2. CAUGHT — bare Schedule 1 list-of-sub-processors reference on
-//      hasSubProcessors===false → violation.
-//   3. CLEAN — the same passage where hasSubProcessors===true → no violation.
-//   4. CLEAN — the courier-mandated "no sub-processors are engaged as of the
-//      Effective Date" clause when hasSubProcessors===false.
+// The prior detector required "Schedule 1" (or "general authorisation") to
+// appear BEFORE the sub-processor token, and the test file's fixture #2
+// (`text2`) placed Schedule 1 first — masking the bug that reverse-order
+// prose (sub-processor mentioned first) escapes detection. The rewritten
+// detector fires on either ordering within the proximity window; these
+// tests exercise both orderings.
 //
-// The detector is scoped to two regex patterns:
-//   RE_SCHEDULE1_SUBPROC     — "Schedule 1" within 80 chars of sub-processor
-//   RE_GENERAL_AUTH_SUBPROC  — "general authorisation" within 120 chars of sub-processor
+// Patterns exercised:
+//   Schedule 1 → sub-processor (forward, ≤80 chars)
+//   sub-processor → Schedule 1 (reverse, ≤80 chars)
+//   general authorisation → sub-processor (forward, ≤120 chars)
+//   sub-processor → general authorisation (reverse, ≤120 chars)
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-// Re-declare the detector locally so this test file does not need to load the
-// full edge function module (which imports supabase, gdpr-context, etc.).
-const RE_SCHEDULE1_SUBPROC =
-  /\bSchedule\s*1\b(?:[^\n]{0,80}(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors))/i;
-const RE_GENERAL_AUTH_SUBPROC =
+const RE_SCHEDULE1_SUBPROC_FWD =
+  /\bSchedule\s*1\b[^\n]{0,80}(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors)/i;
+const RE_SCHEDULE1_SUBPROC_REV =
+  /(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors)[^\n]{0,80}\bSchedule\s*1\b/i;
+const RE_GENERAL_AUTH_SUBPROC_FWD =
   /\bgeneral\s+authorisation\b[^.\n]{0,120}\bsub[- ]?processor/i;
+const RE_GENERAL_AUTH_SUBPROC_REV =
+  /\bsub[- ]?processor[^.\n]{0,120}\bgeneral\s+authorisation\b/i;
+
 function detect(text: string, hasSubProcessors: boolean): number {
   if (hasSubProcessors) return 0;
   let n = 0;
-  if (RE_SCHEDULE1_SUBPROC.test(text)) n++;
-  if (RE_GENERAL_AUTH_SUBPROC.test(text)) n++;
+  if (RE_SCHEDULE1_SUBPROC_FWD.test(text) || RE_SCHEDULE1_SUBPROC_REV.test(text)) n++;
+  if (RE_GENERAL_AUTH_SUBPROC_FWD.test(text) || RE_GENERAL_AUTH_SUBPROC_REV.test(text)) n++;
   return n;
 }
 
@@ -35,13 +38,21 @@ Deno.test("subproc [caught] Run C 2c935e29 §4.1 verbatim on hasSubProcessors=fa
   assert(detect(text, false) >= 1);
 });
 
-Deno.test("subproc [caught] bare Schedule 1 list-of-sub-processors on hasSubProcessors=false", () => {
+Deno.test("subproc [caught] REVERSE order: sub-processor before Schedule 1 (previously masked)", () => {
+  // "the approved Sub-processors set out in Schedule 1" — sub-processor token
+  // appears BEFORE Schedule 1. The old forward-only regex escaped this.
   const text = "The Processor may engage the approved Sub-processors set out in Schedule 1 of this DPA.";
-  // "Schedule 1" ... "approved Sub-processors" — the pattern is inversion-agnostic on
-  // scheduled order in the text; a "sub-processor" mention within 80 chars of Schedule 1
-  // is what fires. This fixture places Schedule 1 first.
-  const text2 = "The Processor engages sub-processors as set out in Schedule 1 (List of Sub-processors).";
-  assert(detect(text2, false) >= 1);
+  assertEquals(detect(text, false), 1);
+});
+
+Deno.test("subproc [caught] REVERSE order: sub-processor before general authorisation", () => {
+  const text = "Sub-processors may be engaged under the general authorisation granted in clause 4.";
+  assertEquals(detect(text, false), 1);
+});
+
+Deno.test("subproc [caught] FORWARD order: Schedule 1 → list of sub-processors", () => {
+  const text = "The Processor engages sub-processors as set out in Schedule 1 (List of Sub-processors).";
+  assert(detect(text, false) >= 1);
 });
 
 Deno.test("subproc [clean] same passage when hasSubProcessors=true", () => {
@@ -54,4 +65,14 @@ Deno.test("subproc [clean] no-sub-processors clause on hasSubProcessors=false", 
   const text =
     "4.1 The Parties acknowledge that no sub-processors are engaged as of the Effective Date. Any future engagement of a sub-processor by the Processor requires the Controller's prior specific written authorisation obtained before the engagement commences.";
   assertEquals(detect(text, false), 0);
+});
+
+// MC-S1b Task 7(b) — epoch-stamp unit test. The grader context version
+// constant is the pivot point for stamping quality_batch_runs and baselines.
+// Ensures the constant follows the expected shape so downstream ledger
+// dividers ("◈ EPOCH CHANGE") can parse it.
+Deno.test("MC-S1b epoch-stamp: GRADER_CONTEXT_VERSION shape", async () => {
+  const { GRADER_CONTEXT_VERSION } = await import("../_shared/grader/context.ts");
+  assert(typeof GRADER_CONTEXT_VERSION === "string");
+  assert(/^gc-\d{4}-\d{2}-\d{2}/.test(GRADER_CONTEXT_VERSION), `unexpected shape: ${GRADER_CONTEXT_VERSION}`);
 });
