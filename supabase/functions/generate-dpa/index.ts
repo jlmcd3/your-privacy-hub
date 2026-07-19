@@ -1308,6 +1308,16 @@ Where a point is drawn from a Recital rather than an operative Article, prefer s
       throw new Error("AI generation returned an empty document");
     }
 
+    // COUNSEL-VOICE-1 E-checks — deterministic format checks emitted for
+    // consumption by run-quality-batch (checks_total / checks_passed).
+    let deterministic_checks: any[] = [];
+    try {
+      const { runFormatChecksDPA } = await import("../_shared/grader/format-checks.ts");
+      deterministic_checks = runFormatChecksDPA(dpa_text);
+    } catch (e) {
+      console.warn("[generate-dpa] format-checks failed non-fatal:", (e as Error).message);
+    }
+
     const buildReportData = () => ({
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
@@ -1316,10 +1326,12 @@ Where a point is drawn from a Recital rather than an operative Article, prefer s
       information_needed: Array.isArray((parsed as any)?.information_needed)
         ? (parsed as any).information_needed
         : [],
+      deterministic_checks,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.2-grader-cal-1") },
+      _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-counsel-voice-1") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
+
 
     try {
       const guarded = guardInformationNeeded(
