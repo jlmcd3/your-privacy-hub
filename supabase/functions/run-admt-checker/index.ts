@@ -566,7 +566,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "conditions_to_consolidate": "If applicable:true, list the mandatory conditions the consolidated notice must satisfy: it must include ALL required § 7220(c) elements for EACH ADMT system or use covered. Generic or combined descriptions that obscure individual system requirements do not satisfy this.",
     "consolidation_benefit": "If applicable:true, briefly describe the operational benefit (e.g., 'A single notice can cover both the credit scoring model and the fraud detection system, reducing notice delivery touchpoints from two to one').",
     "consolidation_risk": "If applicable:true, describe the compliance trap: a consolidated notice that omits required elements for any one system is non-compliant for that system. The business cannot use consolidation to simplify away disclosure obligations.",
-    "recommendation": "One plain-language sentence: either 'Consolidation not applicable — single ADMT/single purpose detected' or 'Consolidation eligible — recommend reviewing § 7220(e) conditions with counsel before consolidating.'"
+    "recommendation": "One plain-language sentence: either 'Consolidation not applicable — single ADMT/single purpose detected' or 'Consolidation eligible — confirm the § 7220(e) conditions (same operating context, same category of consumers, same significant-decision purpose) are satisfied on the record before consolidating; further clarification is advisable.'"
   },
 
   "enforcement_context": {
