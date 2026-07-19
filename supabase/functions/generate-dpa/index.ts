@@ -20,6 +20,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
 import { deriveEngagedStates, detectNonEngagedStateAssertions } from "../_shared/dpa-engaged-states.ts";
+import { ADVISORY_VOICE_RULES, hasCounselReferral } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
