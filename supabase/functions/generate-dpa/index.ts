@@ -159,6 +159,24 @@ function detectBlacklistViolations(text: string): SpecViolation[] {
   }));
 }
 
+// HF1 Task 2 — sub-processor contradiction detector.
+// When hasSubProcessors===false, the model must NOT emit a sub-processor
+// authorisation framework (Schedule 1 / general-authorisation list). Fires
+// HARD violations that merge into the same `extras` collector.
+const RE_SCHEDULE1_SUBPROC =
+  /\bSchedule\s*1\b(?:[^\n]{0,80}(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors))/i;
+const RE_GENERAL_AUTH_SUBPROC =
+  /\bgeneral\s+authorisation\b[^.\n]{0,120}\bsub[- ]?processor/i;
+function detectSubProcessorContradiction(text: string, hasSubProcessors: boolean): SpecViolation[] {
+  if (hasSubProcessors) return [];
+  const hits: SpecViolation[] = [];
+  const m1 = text.match(RE_SCHEDULE1_SUBPROC);
+  if (m1) hits.push({ code: "sub_processor_framework_when_disabled", severity: "hard", detail: `Schedule-1/list-of-sub-processors framework emitted when hasSubProcessors=false (match: "${m1[0].slice(0, 120)}")` });
+  const m2 = text.match(RE_GENERAL_AUTH_SUBPROC);
+  if (m2) hits.push({ code: "sub_processor_framework_when_disabled", severity: "hard", detail: `general-authorisation sub-processor clause emitted when hasSubProcessors=false (match: "${m2[0].slice(0, 120)}")` });
+  return hits;
+}
+
 
 
 const supabase = createClient(
