@@ -182,12 +182,17 @@ function checkE5(text: string, dim = "hallucination"): FormatFinding[] {
   return findings;
 }
 
-function checkE6(text: string, dim = "hallucination"): FormatFinding[] {
+function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp } = {}): FormatFinding[] {
   const findings: FormatFinding[] = [];
   const sentences = splitSentences(text ?? "");
   let hits = 0;
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
+      // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
+      // privilege guidance (secure/restricted channel, privilege
+      // determination step at Section 1) is operational IR substance and
+      // stays. Sentences matching opts.exemptRe are skipped.
+      if (opts.exemptRe && opts.exemptRe.test(s)) continue;
       hits++;
       findings.push(fail("e6_counsel_referral", dim, "high",
         `body-text counsel referral: "${s.slice(0, 200)}"`));
@@ -197,6 +202,12 @@ function checkE6(text: string, dim = "hallucination"): FormatFinding[] {
   if (findings.length === 0) findings.push(pass("e6_no_counsel_referral", dim));
   return findings;
 }
+
+// IR privilege-carveout regex — scoped tightly to sentences that discuss
+// privilege determination, privilege labelling, or the secure/restricted
+// incident-communication channel. See advisory-voice.ts §"IR carve-out".
+export const IR_PRIVILEGE_EXEMPT_RE =
+  /\b(privileg(?:e|ed)|secure,?\s+restricted\s+communication|privilege\s+determination|LEGALLY\s+PRIVILEGED)\b/i;
 
 export function runFormatChecksDPA(text: string): FormatFinding[] {
   return [
@@ -216,8 +227,32 @@ export function runFormatChecksIR(text: string): FormatFinding[] {
     ...checkE3(text),
     ...checkE4(text),
     ...checkE5(text),
-    ...checkE6(text),
+    ...checkE6(text, "hallucination", { exemptRe: IR_PRIVILEGE_EXEMPT_RE }),
   ];
+}
+
+/**
+ * Generic per-tool format-check runner for tools without a fixed section
+ * template. Applies E2..E6 universally; E1 runs only when `sections` is
+ * supplied. Used by DPIA / Governance / CPPA-Risk / CPPA-Cyber / Biometric
+ * / LI / ADMT.
+ */
+export function runFormatChecksGeneric(
+  text: string,
+  opts: { sections?: string[]; exemptRe?: RegExp } = {},
+): FormatFinding[] {
+  const out: FormatFinding[] = [];
+  if (opts.sections && opts.sections.length) {
+    out.push(...checkE1(opts.sections, text));
+  }
+  out.push(
+    ...checkE2(text),
+    ...checkE3(text),
+    ...checkE4(text),
+    ...checkE5(text),
+    ...checkE6(text, "hallucination", { exemptRe: opts.exemptRe }),
+  );
+  return out;
 }
 
 /** Exposed for tests. */
