@@ -1,6 +1,8 @@
 // qb8 build active · cppa-risk r1b1.4-rca continuation-on-truncation + 330s self-report abort + compact cells
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
+// CPPA-HF1 BUILD_STAMP: cppa-risk-hf1@2026-07-19T22:00Z
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
