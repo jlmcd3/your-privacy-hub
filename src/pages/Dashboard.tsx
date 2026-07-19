@@ -179,26 +179,37 @@ function describeBriefFreshness(publishedAt: string | null | undefined): string 
  * publication date. Replaces opaque labels like "Week 18 · 2026" with text
  * users can act on.
  */
-function describeBriefPeriod(publishedAt: string | null | undefined): string {
+// Exported so unit tests can cover every date-range branch (same-month,
+// cross-month same-year, cross-year, invalid). Explicit option objects avoid
+// the earlier `undefined`-field pattern which produced malformed ranges in
+// some engines.
+export function describeBriefPeriod(publishedAt: string | null | undefined): string {
   if (!publishedAt) return "the past 7 days";
   const end = new Date(publishedAt);
   if (isNaN(end.getTime())) return "the past 7 days";
   const start = new Date(end);
   start.setDate(end.getDate() - 6);
+
   const sameYear = start.getFullYear() === end.getFullYear();
   const sameMonth = sameYear && start.getMonth() === end.getMonth();
-  // When the range stays inside one month, drop the redundant month on the end date.
-  const startFmt = start.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: sameYear ? undefined : "numeric",
-  });
-  const endFmt = end.toLocaleDateString("en-US", {
-    month: sameMonth ? undefined : "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  return `${startFmt} – ${endFmt}`;
+
+  const monthDay = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const monthDayYear = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const dayOnly = (d: Date) =>
+    d.toLocaleDateString("en-US", { day: "numeric" });
+
+  if (sameMonth) {
+    // e.g. "Jul 7–13, 2026"
+    return `${monthDay(start)}–${dayOnly(end)}, ${end.getFullYear()}`;
+  }
+  if (sameYear) {
+    // e.g. "Aug 28 – Sep 3, 2026"
+    return `${monthDay(start)} – ${monthDay(end)}, ${end.getFullYear()}`;
+  }
+  // e.g. "Dec 29, 2026 – Jan 4, 2027"
+  return `${monthDayYear(start)} – ${monthDayYear(end)}`;
 }
 
 const Dashboard = () => {
