@@ -20,7 +20,7 @@ import {
 } from "../_shared/grader/payload.ts";
 // GRADER-1 Tasks 2/3 — shared authoritative context block injected into
 // BOTH grader system prompts (Claude rubric + GPT cross-review).
-import { SHARED_GRADER_CONTEXT } from "../_shared/grader/context.ts";
+import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
