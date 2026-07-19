@@ -90,7 +90,7 @@ const tierColor = (t: ConfidenceTier) => {
 const tierBlurb: Record<ConfidenceTier, string> = {
   "High-confidence": "Statutory or regulatory authority on point AND agency commentary (FSOR) reinforces the conclusion.",
   "Inference": "Statutory or regulatory authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
-  "Heuristic": "Conclusion is a best-effort interpretation and requires attorney review before relying on it.",
+  "Heuristic": "Conclusion is a best-effort interpretation; additional information is required before operational reliance.",
 };
 
 
