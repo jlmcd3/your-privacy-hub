@@ -5,6 +5,7 @@
 // Output: rows inserted into public.horizon_intelligence for the current ISO week.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { ADVISORY_VOICE_RULES } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
