@@ -1205,7 +1205,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const dpiaScope = synthesis.dpia_scope || [];
 
-    (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment", "r1b2.1-rcb") };
+    (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment", "r1b2.2-cv1-r") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
