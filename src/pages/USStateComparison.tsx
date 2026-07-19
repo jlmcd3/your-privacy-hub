@@ -56,8 +56,8 @@ const USStateComparison = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>US State Privacy Laws Comparison 2026 | End User Privacy</title>
-        <meta name="description" content="Compare all 20 enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free." />
-        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of all 20 enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
+        <meta name="description" content={`Compare all ${states.length} enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free.`} />
+        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of ${states.length} enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
       </Helmet>
       <Navbar />
 
