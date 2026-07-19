@@ -21,7 +21,7 @@ export default function DisclaimerCheckbox({ checked, onChange }: DisclaimerChec
         className="mt-0.5 shrink-0 accent-amber-600"
       />
       <span className="text-[11px] text-amber-800 leading-relaxed">
-        This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.
+        This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.
       </span>
     </label>
   );
