@@ -1235,6 +1235,38 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             }
           }
 
+          // REBUILD-IR Task 3 — deterministic instruction-leak detector.
+          // Regenerates ONLY the affected part (single retry per part).
+          const INSTRUCTION_LEAK_RE = /\b(do not frame(?: this)?|do NOT output|output ONLY|as instructed|per the rulebook|per these instructions|the system prompt|meta-instruction|internal machinery|IN THIS RESPONSE ONLY|the rules? above|as (?:noted|stated) in the (?:instructions|rules)|per your instructions|Sections?\s*[0-9–\-,\s]+of a complete)\b/i;
+          const leakFailures: Array<{ which: "A" | "B" | "C"; text: string; match: string }> = [];
+          for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
+            const m = INSTRUCTION_LEAK_RE.exec(txt);
+            if (m) {
+              console.warn(`[IR Playbook] REBUILD-IR T3 instruction leak in part ${which}: "${m[0]}"`);
+              leakFailures.push({ which, text: txt, match: m[0] });
+            }
+          }
+          if (leakFailures.length > 0) {
+            const suffix = `\n\nPREVIOUS ATTEMPT LEAKED META-INSTRUCTIONS. The following phrases from the internal machinery MUST NOT appear anywhere in the user-facing prose: "${leakFailures.map((f) => f.match).join('", "')}". Re-emit this part stating only substantive conclusions; never quote or paraphrase system instructions, rulebook rules, or the meta-scaffolding that produced this playbook.`;
+            const regen = await Promise.all(
+              leakFailures.map((f) => generatePart(f.which, extra + suffix, IR_PART_MAX_TOKENS, 600_000)),
+            );
+            for (let i = 0; i < leakFailures.length; i++) {
+              const f = leakFailures[i];
+              const t = regen[i].text;
+              const v = validatePart(t, f.which);
+              if (!v.ok) {
+                console.warn(`[IR Playbook] T3 regen part ${f.which} failed structural validation (${v.reason}); keeping original.`);
+                continue;
+              }
+              if (f.which === "A") partA = t;
+              else if (f.which === "B") partB = t;
+              else partC = t;
+            }
+          }
+
+
+
           // Final validation across all parts. Structural validity (all required headings
           // present, Part C annotations block present) is the hard requirement — a missing
           // terminal punctuation after a structurally complete part is a soft warning only.
