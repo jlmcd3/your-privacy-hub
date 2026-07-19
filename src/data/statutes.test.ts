@@ -17,7 +17,16 @@ const PROVISION_COUNT = comparison.provisions.length; // 12
 const AUTHORITY_INDEX = PROVISION_COUNT - 1; // last column is enforcement authority
 const ALLOWED_STRING_MARKS = new Set(["yes", "no", "limited", "conditional"]);
 
+describe("statutes.ts — no commercial-publisher URLs", () => {
+  it("contains zero law.justia.com references", () => {
+    for (const [key, entry] of Object.entries(STATUTES)) {
+      expect(entry.url.includes("law.justia.com"), `${key}: ${entry.url}`).toBe(false);
+    }
+  });
+});
+
 describe("us_state_comparison.json — structural invariants", () => {
+
   it("has 12 provisions", () => {
     expect(PROVISION_COUNT).toBe(12);
   });

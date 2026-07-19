@@ -168,18 +168,20 @@ export const STATUTES: Record<string, StatuteEntry> = {
   // New Hampshire DPIA — required for heightened-risk processing per RSA 507-H:6.
   "NH:8": { cite: "RSA 507-H:6", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
 
-  // ── NEW JERSEY (NJDPA) ────────────────────────────────────────────────────
-  // Note: NJ chapter 8, article on data privacy is not yet indexed on njleg.state.nj.us
-  // section-level URLs. Justia URLs preserved pending an official-source swap.
-  "NJ:0": { cite: "N.J. Stat. § 56:8-166.10(a)(1)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:1": { cite: "N.J. Stat. § 56:8-166.10(a)(3)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:2": { cite: "N.J. Stat. § 56:8-166.10(a)(4)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:3": { cite: "N.J. Stat. § 56:8-166.10(a)(2)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:4": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(b)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:5": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(a)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:6": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(c)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
-  "NJ:7": { cite: "N.J. Stat. § 56:8-166.12(b)(5)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-12/" },
-  "NJ:8": { cite: "N.J. Stat. § 56:8-166.14", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-14/" },
+  // ── NEW JERSEY (NJDPA — P.L.2023, c.266; S.B. 332) ────────────────────────
+  // Official enacted-act PDF from the New Jersey Legislature (pub.njleg.gov).
+  // Chapter-level source per project standard; pinpoint retained on cite label.
+  // Verified 2026-07-19.
+  "NJ:0": { cite: "N.J. Stat. § 56:8-166.10(a)(1)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:1": { cite: "N.J. Stat. § 56:8-166.10(a)(3)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:2": { cite: "N.J. Stat. § 56:8-166.10(a)(4)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:3": { cite: "N.J. Stat. § 56:8-166.10(a)(2)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:4": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(b)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:5": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(a)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:6": { cite: "N.J. Stat. § 56:8-166.10(a)(5)(c)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:7": { cite: "N.J. Stat. § 56:8-166.12(b)(5)", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+  "NJ:8": { cite: "N.J. Stat. § 56:8-166.14", url: "https://pub.njleg.gov/Bills/2022/PL23/266_.PDF" },
+
 
   // ── OREGON (OCPA) ─────────────────────────────────────────────────────────
   "OR:0": { cite: "ORS § 646A.574(1)(a)", url: "https://www.oregonlegislature.gov/bills_laws/ors/ors646a.html" },
@@ -204,17 +206,20 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "RI:6": { cite: "R.I. Gen. Laws § 6-48.1-3(a)(5)(C)", url: "http://webserver.rilegislature.gov/Statutes/TITLE6/6-48.1/INDEX.htm" },
   "RI:7": { cite: "R.I. Gen. Laws § 6-48.1-5(d)", url: "http://webserver.rilegislature.gov/Statutes/TITLE6/6-48.1/INDEX.htm" },
 
-  // ── TENNESSEE (TIPA) ──────────────────────────────────────────────────────
-  // Note: Justia mirror preserved pending an official Tenn. Code section-level URL.
-  "TN:0": { cite: "Tenn. Code § 47-18-3204(a)(1)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:1": { cite: "Tenn. Code § 47-18-3204(a)(3)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:2": { cite: "Tenn. Code § 47-18-3204(a)(4)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:3": { cite: "Tenn. Code § 47-18-3204(a)(2)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:4": { cite: "Tenn. Code § 47-18-3204(a)(5)(B)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:5": { cite: "Tenn. Code § 47-18-3204(a)(5)(A)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:6": { cite: "Tenn. Code § 47-18-3204(a)(5)(C)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
-  "TN:7": { cite: "Tenn. Code § 47-18-3206(b)(4)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3206/" },
-  "TN:8": { cite: "Tenn. Code § 47-18-3207", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3207/" },
+  // ── TENNESSEE (TIPA — Public Chapter 408, 113th Gen. Assembly; HB 1181/SB 73) ─
+  // Official enacted Public Chapter PDF from the Tennessee Secretary of State.
+  // Chapter-level source per project standard; pinpoint retained on cite label.
+  // Verified 2026-07-19.
+  "TN:0": { cite: "Tenn. Code § 47-18-3204(a)(1)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:1": { cite: "Tenn. Code § 47-18-3204(a)(3)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:2": { cite: "Tenn. Code § 47-18-3204(a)(4)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:3": { cite: "Tenn. Code § 47-18-3204(a)(2)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:4": { cite: "Tenn. Code § 47-18-3204(a)(5)(B)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:5": { cite: "Tenn. Code § 47-18-3204(a)(5)(A)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:6": { cite: "Tenn. Code § 47-18-3204(a)(5)(C)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:7": { cite: "Tenn. Code § 47-18-3206(b)(4)", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+  "TN:8": { cite: "Tenn. Code § 47-18-3207", url: "https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf" },
+
 
   // ── TEXAS (TDPSA) ─────────────────────────────────────────────────────────
   "TX:0": { cite: "Tex. Bus. & Com. Code § 541.051(b)(1)", url: "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.541.htm" },
