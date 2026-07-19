@@ -26,8 +26,11 @@
 // retention rule ("last interaction", not "collection"); GDPR Art. 9(1) biometric
 // qualifier (special-category only when the purpose is uniquely identifying a
 // natural person). W2C exemptions in the language-variant rule are unchanged.
-export const PROMPT_CORE_VERSION = "3.9.2";
+export const PROMPT_CORE_VERSION = "3.9.3-counsel-voice-1";
 export const BUILD_TAG = "qb18";
+
+import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
+
 
 
 
@@ -466,6 +469,14 @@ export function buildSystemContent(opts: {
     blocks.push({ type: "text", text: injected });
   }
 
+  // COUNSEL-VOICE-1B — universal advisory-voice injection. Appended after
+  // per-tool injected content so every generative tool built on this core
+  // (dpia, governance, cppa-risk, cppa-cyber, biometric, li, admt, ir)
+  // gets the binding rules. DPA composes its own systemPrompt outside this
+  // helper and wires ADVISORY_VOICE_RULES directly.
+  blocks.push({ type: "text", text: ADVISORY_VOICE_RULES });
+
   return blocks;
 }
+
 

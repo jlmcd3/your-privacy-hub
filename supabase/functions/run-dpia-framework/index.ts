@@ -1,4 +1,6 @@
 // qb9 dpia-r1b2.3 sectioned-generation (U1..U5 phase-fan-out; Amendments 1+2)
+import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1956,6 +1958,7 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[dpia] item_unit_map persist skipped:", (e as Error)?.message);
     }
     delete (reportData as any)._staging;
+    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,

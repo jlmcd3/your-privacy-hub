@@ -1,4 +1,6 @@
 // qb8 build active · cppa-risk r1b1.4-rca continuation-on-truncation + 330s self-report abort + compact cells
+import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -1919,6 +1921,7 @@ async function runPipeline(assessment_id: string) {
       reportData: report_data,
     });
 
+    try { const _prose = extractProseFromReport(report_data); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });

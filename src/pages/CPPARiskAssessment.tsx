@@ -218,7 +218,7 @@ export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKe
   { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
   { key: "transient_use",     label: "Transient / short-term use (no profile built)",      cite: "Cal. Civ. Code § 1798.140(e)(4)", railKey: "exc_transient_use" },
   { key: "internal_research", label: "Internal research for technological development",    cite: "Cal. Civ. Code § 1798.140(e)(8)", railKey: "exc_internal_research" },
-  { key: "employment_context", label: "Employment-context processing",                     cite: "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — counsel review recommended", railKey: "exc_employment_context" },
+  { key: "employment_context", label: "Employment-context processing",                     cite: "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — additional information required", railKey: "exc_employment_context" },
   { key: "legal_compliance",  label: "Compliance with a legal obligation",                 cite: "Cal. Civ. Code § 1798.145(a)(1)", railKey: "exc_legal_compliance" },
   { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
@@ -711,12 +711,12 @@ export default function CPPARiskAssessment() {
             "Covers the risk-assessment obligation in Article 10 of the CCPA regulations (11 CCR §§ 7150–7157).",
             "Your intake is validated before generation; contradictions are flagged with citations, never resolved for you.",
             "Output: a Part A stakeholder summary and a Part B full assessment record.",
-            "This tool documents your record — it does not provide legal advice; review with counsel before relying on it.",
+            "This tool documents your record — it is an analytical aid, not legal advice.",
           ]}
         />
         <IntakeGuidance>Where a field asks you to describe something, be specific and complete: name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
-        <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
+        <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid and does not constitute a certified audit or regulatory submission." />
         {refine.isRefine && refine.intake && !refine.loading && (
           <RefinePanel
             toolType="cppa_risk_assessment"
@@ -1357,7 +1357,7 @@ export default function CPPARiskAssessment() {
         </BenchLayout>
 
         <p className="text-xs text-muted-foreground italic">
-          This is a compliance framework tool. It does not constitute legal advice and is not a substitute for review by qualified California privacy counsel.
+          This is a compliance framework tool aligned to the CPPA audit regulations (11 CCR §§ 7150-7157); the page-level disclaimer above governs its status.
         </p>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} />

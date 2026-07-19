@@ -1,4 +1,6 @@
 // qb8 build active
+import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // doc-y-6 build marker (Y-6: Art. 39(1)(b) canonical-wording gloss correction, hasEuUk-gated)
 const DOC_Y_BUILD_MARKER = "doc-y-6";
@@ -1217,6 +1219,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       reportData,
     });
 
+    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,

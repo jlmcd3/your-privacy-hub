@@ -180,3 +180,43 @@ Deno.test("COUNSEL-VOICE-1: DPA emits the expected E1-E6 check ids", () => {
       `expected an E-check row for ${id}`);
   }
 });
+
+// ─── §4b: IR privilege carve-out (COUNSEL-VOICE-1B Task 3) ───────────
+
+Deno.test("COUNSEL-VOICE-1B: IR privilege sentences do NOT fire E6", () => {
+  const irPrivilege =
+    "PART A\nx\nPART B\nx\nPART C\nx\nPART D\nx\nPART E\nx\nPART F\nx\n" +
+    "The Senior Legal Counsel makes the privilege determination and labels the memo LEGALLY PRIVILEGED.";
+  const findings = runFormatChecksIR(irPrivilege);
+  assert(!findings.some((f) => f.check_id === "e6_counsel_referral" && !f.passed),
+    "IR privilege sentence must be exempt from E6");
+});
+
+Deno.test("COUNSEL-VOICE-1B: IR non-privilege counsel referral still fires E6", () => {
+  const bad =
+    "PART A\nx\nPART B\nx\nPART C\nx\nPART D\nx\nPART E\nx\nPART F\nx\n" +
+    "Consult your lawyer before publishing this playbook.";
+  const findings = runFormatChecksIR(bad);
+  assert(findings.some((f) => f.check_id === "e6_counsel_referral" && !f.passed));
+});
+
+// ─── §5: runFormatChecksGeneric wiring (7 remaining tools) ───────────
+
+Deno.test("COUNSEL-VOICE-1B: runFormatChecksGeneric flags bare advisory close", async () => {
+  const { runFormatChecksGeneric } = await import("../_shared/grader/format-checks.ts");
+  const findings = runFormatChecksGeneric("Unknown; further clarification is advisable.");
+  assert(findings.some((f) => f.check_id === "e5_bare_advisory_close" && !f.passed));
+});
+
+Deno.test("COUNSEL-VOICE-1B: extractProseFromReport skips reserved keys", async () => {
+  const { extractProseFromReport } = await import("../_shared/advisory-voice.ts");
+  const rd = {
+    executive_summary: "Consult your attorney about this obligation.",
+    _meta: { prompt_version: "should-be-skipped" },
+    deterministic_checks: [{ check_id: "shouldnt", passed: true }],
+    body: { narrative: "The record does not specify retention; further internal investigation is advisable." },
+  };
+  const prose = extractProseFromReport(rd);
+  assert(prose.includes("Consult your attorney"), "should include body strings");
+  assert(!prose.includes("should-be-skipped"), "should skip _meta");
+});

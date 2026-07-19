@@ -124,7 +124,80 @@ export function scanAdvisoryVoice(text: string): AdvisoryFinding[] {
 /**
  * True if the text contains any counsel-referral prohibition hit. Used
  * as a single-round regeneration gate in generators.
+ *
+ * IR carve-out (COUNSEL-VOICE-1B Task 3, logged): the IR playbook's
+ * legal-privilege determination step and secure/restricted communication-
+ * channel guidance are operational incident-response substance, NOT
+ * counsel-referral framing. The E6 deterministic check accepts an
+ * `exemptRe` (see grader/format-checks.ts → IR_PRIVILEGE_EXEMPT_RE) to
+ * suppress hits in sentences whose context matches
+ * `privilege|privileged|secure, restricted communication|LEGALLY PRIVILEGED`.
+ * The regen-gate helper below is intentionally NOT carved out — regen
+ * decisions are made downstream after the section-scoped E6 result.
  */
 export function hasCounselReferral(text: string): boolean {
   return COUNSEL_REFERRAL_RE.test(text ?? "");
 }
+
+/**
+ * Deterministic-checks emit helper. Given a report-data object and the
+ * generated body text, computes the per-tool format checks and attaches
+ * them under `_meta.deterministic_checks` (and mirrors to the legacy
+ * `deterministic_checks` top-level key expected by run-quality-batch).
+ * Returns the finding list so callers can decide on regen.
+ */
+export type DeterministicFinding = {
+  check_id: string;
+  check_type: "deterministic";
+  dimension: string;
+  severity: "high" | "medium" | "low";
+  passed: boolean;
+  evidence: string | null;
+};
+
+export function attachDeterministicChecks(
+  reportData: Record<string, unknown> | null | undefined,
+  findings: DeterministicFinding[],
+): DeterministicFinding[] {
+  if (!reportData || typeof reportData !== "object") return findings;
+  const rd = reportData as Record<string, unknown>;
+  rd.deterministic_checks = findings;
+  const meta = (rd._meta as Record<string, unknown> | undefined) ?? {};
+  meta.deterministic_checks = findings;
+  rd._meta = meta;
+  return findings;
+}
+
+/**
+ * Extract concatenated body-text prose from a heterogenous report_data
+ * shape. String leaves are joined with newlines; arrays and objects are
+ * recursed. Reserved bookkeeping keys are skipped. Budget-bounded.
+ */
+const _RESERVED_KEYS = new Set([
+  "_meta", "deterministic_checks", "prompt_version", "build_stamp",
+  "generated_at", "enforcement_meta", "lint_warnings", "annotations",
+  "citation_lints", "information_needed", "enforcement_precedents",
+]);
+
+export function extractProseFromReport(report: unknown, budget = 200_000): string {
+  const parts: string[] = [];
+  let remaining = budget;
+  const walk = (v: unknown, key?: string) => {
+    if (remaining <= 0) return;
+    if (key && _RESERVED_KEYS.has(key)) return;
+    if (typeof v === "string") {
+      const t = v.slice(0, Math.max(0, remaining));
+      parts.push(t);
+      remaining -= t.length + 1;
+      return;
+    }
+    if (Array.isArray(v)) { for (const it of v) walk(it); return; }
+    if (v && typeof v === "object") {
+      for (const [k, val] of Object.entries(v as Record<string, unknown>)) walk(val, k);
+    }
+  };
+  walk(report);
+  return parts.join("\n");
+}
+
+

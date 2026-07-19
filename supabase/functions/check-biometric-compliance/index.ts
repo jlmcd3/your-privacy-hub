@@ -1,4 +1,6 @@
 // qb8 build active
+import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
@@ -1412,6 +1414,8 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       generated_at: new Date().toISOString(),
       _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP },
     };
+    try { const _prose = extractProseFromReport(report_data); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
+
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.
     try {

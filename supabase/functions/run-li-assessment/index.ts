@@ -1,4 +1,6 @@
 // qb8 build active
+import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1439,6 +1441,7 @@ Return JSON:
       reportData,
     });
 
+    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
