@@ -55,10 +55,12 @@ export function checkH1ArticlePhrasing(text: string): FormatFinding[] {
 export const HF1_INTERNAL_VOCAB_PATTERNS: RegExp[] = [
   // "the sale/share-revenue determination-resolved determination"
   // "the sensitive-PI determination resolved:"
-  // "the audit-cohort determination"
+  // "the audit-cohort determination resolved"
   /\bthe\s+[a-z][a-z0-9/\-]*\s+determination[-\s]resolved\b/i,
   /\b[a-z][a-z0-9/\-]*-determination[-\s]resolved\b/i,
   /\bdetermination[-\s]resolved\s+determination\b/i,
+  // CPPA-HF2 F1: explicit "the audit-cohort determination" leakage (with or without trailing "resolved")
+  /\bthe\s+audit-cohort\s+determination\b/i,
   // Pipeline field / stage names surfaced in prose
   /\bnormalised_intake\b/i,
   /\bnormalized_intake\b/i,
@@ -84,6 +86,35 @@ export function checkH2InternalVocab(text: string): FormatFinding[] {
     }
   }
   if (findings.length === 0) findings.push(pass("h2_internal_vocab_ok"));
+  return findings;
+}
+
+// ── H4 (CPPA-HF2 Task B) ─────────────────────────────────────────────
+// Evasive-placeholder ban. Model attempts to sidestep the citation
+// registry by writing "the cited provision governing [topic]" or
+// "under the cited provision" in narrative fields. These read as
+// concrete citations to a reader but resolve to nothing.
+export const HF1_EVASIVE_PLACEHOLDER_PATTERNS: RegExp[] = [
+  /\bthe\s+cited\s+provision\s+governing\b/i,
+  /\bunder\s+the\s+cited\s+provision\b/i,
+  /\bpursuant\s+to\s+the\s+cited\s+provision\b/i,
+  /\bthe\s+cited\s+(?:provision|section|subsection)\s+(?:above|below|referenced)\b/i,
+];
+
+export function checkH4EvasivePlaceholder(text: string): FormatFinding[] {
+  if (!text) return [pass("h4_evasive_placeholder_ok", "citation_accuracy")];
+  const findings: FormatFinding[] = [];
+  for (const re of HF1_EVASIVE_PLACEHOLDER_PATTERNS) {
+    const m = text.match(re);
+    if (m) {
+      findings.push(fail("h4_evasive_placeholder", "citation_accuracy", "high",
+        `evasive-placeholder leakage: "${m[0]}"`));
+      if (findings.length >= 5) break;
+    }
+  }
+  if (findings.length === 0) {
+    findings.push(pass("h4_evasive_placeholder_ok", "citation_accuracy"));
+  }
   return findings;
 }
 
