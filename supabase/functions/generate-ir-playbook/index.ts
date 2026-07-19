@@ -1067,7 +1067,8 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           cache: true,
         });
 
-        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000, extraSystem?: SystemBlock[]): Promise<{ text: string; stopReason: string | null }> {
+          const systemPayload = extraSystem && extraSystem.length ? [...irSystem, ...extraSystem] : irSystem;
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
