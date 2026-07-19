@@ -73,7 +73,7 @@ const EnforcementPrecedents = ({
     <section className="bg-card border rounded-lg p-6">
       <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
         <h2 className="">Enforcement Basis</h2>
-        <Link to="/enforcement-intelligence" className="text-xs text-blue-700 hover:underline">
+        <Link to="/enforcement" className="text-xs text-blue-700 hover:underline">
           Browse full database →
         </Link>
       </div>
@@ -91,7 +91,7 @@ const EnforcementPrecedents = ({
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0 flex-1">
                   <Link
-                    to={`/enforcement-intelligence/${p.id}`}
+                    to={`/enforcement/${p.id}`}
                     className="font-medium text-foreground hover:text-blue-700 no-underline"
                   >
                     {p.subject || "Unnamed action"}
@@ -115,7 +115,7 @@ const EnforcementPrecedents = ({
                 </p>
               )}
               <div className="mt-2 flex gap-3 text-xs">
-                <Link to={`/enforcement-intelligence/${p.id}`} className="text-blue-700 hover:underline">
+                <Link to={`/enforcement/${p.id}`} className="text-blue-700 hover:underline">
                   View analysis
                 </Link>
                 {p.source_url && (

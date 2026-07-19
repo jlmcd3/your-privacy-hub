@@ -78,7 +78,7 @@ const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any
                 {unverified && (<p className="text-[11px] text-amber-700 mt-1 italic">(fine amount unverified — omitted)</p>)}
               </div>
               {a.enforcement_action_id && (
-                <Link to={`/enforcement-intelligence/${a.enforcement_action_id}`} className="text-[11px] text-blue-700 hover:underline shrink-0 whitespace-nowrap">View case →</Link>
+                <Link to={`/enforcement/${a.enforcement_action_id}`} className="text-[11px] text-blue-700 hover:underline shrink-0 whitespace-nowrap">View case →</Link>
               )}
             </div>
           </div>

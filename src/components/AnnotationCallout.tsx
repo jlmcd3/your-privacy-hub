@@ -40,7 +40,7 @@ export function AnnotationCallout({
             <>
               {" "}
               <Link
-                to={`/enforcement-intelligence/${a.enforcement_action_id}`}
+                to={`/enforcement/${a.enforcement_action_id}`}
                 className="text-blue-700 hover:underline whitespace-nowrap"
               >
                 View →
@@ -101,7 +101,7 @@ export function AnnotationAppendix({
               </div>
               {a.enforcement_action_id && (
                 <Link
-                  to={`/enforcement-intelligence/${a.enforcement_action_id}`}
+                  to={`/enforcement/${a.enforcement_action_id}`}
                   className="text-xs text-blue-700 hover:underline shrink-0 whitespace-nowrap"
                 >
                   View case →

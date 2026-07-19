@@ -855,7 +855,7 @@ const Dashboard = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-3 mb-1">
                                 <Link
-                                  to={`/enforcement-intelligence/${s.id}`}
+                                  to={`/enforcement/${s.id}`}
                                   className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline"
                                 >
                                   {s.subject || s.regulator}
@@ -886,7 +886,7 @@ const Dashboard = () => {
                       </ol>
                       <div className="mt-4">
                         <Link
-                          to="/enforcement-intelligence"
+                          to="/enforcement"
                           className="text-meta font-semibold text-brand-navy hover:underline"
                         >
                           Browse all enforcement actions →
