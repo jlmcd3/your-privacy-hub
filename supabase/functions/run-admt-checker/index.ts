@@ -7,7 +7,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-cppa-hf3@2026-07-19T21:23Z";
+export const BUILD_STAMP = "admt-cppa-hf4@2026-07-19T22:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -298,7 +298,7 @@ CPPA-HF1 A2 — CITATION MISAPPLICATION AND "ARTICLE N" PHRASING BAN: (a) The AD
 
 CPPA-HF2 B — EVASIVE-PLACEHOLDER BAN: NEVER emit narrative substitutes for a real citation. Banned phrasings include "the cited provision governing [X]", "under the cited provision", "pursuant to the cited provision", and "the cited section above". The template injects the canonical citation from the registry post-generation — write in plain-English element names ("the Pre-use Notice specific-purpose requirement", "the access-response future-use disclosure") until the registry runs. A narrative that reads to the consumer as a concrete citation but resolves to nothing is a defect.
 
-CPPA-HF2 D — APPENDIX / TEMPLATE COMPLETION LANGUAGE: appendix and sample_language blocks NEVER emit "[LEGAL COUNSEL NAME/FIRM]", "[LAW-FIRM NAME]", "signed by legal counsel", "complete this document with legal counsel before …", or any equivalent completion instruction that directs the reader to counsel. The page-level "not legal advice" disclaimer is separate and sufficient. Completion instructions in appendix templates address the implementer plainly in one imperative sentence and refer to organizational roles by function ("the individual authorised to sign attestations on behalf of the business"), never by a "legal counsel" placeholder. This applies to every appendix, sample-language template, attestation template, and completion-instruction line.
+CPPA-HF2 D + CPPA-HF4 D2 — APPENDIX / TEMPLATE COMPLETION LANGUAGE: appendix and sample_language blocks NEVER emit "[LEGAL COUNSEL NAME/FIRM]", "[LAW-FIRM NAME]", "[BUSINESS LEGAL COUNSEL]", "[BUSINESS LEGAL COUNSEL OR DESIGNATED OFFICER]", "[CONFIRM WITH LEGAL COUNSEL]", "[COORDINATE WITH LEGAL COUNSEL]", "signed by legal counsel", "complete this document with legal counsel before …", or any equivalent completion instruction that directs the reader to counsel. The page-level "not legal advice" disclaimer is separate and sufficient. Completion instructions in appendix templates address the implementer plainly in one imperative sentence and refer to organizational roles by function ("[AUTHORISED SIGNATORY]", "the individual authorised to sign attestations on behalf of the business"), never by a "legal counsel" placeholder. This applies to every appendix, sample-language template, attestation template, and completion-instruction line.
 
 CPPA-HF2 E — INTERNAL RULEBOOK ARTICLE-N RECAST (SELF-CHECK): this rulebook has been recast under CPPA-HF3 scope A so that internal instruction lines refer to the § 7150–§ 7157 risk-assessment subchapter and the § 7200–§ 7222 ADMT subchapter by section number, not by "Article 10" / "Article 11" shorthand. In OUTPUT prose, always render as "§§ 7200–7222 (the ADMT subchapter)" or "§§ 7150–7157 (the risk-assessment subchapter)" — never "Article 11" or "Article 10". The h1_article_phrasing deterministic check enforces this against emitted text; do not defeat it.
 
@@ -1101,8 +1101,51 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
-    // CPPA-HF2 I3 — prompt_version _meta stamp on ADMT reports.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf3@2026-07-19"), build_stamp: BUILD_STAMP };
+    // CPPA-HF4 Task C + D2 + F — post-gen artifact scrub. Cleans HF3
+    // Article-N recast artifacts, bracketed counsel placeholders, and ADMT
+    // pipeline element ids that leak into prose.
+    try {
+      const REPLACEMENTS: Array<[RegExp, string]> = [
+        // C — mechanical substitution artifacts
+        [/\bThe\s+the\s+cited\s+provision\b/g, "The cited provision"],
+        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, "the cited provision"],
+        [/\bthe\s+applicable\s+regulation\s+section\b/gi, "the cited provision"],
+        // D2 — bracketed counsel placeholders → generic authorised-signatory
+        [/\[\s*(?:BUSINESS\s+)?LEGAL\s+COUNSEL(?:\s+OR\s+DESIGNATED\s+OFFICER)?\s*\]/gi, "[AUTHORISED SIGNATORY]"],
+        [/\[\s*(?:CONFIRM|COORDINATE|CHECK)\s+WITH\s+LEGAL\s+COUNSEL[^\]]*\]/gi, ""],
+        [/\[\s*LAW[-\s]?FIRM\s+NAME\s*\]/gi, ""],
+        // F — ADMT element ids surfaced in prose
+        [/\baccess_verify_nonacct\b/g, "the non-account access verification step"],
+        [/\baccess_verify\b/g, "the access-response verification step"],
+      ];
+      let scrubbedAdmt = 0;
+      const walkAdmt = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) { for (const v of node) walkAdmt(v); return; }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") {
+            let next = v;
+            for (const [re, sub] of REPLACEMENTS) next = next.replace(re, sub);
+            // Compact residual doubled spaces from empty-string substitutions.
+            next = next.replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
+            if (next !== v) { (node as any)[k] = next; scrubbedAdmt++; }
+          } else if (v && typeof v === "object") {
+            walkAdmt(v);
+          }
+        }
+      };
+      walkAdmt(report);
+      if (scrubbedAdmt > 0) {
+        console.warn(`[run-admt-checker] CPPA-HF4 post-gen scrub: ${scrubbedAdmt} occurrence(s) cleaned`);
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] CPPA-HF4 post-gen scrub failed (non-fatal):", e);
+    }
+
+    // CPPA-HF4 I3 — prompt_version _meta stamp on ADMT reports.
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf4@2026-07-19"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
