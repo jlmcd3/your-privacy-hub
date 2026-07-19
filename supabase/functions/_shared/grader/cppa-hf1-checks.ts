@@ -123,16 +123,40 @@ export function checkH4EvasivePlaceholder(text: string): FormatFinding[] {
 // whose full path (parent + sub-parts) does not appear here is flagged.
 // The list mirrors the sub-subsections actually referenced in the current
 // ADMT rulebook (see run-admt-checker/index.ts).
+// CPPA-HF2 Task A — expanded whitelist verified against 11 CCR final
+// text (OAL-approved 2025-09) fetched from Westlaw. Each entry below is
+// confirmed against the operative subsection structure.
 export const ADMT_VERIFIED_CITES: ReadonlySet<string> = new Set([
-  // § 7220 — Pre-use notice
-  "7220", "7220(b)", "7220(c)", "7220(c)(1)", "7220(c)(2)", "7220(c)(3)",
-  "7220(c)(4)", "7220(c)(5)", "7220(d)", "7220(d)(1)", "7220(e)",
-  // § 7221 — Opt-out
-  "7221", "7221(b)", "7221(b)(1)", "7221(b)(2)", "7221(b)(3)",
-  "7221(c)", "7221(g)", "7221(m)", "7221(n)", "7221(n)(1)", "7221(n)(2)",
-  // § 7222 — Access
-  "7222", "7222(b)", "7222(b)(3)", "7222(b)(3)(A)", "7222(b)(4)",
-  "7222(c)", "7222(c)(1)", "7222(j)",
+  // § 7220 — Pre-use Notice
+  "7220",
+  "7220(a)", "7220(b)", "7220(b)(1)", "7220(b)(2)", "7220(b)(3)",
+  "7220(c)", "7220(c)(1)", "7220(c)(2)", "7220(c)(2)(A)", "7220(c)(2)(B)",
+  "7220(c)(3)", "7220(c)(4)",
+  "7220(c)(5)", "7220(c)(5)(A)", "7220(c)(5)(B)", "7220(c)(5)(C)",
+  "7220(d)", "7220(d)(1)",
+  "7220(d)(2)", "7220(d)(2)(A)", "7220(d)(2)(B)", "7220(d)(2)(C)",
+  "7220(e)", "7220(e)(1)", "7220(e)(2)", "7220(e)(3)", "7220(e)(4)",
+  // § 7221 — Requests to Opt-Out of ADMT
+  "7221",
+  "7221(a)",
+  "7221(b)",
+  "7221(b)(1)", "7221(b)(1)(A)", "7221(b)(1)(B)",
+  "7221(b)(2)", "7221(b)(2)(A)", "7221(b)(2)(B)",
+  "7221(b)(3)", "7221(b)(3)(A)", "7221(b)(3)(B)",
+  "7221(c)", "7221(c)(1)", "7221(c)(2)", "7221(c)(3)", "7221(c)(4)",
+  "7221(d)", "7221(e)", "7221(f)", "7221(g)", "7221(h)", "7221(i)",
+  "7221(j)", "7221(k)", "7221(l)", "7221(m)",
+  "7221(n)", "7221(n)(1)", "7221(n)(2)",
+  // § 7222 — Requests to Access ADMT
+  "7222",
+  "7222(a)",
+  "7222(b)", "7222(b)(1)", "7222(b)(2)",
+  "7222(b)(3)", "7222(b)(3)(A)",
+  "7222(b)(4)", "7222(b)(4)(A)",
+  "7222(c)", "7222(c)(1)",
+  "7222(c)(2)", "7222(c)(2)(A)", "7222(c)(2)(B)", "7222(c)(2)(C)",
+  "7222(d)", "7222(e)", "7222(f)", "7222(g)", "7222(h)", "7222(i)",
+  "7222(j)", "7222(k)", "7222(l)",
 ]);
 
 const ADMT_CITE_RE_SRC = /(?<!\d)(722[012])((?:\([A-Za-z0-9]+\))+)?/;
