@@ -276,3 +276,44 @@ Deno.test("CV1-ALL: E5 accepts named-fact anywhere in sentence", () => {
   const e5Fails = findings.filter((f) => f.check_id === "e5_bare_advisory_close" && f.passed === false);
   assertEquals(e5Fails.length, 0, `E5 wrongly flagged a well-formed close: ${JSON.stringify(e5Fails)}`);
 });
+
+// ─── CV1-R: residual sweep — emitter constants must not carry referral directives ───
+
+Deno.test("CV1-R: generate-report-pdf disclaimer constants have no counsel-referral directive", async () => {
+  const src = await Deno.readTextFile(new URL("../generate-report-pdf/index.ts", import.meta.url));
+  // The "counsel-review" enum label + "counsel review recommended" tier
+  // string (~L1034) is a schema-bound admin label kept per CV1-R decision
+  // pending; strip that line before scanning body-text templates.
+  const scanned = src
+    .split("\n")
+    .filter((line) => !/=== "counsel-review"/.test(line) && !/Counsel review recommended/i.test(line))
+    .join("\n");
+  const hits = scanned.match(COUNSEL_REFERRAL_RE);
+  if (hits) {
+    // Provide the offending snippet for debugging.
+    const lines = scanned.split("\n")
+      .map((l, i) => ({ l, no: i + 1 }))
+      .filter(({ l }) => COUNSEL_REFERRAL_RE.test(l));
+    throw new Error(
+      "generate-report-pdf still carries counsel-referral directives:\n" +
+        lines.slice(0, 5).map((x) => `  L${x.no}: ${x.l.trim().slice(0, 220)}`).join("\n"),
+    );
+  }
+});
+
+Deno.test("CV1-R: run-governance-assessment disclaimer constants have no counsel-referral directive", async () => {
+  const src = await Deno.readTextFile(new URL("../run-governance-assessment/index.ts", import.meta.url));
+  // Rulebook lines describing what the generator MUST NOT emit are exempt.
+  const scanned = src.split("\n").filter((l) => !/NEVER direct|no 'consult legal counsel'|NEVER emit|Do not direct/i.test(l)).join("\n");
+  const hits = scanned.match(COUNSEL_REFERRAL_RE);
+  if (hits) {
+    const lines = scanned.split("\n")
+      .map((l, i) => ({ l, no: i + 1 }))
+      .filter(({ l }) => COUNSEL_REFERRAL_RE.test(l));
+    throw new Error(
+      "run-governance-assessment still carries counsel-referral directives:\n" +
+        lines.slice(0, 5).map((x) => `  L${x.no}: ${x.l.trim().slice(0, 220)}`).join("\n"),
+    );
+  }
+});
+
