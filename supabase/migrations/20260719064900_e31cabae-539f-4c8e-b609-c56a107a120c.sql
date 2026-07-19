@@ -1,0 +1,1 @@
+DELETE FROM public.quality_batch_runs WHERE id='5eeeeee0-0000-0000-0000-000000000001';
