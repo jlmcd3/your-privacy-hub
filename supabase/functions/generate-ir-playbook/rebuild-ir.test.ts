@@ -78,18 +78,24 @@ Deno.test("REBUILD-IR: CRITICAL DISTINCTION separates § 164.406 vs § 164.408 t
   );
 });
 
-Deno.test("REBUILD-IR: IR_RULEBOOK is wired through buildSystemContent as extraRules for every part", () => {
-  // irSystem is built ONCE (index.ts:1050) and reused for parts A/B/C via
-  // the shared `callClaude` closure, which sends `system: irSystem` on
-  // every request. Proof: one build, one system-block reference inside
-  // callClaude, and multiple callClaude invocations.
+Deno.test("REBUILD-IR / IR-HF1 T1: irSystem builds once and rides callClaude via a system payload that also accepts per-part instruction blocks", () => {
+  // IR-HF1 T1: the shared callClaude closure now composes its system[] as
+  // `systemPayload = [...irSystem, ...extraSystem]`. Per-part instruction
+  // blocks are supplied via partInstructionsFor(which) and travel on the
+  // system channel — no longer concatenated into the user prompt. Proof:
+  // irSystem is built once, referenced once inside callClaude as part of
+  // systemPayload, and each generate/continue call routes per-part
+  // instructions through partInstructionsFor.
   assert(/extraRules:\s*IR_RULEBOOK/.test(SRC), "extraRules: IR_RULEBOOK wiring missing");
   const buildCallCount = (SRC.match(/buildSystemContent\s*\(/g) || []).length;
   assertEquals(buildCallCount, 1, "irSystem must be built exactly once and reused across parts");
-  const systemUseCount = (SRC.match(/system:\s*irSystem/g) || []).length;
-  assertEquals(systemUseCount, 1, "irSystem must be referenced exactly once inside the shared callClaude closure");
+  assert(/system:\s*systemPayload/.test(SRC), "callClaude must pass system: systemPayload");
+  assert(/const\s+systemPayload\s*=\s*extraSystem[^]*\[\.\.\.irSystem,\s*\.\.\.extraSystem\]\s*:\s*irSystem/.test(SRC),
+    "systemPayload must compose irSystem with the optional extraSystem argument");
+  assert(/function\s+partInstructionsFor\s*\(/.test(SRC), "partInstructionsFor helper missing");
+  assert(/<<<INTAKE_BEGIN>>>/.test(SRC) && /<<<INTAKE_END>>>/.test(SRC), "intake sentinel markers missing");
   const callClaudeInvocations = (SRC.match(/\bawait\s+callClaude\s*\(/g) || []).length;
-  assert(callClaudeInvocations >= 2, `expected ≥2 callClaude invocations reusing irSystem; saw ${callClaudeInvocations}`);
+  assert(callClaudeInvocations >= 2, `expected ≥2 callClaude invocations; saw ${callClaudeInvocations}`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

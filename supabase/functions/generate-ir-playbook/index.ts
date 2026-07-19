@@ -353,7 +353,7 @@ const IR_TOOL_MODULE: ToolModule = {
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.6-rebuild-ir-hipaa-4way-temporal-2026-07-19";
+const IR_VERSION = "v3.7-ir-hf1-delimiter-refactor-2026-07-19";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -915,8 +915,17 @@ Deno.serve(async (req) => {
 
 
 
-        // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
-        // wall-clock budget.
+        // IR-HF1 T1 — DELIMITER REFACTOR (v3.7): the previous scheme concatenated
+        // meta-instructions ("Output ONLY Sections 1–3", "Do NOT output Sections 4–7"),
+        // per-part rules, and the INTAKE_BLOCK into a single user turn. That single-
+        // channel shape let ban-list phrases from the instruction text bleed into
+        // generated prose (REBUILD-IR D2 residual). The refactor moves ALL meta-
+        // instructions and per-part rules into a dedicated system-role block (Anthropic
+        // system[] array); the user turn now carries ONLY the sentinel-wrapped intake
+        // block plus a minimal production directive ("Produce PART X now."). Sentinel
+        // markers <<<INTAKE_BEGIN>>>/<<<INTAKE_END>>> are stripped at assembly so any
+        // residual echo is deterministically cleaned. INSTRUCTION_LEAK_RE + single-round
+        // per-part regen (Task 3 in the REBUILD-IR pass) remain unchanged as a backstop.
         const INTAKE_BLOCK = `INCIDENT DETAILS
 Organisation (controller) being assessed: ${body.organizationName || "not specified"}
 Discovery: ${body.discoveryDateTime}
@@ -942,9 +951,15 @@ ${formatEnforcementContext(enforcement_context)}
 
 CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}${edpbGuidelineBlock}${caBreachBlock}`;
 
-        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        // IR-HF1 T1 (v3.7): PROMPT_PART_A/B/C are now pure INSTRUCTION blocks.
+        // The intake reference "${INTAKE_BLOCK}" that previously lived inside each
+        // constant was removed — the intake is delivered to the model separately
+        // via a sentinel-wrapped USER message (see generatePart below), so that
+        // the meta-instruction text and the incident-fact content ride distinct
+        // channels of the request. The model receives INSTRUCTIONS as a system
+        // block and INTAKE as user content.
+        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident. Use the incident facts supplied in the accompanying user turn (delimited by <<<INTAKE_BEGIN>>> / <<<INTAKE_END>>> sentinels); do NOT echo those sentinels or any of the meta-instructions in this system block in your output.
 
-${INTAKE_BLOCK}
 
 Generate ONLY the following three sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 4, 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts B and C, since all three parts are generated from the same incident facts and system instructions.
 
@@ -987,9 +1002,8 @@ detection timestamp. Where these differ, state both and anchor the deadline to a
 
 Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
-        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident. Use the incident facts supplied in the accompanying user turn (delimited by <<<INTAKE_BEGIN>>> / <<<INTAKE_END>>> sentinels); do NOT echo those sentinels or any of the meta-instructions in this system block in your output.
 
-${INTAKE_BLOCK}
 
 Generate ONLY the following two sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 6, 7, or the ===ANNOTATIONS=== block in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and C, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
 
@@ -1003,9 +1017,8 @@ Mark all placeholder fields [IN SQUARE BRACKETS]. The word "template" MUST appea
 
 Output ONLY Sections 4–5. No preamble, no commentary, do NOT output Sections 1–3 or 6–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
-        const PROMPT_PART_C = `You are a senior data protection incident response specialist. Generate PART C (Sections 6–7 plus the ===ANNOTATIONS=== block) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_C = `You are a senior data protection incident response specialist. Generate PART C (Sections 6–7 plus the ===ANNOTATIONS=== block) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident. Use the incident facts supplied in the accompanying user turn (delimited by <<<INTAKE_BEGIN>>> / <<<INTAKE_END>>> sentinels); do NOT echo those sentinels or any of the meta-instructions in this system block in your output.
 
-${INTAKE_BLOCK}
 
 Generate ONLY the following two sections plus annotations now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 4, or 5 in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and B, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
 
@@ -1054,7 +1067,8 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           cache: true,
         });
 
-        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000, extraSystem?: SystemBlock[]): Promise<{ text: string; stopReason: string | null }> {
+          const systemPayload = extraSystem && extraSystem.length ? [...irSystem, ...extraSystem] : irSystem;
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -1066,7 +1080,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
               model: "claude-sonnet-4-6",
               max_tokens: maxTokens,
               stream: true,
-              system: irSystem,
+              system: systemPayload,
               messages,
             }),
             signal: AbortSignal.timeout(timeoutMs),
@@ -1123,21 +1137,37 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         }
 
         const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
-        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
+        function buildPartUser(which: "A" | "B" | "C", extra: string): string {
+          const directive = which === "A"
+            ? "Produce PART A (Sections 1–3) now."
+            : which === "B"
+              ? "Produce PART B (Sections 4–5) now."
+              : "Produce PART C (Sections 6–7 followed by the ===ANNOTATIONS=== JSON block) now.";
+          const extraTail = extra ? `\n\n${extra}` : "";
+          return `<<<INTAKE_BEGIN>>>\n${INTAKE_BLOCK}\n<<<INTAKE_END>>>${extraTail}${_suppWs6}\n\n${directive}`;
+        }
+        function partInstructionsFor(which: "A" | "B" | "C"): SystemBlock[] {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
-          const prompt = (extra ? `${base}\n\n${extra}` : base) + _suppWs6;
-          return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
+          return [{ type: "text", text: base }];
+        }
+        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
+          const userPrompt = buildPartUser(which, extra);
+          return await callClaude(
+            [{ role: "user", content: userPrompt }],
+            maxTokens,
+            timeoutMs,
+            partInstructionsFor(which),
+          );
         }
 
         // Tail-continuation retry: replay the model's truncated output as an assistant
         // turn and ask for a continuation in a final user turn (claude-sonnet-4-6 does
         // not support assistant prefill — conversation must end with user message).
         async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<{ text: string; stopReason: string | null }> {
-          const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}${_suppWs6}\n\n(Generating part ${which}.)`;
+          const userPrompt = buildPartUser(which, extra);
           const truncatedClean = truncated.replace(/\s+$/, "");
           const continueInstruction = `Your previous attempt was cut off mid-output. ${tail} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
           const { text: continuation, stopReason } = await callClaude(
@@ -1148,6 +1178,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             ],
             maxTokens,
             timeoutMs,
+            partInstructionsFor(which),
           );
           // Overlap guard: strip the longest overlap between tail of truncated (up to
           // 300 chars) and head of continuation, then join.
@@ -1287,7 +1318,10 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
 
 
         function assembleFromHalves(partA: string, partB: string, partC: string): { playbook_text: string; parsedAnnotations: any[] } {
-          const fullText = `${partA.trim()}\n\n${partB.trim()}\n\n${partC.trim()}`;
+          // IR-HF1 T1: defensive strip of intake-envelope sentinels in case the
+          // model echoed the delimiter. Belt-and-braces to the system-channel move.
+          const stripSentinels = (s: string) => s.replace(/<<<INTAKE_BEGIN>>>|<<<INTAKE_END>>>/g, "");
+          const fullText = `${stripSentinels(partA).trim()}\n\n${stripSentinels(partB).trim()}\n\n${stripSentinels(partC).trim()}`;
           let playbook_text = fullText
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
@@ -1542,6 +1576,123 @@ const playbook_text = lint.clean;
             }
             postGenNotes.push({ code: "uninjected_enforcement_citation", detail: `${unknownCites.length}` });
           }
+
+          // IR-HF1 T2 — CROSS-PART CONSISTENCY LINT (log-only, report-only-first
+          // per REBUILD-IR D3). Compares the three assembled parts on: (i) party /
+          // organisation-name mentions, (ii) incident date tokens (ISO YYYY-MM-DD
+          // and "DD Month YYYY" forms), (iii) regulator names drawn from the
+          // ENFORCEMENT CONTEXT and the built-in regulator vocabulary, and
+          // (iv) statutory-anchor mentions (GDPR Art., § 1798.x, HIPAA § 164.x,
+          // CCPA/CPPA, and the state-statute short forms). A "cross_part_inconsistency"
+          // note is written when a token appears in one part but is absent from
+          // another part that speaks to the same subject (party name / date /
+          // regulator / statute). NO regen, NO doc mutation this pass — findings
+          // land in post_gen_lint.notes for grader/reviewer visibility.
+          try {
+            type PartLabel = "A" | "B" | "C";
+            const parts: Array<{ label: PartLabel; text: string }> = [
+              { label: "A", text: partA || "" },
+              { label: "B", text: partB || "" },
+              { label: "C", text: partC || "" },
+            ];
+            const ISO_DATE_RE = /\b(20\d{2}-\d{2}-\d{2})\b/g;
+            const REGULATOR_VOCAB = [
+              "ICO", "CNIL", "AEPD", "Garante", "DPC", "EDPB", "OAIC", "FTC",
+              "HHS OCR", "CPPA", "NYDFS", "Datatilsynet", "BfDI", "UODO", "APD", "IMY",
+            ];
+            const STATUTE_RE = /(GDPR\s*Art(?:icle)?\.?\s*\d+[a-z]?|§\s*1798\.\d+[a-z]?|45\s*C\.F\.R\.\s*§\s*164\.\d+|HIPAA|CCPA|CPPA|PIPEDA|Law\s*25|BIPA|TRAIGA)/gi;
+            const orgName = (body as any)?.organizationName ? String((body as any).organizationName).trim() : "";
+            const extract = (t: string) => {
+              const dates = new Set<string>();
+              let m: RegExpExecArray | null;
+              while ((m = ISO_DATE_RE.exec(t)) !== null) dates.add(m[1]);
+              const regs = new Set(REGULATOR_VOCAB.filter((r) => new RegExp(`\\b${r.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`, "i").test(t)));
+              const stats = new Set<string>();
+              let sm: RegExpExecArray | null;
+              const statRe = new RegExp(STATUTE_RE.source, "gi");
+              while ((sm = statRe.exec(t)) !== null) stats.add(sm[0].toLowerCase().replace(/\s+/g, " "));
+              const hasOrg = orgName.length > 0 && t.toLowerCase().includes(orgName.toLowerCase());
+              return { dates, regs, stats, hasOrg };
+            };
+            const facts = parts.map((p) => ({ ...p, ...extract(p.text) }));
+            const findings: Array<{ code: string; detail: string }> = [];
+            const quote = (t: string, needle: string) => {
+              const idx = t.toLowerCase().indexOf(needle.toLowerCase());
+              if (idx < 0) return "";
+              return t.slice(Math.max(0, idx - 40), idx + needle.length + 40);
+            };
+            // (i) party/entity name: if present in one part and absent from another
+            // that has substantive text (>500 chars).
+            if (orgName) {
+              const carrying = facts.filter((p) => p.hasOrg);
+              const substantiveMissing = facts.filter((p) => !p.hasOrg && p.text.length > 500);
+              if (carrying.length > 0 && substantiveMissing.length > 0) {
+                findings.push({
+                  code: "cross_part_inconsistency",
+                  detail: `party_name_absent parts=${substantiveMissing.map((p) => p.label).join(",")} name="${orgName}" quoted_in=${carrying.map((p) => `${p.label}:"${quote(p.text, orgName).trim()}"`).join(" | ")}`,
+                });
+              }
+            }
+            // (ii) date disagreement: if two parts each cite ISO dates and their
+            // date sets do not intersect.
+            for (let i = 0; i < facts.length; i++) {
+              for (let j = i + 1; j < facts.length; j++) {
+                const a = facts[i]; const b = facts[j];
+                if (a.dates.size > 0 && b.dates.size > 0) {
+                  const shared = [...a.dates].some((d) => b.dates.has(d));
+                  if (!shared) {
+                    findings.push({
+                      code: "cross_part_inconsistency",
+                      detail: `incident_date_mismatch parts=${a.label},${b.label} ${a.label}=[${[...a.dates].join(",")}] ${b.label}=[${[...b.dates].join(",")}]`,
+                    });
+                  }
+                }
+              }
+            }
+            // (iii) regulator disagreement: regulator named in only one part when
+            // another part is substantive (>800 chars) and names some regulator.
+            const allRegs = new Set<string>();
+            facts.forEach((f) => f.regs.forEach((r) => allRegs.add(r)));
+            for (const r of allRegs) {
+              const carrying = facts.filter((p) => p.regs.has(r)).map((p) => p.label);
+              const missing = facts.filter((p) => !p.regs.has(r) && p.text.length > 800 && p.regs.size > 0).map((p) => p.label);
+              if (carrying.length > 0 && missing.length > 0 && carrying.length < facts.length) {
+                findings.push({
+                  code: "cross_part_inconsistency",
+                  detail: `regulator_scoping regulator="${r}" present=${carrying.join(",")} absent=${missing.join(",")}`,
+                });
+              }
+            }
+            // (iv) statute disagreement: statute anchor in one part, absent from
+            // another substantive part that uses a different anchor family.
+            const anchorFamily = (a: string): string => {
+              if (/gdpr/i.test(a)) return "gdpr";
+              if (/1798/.test(a)) return "ccpa";
+              if (/164\./.test(a) || /hipaa/i.test(a)) return "hipaa";
+              return a.slice(0, 20);
+            };
+            for (let i = 0; i < facts.length; i++) {
+              for (let j = i + 1; j < facts.length; j++) {
+                const a = facts[i]; const b = facts[j];
+                const famA = new Set([...a.stats].map(anchorFamily));
+                const famB = new Set([...b.stats].map(anchorFamily));
+                if (famA.size > 0 && famB.size > 0) {
+                  const shared = [...famA].some((f) => famB.has(f));
+                  if (!shared) {
+                    findings.push({
+                      code: "cross_part_inconsistency",
+                      detail: `statute_family_mismatch parts=${a.label},${b.label} ${a.label}=[${[...famA].join(",")}] ${b.label}=[${[...famB].join(",")}]`,
+                    });
+                  }
+                }
+              }
+            }
+            for (const f of findings.slice(0, 20)) {
+              lintWarnings.push({ rule: "IR-HF1-T2-cross-part", posture: "log_only", match: f.detail });
+              postGenNotes.push({ code: f.code, detail: f.detail });
+            }
+          } catch (e) {
+            console.error("[IR Playbook][IR-HF1 T2 cross-part] errored (non-fatal):", e);
         } catch (e) {
           console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
         }

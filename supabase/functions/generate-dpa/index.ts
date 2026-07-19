@@ -187,6 +187,50 @@ function detectSubProcessorContradiction(text: string, hasSubProcessors: boolean
   return hits;
 }
 
+// IR-HF1 T4 (F1) — DETERMINISTIC SUB-PROCESSOR SUPPRESSION.
+// When hasSubProcessors===false, the final DPA must (a) NOT contain the
+// Schedule-1 sub-processor authorisation framework or general-authorisation
+// clause and (b) contain the exact literal "None — confirmed on the record".
+// Run D shipped the Schedule-1 framework in 2/5 docs and the confirmed
+// literal in 0/5 despite the hard-severity lint firing — retry_within_budget
+// was null because the hard lint never drove a regen. We now suppress
+// mechanically at assembly (does not rely on model compliance); the hard
+// lint below acts as a true backstop.
+const SUBPROC_CONFIRMED_LITERAL =
+  "Sub-processors: None — confirmed on the record that no Sub-processors are engaged as of the Effective Date. Any future engagement by the Processor requires the Controller's prior specific written authorisation obtained before the engagement commences.";
+function suppressSubProcessorFramework(text: string, hasSubProcessors: boolean): { text: string; suppressed: boolean } {
+  if (hasSubProcessors) return { text, suppressed: false };
+  const paras = text.split(/\n{2,}/);
+  const offending = (p: string) =>
+    RE_SCHEDULE1_SUBPROC_FWD.test(p) ||
+    RE_SCHEDULE1_SUBPROC_REV.test(p) ||
+    RE_GENERAL_AUTH_SUBPROC_FWD.test(p) ||
+    RE_GENERAL_AUTH_SUBPROC_REV.test(p) ||
+    /SCHEDULE\s*1\s*[—\-–]\s*(APPROVED\s+)?SUB[- ]?PROCESSORS?/i.test(p) ||
+    /LIST\s+OF\s+SUB[- ]?PROCESSORS/i.test(p);
+  let suppressed = false;
+  let inserted = false;
+  const out: string[] = [];
+  for (const p of paras) {
+    if (offending(p)) {
+      suppressed = true;
+      if (!inserted) {
+        out.push(SUBPROC_CONFIRMED_LITERAL);
+        inserted = true;
+      }
+      continue;
+    }
+    out.push(p);
+  }
+  let joined = out.join("\n\n");
+  if (!/None\s+—\s+confirmed\s+on\s+the\s+record/i.test(joined)) {
+    joined = joined.trimEnd() + `\n\n${SUBPROC_CONFIRMED_LITERAL}`;
+    suppressed = true;
+  }
+  return { text: joined, suppressed };
+}
+
+
 
 
 const supabase = createClient(
@@ -1133,6 +1177,9 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
     let parsed = parseDpa(fullText);
+    // IR-HF1 T4 — deterministic sub-processor framework suppression BEFORE lint.
+    const subprocSup1 = suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors);
+    parsed = { ...parsed, dpa_text: subprocSup1.text } as typeof parsed;
     let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
     // REBUILD-DPA T2/T3/T5 — deterministic net: speculative modules,
     // baseline-standard misuse, and blacklist-phrase hits merge in as HARD
@@ -1172,7 +1219,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
             notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
             sourceTable: "dpa_documents",
             sourceRowId: rowId,
-            extra: { attempt: 1, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+            extra: { attempt: 1, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator", retry_within_budget: true, subproc_suppressed: subprocSup1.suppressed },
           });
         } catch (e) {
           console.warn("[generate-dpa] logPostGenLint (attempt 1) failed:", (e as Error).message);
@@ -1205,6 +1252,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
               proc_mapped: detected.procMapped,
               attempt: 1,
               tool_type: "dpa_generator",
+              retry_within_budget: true,
             },
           });
         } catch (e) {
@@ -1271,7 +1319,10 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
           360_000,
         );
-        const retryParsed = parseDpa(retryCall.text);
+        const retryParsedRaw = parseDpa(retryCall.text);
+        // IR-HF1 T4 — attempt-2 suppression BEFORE lint (idempotent).
+        const subprocSup2 = suppressSubProcessorFramework(retryParsedRaw.dpa_text, !!body.hasSubProcessors);
+        const retryParsed = { ...retryParsedRaw, dpa_text: subprocSup2.text } as typeof retryParsedRaw;
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
         {
           const spec = detectSpeculativeClauseViolations(retryParsed.dpa_text, {
@@ -1302,7 +1353,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
                 notes: extras.map((v) => ({ code: v.code, detail: v.detail })).slice(0, 40),
                 sourceTable: "dpa_documents",
                 sourceRowId: rowId,
-                extra: { attempt: 2, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator" },
+                extra: { attempt: 2, framework_fallback: frameworkFallback, doc_type: documentType, tool_type: "dpa_generator", retry_within_budget: false, subproc_suppressed: subprocSup2.suppressed },
               });
             } catch (e) {
               console.warn("[generate-dpa] logPostGenLint (attempt 2) failed:", (e as Error).message);

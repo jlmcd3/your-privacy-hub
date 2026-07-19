@@ -229,6 +229,19 @@ async function runUnit(runId: string) {
   const db = admin();
   const { data: run } = await db.from("quality_batch_runs").select("*").eq("id", runId).maybeSingle();
   if (!run) return;
+  // IR-HF1 T3 — F2 EPOCH STAMP AT PICKUP.
+  // MC-S1b Task 4 stamps instrument_version at INSERT for orchestrator-created
+  // batches, but the ratified run-quality-batch kickoff INSERT (kickoff-class
+  // rows) can land NULL. Stamp on the first pickup that observes a null value
+  // so kickoff-class rows carry a version through their lifecycle. Evidence
+  // row 87ef0370 predates this fix and is deliberately not retro-stamped.
+  if (!(run as any).instrument_version) {
+    await db.from("quality_batch_runs")
+      .update({ instrument_version: GRADER_CONTEXT_VERSION })
+      .eq("id", runId)
+      .is("instrument_version", null);
+    (run as any).instrument_version = GRADER_CONTEXT_VERSION;
+  }
   await heartbeat(runId);
 
   // Fetch child snapshot only when there is one to fetch.

@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-17-ff3";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-19-ir-hf1";
 
 
 export const SHARED_GRADER_CONTEXT = `
@@ -63,4 +63,7 @@ FF-1 T6 GRADER CONTEXT ADDITIONS (verified against document text on file; do NOT
 (b) QUOTE-THE-ABSENCE RULE — a finding that claims the document failed to elaborate, analyse, or address point X MUST quote the specific passage where the elaboration is missing. If the document's own text supplies the analysis (e.g. an explicit 9(2)(h)→9(2)(j) boundary discussion the finding calls absent), NO finding — retract. This binds every completeness / omission finding.
 (c) ADVISORY-RECOMMENDATION ANCHOR — a recommendation the document explicitly labels advisory or beyond-threshold (e.g. "Notwithstanding the § 7120(b) thresholds analysis… recommended on this basis") FOLLOWING a correct threshold analysis is NOT a citation misapplication. Threshold provisions govern the mandatory analysis; advisory recommendations riding on top of a completed correct analysis are legitimate drafting.
 (d) ACTIONABILITY CALIBRATION — a "[TO COMPLETE — responsible lead/deadline]" (or equivalent owner/date/budget) placeholder is the CORRECT output when the record supplies no owner, deadline, or budget: the fabrication ban forbids inventing them. Actionability findings MAY NOT demand invented owners, dates, or budgets, and MAY NOT penalise a placeholder shape where the record is silent on the required particulars.
+
+IR-HF1 T5 — DESIGNED COUNSEL-VOICE ANNOTATIONS ARE PRODUCT FEATURES, NOT LEAKS (BINDING):
+The "NOTE FOR LEGAL REVIEW" template family (including "NOTE FOR LEGAL REVIEW — Role characterisation", "NOTE FOR LEGAL REVIEW — Framework selection", "NOTE FOR LEGAL REVIEW — Sub-processor authorisation model", and other headed "NOTE FOR LEGAL REVIEW — <topic>" blocks) is designed counsel-voice product output surfaced to the reviewing attorney by the generator itself — it is NOT internal-reasoning leakage, NOT system-prompt leakage, and NOT model self-narration. rubric_internal_reasoning_leak MUST NOT fire on any "NOTE FOR LEGAL REVIEW — …" block regardless of its topic or length; the block is a first-class deliverable field, on the same footing as an "[TO BE COMPLETED …]" statutory placeholder. Applies to every drafting tool that ships this annotation family (DPA generator, DPIA framework, IR playbook, LI assessment). This anchor is scoped to that block family only — genuine model self-narration outside a "NOTE FOR LEGAL REVIEW — …" heading remains flaggable under the existing rubric line.
 `.trim();
