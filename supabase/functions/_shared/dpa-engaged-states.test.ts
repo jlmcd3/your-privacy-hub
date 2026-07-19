@@ -63,21 +63,49 @@ Deno.test("nd2 [engaged-clean] VCDPA cited with Virginia engaged (via processor)
   assertEquals(v.length, 0);
 });
 
-// -------------------- Class 3: SAVINGS-CLAUSE-CLEAN --------------------
+// -------------------- Class 3: SAVINGS-CLAUSE (HF1 Task 1) --------------------
+// Under HF1 Task 1 the savings-clause exclusion is REMOVED. Any sentence
+// naming a specific non-engaged state statute is a violation regardless of
+// "…and any other applicable state privacy laws" phrasing.
 
-Deno.test("nd2 [savings-clause] CCPA in savings clause with California NOT engaged", () => {
+Deno.test("nd2 [caught] CCPA enumerated behind a savings tail is CAUGHT (HF1)", () => {
   const engaged = deriveEngagedStates(["Texas", "Texas"]);
   const text =
     "5.2 Processor shall comply with the Texas Data Privacy and Security Act, the CCPA, and any other applicable state privacy laws.";
   const v = detectNonEngagedStateAssertions(text, engaged);
-  // The Texas mention is engaged. The CCPA mention is inside a savings clause.
-  assertEquals(v.length, 0);
+  assertEquals(v.length, 1);
+  assert(v[0].detail.includes("California"));
 });
 
-Deno.test("nd2 [savings-clause] general enumeration with 'as applicable'", () => {
+Deno.test("nd2 [caught] Run C bee94e1e §1.3.4 verbatim — TX/CT/VA/CO/OR enumerated on California-only intake", () => {
+  const engaged = deriveEngagedStates(["California", "Singapore"]);
+  const text =
+    "1.3.4 The parties acknowledge that the Personal Data of residents of other US states, including Texas (TDPSA, Tex. Bus. & Com. Code §§ 541.001–541.201), Connecticut (CTDPA, Conn. Gen. Stat. ch. 743jj), Virginia (VCDPA, Va. Code §§ 59.1-575–59.1-585), Colorado (CPA, C.R.S. §§ 6-1-1301–6-1-1313), and Oregon (OCPA, ORS 646A.570–646A.589), may be processed under this DPA to the extent patients, employees, or other data subjects reside in those states. The obligations of this DPA are drafted to satisfy the most stringent applicable standard among the engaged state laws. To the extent the Personal Data of residents of other US states is processed, the Parties shall comply with the applicable state privacy laws of those states, applying the standards of this DPA as a baseline.";
+  const v = detectNonEngagedStateAssertions(text, engaged);
+  const states = new Set(v.map((x) => x.detail.match(/"([A-Za-z ]+)" statute/)?.[1]));
+  assert(states.has("Texas"));
+  assert(states.has("Connecticut"));
+  assert(states.has("Virginia"));
+  assert(states.has("Colorado"));
+  assert(states.has("Oregon"));
+});
+
+Deno.test("nd2 [caught] Run C 74f0b87a §2.2 verbatim — statute-name definitions block on Finland+Virginia intake", () => {
+  const engaged = deriveEngagedStates(["Finland", "Virginia"]);
+  const text =
+    '2.2.1 "Consumer" means, under CCPA/CPRA (Cal. Civ. Code § 1798.140(i)), a California resident; under VCDPA (Va. Code § 59.1-575), a Virginia resident acting in an individual or household context (excluding employment context); under CTDPA (Conn. Gen. Stat. § 42-515), a Connecticut resident acting in an individual or household context; under Colorado Privacy Act ("CPA", C.R.S. § 6-1-1303), a Colorado resident acting only in an individual or household context; and under the Texas Data Privacy and Security Act ("TDPSA", Tex. Bus. & Com. Code § 541.001), an individual who is a resident of Texas.';
+  const v = detectNonEngagedStateAssertions(text, engaged);
+  const states = new Set(v.map((x) => x.detail.match(/"([A-Za-z ]+)" statute/)?.[1]));
+  assert(states.has("California"));
+  assert(states.has("Connecticut"));
+  assert(states.has("Colorado"));
+  assert(states.has("Texas"));
+});
+
+Deno.test("nd2 [savings-clean] canonical generic savings sentence — no statute names — is not a violation", () => {
   const engaged = deriveEngagedStates(["Texas", "Texas"]);
   const text =
-    "5.3 The Processor shall comply, as applicable, with the Virginia Consumer Data Protection Act.";
+    "5.2 The Processor shall comply with all applicable state privacy laws.";
   const v = detectNonEngagedStateAssertions(text, engaged);
   assertEquals(v.length, 0);
 });
