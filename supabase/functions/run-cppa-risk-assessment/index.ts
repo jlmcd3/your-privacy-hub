@@ -1914,9 +1914,67 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = stripBeginNowNonAction(report_data);
 
+    // CPPA-HF4 Task A — RENDER-PATH FIELD-ID SCRUB.
+    // Model-side bans on raw intake field ids in prose have failed twice; the
+    // remaining leaks are render-path emission (source_fields array projected
+    // into prose, verbatim ids embedded in narrative). This walk replaces
+    // known intake field ids in prose values with human-readable labels.
+    // ANCHOR EXEMPTIONS: keys that legitimately carry raw field ids
+    // (`field`, `source_fields`, `field_ids`, `intake_field_1`,
+    // `intake_field_2`, `citation_ids`) pass through untouched. All other
+    // string values inside report_data are scrubbed. Does NOT weaken H2.
+    function scrubRawFieldIdsInProse(root: any): { scrubbed: number } {
+      const ANCHOR_KEYS = new Set([
+        "field", "source_fields", "field_ids",
+        "intake_field_1", "intake_field_2",
+        "citation_ids", "canonical_fields",
+      ]);
+      const LABELS: Array<[RegExp, string]> = [
+        [/\bi5_admt_logic\b/gi, "the ADMT logic description"],
+        [/\bq19_admt_description\b/gi, "the ADMT-system description"],
+        [/\bq20_admt_opt_out\b/gi, "the ADMT opt-out description"],
+        [/\bq18[a-c]?_admt(?:_[a-z_]+)?\b/gi, "the ADMT trigger response"],
+        [/\bi7_internal_contributors\b/gi, "the internal-contributors roster"],
+        [/\bi1b_min_pi\b/gi, "the minimum-PI justification"],
+        [/\bi1_processing_purpose\b/gi, "the processing purpose"],
+        [/\bq15c_spi_volume\b/gi, "the sensitive-PI volume figure"],
+        [/\bq1_revenue\b/gi, "the recorded revenue"],
+        [/\bimpact_intake(?:\.[a-z_]+)?\b/gi, "the impact-assessment record"],
+        [/\bexceptions_intake(?:\.[a-z_]+)?\b/gi, "the exceptions record"],
+        // Bare "source_fields" as a prose noun (never a key value)
+        [/\bsource_fields\b/g, "the record fields"],
+      ];
+      let scrubbed = 0;
+      const walk = (node: any, parentKey: string | null) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          for (const v of node) walk(v, parentKey);
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const key of Object.keys(node)) {
+          const val = node[key];
+          if (ANCHOR_KEYS.has(key)) continue; // skip anchors entirely
+          if (typeof val === "string") {
+            let next = val;
+            for (const [re, sub] of LABELS) next = next.replace(re, sub);
+            if (next !== val) { node[key] = next; scrubbed++; }
+          } else if (val && typeof val === "object") {
+            walk(val, key);
+          }
+        }
+      };
+      try { walk(root, null); } catch (_) { /* non-fatal */ }
+      return { scrubbed };
+    }
+    try {
+      const { scrubbed } = scrubRawFieldIdsInProse(report_data);
+      if (scrubbed > 0) {
+        console.warn(`[RISK] CPPA-HF4 A: render-path scrubbed ${scrubbed} field-id occurrence(s) in prose`);
+      }
+    } catch (_) { /* non-fatal */ }
 
-
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "rebuild-risk-cppa-hf3@2026-07-19") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "rebuild-risk-cppa-hf4@2026-07-19") };
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
     report_data = freezeOpenItemsOnFirstRun(report_data, (report_data as any).information_needed, "cppa_risk_assessment", false);
