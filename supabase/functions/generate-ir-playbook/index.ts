@@ -1136,15 +1136,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { ok: true };
         }
 
-        // IR-HF1 T1: assemble a two-channel request per part.
-        // - SYSTEM channel (extraSystem): the PROMPT_PART_X instruction block.
-        //   Anthropic system[] content is not part of the assistant's own prose
-        //   surface; instruction phrases delivered here do not appear in output
-        //   unless the model deliberately echoes them (which the INSTRUCTION_LEAK_RE
-        //   detector + single-round regen already catches as a backstop).
-        // - USER channel: the sentinel-wrapped intake block, an optional `extra`
-        //   corrective suffix, the supplemental block, and a minimal production
-        //   directive. INTAKE sentinels are stripped at assembly.
+        const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
         function buildPartUser(which: "A" | "B" | "C", extra: string): string {
           const directive = which === "A"
             ? "Produce PART A (Sections 1–3) now."
@@ -1154,7 +1146,6 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           const extraTail = extra ? `\n\n${extra}` : "";
           return `<<<INTAKE_BEGIN>>>\n${INTAKE_BLOCK}\n<<<INTAKE_END>>>${extraTail}${_suppWs6}\n\n${directive}`;
         }
-        const _suppWs6 = renderSupplementalBlock({ responses: (body as any)?.supplemental_responses, context: (body as any)?.supplemental_context });
         function partInstructionsFor(which: "A" | "B" | "C"): SystemBlock[] {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           return [{ type: "text", text: base }];
