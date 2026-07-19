@@ -1497,6 +1497,71 @@ const playbook_text = lint.clean;
           console.error("[IR Playbook][T-5 post-check] errored (non-fatal):", e);
         }
 
+        // REBUILD-IR Task 3 (post-gen) + Task 4 — deterministic instruction-leak + blacklist
+        // detection on the assembled playbook_text, plus meta-instruction leak scan on the
+        // annotations block. Log-only at this stage (per-part regen already ran inside
+        // generateHalves); results are persisted via logPostGenLint for observability.
+        let residualLeakCount = 0;
+        let blacklistHitCount = 0;
+        const postGenNotes: Array<{ code: string; detail?: string }> = [];
+        try {
+          const INSTRUCTION_LEAK_RE = /\b(do not frame(?: this)?|do NOT output|output ONLY|as instructed|per the rulebook|per these instructions|the system prompt|meta-instruction|internal machinery|IN THIS RESPONSE ONLY|as (?:noted|stated) in the (?:instructions|rules)|per your instructions)\b/i;
+          const leakMatch = INSTRUCTION_LEAK_RE.exec(playbook_text);
+          if (leakMatch) {
+            residualLeakCount = 1;
+            const ctx = playbook_text.slice(Math.max(0, leakMatch.index - 40), leakMatch.index + leakMatch[0].length + 40);
+            lintWarnings.push({ rule: "REBUILD-IR-T3", posture: "log_only", match: leakMatch[0], context: ctx });
+            postGenNotes.push({ code: "instruction_leak_residual", detail: leakMatch[0] });
+          }
+          const blHits = detectBlacklistPhrases(playbook_text);
+          if (blHits.length > 0) {
+            blacklistHitCount = blHits.length;
+            for (const h of blHits.slice(0, 10)) {
+              lintWarnings.push({ rule: "REBUILD-IR-T4-blacklist", posture: "log_only", match: h.match, context: h.context });
+            }
+            postGenNotes.push({ code: "blacklist_phrase_shipped", detail: `${blHits.length} hit(s)` });
+          }
+          // Task 4b — enforcement-citation fidelity (log-only): every "Regulator (YYYY)"
+          // style citation should map to an injected enforcement-context row.
+          const injectedNames = new Set(
+            (enforcement_context || []).map((r: any) =>
+              String(r?.regulator ?? "").toLowerCase().trim()
+            ).filter(Boolean),
+          );
+          const citeRe = /\b(ICO|CNIL|AEPD|Garante|DPC|EDPB|OAIC|FTC|HHS OCR|CPPA|NYDFS|Datatilsynet|BfDI|UODO|APD|IMY|Cal\.\s*AG|Attorney General)\s*\((?:19|20)\d{2}\)/g;
+          const unknownCites: string[] = [];
+          let cm: RegExpExecArray | null;
+          while ((cm = citeRe.exec(playbook_text)) !== null) {
+            const name = cm[1].toLowerCase().trim();
+            const matched = Array.from(injectedNames).some((n) => n.includes(name) || name.includes(n));
+            if (!matched) unknownCites.push(cm[0]);
+          }
+          if (unknownCites.length > 0) {
+            for (const u of unknownCites.slice(0, 5)) {
+              lintWarnings.push({ rule: "REBUILD-IR-T4b-uninjected-citation", posture: "log_only", match: u });
+            }
+            postGenNotes.push({ code: "uninjected_enforcement_citation", detail: `${unknownCites.length}` });
+          }
+        } catch (e) {
+          console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
+        }
+        try {
+          logPostGenLint(supabase, {
+            functionName: "generate-ir-playbook",
+            fallbackApplied: false,
+            residualLeaks: residualLeakCount,
+            residualResolvedAsks: 0,
+            notes: postGenNotes,
+            sourceTable: "ir_playbooks",
+            sourceRowId: rowId,
+            extra: { blacklist_hits: blacklistHitCount, ir_version: IR_VERSION },
+          });
+        } catch (e) {
+          console.warn("[IR Playbook] logPostGenLint threw (non-fatal):", e);
+        }
+
+
+
 
 
         const portals = body.jurisdictions
