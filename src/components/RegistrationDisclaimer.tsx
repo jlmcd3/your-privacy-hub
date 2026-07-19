@@ -27,10 +27,10 @@ export default function RegistrationDisclaimer({
       </p>
       <p className="mt-2">
         Registration requirements, fees, deadlines, and acceptance criteria change frequently and vary by
-        authority. Before filing, you must independently verify the requirements with the relevant data
-        protection authority and consult qualified privacy counsel — particularly for higher-risk activities
-        (special-category data, AI Act high-risk systems, or cross-border transfers). End User Privacy is not
-        responsible for filings rejected, delayed, or otherwise affected by changes in the underlying law.
+        authority. Before filing, independently verify the current requirements with the relevant data
+        protection authority — particularly for higher-risk activities (special-category data, AI Act
+        high-risk systems, or cross-border transfers). End User Privacy is not responsible for filings
+        rejected, delayed, or otherwise affected by changes in the underlying law.
       </p>
     </div>
   );
