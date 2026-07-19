@@ -232,8 +232,7 @@ const STATE_PATTERNS: StatePattern[] = [
 ];
 
 // Exclusion pattern set — see EXCLUSIONS block at the top of the file.
-const RE_SAVINGS_CLAUSE =
-  /\b(applicable state privacy laws?|as applicable|to the extent applicable|other applicable US state privacy|any other applicable state privacy)\b/i;
+// (HF1 Task 1: savings-clause pattern removed — see rationale above.)
 const RE_COMPARATIVE_PREFIX =
   /\b(unlike|similar to|modeled on|modelled on|in contrast to|compared to|analogous to|as with|whereas)\b[^.]{0,80}$/i;
 
