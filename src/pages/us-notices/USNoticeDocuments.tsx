@@ -34,6 +34,8 @@ import { adminDelete } from "@/lib/adminDelete";
 import { Globe2 } from "lucide-react";
 import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import WordConversionPromptButton from "@/components/WordConversionPromptButton";
+
 
 
 interface SessionRow {
