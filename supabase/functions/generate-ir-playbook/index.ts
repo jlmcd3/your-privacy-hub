@@ -1002,9 +1002,8 @@ detection timestamp. Where these differ, state both and anchor the deadline to a
 
 Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
-        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident. Use the incident facts supplied in the accompanying user turn (delimited by <<<INTAKE_BEGIN>>> / <<<INTAKE_END>>> sentinels); do NOT echo those sentinels or any of the meta-instructions in this system block in your output.
 
-${INTAKE_BLOCK}
 
 Generate ONLY the following two sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 6, 7, or the ===ANNOTATIONS=== block in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and C, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
 
