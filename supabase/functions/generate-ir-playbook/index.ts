@@ -1441,7 +1441,8 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);
-const playbook_text = lint.clean;
+let playbook_text = lint.clean;
+        let cal1D1HardReplacements = 0;
         const parsedAnnotations = assembled.parsedAnnotations;
 
         // R1b2 post-check gate — T-2/T-3/T-4 for the IR playbook. Log-only detection
@@ -1578,9 +1579,21 @@ const playbook_text = lint.clean;
           }
           if (unknownCites.length > 0) {
             for (const u of unknownCites.slice(0, 5)) {
-              lintWarnings.push({ rule: "REBUILD-IR-T4b-uninjected-citation", posture: "log_only", match: u });
+              lintWarnings.push({ rule: "GRADER-CAL-1-D1-uninjected-citation-hard-replace", posture: "hard", match: u });
             }
-            postGenNotes.push({ code: "uninjected_enforcement_citation", detail: `${unknownCites.length}` });
+            postGenNotes.push({ code: "uninjected_enforcement_citation_hard_replaced", detail: `${unknownCites.length}` });
+            // GRADER-CAL-1 D1 — HARD replacement. Every unsupplied "[Regulator]
+            // (YYYY)" cite form is rewritten to a statutory placeholder that
+            // tells the reviewing attorney precedent verification is required.
+            const HARD_PLACEHOLDER =
+              "[TO BE COMPLETED — enforcement precedent requires verification against official regulator source]";
+            for (const u of unknownCites) {
+              const esc = u.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const re = new RegExp(esc, "g");
+              const before = playbook_text.length;
+              playbook_text = playbook_text.replace(re, HARD_PLACEHOLDER);
+              if (playbook_text.length !== before) cal1D1HardReplacements++;
+            }
           }
 
           // IR-HF1 T2 — CROSS-PART CONSISTENCY LINT (log-only, report-only-first
@@ -1711,7 +1724,7 @@ const playbook_text = lint.clean;
             notes: postGenNotes,
             sourceTable: "ir_playbooks",
             sourceRowId: rowId,
-            extra: { blacklist_hits: blacklistHitCount, ir_version: IR_VERSION },
+            extra: { blacklist_hits: blacklistHitCount, ir_version: IR_VERSION, drove_regen: cal1D1HardReplacements > 0, cal1_d1_hard_replacements: cal1D1HardReplacements },
           });
         } catch (e) {
           console.warn("[IR Playbook] logPostGenLint threw (non-fatal):", e);
