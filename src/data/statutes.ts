@@ -10,15 +10,17 @@ export const STATUTES: Record<string, StatuteEntry> = {
   // ── CALIFORNIA (CPRA) ──────────────────────────────────────────────────────
   "CA:0": { cite: "Cal. Civ. Code § 1798.110", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.110" },
   "CA:1": { cite: "Cal. Civ. Code § 1798.105", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.105" },
-  "CA:2": { cite: "Cal. Civ. Code § 1798.110(d)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.110" },
+  "CA:2": { cite: "Cal. Civ. Code § 1798.130(a)(2)(B)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.130" },
   "CA:3": { cite: "Cal. Civ. Code § 1798.106", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.106" },
   "CA:4": { cite: "Cal. Civ. Code § 1798.120", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.120" },
   "CA:5": { cite: "Cal. Civ. Code § 1798.120", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.120" },
   "CA:6": { cite: "Cal. Civ. Code § 1798.185(a)(15)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.185" },
   "CA:7": { cite: "Cal. Civ. Code § 1798.121", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.121" },
   "CA:8": { cite: "Cal. Civ. Code § 1798.185(a)(15)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.185" },
-  "CA:9": { cite: "Cal. Civ. Code § 1798.99.80", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.99.80" },
-  "CA:10": { cite: "Cal. Civ. Code § 1798.150", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.150" },
+  // CA data-broker registry codified at § 1798.99.82 (registration duty), enacted by SB 362 (Delete Act).
+  "CA:9": { cite: "Cal. Civ. Code § 1798.99.82", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.99.82" },
+  // Limited PRoA — only for defined data-breach categories.
+  "CA:10": { cite: "Cal. Civ. Code § 1798.150(a)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.150" },
 
   // ── COLORADO (CPA) ────────────────────────────────────────────────────────
   "CO:0": { cite: "C.R.S. § 6-1-1306(1)(b)", url: "https://leg.colorado.gov/sites/default/files/images/olls/crs2023-title-06.pdf" },
@@ -51,14 +53,18 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "DE:5": { cite: "6 Del. C. § 12D-104(a)(6)(A)", url: "https://delcode.delaware.gov/title6/c012d/index.html" },
   "DE:6": { cite: "6 Del. C. § 12D-104(a)(6)(C)", url: "https://delcode.delaware.gov/title6/c012d/index.html" },
   "DE:7": { cite: "6 Del. C. § 12D-106(a)(4)", url: "https://delcode.delaware.gov/title6/c012d/index.html" },
+  // Conditional DPIA — required only for heightened-risk processing categories.
+  "DE:8": { cite: "6 Del. C. § 12D-108", url: "https://delcode.delaware.gov/title6/c012d/index.html" },
 
   // ── FLORIDA (FDBR) ────────────────────────────────────────────────────────
-  "FL:0": { cite: "Fla. Stat. § 501.705(1)(a)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0500-0599/0501/0501.html" },
-  "FL:1": { cite: "Fla. Stat. § 501.705(1)(b)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0500-0599/0501/0501.html" },
-  "FL:3": { cite: "Fla. Stat. § 501.705(1)(d)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0500-0599/0501/0501.html" },
-  "FL:4": { cite: "Fla. Stat. § 501.705(1)(e)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0500-0599/0501/0501.html" },
-  "FL:5": { cite: "Fla. Stat. § 501.705(1)(e)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0500-0599/0501/0501.html" },
-  "FL:7": { cite: "Fla. Stat. § 501.71(4)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0500-0599/0501/0501.html" },
+  "FL:0": { cite: "Fla. Stat. § 501.705(1)(a)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
+  "FL:1": { cite: "Fla. Stat. § 501.705(1)(b)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
+  "FL:3": { cite: "Fla. Stat. § 501.705(1)(d)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
+  "FL:4": { cite: "Fla. Stat. § 501.705(1)(e)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
+  "FL:5": { cite: "Fla. Stat. § 501.705(1)(e)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.705.html" },
+  "FL:7": { cite: "Fla. Stat. § 501.71(4)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.71.html" },
+  // No private cause of action — § 501.72(8).
+  "FL:10": { cite: "Fla. Stat. § 501.72(8)", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&Search_String=&URL=0500-0599/0501/Sections/0501.72.html" },
 
   // ── IOWA (ICDPA) ──────────────────────────────────────────────────────────
   "IA:0": { cite: "Iowa Code § 715D.3(1)(a)", url: "https://www.legis.iowa.gov/law/iowaCode/sections?codeChapter=715D" },
@@ -100,16 +106,20 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "MD:8": { cite: "Md. Code, Com. Law § 14-4709", url: "https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&section=14-4709" },
 
   // ── MINNESOTA (MCDPA) ─────────────────────────────────────────────────────
-  "MN:0": { cite: "Minn. Stat. § 325O.05(1)(a)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:1": { cite: "Minn. Stat. § 325O.05(1)(c)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:2": { cite: "Minn. Stat. § 325O.05(1)(d)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:3": { cite: "Minn. Stat. § 325O.05(1)(b)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:4": { cite: "Minn. Stat. § 325O.05(1)(e)(2)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:5": { cite: "Minn. Stat. § 325O.05(1)(e)(1)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:6": { cite: "Minn. Stat. § 325O.05(1)(e)(3)", url: "https://www.revisor.mn.gov/statutes/cite/325O.05" },
-  "MN:7": { cite: "Minn. Stat. § 325O.07(a)(4)", url: "https://www.revisor.mn.gov/statutes/cite/325O.07" },
-  "MN:8": { cite: "Minn. Stat. § 325O.09", url: "https://www.revisor.mn.gov/statutes/cite/325O.09" },
-  "MN:10": { cite: "Minn. Stat. § 325O.17", url: "https://www.revisor.mn.gov/statutes/cite/325O.17" },
+  // Renumbered from Ch. 325O → Ch. 325M during the 2024 revisor process; cites and
+  // URLs updated accordingly. See § 325M.01 et seq.
+  "MN:0": { cite: "Minn. Stat. § 325M.05(1)(1)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:1": { cite: "Minn. Stat. § 325M.05(1)(3)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:2": { cite: "Minn. Stat. § 325M.05(1)(4)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:3": { cite: "Minn. Stat. § 325M.05(1)(2)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:4": { cite: "Minn. Stat. § 325M.05(1)(5)(ii)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:5": { cite: "Minn. Stat. § 325M.05(1)(5)(i)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:6": { cite: "Minn. Stat. § 325M.05(1)(5)(iii)", url: "https://www.revisor.mn.gov/statutes/cite/325M.05" },
+  "MN:7": { cite: "Minn. Stat. § 325M.07(a)(4)", url: "https://www.revisor.mn.gov/statutes/cite/325M.07" },
+  "MN:8": { cite: "Minn. Stat. § 325M.09", url: "https://www.revisor.mn.gov/statutes/cite/325M.09" },
+  // MN has no data-broker registration statute; no MN:9 cite.
+  // MN has no PRoA — courier confirmed exclusive AG enforcement per § 325M.20(d).
+  "MN:10": { cite: "Minn. Stat. § 325M.20(d)", url: "https://www.revisor.mn.gov/statutes/cite/325M.20" },
 
   // ── MONTANA (MCDPA) ───────────────────────────────────────────────────────
   "MT:0": { cite: "Mont. Code § 30-14-2804(1)(a)", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0040/0300-0140-0280-0040.html" },
@@ -122,13 +132,14 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "MT:7": { cite: "Mont. Code § 30-14-2806(1)(d)", url: "https://leg.mt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0060/0300-0140-0280-0060.html" },
 
   // ── NEBRASKA (NEDPA) ──────────────────────────────────────────────────────
-  "NE:0": { cite: "Neb. Rev. Stat. § 87-1103(1)(a)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
-  "NE:1": { cite: "Neb. Rev. Stat. § 87-1103(1)(c)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
-  "NE:2": { cite: "Neb. Rev. Stat. § 87-1103(1)(d)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
-  "NE:3": { cite: "Neb. Rev. Stat. § 87-1103(1)(b)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
-  "NE:4": { cite: "Neb. Rev. Stat. § 87-1103(1)(e)(ii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
-  "NE:5": { cite: "Neb. Rev. Stat. § 87-1103(1)(e)(i)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
-  "NE:6": { cite: "Neb. Rev. Stat. § 87-1103(1)(e)(iii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1103" },
+  // Consumer rights sit at § 87-1107; § 87-1103 is definitions. Enforcement at § 87-1114.
+  "NE:0": { cite: "Neb. Rev. Stat. § 87-1107(1)(a)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:1": { cite: "Neb. Rev. Stat. § 87-1107(1)(c)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:2": { cite: "Neb. Rev. Stat. § 87-1107(1)(d)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:3": { cite: "Neb. Rev. Stat. § 87-1107(1)(b)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:4": { cite: "Neb. Rev. Stat. § 87-1107(1)(e)(ii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:5": { cite: "Neb. Rev. Stat. § 87-1107(1)(e)(i)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
+  "NE:6": { cite: "Neb. Rev. Stat. § 87-1107(1)(e)(iii)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107" },
   "NE:7": { cite: "Neb. Rev. Stat. § 87-1105(3)", url: "https://nebraskalegislature.gov/laws/statutes.php?statute=87-1105" },
 
   // ── NEW HAMPSHIRE (NHPA) ──────────────────────────────────────────────────
@@ -142,6 +153,8 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "NH:7": { cite: "RSA 507-H:5(IV)", url: "https://www.gencourt.state.nh.us/rsa/html/LII/507-H/507-H-mrg.htm" },
 
   // ── NEW JERSEY (NJDPA) ────────────────────────────────────────────────────
+  // Note: NJ chapter 8, article on data privacy is not yet indexed on njleg.state.nj.us
+  // section-level URLs. Justia URLs preserved pending an official-source swap.
   "NJ:0": { cite: "N.J. Stat. § 56:8-166.10(a)(1)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
   "NJ:1": { cite: "N.J. Stat. § 56:8-166.10(a)(3)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
   "NJ:2": { cite: "N.J. Stat. § 56:8-166.10(a)(4)", url: "https://law.justia.com/codes/new-jersey/title-56/section-56-8-166-10/" },
@@ -162,6 +175,8 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "OR:6": { cite: "ORS § 646A.574(1)(d)(C)", url: "https://www.oregonlegislature.gov/bills_laws/ors/ors646a.html" },
   "OR:7": { cite: "ORS § 646A.578(1)(e)", url: "https://www.oregonlegislature.gov/bills_laws/ors/ors646a.html" },
   "OR:8": { cite: "ORS § 646A.586", url: "https://www.oregonlegislature.gov/bills_laws/ors/ors646a.html" },
+  // Oregon data-broker registration — HB 2052 (2023) at ORS 646A.360–.376.
+  "OR:9": { cite: "ORS § 646A.362", url: "https://www.oregonlegislature.gov/bills_laws/ors/ors646a.html" },
 
   // ── RHODE ISLAND (RIDPA) ──────────────────────────────────────────────────
   "RI:0": { cite: "R.I. Gen. Laws § 6-48.1-3(a)(1)", url: "http://webserver.rilegislature.gov/Statutes/TITLE6/6-48.1/INDEX.htm" },
@@ -174,6 +189,7 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "RI:7": { cite: "R.I. Gen. Laws § 6-48.1-5(d)", url: "http://webserver.rilegislature.gov/Statutes/TITLE6/6-48.1/INDEX.htm" },
 
   // ── TENNESSEE (TIPA) ──────────────────────────────────────────────────────
+  // Note: Justia mirror preserved pending an official Tenn. Code section-level URL.
   "TN:0": { cite: "Tenn. Code § 47-18-3204(a)(1)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
   "TN:1": { cite: "Tenn. Code § 47-18-3204(a)(3)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
   "TN:2": { cite: "Tenn. Code § 47-18-3204(a)(4)", url: "https://law.justia.com/codes/tennessee/title-47/chapter-18/part-32/section-47-18-3204/" },
@@ -203,6 +219,22 @@ export const STATUTES: Record<string, StatuteEntry> = {
   "UT:4": { cite: "Utah Code § 13-61-201(2)(a)", url: "https://le.utah.gov/xcode/Title13/Chapter61/13-61-S201.html" },
   "UT:5": { cite: "Utah Code § 13-61-201(2)(b)", url: "https://le.utah.gov/xcode/Title13/Chapter61/13-61-S201.html" },
   "UT:7": { cite: "Utah Code § 13-61-301(3)", url: "https://le.utah.gov/xcode/Title13/Chapter61/13-61-S301.html" },
+
+  // ── VERMONT (VDPOSA) ──────────────────────────────────────────────────────
+  // Enacted 2026-06-16 as Act 145 (S.71); effective 2028-01-01. Codified at 9 V.S.A.
+  // ch. 61A. Provision cites verified against Act 145 as-enacted text.
+  "VT:0": { cite: "9 V.S.A. § 2415d(a)(1)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:1": { cite: "9 V.S.A. § 2415d(a)(3)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:2": { cite: "9 V.S.A. § 2415d(a)(4)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:3": { cite: "9 V.S.A. § 2415d(a)(2)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:4": { cite: "9 V.S.A. § 2415d(a)(5)(B)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:5": { cite: "9 V.S.A. § 2415d(a)(5)(A)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:6": { cite: "9 V.S.A. § 2415d(a)(5)(C)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:7": { cite: "9 V.S.A. § 2415a(b)(47)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  "VT:8": { cite: "9 V.S.A. § 2415g(a)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
+  // Vermont pre-existing data-broker registration statute (9 V.S.A. § 2446), unaffected by Act 145.
+  "VT:9": { cite: "9 V.S.A. § 2446", url: "https://legislature.vermont.gov/statutes/section/09/062/02446" },
+  "VT:10": { cite: "9 V.S.A. § 2415j(a)", url: "https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf" },
 
   // ── VIRGINIA (VCDPA) ──────────────────────────────────────────────────────
   "VA:0": { cite: "Va. Code § 59.1-573(A)(1)", url: "https://law.lis.virginia.gov/vacodefull/title59.1/chapter53/" },

@@ -4,9 +4,26 @@ import { Helmet } from "react-helmet-async";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import comparisonData from "@/data/us_state_comparison.json";
 import { STATUTES } from "@/data/statutes";
+import { QUALIFIER_NOTES } from "@/data/statuteQualifiers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StateReviewPastDueBanner from "@/components/admin/StateReviewPastDueBanner";
+
+/** Normalize provision cell to a canonical mark. */
+type Mark = "yes" | "no" | "limited" | "conditional" | "text";
+function classifyValue(v: unknown): { mark: Mark; text: string } {
+  if (v === true) return { mark: "yes", text: "" };
+  if (v === false) return { mark: "no", text: "" };
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "yes" || s === "true") return { mark: "yes", text: "" };
+    if (s === "no" || s === "false") return { mark: "no", text: "" };
+    if (s === "limited") return { mark: "limited", text: "Limited" };
+    if (s === "conditional") return { mark: "conditional", text: "Conditional" };
+    return { mark: "text", text: v };
+  }
+  return { mark: "text", text: String(v) };
+}
 
 const STATE_FLAGS: Record<string, string> = {
   CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_California.svg?width=32",
@@ -29,6 +46,7 @@ const STATE_FLAGS: Record<string, string> = {
   TX: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Texas.svg?width=32",
   UT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Utah.svg?width=32",
   VA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Virginia.svg?width=32",
+  VT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Vermont.svg?width=32",
 };
 
 const USStateComparison = () => {
@@ -38,8 +56,8 @@ const USStateComparison = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>US State Privacy Laws Comparison 2026 | End User Privacy</title>
-        <meta name="description" content="Compare all 20 enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free." />
-        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of all 20 enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
+        <meta name="description" content={`Compare all ${states.length} enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free.`} />
+        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of ${states.length} enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
       </Helmet>
       <Navbar />
 
@@ -111,35 +129,60 @@ const USStateComparison = () => {
                     <td className="px-3 py-2.5 font-medium text-foreground sticky left-0 bg-card z-10">{provision}</td>
                     {states.map((s) => {
                       const val = s.provisions[pi];
-                      const statute = STATUTES[`${s.abbr}:${pi}`];
+                      const key = `${s.abbr}:${pi}`;
+                      const statute = STATUTES[key];
+                      const qualifier = QUALIFIER_NOTES[key];
+                      const { mark, text } = classifyValue(val);
+
+                      // Body content for pill/checkmark, wrapped in cite anchor when a statute exists.
+                      let body: JSX.Element;
+                      if (mark === "yes") {
+                        body = <Check className="w-4 h-4 text-accent mx-auto" />;
+                      } else if (mark === "limited") {
+                        body = (
+                          <span className="inline-block px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-semibold border border-amber-300">
+                            Limited
+                          </span>
+                        );
+                      } else if (mark === "conditional") {
+                        body = (
+                          <span className="inline-block px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-900 text-[10px] font-semibold border border-sky-300">
+                            Conditional
+                          </span>
+                        );
+                      } else if (mark === "no") {
+                        body = <Minus className="w-4 h-4 text-muted-foreground/30 mx-auto" />;
+                      } else {
+                        body = <span className="text-[11px] text-muted-foreground">{text}</span>;
+                      }
+
+                      const linkable = mark !== "no" && mark !== "text" && !!statute;
+
                       return (
                         <td key={s.abbr} className="px-2 py-2.5 text-center border-l border-border">
-                          {val === true ? (
-                            statute ? (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={statute.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center hover:scale-110 transition-transform"
-                                    aria-label={`${statute.cite} — click to view statute`}
-                                  >
-                                    <Check className="w-4 h-4 text-accent mx-auto" />
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-xs text-xs font-mono">
-                                  <p>{statute.cite}</p>
-                                  <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            ) : (
-                              <Check className="w-4 h-4 text-accent mx-auto" />
-                            )
-                          ) : val === false ? (
-                            <Minus className="w-4 h-4 text-muted-foreground/30 mx-auto" />
+                          {linkable ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <a
+                                  href={statute!.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center hover:scale-110 transition-transform"
+                                  aria-label={`${statute!.cite} — click to view statute`}
+                                >
+                                  {body}
+                                </a>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs text-xs font-mono">
+                                <p>{statute!.cite}</p>
+                                {qualifier && (
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 font-sans">{qualifier}</p>
+                                )}
+                                <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                              </TooltipContent>
+                            </Tooltip>
                           ) : (
-                            <span className="text-[11px] text-muted-foreground">{String(val)}</span>
+                            body
                           )}
                         </td>
                       );
