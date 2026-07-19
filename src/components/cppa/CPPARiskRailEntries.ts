@@ -358,9 +358,9 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
 
   exc_employment_context: {
     fieldLabel: "Exemption: Employment-context processing",
-    citation: "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — counsel review recommended",
+    citation: "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — additional information is required before relying on this exemption",
     citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.145.",
-    plainSummary: "The CCPA's employee/applicant/contractor exemption (former § 1798.145(m)) is inoperative since January 1, 2023. HR, applicant, and contractor personal information is now fully in scope of the CCPA, and § 1798.145(o) covers commercial credit reporting, not employment. There is no current statutory exemption for employment-context processing — any reliance on one requires counsel review.",
+    plainSummary: "The CCPA's employee/applicant/contractor exemption (former § 1798.145(m)) is inoperative since January 1, 2023. HR, applicant, and contractor personal information is now fully in scope of the CCPA, and § 1798.145(o) covers commercial credit reporting, not employment. There is no current statutory exemption for employment-context processing — any reliance on one requires additional statutory basis.",
     regulationText: "This title shall not apply to personal information collected by a business about a natural person in the course of the natural person acting as a job applicant to, an employee of, owner of, director of, officer of, medical staff member of, or contractor of that business to the extent that the natural person's personal information is collected and used by the business solely within the context of having an emergency contact on file for the natural person, or administering specified benefits.",
     enforcementNote: "Common error: treating all HR data as exempt. Post-AB 1184 / AB 1281 sunset, employee and applicant data are subject to the full CCPA, including risk assessments where § 7150 triggers apply (e.g., ADMT in hiring).",
     coachLead: "Check this exemption's current status before relying on it.",
