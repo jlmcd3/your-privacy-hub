@@ -1318,7 +1318,10 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
 
 
         function assembleFromHalves(partA: string, partB: string, partC: string): { playbook_text: string; parsedAnnotations: any[] } {
-          const fullText = `${partA.trim()}\n\n${partB.trim()}\n\n${partC.trim()}`;
+          // IR-HF1 T1: defensive strip of intake-envelope sentinels in case the
+          // model echoed the delimiter. Belt-and-braces to the system-channel move.
+          const stripSentinels = (s: string) => s.replace(/<<<INTAKE_BEGIN>>>|<<<INTAKE_END>>>/g, "");
+          const fullText = `${stripSentinels(partA).trim()}\n\n${stripSentinels(partB).trim()}\n\n${stripSentinels(partC).trim()}`;
           let playbook_text = fullText
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
