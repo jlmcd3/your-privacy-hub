@@ -506,11 +506,11 @@ const Dashboard = () => {
             <p className="text-meta font-semibold tracking-widest uppercase text-primary mb-2">
               📋 Weekly Privacy Intelligence Report
             </p>
-            <h1 className="font-display text-foreground leading-tight">
+            <h2 className="font-display text-foreground leading-tight">
               {loading
                 ? "Loading your latest brief…"
                 : brief?.headline ?? "Your next brief is on the way"}
-            </h1>
+            </h2>
             {!loading && brief && (
               <p className="mt-3 text-sm text-muted-foreground">
                 Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
