@@ -159,20 +159,30 @@ function detectBlacklistViolations(text: string): SpecViolation[] {
   }));
 }
 
-// HF1 Task 2 — sub-processor contradiction detector.
+// HF2 Task 6 — sub-processor contradiction detector (BIDIRECTIONAL).
 // When hasSubProcessors===false, the model must NOT emit a sub-processor
-// authorisation framework (Schedule 1 / general-authorisation list). Fires
-// HARD violations that merge into the same `extras` collector.
-const RE_SCHEDULE1_SUBPROC =
-  /\bSchedule\s*1\b(?:[^\n]{0,80}(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors))/i;
-const RE_GENERAL_AUTH_SUBPROC =
+// authorisation framework (Schedule 1 / general-authorisation list). The
+// prior regex required Schedule 1 (or "general authorisation") to appear
+// FIRST — text ordering it after "sub-processor" escaped detection. Now the
+// detector fires on either order within the proximity window.
+const SUBPROC_TOKEN = /(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors)/i;
+const RE_SCHEDULE1_SUBPROC_FWD =
+  /\bSchedule\s*1\b[^\n]{0,80}(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors)/i;
+const RE_SCHEDULE1_SUBPROC_REV =
+  /(?:sub[- ]?processor|approved\s+Sub[- ]?processors|list\s+of\s+Sub[- ]?processors)[^\n]{0,80}\bSchedule\s*1\b/i;
+const RE_GENERAL_AUTH_SUBPROC_FWD =
   /\bgeneral\s+authorisation\b[^.\n]{0,120}\bsub[- ]?processor/i;
+const RE_GENERAL_AUTH_SUBPROC_REV =
+  /\bsub[- ]?processor[^.\n]{0,120}\bgeneral\s+authorisation\b/i;
+// Retained aliases for downstream imports/telemetry.
+const RE_SCHEDULE1_SUBPROC = RE_SCHEDULE1_SUBPROC_FWD;
+const RE_GENERAL_AUTH_SUBPROC = RE_GENERAL_AUTH_SUBPROC_FWD;
 function detectSubProcessorContradiction(text: string, hasSubProcessors: boolean): SpecViolation[] {
   if (hasSubProcessors) return [];
   const hits: SpecViolation[] = [];
-  const m1 = text.match(RE_SCHEDULE1_SUBPROC);
+  const m1 = text.match(RE_SCHEDULE1_SUBPROC_FWD) ?? text.match(RE_SCHEDULE1_SUBPROC_REV);
   if (m1) hits.push({ code: "sub_processor_framework_when_disabled", severity: "hard", detail: `Schedule-1/list-of-sub-processors framework emitted when hasSubProcessors=false (match: "${m1[0].slice(0, 120)}")` });
-  const m2 = text.match(RE_GENERAL_AUTH_SUBPROC);
+  const m2 = text.match(RE_GENERAL_AUTH_SUBPROC_FWD) ?? text.match(RE_GENERAL_AUTH_SUBPROC_REV);
   if (m2) hits.push({ code: "sub_processor_framework_when_disabled", severity: "hard", detail: `general-authorisation sub-processor clause emitted when hasSubProcessors=false (match: "${m2[0].slice(0, 120)}")` });
   return hits;
 }
