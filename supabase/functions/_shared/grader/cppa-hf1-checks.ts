@@ -240,9 +240,11 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
       continue;
     }
     if (hasAnchor) {
-      const idx = s.search(HF4_H6_S7001_RE);
-      const window = s.slice(Math.max(0, idx - 40), idx + 80);
-      if (HF4_H6_CHAIN_JOINER_RE.test(window)) {
+      // Chain detection: (a) explicit "+" anywhere in the sentence between
+      // a § 722x and § 7001 cite; OR (b) adjacent-token chain pattern.
+      const hasPlusChain = HF4_H6_CHAIN_JOINER_RE.test(s) && /§\s*7001/.test(s) && /§\s*722[012]/.test(s);
+      const hasAdjChain = HF5_H6_ADJ_CHAIN_RE.test(s);
+      if (hasPlusChain || hasAdjChain) {
         findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
           `§ 7001 co-cited in ADMT action-citation chain (definitional cite belongs in narrative, not the chain): "${s.slice(0, 200)}"`));
         if (findings.length >= 5) break;
