@@ -232,3 +232,149 @@ Deno.test("GRADER-CAL-2 T4: self-exonerating 'no clear leak' evidence dropped by
   assert(dropped.a4 >= 1);
 });
 
+// ---------------------------------------------------------------------------
+// GRADER-CAL-3 regression tests
+// ---------------------------------------------------------------------------
+
+const RUN2_DPA_HEADINGS = [
+  "DATA PROCESSING AGREEMENT",
+  "",
+  "1. PARTIES AND RECITALS",
+  "The parties agree as follows.",
+  "2. DEFINITIONS",
+  "3. SUBJECT MATTER",
+  "4. DATA PROCESSING — PROCESSOR OBLIGATIONS",
+  "4.5 Assistance with Data Subject Rights and DPIA",
+  "The Processor shall assist the Controller.",
+  "4.6 Assistance with Security, Breach Notification, and DPIA",
+  "5. SUB-PROCESSING PROVISIONS",
+  "6. DATA SUBJECT RIGHTS ASSISTANCE",
+  "7. SECURITY MEASURES",
+  "8. DATA TRANSFERS — INTERNATIONAL TRANSFER PROVISIONS",
+  "9. RETURN OR DELETION OF PERSONAL DATA",
+  "10. DATA BREACH NOTIFICATION",
+  "11. AUDIT AND INSPECTION RIGHTS",
+  "12. LIABILITY",
+  "13. TERM AND TERMINATION",
+].join("\n");
+
+const DPA_SECTIONS = [
+  "Parties and Recitals","Definitions","Subject Matter","Data Processing",
+  "Sub-processing","Data Subject Rights","Security","Data Transfers",
+  "Return or Deletion","Term and Termination",
+];
+
+Deno.test("GRADER-CAL-3 T1(i): run-2 DPA heading sequence produces zero e1 findings", () => {
+  const findings = fmt.checkE1(DPA_SECTIONS, RUN2_DPA_HEADINGS);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-3 T1(ii): genuinely out-of-order plain-text headings still fail", () => {
+  const doc = [
+    "1. PARTIES AND RECITALS",
+    "2. DEFINITIONS",
+    "3. SUBJECT MATTER",
+    "4. SECURITY MEASURES",           // swapped forward — should fail
+    "5. DATA PROCESSING — PROCESSOR OBLIGATIONS",
+    "6. SUB-PROCESSING PROVISIONS",
+    "7. DATA SUBJECT RIGHTS ASSISTANCE",
+    "8. DATA TRANSFERS",
+    "9. RETURN OR DELETION",
+    "10. TERM AND TERMINATION",
+  ].join("\n");
+  const findings = fmt.checkE1(DPA_SECTIONS, doc);
+  const orderFails = findings.filter(
+    (f) => !f.passed && f.check_id === "e1_section_order",
+  );
+  assert(orderFails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-3 T1(iii): mixed heading + flat-text (in true order) produces no finding", () => {
+  // "Data Subject Rights" is mentioned only in body prose (not a heading);
+  // all other sections are heading-anchored and in order. Present-check
+  // must pass without an order comparison against heading-anchored lastPos.
+  const doc = [
+    "1. PARTIES AND RECITALS",
+    "2. DEFINITIONS",
+    "3. SUBJECT MATTER",
+    "4. DATA PROCESSING — PROCESSOR OBLIGATIONS",
+    "The Processor shall support Data Subject Rights fulfilment in accordance with the Controller's instructions.",
+    "5. SUB-PROCESSING PROVISIONS",
+    "6. SECURITY MEASURES",
+    "7. DATA TRANSFERS",
+    "8. RETURN OR DELETION",
+    "9. TERM AND TERMINATION",
+  ].join("\n");
+  const findings = fmt.checkE1(DPA_SECTIONS, doc);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-3 T1(iv): document TITLE substring must not shadow a section", () => {
+  // Bare doc title "DATA PROCESSING AGREEMENT" + correctly placed §4 heading.
+  const doc = [
+    "DATA PROCESSING AGREEMENT",
+    "1. PARTIES AND RECITALS",
+    "2. DEFINITIONS",
+    "3. SUBJECT MATTER",
+    "4. DATA PROCESSING — PROCESSOR OBLIGATIONS",
+    "5. SUB-PROCESSING PROVISIONS",
+    "6. DATA SUBJECT RIGHTS ASSISTANCE",
+    "7. SECURITY MEASURES",
+    "8. DATA TRANSFERS",
+    "9. RETURN OR DELETION",
+    "10. TERM AND TERMINATION",
+  ].join("\n");
+  const findings = fmt.checkE1(DPA_SECTIONS, doc);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-3 T2(a): DPIA preamble ownership disclaimer is exempt", () => {
+  const doc = [
+    "This document is not legal advice.",
+    "Your qualified Data Protection Officer or legal counsel must review, complete, and own it.",
+    "",
+    "1. SCOPE AND CONTEXT",
+    "The processing activities under review are described below.",
+    "2. NECESSITY AND PROPORTIONALITY",
+    "Standard analysis body prose.",
+  ].join("\n");
+  const findings = fmt.checkE6(doc);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-3 T2(b): mid-document counsel referral still fails", () => {
+  const doc = [
+    "1. SCOPE AND CONTEXT",
+    "The controller shall consult your legal counsel before proceeding with this activity.",
+    "2. RISK ASSESSMENT",
+    "Body content.",
+    "3. MITIGATIONS",
+    "More body content.",
+  ].join("\n");
+  const findings = fmt.checkE6(doc);
+  const fails = findings.filter((f) => !f.passed && f.check_id === "e6_counsel_referral");
+  assert(fails.length >= 1, JSON.stringify(findings));
+});
+
+Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", () => {
+  const body = [
+    "1. SCOPE AND CONTEXT", "Body.",
+    "2. NECESSITY", "Body.",
+    "3. RISK", "Body.",
+    "4. MITIGATIONS", "Final section body.",
+  ].join("\n");
+  const doc = body +
+    "\n\nCLOSING NOTICE\nThis document is not legal advice; your qualified Data Protection Officer or legal counsel must review, complete, and own it.";
+  const findings = fmt.checkE6(doc);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-3 T3: instrument version bumped to grader-cal-3", () => {
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-20-grader-cal-3");
+});
+
