@@ -327,15 +327,66 @@ const DIRECTIVE_VERB_RE =
   /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
 
 
+// GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
+//
+// Run-2 dpia doc (quality_run 7c1a20ef, run #93; qa_pdf_exports 64855c6e)
+// failed e6_counsel_referral HIGH on the page-1 preamble and closing block:
+//   "Your qualified Data Protection Officer or legal counsel must review,
+//    complete, and own it."
+// Verification-layer ruling (Legal sway, logged 2026-07-20 18:06Z): this is
+// the deliberate ownership / anti-reliance disclaimer and remains in every
+// document. The grader must stop flagging it while keeping body-text
+// counsel referrals (governance run-1 e6 flood class) fully detectable.
+//
+// Narrow carve-out: exempt COUNSEL_REFERRAL_RE hits only when BOTH
+//   (i) the sentence matches the ownership-language allowlist below, AND
+//   (ii) the sentence sits in the document's preamble (before the first
+//        numbered/major section heading) or trailing disclaimer block
+//        (from the last section heading onward).
+// Neither condition is sufficient alone: a mid-document ownership-shaped
+// sentence outside the zone still fails, and a mid-document referral inside
+// a hypothetical "preamble" of a short doc without any sections is not
+// exempted (zonesActive requires ≥1 detected section).
+export const OWNERSHIP_DISCLAIMER_RE =
+  /must\s+review,?\s+complete,?\s+and\s+own\b/i;
+
+function computeDisclaimerZones(text: string): {
+  active: boolean; preambleEnd: number; closingStart: number;
+} {
+  const sectionHeadings = findHeadingLines(text).filter(
+    (h) => h.isSection && !h.isSubHeading,
+  );
+  if (sectionHeadings.length === 0) {
+    return { active: false, preambleEnd: 0, closingStart: (text ?? "").length };
+  }
+  const preambleEnd = sectionHeadings[0].charOffset;
+  const last = sectionHeadings[sectionHeadings.length - 1];
+  // Closing zone: 1200 chars after the last section heading OR EOF. The
+  // trailing ownership disclaimer sits below the final section's body; a
+  // 1.2 kB window is generous enough to cover a signature block + closing
+  // disclaimer without swallowing the entire final section's prose.
+  const closingStart = last.charOffset + Math.min(1200, (text ?? "").length - last.charOffset);
+  return { active: true, preambleEnd, closingStart };
+}
+
 function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp } = {}): FormatFinding[] {
   const findings: FormatFinding[] = [];
-  const sentences = splitSentences(text ?? "");
+  const doc = text ?? "";
+  const sentences = splitSentences(doc);
+  const zones = computeDisclaimerZones(doc);
   let hits = 0;
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
       // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;
+      // GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
+      if (zones.active && OWNERSHIP_DISCLAIMER_RE.test(s)) {
+        const pos = doc.indexOf(s);
+        if (pos >= 0 && (pos < zones.preambleEnd || pos >= zones.closingStart)) {
+          continue;
+        }
+      }
       // CV1-ALL T4a — role-roster / named-person exemption. A stakeholder
       // listing is not a referral UNLESS the sentence also contains a
       // directive verb (consult, review with, etc.).
