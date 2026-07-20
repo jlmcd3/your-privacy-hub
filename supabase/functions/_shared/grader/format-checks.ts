@@ -79,55 +79,134 @@ export const IR_REQUIRED_SECTIONS = [
 ];
 
 
-function findHeadingLines(text: string): { level: number; title: string; line: string }[] {
-  const lines = (text ?? "").split(/\r?\n/);
-  const out: { level: number; title: string; line: string }[] = [];
-  for (const raw of lines) {
-    const line = raw.trim();
+type HeadingRec = {
+  level: number;
+  title: string;
+  line: string;
+  isSection: boolean;   // valid top-level or nested section heading (excludes doc titles)
+  isSubHeading: boolean; // decimal-numbered sub-clause (e.g. "4.5 …")
+  charOffset: number;
+};
+
+function findHeadingLines(text: string): HeadingRec[] {
+  const raw = text ?? "";
+  const lines = raw.split(/\r?\n/);
+  const out: HeadingRec[] = [];
+  let cursor = 0;
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const lineOffset = cursor;
+    cursor += rawLine.length + 1;
+    if (!line) continue;
     // Markdown headings
     const md = line.match(/^(#{1,6})\s+(.+?)\s*$/);
     if (md) {
-      out.push({ level: md[1].length, title: md[2].trim(), line });
+      const level = md[1].length;
+      out.push({
+        level, title: md[2].trim(), line,
+        isSection: true, isSubHeading: level >= 3,
+        charOffset: lineOffset,
+      });
       continue;
     }
-    // ALLCAPS PART A / SECTION 1. headings (best-effort for IR/DPA prose)
+    // Decimal-numbered sub-heading: "1.2 …", "4.5 Assistance with …", "10.3.7 …"
+    const numSub = line.match(/^(\d+(?:\.\d+)+)[.)]?\s+(.+?)\s*$/);
+    if (numSub) {
+      out.push({
+        level: 2 + (numSub[1].split(".").length - 2),
+        title: numSub[2].trim(), line,
+        isSection: false, isSubHeading: true,
+        charOffset: lineOffset,
+      });
+      continue;
+    }
+    // Top-level numbered plain-text heading: "1. PARTIES AND RECITALS"
+    // Body prose is filtered out by requiring the trailing title to be
+    // ALLCAPS (with common punctuation/space allowed) — matches DPA/IR
+    // section headings, excludes prose sentences that start "1. The party…".
+    const numTop = line.match(/^(\d+)[.)]\s+(.+?)\s*$/);
+    if (numTop && numTop[2] === numTop[2].toUpperCase() && /[A-Z]/.test(numTop[2])) {
+      out.push({
+        level: 1, title: numTop[2].trim(), line,
+        isSection: true, isSubHeading: false,
+        charOffset: lineOffset,
+      });
+      continue;
+    }
+    // Legacy PART A / SECTION 1 / Schedule 1 shapes.
     if (/^(PART\s+[A-F]|SECTION\s+\d+|Schedule\s+\d+)\b.*/i.test(line)) {
-      out.push({ level: 1, title: line, line });
+      out.push({
+        level: 1, title: line, line,
+        isSection: true, isSubHeading: false,
+        charOffset: lineOffset,
+      });
     }
   }
   return out;
 }
 
+// Strip leading section numbering (e.g. "1.", "4.5", "Section 3:", "Part A —")
+// before comparing a heading title to a template needle.
+function stripHeadingNumbering(title: string): string {
+  return title
+    .replace(/^\s*(?:\d+(?:\.\d+)*[.)]?\s+|section\s+\d+[:.]?\s*|part\s+[a-z]+[:.—-]?\s*|schedule\s+\d+[:.—-]?\s*)/i, "")
+    .trim();
+}
+
 function checkE1(sections: string[], text: string, dim = "formatting"): FormatFinding[] {
-  // GRADER-CAL-2 Task 2 — heading-anchored ordering.
-  // Previously order was computed via flat.indexOf(needle), which fires
-  // false positives when a section name is mentioned in a recital or body
-  // paragraph BEFORE its own heading. The correct order metric uses the
-  // heading sequence when the needle appears in a heading; flat-text
-  // first-occurrence is used only as a fallback when the needle never
-  // appears in any heading (present-but-unheaded case).
-  const headingSeq = findHeadingLines(text).map((h) => h.title.toLowerCase());
+  // GRADER-CAL-3 Task 1 — anchored heading match + strict mixed-mode handling.
+  //
+  // Prior defect classes (GC2-E1-MIXED, ratified 2026-07-20 13:44Z, and the
+  // substring-heading-match false positive observed on quality_run 7159218c,
+  // qa_pdf_exports d59a5c49):
+  //   (a) headingSeq.findIndex((h) => h.includes(needle)) matched a needle
+  //       against ANY substring of ANY heading. That caused:
+  //         - "Data Processing"  matched the doc TITLE "DATA PROCESSING
+  //           AGREEMENT" at heading index 0 (before every real section).
+  //         - "Data Subject Rights" / "Security" matched §4.x sub-clause
+  //           headings ("4.5 Assistance with Data Subject Rights…",
+  //           "4.6 Assistance with Security…") that appear before the §6/§7
+  //           section-level headings.
+  //   (b) The order key `(headingIdx + 1) * 1e9` mixed a heading-anchored
+  //       namespace with a flat-text char-offset namespace, guaranteeing a
+  //       spurious e1_section_order MEDIUM fail whenever a needle resolved
+  //       through the flat-text fallback after any heading-anchored needle.
+  //
+  // Fix (a): restrict heading candidates to `isSection && !isSubHeading` (drops
+  // sub-clauses like "4.5 …" and prose lines) AND require a stripped-numbering
+  // prefix match on the heading title. The doc title "DATA PROCESSING
+  // AGREEMENT" is not numbered, has no markdown level, and does not match
+  // PART/SECTION/Schedule, so `findHeadingLines` never records it as a
+  // section — the substring-title collision is impossible by construction.
+  //
+  // Fix (b): when a needle resolves in flat-text only (present but unheaded),
+  // do NOT compare its position against heading-anchored `lastPos`; keep the
+  // presence check but skip the ordering assertion for that needle.
+  const sectionHeadings = findHeadingLines(text).filter(
+    (h) => h.isSection && !h.isSubHeading,
+  );
   const flat = (text ?? "").toLowerCase();
   const findings: FormatFinding[] = [];
-  let lastPos = -1;
+  let lastHeadingPos = -1;
   for (const s of sections) {
     const needle = s.toLowerCase();
-    const headingIdx = headingSeq.findIndex((h) => h.includes(needle));
-    const foundInHeading = headingIdx >= 0;
-    const foundInFlat = flat.includes(needle);
-    if (!foundInHeading && !foundInFlat) {
-      findings.push(fail("e1_section_present", dim, "high", `missing section: ${s}`));
+    const headingHit = sectionHeadings.find((h) => {
+      const stripped = stripHeadingNumbering(h.title).toLowerCase();
+      return stripped.startsWith(needle);
+    });
+    if (headingHit) {
+      if (headingHit.charOffset < lastHeadingPos) {
+        findings.push(fail("e1_section_order", dim, "medium",
+          `section "${s}" appears out of template order`));
+      }
+      lastHeadingPos = Math.max(lastHeadingPos, headingHit.charOffset);
       continue;
     }
-    // Order key: heading position (scaled to a large namespace so it can't
-    // collide with a flat-text char offset) when present in headings;
-    // otherwise the flat-text first-occurrence offset.
-    const pos = foundInHeading ? (headingIdx + 1) * 1_000_000_000 : flat.indexOf(needle);
-    if (pos >= 0 && pos < lastPos) {
-      findings.push(fail("e1_section_order", dim, "medium",
-        `section "${s}" appears out of template order`));
+    // No section heading matched — accept flat-text presence but do NOT
+    // participate in heading-anchored ordering (Fix (b)).
+    if (!flat.includes(needle)) {
+      findings.push(fail("e1_section_present", dim, "high", `missing section: ${s}`));
     }
-    lastPos = Math.max(lastPos, pos);
   }
   if (findings.length === 0) findings.push(pass("e1_sections_ok", dim));
   return findings;
@@ -248,15 +327,68 @@ const DIRECTIVE_VERB_RE =
   /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
 
 
+// GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
+//
+// Run-2 dpia doc (quality_run 7c1a20ef, run #93; qa_pdf_exports 64855c6e)
+// failed e6_counsel_referral HIGH on the page-1 preamble and closing block:
+//   "Your qualified Data Protection Officer or legal counsel must review,
+//    complete, and own it."
+// Verification-layer ruling (Legal sway, logged 2026-07-20 18:06Z): this is
+// the deliberate ownership / anti-reliance disclaimer and remains in every
+// document. The grader must stop flagging it while keeping body-text
+// counsel referrals (governance run-1 e6 flood class) fully detectable.
+//
+// Narrow carve-out: exempt COUNSEL_REFERRAL_RE hits only when BOTH
+//   (i) the sentence matches the ownership-language allowlist below, AND
+//   (ii) the sentence sits in the document's preamble (before the first
+//        numbered/major section heading) or trailing disclaimer block
+//        (from the last section heading onward).
+// Neither condition is sufficient alone: a mid-document ownership-shaped
+// sentence outside the zone still fails, and a mid-document referral inside
+// a hypothetical "preamble" of a short doc without any sections is not
+// exempted (zonesActive requires ≥1 detected section).
+export const OWNERSHIP_DISCLAIMER_RE =
+  /must\s+review,?\s+complete,?\s+and\s+own\b/i;
+
+function computeDisclaimerZones(text: string): {
+  active: boolean; preambleEnd: number; closingStart: number;
+} {
+  const sectionHeadings = findHeadingLines(text).filter(
+    (h) => h.isSection && !h.isSubHeading,
+  );
+  if (sectionHeadings.length === 0) {
+    return { active: false, preambleEnd: 0, closingStart: (text ?? "").length };
+  }
+  const preambleEnd = sectionHeadings[0].charOffset;
+  const last = sectionHeadings[sectionHeadings.length - 1];
+  // Closing zone: the trailing block after the last major section. Anchored
+  // as `max(lastSectionOffset, docLength - 1500)` so long documents get the
+  // final ~1.5 kB (typical space for a closing disclaimer + signature block)
+  // while short documents fall back to "everything after the last section
+  // heading" — narrow enough that mid-body counsel referrals are unaffected
+  // because the ownership-pattern AND-guard is required in addition.
+  const closingStart = Math.max(last.charOffset, (text ?? "").length - 1500);
+  return { active: true, preambleEnd, closingStart };
+}
+
 function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp } = {}): FormatFinding[] {
   const findings: FormatFinding[] = [];
-  const sentences = splitSentences(text ?? "");
+  const doc = text ?? "";
+  const sentences = splitSentences(doc);
+  const zones = computeDisclaimerZones(doc);
   let hits = 0;
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
       // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;
+      // GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
+      if (zones.active && OWNERSHIP_DISCLAIMER_RE.test(s)) {
+        const pos = doc.indexOf(s);
+        if (pos >= 0 && (pos < zones.preambleEnd || pos >= zones.closingStart)) {
+          continue;
+        }
+      }
       // CV1-ALL T4a — role-roster / named-person exemption. A stakeholder
       // listing is not a referral UNLESS the sentence also contains a
       // directive verb (consult, review with, etc.).
