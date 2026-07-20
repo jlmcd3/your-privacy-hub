@@ -131,8 +131,12 @@ function isNonEnforcementUrl(u: string): boolean {
 const GENERIC_SUBJECT_PATTERNS: RegExp[] = [
   // "fines/orders/penalises/sanctions/settles/reprimands/warns {X} ..."
   /\b(?:fines?|fined|orders?|ordered|penalis(?:e|es|ed|ing)|penaliz(?:e|es|ed|ing)|sanctions?|sanctioned|settles?|settled|reprimands?|reprimanded|warns?|warned|charges?|charged|sues?|sued|investigates?|investigated)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/,
-  // "against {X} ..." / "action against {X}"
-  /\b(?:action\s+against|proceedings\s+against|complaint\s+against|penalty\s+against|order\s+against|fine\s+against|enforcement\s+against)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/i,
+  // "against {X} ..." / "action against {X}" — SWEEP-2 T9: the alternation
+  // head is case-insensitive (spelled out) but the capture keeps the strict
+  // per-word [A-Z]-start behavior of patterns 1 and 3. The previous /i flag
+  // broadened the capture and swallowed trailing prepositional phrases
+  // (e.g. "for HIPAA Violations"), producing multi-clause junk subjects.
+  /(?:[Aa]ction\s+[Aa]gainst|[Pp]roceedings\s+[Aa]gainst|[Cc]omplaint\s+[Aa]gainst|[Pp]enalty\s+[Aa]gainst|[Oo]rder\s+[Aa]gainst|[Ff]ine\s+[Aa]gainst|[Ee]nforcement\s+[Aa]gainst)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/,
   // "{X} to pay $N" / "{X} agrees to pay" / "{X} fined"
   /^([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})\s+(?:agrees\s+to\s+pay|to\s+pay|will\s+pay|pays|paid|fined|settles?|agrees|reaches?\s+settlement)/,
 ];
