@@ -82,7 +82,9 @@ Deno.test("HF6R B-EXT — scope_analysis + priority_actions artifacts fully cons
   };
   const out = pipeline(report);
   const flat = JSON.stringify(out);
-  assertEquals((flat.match(/the cited provision/gi) ?? []).length, 0, flat);
+  const stragglers = flat.match(/the cited provision/gi) ?? [];
+  if (stragglers.length) console.log("STRAGGLERS:", flat);
+  assertEquals(stragglers.length, 0, flat);
   assert(!/\bthe\s+the\b/i.test(flat), `doubled article survived: ${flat}`);
   assert(flat.includes(SUBCH), "fallback anchor not injected");
 });
