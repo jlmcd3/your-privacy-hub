@@ -1212,6 +1212,10 @@ Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the rec
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
 Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.
 
+${SPECIFICITY_ACTIONABILITY_RULE}
+
+${ENGAGED_JURISDICTION_CITATION_RULE}
+
 ${ADVISORY_VOICE_RULES}`;
     if (gdprBlock) {
       systemPrompt = systemPrompt +
