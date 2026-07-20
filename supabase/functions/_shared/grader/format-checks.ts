@@ -228,9 +228,25 @@ export const ROLE_FIELD_EXEMPT_RE =
 // is required content, not a referral.
 export const PARTICIPANT_ROSTER_EXEMPT_RE =
   /\b(?:assessment\s+participants?|stakeholder\s+roster|consulted(?:\s+parties)?|contributors?|participants?\s+included?|(?:internal|external)\s+contributors?|§\s*7152\(a\)|risk\s+assessment\s+team)\b[^.\n]{0,200}\b(?:legal|privacy|outside\s+privacy)\s+(?:counsel|officer)\b/i;
+// GRADER-CAL-2 Task 1 — bare owner-cell / pipe-roster exemptions. A
+// governance remediation table cell containing only role titles ("Legal
+// Counsel", "DPO, Legal Counsel") or a pipe-delimited role roster
+// ("DPO | Compliance Manager | Legal Counsel | CISO") is passive content,
+// not a referral. DIRECTIVE_VERB_RE override still forces the finding.
+// (a) Bare role cell — the entire trimmed line consists of one or more
+// role titles (counsel/officer/DPO/CISO/Compliance Manager/Privacy
+// Officer/etc.), optionally comma- or slash-separated. Table markdown
+// pipes at the line edges are allowed.
+export const BARE_ROLE_CELL_EXEMPT_RE =
+  /^\s*\|?\s*(?:(?:outside|external|internal|senior|deputy|chief|acting)\s+)*(?:legal\s+counsel|privacy\s+counsel|qualified\s+counsel|privacy\s+officer|data\s+protection\s+officer|dpo|ciso|cpo|compliance\s+(?:manager|officer|lead)|general\s+counsel|counsel)\s*(?:[,/&]\s*(?:(?:outside|external|internal|senior|deputy|chief|acting)\s+)*(?:legal\s+counsel|privacy\s+counsel|qualified\s+counsel|privacy\s+officer|data\s+protection\s+officer|dpo|ciso|cpo|compliance\s+(?:manager|officer|lead)|general\s+counsel|counsel)\s*)*\|?\s*$/im;
+// (b) Pipe-separated role roster — three or more pipe segments where at
+// least one contains a counsel/officer token. Governance rosters shape.
+export const PIPE_ROSTER_EXEMPT_RE =
+  /(?:^|\n)[^|\n]{0,80}\|[^|\n]{0,80}\|[^|\n]{0,120}\b(?:legal\s+counsel|privacy\s+counsel|qualified\s+counsel|privacy\s+officer|data\s+protection\s+officer|dpo|ciso|general\s+counsel)\b[^|\n]{0,120}(?:\|[^|\n]{0,120})*/i;
 // Directive verbs — these override any exempt hit and force the finding.
 const DIRECTIVE_VERB_RE =
   /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
+
 
 function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp } = {}): FormatFinding[] {
   const findings: FormatFinding[] = [];
