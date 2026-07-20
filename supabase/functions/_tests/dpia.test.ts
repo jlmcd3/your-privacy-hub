@@ -24,16 +24,20 @@ Deno.test("DPIA system: block 1 contains PRIORITY ORDER; block 2 does not duplic
   assert(!/NO ADAPTIVE GUIDANCE/.test(blocks[1].text), "block 2 must not duplicate 'NO ADAPTIVE GUIDANCE'");
 });
 
-Deno.test("DPIA injected (resolved-jurisdiction) block has no cache_control", () => {
+Deno.test("DPIA injected (resolved-jurisdiction) block has no cache_control; advisory tail present", () => {
   const blocks = buildSystemContent({
     toolModule: DPIA_TOOL_MODULE,
     currentDate: today,
     injected: "RESOLVED JURISDICTION:\n(test)",
   });
-  assertEquals(blocks.length, 3);
+  // COUNSEL-VOICE-1B — advisory-voice block is appended as a 4th uncached tail.
+  assertEquals(blocks.length, 4);
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[1].cache_control?.type, "ephemeral");
   assertEquals(blocks[2].cache_control, undefined);
+  assertEquals(blocks[3].cache_control, undefined);
+  assertStringIncludes(blocks[3].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
 });
 
 Deno.test("Hardcoded 'Germany → BfDI' mapping is removed from the assembled prompt", () => {
