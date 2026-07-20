@@ -1057,6 +1057,10 @@ ADDITIONAL DISCIPLINES:
             const SUBCH_FALLBACK_L = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
             const consumeStrL = (v: string): string => {
               let next = v;
+              next = next.replace(/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK_L);
+              next = next.replace(/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK_L);
+              next = next.replace(/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision");
+              next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision");
               next = next.replace(SUBCH_UNDER_RE_L, `under ${SUBCH_FALLBACK_L}`);
               next = next.replace(SUBCH_PURSUANT_RE_L, `pursuant to ${SUBCH_FALLBACK_L}`);
               next = next.replace(SUBCH_TOKEN_RE_L, SUBCH_FALLBACK_L);
