@@ -881,44 +881,45 @@ The record establishes that (a) at least one Party is in New York and (b) financ
 - If neither Party is a Covered Entity under § 500.1(c), state the § 500.11 obligation as a contractual baseline the Parties adopt for the security of financial data and note that the statutory obligation attaches only if either Party subsequently becomes a Covered Entity.
 ` : ""}
 
-Draft a complete US State Data Processing Agreement with ALL of the following sections. Number clauses hierarchically (1.1, 1.2, 1.2.1 etc.):
+Draft a complete US State Data Processing Agreement with ALL of the following sections, in this exact order and using the exact heading tokens shown (top-level headings are AUTHORITATIVE and are matched against the deterministic grader's DPA_REQUIRED_SECTIONS list — do NOT rename, reorder, merge, or split them). Number clauses hierarchically (1.1, 1.2, 1.2.1 etc.):
 
 1. PARTIES AND RECITALS — identify applicable state laws based on the parties' jurisdictions and the residency of data subjects likely affected.
 2. DEFINITIONS — Personal Data, Sensitive Personal Data, Controller/Business, Processor/Service Provider, Consumer, Processing, Sale, Sharing, Targeted Advertising, Business Purpose — using CCPA § 1798.140 and equivalent state-law definitions.
 3. SUBJECT MATTER, NATURE, DURATION AND PURPOSE — state specific business purpose(s); not "as necessary to perform the services."
-4. PROCESSOR OBLIGATIONS
+4. DATA PROCESSING — PROCESSOR OBLIGATIONS — the heading MUST begin with the literal tokens "DATA PROCESSING —".
    4.1 Processing only on Controller instructions
    4.2 Confidentiality of personnel
    4.3 Security measures (see Section 9)
-   4.4 Sub-processor obligations (see Section 7)
-   4.5 Consumer rights assistance (see Section 6)
+   4.4 Sub-processor obligations (see Section 6)
+   4.5 Consumer rights assistance (see Section 7)
    4.6 Risk assessment / DPIA assistance — Cal. Civ. Code § 1798.185(a)(15) and CPPA risk-assessment regulations; TDPSA § 541.109; CTDPA § 8; VCDPA § 59.1-579; CPA § 6-1-1309; OCPA § 646A.574
-   4.7 Deletion or return of data at termination (see Section 11)
-   4.8 Audit cooperation (see Section 12)
+   4.7 Deletion or return of data at termination (see Section 12)
+   4.8 Audit cooperation (see Section 13)
 5. PROHIBITED PROCESSING (CCPA/CPRA § 1798.100(d) and equivalents) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data outside the business purpose.
    5.1 No Sale or Sharing
    5.2 No Targeted Advertising outside the agreed business purpose
    5.3 No Cross-Context Combination except as permitted by law
    5.4 No Retention Beyond Purpose
    Cite Cal. Civ. Code § 1798.100(d)(1)-(5) and equivalent state provisions explicitly.
-6. CONSUMER RIGHTS PASS-THROUGH — the section heading MUST contain the exact phrase "Consumer Rights" and the body MUST include the verbatim phrases "right to access", "right to delete" and "right to correct" with applicable response timelines per state law (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination).
-7. SUB-PROCESSOR PROVISIONS — prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; populate Schedule A from the parties' inputs. If no sub-processors were provided in the intake, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors at the Effective Date" unless the intake expressly stated none.
+6. SUB-PROCESSING PROVISIONS — the heading MUST contain the literal token "SUB-PROCESSING". Prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; populate Schedule A from the parties' inputs. If no sub-processors were provided in the intake, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors at the Effective Date" unless the intake expressly stated none.
+7. DATA SUBJECT RIGHTS — CONSUMER RIGHTS PASS-THROUGH — the heading MUST contain BOTH the phrase "Data Subject Rights" AND the phrase "Consumer Rights". Body MUST include the verbatim phrases "right to access", "right to delete" and "right to correct" with applicable response timelines per state law (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination).
 8. SENSITIVE PERSONAL DATA — heightened protections; opt-in consent for minors' data for targeted advertising or profiling.
 9. SECURITY MEASURES — calibrated to data categories and subject count; encryption, access controls, employee training, incident response, pen testing cadence; address failures in enforcement context.
-10. DATA BREACH NOTIFICATION — state-specific timelines (use the wording below verbatim where indicated):
+10. DATA TRANSFERS — CROSS-BORDER AND OFFSHORE DISCLOSURE — the heading MUST begin with the literal tokens "DATA TRANSFERS —". This section addresses onward disclosures or offshore processing of Personal Data by the Processor or its sub-processors. Include: (a) a representation that the Processor will disclose the location(s) of processing on request; (b) where processing occurs outside the United States, an obligation to maintain equivalent security safeguards and to comply with any US state-law obligations governing offshore disclosure (e.g., CCPA "sale/share" restrictions applied to onward disclosures, and any state-specific offshore-notice requirements applicable to sensitive personal data or health data); (c) a prohibition on onward transfer outside the business purpose without Controller consent. Do NOT invent EU SCCs, UK Addendum, or GDPR Article 46 obligations — those are inapplicable to a pure US-state DPA. If sub-processors process outside the US, note the location in Schedule A rather than invent a transfer instrument.
+11. DATA BREACH NOTIFICATION — state-specific timelines (use the wording below verbatim where indicated):
     - California: Processor shall notify Controller of any Data Breach impacting Personal Data of California residents "without unreasonable delay and in the most expedient time possible" after discovery. Do NOT impose a fixed 72-hour processor-to-controller window for California — Cal. Civ. Code § 1798.82 governs notification to individuals, not B2B processor timelines. The Controller is responsible for notifying the California Attorney General if 500+ California residents are affected.
     - Texas: notify Controller promptly; Controller notifies AG if 250+ Texans affected (Tex. Bus. & Com. Code § 521.053)
     - Connecticut: Processor shall notify Controller without unreasonable delay after discovery. Under Conn. Gen. Stat. § 36a-701b (Connecticut's breach notification statute — NOT the CTDPA, which does not set an independent breach notification timeline), the Controller must notify affected Connecticut residents "in the most expedient time possible." Controller notifies the CT AG simultaneously with individual notification. Do NOT state a 72-hour deadline for Connecticut — no such deadline exists in Connecticut law.
     - Colorado: Processor shall notify Controller without undue delay; Controller notifies the Colorado Attorney General as required by C.R.S. § 6-1-716 (Colorado breach notification statute). Do NOT cite "CPA § 6-1-1309" for breach notification — the Colorado Privacy Act does not set breach notification timelines; those come from C.R.S. § 6-1-716.
     - Virginia: Processor shall notify Controller without unreasonable delay after discovery. Under the VCDPA, the Controller must notify the Virginia Attorney General within 60 days when the breach affects more than 100,000 Virginia consumers (VCDPA 2024 amendment). Do NOT state a 72-hour notification deadline for Virginia — the VCDPA does not set one.
     Include minimum notification content per applicable state law.
-11. POST-TERMINATION OBLIGATIONS — at Controller's election, Processor shall delete or return all Personal Data and certify deletion in writing within 30 days; no retention except as required by law. Use the exact phrase "delete or return" and reference "Personal Data" in the same sentence.
-12. AUDIT AND INSPECTION RIGHTS — use ${body.auditRights} standard; 30 days' notice; more frequent if breach suspected.
-13. RECORDKEEPING — sufficient to demonstrate compliance.
-14. LIABILITY AND INDEMNIFICATION
-15. TERM AND TERMINATION
-16. GOVERNING LAW AND DISPUTE RESOLUTION
-17. GENERAL PROVISIONS (amendments, entire agreement, severability, counterparts)
+12. RETURN OR DELETION OF PERSONAL DATA — POST-TERMINATION OBLIGATIONS — the heading MUST contain the literal tokens "RETURN OR DELETION". At Controller's election, Processor shall delete or return all Personal Data and certify deletion in writing within 30 days; no retention except as required by law. Use the exact phrase "delete or return" and reference "Personal Data" in the same sentence.
+13. AUDIT AND INSPECTION RIGHTS — use ${body.auditRights} standard; 30 days' notice; more frequent if breach suspected.
+14. RECORDKEEPING — sufficient to demonstrate compliance.
+15. LIABILITY AND INDEMNIFICATION
+16. TERM AND TERMINATION
+17. GOVERNING LAW AND DISPUTE RESOLUTION
+18. GENERAL PROVISIONS (amendments, entire agreement, severability, counterparts)
 
 [SIGNATURE BLOCK]
 
