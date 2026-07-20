@@ -53,10 +53,16 @@ export function shimLegacyIntake(intake: any): FiveStageIntake {
   );
 
   const triggers = { ...EMPTY_TRIGGERS };
-  const sells = typeof intake.q5_sell_share === "string"
-    && /sell|share|both|^yes/i.test(intake.q5_sell_share)
-    && !/^no/i.test(intake.q5_sell_share);
+  const q5raw = typeof intake.q5_sell_share === "string" ? intake.q5_sell_share : "";
+  const sells = /sell|share|both|^yes/i.test(q5raw) && !/^no/i.test(q5raw);
   if (sells) triggers.sells_or_shares_pi = true;
+  // PRODUCT-FIX-2 T1 — declared advertising sharing must set targeted_advertising.
+  // Under Cal. Civ. Code § 1798.140(ah) "share" is defined as disclosure for
+  // cross-context behavioural advertising; the wizard options "Yes — share for
+  // advertising only" and "Both" therefore imply targeted_advertising=true.
+  if (/\b(share|both|advertis)/i.test(q5raw) && !/^no/i.test(q5raw)) {
+    triggers.targeted_advertising = true;
+  }
   if (intake.q15_sensitive_pi === "Yes") triggers.sensitive_pi_beyond_enumerated = true;
   const piCatsForTrig = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
   if (piCatsForTrig.some((c: string) => /precise geolocation/i.test(String(c)))) triggers.sensitive_pi_beyond_enumerated = true;
