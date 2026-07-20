@@ -426,7 +426,11 @@ supplies a fact previously flagged insufficient-basis, incorporate it and remove
 Supplementals never flip an enumerated mechanical test-state; those are re-selected only in the base
 intake. On placeholder fill, replace the [TO COMPLETE — …] token with the supplied value and leave
 surrounding placeholder-neutral language byte-identical. Never quote a supplemental as authority; an
-absent supplemental is not evidence of absence.`;
+absent supplemental is not evidence of absence.
+
+SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1): every recommendation/remediation/next-step names an OWNER ROLE by function, a CONCRETE TIMEFRAME (regulatory deadline or record-event-tied window), and a TIE TO A NAMED INTAKE FACT (system, control, vendor, dataset, tool, decision-domain, or policy in the record). Generic best-practice restatements ("adopt appropriate technical and organizational measures", "implement a governance program", "establish training") are prohibited where an intake-grounded specific exists — recast to name the intake object and the concrete outcome, or route to information_needed.
+
+ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2): cite authorities as OPERATIVE only for jurisdictions ENGAGED by the intake; non-engaged jurisdictions are permitted only as explicitly comparative clauses, in a Recital or Comparative Appendix, or as an inline advisory sentence with a canonical close. Every specific section/subsection/article number is verified against provided authoritative text, the VERIFIED CITATION ANCHORS block, or the Tool Module's verified citation map before emission; recalled anchors are defects. Non-existent provisions ("GDPR Article 6(11)"), unverified HIPAA subsections, and US-state statute cites on EU/UK-only intakes are prohibited — cite the parent article/section descriptively or route to the schema's verification field. Per-tool deterministic detectors (e.g. dpa-generator's engaged-US-states check) remain the canonical runtime enforcement for their surfaces.`;
 
 export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
     appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy
