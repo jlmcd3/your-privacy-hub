@@ -33,17 +33,19 @@ Deno.test("v3.7 META rules present in prompt core", () => {
 });
 
 
-Deno.test("languageVariant: british emits British English instruction; american the American one", () => {
+Deno.test("languageVariant: british emits British English instruction; american emits US English", () => {
   const british = buildSystemContent({
     toolModule: { ...toolModule, languageVariant: "british" },
   });
   assertStringIncludes(british[0].text, "British English");
-  assert(!british[0].text.includes("Use American English throughout this document"));
+  assert(!british[0].text.includes("US English (en-US) spelling throughout"));
 
   const american = buildSystemContent({
     toolModule: { ...toolModule, languageVariant: "american" },
   });
-  assertStringIncludes(american[0].text, "American English");
+  // The american rule now anchors on "US English (en-US) spelling throughout"
+  // rather than the earlier "American English" phrasing.
+  assertStringIncludes(american[0].text, "US English (en-US) spelling throughout");
   assert(!american[0].text.includes("Use British English throughout this document"));
 });
 
