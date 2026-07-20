@@ -83,10 +83,13 @@ export function applyGraderCal1Filter(
         dropped.a4++;
         continue;
       }
-      // A2 — advisory-formula sentences (and legacy NOTE blocks) are not leaks.
+      // A2 — advisory-formula sentences are not leaks. GRADER-CAL-2 Task 5:
+      // the legacy "NOTE FOR LEGAL REVIEW" whitelist is retired (current
+      // prompts prohibit that heading outright); real occurrences now
+      // surface as legitimate leak findings.
       if (
         f.check_id === "rubric_internal_reasoning_leak" &&
-        (ADVISORY_FORMULA_RE.test(ev) || LEGACY_NOTE_BLOCK_RE.test(ev))
+        ADVISORY_FORMULA_RE.test(ev)
       ) {
         dropped.a2++;
         continue;
