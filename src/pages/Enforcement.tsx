@@ -638,7 +638,7 @@ export default function Enforcement() {
                           )}
                         </div>
                         <h3 className="group-hover:text-primary transition line-clamp-2">
-                          {r.subject || "Undisclosed entity"}
+                          {r.subject}
                         </h3>
                       </div>
                       <div className="text-right shrink-0">
