@@ -106,6 +106,24 @@ function isAnnouncementNoise(title: string): boolean {
   return ANNOUNCEMENT_EXCLUSION.some((re) => re.test(title));
 }
 
+// L2 — content-type URL blacklist. Applied generically across every source
+// so speeches / statements / blog / testimony / opinions / conferences /
+// staff-letters / newsletter / rulemaking pages never enter the corpus,
+// even when a headline mentions a privacy term.
+const NON_ENFORCEMENT_URL_PATH_RE =
+  /\/(public-statements|speeches?|commissioner-statements|policy-statements|staff-letters|closing-letters|testimony|opinions?|blog|business-blog|blogs|newsletter|newsletters|events?|conference|conferences|webinars?|workshops?|podcast|podcasts|videos?|about|about-us|our-work|careers?|jobs|contact|subscribe|rss|feeds?|reports?|research|publications|guidance|training|awareness|consultation|consultations|rulemaking|exposure-drafts?|annual-report|strategic-plan)(\/|$)/i;
+
+function isNonEnforcementUrl(u: string): boolean {
+  if (!u) return false;
+  try {
+    const path = new URL(u).pathname;
+    return NON_ENFORCEMENT_URL_PATH_RE.test(path);
+  } catch {
+    return false;
+  }
+}
+
+
 const SOURCES: SourceEntry[] = [
   { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/", source: "ICO", sourceGroup: "core", monitorPages: 1 },
   { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/", source: "ICO News", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
