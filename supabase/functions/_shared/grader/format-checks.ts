@@ -361,11 +361,13 @@ function computeDisclaimerZones(text: string): {
   }
   const preambleEnd = sectionHeadings[0].charOffset;
   const last = sectionHeadings[sectionHeadings.length - 1];
-  // Closing zone: 1200 chars after the last section heading OR EOF. The
-  // trailing ownership disclaimer sits below the final section's body; a
-  // 1.2 kB window is generous enough to cover a signature block + closing
-  // disclaimer without swallowing the entire final section's prose.
-  const closingStart = last.charOffset + Math.min(1200, (text ?? "").length - last.charOffset);
+  // Closing zone: the trailing block after the last major section. Anchored
+  // as `max(lastSectionOffset, docLength - 1500)` so long documents get the
+  // final ~1.5 kB (typical space for a closing disclaimer + signature block)
+  // while short documents fall back to "everything after the last section
+  // heading" — narrow enough that mid-body counsel referrals are unaffected
+  // because the ownership-pattern AND-guard is required in addition.
+  const closingStart = Math.max(last.charOffset, (text ?? "").length - 1500);
   return { active: true, preambleEnd, closingStart };
 }
 
