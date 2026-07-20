@@ -360,7 +360,7 @@ export default function EnforcementActionDetail() {
                     <CardContent className="p-4 flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="text-xs text-muted-foreground">{r.regulator} • {r.decision_date ? new Date(r.decision_date).toLocaleDateString() : ""}</div>
-                        <div className="font-medium truncate">{r.subject || "Undisclosed entity"}</div>
+                        <div className="font-medium truncate">{r.subject}</div>
                       </div>
                       <div className="font-mono text-sm shrink-0">{formatEur(r.fine_eur_equivalent ?? r.fine_eur) ?? "—"}</div>
                     </CardContent>
