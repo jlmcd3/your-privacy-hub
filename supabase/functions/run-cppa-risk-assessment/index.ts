@@ -107,7 +107,7 @@ const M_TOKEN_MAP: Record<string, string> = {
   M3: "the consumer-volume determination",
   M4: "the sensitive-PI determination",
   M5: "the sale/share-revenue determination",
-  M6: "the audit-cohort determination",
+  M6: "the cyber-audit tier review",
   M7: "the trigger review",
   M8: "the exception review",
   M9: "the § 7152(a) element review",

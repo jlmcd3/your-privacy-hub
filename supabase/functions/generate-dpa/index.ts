@@ -14,7 +14,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { observeCitations } from "../_shared/citation-observe.ts";
-import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { PROMPT_CORE_VERSION, SPECIFICITY_ACTIONABILITY_RULE, ENGAGED_JURISDICTION_CITATION_RULE } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -1211,6 +1211,10 @@ Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the rec
 
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
 Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.
+
+${SPECIFICITY_ACTIONABILITY_RULE}
+
+${ENGAGED_JURISDICTION_CITATION_RULE}
 
 ${ADVISORY_VOICE_RULES}`;
     if (gdprBlock) {
