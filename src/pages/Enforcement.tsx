@@ -229,11 +229,15 @@ export default function Enforcement() {
       let query = supabase
         .from("enforcement_actions")
         .select(
-          "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law",
+          "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,verification_status",
           { count: "exact" },
         )
-        // L1 — hide rows without a resolved subject; UI no longer synthesizes an "Undisclosed entity" label.
-        .not("subject", "is", null);
+        // SWEEP-2 T10: default hides rows without a resolved subject AND rows
+        // flagged for moderator review, EXCEPT structured OAIC Register rows
+        // (anonymised formal determinations) which are surfaced with the
+        // register citation in place of a subject.
+        .or("subject.not.is.null,source_database.eq.OAIC Register")
+        .not("verification_status", "eq", "requires_review");
 
       if (jurisdiction !== "all") query = query.eq("jurisdiction", jurisdiction);
       if (sector !== "all") query = query.eq("industry_sector", sector);
