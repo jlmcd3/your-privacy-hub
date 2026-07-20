@@ -7,7 +7,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-cppa-hf6@2026-07-20T00:00Z";
+export const BUILD_STAMP = "admt-cppa-hf6b@2026-07-20T00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -845,6 +845,58 @@ ADDITIONAL DISCIPLINES:
       resolveInto(report.access_gaps);
       resolveInto(report.documentation_to_maintain);
 
+      // CPPA-HF6R B-EXT — SUBCHAPTER-ANCHOR FALLBACK CONSUMPTION. Fields
+      // outside the four gap arrays (scope_analysis.*, priority_actions,
+      // consolidated_notice_analysis, aggregate_access_response,
+      // enforcement_context, and any other prose) carry no element_id and
+      // therefore never received a concrete injection. Any residual
+      // "the cited provision" phrasing renders literally. Consume every
+      // remaining occurrence with the ADMT subchapter anchor. Never leave
+      // the literal token; never invent a section outside the registry —
+      // the subchapter range § 7220–7222 (with § 7200 scope) is the
+      // governing anchor for these fields.
+      const SUBCH_TOKEN_RE = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
+      const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
+      const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+      const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      // Defense-in-depth: the earlier pre-inject walker skips string
+      // elements inside arrays (e.g., priority_actions: string[]), so the
+      // upstream synonym phrases can survive to this stage. Fold them into
+      // consumeStr so array-of-string surfaces are still fail-closed.
+      const SUBCH_SYNONYM_RES: Array<[RegExp, string]> = [
+        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK],
+        [/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK],
+      ];
+      const consumeStr = (v: string): string => {
+        let next = v;
+        for (const [re, sub] of SUBCH_SYNONYM_RES) next = next.replace(re, sub);
+        // Collapse doubled/quantifier "the the cited provision" first.
+        next = next.replace(/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision");
+        next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision");
+        next = next.replace(SUBCH_UNDER_RE, `under ${SUBCH_FALLBACK}`);
+        next = next.replace(SUBCH_PURSUANT_RE, `pursuant to ${SUBCH_FALLBACK}`);
+        next = next.replace(SUBCH_TOKEN_RE, SUBCH_FALLBACK);
+        return next;
+      };
+      const walkFallbackConsume = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) {
+            const v = node[i];
+            if (typeof v === "string") node[i] = consumeStr(v);
+            else if (v && typeof v === "object") walkFallbackConsume(v);
+          }
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") (node as any)[k] = consumeStr(v);
+          else if (v && typeof v === "object") walkFallbackConsume(v);
+        }
+      };
+      walkFallbackConsume(report);
+
       // CPPA-HF6 — POST-INJECTION doubled-article collapse. Guards
       // against any residual "the the …" that survives injection at
       // token boundaries (e.g., a stray "the" adjacent to an injected
@@ -996,6 +1048,42 @@ ADDITIONAL DISCIPLINES:
             resolveInto2(reLinted.opt_out_gaps);
             resolveInto2(reLinted.access_gaps);
             resolveInto2(reLinted.documentation_to_maintain);
+
+            // CPPA-HF6R B-EXT — subchapter-anchor fallback consumption on
+            // lint-retry payload (parity with main path).
+            const SUBCH_TOKEN_RE_L = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
+            const SUBCH_UNDER_RE_L = /\bunder\s+the\s+cited\s+provision\b/gi;
+            const SUBCH_PURSUANT_RE_L = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+            const SUBCH_FALLBACK_L = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+            const consumeStrL = (v: string): string => {
+              let next = v;
+              next = next.replace(/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK_L);
+              next = next.replace(/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK_L);
+              next = next.replace(/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision");
+              next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision");
+              next = next.replace(SUBCH_UNDER_RE_L, `under ${SUBCH_FALLBACK_L}`);
+              next = next.replace(SUBCH_PURSUANT_RE_L, `pursuant to ${SUBCH_FALLBACK_L}`);
+              next = next.replace(SUBCH_TOKEN_RE_L, SUBCH_FALLBACK_L);
+              return next;
+            };
+            const walkFallbackConsumeL = (node: any) => {
+              if (!node) return;
+              if (Array.isArray(node)) {
+                for (let i = 0; i < node.length; i++) {
+                  const v = node[i];
+                  if (typeof v === "string") node[i] = consumeStrL(v);
+                  else if (v && typeof v === "object") walkFallbackConsumeL(v);
+                }
+                return;
+              }
+              if (typeof node !== "object") return;
+              for (const k of Object.keys(node)) {
+                const v = (node as any)[k];
+                if (typeof v === "string") (node as any)[k] = consumeStrL(v);
+                else if (v && typeof v === "object") walkFallbackConsumeL(v);
+              }
+            };
+            walkFallbackConsumeL(reLinted);
 
             // CPPA-HF6 — post-injection doubled-article collapse.
             const walkPostInject = (node: any) => {
@@ -1369,7 +1457,7 @@ Return this JSON structure exactly:
     }
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf6b@2026-07-20"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",

@@ -4,6 +4,40 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
+// CPPA-HF6R Task A — render-layer intake-field-id label map (parity with
+// generate-report-pdf/index.ts RISK_INTAKE_FIELD_LABELS). Fail closed:
+// route both sides of every conflicting-inputs pair through this map so
+// raw ids never render.
+const RISK_INTAKE_FIELD_LABELS: Array<[RegExp, string]> = [
+  [/^i5_admt_logic$/i, "the ADMT logic description"],
+  [/^q19_admt_description$/i, "the ADMT-system description"],
+  [/^q20_admt_opt_out$/i, "the ADMT opt-out description"],
+  [/^i5_admt_training_source$/i, "the ADMT-training source"],
+  [/^q18b?_admt_training$/i, "the ADMT-training answer"],
+  [/^q18[a-c]?_admt(?:_[a-z_]+)?$/i, "the ADMT trigger response"],
+  [/^i7_internal_contributors$/i, "the internal-contributors roster"],
+  [/^i1b_min_pi$/i, "the minimum-PI justification"],
+  [/^i1_processing_purpose$/i, "the processing purpose"],
+  [/^i2_retention_period$/i, "the recorded retention period"],
+  [/^i2_retention_detail$/i, "the recorded retention detail"],
+  [/^i2_retention_criteria$/i, "the recorded retention criteria"],
+  [/^i6_vendors$/i, "the vendor roster"],
+  [/^q15c_spi_volume$/i, "the sensitive-PI volume figure"],
+  [/^q1_revenue$/i, "the recorded revenue"],
+  [/^impact_intake(?:\.[a-z_]+)?$/i, "the impact-assessment record"],
+  [/^exceptions_intake(?:\.[a-z_]+)?$/i, "the exceptions record"],
+];
+const RAW_FIELD_ID_RE = /^([a-z]{1,3}\d{1,3}[a-z]?_[a-z][a-z0-9_]{2,}|intake_field_\d+)$/i;
+export function labelForIntakeFieldId(raw: unknown): string {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (!s) return "";
+  for (const [re, label] of RISK_INTAKE_FIELD_LABELS) {
+    if (re.test(s)) return label;
+  }
+  if (RAW_FIELD_ID_RE.test(s)) return "the corresponding intake field";
+  return s;
+}
+
 type Summary = {
   company_name?: string;
   sector?: string;
@@ -401,7 +435,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                 <p>{f.description}</p>
                 {(f.intake_field_1 || f.intake_field_2) && (
                   <p className="text-xs text-muted-foreground">
-                    Between: <code>{f.intake_field_1}</code>{f.intake_field_2 ? <> ↔ <code>{f.intake_field_2}</code></> : null}
+                    Between: {labelForIntakeFieldId(f.intake_field_1)}{f.intake_field_2 ? <> ↔ {labelForIntakeFieldId(f.intake_field_2)}</> : null}
                   </p>
                 )}
                 {f.regulatory_citation && (
