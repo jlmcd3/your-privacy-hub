@@ -274,6 +274,10 @@ serve(async (req) => {
       mode,
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       customer: customerId,
+      // SWEEP-2 T8: populate client_reference_id so verify-purchase can
+      // perform ownership verification on the returned session without
+      // relying on metadata alone.
+      client_reference_id: user.id,
       metadata,
       ...(mode === "subscription" && {
         subscription_data: {
