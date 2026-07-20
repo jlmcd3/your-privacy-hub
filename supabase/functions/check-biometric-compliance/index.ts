@@ -1053,7 +1053,6 @@ OTHER US STATE — APPLICABILITY FLAG
   - covers the broader pattern across CA/CO/CT/VA/UT/OR comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and DPIAs,
   - identifies the most likely applicable state regime based on the organisation type and purpose described.
 Do NOT skip this section even though no specific state was named. Do NOT emit generic "Confirm which biometric privacy or data protection law applies…" boilerplate in place of the analysis above — the section must name the applicable hooks (or state explicitly that none exist) rather than deferring the question back to the reader.
-` : ""}
 ` : ""}ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
 
