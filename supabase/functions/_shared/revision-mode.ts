@@ -438,7 +438,7 @@ export async function handleRevisionMode(
   const verdictIdSet = new Set(verdictIds);
   const dupCount = verdictIds.length - verdictIdSet.size;
   const missingVerdicts = answeredIds.filter((id) => !verdictIdSet.has(id));
-  const extraVerdicts = verdictIds.filter((id) => id && !answeredIds.includes(id));
+  const extraVerdicts = verdictIds.filter((id: string) => id && !answeredIds.includes(id));
   if (missingVerdicts.length > 0 || extraVerdicts.length > 0 || dupCount > 0 || verdictsRaw.length !== answeredIds.length) {
     console.error(`[revision:${toolType}] verdict_cardinality expected=${answeredIds.length} got=${verdictsRaw.length} missing=${missingVerdicts.length} extra=${extraVerdicts.length} dup=${dupCount}`);
     await revertStatus(supabase, table, rowId, priorStatus, toolType, "verdict_cardinality");

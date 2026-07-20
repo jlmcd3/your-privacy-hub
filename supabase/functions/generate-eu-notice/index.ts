@@ -11,6 +11,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 
+// Supabase Edge Runtime host-provided global (waitUntil for background work).
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
+
+
 
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
 
