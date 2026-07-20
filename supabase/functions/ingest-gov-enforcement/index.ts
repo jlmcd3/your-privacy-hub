@@ -722,7 +722,13 @@ Deno.serve(async (req) => {
         // L3 — reject rows that never resolve a subject. These are the
         // rows that previously rendered as "Undisclosed entity". Skip the
         // insert entirely; count as skipped so the run summary reflects it.
-        if (!extractedSubject) {
+        // SWEEP-2 T10: register-parser rows are EXEMPT from this null-skip.
+        // A structured register row with subject=null is a genuinely
+        // anonymized formal determination (e.g. "'AXF' and 'AXG'") — it
+        // must be inserted so the register remains complete. The row is
+        // stamped verification_status='requires_review' so downstream read
+        // paths can hide it by default until moderator review.
+        if (!extractedSubject && src.registerParser !== "oaic") {
           skipped++;
           continue;
         }
