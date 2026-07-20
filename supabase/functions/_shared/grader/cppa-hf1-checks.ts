@@ -191,12 +191,12 @@ export function checkH3AdmtCitationDepth(text: string): FormatFinding[] {
   return findings;
 }
 
-// ── H5 (CPPA-HF3 B2) ─────────────────────────────────────────────────
-// Ban bracketed INTERNAL NOTE / annotation blocks in user-rendered prose.
-// Pattern: "[INTERNAL NOTE: …]", "[INTERNAL: …]", "[NOTE TO REVIEWER: …]",
-// "[EDITOR NOTE: …]", "[TODO: …]", "[FOR INTERNAL USE: …]".
+// ── H5 (CPPA-HF3 B2, CPPA-HF5 Task H) ─────────────────────────────────
+// Ban bracketed INTERNAL <anything> / annotation blocks in user-rendered
+// prose. HF5 extends match to any "[INTERNAL <TOKEN>…" bracket block
+// (INTERNAL NOTE, INTERNAL PROCEDURE, INTERNAL REVIEW, …).
 export const HF3_INTERNAL_NOTE_RE =
-  /\[\s*(?:INTERNAL(?:\s+NOTE)?|NOTE\s+TO\s+REVIEWER|EDITOR\s+NOTE|TODO|FOR\s+INTERNAL\s+USE)\s*[:\-—]/i;
+  /\[\s*(?:INTERNAL(?:\s+[A-Z][A-Z\-]*)*|NOTE\s+TO\s+REVIEWER|EDITOR\s+NOTE|TODO|FOR\s+INTERNAL\s+USE)\b/i;
 
 export function checkH5InternalNoteBlock(text: string): FormatFinding[] {
   if (!text) return [pass("h5_internal_note_ok")];
@@ -208,17 +208,22 @@ export function checkH5InternalNoteBlock(text: string): FormatFinding[] {
   return [pass("h5_internal_note_ok")];
 }
 
-// ── H6 (CPPA-HF4 Task B1) ─────────────────────────────────────────────
-// § 7001 subdivisions are DEFINITIONAL; they may never appear as the sole
-// governing authority for §§ 7220–7222 action requirements (access
-// response, pre-use notice, opt-out). Action-anchor cites belong in the
-// verified §§ 7220–7222 map. This check flags a sentence that (a) cites
-// § 7001(x) and (b) uses an action verb bound to an ADMT duty and (c)
-// does NOT also cite a § 7220/7221/7222 anchor in the same sentence.
+// ── H6 (CPPA-HF4 Task B1; CPPA-HF5 Task C) ────────────────────────────
+// § 7001 subdivisions are DEFINITIONAL. They may never appear (i) as the
+// sole governing anchor for an ADMT action duty, or (ii) inside a
+// substantive citation CHAIN alongside § 7220/7221/7222 as if they
+// carried co-equal action-authority weight. Definitional support
+// belongs in narrative, not in the chain.
 const HF4_H6_ADMT_DUTY_VERBS =
   /\b(?:must\s+(?:disclose|provide|notify|respond|confirm|deliver|honor|honour|allow|permit)|shall\s+(?:disclose|provide|notify|respond|honor|honour)|the\s+business\s+must|response\s+must|access\s+response|opt[-\s]?out\s+response|pre[-\s]?use\s+notice|access\s+request)\b/i;
 const HF4_H6_S7001_RE = /\bs?§?\s*7001(?:\([a-z0-9]+\))*/i;
 const HF4_H6_ADMT_ANCHOR_RE = /\bs?§?\s*722[012](?:\([a-z0-9]+\))*/i;
+// A "chain" is a compact sequence of §-cites joined by "+" or by direct
+// enumeration with only whitespace/punctuation between the section tokens.
+// Prose references like "…, per § 7001(e)(1) definition, the …" are NOT
+// chains — they contain word tokens between the § tokens and are permitted.
+const HF4_H6_CHAIN_JOINER_RE = /\+/;
+const HF5_H6_ADJ_CHAIN_RE = /§\s*7001(?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)?\s*(?:11\s*CCR\s*)?§\s*722[012]|§\s*722[012](?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)\s*(?:11\s*CCR\s*)?§\s*7001/i;
 
 export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
   if (!text) return [pass("h6_admt_governing_anchor_ok", "citation_accuracy")];
@@ -226,11 +231,25 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
   const findings: FormatFinding[] = [];
   for (const s of sentences) {
     if (!HF4_H6_S7001_RE.test(s)) continue;
-    if (!HF4_H6_ADMT_DUTY_VERBS.test(s)) continue;
-    if (HF4_H6_ADMT_ANCHOR_RE.test(s)) continue;
-    findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
-      `§ 7001 cited as sole governing anchor for an ADMT action duty: "${s.slice(0, 200)}"`));
-    if (findings.length >= 5) break;
+    const hasDuty = HF4_H6_ADMT_DUTY_VERBS.test(s);
+    const hasAnchor = HF4_H6_ADMT_ANCHOR_RE.test(s);
+    if (hasDuty && !hasAnchor) {
+      findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
+        `§ 7001 cited as sole governing anchor for an ADMT action duty: "${s.slice(0, 200)}"`));
+      if (findings.length >= 5) break;
+      continue;
+    }
+    if (hasAnchor) {
+      // Chain detection: (a) explicit "+" anywhere in the sentence between
+      // a § 722x and § 7001 cite; OR (b) adjacent-token chain pattern.
+      const hasPlusChain = HF4_H6_CHAIN_JOINER_RE.test(s) && /§\s*7001/.test(s) && /§\s*722[012]/.test(s);
+      const hasAdjChain = HF5_H6_ADJ_CHAIN_RE.test(s);
+      if (hasPlusChain || hasAdjChain) {
+        findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
+          `§ 7001 co-cited in ADMT action-citation chain (definitional cite belongs in narrative, not the chain): "${s.slice(0, 200)}"`));
+        if (findings.length >= 5) break;
+      }
+    }
   }
   if (findings.length === 0) {
     findings.push(pass("h6_admt_governing_anchor_ok", "citation_accuracy"));

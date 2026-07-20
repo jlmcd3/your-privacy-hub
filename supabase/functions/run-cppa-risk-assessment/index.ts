@@ -2,7 +2,7 @@
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
-// CPPA-HF4 BUILD_STAMP: rebuild-risk-cppa-hf4@2026-07-19T22:00Z
+// CPPA-HF5 BUILD_STAMP: rebuild-risk-cppa-hf5@2026-07-20T00:00Z
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -1914,21 +1914,23 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = stripBeginNowNonAction(report_data);
 
-    // CPPA-HF4 Task A — RENDER-PATH FIELD-ID SCRUB.
-    // Model-side bans on raw intake field ids in prose have failed twice; the
-    // remaining leaks are render-path emission (source_fields array projected
-    // into prose, verbatim ids embedded in narrative). This walk replaces
-    // known intake field ids in prose values with human-readable labels.
-    // ANCHOR EXEMPTIONS: keys that legitimately carry raw field ids
-    // (`field`, `source_fields`, `field_ids`, `intake_field_1`,
-    // `intake_field_2`, `citation_ids`) pass through untouched. All other
-    // string values inside report_data are scrubbed. Does NOT weaken H2.
-    function scrubRawFieldIdsInProse(root: any): { scrubbed: number } {
+    // CPPA-HF5 Task A — RENDER-PATH FIELD-ID SCRUB, FAIL-CLOSED.
+    // Prior HF4 pass replaced only mapped IDs and let unmapped IDs render.
+    // HF5 promotes this to a fail-closed rule: EVERY field-id-shaped token
+    // in prose is replaced — mapped labels win; unmapped tokens fall
+    // through to a generic "the corresponding intake field" replacement.
+    // Anchor keys and URL substrings are exempt. Also promotes
+    // w3_label_mismatch from lint-warning to render-time correction.
+    function scrubRawFieldIdsInProse(root: any): { scrubbed: number; unmapped: number } {
       const ANCHOR_KEYS = new Set([
         "field", "source_fields", "field_ids",
         "intake_field_1", "intake_field_2",
-        "citation_ids", "canonical_fields",
+        "citation_ids", "canonical_fields", "element_id",
       ]);
+      // HF5 A(2) — extended label map. Each entry maps a field-id token
+      // to human-readable prose. Order matters: more specific tokens are
+      // listed first so partial-prefix matches (q19_admt vs q19_admt_description)
+      // resolve correctly.
       const LABELS: Array<[RegExp, string]> = [
         [/\bi5_admt_logic\b/gi, "the ADMT logic description"],
         [/\bq19_admt_description\b/gi, "the ADMT-system description"],
@@ -1937,44 +1939,80 @@ async function runPipeline(assessment_id: string) {
         [/\bi7_internal_contributors\b/gi, "the internal-contributors roster"],
         [/\bi1b_min_pi\b/gi, "the minimum-PI justification"],
         [/\bi1_processing_purpose\b/gi, "the processing purpose"],
+        [/\bi2_retention_period\b/gi, "the recorded retention period"],
+        [/\bi2_retention_detail\b/gi, "the recorded retention detail"],
+        [/\bi2_retention_criteria\b/gi, "the recorded retention criteria"],
+        [/\bi6_vendors\b/gi, "the vendor roster"],
         [/\bq15c_spi_volume\b/gi, "the sensitive-PI volume figure"],
         [/\bq1_revenue\b/gi, "the recorded revenue"],
         [/\bimpact_intake(?:\.[a-z_]+)?\b/gi, "the impact-assessment record"],
         [/\bexceptions_intake(?:\.[a-z_]+)?\b/gi, "the exceptions record"],
-        // Bare "source_fields" as a prose noun (never a key value)
         [/\bsource_fields\b/g, "the record fields"],
       ];
-      let scrubbed = 0;
-      const walk = (node: any, parentKey: string | null) => {
-        if (!node) return;
-        if (Array.isArray(node)) {
-          for (const v of node) walk(v, parentKey);
-          return;
+      // HF5 A(1) — fail-closed catch-all. Field-id token shape:
+      // 1–3 lowercase letters, optional digits, optional single letter,
+      // underscore, then a lowercase word body. Mirrors intake conventions
+      // (q1_revenue, i2_retention_period, q15c_spi_volume, impact_intake).
+      // URLs are exempted below.
+      // Field-id token shape: 1–3 lowercase letters, 1–3 digits (required —
+      // avoids false positives like "opt_out", "risk_assessment"), optional
+      // single trailing letter, underscore, then a lowercase word body.
+      const CATCHALL = /\b[a-z]{1,3}\d{1,3}[a-z]?_[a-z][a-z0-9_]{2,}\b/g;
+      const URL_RE = /https?:\/\/[^\s)]+/g;
+
+      const scrubString = (s: string): { out: string; hits: number; unmapped: number } => {
+        // Protect URLs by extracting them out, scrubbing the rest, and
+        // stitching them back. Legitimate paths (cppa.ca.gov/regulations/
+        // pdf/…) must never be mangled.
+        const urls: string[] = [];
+        const withHoles = s.replace(URL_RE, (u) => { urls.push(u); return `\u0000URL${urls.length - 1}\u0000`; });
+        let hits = 0;
+        let next = withHoles;
+        for (const [re, sub] of LABELS) {
+          next = next.replace(re, (m) => { hits++; return sub; });
         }
+        // Catch-all pass for any residual field-id-shaped tokens.
+        let unmapped = 0;
+        next = next.replace(CATCHALL, (m) => {
+          unmapped++;
+          hits++;
+          return "the corresponding intake field";
+        });
+        // Restore URLs.
+        next = next.replace(/\u0000URL(\d+)\u0000/g, (_m, i) => urls[Number(i)] ?? "");
+        return { out: next, hits, unmapped };
+      };
+
+      let scrubbed = 0;
+      let unmapped = 0;
+      const walk = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) { for (const v of node) walk(v); return; }
         if (typeof node !== "object") return;
         for (const key of Object.keys(node)) {
           const val = node[key];
-          if (ANCHOR_KEYS.has(key)) continue; // skip anchors entirely
+          if (ANCHOR_KEYS.has(key)) continue;
           if (typeof val === "string") {
-            let next = val;
-            for (const [re, sub] of LABELS) next = next.replace(re, sub);
-            if (next !== val) { node[key] = next; scrubbed++; }
+            const { out, hits, unmapped: u } = scrubString(val);
+            if (hits > 0) { node[key] = out; scrubbed += hits; unmapped += u; }
           } else if (val && typeof val === "object") {
-            walk(val, key);
+            walk(val);
           }
         }
       };
-      try { walk(root, null); } catch (_) { /* non-fatal */ }
-      return { scrubbed };
+      try { walk(root); } catch (_) { /* non-fatal */ }
+      return { scrubbed, unmapped };
     }
     try {
-      const { scrubbed } = scrubRawFieldIdsInProse(report_data);
+      const { scrubbed, unmapped } = scrubRawFieldIdsInProse(report_data);
       if (scrubbed > 0) {
-        console.warn(`[RISK] CPPA-HF4 A: render-path scrubbed ${scrubbed} field-id occurrence(s) in prose`);
+        console.warn(`[RISK] CPPA-HF5 A: render-path scrubbed ${scrubbed} field-id occurrence(s) in prose (unmapped catch-all: ${unmapped})`);
+        const meta: any = (report_data as any)._meta ?? ((report_data as any)._meta = {});
+        meta.hf5_render_scrub = { scrubbed, unmapped };
       }
     } catch (_) { /* non-fatal */ }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "rebuild-risk-cppa-hf4@2026-07-19") };
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "rebuild-risk-cppa-hf5@2026-07-20"), build_stamp: "rebuild-risk-cppa-hf5@2026-07-20T00:00Z" };
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
     report_data = freezeOpenItemsOnFirstRun(report_data, (report_data as any).information_needed, "cppa_risk_assessment", false);

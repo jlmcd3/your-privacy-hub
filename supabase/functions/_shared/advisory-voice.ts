@@ -177,6 +177,10 @@ const _RESERVED_KEYS = new Set([
   "_meta", "deterministic_checks", "prompt_version", "build_stamp",
   "generated_at", "enforcement_meta", "lint_warnings", "annotations",
   "citation_lints", "information_needed", "enforcement_precedents",
+  // CPPA-HF5 Task F — structural ID/anchor keys never render in prose;
+  // exclude so H2 internal-vocab scanning stays scoped to narrative.
+  "citation_ids", "field_ids", "source_fields", "element_id",
+  "intake_field_1", "intake_field_2", "canonical_fields",
 ]);
 
 export function extractProseFromReport(report: unknown, budget = 200_000): string {
