@@ -344,6 +344,18 @@ SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
   the object or the owner needed to be specific, route the item to information_needed rather than
   emit a generic mitigation; a generic mitigation dressed with an unnamed owner ("assign
   responsibility") is still a defect.
+- PRODUCT-FIX-4 T7 — INTAKE-SOURCED VALUES DISPLACE PLACEHOLDERS; DEFAULTS ARE MARKED: where the
+  intake supplies a value used by the recommendation (opt-out URL, privacy-notice URL, DPO contact,
+  named system/vendor, policy title, jurisdiction, or any similar concrete identifier), the item
+  emits the intake value inline — bracketed placeholders such as "[YOUR OPT-OUT URL]",
+  "[YOUR PRIVACY EMAIL]", "[LINK TO ADMT SECTION]", "[YOUR TOLL-FREE NUMBER]" are prohibited when
+  the intake supplies the value. Placeholders remain permitted only where the intake genuinely does
+  not supply the value; in that case, prefer routing the item to information_needed over emitting
+  a placeholder in body text. Never emit phrases of the form "timeline to be set by the
+  organisation" / "cadence to be determined" / "period to be defined" — propose a concrete default
+  window (e.g. "within 30 days" / "quarterly" / "annually", chosen by the applicable statutory
+  cadence or a defensible operational cadence) and mark it with the trailing "(default — confirm)"
+  marker so the user can confirm or override.
 
 ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2 — SHARED PROMPT-CORE DIRECTIVE;
 generalises the pattern that per-tool detectors already enforce for one product surface, and does
