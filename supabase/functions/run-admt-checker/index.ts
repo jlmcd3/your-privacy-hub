@@ -939,6 +939,28 @@ ADDITIONAL DISCIPLINES:
           // Re-run resolver on the retry payload so citations remain registry-controlled.
           try {
             const proseFields = ["finding", "remediation", "enforcement_exposure", "element"] as const;
+            // CPPA-HF6 — pre-injection phrase normalizer on lint-retry payload.
+            const PRE_INJECT_PHRASE_RULES: Array<[RegExp, string]> = [
+              [/\bthe\s+applicable\s+definitional\s+provision\b/gi, "the cited provision"],
+              [/\bthe\s+applicable\s+regulation\s+section\b/gi, "the cited provision"],
+              [/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision"],
+              [/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision"],
+            ];
+            const walkPreInject = (node: any) => {
+              if (!node) return;
+              if (Array.isArray(node)) { for (const v of node) walkPreInject(v); return; }
+              if (typeof node !== "object") return;
+              for (const k of Object.keys(node)) {
+                const v = (node as any)[k];
+                if (typeof v === "string") {
+                  let next = v;
+                  for (const [re, sub] of PRE_INJECT_PHRASE_RULES) next = next.replace(re, sub);
+                  if (next !== v) (node as any)[k] = next;
+                } else if (v && typeof v === "object") walkPreInject(v);
+              }
+            };
+            walkPreInject(reLinted);
+
             const resolveInto2 = (arr: any[] | undefined) => {
               if (!Array.isArray(arr)) return;
               for (const item of arr) {
@@ -953,12 +975,43 @@ ADDITIONAL DISCIPLINES:
                 } else {
                   item.citation = "";
                 }
+                // CPPA-HF6 — TOKEN consumption on lint-retry (parity with resolveInto).
+                if (item && typeof item.citation === "string" && item.citation.trim()) {
+                  const concrete = item.citation.trim();
+                  const TOKEN_RE = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
+                  const UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
+                  const PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+                  for (const f of proseFields) {
+                    if (typeof item[f] !== "string") continue;
+                    let next = item[f] as string;
+                    next = next.replace(UNDER_RE, `under ${concrete}`);
+                    next = next.replace(PURSUANT_RE, `pursuant to ${concrete}`);
+                    next = next.replace(TOKEN_RE, concrete);
+                    item[f] = next;
+                  }
+                }
               }
             };
             resolveInto2(reLinted.notice_gaps);
             resolveInto2(reLinted.opt_out_gaps);
             resolveInto2(reLinted.access_gaps);
             resolveInto2(reLinted.documentation_to_maintain);
+
+            // CPPA-HF6 — post-injection doubled-article collapse.
+            const walkPostInject = (node: any) => {
+              if (!node) return;
+              if (Array.isArray(node)) { for (const v of node) walkPostInject(v); return; }
+              if (typeof node !== "object") return;
+              for (const k of Object.keys(node)) {
+                const v = (node as any)[k];
+                if (typeof v === "string") {
+                  let next = v.replace(/\bthe\s+the\b/gi, "the");
+                  next = next.replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
+                  if (next !== v) (node as any)[k] = next;
+                } else if (v && typeof v === "object") walkPostInject(v);
+              }
+            };
+            walkPostInject(reLinted);
           } catch (e) {
             console.warn("[run-admt-checker] resolver on lint-retry failed (non-fatal):", e);
           }
