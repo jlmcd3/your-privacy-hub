@@ -326,6 +326,44 @@ export const PIPE_ROSTER_EXEMPT_RE =
 const DIRECTIVE_VERB_RE =
   /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
 
+// GRADER-CAL-4 — advice-delegation forms that override owner-directive exemption.
+// A sentence that assigns the DECISION or REVIEW to counsel is still a referral
+// even if a qualifying internal role is the grammatical subject.
+const ADVICE_DELEGATION_RE =
+  /\b(?:consult(?:ed|ing)?\b|seek(?:ing)?\s+advice|be\s+reviewed\s+by\s+(?:counsel|an?\s+attorney|a\s+lawyer|legal\s+counsel|qualified\s+counsel)|review(?:ed)?\s+by\s+(?:counsel|an?\s+attorney|a\s+lawyer|legal\s+counsel|qualified\s+counsel)|resolved\s+by\s+legal\s+counsel|approved\s+by\s+(?:counsel|legal\s+counsel)|review,?\s+complete,?\s+and\s+own)\b/i;
+
+// Second-person reader-directed constructions ("your ... counsel/DPO must") —
+// these are counsel referrals addressed to the reader, never exempted.
+const READER_DIRECTED_RE =
+  /\byour\s+(?:qualified\s+)?(?:legal\s+counsel|counsel|attorney|lawyer|data\s+protection\s+officer|dpo|privacy\s+officer|privacy\s+counsel)\b/i;
+
+// GRADER-CAL-4 Task 1 — OWNER-DIRECTIVE exemption. Skip a COUNSEL_REFERRAL_RE
+// hit when an internal-role token (DPO / Privacy Officer / CISO / Compliance
+// Officer / privacy lead / privacy manager) is the acting subject of a modal
+// directive, including passive operational forms ("must be notified"). Bare
+// counsel tokens do NOT qualify as the acting subject; counsel may appear only
+// as a named COLLABORATOR ("The DPO, working with Legal Counsel and the CTO,
+// must ...").
+//
+// Regex captures: subject phrase containing an internal-role token, then any
+// intervening clause (up to ~200 chars, allowing "working with X and Y",
+// commas, parentheticals), then a modal directive verb. Passive form is
+// handled by the alternation `must\s+be\s+\w+ed?` (e.g. "must be notified",
+// "must be updated", "should be escalated").
+const OWNER_DIRECTIVE_RE =
+  /\b(?:the\s+)?(?:privacy\s+officers?|privacy\s+lead|privacy\s+manager|data\s+protection\s+officer|dpo|chief\s+information\s+security\s+officer|ciso|compliance\s+(?:officer|manager|lead))\b[^.\n]{0,200}?\b(?:must|shall|should|needs\s+to|will|is\s+responsible\s+for)\b/i;
+
+// GRADER-CAL-4 Task 2 — DESCRIPTIVE-STATUS exemption. Skip when the role
+// token appears only in a parenthetical, past-tense, or status clause with
+// no modal directive addressed to that role or the reader. Examples:
+//   "The informal privacy lead (a senior legal counsel carrying privacy
+//    responsibilities part-time) has flagged the gap but no remediation
+//    timeline has been set."
+//   "The DPO was appointed last quarter."
+//   "The Privacy Officer currently serves as the incident escalation point."
+const DESCRIPTIVE_STATUS_RE =
+  /\b(?:has\s+flagged|had\s+flagged|was\s+appointed|were\s+appointed|currently\s+serves?|carries?\s+(?:privacy|compliance)\s+responsibilit|carrying\s+(?:privacy|compliance)\s+responsibilit|previously\s+held|historically\s+served|has\s+been\s+designated|was\s+designated)\b/i;
+
 
 // GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
 //
