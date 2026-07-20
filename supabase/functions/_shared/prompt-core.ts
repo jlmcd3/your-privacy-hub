@@ -26,8 +26,13 @@
 // retention rule ("last interaction", not "collection"); GDPR Art. 9(1) biometric
 // qualifier (special-category only when the purpose is uniquely identifying a
 // natural person). W2C exemptions in the language-variant rule are unchanged.
-export const PROMPT_CORE_VERSION = "3.9.3-counsel-voice-1";
-export const BUILD_TAG = "qb18";
+// v3.10 (SPEC-PACK-1, 2026-07-20): TWO shared directives added at prompt-core layer —
+// SPECIFICITY_ACTIONABILITY_RULE (S1) and ENGAGED_JURISDICTION_CITATION_RULE (S2).
+// Both are embedded into EUP_PROMPT_CORE (full) and EUP_PROMPT_CORE_LEAN so every
+// tool consuming buildSystemContent inherits them; DPA composes its own systemPrompt
+// and wires the two named exports directly (same pattern as ADVISORY_VOICE_RULES).
+export const PROMPT_CORE_VERSION = "3.10.0-spec-pack-1";
+export const BUILD_TAG = "qb19";
 
 import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
 
