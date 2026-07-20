@@ -10,20 +10,27 @@ import { resolveCitations, CITATION_REGISTRY } from "../_shared/admt-citation-re
 
 const injected = "REGULATION AUTHORITIES:\n(none)\n\nCOMPLIANCE DEADLINES:\n(none)";
 
-Deno.test("assembled system is a 3-block array with expected content", () => {
+Deno.test("assembled system is a 4-block array with expected content (COUNSEL-VOICE-1B advisory tail)", () => {
   const blocks = buildSystemContent({
     toolModule: ADMT_TOOL_MODULE,
     currentDate: "2026-06-26",
     injected,
   });
-  assertEquals(blocks.length, 3);
+  assertEquals(blocks.length, 4);
   assertStringIncludes(blocks[0].text, "PRIORITY ORDER");
   // Block 2 carries the ADMT scope-gate text and the registry contract.
   assertStringIncludes(blocks[1].text, "SIGNIFICANT-DECISION CLASSIFIER");
   assertStringIncludes(blocks[1].text, "CITATION ENGINE — DETERMINISTIC");
+  // Advisory-voice tail (blocks[3]) carries the canonical closes and the
+  // counsel-referral prohibition. Regressing the voice policy MUST break here.
+  assertStringIncludes(blocks[3].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[3].text, "further internal investigation is advisable.");
+  assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
+  const advisoryHits = blocks.filter((b) => /further clarification is advisable\./.test(b.text)).length;
+  assertEquals(advisoryHits, 1);
 });
 
-Deno.test("blocks 1 and 2 cached; injected block 3 not cached", () => {
+Deno.test("blocks 1 and 2 cached; injected block 3 and advisory block 4 not cached", () => {
   const blocks = buildSystemContent({
     toolModule: ADMT_TOOL_MODULE,
     currentDate: "2026-06-26",
@@ -32,9 +39,10 @@ Deno.test("blocks 1 and 2 cached; injected block 3 not cached", () => {
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[1].cache_control?.type, "ephemeral");
   assertEquals(blocks[2].cache_control, undefined);
+  assertEquals(blocks[3].cache_control, undefined);
 });
 
-Deno.test("block 2 does NOT duplicate generic core rules", () => {
+Deno.test("block 2 does NOT duplicate generic core rules; generic lines exist exactly once", () => {
   const blocks = buildSystemContent({
     toolModule: ADMT_TOOL_MODULE,
     currentDate: "2026-06-26",
@@ -44,6 +52,11 @@ Deno.test("block 2 does NOT duplicate generic core rules", () => {
   assert(!blocks[1].text.includes("NO ADAPTIVE GUIDANCE. Present regulatory standards"));
   assertStringIncludes(blocks[0].text, "Use American English throughout this document");
   assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE. Present regulatory standards");
+  // Generic rules appear EXACTLY ONCE across all blocks.
+  const priorityHits = blocks.filter((b) => /PRIORITY ORDER/.test(b.text)).length;
+  assertEquals(priorityHits, 1);
+  const adaptiveHits = blocks.filter((b) => /NO ADAPTIVE GUIDANCE/.test(b.text)).length;
+  assertEquals(adaptiveHits, 1);
 });
 
 Deno.test("registry intact: significant-decision intake resolves to non-empty citations", () => {
