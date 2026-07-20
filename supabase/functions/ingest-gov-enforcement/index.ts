@@ -506,6 +506,11 @@ Deno.serve(async (req) => {
   const mode: "backfill" | "monitor" = modeRaw === "monitor" ? "monitor" : "backfill";
   const sourceGroupParam = param("source_group"); // "core" | "us_state" | "canada" | "all" | null
   const sourceKeyParam = param("source"); // exact match on src.source (e.g. "CPPA")
+  // SWEEP-2 T3: register-parser filter — accept only register rows whose
+  // decisionDate >= sinceDate (ISO YYYY-MM-DD). Applied ONLY to the OAIC
+  // register parser; non-register sources ignore this param.
+  const sinceDateParam = param("since_date");
+  const sinceDate = sinceDateParam && /^\d{4}-\d{2}-\d{2}$/.test(sinceDateParam) ? sinceDateParam : null;
 
   let ftcPageFilter: Set<number> | null = null;
   if (ftcPageParam !== null) {
