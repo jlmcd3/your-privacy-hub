@@ -126,6 +126,7 @@ export default function EnforcementActionDetail() {
             "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law"
           )
           .eq("jurisdiction", currentJurisdiction)
+          .not("subject", "is", null)
           .neq("id", id)
           .order("decision_date", { ascending: false, nullsFirst: false })
           .limit(5);
