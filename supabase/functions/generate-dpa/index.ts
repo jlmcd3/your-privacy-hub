@@ -676,10 +676,10 @@ Audit rights: ${body.auditRights}${additionalFrameworksLine}${frameworkFallbackN
 - NON-EEA PARTIES ON A GDPR FRAMEWORK SAY WHY: where neither Party is established in the EEA or the UK but the DPA is drafted on the GDPR Article 28(3) framework, the Legal Framework section must state the design rationale in one sentence so the framework choice and the applicability statement cannot read as contradictory: "Although neither Party is currently established in the EEA or the UK and the EU GDPR does not, on its face, engage, this DPA adopts the GDPR Article 28(3) framework as its contractual baseline standard; its GDPR-derived provisions apply as contractual obligations between the Parties, and additionally as statutory obligations if and to the extent the processing comes within the scope of the EU GDPR or UK GDPR (including under Article 3(2))." Never assert facial non-applicability and then deploy the full GDPR structure without this baseline-standard sentence. REBUILD-DPA T1c SCOPING: this baseline-standard sentence is emitted ONLY in a GDPR-mode draft (Legal framework = GDPR, or a dual-EU mode) where neither Party maps to the EEA/UK. It MUST NOT appear in a us-state, canada, or non-GDPR draft — the model must not use it as cover when the record establishes a non-GDPR framework. Where the record affirmatively selects or implies a non-GDPR framework, follow the record; do not import GDPR baseline language.
 - OPERATIVE VOICE ONLY: every sentence inside a clause, schedule, or annex is contract language — an obligation, representation, warranty, acknowledgment, definition, or condition. Rationale is expressed through the Parties' voice ('The Processor acknowledges that documented vendor due diligence and ongoing oversight are necessary to …', 'The Processor represents and warrants that …'), NEVER as a compliance advisory or drafter's note. 'The absence of X is a material compliance risk under Article 5(1)(e)' and 'This measure is required to address the risk of …' are fatal voice errors inside operative text. Where a risk observation has no operative home, it becomes a [TO BE COMPLETED: …] instruction to the Parties or is omitted — the executed document argues nothing; it binds.
 - DATA-SUBJECT REMEDY CARVE-OUT: where the agreement contains an exclusive-jurisdiction or governing-law clause, include a clause preserving data subjects' rights under GDPR Article 79(2) to bring proceedings in the courts of their habitual-residence Member State, and state that the exclusive-jurisdiction clause governs disputes between the Parties only. Where any transfer to or processing in the UK is possible, note that the UK is a separate third country requiring its own transfer mechanism (UK adequacy, IDTA, or the UK Addendum) assessed separately from EU transfers.
-- SCC INCORPORATION LANGUAGE: do not state that the EU SCCs are 'incorporated in Section 10' — Section 10 describes WHEN SCCs are required and references the annex/schedule for execution; the clauses themselves are not attached or executed as part of the generated draft. Use: 'Transfer mechanisms pursuant to Section 10 of this DPA, including EU Standard Contractual Clauses where required,' and clarify that SCCs must be separately executed for each onward transfer in accordance with Section 10 — do not imply the SCCs are already incorporated by reference alone. THE FULL SCC-INCORPORATION SENTENCE APPEARS EXACTLY ONCE IN THE DOCUMENT, wherever the incorporation-by-reference caveat is first stated (typically Section 10.4). Do NOT emit the sentence "Transfer mechanisms pursuant to this Section 10, including EU Standard Contractual Clauses where required, must be separately executed for each onward transfer in accordance with this Section 10 — the EU SCCs are not incorporated into this DPA by reference alone" (or any substantive paraphrase of it) in two consecutive sub-clauses, in the same sub-clause twice, or in both Section 10 and any subsequent Schedule that cross-references Section 10. Subsequent references cross-reference Section 10.4 by number ("as set out in Section 10.4") rather than restating the sentence. A verbatim or near-verbatim second emission of this sentence is a fatal duplication defect equivalent to the sub-processor note defect governed by "REPEATED CONTENT APPEARS ONCE".
+- SCC INCORPORATION LANGUAGE: do not state that the EU SCCs are 'incorporated in the DATA TRANSFERS section' — the DATA TRANSFERS section describes WHEN SCCs are required and references the annex/schedule for execution; the clauses themselves are not attached or executed as part of the generated draft. Use: 'Transfer mechanisms pursuant to the DATA TRANSFERS section of this DPA, including EU Standard Contractual Clauses where required,' and clarify that SCCs must be separately executed for each onward transfer in accordance with the DATA TRANSFERS section — do not imply the SCCs are already incorporated by reference alone. THE FULL SCC-INCORPORATION SENTENCE APPEARS EXACTLY ONCE IN THE DOCUMENT, wherever the incorporation-by-reference caveat is first stated (typically in the incorporation-by-reference sub-clause of the DATA TRANSFERS section). Do NOT emit the sentence "Transfer mechanisms pursuant to this section, including EU Standard Contractual Clauses where required, must be separately executed for each onward transfer in accordance with this section — the EU SCCs are not incorporated into this DPA by reference alone" (or any substantive paraphrase of it) in two consecutive sub-clauses, in the same sub-clause twice, or in both the DATA TRANSFERS section and any subsequent Schedule that cross-references it. Subsequent references cross-reference the incorporation-by-reference sub-clause by its actual sub-clause number in this draft (e.g. "as set out in Section [N].[m] of this DPA") rather than restating the sentence. A verbatim or near-verbatim second emission of this sentence is a fatal duplication defect equivalent to the sub-processor note defect governed by "REPEATED CONTENT APPEARS ONCE".
 - UK ADEQUACY IS CURRENT, NOT A VERIFICATION TASK: the EU's adequacy decisions for the United Kingdom, adopted 19 December 2025, are in force and valid until 27 December 2031. State this as a settled fact ('...are in force as of the Effective Date and remain valid until 27 December 2031, subject to any subsequent withdrawal or suspension'), not as an open item requiring the Parties to 'verify continued validity' — that phrasing manufactures uncertainty where the decision's term is already fixed and known.
 - UK IDTA DIRECTIONALITY (CORRECTED): the UK IDTA (or the UK Addendum to the EU SCCs) is a UK GDPR Article 46 safeguard for restricted transfers FROM the United Kingdom to destinations not covered by UK adequacy regulations. It is NEVER required for transfers from the EEA to the UK — those transfers proceed under the European Commission's adequacy decision for the UK while it remains in force, and inbound transfers are not restricted transfers under UK GDPR. State: 'The UK IDTA (or the UK Addendum to the EU SCCs) applies to transfers of personal data from the United Kingdom to third countries not covered by UK adequacy regulations, including onward transfers by UK-established recipients or sub-processors; it does not apply to transfers from the EEA to the United Kingdom, which are governed by the European Commission's adequacy decision for the UK.' Never state or imply that an IDTA or UK Addendum may be required for an EEA-to-UK transfer.
-- NO REDUNDANT THIRD-COUNTRY RESTATEMENT: if Section 10 already addresses the UK's third-country status and adequacy coverage, do not repeat the same statement in the governing-law section (or any other section). State it once, in the transfer-provisions section, and cross-reference from elsewhere if needed — do not restate substantively identical transfer-status language in two places.
+- NO REDUNDANT THIRD-COUNTRY RESTATEMENT: if the DATA TRANSFERS section already addresses the UK's third-country status and adequacy coverage, do not repeat the same statement in the governing-law section (or any other section). State it once, in the transfer-provisions section, and cross-reference from elsewhere if needed — do not restate substantively identical transfer-status language in two places.
 - US SUB-PROCESSOR TRANSFER GUIDANCE: where a named sub-processor's location or corporate domicile in the intake indicates a likely US establishment, add to the transfer-mechanism NOTE (without filling in the placeholder itself): 'For Sub-processors headquartered or processing in the United States, verify whether they participate in the EU–US Data Privacy Framework (Article 45 adequacy) or whether EU SCCs Module 3 is required; the applicable mechanism must be documented before execution.' This guides the user's verification without asserting which mechanism applies — the placeholder itself remains [TO BE COMPLETED]. THE NOTE APPEARS EXACTLY ONCE, as a standalone note immediately before the sub-processor table; the table's Transfer Mechanism entries carry only the [TO BE COMPLETED] placeholder and a short cross-reference ('see note above') — never a restatement of the note text IN ANY WORDING — a closing paragraph that paraphrases the note ('The Parties shall verify each sub-processor's participation status… the note above applies to all listed sub-processors') is the same defect as a verbatim duplicate (see REPEATED CONTENT APPEARS ONCE in the core).
 - GERMAN SUPERVISORY AUTHORITY PRECISION (SUPERVISORY AUTHORITIES ONLY): Germany has 17 state-level supervisory authorities (16 Länder plus the federal BfDI for specific sectors). Do not state 'the competent German supervisory authority' as if there is one national authority. State: 'The competent supervisory authority for [German entity] shall be [TO BE COMPLETED: the German state data protection authority (Landesdatenschutzbehörde) with jurisdiction over the entity's registered seat — complete after the entity's registered-seat placeholder earlier in this Agreement is finalised].' Where a placeholder depends on the completion of an earlier placeholder, it says so and names the location — a placeholder must never request information the user cannot supply until another field is completed without stating that dependency. If a lead supervisory authority for the overall controller-processor relationship has already been established elsewhere in the document (e.g. CNIL for a French controller), distinguish that from the German sub-processor's own state-authority registration. THIS PRECISION APPLIES ONLY TO SUPERVISORY-AUTHORITY IDENTIFICATION — never to governing-law or forum clauses. German contract and data-protection law is federal: a governing-law clause states 'the laws of the Federal Republic of Germany' definitively with NO Land-law hedge and NO pre-execution confirmation instruction, and a jurisdiction clause states 'the courts of Germany, with specific jurisdiction determined in accordance with the Zivilprozessordnung (ZPO) having regard to the Parties' registered seats' rather than inviting the Parties to confirm a court.
 - BC/DR TEST-RESULT RETENTION: where the DPA requires a business continuity/disaster recovery plan tested at [TO BE COMPLETED: frequency], also require that test results be documented and retained for [TO BE COMPLETED: retention period] and made available to the Controller upon request. Do not leave test-result retention unaddressed when test frequency is already required.
@@ -737,7 +737,7 @@ The dispute resolution / jurisdiction clause that follows MUST identify courts c
 - VERIFICATION INSTRUCTIONS APPEAR ONCE: where the same verification duty applies to both Parties (e.g. confirming each party's competent state-level supervisory authority), state it ONCE covering both Parties, and cross-reference from the second location ('see clause X') — never repeat the instruction verbatim in two clauses.
 - RETENTION TRIGGERS CARRY AN ILLUSTRATIVE MENU: where the retention commencement event is deferred to the Parties, the placeholder names the class of event and offers an illustrative menu without selecting one — '[TO BE COMPLETED: the event marking the start of the retention period — to be defined by the Parties by reference to the Principal Agreement]', with the illustrative menu matched to the clause's stated scope: where the clause defines retention per data subject, the examples are per-subject events ('e.g., closure of that data subject's account, the last service interaction with that data subject, or the last processing activity involving that data subject's personal data'); where the clause defines a single agreement-level period, the examples are agreement-level events ('e.g., termination of the Principal Agreement, closure of the last support ticket, or the Processor's final processing activity under this DPA'). Never mix per-subject lead-in language with agreement-level examples or vice versa. Never leave a bare 'to be defined by the Parties' with no indication of what kind of event is intended, and never pre-select one.
 - CLAUSE NUMBERING IS CONTIGUOUS AT EVERY LEVEL: within any numbered list of sub-clauses, the numbering extends the SAME parent contiguously (6.2.1.1, 6.2.1.2, 6.2.1.3, 6.2.1.4) and never jumps to a different parent (…6.2.1.3 followed by 6.2.4 is a numbering defect). Before emitting the document, verify every multi-item enumeration for contiguous sequence and correct any break. A skipped, repeated, or parent-switching number anywhere in the instrument is a drafting defect.
-- SUBCLAUSE PARALLEL STRUCTURE AND ECONOMY: items in an enumerated list share one grammatical form (all noun phrases: 'A description of…', 'The name and contact details of…' — never one bare-verb item among noun phrases); a clause never cross-references the section it is already inside ('in accordance with this Section 10' from within Section 10); and qualifier phrases that add no operative precision ('as part of an intended programme of processing') are omitted.
+- SUBCLAUSE PARALLEL STRUCTURE AND ECONOMY: items in an enumerated list share one grammatical form (all noun phrases: 'A description of…', 'The name and contact details of…' — never one bare-verb item among noun phrases); a clause never cross-references the section it is already inside (e.g. 'in accordance with this Section N' from within Section N); and qualifier phrases that add no operative precision ('as part of an intended programme of processing') are omitted.
 
 
 Output format:
@@ -819,6 +819,113 @@ SCHEDULE 1 — APPROVED SUB-PROCESSORS (populate from intake; if none provided, 
 
 ${ANNOTATIONS_INSTRUCTIONS}`;
 
+    // DPA-FIX-3 Task 1 — ENGAGED-STATES STATIC-TEMPLATE PRUNING.
+    // Derive the engaged US states from the record here so the US and DUAL-EU-US
+    // template blocks below can splice per-state content dynamically instead of
+    // enumerating non-engaged state statutes. Non-engaged state statutes are
+    // banned from operative text by FF-DPA nd2 (rule 658); the static
+    // enumerations that previously appeared inline (§4.6 risk-assessment list,
+    // §11 breach bullets, §929 savings tail, dual-mode legal-framework line
+    // and dual-mode §11 breach block) are now filtered to the engaged set.
+    // The generic savings tail is the canonical nd2-permitted form: "and any
+    // other applicable state privacy laws" with NO enumerated statute names.
+    const promptEngagedStates: string[] = Array.from(
+      deriveEngagedStates([detected.ctrlCanonical, detected.procCanonical]),
+    );
+    const _has = (s: string) => promptEngagedStates.includes(s);
+    const engagedListLine = promptEngagedStates.length
+      ? promptEngagedStates.join(", ")
+      : "(none identified from the record — no state-specific enumerations should be emitted)";
+    // §4.6 risk-assessment enumeration: state → clause fragment.
+    const _riskAssessMap: Record<string, string> = {
+      California: "Cal. Civ. Code § 1798.185(a)(15) and CPPA risk-assessment regulations",
+      Texas: "TDPSA § 541.109",
+      Connecticut: "CTDPA § 8",
+      Virginia: "VCDPA § 59.1-579",
+      Colorado: "CPA § 6-1-1309",
+      Oregon: "OCPA § 646A.574",
+    };
+    const _riskAssessBits = promptEngagedStates
+      .map((s) => _riskAssessMap[s])
+      .filter(Boolean);
+    const riskAssessLine = _riskAssessBits.length
+      ? _riskAssessBits.join("; ")
+      : "as required by any applicable state privacy law";
+    // §11 breach-notification bullets: filter to engaged states only.
+    const _breachBulletMap: Record<string, string> = {
+      California: `California: Processor shall notify Controller of any Data Breach impacting Personal Data of California residents "without unreasonable delay and in the most expedient time possible" after discovery. Do NOT impose a fixed 72-hour processor-to-controller window for California — Cal. Civ. Code § 1798.82 governs notification to individuals, not B2B processor timelines. The Controller is responsible for notifying the California Attorney General if 500+ California residents are affected.`,
+      Texas: `Texas: notify Controller promptly; Controller notifies AG if 250+ Texans affected (Tex. Bus. & Com. Code § 521.053)`,
+      Connecticut: `Connecticut: Processor shall notify Controller without unreasonable delay after discovery. Under Conn. Gen. Stat. § 36a-701b (Connecticut's breach notification statute — NOT the CTDPA, which does not set an independent breach notification timeline), the Controller must notify affected Connecticut residents "in the most expedient time possible." Controller notifies the CT AG simultaneously with individual notification. Do NOT state a 72-hour deadline for Connecticut — no such deadline exists in Connecticut law.`,
+      Colorado: `Colorado: Processor shall notify Controller without undue delay; Controller notifies the Colorado Attorney General as required by C.R.S. § 6-1-716 (Colorado breach notification statute). Do NOT cite "CPA § 6-1-1309" for breach notification — the Colorado Privacy Act does not set breach notification timelines; those come from C.R.S. § 6-1-716.`,
+      Virginia: `Virginia: Processor shall notify Controller without unreasonable delay after discovery. Under the VCDPA, the Controller must notify the Virginia Attorney General within 60 days when the breach affects more than 100,000 Virginia consumers (VCDPA 2024 amendment). Do NOT state a 72-hour notification deadline for Virginia — the VCDPA does not set one.`,
+    };
+    const _breachBullets = promptEngagedStates
+      .map((s) => _breachBulletMap[s])
+      .filter(Boolean)
+      .map((b) => `    - ${b}`);
+    const breachBulletsBlock = _breachBullets.length
+      ? _breachBullets.join("\n")
+      : `    - Apply the breach-notification timing of each state whose statute the engaged US states set (identified above) makes operative. Do NOT enumerate the timelines of states outside the engaged set.`;
+    // §929 savings tail — canonical generic form per FF-DPA nd2.
+    const consumerAccessSavingsLine = _has("California")
+      ? `assist the Controller in responding to consumer access requests under Cal. Civ. Code § 1798.100 (CCPA) and equivalent provisions of any other applicable state privacy laws`
+      : `assist the Controller in responding to consumer access requests under any applicable state privacy laws`;
+    const consumerDeletionSavingsLine = _has("California")
+      ? `assist the Controller in responding to consumer deletion requests under Cal. Civ. Code § 1798.105 and equivalent state provisions`
+      : `assist the Controller in responding to consumer deletion requests under any applicable state privacy laws`;
+    const optOutSavingsLine = _has("California")
+      ? `pass through and honor any opt-out of sale/sharing signals under Cal. Civ. Code § 1798.120`
+      : `pass through and honor any opt-out of sale/sharing signals required by applicable state privacy law`;
+    const citeExampleSavingsLine = _has("California")
+      ? `Cite the specific statutory provision (e.g. "Cal. Civ. Code § 1798.100(d)(1)") for each key obligation.`
+      : `Cite the specific statutory provision for each key obligation under an engaged state's statute; do not cite statutes of states outside the engaged set.`;
+    // Dual-mode legal-framework enumeration (line ~980).
+    const _dualStatuteMap: Record<string, string> = {
+      California: "CCPA/CPRA",
+      Texas: "TDPSA",
+      Connecticut: "CTDPA",
+      Virginia: "VCDPA",
+      Colorado: "CPA",
+      Oregon: "OCPA",
+      Florida: "FDBR",
+      Washington: "MHMDA",
+      Illinois: "BIPA",
+      Utah: "UCPA",
+      Iowa: "Iowa CDPA",
+      Indiana: "ICDPA",
+      Tennessee: "TIPA",
+      Montana: "MCDPA",
+      Minnesota: "Minnesota CDPA",
+      Delaware: "DPDPA",
+      "New York": "New York SHIELD Act",
+      Massachusetts: "Massachusetts DPA",
+    };
+    const _dualEngagedStatutes = promptEngagedStates
+      .map((s) => _dualStatuteMap[s])
+      .filter(Boolean);
+    const dualLegalFrameworkLine = _dualEngagedStatutes.length
+      ? `GDPR Article 28 + US State Privacy Laws (${_dualEngagedStatutes.join(", ")} as applicable)`
+      : `GDPR Article 28 + any applicable US state privacy laws`;
+    const dualHeaderRecitalLine = _has("California")
+      ? `"This DPA is entered into to satisfy the requirements of (a) GDPR Article 28, (b) CCPA/CPRA § 1798.100(d), and (c) other applicable US state privacy laws."`
+      : `"This DPA is entered into to satisfy the requirements of (a) GDPR Article 28 and (b) any applicable US state privacy laws."`;
+    // Dual-mode §11 breach block — CA phrase + non-CA engaged bullets.
+    const _dualBreachExtras = promptEngagedStates
+      .filter((s) => s !== "California")
+      .map((s) => _breachBulletMap[s])
+      .filter(Boolean);
+    const dualBreachStateLine = (() => {
+      const parts: string[] = [];
+      if (_has("California")) parts.push(`California — "without unreasonable delay" (Cal. Civ. Code § 1798.82 governs notification to individuals)`);
+      if (_has("Colorado")) parts.push(`Colorado — C.R.S. § 6-1-716 (NOT "CPA § 6-1-1309")`);
+      if (_has("Texas")) parts.push(`Texas (Tex. Bus. & Com. Code § 521.053)`);
+      if (_has("Connecticut")) parts.push(`Connecticut`);
+      if (_has("Virginia")) parts.push(`Virginia`);
+      return parts.length
+        ? parts.join("; ") + "."
+        : `Apply only those state regimes triggered by the parties' jurisdictions or affected data subjects' residency; do NOT enumerate the timelines of states outside the engaged US states set derived from the record.`;
+    })();
+
     const US_USER = `${PARTIES_BLOCK}
 
 ENFORCEMENT CONTEXT
@@ -892,7 +999,7 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    4.3 Security measures (see Section 9)
    4.4 Sub-processor obligations (see Section 6)
    4.5 Consumer rights assistance (see Section 7)
-   4.6 Risk assessment / DPIA assistance — Cal. Civ. Code § 1798.185(a)(15) and CPPA risk-assessment regulations; TDPSA § 541.109; CTDPA § 8; VCDPA § 59.1-579; CPA § 6-1-1309; OCPA § 646A.574
+   4.6 Risk assessment / DPIA assistance — ${riskAssessLine} (engaged US states from the record: ${engagedListLine}; do NOT cite statutes of states outside this set)
    4.7 Deletion or return of data at termination (see Section 12)
    4.8 Audit cooperation (see Section 13)
 5. PROHIBITED PROCESSING (CCPA/CPRA § 1798.100(d) and equivalents) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data outside the business purpose.
@@ -900,7 +1007,7 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    5.2 No Targeted Advertising outside the agreed business purpose
    5.3 No Cross-Context Combination except as permitted by law
    5.4 No Retention Beyond Purpose
-   Cite Cal. Civ. Code § 1798.100(d)(1)-(5) and equivalent state provisions explicitly.
+   ${_has("California") ? `Cite Cal. Civ. Code § 1798.100(d)(1)-(5) and equivalent provisions of the other engaged states (from the engaged US states set above) explicitly.` : `Cite the specific statutory provisions of the engaged US states (from the engaged US states set above) explicitly; do NOT cite statutes of states outside that set.`}
 6. SUB-PROCESSING PROVISIONS — the heading MUST contain the literal token "SUB-PROCESSING". Prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; populate Schedule A from the parties' inputs. If no sub-processors were provided in the intake, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors at the Effective Date" unless the intake expressly stated none.
 7. DATA SUBJECT RIGHTS — CONSUMER RIGHTS PASS-THROUGH — the heading MUST contain BOTH the phrase "Data Subject Rights" AND the phrase "Consumer Rights". Body MUST include the verbatim phrases "right to access", "right to delete" and "right to correct" with applicable response timelines per state law (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination).
 8. SENSITIVE PERSONAL DATA — heightened protections; opt-in consent for minors' data for targeted advertising or profiling.

@@ -233,8 +233,19 @@ const STATE_PATTERNS: StatePattern[] = [
 
 // Exclusion pattern set — see EXCLUSIONS block at the top of the file.
 // (HF1 Task 1: savings-clause pattern removed — see rationale above.)
+// (DPA-FIX-3 Task 2: canonical advisory-close carve-out added — rule 658
+//  carve-out (iii): "a single inline advisory sentence using a canonical
+//  close". Canonical closes are "; further clarification is advisable." and
+//  the internal-facts variant "; further internal investigation is
+//  advisable." — the two close forms named in the DRAFTING-NOTE DISCIPLINE
+//  rulebook. A non-engaged-state statute mention is permitted where the
+//  sentence it sits in terminates in one of those canonical closes; anywhere
+//  else in operative text remains a hard violation.)
 const RE_COMPARATIVE_PREFIX =
   /\b(unlike|similar to|modeled on|modelled on|in contrast to|compared to|analogous to|as with|whereas)\b[^.]{0,80}$/i;
+
+const RE_CANONICAL_ADVISORY_CLOSE =
+  /;\s*further\s+(?:clarification|internal\s+investigation)\s+is\s+advisable\s*\.?\s*$/i;
 
 /**
  * Derive the set of engaged US states from the record. Aliases must already be
@@ -340,6 +351,12 @@ export function detectNonEngagedStateAssertions(
         const sentenceStart = Math.max(0, text.lastIndexOf(".", idx - 1) + 1);
         const sentenceLead = text.slice(sentenceStart, idx);
         if (RE_COMPARATIVE_PREFIX.test(sentenceLead)) continue;
+        // Exclusion 2 (DPA-FIX-3 Task 2) — canonical advisory close carve-out.
+        // The sentence containing the match ends with "; further clarification
+        // is advisable." (or the "; further internal investigation is
+        // advisable." variant). See rule 658 carve-out (iii).
+        const trailing = nextSentenceWindow(text, idx, matched.length);
+        if (RE_CANONICAL_ADVISORY_CLOSE.test(trailing)) continue;
         // (HF1 Task 1: savings-clause exclusion removed — see file header.)
 
         const key = `${entry.state}|${matched.toLowerCase()}`;
