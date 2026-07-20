@@ -101,11 +101,15 @@ Deno.test("cache:false strips cache_control", () => {
   const blocks = buildSystemContent({ toolModule, cache: false });
   assertEquals(blocks[0].cache_control, undefined);
   assertEquals(blocks[1].cache_control, undefined);
+  // Advisory tail is always uncached regardless of `cache` option.
+  assertEquals(blocks[blocks.length - 1].cache_control, undefined);
 });
 
-Deno.test("no injected block when empty", () => {
+Deno.test("no injected block when empty; advisory tail still appended", () => {
   const blocks = buildSystemContent({ toolModule, injected: "  " });
-  assertEquals(blocks.length, 2);
+  // COUNSEL-VOICE-1B — [core, tool, advisory] when no injected content.
+  assertEquals(blocks.length, 3);
+  assertStringIncludes(blocks[2].text, "further clarification is advisable.");
 });
 
 Deno.test("block 2 contains identity, extraRules, schema", () => {
