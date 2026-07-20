@@ -1874,6 +1874,40 @@ async function runStitch(dpia_id: string): Promise<void> {
         sourceTable: "dpia_frameworks",
         sourceRowId: dpia_id ?? null,
       });
+
+      // PRODUCT-FIX-4 T3 — mid-body ownership-disclaimer scrub. The exact
+      // sentence and its close paraphrases are permitted ONLY in the page-1
+      // preamble and the closing framework_disclaimer. Any mid-body appearance
+      // (executive_summary, sections 1-6, conclusion, completion_guidance,
+      // dpia_metadata narratives, table cells) is removed. Preamble text and
+      // the framework_disclaimer field are preserved verbatim.
+      try {
+        const RE = /\b(?:Your\s+qualified\s+Data\s+Protection\s+Officer|the\s+(?:qualified\s+)?DPO)\s+(?:or\s+legal\s+counsel\s+)?must\s+review,?\s*(?:and\s+)?complete,?\s*(?:and\s+)?(?:own\s+)?(?:and\s+own\s+)?it\.?/gi;
+        const PROTECTED_KEYS = new Set(["framework_disclaimer", "preamble", "disclaimer"]);
+        let midBodyScrubbed = 0;
+        const walk = (node: any, parentKey: string | null) => {
+          if (!node) return;
+          if (Array.isArray(node)) { for (const v of node) walk(v, parentKey); return; }
+          if (typeof node !== "object") return;
+          for (const k of Object.keys(node)) {
+            const v = (node as any)[k];
+            if (PROTECTED_KEYS.has(k)) continue;
+            if (typeof v === "string") {
+              if (RE.test(v)) {
+                const next = v.replace(RE, "").replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1").trim();
+                (node as any)[k] = next;
+                midBodyScrubbed++;
+              }
+            } else if (v && typeof v === "object") walk(v, k);
+          }
+        };
+        walk(reportData, null);
+        if (midBodyScrubbed > 0) {
+          console.warn(`[run-dpia-framework] PRODUCT-FIX-4 T3 mid-body ownership-disclaimer scrub: ${midBodyScrubbed} occurrence(s) removed`);
+        }
+      } catch (e) {
+        console.warn("[run-dpia-framework] PRODUCT-FIX-4 T3 scrub failed (non-fatal):", (e as Error)?.message);
+      }
     }
 
 
