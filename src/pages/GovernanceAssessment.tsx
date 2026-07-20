@@ -456,7 +456,7 @@ const GovernanceAssessment = () => {
       <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
         <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
-        <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <section className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <RefinePanel
             toolType="governance_assessment"
             assessmentId={refine.assessmentId!}
@@ -471,7 +471,7 @@ const GovernanceAssessment = () => {
               priorInformationNeeded={refine.infoNeeded}
               openItems={refine.openItems}
           />
-        </main>
+        </section>
       ) : (<>
       <header className="bg-brand-navy text-white py-12">
 
@@ -496,7 +496,7 @@ const GovernanceAssessment = () => {
           
         </div>
 
-      <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <section className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance findings that should be validated against your organization's authoritative records. It does not constitute legal advice or a legal compliance opinion.
@@ -797,7 +797,7 @@ const GovernanceAssessment = () => {
           onPurchase={handlePurchase}
           purchasing={purchasing}
         />
-      </main>
+      </section>
       </>)}
     </WorkspaceLayout>
   );

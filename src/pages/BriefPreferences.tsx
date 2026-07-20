@@ -206,7 +206,7 @@ export default function BriefPreferences() {
         <title>Configure Your Privacy Intelligence Report | End User Privacy Intelligence</title>
       </Helmet>
       <WorkspaceLayout className="bg-background">
-        <main id="main-content" className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <section  className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
             <div className="mb-8 bg-gradient-to-r from-brand-navy to-brand-steel rounded-2xl p-5 text-white">
               <p className="text-eyebrow text-amber-400 mb-1">
@@ -348,7 +348,7 @@ export default function BriefPreferences() {
             </button>
             <p className="text-slate text-xs">Saved preferences take effect with the next Monday report.</p>
           </div>
-        </main>
+        </section>
       </WorkspaceLayout>
     </>
   );

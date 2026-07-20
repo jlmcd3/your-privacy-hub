@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { waitForAssessmentPaid } from "@/lib/checkoutConfirmation";
-import { fireCheckoutStarted, firePurchaseCompleted } from "@/lib/analyticsEvents";
+import { fireCheckoutStarted, firePurchaseVerified } from "@/lib/analyticsEvents";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -79,7 +79,7 @@ export default function ToolCheckoutModal({
     const ok = await waitForAssessmentPaid(id, { timeoutMs: 30_000, intervalMs: 1_500 });
     setConfirming(false);
     if (ok) {
-      firePurchaseCompleted({ tool: toolType, surface: "tool_checkout_modal" });
+      firePurchaseVerified({ tool: toolType, surface: "tool_checkout_modal" });
       onComplete?.(id, lastSuiteCyberIdRef.current || undefined);
     } else {
       setConfirmError(

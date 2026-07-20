@@ -3735,6 +3735,36 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_ledger: {
+        Row: {
+          amount_cents: number | null
+          currency: string | null
+          id: string
+          plan: string | null
+          stripe_session_id: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          currency?: string | null
+          id?: string
+          plan?: string | null
+          stripe_session_id: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          amount_cents?: number | null
+          currency?: string | null
+          id?: string
+          plan?: string | null
+          stripe_session_id?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
       qa_pdf_exports: {
         Row: {
           batch_id: string
