@@ -435,7 +435,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                 <p>{f.description}</p>
                 {(f.intake_field_1 || f.intake_field_2) && (
                   <p className="text-xs text-muted-foreground">
-                    Between: <code>{f.intake_field_1}</code>{f.intake_field_2 ? <> ↔ <code>{f.intake_field_2}</code></> : null}
+                    Between: {labelForIntakeFieldId(f.intake_field_1)}{f.intake_field_2 ? <> ↔ {labelForIntakeFieldId(f.intake_field_2)}</> : null}
                   </p>
                 )}
                 {f.regulatory_citation && (
