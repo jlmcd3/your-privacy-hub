@@ -573,7 +573,13 @@ PROPORTIONATE ASKS (R1b2 rule 2b): every enumerated intake field ('Organisation 
 
 ADDITIONAL_CONTEXT CONSUMPTION (R1b2 rule 2d): the intake carries a free-text 'Additional context (user narrative)' field. Treat its content as user-supplied NARRATIVE — never as binding structured intake. Specifically: (a) statements in additional_context may nominate CANDIDATE hypotheses (e.g. a mentioned tool, a described practice, a stated retention approach) that a domain finding may raise as an item to CONFIRM, never assert as met; (b) additional_context can never OVERRIDE a structured intake field that has a populated value — where the two disagree, the structured field is authoritative and the divergence is itself a verification item; (c) absence of a topic in additional_context is NEVER treated as evidence that the topic does not apply; (d) do not quote additional_context verbatim into a regulatory_basis, citation, or authority field — those fields carry statutory authority exclusively; short paraphrased references in narrative fields are permitted with the "the organisation notes that…" register; (e) additional_context does not license any exception to CITATION INTEGRITY, ENFORCEMENT CLAIMS CARRY CITATIONS OR DO NOT APPEAR, or the OUTPUT-ABSENCE, NOT CONTROLLER-FAILURE register above (all unchanged and controlling).
 
-SPEC-PACK-1 R6 — BUSINESS CLAIMS ARE RECORD-GROUNDED: every characterisation of the organisation's operating posture, business model, market position, sectoral role, customer base, product surface, or maturity — in the executive_summary, key_findings, domain findings' current_state, gap description, or recommended_actions — RESTS on a specific value carried by a named intake field OR on the "the organisation notes that…" register drawn from additional_context. Never emit a business-fact claim from memory, from sector priors, or from general commercial knowledge (e.g. "the organisation operates a subscription SaaS model", "the organisation serves enterprise customers", "the organisation has a mature security programme", "the organisation is a mid-market vendor to the healthcare sector") without the intake anchor. Form: "The intake records [field]: [value], from which the assessment treats [derived characterisation]." Where the record does not carry the fact and no additional_context sentence supplies it, either omit the characterisation or surface the missing piece as an information_needed item — never fabricate the fact to complete a paragraph. This rule SUPPLEMENTS the shared engaged-jurisdiction/anchor rule and the PROPORTIONATE ASKS rule; it does not narrow either.`;
+SPEC-PACK-1 R6 — BUSINESS CLAIMS ARE RECORD-GROUNDED: every characterisation of the organisation's operating posture, business model, market position, sectoral role, customer base, product surface, or maturity — in the executive_summary, key_findings, domain findings' current_state, gap description, or recommended_actions — RESTS on a specific value carried by a named intake field OR on the "the organisation notes that…" register drawn from additional_context. Never emit a business-fact claim from memory, from sector priors, or from general commercial knowledge (e.g. "the organisation operates a subscription SaaS model", "the organisation serves enterprise customers", "the organisation has a mature security programme", "the organisation is a mid-market vendor to the healthcare sector") without the intake anchor. Form: "The intake records [field]: [value], from which the assessment treats [derived characterisation]." Where the record does not carry the fact and no additional_context sentence supplies it, either omit the characterisation or surface the missing piece as an information_needed item — never fabricate the fact to complete a paragraph. This rule SUPPLEMENTS the shared engaged-jurisdiction/anchor rule and the PROPORTIONATE ASKS rule; it does not narrow either.
+
+PRODUCT-FIX-4 TASK 2 — TERMINAL JURISDICTION-CLOSURE MUST-NOT (READ LAST; OVERRIDES ANY EARLIER TEMPTATION TO REACH FOR A US-STATE ANCHOR): before emitting the final JSON, the drafter performs an internal jurisdiction closure pass over every domain finding, priority action, executive_summary sentence, and regulatory_basis / authority / citation field. In that pass:
+ (i) The intake's ENGAGED-US-STATE SET is defined as exactly the US states the intake lists in jurisdictions (California, Colorado, Virginia, Illinois, Texas, Connecticut, etc.). No other US state is engaged, regardless of how "typical" its statute is, regardless of whether the finding rhymes with a Colorado or Virginia pattern, and regardless of whether the drafter recalls a familiar anchor.
+ (ii) A US-state statutory citation — including but not limited to "C.R.S. § …", "Colo. Rev. Stat. § …", "Va. Code § …", "Cal. Civ. Code § …", "11 CCR § …", "740 ILCS 14/…", "N.Y. Gen. Bus. L. § …", "Tex. Bus. & Com. Code § …", "Conn. Gen. Stat. § …" — MAY appear in the emitted document ONLY when the intake engages the state that owns the statute. This applies to every field type (regulatory_basis, authority, citation, narrative body text, current_state, gap_description, recommended_action, priority_actions, and executive_summary) without exception. This is the terminal rule for jurisdictional closure and it overrides earlier rules (a)–(f) where they might be read to license a US-state cite as a "default" or "training-domain" hook. In an EU/UK-only intake, ZERO US-state statutory citations appear anywhere in the output; in a California-only intake, no Colorado or Virginia citations appear; in a Colorado-only intake, no California, Virginia, or Illinois citations appear; and so on.
+ (iii) Where the drafter would otherwise have cited a US-state statute for a training, DPIA, security-program, or other duty on an intake that does not engage that state, the drafter INSTEAD (a) cites the GDPR / UK GDPR anchor when the intake engages EU/UK, (b) cites the engaged US-state anchor when a different US state is engaged, or (c) states the obligation in plain regulatory language without a pinpoint citation when no engaged jurisdiction anchors it. A generic "training as a best practice supporting controller duties" sentence with no US-state cite is preferred to a US-state cite drawn from a non-engaged state.
+ (iv) A deterministic post-generation self-check scans the emitted JSON for US-state statutory citation tokens; any token whose owning state is absent from the intake's ENGAGED-US-STATE SET is either stripped or rewritten to descriptive language before the JSON is returned. The prompt-level rule and the post-gen self-check together are the two enforcement layers; the drafter's job is to make the second layer a no-op.`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
@@ -599,6 +605,56 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
 // QB7-3(a): deterministic TIMELINE VOICE wrapper — ensures every timeline-bearing field
 // is either citation-bearing (statutory deadline with a §/Art. citation) or wrapped in
 // the mandated 'timeline to be set by the organisation (e.g. …)' form.
+// PRODUCT-FIX-4 T2 — post-generation US-state citation closure. Strips or
+// rewrites any US-state statutory citation whose owning state is absent from
+// the intake's engaged-state set. This is the second enforcement layer beneath
+// the prompt-level terminal MUST-NOT rule; the prompt is expected to make this
+// a no-op, but any leak is caught here before the JSON is returned.
+function applyJurisdictionClosureScrub(reportData: any, intakeJurisdictions: string[]): number {
+  const engaged = new Set(
+    (intakeJurisdictions || []).map((s) => String(s || "").toLowerCase().trim())
+  );
+  // Map from US-state citation prefix → engagement key(s).
+  const STATE_PATTERNS: Array<{ re: RegExp; states: string[]; label: string }> = [
+    { re: /\bC\.R\.S\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["colorado"], label: "Colorado privacy statute" },
+    { re: /\bColo\.\s*Rev\.\s*Stat\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["colorado"], label: "Colorado privacy statute" },
+    { re: /\bVa\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["virginia"], label: "Virginia privacy statute" },
+    { re: /\bCal\.\s*Civ\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["california"], label: "California privacy statute" },
+    { re: /\b11\s*CCR\s*§+\s*[\d\-.()a-zA-Z]+/g, states: ["california"], label: "California ADMT/risk regulation" },
+    { re: /\b740\s*ILCS\s*14\/[\d\-.()a-zA-Z]+/g, states: ["illinois"], label: "Illinois BIPA" },
+    { re: /\bConn\.\s*Gen\.\s*Stat\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["connecticut"], label: "Connecticut privacy statute" },
+    { re: /\bTex\.\s*Bus\.\s*&\s*Com\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["texas"], label: "Texas privacy statute" },
+    { re: /\bN\.Y\.\s*Gen\.\s*Bus\.\s*L\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["new york"], label: "New York privacy statute" },
+  ];
+  const isEngaged = (states: string[]) => states.some((s) => engaged.has(s));
+  let scrubbed = 0;
+  const rewrite = (s: string): string => {
+    let out = s;
+    for (const { re, states, label } of STATE_PATTERNS) {
+      if (isEngaged(states)) continue;
+      out = out.replace(re, () => {
+        scrubbed++;
+        return `the applicable ${label} where engaged (not engaged on this intake)`;
+      });
+    }
+    return out;
+  };
+  const walk = (node: any) => {
+    if (!node) return;
+    if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+    if (typeof node !== "object") return;
+    for (const k of Object.keys(node)) {
+      const v = (node as any)[k];
+      if (typeof v === "string") {
+        const next = rewrite(v);
+        if (next !== v) (node as any)[k] = next;
+      } else if (v && typeof v === "object") walk(v);
+    }
+  };
+  walk(reportData);
+  return scrubbed;
+}
+
 function applyTimelineForm(report: any): void {
   const CITED = /§|Art\.|Article|C\.F\.R\.|Code/;
   const WRAPPED = /^timeline to be set by the organisation \(e\.g\./i;
@@ -1216,6 +1272,19 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       reportData,
       ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
     );
+
+    // PRODUCT-FIX-4 T2 — terminal US-state jurisdiction-closure scrub.
+    try {
+      const scrubbed = applyJurisdictionClosureScrub(
+        reportData,
+        Array.isArray((intake as any)?.jurisdictions) ? ((intake as any).jurisdictions as string[]) : [],
+      );
+      if (scrubbed > 0) {
+        console.warn(`[run-governance-assessment] PRODUCT-FIX-4 T2 jurisdiction-closure scrub: ${scrubbed} occurrence(s) rewritten`);
+      }
+    } catch (e) {
+      console.warn("[run-governance-assessment] PRODUCT-FIX-4 T2 scrub failed (non-fatal):", e);
+    }
 
 
 

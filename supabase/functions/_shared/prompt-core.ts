@@ -31,7 +31,7 @@
 // Both are embedded into EUP_PROMPT_CORE (full) and EUP_PROMPT_CORE_LEAN so every
 // tool consuming buildSystemContent inherits them; DPA composes its own systemPrompt
 // and wires the two named exports directly (same pattern as ADVISORY_VOICE_RULES).
-export const PROMPT_CORE_VERSION = "3.10.1-spec-pack-1a";
+export const PROMPT_CORE_VERSION = "3.10.2-product-fix-4";
 export const BUILD_TAG = "qb19";
 
 import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
@@ -344,6 +344,18 @@ SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
   the object or the owner needed to be specific, route the item to information_needed rather than
   emit a generic mitigation; a generic mitigation dressed with an unnamed owner ("assign
   responsibility") is still a defect.
+- PRODUCT-FIX-4 T7 — INTAKE-SOURCED VALUES DISPLACE PLACEHOLDERS; DEFAULTS ARE MARKED: where the
+  intake supplies a value used by the recommendation (opt-out URL, privacy-notice URL, DPO contact,
+  named system/vendor, policy title, jurisdiction, or any similar concrete identifier), the item
+  emits the intake value inline — bracketed placeholders such as "[YOUR OPT-OUT URL]",
+  "[YOUR PRIVACY EMAIL]", "[LINK TO ADMT SECTION]", "[YOUR TOLL-FREE NUMBER]" are prohibited when
+  the intake supplies the value. Placeholders remain permitted only where the intake genuinely does
+  not supply the value; in that case, prefer routing the item to information_needed over emitting
+  a placeholder in body text. Never emit phrases of the form "timeline to be set by the
+  organisation" / "cadence to be determined" / "period to be defined" — propose a concrete default
+  window (e.g. "within 30 days" / "quarterly" / "annually", chosen by the applicable statutory
+  cadence or a defensible operational cadence) and mark it with the trailing "(default — confirm)"
+  marker so the user can confirm or override.
 
 ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2 — SHARED PROMPT-CORE DIRECTIVE;
 generalises the pattern that per-tool detectors already enforce for one product surface, and does
@@ -382,7 +394,8 @@ NOT modify or duplicate any per-tool deterministic check)
 // buildSystemContent's block-1 output and the manual-wire path is trivial.
 export const SPECIFICITY_ACTIONABILITY_RULE = `SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
 - RECOMMENDATIONS ARE OWNED, TIMED, AND INTAKE-TIED: every recommendation, remediation item, next step, priority action, or mitigation carries three concrete anchors — (a) a NAMED OWNER ROLE stated by function (e.g. "the CISO", "the DPO", "the Head of Vendor Management", "the ADMT Product Owner", "the Privacy Program Manager"), never a generic "the business" where a functional owner is inferable; (b) a CONCRETE TIMEFRAME (the regulatory deadline or a plainly-stated window tied to a record event); (c) a TIE TO A NAMED INTAKE FACT (system, control, vendor, dataset, jurisdiction, tool, decision-domain, business function, policy, or contractual instrument in the record).
-- GENERIC BEST-PRACTICE RESTATEMENTS ARE PROHIBITED WHERE INTAKE-GROUNDED SPECIFICS EXIST: sentences of the form "adopt appropriate technical and organizational measures", "implement a governance program", "establish training", "deploy monitoring", "conduct due diligence", "review contracts" are defects when the intake identifies the systems, roles, vendors, or datasets that let the mitigation be specific — recast to name the intake object, the concrete outcome, and the owner+timeframe. Where the intake genuinely does not name the object or the owner needed to be specific, route the item to information_needed rather than emit a generic mitigation.`;
+- GENERIC BEST-PRACTICE RESTATEMENTS ARE PROHIBITED WHERE INTAKE-GROUNDED SPECIFICS EXIST: sentences of the form "adopt appropriate technical and organizational measures", "implement a governance program", "establish training", "deploy monitoring", "conduct due diligence", "review contracts" are defects when the intake identifies the systems, roles, vendors, or datasets that let the mitigation be specific — recast to name the intake object, the concrete outcome, and the owner+timeframe. Where the intake genuinely does not name the object or the owner needed to be specific, route the item to information_needed rather than emit a generic mitigation.
+- PRODUCT-FIX-4 T7 — INTAKE-SOURCED VALUES DISPLACE PLACEHOLDERS; DEFAULTS ARE MARKED: where the intake supplies a value used by the recommendation (opt-out URL, privacy-notice URL, DPO contact, named system/vendor, policy title, jurisdiction, or any similar concrete identifier), the item emits the intake value inline — bracketed placeholders such as "[YOUR OPT-OUT URL]", "[YOUR PRIVACY EMAIL]", "[LINK TO ADMT SECTION]" are prohibited when the intake supplies the value. Placeholders remain permitted only where the intake genuinely does not supply the value; in that case, prefer routing the item to information_needed over emitting a placeholder in body text. Never emit phrases of the form "timeline to be set by the organisation" / "cadence to be determined" / "period to be defined" — propose a concrete default window and mark it with the trailing "(default — confirm)" marker so the user can confirm or override.`;
 
 export const ENGAGED_JURISDICTION_CITATION_RULE = `ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2 — SHARED PROMPT-CORE DIRECTIVE)
 - CITE ONLY ENGAGED JURISDICTIONS: an authority is cited as OPERATIVE only for a jurisdiction ENGAGED by the intake. Do not enumerate obligations from a non-engaged jurisdiction as operative law. Non-engaged authorities are permitted only (i) as an explicitly comparative sentence within an operative clause, (ii) in a Recital or labelled Comparative Appendix, or (iii) as an inline advisory sentence using a canonical close. Per-tool deterministic detectors (e.g. dpa-generator's engaged-US-states check) remain the canonical runtime enforcement for their surfaces.
