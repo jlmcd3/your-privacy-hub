@@ -46,7 +46,7 @@ Deno.test("blocks 1 and 2 are cached; injected block 3 and advisory block 4 are 
   assertEquals(blocks[3].cache_control, undefined);
 });
 
-Deno.test("no generic rules duplicated into block 2", () => {
+Deno.test("no generic rules duplicated into block 2; generic core lines live only in block 1", () => {
   const blocks = buildSystemContent({
     toolModule: CPPA_RISK_TOOL_MODULE,
     currentDate: "2026-06-26",
@@ -57,6 +57,12 @@ Deno.test("no generic rules duplicated into block 2", () => {
   // …but they appear in the core (block 1).
   assertStringIncludes(blocks[0].text, "American English");
   assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE");
+  // Generic rules appear EXACTLY ONCE across all blocks (not re-injected by
+  // the advisory tail or the injected corpus block).
+  const priorityHits = blocks.filter((b) => /PRIORITY ORDER/.test(b.text)).length;
+  assertEquals(priorityHits, 1);
+  const adaptiveHits = blocks.filter((b) => /NO ADAPTIVE GUIDANCE/.test(b.text)).length;
+  assertEquals(adaptiveHits, 1);
 });
 
 Deno.test("schema accepts advocate-drafter shape (REBUILD-RISK)", () => {
