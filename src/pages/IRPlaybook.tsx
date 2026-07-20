@@ -177,7 +177,7 @@ export default function IRPlaybook() {
         </div>
       </header>
       <ToolAlsoAvailableRow currentTool="ir_playbook" />
-      <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <section className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
         <div className="mb-4">
@@ -268,7 +268,7 @@ export default function IRPlaybook() {
             </div>
           </ToolSampleOverlay>
         )}
-      </main>
+      </section>
       <ToolCheckoutModal
         open={checkoutOpen}
         toolType="ir_playbook"
