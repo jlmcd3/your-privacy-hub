@@ -116,27 +116,35 @@ Deno.test("cyber synthesis walker mints dotted asks for empty-maturity controls"
 
 
 
-Deno.test("assembled system is a 2-block array with expected content", () => {
+Deno.test("assembled system is a 3-block array with expected content (COUNSEL-VOICE-1B advisory tail)", () => {
   const blocks = buildSystemContent({
     toolModule: CPPA_CYBER_TOOL_MODULE,
     currentDate: "2026-06-26",
   });
-  assertEquals(blocks.length, 2);
+  assertEquals(blocks.length, 3);
   assertStringIncludes(blocks[0].text, "PRIORITY ORDER");
   assertStringIncludes(blocks[1].text, "PHASE-IN");
   assertStringIncludes(blocks[1].text, "AUDIT vs CERTIFICATION");
+  // Advisory-voice tail (blocks[2]) carries the canonical closes and the
+  // counsel-referral prohibition. Regressing the voice policy MUST break here.
+  assertStringIncludes(blocks[2].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[2].text, "further internal investigation is advisable.");
+  assertStringIncludes(blocks[2].text, "NEVER instruct the reader to consult legal counsel");
+  const advisoryHits = blocks.filter((b) => /further clarification is advisable\./.test(b.text)).length;
+  assertEquals(advisoryHits, 1);
 });
 
-Deno.test("both blocks carry ephemeral cache_control", () => {
+Deno.test("blocks 1 and 2 carry ephemeral cache_control; advisory tail is uncached", () => {
   const blocks = buildSystemContent({
     toolModule: CPPA_CYBER_TOOL_MODULE,
     currentDate: "2026-06-26",
   });
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[1].cache_control?.type, "ephemeral");
+  assertEquals(blocks[2].cache_control, undefined);
 });
 
-Deno.test("no generic rules duplicated into block 2", () => {
+Deno.test("no generic rules duplicated into block 2; generic lines exist exactly once", () => {
   const blocks = buildSystemContent({
     toolModule: CPPA_CYBER_TOOL_MODULE,
     currentDate: "2026-06-26",
@@ -146,6 +154,11 @@ Deno.test("no generic rules duplicated into block 2", () => {
   // …but they appear in the core (block 1).
   assertStringIncludes(blocks[0].text, "American English");
   assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE");
+  // Generic rules appear EXACTLY ONCE across all blocks.
+  const priorityHits = blocks.filter((b) => /PRIORITY ORDER/.test(b.text)).length;
+  assertEquals(priorityHits, 1);
+  const adaptiveHits = blocks.filter((b) => /NO ADAPTIVE GUIDANCE/.test(b.text)).length;
+  assertEquals(adaptiveHits, 1);
 });
 
 Deno.test("tool module forbids inventing control citations", () => {
