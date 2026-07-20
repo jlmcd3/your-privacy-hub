@@ -152,8 +152,8 @@ Deno.test("GRADER-CAL-2 T1: pipe-separated role roster is exempt", () => {
   assertEquals(fails.length, 0);
 });
 
-Deno.test("GRADER-CAL-2 T1: 'consult outside counsel' still fails (directive verb override)", () => {
-  const doc = "Before publishing, consult outside counsel on this determination.";
+Deno.test("GRADER-CAL-2 T1: 'consult a lawyer' still fails (directive verb override)", () => {
+  const doc = "Before publishing, consult a lawyer on this determination.";
   const findings = fmt.checkE6(doc);
   const fails = findings.filter((f) => !f.passed);
   assert(fails.length >= 1);
