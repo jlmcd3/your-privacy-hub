@@ -218,7 +218,12 @@ const HF4_H6_ADMT_DUTY_VERBS =
   /\b(?:must\s+(?:disclose|provide|notify|respond|confirm|deliver|honor|honour|allow|permit)|shall\s+(?:disclose|provide|notify|respond|honor|honour)|the\s+business\s+must|response\s+must|access\s+response|opt[-\s]?out\s+response|pre[-\s]?use\s+notice|access\s+request)\b/i;
 const HF4_H6_S7001_RE = /\bs?§?\s*7001(?:\([a-z0-9]+\))*/i;
 const HF4_H6_ADMT_ANCHOR_RE = /\bs?§?\s*722[012](?:\([a-z0-9]+\))*/i;
-const HF4_H6_CHAIN_JOINER_RE = /(?:\+|,|;|\band\b|\bwith\b)/i;
+// A "chain" is a compact sequence of §-cites joined by "+" or by direct
+// enumeration with only whitespace/punctuation between the section tokens.
+// Prose references like "…, per § 7001(e)(1) definition, the …" are NOT
+// chains — they contain word tokens between the § tokens and are permitted.
+const HF4_H6_CHAIN_JOINER_RE = /\+/;
+const HF5_H6_ADJ_CHAIN_RE = /§\s*7001(?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)?\s*(?:11\s*CCR\s*)?§\s*722[012]|§\s*722[012](?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)\s*(?:11\s*CCR\s*)?§\s*7001/i;
 
 export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
   if (!text) return [pass("h6_admt_governing_anchor_ok", "citation_accuracy")];
