@@ -1954,7 +1954,10 @@ async function runPipeline(assessment_id: string) {
       // underscore, then a lowercase word body. Mirrors intake conventions
       // (q1_revenue, i2_retention_period, q15c_spi_volume, impact_intake).
       // URLs are exempted below.
-      const CATCHALL = /\b[a-z]{1,3}\d{0,3}[a-z]?_[a-z][a-z0-9_]{2,}\b/g;
+      // Field-id token shape: 1–3 lowercase letters, 1–3 digits (required —
+      // avoids false positives like "opt_out", "risk_assessment"), optional
+      // single trailing letter, underscore, then a lowercase word body.
+      const CATCHALL = /\b[a-z]{1,3}\d{1,3}[a-z]?_[a-z][a-z0-9_]{2,}\b/g;
       const URL_RE = /https?:\/\/[^\s)]+/g;
 
       const scrubString = (s: string): { out: string; hits: number; unmapped: number } => {
