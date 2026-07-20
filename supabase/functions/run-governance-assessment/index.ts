@@ -1273,6 +1273,19 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
     );
 
+    // PRODUCT-FIX-4 T2 — terminal US-state jurisdiction-closure scrub.
+    try {
+      const scrubbed = applyJurisdictionClosureScrub(
+        reportData,
+        Array.isArray((intake as any)?.jurisdictions) ? ((intake as any).jurisdictions as string[]) : [],
+      );
+      if (scrubbed > 0) {
+        console.warn(`[run-governance-assessment] PRODUCT-FIX-4 T2 jurisdiction-closure scrub: ${scrubbed} occurrence(s) rewritten`);
+      }
+    } catch (e) {
+      console.warn("[run-governance-assessment] PRODUCT-FIX-4 T2 scrub failed (non-fatal):", e);
+    }
+
 
 
     const dpiaScope = synthesis.dpia_scope || [];
