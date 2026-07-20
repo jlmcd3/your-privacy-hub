@@ -34,6 +34,39 @@ function pickRegion(h: Headers): string | null {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  // PHASE 0 DIAGNOSTIC (temporary, redacted) — log all inbound header names + values so we can
+  // confirm which geo-bearing headers actually arrive at Deno Deploy for this project.
+  // Redaction rules: strip auth/api credentials entirely; mask IP-shaped values to /24 (IPv4) or
+  // first two hextets (IPv6). Cookie header dropped. Remove this block after evidence captured.
+  try {
+    const REDACT_FULL = new Set([
+      "authorization", "apikey", "cookie", "x-client-info", "sb-access-token", "sb-refresh-token",
+    ]);
+    const maskIp = (v: string): string => v.split(",").map((part) => {
+      const s = part.trim();
+      const v4 = s.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}$/);
+      if (v4) return `${v4[1]}.0/24`;
+      if (s.includes(":") && /[0-9a-fA-F]/.test(s)) {
+        const parts = s.split(":");
+        return `${parts[0]}:${parts[1] ?? ""}::/32`;
+      }
+      return s;
+    }).join(", ");
+    const dump: Record<string, string> = {};
+    req.headers.forEach((val, key) => {
+      const k = key.toLowerCase();
+      if (REDACT_FULL.has(k)) { dump[k] = "[REDACTED]"; return; }
+      if (k === "x-forwarded-for" || k === "x-real-ip" || k === "cf-connecting-ip" || k === "fly-client-ip") {
+        dump[k] = maskIp(val);
+        return;
+      }
+      dump[k] = val.length > 256 ? val.slice(0, 256) + "…" : val;
+    });
+    console.log("[track-geo][phase0-headers]", JSON.stringify(dump));
+  } catch (e) {
+    console.log("[track-geo][phase0-headers-error]", String(e));
+  }
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
   }
