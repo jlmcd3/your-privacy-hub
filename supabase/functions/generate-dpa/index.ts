@@ -14,7 +14,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { observeCitations } from "../_shared/citation-observe.ts";
-import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { PROMPT_CORE_VERSION, SPECIFICITY_ACTIONABILITY_RULE, ENGAGED_JURISDICTION_CITATION_RULE } from "../_shared/prompt-core.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
