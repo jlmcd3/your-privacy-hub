@@ -2,7 +2,7 @@
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
-// CPPA-HF4 BUILD_STAMP: rebuild-risk-cppa-hf4@2026-07-19T22:00Z
+// CPPA-HF5 BUILD_STAMP: rebuild-risk-cppa-hf5@2026-07-20T00:00Z
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
