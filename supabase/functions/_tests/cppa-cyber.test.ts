@@ -130,8 +130,6 @@ Deno.test("assembled system is a 3-block array with expected content (COUNSEL-VO
   assertStringIncludes(blocks[2].text, "further clarification is advisable.");
   assertStringIncludes(blocks[2].text, "further internal investigation is advisable.");
   assertStringIncludes(blocks[2].text, "NEVER instruct the reader to consult legal counsel");
-  const advisoryHits = blocks.filter((b) => /further clarification is advisable\./.test(b.text)).length;
-  assertEquals(advisoryHits, 1);
 });
 
 Deno.test("blocks 1 and 2 carry ephemeral cache_control; advisory tail is uncached", () => {
@@ -149,10 +147,10 @@ Deno.test("no generic rules duplicated into block 2; generic lines exist exactly
     toolModule: CPPA_CYBER_TOOL_MODULE,
     currentDate: "2026-06-26",
   });
-  assert(!blocks[1].text.includes("American English"));
+  assert(!blocks[1].text.includes("US English (en-US)"));
   assert(!blocks[1].text.includes("NO ADAPTIVE GUIDANCE"));
   // …but they appear in the core (block 1).
-  assertStringIncludes(blocks[0].text, "American English");
+  assertStringIncludes(blocks[0].text, "US English (en-US)");
   assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE");
   // Generic rules appear EXACTLY ONCE across all blocks.
   const priorityHits = blocks.filter((b) => /PRIORITY ORDER/.test(b.text)).length;

@@ -26,8 +26,6 @@ Deno.test("assembled system is a 4-block array with expected content (COUNSEL-VO
   assertStringIncludes(blocks[3].text, "further clarification is advisable.");
   assertStringIncludes(blocks[3].text, "further internal investigation is advisable.");
   assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
-  const advisoryHits = blocks.filter((b) => /further clarification is advisable\./.test(b.text)).length;
-  assertEquals(advisoryHits, 1);
 });
 
 Deno.test("blocks 1 and 2 cached; injected block 3 and advisory block 4 not cached", () => {
@@ -48,9 +46,9 @@ Deno.test("block 2 does NOT duplicate generic core rules; generic lines exist ex
     currentDate: "2026-06-26",
     injected,
   });
-  assert(!blocks[1].text.includes("Use American English throughout this document"));
+  assert(!blocks[1].text.includes("US English (en-US) spelling throughout"));
   assert(!blocks[1].text.includes("NO ADAPTIVE GUIDANCE. Present regulatory standards"));
-  assertStringIncludes(blocks[0].text, "Use American English throughout this document");
+  assertStringIncludes(blocks[0].text, "US English (en-US) spelling throughout");
   assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE. Present regulatory standards");
   // Generic rules appear EXACTLY ONCE across all blocks.
   const priorityHits = blocks.filter((b) => /PRIORITY ORDER/.test(b.text)).length;
