@@ -1028,6 +1028,29 @@ ADDITIONAL DISCIPLINES:
             resolveInto2(reLinted.access_gaps);
             resolveInto2(reLinted.documentation_to_maintain);
 
+            // CPPA-HF6R B-EXT — subchapter-anchor fallback consumption on
+            // lint-retry payload (parity with main path).
+            const SUBCH_TOKEN_RE_L = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
+            const SUBCH_UNDER_RE_L = /\bunder\s+the\s+cited\s+provision\b/gi;
+            const SUBCH_PURSUANT_RE_L = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+            const SUBCH_FALLBACK_L = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+            const walkFallbackConsumeL = (node: any) => {
+              if (!node) return;
+              if (Array.isArray(node)) { for (const v of node) walkFallbackConsumeL(v); return; }
+              if (typeof node !== "object") return;
+              for (const k of Object.keys(node)) {
+                const v = (node as any)[k];
+                if (typeof v === "string") {
+                  let next = v;
+                  next = next.replace(SUBCH_UNDER_RE_L, `under ${SUBCH_FALLBACK_L}`);
+                  next = next.replace(SUBCH_PURSUANT_RE_L, `pursuant to ${SUBCH_FALLBACK_L}`);
+                  next = next.replace(SUBCH_TOKEN_RE_L, SUBCH_FALLBACK_L);
+                  if (next !== v) (node as any)[k] = next;
+                } else if (v && typeof v === "object") walkFallbackConsumeL(v);
+              }
+            };
+            walkFallbackConsumeL(reLinted);
+
             // CPPA-HF6 — post-injection doubled-article collapse.
             const walkPostInject = (node: any) => {
               if (!node) return;
