@@ -7,7 +7,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-cppa-hf6b@2026-07-20T00:00Z";
+export const BUILD_STAMP = "admt-cppa-hf6c@2026-07-20T00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -844,25 +844,42 @@ ADDITIONAL DISCIPLINES:
       resolveInto(report.opt_out_gaps);
       resolveInto(report.access_gaps);
       resolveInto(report.documentation_to_maintain);
+      // Surface an assumption flag if the RA program resolver flagged one.
+      const raResolved = resolveCitations("ra_program", intake);
+      if (raResolved.assumptionFlag && report.risk_assessment_obligation) {
+        report.risk_assessment_obligation.assumption_note = raResolved.assumptionFlag;
+      }
+      if (report.risk_assessment_obligation) {
+        report.risk_assessment_obligation.resolved_citations = raResolved.sections;
+      }
 
-      // CPPA-HF6R B-EXT — SUBCHAPTER-ANCHOR FALLBACK CONSUMPTION. Fields
-      // outside the four gap arrays (scope_analysis.*, priority_actions,
-      // consolidated_notice_analysis, aggregate_access_response,
-      // enforcement_context, and any other prose) carry no element_id and
-      // therefore never received a concrete injection. Any residual
-      // "the cited provision" phrasing renders literally. Consume every
-      // remaining occurrence with the ADMT subchapter anchor. Never leave
-      // the literal token; never invent a section outside the registry —
-      // the subchapter range § 7220–7222 (with § 7200 scope) is the
-      // governing anchor for these fields.
-      const SUBCH_TOKEN_RE = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
-      const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
-      const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+      // HF6C — Scope-narrative scrub. Runs BEFORE walkFallbackConsume so
+      // any "the cited provision" token stripModelCitations synthesises
+      // from the model's raw § numbers is consumed by the subchapter
+      // fallback below, not left literal in the saved report.
+      for (const k of ["scope_analysis", "consolidated_notice_analysis", "aggregate_access_response", "enforcement_context"]) {
+        const obj = report[k];
+        if (obj && typeof obj === "object") {
+          for (const subKey of Object.keys(obj)) {
+            if (typeof obj[subKey] === "string") obj[subKey] = stripModelCitations(obj[subKey]);
+          }
+        }
+      }
+      if (Array.isArray(report.priority_actions)) {
+        report.priority_actions = report.priority_actions.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
+      }
+      if (Array.isArray(report.compliant_elements)) {
+        report.compliant_elements = report.compliant_elements.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
+      }
+
+      // CPPA-HF6R B-EXT — SUBCHAPTER-ANCHOR FALLBACK CONSUMPTION.
+      // See original comment. Placement AFTER scope-scrub is intentional
+      // (HF6C): stripModelCitations above may re-tokenise §-fragments to
+      // "the cited provision"; those tokens must be consumed here.
+      const SUBCH_TOKEN_RE = /\bthe\s+cited\s+(?:provision|definition)(?:\s+(?:governing|above|below|referenced))?\b/gi;
+      const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+(?:provision|definition)\b/gi;
+      const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+(?:provision|definition)\b/gi;
       const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
-      // Defense-in-depth: the earlier pre-inject walker skips string
-      // elements inside arrays (e.g., priority_actions: string[]), so the
-      // upstream synonym phrases can survive to this stage. Fold them into
-      // consumeStr so array-of-string surfaces are still fail-closed.
       const SUBCH_SYNONYM_RES: Array<[RegExp, string]> = [
         [/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK],
         [/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK],
@@ -870,9 +887,8 @@ ADDITIONAL DISCIPLINES:
       const consumeStr = (v: string): string => {
         let next = v;
         for (const [re, sub] of SUBCH_SYNONYM_RES) next = next.replace(re, sub);
-        // Collapse doubled/quantifier "the the cited provision" first.
-        next = next.replace(/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision");
-        next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision");
+        next = next.replace(/\bthe\s+the\s+cited\s+(?:provision|definition)\b/gi, "the cited provision");
+        next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+(?:provision|definition)\b/gi, "$1the cited provision");
         next = next.replace(SUBCH_UNDER_RE, `under ${SUBCH_FALLBACK}`);
         next = next.replace(SUBCH_PURSUANT_RE, `pursuant to ${SUBCH_FALLBACK}`);
         next = next.replace(SUBCH_TOKEN_RE, SUBCH_FALLBACK);
@@ -897,10 +913,7 @@ ADDITIONAL DISCIPLINES:
       };
       walkFallbackConsume(report);
 
-      // CPPA-HF6 — POST-INJECTION doubled-article collapse. Guards
-      // against any residual "the the …" that survives injection at
-      // token boundaries (e.g., a stray "the" adjacent to an injected
-      // "11 CCR § 7…" citation).
+      // CPPA-HF6 — POST-INJECTION doubled-article collapse.
       const walkPostInject = (node: any) => {
         if (!node) return;
         if (Array.isArray(node)) { for (const v of node) walkPostInject(v); return; }
@@ -918,31 +931,6 @@ ADDITIONAL DISCIPLINES:
       };
       walkPostInject(report);
 
-      // Surface an assumption flag if the RA program resolver flagged one.
-      const raResolved = resolveCitations("ra_program", intake);
-      if (raResolved.assumptionFlag && report.risk_assessment_obligation) {
-        report.risk_assessment_obligation.assumption_note = raResolved.assumptionFlag;
-      }
-      if (report.risk_assessment_obligation) {
-        report.risk_assessment_obligation.resolved_citations = raResolved.sections;
-      }
-
-      // Scrub a few free-text places the model may slip a citation into.
-      for (const k of ["scope_analysis", "consolidated_notice_analysis", "aggregate_access_response", "enforcement_context"]) {
-        const obj = report[k];
-        if (obj && typeof obj === "object") {
-          for (const subKey of Object.keys(obj)) {
-            if (typeof obj[subKey] === "string") obj[subKey] = stripModelCitations(obj[subKey]);
-          }
-        }
-      }
-      if (Array.isArray(report.priority_actions)) {
-        report.priority_actions = report.priority_actions.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
-      }
-      if (Array.isArray(report.compliant_elements)) {
-        report.compliant_elements = report.compliant_elements.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
-      }
-
       // Validate.
       const issues = validateReport(report, intake);
       if (issues.length) {
@@ -954,6 +942,59 @@ ADDITIONAL DISCIPLINES:
     } catch (resolveErr) {
       console.warn("[run-admt-checker] citation resolver failed (non-fatal):", resolveErr);
     }
+
+    // ── HF6C Task A — DEFENSE-IN-DEPTH POST-RESOLVER FALLBACK CONSUME ─────
+    // If the main try-block above threw early (e.g. normalizeIntake on an
+    // unusual intake shape), NONE of the walkers ran and "the cited
+    // provision" / "the cited definition" tokens the model wrote leak
+    // literally into the saved report. This independent block re-runs the
+    // subchapter-fallback consumer and the doubled-article collapse over
+    // the WHOLE report so token consumption cannot be skipped by an
+    // upstream exception. Idempotent: if the main block already ran, all
+    // patterns are already consumed and this is a no-op.
+    try {
+      const HF6C_SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      const HF6C_SUBCH_TOKEN_RE = /\bthe\s+cited\s+(?:provision|definition)(?:\s+(?:governing|above|below|referenced))?\b/gi;
+      const HF6C_SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+(?:provision|definition)\b/gi;
+      const HF6C_SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+(?:provision|definition)\b/gi;
+      const HF6C_SYN_RES: Array<[RegExp, string]> = [
+        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, HF6C_SUBCH_FALLBACK],
+        [/\bthe\s+applicable\s+regulation\s+section\b/gi, HF6C_SUBCH_FALLBACK],
+      ];
+      const hf6cConsume = (v: string): string => {
+        let next = v;
+        for (const [re, sub] of HF6C_SYN_RES) next = next.replace(re, sub);
+        next = next.replace(/\bthe\s+the\s+cited\s+(?:provision|definition)\b/gi, "the cited provision");
+        next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+(?:provision|definition)\b/gi, "$1the cited provision");
+        next = next.replace(HF6C_SUBCH_UNDER_RE, `under ${HF6C_SUBCH_FALLBACK}`);
+        next = next.replace(HF6C_SUBCH_PURSUANT_RE, `pursuant to ${HF6C_SUBCH_FALLBACK}`);
+        next = next.replace(HF6C_SUBCH_TOKEN_RE, HF6C_SUBCH_FALLBACK);
+        next = next.replace(/\bthe\s+the\b/gi, "the").replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
+        return next;
+      };
+      const hf6cWalk = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) {
+            const v = node[i];
+            if (typeof v === "string") node[i] = hf6cConsume(v);
+            else if (v && typeof v === "object") hf6cWalk(v);
+          }
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") (node as any)[k] = hf6cConsume(v);
+          else if (v && typeof v === "object") hf6cWalk(v);
+        }
+      };
+      hf6cWalk(report);
+    } catch (e) {
+      console.warn("[run-admt-checker] HF6C post-resolver fallback consume failed (non-fatal):", e);
+    }
+
+
 
     // ── Light English backstop — lint the assembled narrative, NOT citations
     // (registry-controlled). On hard violations fire one regeneration retry
@@ -1386,8 +1427,23 @@ Return this JSON structure exactly:
         if (!Array.isArray(arr)) continue;
         for (const it of arr) {
           if (it && typeof it.citation === "string") it.citation = stripDefFrom7222Chain(it.citation);
+          // HF6C Task B — extend strip to prose fields where the model
+          // authored the definitional cite inline within a §7222 chain.
+          for (const f of ["finding", "remediation", "enforcement_exposure", "usage_note", "sample_language"]) {
+            if (it && typeof it[f] === "string") it[f] = stripDefFrom7222Chain(it[f]);
+          }
         }
       }
+      // HF6C Task B — aggregate_access_response scans every string leaf
+      // for a §7222(b)(3|4) + §7001 chain and removes the definitional
+      // cite from the operative citation chain.
+      const aar = (report as any).aggregate_access_response;
+      if (aar && typeof aar === "object") {
+        for (const key of Object.keys(aar)) {
+          if (typeof aar[key] === "string") aar[key] = stripDefFrom7222Chain(aar[key]);
+        }
+      }
+
     } catch (e) {
       console.warn("[run-admt-checker] CPPA-HF5 C citation-chain strip failed (non-fatal):", e);
     }
@@ -1457,7 +1513,7 @@ Return this JSON structure exactly:
     }
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf6b@2026-07-20"), build_stamp: BUILD_STAMP };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf6c@2026-07-20"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
