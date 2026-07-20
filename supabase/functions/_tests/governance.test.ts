@@ -12,15 +12,18 @@ import {
 
 const today = "2026-06-26";
 
-Deno.test("Governance domain system: block 1 has PRIORITY ORDER; block 2 has identity + extra rules", () => {
+Deno.test("Governance domain system: block 1 has PRIORITY ORDER; block 2 has identity + extra rules; advisory tail present", () => {
   const tm = buildGovernanceDomainToolModule(["California"], "No");
   const blocks = buildSystemContent({ toolModule: tm, currentDate: today, cache: true });
   assert(Array.isArray(blocks));
-  assertEquals(blocks.length, 2);
+  // COUNSEL-VOICE-1B — no-injected assemblies emit [core, tool, advisory].
+  assertEquals(blocks.length, 3);
   assertStringIncludes(blocks[0].text, "PRIORITY ORDER");
   assertStringIncludes(blocks[1].text, "senior privacy and data protection compliance analyst");
+  assertStringIncludes(blocks[2].text, "further clarification is advisable.");
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[1].cache_control?.type, "ephemeral");
+  assertEquals(blocks[2].cache_control, undefined);
 });
 
 Deno.test("Domain prefix is stable across calls (cacheable across 10 domain calls)", () => {
@@ -80,7 +83,7 @@ Deno.test("Synthesis module carries the monetary-penalty discipline + known ICO 
     "domain module must not carry synthesis-only monetary rule");
 });
 
-Deno.test("Synthesis with injected enforcement context produces a third block (uncached)", () => {
+Deno.test("Synthesis with injected enforcement context produces an injected block plus advisory tail (uncached)", () => {
   const tm = buildGovernanceSynthesisToolModule(["UK"], "Yes");
   const blocks = buildSystemContent({
     toolModule: tm,
@@ -88,9 +91,13 @@ Deno.test("Synthesis with injected enforcement context produces a third block (u
     injected: "ENFORCEMENT CONTEXT (synthesis only):\n[E1] ...",
     cache: true,
   });
-  assertEquals(blocks.length, 3);
+  // COUNSEL-VOICE-1B — with-injected assemblies emit [core, tool, injected, advisory].
+  assertEquals(blocks.length, 4);
   assertEquals(blocks[2].cache_control, undefined);
+  assertEquals(blocks[3].cache_control, undefined);
   assertStringIncludes(blocks[2].text, "ENFORCEMENT CONTEXT");
+  assertStringIncludes(blocks[3].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
 });
 
 Deno.test("Generic 'Return ONLY valid JSON' lives in the core, not duplicated in block 2", () => {
