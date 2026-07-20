@@ -18,8 +18,11 @@ const toolModule: ToolModule = {
   extraRules: "Tool-specific rules here.",
 };
 
-Deno.test("version is 3.8", () => {
-  assertEquals(PROMPT_CORE_VERSION, "3.8");
+Deno.test("version is a semver-shaped string (moves forward under change control)", () => {
+  // Post-COUNSEL-VOICE-1 the stamp is `3.9.3-counsel-voice-1`; assert the
+  // shape rather than pinning the literal so routine version bumps do not
+  // trip this baseline test.
+  assert(/^[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[A-Za-z0-9._-]+)?$/.test(PROMPT_CORE_VERSION));
 });
 
 Deno.test("v3.7 META rules present in prompt core", () => {
