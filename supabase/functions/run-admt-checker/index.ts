@@ -766,6 +766,44 @@ ADDITIONAL DISCIPLINES:
     try {
       const normalized = normalizeIntake(intake);
       const proseFields = ["finding", "remediation", "enforcement_exposure", "element"] as const;
+
+      // CPPA-HF6 — PRE-INJECTION artifact-phrase normalizer. The model
+      // sometimes emits mechanical-substitution artifacts such as "the
+      // applicable definitional provision" / "the applicable regulation
+      // section" that HF4/HF5 originally normalized post-generation
+      // AFTER resolveInto had already run — meaning the rewritten
+      // "the cited provision" token was never consumed by registry
+      // injection and rendered verbatim. Run this rewrite BEFORE
+      // resolveInto so the injection pass consumes the token. Also
+      // collapse the "the <quantifier> the cited provision" doubled-
+      // article class ("the full the", "the four the", "all the the")
+      // so injection produces readable prose.
+      const PRE_INJECT_PHRASE_RULES: Array<[RegExp, string]> = [
+        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, "the cited provision"],
+        [/\bthe\s+applicable\s+regulation\s+section\b/gi, "the cited provision"],
+        [/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision"],
+        // "the full the cited provision" → "full the cited provision"
+        // so the trailing "the cited provision" remains available for
+        // TOKEN_RE consumption while dropping the redundant leading article.
+        [/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision"],
+      ];
+      const walkPreInject = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) { for (const v of node) walkPreInject(v); return; }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") {
+            let next = v;
+            for (const [re, sub] of PRE_INJECT_PHRASE_RULES) next = next.replace(re, sub);
+            if (next !== v) (node as any)[k] = next;
+          } else if (v && typeof v === "object") {
+            walkPreInject(v);
+          }
+        }
+      };
+      walkPreInject(report);
+
       const resolveInto = (arr: any[] | undefined) => {
         if (!Array.isArray(arr)) return;
         for (const item of arr) {
@@ -806,6 +844,27 @@ ADDITIONAL DISCIPLINES:
       resolveInto(report.opt_out_gaps);
       resolveInto(report.access_gaps);
       resolveInto(report.documentation_to_maintain);
+
+      // CPPA-HF6 — POST-INJECTION doubled-article collapse. Guards
+      // against any residual "the the …" that survives injection at
+      // token boundaries (e.g., a stray "the" adjacent to an injected
+      // "11 CCR § 7…" citation).
+      const walkPostInject = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) { for (const v of node) walkPostInject(v); return; }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") {
+            let next = v.replace(/\bthe\s+the\b/gi, "the");
+            next = next.replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
+            if (next !== v) (node as any)[k] = next;
+          } else if (v && typeof v === "object") {
+            walkPostInject(v);
+          }
+        }
+      };
+      walkPostInject(report);
 
       // Surface an assumption flag if the RA program resolver flagged one.
       const raResolved = resolveCitations("ra_program", intake);
