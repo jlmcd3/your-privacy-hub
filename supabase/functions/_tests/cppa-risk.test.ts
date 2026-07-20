@@ -14,19 +14,27 @@ const injected = [
   "CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n(none)",
 ].join("\n\n");
 
-Deno.test("assembled system is a 3-block array with expected content", () => {
+Deno.test("assembled system is a 4-block array with expected content (COUNSEL-VOICE-1B advisory tail)", () => {
   const blocks = buildSystemContent({
     toolModule: CPPA_RISK_TOOL_MODULE,
     currentDate: "2026-06-26",
     injected,
   });
-  assertEquals(blocks.length, 3);
+  assertEquals(blocks.length, 4);
   assertStringIncludes(blocks[0].text, "PRIORITY ORDER");
   assertStringIncludes(blocks[1].text, "§ 7152 MAPPING");
   assertStringIncludes(blocks[2].text, "VERBATIM REGULATION TEXT");
+  // Advisory-voice tail (blocks[3]) carries the canonical closes and the
+  // counsel-referral prohibition. Regressing the voice policy MUST break here.
+  assertStringIncludes(blocks[3].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[3].text, "further internal investigation is advisable.");
+  assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
+  // Advisory block appears exactly once across the assembled system.
+  const advisoryHits = blocks.filter((b) => /further clarification is advisable\./.test(b.text)).length;
+  assertEquals(advisoryHits, 1);
 });
 
-Deno.test("blocks 1 and 2 are cached; injected block 3 is not", () => {
+Deno.test("blocks 1 and 2 are cached; injected block 3 and advisory block 4 are not", () => {
   const blocks = buildSystemContent({
     toolModule: CPPA_RISK_TOOL_MODULE,
     currentDate: "2026-06-26",
@@ -35,6 +43,7 @@ Deno.test("blocks 1 and 2 are cached; injected block 3 is not", () => {
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[1].cache_control?.type, "ephemeral");
   assertEquals(blocks[2].cache_control, undefined);
+  assertEquals(blocks[3].cache_control, undefined);
 });
 
 Deno.test("no generic rules duplicated into block 2", () => {
