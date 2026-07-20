@@ -642,7 +642,7 @@ export default function Enforcement() {
                           )}
                         </div>
                         <h3 className="group-hover:text-primary transition line-clamp-2">
-                          {r.subject}
+                          {r.subject ?? (r as any).case_reference ?? "Anonymised determination"}
                         </h3>
                       </div>
                       <div className="text-right shrink-0">
