@@ -859,19 +859,28 @@ ADDITIONAL DISCIPLINES:
       const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
       const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
       const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      const consumeStr = (v: string): string => {
+        let next = v;
+        next = next.replace(SUBCH_UNDER_RE, `under ${SUBCH_FALLBACK}`);
+        next = next.replace(SUBCH_PURSUANT_RE, `pursuant to ${SUBCH_FALLBACK}`);
+        next = next.replace(SUBCH_TOKEN_RE, SUBCH_FALLBACK);
+        return next;
+      };
       const walkFallbackConsume = (node: any) => {
         if (!node) return;
-        if (Array.isArray(node)) { for (const v of node) walkFallbackConsume(v); return; }
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) {
+            const v = node[i];
+            if (typeof v === "string") node[i] = consumeStr(v);
+            else if (v && typeof v === "object") walkFallbackConsume(v);
+          }
+          return;
+        }
         if (typeof node !== "object") return;
         for (const k of Object.keys(node)) {
           const v = (node as any)[k];
-          if (typeof v === "string") {
-            let next = v;
-            next = next.replace(SUBCH_UNDER_RE, `under ${SUBCH_FALLBACK}`);
-            next = next.replace(SUBCH_PURSUANT_RE, `pursuant to ${SUBCH_FALLBACK}`);
-            next = next.replace(SUBCH_TOKEN_RE, SUBCH_FALLBACK);
-            if (next !== v) (node as any)[k] = next;
-          } else if (v && typeof v === "object") walkFallbackConsume(v);
+          if (typeof v === "string") (node as any)[k] = consumeStr(v);
+          else if (v && typeof v === "object") walkFallbackConsume(v);
         }
       };
       walkFallbackConsume(report);
