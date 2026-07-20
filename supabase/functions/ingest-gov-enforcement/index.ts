@@ -568,6 +568,18 @@ Deno.serve(async (req) => {
         console.log(`${src.source}: relevance filter ${before} -> ${actions.length}`);
       }
 
+      // L2 — content-type URL blacklist applied to every source. Register
+      // parser rows come from a structured feed and are exempt.
+      if (!src.registerParser) {
+        const before = actions.length;
+        actions = actions.filter((a) => !isNonEnforcementUrl(a.url));
+        if (before !== actions.length) {
+          console.log(`${src.source}: content-type url gate ${before} -> ${actions.length}`);
+        }
+      }
+
+
+
 
       summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
       console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
