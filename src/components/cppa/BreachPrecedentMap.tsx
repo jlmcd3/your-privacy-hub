@@ -48,6 +48,9 @@ async function fetchActionsForPatterns(patterns: string[]): Promise<Action[]> {
     .select("id,regulator,jurisdiction,subject,decision_date,fine_amount,key_compliance_failure,violation,source_url")
     .or(orClauses)
     .not("key_compliance_failure", "is", null)
+    // SWEEP-2 T11: exclude moderator-review rows from precedent map.
+    .not("verification_status", "eq", "requires_review")
+    .not("subject", "is", null)
     .order("decision_date", { ascending: false, nullsFirst: false })
     .limit(3);
   if (error) {
