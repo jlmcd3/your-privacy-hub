@@ -168,12 +168,16 @@ export function fireCheckoutStarted(
   });
 }
 
-export function firePurchaseCompleted(
+// D3 hard-cut (2026-07-20): `purchase_completed` was renamed to
+// `purchase_verified`. The old event fired on-mount before any server-side
+// verification and produced funnel noise. The new event fires ONLY from the
+// `verify-purchase` success branch. Do not reintroduce a client-only fire.
+export function firePurchaseVerified(
   opts: { plan?: string | null; tool?: string | null; surface?: string },
 ) {
-  const key = `purchase_completed:${opts.plan ?? ""}:${opts.tool ?? ""}:${opts.surface ?? ""}`;
+  const key = `purchase_verified:${opts.plan ?? ""}:${opts.tool ?? ""}:${opts.surface ?? ""}`;
   onceFire(key, () => {
-    void trackEvent("purchase_completed", {
+    void trackEvent("purchase_verified", {
       plan: opts.plan ?? null,
       tool: opts.tool ?? null,
       surface: opts.surface ?? null,
