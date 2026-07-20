@@ -40,16 +40,20 @@ Deno.test("analysis block 2 routes Article-6 examples/recognised-LI through the 
   assertStringIncludes(all, "RESOLVED GDPR CITATIONS");
 });
 
-Deno.test("injected corpus block has no cache_control", () => {
+Deno.test("injected corpus block has no cache_control; advisory tail present", () => {
   const blocks = buildSystemContent({
     toolModule: LIA_ANALYSIS_TOOL_MODULE,
     currentDate: today,
     injected: "ENFORCEMENT PRECEDENTS: (none)",
   });
-  assertEquals(blocks.length, 3);
+  // COUNSEL-VOICE-1B — advisory-voice block is appended as a 4th uncached tail.
+  assertEquals(blocks.length, 4);
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[1].cache_control?.type, "ephemeral");
   assertEquals(blocks[2].cache_control, undefined);
+  assertEquals(blocks[3].cache_control, undefined);
+  assertStringIncludes(blocks[3].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
 });
 
 Deno.test("contradictory 'NEVER cite Article 6(11)' blanket rule is gone", () => {
