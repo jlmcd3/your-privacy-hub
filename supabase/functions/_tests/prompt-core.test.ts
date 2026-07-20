@@ -68,7 +68,7 @@ Deno.test("full variant: blocks, placeholders, content", () => {
   assert(blocks.length >= 2);
   const b1 = blocks[0].text;
   assertStringIncludes(b1, "PRIORITY ORDER");
-  assertStringIncludes(b1, "American English");
+  assertStringIncludes(b1, "US English (en-US)");
   assertStringIncludes(b1, "INTERPRETATION & ARGUMENT");
   assertStringIncludes(b1, "ARGUMENT MAPPING");
   assertStringIncludes(b1, "HIERARCHY OF AUTHORITY");
