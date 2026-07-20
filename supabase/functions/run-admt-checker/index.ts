@@ -780,6 +780,26 @@ ADDITIONAL DISCIPLINES:
           } else {
             item.citation = "";
           }
+          // CPPA-HF5 Task B — registry-injection consumption of the
+          // "the cited provision" narrative token. The model is
+          // instructed to write "the cited provision" as a placeholder
+          // for the resolved § citation; here we inject the concrete
+          // registry-resolved section into prose so the rendered PDF
+          // never carries the raw placeholder.
+          if (item && typeof item.citation === "string" && item.citation.trim()) {
+            const concrete = item.citation.trim();
+            const TOKEN_RE = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
+            const UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
+            const PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+            for (const f of proseFields) {
+              if (typeof item[f] !== "string") continue;
+              let next = item[f] as string;
+              next = next.replace(UNDER_RE, `under ${concrete}`);
+              next = next.replace(PURSUANT_RE, `pursuant to ${concrete}`);
+              next = next.replace(TOKEN_RE, concrete);
+              item[f] = next;
+            }
+          }
         }
       };
       resolveInto(report.notice_gaps);
