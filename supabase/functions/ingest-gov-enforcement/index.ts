@@ -123,6 +123,38 @@ function isNonEnforcementUrl(u: string): boolean {
   }
 }
 
+// L3 — generic deterministic subject extraction from headlines for
+// regulators without a dedicated extractor. Returns null when the title
+// yields no plausible named entity (e.g. "President signs ..." press
+// releases, "Statement on ...", or headlines that lead with the regulator
+// itself). Never a fallback string — the caller rejects the row.
+const GENERIC_SUBJECT_PATTERNS: RegExp[] = [
+  // "fines/orders/penalises/sanctions/settles/reprimands/warns {X} ..."
+  /\b(?:fines?|fined|orders?|ordered|penalis(?:e|es|ed|ing)|penaliz(?:e|es|ed|ing)|sanctions?|sanctioned|settles?|settled|reprimands?|reprimanded|warns?|warned|charges?|charged|sues?|sued|investigates?|investigated)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/,
+  // "against {X} ..." / "action against {X}"
+  /\b(?:action\s+against|proceedings\s+against|complaint\s+against|penalty\s+against|order\s+against|fine\s+against|enforcement\s+against)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/i,
+  // "{X} to pay $N" / "{X} agrees to pay" / "{X} fined"
+  /^([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})\s+(?:agrees\s+to\s+pay|to\s+pay|will\s+pay|pays|paid|fined|settles?|agrees|reaches?\s+settlement)/,
+];
+
+const GENERIC_SUBJECT_BLOCKLIST =
+  /^(the|a|an|new|update|updates|statement|guidance|report|reports|notice|notices|final|draft|press|release|releases|news|announcement|commissioner|commission|department|office|federal|state|attorney|general|court|supreme|company|companies|organization|organizations|business|businesses|consumer|consumers|data|privacy|security|regulation|regulations|rulemaking|rulemakings|investigation|investigations|enforcement)$/i;
+
+function deriveGenericSubject(title: string): string | null {
+  if (!title || title.length < 8) return null;
+  for (const re of GENERIC_SUBJECT_PATTERNS) {
+    const m = title.match(re);
+    if (m && m[1]) {
+      const cleaned = m[1].trim().replace(/\s+/g, " ").replace(/[.,;:]+$/, "");
+      if (cleaned.length < 3) continue;
+      if (GENERIC_SUBJECT_BLOCKLIST.test(cleaned)) continue;
+      return cleaned;
+    }
+  }
+  return null;
+}
+
+
 
 const SOURCES: SourceEntry[] = [
   { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/", source: "ICO", sourceGroup: "core", monitorPages: 1 },
