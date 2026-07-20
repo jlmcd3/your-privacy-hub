@@ -73,11 +73,17 @@ Deno.test("full variant: blocks, placeholders, content", () => {
   assertStringIncludes(b1, "Test Code §1");
   assertStringIncludes(b1, "2026-06-26");
 
-  // Cache: blocks 1 & 2 cached, block 3 not.
+  // Cache: blocks 1 & 2 cached, injected block 3 and advisory block 4 not.
   assertEquals(blocks[0].cache_control?.type, "ephemeral");
   assertEquals(blocks[0].cache_control?.ttl, "1h");
   assertEquals(blocks[1].cache_control?.ttl, "1h");
   assertEquals(blocks[2].cache_control, undefined);
+  // COUNSEL-VOICE-1B — advisory tail appended as an uncached 4th block.
+  assertEquals(blocks.length, 4);
+  assertEquals(blocks[3].cache_control, undefined);
+  assertStringIncludes(blocks[3].text, "further clarification is advisable.");
+  assertStringIncludes(blocks[3].text, "further internal investigation is advisable.");
+  assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
 
   // Cache minimum: Claude Sonnet 4.6 prefix ≥ 1024 tokens (~4 chars/token).
   assert(b1.length / 4 >= 1024, `block1 too short for cache: ${b1.length} chars`);
