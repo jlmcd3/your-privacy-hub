@@ -563,7 +563,13 @@ Deno.serve(async (req) => {
       // citation, date come from register rows). Bypasses generic link
       // extraction and headline gates; the AustLII URL is the canonical anchor.
       if (src.registerParser === "oaic") {
-        const rows = parseRegisterDeterminations(md);
+        let rows = parseRegisterDeterminations(md);
+        // SWEEP-2 T3: apply since_date gate before action mapping.
+        if (sinceDate) {
+          const before = rows.length;
+          rows = rows.filter((r) => r.decisionDate >= sinceDate);
+          console.log(`OAIC Register: since_date=${sinceDate} filter ${before} -> ${rows.length}`);
+        }
         actions = rows.map((r) => ({
           title: `${r.headingRaw}`,
           url: r.austliiUrl,
