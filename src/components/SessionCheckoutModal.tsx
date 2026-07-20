@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { waitForSessionPaid } from "@/lib/checkoutConfirmation";
-import { fireCheckoutStarted, firePurchaseCompleted } from "@/lib/analyticsEvents";
+import { fireCheckoutStarted, firePurchaseVerified } from "@/lib/analyticsEvents";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -90,7 +90,7 @@ export default function SessionCheckoutModal({
     });
     setConfirming(false);
     if (ok) {
-      firePurchaseCompleted({ tool: toolType, surface: "session_checkout_modal" });
+      firePurchaseVerified({ tool: toolType, surface: "session_checkout_modal" });
       onComplete?.(sessionId);
     } else {
       setConfirmError(

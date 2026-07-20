@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
 import { PRICING } from "@/config/pricing";
-import { firePurchaseCompleted } from "@/lib/analyticsEvents";
+import { firePurchaseVerified } from "@/lib/analyticsEvents";
 
 export default function SubscribeSuccess() {
   const { user } = useAuth();
@@ -20,7 +20,7 @@ export default function SubscribeSuccess() {
     // Fire once on landing — /subscribe/success is the post-purchase surface
     // for subscription plans. Plan is inferred from the resolved tier below.
     const plan = searchParams.get("plan") ?? null;
-    firePurchaseCompleted({ plan, surface: "subscribe_success" });
+    firePurchaseVerified({ plan, surface: "subscribe_success" });
     if (!user) return;
     let attempts = 0;
     const poll = setInterval(async () => {
