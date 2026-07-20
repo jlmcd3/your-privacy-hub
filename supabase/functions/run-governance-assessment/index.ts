@@ -611,9 +611,11 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
 // the prompt-level terminal MUST-NOT rule; the prompt is expected to make this
 // a no-op, but any leak is caught here before the JSON is returned.
 function applyJurisdictionClosureScrub(reportData: any, intakeJurisdictions: string[]): number {
-  const engaged = new Set(
-    (intakeJurisdictions || []).map((s) => String(s || "").toLowerCase().trim())
-  );
+  const engagedList = (intakeJurisdictions || []).map((s) => String(s || "").toLowerCase().trim());
+  const CODE: Record<string, string> = {
+    california: "ca", colorado: "co", virginia: "va", illinois: "il",
+    connecticut: "ct", texas: "tx", "new york": "ny",
+  };
   // Map from US-state citation prefix → engagement key(s).
   const STATE_PATTERNS: Array<{ re: RegExp; states: string[]; label: string }> = [
     { re: /\bC\.R\.S\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["colorado"], label: "Colorado privacy statute" },
@@ -626,7 +628,7 @@ function applyJurisdictionClosureScrub(reportData: any, intakeJurisdictions: str
     { re: /\bTex\.\s*Bus\.\s*&\s*Com\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["texas"], label: "Texas privacy statute" },
     { re: /\bN\.Y\.\s*Gen\.\s*Bus\.\s*L\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["new york"], label: "New York privacy statute" },
   ];
-  const isEngaged = (states: string[]) => states.some((s) => engaged.has(s));
+  const isEngaged = (states: string[]) => states.some((name) => engagedList.some((j) => j.includes(name) || j === CODE[name]));
   let scrubbed = 0;
   const rewrite = (s: string): string => {
     let out = s;
