@@ -20,48 +20,37 @@ const PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
 const SUBCH = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
 
 function pipeline(root: any): any {
-  const walkPre = (n: any) => {
-    if (!n) return;
-    if (Array.isArray(n)) { for (const v of n) walkPre(v); return; }
-    if (typeof n !== "object") return;
-    for (const k of Object.keys(n)) {
-      const v = n[k];
-      if (typeof v === "string") {
-        let x = v;
-        for (const [re, sub] of PRE_INJECT_PHRASE_RULES) x = x.replace(re, sub);
-        n[k] = x;
-      } else if (v && typeof v === "object") walkPre(v);
+  const consumeStr = (v: string): string => {
+    let next = v;
+    next = next.replace(/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH);
+    next = next.replace(/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH);
+    next = next.replace(/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision");
+    next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision");
+    next = next.replace(UNDER_RE, `under ${SUBCH}`);
+    next = next.replace(PURSUANT_RE, `pursuant to ${SUBCH}`);
+    next = next.replace(TOKEN_RE, SUBCH);
+    // Post: doubled-article collapse + whitespace tidy.
+    next = next.replace(/\bthe\s+the\b/gi, "the").replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
+    return next;
+  };
+  const walk = (node: any) => {
+    if (!node) return;
+    if (Array.isArray(node)) {
+      for (let i = 0; i < node.length; i++) {
+        const v = node[i];
+        if (typeof v === "string") node[i] = consumeStr(v);
+        else if (v && typeof v === "object") walk(v);
+      }
+      return;
+    }
+    if (typeof node !== "object") return;
+    for (const k of Object.keys(node)) {
+      const v = node[k];
+      if (typeof v === "string") node[k] = consumeStr(v);
+      else if (v && typeof v === "object") walk(v);
     }
   };
-  const walkFallback = (n: any) => {
-    if (!n) return;
-    if (Array.isArray(n)) { for (const v of n) walkFallback(v); return; }
-    if (typeof n !== "object") return;
-    for (const k of Object.keys(n)) {
-      const v = n[k];
-      if (typeof v === "string") {
-        let x = v;
-        x = x.replace(UNDER_RE, `under ${SUBCH}`);
-        x = x.replace(PURSUANT_RE, `pursuant to ${SUBCH}`);
-        x = x.replace(TOKEN_RE, SUBCH);
-        n[k] = x;
-      } else if (v && typeof v === "object") walkFallback(v);
-    }
-  };
-  const walkPost = (n: any) => {
-    if (!n) return;
-    if (Array.isArray(n)) { for (const v of n) walkPost(v); return; }
-    if (typeof n !== "object") return;
-    for (const k of Object.keys(n)) {
-      const v = n[k];
-      if (typeof v === "string") {
-        let x = v.replace(/\bthe\s+the\b/gi, "the");
-        x = x.replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
-        n[k] = x;
-      } else if (v && typeof v === "object") walkPost(v);
-    }
-  };
-  walkPre(root); walkFallback(root); walkPost(root);
+  walk(root);
   return root;
 }
 
