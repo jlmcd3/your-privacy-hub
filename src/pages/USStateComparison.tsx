@@ -252,11 +252,16 @@ const USStateComparison = () => {
                   </p>
                 );
               }
+              // D5: qualify the incomplete-cycle claim rather than suppressing it.
+              // "Last complete review" is the last fully-verified anchor from the
+              // JSON (source of truth for published cycles); the qualifier makes it
+              // clear a refresh is currently in progress.
               return (
                 <p>
-                  <span className="font-medium text-foreground">Partially reviewed as of:</span>{" "}
-                  {formatDateOnlyLong(jsonLastReviewed)} — {rollup.reviewedInCycleCount} of{" "}
-                  {rollup.totalEnacted} states verified within the current {REVIEW_CADENCE_DAYS}-day cycle.
+                  <span className="font-medium text-foreground">Last complete review:</span>{" "}
+                  {formatDateOnlyLong(jsonLastReviewed)} · <span className="font-medium text-foreground">refresh in progress</span>{" "}
+                  ({rollup.reviewedInCycleCount}/{rollup.totalEnacted} states reviewed this cycle;
+                  reviewed every {REVIEW_CADENCE_DAYS} days).
                 </p>
               );
             })()}
