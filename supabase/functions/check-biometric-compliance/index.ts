@@ -437,7 +437,7 @@ Sale and sharing restrictions:
 No sale, lease, or disclosure except with consent, financial transaction completion, or legal requirement. Vendor processing agreements must restrict vendor use to stated purposes.
 
 Current enforcement posture:
-Texas AG is the sole enforcer. Texas has secured over $2.7 billion in CUBI settlements (Meta $1.4B, 2024; Google $1.375B, 2025). The AG interprets each person's biometric capture as a separate violation. No private right of action, but the per-violation penalty at scale creates material exposure.
+Texas AG is the sole enforcer. The Texas Attorney General has secured large settlements from Meta (2024) and Google (2025) in actions pleaded under CUBI together with the Texas Deceptive Trade Practices Act (DTPA); the specific statute-by-statute allocation of the settlement sums is not publicly broken out and must not be aggregated under a single "CUBI-only" label. Consult the Attorney General's public enforcement records for the current posture. The AG interprets each person's biometric capture as a separate violation. No private right of action, but the per-violation penalty at scale creates material exposure.
 
 Priority actions:
 1. Implement notice-and-consent workflow before any biometric capture — use documented written or electronic consent records per individual.
