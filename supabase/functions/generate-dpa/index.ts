@@ -1080,7 +1080,7 @@ Additional requirements:
 ${ANNOTATIONS_INSTRUCTIONS}`;
 
     const DUAL_EU_US_USER = `${PARTIES_BLOCK}
-Legal framework: GDPR Article 28 + US State Privacy Laws (CCPA/CPRA, TDPSA, CTDPA, VCDPA, CPA as applicable)
+Legal framework: ${dualLegalFrameworkLine}
 Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs recommended for EU-to-US transfers"}
 
 ENFORCEMENT CONTEXT
