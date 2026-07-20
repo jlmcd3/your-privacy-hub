@@ -1427,8 +1427,23 @@ Return this JSON structure exactly:
         if (!Array.isArray(arr)) continue;
         for (const it of arr) {
           if (it && typeof it.citation === "string") it.citation = stripDefFrom7222Chain(it.citation);
+          // HF6C Task B — extend strip to prose fields where the model
+          // authored the definitional cite inline within a §7222 chain.
+          for (const f of ["finding", "remediation", "enforcement_exposure", "usage_note", "sample_language"]) {
+            if (it && typeof it[f] === "string") it[f] = stripDefFrom7222Chain(it[f]);
+          }
         }
       }
+      // HF6C Task B — aggregate_access_response scans every string leaf
+      // for a §7222(b)(3|4) + §7001 chain and removes the definitional
+      // cite from the operative citation chain.
+      const aar = (report as any).aggregate_access_response;
+      if (aar && typeof aar === "object") {
+        for (const key of Object.keys(aar)) {
+          if (typeof aar[key] === "string") aar[key] = stripDefFrom7222Chain(aar[key]);
+        }
+      }
+
     } catch (e) {
       console.warn("[run-admt-checker] CPPA-HF5 C citation-chain strip failed (non-fatal):", e);
     }
