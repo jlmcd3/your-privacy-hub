@@ -1386,7 +1386,19 @@ Return this JSON structure exactly:
         // F — ADMT element ids surfaced in prose
         [/\baccess_verify_nonacct\b/g, "the non-account access verification step"],
         [/\baccess_verify\b/g, "the access-response verification step"],
-      ];
+        // PRODUCT-FIX-4 T1 — probability-score meta-instruction leak: strip
+        // ALL-CAPS bracketed drafting instructions and rewrite with compliant
+        // withholding language (branch (ii) default; safe under either branch
+        // because the withholding sentence is a lawful default when the score
+        // is not disclosed inline).
+        [/\[\s*REGARDING\s+THE\s+PROBABILITY\s+SCORE[^\]]*\]/gi,
+          "The raw output score is withheld under 11 CCR § 7222(c) as information whose disclosure would reveal trade secrets as defined in Civil Code § 3426.1(d); the response nevertheless describes the input categories and the plain-language logic of the ADMT so the consumer can understand how their personal information generated the output."],
+        [/\[\s*SELECT\s+ONE\s*:\s*(?:RAW\s+)?PROBABILITY\s+SCORE[^\]]*\]/gi,
+          "The raw output score is withheld under 11 CCR § 7222(c) as information whose disclosure would reveal trade secrets as defined in Civil Code § 3426.1(d)."],
+        // Body-text "resolved by legal counsel" directive for the bracketed
+        // probability field → recast to advisory close per CPPA-HF3 E.
+        [/\bthe\s+probability[-\s]?score\s+bracketed\s+field\s+must\s+be\s+resolved\s+by\s+legal\s+counsel[^.]*\.?/gi,
+          "The probability-score element is resolved in the access response by either disclosing the score inline or invoking the § 7222(c) trade-secret carve-out with the compliant withholding sentence; further internal investigation is advisable to confirm which branch the business's trade-secret designation under Civil Code § 3426.1(d) supports."],
       let scrubbedAdmt = 0;
       const walkAdmt = (node: any) => {
         if (!node) return;
