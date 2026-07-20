@@ -120,18 +120,25 @@ export default function EnforcementActionDetail() {
       const currentJurisdiction =
         (fullData as Action | null)?.jurisdiction ?? null;
       if (currentJurisdiction) {
+        // SWEEP-2R R2b: mirror the L1 default from Enforcement.tsx (~L239)
+        // and get-enforcement-archive — surface rows with a resolved
+        // subject OR anonymised OAIC Register rows (which carry a formal
+        // citation in case_reference in place of a subject), and exclude
+        // rows flagged for moderator review.
         const { data: rel } = await supabase
           .from("enforcement_actions")
           .select(
-            "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law"
+            "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,verification_status"
           )
           .eq("jurisdiction", currentJurisdiction)
-          .not("subject", "is", null)
+          .or("subject.not.is.null,source_database.eq.OAIC Register")
+          .not("verification_status", "eq", "requires_review")
           .neq("id", id)
           .order("decision_date", { ascending: false, nullsFirst: false })
           .limit(5);
-        setRelated((rel as Action[]) ?? []);
+        setRelated((rel as unknown as Action[]) ?? []);
       }
+
     })();
   }, [id]);
 
@@ -361,7 +368,7 @@ export default function EnforcementActionDetail() {
                     <CardContent className="p-4 flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="text-xs text-muted-foreground">{r.regulator} • {r.decision_date ? new Date(r.decision_date).toLocaleDateString() : ""}</div>
-                        <div className="font-medium truncate">{r.subject}</div>
+                        <div className="font-medium truncate">{r.subject ?? (r as any).case_reference ?? "—"}</div>
                       </div>
                       <div className="font-mono text-sm shrink-0">{formatEur(r.fine_eur_equivalent ?? r.fine_eur) ?? "—"}</div>
                     </CardContent>

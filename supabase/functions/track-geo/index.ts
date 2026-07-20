@@ -19,8 +19,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const RESOLVED_COUNTRY_HEADER = "cf-ipcountry"; // primary header — name recorded in action log for evidence
+// SWEEP-2R R6a: RESOLVED_COUNTRY_HEADER constant removed (unused after
+// MC-FIX-1 CHANGES phase). RESOLVED_REGION_HEADER remains — still emitted
+// in the response body as region_source_header.
 const RESOLVED_REGION_HEADER = "cf-region-code";
+
 
 function pickCountry(h: Headers): { country: string | null; source: string | null } {
   const cf = h.get("cf-ipcountry");

@@ -58,16 +58,26 @@ export const DPA_REQUIRED_SECTIONS = [
 ];
 
 /**
- * IR Playbook required top-level parts (matches PART A..PART F structure).
+ * IR Playbook required top-level sections. SWEEP-2R R1: the shipped
+ * instrument (generate-ir-playbook v3.9.1) emits seven numbered "## Section
+ * N:" H2 headings; the earlier "PART A".."PART F" list was stale grader
+ * config and produced false-positive e1_section_present / e1_section_order
+ * findings on every current IR document. Needle strings below are lowercase
+ * substrings of the exact heading text emitted by PROMPT_PART_A/B/C.
+ * checkE1's order test is a monotonic first-occurrence indexOf, which
+ * remains valid because the seven headings are numbered 1..7 and therefore
+ * appear in ascending textual order in a well-formed document.
  */
 export const IR_REQUIRED_SECTIONS = [
-  "PART A",
-  "PART B",
-  "PART C",
-  "PART D",
-  "PART E",
-  "PART F",
+  "Section 1: IMMEDIATE ACTIONS",
+  "Section 2: BREACH ASSESSMENT CHECKLIST",
+  "Section 3: REGULATORY NOTIFICATION TIMELINE",
+  "Section 4: INDIVIDUAL NOTIFICATION DECISION TREE",
+  "Section 5: NOTIFICATION TEMPLATES",
+  "Section 6: DOCUMENTATION & ACCOUNTABILITY CHECKLIST",
+  "Section 7: POST-INCIDENT ACTIONS",
 ];
+
 
 function findHeadingLines(text: string): { level: number; title: string; line: string }[] {
   const lines = (text ?? "").split(/\r?\n/);
