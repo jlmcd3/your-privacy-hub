@@ -752,6 +752,12 @@ Deno.serve(async (req) => {
           baseRow.case_reference = registerCitation;
           baseRow.case_reference_extraction_method = "register_deterministic";
         }
+        // SWEEP-2 T10: anonymised register rows insert with subject=null and
+        // are marked requires_review so the L1 default hide-null filter
+        // masks them from public archive/UI until a moderator resolves.
+        if (src.registerParser === "oaic" && !extractedSubject) {
+          baseRow.verification_status = "requires_review";
+        }
         if (src.secondHop) {
           baseRow.primary_source_url = primarySourceUrl;
           baseRow.primary_source_status = primarySourceUrl ? "pending_fetch" : "pending_discovery";
