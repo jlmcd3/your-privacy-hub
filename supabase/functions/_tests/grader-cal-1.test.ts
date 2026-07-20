@@ -374,7 +374,73 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
   assertEquals(fails.length, 0, JSON.stringify(fails));
 });
 
-Deno.test("GRADER-CAL-3 T3: instrument version bumped to grader-cal-3", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-20-grader-cal-3");
+Deno.test("GRADER-CAL-4 T4: instrument version bumped to grader-cal-4", () => {
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-20-grader-cal-4");
+});
+
+// ---------------------------------------------------------------------------
+// GRADER-CAL-4 regression tests — e6 owner-directive & descriptive-status
+// carve-outs. See advisory-voice.ts and format-checks.ts for rationale.
+// ---------------------------------------------------------------------------
+
+// The e6 zone-based exemption for the ownership-disclaimer needs section
+// headings to be considered "active". Wrap the target sentence in a minimal
+// two-section body so the sentence lives clearly mid-document.
+function midBody(sentence: string): string {
+  return [
+    "## Section 1",
+    "Body prose.",
+    sentence,
+    "## Section 2",
+    "More body prose.",
+  ].join("\n");
+}
+
+Deno.test("GRADER-CAL-4: reader-directed ownership sentence mid-body still fails", () => {
+  const doc = midBody("Your qualified Data Protection Officer or legal counsel must review, complete, and own it.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assert(fails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-4: 'resolved by legal counsel' still fails", () => {
+  const doc = midBody("The probability-score bracketed field must be resolved by legal counsel.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assert(fails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-4: 'reviewed by counsel' still fails", () => {
+  const doc = midBody("This assessment should be reviewed by counsel before filing.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assert(fails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-4: 'consult your attorney' still fails", () => {
+  const doc = midBody("Consult your attorney before relying on this document.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assert(fails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-4: Privacy Officer passive notification directive passes", () => {
+  const doc = midBody("If an opt-out request has not been fully processed — including vendor notification and cessation confirmation — by business day 12, the Privacy Officer must be notified and an escalation review must begin.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-4: Privacy Officer active task directive passes", () => {
+  const doc = midBody("The Privacy Officer must update the access-response template to add the specific denial bases.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-4: DPO with Legal Counsel collaborator passes", () => {
+  const doc = midBody("The DPO, working with Legal Counsel and the CTO, must: (1) conduct a formal audit of all current technology tools.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
+});
+
+Deno.test("GRADER-CAL-4: descriptive-status privacy-lead sentence passes", () => {
+  const doc = midBody("The informal privacy lead (a senior legal counsel carrying privacy responsibilities part-time) has flagged the gap but no remediation timeline has been set.");
+  const fails = fmt.checkE6(doc).filter((f) => !f.passed);
+  assertEquals(fails.length, 0, JSON.stringify(fails));
 });
 
