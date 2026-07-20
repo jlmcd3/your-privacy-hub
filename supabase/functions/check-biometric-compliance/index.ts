@@ -317,7 +317,7 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
         : /healthcare/i.test(body.orgType) ? "the Privacy Officer and CISO"
         : /financial/i.test(body.orgType) ? "the Chief Compliance Officer and CISO"
         : "the Head of Privacy (or DPO where designated) and the Head of Security";
-      return `Other US state — General US Biometric Privacy Posture (POST-BIOMETRIC-FIX-1 T5 scaffold — enumerated hooks, owner and timeframe per action)
+      return `Other US state — General US Biometric Privacy Posture
 
 Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. No single "Other US state" statute exists; the applicable hooks depend on which state's residents' biometric data is captured. Named candidate statutes and their operative hooks (assess each against the state actually engaged):
 
