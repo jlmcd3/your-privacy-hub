@@ -1027,9 +1027,31 @@ ${enforcementBlock}
 Draft a single integrated dual-compliance DPA covering GDPR Art. 28 and Canadian federal/provincial privacy law. Header recital:
 "This DPA is entered into to satisfy the requirements of (a) GDPR Article 28, (b) PIPEDA Schedule 1 (accountability and contractual protection), and (c) Quebec Law 25 Art. 18.3 and applicable provincial privacy laws."
 
-Sections: combine GDPR Art. 28 obligations (parties, instructions, confidentiality, security Art. 32, sub-processors Arts. 28(2)/(4), data subject rights assistance, breach Art. 33, deletion/return Art. 28(3)(g), audit) with Canadian-specific clauses (accountability through the chain, contractual protection requirement, real-risk-of-significant-harm breach notification, Law 25 PIA for transfers outside Quebec, retention/destruction). Use "delete or return" + "Personal Data" in the post-termination clause.
+Sections, in this exact order and using the exact heading tokens shown (top-level headings are AUTHORITATIVE and are matched against the deterministic grader's DPA_REQUIRED_SECTIONS list — do NOT rename, reorder, merge, or split them). Number clauses hierarchically:
+
+1. PARTIES AND RECITALS (incl. dual-compliance recital above)
+2. DEFINITIONS — harmonised GDPR + Canadian definitions (Personal Data / Personal Information; Controller / Service Provider; Processing; Disclosure); where definitions diverge, state both.
+3. SUBJECT MATTER, NATURE, DURATION AND PURPOSE — specific business purpose(s); not "as necessary to perform the services."
+4. DATA PROCESSING — PROCESSOR OBLIGATIONS AND CANADIAN ACCOUNTABILITY — the heading MUST begin with the literal tokens "DATA PROCESSING —". Cover all eight GDPR Art. 28(3) elements (instructions, confidentiality, security, sub-processors, rights assistance, security/breach/DPIA assistance, deletion/return, information/audit) PLUS PIPEDA Schedule 1 accountability and Quebec Law 25 s.18.3 contractual-protection requirements (Controller remains accountable; Processor acts on behalf of Controller). Do NOT cite "Principle 1.2" or "clause 4.1.3" — PIPEDA Schedule 1 does not use decimal sub-principle numbering.
+5. SUB-PROCESSING PROVISIONS (GDPR Arts. 28(2)/(4) + PIPEDA/Law 25 flow-down) — the heading MUST contain the literal token "SUB-PROCESSING". Prior written consent; equivalent obligations flow-down; Processor remains accountable through the chain; populate Schedule A from intake. If none provided, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the line "[TO BE COMPLETED: list approved Sub-processors here]".
+6. DATA SUBJECT RIGHTS — INDIVIDUAL RIGHTS ASSISTANCE — the heading MUST contain the literal phrase "Data Subject Rights". Cover GDPR Arts. 12-23 rights (access, rectification, erasure, restriction, portability, objection) AND Canadian rights (Access, Correction, Withdrawal of Consent, Data Portability under Law 25 Art. 27, De-indexing under section 28.1 of the Act respecting the protection of personal information in the private sector).
+7. SECURITY MEASURES (GDPR Art. 32; PIPEDA Principle 7 / Schedule 1 cl. 4.7; Law 25 Art. 10; provincial PIPA/PHIPA equivalents) — calibrated technical, physical and organisational safeguards.
+8. DATA TRANSFERS — INTERNATIONAL AND CROSS-BORDER TRANSFERS — the heading MUST begin with the literal tokens "DATA TRANSFERS —". Content: ${body.includeTransferClause ? body.transferMechanism : "EU SCCs (Commission Implementing Decision (EU) 2021/914) for EU-origin transfers to non-adequate third countries; Canadian PIPEDA/Law 25 cross-border assessment (Law 25 Art. 17; OPC guidance) for transfers outside Canada or Quebec"}. Note that Canada benefits from a European Commission adequacy decision for private-sector transfers under PIPEDA, so EU→Canada transfers to PIPEDA-regulated recipients do not require an Art. 46 safeguard while that adequacy remains in force; document the adequacy reliance rather than duplicating SCCs where adequacy applies.
+9. BREACH NOTIFICATION — GDPR Art. 33 (Processor notifies Controller without undue delay and in any event within forty-eight (48) hours of awareness, to enable the Controller to comply with its own 72-hour supervisory-authority window under Art. 33(1)) AND PIPEDA s.10.1 / Breach of Security Safeguards Regulations SOR/2018-64 (real-risk-of-significant-harm; correct SOR number is SOR/2018-64 — do NOT cite SOR/2018-161) AND Quebec Law 25 Art. 3.5.
+10. RETENTION AND DESTRUCTION — Law 25 Art. 23 destroy-or-anonymise; do NOT default post-employment or HR retention to any fixed period as if statutorily required — neither PIPEDA nor Quebec Law 25 prescribes a fixed retention period.
+11. RETURN OR DELETION OF PERSONAL DATA — POST-TERMINATION OBLIGATIONS — the heading MUST contain the literal tokens "RETURN OR DELETION". At Controller's choice, Processor shall delete or return all Personal Data (Art. 28(3)(g) + PIPEDA / Law 25 equivalents). Use the exact phrase "delete or return" and reference "Personal Data" in the same sentence.
+12. AUDIT AND INSPECTION RIGHTS — ${body.auditRights}
+13. RECORDKEEPING (GDPR Art. 30 + Law 25 Art. 8 register of confidentiality incidents; Processor assists)
+14. LIABILITY AND INDEMNIFICATION
+15. TERM AND TERMINATION
+16. GOVERNING LAW (specify EU member state or Canadian province) AND DISPUTE RESOLUTION
+17. GENERAL PROVISIONS
+
+SCC MODULE PINNING (deterministic). This DPA governs a Controller-to-Processor relationship. Wherever the EU SCCs (Commission Implementing Decision (EU) 2021/914) are cited or incorporated, the applicable module for the direct Controller-to-Processor transfer is MODULE TWO (Controller-to-Processor). Onward transfers by the Processor to Sub-processors that are themselves processors of the Controller are governed by MODULE THREE (Processor-to-Processor). MODULE ONE (Controller-to-Controller) and MODULE FOUR (Processor-to-Controller) are inapplicable to this instrument and MUST NOT be cited, described, or implied in any transfer clause, schedule, or annex. If the intake's transferMechanism value specifies a module, the transfer-clause basis MUST use that same module verbatim — do not silently substitute a different module number.
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Where GDPR is stricter, GDPR prevails; where Canadian law adds requirements, both apply.
 
