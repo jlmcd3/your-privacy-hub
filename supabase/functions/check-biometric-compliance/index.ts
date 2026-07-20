@@ -323,7 +323,7 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 
 1. State comprehensive privacy laws treating biometric data as SENSITIVE personal data (opt-in consent, DPIA/data-protection-assessment, purpose limitation). NAMED CANDIDATE HOOKS:
    - California — CCPA/CPRA, Cal. Civ. Code § 1798.140(ae) (sensitive PI, biometric identifiers) and § 1798.121 (right to limit use of SPI); 11 CCR §§ 7150–7157 (risk assessment) where triggers apply.
-   - Colorado — CPA, C.R.S. § 6-1-1303(24) (sensitive data — biometric data used for unique identification); § 6-1-1308(4) (consent for sensitive data); § 6-1-1309 (data-protection assessment).
+   - Colorado — CPA, C.R.S. § 6-1-1303(24) (sensitive data — biometric data used for unique identification); § 6-1-1308(7) (duty regarding sensitive data — consent required before processing); § 6-1-1309 (data-protection assessment).
    - Connecticut — CTDPA, Conn. Gen. Stat. § 42-515(28)/(29) (sensitive data); § 42-520(a)(6) (consent); § 42-522 (data-protection assessment).
    - Virginia — VCDPA, Va. Code § 59.1-575 (sensitive data — biometric); § 59.1-578(A)(5) (consent); § 59.1-580 (data-protection assessment).
    - Utah — UCPA, Utah Code § 13-61-101 (sensitive data); § 13-61-302 (consent and notice).
