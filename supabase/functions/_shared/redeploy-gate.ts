@@ -18,7 +18,11 @@ export interface RedeployConflict {
   detail: string;
 }
 
-const TERMINAL = new Set(["completed", "failed", "cancelled", "success", "error"]);
+// SWEEP-2 T1 — production status vocab for the three quality-run tables is
+// {complete, cancelled, success, failed, error, deliberating}. The historical
+// "completed" spelling never landed in production; keeping it here is harmless
+// and preserves compatibility with any future writer that emits it.
+const TERMINAL = new Set(["complete", "completed", "failed", "cancelled", "success", "error"]);
 const NON_TERMINAL_STAGING = new Set(["pending", "processing", "dispatching"]);
 
 // Minimal DB shape so this can be unit-tested with a fake client.

@@ -202,6 +202,8 @@ serve(async (req) => {
         },
       ],
       customer: customerId,
+      // SWEEP-2 T8: ownership anchor for verify-purchase.
+      client_reference_id: user.id,
       metadata: {
         // NOTE: webhook keys off `type === "registration_order"` — keep both
         // for forward-compat with existing dashboards / queries.

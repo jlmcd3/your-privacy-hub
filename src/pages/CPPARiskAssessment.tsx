@@ -275,7 +275,13 @@ export default function CPPARiskAssessment() {
   const resolveHighlightingEnabled = IMPROVEMENT_KIT_ENABLED && isPro;
   const { meter } = useRunMeter("cppa_risk_assessment", refine.assessmentId);
   const topRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [step]);
+  // SWEEP-2 T14: skip the scroll on initial mount; only scroll when the
+  // step actually changes so the page does not auto-jump on first load.
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) { didMountRef.current = true; return; }
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 

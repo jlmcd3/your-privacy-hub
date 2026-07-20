@@ -58,6 +58,8 @@ Deno.serve(async (req) => {
         .select("regulator, jurisdiction, subject, sector, law, violation, key_compliance_failure, decision_date, fine_eur_equivalent, precedent_significance, violation_types")
         .gte("enrichment_version", 1)
         .gte("decision_date", enforcementSince)
+        // SWEEP-2 T11: hide moderator-review rows from horizon corpus.
+        .not("verification_status", "eq", "requires_review")
         .order("precedent_significance", { ascending: false, nullsFirst: false })
         .order("decision_date", { ascending: false, nullsFirst: false })
         .limit(40),

@@ -93,6 +93,10 @@ function applyCommonFilters(q: any, query: Query) {
   if (query.sector) out = out.eq("industry_sector", query.sector);
   if (query.biometric) out = out.eq("biometric_related", true);
   if (query.breach) out = out.eq("breach_related", true);
+  // SWEEP-2 T11: hide rows explicitly flagged for moderator review from
+  // subscriber-facing enforcement context. Applies to every tier / fallback
+  // query in this module.
+  out = out.not("verification_status", "eq", "requires_review");
   return out;
 }
 

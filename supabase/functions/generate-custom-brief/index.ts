@@ -161,6 +161,9 @@ async function fetchEnforcementHistory(prefs: { industries: string[]; jurisdicti
   let query = supabase
     .from("enforcement_actions")
     .select("regulator, jurisdiction, subject, fine_eur_equivalent, fine_verified, violation, decision_date, sector")
+    // SWEEP-2 T11: hide moderator-review rows from custom brief corpus.
+    .not("verification_status", "eq", "requires_review")
+    .not("subject", "is", null)
     .order("decision_date", { ascending: false })
     .limit(30);
 

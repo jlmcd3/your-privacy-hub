@@ -131,8 +131,12 @@ function isNonEnforcementUrl(u: string): boolean {
 const GENERIC_SUBJECT_PATTERNS: RegExp[] = [
   // "fines/orders/penalises/sanctions/settles/reprimands/warns {X} ..."
   /\b(?:fines?|fined|orders?|ordered|penalis(?:e|es|ed|ing)|penaliz(?:e|es|ed|ing)|sanctions?|sanctioned|settles?|settled|reprimands?|reprimanded|warns?|warned|charges?|charged|sues?|sued|investigates?|investigated)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/,
-  // "against {X} ..." / "action against {X}"
-  /\b(?:action\s+against|proceedings\s+against|complaint\s+against|penalty\s+against|order\s+against|fine\s+against|enforcement\s+against)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/i,
+  // "against {X} ..." / "action against {X}" — SWEEP-2 T9: the alternation
+  // head is case-insensitive (spelled out) but the capture keeps the strict
+  // per-word [A-Z]-start behavior of patterns 1 and 3. The previous /i flag
+  // broadened the capture and swallowed trailing prepositional phrases
+  // (e.g. "for HIPAA Violations"), producing multi-clause junk subjects.
+  /(?:[Aa]ction\s+[Aa]gainst|[Pp]roceedings\s+[Aa]gainst|[Cc]omplaint\s+[Aa]gainst|[Pp]enalty\s+[Aa]gainst|[Oo]rder\s+[Aa]gainst|[Ff]ine\s+[Aa]gainst|[Ee]nforcement\s+[Aa]gainst)\s+([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})/,
   // "{X} to pay $N" / "{X} agrees to pay" / "{X} fined"
   /^([A-Z][\w&.\-']*(?:\s+[A-Z0-9][\w&.\-']*){0,6})\s+(?:agrees\s+to\s+pay|to\s+pay|will\s+pay|pays|paid|fined|settles?|agrees|reaches?\s+settlement)/,
 ];
@@ -502,6 +506,11 @@ Deno.serve(async (req) => {
   const mode: "backfill" | "monitor" = modeRaw === "monitor" ? "monitor" : "backfill";
   const sourceGroupParam = param("source_group"); // "core" | "us_state" | "canada" | "all" | null
   const sourceKeyParam = param("source"); // exact match on src.source (e.g. "CPPA")
+  // SWEEP-2 T3: register-parser filter — accept only register rows whose
+  // decisionDate >= sinceDate (ISO YYYY-MM-DD). Applied ONLY to the OAIC
+  // register parser; non-register sources ignore this param.
+  const sinceDateParam = param("since_date");
+  const sinceDate = sinceDateParam && /^\d{4}-\d{2}-\d{2}$/.test(sinceDateParam) ? sinceDateParam : null;
 
   let ftcPageFilter: Set<number> | null = null;
   if (ftcPageParam !== null) {
@@ -554,7 +563,13 @@ Deno.serve(async (req) => {
       // citation, date come from register rows). Bypasses generic link
       // extraction and headline gates; the AustLII URL is the canonical anchor.
       if (src.registerParser === "oaic") {
-        const rows = parseRegisterDeterminations(md);
+        let rows = parseRegisterDeterminations(md);
+        // SWEEP-2 T3: apply since_date gate before action mapping.
+        if (sinceDate) {
+          const before = rows.length;
+          rows = rows.filter((r) => r.decisionDate >= sinceDate);
+          console.log(`OAIC Register: since_date=${sinceDate} filter ${before} -> ${rows.length}`);
+        }
         actions = rows.map((r) => ({
           title: `${r.headingRaw}`,
           url: r.austliiUrl,
@@ -718,7 +733,13 @@ Deno.serve(async (req) => {
         // L3 — reject rows that never resolve a subject. These are the
         // rows that previously rendered as "Undisclosed entity". Skip the
         // insert entirely; count as skipped so the run summary reflects it.
-        if (!extractedSubject) {
+        // SWEEP-2 T10: register-parser rows are EXEMPT from this null-skip.
+        // A structured register row with subject=null is a genuinely
+        // anonymized formal determination (e.g. "'AXF' and 'AXG'") — it
+        // must be inserted so the register remains complete. The row is
+        // stamped verification_status='requires_review' so downstream read
+        // paths can hide it by default until moderator review.
+        if (!extractedSubject && src.registerParser !== "oaic") {
           skipped++;
           continue;
         }
@@ -741,6 +762,12 @@ Deno.serve(async (req) => {
         if (src.registerParser === "oaic" && registerCitation) {
           baseRow.case_reference = registerCitation;
           baseRow.case_reference_extraction_method = "register_deterministic";
+        }
+        // SWEEP-2 T10: anonymised register rows insert with subject=null and
+        // are marked requires_review so the L1 default hide-null filter
+        // masks them from public archive/UI until a moderator resolves.
+        if (src.registerParser === "oaic" && !extractedSubject) {
+          baseRow.verification_status = "requires_review";
         }
         if (src.secondHop) {
           baseRow.primary_source_url = primarySourceUrl;

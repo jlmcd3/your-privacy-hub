@@ -192,6 +192,8 @@ Deno.serve(async (req) => {
         fine_amount: r.fine_amount || null,
         fine_eur: r.fine_eur,
         fine_eur_equivalent: r.fine_eur,
+        // SWEEP-2 T12: null-subject CMS rows are stamped for moderator review.
+        ...(r.controller ? {} : { verification_status: "requires_review" as const }),
       });
     }
 

@@ -95,11 +95,13 @@ Deno.serve(async (req) => {
     let query = admin
       .from('enforcement_actions')
       .select(
-        'id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law',
+        'id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,verification_status',
         { count: 'exact' }
       )
-      // L1 — hide rows without a resolved subject; UI no longer renders an "Undisclosed entity" fallback.
-      .not('subject', 'is', null);
+      // SWEEP-2 T10/T11: null subjects allowed only for structured OAIC
+      // Register rows; moderator-review rows stay hidden regardless of source.
+      .or('subject.not.is.null,source_database.eq.OAIC Register')
+      .not('verification_status', 'eq', 'requires_review');
 
     if (!includeRecent) {
       // Premium archive only: rows older than 60 days
