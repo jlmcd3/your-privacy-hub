@@ -316,6 +316,8 @@ Deno.serve(async (req) => {
           },
           quantity: 1,
         }],
+        // SWEEP-2 T8: ownership anchor for verify-purchase.
+        ...(user_id ? { client_reference_id: String(user_id) } : {}),
         metadata: {
           tool_type,
           assessment_id,
