@@ -1344,7 +1344,94 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf5@2026-07-20"), build_stamp: BUILD_STAMP };
+    // CPPA-HF6R Task C — deterministic count-vs-list reconciliation for
+    // exec-summary enumerations. Scans executive_summary for phrases like
+    // "Nine of the 18 components: A; B; C" or "Five additional …: X; Y"
+    // and rewrites the count word/number to equal the actual enumerated
+    // item count so number and list agree. Covers word-form and digit
+    // count tokens; both directions (over- and under-count).
+    try {
+      const NUM_WORDS: Record<string, number> = {
+        one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+        eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,
+        seventeen:17,eighteen:18,nineteen:19,twenty:20,
+      };
+      const WORD_BY_NUM: Record<number, string> = Object.fromEntries(
+        Object.entries(NUM_WORDS).map(([w, n]) => [n, w]),
+      );
+      const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+      const reconcileEnumCount = (prose: string): { out: string; fixed: number } => {
+        if (typeof prose !== "string" || !prose) return { out: prose, fixed: 0 };
+        let fixed = 0;
+        // Pattern: (COUNT) [of the 18 components|additional] ... (: or —) ITEMS
+        // ITEMS run until a hard stop (". " or end). Items are separated by
+        // "; " (primary) or ", and " / ", " (fallback if no semicolons).
+        const RE = /\b(?:([A-Z]?[a-z]+)|(\d{1,2}))\b(\s+(?:of\s+the\s+18\s+(?:components|controls|required[^\n:]{0,40})|additional[^:\n—-]{0,80}))([:\u2014\u2013-])\s*([^.\n]+?)(?=\.\s|\.$|$)/g;
+        const next = prose.replace(RE, (m, wRaw, nRaw, mid, sep, tail) => {
+          const wLower = typeof wRaw === "string" ? wRaw.toLowerCase() : "";
+          const asWord = wLower && wLower in NUM_WORDS;
+          const asDigit = typeof nRaw === "string" && nRaw.length > 0;
+          if (!asWord && !asDigit) return m;
+          const stated = asWord ? NUM_WORDS[wLower] : Number(nRaw);
+          if (!Number.isFinite(stated) || stated <= 0 || stated > 20) return m;
+          // Count items in tail: split on semicolons first; if only one
+          // segment, try ", and " / ", " splits (but require ≥2 result).
+          let items = tail.split(/;\s*/).map((s: string) => s.trim()).filter(Boolean);
+          if (items.length < 2) {
+            const alt = tail.split(/,\s*(?:and\s+)?/).map((s: string) => s.trim()).filter(Boolean);
+            if (alt.length >= 2) items = alt;
+          }
+          const actual = items.length;
+          if (!Number.isFinite(actual) || actual <= 0 || actual > 20) return m;
+          if (actual === stated) return m;
+          fixed++;
+          if (asWord) {
+            const replacement = WORD_BY_NUM[actual] ?? String(actual);
+            const wasCap = wRaw.charAt(0) === wRaw.charAt(0).toUpperCase();
+            const newWord = wasCap ? cap(replacement) : replacement;
+            return `${newWord}${mid}${sep} ${tail}`;
+          }
+          return `${String(actual)}${mid}${sep} ${tail}`;
+        });
+        return { out: next, fixed };
+      };
+      const surfaces: Array<[string, string]> = [
+        ["executive_summary", String((report as any).executive_summary ?? "")],
+      ];
+      // top_risks/next_steps entries may also carry summary counts.
+      if (Array.isArray((report as any).top_risks)) {
+        for (let i = 0; i < (report as any).top_risks.length; i++) {
+          const t = (report as any).top_risks[i];
+          if (typeof t === "string") surfaces.push([`top_risks[${i}]`, t]);
+        }
+      }
+      if (Array.isArray((report as any).next_steps)) {
+        for (let i = 0; i < (report as any).next_steps.length; i++) {
+          const t = (report as any).next_steps[i];
+          if (typeof t === "string") surfaces.push([`next_steps[${i}]`, t]);
+        }
+      }
+      let totalFixed = 0;
+      for (const [key, val] of surfaces) {
+        const { out, fixed } = reconcileEnumCount(val);
+        if (fixed > 0) {
+          totalFixed += fixed;
+          if (key === "executive_summary") {
+            (report as any).executive_summary = out;
+          } else {
+            const m = key.match(/^(top_risks|next_steps)\[(\d+)\]$/);
+            if (m) (report as any)[m[1]][Number(m[2])] = out;
+          }
+        }
+      }
+      if (totalFixed > 0) {
+        console.warn(`[CPPA Cyber] HF6R Task C: reconciled ${totalFixed} exec-summary count(s) with list length`);
+        const meta: any = (report as any)._meta ?? ((report as any)._meta = {});
+        meta.hf6r_count_reconciled = totalFixed;
+      }
+    } catch (_) { /* non-fatal */ }
+
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
