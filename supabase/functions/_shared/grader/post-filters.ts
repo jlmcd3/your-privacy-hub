@@ -17,10 +17,15 @@ export type LlmFinding = {
 // contains one of the two canonical advisory closes ("further clarification
 // is advisable." / "further internal investigation is advisable."). These
 // are designed drafting-voice product output surfaced to the reader by the
-// generator itself, not model self-narration. Legacy "NOTE FOR LEGAL REVIEW"
-// evidence is also whitelisted for back-compat with pre-retarget batches.
+// generator itself, not model self-narration.
+//
+// GRADER-CAL-2 Task 5 — LEGACY_NOTE_BLOCK_RE removed from the drop path.
+// Current generator prompts prohibit "NOTE FOR LEGAL REVIEW" outright
+// (COUNSEL-VOICE-1 recast; see generate-dpa ANNOTATIONS_INSTRUCTIONS
+// "NEVER emit"), so post-filter-dropping leak findings that quote that
+// heading masks a real defect on new runs. The LLM rubric line for
+// rubric_internal_reasoning_leak can still surface such evidence.
 const ADVISORY_FORMULA_RE = /further (?:clarification|internal investigation) is advisable\./i;
-const LEGACY_NOTE_BLOCK_RE = /note\s+for\s+legal\s+review/i;
 
 // A3 — verified-authority whitelist. Additive to SHARED_GRADER_CONTEXT prose:
 // if an evidence quote references any of the tokens below, drop the finding
@@ -39,6 +44,9 @@ const A3_WHITELIST_TOKENS = [
 // A4 — Emit-guard. Suppress "findings" the model returns that in fact affirm
 // the document was correct ("This citation is correct", "the report properly
 // cites", "no issue found"). These are noise, not defects.
+// GRADER-CAL-2 Task 4 — added self-exonerating patterns observed in the
+// d1159f96 rubric_internal_reasoning_leak evidence ("...remains within the
+// 'the record' whitelist. No clear leak beyond whitelisted formul[ae]").
 const AFFIRMATION_RES = [
   /\bis\s+correct(ly)?\b/i,
   /\bare\s+correct(ly)?\b/i,
@@ -46,6 +54,10 @@ const AFFIRMATION_RES = [
   /\bproperly\s+(cites?|applies)\b/i,
   /\bcorrectly\s+(cites?|applies|frames?)\b/i,
   /\bthis\s+is\s+not\s+a\s+(defect|leak|misapplication)\b/i,
+  // GRADER-CAL-2 Task 4 additions.
+  /\bno\s+clear\s+(leak|violation|defect)\b/i,
+  /\bremains?\s+within\s+the\b[^.]{0,60}\bwhitelist/i,
+  /\bno\s+leak\s+(found|identified)\b/i,
 ];
 
 function evidenceOf(f: LlmFinding): string {
@@ -71,10 +83,13 @@ export function applyGraderCal1Filter(
         dropped.a4++;
         continue;
       }
-      // A2 — advisory-formula sentences (and legacy NOTE blocks) are not leaks.
+      // A2 — advisory-formula sentences are not leaks. GRADER-CAL-2 Task 5:
+      // the legacy "NOTE FOR LEGAL REVIEW" whitelist is retired (current
+      // prompts prohibit that heading outright); real occurrences now
+      // surface as legitimate leak findings.
       if (
         f.check_id === "rubric_internal_reasoning_leak" &&
-        (ADVISORY_FORMULA_RE.test(ev) || LEGACY_NOTE_BLOCK_RE.test(ev))
+        ADVISORY_FORMULA_RE.test(ev)
       ) {
         dropped.a2++;
         continue;
