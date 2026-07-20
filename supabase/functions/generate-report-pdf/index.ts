@@ -1193,7 +1193,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     ${flags.length ? `<section><h2>Inconsistencies to Resolve</h2>
       ${flags.map((f: any) => `<div class="card">
         ${f.description ? `<p>${text(f.description)}</p>` : ""}
-        ${f.intake_field_1 || f.intake_field_2 ? `<p><span class="label">Conflicting inputs:</span> ${text([f.intake_field_1, f.intake_field_2].filter(Boolean).join(" ↔ "))}</p>` : ""}
+        ${f.intake_field_1 || f.intake_field_2 ? `<p><span class="label">Conflicting inputs:</span> ${text([f.intake_field_1, f.intake_field_2].filter(Boolean).map(labelForIntakeFieldId).join(" ↔ "))}</p>` : ""}
         ${f.regulatory_citation ? `<p><span class="label">Citation:</span> ${text(f.regulatory_citation)}</p>` : ""}
         ${f.resolution_required ? `<p><span class="label">Resolution:</span> ${text(f.resolution_required)}</p>` : ""}
       </div>`).join("")}
