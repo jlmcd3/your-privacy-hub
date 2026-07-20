@@ -859,8 +859,20 @@ ADDITIONAL DISCIPLINES:
       const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
       const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
       const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      // Defense-in-depth: the earlier pre-inject walker skips string
+      // elements inside arrays (e.g., priority_actions: string[]), so the
+      // upstream synonym phrases can survive to this stage. Fold them into
+      // consumeStr so array-of-string surfaces are still fail-closed.
+      const SUBCH_SYNONYM_RES: Array<[RegExp, string]> = [
+        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK],
+        [/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK],
+      ];
       const consumeStr = (v: string): string => {
         let next = v;
+        for (const [re, sub] of SUBCH_SYNONYM_RES) next = next.replace(re, sub);
+        // Collapse doubled/quantifier "the the cited provision" first.
+        next = next.replace(/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision");
+        next = next.replace(/\bthe\s+((?:full|four|three|two|entire|all|many|few|several)\s+)the\s+cited\s+provision\b/gi, "$1the cited provision");
         next = next.replace(SUBCH_UNDER_RE, `under ${SUBCH_FALLBACK}`);
         next = next.replace(SUBCH_PURSUANT_RE, `pursuant to ${SUBCH_FALLBACK}`);
         next = next.replace(SUBCH_TOKEN_RE, SUBCH_FALLBACK);
