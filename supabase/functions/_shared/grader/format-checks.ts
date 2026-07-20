@@ -438,6 +438,29 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
                           BARE_ROLE_CELL_EXEMPT_RE.test(s) ||
                           PIPE_ROSTER_EXEMPT_RE.test(s);
       if (rosterMatch && !DIRECTIVE_VERB_RE.test(s)) continue;
+      // GRADER-CAL-4 Task 1 — OWNER-DIRECTIVE exemption. Internal role is
+      // the acting subject of a modal directive; skip unless the sentence
+      // is advice-delegation or reader-directed.
+      if (
+        OWNER_DIRECTIVE_RE.test(s) &&
+        !DIRECTIVE_VERB_RE.test(s) &&
+        !ADVICE_DELEGATION_RE.test(s) &&
+        !READER_DIRECTED_RE.test(s)
+      ) {
+        continue;
+      }
+      // GRADER-CAL-4 Task 2 — DESCRIPTIVE-STATUS exemption. Role token
+      // appears only in a status / parenthetical / past-tense clause and
+      // no modal directive addresses the role or the reader.
+      if (
+        DESCRIPTIVE_STATUS_RE.test(s) &&
+        !OWNER_DIRECTIVE_RE.test(s) &&
+        !DIRECTIVE_VERB_RE.test(s) &&
+        !ADVICE_DELEGATION_RE.test(s) &&
+        !READER_DIRECTED_RE.test(s)
+      ) {
+        continue;
+      }
       hits++;
       findings.push(fail("e6_counsel_referral", dim, "high",
         `body-text counsel referral: "${s.slice(0, 200)}"`));
