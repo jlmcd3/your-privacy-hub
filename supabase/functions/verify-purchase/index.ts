@@ -87,15 +87,19 @@ Deno.serve(async (req) => {
   }
 
   // Ownership check: the Stripe customer email OR the session client_reference_id
-  // must match the authenticated user. We prefer client_reference_id when the
-  // checkout flow supplies it (it's userId-scoped); fall back to email.
+  // OR metadata.user_id must match the authenticated user. client_reference_id is
+  // preferred; metadata.user_id is the SWEEP-2 T8 fallback for tool-checkout
+  // flows that predate the client_reference_id anchor; email is the last resort.
   const clientRef = typeof session.client_reference_id === "string" ? session.client_reference_id : null;
+  const metaUserId = typeof session.metadata?.user_id === "string" && session.metadata.user_id.length > 0
+    ? session.metadata.user_id
+    : null;
   const customerEmail = (typeof session.customer === "object" && session.customer)
     ? (session.customer as any).email
     : session.customer_details?.email;
   const emailMatch = !!(userEmail && customerEmail &&
     userEmail.toLowerCase() === String(customerEmail).toLowerCase());
-  const refMatch = clientRef === userId;
+  const refMatch = clientRef === userId || metaUserId === userId;
   if (!emailMatch && !refMatch) {
     return json({ error: "session_owner_mismatch" }, 403);
   }
