@@ -1121,13 +1121,12 @@ Return this JSON structure exactly:
       reportData: report,
     });
 
-    // CPPA-HF4 Task C + D2 + F — post-gen artifact scrub. Cleans HF3
-    // Article-N recast artifacts, bracketed counsel placeholders, and ADMT
-    // pipeline element ids that leak into prose.
+    // CPPA-HF4 Task C + D2 + F, HF5 Task B/C/D/E — post-gen artifact scrub.
     try {
       const REPLACEMENTS: Array<[RegExp, string]> = [
+        // HF5 B — case-insensitive doubled-article fix (HF4 missed lowercase).
+        [/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision"],
         // C — mechanical substitution artifacts
-        [/\bThe\s+the\s+cited\s+provision\b/g, "The cited provision"],
         [/\bthe\s+applicable\s+definitional\s+provision\b/gi, "the cited provision"],
         [/\bthe\s+applicable\s+regulation\s+section\b/gi, "the cited provision"],
         // D2 — bracketed counsel placeholders → generic authorised-signatory
@@ -1148,7 +1147,6 @@ Return this JSON structure exactly:
           if (typeof v === "string") {
             let next = v;
             for (const [re, sub] of REPLACEMENTS) next = next.replace(re, sub);
-            // Compact residual doubled spaces from empty-string substitutions.
             next = next.replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1");
             if (next !== v) { (node as any)[k] = next; scrubbedAdmt++; }
           } else if (v && typeof v === "object") {
@@ -1158,14 +1156,107 @@ Return this JSON structure exactly:
       };
       walkAdmt(report);
       if (scrubbedAdmt > 0) {
-        console.warn(`[run-admt-checker] CPPA-HF4 post-gen scrub: ${scrubbedAdmt} occurrence(s) cleaned`);
+        console.warn(`[run-admt-checker] CPPA-HF4/5 post-gen scrub: ${scrubbedAdmt} occurrence(s) cleaned`);
       }
     } catch (e) {
-      console.warn("[run-admt-checker] CPPA-HF4 post-gen scrub failed (non-fatal):", e);
+      console.warn("[run-admt-checker] CPPA-HF4/5 post-gen scrub failed (non-fatal):", e);
     }
 
-    // CPPA-HF4 I3 — prompt_version _meta stamp on ADMT reports.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf4@2026-07-19"), build_stamp: BUILD_STAMP };
+    // CPPA-HF5 Task C — access-chain citation assembly: strip § 7001(e)(1)
+    // (definitional) from citation strings that ALSO cite § 7222(b)(3)/(4)
+    // (substantive access-response authority). Definitional support belongs
+    // in narrative, not in the citation chain.
+    try {
+      const stripDefFrom7222Chain = (s: unknown): unknown => {
+        if (typeof s !== "string") return s;
+        if (!/§\s*7222\(b\)\((?:3|4)\)/.test(s)) return s;
+        if (!/§\s*7001/.test(s)) return s;
+        // Remove " + 11 CCR § 7001(e)(1)" / " + § 7001(x)" fragments; also
+        // handle leading/trailing joiners.
+        let out = s
+          .replace(/\s*\+\s*(?:11\s*CCR\s*)?§\s*7001(?:\([a-z0-9]+\))*/gi, "")
+          .replace(/(?:11\s*CCR\s*)?§\s*7001(?:\([a-z0-9]+\))*\s*\+\s*/gi, "")
+          .replace(/,\s*(?:11\s*CCR\s*)?§\s*7001(?:\([a-z0-9]+\))*/gi, "")
+          .replace(/\s{2,}/g, " ").trim();
+        return out;
+      };
+      for (const bucket of ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain"]) {
+        const arr = (report as any)[bucket];
+        if (!Array.isArray(arr)) continue;
+        for (const it of arr) {
+          if (it && typeof it.citation === "string") it.citation = stripDefFrom7222Chain(it.citation);
+        }
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] CPPA-HF5 C citation-chain strip failed (non-fatal):", e);
+    }
+
+    // CPPA-HF5 Task D — scope_analysis sell/share derivation guard.
+    // Assert sell/share triggers ONLY from explicit intake sell/share
+    // fields. If intake has no such field set true, strip narrative
+    // claims that "the business sells or shares personal information".
+    try {
+      const intakeAny = (intake ?? {}) as Record<string, unknown>;
+      const truthy = (v: unknown) =>
+        v === true || v === "yes" || v === "Yes" || v === "true" ||
+        (typeof v === "string" && /\b(yes|sell|shares?)\b/i.test(v) && !/\bno\b/i.test(v));
+      const intakeAsserstsSellShare =
+        truthy((intakeAny as any).sells_personal_information) ||
+        truthy((intakeAny as any).shares_personal_information) ||
+        truthy((intakeAny as any).sells_or_shares_pi) ||
+        truthy((intakeAny as any).sale_or_share) ||
+        truthy((intakeAny as any).q_sale_share) ||
+        truthy((intakeAny as any).cross_context_advertising);
+      if (!intakeAsserstsSellShare) {
+        const stripSellShare = (s: unknown): unknown => {
+          if (typeof s !== "string") return s;
+          let next = s
+            .replace(/\bthe\s+business\s+sells\s+or\s+shares\s+personal\s+information[^.;]*/gi,
+              "the intake does not confirm sale or sharing of personal information")
+            .replace(/\bsells?\s+or\s+shares?\s+personal\s+information\b/gi,
+              "processes personal information");
+          return next;
+        };
+        const sa = (report as any).scope_analysis;
+        if (sa && typeof sa === "object") {
+          for (const k of Object.keys(sa)) {
+            if (typeof sa[k] === "string") sa[k] = stripSellShare(sa[k]);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] CPPA-HF5 D scope-derivation guard failed (non-fatal):", e);
+    }
+
+    // CPPA-HF5 Task E — usage_note counsel-coordination strip. Counsel
+    // referral / coordination directives are a banned voice class; recast
+    // to named-fact advisory prose.
+    try {
+      const stripCounsel = (s: unknown): unknown => {
+        if (typeof s !== "string") return s;
+        let next = s
+          .replace(/\bwork\s+with\s+(?:your\s+)?(?:legal\s+)?counsel[^.]*\.?/gi, "")
+          .replace(/\bcoordinate\s+with\s+(?:your\s+)?(?:legal\s+)?counsel[^.]*\.?/gi, "")
+          .replace(/\bconsult\s+(?:with\s+)?(?:your\s+)?(?:legal\s+)?counsel[^.]*\.?/gi, "")
+          .replace(/\bconfirm\s+with\s+(?:your\s+)?(?:legal\s+)?counsel[^.]*\.?/gi, "")
+          .replace(/\bhave\s+(?:your\s+)?(?:legal\s+)?counsel\s+[^.]*\.?/gi, "")
+          .replace(/\s{2,}/g, " ").trim();
+        if (!next) next = "Deploy this language in the referenced consumer-facing surface; further internal investigation is advisable where the operative facts are unclear.";
+        return next;
+      };
+      for (const bucket of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
+        const arr = (report as any)[bucket];
+        if (!Array.isArray(arr)) continue;
+        for (const it of arr) {
+          if (it && typeof it.usage_note === "string") it.usage_note = stripCounsel(it.usage_note);
+        }
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] CPPA-HF5 E usage_note strip failed (non-fatal):", e);
+    }
+
+    // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf5@2026-07-20"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
