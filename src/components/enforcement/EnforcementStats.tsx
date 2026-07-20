@@ -57,7 +57,9 @@ export default function EnforcementStats({ filters }: { filters: Filters }) {
       // Stats reflect current 60-day public window (matches what the user sees)
       let query = supabase
         .from("enforcement_actions")
-        .select("jurisdiction,decision_date,fine_eur_equivalent,fine_eur,violation_types");
+        .select("jurisdiction,decision_date,fine_eur_equivalent,fine_eur,violation_types")
+        // SWEEP-2 T11: keep moderator-review rows out of public aggregates.
+        .not("verification_status", "eq", "requires_review");
 
       if (filters.jurisdiction !== "all") query = query.eq("jurisdiction", filters.jurisdiction);
       if (filters.sector !== "all") query = query.eq("industry_sector", filters.sector);
