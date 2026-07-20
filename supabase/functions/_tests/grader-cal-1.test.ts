@@ -6,7 +6,9 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { applyGraderCal1Filter, recomputeOverallPreCal1 } from "../_shared/grader/post-filters.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
-Deno.test("GRADER-CAL-1 A2: NOTE FOR LEGAL REVIEW block is not a leak", () => {
+Deno.test("GRADER-CAL-2 T5: legacy NOTE FOR LEGAL REVIEW is no longer whitelisted", () => {
+  // Prompts prohibit the heading; a leak finding quoting it must survive
+  // the post-filter so it can drive a real defect signal.
   const findings = [
     {
       check_id: "rubric_internal_reasoning_leak",
@@ -24,9 +26,8 @@ Deno.test("GRADER-CAL-1 A2: NOTE FOR LEGAL REVIEW block is not a leak", () => {
     },
   ];
   const { kept, dropped } = applyGraderCal1Filter(findings);
-  assertEquals(kept.length, 1);
-  assertEquals(kept[0].evidence, "as an AI language model I cannot advise …");
-  assertEquals(dropped.a2, 1);
+  assertEquals(kept.length, 2);
+  assertEquals(dropped.a2, 0);
 });
 
 Deno.test("GRADER-CAL-1 A3: NY S2659B / Chapter 647 references are whitelisted", () => {
