@@ -130,3 +130,105 @@ Deno.test("GRADER-CAL-1 B [already-resolved-in-code]: pickup-stamp guard tracks 
   const stamp = GRADER_CONTEXT_VERSION;
   assert(stamp.startsWith("gc-"));
 });
+
+// ---------------------------------------------------------------------------
+// GRADER-CAL-2 regression tests
+// ---------------------------------------------------------------------------
+
+import { _internals as fmt } from "../_shared/grader/format-checks.ts";
+
+Deno.test("GRADER-CAL-2 T1: bare owner-cell role title is exempt", () => {
+  const doc = "| Action | Owner |\n| Update DPIA | Legal Counsel |\n";
+  const findings = fmt.checkE6(doc);
+  // The lone role-title cell must not produce an e6 fail.
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0);
+});
+
+Deno.test("GRADER-CAL-2 T1: pipe-separated role roster is exempt", () => {
+  const doc = "Stakeholders: DPO | Compliance Manager | Legal Counsel | CISO";
+  const findings = fmt.checkE6(doc);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0);
+});
+
+Deno.test("GRADER-CAL-2 T1: 'consult outside counsel' still fails (directive verb override)", () => {
+  const doc = "Before publishing, consult outside counsel on this determination.";
+  const findings = fmt.checkE6(doc);
+  const fails = findings.filter((f) => !f.passed);
+  assert(fails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-2 T1: 'Miriam Schulz — Legal Counsel' still exempt", () => {
+  const doc = "Miriam Schulz — Legal Counsel";
+  const findings = fmt.checkE6(doc);
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0);
+});
+
+Deno.test("GRADER-CAL-2 T2: recital mentions before headings pass order check", () => {
+  // "Data Processing" and "Security" are name-dropped in the recitals BEFORE
+  // their §4 / §9 headings; all headings themselves are in template order.
+  const doc = [
+    "## Parties and Recitals",
+    "The parties acknowledge Data Processing and Security are governed below.",
+    "## Definitions",
+    "## Subject Matter",
+    "## Data Processing",
+    "## Sub-processing",
+    "## Data Subject Rights",
+    "## Security",
+    "## Data Transfers",
+    "## Return or Deletion",
+    "## Term and Termination",
+  ].join("\n");
+  const findings = fmt.checkE1(
+    [
+      "Parties and Recitals","Definitions","Subject Matter","Data Processing",
+      "Sub-processing","Data Subject Rights","Security","Data Transfers",
+      "Return or Deletion","Term and Termination",
+    ], doc,
+  );
+  const fails = findings.filter((f) => !f.passed);
+  assertEquals(fails.length, 0);
+});
+
+Deno.test("GRADER-CAL-2 T2: genuinely swapped headings still fail order check", () => {
+  const doc = [
+    "## Parties and Recitals",
+    "## Definitions",
+    "## Subject Matter",
+    "## Security",        // out of order — should appear later
+    "## Data Processing",
+    "## Sub-processing",
+    "## Data Subject Rights",
+    "## Data Transfers",
+    "## Return or Deletion",
+    "## Term and Termination",
+  ].join("\n");
+  const findings = fmt.checkE1(
+    [
+      "Parties and Recitals","Definitions","Subject Matter","Data Processing",
+      "Sub-processing","Data Subject Rights","Security","Data Transfers",
+      "Return or Deletion","Term and Termination",
+    ], doc,
+  );
+  const orderFails = findings.filter(
+    (f) => !f.passed && f.check_id === "e1_section_order",
+  );
+  assert(orderFails.length >= 1);
+});
+
+Deno.test("GRADER-CAL-2 T4: self-exonerating 'no clear leak' evidence dropped by A4", () => {
+  const findings = [{
+    check_id: "rubric_internal_reasoning_leak",
+    dimension: "hallucination",
+    severity: "high",
+    passed: false,
+    evidence: "the phrase 'the record' remains within the 'the record' whitelist. No clear leak beyond whitelisted formulae.",
+  }];
+  const { kept, dropped } = applyGraderCal1Filter(findings);
+  assertEquals(kept.length, 0);
+  assert(dropped.a4 >= 1);
+});
+
