@@ -201,3 +201,31 @@ Deno.test("HF4 runAdmtHf1Checks includes H6 in output", () => {
   const findings = runAdmtHf1Checks("Under § 7001(a), the business must respond to access requests.");
   assertEquals(findings.some((f) => f.check_id === "h6_admt_governing_anchor"), true);
 });
+
+// ── CPPA-HF5 additions ────────────────────────────────────────────────
+
+Deno.test("HF5 H — H5 flags [INTERNAL PROCEDURE ...] bracket blocks", () => {
+  const bad = "[INTERNAL PROCEDURE — REFERENCED IN CONSUMER COMMUNICATIONS] use only where applicable.";
+  const [f] = checkH5InternalNoteBlock(bad);
+  assertEquals(f.passed, false);
+  assertEquals(f.check_id, "h5_internal_note_block");
+});
+
+Deno.test("HF5 H — H5 flags [INTERNAL REVIEW] and [INTERNAL: ...] siblings", () => {
+  for (const s of ["[INTERNAL REVIEW pending]", "[INTERNAL: draft]", "[INTERNAL NOTE — TBD]"]) {
+    const [f] = checkH5InternalNoteBlock(s);
+    assertEquals(f.passed, false, `expected flag on: ${s}`);
+  }
+});
+
+Deno.test("HF5 C — H6 flags § 7001 in an action-citation chain (+, direct)", () => {
+  const chain = "The response draws on 11 CCR § 7222(b)(3) + 11 CCR § 7001(e)(1) + 11 CCR § 7222(b)(3)(A).";
+  const findings = checkH6AdmtGoverningAnchor(chain);
+  assertEquals(findings.some((f) => !f.passed && f.check_id === "h6_admt_governing_anchor"), true);
+});
+
+Deno.test("HF5 C — H6 still passes when § 7001 is a narrative definitional reference", () => {
+  const narrative = "The access response under § 7222(b) must include, per the § 7001(e)(1) definition, the personal information categories used.";
+  const findings = checkH6AdmtGoverningAnchor(narrative);
+  assertEquals(findings.every((f) => f.passed), true);
+});
