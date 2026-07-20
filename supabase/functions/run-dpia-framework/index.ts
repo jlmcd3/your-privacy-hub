@@ -1882,7 +1882,7 @@ async function runStitch(dpia_id: string): Promise<void> {
       // dpia_metadata narratives, table cells) is removed. Preamble text and
       // the framework_disclaimer field are preserved verbatim.
       try {
-        const RE = /\b(?:Your\s+qualified\s+Data\s+Protection\s+Officer|the\s+(?:qualified\s+)?DPO)\s+(?:or\s+legal\s+counsel\s+)?must\s+review,?\s*(?:and\s+)?complete,?\s*(?:and\s+)?(?:own\s+)?(?:and\s+own\s+)?it\.?/gi;
+        const RE = /\b(?:Your\s+qualified\s+(?:Data\s+Protection\s+Officer|DPO)|the\s+(?:qualified\s+)?DPO)\s+(?:or\s+legal\s+counsel\s+)?must\s+review,?\s*(?:and\s+)?complete,?\s*(?:and\s+)?(?:own\s+)?(?:and\s+own\s+)?it\.?/gi;
         const PROTECTED_KEYS = new Set(["framework_disclaimer", "preamble", "disclaimer"]);
         let midBodyScrubbed = 0;
         const walk = (node: any, parentKey: string | null) => {
