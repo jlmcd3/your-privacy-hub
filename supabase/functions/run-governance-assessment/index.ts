@@ -414,6 +414,11 @@ export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: str
   ]);
   const hasEuUk = String(euUkData || "").toLowerCase() === "yes"
     || jurisdictionList.some((j) => EU_UK_CODES.has(j) || [...EU_UK_CODES].some((c) => j.includes(c)));
+  const hasCalifornia = jurisdictionList.some((j) => /california|^ca$/.test(j));
+  const hasColorado = jurisdictionList.some((j) => /colorado|^co$/.test(j));
+  const hasVirginia = jurisdictionList.some((j) => /virginia|^va$/.test(j));
+  const hasAnyUsState = hasCalifornia || hasColorado || hasVirginia
+    || jurisdictionList.some((j) => /texas|florida|washington|oregon|utah|connecticut|montana|iowa|indiana|tennessee|delaware|new hampshire|new jersey|maryland|minnesota|kentucky|rhode island|nebraska|maine|illinois|^tx$|^fl$|^wa$|^or$|^ut$|^ct$|^mt$|^ia$|^in$|^tn$|^de$|^nh$|^nj$|^md$|^mn$|^ky$|^ri$|^ne$|^me$|^il$/.test(j));
   return `LANGUAGE: use the English variant matching the intake's jurisdictions — American English when no EU/UK jurisdiction is present; British English when any EU/UK jurisdiction is present. Never mix variants within one report. (This overrides the core's default American-English rule for this jurisdiction-aware tool.)
 
 CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot match a citation to one of these patterns with certainty, name the law and obligation in plain language instead (e.g. 'CCPA — service provider contract requirement') rather than fabricate.
