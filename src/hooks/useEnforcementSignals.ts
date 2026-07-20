@@ -65,6 +65,8 @@ export function useEnforcementSignals(keys: (keyof typeof SIGNAL_QUERIES)[]): En
               .from("enforcement_actions")
               .select("regulator, jurisdiction, violation, key_compliance_failure, fine_eur", { count: "exact" })
               .not("verification_status", "eq", "rejected")
+              // SWEEP-2 T11: exclude moderator-review rows from signal counts/samples.
+              .not("verification_status", "eq", "requires_review")
               .order("fine_eur", { ascending: false })
               .limit(5);
             const { data, count } = await config.filter(baseQuery);
