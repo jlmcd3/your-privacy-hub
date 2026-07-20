@@ -605,6 +605,56 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
 // QB7-3(a): deterministic TIMELINE VOICE wrapper — ensures every timeline-bearing field
 // is either citation-bearing (statutory deadline with a §/Art. citation) or wrapped in
 // the mandated 'timeline to be set by the organisation (e.g. …)' form.
+// PRODUCT-FIX-4 T2 — post-generation US-state citation closure. Strips or
+// rewrites any US-state statutory citation whose owning state is absent from
+// the intake's engaged-state set. This is the second enforcement layer beneath
+// the prompt-level terminal MUST-NOT rule; the prompt is expected to make this
+// a no-op, but any leak is caught here before the JSON is returned.
+function applyJurisdictionClosureScrub(reportData: any, intakeJurisdictions: string[]): number {
+  const engaged = new Set(
+    (intakeJurisdictions || []).map((s) => String(s || "").toLowerCase().trim())
+  );
+  // Map from US-state citation prefix → engagement key(s).
+  const STATE_PATTERNS: Array<{ re: RegExp; states: string[]; label: string }> = [
+    { re: /\bC\.R\.S\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["colorado"], label: "Colorado privacy statute" },
+    { re: /\bColo\.\s*Rev\.\s*Stat\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["colorado"], label: "Colorado privacy statute" },
+    { re: /\bVa\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["virginia"], label: "Virginia privacy statute" },
+    { re: /\bCal\.\s*Civ\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["california"], label: "California privacy statute" },
+    { re: /\b11\s*CCR\s*§+\s*[\d\-.()a-zA-Z]+/g, states: ["california"], label: "California ADMT/risk regulation" },
+    { re: /\b740\s*ILCS\s*14\/[\d\-.()a-zA-Z]+/g, states: ["illinois"], label: "Illinois BIPA" },
+    { re: /\bConn\.\s*Gen\.\s*Stat\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["connecticut"], label: "Connecticut privacy statute" },
+    { re: /\bTex\.\s*Bus\.\s*&\s*Com\.\s*Code\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["texas"], label: "Texas privacy statute" },
+    { re: /\bN\.Y\.\s*Gen\.\s*Bus\.\s*L\.\s*§\s*[\d\-.()a-zA-Z]+/g, states: ["new york"], label: "New York privacy statute" },
+  ];
+  const isEngaged = (states: string[]) => states.some((s) => engaged.has(s));
+  let scrubbed = 0;
+  const rewrite = (s: string): string => {
+    let out = s;
+    for (const { re, states, label } of STATE_PATTERNS) {
+      if (isEngaged(states)) continue;
+      out = out.replace(re, () => {
+        scrubbed++;
+        return `the applicable ${label} where engaged (not engaged on this intake)`;
+      });
+    }
+    return out;
+  };
+  const walk = (node: any) => {
+    if (!node) return;
+    if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+    if (typeof node !== "object") return;
+    for (const k of Object.keys(node)) {
+      const v = (node as any)[k];
+      if (typeof v === "string") {
+        const next = rewrite(v);
+        if (next !== v) (node as any)[k] = next;
+      } else if (v && typeof v === "object") walk(v);
+    }
+  };
+  walk(reportData);
+  return scrubbed;
+}
+
 function applyTimelineForm(report: any): void {
   const CITED = /§|Art\.|Article|C\.F\.R\.|Code/;
   const WRAPPED = /^timeline to be set by the organisation \(e\.g\./i;
