@@ -776,7 +776,7 @@ If a detected mismatch exists between the entity's legal form and the stated inc
 Do NOT emit a suffix-decoding chain, a legal-form mapping table, an "appears inconsistent" phrasing, or a "NOTE FOR LEGAL REVIEW" heading anywhere in the recital.
 13. CHILD-NUMBERING DISCIPLINE (2.4a). A heading number is never reused by its own child items — children of a numbered heading are numbered heading.1, heading.2, …
 14. SUB-PROCESSOR VERIFICATION CONSOLIDATION (2.4b). Where the same verification instruction applies to every listed Sub-processor, state it once in a closing subsection covering all of them instead of repeating verbatim per entry.
-15. FORMAL CONTRACT LANGUAGE ONLY (2.4c). Headings and body use only formal contract language — no meta-commentary headings. Do NOT emit any heading of the form "Transfer Status — No Redundant Restatement" or any similar meta-commentary. Replace such a heading with a formal cross-reference: "International Transfers. The international transfer provisions applicable to this DPA are set out in Section 10."
+15. FORMAL CONTRACT LANGUAGE ONLY (2.4c). Headings and body use only formal contract language — no meta-commentary headings. Do NOT emit any heading of the form "Transfer Status — No Redundant Restatement" or any similar meta-commentary. Replace such a heading with a formal cross-reference: "International Transfers. The international transfer provisions applicable to this DPA are set out in Section 8."
 16. LEAD-SA SENTENCE (2.4d). "…this does not affect the competence of the German state DPA in respect of [Processor] as an establishment under German law."`;
 
     const GDPR_USER = `${PARTIES_BLOCK}
