@@ -135,7 +135,7 @@ const WORD_BY_NUM: Record<number, string> = Object.fromEntries(
 );
 const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
 function reconcile(prose: string): string {
-  const RE = /\b(?:([A-Z]?[a-z]+)|(\d{1,2}))\b(\s+(?:of\s+the\s+18\s+(?:components|controls|required[^\n:]{0,40})|additional[^:\n—-]{0,80}))([:\u2014\u2013-])\s*([^.\n]+?)(?=\.\s|\.$|$)/g;
+  const RE = /\b(?:([A-Z]?[a-z]+)|(\d{1,2}))\b(\s+(?:of\s+the\s+18\s+(?:components|controls|required[^\n:]{0,40})[^:\n\u2013\u2014-]{0,80}|additional[^:\n\u2014\u2013-]{0,80}))([:\u2014\u2013-])\s*([^.\n]+?)(?=\.\s|\.$|$)/g;
   return prose.replace(RE, (m, wRaw, nRaw, mid, sep, tail) => {
     const wLower = typeof wRaw === "string" ? wRaw.toLowerCase() : "";
     const asWord = wLower && wLower in NUM_WORDS;
