@@ -845,6 +845,37 @@ ADDITIONAL DISCIPLINES:
       resolveInto(report.access_gaps);
       resolveInto(report.documentation_to_maintain);
 
+      // CPPA-HF6R B-EXT — SUBCHAPTER-ANCHOR FALLBACK CONSUMPTION. Fields
+      // outside the four gap arrays (scope_analysis.*, priority_actions,
+      // consolidated_notice_analysis, aggregate_access_response,
+      // enforcement_context, and any other prose) carry no element_id and
+      // therefore never received a concrete injection. Any residual
+      // "the cited provision" phrasing renders literally. Consume every
+      // remaining occurrence with the ADMT subchapter anchor. Never leave
+      // the literal token; never invent a section outside the registry —
+      // the subchapter range § 7220–7222 (with § 7200 scope) is the
+      // governing anchor for these fields.
+      const SUBCH_TOKEN_RE = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
+      const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+provision\b/gi;
+      const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
+      const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      const walkFallbackConsume = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) { for (const v of node) walkFallbackConsume(v); return; }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") {
+            let next = v;
+            next = next.replace(SUBCH_UNDER_RE, `under ${SUBCH_FALLBACK}`);
+            next = next.replace(SUBCH_PURSUANT_RE, `pursuant to ${SUBCH_FALLBACK}`);
+            next = next.replace(SUBCH_TOKEN_RE, SUBCH_FALLBACK);
+            if (next !== v) (node as any)[k] = next;
+          } else if (v && typeof v === "object") walkFallbackConsume(v);
+        }
+      };
+      walkFallbackConsume(report);
+
       // CPPA-HF6 — POST-INJECTION doubled-article collapse. Guards
       // against any residual "the the …" that survives injection at
       // token boundaries (e.g., a stray "the" adjacent to an injected
