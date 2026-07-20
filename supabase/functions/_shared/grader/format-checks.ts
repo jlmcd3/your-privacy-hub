@@ -99,25 +99,35 @@ function findHeadingLines(text: string): { level: number; title: string; line: s
 }
 
 function checkE1(sections: string[], text: string, dim = "formatting"): FormatFinding[] {
-  const headings = findHeadingLines(text).map((h) => h.title.toLowerCase());
+  // GRADER-CAL-2 Task 2 — heading-anchored ordering.
+  // Previously order was computed via flat.indexOf(needle), which fires
+  // false positives when a section name is mentioned in a recital or body
+  // paragraph BEFORE its own heading. The correct order metric uses the
+  // heading sequence when the needle appears in a heading; flat-text
+  // first-occurrence is used only as a fallback when the needle never
+  // appears in any heading (present-but-unheaded case).
+  const headingSeq = findHeadingLines(text).map((h) => h.title.toLowerCase());
   const flat = (text ?? "").toLowerCase();
   const findings: FormatFinding[] = [];
-  let lastIdx = -1;
+  let lastPos = -1;
   for (const s of sections) {
     const needle = s.toLowerCase();
-    const foundInHeading = headings.some((h) => h.includes(needle));
+    const headingIdx = headingSeq.findIndex((h) => h.includes(needle));
+    const foundInHeading = headingIdx >= 0;
     const foundInFlat = flat.includes(needle);
     if (!foundInHeading && !foundInFlat) {
       findings.push(fail("e1_section_present", dim, "high", `missing section: ${s}`));
       continue;
     }
-    // Order — best-effort by first-occurrence in flat text.
-    const idx = flat.indexOf(needle);
-    if (idx >= 0 && idx < lastIdx) {
+    // Order key: heading position (scaled to a large namespace so it can't
+    // collide with a flat-text char offset) when present in headings;
+    // otherwise the flat-text first-occurrence offset.
+    const pos = foundInHeading ? (headingIdx + 1) * 1_000_000_000 : flat.indexOf(needle);
+    if (pos >= 0 && pos < lastPos) {
       findings.push(fail("e1_section_order", dim, "medium",
         `section "${s}" appears out of template order`));
     }
-    lastIdx = Math.max(lastIdx, idx);
+    lastPos = Math.max(lastPos, pos);
   }
   if (findings.length === 0) findings.push(pass("e1_sections_ok", dim));
   return findings;
