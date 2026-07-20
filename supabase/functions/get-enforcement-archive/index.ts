@@ -97,7 +97,9 @@ Deno.serve(async (req) => {
       .select(
         'id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law',
         { count: 'exact' }
-      );
+      )
+      // L1 — hide rows without a resolved subject; UI no longer renders an "Undisclosed entity" fallback.
+      .not('subject', 'is', null);
 
     if (!includeRecent) {
       // Premium archive only: rows older than 60 days

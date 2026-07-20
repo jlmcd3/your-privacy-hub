@@ -231,7 +231,9 @@ export default function Enforcement() {
         .select(
           "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law",
           { count: "exact" },
-        );
+        )
+        // L1 — hide rows without a resolved subject; UI no longer synthesizes an "Undisclosed entity" label.
+        .not("subject", "is", null);
 
       if (jurisdiction !== "all") query = query.eq("jurisdiction", jurisdiction);
       if (sector !== "all") query = query.eq("industry_sector", sector);
@@ -636,7 +638,7 @@ export default function Enforcement() {
                           )}
                         </div>
                         <h3 className="group-hover:text-primary transition line-clamp-2">
-                          {r.subject || "Undisclosed entity"}
+                          {r.subject}
                         </h3>
                       </div>
                       <div className="text-right shrink-0">
