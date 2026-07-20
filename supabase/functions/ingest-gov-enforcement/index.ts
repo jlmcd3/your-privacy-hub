@@ -679,6 +679,18 @@ Deno.serve(async (req) => {
         else if (src.source === "OAIC") extractedSubject = extractOaicSubject(a.title);
         else if (src.source === "FTC") extractedSubject = extractFtcSubject(a.title);
         else if (src.source === "HHS-OCR") extractedSubject = extractHhsSubject(a.title);
+        // L3 — generic title-based fallback for regulators without a
+        // dedicated extractor. Keeps subject deterministic (no LLM).
+        if (!extractedSubject) extractedSubject = deriveGenericSubject(a.title);
+
+        // L3 — reject rows that never resolve a subject. These are the
+        // rows that previously rendered as "Undisclosed entity". Skip the
+        // insert entirely; count as skipped so the run summary reflects it.
+        if (!extractedSubject) {
+          skipped++;
+          continue;
+        }
+
         const baseRow: Record<string, unknown> = {
           etid,
           source_database: src.source,
