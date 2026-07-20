@@ -1087,7 +1087,7 @@ ENFORCEMENT CONTEXT
 ${enforcementBlock}
 
 Draft a single integrated dual-compliance DPA. The header recital must include:
-"This DPA is entered into to satisfy the requirements of (a) GDPR Article 28, (b) CCPA/CPRA § 1798.100(d), and (c) other applicable US state privacy laws."
+${dualHeaderRecitalLine}
 
 Sections, in this exact order and using the exact heading tokens shown (top-level headings are AUTHORITATIVE and are matched against the deterministic grader's DPA_REQUIRED_SECTIONS list — do NOT rename, reorder, merge, or split them). Number clauses hierarchically:
 
