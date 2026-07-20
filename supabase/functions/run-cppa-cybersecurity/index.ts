@@ -1366,7 +1366,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         // Pattern: (COUNT) [of the 18 components|additional] ... (: or —) ITEMS
         // ITEMS run until a hard stop (". " or end). Items are separated by
         // "; " (primary) or ", and " / ", " (fallback if no semicolons).
-        const RE = /\b(?:([A-Z]?[a-z]+)|(\d{1,2}))\b(\s+(?:of\s+the\s+18\s+(?:components|controls|required[^\n:]{0,40})|additional[^:\n—-]{0,80}))([:\u2014\u2013-])\s*([^.\n]+?)(?=\.\s|\.$|$)/g;
+        const RE = /\b(?:([A-Z]?[a-z]+)|(\d{1,2}))\b(\s+(?:of\s+the\s+18\s+(?:components|controls|required[^\n:]{0,40})[^:\n\u2013\u2014-]{0,80}|additional[^:\n\u2014\u2013-]{0,80}))([:\u2014\u2013-])\s*([^.\n]+?)(?=\.\s|\.$|$)/g;
         const next = prose.replace(RE, (m, wRaw, nRaw, mid, sep, tail) => {
           const wLower = typeof wRaw === "string" ? wRaw.toLowerCase() : "";
           const asWord = wLower && wLower in NUM_WORDS;
