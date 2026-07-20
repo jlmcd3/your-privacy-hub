@@ -1399,6 +1399,7 @@ Return this JSON structure exactly:
         // probability field → recast to advisory close per CPPA-HF3 E.
         [/\bthe\s+probability[-\s]?score\s+bracketed\s+field\s+must\s+be\s+resolved\s+by\s+legal\s+counsel[^.]*\.?/gi,
           "The probability-score element is resolved in the access response by either disclosing the score inline or invoking the § 7222(c) trade-secret carve-out with the compliant withholding sentence; further internal investigation is advisable to confirm which branch the business's trade-secret designation under Civil Code § 3426.1(d) supports."],
+      ];
       let scrubbedAdmt = 0;
       const walkAdmt = (node: any) => {
         if (!node) return;
