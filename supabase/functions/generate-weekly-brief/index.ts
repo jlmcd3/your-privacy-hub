@@ -232,6 +232,9 @@ Deno.serve(async (req) => {
       .eq("enrichment_version", 1)
       .gte("decision_date", ninetyDaysAgo.toISOString().split("T")[0])
       .not("precedent_significance", "is", null)
+      // SWEEP-2 T11: hide moderator-review rows from weekly brief top-10.
+      .not("verification_status", "eq", "requires_review")
+      .not("subject", "is", null)
       .order("precedent_significance", { ascending: false })
       .order("decision_date", { ascending: false })
       .limit(40);
