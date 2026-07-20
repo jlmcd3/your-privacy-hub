@@ -312,18 +312,26 @@ VERIFIED CITATION ANCHORS (cite these letters/numbers exactly; do not swap or de
   basis regime and any applicable jurisdictional biometric statute, not as Article 9 special-category.
 
 SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
-- RECOMMENDATIONS ARE OWNED, TIMED, AND INTAKE-TIED: every recommendation, remediation item, next
-  step, priority action, or mitigation the tool emits carries three concrete anchors —
-  (a) a NAMED OWNER ROLE stated by function (e.g. "the CISO", "the DPO", "the Head of Vendor
-  Management", "the ADMT Product Owner", "the Privacy Program Manager", "the head of the affected
-  business unit"), never a generic "the business" or "the organization" where a functional owner is
-  inferable from the intake or the domain;
+- RECOMMENDATIONS ARE OWNED, TIMED, TRIGGERED, AND INTAKE-TIED: every recommendation, remediation
+  item, next step, priority action, or mitigation the tool emits carries four concrete anchors —
+  (a) a NAMED INTERNAL OWNER ROLE drawn from the intake's organisational context (e.g. "the CISO",
+  "the DPO", "the HR lead", "the Head of Vendor Management", "the ADMT Product Owner",
+  "the Privacy Program Manager", "the head of the affected business unit"), never a generic "the
+  business" / "the organization" where a functional owner is inferable, and NEVER an external
+  referral (never "Legal Counsel must", "outside counsel must", "the auditor must", "the consultant
+  must", or any equivalent hand-off to a non-internal role) — the item states the internal role that
+  OWNS execution, not the external role the owner may choose to consult;
   (b) a CONCRETE TIMEFRAME — either the regulatory deadline the cited provision imposes (stated
   exactly), or a plainly-stated operational window tied to a record event ("within 30 days of the
   audit-scoping decision", "before the next Pre-use Notice revision", "prior to the assessment cycle
   named in the intake"). "Ongoing", "as soon as practicable", "on a regular basis", and other
   timeframeless phrasings are prohibited where a concrete window is derivable;
-  (c) a TIE TO A NAMED INTAKE FACT — the specific system, control, vendor, dataset, jurisdiction,
+  (c) an IMPLEMENTATION TRIGGER, WHERE APPLICABLE — the record event, decision, cadence, or gating
+  fact that starts the timeframe running (e.g. "on completion of the DPIA", "on execution of the
+  vendor DPA", "on the next quarterly access review", "upon SA notification"). Where the timeframe
+  runs from a plain calendar event (sign-off date, statutory deadline), naming the timeframe alone
+  is sufficient; a trigger is required when the timeframe is otherwise ambiguous;
+  (d) a TIE TO A NAMED INTAKE FACT — the specific system, control, vendor, dataset, jurisdiction,
   tool, decision-domain, business function, policy, or contractual instrument in the record that
   makes the item apply. The item names the intake-referenced object rather than restating the
   obligation abstractly.
@@ -332,8 +340,8 @@ SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
   program", "establish training", "deploy monitoring", "conduct due diligence", "review contracts"
   are defects when the intake identifies the systems, roles, vendors, or datasets that let the
   mitigation be specific — recast each such sentence to name the intake object, the concrete
-  outcome, and the owner+timeframe per (a)–(c). Where the intake genuinely does not name the
-  object or the owner needed to be specific, route the item to information_needed rather than
+  outcome, and the owner+timeframe+trigger per (a)–(d). Where the intake genuinely does not name
+  the object or the owner needed to be specific, route the item to information_needed rather than
   emit a generic mitigation; a generic mitigation dressed with an unnamed owner ("assign
   responsibility") is still a defect.
 
