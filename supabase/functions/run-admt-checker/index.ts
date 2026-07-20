@@ -1236,11 +1236,12 @@ Return this JSON structure exactly:
     // CPPA-HF4 Task C + D2 + F, HF5 Task B/C/D/E — post-gen artifact scrub.
     try {
       const REPLACEMENTS: Array<[RegExp, string]> = [
-        // HF5 B — case-insensitive doubled-article fix (HF4 missed lowercase).
-        [/\bthe\s+the\s+cited\s+provision\b/gi, "the cited provision"],
-        // C — mechanical substitution artifacts
-        [/\bthe\s+applicable\s+definitional\s+provision\b/gi, "the cited provision"],
-        [/\bthe\s+applicable\s+regulation\s+section\b/gi, "the cited provision"],
+        // CPPA-HF6 — phrase-artifact rules ("the applicable definitional
+        // provision" / "the applicable regulation section" / doubled
+        // "the the cited provision") moved to PRE-injection so the
+        // registry-injection pass consumes the resulting placeholder
+        // token. Kept only the bracketed-counsel and element-id classes
+        // here.
         // D2 — bracketed counsel placeholders → generic authorised-signatory
         [/\[\s*(?:BUSINESS\s+)?LEGAL\s+COUNSEL(?:\s+OR\s+DESIGNATED\s+OFFICER)?\s*\]/gi, "[AUTHORISED SIGNATORY]"],
         [/\[\s*(?:CONFIRM|COORDINATE|CHECK)\s+WITH\s+LEGAL\s+COUNSEL[^\]]*\]/gi, ""],
