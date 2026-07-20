@@ -1035,6 +1035,43 @@ function argStrengthLabelPDF(s?: string): string {
   return s || "";
 }
 
+// CPPA-HF6R Task A — render-layer intake-field-id label map. Fail closed:
+// route both sides of every conflicting-inputs pair through this map. When
+// a field id has no explicit label, emit a generic human-readable
+// descriptor — never the raw id. Kept in sync with the HF5 LABELS map in
+// run-cppa-risk-assessment/index.ts.
+const RISK_INTAKE_FIELD_LABELS: Array<[RegExp, string]> = [
+  [/^i5_admt_logic$/i, "the ADMT logic description"],
+  [/^q19_admt_description$/i, "the ADMT-system description"],
+  [/^q20_admt_opt_out$/i, "the ADMT opt-out description"],
+  [/^i5_admt_training_source$/i, "the ADMT-training source"],
+  [/^q18b?_admt_training$/i, "the ADMT-training answer"],
+  [/^q18[a-c]?_admt(?:_[a-z_]+)?$/i, "the ADMT trigger response"],
+  [/^i7_internal_contributors$/i, "the internal-contributors roster"],
+  [/^i1b_min_pi$/i, "the minimum-PI justification"],
+  [/^i1_processing_purpose$/i, "the processing purpose"],
+  [/^i2_retention_period$/i, "the recorded retention period"],
+  [/^i2_retention_detail$/i, "the recorded retention detail"],
+  [/^i2_retention_criteria$/i, "the recorded retention criteria"],
+  [/^i6_vendors$/i, "the vendor roster"],
+  [/^q15c_spi_volume$/i, "the sensitive-PI volume figure"],
+  [/^q1_revenue$/i, "the recorded revenue"],
+  [/^impact_intake(?:\.[a-z_]+)?$/i, "the impact-assessment record"],
+  [/^exceptions_intake(?:\.[a-z_]+)?$/i, "the exceptions record"],
+];
+// Raw-id shape used by the fail-closed guard: intake-field ids match
+// /^[a-z]{1,3}\d{1,3}[a-z]?_[a-z][a-z0-9_]{2,}$/i OR /^intake_field_\d+$/i.
+const RAW_FIELD_ID_RE = /^([a-z]{1,3}\d{1,3}[a-z]?_[a-z][a-z0-9_]{2,}|intake_field_\d+)$/i;
+function labelForIntakeFieldId(raw: unknown): string {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (!s) return "";
+  for (const [re, label] of RISK_INTAKE_FIELD_LABELS) {
+    if (re.test(s)) return label;
+  }
+  if (RAW_FIELD_ID_RE.test(s)) return "the corresponding intake field";
+  return s; // already a human-readable descriptor
+}
+
 // Dispatch on schema: v4 rows carry risk_assessment_by_activity; v3 rows carry part_a; legacy rows carry domains.
 function buildCPPARiskReportHTML(report: any, record: any): string {
   if (report && (Array.isArray(report.risk_assessment_by_activity) || (report.assessment_summary && typeof report.assessment_summary === "object"))) {
