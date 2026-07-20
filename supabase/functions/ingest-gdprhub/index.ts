@@ -82,6 +82,10 @@ function parseDecision(title: string, markdown: string) {
     fine_eur,
     raw_text: markdown.slice(0, 50000),
     violation: caseRef,
+    // SWEEP-2 T12: mark null-subject GDPRHub rows for moderator review so
+    // subscriber-facing surfaces (weekly brief, archive, precedent map)
+    // suppress them until a curator supplies the controller name.
+    ...(subject ? {} : { verification_status: "requires_review" as const }),
   };
 }
 
