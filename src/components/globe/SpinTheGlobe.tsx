@@ -184,7 +184,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     renderer.setClearColor(0x000000, 0);
     // No border-radius clip: avoid a CSS hard circular edge against the hero
     // background that could read as a dark ring around the globe.
-    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;filter:contrast(1.16) saturate(1.18) brightness(1.08);";
+    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;filter:contrast(1.18) saturate(1.2) brightness(1.12);";
     el.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -222,16 +222,16 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     // Lighting — side-lit sun preserves a real day/night terminator while
     // brighter ambient/fill/rim light keeps terrain visible and dimensional.
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-    const sun = new THREE.DirectionalLight(0xfff1cf, 2.95);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.34));
+    const sun = new THREE.DirectionalLight(0xfff1cf, 3.1);
     sun.position.set(5.6, 1.3, 2.2);
     scene.add(sun);
     // Cool Earthshine rim/fill from opposite side
-    const fill = new THREE.DirectionalLight(0x5a8fd8, 0.82);
-    fill.position.set(-5, -0.6, -2);
+    const fill = new THREE.DirectionalLight(0x6fa7f0, 1.05);
+    fill.position.set(-4.2, -0.25, 1.4);
     scene.add(fill);
     // Subtle top rim catches the upper limb and adds depth
-    const rim = new THREE.DirectionalLight(0x88b8ff, 0.48);
+    const rim = new THREE.DirectionalLight(0x88b8ff, 0.62);
     rim.position.set(-2, 3, -1);
     scene.add(rim);
 
@@ -250,6 +250,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         specularMap: tex,
         specular: new THREE.Color(0x5e9fc6),
         shininess: 48,
+        emissive: new THREE.Color(0x071c34),
+        emissiveIntensity: 0.1,
         // Reuse the color map as a bump map for cheap terrain relief — gives
         // the sphere visible texture/detail without shipping a second asset.
         bumpMap: tex,
