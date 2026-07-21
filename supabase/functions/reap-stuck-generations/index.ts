@@ -28,6 +28,7 @@ interface ReapTarget {
   terminalStatus: string;      // status to write when reaping (must satisfy any CHECK constraint)
   hasGenerationError: boolean; // ropa_sessions, eu_notice_sessions
   hasReportData: boolean;      // everything except ropa/eu sessions
+  hasLastError?: boolean;      // RUNTIME-2 T2 — write orphan diagnosis to last_error (li_assessments)
 }
 
 // Verified against live schema + check constraints (2026-07-04):
@@ -45,7 +46,7 @@ interface ReapTarget {
 const TARGETS: ReapTarget[] = [
   { table: "ir_playbooks",           stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
   { table: "dpa_documents",          stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
-  { table: "li_assessments",         stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "li_assessments",         stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true, hasLastError: true },
   { table: "dpia_frameworks",        stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
   { table: "governance_assessments", stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
   { table: "cppa_assessments",       stuckStatuses: ["processing"], terminalStatus: "error",  hasGenerationError: false, hasReportData: true  },
