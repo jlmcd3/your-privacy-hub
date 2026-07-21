@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
+import { ArrowRight, Shield, ClipboardCheck, Lock, Bot } from "lucide-react";
 import { PRICING_REGISTRY } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,7 @@ const CPPA_CARD_SLUG: Record<string, string> = {
 
 const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
 const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
+const admtStandalone = PRICING_REGISTRY.cppa_admt_standalone.displayPrice;
 
 const TOOLS = [
   {
@@ -42,6 +43,14 @@ const TOOLS = [
     description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control gap).",
     price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
+  },
+  {
+    href: "/cppa-admt-checker",
+    title: "ADMT Compliance Assessment",
+    article: "Module 3 · Article 11 (§§ 7200–7222)",
+    description: "Sold standalone. If you also need Risk (Module 1) and Cybersecurity (Module 2), the Scope Checker will surface the Full Suite bundle.",
+    price: `${admtStandalone} standalone · discounted with a subscription`,
+    icon: Bot,
   },
 ];
 
@@ -205,22 +214,7 @@ export default function CPPAHub() {
           </div>
         </section>
 
-        <section className="bg-card border rounded-lg p-6">
-          <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
-          <h3 className="font-serif text-xl mb-2">ADMT Compliance Assessment (Module 3)</h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
-            Sold standalone. If you also need Risk (Module 1) and Cybersecurity (Module 2), the Scope Checker will surface the Full Suite bundle.
-          </p>
-          <Link
-            to="/cppa-admt-checker"
-            onClick={() =>
-              fireConversion("tool_start_click", { tool_slug: "cppa_admt", page_path: "/cppa", user_type: userType })
-            }
-            className="text-sm font-medium text-brand-teal-text hover:underline no-underline"
-          >
-            Open the ADMT Compliance Assessment →
-          </Link>
-        </section>
+
 
         <p className="text-sm text-muted-foreground italic">
           Subscribers: every assessment's review date is tracked for you automatically — your § 7155(a) triennial review goes straight into your Obligations Register.
