@@ -2199,13 +2199,21 @@ Deno.serve(async (req) => {
 
     // @ts-ignore
     EdgeRuntime.waitUntil((async () => {
+      // RUNTIME-1 (a): guaranteed terminal signal on EVERY exit path
+      // (success, exception, uncaught throw). Companion finally-guard runs
+      // even if a throw escapes the catch below.
+      let terminalReached = false;
       try {
         await runBootstrap(dpia_id, caller);
         await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id, metadata: { phase: "bootstrap_dispatched" } });
+        terminalReached = true;
       } catch (bgErr) {
         console.error("run-dpia-framework bootstrap error:", bgErr);
         await mergePreservingFail(dpia_id, "stitch", bgErr, 0);
         await failFunctionRun(supabase, fnRun, bgErr, { metadata: { phase: "bootstrap" } });
+        terminalReached = true;
+      } finally {
+        await dpiaEnsureTerminal(supabase, dpia_id, fnRun, terminalReached);
       }
     })());
 
