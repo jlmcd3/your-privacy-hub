@@ -40,6 +40,8 @@ const DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 const DPIA_HALF_MAX_TOKENS = 24_000;
 
 import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
+// RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
+import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
