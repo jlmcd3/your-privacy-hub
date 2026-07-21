@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren, BarChart3, Calendar, ClipboardList, Compass, Eye, FileText, FileSignature, Folder, FolderOpen, Lock, Map, Satellite, Shield, Star, Archive } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +7,8 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useRegion } from "@/hooks/useRegion";
+import RegionSwitcher from "@/components/RegionSwitcher";
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
@@ -272,6 +274,50 @@ const navItems: NavItem[] = [
   },
 ];
 
+// UX-2a — EU/UK regional mega-menu. Replaces "CPPA" when region === "EU_UK".
+// Order is revenue-weighted: LIA · DPIA · Governance · RoPA, then supporting tools.
+const GDPR_TOOLS_ITEM: NavItem = {
+  label: "GDPR Tools",
+  wide: true,
+  columns: 2,
+  sections: [
+    {
+      header: "Core GDPR assessments",
+      headerSub: "Per use · any tier",
+      headerColor: "text-[#185FA5]",
+      columnBg: "bg-[#EEF4FB]",
+      column: 1,
+      items: [
+        { icon: <Scale aria-hidden="true" strokeWidth={1.75} />, label: "Legitimate Interest Assessment", href: "/li-assessment",
+          tooltip: "Three-part LIA — purpose, necessity, balancing — calibrated to EDPB enforcement" },
+        { icon: <FileText aria-hidden="true" strokeWidth={1.75} />, label: "DPIA / Impact Assessment", href: "/dpia-framework",
+          tooltip: "EDPB-aligned DPIA template for high-risk processing" },
+        { icon: <Shield aria-hidden="true" strokeWidth={1.75} />, label: "GDPR Governance Assessment", href: "/governance-assessment",
+          tooltip: "Programme health check against what regulators actually enforce" },
+        { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} />, label: "RoPA Builder", href: "/ropa-builder",
+          tooltip: "Article 30 record of processing — free with any subscription" },
+      ],
+    },
+    {
+      header: "Supporting documents",
+      headerSub: "Notices, DPAs, breach playbooks",
+      headerColor: "text-brand-mist",
+      columnBg: "bg-white",
+      column: 2,
+      items: [
+        { icon: <Globe aria-hidden="true" strokeWidth={1.75} />, label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
+          tooltip: "Article 13/14 privacy notices with multi-jurisdiction overlays" },
+        { icon: <FileSignature aria-hidden="true" strokeWidth={1.75} />, label: "Custom DPA Generator", href: "/dpa-generator",
+          tooltip: "Article 28 processor agreements with SCC module pinning" },
+        { icon: <Siren aria-hidden="true" strokeWidth={1.75} />, label: "Incident Response Playbook", href: "/ir-playbook",
+          tooltip: "Sequenced playbook with Article 33/34 notification deadlines" },
+        { icon: <BookOpen aria-hidden="true" strokeWidth={1.75} />, label: "GDPR & UK GDPR Research", href: "/gdpr-enforcement" },
+      ],
+    },
+  ],
+};
+
+
 
 /** Compact user-icon dropdown that replaces Account + Sign Out in the logged-in nav. */
 const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
@@ -366,6 +412,16 @@ const Navbar = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [briefLabel, setBriefLabel] = useState<string | null>(null);
   const { tier } = useSubscriptionTier();
+  const { region } = useRegion();
+
+  // UX-2a — Regional nav order: hide "Feed"; US shows CPPA, EU/UK swaps in GDPR Tools.
+  const regionalNavItems = useMemo(() => {
+    const base = navItems.filter((n) => n.label !== "Feed");
+    if (region === "EU_UK") {
+      return base.map((n) => (n.label === "CPPA" ? GDPR_TOOLS_ITEM : n));
+    }
+    return base;
+  }, [region]);
 
   useEffect(() => {
     if (!user) return;
@@ -474,7 +530,7 @@ const Navbar = () => {
         </div>
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center justify-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
-          {navItems.map((item) => {
+          {regionalNavItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
@@ -662,6 +718,9 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="hidden lg:flex items-center gap-3 flex-1 justify-end">
+          {/* UX-2a — Persistent regional switcher */}
+          <RegionSwitcher />
+
           {/* Always-visible Pricing link */}
           <Link
             to="/pricing"
@@ -722,7 +781,7 @@ const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-brand-cloud bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-          {navItems.map((item) => (
+          {regionalNavItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
                 <Link
