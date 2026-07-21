@@ -484,13 +484,23 @@ export { LIA_ANALYSIS_TOOL_MODULE, LIA_CLASSIFY_TOOL_MODULE, LIA_DOCS_TOOL_MODUL
 // regularly runs 60–120s and an awaited HTTP response can be cut off by the
 // platform even though the row eventually finishes.
 async function generateAssessment(assessment_id: string, assessment: any, fnRun: FnRunHandle): Promise<void> {
+  // RUNTIME-1 (a): guaranteed terminal signal on EVERY exit path (success,
+  // exception, uncaught throw). `terminalReached` flips true only after a
+  // terminal fn-run write has happened; the finally clause is the safety net
+  // if a throw escapes the catch (defensive — the reaper is the last resort
+  // for outright worker eviction).
+  let terminalReached = false;
   try {
     await runAssessment(assessment_id, assessment);
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
+    terminalReached = true;
   } catch (e) {
     console.error("run-li-assessment background error:", e);
     await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "background_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+    terminalReached = true;
+  } finally {
+    await liaEnsureTerminal(supabase, assessment_id, fnRun, terminalReached);
   }
 }
 
