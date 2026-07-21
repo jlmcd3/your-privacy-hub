@@ -287,9 +287,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     const idleSpinSpeed = 0.002;
     if (reduced) {
       spinRef.current = 0;
-      applyStaticColors(sf.dim);
-      applyStaticColors(sf.mid);
-      applyStaticColors(sf.bright);
     }
 
 
