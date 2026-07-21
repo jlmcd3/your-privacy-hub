@@ -377,12 +377,42 @@ Deno.serve(async (req) => {
     if (typeof body.auditRights !== "string" || !body.auditRights.trim()) {
       body.auditRights = "Standard";
     }
-    if (typeof body.includeTransferClause !== "boolean") {
+    // PRODUCT-FIX-5 T5(a) — normalize includeTransferClause accepting both
+    // boolean and object shapes. Object shape { include?: boolean, basis?: string }
+    // → body.includeTransferClause = (include === true); capture basis into
+    // transferBasis. Any other type → false, transferBasis "".
+    let transferBasis = "";
+    const _itc: any = (body as any).includeTransferClause;
+    if (typeof _itc === "boolean") {
+      // unchanged
+    } else if (_itc && typeof _itc === "object") {
+      body.includeTransferClause = _itc.include === true;
+      transferBasis = typeof _itc.basis === "string" ? _itc.basis.trim() : "";
+    } else {
       body.includeTransferClause = false;
     }
     if (typeof body.transferMechanism !== "string") {
       body.transferMechanism = body.includeTransferClause ? "SCCs" : "";
     }
+
+    // PRODUCT-FIX-5 T5(c) — deterministic SCC module cross-check between
+    // transferBasis and body.transferMechanism.
+    const _extractModule = (s: string): string => {
+      const m = /module\s*(one|two|three|four|1|2|3|4)|\b(C2C|C2P|P2P|P2C)\b/i.exec(s || "");
+      if (!m) return "";
+      const raw = (m[1] || m[2] || "").toLowerCase();
+      const map: Record<string, string> = {
+        one: "module 1", two: "module 2", three: "module 3", four: "module 4",
+        "1": "module 1", "2": "module 2", "3": "module 3", "4": "module 4",
+        c2c: "module 1", c2p: "module 2", p2p: "module 3", p2c: "module 4",
+      };
+      return map[raw] || "";
+    };
+    const _basisMod = _extractModule(transferBasis);
+    const _mechMod = _extractModule(body.transferMechanism || "");
+    const _moduleContradiction = (_basisMod && _mechMod && _basisMod !== _mechMod)
+      ? { X: _mechMod, Y: _basisMod }
+      : null;
 
     if (body.assessment_id) {
       const procWrite = await lifecycleUpdate(supabase, "dpa_documents", body.assessment_id, { status: "processing", intake_data: body, updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "pre_generation" });
