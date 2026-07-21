@@ -211,9 +211,7 @@ const LIAssessment = () => {
           </h1>
           <RequirementBadge variant="hero" tier="expected" text="To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-            Get an instant indication whether your proposed processing could qualify for legitimate interest under
-            GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've
-            tracked. We cannot provide legal advice, but we can provide actionable Intelligence.
+            Get an instant read on whether your processing can rest on legitimate interests, then continue to a full three-part test grounded in the precedents you'll actually face.
           </p>
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
           <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>

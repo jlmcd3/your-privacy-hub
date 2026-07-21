@@ -160,7 +160,7 @@ export default function BiometricChecker() {
           <h1 className="text-hero-h1 text-white mb-3">Biometric Privacy Compliance Assessment</h1>
           <RequirementBadge variant="hero" tier="required" text="Illinois BIPA requires a written retention-and-destruction policy and informed written consent before you collect any biometric identifier — with statutory damages per violation." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
-            A per-jurisdiction read on your biometric data processing — surfacing obligations under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with cited enforcement decisions behind every priority action.
+            A per-jurisdiction read on your biometric processing — obligations under Illinois, Texas, Washington, EU/UK, and other regimes. Cited enforcement decisions sit behind every priority action.
           </p>
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
           <ToolCTABlock

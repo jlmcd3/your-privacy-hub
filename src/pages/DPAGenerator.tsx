@@ -202,7 +202,7 @@ export default function DPAGenerator() {
           <h1 className="font-serif text-white mb-3">Custom Data Processing Agreement</h1>
           <RequirementBadge variant="hero" tier="required" text="GDPR Article 28 requires a written data-processing agreement whenever you let a vendor or processor handle personal data on your behalf." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
-            Draft a controller-processor data processing agreement tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions.
+            Draft a controller-processor agreement tailored to your jurisdictions — EU, UK, US state, Canadian, or dual-compliance for cross-border arrangements. Every clause is calibrated to your obligations and the enforcement record.
           </p>
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
           <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
