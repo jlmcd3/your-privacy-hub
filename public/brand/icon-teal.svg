@@ -1,8 +1,10 @@
-<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End User Privacy">
+<svg width="52" height="52" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End User Privacy">
   <title>End User Privacy</title>
-  <rect width="48" height="48" rx="8" fill="#2a9d8f"/>
-  <circle cx="24" cy="24" r="18" fill="none" stroke="#ffffff" stroke-width="1.5"/>
-  <ellipse cx="24" cy="24" rx="6.5" ry="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
-  <line x1="6" y1="24" x2="42" y2="24" stroke="#ffffff" stroke-width="1.75"/>
-  <circle cx="34" cy="24" r="2.5" fill="#ffffff"/>
+  <rect width="52" height="52" rx="10" fill="#2a9d8f"/>
+  <circle cx="26" cy="26" r="19" fill="none" stroke="#ffffff" stroke-width="2.25"/>
+  <line x1="6.5" y1="26" x2="45.5" y2="26" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round"/>
+  <path d="M 9 18 Q 26 15 43 18" fill="none" stroke="#ffffff" stroke-width="1.25" stroke-linecap="round" opacity="0.75"/>
+  <path d="M 9 34 Q 26 37 43 34" fill="none" stroke="#ffffff" stroke-width="1.25" stroke-linecap="round" opacity="0.75"/>
+  <ellipse cx="26" cy="26" rx="7.5" ry="19" fill="none" stroke="#ffffff" stroke-width="2.25"/>
+  <circle cx="36" cy="26" r="2.75" fill="#ffffff"/>
 </svg>
