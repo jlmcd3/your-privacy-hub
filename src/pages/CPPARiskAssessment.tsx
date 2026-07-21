@@ -406,6 +406,9 @@ export default function CPPARiskAssessment() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
+  // Update the active rail entry as the user scrolls up/down the form.
+  useScrollActiveRail(setActiveRiskRailKey, [step]);
+
   const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
 
   const fscrCallouts = useFscrCallouts([
