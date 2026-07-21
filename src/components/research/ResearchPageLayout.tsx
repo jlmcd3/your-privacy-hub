@@ -130,9 +130,9 @@ export function ResearchPageLayout({
         {introBlock && <div className="mb-8">{introBlock}</div>}
 
         {sections.length > 1 && (
-          <nav aria-label="Contents" className="mb-10 pb-4 border-b border-brand-navy/15 print:hidden">
-            <p className="text-sm leading-relaxed">
-              <span className="text-[11px] font-semibold tracking-[0.1em] uppercase text-brand-mist mr-2">Contents:</span>
+          <nav aria-label="Contents" className="mt-10 mb-10 pb-4 border-b border-brand-navy/15 print:hidden">
+            <p className="text-[28px] leading-relaxed">
+              <span className="text-[22px] font-semibold tracking-[0.1em] uppercase text-brand-mist mr-2">Contents:</span>
               {sections.map((s, i) => (
                 <span key={s.id}>
                   {i > 0 && <span className="text-brand-mist mx-1.5">·</span>}
