@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CircleDot, ClipboardList, FileText, Folder, Scale, Shield, Siren } from 'lucide-react';
+import { CircleDot, ClipboardList, FileText, FileSignature, Fingerprint, Folder, Scale, Shield, Siren } from 'lucide-react';
 
 interface AssessmentRow {
   id: string;
