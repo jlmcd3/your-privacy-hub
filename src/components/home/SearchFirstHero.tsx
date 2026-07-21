@@ -68,7 +68,7 @@ export default function SearchFirstHero() {
                     to="/li-assessment"
                     className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90"
                   >
-                    Start a Legitimate Interest Assessment — {LIA_PRICE} →
+                    Start a Legitimate Interest Assessment — {priceLine(LIA_PRICE, LIA_SUB)} →
                   </Link>
                   <Link
                     to="/ropa-builder"
