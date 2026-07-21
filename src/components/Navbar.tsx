@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren, BarChart3, Calendar, ClipboardList, Compass, Eye, FileText, Folder, Lock, Map, Satellite, Shield } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren, BarChart3, Calendar, ClipboardList, Compass, Eye, FileText, FileSignature, Folder, FolderOpen, Lock, Map, Satellite, Shield, Star, Archive } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
