@@ -637,8 +637,18 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   }, []);
 
   // ── Spin handler ───────────────────────────────────────────────────────
+  // Keep phaseRef synced with phase for the scene-effect listeners.
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+
+  // ── Spin handler ───────────────────────────────────────────────────────
   const handleSpin = useCallback(() => {
+    // Drag-then-release synthesises a click; swallow it so a drag doesn't
+    // also fire a spin. Cleared on every call so the *next* real tap fires.
+    if (suppressClickRef.current) { suppressClickRef.current = false; return; }
     if (phase !== "idle") return;
+    // Cancel any leftover drag inertia so the spin animation starts clean.
+    inertiaRef.current.vy = 0;
+    inertiaRef.current.vx = 0;
     setPhase("spinning");
     setPicked(null);
     removeHighlight();
