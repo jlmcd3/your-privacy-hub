@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "react";
 const SpinTheGlobe = lazy(() => import("@/components/globe/SpinTheGlobe"));
 const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackground"));
-import { useGeoCountry as _useGeoCountry } from "@/hooks/useGeoCountry";
 import { useGeoCountry, isEuOrUk } from "@/hooks/useGeoCountry";
 
 export default function SearchFirstHero() {
