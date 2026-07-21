@@ -197,20 +197,60 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // Atmosphere backglow — inner ring (tighter, brighter rim)
-    scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.04, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x5aa9ff, side: THREE.BackSide, transparent: true, opacity: 0.28 }),
-    ));
-    // Atmosphere backglow — outer halo (soft glow that dissolves the hard edge)
+    // Atmosphere — Fresnel rim glow (teal-tinted, palette-consistent #69c9be).
+    // Replaces the previous constant-opacity BackSide shell. Uses view-angle
+    // falloff so the rim is bright at the silhouette and fades to zero across
+    // the disc, which reads as an atmospheric halo rather than a flat ring.
+    const fresnelUniforms = {
+      uColorInner: { value: new THREE.Color(0x69c9be) }, // brand teal (accents)
+      uColorOuter: { value: new THREE.Color(0x3b82c4) }, // cool blue outer
+      uPower:      { value: 3.2 },
+      uIntensity:  { value: 1.15 },
+    };
+    const atmosphere = new THREE.Mesh(
+      new THREE.SphereGeometry(1.055, 96, 96),
+      new THREE.ShaderMaterial({
+        uniforms: fresnelUniforms,
+        vertexShader: `
+          varying vec3 vNormal;
+          varying vec3 vViewDir;
+          void main() {
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            vNormal  = normalize(normalMatrix * normal);
+            vViewDir = normalize(-mv.xyz);
+            gl_Position = projectionMatrix * mv;
+          }
+        `,
+        fragmentShader: `
+          uniform vec3  uColorInner;
+          uniform vec3  uColorOuter;
+          uniform float uPower;
+          uniform float uIntensity;
+          varying vec3 vNormal;
+          varying vec3 vViewDir;
+          void main() {
+            float rim = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), uPower);
+            vec3 col  = mix(uColorOuter, uColorInner, rim);
+            gl_FragColor = vec4(col * uIntensity, rim);
+          }
+        `,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
+    scene.add(atmosphere);
+
+    // Outer soft halo (unchanged — feathers the edge into the hero bg)
     scene.add(new THREE.Mesh(
       new THREE.SphereGeometry(1.18, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x3b82c4, side: THREE.BackSide, transparent: true, opacity: 0.18 }),
+      new THREE.MeshBasicMaterial({ color: 0x3b82c4, side: THREE.BackSide, transparent: true, opacity: 0.16 }),
     ));
     // Far halo — feathered bloom edge
     scene.add(new THREE.Mesh(
       new THREE.SphereGeometry(1.30, 48, 48),
-      new THREE.MeshBasicMaterial({ color: 0x2a6bbf, side: THREE.BackSide, transparent: true, opacity: 0.08 }),
+      new THREE.MeshBasicMaterial({ color: 0x2a6bbf, side: THREE.BackSide, transparent: true, opacity: 0.07 }),
     ));
 
     // Latitude/longitude grid lines
@@ -219,16 +259,18 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       new THREE.MeshBasicMaterial({ color: 0x4a90d9, wireframe: true, transparent: true, opacity: 0.05 }),
     ));
 
-    // Lighting — low ambient to preserve a visible day/night terminator
-    scene.add(new THREE.AmbientLight(0xffffff, 0.21));
-    const sun = new THREE.DirectionalLight(0xfff4dc, 1.78);
+    // Lighting — tighter ambient + stronger sun to sharpen the day/night
+    // terminator and sell self-shadowing on the sphere.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+    const sun = new THREE.DirectionalLight(0xfff4dc, 2.05);
 
     sun.position.set(5, 2.5, 4);
     scene.add(sun);
     // Cool rim/fill from opposite side — reads as Earthshine, sells the sphere
-    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.40);
+    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.45);
     fill.position.set(-4, -1, -3);
     scene.add(fill);
+
 
     // ── Load NASA Blue Marble texture via unpkg (CORS-safe) ───────────
     // Primary: photorealistic NASA Blue Marble from three-globe package CDN
