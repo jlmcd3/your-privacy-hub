@@ -77,27 +77,31 @@ async function callAnthropic(
   timeoutMs: number = 720_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userContent }],
-    }),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
-  const data = await res.json();
-  const text = data.content?.[0]?.text || "";
-  const stopReason: string | null = data.stop_reason ?? null;
-  console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
-  return { text, stopReason };
+  // RUNTIME-1 (c): bounded retry on transient upstream failures (connection
+  // reset, 5xx, 429, socket hang up, network) — never on 4xx-non-transient.
+  return await withUpstreamRetry(async () => {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userContent }],
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "";
+    const stopReason: string | null = data.stop_reason ?? null;
+    console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
+    return { text, stopReason };
+  }, { label: `lia:callAnthropic:${model}` });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
