@@ -28,9 +28,11 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
 
 const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
   { href: "/cppa-scope-checker", title: "CPPA Scope Checker", sub: `${CPPA_SCOPE_PRICE}` },
+  { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: `${DPIA_PRICE}` },
   { href: "/cppa-risk-assessment", title: "CPPA Risk Assessment", sub: `${CPPA_RISK_PRICE}` },
+  { href: "/ir-playbook", title: "Incident Response Playbook", sub: `${IR_PLAYBOOK_PRICE}` },
   { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
-  { href: "/cppa-admt", title: "ADMT Compliance Assessment", sub: `${CPPA_ADMT_PRICE}` },
+  { href: "/dpa-generator", title: "DPA / SCC Generator", sub: `${DPA_PRICE}` },
   { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
 ];
 
