@@ -636,7 +636,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     });
   }, []);
 
-  // ── Spin handler ───────────────────────────────────────────────────────
   // Keep phaseRef synced with phase for the scene-effect listeners.
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
