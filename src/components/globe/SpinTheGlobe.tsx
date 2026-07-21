@@ -471,6 +471,82 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     if (reducedMq.addEventListener) reducedMq.addEventListener("change", onReduced);
     else (reducedMq as any).addListener?.(onReduced);
 
+    // ── Pointer-drag with release inertia ─────────────────────────────
+    // Drag is only meaningful in the idle phase (spin/result phases run
+    // their own animations). Reduced-motion users get click only — no drag,
+    // no inertia — matching the "no motion introduced" contract.
+    // Distinguishes a tap (< DRAG_THRESHOLD px total movement) from a drag
+    // so `handleSpin` still fires on plain clicks.
+    const DRAG_THRESHOLD = 5;             // px before a gesture is a drag
+    const DRAG_ROT_PER_PX = 0.005;        // rad per pixel of pointer movement
+    const MAX_INERTIA = 0.09;             // rad/frame cap on release velocity
+    const onPointerDown = (ev: PointerEvent) => {
+      if (reduced) return;
+      if (phaseRef.current !== "idle") return;
+      const d = dragRef.current;
+      d.active = true;
+      d.pointerId = ev.pointerId;
+      d.lastX = d.startX = ev.clientX;
+      d.lastY = d.startY = ev.clientY;
+      d.lastT = performance.now();
+      d.moved = false;
+      d.velY = 0;
+      d.velX = 0;
+      // Halt any residual motion so drag feels grabby.
+      spinRef.current = 0;
+      inertiaRef.current.vy = 0;
+      inertiaRef.current.vx = 0;
+      try { el.setPointerCapture(ev.pointerId); } catch { /* older browsers */ }
+    };
+    const onPointerMove = (ev: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d.active || ev.pointerId !== d.pointerId) return;
+      const dx = ev.clientX - d.lastX;
+      const dy = ev.clientY - d.lastY;
+      const totalDx = ev.clientX - d.startX;
+      const totalDy = ev.clientY - d.startY;
+      if (!d.moved && Math.hypot(totalDx, totalDy) > DRAG_THRESHOLD) d.moved = true;
+      if (globeRef.current) {
+        globeRef.current.rotation.y += dx * DRAG_ROT_PER_PX;
+        globeRef.current.rotation.x += dy * DRAG_ROT_PER_PX;
+        const maxTilt = Math.PI / 3;
+        if (globeRef.current.rotation.x >  maxTilt) globeRef.current.rotation.x =  maxTilt;
+        if (globeRef.current.rotation.x < -maxTilt) globeRef.current.rotation.x = -maxTilt;
+      }
+      // Velocity for inertia: convert px/ms → rad/frame at 60fps.
+      const now = performance.now();
+      const dt  = Math.max(1, now - d.lastT);
+      d.velY = (dx * DRAG_ROT_PER_PX) / dt * 16.67;
+      d.velX = (dy * DRAG_ROT_PER_PX) / dt * 16.67;
+      d.lastX = ev.clientX; d.lastY = ev.clientY; d.lastT = now;
+    };
+    const onPointerUp = (ev: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d.active || ev.pointerId !== d.pointerId) return;
+      d.active = false;
+      try { el.releasePointerCapture(ev.pointerId); } catch { /* noop */ }
+      if (d.moved) {
+        // Suppress the click that browsers synthesize after a pointerup so a
+        // drag doesn't also fire handleSpin. Cleared on the next pointerdown
+        // or naturally after the click event fires.
+        suppressClickRef.current = true;
+        inertiaRef.current.vy = Math.max(-MAX_INERTIA, Math.min(MAX_INERTIA, d.velY));
+        inertiaRef.current.vx = Math.max(-MAX_INERTIA, Math.min(MAX_INERTIA, d.velX));
+      }
+    };
+    const onPointerCancel = (ev: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d.active || ev.pointerId !== d.pointerId) return;
+      d.active = false;
+      d.moved = false;
+      try { el.releasePointerCapture(ev.pointerId); } catch { /* noop */ }
+    };
+    el.addEventListener("pointerdown",   onPointerDown);
+    el.addEventListener("pointermove",   onPointerMove);
+    el.addEventListener("pointerup",     onPointerUp);
+    el.addEventListener("pointercancel", onPointerCancel);
+    el.addEventListener("pointerleave",  onPointerUp);
+
     return () => {
       stop();
       io.disconnect();
