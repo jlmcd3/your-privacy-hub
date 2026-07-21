@@ -5,7 +5,7 @@
 //
 // Visual styling mirrors StatuteRail so the two patterns feel native together.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, BookOpen, ExternalLink } from "lucide-react";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
@@ -17,9 +17,13 @@ interface Props {
   className?: string;
 }
 
+const DEFAULT_STICKY_TOP = 16; // px
+
 export default function SectionReferenceRail({ entries, sectionIds, className = "" }: Props) {
   const [activeId, setActiveId] = useState<string | null>(sectionIds[0] ?? null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const elements = sectionIds
@@ -54,6 +58,54 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [sectionIds.join("|")]);
+
+  // When the active section's heading is below the default sticky offset (e.g. the last
+  // short section), switch the rail card to fixed positioning so its top edge aligns
+  // with the heading. Sticky positioning alone is constrained by the parent aside's
+  // height and cannot follow a heading that never reaches the top of the viewport.
+  useEffect(() => {
+    const stickyEl = stickyRef.current;
+    const cardEl = cardRef.current;
+    if (!stickyEl || !cardEl || !activeId) return;
+
+    const CONTAINER_MAX_WIDTH = 1180;
+    const RAIL_WIDTH = 300;
+    const HORIZONTAL_PADDING = 24;
+
+    const updatePosition = () => {
+      const section = document.getElementById(activeId);
+      const heading = section?.querySelector("h3");
+      if (!heading) return;
+
+      const headingTop = heading.getBoundingClientRect().top;
+      if (headingTop > DEFAULT_STICKY_TOP) {
+        const viewportWidth = window.innerWidth;
+        const right = Math.max(
+          HORIZONTAL_PADDING,
+          (viewportWidth - CONTAINER_MAX_WIDTH) / 2 + HORIZONTAL_PADDING
+        );
+        cardEl.style.position = "fixed";
+        cardEl.style.top = `${headingTop}px`;
+        cardEl.style.right = `${right}px`;
+        cardEl.style.width = `${RAIL_WIDTH}px`;
+        cardEl.style.zIndex = "30";
+      } else {
+        cardEl.style.position = "";
+        cardEl.style.top = "";
+        cardEl.style.right = "";
+        cardEl.style.width = "";
+        cardEl.style.zIndex = "";
+      }
+    };
+
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, { passive: true });
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [activeId]);
 
   const entry: RailEntry | null = activeId ? entries[activeId] ?? null : null;
 
@@ -123,8 +175,8 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
         className={`hidden lg:flex flex-col w-[300px] shrink-0 self-stretch ${className}`}
         aria-label="Section reference"
       >
-        <div className="sticky top-4">
-          <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+        <div ref={stickyRef} className="sticky top-4">
+          <div ref={cardRef} className="rounded-lg border bg-card shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b bg-[hsl(var(--brand-navy)/0.03)]">
               <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--brand-navy))]" />
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">
