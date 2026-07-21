@@ -367,7 +367,27 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
             globeRef.current.rotation.y += diff * 0.06;
           }
         } else {
+          // No target-anim in progress: apply free spin + drag inertia.
+          // While actively dragging, spinRef is held at 0 so the user's
+          // gesture is the only thing rotating the globe.
           globeRef.current.rotation.y += spinRef.current; // normal spin
+          if (!dragRef.current.active) {
+            // Inertia decay: 0.94/frame ≈ ~1.2s to fade at 60fps, matches
+            // the ramp-down feel of the pick animation.
+            const iv = inertiaRef.current;
+            if (Math.abs(iv.vy) > 1e-5 || Math.abs(iv.vx) > 1e-5) {
+              globeRef.current.rotation.y += iv.vy;
+              globeRef.current.rotation.x += iv.vx;
+              // Clamp pole tilt so drag inertia can't flip the globe upside-down.
+              const maxTilt = Math.PI / 3;
+              if (globeRef.current.rotation.x >  maxTilt) globeRef.current.rotation.x =  maxTilt;
+              if (globeRef.current.rotation.x < -maxTilt) globeRef.current.rotation.x = -maxTilt;
+              iv.vy *= 0.94;
+              iv.vx *= 0.94;
+              if (Math.abs(iv.vy) < 1e-5) iv.vy = 0;
+              if (Math.abs(iv.vx) < 1e-5) iv.vx = 0;
+            }
+          }
         }
 
         if (animatingX) {
