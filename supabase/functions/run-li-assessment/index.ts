@@ -629,6 +629,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 
 
     // ── STAGE 1: Classify use case ──
+    await liaHeartbeat(supabase, assessment_id, "classify");
     const t1Start = Date.now();
     const today = new Date().toISOString().slice(0, 10);
 
@@ -792,6 +793,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       : "No closely analogous precedents found in tracked database. Analysis proceeds on regulatory principles.";
 
     // ── STAGE 2: Three-part test analysis (EDPB Guidelines 1/2024 grounded) ──
+    await liaHeartbeat(supabase, assessment_id, "analysis");
     const purposeDetails = (assessment as any).purpose_details || {};
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
@@ -1314,6 +1316,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
 
 
     // ── STAGE 3: Documentation recommendations ──
+    await liaHeartbeat(supabase, assessment_id, "docs");
     const docsSystemBlocks = buildSystemContent({
       toolModule: LIA_DOCS_TOOL_MODULE,
       currentDate: today,
