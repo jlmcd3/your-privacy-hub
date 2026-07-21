@@ -21,6 +21,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
@@ -106,6 +107,11 @@ const LIAssessmentIntake = () => {
   const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
     setActiveRailSection(section);
   };
+  useScrollActiveRail((k) => {
+    if (k === "purpose" || k === "necessity" || k === "balancing") {
+      setActiveRailSection(k);
+    }
+  });
 
   const liaEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories"],
@@ -355,7 +361,7 @@ const LIAssessmentIntake = () => {
         {/* Purpose */}
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 space-y-6">
-        <section className="bg-card border rounded-lg p-6 space-y-5" onFocus={() => handleRailFocus("purpose")}>
+        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="purpose" onFocus={() => handleRailFocus("purpose")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 01</span>
             <h2 className="font-serif">Purpose test</h2>
@@ -420,7 +426,7 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* Necessity */}
-        <section className="bg-card border rounded-lg p-6 space-y-5" onFocus={() => handleRailFocus("necessity")}>
+        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="necessity" onFocus={() => handleRailFocus("necessity")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 02</span>
             <h2 className="font-serif">Necessity test</h2>
@@ -460,7 +466,7 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* Balancing */}
-        <section className="bg-card border rounded-lg p-6 space-y-5" onFocus={() => handleRailFocus("balancing")}>
+        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="balancing" onFocus={() => handleRailFocus("balancing")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 03</span>
             <h2 className="font-serif">Balancing test</h2>

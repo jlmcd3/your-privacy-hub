@@ -34,6 +34,7 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -192,6 +193,15 @@ const DPIAFramework = () => {
     setActiveRailField(null);
     setActiveTemplateRef(sectionRef);
   };
+  useScrollActiveRail((k) => {
+    if (k === "trigger" || k === "legal_basis" || k === "transfers") {
+      setActiveTemplateRef(null);
+      setActiveRailField(k);
+    } else if (EDPB_DPIA_GUIDANCE[k]) {
+      setActiveRailField(null);
+      setActiveTemplateRef(k);
+    }
+  });
   const templateRailEntry = useMemo(() => {
     if (!activeTemplateRef) return null;
     const g = EDPB_DPIA_GUIDANCE[activeTemplateRef];
@@ -574,7 +584,7 @@ const DPIAFramework = () => {
           <div className="flex items-center gap-2 pt-2 pb-1 border-b">
             <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">2 · What data, whose, how much, how long?</span>
           </div>
-          <div onFocus={() => handleDpiaRailFocus("trigger")}><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 — special categories trigger Art. 35(3)(b))</span> <EnforcementSignalIcon signalKey="special_categories" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
+          <div data-rail-key="trigger" onFocus={() => handleDpiaRailFocus("trigger")}><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 — special categories trigger Art. 35(3)(b))</span> <EnforcementSignalIcon signalKey="special_categories" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
           {dpiaTriggers.length > 0 && (
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wide">
@@ -604,7 +614,7 @@ const DPIAFramework = () => {
             <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
           </div>
           <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
-          <div onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
+          <div data-rail-key="transfers" onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
 
           {/* ── Jurisdiction resolver inputs (deterministic facts) ─────────── */}
           <div className="border rounded-lg p-4 bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
@@ -671,7 +681,7 @@ const DPIAFramework = () => {
           </div>
           <div>
             <Label>Legal basis proposed<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 6(1) GDPR — six lawful bases)</span></Label>
-            <select value={legalBasis} onChange={(e) => setLegalBasis(e.target.value)} onFocus={() => handleDpiaRailFocus("legal_basis")} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={legalBasis} data-rail-key="legal_basis" onChange={(e) => setLegalBasis(e.target.value)} onFocus={() => handleDpiaRailFocus("legal_basis")} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
           </div>
@@ -694,19 +704,19 @@ const DPIAFramework = () => {
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
             <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Fuller description detail (EDPB-aligned)</summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div onFocus={() => handleTemplateRailFocus('1.1.c')}>
+              <div data-rail-key='1.1.c' onFocus={() => handleTemplateRailFocus('1.1.c')}>
                 <Label>Secondary or compatible uses <span className="text-xs text-muted-foreground font-mono">(§ 1.1.c)</span></Label>
                 <Textarea value={secondaryUses} onChange={(e) => setSecondaryUses(e.target.value)} placeholder="Any further uses of the data beyond the primary purpose, and why they are compatible with it (Art. 6(4))." className="mt-2 min-h-16" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('1.1.d')}>
+              <div data-rail-key='1.1.d' onFocus={() => handleTemplateRailFocus('1.1.d')}>
                 <Label>Nature, scope &amp; context of the processing <span className="text-xs text-muted-foreground font-mono">(§ 1.1.d)</span></Label>
                 <Textarea value={natureScopeContext} onChange={(e) => setNatureScopeContext(e.target.value)} placeholder="Nature (what you do with the data), scope (extent — volume, geography, duration), and context (relationship with data subjects and their expectations)." className="mt-2 min-h-16" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('1.2')}>
+              <div data-rail-key='1.2' onFocus={() => handleTemplateRailFocus('1.2')}>
                 <Label>Functional description <span className="text-xs text-muted-foreground font-mono">(§ 1.2)</span></Label>
                 <Textarea value={functionalDescription} onChange={(e) => setFunctionalDescription(e.target.value)} placeholder="How the processing works end to end: the data lifecycle from collection through use, storage, sharing and deletion." className="mt-2 min-h-16" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('1.3')}>
+              <div data-rail-key='1.3' onFocus={() => handleTemplateRailFocus('1.3')}>
                 <Label>Means of processing, supporting assets &amp; architecture <span className="text-xs text-muted-foreground font-mono">(§ 1.3 — can be sent to an Exhibit annex)</span></Label>
                 <AssistedInput
                   className="mt-2"
@@ -717,7 +727,7 @@ const DPIAFramework = () => {
                   placeholder="IT systems, infrastructure, applications and sub-processor systems that support the processing."
                 />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('1.4')}>
+              <div data-rail-key='1.4' onFocus={() => handleTemplateRailFocus('1.4')}>
                 <Label>Approved codes of conduct / certifications <span className="text-xs text-muted-foreground font-mono">(§ 1.4)</span></Label>
                 <Input value={codesOfConduct} onChange={(e) => setCodesOfConduct(e.target.value)} placeholder="e.g. an approved Art. 40 code of conduct or Art. 42 certification, if any." className="mt-2" />
               </div>
@@ -727,11 +737,11 @@ const DPIAFramework = () => {
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
             <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Compliance measures (EDPB-aligned)</summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div onFocus={() => handleTemplateRailFocus('2.2.a')}>
+              <div data-rail-key='2.2.a' onFocus={() => handleTemplateRailFocus('2.2.a')}>
                 <Label>Data minimisation — why each category is necessary <span className="text-xs text-muted-foreground font-mono">(§ 2.2.a)</span></Label>
                 <Textarea value={dataMinimisationJustification} onChange={(e) => setDataMinimisationJustification(e.target.value)} placeholder="For each category of data, why it is adequate, relevant and limited to what is necessary (Art. 5(1)(c))." className="mt-2 min-h-16" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('2.2.b')}>
+              <div data-rail-key='2.2.b' onFocus={() => handleTemplateRailFocus('2.2.b')}>
                 <Label>Data quality measures <span className="text-xs text-muted-foreground font-mono">(§ 2.2.b)</span></Label>
                 <AssistedInput
                   className="mt-2"
@@ -741,7 +751,7 @@ const DPIAFramework = () => {
                   placeholder="How you keep data accurate and up to date, and correct or erase inaccuracies (Art. 5(1)(d))."
                 />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('2.3.b')}>
+              <div data-rail-key='2.3.b' onFocus={() => handleTemplateRailFocus('2.3.b')}>
                 <Label>Measures supporting data subjects' rights <span className="text-xs text-muted-foreground font-mono">(§ 2.3.b)</span></Label>
                 <AssistedInput
                   className="mt-2"
@@ -751,7 +761,7 @@ const DPIAFramework = () => {
                   placeholder="How data subjects exercise access, rectification, erasure, restriction, portability and objection — and how you handle those requests (Arts. 12–22)."
                 />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('2.3.d')}>
+              <div data-rail-key='2.3.d' onFocus={() => handleTemplateRailFocus('2.3.d')}>
                 <Label>Data protection by design &amp; by default <span className="text-xs text-muted-foreground font-mono">(§ 2.3.d)</span></Label>
                 <AssistedInput
                   className="mt-2"
@@ -767,11 +777,11 @@ const DPIAFramework = () => {
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
             <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Consultation (DPO &amp; data subjects)</summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div onFocus={() => handleTemplateRailFocus('5.1')}>
+              <div data-rail-key='5.1' onFocus={() => handleTemplateRailFocus('5.1')}>
                 <Label>DPO advice <span className="text-xs text-muted-foreground font-mono">(§ 5.1)</span></Label>
                 <Textarea value={dpoAdvice} onChange={(e) => setDpoAdvice(e.target.value)} placeholder="Has the DPO been consulted on this DPIA, and what is their advice / opinion? (Art. 35(2))" className="mt-2 min-h-16" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('5.2')}>
+              <div data-rail-key='5.2' onFocus={() => handleTemplateRailFocus('5.2')}>
                 <Label>Views of data subjects or their representatives <span className="text-xs text-muted-foreground font-mono">(§ 5.2)</span></Label>
                 <select value={dataSubjectsViewsSought} onChange={(e) => setDataSubjectsViewsSought(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Have you sought data subjects' views? (Art. 35(9))</option>
@@ -788,55 +798,55 @@ const DPIAFramework = () => {
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
             <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Administrative details (EDPB Section 0)</summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div onFocus={() => handleTemplateRailFocus('0.1')}>
+              <div data-rail-key='0.1' onFocus={() => handleTemplateRailFocus('0.1')}>
                 <Label>Controller — main establishment / point of contact</Label>
                 <Input value={controllerContact} onChange={(e) => setControllerContact(e.target.value)} placeholder="Main establishment or representative, and the contact point for this processing" className="mt-2" />
                 <p className="text-meta text-muted-foreground mt-1">EDPB §0.1: identify the controller's responsible unit, main establishment or representative, and the DPO. For joint controllers, define each party's obligations.</p>
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.1')}>
+              <div data-rail-key='0.1' onFocus={() => handleTemplateRailFocus('0.1')}>
                 <Label>DPO contact details, if applicable</Label>
                 <Input value={dpoInfo} onChange={(e) => setDpoInfo(e.target.value)} placeholder="DPO name / contact, or note if none is designated" className="mt-2" />
                 <p className="text-meta text-muted-foreground mt-1">Contact details only — the DPO's advice on this DPIA goes in the optional Consultation section above.</p>
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.2')}>
+              <div data-rail-key='0.2' onFocus={() => handleTemplateRailFocus('0.2')}>
                 <Label>Processors / sub-processors — obligations &amp; tasks</Label>
                 <ExhibitTextarea value={processorObligations} onChange={setProcessorObligations} placeholder="For each processor / sub-processor, define their obligations and tasks." className="mt-2 min-h-16" />
                 <p className="text-meta text-muted-foreground mt-1">EDPB §0.2: list every processor and sub-processor in the chain and define each one's obligations unequivocally.</p>
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.3')}>
+              <div data-rail-key='0.3' onFocus={() => handleTemplateRailFocus('0.3')}>
                 <Label>Processing — current version / change history</Label>
                 <Input value={processingVersion} onChange={(e) => setProcessingVersion(e.target.value)} placeholder="e.g. v2 — added biometric step in Q1 2026" className="mt-2" />
                 <p className="text-meta text-muted-foreground mt-1">EDPB §0.3: the internal name (from your RoPA) plus a short history of past changes to the processing.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div onFocus={() => handleTemplateRailFocus('0.4')}>
+                <div data-rail-key='0.4' onFocus={() => handleTemplateRailFocus('0.4')}>
                   <Label>Estimated launch date</Label>
                   <Input type="date" value={launchDate} onChange={(e) => setLaunchDate(e.target.value)} className="mt-2" />
                 </div>
-                <div onFocus={() => handleTemplateRailFocus('0.4')}>
+                <div data-rail-key='0.4' onFocus={() => handleTemplateRailFocus('0.4')}>
                   <Label>Estimated end date / expiry (if temporary)</Label>
                   <Input value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="Date or expiry condition; leave blank if ongoing" className="mt-2" />
                 </div>
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.5')}>
+              <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
                 <Label>DPIA team / roles (RACI)</Label>
                 <Input value={dpiaTeam} onChange={(e) => setDpiaTeam(e.target.value)} placeholder="Who is Responsible, Accountable, Consulted, Informed for this DPIA" className="mt-2" />
                 <p className="text-meta text-muted-foreground mt-1">EDPB §0.5: the team conducting the DPIA and their roles / responsibilities.</p>
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.5')}>
+              <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
                 <Label>Guidelines / standards used</Label>
                 <Input value={referenceMaterials} onChange={(e) => setReferenceMaterials(e.target.value)} placeholder="e.g. EDPB DPIA template, WP248 rev.01, ISO 29134" className="mt-2" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.5.reasons')}>
+              <div data-rail-key='0.5.reasons' onFocus={() => handleTemplateRailFocus('0.5.reasons')}>
                 <Label>Reasons for conducting this DPIA</Label>
                 <p className="text-meta text-muted-foreground mt-1 mb-2">EDPB §0.5: select every reason that applies — a DPIA may be a legal obligation, required by guidance, or simply beneficial.</p>
                 <Pills options={REASONS_TO_CONDUCT} value={reasonsToConduct} onChange={setReasonsToConduct} />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.5.scope')}>
+              <div data-rail-key='0.5.scope' onFocus={() => handleTemplateRailFocus('0.5.scope')}>
                 <Label>Scope of this DPIA — what's in and what's out</Label>
                 <Textarea value={dpiaScopeNote} onChange={(e) => setDpiaScopeNote(e.target.value)} placeholder="State what this assessment covers, what it deliberately excludes, and why." className="mt-2 min-h-16" />
               </div>
-              <div onFocus={() => handleTemplateRailFocus('0.5.publication')}>
+              <div data-rail-key='0.5.publication' onFocus={() => handleTemplateRailFocus('0.5.publication')}>
                 <Label>Will the DPIA be published or shared externally?</Label>
                 <select value={publicationIntent} onChange={(e) => setPublicationIntent(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>
