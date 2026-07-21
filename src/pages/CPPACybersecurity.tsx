@@ -103,6 +103,9 @@ export default function CPPACybersecurity() {
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
   const focusRail = (key: string) => setActiveCyberRailKey(key);
 
+  // Update the active rail entry as the user scrolls up/down the form.
+  useScrollActiveRail(setActiveCyberRailKey);
+
   const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
 
   const cyberFscrCallouts = useFscrCallouts([
