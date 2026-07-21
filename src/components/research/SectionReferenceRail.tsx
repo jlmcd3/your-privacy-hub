@@ -176,7 +176,7 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
         aria-label="Section reference"
       >
         <div ref={stickyRef} className="sticky top-4">
-          <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+          <div ref={cardRef} className="rounded-lg border bg-card shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b bg-[hsl(var(--brand-navy)/0.03)]">
               <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--brand-navy))]" />
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">
