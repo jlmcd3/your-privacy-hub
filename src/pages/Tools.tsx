@@ -245,7 +245,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "healthcheck",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Shield),
     name: "GDPR Governance Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
@@ -269,7 +269,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "li-assessment",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Scale),
     name: "Legitimate Interest Assessment",
     tagline: "Build a complete, documented Legitimate Interest Assessment: the three-part test, done properly.",
     href: "/li-assessment",
@@ -293,7 +293,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpia",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Search),
     name: "Impact Assessment Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
@@ -316,7 +316,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "biometric-checker",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Fingerprint),
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
@@ -341,7 +341,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpa-generator",
     section: "documents",
-    icon: "",
+    icon: iconEl(FileSignature),
     name: "DPA Generator",
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
@@ -362,7 +362,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "ir-playbook",
     section: "documents",
-    icon: "",
+    icon: iconEl(Siren),
     name: "Incident Response Playbook",
     tagline: "Your complete breach response playbook: deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
@@ -384,7 +384,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "ropa-builder",
     section: "documents",
-    icon: "",
+    icon: iconEl(Folder),
     name: "RoPA Builder (Article 30)",
     tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Included with any subscription.",
     href: "/ropa-builder",
@@ -445,7 +445,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "registration-manager",
     section: "documents",
-    icon: "",
+    icon: iconEl(ClipboardList),
     name: "Registration Manager",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of deadlines. Renewal tracking included with any subscription. You submit the filings.",
     href: "/registration-manager",
@@ -469,7 +469,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-scope-checker",
     section: "cppa",
-    icon: "",
+    icon: iconEl(Search),
     name: "CPPA Scope Checker",
     tagline: "Find out if your organisation is in scope for CCPA/CPRA and the 2027 CPPA audit — always free, no account required.",
     href: "/cppa-scope-checker",
@@ -492,7 +492,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-risk-assessment",
     section: "cppa",
-    icon: "",
+    icon: iconEl(ShieldAlert),
     name: "CPPA Risk Assessment",
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
@@ -514,7 +514,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-cybersecurity",
     section: "cppa",
-    icon: "",
+    icon: iconEl(Lock),
     name: "CPPA Cybersecurity Audit",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
@@ -535,7 +535,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-admt-checker",
     section: "cppa",
-    icon: "",
+    icon: iconEl(Bot),
     name: "ADMT Compliance Assessment",
     tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
     href: "/cppa-admt-checker",
