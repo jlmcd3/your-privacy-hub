@@ -90,7 +90,7 @@ export default function SearchFirstHero() {
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
                   The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments that satisfy the record — cite-anchored to the final regulations and regulatory commentary.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-8">
+                <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-3">
                   <Link
                     to="/cppa-scope-checker"
                     className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90"
