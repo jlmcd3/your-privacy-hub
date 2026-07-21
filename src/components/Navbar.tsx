@@ -126,7 +126,7 @@ const navItems: NavItem[] = [
         column: 1,
         items: [
           {
-            icon: "",
+            icon: <Landmark aria-hidden="true" strokeWidth={1.75} />,
             label: "CPPA Scope Checker",
             href: "/cppa-scope-checker",
             badge: "FREE",
@@ -134,19 +134,19 @@ const navItems: NavItem[] = [
             tooltip: "Find out if your organisation is in scope for the Dec 31 2027 audit",
           },
           {
-            icon: "",
+            icon: <Landmark aria-hidden="true" strokeWidth={1.75} />,
             label: "CPPA Risk Assessment",
             href: "/cppa-risk-assessment",
             tooltip: "Structured risk assessment aligned to CPPA audit regulations",
           },
           {
-            icon: "",
+            icon: <Lock aria-hidden="true" strokeWidth={1.75} />,
             label: "CPPA Cybersecurity Readiness",
             href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline",
           },
           {
-            icon: "",
+            icon: <Compass aria-hidden="true" strokeWidth={1.75} />,
             label: "ADMT Compliance Assessment",
             href: "/cppa-admt-checker",
             tooltip: "Automated Decisionmaking Technology disclosure checker · Jan 1 2027 deadline",
@@ -161,13 +161,13 @@ const navItems: NavItem[] = [
         column: 2,
         items: [
           {
-            icon: "",
+            icon: <BookOpen aria-hidden="true" strokeWidth={1.75} />,
             label: "CPPA Audit Hub",
             href: "/cppa",
             tooltip: "Overview of all CPPA tools, regulations, and the April 2028 deadline",
           },
           {
-            icon: "",
+            icon: <Calendar aria-hidden="true" strokeWidth={1.75} />,
             label: "Key CPPA Deadlines",
             href: "/cppa#deadlines",
             tooltip: "Dec 31 2027 risk assessment · Apr 1 2028 cybersecurity certification · Jan 1 2027 ADMT",
