@@ -106,7 +106,7 @@ export default function SearchFirstHero() {
                   </Link>
                 </div>
 
-                {/* US product row — mixed regime tools, bundle highlighted */}
+                {/* US product row — CPPA tools only, bundle highlighted */}
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl">
                   {US_PRODUCTS.map((p) => (
                     <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
