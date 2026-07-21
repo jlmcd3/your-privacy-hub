@@ -195,12 +195,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     camera.position.set(0, 0, 3.0);
     camera.lookAt(0, 0, 0);
 
-    // Stars (three Points groups by brightness band)
-    const sf = buildStarField();
-    starsRef.current = sf;
-    scene.add(sf.dim.points);
-    scene.add(sf.mid.points);
-    scene.add(sf.bright.points);
+    // Stars removed — the globe sits directly against the hero background
+    // so no in-scene starfield is rendered inside the globe's ring.
 
 
     // Globe — placeholder material while texture loads
@@ -291,9 +287,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     const idleSpinSpeed = 0.002;
     if (reduced) {
       spinRef.current = 0;
-      applyStaticColors(sf.dim);
-      applyStaticColors(sf.mid);
-      applyStaticColors(sf.bright);
     }
 
 
@@ -411,9 +404,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       reduced = e.matches;
       if (reduced) {
         spinRef.current = 0;
-        applyStaticColors(sf.dim);
-        applyStaticColors(sf.mid);
-        applyStaticColors(sf.bright);
       } else {
         spinRef.current = idleSpinSpeed;
       }
@@ -513,10 +503,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       el.removeEventListener("pointerup",     onPointerUp);
       el.removeEventListener("pointercancel", onPointerCancel);
       el.removeEventListener("pointerleave",  onPointerUp);
-      for (const g of [sf.dim, sf.mid, sf.bright]) {
-        g.points.geometry.dispose();
-        (g.points.material as THREE.Material).dispose();
-      }
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
