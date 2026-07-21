@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
+import HomeOrientationStrip from "@/components/home/HomeOrientationStrip";
 import HomeGeographyPaths from "@/components/home/HomeGeographyPaths";
 import CPPADeadlineStrip from "@/components/CPPADeadlineStrip";
 import HomepageFeedSection from "@/components/home/HomepageFeedSection";
@@ -24,6 +25,7 @@ const Index = () => (
     <BreakingNewsBanner />
     <main id="main-content" aria-label="Home">
     <SearchFirstHero />
+    <HomeOrientationStrip />
     <HomeGeographyPaths />
     <CPPADeadlineStrip />
 
