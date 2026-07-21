@@ -11,6 +11,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
+import { Bot, CheckCircle2, ClipboardList, FileText, Folder, Lock, MoveRight, Scale, Search, Shield, Siren, Square, Wrench } from 'lucide-react';
 
 // Map Tools-page slugs to /samples/{sampleSlug} slugs where a published sample exists.
 const SAMPLE_SLUG_MAP: Record<string, string> = {
@@ -180,7 +181,7 @@ const SECTION_HEADERS: Record<ToolSection, {
 // ── Differentiators ───────────────────────────────────────────────────────
 const DIFFERENTIATORS = [
   {
-    icon: "⚖️",
+    icon: "",
     title: "Calibrated to enforcement precedent, not just statutory text",
     body: "Regulatory guidance and enforcement decisions frequently diverge – what a law requires and what a regulator has actually penalised are not always the same thing.",
     checkColor: "text-brand-navy",
@@ -191,7 +192,7 @@ const DIFFERENTIATORS = [
     ],
   },
   {
-    icon: "📋",
+    icon: "",
     title: "Assessments ordered by enforcement risk, not by topic area",
     body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
     checkColor: "text-accent",
@@ -202,7 +203,7 @@ const DIFFERENTIATORS = [
     ],
   },
   {
-    icon: "📄",
+    icon: "",
     title: "Documents drafted to survive scrutiny, not just satisfy it",
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
     checkColor: "text-amber-800",
@@ -238,7 +239,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "healthcheck",
     section: "assessments",
-    icon: "🛡️",
+    icon: "",
     name: "GDPR Governance Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
@@ -262,7 +263,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "li-assessment",
     section: "assessments",
-    icon: "⚖️",
+    icon: "",
     name: "Legitimate Interest Assessment",
     tagline: "Build a complete, documented Legitimate Interest Assessment: the three-part test, done properly.",
     href: "/li-assessment",
@@ -277,8 +278,8 @@ const TOOLS: ToolDef[] = [
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
-      { label: "Purpose test", content: "Processing activity: direct marketing to existing customers. Purpose is lawful, specific, and present at the time of processing. ✓" },
-      { label: "Necessity test", content: "The processing is necessary to achieve the stated purpose. Less intrusive means were considered and would not achieve the same operational objective. ✓ with conditions noted." },
+      { label: "Purpose test", content: "Processing activity: direct marketing to existing customers. Purpose is lawful, specific, and present at the time of processing. " },
+      { label: "Necessity test", content: "The processing is necessary to achieve the stated purpose. Less intrusive means were considered and would not achieve the same operational objective.  with conditions noted." },
       { label: "Balancing test finding", content: "On balance, the legitimate interest is not overridden, provided: (1) an easy opt-out mechanism is provided at every point of contact, (2) sensitive categories are excluded from the dataset, and (3) the frequency of contact is limited to fortnightly." },
       { label: "Enforcement context", content: "Legitimate interest claims in direct marketing contexts have been rejected by multiple EU DPAs where no genuine balancing test was documented or where individuals had no meaningful opt-out." },
     ],
@@ -286,7 +287,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpia",
     section: "assessments",
-    icon: "📄",
+    icon: "",
     name: "Impact Assessment Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
@@ -309,7 +310,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "biometric-checker",
     section: "assessments",
-    icon: "👉",
+    icon: "",
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
@@ -334,7 +335,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpa-generator",
     section: "documents",
-    icon: "📄",
+    icon: "",
     name: "DPA Generator",
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
@@ -355,7 +356,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "ir-playbook",
     section: "documents",
-    icon: "🚨",
+    icon: "",
     name: "Incident Response Playbook",
     tagline: "Your complete breach response playbook: deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
@@ -371,13 +372,13 @@ const TOOLS: ToolDef[] = [
     sampleSections: [
       { label: "Immediate actions (0–2 hours)", content: "1. Assemble incident response team: IR Lead, DPO, Legal Counsel, IT Security. 2. Preserve all evidence — do not delete or modify logs. 3. Isolate affected systems from the network. 4. Document discovery time (UTC) and the name of the person who discovered the incident." },
       { label: "Notification deadline — ICO (UK)", content: "Deadline: 72 hours from discovery (calculated from your input). Portal: ico.org.uk/make-a-complaint/data-security-and-journalism/report-a-breach/. Initial notification may be submitted with incomplete information if full details are not yet available." },
-      { label: "Documentation checklist (Article 33(5))", content: "☐ Discovery time and circumstances documented. ☐ Nature of breach and data categories recorded. ☐ Approximate number of affected individuals noted. ☐ Notification decision and rationale recorded. ☐ Steps taken to contain and remediate documented." },
+      { label: "Documentation checklist (Article 33(5))", content: " Discovery time and circumstances documented.  Nature of breach and data categories recorded.  Approximate number of affected individuals noted.  Notification decision and rationale recorded.  Steps taken to contain and remediate documented." },
     ],
   },
   {
     slug: "ropa-builder",
     section: "documents",
-    icon: "🗃️",
+    icon: "",
     name: "RoPA Builder (Article 30)",
     tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Included with any subscription.",
     href: "/ropa-builder",
@@ -438,7 +439,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "registration-manager",
     section: "documents",
-    icon: "🗂️",
+    icon: "",
     name: "Registration Manager",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of deadlines. Renewal tracking included with any subscription. You submit the filings.",
     href: "/registration-manager",
@@ -462,7 +463,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-scope-checker",
     section: "cppa",
-    icon: "🔍",
+    icon: "",
     name: "CPPA Scope Checker",
     tagline: "Find out if your organisation is in scope for CCPA/CPRA and the 2027 CPPA audit — always free, no account required.",
     href: "/cppa-scope-checker",
@@ -477,7 +478,7 @@ const TOOLS: ToolDef[] = [
       "No account is required. The tool is free for all users and always will be.",
     ],
     sampleSections: [
-      { label: "Threshold analysis", content: "Annual gross revenue: exceeds $25M threshold ✓. Personal information of 100,000+ consumers: ✓. Derives 50%+ of revenue from selling/sharing personal information: not applicable. Result: CCPA/CPRA obligations apply." },
+      { label: "Threshold analysis", content: "Annual gross revenue: exceeds $25M threshold . Personal information of 100,000+ consumers: . Derives 50%+ of revenue from selling/sharing personal information: not applicable. Result: CCPA/CPRA obligations apply." },
       { label: "Audit obligation — CPPA Risk Assessment", content: "Your processing of personal information presents a significant risk to consumers' privacy. A formal risk assessment is required before December 31, 2027 under CPPA regulations." },
       { label: "Recommended next step", content: "Proceed to the CPPA Risk Assessment tool. The assessment must be documented in the structure the CPPA specifies and retained for regulatory review." },
     ],
@@ -485,7 +486,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-risk-assessment",
     section: "cppa",
-    icon: "🔍",
+    icon: "",
     name: "CPPA Risk Assessment",
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
@@ -507,7 +508,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-cybersecurity",
     section: "cppa",
-    icon: "🔐",
+    icon: "",
     name: "CPPA Cybersecurity Audit",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
@@ -528,7 +529,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-admt-checker",
     section: "cppa",
-    icon: "🤖",
+    icon: "",
     name: "ADMT Compliance Assessment",
     tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
     href: "/cppa-admt-checker",
@@ -613,7 +614,7 @@ export default function Tools() {
       <header className="bg-[#1f6674] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-black/30 text-white mb-3">
-            🧰 Compliance Tools
+            <Wrench aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Compliance Tools
           </span>
           <h1 className="font-serif text-white mb-3">
             Intelligence, assessments, and compliance documents
@@ -644,7 +645,7 @@ export default function Tools() {
               <ul className="space-y-1.5">
                 {d.checks.map((c) => (
                   <li key={c} className="flex gap-2 text-xs text-slate leading-snug">
-                    <span className={`${d.checkColor} font-bold flex-shrink-0`}>✓</span>
+                    <span className={`${d.checkColor} font-bold flex-shrink-0`}><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span>{c}</span>
                   </li>
                 ))}
@@ -745,7 +746,7 @@ export default function Tools() {
                           </span>
                         ) : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) ? (
                           <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
-                            ✓ Included
+                            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included
                           </span>
                         ) : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug) ? (
                           <span className="inline-block text-eyebrow bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full">
@@ -770,7 +771,7 @@ export default function Tools() {
                     )}
                     {tool.freeBadge && (
                       <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                        ✓ {tool.freeBadge}
+                        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {tool.freeBadge}
                       </span>
                     )}
                     {!tool.alwaysFree && (

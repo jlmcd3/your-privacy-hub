@@ -27,6 +27,7 @@ import { startMeterExtension } from "@/lib/meterExtension";
 import { IMPROVEMENT_KIT_ENABLED } from "@/config/improvementKit";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { toast } from "@/hooks/use-toast";
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 // Truncate to first sentence (or 200 chars if no sentence boundary).
 const firstSentence = (text: string): string => {
@@ -197,7 +198,7 @@ export default function CPPARiskAssessmentResult() {
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             {row?.retry_count > 0
               ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${row.retry_count + 1} of 3). No action needed.`
-              : "✅ Purchase confirmed. Your assessment is being generated."}
+              : " Purchase confirmed. Your assessment is being generated."}
           </div>
         )}
         {loading && <p>Loading…</p>}
@@ -597,7 +598,7 @@ export default function CPPARiskAssessmentResult() {
 
 
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-              ⚠️ This compliance framework report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.
+              <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> This compliance framework report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.
             </section>
 
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />

@@ -26,6 +26,7 @@ import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import { CheckCircle2 } from 'lucide-react';
 
 
 const sevColor = (s: string) => {
@@ -180,7 +181,7 @@ const DPIAFrameworkResult = () => {
         <ClientContextBadge />
         {purchased && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
-            ✅ Purchase confirmed. Your assessment is being generated.
+            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Purchase confirmed. Your assessment is being generated.
           </div>
         )}
 

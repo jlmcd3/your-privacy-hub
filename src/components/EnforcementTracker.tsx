@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, CheckCircle2 } from 'lucide-react';
 
 const enforcementData = [
   { regulator: "CNIL (France)", company: "Clearview AI", jurisdiction: "EU — France", violation: "Unlawful biometric data processing without consent", fine: "€20M", date: "Mar 8, 2026" },
@@ -35,7 +35,7 @@ const EnforcementTracker = () => {
             <div>
               <h3 className="text-white">Recent Enforcement Actions</h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">✓ Free preview</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Free preview</span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⭐ Full database with Intelligence</span>
               </div>
             </div>

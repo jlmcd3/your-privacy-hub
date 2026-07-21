@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { Lock, Satellite } from 'lucide-react';
 
 interface HorizonItem {
   id: string;
@@ -192,7 +193,7 @@ export default function Horizon() {
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🛰️ Forward-looking intelligence · Included with Intelligence subscription ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()})
+            <Satellite aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Forward-looking intelligence · Included with Intelligence subscription ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()})
             {!isPremium && <> · <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Start your subscription", cta_position: "top-banner" })} className="underline hover:text-amber-100">Start your subscription →</Link></>}
           </span>
           <h1 className="font-serif text-white mb-3">
@@ -300,7 +301,7 @@ export default function Horizon() {
           <div className="grid gap-4">
             <div className="rounded-2xl border border-brand-teal/40 bg-brand-teal/5 p-5">
               <p className="text-[11px] font-bold uppercase tracking-widest text-brand-teal-text mb-2">
-                🔒 Intelligence subscription required
+                <Lock aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Intelligence subscription required
               </p>
               <p className="text-sm text-slate leading-relaxed mb-3">
                 Full source analysis, confidence rating, and recommended action
@@ -331,7 +332,7 @@ export default function Horizon() {
                     <span className="text-[11px] font-medium text-slate">{item.jurisdiction}</span>
                   )}
                   <span className="ml-auto text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border border-brand-teal/40 bg-brand-teal/10 text-brand-teal-text rounded-full">
-                    🔒 Locked
+                    <Lock aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Locked
                   </span>
                 </div>
                 <h2 className="font-display text-brand-navy leading-snug mb-2">

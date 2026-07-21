@@ -42,6 +42,7 @@ import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
 import { useToolStartedOnInteraction, fireEmailCaptured } from "@/lib/analyticsEvents";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { CheckCircle2, Shield, Zap } from 'lucide-react';
 
 // CPI-adjusted revenue threshold, § 1798.140(d)(1)(A). Effective 2025-01-01.
 export const CCPA_REVENUE_THRESHOLD_USD = 26_625_000;
@@ -439,7 +440,7 @@ export default function CPPAScopeChecker() {
       <header className="bg-brand-ocean text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🛡️ CPPA Scope Checker · Free · No account required
+            <Shield aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> CPPA Scope Checker · Free · No account required
           </span>
           <h1 className="text-hero-h1 text-white mb-3">CPPA Scope Checker</h1>
           <RequirementBadge variant="hero" tier="free" text="Free. Find out which CPPA obligations — risk assessment, cybersecurity audit, ADMT — apply to your business, and by when." className="mt-2 max-w-3xl" />
@@ -597,11 +598,11 @@ export default function CPPAScopeChecker() {
             {liveFootprint.length > 0 && (
               <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
                 <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
-                  ⚡ Obligations triggered by your answers so far
+                  <Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Obligations triggered by your answers so far
                 </p>
                 {liveFootprint.map((item) => (
                   <div key={item.citation} className="flex items-start gap-2">
-                    <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                    <span className="text-green-600 mt-0.5 shrink-0"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <div className="text-xs">
                       <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
                       <span className="text-foreground ml-2">{item.label}</span>

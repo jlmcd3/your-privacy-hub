@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Check, ArrowRight, ExternalLink, FileText, ListChecks, Download } from "lucide-react";
+import { Check, ArrowRight, ExternalLink, FileText, ListChecks, Download, BookOpen } from 'lucide-react';
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
@@ -118,7 +118,7 @@ export default function RopaLanding() {
       <header className="bg-brand-navy text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📚 RoPA Builder · Included with any subscription
+            <BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Included with any subscription
           </span>
           <h1 className="font-serif text-white mb-3">
             Build an audit-ready Record of Processing Activities (RoPA) in minutes

@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Lock } from "lucide-react";
+import { Lock, Scale } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -76,7 +76,7 @@ const RegulatorPage = () => {
       <div className="bg-gradient-to-br from-brand-ocean to-brand-slate-teal py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
           <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-brand-mist mb-4 bg-brand-mist/10 px-3 py-1.5 rounded-full border border-brand-mist/20">
-            ⚖️ Regulator Profile
+            <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Regulator Profile
           </div>
           <h1 className="font-display text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-brand-mist font-display">{regulator.abbreviation}</p>}

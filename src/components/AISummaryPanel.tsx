@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye, AlertTriangle } from 'lucide-react';
 import PremiumGate from "./PremiumGate";
 
 interface AISummary {
@@ -172,7 +172,7 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
             <div className="flex items-center gap-2">
               {summary.risk_level && RISK_CONFIG[summary.risk_level] && (
                 <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${RISK_CONFIG[summary.risk_level]}`}>
-                  ⚠️ {summary.risk_level} risk
+                  <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {summary.risk_level} risk
                 </span>
               )}
               {urgencyConfig && (

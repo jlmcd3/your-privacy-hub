@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Check } from "lucide-react";
+import { Check, Folder, Globe, Mail, Scale, Target, Wrench } from 'lucide-react';
 import { PRICING } from "@/config/pricing";
 import { firePurchaseVerified } from "@/lib/analyticsEvents";
 import { getStripeEnvironment } from "@/lib/env";
@@ -89,16 +89,16 @@ export default function SubscribeSuccess() {
 
   const NEXT_STEPS = hasToolAccess
     ? [
-        { icon: "🛠️", title: "Use your included tools", body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3." },
-        { icon: "🎯", title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
-        { icon: "📧", title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
-        { icon: "📁", title: "Documents saved permanently", body: "Every document you generate stays in your workspace — refresh, revise, or download anytime." },
+        { icon: "", title: "Use your included tools", body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3." },
+        { icon: "", title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
+        { icon: "", title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
+        { icon: "", title: "Documents saved permanently", body: "Every document you generate stays in your workspace — refresh, revise, or download anytime." },
       ]
     : [
-        { icon: "🎯", title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
-        { icon: "📧", title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
-        { icon: "⚖️", title: "Full Enforcement Tracker unlocked", body: "You now have access to every enforcement action in the database — all regulators, all jurisdictions, with fine amounts and legal basis." },
-        { icon: "🌍", title: "Explore jurisdiction profiles worldwide", body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history." },
+        { icon: "", title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
+        { icon: "", title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
+        { icon: "", title: "Full Enforcement Tracker unlocked", body: "You now have access to every enforcement action in the database — all regulators, all jurisdictions, with fine amounts and legal basis." },
+        { icon: "", title: "Explore jurisdiction profiles worldwide", body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history." },
       ];
 
   // D2: static status line, no polling.

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, Newspaper, Sparkles } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -71,7 +71,7 @@ const TOPIC_FILTERS: TopicFilter[] = [
 ];
 
 const ENRICHMENT_FILTERS = [
-  { key: "enriched", label: "✨ Enriched" },
+  { key: "enriched", label: " Enriched" },
   { key: "pending", label: "⏳ Pending" },
 ];
 
@@ -447,7 +447,7 @@ const Updates = () => {
             <header className="bg-brand-slate-teal text-white py-12">
                 <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
                     <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-                        📰 Privacy Intelligence Feed
+                        <Newspaper aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Privacy Intelligence Feed
                     </span>
                     <h1 className="font-serif text-white mb-3">
                         {selectedRegions.length === 1 && selectedTopics.length === 0

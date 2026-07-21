@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import gdprData from "@/data/timelines/gdpr-enforcement.json";
 import usStateData from "@/data/timelines/us-state-privacy-laws.json";
 import euAiActData from "@/data/timelines/eu-ai-act.json";
+import { Bot, Map } from 'lucide-react';
 
 interface TimelineEvent {
   date: string;
@@ -17,8 +18,8 @@ interface TimelineEvent {
 
 const TIMELINE_META: Record<string, { title: string; icon: string; description: string; data: TimelineEvent[] }> = {
   "gdpr-enforcement": { title: "GDPR Enforcement Timeline", icon: "🇪🇺", description: "Major GDPR enforcement milestones from adoption in 2016 to present.", data: gdprData },
-  "us-state-privacy-laws": { title: "U.S. State Privacy Laws Timeline", icon: "🗺️", description: "When each US state enacted its comprehensive privacy law.", data: usStateData },
-  "eu-ai-act": { title: "EU AI Act Timeline", icon: "🤖", description: "From initial proposal (April 2021) to full implementation (August 2026).", data: euAiActData },
+  "us-state-privacy-laws": { title: "U.S. State Privacy Laws Timeline", icon: "", description: "When each US state enacted its comprehensive privacy law.", data: usStateData },
+  "eu-ai-act": { title: "EU AI Act Timeline", icon: "", description: "From initial proposal (April 2021) to full implementation (August 2026).", data: euAiActData },
 };
 
 const TYPE_COLORS: Record<string, string> = {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Star } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -230,8 +230,8 @@ export default function EnforcementActionDetail() {
               <div>
                 <div className="text-xs text-muted-foreground">Precedent significance</div>
                 <div className="text-amber-500 text-lg">
-                  {"★".repeat(action.precedent_significance)}
-                  <span className="text-muted-foreground/40">{"★".repeat(5 - action.precedent_significance)}</span>
+                  {"".repeat(action.precedent_significance)}
+                  <span className="text-muted-foreground/40">{"".repeat(5 - action.precedent_significance)}</span>
                 </div>
               </div>
             )}

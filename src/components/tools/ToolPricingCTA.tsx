@@ -16,6 +16,7 @@ import {
   isAnnualCreditEligible,
   countAvailableAnnualCredits,
 } from "@/lib/annualToolCredit";
+import { Gift } from 'lucide-react';
 
 interface Props {
   toolKey: ToolKey;
@@ -78,7 +79,7 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
       <div className={`text-sm ${className}`}>
         <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
         <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
-          🎁 You have {credits} free Smart Tool {credits === 1 ? "run" : "runs"} available this year — this run will be free.
+          <Gift aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> You have {credits} free Smart Tool {credits === 1 ? "run" : "runs"} available this year — this run will be free.
         </div>
       </div>
     );

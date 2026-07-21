@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Star } from 'lucide-react';
 
 export interface EnforcementPrecedent {
   id: string;
@@ -23,7 +24,7 @@ const fmtFine = (p: EnforcementPrecedent) => {
 
 const stars = (n?: number | null) => {
   const s = Math.max(0, Math.min(5, n ?? 0));
-  return "★".repeat(s) + "☆".repeat(5 - s);
+  return "".repeat(s) + "".repeat(5 - s);
 };
 
 const EnforcementPrecedents = ({

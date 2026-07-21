@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { Scale } from 'lucide-react';
 
 interface PageHeroProps {
-  /** Optional chip / eyebrow label shown above the title (e.g. "⚖️ Assessment"). */
+  /** Optional chip / eyebrow label shown above the title (e.g. " Assessment"). */
   chip?: ReactNode;
   /** Main page title — rendered as <h1> in serif. */
   title: ReactNode;

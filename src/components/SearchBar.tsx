@@ -1,9 +1,10 @@
+import { Bot, Globe, Scale } from 'lucide-react';
 const QUICK_LINKS = [
   { label: "🇪🇺 GDPR",         href: "/jurisdiction/european-union" },
   { label: "🇺🇸 US Privacy Laws", href: "/us-privacy-laws"       },
-  { label: "🤖 AI Act",         href: "/topics/ai-governance"         },
-  { label: "⚖️ Enforcement",    href: "/enforcement-tracker"          },
-  { label: "🌐 Global Laws",    href: "/global-privacy-laws"          },
+  { label: " AI Act",         href: "/topics/ai-governance"         },
+  { label: " Enforcement",    href: "/enforcement-tracker"          },
+  { label: " Global Laws",    href: "/global-privacy-laws"          },
   { label: "Enforcement fines", href: "/category/enforcement"         },
   { label: "Data transfers",    href: "/topics/data-transfers"        },
   { label: "Children's privacy",href: "/topics/children-privacy"      },

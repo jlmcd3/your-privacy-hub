@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Lock } from "lucide-react";
+import { Lock, CheckCircle2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -230,7 +230,7 @@ const PillarPage = ({
             <div className="px-5 py-4 md:px-6 md:py-5 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
               <div>
                 <div className="text-[11px] font-bold tracking-widest uppercase text-[hsl(var(--accent))] mb-1.5">
-                  ✓ Assessment tool
+                  <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Assessment tool
                 </div>
                 <h3 className="text-[16px] text-brand-navy leading-snug mb-1">
                   {toolCta.heading}

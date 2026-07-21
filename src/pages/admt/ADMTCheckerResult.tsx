@@ -20,7 +20,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check, CheckCircle2 } from 'lucide-react';
 import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 
 const OFFICIAL_REG_URL =
@@ -363,7 +363,7 @@ export default function ADMTCheckerResult() {
 
         {purchased && (
           <div className="p-3 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm mb-2">
-            ✅ Purchase confirmed.
+            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Purchase confirmed.
           </div>
         )}
 
@@ -484,7 +484,7 @@ export default function ADMTCheckerResult() {
                       <p className="text-[12px] text-muted-foreground italic">No detailed reasoning provided.</p>
                     )}
                     {val && obligationIfTrue && (
-                      <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1">⚠ {obligationIfTrue}</p>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1"><AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {obligationIfTrue}</p>
                     )}
                   </div>
                 </details>

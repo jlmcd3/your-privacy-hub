@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { PLATFORM_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import SectionShell from "./SectionShell";
+import { Calendar, Globe, Scale } from 'lucide-react';
 
 type Product = {
   title: string;
@@ -129,11 +130,11 @@ export default function HomepageToolsSection() {
       ctaHref="/tools"
     >
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-6 px-5 pt-5 text-meta text-slate-500">
-        <span>⚖️ Thousands of enforcement decisions in training corpus</span>
+        <span><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Thousands of enforcement decisions in training corpus</span>
         <span className="hidden sm:inline text-gray-300">·</span>
-        <span>🌍 Regulatory authorities monitored from across the world</span>
+        <span><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Regulatory authorities monitored from across the world</span>
         <span className="hidden sm:inline text-gray-300">·</span>
-        <span>📅 Updated with each regulatory development</span>
+        <span><Calendar aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Updated with each regulatory development</span>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
         <ProductColumn label="Assessments" products={ASSESSMENTS} hasToolAccess={hasToolAccess} />

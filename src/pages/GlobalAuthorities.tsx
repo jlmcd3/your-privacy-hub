@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Globe } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -37,9 +37,9 @@ const REGION_GROUP: Record<string, RegionGroup> = {
 
 const REGION_FLAG: Record<RegionGroup, string> = {
   Europe: "🇪🇺",
-  Americas: "🌎",
-  "Asia-Pacific": "🌏",
-  Other: "🌍",
+  Americas: "",
+  "Asia-Pacific": "",
+  Other: "",
 };
 
 const FILTERS: ("All" | RegionGroup)[] = ["All", "Europe", "Americas", "Asia-Pacific", "Other"];
@@ -117,7 +117,7 @@ const GlobalAuthorities = () => {
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🌐 Authority Directory
+            <Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Authority Directory
           </span>
           <h1 className="text-hero-h1 text-white mb-3">Global Privacy Authorities</h1>
           <p className="text-slate-300 text-lg max-w-3xl">

@@ -9,6 +9,7 @@
 // - High-residual-risk harms with no linked § 7 safeguard block sign-off.
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { CheckCircle2, Flag } from 'lucide-react';
 
 type Harm = {
   category: string;
@@ -88,7 +89,7 @@ const FillIn = ({ value, label }: { value?: string; label: string }) => {
   if (empty) {
     return (
       <p className="italic text-amber-700 dark:text-amber-300">
-        ⚑ {label} — fill in before sign-off.
+        <Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {label} — fill in before sign-off.
       </p>
     );
   }
@@ -114,7 +115,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
       >
         <p className="font-semibold">
           {gating.ready_for_signoff
-            ? "✅ Ready for executive sign-off."
+            ? " Ready for executive sign-off."
             : "⏳ Not yet ready for executive sign-off."}
         </p>
         {!gating.ready_for_signoff && (gating.blockers?.length ?? 0) > 0 && (
@@ -264,7 +265,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
             <div key={group}>
               <h4 className="font-semibold capitalize text-sm mt-2">{label}</h4>
               {arr.length === 0 ? (
-                <p className="italic text-amber-700 dark:text-amber-300 text-sm">⚑ No {label} safeguards listed — fill in before sign-off.</p>
+                <p className="italic text-amber-700 dark:text-amber-300 text-sm"><Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No {label} safeguards listed — fill in before sign-off.</p>
               ) : (
                 <ul className="list-disc pl-5 text-sm">
                   {arr.map((s: Safeguard, i: number) => (
@@ -274,7 +275,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
                       {s.linked_harms?.length ? (
                         <span className="ml-2 text-xs text-muted-foreground">Linked harms: {s.linked_harms.join(", ")}</span>
                       ) : (
-                        <span className="ml-2 text-xs text-amber-700">⚑ No linked harm — add a § 6 link.</span>
+                        <span className="ml-2 text-xs text-amber-700"><Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No linked harm — add a § 6 link.</span>
                       )}
                     </li>
                   ))}
@@ -295,7 +296,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
         </div>
         <div className="rounded border-2 border-dashed border-amber-400 p-3 bg-amber-50/60 dark:bg-amber-950/20">
           <p className="font-semibold text-amber-900 dark:text-amber-200">
-            ⚑ Executive decision required (§ 7152(a)(7))
+            <Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Executive decision required (§ 7152(a)(7))
           </p>
           <p className="text-sm">
             The certifying executive must record one of: <strong>Proceed</strong>, <strong>Proceed with conditions</strong> (list the conditions), or <strong>Do not proceed</strong>. This tool does not select the decision.

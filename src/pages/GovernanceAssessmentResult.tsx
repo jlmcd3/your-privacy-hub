@@ -26,6 +26,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import { CheckCircle2 } from 'lucide-react';
 
 
 const ratingColor = (r: string) => {
@@ -134,7 +135,7 @@ const GovernanceAssessmentResult = () => {
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             {assessment?.retry_count > 0
               ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${assessment.retry_count + 1} of 3). No action needed.`
-              : "✅ Purchase confirmed. Your assessment is being generated."}
+              : " Purchase confirmed. Your assessment is being generated."}
           </div>
         )}
 

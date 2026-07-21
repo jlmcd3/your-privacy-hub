@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { AlertTriangle, Filter, LogIn, Lock, RefreshCw, Search, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Filter, LogIn, Lock, RefreshCw, Search, Sparkles, X, Folder, Star } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
@@ -66,11 +66,11 @@ const VIOLATION_TYPES = [
 
 const SIGNIFICANCE = [
   { value: "any", label: "Any significance" },
-  { value: "5", label: "★★★★★ Landmark" },
-  { value: "4", label: "★★★★ High" },
-  { value: "3", label: "★★★ Moderate" },
-  { value: "2", label: "★★ Low" },
-  { value: "1", label: "★ Routine" },
+  { value: "5", label: " Landmark" },
+  { value: "4", label: " High" },
+  { value: "3", label: " Moderate" },
+  { value: "2", label: " Low" },
+  { value: "1", label: " Routine" },
 ];
 
 function formatEur(n: number | null) {
@@ -86,8 +86,8 @@ function Stars({ n }: { n: number | null }) {
   const filled = Math.max(0, Math.min(5, n));
   return (
     <span className="text-xs tracking-tight" aria-label={`${filled} of 5 stars`}>
-      <span className="text-amber-500">{"★".repeat(filled)}</span>
-      <span className="text-muted-foreground/30">{"☆".repeat(5 - filled)}</span>
+      <span className="text-amber-500">{"".repeat(filled)}</span>
+      <span className="text-muted-foreground/30">{"".repeat(5 - filled)}</span>
     </span>
   );
 }
@@ -289,7 +289,7 @@ export default function Enforcement() {
     if (sector !== "all") list.push({ key: "sector", label: sector });
     if (dataCat !== "all") list.push({ key: "data_category", label: dataCat });
     if (violation !== "all") list.push({ key: "violation", label: violation });
-    if (significance !== "any") list.push({ key: "significance", label: `≥${significance}★` });
+    if (significance !== "any") list.push({ key: "significance", label: `≥${significance}` });
     if (q) list.push({ key: "q", label: `"${q}"` });
     return list;
   }, [jurisdiction, sector, dataCat, violation, significance, q]);
@@ -326,7 +326,7 @@ export default function Enforcement() {
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🗄️ Enforcement Tracker
+            <Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Enforcement Tracker
           </span>
           <h1 className="font-serif text-white mb-3">
             {view === "archive" ? "Enforcement Tracker — Full Archive" : "Enforcement Tracker"}

@@ -1,16 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Download,
-  FileText,
-  Loader2,
-  RefreshCw,
-  Sparkles,
-  CheckCircle2,
-  Clock,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Download, FileText, Loader2, RefreshCw, Sparkles, CheckCircle2, Clock, Trash2, ClipboardList, Globe } from 'lucide-react';
 import { USNoticeShell } from "@/components/us-notices/USNoticeShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -331,7 +321,7 @@ export default function USNoticeDocuments() {
         visitKey={`/us-notices/${sessionId}/documents`}
         dismissKey="eu_notice_prompt_dismissed"
         icon={<Globe2 className="w-5 h-5" />}
-        title="🌍 Add EU & global notices?"
+        title=" Add EU & global notices?"
         body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
         ctaLabel="Generate EU notices →"
         ctaTo="/eu-notices/mode?mode=ropa_powered"
@@ -576,8 +566,8 @@ export default function USNoticeDocuments() {
 
       <RelatedToolsChips
         tools={[
-          { label: "📋 RoPA", to: "/ropa/documents" },
-          { label: "🌍 EU Notices", to: "/eu-notices" },
+          { label: " RoPA", to: "/ropa/documents" },
+          { label: " EU Notices", to: "/eu-notices" },
         ]}
       />
 

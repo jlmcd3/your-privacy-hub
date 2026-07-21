@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Check, X, Lock } from "lucide-react";
+import { Check, X, Lock, Baby, Bot, Cookie, Eye, Hospital, Landmark, Map, Shuffle, Target, Unlock } from 'lucide-react';
 import { sampleBriefs, type SampleTrackSection } from "@/data/sampleBriefs";
 import { CitedText } from "@/components/brief/CitedText";
 
@@ -33,25 +33,25 @@ const ROLES = [
 ];
 
 const TRACKS = [
-  { value: "us_state",       icon: "🗺️", label: "US State Privacy Laws",
+  { value: "us_state",       icon: "", label: "US State Privacy Laws",
     desc: "New state laws, AG enforcement, CPPA actions, and compliance deadlines" },
   { value: "gdpr",           icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity",
     desc: "DPA fines, EDPB decisions, cross-border enforcement, and legal precedent" },
-  { value: "ai_act",         icon: "🤖", label: "EU AI Act Compliance",
+  { value: "ai_act",         icon: "", label: "EU AI Act Compliance",
     desc: "AI Act phases, GPAI obligations, prohibited practices, and GDPR overlap" },
-  { value: "childrens",      icon: "👶", label: "Children's Privacy & Age Verification",
+  { value: "childrens",      icon: "", label: "Children's Privacy & Age Verification",
     desc: "COPPA amendments, state kids' codes, age verification, and teen protections" },
-  { value: "adtech_cookies", icon: "🍪", label: "AdTech, Consent & Cookie Compliance",
+  { value: "adtech_cookies", icon: "", label: "AdTech, Consent & Cookie Compliance",
     desc: "TCF rulings, cookie enforcement, GPC requirements, and dark pattern decisions" },
-  { value: "cross_border",   icon: "🔀", label: "Cross-Border Data Transfers",
+  { value: "cross_border",   icon: "", label: "Cross-Border Data Transfers",
     desc: "EU-US DPF, DOJ bulk data rule, SCCs, LGPD transfers, and adequacy updates" },
-  { value: "health_hipaa",   icon: "🏥", label: "Health & Medical Data Privacy",
+  { value: "health_hipaa",   icon: "", label: "Health & Medical Data Privacy",
     desc: "HIPAA enforcement, FTC health breach actions, state health laws, and AI in healthcare" },
-  { value: "litigation",     icon: "🏛️", label: "Privacy Litigation & Class Actions",
+  { value: "litigation",     icon: "", label: "Privacy Litigation & Class Actions",
     desc: "BIPA filings, VPPA suits, CIPA wiretap cases, MDL proceedings, and settlements" },
-  { value: "biometric",      icon: "👁️", label: "Biometric Data Privacy",
+  { value: "biometric",      icon: "", label: "Biometric Data Privacy",
     desc: "BIPA class action tracker, state biometric laws, and AI Act biometric provisions" },
-  { value: "breach",         icon: "🔓", label: "Data Breach & Incident Response",
+  { value: "breach",         icon: "", label: "Data Breach & Incident Response",
     desc: "Breach notification law changes, enforcement for late reporting, and SEC rules" },
 ];
 
@@ -529,7 +529,7 @@ export default function BriefBuilder() {
                 {item.actionItem && (
                   <div className="bg-white/10 border border-white/15 rounded-lg px-4 py-3">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1">
-                      🎯 Your action item
+                      <Target aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your action item
                     </p>
                     <p className="text-white/90 text-sm leading-relaxed">
                       <CitedText text={item.actionItem} sourceMap={item.sourceMap} />

@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2, Globe } from 'lucide-react';
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,12 +46,12 @@ export default function EUNoticeLanding() {
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included in your Annual Platform: every EU & global privacy notice framework is included at no additional charge.
+            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included in your Annual Platform: every EU & global privacy notice framework is included at no additional charge.
           </div>
         )}
       </div>
       <PageHero
-        chip={<>🌐 EU & Global Notice Builder · Included with any subscription</>}
+        chip={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> EU & Global Notice Builder · Included with any subscription</>}
         title="EU & Global Privacy Notice Builder"
         description="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks, in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >

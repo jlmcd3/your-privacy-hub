@@ -3,12 +3,13 @@ import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { ClipboardList, Map, Newspaper, Scale } from 'lucide-react';
 
 const destinations = [
-  { icon: "📰", title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
-  { icon: "🗺️", title: "Global Law Map", desc: "Jurisdictions mapped and profiled worldwide", href: "/jurisdictions" },
-  { icon: "⚖️", title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
-  { icon: "📋", title: "Sample Brief", desc: "See a full Privacy Intelligence Report example", href: "/#brief" },
+  { icon: "", title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
+  { icon: "", title: "Global Law Map", desc: "Jurisdictions mapped and profiled worldwide", href: "/jurisdictions" },
+  { icon: "", title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
+  { icon: "", title: "Sample Brief", desc: "See a full Privacy Intelligence Report example", href: "/#brief" },
 ];
 
 const NotFound = () => {

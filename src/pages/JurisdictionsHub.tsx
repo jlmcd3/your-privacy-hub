@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
+import { Clock, Globe } from 'lucide-react';
 
 // Map ingestion codes (used in updates.direct_jurisdictions) to jurisdiction page slugs + display
 const JURISDICTION_META: Record<string, { slug: string; name: string; flag: string }> = {
@@ -160,7 +161,7 @@ export default function JurisdictionsHub() {
           <header className="bg-[#2d7a8a] text-white py-12">
             <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
               <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-                🌐 Jurisdictions
+                <Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Jurisdictions
               </span>
               <h1 className="font-serif text-white mb-3">
                 Global Privacy Law Map
@@ -189,7 +190,7 @@ export default function JurisdictionsHub() {
             <div className="border-t border-brand-cloud bg-white">
               <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <h2 className="text-brand-navy uppercase tracking-wider mb-4">
-                  🕐 Recently Updated Jurisdictions
+                  <Clock aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Recently Updated Jurisdictions
                 </h2>
                 <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
                   {recentLoading

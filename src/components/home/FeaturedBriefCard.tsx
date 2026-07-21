@@ -1,3 +1,4 @@
+import { Calendar, ClipboardList, Globe, Map, Zap } from 'lucide-react';
 const ISO_TO_FLAG: Record<string, string> = {
   "US": "🇺🇸", "EU": "🇪🇺", "GB": "🇬🇧", "FR": "🇫🇷", "DE": "🇩🇪",
   "IT": "🇮🇹", "ES": "🇪🇸", "NL": "🇳🇱", "IE": "🇮🇪", "BE": "🇧🇪",
@@ -5,11 +6,11 @@ const ISO_TO_FLAG: Record<string, string> = {
   "BR": "🇧🇷", "CA": "🇨🇦", "AU": "🇦🇺", "JP": "🇯🇵", "KR": "🇰🇷",
   "CN": "🇨🇳", "IN": "🇮🇳", "SG": "🇸🇬", "ZA": "🇿🇦", "IL": "🇮🇱",
   "AE": "🇦🇪", "SA": "🇸🇦", "MX": "🇲🇽", "AR": "🇦🇷",
-  "GLOBAL": "🌐", "US-FEDERAL": "🇺🇸", "US-STATES": "🗺️",
+  "GLOBAL": "", "US-FEDERAL": "🇺🇸", "US-STATES": "",
 };
 
 export function getFlag(code: string): string {
-  return ISO_TO_FLAG[code?.toUpperCase()] ?? "🌐";
+  return ISO_TO_FLAG[code?.toUpperCase()] ?? "";
 }
 
 interface FeaturedBriefProps {
@@ -53,7 +54,7 @@ export default function FeaturedBriefCard({
         {/* Meta row */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <span className="text-eyebrow text-amber-300 bg-amber-400/20 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
-            📋 Top Story
+            <ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Top Story
           </span>
           <span className="text-blue-300 text-meta">·</span>
           <span className="text-meta text-blue-300">{date}</span>
@@ -69,7 +70,7 @@ export default function FeaturedBriefCard({
                   ? "bg-red-900/40 text-red-300 border-red-700/40"
                   : "bg-amber-900/30 text-amber-300 border-amber-700/30"
               }`}>
-                {aiSummary.urgency === "Immediate" ? "⚡ Act now" : "📅 This quarter"}
+                {aiSummary.urgency === "Immediate" ? " Act now" : " This quarter"}
               </span>
             </>
           )}

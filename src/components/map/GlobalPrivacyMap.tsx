@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MapLegend, { STATUS_CONFIG } from "./MapLegend";
+import { Map, Scale } from 'lucide-react';
 
 // Fallback hardcoded jurisdictions for map rendering (ISO numeric → data)
 // These provide rights/fines/flag data not in the DB
@@ -359,7 +360,7 @@ export default function GlobalPrivacyMap() {
                   : "bg-white text-slate border-brand-cloud hover:border-brand-navy/20"
               }`}
             >
-              {v === "map" ? "🗺 Map" : "⊞ Grid"}
+              {v === "map" ? " Map" : "⊞ Grid"}
             </button>
           ))}
         </div>
@@ -425,7 +426,7 @@ export default function GlobalPrivacyMap() {
               </div>
               {j.fines?.length > 0 && (
                 <div className="text-[11px] text-orange-500 font-semibold mt-1.5">
-                  ⚖️ {j.fines.length} fine{j.fines.length > 1 ? "s" : ""}
+                  <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {j.fines.length} fine{j.fines.length > 1 ? "s" : ""}
                 </div>
               )}
             </Link>

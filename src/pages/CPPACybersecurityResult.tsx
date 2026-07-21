@@ -32,6 +32,7 @@ import AuditorHandoffButton from "@/components/cppa/AuditorHandoffPackage";
 export { readinessColor, controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
 export { CybersecurityReportBody } from "@/components/cppa/CybersecurityReportBody";
 import { CybersecurityReportBody } from "@/components/cppa/CybersecurityReportBody";
+import { CheckCircle2 } from 'lucide-react';
 
 export default function CPPACybersecurityResult() {
   const { id } = useParams();
@@ -140,7 +141,7 @@ export default function CPPACybersecurityResult() {
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             {row?.retry_count > 0
               ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${row.retry_count + 1} of 3). No action needed.`
-              : "✅ Purchase confirmed. Your readiness report is being generated."}
+              : " Purchase confirmed. Your readiness report is being generated."}
           </div>
         )}
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface ProgressFile {
   startedAt: string;
@@ -139,7 +140,7 @@ export default function AdminBriefGenStatus() {
                   {data.recent.map((r, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className={r.ok ? "text-emerald-600" : "text-destructive"}>
-                        {r.ok ? "✓" : "✗"}
+                        {r.ok ? "" : ""}
                       </span>
                       <span className="text-xs text-muted-foreground w-20 shrink-0">
                         {new Date(r.t).toLocaleTimeString()}

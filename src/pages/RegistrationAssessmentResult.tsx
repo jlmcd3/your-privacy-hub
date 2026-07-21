@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Loader2, Mail } from "lucide-react";
+import { Copy, Loader2, Mail, FileText } from 'lucide-react';
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import WordConversionPromptButton from "@/components/WordConversionPromptButton";
@@ -320,7 +320,7 @@ export default function RegistrationAssessmentResult() {
                         <Fact label="Authority" value={j.authority} />
                         <Fact label="Region" value={j.region} />
                       </div>
-                      {j.notes && <p className="text-xs text-muted-foreground mt-3">📝 {j.notes}</p>}
+                      {j.notes && <p className="text-xs text-muted-foreground mt-3"><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {j.notes}</p>}
                     </CardContent>
                   </Card>
                 ))}

@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Globe } from 'lucide-react';
 
 const REGIONS = [
   { key: "us-canada", label: "US & Canada", flag: "🇺🇸" },
   { key: "eu-uk", label: "EU & UK", flag: "🇪🇺" },
-  { key: "apac", label: "Asia-Pacific", flag: "🌏" },
-  { key: "latam", label: "Latin America", flag: "🌎" },
-  { key: "mea", label: "Middle East & Africa", flag: "🌍" },
+  { key: "apac", label: "Asia-Pacific", flag: "" },
+  { key: "latam", label: "Latin America", flag: "" },
+  { key: "mea", label: "Middle East & Africa", flag: "" },
 ];
 
 const TOPICS = [

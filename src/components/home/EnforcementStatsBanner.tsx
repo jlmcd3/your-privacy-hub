@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { BarChart3 } from 'lucide-react';
 
 interface StatItem {
   label: string;
@@ -20,7 +21,7 @@ export default function EnforcementStatsBanner() {
     <div className="bg-card border border-brand-cloud rounded-2xl p-5 mb-8">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-brand-navy uppercase tracking-wider">
-          📊 Live Enforcement Snapshot
+          <BarChart3 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Live Enforcement Snapshot
         </h3>
         <Link
           to="/enforcement-tracker"

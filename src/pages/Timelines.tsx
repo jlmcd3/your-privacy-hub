@@ -2,11 +2,12 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Bot, Map, ScrollText } from 'lucide-react';
 
 const TIMELINES = [
   { slug: "gdpr-enforcement", title: "GDPR Enforcement Timeline", icon: "🇪🇺", description: "Major GDPR enforcement milestones from adoption in 2016 to the record fines of 2023–2026." },
-  { slug: "us-state-privacy-laws", title: "U.S. State Privacy Laws Timeline", icon: "🗺️", description: "When each US state enacted its comprehensive privacy law, from California's CCPA to 2026 newcomers." },
-  { slug: "eu-ai-act", title: "EU AI Act Timeline", icon: "🤖", description: "The EU AI Act from initial proposal in April 2021 through full implementation in August 2026." },
+  { slug: "us-state-privacy-laws", title: "U.S. State Privacy Laws Timeline", icon: "", description: "When each US state enacted its comprehensive privacy law, from California's CCPA to 2026 newcomers." },
+  { slug: "eu-ai-act", title: "EU AI Act Timeline", icon: "", description: "The EU AI Act from initial proposal in April 2021 through full implementation in August 2026." },
 ];
 
 const Timelines = () => {
@@ -20,7 +21,7 @@ const Timelines = () => {
 
       <div className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-          <p className="text-sm font-medium text-muted-foreground mb-2">📜 Reference</p>
+          <p className="text-sm font-medium text-muted-foreground mb-2"><ScrollText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Reference</p>
           <h1 className="text-foreground mb-3">Regulatory Timelines</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
             Visual timelines of major regulatory milestones. Understand how privacy regulation evolved and what's coming next.

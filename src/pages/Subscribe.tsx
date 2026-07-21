@@ -7,7 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Check, X as XIcon, ArrowRight, ShieldCheck } from "lucide-react";
+import { Check, X as XIcon, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import {
   PRICING,
@@ -167,7 +167,7 @@ const Subscribe = () => {
 
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
-                    <span className="text-brand-mist font-bold">✓</span> {item}
+                    <span className="text-brand-mist font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span> {item}
                   </li>
                 ))}
               </ul>
@@ -179,15 +179,15 @@ const Subscribe = () => {
                 </p>
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
-                    <span className="text-brand-mist font-bold">✓</span>
+                    <span className="text-brand-mist font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span><strong className="text-white">1 free Smart Tool run/year</strong> (Governance, LIA, or DPIA; up to {INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-brand-mist font-bold">✓</span>
+                    <span className="text-brand-mist font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span>Subscriber pricing on Smart Tools: <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-brand-mist font-bold">✓</span>
+                    <span className="text-brand-mist font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span>Two months free vs. paying monthly</span>
                   </li>
                 </ul>
@@ -251,7 +251,7 @@ const Subscribe = () => {
                   `3 free Smart Tool runs per year (annual plan only; up to ${PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)`,
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
-                    <span className="text-amber-400 font-bold">✓</span> {item}
+                    <span className="text-amber-400 font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span> {item}
                   </li>
                 ))}
               </ul>
@@ -263,15 +263,15 @@ const Subscribe = () => {
                 </p>
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
-                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-amber-400 font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span><strong className="text-white">3 free Smart Tool runs/year</strong> (Governance, LIA, or DPIA; up to {PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-amber-400 font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span>Lowest per-tool pricing: <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-amber-400 font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <span>Two months free vs. paying monthly + client workspace unlocked</span>
                   </li>
                 </ul>
@@ -359,23 +359,23 @@ const Subscribe = () => {
               <tbody className="divide-y divide-brand-cloud/60">
                 {([
                   { type: 'section', feature: "The monitoring layer" },
-                  { type: 'row', feature: "Regulatory developments, monitored daily", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Jurisdiction profiles (worldwide)", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Regulator directory", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Research guides (GDPR, biometric, health, etc.)", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Enforcement tracker: all actions", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Personalized weekly digest", free: "✓", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "Regulatory developments, monitored daily", free: "", intel: "", platform: "" },
+                  { type: 'row', feature: "Jurisdiction profiles (worldwide)", free: "", intel: "", platform: "" },
+                  { type: 'row', feature: "Regulator directory", free: "", intel: "", platform: "" },
+                  { type: 'row', feature: "Research guides (GDPR, biometric, health, etc.)", free: "", intel: "", platform: "" },
+                  { type: 'row', feature: "Enforcement tracker: all actions", free: "", intel: "", platform: "" },
+                  { type: 'row', feature: "Personalized weekly digest", free: "", intel: "", platform: "" },
 
                   { type: 'section', feature: "The intelligence layer" },
-                  { type: 'row', feature: "Cross-jurisdiction signals and pattern analysis", free: "✓", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Full Privacy Intelligence Report, customized for your industry & jurisdictions", free: "—", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Enforcement trends & pattern signals", free: "—", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Per-article intelligence: regulatory theory, action items, sectors", free: "—", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "AI investigation prompt (pre-loaded with regulatory context, ready to paste into any AI assistant)", free: "—", intel: "✓", platform: "✓" },
-                  { type: 'row', feature: "Priority Monday delivery", free: "—", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "Cross-jurisdiction signals and pattern analysis", free: "", intel: "", platform: "" },
+                  { type: 'row', feature: "Full Privacy Intelligence Report, customized for your industry & jurisdictions", free: "—", intel: "", platform: "" },
+                  { type: 'row', feature: "Enforcement trends & pattern signals", free: "—", intel: "", platform: "" },
+                  { type: 'row', feature: "Per-article intelligence: regulatory theory, action items, sectors", free: "—", intel: "", platform: "" },
+                  { type: 'row', feature: "AI investigation prompt (pre-loaded with regulatory context, ready to paste into any AI assistant)", free: "—", intel: "", platform: "" },
+                  { type: 'row', feature: "Priority Monday delivery", free: "—", intel: "", platform: "" },
 
                   { type: 'section', feature: "The action layer: compliance tools with cited enforcement evidence" },
-                  { type: 'row', feature: "Sample preview of all tools", free: "✓", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "Sample preview of all tools", free: "", intel: "", platform: "" },
                   { type: 'row', feature: "Governance Assessment (Smart)", free: "—", intel: T.governance.display, platform: T.governance.display },
                   { type: 'row', feature: "Legitimate Interest Assessment (Smart)", free: "—", intel: T.lia.display, platform: T.lia.display },
                   { type: 'row', feature: "DPIA / Impact Assessment (Smart)", free: "—", intel: T.dpia.display, platform: T.dpia.display },
@@ -395,8 +395,8 @@ const Subscribe = () => {
                   { type: 'row', feature: "CPPA Scope Checker", free: "Free", intel: "Free", platform: "Free" },
 
                   { type: 'section', feature: "Platform features" },
-                  { type: 'row', feature: "Client/matter workspace", free: "—", intel: "—", platform: "✓" },
-                  { type: 'row', feature: "Saved reports in My Reports", free: "—", intel: "✓", platform: "✓" },
+                  { type: 'row', feature: "Client/matter workspace", free: "—", intel: "—", platform: "" },
+                  { type: 'row', feature: "Saved reports in My Reports", free: "—", intel: "", platform: "" },
                 ] as Array<
                   | { type: 'section'; feature: string }
                   | { type: 'row'; feature: string; free: string; intel: string; platform: string }
@@ -432,7 +432,7 @@ const Subscribe = () => {
       {fromBuilder && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
-            <span className="text-green-700 text-lg flex-shrink-0 mt-0.5">✓</span>
+            <span className="text-green-700 text-lg flex-shrink-0 mt-0.5"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
             <div>
               <p className="font-bold text-brand-navy text-sm mb-0.5">
                 Your Intelligence Report is configured and ready.
@@ -727,9 +727,9 @@ const Subscribe = () => {
 
         {/* Trust strip */}
         <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground py-3 border-t border-border mt-8">
-          <span>✓ Cancel anytime</span>
-          <span>✓ Secure payment via Stripe</span>
-          <span>✓ No ads for subscribers</span>
+          <span><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Cancel anytime</span>
+          <span><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Secure payment via Stripe</span>
+          <span><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No ads for subscribers</span>
         </div>
       </div>
       <Footer />

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import calendarData from "@/data/regulatory_calendar.json";
 import { supabase } from "@/integrations/supabase/client";
+import { Calendar } from 'lucide-react';
 
 interface Deadline {
   date: string;
@@ -57,7 +58,7 @@ export default function UpcomingDeadlines() {
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
       <p className="text-eyebrow text-primary mb-3">
-        📅 Upcoming Deadlines
+        <Calendar aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Upcoming Deadlines
       </p>
       <div className="space-y-3">
         {deadlines.map((d, i) => {

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import usStateComparison from "@/data/us_state_comparison.json";
+import { BarChart3, ClipboardList, Globe } from 'lucide-react';
 
 interface OnboardingModalProps {
   userId: string;
@@ -44,15 +45,15 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
 
   const FEATURES = useMemo(
     () => [
-      { icon: "📋", label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
+      { icon: "", label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
       {
-        icon: "📊",
+        icon: "",
         label: "Comparison Tools",
         desc: usStatesCount > 0
           ? `${usStatesCount} US states and global jurisdictions, side by side`
           : "US states and global jurisdictions, side by side",
       },
-      { icon: "🌍", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
+      { icon: "", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
     ],
     [usStatesCount],
   );

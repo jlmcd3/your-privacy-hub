@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Lock, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Lock, Pencil, Trash2, XCircle } from 'lucide-react';
 import { useClientStore, type Client } from '@/stores/clientStore';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { SECTORS } from '@/constants/sectors';
@@ -369,7 +369,7 @@ export function AccountClientsSection() {
               className="text-slate hover:text-brand-navy bg-transparent border-none text-sm"
               aria-label="Dismiss"
             >
-              ✕
+              <XCircle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} />
             </button>
           </div>
         )}

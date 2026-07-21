@@ -2,6 +2,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Mail } from 'lucide-react';
 
 export default function CheckEmail() {
   const [searchParams] = useSearchParams();
@@ -13,7 +14,7 @@ export default function CheckEmail() {
       <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-brand-cloud rounded-2xl shadow-eup-sm p-8 text-center">
-          <div className="text-5xl mb-5">📧</div>
+          <div className="text-5xl mb-5"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
           <h1 className="font-display text-brand-navy mb-2">
             Check your inbox
           </h1>

@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { CheckCircle2 } from 'lucide-react';
 
 type Status = "idle" | "running" | "complete" | "error";
 
@@ -157,7 +158,7 @@ const AdminIngestLegislation = () => {
                   : "bg-muted text-muted-foreground"
               }`}
             >
-              {status === "complete" ? "✓ Complete" : status === "running" ? "Running…" : status === "error" ? "Error" : "Idle"}
+              {status === "complete" ? " Complete" : status === "running" ? "Running…" : status === "error" ? "Error" : "Idle"}
             </span>
           </div>
         </div>

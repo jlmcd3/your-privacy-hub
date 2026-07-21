@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 /**
  * Blank-screen diagnostic.
@@ -170,7 +171,7 @@ export default function BlankScreenDiagnostic() {
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
         <strong style={{ color: blankSuspect ? "#fca5a5" : "#86efac" }}>
-          {blankSuspect ? "⚠ Blank-screen suspected" : "✓ Page rendered"}
+          {blankSuspect ? " Blank-screen suspected" : " Page rendered"}
         </strong>
         <div>
           <button

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Download, RefreshCw, Plus, Globe2, Trash2 } from "lucide-react";
+import { FileText, Download, RefreshCw, Plus, Globe2, Trash2, ClipboardList, Globe } from 'lucide-react';
 import { format } from "date-fns";
 import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 import { useActiveClient } from "@/hooks/useActiveClient";
@@ -352,7 +352,7 @@ export default function RopaDocuments() {
           visitKey="/ropa/documents"
           dismissKey="us_notice_prompt_dismissed"
           icon={<FileText className="w-5 h-5" />}
-          title="📋 Add US state privacy notices?"
+          title=" Add US state privacy notices?"
           body="Your RoPA data pre-populates most answers. Takes 5–12 minutes."
           ctaLabel="Generate US notices →"
           ctaTo="/us-notices/mode?mode=ropa_powered"
@@ -363,7 +363,7 @@ export default function RopaDocuments() {
           visitKey="/ropa/documents"
           dismissKey="eu_notice_prompt_dismissed"
           icon={<Globe2 className="w-5 h-5" />}
-          title="🌍 Add EU & UK privacy notices?"
+          title=" Add EU & UK privacy notices?"
           body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
           ctaLabel="Generate EU notices →"
           ctaTo="/eu-notices/mode?mode=ropa_powered"
@@ -575,8 +575,8 @@ export default function RopaDocuments() {
 
       <RelatedToolsChips
         tools={[
-          { label: "📋 US Notices", to: "/us-notices" },
-          { label: "🌍 EU Notices", to: "/eu-notices" },
+          { label: " US Notices", to: "/us-notices" },
+          { label: " EU Notices", to: "/eu-notices" },
         ]}
       />
     </RopaShell>

@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
 
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag, Lock, FileText } from 'lucide-react';
 import InFeedAd from "@/components/InFeedAd";
 import ProductCtaChip from "@/components/ProductCtaChip";
 import { getSeverityLabel } from "@/lib/severity";
@@ -255,7 +255,7 @@ const UpdateDetail = () => {
 
         {notFound && !loading && (
           <div className="text-center py-20">
-            <p className="text-4xl mb-4">📄</p>
+            <p className="text-4xl mb-4"><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></p>
             <h1 className="font-display text-foreground mb-2">Article not found</h1>
             <p className="text-muted-foreground text-sm mb-6">
               This article may have been removed or the link is incorrect.

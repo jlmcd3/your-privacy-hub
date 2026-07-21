@@ -11,16 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { formatDistanceToNow } from "date-fns";
 import { US_NOTICE_PRICING } from "@/config/pricing";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  FileText,
-  Loader2,
-  MapPin,
-  Plus,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, FileText, Loader2, MapPin, Plus, RefreshCw } from 'lucide-react';
 
 interface SessionRow {
   id: string;
@@ -210,7 +201,7 @@ export default function USNoticeHome() {
     <USNoticeShell
       title="US Privacy Notice Builder — End User Privacy"
       heading={heading}
-      chip="📍 US State Notice Builder"
+      chip=" US State Notice Builder"
       description="Generate state-specific privacy notices that match your data practices and the laws that apply to you — California (CCPA/CPRA), the Virginia model (16 states), Maryland (MODPA), and Florida (FDBR) — in one guided session, with version control and refresh built in."
     >
       <p className="text-sm text-muted-foreground mb-8">

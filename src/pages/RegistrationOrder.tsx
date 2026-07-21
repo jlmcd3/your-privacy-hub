@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { toast } from "sonner";
-import { Loader2, FileText, Download } from "lucide-react";
+import { Loader2, FileText, Download, CheckCircle2 } from 'lucide-react';
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 
 import CopyButton from "@/components/CopyButton";
@@ -143,7 +143,7 @@ export default function RegistrationOrder() {
               </div>
               {status === "success" && (
                 <div className="mt-3 rounded-md bg-muted border border-border px-3 py-2 text-sm text-foreground">
-                  ✅ Payment received. We're preparing your documents.
+                  <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Payment received. We're preparing your documents.
                 </div>
               )}
             </header>

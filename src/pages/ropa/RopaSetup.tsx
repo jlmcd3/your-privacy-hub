@@ -10,6 +10,7 @@ import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { SECTORS } from "@/constants/sectors";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 import { toast } from "sonner";
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
@@ -684,7 +685,7 @@ export default function RopaSetup() {
             </div>
             {selectedJurisdictions.has("CN_PIPL") && (
               <div className="p-3 border border-border rounded-lg bg-muted/40 text-sm">
-                ⚠ China PIPL imposes data localisation. You may need to keep
+                <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> China PIPL imposes data localisation. You may need to keep
                 personal data of Chinese residents within China.
               </div>
             )}
@@ -886,7 +887,7 @@ function RoleCard({
     >
       <div className="flex items-center justify-between">
         <span className="font-semibold">{label}</span>
-        <span className="text-xs">{checked ? "✓ On" : "Off"}</span>
+        <span className="text-xs">{checked ? " On" : "Off"}</span>
       </div>
       <p className="text-sm text-muted-foreground mt-1">{description}</p>
     </button>

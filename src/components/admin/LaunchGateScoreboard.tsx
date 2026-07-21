@@ -114,7 +114,7 @@ function GateRow({ row }: { row: ToolGateRow }) {
                     }
                   >
                     {f.kind}:{f.check_id}
-                    {f.gpt_only ? " (gpt-only)" : ""}
+                    {f.gpt_only ? " (cross-review: GPT-originated)" : ""}
                   </span>
                 </span>
               ))}

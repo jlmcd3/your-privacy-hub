@@ -6,6 +6,7 @@ import NavReportButton from "@/components/admin/NavReportButton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { PRICING } from "@/config/pricing";
+import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 
 // v9 Prompt 4.4: Live reconciliation — compares `get-tool-price` server-side
 // amounts against `PRICING.tools` client constants in real time. Replaces the
@@ -234,8 +235,8 @@ export default function AdminPricingReconciliation() {
             {loading
               ? "Checking live prices…"
               : allOk
-                ? "✅ All prices match"
-                : `❌ ${findings.length} mismatch(es)`}
+                ? " All prices match"
+                : ` ${findings.length} mismatch(es)`}
           </div>
           <p className="text-sm mt-1 text-slate-700">
             {allOk
@@ -273,7 +274,7 @@ export default function AdminPricingReconciliation() {
                     <td className="px-3 py-2 font-mono">{fmt(r.server_standalone_cents)}</td>
                     <td className="px-3 py-2 font-mono">{fmt(r.server_subscriber_cents)}</td>
                     <td className="px-3 py-2 text-center">
-                      {r.error ? "⚠️" : r.match ? "✅" : "❌"}
+                      {r.error ? "" : r.match ? "" : ""}
                     </td>
                   </tr>
                 ))}

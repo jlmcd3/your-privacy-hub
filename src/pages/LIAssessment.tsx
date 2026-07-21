@@ -46,6 +46,7 @@ export {
 import {
   DATA_CATEGORIES, RELATIONSHIPS, JURISDICTIONS,
 } from "@/pages/LIAssessment.enums";
+import { Scale } from 'lucide-react';
 
 const MultiPills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -203,7 +204,7 @@ const LIAssessment = () => {
       <header className="bg-brand-navy text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
+            <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
           </span>
           <h1 className="text-hero-h1 text-white mb-3">
             Legitimate Interest Assessment

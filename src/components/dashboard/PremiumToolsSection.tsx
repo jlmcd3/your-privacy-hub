@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { CircleDot, ClipboardList, FileText, Folder, Scale, Shield, Siren } from 'lucide-react';
 
 interface AssessmentRow {
   id: string;
@@ -13,7 +14,7 @@ interface AssessmentRow {
 
 const TOOLS = [
   {
-    icon: "⚖️",
+    icon: "",
     title: "Legitimate Interest Assessment Tool",
     description:
       "Search a curated database of enforcement decisions and regulatory guidance to see how regulators have treated processing use cases similar to yours — and what documentation you need for a defensible balancing record.",
@@ -23,7 +24,7 @@ const TOOLS = [
     subscriberPrice: 35,
   },
   {
-    icon: "🛡️",
+    icon: "",
     title: "GDPR Governance Assessment",
     description:
       "Ten-domain review of your organisation's privacy practices mapped to applicable regulatory frameworks. Each finding is rated by severity and paired with a recommended action, suggested owner, and timeline.",
@@ -33,7 +34,7 @@ const TOOLS = [
     subscriberPrice: 55,
   },
   {
-    icon: "📋",
+    icon: "",
     title: "Impact Assessment Builder",
     description:
       "Structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
@@ -43,7 +44,7 @@ const TOOLS = [
     subscriberPrice: 45,
   },
   {
-    icon: "📄",
+    icon: "",
     title: "Your Custom DPA",
     description:
       "Draft your custom GDPR Article 28 Data Protection Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
@@ -53,7 +54,7 @@ const TOOLS = [
     subscriberPrice: 45,
   },
   {
-    icon: "🚨",
+    icon: "",
     title: "Your Incident Response Playbook",
     description:
       "Your jurisdiction-specific data breach response playbook with hour-by-hour actions, notification timelines, DPA portal links, and notification templates.",
@@ -63,7 +64,7 @@ const TOOLS = [
     subscriberPrice: 0,
   },
   {
-    icon: "🫆",
+    icon: "",
     title: "Biometric Privacy Compliance Assessment",
     description:
       "Check biometric processing (face, fingerprint, voice, iris) against BIPA, GDPR Art. 9, and global biometric laws. Included with Annual Platform.",
@@ -73,7 +74,7 @@ const TOOLS = [
     subscriberPrice: 0,
   },
   {
-    icon: "📂",
+    icon: "",
     title: "Your Registration Filings",
     description:
       "Free assessment maps where your organisation must register (DPO, RoPA, AI Act, Article 27 rep). Then generate a counsel-ready filing pack you submit yourself. You file; we draft and track.",
@@ -230,7 +231,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               to="/registration-manager/my-filings"
               className="text-[12px] font-semibold text-primary hover:underline no-underline"
             >
-              📂 Your Registration Filings →
+              <Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your Registration Filings →
             </Link>
           )}
         </div>

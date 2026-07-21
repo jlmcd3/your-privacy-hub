@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown, ChevronsDownUp, Star, FlaskConical } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown, ChevronsDownUp, Star, FlaskConical, Zap } from 'lucide-react';
 import { useEnrichmentToggle } from "@/hooks/useEnrichmentToggle";
 
 import { stripHtml, normalizeTitle } from "@/lib/utils";
@@ -621,7 +621,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
         <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
       )}
       {item.ai_summary?.urgency === 'Immediate' && (
-        <span className="text-[11px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
+        <span className="text-[11px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full"><Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Immediate</span>
       )}
     </div>
     <a

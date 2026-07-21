@@ -115,6 +115,7 @@ import {
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "./ADMTChecker.enums";
+import { AlertTriangle } from 'lucide-react';
 
 function formatRelativeTime(d: Date) {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
@@ -1255,7 +1256,7 @@ export default function ADMTChecker() {
                         </div>
                         {optOutMethods.length > 0 && optOutMethods.length < 2 && (
                           <p className="text-xs text-destructive mt-2">
-                            ⚠ § 7221(c) requires at least two designated methods. Please add another method.
+                            <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> § 7221(c) requires at least two designated methods. Please add another method.
                           </p>
                         )}
                       </div>

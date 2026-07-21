@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { formatDistanceToNow } from "date-fns";
 import { EU_NOTICE_PRICING } from "@/config/pricing";
-import { ArrowRight, Clock, FileText, Plus, RefreshCw, Globe2 } from "lucide-react";
+import { ArrowRight, Clock, FileText, Plus, RefreshCw, Globe2, Globe } from 'lucide-react';
 
 interface SessionRow {
   id: string;
@@ -139,7 +139,7 @@ export default function EUNoticeHome() {
     <EUNoticeShell
       title="EU & Global Notice Builder — End User Privacy"
       heading={heading}
-      chip="🌐 Global Notice Builder"
+      chip=" Global Notice Builder"
       description="Generate aligned privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI, India DPDPA, South Africa POPIA and five other global frameworks — in a single guided session, calibrated to each regulator's disclosure expectations."
     >
       <p className="text-sm text-muted-foreground mb-8">

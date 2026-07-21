@@ -33,6 +33,7 @@ import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+import { FileText, Globe } from 'lucide-react';
 
 
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
@@ -196,7 +197,7 @@ export default function DPAGenerator() {
         <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>      <header className="bg-brand-navy text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📄 Custom DPA Generator · ${pricing.price}
+            <FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Custom DPA Generator · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">Custom Data Processing Agreement</h1>
           <RequirementBadge variant="hero" tier="required" text="GDPR Article 28 requires a written data-processing agreement whenever you let a vendor or processor handle personal data on your behalf." className="mt-2 max-w-3xl" />
@@ -308,7 +309,7 @@ export default function DPAGenerator() {
                   <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
-                  <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label=" Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
               <label className="block"><span className="font-semibold text-brand-navy">Processor name<Req /> <DefPopover termKey="gdpr_processor" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(8) GDPR)</span></span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
@@ -317,7 +318,7 @@ export default function DPAGenerator() {
                   <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
-                  <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label=" Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
               <label className="block"><span className="font-semibold text-brand-navy">Services description<Req /> <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR — subject matter and nature of processing)</span></span>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>

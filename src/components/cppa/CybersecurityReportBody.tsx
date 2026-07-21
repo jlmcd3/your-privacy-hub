@@ -15,6 +15,7 @@ import BreachPrecedentMap from "@/components/cppa/BreachPrecedentMap";
 import { useCitationVerification } from "@/hooks/useCitationVerification";
 import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
 import { readinessColor, controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
+import { AlertTriangle } from 'lucide-react';
 
 export function CybersecurityReportBody({ row, hideHeader = false }: { row: any; hideHeader?: boolean }) {
   const report = row?.report_data || {};
@@ -373,7 +374,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
       )}
 
       <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-        ⚠️ This compliance framework report does not constitute legal or security advice. Findings should be validated against your organization's authoritative records and security posture before operational reliance.
+        <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> This compliance framework report does not constitute legal or security advice. Findings should be validated against your organization's authoritative records and security posture before operational reliance.
       </section>
     </div>
   );

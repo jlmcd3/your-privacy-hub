@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BarChart3, Bot, Globe, Scale } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -16,10 +16,10 @@ import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisB
 import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
 const RELATED_LINKS = [
-  { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
-  { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-  { icon: "⚖️", label: "Enforcement Tracker", href: "/enforcement-tracker" },
-  { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
+  { icon: "", label: "U.S. State Law Comparison", href: "/compare/us-states" },
+  { icon: "", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+  { icon: "", label: "Enforcement Tracker", href: "/enforcement-tracker" },
+  { icon: "", label: "Global Privacy Laws", href: "/global-privacy-laws" },
 ];
 
 const FEDERAL_AUTHORITIES = [

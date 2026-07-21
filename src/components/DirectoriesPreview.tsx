@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Globe, Landmark } from 'lucide-react';
 
 const usPreview = [
   { name: "California — CPPA", sub: "California Consumer Privacy Act / CPRA", status: "Enacted" },
@@ -47,7 +48,7 @@ const DirectoriesPreview = () => {
             <div>
               {usPreview.map((entry, i) => (
                 <div key={i} className="flex items-center gap-3.5 px-4 md:px-5 py-3 border-b border-brand-cloud last:border-b-0 hover:bg-brand-cloud transition-colors cursor-pointer">
-                  <div className="w-8 h-8 rounded-sm bg-gradient-to-br from-brand-cloud to-silver flex items-center justify-center text-lg flex-shrink-0">🏛️</div>
+                  <div className="w-8 h-8 rounded-sm bg-gradient-to-br from-brand-cloud to-silver flex items-center justify-center text-lg flex-shrink-0"><Landmark aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-brand-navy">{entry.name}</div>
                     <div className="text-[11px] text-slate mt-0.5 truncate">{entry.sub}</div>
@@ -69,7 +70,7 @@ const DirectoriesPreview = () => {
           <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm hover:shadow-eup-md motion-safe:hover:-translate-y-0.5 transition-all motion-reduce:transition-shadow">
             <div className="px-5 md:px-6 py-5 md:py-6 bg-gradient-to-br from-brand-ocean to-brand-slate-teal flex justify-between items-start">
               <div>
-                <h3 className="text-white mb-1">🌐 Global Privacy Authorities</h3>
+                <h3 className="text-white mb-1"><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Global Privacy Authorities</h3>
                 <p className="text-[12px] text-brand-mist">68 authorities across 6 regions — legislation, DPA websites, complaint portals</p>
               </div>
               <div className="text-right flex-shrink-0 ml-3">

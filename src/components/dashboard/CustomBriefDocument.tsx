@@ -3,6 +3,7 @@ import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { formatFilterLabel } from "@/lib/filterLabels";
+import { ArrowUpToLine, BarChart3, Calendar, Mail, Star, Target, Zap } from 'lucide-react';
 
 interface TopEnforcementSignal {
   id: string;
@@ -126,8 +127,8 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
                 sections.your_critical_alert.startsWith("Monitor week") ? "text-blue-600" : "text-red-700"
               }`}>
                 {sections.your_critical_alert.startsWith("Monitor week")
-                  ? "📊 This week: monitoring mode"
-                  : "⚡ Critical alert this week"}
+                  ? " This week: monitoring mode"
+                  : " Critical alert this week"}
               </p>
               <p className={`text-[14px] font-semibold leading-snug ${
                 sections.your_critical_alert.startsWith("Monitor week") ? "text-blue-800" : "text-red-800"
@@ -191,7 +192,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
         {sections.what_to_ignore && (
           <section className="py-5">
             <div className="bg-slate-50 rounded-lg px-4 py-3 border-l-2 border-slate-300">
-              <h3 className="text-[11px] uppercase tracking-wider text-slate-400 mb-2">📭 What to deprioritize this week</h3>
+              <h3 className="text-[11px] uppercase tracking-wider text-slate-400 mb-2"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> What to deprioritize this week</h3>
               <div className="text-sm text-slate-500 leading-relaxed">
                 <CitedParagraphs content={sections.what_to_ignore} sourceMap={sourceMap} />
               </div>
@@ -212,7 +213,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
         {sections.your_action_items?.length > 0 && (
           <section className="py-7">
             <div className="bg-brand-navy rounded-xl p-6">
-              <h3 className="text-[11px] uppercase tracking-[0.12em] text-amber-400 mb-5">🎯 Action Items</h3>
+              <h3 className="text-[11px] uppercase tracking-[0.12em] text-amber-400 mb-5"><Target aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Action Items</h3>
               <div className="space-y-3">
                 {sections.your_action_items.map((item: any, i: number) => (
                   <div key={i} className="flex gap-3">
@@ -244,7 +245,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
         {sections.look_ahead && (
           <section className="py-5">
             <div className="bg-amber-50 rounded-lg px-4 py-3 border-l-2 border-amber-400">
-              <h3 className="text-[11px] uppercase tracking-wider text-amber-700 mb-2">📅 Coming Up</h3>
+              <h3 className="text-[11px] uppercase tracking-wider text-amber-700 mb-2"><Calendar aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Coming Up</h3>
               <div className="text-sm text-amber-800 leading-relaxed">
                 <CitedParagraphs content={sections.look_ahead} sourceMap={sourceMap} />
               </div>
@@ -255,7 +256,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
         {topEnforcementSignals && topEnforcementSignals.length > 0 && (
           <section className="py-7">
             <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-1">
-              🔝 Top 10 Enforcement Signals
+              <ArrowUpToLine aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Top 10 Enforcement Signals
             </h3>
             <p className="text-[11px] text-slate-500 mb-4">
               Ranked by precedent significance and recency across the last 90 days.
@@ -286,7 +287,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
                       <span>{s.jurisdiction}</span>
                       {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
                       {s.precedent_significance != null && (
-                        <><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
+                        <><span>·</span><span title="Precedent significance">{"".repeat(s.precedent_significance)}{"".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
                       )}
                     </div>
                     {s.summary && (

@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, BarChart3, Bot, Eye, Globe, Landmark, Scale, Star } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,7 @@ const buildJurisdictionData = () => {
 
   const regionFlags: Record<string, string> = {
     "European Union": "🇪🇺", "United Kingdom": "🇬🇧", "Canada": "🇨🇦",
-    "Asia-Pacific": "🌏", "Latin America": "🌎", "Middle East & Africa": "🌍", "Other Notable": "🌐",
+    "Asia-Pacific": "", "Latin America": "", "Middle East & Africa": "", "Other Notable": "",
   };
 
   (globalAuthorities as any[]).forEach((region: any) => {
@@ -36,7 +36,7 @@ const buildJurisdictionData = () => {
         jurisdictions[slug] = {
           name: entry.country,
           region: region.region,
-          flag: regionFlags[region.region] || "🌐",
+          flag: regionFlags[region.region] || "",
           overview: `${entry.country} privacy regulation is primarily governed by ${entry.primary_legislation || "national data protection law"}${entry.legislation_abbreviation ? ` (${entry.legislation_abbreviation})` : ""}. The primary regulatory authority is the ${entry.authority_name}${entry.authority_abbreviation ? ` (${entry.authority_abbreviation})` : ""}.`,
           authorities: [],
         };
@@ -177,13 +177,13 @@ const JurisdictionPage = () => {
       .then(({ data }: any) => {
         if (data) {
           const regionFlags: Record<string, string> = {
-            "EU & UK": "🇪🇺", "Americas": "🌎", "Asia Pacific": "🌏",
-            "Middle East & Africa": "🌍", "Other": "🌐",
+            "EU & UK": "🇪🇺", "Americas": "", "Asia Pacific": "",
+            "Middle East & Africa": "", "Other": "",
           };
           setDbFallback({
             name: data.name,
             region: data.region || "Global",
-            flag: regionFlags[data.region] || "🌐",
+            flag: regionFlags[data.region] || "",
             overview: `${data.name} privacy regulation${
               data.law_name ? ` is governed by ${data.law_name}` : " is tracked in our global directory"
             }${data.dpa_name ? `, with ${data.dpa_name} as the primary regulatory authority` : ""}.`,
@@ -412,7 +412,7 @@ const JurisdictionPage = () => {
       <div className="bg-gradient-to-br from-brand-ocean to-brand-slate-teal py-6 md:py-8 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
           <div className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
-            <span>🌐</span>
+            <span><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
             <span>Jurisdiction Profile</span>
           </div>
           <h1 className="font-display text-white mb-2">{jurisdiction.name}</h1>
@@ -731,18 +731,18 @@ const JurisdictionPage = () => {
 
               if (isUS) {
                 resources.push({ icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" });
-                resources.push({ icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" });
+                resources.push({ icon: "", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" });
               }
               if (isEU) {
-                resources.push({ icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" });
+                resources.push({ icon: "", label: "GDPR & UK", href: "/gdpr-enforcement" });
               }
 
-              resources.push({ icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" });
-              resources.push({ icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" });
-              resources.push({ icon: "📊", label: "Enforcement Tracker", href: "/enforcement-tracker" });
-              resources.push({ icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" });
-              resources.push({ icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" });
-              resources.push({ icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" });
+              resources.push({ icon: "", label: "Global Privacy Laws", href: "/global-privacy-laws" });
+              resources.push({ icon: "", label: "Global Privacy Authorities", href: "/global-privacy-authorities" });
+              resources.push({ icon: "", label: "Enforcement Tracker", href: "/enforcement-tracker" });
+              resources.push({ icon: "", label: "Biometric Data", href: "/biometric-privacy" });
+              resources.push({ icon: "", label: "Data Transfers", href: "/cross-border-transfers" });
+              resources.push({ icon: "", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" });
 
               return resources.slice(0, 6).map((r) => (
                 <Link
@@ -771,7 +771,7 @@ const JurisdictionPage = () => {
             Intelligence subscribers receive the weekly Privacy Intelligence Report covering all global developments.
           </p>
           <p className="text-meta text-brand-mist mb-5 max-w-[500px] mx-auto">
-            ✦ Intelligence subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
+            <Star aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Intelligence subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →

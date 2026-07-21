@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Bot, Globe, Mail, Map, Satellite, Scale } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,7 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
   },
   "us-states": {
     title: "U.S. States",
-    icon: "🗺️",
+    icon: "",
     description: "State-level privacy regulatory updates covering all 50 states. Includes new legislation, enforcement actions by state attorneys general, and regulatory guidance from state privacy agencies.",
   },
   "eu-uk": {
@@ -42,22 +42,22 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
   },
   "global": {
     title: "Global",
-    icon: "🌐",
+    icon: "",
     description: "Privacy regulatory developments from jurisdictions outside the U.S. and EU, including Asia-Pacific, Latin America, Middle East, and Africa. Covers new legislation, enforcement, and cross-border transfer developments.",
   },
   "enforcement": {
     title: "Enforcement Actions",
-    icon: "⚖️",
+    icon: "",
     description: "Privacy enforcement actions worldwide including fines, sanctions, orders, and settlements from all monitored regulators. The definitive source for global privacy enforcement intelligence.",
   },
   "ai-privacy": {
     title: "AI & Privacy",
-    icon: "🤖",
+    icon: "",
     description: "Regulatory developments at the intersection of artificial intelligence and data privacy. Covers the EU AI Act, automated decision-making regulations, AI training data guidance, and biometric data processing.",
   },
   "adtech": {
     title: "AdTech & Advertising Privacy",
-    icon: "📡",
+    icon: "",
     description: "Regulatory intelligence on advertising technology, cookie consent, behavioral targeting, programmatic advertising, the IAB TCF, and FTC commercial surveillance enforcement.",
   },
 };
@@ -167,7 +167,7 @@ const CategoryPage = () => {
 
           {!loading && updates.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-4xl mb-3">📭</p>
+              <p className="text-4xl mb-3"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></p>
               <p className="font-semibold text-foreground">No articles yet</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Articles for this category will appear here as they are fetched daily.
