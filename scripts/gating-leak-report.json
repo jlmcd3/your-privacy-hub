@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-05T10:24:06.378Z",
-  "routesScanned": 147,
-  "filesScanned": 424,
+  "generatedAt": "2026-07-21T09:19:37.361Z",
+  "routesScanned": 170,
+  "filesScanned": 617,
   "summary": {
-    "high": 3,
+    "high": 5,
     "medium": 0,
     "info": 1
   },
@@ -16,6 +16,19 @@
       "file": "src/pages/Tools.tsx",
       "labels": [
         "Professional subscribers"
+      ],
+      "message": "Public route uses \"Pro/Premium-only\" language but has no runtime premium check."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/pricing",
+      "component": "Pricing",
+      "file": "src/pages/Pricing.tsx",
+      "labels": [
+        "Subscriber only",
+        "Subscriber only",
+        "Subscriber only"
       ],
       "message": "Public route uses \"Pro/Premium-only\" language but has no runtime premium check."
     },
@@ -56,6 +69,13 @@
         "Subscribers only"
       ],
       "message": "Public route uses \"Pro/Premium-only\" language but has no runtime premium check."
+    },
+    {
+      "severity": "high",
+      "type": "content_without_gate",
+      "component": "HomepageToolsSection",
+      "file": "src/components/home/HomepageToolsSection.tsx",
+      "message": "Component renders premium-style content (brief/forecast/recommendation body) without a runtime gate."
     }
   ]
 }
