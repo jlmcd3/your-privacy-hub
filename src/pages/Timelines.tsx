@@ -53,7 +53,7 @@ const Timelines = () => {
               to={`/timelines/${t.slug}`}
               className="flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md transition-all no-underline"
             >
-              <span className="text-3xl">{t.icon}</span>
+              <span className="flex-shrink-0">{t.icon}</span>
               <div>
                 <h2 className="text-foreground mb-1">{t.title}</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">{t.description}</p>
