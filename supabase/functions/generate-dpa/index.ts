@@ -840,7 +840,7 @@ CONTROLLER/PROCESSOR ROLE ALERT — ${sectorFlags.complexRoleSectorName.toUpperC
 The services described suggest a ${sectorFlags.complexRoleSectorName} context where the Processor's role as a pure processor under GDPR Article 28 may be uncertain. Include in Section 1 (Parties and Recitals) the following recital:
 "(D) The Parties acknowledge that the characterisation of ${body.processorName} as a data processor under GDPR Article 28 is based on the scope of the Services as described herein. Where ${body.processorName} processes Personal Data for purposes beyond the immediate Services — including but not limited to model training on aggregated data, cross-client audience profiling, or independent commercial use of Personal Data — such processing may constitute independent controllership and would not be governed by this DPA; further clarification is advisable."
 ` : ""}
-Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "Not required"}
+Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "Not required"}${transferBasis ? `\nTransfer clause basis: ${transferBasis}` : ""}
 
 ENFORCEMENT CONTEXT
 The following recent enforcement cases are relevant to this DPA. Ensure the provisions in the Security, Sub-Processor, and Audit sections specifically address the compliance failures documented in these cases:
@@ -1135,7 +1135,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
     const DUAL_EU_US_USER = `${PARTIES_BLOCK}
 Legal framework: ${dualLegalFrameworkLine}
-Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs recommended for EU-to-US transfers"}
+Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs recommended for EU-to-US transfers"}${transferBasis ? `\nTransfer clause basis: ${transferBasis}` : ""}
 
 ENFORCEMENT CONTEXT
 ${enforcementBlock}
@@ -1176,7 +1176,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
     const DUAL_EU_CA_USER = `${PARTIES_BLOCK}
 Legal framework: GDPR Article 28 + Canadian PIPEDA / Quebec Law 25 / applicable provincial PIPA/PHIPA
-Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs / adequacy reliance for EU-Canada"}
+Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs / adequacy reliance for EU-Canada"}${transferBasis ? `\nTransfer clause basis: ${transferBasis}` : ""}
 
 ENFORCEMENT CONTEXT
 ${enforcementBlock}
