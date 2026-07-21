@@ -203,12 +203,13 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     // the disc, which reads as an atmospheric halo rather than a flat ring.
     const fresnelUniforms = {
       uColorInner: { value: new THREE.Color(0x69c9be) }, // brand teal (accents)
-      uColorOuter: { value: new THREE.Color(0x3b82c4) }, // cool blue outer
-      uPower:      { value: 3.2 },
-      uIntensity:  { value: 1.15 },
+      uColorOuter: { value: new THREE.Color(0x2a6bbf) }, // cool blue outer
+      uPower:      { value: 5.5 },
+      uIntensity:  { value: 0.55 },
     };
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.055, 96, 96),
+      new THREE.SphereGeometry(1.045, 96, 96),
+
       new THREE.ShaderMaterial({
         uniforms: fresnelUniforms,
         vertexShader: `
