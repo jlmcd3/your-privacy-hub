@@ -484,21 +484,30 @@ export { LIA_ANALYSIS_TOOL_MODULE, LIA_CLASSIFY_TOOL_MODULE, LIA_DOCS_TOOL_MODUL
 // the caller immediately and avoid the 150s HTTP idle-timeout — generation
 // regularly runs 60–120s and an awaited HTTP response can be cut off by the
 // platform even though the row eventually finishes.
-async function generateAssessment(assessment_id: string, assessment: any, fnRun: FnRunHandle): Promise<void> {
-  // RUNTIME-1 (a): guaranteed terminal signal on EVERY exit path (success,
-  // exception, uncaught throw). `terminalReached` flips true only after a
-  // terminal fn-run write has happened; the finally clause is the safety net
-  // if a throw escapes the catch (defensive — the reaper is the last resort
-  // for outright worker eviction).
+async function generateAssessment(assessment_id: string, assessment: any, fnRun: FnRunHandle, opts?: { resumeStage?: string }): Promise<void> {
+  // RUNTIME-1 (a) + RUNTIME-2 T1: guaranteed terminal signal on EVERY exit path.
+  // For a chunked run, the initial-isolate chunk terminates its OWN fnRun as
+  // success with metadata.handed_off_to_resume=true; the li_assessments row
+  // stays in 'processing' (correctly) and the resumed isolate owns the final
+  // status write. liaEnsureTerminal is a no-op once terminalReached=true, so
+  // the row is not force-failed on hand-off.
   let terminalReached = false;
   try {
-    await runAssessment(assessment_id, assessment);
-    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
+    const result = await runAssessment(assessment_id, assessment, opts);
+    const handedOff = !!(result && (result as any).handedOff);
+    await finishFunctionRun(supabase, fnRun, {
+      status: "success",
+      sourceTable: "li_assessments",
+      sourceRowId: assessment_id,
+      metadata: handedOff
+        ? { handed_off_to_resume: true, chunk: opts?.resumeStage ? `resumed:${opts.resumeStage}` : "initial" }
+        : (opts?.resumeStage ? { chunk: `resumed:${opts.resumeStage}` } : undefined),
+    });
     terminalReached = true;
   } catch (e) {
     console.error("run-li-assessment background error:", e);
-    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "background_catch" });
-    await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed", last_error: (e instanceof Error ? e.message : String(e)).slice(0, 500) }, { fn: "run-li-assessment", phase: "background_catch" });
+    await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id, resume_stage: opts?.resumeStage ?? null } });
     terminalReached = true;
   } finally {
     await liaEnsureTerminal(supabase, assessment_id, fnRun, terminalReached);
