@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] gap-8 lg:gap-12 mb-12">
           <div>
             <Link to="/" aria-label="End User Privacy — Home" className="inline-flex items-center mb-3 no-underline">
-              <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
+              <img src="/brand/logo-dark.svg" alt="End User Privacy" width={280} height={52} className="h-10 w-auto shrink-0 object-contain" />
             </Link>
             <p className="text-sm leading-relaxed mb-5 max-w-[380px]">
               Global privacy regulatory intelligence for professionals. Monitoring privacy authorities across the world, automatically.
