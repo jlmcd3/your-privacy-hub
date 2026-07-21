@@ -20,6 +20,8 @@ interface ResearchPageHeaderProps {
   stats?: StatItem[];
   feedCategory?: string;
   breadcrumbs?: BreadcrumbItem[];
+  /** UX-2c — mono statute citation rendered directly under the H1 in the masthead band. */
+  statuteCite?: string;
 }
 
 function formatContextDate(iso?: string): string | null {
@@ -38,6 +40,7 @@ export function ResearchPageHeader({
   stats,
   feedCategory,
   breadcrumbs,
+  statuteCite,
 }: ResearchPageHeaderProps) {
   const contextUpdatedLabel = formatContextDate(contextUpdated);
   const crumbs: BreadcrumbItem[] =
@@ -76,6 +79,12 @@ export function ResearchPageHeader({
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-start">
           <div>
             <h1 className="text-hero-h1 text-white mb-2">{title}</h1>
+
+            {statuteCite && (
+              <p className="font-mono text-[12.5px] leading-snug text-slate-400 mb-3">
+                {statuteCite}
+              </p>
+            )}
 
             <p className="text-slate-300 text-lg max-w-3xl mb-4 leading-relaxed">
               {description}

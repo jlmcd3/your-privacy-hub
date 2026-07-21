@@ -38,6 +38,20 @@ export interface ResearchSectionConfig {
   complianceTrigger?: string;
 }
 
+export interface AtAGlanceItem {
+  /** Left-column label (typically 1–3 words). Rendered in Roboto Mono. */
+  label: string;
+  /** Right-column value or short clause. */
+  value: string;
+}
+
+export interface MerchandisingRailConfig {
+  /** Rail heading, e.g. "Use this in your workflow". */
+  heading?: string;
+  /** Products to surface — 1–3 items. State pages → that state's notice + registration. EU/intl → International notice + LIA/DPIA. Enforcement → subscription. */
+  items: { label: string; href: string; description?: string }[];
+}
+
 export interface ResearchPageLayoutProps {
   metaTitle: string;
   metaDescription: string;
@@ -49,7 +63,13 @@ export interface ResearchPageLayoutProps {
     stats?: { value: string; label: string }[];
     feedCategory?: string;
     breadcrumbs?: BreadcrumbItem[];
+    /** UX-2c — mono statute citation in the masthead band. */
+    statuteCite?: string;
   };
+  /** UX-2c — at-a-glance card rendered after the masthead, before page synthesis. */
+  atAGlance?: AtAGlanceItem[];
+  /** UX-2c — contextual merchandising rail (state notice/registration, intl notice/LIA/DPIA, or subscription for enforcement pages). */
+  merchandisingRail?: MerchandisingRailConfig;
   /** Page-level synthesis sectionKey, rendered above sections */
   pageSynthesisKey?: string;
   /** Optional top tool CTA shown above the first section */
@@ -65,6 +85,7 @@ export interface ResearchPageLayoutProps {
   /** Optional map of section.id → RailEntry. When provided, a sticky right-column rail tracks the in-view section and shows the controlling statute. */
   sectionRailEntries?: Record<string, RailEntry>;
 }
+
 
 export function ResearchPageLayout({
   metaTitle,
