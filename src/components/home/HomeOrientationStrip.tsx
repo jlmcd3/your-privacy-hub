@@ -11,8 +11,9 @@ export default function HomeOrientationStrip() {
           regulatory developments worldwide, updated daily with analysis; Research
           pages on privacy authorities and laws across every major jurisdiction; and
           self-serve compliance Tools that generate the assessments and documents
-          privacy laws require — CPPA, GDPR, and beyond. Subscribe for the Feed and
-          Intelligence reports, or use any Tool standalone.
+          privacy laws require — CPPA, GDPR, and beyond. Subscribe for the Weekly
+          Intelligence Brief, the AI prompts for further research of Feed articles,
+          and subscriber pricing for Tools.
         </p>
       </div>
     </section>
