@@ -9,11 +9,10 @@ interface StatItem {
 }
 
 const STATS: StatItem[] = [
-  { label: "Actions tracked", value: "Live", sub: "Privacy regulators across the world", color: "text-accent" },
+  { label: "Enforcement decisions", value: "3,700+", sub: "Calibrated corpus for every tool", color: "text-accent" },
   { label: "Regulators", value: "Global", sub: "DPAs + US AGs", color: "text-brand-teal-text" },
   { label: "Jurisdictions", value: "Global", sub: "Worldwide coverage", color: "text-accent" },
   { label: "Weekly brief", value: "Free", sub: "every Monday", color: "text-brand-teal-text" },
-
 ];
 
 export default function EnforcementStatsBanner() {
