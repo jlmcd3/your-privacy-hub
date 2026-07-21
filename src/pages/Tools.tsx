@@ -179,9 +179,10 @@ const SECTION_HEADERS: Record<ToolSection, {
 };
 
 // ── Differentiators ───────────────────────────────────────────────────────
+const DIFF_ICON = "w-7 h-7 text-brand-teal";
 const DIFFERENTIATORS = [
   {
-    icon: "",
+    icon: <Scale aria-hidden="true" strokeWidth={1.75} className={DIFF_ICON} />,
     title: "Calibrated to enforcement precedent, not just statutory text",
     body: "Regulatory guidance and enforcement decisions frequently diverge – what a law requires and what a regulator has actually penalised are not always the same thing.",
     checkColor: "text-brand-navy",
@@ -192,7 +193,7 @@ const DIFFERENTIATORS = [
     ],
   },
   {
-    icon: "",
+    icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className={DIFF_ICON} />,
     title: "Assessments ordered by enforcement risk, not by topic area",
     body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
     checkColor: "text-accent",
@@ -203,7 +204,7 @@ const DIFFERENTIATORS = [
     ],
   },
   {
-    icon: "",
+    icon: <FileText aria-hidden="true" strokeWidth={1.75} className={DIFF_ICON} />,
     title: "Documents drafted to survive scrutiny, not just satisfy it",
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
     checkColor: "text-amber-800",
