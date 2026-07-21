@@ -377,12 +377,42 @@ Deno.serve(async (req) => {
     if (typeof body.auditRights !== "string" || !body.auditRights.trim()) {
       body.auditRights = "Standard";
     }
-    if (typeof body.includeTransferClause !== "boolean") {
+    // PRODUCT-FIX-5 T5(a) — normalize includeTransferClause accepting both
+    // boolean and object shapes. Object shape { include?: boolean, basis?: string }
+    // → body.includeTransferClause = (include === true); capture basis into
+    // transferBasis. Any other type → false, transferBasis "".
+    let transferBasis = "";
+    const _itc: any = (body as any).includeTransferClause;
+    if (typeof _itc === "boolean") {
+      // unchanged
+    } else if (_itc && typeof _itc === "object") {
+      body.includeTransferClause = _itc.include === true;
+      transferBasis = typeof _itc.basis === "string" ? _itc.basis.trim() : "";
+    } else {
       body.includeTransferClause = false;
     }
     if (typeof body.transferMechanism !== "string") {
       body.transferMechanism = body.includeTransferClause ? "SCCs" : "";
     }
+
+    // PRODUCT-FIX-5 T5(c) — deterministic SCC module cross-check between
+    // transferBasis and body.transferMechanism.
+    const _extractModule = (s: string): string => {
+      const m = /module\s*(one|two|three|four|1|2|3|4)|\b(C2C|C2P|P2P|P2C)\b/i.exec(s || "");
+      if (!m) return "";
+      const raw = (m[1] || m[2] || "").toLowerCase();
+      const map: Record<string, string> = {
+        one: "module 1", two: "module 2", three: "module 3", four: "module 4",
+        "1": "module 1", "2": "module 2", "3": "module 3", "4": "module 4",
+        c2c: "module 1", c2p: "module 2", p2p: "module 3", p2c: "module 4",
+      };
+      return map[raw] || "";
+    };
+    const _basisMod = _extractModule(transferBasis);
+    const _mechMod = _extractModule(body.transferMechanism || "");
+    const _moduleContradiction = (_basisMod && _mechMod && _basisMod !== _mechMod)
+      ? { X: _mechMod, Y: _basisMod }
+      : null;
 
     if (body.assessment_id) {
       const procWrite = await lifecycleUpdate(supabase, "dpa_documents", body.assessment_id, { status: "processing", intake_data: body, updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "pre_generation" });
@@ -602,11 +632,18 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
     // mechanism is currently in place and emits a [TO BE COMPLETED: …] placeholder,
     // rather than drafting SCC incorporation.
     const noMechanismYet = body.includeTransferClause && body.transferMechanism === "None in place yet";
+    // PRODUCT-FIX-5 T5(c) — deterministic contradiction directive when the
+    // record's transferMechanism and transferBasis specify different SCC modules.
+    const _contradictionDirective = _moduleContradiction
+      ? ` RECORD CONTRADICTION TO FLAG (deterministic): the record's transfer-mechanism field specifies ${_moduleContradiction.X} while the record's transfer-clause basis specifies ${_moduleContradiction.Y}. The DPA must NOT silently pick one: draft the transfer clause on the module consistent with the instrument's controller-processor relationship per SCC MODULE PINNING, AND flag the contradiction with one advisory sentence in Section 1 (record fact + assumption + canonical close "further clarification is advisable.") plus "[TO BE COMPLETED: confirm the applicable SCC module on the record]" sited in the transfer clause.`
+      : "";
+    // PRODUCT-FIX-5 T5(d) — when includeTransferClause normalizes to false,
+    // replace the empty transferSection with an explicit negative directive.
     const transferSection = body.includeTransferClause
       ? (noMechanismYet
-          ? `10. INTERNATIONAL TRANSFER PROVISIONS — The Parties confirm that no Article 46 GDPR transfer mechanism is currently in place for the transfers contemplated by this DPA. State this fact in operative voice and emit a [TO BE COMPLETED: transfer mechanism to be adopted before transfers occur] placeholder covering (a) the mechanism to be adopted (EU SCCs, UK IDTA / UK Addendum, Binding Corporate Rules, adequacy decision), (b) the effective date, and (c) the execution party. Do NOT draft SCC incorporation language or represent that SCCs apply. The Parties shall not commence any restricted transfer until that placeholder is populated.`
-          : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
-      : "";
+          ? `10. INTERNATIONAL TRANSFER PROVISIONS — The Parties confirm that no Article 46 GDPR transfer mechanism is currently in place for the transfers contemplated by this DPA. State this fact in operative voice and emit a [TO BE COMPLETED: transfer mechanism to be adopted before transfers occur] placeholder covering (a) the mechanism to be adopted (EU SCCs, UK IDTA / UK Addendum, Binding Corporate Rules, adequacy decision), (b) the effective date, and (c) the execution party. Do NOT draft SCC incorporation language or represent that SCCs apply. The Parties shall not commence any restricted transfer until that placeholder is populated.${_contradictionDirective}`
+          : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}${_contradictionDirective}`)
+      : `10. INTERNATIONAL TRANSFER PROVISIONS — The record does not engage international-transfer provisions. Do NOT draft SCC incorporation language, module references, or transfer-mechanism representations beyond the generic intra-EEA acknowledgment the section template requires.`;
 
     // FF-DPA nd1 — the rendered NOTE FOR LEGAL REVIEW is a customer-facing
     // instrument in professional voice. Machine tokens ("could not map",
@@ -803,7 +840,7 @@ CONTROLLER/PROCESSOR ROLE ALERT — ${sectorFlags.complexRoleSectorName.toUpperC
 The services described suggest a ${sectorFlags.complexRoleSectorName} context where the Processor's role as a pure processor under GDPR Article 28 may be uncertain. Include in Section 1 (Parties and Recitals) the following recital:
 "(D) The Parties acknowledge that the characterisation of ${body.processorName} as a data processor under GDPR Article 28 is based on the scope of the Services as described herein. Where ${body.processorName} processes Personal Data for purposes beyond the immediate Services — including but not limited to model training on aggregated data, cross-client audience profiling, or independent commercial use of Personal Data — such processing may constitute independent controllership and would not be governed by this DPA; further clarification is advisable."
 ` : ""}
-Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "Not required"}
+Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "Not required"}${transferBasis ? `\nTransfer clause basis: ${transferBasis}` : ""}
 
 ENFORCEMENT CONTEXT
 The following recent enforcement cases are relevant to this DPA. Ensure the provisions in the Security, Sub-Processor, and Audit sections specifically address the compliance failures documented in these cases:
@@ -1098,7 +1135,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
     const DUAL_EU_US_USER = `${PARTIES_BLOCK}
 Legal framework: ${dualLegalFrameworkLine}
-Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs recommended for EU-to-US transfers"}
+Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs recommended for EU-to-US transfers"}${transferBasis ? `\nTransfer clause basis: ${transferBasis}` : ""}
 
 ENFORCEMENT CONTEXT
 ${enforcementBlock}
@@ -1139,7 +1176,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
     const DUAL_EU_CA_USER = `${PARTIES_BLOCK}
 Legal framework: GDPR Article 28 + Canadian PIPEDA / Quebec Law 25 / applicable provincial PIPA/PHIPA
-Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs / adequacy reliance for EU-Canada"}
+Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "SCCs / adequacy reliance for EU-Canada"}${transferBasis ? `\nTransfer clause basis: ${transferBasis}` : ""}
 
 ENFORCEMENT CONTEXT
 ${enforcementBlock}
@@ -1228,6 +1265,9 @@ Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the rec
 
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
 Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.
+
+PRODUCT-FIX-5 T5(e) — RECORD-CONTRADICTION SURFACING (BINDING): where the intake records two facts that cannot both be true of the same instrument (e.g. transfer-mechanism specifies one SCC module and transfer-clause basis specifies a different SCC module; controller and processor jurisdictions imply different operative frameworks than the documentType selected), the DPA must NOT silently pick one. Draft the operative clauses on the module/framework consistent with SCC MODULE PINNING and this DPA's controller-processor nature, AND flag the contradiction with ONE advisory-drafter sentence in Section 1 recitals stating the record fact + assumption + canonical close "further clarification is advisable.", plus a "[TO BE COMPLETED: …]" placeholder sited in the affected clause. Never invent facts to resolve the contradiction.
+
 
 ${SPECIFICITY_ACTIONABILITY_RULE}
 
