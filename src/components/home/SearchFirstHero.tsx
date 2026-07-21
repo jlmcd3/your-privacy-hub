@@ -15,6 +15,9 @@ const CPPA_RISK_PRICE = PRICING.tools.cppa_risk.display;   // "$229"
 const CPPA_CYBER_PRICE = PRICING.tools.cppa_cyber.display; // "$299"
 const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$99"
 const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
+const DPIA_PRICE = PRICING.tools.dpia.display;             // "$99"
+const IR_PLAYBOOK_PRICE = PRICING.tools.ir_playbook.display; // "$59"
+const DPA_PRICE = PRICING.tools.dpa.display;                 // "$49"
 
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: `3-part LIA · ${LIA_PRICE}` },
