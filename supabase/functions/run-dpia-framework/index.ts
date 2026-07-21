@@ -1995,7 +1995,7 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[dpia] item_unit_map persist skipped:", (e as Error)?.message);
     }
     delete (reportData as any)._staging;
-    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
+    try { const { framework_disclaimer: _fdForChecks, ...restForChecks } = (reportData ?? {}) as Record<string, unknown>; const _prose = extractProseFromReport(_fdForChecks === undefined ? restForChecks : { ...restForChecks, framework_disclaimer: _fdForChecks }); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,
