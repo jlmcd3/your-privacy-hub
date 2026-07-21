@@ -104,8 +104,30 @@ export async function requireEntitlement(
     return { ok: false, status: 400, error: "missing_row", reason: "row_id_required" };
   }
 
-  const table = PRODUCT_TABLE[product];
   const admin = adminClient();
+
+  // (a2) admin caller — trusted for /admin/sample-reports regeneration and
+  // ops replays. Role is checked server-side against user_roles via the
+  // security-definer has_role RPC; client-supplied flags never grant this.
+  try {
+    const { data: isAdmin } = await admin.rpc("has_role", {
+      _user_id: caller.userId,
+      _role: "admin",
+    });
+    if (isAdmin === true) {
+      console.log(JSON.stringify({
+        evt: "entitlement_admin_bypass",
+        product,
+        user_id: caller.userId,
+        row_id: opts.rowId,
+      }));
+      return { ok: true, reason: "admin_bypass" };
+    }
+  } catch (_e) {
+    // fall through to standard evidence checks
+  }
+
+  const table = PRODUCT_TABLE[product];
 
   const { data: row, error: rowErr } = await admin
     .from(table)
