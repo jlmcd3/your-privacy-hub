@@ -568,12 +568,12 @@ const Subscribe = () => {
                   {/* Center hole */}
                   <circle cx="120" cy="120" r="50" fill="white" />
                   {/* Center label */}
-                  <text x="120" y="114" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="DM Sans, sans-serif">Privacy</text>
-                  <text x="120" y="126" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="DM Sans, sans-serif">professional's</text>
-                  <text x="120" y="138" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="DM Sans, sans-serif">toolkit</text>
+                  <text x="120" y="114" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="Inter, sans-serif">Privacy</text>
+                  <text x="120" y="126" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="Inter, sans-serif">professional's</text>
+                  <text x="120" y="138" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="Inter, sans-serif">toolkit</text>
                   {/* EUP label */}
-                  <text x="191" y="90" textAnchor="middle" fontSize="11" fontWeight="500" fill="#7C2D12" fontFamily="DM Sans, sans-serif">EUP</text>
-                  <text x="191" y="103" textAnchor="middle" fontSize="10" fill="#92400E" fontFamily="DM Sans, sans-serif">40%</text>
+                  <text x="191" y="90" textAnchor="middle" fontSize="11" fontWeight="500" fill="#7C2D12" fontFamily="Inter, sans-serif">EUP</text>
+                  <text x="191" y="103" textAnchor="middle" fontSize="10" fill="#92400E" fontFamily="Inter, sans-serif">40%</text>
                 </svg>
               </div>
 

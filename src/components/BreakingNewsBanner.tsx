@@ -48,7 +48,7 @@ const BreakingNewsBanner = () => {
       style={{
         backgroundColor: "hsl(var(--navy))",
         height: 40,
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
       }}
     >
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -72,7 +72,7 @@ const BreakingNewsBanner = () => {
       <button
         onClick={handleDismiss}
         className="flex-shrink-0 text-white opacity-70 hover:opacity-100 text-[12px] font-medium ml-4 transition-opacity cursor-pointer bg-transparent border-none"
-        style={{ fontFamily: "'DM Sans', sans-serif" }}
+        style={{ fontFamily: "'Inter', sans-serif" }}
       >
         Dismiss ×
       </button>
