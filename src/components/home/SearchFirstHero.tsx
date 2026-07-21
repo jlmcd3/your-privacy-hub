@@ -35,12 +35,8 @@ export default function SearchFirstHero() {
     <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-[#1f6674] border-b border-white/10 overflow-hidden">
       <Suspense fallback={null}><StarFieldBackground /></Suspense>
 
-      {/* Region switcher — persistent, top-right of hero */}
-      <div className="relative z-20 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-3 flex justify-end">
-        <RegionSwitcher />
-      </div>
+      <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 md:pb-14 pt-4">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left: regional text content */}
           <div className="flex-1 text-center lg:text-left">
