@@ -11,7 +11,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
-import { Bot, CheckCircle2, ClipboardList, FileText, Folder, Lock, MoveRight, Scale, Search, Shield, Siren, Square, Wrench } from 'lucide-react';
+import { Bot, CheckCircle2, ClipboardList, FileSignature, FileText, Fingerprint, Folder, Lock, MoveRight, Scale, Search, Shield, ShieldAlert, Siren, Square, Wrench } from 'lucide-react';
 
 // Map Tools-page slugs to /samples/{sampleSlug} slugs where a published sample exists.
 const SAMPLE_SLUG_MAP: Record<string, string> = {
