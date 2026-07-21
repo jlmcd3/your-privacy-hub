@@ -216,23 +216,26 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     // terminator and specular ocean highlight provide all the shape cues.
 
 
-    // Latitude/longitude grid lines
-    scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.002, 20, 20),
-      new THREE.MeshBasicMaterial({ color: 0x4a90d9, wireframe: true, transparent: true, opacity: 0.05 }),
-    ));
+    // Latitude/longitude grid removed — at the silhouette the wireframe
+    // segments concentrated into a visible dark ring against the hero.
+    // The photographic Blue Marble texture already carries geographic detail.
 
-    // Lighting — side-lit sun + slightly higher ambient so the night hemisphere
-    // isn't crushed; keeps the day/night terminator visible as a left-right arc.
-    scene.add(new THREE.AmbientLight(0xffffff, 0.24));
-    const sun = new THREE.DirectionalLight(0xfff4dc, 2.05);
-
-    sun.position.set(5, 0.8, 3);
+    // Lighting — strongly side-lit sun for a pronounced day/night terminator
+    // that reads as 3D volume. Ambient kept low so the shaded hemisphere
+    // genuinely falls off; a cool rim fill from the opposite side prevents
+    // the night side from crushing to black and sells the sphere silhouette.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+    const sun = new THREE.DirectionalLight(0xfff1cf, 2.6);
+    sun.position.set(6, 1.2, 1.8);
     scene.add(sun);
-    // Cool rim/fill from opposite side — reads as Earthshine, sells the sphere
-    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.45);
-    fill.position.set(-4, -1, -3);
+    // Cool Earthshine rim/fill from opposite side
+    const fill = new THREE.DirectionalLight(0x5a8fd8, 0.55);
+    fill.position.set(-5, -0.6, -2);
     scene.add(fill);
+    // Subtle top rim catches the upper limb and adds depth
+    const rim = new THREE.DirectionalLight(0x88b8ff, 0.28);
+    rim.position.set(-2, 3, -1);
+    scene.add(rim);
 
 
     // ── Load NASA Blue Marble texture via unpkg (CORS-safe) ───────────
