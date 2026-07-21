@@ -91,6 +91,8 @@ export function ResearchPageLayout({
   metaTitle,
   metaDescription,
   header,
+  atAGlance,
+  merchandisingRail,
   pageSynthesisKey,
   topToolCta,
   sections,
@@ -100,6 +102,7 @@ export function ResearchPageLayout({
   introBlock,
   sectionRailEntries,
 }: ResearchPageLayoutProps) {
+
   const { isPremium } = usePremiumStatus();
   const { pathname } = useLocation();
   const canonicalUrl = `${SITE_ORIGIN}${pathname}`;
