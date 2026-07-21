@@ -2,7 +2,6 @@ import { lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { PRICING } from "@/config/pricing";
 import { useRegion } from "@/hooks/useRegion";
-import RegionSwitcher from "@/components/RegionSwitcher";
 const SpinTheGlobe = lazy(() => import("@/components/globe/SpinTheGlobe"));
 const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackground"));
 
