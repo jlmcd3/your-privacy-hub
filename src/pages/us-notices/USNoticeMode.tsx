@@ -239,7 +239,7 @@ export default function USNoticeMode() {
       </div>
 
       <div className="mt-8 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> 20 active US state laws · <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> CCPA + Virginia model + Maryland · <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Pending states included
+        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> 20 active US state laws · CCPA + Virginia model + Maryland · Pending states included
       </div>
     </USNoticeShell>
   );
