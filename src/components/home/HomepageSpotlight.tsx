@@ -26,10 +26,11 @@ interface SpotlightArticle {
   related_signals: Array<{ label?: string }> | null;
 }
 
+const TIER_ICON_CLS = "inline w-[1em] h-[1em] align-[-0.125em] mr-1";
 const SLOT_LABELS = [
-  { icon: "", text: "What any visitor sees", className: "text-brand-steel" },
-  { icon: "", text: "Free account — see this level on every article", className: "text-brand-teal-text font-medium" },
-  { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-brand-teal-text font-semibold" },
+  { icon: <Eye aria-hidden="true" strokeWidth={1.75} className={TIER_ICON_CLS} />, text: "What any visitor sees", className: "text-brand-steel" },
+  { icon: <Mail aria-hidden="true" strokeWidth={1.75} className={TIER_ICON_CLS} />, text: "Free account — see this level on every article", className: "text-brand-teal-text font-medium" },
+  { icon: <Star aria-hidden="true" strokeWidth={1.75} className={TIER_ICON_CLS} />, text: "Platform subscriber view — everything you need to act", className: "text-brand-teal-text font-semibold" },
 ];
 
 const SpotlightCard = ({
