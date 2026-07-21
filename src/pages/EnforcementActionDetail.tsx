@@ -229,9 +229,17 @@ export default function EnforcementActionDetail() {
             {action.precedent_significance && (
               <div>
                 <div className="text-xs text-muted-foreground">Precedent significance</div>
-                <div className="text-amber-500 text-lg">
-                  {"".repeat(action.precedent_significance)}
-                  <span className="text-muted-foreground/40">{"".repeat(5 - action.precedent_significance)}</span>
+                <div className="inline-flex items-center gap-0.5 mt-1" aria-label={`${action.precedent_significance} of 5 stars`}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={16}
+                      strokeWidth={1.75}
+                      className={i < action.precedent_significance! ? "text-brand-teal" : "text-muted-foreground/40"}
+                      fill={i < action.precedent_significance! ? "currentColor" : "none"}
+                      aria-hidden
+                    />
+                  ))}
                 </div>
               </div>
             )}

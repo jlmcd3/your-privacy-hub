@@ -1008,7 +1008,7 @@ function PriorAnswerSuggestions({
                       : "border-border text-muted-foreground"
                   }`}
                 >
-                  {isSelected ? "" : ""}
+                  {isSelected ? <CheckCircle2 size={12} strokeWidth={1.75} aria-hidden /> : null}
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">
