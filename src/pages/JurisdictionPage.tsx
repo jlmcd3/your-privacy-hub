@@ -727,22 +727,23 @@ const JurisdictionPage = () => {
             {(() => {
               const isEU = derivedCategory === "eu-uk";
               const isUS = derivedCategory === "us-federal" || jurisdiction.region === "United States";
-              const resources: { icon: string; iconImage?: string; label: string; href: string }[] = [];
+              const resources: { icon: React.ReactNode; iconImage?: string; label: string; href: string }[] = [];
+              const rIcon = "w-4 h-4 text-brand-teal";
 
               if (isUS) {
-                resources.push({ icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" });
-                resources.push({ icon: "", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" });
+                resources.push({ icon: null, iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" });
+                resources.push({ icon: <Landmark aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "U.S. State Authorities", href: "/us-state-privacy-authorities" });
               }
               if (isEU) {
-                resources.push({ icon: "", label: "GDPR & UK", href: "/gdpr-enforcement" });
+                resources.push({ icon: <Scale aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "GDPR & UK", href: "/gdpr-enforcement" });
               }
 
-              resources.push({ icon: "", label: "Global Privacy Laws", href: "/global-privacy-laws" });
-              resources.push({ icon: "", label: "Global Privacy Authorities", href: "/global-privacy-authorities" });
-              resources.push({ icon: "", label: "Enforcement Tracker", href: "/enforcement-tracker" });
-              resources.push({ icon: "", label: "Biometric Data", href: "/biometric-privacy" });
-              resources.push({ icon: "", label: "Data Transfers", href: "/cross-border-transfers" });
-              resources.push({ icon: "", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" });
+              resources.push({ icon: <Globe aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "Global Privacy Laws", href: "/global-privacy-laws" });
+              resources.push({ icon: <Globe aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "Global Privacy Authorities", href: "/global-privacy-authorities" });
+              resources.push({ icon: <BarChart3 aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "Enforcement Tracker", href: "/enforcement-tracker" });
+              resources.push({ icon: <Eye aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "Biometric Data", href: "/biometric-privacy" });
+              resources.push({ icon: <Globe aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "Data Transfers", href: "/cross-border-transfers" });
+              resources.push({ icon: <Bot aria-hidden="true" strokeWidth={1.75} className={rIcon} />, label: "AI Privacy Regulations", href: "/ai-privacy-regulations" });
 
               return resources.slice(0, 6).map((r) => (
                 <Link
@@ -753,7 +754,7 @@ const JurisdictionPage = () => {
                   {r.iconImage ? (
                     <img src={r.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
                   ) : (
-                    <span className="text-base">{r.icon}</span>
+                    r.icon
                   )}
                   <span>{r.label}</span>
                 </Link>
