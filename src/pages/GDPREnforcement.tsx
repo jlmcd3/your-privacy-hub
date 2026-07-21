@@ -217,6 +217,7 @@ export default function GDPREnforcement() {
         header={{
           eyebrow: "Research · GDPR & UK Privacy",
           title: "GDPR vs UK GDPR — Framework & Divergence",
+          statuteCite: "GDPR Art. 83 · tiered administrative fines up to €20M or 4% of global turnover",
           description:
             "EU GDPR and UK GDPR started identical and have steadily drifted apart since Brexit. This reference compares the two regimes side by side, tracks where they have materially diverged, and points to the tools that resolve the close cases.",
           lastUpdated: "June 10, 2026",
@@ -228,6 +229,21 @@ export default function GDPREnforcement() {
             { value: "Art. 83", label: "penalty framework" },
           ],
         }}
+        atAGlance={[
+          { label: "Supervisors", value: "27 EU DPAs coordinated via the EDPB · UK ICO acts alone" },
+          { label: "Penalty ceiling", value: "€20M / 4% (EU) · £17.5M / 4% (UK)" },
+          { label: "Transfers", value: "EU adequacy list ≠ UK adequacy list; DUA 2025 formalises UK route" },
+          { label: "Latest divergence", value: "UK Data (Use and Access) Act 2025 — recognised legitimate interests, DSAR reforms" },
+        ]}
+        merchandisingRail={{
+          heading: "Turn this reference into work product",
+          items: [
+            { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material EU DPA and ICO action, curated weekly." },
+            { label: "Governance Assessment", href: "/governance-assessment", description: "Score your programme against the domains DPAs actually enforce." },
+            { label: "Enforcement Feed", href: "/enforcement", description: "Live queryable index of GDPR and UK GDPR actions." },
+          ],
+        }}
+
         pageSynthesisKey="gdpr__page"
         topToolCta={{
           toolName: "Governance Assessment",
