@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import JSZip from "jszip";
+import { LaunchGateScoreboard } from "@/components/admin/LaunchGateScoreboard";
 
 // QB-P3: slug → generate-report-pdf tool_type. Verified against
 // supabase/functions/generate-report-pdf/index.ts tableMap (L1853–1868).
@@ -780,6 +781,9 @@ export default function QualityBatch() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Launch-gate scoreboard (Option-A findings-based) */}
+      <LaunchGateScoreboard tools={TOOLS} />
 
       {/* Panel B — Live log */}
       <Card>
