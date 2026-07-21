@@ -10,20 +10,25 @@ const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackg
 // placement, size, and interaction as before. Do not remove or shrink.
 
 const CPPA_SUITE_PRICE = PRICING.tools.cppa_suite.display; // "$449"
+const CPPA_SCOPE_PRICE = PRICING.tools.cppa_scope.display; // "Free"
+const CPPA_RISK_PRICE = PRICING.tools.cppa_risk.display;   // "$229"
+const CPPA_CYBER_PRICE = PRICING.tools.cppa_cyber.display; // "$299"
+const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$99"
 const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
-
-const US_STATS: Array<{ value: string; label: string }> = [
-  { value: "52,326", label: "affected CA residents (median)" },
-  { value: "$67k", label: "median CPPA penalty exposure" },
-  { value: CPPA_SUITE_PRICE, label: "CPPA Full Suite" },
-  { value: "4", label: "generations included" },
-];
 
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: "3-part LIA · $99" },
   { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: "EDPB-aligned template" },
   { href: "/governance-assessment", title: "GDPR Governance Assessment", sub: "Programme health check" },
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
+];
+
+const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
+  { href: "/cppa-scope-checker", title: "CPPA Scope Checker", sub: `${CPPA_SCOPE_PRICE}` },
+  { href: "/cppa-risk-assessment", title: "CPPA Risk Assessment", sub: `${CPPA_RISK_PRICE}` },
+  { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
+  { href: "/cppa-admt", title: "ADMT Compliance Assessment", sub: `${CPPA_ADMT_PRICE}` },
+  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
 ];
 
 export default function SearchFirstHero() {
