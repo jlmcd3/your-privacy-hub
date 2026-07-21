@@ -55,8 +55,11 @@ export default function SearchFirstHero() {
             {euMode ? (
               <>
                 <h1 className="text-hero-h1 text-white mb-4">
-                  GDPR paperwork your DPO can defend.
+                  Global privacy law, tracked daily.
                 </h1>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mb-4">
+                  GDPR paperwork your DPO can defend.
+                </h2>
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
                   Legitimate interest assessments, DPIAs, RoPA, and governance reviews — every output calibrated to real EDPB and supervisory-authority enforcement, cite-anchored, and sized so counsel can sign it.
                 </p>
