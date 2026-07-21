@@ -10,9 +10,9 @@ const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackg
 // placement, size, and interaction as before. Do not remove or shrink.
 
 const CPPA_SUITE_PRICE = PRICING.tools.cppa_suite.display; // "$449"
-const CPPA_SCOPE_PRICE = PRICING.tools.cppa_scope.display; // "Free"
 const CPPA_RISK_PRICE = PRICING.tools.cppa_risk.display;   // "$229"
 const CPPA_CYBER_PRICE = PRICING.tools.cppa_cyber.display; // "$299"
+const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$99"
 const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
 
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
@@ -22,11 +22,11 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
 ];
 
-const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
-  { href: "/cppa-scope-checker", title: "CPPA Scope Checker", sub: `${CPPA_SCOPE_PRICE}` },
+const US_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
+  { href: "/cppa-admt", title: "ADMT Compliance Check", sub: `${CPPA_ADMT_PRICE}` },
   { href: "/cppa-risk-assessment", title: "CPPA Risk Assessment", sub: `${CPPA_RISK_PRICE}` },
   { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
-  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
+  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value` },
 ];
 
 export default function SearchFirstHero() {
@@ -106,22 +106,15 @@ export default function SearchFirstHero() {
                   </Link>
                 </div>
 
-                {/* US product row — CPPA tools only, bundle highlighted */}
+                {/* US product row — four equal CPPA tabs */}
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl">
                   {US_PRODUCTS.map((p) => (
-                    <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
+                    <li key={p.href}>
                       <Link
                         to={p.href}
-                        className={`block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline ${p.bundle ? "border-l-4 border-l-[#C8922A]" : ""}`}
+                        className="block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline"
                       >
-                        <span className="block text-sm font-semibold text-white">
-                          {p.title}
-                          {p.bundle && (
-                            <span className="ml-2 inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-brand-navy bg-[#C8922A] px-1.5 py-0.5 rounded">
-                              Full Suite
-                            </span>
-                          )}
-                        </span>
+                        <span className="block text-sm font-semibold text-white">{p.title}</span>
                         <span className="block text-xs text-blue-100/80">{p.sub}</span>
                       </Link>
                     </li>
