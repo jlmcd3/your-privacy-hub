@@ -503,10 +503,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       el.removeEventListener("pointerup",     onPointerUp);
       el.removeEventListener("pointercancel", onPointerCancel);
       el.removeEventListener("pointerleave",  onPointerUp);
-      for (const g of [sf.dim, sf.mid, sf.bright]) {
-        g.points.geometry.dispose();
-        (g.points.material as THREE.Material).dispose();
-      }
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
