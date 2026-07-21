@@ -525,7 +525,7 @@ const Navbar = () => {
         {/* Logo */}
         <div className="flex items-center flex-1">
           <Link to="/" className="no-underline flex items-center">
-            <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
+            <img src="/brand/logo-dark.svg" alt="End User Privacy" width={280} height={52} className="h-10 w-auto shrink-0 object-contain" />
           </Link>
         </div>
         {/* Desktop nav */}
