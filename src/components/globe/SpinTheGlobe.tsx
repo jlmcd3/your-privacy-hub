@@ -284,14 +284,15 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
         specularMap: tex,
-        specular: new THREE.Color(0x335577),
-        shininess: 28,
+        specular: new THREE.Color(0x4a80a8),
+        shininess: 36,
         // Reuse the color map as a bump map for cheap terrain relief — gives
         // the sphere visible texture/detail without shipping a second asset.
         bumpMap: tex,
-        bumpScale: 0.035,
+        bumpScale: 0.048,
       });
       setReady(true);
+
     };
 
     // Try self-hosted asset first, then unpkg CDN, then canvas-drawn fallback.
