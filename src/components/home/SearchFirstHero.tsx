@@ -17,7 +17,7 @@ const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$99"
 const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
 
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
-  { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: "3-part LIA · $99" },
+  { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: `3-part LIA · ${LIA_PRICE}` },
   { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: "EDPB-aligned template" },
   { href: "/governance-assessment", title: "GDPR Governance Assessment", sub: "Programme health check" },
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
