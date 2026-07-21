@@ -24,7 +24,7 @@ const FAMILY_STYLES: Record<ProductFamily, {
   },
   "eu-uk": {
     bg: "bg-[linear-gradient(135deg,#0d2a45_0%,#153a5f_60%,#185FA5_100%)]",
-    accent: "#9bb4c2",
+    accent: "#b5ccd6",
     chip: "EU · UK",
     label: "text-white",
   },
