@@ -1590,13 +1590,13 @@ async function runStitch(dpia_id: string): Promise<void> {
           console.warn(`[DPIA] QB8-8(a): ${deficient.length} residual_risk_assessment entries missing required fields — repair pass`);
           const repairPrompt = `The following residual_risk_assessment entries from a DPIA are incomplete. Return ONLY a JSON object of the form {"residual_risk_assessment":[...]} containing the SAME entries in the SAME order, completing the listed missing fields for each. Do not change fields that are already populated. Missing fields per entry:\n\n${JSON.stringify(deficient.map((d: any) => ({ index: d.i, entry: d.e, missing_fields: d.missing })), null, 2)}`;
           const systemBlocks = buildSystemBlocksForUnit(shared);
-          const repair = await callAnthropicWithContinuation({
+          const repair = await dpiaWithRetry(() => callAnthropicWithContinuation({
             model: "claude-sonnet-4-6",
             system: systemBlocks,
             user: repairPrompt,
             maxTokens: Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5),
             label: "run-dpia-framework:repair-residual",
-          });
+          }), { label: "dpia:repair-residual" });
           const repaired = parseJsonish(repair.text);
           const repairedArr = Array.isArray(repaired?.residual_risk_assessment) ? repaired.residual_risk_assessment : null;
           if (repairedArr) {
