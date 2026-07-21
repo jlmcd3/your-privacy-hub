@@ -22,9 +22,22 @@ const fmtFine = (p: EnforcementPrecedent) => {
   return p.fine_amount && p.fine_amount !== "0" ? p.fine_amount : "—";
 };
 
-const stars = (n?: number | null) => {
-  const s = Math.max(0, Math.min(5, n ?? 0));
-  return "".repeat(s) + "".repeat(5 - s);
+const Stars = ({ n }: { n?: number | null }) => {
+  const filled = Math.max(0, Math.min(5, n ?? 0));
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-label={`${filled} of 5 stars`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          size={16}
+          strokeWidth={1.75}
+          className={i < filled ? "text-brand-teal" : "text-muted-foreground/30"}
+          fill={i < filled ? "currentColor" : "none"}
+          aria-hidden
+        />
+      ))}
+    </span>
+  );
 };
 
 const EnforcementPrecedents = ({
