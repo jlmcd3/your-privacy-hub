@@ -274,6 +274,50 @@ const navItems: NavItem[] = [
   },
 ];
 
+// UX-2a — EU/UK regional mega-menu. Replaces "CPPA" when region === "EU_UK".
+// Order is revenue-weighted: LIA · DPIA · Governance · RoPA, then supporting tools.
+const GDPR_TOOLS_ITEM: NavItem = {
+  label: "GDPR Tools",
+  wide: true,
+  columns: 2,
+  sections: [
+    {
+      header: "Core GDPR assessments",
+      headerSub: "Per use · any tier",
+      headerColor: "text-[#185FA5]",
+      columnBg: "bg-[#EEF4FB]",
+      column: 1,
+      items: [
+        { icon: <Scale aria-hidden="true" strokeWidth={1.75} />, label: "Legitimate Interest Assessment", href: "/li-assessment",
+          tooltip: "Three-part LIA — purpose, necessity, balancing — calibrated to EDPB enforcement" },
+        { icon: <FileText aria-hidden="true" strokeWidth={1.75} />, label: "DPIA / Impact Assessment", href: "/dpia-framework",
+          tooltip: "EDPB-aligned DPIA template for high-risk processing" },
+        { icon: <Shield aria-hidden="true" strokeWidth={1.75} />, label: "GDPR Governance Assessment", href: "/governance-assessment",
+          tooltip: "Programme health check against what regulators actually enforce" },
+        { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} />, label: "RoPA Builder", href: "/ropa-builder",
+          tooltip: "Article 30 record of processing — free with any subscription" },
+      ],
+    },
+    {
+      header: "Supporting documents",
+      headerSub: "Notices, DPAs, breach playbooks",
+      headerColor: "text-brand-mist",
+      columnBg: "bg-white",
+      column: 2,
+      items: [
+        { icon: <Globe aria-hidden="true" strokeWidth={1.75} />, label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
+          tooltip: "Article 13/14 privacy notices with multi-jurisdiction overlays" },
+        { icon: <FileSignature aria-hidden="true" strokeWidth={1.75} />, label: "Custom DPA Generator", href: "/dpa-generator",
+          tooltip: "Article 28 processor agreements with SCC module pinning" },
+        { icon: <Siren aria-hidden="true" strokeWidth={1.75} />, label: "Incident Response Playbook", href: "/ir-playbook",
+          tooltip: "Sequenced playbook with Article 33/34 notification deadlines" },
+        { icon: <BookOpen aria-hidden="true" strokeWidth={1.75} />, label: "GDPR & UK GDPR Research", href: "/gdpr-enforcement" },
+      ],
+    },
+  ],
+};
+
+
 
 /** Compact user-icon dropdown that replaces Account + Sign Out in the logged-in nav. */
 const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
