@@ -1,16 +1,22 @@
 {
-  "generatedAt": "2026-06-05T10:31:35.473Z",
+  "generatedAt": "2026-07-21T09:19:37.129Z",
   "totals": {
-    "pages": 93,
-    "findings": 93,
+    "pages": 107,
+    "findings": 107,
     "high": 0,
     "medium": 0,
-    "info": 93
+    "info": 107
   },
   "findings": [
     {
       "severity": "info",
       "route": "/",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/__dev/u32-harness",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
     },
@@ -47,6 +53,30 @@
     {
       "severity": "info",
       "route": "/enforcement-intelligence",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/lia-assessment",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/lia-tool",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/governance",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/registration-documents",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
     },
@@ -226,6 +256,12 @@
     },
     {
       "severity": "info",
+      "route": "/pricing",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
       "route": "/subscribe/success",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
@@ -244,6 +280,18 @@
     },
     {
       "severity": "info",
+      "route": "/obligations",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/account/cppa-runs",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
       "route": "/get-intelligence",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
@@ -251,6 +299,12 @@
     {
       "severity": "info",
       "route": "/legitimate-interest-tracker",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/samples",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
     },
@@ -292,7 +346,25 @@
     },
     {
       "severity": "info",
+      "route": "/cppa",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
       "route": "/cppa-scope-checker",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/cppa-admt",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/cppa-admt-checker",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
     },
@@ -437,6 +509,18 @@
     {
       "severity": "info",
       "route": "/eu-notice-builder",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/notice-builder",
+      "kind": "footer_check_inconclusive_spa",
+      "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
+    },
+    {
+      "severity": "info",
+      "route": "/notices",
       "kind": "footer_check_inconclusive_spa",
       "note": "Static fetch returned SPA shell with empty <div id=\"root\">; footer links are React-rendered and cannot be verified without a headless browser. Footer hrefs verified in src/components/Footer.tsx → /privacy-policy, /terms."
     },
