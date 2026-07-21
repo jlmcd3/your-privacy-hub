@@ -8,7 +8,7 @@ import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 import { supabase } from "@/integrations/supabase/client";
 import { findLaw, isUrlFresh } from "@/data/lawRegistry";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
-import { Bot, Calendar, Globe, Map, Newspaper } from 'lucide-react';
+import { Bot, Calendar as CalendarIcon, Globe, Map, Newspaper } from 'lucide-react';
 
 /**
  * Render a law name as: internal jurisdiction link + optional external "↗" to gov source.
