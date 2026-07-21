@@ -1266,6 +1266,9 @@ Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the rec
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
 Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.
 
+PRODUCT-FIX-5 T5(e) — RECORD-CONTRADICTION SURFACING (BINDING): where the intake records two facts that cannot both be true of the same instrument (e.g. transfer-mechanism specifies one SCC module and transfer-clause basis specifies a different SCC module; controller and processor jurisdictions imply different operative frameworks than the documentType selected), the DPA must NOT silently pick one. Draft the operative clauses on the module/framework consistent with SCC MODULE PINNING and this DPA's controller-processor nature, AND flag the contradiction with ONE advisory-drafter sentence in Section 1 recitals stating the record fact + assumption + canonical close "further clarification is advisable.", plus a "[TO BE COMPLETED: …]" placeholder sited in the affected clause. Never invent facts to resolve the contradiction.
+
+
 ${SPECIFICITY_ACTIONABILITY_RULE}
 
 ${ENGAGED_JURISDICTION_CITATION_RULE}
