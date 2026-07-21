@@ -690,23 +690,43 @@ export default function CPPARiskAssessment() {
         <meta name="description" content="California CPPA risk assessment mapped 1:1 to § 7152(a)(1)–(9). Generates a regulation-mapped framework pre-populated from your intake, ready for executive sign-off." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-risk-assessment" />
       </Helmet>
-      <header className="bg-brand-ocean text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+      {/* UX-1c: compact tool-landing hero (≤280px), two-line copy + one CTA row. */}
+      <header className="bg-brand-ocean text-white">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            {headerLabel} · ${displayPrice}
+            {headerLabel}
           </span>
-          <h1 className="text-hero-h1 text-white mb-3">CPPA Privacy Risk Assessment</h1>
-          <RequirementBadge variant="hero" tier="conditional" text="California (11 CCR § 7150) requires a privacy risk assessment if you sell or share personal information, process sensitive data, or use automated decision-making. Existing activities must be assessed by December 31, 2027." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg">A regulation-mapped risk assessment framework, structured 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from your intake and ready for your team to review, complete, and sign.</p>
-          <p className="text-slate-400 text-sm mt-3">Generates two deliverables: an internal report retained for the § 7156(c) 30-day production demand, and a § 7157 Annual Submission Worksheet for the April 1, 2028 filing.</p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
-          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-          <p className="text-slate-400 text-xs italic mt-2">
-            Built on the CPPA's final regulations and Final Statement of Reasons, paragraph-cited. This tool never invents precedent — where the agency hasn't spoken, it says so.
+          <h1 className="text-hero-h1 text-white mb-2">The risk assessment California now requires.</h1>
+          <p className="text-slate-300 text-lg max-w-3xl mb-4">
+            If you sell or share personal data, process sensitive data, or use automated decision-making — existing activities must be assessed by December 31, 2027.
           </p>
-          <div className="mt-4"><SampleReportLink toolSlug="cppa_risk" tone="onDark" variant="link" /></div>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="#run-assessment"
+              className="inline-flex flex-col items-start bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] text-white font-semibold px-5 py-2.5 rounded-lg no-underline transition-colors"
+            >
+              <span>{`Start your assessment — $${pricing.standalonePrice}`}</span>
+              <span className="text-[12px] font-normal text-white/85">{`Subscribers: $${pricing.subscriberPrice}`}</span>
+            </a>
+            <SampleReportLink toolSlug="cppa_risk" tone="onDark" variant="link" label="See a sample report" />
+          </div>
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            11 CCR § 7150 · submission-ready for the Apr 1, 2028 attestation
+          </p>
         </div>
       </header>
+      {/* UX-1c: RequirementBadge and framework context relocated below the fold — legal text preserved intact. */}
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-3">
+        <RequirementBadge tier="conditional" text="California (11 CCR § 7150) requires a privacy risk assessment if you sell or share personal information, process sensitive data, or use automated decision-making. Existing activities must be assessed by December 31, 2027." className="max-w-3xl" />
+        <p className="text-slate-700 text-base max-w-3xl">A regulation-mapped risk assessment framework, structured 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from your intake and ready for your team to review, complete, and sign.</p>
+        <p className="text-slate-500 text-sm max-w-3xl">Generates two deliverables: an internal report retained for the § 7156(c) 30-day production demand, and a § 7157 Annual Submission Worksheet for the April 1, 2028 filing.</p>
+        <p className="text-slate-500 text-xs italic max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
+        <p className="text-slate-500 text-xs italic max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
+        <p className="text-slate-500 text-xs italic max-w-3xl">
+          Built on the CPPA's final regulations and Final Statement of Reasons, paragraph-cited. This tool never invents precedent — where the agency hasn't spoken, it says so.
+        </p>
+      </div>
+
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
         <ToolTierNote isCppa={true} />
       </div>
