@@ -230,7 +230,7 @@ export default function BiometricChecker() {
           >
           <div className="flex-1 min-w-0 space-y-5">
             <RequiredLegend />
-            <div onFocus={() => focusBioRail("orgName")}>
+            <div data-rail-key="orgName" onFocus={() => focusBioRail("orgName")}>
               <label className="text-sm font-semibold text-brand-navy">Entity name<Req /> <span className="text-xs text-muted-foreground">(legal organisation name; printed on the report header)</span></label>
               <input
                 type="text"
@@ -241,16 +241,16 @@ export default function BiometricChecker() {
                 autoComplete="organization"
               />
             </div>
-            <fieldset onFocus={() => focusBioRail("types")} onClick={() => focusBioRail("types")} className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span> <EnforcementSignalIcon signalKey="biometric" signals={bioEnforcementSignals} /></legend>
+            <fieldset data-rail-key="types" onFocus={() => focusBioRail("types")} onClick={() => focusBioRail("types")} className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span> <EnforcementSignalIcon signalKey="biometric" signals={bioEnforcementSignals} /></legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
-            <label onFocus={() => focusBioRail("orgType")} className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
+            <label data-rail-key="orgType" onFocus={() => focusBioRail("orgType")} className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.orgType} onChange={e => setForm(f => ({ ...f, orgType: e.target.value }))}>
                 {ORG.map(o => <option key={o}>{o}</option>)}</select></label>           
-            <label onFocus={() => focusBioRail("purpose")} className="block text-sm"><span className="font-semibold text-brand-navy">Primary purpose</span>
+            <label data-rail-key="purpose" onFocus={() => focusBioRail("purpose")} className="block text-sm"><span className="font-semibold text-brand-navy">Primary purpose</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}>
                 {PURPOSE.map(p => <option key={p}>{p}</option>)}</select></label>
-            <fieldset onFocus={() => focusBioRail("jurisdictions")} onClick={() => focusBioRail("jurisdictions")} className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR — biometric data is special category requiring explicit consent or Art. 9(2) condition)</span> <EnforcementSignalIcon signalKey="special_categories" signals={bioEnforcementSignals} /></legend>
+            <fieldset data-rail-key="jurisdictions" onFocus={() => focusBioRail("jurisdictions")} onClick={() => focusBioRail("jurisdictions")} className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR — biometric data is special category requiring explicit consent or Art. 9(2) condition)</span> <EnforcementSignalIcon signalKey="special_categories" signals={bioEnforcementSignals} /></legend>
               <div className="grid grid-cols-1 gap-1 mt-1">{JURS.map(j => {
                 const isIL = j.includes("Illinois");
                 const isWA = j.includes("Washington");
