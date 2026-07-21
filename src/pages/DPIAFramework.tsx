@@ -498,6 +498,9 @@ const DPIAFramework = () => {
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
           <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
           <div className="mt-4"><SampleReportLink toolSlug="dpia" tone="onDark" variant="link" /></div>
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            GDPR Art. 35 · accountability record your DPO or counsel signs off before high-risk processing begins
+          </p>
         </div>
       </header>
       <ToolAlsoAvailableRow currentTool="dpia" />

@@ -544,7 +544,11 @@ export default function ADMTChecker() {
             ctaPosition="hero"
             onDark
             pagePath="/cppa-admt-checker"
+            primaryLabel={`Start an ADMT Compliance Assessment — $${pricing.price}`}
           />
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            11 CCR §§ 7200–7222 · pre-use notice, opt-out, and access rights on the Jan 1, 2027 clock
+          </p>
         </div>
       </header>
 

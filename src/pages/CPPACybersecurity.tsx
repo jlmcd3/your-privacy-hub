@@ -213,6 +213,9 @@ export default function CPPACybersecurity() {
             Built on the CPPA's final regulations and Final Statement of Reasons, paragraph-cited. This tool never invents precedent — where the agency hasn't spoken, it says so.
           </p>
           <div className="mt-4"><SampleReportLink toolSlug="cppa_cyber" tone="onDark" variant="link" /></div>
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            11 CCR § 7123 · 18-component readiness map for the Apr 1, 2028 independent audit certification
+          </p>
         </div>
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
