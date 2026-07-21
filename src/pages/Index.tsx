@@ -25,6 +25,7 @@ const Index = () => (
     <BreakingNewsBanner />
     <main id="main-content" aria-label="Home">
     <SearchFirstHero />
+    <HomeOrientationStrip />
     <HomeGeographyPaths />
     <CPPADeadlineStrip />
 
