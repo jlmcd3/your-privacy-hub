@@ -178,7 +178,7 @@ export default function EUNoticeMode() {
       </div>
 
       <div className="mt-8 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> 12 global frameworks · <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> EU GDPR · UK GDPR · Swiss FADP · <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> LGPD · APPI · DPDPA · POPIA · PIPEDA · AU Privacy · PIPA · PDPA · PDPL
+        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> 12 global frameworks · EU GDPR · UK GDPR · Swiss FADP · LGPD · APPI · DPDPA · POPIA · PIPEDA · AU Privacy · PIPA · PDPA · PDPL
       </div>
     </EUNoticeShell>
   );
