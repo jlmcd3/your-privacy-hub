@@ -235,7 +235,7 @@ type ToolDef = {
 };
 
 const T_ICON = "w-7 h-7 text-brand-teal";
-const iconEl = (I: React.ComponentType<{ className?: string; strokeWidth?: number; 'aria-hidden'?: 'true' }>) => (
+const iconEl = (I: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number | string }>) => (
   <I aria-hidden="true" strokeWidth={1.75} className={T_ICON} />
 );
 
