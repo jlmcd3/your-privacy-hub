@@ -28,6 +28,7 @@ interface ReapTarget {
   terminalStatus: string;      // status to write when reaping (must satisfy any CHECK constraint)
   hasGenerationError: boolean; // ropa_sessions, eu_notice_sessions
   hasReportData: boolean;      // everything except ropa/eu sessions
+  hasLastError?: boolean;      // RUNTIME-2 T2 — write orphan diagnosis to last_error (li_assessments)
 }
 
 // Verified against live schema + check constraints (2026-07-04):
@@ -45,7 +46,7 @@ interface ReapTarget {
 const TARGETS: ReapTarget[] = [
   { table: "ir_playbooks",           stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
   { table: "dpa_documents",          stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
-  { table: "li_assessments",         stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "li_assessments",         stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true, hasLastError: true },
   { table: "dpia_frameworks",        stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
   { table: "governance_assessments", stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
   { table: "cppa_assessments",       stuckStatuses: ["processing"], terminalStatus: "error",  hasGenerationError: false, hasReportData: true  },
@@ -61,8 +62,13 @@ async function reap(target: ReapTarget): Promise<{ table: string; reaped: number
   const cutoff = new Date(Date.now() - STUCK_MINUTES * 60_000).toISOString();
 
   // Select candidate ids first so we can also conditionally patch report_data
-  // only where it is currently null.
-  const selectCols = target.hasReportData ? "id, report_data" : "id";
+  // only where it is currently null. RUNTIME-2 T2 — pull `stage` and
+  // `updated_at` on tables with hasLastError so we can compose a per-row
+  // diagnosis string for last_error.
+  const cols = ["id"];
+  if (target.hasReportData) cols.push("report_data");
+  if (target.hasLastError) cols.push("stage", "updated_at");
+  const selectCols = cols.join(", ");
   const { data: candidates, error: selErr } = await supabase
     .from(target.table)
     .select(selectCols)
@@ -78,23 +84,50 @@ async function reap(target: ReapTarget): Promise<{ table: string; reaped: number
     return { table: target.table, reaped: 0 };
   }
 
-  const ids = candidates.map((r: any) => r.id);
-  const patch: Record<string, unknown> = { status: target.terminalStatus };
-  if (target.hasGenerationError) patch.generation_error = TIMEOUT_MESSAGE;
+  const ids = (candidates as any[]).map((r: any) => r.id);
 
-  const { error: updErr } = await supabase
-    .from(target.table)
-    .update(patch)
-    .in("id", ids)
-    .in("status", target.stuckStatuses); // guard against races
-
-  if (updErr) {
-    console.error(`[reap-stuck] ${target.table}: update failed`, updErr);
-    return { table: target.table, reaped: 0, error: updErr.message };
+  if (target.hasLastError) {
+    // Per-row diagnosis so /admin/function-health and the result page show
+    // exactly what happened (which stage was heartbeating, how long the row
+    // sat idle) rather than a NULL last_error.
+    const now = Date.now();
+    for (const row of candidates as any[]) {
+      const minutesStuck = row.updated_at
+        ? Math.round((now - new Date(row.updated_at).getTime()) / 60_000)
+        : STUCK_MINUTES;
+      const diagnosis =
+        `Orphaned — background worker did not complete. Row was stuck ` +
+        `${minutesStuck} min at stage '${row.stage ?? "unknown"}' with no heartbeat ` +
+        `(likely edge-function wall-clock timeout, OOM, or instance shutdown). Safe to re-run.`;
+      const patch: Record<string, unknown> = {
+        status: target.terminalStatus,
+        last_error: diagnosis.slice(0, 500),
+      };
+      const { error: updErr } = await supabase
+        .from(target.table)
+        .update(patch)
+        .eq("id", row.id)
+        .in("status", target.stuckStatuses); // race guard
+      if (updErr) {
+        console.error(`[reap-stuck] ${target.table} ${row.id}: update failed`, updErr);
+      }
+    }
+  } else {
+    const patch: Record<string, unknown> = { status: target.terminalStatus };
+    if (target.hasGenerationError) patch.generation_error = TIMEOUT_MESSAGE;
+    const { error: updErr } = await supabase
+      .from(target.table)
+      .update(patch)
+      .in("id", ids)
+      .in("status", target.stuckStatuses); // guard against races
+    if (updErr) {
+      console.error(`[reap-stuck] ${target.table}: update failed`, updErr);
+      return { table: target.table, reaped: 0, error: updErr.message };
+    }
   }
 
   if (target.hasReportData) {
-    const nullDataIds = candidates
+    const nullDataIds = (candidates as any[])
       .filter((r: any) => r.report_data === null)
       .map((r: any) => r.id);
     if (nullDataIds.length > 0) {
