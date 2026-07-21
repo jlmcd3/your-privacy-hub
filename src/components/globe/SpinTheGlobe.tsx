@@ -223,10 +223,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       uMid:   { value: new THREE.Color(0x6ea8d8) }, // soft mid-blue
       uEdge:  { value: new THREE.Color(0x69c9be) }, // brand teal — only at extreme outer edge
       uInner: { value: 1.0 },   // sphere surface (rim=0 at center of disc, rim=1 at silhouette)
-      uOuter: { value: 1.22 },  // outer feather radius
+      uOuter: { value: 1.08 },  // outer feather radius — thinner limb glow
     };
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.22, 96, 96),
+      new THREE.SphereGeometry(1.08, 96, 96),
       new THREE.ShaderMaterial({
         uniforms: atmoUniforms,
         vertexShader: `
@@ -252,12 +252,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
             float ndv = max(dot(vNormal, vViewDir), 0.0);
             float rim = 1.0 - ndv;
 
-            // Wide, soft pale-blue base — the bulk of the atmosphere.
-            float base = pow(rim, 2.2) * 0.45;
-            // Gentle inner brightening near the horizon (no hard ring).
-            float core = pow(rim, 3.5) * 0.22;
-            // Barely-there teal tint at the outermost grazing edge.
-            float edge = pow(rim, 8.0) * 0.10;
+            // Thin, soft pale-blue limb glow — hugs the silhouette tightly.
+            float base = pow(rim, 4.0) * 0.28;
+            // Gentle inner brightening right at the horizon.
+            float core = pow(rim, 6.0) * 0.14;
+            // Barely-there teal tint at the extreme grazing edge.
+            float edge = pow(rim, 10.0) * 0.05;
 
             vec3 col = uMid * base + uCore * core + uEdge * edge;
             float a  = clamp(base + core + edge, 0.0, 1.0);
@@ -278,12 +278,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       new THREE.MeshBasicMaterial({ color: 0x4a90d9, wireframe: true, transparent: true, opacity: 0.05 }),
     ));
 
-    // Lighting — tighter ambient + stronger sun to sharpen the day/night
-    // terminator and sell self-shadowing on the sphere.
-    scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+    // Lighting — side-lit sun + slightly higher ambient so the night hemisphere
+    // isn't crushed; keeps the day/night terminator visible as a left-right arc.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.24));
     const sun = new THREE.DirectionalLight(0xfff4dc, 2.05);
 
-    sun.position.set(5, 2.5, 4);
+    sun.position.set(5, 0.8, 3);
     scene.add(sun);
     // Cool rim/fill from opposite side — reads as Earthshine, sells the sphere
     const fill = new THREE.DirectionalLight(0x4a7bd6, 0.45);
