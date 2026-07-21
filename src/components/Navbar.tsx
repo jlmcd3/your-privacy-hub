@@ -664,10 +664,10 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-3 flex-1 justify-end">
           {/* Always-visible Pricing link */}
           <Link
-            to="/subscribe"
+            to="/pricing"
             onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Pricing", cta_position: "top-banner" })}
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
-              location.pathname === "/subscribe"
+              location.pathname === "/pricing"
                 ? "text-white"
                 : "text-brand-teal-on-navy hover:text-white"
             }`}

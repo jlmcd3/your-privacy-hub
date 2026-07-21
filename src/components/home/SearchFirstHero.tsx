@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 const SpinTheGlobe = lazy(() => import("@/components/globe/SpinTheGlobe"));
 const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackground"));
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { useGeoCountry as _useGeoCountry } from "@/hooks/useGeoCountry";
 import { useGeoCountry, isEuOrUk } from "@/hooks/useGeoCountry";
 
 export default function SearchFirstHero() {
@@ -50,12 +50,7 @@ export default function SearchFirstHero() {
               </a>
             </div>
 
-            {/* Subtle pricing note */}
-            <p className="text-white/95 text-meta mt-4 text-center lg:text-left">
-              Intelligence from {INTELLIGENCE_PRICING.monthly()} ·
-              Professional from {PLATFORM_PRICING.standardMonthly()} + {PLATFORM_PRICING.clientAddon()} ·
-              Tools available standalone
-            </p>
+            {/* UX-2e T2: 13px pricing line removed from hero; pricing now lives on /pricing. */}
           </div>
 
           {/* Right: Globe (lazy, fixed dimensions to prevent CLS) */}
