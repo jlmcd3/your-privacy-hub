@@ -23,6 +23,7 @@ const AIPrivacyRegulations = () => (
     header={{
       eyebrow: "Research · AI & Privacy",
       title: "AI Privacy Regulations",
+      statuteCite: "GDPR Art. 22 · EU AI Act · CPPA ADMT Rules — the AI–privacy stack",
       description:
         "AI regulation is moving faster than any other area of privacy law. EDPB Opinion 28/2024 (adopted 17 December 2024) on personal data in AI models is the most significant regulatory statement at the AI–privacy intersection. The EU AI Act's high-risk provisions are phasing in through 2027. California's ADMT rules are effective. This reference covers the frameworks, the enforcement, and what each means for your compliance program.",
       lastUpdated: "June 10, 2026",
@@ -34,6 +35,21 @@ const AIPrivacyRegulations = () => (
         { value: "Jan 2026", label: "CPPA ADMT rules effective" },
       ],
     }}
+    atAGlance={[
+      { label: "EU regime", value: "AI Act (in force Aug 2024) + GDPR Art. 22 (solely automated decisions)" },
+      { label: "California regime", value: "CPPA ADMT Rules — pre-use notice, opt-out, appeal for significant decisions" },
+      { label: "Authoritative anchor", value: "EDPB Opinion 28/2024 on personal data in AI models (17 Dec 2024)" },
+      { label: "Colorado", value: "SB 24-205 (Colorado AI Act) — high-risk AI duties phasing in Feb 2026" },
+    ]}
+    merchandisingRail={{
+      heading: "Use this in your workflow",
+      items: [
+        { label: "CPPA ADMT Assessment", href: "/admt-checker", description: "Diagnose whether your system triggers ADMT pre-use notice, opt-out, and appeal." },
+        { label: "DPIA Framework", href: "/dpia-framework", description: "Art. 35 DPIA for high-risk AI processing." },
+        { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material AI-privacy enforcement action and guidance, curated weekly." },
+      ],
+    }}
+
     pageSynthesisKey="ai_privacy__page"
     topToolCta={{
       toolName: "CPPA ADMT Assessment",
