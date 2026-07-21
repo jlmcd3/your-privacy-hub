@@ -15,11 +15,12 @@ import { useStateLawOverrides, applyOverride } from "@/hooks/useStateLawOverride
 import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisBlock";
 import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
-const RELATED_LINKS = [
-  { icon: "", label: "U.S. State Law Comparison", href: "/compare/us-states" },
-  { icon: "", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-  { icon: "", label: "Enforcement Tracker", href: "/enforcement-tracker" },
-  { icon: "", label: "Global Privacy Laws", href: "/global-privacy-laws" },
+const REL_ICON = "w-6 h-6 text-brand-teal";
+const RELATED_LINKS: { icon: React.ReactNode; label: string; href: string }[] = [
+  { icon: <BarChart3 aria-hidden="true" strokeWidth={1.75} className={REL_ICON} />, label: "U.S. State Law Comparison", href: "/compare/us-states" },
+  { icon: <Bot aria-hidden="true" strokeWidth={1.75} className={REL_ICON} />, label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+  { icon: <Scale aria-hidden="true" strokeWidth={1.75} className={REL_ICON} />, label: "Enforcement Tracker", href: "/enforcement-tracker" },
+  { icon: <Globe aria-hidden="true" strokeWidth={1.75} className={REL_ICON} />, label: "Global Privacy Laws", href: "/global-privacy-laws" },
 ];
 
 const FEDERAL_AUTHORITIES = [
