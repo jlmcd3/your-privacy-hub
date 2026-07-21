@@ -530,7 +530,7 @@ const Navbar = () => {
         </div>
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center justify-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
-          {navItems.map((item) => {
+          {regionalNavItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
@@ -778,7 +778,7 @@ const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-brand-cloud bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-          {navItems.map((item) => (
+          {regionalNavItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
                 <Link
