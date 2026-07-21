@@ -520,6 +520,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       tool: sampleSlug,
       status: "deliberating",
       mode: "improvement_cycle",
+      grader_context_version: GRADER_CONTEXT_VERSION, // HOUSEKEEPING-1 T2
     }).select("id").single();
     if (error) {
       // Fail loud: a seed/handoff failure must stop the cycle, not silently spin.
