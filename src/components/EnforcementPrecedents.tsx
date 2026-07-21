@@ -119,7 +119,7 @@ const EnforcementPrecedents = ({
                 <div className="text-right shrink-0">
                   <div className="text-sm font-semibold tabular-nums">{fmtFine(p)}</div>
                   <div className="text-[11px] text-amber-600" title="Precedent significance">
-                    {stars(p.precedent_significance)}
+                    <Stars n={p.precedent_significance} />
                   </div>
                 </div>
               </div>

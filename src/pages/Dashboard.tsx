@@ -872,7 +872,7 @@ const Dashboard = () => {
                                 <span>{s.jurisdiction}</span>
                                 {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
                                 {s.precedent_significance != null && (
-                                  <><span>·</span><span title="Precedent significance">{"".repeat(s.precedent_significance)}{"".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
+                                  <><span>·</span><span title="Precedent significance" className="inline-flex items-center gap-0.5" aria-label={`${s.precedent_significance} of 5 stars`}>{Array.from({ length: 5 }).map((_, i) => (<Star key={i} size={14} strokeWidth={1.75} className={i < s.precedent_significance! ? "text-brand-teal" : "text-muted-foreground/30"} fill={i < s.precedent_significance! ? "currentColor" : "none"} aria-hidden />))}</span></>
                                 )}
                               </div>
                               {s.summary && (

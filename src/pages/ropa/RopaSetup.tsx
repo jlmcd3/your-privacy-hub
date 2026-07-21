@@ -887,7 +887,7 @@ function RoleCard({
     >
       <div className="flex items-center justify-between">
         <span className="font-semibold">{label}</span>
-        <span className="text-xs">{checked ? " On" : "Off"}</span>
+        <span className="text-xs inline-flex items-center gap-1">{checked ? <><CheckCircle2 size={14} strokeWidth={1.75} className="text-brand-teal" aria-hidden />On</> : "Off"}</span>
       </div>
       <p className="text-sm text-muted-foreground mt-1">{description}</p>
     </button>
