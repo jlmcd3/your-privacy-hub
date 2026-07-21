@@ -208,18 +208,6 @@ export default function CPPAHub() {
           </p>
         </section>
 
-        <section aria-labelledby="faq-heading" className="bg-card border rounded-lg p-8">
-          <h2 id="faq-heading" className="font-serif text-2xl mb-6">Frequently asked</h2>
-          <dl className="space-y-5">
-            {FAQ.map((f) => (
-              <div key={f.q}>
-                <dt className="font-medium mb-1">{f.q}</dt>
-                <dd className="text-sm text-muted-foreground">{f.a}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
         <section className="bg-card border rounded-lg p-6">
           <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
           <h3 className="font-serif text-xl mb-2">ADMT Compliance Assessment (Module 3)</h3>
@@ -235,6 +223,18 @@ export default function CPPAHub() {
           >
             Open the ADMT Compliance Assessment →
           </Link>
+        </section>
+
+        <section aria-labelledby="faq-heading" className="bg-card border rounded-lg p-8">
+          <h2 id="faq-heading" className="font-serif text-2xl mb-6">Frequently asked</h2>
+          <dl className="space-y-5">
+            {FAQ.map((f) => (
+              <div key={f.q}>
+                <dt className="font-medium mb-1">{f.q}</dt>
+                <dd className="text-sm text-muted-foreground">{f.a}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       </main>
       <Footer />
