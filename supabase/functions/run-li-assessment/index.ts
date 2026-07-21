@@ -1331,6 +1331,92 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     oa.argument_strength_note = STRENGTH_NOTES[oa.argument_strength] ?? STRENGTH_NOTES.uncertain;
 
 
+    // RUNTIME-2 T1 — CHUNK BOUNDARY. Stage 3 (docs) is the largest single
+    // Anthropic call in this generator; on the initial isolate it has
+    // historically completed at 301–327s, dangerously close to the wall-clock
+    // (run #82 doc-2 died here). We persist all Stage 3+ inputs and self-
+    // reinvoke run-li-assessment with resume_stage='docs' so that the docs
+    // call runs in a fresh isolate with a full wall-clock budget. The row
+    // stays in 'processing' and its report_data carries `_checkpoint_docs`
+    // until the resumed isolate writes the final report.
+    const _ckpt: Record<string, unknown> = {
+      _version: 1,
+      today,
+      isUk,
+      gdprJurisdiction,
+      engagedFrameworks,
+      liaTestStates,
+      balancingDetails,
+      precedentContext,
+      gdprMeta,
+      enforcementPrecedents,
+      enforcementMeta,
+      classification,
+      // Store lengths only for the two arrays that Stage 3 reads for size.
+      precedents_len: precedents.length,
+      all_precedents_len: (allPrecedents || []).length,
+      analysis,
+      lintViolations,
+      blacklistRetryUsed,
+      blacklistResidualHits,
+    };
+    const ckptWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
+      report_data: { _checkpoint_docs: _ckpt },
+      updated_at: new Date().toISOString(),
+    }, { fn: "run-li-assessment", phase: "checkpoint_docs" });
+    if (!ckptWrite.ok) throw new Error(`checkpoint write failed: ${ckptWrite.message}`);
+    await liaHeartbeat(supabase, assessment_id, "docs_dispatched");
+    const _handoffStart = Date.now();
+    const _inv = await invokeGated("run-li-assessment", { assessment_id, resume_stage: "docs" });
+    if (!_inv.ok) {
+      throw new Error(`docs-resume dispatch failed: status=${_inv.status} err=${(_inv.error ?? _inv.body ?? "").toString().slice(0, 200)}`);
+    }
+    console.log(`[LIA] chunk boundary reached — docs handoff dispatched status=${_inv.status} elapsed=${Date.now() - _handoffStart}ms`);
+    return { handedOff: true };
+
+  } catch (e) {
+    console.error("run-li-assessment error:", e);
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed", last_error: (e instanceof Error ? e.message : String(e)).slice(0, 500) }, { fn: "run-li-assessment", phase: "terminal_error_catch" });
+    throw e;
+  }
+}
+
+// RUNTIME-2 T1 — resumed-isolate entry. Reads the checkpoint written by the
+// initial isolate and runs Stage 3 (documentation recommendations) + final
+// assembly + telemetry. This function owns the terminal write for the row.
+async function runDocsAndFinalize(assessment_id: string, assessment: any): Promise<void> {
+  try {
+    const { data: row, error: fetchErr } = await supabase
+      .from("li_assessments")
+      .select("report_data")
+      .eq("id", assessment_id)
+      .maybeSingle();
+    if (fetchErr) throw fetchErr;
+    const ckpt: any = (row as any)?.report_data?._checkpoint_docs;
+    if (!ckpt || typeof ckpt !== "object") {
+      throw new Error("resume:docs invoked but no _checkpoint_docs found on li_assessments row");
+    }
+
+    const today: string = ckpt.today;
+    const isUk: boolean = !!ckpt.isUk;
+    const gdprJurisdiction: "eu" | "uk" = ckpt.gdprJurisdiction;
+    const engagedFrameworks: string[] = Array.isArray(ckpt.engagedFrameworks) ? ckpt.engagedFrameworks : [];
+    const liaTestStates: any = ckpt.liaTestStates ?? {};
+    const balancingDetails: any = ckpt.balancingDetails ?? {};
+    const precedentContext: string = ckpt.precedentContext ?? "";
+    const gdprMeta: any = ckpt.gdprMeta ?? {};
+    const enforcementPrecedents: any[] = Array.isArray(ckpt.enforcementPrecedents) ? ckpt.enforcementPrecedents : [];
+    const enforcementMeta: any = ckpt.enforcementMeta ?? { attempted: false };
+    const classification: any = ckpt.classification ?? {};
+    const precedents_len: number = Number(ckpt.precedents_len ?? 0);
+    const all_precedents_len: number = Number(ckpt.all_precedents_len ?? 0);
+    const analysis: any = ckpt.analysis ?? {};
+    const lintViolations: any[] = Array.isArray(ckpt.lintViolations) ? ckpt.lintViolations : [];
+    const blacklistRetryUsed: boolean = !!ckpt.blacklistRetryUsed;
+    const blacklistResidualHits: number = Number(ckpt.blacklistResidualHits ?? 0);
+
+    await liaHeartbeat(supabase, assessment_id, "docs_resumed");
+
     // ── STAGE 3: Documentation recommendations ──
     await liaHeartbeat(supabase, assessment_id, "docs");
     const docsSystemBlocks = buildSystemContent({
@@ -1401,14 +1487,15 @@ Return JSON:
       };
     }
 
+    await liaHeartbeat(supabase, assessment_id, "assemble");
 
     // ── ASSEMBLE FINAL REPORT ──
-    const reportData = {
+    const reportData: any = {
       generated_at: new Date().toISOString(),
       assessment_id,
       classification,
-      precedents_reviewed: precedents.length,
-      precedent_database_size: (allPrecedents || []).length,
+      precedents_reviewed: precedents_len,
+      precedent_database_size: all_precedents_len,
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       gdpr_meta: gdprMeta,
@@ -1422,11 +1509,9 @@ Return JSON:
       documentation_recommendations: docRecs,
       disclaimer: "This report helps your organisation identify areas for further review. It does not constitute legal advice. Confirm the specific facts in the record (purpose, necessity, and balancing evidence) before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions; further clarification is advisable.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
-      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2.1-rcb") },
+      _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2.1-rcb"), chunked_generation: true },
     };
 
-    // 2.9 — LIA has no intake_data column; build the guard's intake object
-    // from the row's dedicated columns (never invent an intake_data field).
     const liaIntakeObject: Record<string, unknown> = {
       organization_name: assessment.organization_name,
       subject_anchor: (assessment as any).subject_anchor ?? null,
@@ -1442,9 +1527,6 @@ Return JSON:
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
 
-    // REBUILD-LIA T4 — deterministic post-gen scrub: M1–M11 token → human map,
-    // state-token rewrites, and resolved-source ask strip. Mirrors the
-    // dpia/risk family.
     const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);
     const finalBlacklistHits = detectBlacklistPhrases(reportData).length;
     logPostGenLint(supabase, {
@@ -1457,18 +1539,12 @@ Return JSON:
         ...liaFallback.notes,
         ...(blacklistResidualHits > 0 ? [{ code: "blacklist_residual", detail: String(blacklistResidualHits) }] : []),
         { code: "engaged_frameworks", detail: engagedFrameworks.join(",") || "none" },
+        { code: "chunked_generation", detail: "docs_resumed" },
       ],
       sourceTable: "li_assessments",
       sourceRowId: assessment_id,
     });
 
-
-
-
-
-    // Stage 1: metering + version retention (successful runs only).
-    // Written BEFORE status:complete so that any client observing "complete"
-    // will also see the meter/version rows.
     await recordRunMeterAndVersion(supabase, {
       toolType: "li_assessment",
       assessmentId: assessment_id,
@@ -1484,14 +1560,10 @@ Return JSON:
       updated_at: new Date().toISOString(),
     }, { fn: "run-li-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
-      await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_fallback" });
+      await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed", last_error: `terminal_complete write failed: ${completeWrite.message}`.slice(0, 500) }, { fn: "run-li-assessment", phase: "terminal_fallback" });
     }
 
-    // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
-      // Supply list mirrors what getGdprContext actually injected. Include the
-      // UK-form variant when UK jurisdiction was selected so extracted tokens
-      // like "Article 5 UK GDPR" canonicalise-match the supply.
       const matched: string[] = gdprMeta?.matched_articles ?? [];
       const supplied: string[] = [];
       for (const n of matched) {
@@ -1509,10 +1581,6 @@ Return JSON:
       console.error("[citation-observe] non-fatal:", String(obsErr));
     }
 
-
-
-    // C4 RoPA accumulator: draft a suggested processing activity into the
-    // client's active RoPA session (fire-and-forget, non-fatal).
     if (assessment.client_id) {
       supabase.functions.invoke("accumulate-ropa-activity", {
         body: {
@@ -1527,19 +1595,14 @@ Return JSON:
       }).catch((e: Error) => console.error("[li] accumulate-ropa failed (non-fatal):", e.message));
     }
 
-
-    // Fetch user email for delivery
     const { data: userData } = await supabase.auth.admin.getUserById(
       assessment.user_id
     ).catch(() => ({ data: null as any }));
 
-    // Fire-and-forget upsell signals (non-fatal).
     supabase.functions.invoke('trigger-upsell', {
       body: { tool_type: 'li_assessment', assessment_id, user_id: assessment.user_id },
     }).catch((e: Error) => console.error('[lia] trigger-upsell failed (non-fatal):', e.message));
 
-    // INC-2: generate-report-pdf is verifyCaller-gated → raw fetch (SDK
-    // invoke drops the service-role bearer server-to-server).
     await invokeGated("generate-report-pdf", {
       tool_type: "li_assessment",
       assessment_id,
@@ -1549,11 +1612,11 @@ Return JSON:
     }).then((r) => { if (!r.ok) console.error("[lia] PDF/email delivery failed (non-fatal):", r.status, r.body || r.error); });
 
     return;
-
   } catch (e) {
-    console.error("run-li-assessment error:", e);
-    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "terminal_error_catch" });
+    console.error("run-li-assessment (resume:docs) error:", e);
+    await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed", last_error: (e instanceof Error ? e.message : String(e)).slice(0, 500) }, { fn: "run-li-assessment", phase: "resume_docs_error_catch" });
     throw e;
   }
 }
+
 
