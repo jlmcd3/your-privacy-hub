@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ExternalLink, BarChart3, Bot, Eye, Globe, Landmark, Scale, Star } from 'lucide-react';
+import { ExternalLink, BarChart3, Bot, ChevronDown, Eye, Globe, Landmark, Scale, Star } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
