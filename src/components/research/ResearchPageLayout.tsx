@@ -197,7 +197,7 @@ export function ResearchPageLayout({
               return (
                 <div key={sec.id}>
                   <section id={sec.id} className={`scroll-mt-24 ${idx > 0 ? "pt-10 border-t border-brand-navy/10" : ""}`}>
-                    <h3 className="font-display text-brand-navy mb-4 leading-tight">
+                    <h3 className="font-display text-brand-navy mb-4 leading-tight text-[25px]">
                       <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
                     </h3>
                     {sec.complianceTrigger && (
@@ -205,7 +205,7 @@ export function ResearchPageLayout({
                         <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
                           Compliance trigger
                         </div>
-                        <p className="text-sm text-brand-navy leading-relaxed m-0">
+                        <p className="text-[16px] text-brand-navy leading-relaxed m-0">
                           {sec.complianceTrigger}
                         </p>
                       </div>
@@ -213,7 +213,7 @@ export function ResearchPageLayout({
                     {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
                     {sec.content && (
                       <div
-                        className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal-text [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
+                        className="text-[16px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal-text [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[18px] [&_h3]:md:text-[20px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:pl-5 [&_ol]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_code]:font-mono [&_code]:text-[14px] [&_dl]:grid [&_dl]:grid-cols-[auto_1fr] [&_dl]:gap-x-4 [&_dl]:gap-y-2 [&_dt]:font-mono [&_dt]:text-[14px] [&_dt]:text-brand-navy [&_dd]:m-0 [&_table]:w-full [&_table]:text-[15px] [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
                         dangerouslySetInnerHTML={{ __html: sec.content }}
                       />
                     )}
@@ -221,6 +221,7 @@ export function ResearchPageLayout({
                     {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
                     {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
                   </section>
+
                   {/* Single in-content AdSlot after the first content section (no-rail variant only). */}
                   {idx === 0 && !hasRail && sections.length > 1 && <AdSlot format="in-content" />}
                 </div>
