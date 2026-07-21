@@ -218,6 +218,9 @@ const LIAssessment = () => {
           <div className="mt-4">
             <SampleReportLink toolSlug="li_assessment" tone="onDark" variant="link" />
           </div>
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            GDPR Art. 6(1)(f) · three-part balancing test regulators expect on file before you rely on it
+          </p>
         </div>
       </header>
       <ToolAlsoAvailableRow currentTool="lia" />
