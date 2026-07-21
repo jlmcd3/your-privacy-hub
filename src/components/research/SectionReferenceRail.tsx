@@ -5,7 +5,7 @@
 //
 // Visual styling mirrors StatuteRail so the two patterns feel native together.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, BookOpen, ExternalLink } from "lucide-react";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
@@ -17,9 +17,12 @@ interface Props {
   className?: string;
 }
 
+const DEFAULT_STICKY_TOP = 16; // px
+
 export default function SectionReferenceRail({ entries, sectionIds, className = "" }: Props) {
   const [activeId, setActiveId] = useState<string | null>(sectionIds[0] ?? null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const stickyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const elements = sectionIds
@@ -54,6 +57,30 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [sectionIds.join("|")]);
+
+  // Keep the rail top edge aligned with the active section's heading when that heading
+  // is below the default sticky offset (e.g. the last short section on the page).
+  useEffect(() => {
+    const stickyEl = stickyRef.current;
+    if (!stickyEl || !activeId) return;
+
+    const updateTop = () => {
+      const section = document.getElementById(activeId);
+      const heading = section?.querySelector("h3");
+      if (!heading || !stickyEl) return;
+      const headingTop = heading.getBoundingClientRect().top;
+      const nextTop = Math.max(DEFAULT_STICKY_TOP, headingTop);
+      stickyEl.style.top = `${nextTop}px`;
+    };
+
+    updateTop();
+    window.addEventListener("scroll", updateTop, { passive: true });
+    window.addEventListener("resize", updateTop);
+    return () => {
+      window.removeEventListener("scroll", updateTop);
+      window.removeEventListener("resize", updateTop);
+    };
+  }, [activeId]);
 
   const entry: RailEntry | null = activeId ? entries[activeId] ?? null : null;
 
