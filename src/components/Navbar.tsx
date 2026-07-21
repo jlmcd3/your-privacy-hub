@@ -8,7 +8,7 @@ import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useRegion } from "@/hooks/useRegion";
-import RegionSwitcher from "@/components/RegionSwitcher";
+
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
@@ -717,10 +717,8 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="hidden lg:flex items-center gap-3 flex-1 justify-end">
-          {/* UX-2a — Persistent regional switcher */}
-          <RegionSwitcher />
-
           {/* Always-visible Pricing link */}
+
           <Link
             to="/pricing"
             onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Pricing", cta_position: "top-banner" })}
