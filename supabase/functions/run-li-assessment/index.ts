@@ -617,7 +617,7 @@ Deno.serve(async (req) => {
     // idle-timeout. All client callers (webhook, admin harness, result page)
     // already poll the li_assessments row for status.
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
-    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment, fnRun));
+    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment, fnRun, { resumeStage: resume_stage }));
 
     return new Response(
       JSON.stringify({ success: true, assessment_id, status: "processing" }),
