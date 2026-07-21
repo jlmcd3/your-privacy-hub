@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, Eye, Mail } from 'lucide-react';
+import { ExternalLink, Sparkles, Eye, Mail, Star } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
