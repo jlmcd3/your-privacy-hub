@@ -220,7 +220,7 @@ const DIFFERENTIATORS = [
 type ToolDef = {
   slug: string;
   section: ToolSection;
-  icon: string;
+  icon: React.ReactNode;
   name: string;
   tagline: string;
   href: string;
@@ -233,6 +233,11 @@ type ToolDef = {
   sampleSections: { label: string; content: string }[];
   requirement?: { tier: "required" | "conditional" | "expected" | "supports" | "free"; text: string };
 };
+
+const T_ICON = "w-7 h-7 text-brand-teal";
+const iconEl = (I: React.ComponentType<{ className?: string; strokeWidth?: number; 'aria-hidden'?: 'true' }>) => (
+  <I aria-hidden="true" strokeWidth={1.75} className={T_ICON} />
+);
 
 // ── Tools — ordered by section to match homepage triptych ─────────────────
 const TOOLS: ToolDef[] = [
