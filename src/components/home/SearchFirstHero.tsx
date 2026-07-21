@@ -90,42 +90,44 @@ export default function SearchFirstHero() {
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
                   The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments that satisfy the record — cite-anchored to the final regulations and regulatory commentary.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-1">
-                  <Link
-                    to="/cppa-scope-checker"
-                    className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90"
-                  >
-                    Run the free CPPA Scope Checker →
-                  </Link>
-                  <Link
-                    to="/cppa-risk-assessment"
-                    className="inline-flex items-center justify-center border border-white/40 text-white font-semibold px-6 py-3 rounded-lg no-underline hover:bg-white/10"
-                  >
-                    Start a CPPA Risk Assessment — {CPPA_RISK_PRICE} →
-                  </Link>
-                </div>
+                <div className="inline-flex flex-col items-stretch gap-1">
+                  <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start">
+                    <Link
+                      to="/cppa-scope-checker"
+                      className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90"
+                    >
+                      Run the free CPPA Scope Checker →
+                    </Link>
+                    <Link
+                      to="/cppa-risk-assessment"
+                      className="inline-flex items-center justify-center border border-white/40 text-white font-semibold px-6 py-3 rounded-lg no-underline hover:bg-white/10"
+                    >
+                      Start a CPPA Risk Assessment — {CPPA_RISK_PRICE} →
+                    </Link>
+                  </div>
 
-                {/* US product row — three CPPA tabs, bundle highlighted */}
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl">
-                  {US_PRODUCTS.map((p) => (
-                    <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
-                      <Link
-                        to={p.href}
-                        className={`block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline ${p.bundle ? "border-l-4 border-l-[#C8922A]" : ""}`}
-                      >
-                        <span className="flex items-center justify-between text-sm font-semibold text-white">
-                          <span>{p.title}</span>
-                          {p.bundle && (
-                            <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-brand-navy bg-[#C8922A] px-1.5 py-0.5 rounded">
-                              Full Suite
-                            </span>
-                          )}
-                        </span>
-                        <span className="block text-xs text-blue-100/80">{p.sub}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                  {/* US product row — three CPPA tabs, bundle highlighted */}
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                    {US_PRODUCTS.map((p) => (
+                      <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
+                        <Link
+                          to={p.href}
+                          className={`block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline ${p.bundle ? "border-l-4 border-l-[#C8922A]" : ""}`}
+                        >
+                          <span className="flex items-center justify-between text-sm font-semibold text-white">
+                            <span>{p.title}</span>
+                            {p.bundle && (
+                              <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-brand-navy bg-[#C8922A] px-1.5 py-0.5 rounded">
+                                Full Suite
+                              </span>
+                            )}
+                          </span>
+                          <span className="block text-xs text-blue-100/80">{p.sub}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </>
             )}
           </div>
