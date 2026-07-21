@@ -45,15 +45,15 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
 
   const FEATURES = useMemo(
     () => [
-      { icon: "", label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
+      { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
       {
-        icon: "",
+        icon: <BarChart3 aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
         label: "Comparison Tools",
         desc: usStatesCount > 0
           ? `${usStatesCount} US states and global jurisdictions, side by side`
           : "US states and global jurisdictions, side by side",
       },
-      { icon: "", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
+      { icon: <Globe aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
     ],
     [usStatesCount],
   );
