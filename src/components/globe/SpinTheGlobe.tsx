@@ -404,9 +404,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       reduced = e.matches;
       if (reduced) {
         spinRef.current = 0;
-        applyStaticColors(sf.dim);
-        applyStaticColors(sf.mid);
-        applyStaticColors(sf.bright);
       } else {
         spinRef.current = idleSpinSpeed;
       }
