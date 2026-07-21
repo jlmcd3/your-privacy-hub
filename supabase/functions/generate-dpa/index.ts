@@ -632,11 +632,18 @@ BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Proc
     // mechanism is currently in place and emits a [TO BE COMPLETED: …] placeholder,
     // rather than drafting SCC incorporation.
     const noMechanismYet = body.includeTransferClause && body.transferMechanism === "None in place yet";
+    // PRODUCT-FIX-5 T5(c) — deterministic contradiction directive when the
+    // record's transferMechanism and transferBasis specify different SCC modules.
+    const _contradictionDirective = _moduleContradiction
+      ? ` RECORD CONTRADICTION TO FLAG (deterministic): the record's transfer-mechanism field specifies ${_moduleContradiction.X} while the record's transfer-clause basis specifies ${_moduleContradiction.Y}. The DPA must NOT silently pick one: draft the transfer clause on the module consistent with the instrument's controller-processor relationship per SCC MODULE PINNING, AND flag the contradiction with one advisory sentence in Section 1 (record fact + assumption + canonical close "further clarification is advisable.") plus "[TO BE COMPLETED: confirm the applicable SCC module on the record]" sited in the transfer clause.`
+      : "";
+    // PRODUCT-FIX-5 T5(d) — when includeTransferClause normalizes to false,
+    // replace the empty transferSection with an explicit negative directive.
     const transferSection = body.includeTransferClause
       ? (noMechanismYet
-          ? `10. INTERNATIONAL TRANSFER PROVISIONS — The Parties confirm that no Article 46 GDPR transfer mechanism is currently in place for the transfers contemplated by this DPA. State this fact in operative voice and emit a [TO BE COMPLETED: transfer mechanism to be adopted before transfers occur] placeholder covering (a) the mechanism to be adopted (EU SCCs, UK IDTA / UK Addendum, Binding Corporate Rules, adequacy decision), (b) the effective date, and (c) the execution party. Do NOT draft SCC incorporation language or represent that SCCs apply. The Parties shall not commence any restricted transfer until that placeholder is populated.`
-          : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}`)
-      : "";
+          ? `10. INTERNATIONAL TRANSFER PROVISIONS — The Parties confirm that no Article 46 GDPR transfer mechanism is currently in place for the transfers contemplated by this DPA. State this fact in operative voice and emit a [TO BE COMPLETED: transfer mechanism to be adopted before transfers occur] placeholder covering (a) the mechanism to be adopted (EU SCCs, UK IDTA / UK Addendum, Binding Corporate Rules, adequacy decision), (b) the effective date, and (c) the execution party. Do NOT draft SCC incorporation language or represent that SCCs apply. The Parties shall not commence any restricted transfer until that placeholder is populated.${_contradictionDirective}`
+          : `10. INTERNATIONAL TRANSFER PROVISIONS – mechanism: ${body.transferMechanism}${_contradictionDirective}`)
+      : `10. INTERNATIONAL TRANSFER PROVISIONS — The record does not engage international-transfer provisions. Do NOT draft SCC incorporation language, module references, or transfer-mechanism representations beyond the generic intra-EEA acknowledgment the section template requires.`;
 
     // FF-DPA nd1 — the rendered NOTE FOR LEGAL REVIEW is a customer-facing
     // instrument in professional voice. Machine tokens ("could not map",
