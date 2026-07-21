@@ -553,6 +553,11 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       document.removeEventListener("visibilitychange", onVis);
       if (reducedMq.removeEventListener) reducedMq.removeEventListener("change", onReduced);
       else (reducedMq as any).removeListener?.(onReduced);
+      el.removeEventListener("pointerdown",   onPointerDown);
+      el.removeEventListener("pointermove",   onPointerMove);
+      el.removeEventListener("pointerup",     onPointerUp);
+      el.removeEventListener("pointercancel", onPointerCancel);
+      el.removeEventListener("pointerleave",  onPointerUp);
       for (const g of [sf.dim, sf.mid, sf.bright]) {
         g.points.geometry.dispose();
         (g.points.material as THREE.Material).dispose();
