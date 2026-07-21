@@ -208,6 +208,9 @@ export default function ADMTChecker() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
+  // Update the active rail entry as the user scrolls up/down the form.
+  useScrollActiveRail(setActiveRailKey, [step]);
+
   // Step 1
   const [organizationName, setOrganizationName] = useState("");
   const [systemName, setSystemName] = useState("");
