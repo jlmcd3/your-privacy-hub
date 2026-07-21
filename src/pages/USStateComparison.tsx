@@ -119,16 +119,18 @@ const USStateComparison = () => {
         </div>
 
 
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="cmp-table overflow-x-auto">
-            <table className="w-full border-collapse text-xs">
+        <div className="bg-card border border-border rounded-xl overflow-hidden relative">
+          {/* UX-2c — horizontal-scroll affordance on narrow screens. */}
+          <div className="pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-black/10 to-transparent md:hidden z-20" aria-hidden="true" />
+          <div className="cmp-table overflow-x-auto max-h-[75vh] overflow-y-auto">
+            <table className="w-full border-collapse text-[15px]">
               <thead>
                 <tr className="bg-muted">
-                  <th className="px-3 py-3 text-left font-semibold text-muted-foreground sticky left-0 bg-muted z-10 min-w-[140px]">Provision</th>
+                  <th className="px-3 py-3 text-left font-semibold text-muted-foreground sticky left-0 top-0 bg-muted z-30 min-w-[160px] shadow-[1px_0_0_0_hsl(var(--border))]">Provision</th>
                   {states.map((s) => {
                     const slug = s.name.toLowerCase().replace(/\s+/g, "-");
                     return (
-                      <th key={s.abbr} id={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[56px] scroll-mt-24">
+                      <th key={s.abbr} id={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[64px] scroll-mt-24 sticky top-0 bg-muted z-20">
                         <Link
                           to={`/jurisdiction/${slug}`}
                           aria-label={`View ${s.name} jurisdiction page`}
@@ -151,9 +153,11 @@ const USStateComparison = () => {
                 </tr>
               </thead>
               <tbody>
-                {comparisonData.provisions.map((provision, pi) => (
-                  <tr key={provision} className="border-t border-border hover:bg-muted/50">
-                    <td className="px-3 py-2.5 font-medium text-foreground sticky left-0 bg-card z-10">{provision}</td>
+                {comparisonData.provisions.map((provision, pi) => {
+                  const zebra = pi % 2 === 1 ? "bg-brand-cloud" : "bg-card";
+                  return (
+                  <tr key={provision} className={`border-t border-border hover:bg-muted/50 ${zebra}`}>
+                    <td className={`px-3 py-2.5 text-[15px] font-medium text-foreground sticky left-0 z-10 shadow-[1px_0_0_0_hsl(var(--border))] ${zebra}`}>{provision}</td>
                     {states.map((s) => {
                       const val = s.provisions[pi];
                       const key = `${s.abbr}:${pi}`;
@@ -186,7 +190,7 @@ const USStateComparison = () => {
                       const linkable = mark !== "no" && mark !== "text" && !!statute;
 
                       return (
-                        <td key={s.abbr} className="px-2 py-2.5 text-center border-l border-border">
+                        <td key={s.abbr} className="px-2 py-2.5 text-[15px] text-center border-l border-border">
                           {linkable ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -217,15 +221,20 @@ const USStateComparison = () => {
                       );
                     })}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
+        <p className="text-xs text-muted-foreground mt-4 md:hidden">
+          Scroll horizontally to see every state. The Provision column and header row stay pinned.
+        </p>
         <p className="text-xs text-muted-foreground mt-4">
           Hover or keyboard-focus any <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> checkmark to see the applicable statutory citation. Press Enter or click to open the full statute in a new tab.
         </p>
+
 
         <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
           <div>
