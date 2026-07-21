@@ -82,7 +82,6 @@ export function OGCardTemplate({
       {/* Headline */}
       <foreignObject x={72} y={210} width={1056} height={260}>
         <div
-          xmlns="http://www.w3.org/1999/xhtml"
           style={{
             fontFamily: "'DM Serif Display', Georgia, serif",
             fontSize: 68,
@@ -95,6 +94,7 @@ export function OGCardTemplate({
           {headline}
         </div>
       </foreignObject>
+
 
       {/* Mono statute slot */}
       {statuteCite && (
