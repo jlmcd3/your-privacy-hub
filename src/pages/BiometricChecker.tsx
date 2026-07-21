@@ -32,6 +32,7 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
@@ -91,6 +92,7 @@ export default function BiometricChecker() {
 
   const bioRailEntry: RailEntry | null = bioRailKey ? (BIOMETRIC_RAIL[bioRailKey] ?? null) : null;
   const focusBioRail = (k: string) => setBioRailKey(k);
+  useScrollActiveRail(setBioRailKey);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");

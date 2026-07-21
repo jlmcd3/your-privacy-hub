@@ -21,6 +21,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
@@ -106,6 +107,11 @@ const LIAssessmentIntake = () => {
   const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
     setActiveRailSection(section);
   };
+  useScrollActiveRail((k) => {
+    if (k === "purpose" || k === "necessity" || k === "balancing") {
+      setActiveRailSection(k);
+    }
+  });
 
   const liaEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories"],

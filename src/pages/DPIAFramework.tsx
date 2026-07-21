@@ -34,6 +34,7 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -192,6 +193,15 @@ const DPIAFramework = () => {
     setActiveRailField(null);
     setActiveTemplateRef(sectionRef);
   };
+  useScrollActiveRail((k) => {
+    if (k === "trigger" || k === "legal_basis" || k === "transfers") {
+      setActiveTemplateRef(null);
+      setActiveRailField(k);
+    } else if (EDPB_DPIA_GUIDANCE[k]) {
+      setActiveRailField(null);
+      setActiveTemplateRef(k);
+    }
+  });
   const templateRailEntry = useMemo(() => {
     if (!activeTemplateRef) return null;
     const g = EDPB_DPIA_GUIDANCE[activeTemplateRef];
