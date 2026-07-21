@@ -61,7 +61,7 @@ export default function SearchFirstHero() {
                   GDPR paperwork your DPO can defend.
                 </h2>
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
-                  Legitimate interest assessments, DPIAs, RoPA, and governance reviews — every output calibrated to real EDPB and supervisory-authority enforcement, cite-anchored, and sized so counsel can sign it.
+                  Generate legitimate interest assessments, DPIAs, RoPA entries, and governance reviews — cite-anchored to the GDPR, EDPB guidelines, and supervisory-authority decisions so your counsel can review the source behind every finding.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-6">
                   <Link
