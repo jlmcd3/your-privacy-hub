@@ -152,6 +152,21 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   const targetRotYRef = useRef<number | null>(null);
   const targetRotXRef = useRef<number | null>(null);
 
+  // Pointer-drag + inertia. `dragRef` tracks an in-flight gesture; `inertiaRef`
+  // carries residual angular velocity after release and decays each frame.
+  // `suppressClickRef` swallows the synthetic click that follows a drag so the
+  // gesture doesn't also fire `handleSpin`. `phaseRef` mirrors `phase` for use
+  // inside the scene-effect listener closure (which has no phase dep).
+  const dragRef = useRef<{
+    active: boolean; pointerId: number; lastX: number; lastY: number;
+    startX: number; startY: number; moved: boolean;
+    lastT: number; velY: number; velX: number;
+  }>({ active: false, pointerId: -1, lastX: 0, lastY: 0, startX: 0, startY: 0,
+       moved: false, lastT: 0, velY: 0, velX: 0 });
+  const inertiaRef = useRef<{ vy: number; vx: number }>({ vy: 0, vx: 0 });
+  const suppressClickRef = useRef(false);
+  const phaseRef = useRef<Phase>("idle");
+
   const [phase,  setPhase]  = useState<Phase>("idle");
   const [picked, setPicked] = useState<Jurisdiction | null>(null);
   const [ready,  setReady]  = useState(false);
