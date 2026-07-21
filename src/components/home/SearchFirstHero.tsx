@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
-import { PRICING } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY } from "@/config/pricing";
 import { useRegion } from "@/hooks/useRegion";
 const SpinTheGlobe = lazy(() => import("@/components/globe/SpinTheGlobe"));
 const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackground"));
@@ -15,17 +15,28 @@ const CPPA_CYBER_PRICE = PRICING.tools.cppa_cyber.display; // "$299"
 const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$99"
 const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
 
+// Subscriber prices sourced from PRICING_REGISTRY — never hardcode.
+const LIA_SUB = PRICING_REGISTRY.li_subscriber_v2.displayPrice;             // "$49"
+const DPIA_SUB = PRICING_REGISTRY.dpia_subscriber_v2.displayPrice;          // "$49"
+const GOV_SUB = PRICING_REGISTRY.hc_subscriber_v2.displayPrice;             // "$49"
+const CPPA_ADMT_SUB = PRICING_REGISTRY.cppa_admt_subscriber.displayPrice;   // "$49"
+const CPPA_CYBER_SUB = PRICING_REGISTRY.cppa_cyber_subscriber.displayPrice; // "$169"
+const CPPA_SUITE_SUB = PRICING_REGISTRY.cppa_suite_subscriber.displayPrice; // "$249"
+
+const priceLine = (standalone: string, subscriber: string) =>
+  `${standalone} · ${subscriber} subscriber`;
+
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
-  { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: `3-part LIA · ${LIA_PRICE}` },
-  { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: "EDPB-aligned template" },
-  { href: "/governance-assessment", title: "GDPR Governance Assessment", sub: "Programme health check" },
+  { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: priceLine(LIA_PRICE, LIA_SUB) },
+  { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: priceLine(PRICING.tools.dpia.display, DPIA_SUB) },
+  { href: "/governance-assessment", title: "GDPR Governance Assessment", sub: priceLine(PRICING.tools.governance.display, GOV_SUB) },
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
 ];
 
 const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
-  { href: "/cppa-admt", title: "ADMT Compliance Check", sub: `${CPPA_ADMT_PRICE}` },
-  { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
-  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
+  { href: "/cppa-admt", title: "ADMT Compliance Check", sub: priceLine(CPPA_ADMT_PRICE, CPPA_ADMT_SUB) },
+  { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: priceLine(CPPA_CYBER_PRICE, CPPA_CYBER_SUB) },
+  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${priceLine(CPPA_SUITE_PRICE, CPPA_SUITE_SUB)} · bundle`, bundle: true },
 ];
 
 export default function SearchFirstHero() {
