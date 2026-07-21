@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren, BarChart3, Calendar, ClipboardList, Compass, Eye, FileText, FileSignature, Folder, FolderOpen, Lock, Map, Satellite, Shield, Star, Archive } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +7,8 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { useRegion } from "@/hooks/useRegion";
+import RegionSwitcher from "@/components/RegionSwitcher";
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
