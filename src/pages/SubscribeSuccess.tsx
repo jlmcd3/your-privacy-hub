@@ -87,18 +87,19 @@ export default function SubscribeSuccess() {
     ? "Your client workspace is live. RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are now included — annual Professional plans also get 3 free Smart Tool runs this year (Intelligence annual gets 1)."
     : "Your weekly report is configured. You'll receive your first issue this coming Monday morning.";
 
+  const stepIcon = "w-6 h-6 text-brand-teal";
   const NEXT_STEPS = hasToolAccess
     ? [
-        { icon: "", title: "Use your included tools", body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3." },
-        { icon: "", title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
-        { icon: "", title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
-        { icon: "", title: "Documents saved permanently", body: "Every document you generate stays in your workspace — refresh, revise, or download anytime." },
+        { icon: <Wrench aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Use your included tools", body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3." },
+        { icon: <Target aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
+        { icon: <Mail aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
+        { icon: <Folder aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Documents saved permanently", body: "Every document you generate stays in your workspace — refresh, revise, or download anytime." },
       ]
     : [
-        { icon: "", title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
-        { icon: "", title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
-        { icon: "", title: "Full Enforcement Tracker unlocked", body: "You now have access to every enforcement action in the database — all regulators, all jurisdictions, with fine amounts and legal basis." },
-        { icon: "", title: "Explore jurisdiction profiles worldwide", body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history." },
+        { icon: <Target aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
+        { icon: <Mail aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
+        { icon: <Scale aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Full Enforcement Tracker unlocked", body: "You now have access to every enforcement action in the database — all regulators, all jurisdictions, with fine amounts and legal basis." },
+        { icon: <Globe aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Explore jurisdiction profiles worldwide", body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history." },
       ];
 
   // D2: static status line, no polling.
