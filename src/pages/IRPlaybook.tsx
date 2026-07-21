@@ -175,6 +175,9 @@ export default function IRPlaybook() {
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
           <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
           <div className="mt-4"><SampleReportLink toolSlug="ir_playbook" tone="onDark" variant="link" /></div>
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            GDPR Arts. 33–34 · jurisdiction-specific deadlines, portals, and templates ready when the clock starts
+          </p>
         </div>
       </header>
       <ToolAlsoAvailableRow currentTool="ir_playbook" />

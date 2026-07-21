@@ -490,6 +490,9 @@ const GovernanceAssessment = () => {
               : "Estimated completion time: 10-15 minutes. Sign in to save your completed report to My Reports."}
           </p>
           <div className="mt-4"><SampleReportLink toolSlug="governance" tone="onDark" variant="link" /></div>
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            GDPR Art. 5(2) · documented evidence that you can demonstrate compliance across ten governance domains
+          </p>
         </div>
       </header>
       <ToolAlsoAvailableRow currentTool="governance" />

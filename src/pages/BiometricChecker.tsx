@@ -169,7 +169,11 @@ export default function BiometricChecker() {
             ctaPosition="hero"
             onDark
             pagePath="/biometric-checker"
+            primaryLabel={`Run a Biometric Privacy Assessment — $${pricing.price}`}
           />
+          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
+            740 ILCS 14 (BIPA) · written retention policy and informed written consent before you collect any identifier
+          </p>
         </div>
       </header>
       <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
