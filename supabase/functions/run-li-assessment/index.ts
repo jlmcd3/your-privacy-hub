@@ -634,7 +634,13 @@ Deno.serve(async (req) => {
 // Heavy generation logic (previously inline in Deno.serve). Moved verbatim so
 // it can run under EdgeRuntime.waitUntil after we respond to the caller.
 // ─────────────────────────────────────────────────────────────────────────────
-async function runAssessment(assessment_id: string, assessment: any): Promise<void> {
+async function runAssessment(assessment_id: string, assessment: any, opts?: { resumeStage?: string }): Promise<{ handedOff?: boolean } | void> {
+  // RUNTIME-2 T1: chunk boundary + self-reinvoke/resume. When resume_stage is
+  // set on this invocation, skip Stages 1+2 and pick up from the last completed
+  // chunk recorded in li_assessments.report_data._checkpoint_docs.
+  if (opts?.resumeStage === "docs") {
+    return await runDocsAndFinalize(assessment_id, assessment);
+  }
   try {
 
 
