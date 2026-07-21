@@ -5,6 +5,7 @@
 // Anti-hang law: return 202 immediately, do one bounded unit, persist progress.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -413,6 +414,7 @@ async function runUnit(runId: string) {
       status: "complete",
       run_number: 1,
       mode: "manual",
+      grader_context_version: GRADER_CONTEXT_VERSION, // HOUSEKEEPING-1 T2
     }).select("id").maybeSingle());
     if (qrunErr || !qrun) {
       await log(runId, `${reg.label}: failed to create quality_runs row: ${qrunErr?.message}`, { level: "error", product: next });

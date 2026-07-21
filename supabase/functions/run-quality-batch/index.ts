@@ -2538,6 +2538,7 @@ Deno.serve(async (req) => {
         mode: cfg.runType,
         started_at: new Date().toISOString(),
         last_heartbeat_at: new Date().toISOString(),
+        grader_context_version: GRADER_CONTEXT_VERSION, // HOUSEKEEPING-1 T2
       })
       .select("id, run_number, tool, mode, created_by, status, batch_size")
       .single();

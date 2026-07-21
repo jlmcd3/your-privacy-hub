@@ -164,6 +164,7 @@ export function buildSeedRow(
     started_at: nowIso,
     last_heartbeat_at: nowIso,
     next_doc_index: 0,
+    grader_context_version: GRADER_CONTEXT_VERSION, // HOUSEKEEPING-1 T2
   };
 }
 
