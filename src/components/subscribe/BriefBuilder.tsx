@@ -79,7 +79,7 @@ const FORMATS = [
 type BriefItem = SampleTrackSection & {
   track: string;
   trackLabel: string;
-  trackIcon: string;
+  trackIcon: React.ReactNode;
 };
 
 const JURISDICTION_FALLBACK_NOTE: Record<string, string> = {
