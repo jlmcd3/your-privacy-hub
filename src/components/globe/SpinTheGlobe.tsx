@@ -212,65 +212,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // Atmosphere — single continuous Rayleigh-style falloff shell.
-    // UX-3 follow-up: replaces the previous three-shell stack (Fresnel rim +
-    // two BackSide halos) which read as discrete concentric bands. This is
-    // ONE BackSide sphere with a shader that layers a wide pale-blue inner
-    // glow and a very thin teal outer kiss into a single smooth gradient —
-    // no hard band transitions, palette-consistent, additive.
-    const atmoUniforms = {
-      uCore:  { value: new THREE.Color(0xdfeaff) }, // pale blue-white near silhouette (Rayleigh core)
-      uMid:   { value: new THREE.Color(0x6ea8d8) }, // soft mid-blue
-      uEdge:  { value: new THREE.Color(0x69c9be) }, // brand teal — only at extreme outer edge
-      uInner: { value: 1.0 },   // sphere surface (rim=0 at center of disc, rim=1 at silhouette)
-      uOuter: { value: 1.08 },  // outer feather radius — thinner limb glow
-    };
-    const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.08, 96, 96),
-      new THREE.ShaderMaterial({
-        uniforms: atmoUniforms,
-        vertexShader: `
-          varying vec3 vNormal;
-          varying vec3 vViewDir;
-          void main() {
-            vec4 mv = modelViewMatrix * vec4(position, 1.0);
-            vNormal  = normalize(normalMatrix * normal);
-            vViewDir = normalize(-mv.xyz);
-            gl_Position = projectionMatrix * mv;
-          }
-        `,
-        fragmentShader: `
-          uniform vec3 uCore;
-          uniform vec3 uMid;
-          uniform vec3 uEdge;
-          varying vec3 vNormal;
-          varying vec3 vViewDir;
-          void main() {
-            // rim ~ 1 at silhouette, ~0 head-on. On a BackSide sphere the
-            // visible fragments are all near-silhouette relative to the
-            // globe underneath, giving a natural feathered halo.
-            float ndv = max(dot(vNormal, vViewDir), 0.0);
-            float rim = 1.0 - ndv;
+    // UX-3 follow-up: no separate atmosphere mesh. The lit globe sits
+    // directly against the hero's starfield background; the day/night
+    // terminator and specular ocean highlight provide all the shape cues.
 
-            // Thin, soft pale-blue limb glow — hugs the silhouette tightly.
-            float base = pow(rim, 4.0) * 0.28;
-            // Gentle inner brightening right at the horizon.
-            float core = pow(rim, 6.0) * 0.14;
-            // Barely-there teal tint at the extreme grazing edge.
-            float edge = pow(rim, 10.0) * 0.05;
-
-            vec3 col = uMid * base + uCore * core + uEdge * edge;
-            float a  = clamp(base + core + edge, 0.0, 1.0);
-            gl_FragColor = vec4(col, a);
-          }
-        `,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-      }),
-    );
-    scene.add(atmosphere);
 
     // Latitude/longitude grid lines
     scene.add(new THREE.Mesh(
