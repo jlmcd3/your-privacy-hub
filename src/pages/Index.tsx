@@ -62,8 +62,8 @@ const Index = () => (
             <h3 className="text-brand-navy mb-1">Act</h3>
             <p className="text-sm text-gray-600">
               Run an LIA. Draft a DPA. Generate an IR playbook. Assess
-              your CPPA readiness. Thirteen compliance tools included with
-              Annual Platform, each calibrated to enforcement. Includes 4 generations:
+              GDPR governance, CPPA readiness, or biometric risk. Thirteen compliance tools
+              included with Annual Platform, each calibrated to enforcement. Includes 4 generations:
               your initial report plus up to 3 revisions at no extra cost.
             </p>
           </div>
