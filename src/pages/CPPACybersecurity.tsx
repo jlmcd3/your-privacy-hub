@@ -28,6 +28,7 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import StatuteRail from "@/components/intake/StatuteRail";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
@@ -101,6 +102,9 @@ export default function CPPACybersecurity() {
   const [activeCyberRailKey, setActiveCyberRailKey] = useState<string | null>(null);
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
   const focusRail = (key: string) => setActiveCyberRailKey(key);
+
+  // Update the active rail entry as the user scrolls up/down the form.
+  useScrollActiveRail(setActiveCyberRailKey);
 
   const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
 
@@ -284,7 +288,7 @@ export default function CPPACybersecurity() {
             <Label>Entity name<Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report)</span></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="e.g., Acme Retail, Inc." autoComplete="organization" />
           </div>
-          <div onFocus={() => focusRail('profile_industry')}>
+          <div data-rail-key="profile_industry" onFocus={() => focusRail('profile_industry')}>
             <Label>Industry sector<Req /></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
           </div>
@@ -302,7 +306,7 @@ export default function CPPACybersecurity() {
               <option>NIST CSF</option><option>ISO 27001</option><option>SOC 2</option><option>HITRUST</option><option>PCI DSS</option><option>None / informal</option><option>Other</option>
             </select>
           </div>
-          <div onFocus={() => focusRail('profile_audit')}>
+          <div data-rail-key="profile_audit" onFocus={() => focusRail('profile_audit')}>
             <Label>Last independent security audit<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
               <option value="">Select…</option>
@@ -335,7 +339,7 @@ export default function CPPACybersecurity() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Maturity<Req /></Label>
-                  <select onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
+                  <select data-rail-key={c.key} onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m}>{m}</option>)}
                   </select>

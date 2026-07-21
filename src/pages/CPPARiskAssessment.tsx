@@ -40,6 +40,7 @@ import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 import {
@@ -404,6 +405,9 @@ export default function CPPARiskAssessment() {
     setActiveRiskRailKey(STEP_DEFAULT_RAIL_KEY[step] ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+
+  // Update the active rail entry as the user scrolls up/down the form.
+  useScrollActiveRail(setActiveRiskRailKey, [step]);
 
   const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
 
@@ -822,7 +826,7 @@ export default function CPPARiskAssessment() {
                   autoComplete="organization"
                 />
               </div>
-              <div onFocus={() => focusRail('subject_anchor')}>
+              <div data-rail-key="subject_anchor" onFocus={() => focusRail('subject_anchor')}>
                 <Label htmlFor="subject_anchor">In one line: what processing does this assessment cover? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">
                   Set when you first generate; fixed across your revision runs. The detailed purpose (Step 6) remains editable.
@@ -836,14 +840,14 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                 />
               </div>
-              <div onFocus={() => focusRail('q1_revenue')}><Label>Q1: What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
-              <div onFocus={() => focusRail('q2_consumers')}><Label>Q2: How many California consumers' personal information do you process in a year? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
-              <div onFocus={() => focusRail('q3_sector')}><Label>Q3: What is your primary business sector? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
+              <div data-rail-key="q1_revenue" onFocus={() => focusRail('q1_revenue')}><Label>Q1: What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
+              <div data-rail-key="q2_consumers" onFocus={() => focusRail('q2_consumers')}><Label>Q2: How many California consumers' personal information do you process in a year? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
+              <div data-rail-key="q3_sector" onFocus={() => focusRail('q3_sector')}><Label>Q3: What is your primary business sector? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <select value={q3} onChange={(e) => setQ3(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div onFocus={() => focusRail('q4_pi_categories')}>
+              <div data-rail-key="q4_pi_categories" onFocus={() => focusRail('q4_pi_categories')}>
                 <Label>Q4: Which categories of personal information do you process? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Categories marked <span className="text-red-600 font-semibold">Sensitive</span> trigger additional obligations under Cal. Civ. Code § 1798.140(ae) and will auto-advance Q15.</p>
                 <div className="mt-2">
@@ -860,17 +864,17 @@ export default function CPPARiskAssessment() {
                 </div>
                 {renderAssertion("q4_pi_categories")}
               </div>
-              <div onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
+              <div data-rail-key="q5_sell_share" onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
                 <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={Q5_SELL_SHARE_OPTS} value={q5} onChange={setQ5} /></div>
               </div>
               {q5 && q5 !== "No" && (
-                <div onFocus={() => focusRail('q5c_share_revenue_50pct')}>
+                <div data-rail-key="q5c_share_revenue_50pct" onFocus={() => focusRail('q5c_share_revenue_50pct')}>
                   <Label>Q5c: Does 50% or more of your annual gross revenue derive from selling or sharing personal information? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(C) / 11 CCR § 7120(b)(1))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the covered-business test for the § 7120(b)(1) 50%-revenue prong. Skip if you're unsure or the number isn't material.</p>
                   <div className="mt-2"><Radio name="q5c" options={SHARE_REVENUE_50PCT_OPTS} value={q5cShareRev} onChange={setQ5cShareRev} /></div>
                 </div>
               )}
-              <div onFocus={() => focusRail('q5b_profiling')}>
+              <div data-rail-key="q5b_profiling" onFocus={() => focusRail('q5b_profiling')}>
                 <Label>Q5b: Do you profile consumers based on systematic observation, or based on their presence in a sensitive location? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger from selling/sharing. It covers profiling of applicants, employees, students, or independent contractors through systematic observation (e.g. productivity or location tracking), or profiling based on presence in a sensitive location such as a health-care facility, shelter, place of worship, or domestic-violence services provider.</p>
                 <div className="mt-2"><Radio name="q5b" options={["Yes — systematic observation of workers/students/applicants", "Yes — based on sensitive-location presence", "Both", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
@@ -907,8 +911,8 @@ export default function CPPARiskAssessment() {
               </div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q7: How can consumers request deletion of their personal information? <Req /></Label><DefPopover termKey="right_to_delete" /></div><p className="text-xs text-muted-foreground mt-1">Describe the deletion request path and how you confirm it's done.</p><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q8: How can consumers request correction of inaccurate personal information? <Req /></Label><DefPopover termKey="right_to_correct" /></div><p className="text-xs text-muted-foreground mt-1">How a consumer flags an error and how you correct it.</p><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
-              <div onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">A "Do Not Sell or Share" link is required if you sell or share PI.</p><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
-              <div onFocus={() => focusRail('q10_verification')}><Label>Q10: How do you verify the identity of consumers who submit rights requests? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><p className="text-xs text-muted-foreground mt-1">The process you use to confirm a requester is who they claim to be.</p><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
+              <div data-rail-key="q9_opt_out" onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">A "Do Not Sell or Share" link is required if you sell or share PI.</p><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
+              <div data-rail-key="q10_verification" onFocus={() => focusRail('q10_verification')}><Label>Q10: How do you verify the identity of consumers who submit rights requests? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><p className="text-xs text-muted-foreground mt-1">The process you use to confirm a requester is who they claim to be.</p><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
             </>
           )}
 
@@ -929,9 +933,9 @@ export default function CPPARiskAssessment() {
               <h2>Step 4: Sensitive Personal Information</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5) — sensitive PI definition and obligations</p>
               <RequiredLegend />
-              <div onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more — see the definition.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
+              <div data-rail-key="q15_sensitive_pi" onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more — see the definition.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
-                <div onFocus={() => focusRail('q15c_spi_volume')}>
+                <div data-rail-key="q15c_spi_volume" onFocus={() => focusRail('q15c_spi_volume')}>
                   <Label>Q15c: For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the § 7120(b)(2)(B) SPI-volume cyber-audit prong. Give your best estimate for the distinct California residents whose SPI you process in a year.</p>
                   <div className="mt-2"><Radio name="q15c" options={SPI_VOLUME_OPTS} value={q15cSpiVolume} onChange={setQ15cSpiVolume} /></div>
@@ -939,7 +943,7 @@ export default function CPPARiskAssessment() {
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>Q17: What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
               </>)}
-              <div onFocus={() => focusRail('q15b_under16')}>
+              <div data-rail-key="q15b_under16" onFocus={() => focusRail('q15b_under16')}>
                 <Label>Q15b: Do you have actual knowledge that you process the personal information of consumers under 16? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Under the 2026 regulations, <span className="font-medium">all</span> personal information of a consumer under 16 is sensitive personal information where the business has actual knowledge of the age. Requesting age at sign-up, or willfully disregarding age, counts as actual knowledge — and pulls this processing into the sensitive-PI rules.</p>
                 <div className="mt-2"><Radio name="q15b" options={["Yes — we knowingly process under-16 data", "No — we do not knowingly process under-16 data", "Unsure"]} value={q15bUnder16} onChange={setQ15bUnder16} /></div>
@@ -952,7 +956,7 @@ export default function CPPARiskAssessment() {
               <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5: Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3), 7150(b)(6) — ADMT definition and risk assessment triggers</p>
               <RequiredLegend />
-              <div onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              <div data-rail-key="q18_admt" onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
                   <div className="mt-2"><AssistedInput
@@ -969,7 +973,7 @@ export default function CPPARiskAssessment() {
               {q18 === "Yes" && (
                 <div><Label>Q20: Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div>{renderAssertion("q20_admt_opt_out")}</div>
               )}
-              <div onFocus={() => focusRail('q18b_admt_training')}>
+              <div data-rail-key="q18b_admt_training" onFocus={() => focusRail('q18b_admt_training')}>
                 <Label>Q21: Do you process personal information to train ADMT, facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification technology? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers — for example, building or fine-tuning a facial-recognition or biometric model on collected data.</p>
                 <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial/emotion/biometric recognition", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
@@ -987,7 +991,7 @@ export default function CPPARiskAssessment() {
                 These questions feed § 7152(a)(1)–(9) Part A and the § 7157 Annual Submission Worksheet. Fields left blank in the generated report will be marked as fill-ins for your team to complete in the review pane before executive sign-off.
               </p>
 
-              <div onFocus={() => focusRail('i1_purpose')}>
+              <div data-rail-key="i1_purpose" onFocus={() => focusRail('i1_purpose')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1: What is the specific purpose of this processing activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label><StatutePopover term="I-1 · Specific purpose" summary="The assessment must state the specific purpose of the processing; generic purposes such as 'improving services' are insufficient." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Describe what you do with the personal information, who it relates to, and what business outcome it supports. Avoid generic phrases such as "improve services," "for security purposes," "analytics," or "as described in our privacy policy" — these will be flagged by the validator.
@@ -1002,14 +1006,14 @@ export default function CPPARiskAssessment() {
                 <FscrCallout citation="11 CCR § 7152(a)(1)" callouts={fscrCallouts} />
               </div>
 
-              <div onFocus={() => focusRail('i1b_min_pi')}>
+              <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1b: What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="I-1b · Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
                 {renderAssertion("i1b_min_pi")}
               </div>
 
-              <div onFocus={() => focusRail('i2_retention')}>
+              <div data-rail-key="i2_retention" onFocus={() => focusRail('i2_retention')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-2: How long will you keep this data, and how is that period set? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="I-2 · Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
@@ -1047,7 +1051,7 @@ export default function CPPARiskAssessment() {
                   {CPPA_EXCEPTIONS.map((ex) => {
                     const cur: ExceptionClaim = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "", authority_basis: "", retention_period: "" };
                     return (
-                      <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
+                      <div key={ex.key} className="rounded border p-3" data-rail-key={ex.railKey} onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
                         <label className="flex items-start gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -1104,7 +1108,7 @@ export default function CPPARiskAssessment() {
                 {renderAssertion("i4_disclosure_mechanisms")}
               </div>
 
-              <div onFocus={() => focusRail('i4b_sources')}>
+              <div data-rail-key="i4b_sources" onFocus={() => focusRail('i4b_sources')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-4b: Where does this personal information come from? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="I-4b · Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Identify each source: collected directly from the consumer, passively observed from their activity, generated/inferred by you, or obtained from third parties (data brokers, advertising or analytics partners, affiliates, public records). Note which categories come from which source.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i4bSources} onChange={setI4bSources} placeholder='E.g. "Contact + account data: directly from consumer at sign-up. Device + activity: observed in-app. Geolocation: derived from IP. Audience segments: appended from ad partner X."' />
@@ -1113,7 +1117,7 @@ export default function CPPARiskAssessment() {
 
 
               {admtTriggered && (
-                <div onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
+                <div data-rail-key="i5_admt" onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
                   <Label className="font-semibold">I-5: ADMT specifics (required because you indicated ADMT use) <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1190,7 +1194,7 @@ export default function CPPARiskAssessment() {
               )}
 
               <div>
-                <div className="inline-flex items-center gap-1.5 flex-wrap" onFocus={() => focusRail('i6_recipients')}><Label>I-6: Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap" data-rail-key="i6_recipients" onFocus={() => focusRail('i6_recipients')}><Label>I-6: Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share.</p>
                 <ExhibitTextarea
                   className="mt-2"
@@ -1263,7 +1267,7 @@ export default function CPPARiskAssessment() {
                 Required by § 7157(b)(1) for the annual submission to the CPPA. The CPPA may contact this person about the filing.
               </p>
 
-              <div onFocus={() => focusRail('i9_dpia')}>
+              <div data-rail-key="i9_dpia" onFocus={() => focusRail('i9_dpia')}>
                 <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">If a GDPR DPIA exists, we'll map what it already covers.</p><div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
                 <FscrCallout citation="11 CCR § 7156(b)" callouts={fscrCallouts} />
@@ -1294,7 +1298,7 @@ export default function CPPARiskAssessment() {
                     <Label>Severity of harm if it occurs</Label>
                     <div className="mt-2"><Radio name="impact_severity" options={IMPACT_SEVERITY_OPTS} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
                   </div>
-                  <div onFocus={() => focusRail('impact_harm_causes')}>
+                  <div data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
                     <Label>Types of harm that could result <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(5))</span></Label>
                     <div className="mt-2"><Pills options={HARM_TYPES} value={impactData.harmTypes} onChange={(v) => setImpactData((d) => ({ ...d, harmTypes: v }))} /></div>
                     <p className="text-xs text-muted-foreground mt-2">For the harms selected above, describe their <span className="font-medium">sources and causes</span> — what about this processing creates each harm. § 7152(a)(5) requires the assessment to identify the sources and causes of negative impacts, not just the harms.</p>
@@ -1304,7 +1308,7 @@ export default function CPPARiskAssessment() {
                     <Label>Vulnerable populations affected (if any)</Label>
                     <Textarea className="mt-2" rows={2} value={impactData.vulnerable} onChange={(e) => setImpactData((d) => ({ ...d, vulnerable: e.target.value }))} placeholder="e.g. minors, patients, employees, protected classes — and how they are affected." />
                   </div>
-                  <div onFocus={() => focusRail('impact_benefits')}>
+                  <div data-rail-key="impact_benefits" onFocus={() => focusRail('impact_benefits')}>
                     <Label>Benefits of this processing <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(4))</span></Label>
                     <p className="text-xs text-muted-foreground mt-1">§ 7152(a)(4) requires the benefits to be identified <span className="font-medium">specifically</span> for each group — generic descriptions are not permitted. Complete each that applies.</p>
                     <div className="mt-2 space-y-2">
@@ -1313,12 +1317,12 @@ export default function CPPARiskAssessment() {
                       <Textarea rows={2} value={impactData.stakeholderBenefits} onChange={(e) => setImpactData((d) => ({ ...d, stakeholderBenefits: e.target.value }))} placeholder="Benefit to other stakeholders or the public, if any (optional)." />
                     </div>
                   </div>
-                  <div onFocus={() => focusRail('impact_safeguards')}>
+                  <div data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
                     <Label>Safeguards planned to address these harms <span className="text-xs text-muted-foreground font-mono">(§ 7152(a))</span></Label>
                     <p className="text-xs text-muted-foreground mt-1">Identify the safeguards you have or plan to put in place to reduce the negative impacts above — for example encryption, access controls, data minimisation at point of transfer, contractual restrictions on recipients, privacy-enhancing technologies, or de-identification. This is a required element; leaving it blank produces a fill-in in the report.</p>
                     <Textarea className="mt-2" rows={3} value={impactData.safeguards} onChange={(e) => setImpactData((d) => ({ ...d, safeguards: e.target.value }))} placeholder='E.g. "Contractual use-restrictions + data-processing agreements with ad partners; IP truncation before transfer; SSP opt-out signal propagation; SOC 2 access controls."' />
                   </div>
-                  <div onFocus={() => focusRail('impact_benefits')}>
+                  <div data-rail-key="impact_benefits" onFocus={() => focusRail('impact_benefits')}>
                     <Label>Do the benefits of this processing outweigh the risks to consumers?</Label>
                     <div className="mt-2"><Radio name="impact_benefits" options={IMPACT_BENEFITS_OUTWEIGH_OPTS} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
                     <Textarea className="mt-2" rows={3} value={impactData.benefitsRationale} onChange={(e) => setImpactData((d) => ({ ...d, benefitsRationale: e.target.value }))} placeholder="Rationale (§ 7152(a)(4)): explain how the specific benefits weigh against the specific harms above." />

@@ -40,6 +40,7 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
 import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
@@ -206,6 +207,9 @@ export default function ADMTChecker() {
     setActiveRailKey(STEP_DEFAULT_RAIL_KEY[step] ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+
+  // Update the active rail entry as the user scrolls up/down the form.
+  useScrollActiveRail(setActiveRailKey, [step]);
 
   // Step 1
   const [organizationName, setOrganizationName] = useState("");
@@ -677,14 +681,14 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("scope_does_business_use_admt")}>
+                    <Label data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}>
                       System name <Req />
                     </Label>
                     <input
                       className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                       value={systemName}
                       onChange={(e) => setSystemName(e.target.value)}
-                      onFocus={() => focus("scope_does_business_use_admt")}
+                      data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
                       placeholder="e.g. Loan Approval Engine, Resume Screening Tool, Fraud Score Model"
                     />
                   </div>
@@ -700,7 +704,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("scope_does_business_use_admt")}>
+                    <Label data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}>
                       What does this system decide, and how? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -711,7 +715,7 @@ export default function ADMTChecker() {
                       rows={4}
                       value={systemDescription}
                       onChange={(e) => setSystemDescription(e.target.value)}
-                      onFocus={() => focus("scope_does_business_use_admt")}
+                      data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
                       placeholder='e.g. "A gradient-boosted model that scores loan applications 0–100 based on credit history, income, and debt ratio. Scores below 40 are automatically declined without human review."'
                     />
                   </div>
@@ -748,7 +752,7 @@ export default function ADMTChecker() {
                   </div>
 
                   {thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && (
-                    <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_does_business_use_admt")}>
+                    <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}>
                       <p className="text-[11px] italic text-muted-foreground">You're seeing this because you listed a third-party ADMT system above.</p>
                       <p className="text-[12px] font-semibold">Vendor / downstream-recipient detail</p>
                       <p className="text-[12px] text-muted-foreground">You remain the CCPA-responsible "business." If a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply all facts you need for your own risk assessment (§ 7150(b)(6) / § 7153).</p>
@@ -807,7 +811,7 @@ export default function ADMTChecker() {
 
 
                   <div>
-                    <Label onFocus={() => focus("scope_significant_decision_domain")}>
+                    <Label data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
                       What significant decision(s) does this system make or materially contribute to? <DefPopover termKey="significant_decision" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">Select all that apply — or none, if this system only affects advertising or ordinary profiling. <span className="font-medium text-foreground">Why we ask:</span> only these specific decisions trigger the ADMT rules; advertising is expressly excluded.</p>
@@ -816,7 +820,7 @@ export default function ADMTChecker() {
                         options={SIGNIFICANT_DECISION_DOMAINS}
                         value={decisionDomains}
                         onChange={setDecisionDomains}
-                        onFocus={() => focus("scope_significant_decision_domain")}
+                        data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}
                       />
                     </div>
                     <textarea
@@ -824,12 +828,12 @@ export default function ADMTChecker() {
                       rows={2}
                       value={adv.decision_domains_other || ""}
                       onChange={(e) => setA("decision_domains_other", e.target.value)}
-                      onFocus={() => focus("scope_significant_decision_domain")}
+                      data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}
                       placeholder="Optional: a significant decision not listed above — describe it, and we'll assess whether it qualifies under § 7001(ddd)."
                     />
                   </div>
 
-                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_significant_decision_domain")}>
+                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
                     <p className="text-[12px] font-semibold">System &amp; decision detail (optional)</p>
                     <p className="text-[12px] text-muted-foreground">Helps an auditor identify the exact system and decision under review, and shapes the access-response analysis.</p>
                     <div>
@@ -874,7 +878,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("scope_human_involvement")}>
+                    <Label data-rail-key="scope_human_involvement" onFocus={() => focus("scope_human_involvement")}>
                       Human review of system outputs <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -886,12 +890,12 @@ export default function ADMTChecker() {
                         options={HUMAN_REVIEW_OPTIONS}
                         value={humanReview}
                         onChange={setHumanReview}
-                        onFocus={() => focus("scope_human_involvement")}
+                        data-rail-key="scope_human_involvement" onFocus={() => focus("scope_human_involvement")}
                       />
                     </div>
                   </div>
 
-                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_human_involvement")}>
+                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="scope_human_involvement" onFocus={() => focus("scope_human_involvement")}>
                     <p className="text-[11px] italic text-muted-foreground">You're seeing this because how much a human is involved decides whether the law applies at all — it's worth a moment.</p>
                     <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
                     <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
@@ -960,7 +964,7 @@ export default function ADMTChecker() {
                             options={["Yes", "No"]}
                             value={trainingDataUse}
                             onChange={setTrainingDataUse}
-                            onFocus={() => focus("scope_does_business_use_admt")}
+                            data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
                           />
                         </div>
                       </div>
@@ -972,7 +976,7 @@ export default function ADMTChecker() {
                             options={["Yes", "No"]}
                             value={profilingUse}
                             onChange={setProfilingUse}
-                            onFocus={() => focus("scope_does_business_use_admt")}
+                            data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
                           />
                         </div>
                       </div>
@@ -992,7 +996,7 @@ export default function ADMTChecker() {
                   </p>
 
                   <div>
-                    <Label onFocus={() => focus("notice_timing")}>
+                    <Label data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}>
                       How do you deliver the Pre-use Notice to consumers? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">Select all methods used.</p>
@@ -1001,13 +1005,13 @@ export default function ADMTChecker() {
                         options={NOTICE_DELIVERY_OPTIONS}
                         value={noticeDelivery}
                         onChange={setNoticeDelivery}
-                        onFocus={() => focus("notice_timing")}
+                        data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("notice_specific_purpose")}>
+                    <Label data-rail-key="notice_specific_purpose" onFocus={() => focus("notice_specific_purpose")}>
                       Does your Pre-use Notice state the specific purpose for ADMT use in plain language? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1019,7 +1023,7 @@ export default function ADMTChecker() {
                         options={["Yes", "No — uses generic language", "We have not yet created a Pre-use Notice"]}
                         value={noticeHasSpecificPurpose}
                         onChange={setNoticeHasSpecificPurpose}
-                        onFocus={() => focus("notice_specific_purpose")}
+                        data-rail-key="notice_specific_purpose" onFocus={() => focus("notice_specific_purpose")}
                       />
                     </div>
                     {noticeHasSpecificPurpose === "Yes" && (
@@ -1030,7 +1034,7 @@ export default function ADMTChecker() {
                           rows={3}
                           value={noticePurposeText}
                           onChange={(e) => setNoticePurposeText(e.target.value)}
-                          onFocus={() => focus("notice_specific_purpose")}
+                          data-rail-key="notice_specific_purpose" onFocus={() => focus("notice_specific_purpose")}
                           placeholder="Paste the exact text from your Pre-use Notice here…"
                         />
                       </div>
@@ -1038,7 +1042,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("notice_opt_out_description")}>
+                    <Label data-rail-key="notice_opt_out_description" onFocus={() => focus("notice_opt_out_description")}>
                       Does your notice describe the consumer's right to opt out and how to submit a request? <Req />
                     </Label>
                     <div className="mt-2">
@@ -1047,13 +1051,13 @@ export default function ADMTChecker() {
                         options={["Yes — with specific opt-out instructions", "Mentions opt-out but without clear instructions", "No", "We rely on an exception and describe appeal rights instead"]}
                         value={noticeHasOptOutDesc}
                         onChange={setNoticeHasOptOutDesc}
-                        onFocus={() => focus("notice_opt_out_description")}
+                        data-rail-key="notice_opt_out_description" onFocus={() => focus("notice_opt_out_description")}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("notice_access_right_description")}>
+                    <Label data-rail-key="notice_access_right_description" onFocus={() => focus("notice_access_right_description")}>
                       Does your notice describe the consumer's right to access ADMT information and how to submit a request? <Req />
                     </Label>
                     <div className="mt-2">
@@ -1062,13 +1066,13 @@ export default function ADMTChecker() {
                         options={["Yes", "No", "Not yet"]}
                         value={noticeHasAccessDesc}
                         onChange={setNoticeHasAccessDesc}
-                        onFocus={() => focus("notice_access_right_description")}
+                        data-rail-key="notice_access_right_description" onFocus={() => focus("notice_access_right_description")}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("notice_anti_retaliation")}>
+                    <Label data-rail-key="notice_anti_retaliation" onFocus={() => focus("notice_anti_retaliation")}>
                       Does your notice state that the business is prohibited from retaliating against consumers for exercising CCPA rights? <Req />
                     </Label>
                     <div className="mt-2">
@@ -1077,13 +1081,13 @@ export default function ADMTChecker() {
                         options={["Yes", "No", "Not yet"]}
                         value={noticeHasAntiRetaliation}
                         onChange={setNoticeHasAntiRetaliation}
-                        onFocus={() => focus("notice_anti_retaliation")}
+                        data-rail-key="notice_anti_retaliation" onFocus={() => focus("notice_anti_retaliation")}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("notice_how_admt_works")}>
+                    <Label data-rail-key="notice_how_admt_works" onFocus={() => focus("notice_how_admt_works")}>
                       Does your notice include additional information about how the ADMT works? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1101,13 +1105,13 @@ export default function ADMTChecker() {
                         ]}
                         value={noticeHasHowItWorks}
                         onChange={setNoticeHasHowItWorks}
-                        onFocus={() => focus("notice_how_admt_works")}
+                        data-rail-key="notice_how_admt_works" onFocus={() => focus("notice_how_admt_works")}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("notice_how_admt_works")}>
+                    <Label data-rail-key="notice_how_admt_works" onFocus={() => focus("notice_how_admt_works")}>
                       Does the notice describe what happens to consumers who opt out — the alternative decision-making process?
                     </Label>
                     <div className="mt-2">
@@ -1116,7 +1120,7 @@ export default function ADMTChecker() {
                         options={["Yes", "No", "Not applicable — we rely on an opt-out exception"]}
                         value={noticeHasAlternativeProcess}
                         onChange={setNoticeHasAlternativeProcess}
-                        onFocus={() => focus("notice_how_admt_works")}
+                        data-rail-key="notice_how_admt_works" onFocus={() => focus("notice_how_admt_works")}
                       />
                     </div>
                   </div>
@@ -1131,7 +1135,7 @@ export default function ADMTChecker() {
                   <RequiredLegend />
 
                   <div>
-                    <Label onFocus={() => focus("optout_exception_human_appeal")}>
+                    <Label data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}>
                       Are you providing a full opt-out right, or relying on an exception? <DefPopover termKey="admt_opt_out" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Why we ask:</span> the opt-out only has to be honored if no exception applies — this tells us which path (full opt-out vs. exception) the rest of this step follows.</p>
@@ -1142,7 +1146,7 @@ export default function ADMTChecker() {
                         onChange={setOptOutException}
                         otherText={adv.opt_out_exception_other || ""}
                         onOtherText={(v) => setA("opt_out_exception_other", v)}
-                        onFocus={() => focus("optout_exception_human_appeal")}
+                        data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}
                         placeholder="Describe your opt-out approach or the exception you rely on, in your own words — we'll assess whether it qualifies."
                       />
                     </div>
@@ -1162,7 +1166,7 @@ export default function ADMTChecker() {
                         rows={4}
                         value={optOutAppealProcess}
                         onChange={(e) => setOptOutAppealProcess(e.target.value)}
-                        onFocus={() => focus("optout_exception_human_appeal")}
+                        data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}
                         placeholder="Who is the designated reviewer? What is their title and training? How does the consumer submit an appeal? What information can the consumer provide? What is the decision timeline? Can the reviewer change the decision?"
                       />
                       <div className="mt-4 space-y-3 border-t pt-3">
@@ -1240,7 +1244,7 @@ export default function ADMTChecker() {
                   {provideOptOut && (
                     <>
                       <div>
-                        <Label onFocus={() => focus("optout_methods")}>
+                        <Label data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}>
                           Opt-out submission methods provided <Req />
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1251,7 +1255,7 @@ export default function ADMTChecker() {
                             options={OPT_OUT_METHODS}
                             value={optOutMethods}
                             onChange={setOptOutMethods}
-                            onFocus={() => focus("optout_methods")}
+                            data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}
                           />
                         </div>
                         {optOutMethods.length > 0 && optOutMethods.length < 2 && (
@@ -1263,7 +1267,7 @@ export default function ADMTChecker() {
 
                       {optOutMethods.includes("Interactive online form linked from the Pre-use Notice") && (
                         <div>
-                          <Label onFocus={() => focus("optout_methods")}>
+                          <Label data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}>
                             Opt-out link title (as it appears in your Pre-use Notice) <Req />
                           </Label>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -1273,14 +1277,14 @@ export default function ADMTChecker() {
                             className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                             value={optOutLinkTitle}
                             onChange={(e) => setOptOutLinkTitle(e.target.value)}
-                            onFocus={() => focus("optout_methods")}
+                            data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}
                             placeholder='e.g. "Opt-out of Automated Decisionmaking Technology"'
                           />
                         </div>
                       )}
 
                       <div>
-                        <Label onFocus={() => focus("optout_timing_response")}>
+                        <Label data-rail-key="optout_timing_response" onFocus={() => focus("optout_timing_response")}>
                           Opt-out confirmation mechanism <Req />
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1290,7 +1294,7 @@ export default function ADMTChecker() {
                           className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                           value={optOutConfirmationMechanism}
                           onChange={(e) => setOptOutConfirmationMechanism(e.target.value)}
-                          onFocus={() => focus("optout_timing_response")}
+                          data-rail-key="optout_timing_response" onFocus={() => focus("optout_timing_response")}
                           placeholder="e.g. Confirmation email sent within 24 hours; status page in account settings"
                         />
                       </div>
@@ -1325,7 +1329,7 @@ export default function ADMTChecker() {
                               options={["Confirmed — we provide at least one ADMT-specific opt-out method in addition", "Cookie banner is currently our only method (gap)"]}
                               value={optOutNoCookieBanner}
                               onChange={setOptOutNoCookieBanner}
-                              onFocus={() => focus("optout_methods")}
+                              data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}
                             />
                           </div>
                         </div>
@@ -1337,7 +1341,7 @@ export default function ADMTChecker() {
                               options={["Confirmed — no account required", "Account is currently required (gap)"]}
                               value={optOutNoAccountRequired}
                               onChange={setOptOutNoAccountRequired}
-                              onFocus={() => focus("optout_methods")}
+                              data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}
                             />
                           </div>
                         </div>
@@ -1358,7 +1362,7 @@ export default function ADMTChecker() {
                   </p>
 
                   <div>
-                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       Submission methods for access requests <DefPopover termKey="admt_access_right" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1375,7 +1379,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("access_verification")}>
+                    <Label data-rail-key="access_verification" onFocus={() => focus("access_verification")}>
                       Identity verification process for access requests <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1392,7 +1396,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       What ADMT logic information do you disclose in your access responses? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1403,13 +1407,13 @@ export default function ADMTChecker() {
                       rows={3}
                       value={accessLogicDisclosure}
                       onChange={(e) => setAccessLogicDisclosure(e.target.value)}
-                      onFocus={() => focus("access_logic_disclosure")}
+                      data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
                       placeholder="e.g. We disclose: the input features used (credit score, income, DTI ratio); the model's output score for the consumer; the score threshold applied; we do not disclose model weights (trade secret)"
                     />
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("access_outcome_disclosure")}>
+                    <Label data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}>
                       What decision outcome information do you disclose in your access responses? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1420,13 +1424,13 @@ export default function ADMTChecker() {
                       rows={3}
                       value={accessOutcomeDisclosure}
                       onChange={(e) => setAccessOutcomeDisclosure(e.target.value)}
-                      onFocus={() => focus("access_outcome_disclosure")}
+                      data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}
                       placeholder="e.g. We disclose: whether the score was the sole factor or combined with underwriter review; the decision outcome (approved/declined); if declined, which factor(s) were primary"
                     />
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       Response timeline for access requests <Req />
                     </Label>
                     <div className="mt-2">
@@ -1439,7 +1443,7 @@ export default function ADMTChecker() {
                         ]}
                         value={accessResponseTimeline}
                         onChange={setAccessResponseTimeline}
-                        onFocus={() => focus("access_logic_disclosure")}
+                        data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
                       />
                     </div>
                   </div>
@@ -1447,7 +1451,7 @@ export default function ADMTChecker() {
                   {/* prior_access_requests_12mo question removed (RC-P6): § 7222(j) threshold applies at framework level and is now framed as a monitoring threshold in the report, not conditioned on a per-consumer count. */}
 
                   <div>
-                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       Trade secret and security information policy (optional but recommended)
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1458,22 +1462,22 @@ export default function ADMTChecker() {
                       rows={2}
                       value={accessTradeSecretPolicy}
                       onChange={(e) => setAccessTradeSecretPolicy(e.target.value)}
-                      onFocus={() => focus("access_logic_disclosure")}
+                      data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
                       placeholder="e.g. We withhold: model architecture and weights (trade secret per Civil Code § 3426.1(d)); fraud detection rule thresholds (security per § 7222(c)(2)(B))"
                     />
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       How do you securely transmit the access response? (optional)
                     </Label>
                     <div className="mt-2">
-                      <Radio name="access_secure_tx" options={["Encrypted self-service portal", "Encrypted email", "Postal mail", "Not yet defined"]} value={adv.access_secure_transmission || ""} onChange={(v) => setA("access_secure_transmission", v)} onFocus={() => focus("access_logic_disclosure")} />
+                      <Radio name="access_secure_tx" options={["Encrypted self-service portal", "Encrypted email", "Postal mail", "Not yet defined"]} value={adv.access_secure_transmission || ""} onChange={(v) => setA("access_secure_transmission", v)} data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")} />
                     </div>
                   </div>
 
                   <div>
-                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       If you would partially or fully deny an access request, on what basis? (optional)
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
