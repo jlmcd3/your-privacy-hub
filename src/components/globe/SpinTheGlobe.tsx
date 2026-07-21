@@ -212,21 +212,23 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // Atmosphere — Fresnel rim glow (teal-tinted, palette-consistent #69c9be).
-    // Replaces the previous constant-opacity BackSide shell. Uses view-angle
-    // falloff so the rim is bright at the silhouette and fades to zero across
-    // the disc, which reads as an atmospheric halo rather than a flat ring.
-    const fresnelUniforms = {
-      uColorInner: { value: new THREE.Color(0x69c9be) }, // brand teal (accents)
-      uColorOuter: { value: new THREE.Color(0x2a6bbf) }, // cool blue outer
-      uPower:      { value: 5.5 },
-      uIntensity:  { value: 0.55 },
+    // Atmosphere — single continuous Rayleigh-style falloff shell.
+    // UX-3 follow-up: replaces the previous three-shell stack (Fresnel rim +
+    // two BackSide halos) which read as discrete concentric bands. This is
+    // ONE BackSide sphere with a shader that layers a wide pale-blue inner
+    // glow and a very thin teal outer kiss into a single smooth gradient —
+    // no hard band transitions, palette-consistent, additive.
+    const atmoUniforms = {
+      uCore:  { value: new THREE.Color(0xdfeaff) }, // pale blue-white near silhouette (Rayleigh core)
+      uMid:   { value: new THREE.Color(0x6ea8d8) }, // soft mid-blue
+      uEdge:  { value: new THREE.Color(0x69c9be) }, // brand teal — only at extreme outer edge
+      uInner: { value: 1.0 },   // sphere surface (rim=0 at center of disc, rim=1 at silhouette)
+      uOuter: { value: 1.22 },  // outer feather radius
     };
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.045, 96, 96),
-
+      new THREE.SphereGeometry(1.22, 96, 96),
       new THREE.ShaderMaterial({
-        uniforms: fresnelUniforms,
+        uniforms: atmoUniforms,
         vertexShader: `
           varying vec3 vNormal;
           varying vec3 vViewDir;
@@ -238,16 +240,28 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           }
         `,
         fragmentShader: `
-          uniform vec3  uColorInner;
-          uniform vec3  uColorOuter;
-          uniform float uPower;
-          uniform float uIntensity;
+          uniform vec3 uCore;
+          uniform vec3 uMid;
+          uniform vec3 uEdge;
           varying vec3 vNormal;
           varying vec3 vViewDir;
           void main() {
-            float rim = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), uPower);
-            vec3 col  = mix(uColorOuter, uColorInner, rim);
-            gl_FragColor = vec4(col * uIntensity, rim);
+            // rim ~ 1 at silhouette, ~0 head-on. On a BackSide sphere the
+            // visible fragments are all near-silhouette relative to the
+            // globe underneath, giving a natural feathered halo.
+            float ndv = max(dot(vNormal, vViewDir), 0.0);
+            float rim = 1.0 - ndv;
+
+            // Wide, soft pale-blue base — the bulk of the atmosphere.
+            float base = pow(rim, 2.2) * 0.45;
+            // Gentle inner brightening near the horizon (no hard ring).
+            float core = pow(rim, 3.5) * 0.22;
+            // Barely-there teal tint at the outermost grazing edge.
+            float edge = pow(rim, 8.0) * 0.10;
+
+            vec3 col = uMid * base + uCore * core + uEdge * edge;
+            float a  = clamp(base + core + edge, 0.0, 1.0);
+            gl_FragColor = vec4(col, a);
           }
         `,
         side: THREE.BackSide,
@@ -257,17 +271,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       }),
     );
     scene.add(atmosphere);
-
-    // Outer soft halo (unchanged — feathers the edge into the hero bg)
-    scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.18, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x3b82c4, side: THREE.BackSide, transparent: true, opacity: 0.16 }),
-    ));
-    // Far halo — feathered bloom edge
-    scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.30, 48, 48),
-      new THREE.MeshBasicMaterial({ color: 0x2a6bbf, side: THREE.BackSide, transparent: true, opacity: 0.07 }),
-    ));
 
     // Latitude/longitude grid lines
     scene.add(new THREE.Mesh(
