@@ -203,9 +203,6 @@ export default function CPPAHub() {
               </Link>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground italic">
-            Subscribers: every assessment's review date is tracked for you automatically — your § 7155(a) triennial review goes straight into your Obligations Register.
-          </p>
         </section>
 
         <section className="bg-card border rounded-lg p-6">
