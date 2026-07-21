@@ -3,10 +3,10 @@ import { Bot, Globe, Lock, Scale } from 'lucide-react';
 
 const topics = [
   { icon: "🇺🇸", title: "U.S. Privacy Laws", desc: "Complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states.", updated: "Updated Mar 10, 2026", href: "/us-privacy-laws" },
-  { icon: "", title: "GDPR Enforcement", desc: "History and framework of GDPR enforcement across all 27 EU member states, including DPA activity, major fines, and enforcement trends.", updated: "Updated Mar 8, 2026", href: "/gdpr-enforcement" },
-  { icon: "", title: "AI Privacy Regulations", desc: "Global overview of AI-specific privacy regulation, covering the EU AI Act, national AI strategies, and emerging enforcement at the AI-data intersection.", updated: "Updated Mar 9, 2026", href: "/ai-privacy-regulations" },
-  { icon: "", title: "Global Privacy Laws", desc: "Comparative guide to privacy regulation outside the U.S. and EU, covering APAC, Latin America, Middle East, and Africa frameworks.", updated: "Updated Mar 7, 2026", href: "/global-privacy-laws" },
-  { icon: "", title: "Data Breach Requirements", desc: "Global comparison of breach notification requirements — timelines, authority notification rules, and consumer notice obligations by jurisdiction.", updated: "Updated Mar 6, 2026", href: "/enforcement-tracker" },
+  { icon: <Scale aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, title: "GDPR Enforcement", desc: "History and framework of GDPR enforcement across all 27 EU member states, including DPA activity, major fines, and enforcement trends.", updated: "Updated Mar 8, 2026", href: "/gdpr-enforcement" },
+  { icon: <Bot aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, title: "AI Privacy Regulations", desc: "Global overview of AI-specific privacy regulation, covering the EU AI Act, national AI strategies, and emerging enforcement at the AI-data intersection.", updated: "Updated Mar 9, 2026", href: "/ai-privacy-regulations" },
+  { icon: <Globe aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, title: "Global Privacy Laws", desc: "Comparative guide to privacy regulation outside the U.S. and EU, covering APAC, Latin America, Middle East, and Africa frameworks.", updated: "Updated Mar 7, 2026", href: "/global-privacy-laws" },
+  { icon: <Lock aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, title: "Data Breach Requirements", desc: "Global comparison of breach notification requirements — timelines, authority notification rules, and consumer notice obligations by jurisdiction.", updated: "Updated Mar 6, 2026", href: "/enforcement-tracker" },
 ];
 
 const ResearchTopics = () => {
