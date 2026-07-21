@@ -195,12 +195,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     camera.position.set(0, 0, 3.0);
     camera.lookAt(0, 0, 0);
 
-    // Stars (three Points groups by brightness band)
-    const sf = buildStarField();
-    starsRef.current = sf;
-    scene.add(sf.dim.points);
-    scene.add(sf.mid.points);
-    scene.add(sf.bright.points);
+    // Stars removed — the globe sits directly against the hero background
+    // so no in-scene starfield is rendered inside the globe's ring.
 
 
     // Globe — placeholder material while texture loads
