@@ -252,15 +252,13 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
             float ndv = max(dot(vNormal, vViewDir), 0.0);
             float rim = 1.0 - ndv;
 
-            // Wide, soft pale-blue base (bulk of the glow, low power).
-            float base = pow(rim, 2.0) * 0.55;
-            // Bright inner ring nearest the horizon — pale/white core.
-            float core = pow(rim, 5.5) * 0.85;
-            // Thin teal kiss only at the extreme grazing edge (very high power).
-            float edge = pow(rim, 14.0) * 0.35;
+            // Wide, soft pale-blue base — the bulk of the atmosphere.
+            float base = pow(rim, 2.2) * 0.45;
+            // Gentle inner brightening near the horizon (no hard ring).
+            float core = pow(rim, 3.5) * 0.22;
+            // Barely-there teal tint at the outermost grazing edge.
+            float edge = pow(rim, 8.0) * 0.10;
 
-            // Blend colours along the same falloff axis so there are no
-            // discrete band boundaries — one continuous gradient.
             vec3 col = uMid * base + uCore * core + uEdge * edge;
             float a  = clamp(base + core + edge, 0.0, 1.0);
             gl_FragColor = vec4(col, a);
