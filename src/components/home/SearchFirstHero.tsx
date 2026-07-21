@@ -88,12 +88,12 @@ export default function SearchFirstHero() {
                 </ul>
               </>
             ) : (
-              <>
+            <>
                 <h1 className="text-hero-h1 text-white mb-4">
-                  California's privacy deadlines are here. Be audit-ready this week.
+                  Privacy compliance across regimes, ready for counsel.
                 </h1>
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
-                  The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments that satisfy the record — cite-anchored to the final regulations and regulatory commentary.
+                  CPPA, GDPR, UK GDPR, and beyond. Run assessments, draft DPAs, build IR playbooks, and maintain Article 30 records — every output cite-anchored to real enforcement so legal can sign it.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-8">
                   <Link
@@ -103,10 +103,10 @@ export default function SearchFirstHero() {
                     Run the free CPPA Scope Checker →
                   </Link>
                   <Link
-                    to="/cppa"
+                    to="/dpia-framework"
                     className="inline-flex items-center justify-center border border-white/40 text-white font-semibold px-6 py-3 rounded-lg no-underline hover:bg-white/10"
                   >
-                    CPPA Full Suite — {CPPA_SUITE_PRICE} →
+                    Start a DPIA — {DPIA_PRICE} →
                   </Link>
                 </div>
 
