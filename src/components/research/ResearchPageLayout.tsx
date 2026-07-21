@@ -139,6 +139,29 @@ export function ResearchPageLayout({
       )}
 
       <div className={`${hasRail ? "max-w-[1180px]" : "max-w-[860px]"} mx-auto px-6 py-8`}>
+        {atAGlance && atAGlance.length > 0 && (
+          <aside
+            aria-label="At a glance"
+            className="mb-10 rounded-xl border border-brand-navy/15 bg-white px-6 py-5 shadow-sm"
+          >
+            <p className="text-[11px] font-bold tracking-[0.14em] uppercase text-brand-mist mb-3">
+              At a glance
+            </p>
+            <dl className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-6 gap-y-2">
+              {atAGlance.map((it) => (
+                <div key={it.label} className="contents">
+                  <dt className="font-mono text-[13px] text-brand-navy/80 whitespace-nowrap">
+                    {it.label}
+                  </dt>
+                  <dd className="text-[16px] leading-relaxed text-brand-navy m-0">
+                    {it.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        )}
+
         {pageSynthesisKey && (
           <div className="mb-10">
             <ResearchSynthesisBlock
@@ -152,6 +175,7 @@ export function ResearchPageLayout({
         {topToolCta && <ResearchToolCTA {...topToolCta} />}
 
         {introBlock && <div className="mb-8">{introBlock}</div>}
+
 
         {sections.length > 1 && (
           <nav aria-label="Contents" className="mt-10 mb-10 pb-4 border-b border-brand-navy/15 print:hidden">
