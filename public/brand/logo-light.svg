@@ -1,7 +1,7 @@
 <svg width="280" height="52" viewBox="0 0 280 52" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End User Privacy — Privacy Intelligence">
   <title>End User Privacy</title>
   <desc>End User Privacy wordmark on light. Two-tone Meridian Mark: navy frame + latitudes; teal-deep meridian arcs.</desc>
-  <!-- Meridian Mark, two-tone on light. Frame + latitudes on #0d2a45. Meridians on --teal-deep #2a9d8f. -->
+  <!-- Meridian Mark, two-tone on light. Frame + latitudes on #0d2a45. Meridians on teal-deep #2a9d8f. -->
   <g aria-hidden="true">
     <circle cx="26" cy="26" r="23" fill="none" stroke="#0d2a45" stroke-width="2.25"/>
     <line x1="3.5" y1="26" x2="48.5" y2="26" stroke="#0d2a45" stroke-width="1.75" stroke-linecap="round"/>
