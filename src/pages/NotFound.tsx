@@ -5,11 +5,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ClipboardList, Map, Newspaper, Scale } from 'lucide-react';
 
+const DEST_ICON_CLS = "w-6 h-6 text-brand-teal";
 const destinations = [
-  { icon: "", title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
-  { icon: "", title: "Global Law Map", desc: "Jurisdictions mapped and profiled worldwide", href: "/jurisdictions" },
-  { icon: "", title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
-  { icon: "", title: "Sample Brief", desc: "See a full Privacy Intelligence Report example", href: "/#brief" },
+  { icon: <Newspaper aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
+  { icon: <Map aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Global Law Map", desc: "Jurisdictions mapped and profiled worldwide", href: "/jurisdictions" },
+  { icon: <Scale aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
+  { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Sample Brief", desc: "See a full Privacy Intelligence Report example", href: "/#brief" },
 ];
 
 const NotFound = () => {
