@@ -99,30 +99,30 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-weight: 400;
-    font-size: 14px;     /* product UI default (v7 §0.1) */
+    font-size: 16px;     /* UX-1a: product UI base raised 14→16 */
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
 
   /* Fluid headings — scale smoothly between mobile and desktop. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-    font-weight: 400;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
     color: hsl(var(--brand-navy));
     letter-spacing: -0.01em;
   }
   h1 {
-    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px */
+    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* UX-1a: 32px → 44px */
     line-height: 1.1;
   }
   h2 {
-    font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px */
+    font-size: clamp(1.5625rem, 1.35rem + 0.75vw, 1.9375rem); /* UX-1a: 25px → 31px */
     line-height: 1.2;
   }
   h3 {
-    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.125rem); /* 17px → 18px */
+    font-size: 1.25rem; /* UX-1a: 20px */
     line-height: 1.35;
   }
 
@@ -136,11 +136,11 @@
 
 /* Custom utility classes */
 .font-display {
-  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .font-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 /* ============================================================
@@ -152,62 +152,64 @@
 
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
 .text-hero-h1 {
-  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-  font-size: clamp(2.5rem, 1.7rem + 4vw, 3.5rem); /* 40px → 56px fluid */
-  font-weight: 400;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* UX-1a: 32px → 44px */
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.01em;
 }
 
 /* Page H1 — used on standard light-background page headers */
 .text-page-h1 {
-  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px fluid */
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.15;
 }
 
 /* Section H2 — used for major page sections */
 .text-section-h2 {
-  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-  font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px fluid */
-  font-weight: 400;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(1.5625rem, 1.35rem + 0.75vw, 1.9375rem); /* UX-1a: 25px → 31px */
+  font-weight: 700;
   line-height: 1.2;
 }
 
 /* Card title — used on article cards, dashboard tiles, list items */
 .text-card-title {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: clamp(1.25rem, 1.18rem + 0.35vw, 1.375rem); /* 20px → 22px fluid */
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(1.125rem, 1.08rem + 0.2vw, 1.25rem); /* 18px → 20px fluid */
   font-weight: 600;
   line-height: 1.3;
 }
 
 /* --- Brand v7 typography primitives (Section 2) --- */
 .text-display-hero {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-size: 48px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* UX-1a: 32→44px */
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.015em;
   color: hsl(var(--brand-navy));
 }
 .text-display-section {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-size: 32px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(1.5625rem, 1.35rem + 0.75vw, 1.9375rem); /* UX-1a: 25→31px */
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: hsl(var(--brand-navy));
 }
 .text-display-card {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-size: 18px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.25rem; /* UX-1a: 20px */
+  font-weight: 600;
   line-height: 1.3;
   color: hsl(var(--brand-navy));
 }
 .text-label-caps {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-weight: 500;
-  /* v9 Prompt 4.5: raised to 11px to meet the suite's hard floor. */
   font-size: 11px;
   line-height: 1.4;
   letter-spacing: 0.12em;
@@ -215,9 +217,9 @@
   color: hsl(var(--brand-steel));
 }
 .text-body-marketing {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-weight: 300;
-  font-size: 13px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 1rem; /* UX-1a: 16px body */
   line-height: 1.55;
 }
 
@@ -225,7 +227,7 @@
 
 /* Eyebrow — small uppercase label above a heading ("Intelligence Guide") */
 .text-eyebrow {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.75rem;     /* 12px */
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -233,14 +235,14 @@
 }
 
 .text-nav {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.875rem;    /* 14px */
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.9375rem;   /* 15px */
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .text-label {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.75rem;     /* 12px */
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -248,20 +250,20 @@
 }
 
 .text-cta {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.9375rem;   /* 15px */
   font-weight: 700;
 }
 
 .text-meta {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;   /* 13px */
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.8125rem;   /* UX-1a: 13px caption */
   font-weight: 400;
 }
 
 /* Body copy — primary reading size for all UI text, tables, card content */
 .text-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 1rem;        /* 16px */
   font-weight: 400;
   line-height: 1.6;
@@ -274,7 +276,7 @@
 }
 
 .font-mono-code {
-  font-family: 'DM Mono', ui-monospace, monospace;
+  font-family: 'Roboto Mono', ui-monospace, monospace;
   font-size: 0.8125rem;   /* 13px */
   font-weight: 500;
 }
