@@ -137,7 +137,7 @@ export default function SubscribeSuccess() {
           <div className="space-y-3">
             {NEXT_STEPS.map((step) => (
               <div key={step.title} className="flex gap-4 p-4 bg-card border border-brand-cloud rounded-xl">
-                <div className="text-2xl flex-shrink-0 mt-0.5">{step.icon}</div>
+                <div className="flex-shrink-0 mt-0.5">{step.icon}</div>
                 <div>
                   <div className="font-semibold text-brand-navy text-[14px] mb-0.5">{step.title}</div>
                   <p className="text-slate text-sm leading-relaxed">{step.body}</p>
