@@ -483,6 +483,11 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     const onPointerDown = (ev: PointerEvent) => {
       if (reduced) return;
       if (phaseRef.current !== "idle") return;
+      // Fresh gesture — clear any leftover suppression from an earlier drag so
+      // a later tap isn't silently swallowed. The synthetic click a browser
+      // fires immediately after a drag's pointerup runs in the same event-loop
+      // tick, before any new pointerdown, so this clear is safe.
+      suppressClickRef.current = false;
       const d = dragRef.current;
       d.active = true;
       d.pointerId = ev.pointerId;
