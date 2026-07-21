@@ -237,6 +237,34 @@ export function ResearchPageLayout({
         </div>
 
 
+        {merchandisingRail && merchandisingRail.items.length > 0 && (
+          <aside
+            aria-label={merchandisingRail.heading ?? "Use this in your workflow"}
+            className="mt-14 pt-8 border-t border-brand-cloud"
+          >
+            <h3 className="text-brand-navy mb-4 text-[20px] font-display">
+              {merchandisingRail.heading ?? "Use this in your workflow"}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {merchandisingRail.items.map((it) => (
+                <Link
+                  key={it.href}
+                  to={it.href}
+                  className="block p-4 bg-white border border-brand-cloud rounded-lg hover:border-brand-teal transition-colors no-underline"
+                >
+                  <div className="text-[16px] font-semibold text-brand-navy mb-1">
+                    <span className="text-brand-teal-text mr-1">→</span>
+                    {it.label}
+                  </div>
+                  {it.description && (
+                    <p className="text-[14px] text-slate leading-snug m-0">{it.description}</p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </aside>
+        )}
+
         {/* Related resources */}
         <div className="mt-14 pt-8 border-t border-brand-cloud">
           <h3 className="text-brand-navy mb-4">Related Resources</h3>
@@ -252,6 +280,7 @@ export function ResearchPageLayout({
             ))}
           </div>
         </div>
+
 
         {/* Source methodology (C-1) */}
         <div className="mt-10">
