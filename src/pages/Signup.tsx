@@ -42,7 +42,7 @@ const Signup = () => {
     <div className="min-h-screen bg-brand-cloud flex flex-col">
       <Helmet>
         <title>Account Creation Paused | End User Privacy</title>
-        <meta name="description" content="New account creation is temporarily paused while End User Privacy is in private beta." />
+        <meta name="description" content="New account creation is temporarily paused at End User Privacy." />
         <meta name="robots" content="noindex" />
       </Helmet>
       <Navbar />
@@ -56,8 +56,7 @@ const Signup = () => {
             Create a free account to save reports, alerts, and weekly intelligence.
           </p>
           <p className="text-sm text-slate mb-6 leading-relaxed">
-            End User Privacy is currently in <span className="font-semibold text-brand-navy">private beta</span>.
-            New public sign-ups are temporarily disabled while we onboard our initial group of testers.
+            New public sign-ups are temporarily disabled while we onboard our initial group of customers.
           </p>
 
           {/* Greyed-out form preview */}
@@ -94,13 +93,13 @@ const Signup = () => {
           </div>
 
           <p className="text-sm text-slate mb-2">
-            Already have a beta account?{" "}
+            Already have an account?{" "}
             <Link to="/login" className="text-brand-teal-text font-medium hover:underline no-underline">
               Sign in
             </Link>
           </p>
           <p className="text-xs text-brand-mist">
-            Interested in beta access?{" "}
+            Questions?{" "}
             <Link to="/contact" className="text-brand-teal-text hover:underline no-underline">
               Contact us
             </Link>
