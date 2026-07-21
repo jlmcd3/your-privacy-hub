@@ -109,10 +109,11 @@ export default function DashboardSubnav() {
   return (
     <nav
       aria-label="Dashboard sections"
-      className="border-b border-brand-cloud bg-card sticky top-14 md:top-16 z-30 backdrop-blur-sm bg-card/95"
+      className="border-b border-brand-cloud bg-card sticky top-14 z-30 backdrop-blur-sm bg-card/95"
     >
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-2">
+        <div className="flex items-center gap-2 h-10 overflow-hidden">
+
           <ul className="flex items-center gap-1 flex-nowrap">
             {TOP_ITEMS.map((item) =>
               renderPill(item.to, item.label, item.icon, activeTo === item.to),
