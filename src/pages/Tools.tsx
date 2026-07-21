@@ -644,7 +644,7 @@ export default function Tools() {
         <div className="max-w-[1100px] mx-auto grid md:grid-cols-3 gap-5">
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-brand-cloud rounded-2xl p-6">
-              <div className="text-[28px] mb-3">{d.icon}</div>
+              <div className="mb-3">{d.icon}</div>
               <h3 className="text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-brand-cloud" />
