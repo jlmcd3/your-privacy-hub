@@ -56,6 +56,7 @@ const NoticeBuilderLanding = lazy(() => import("./pages/NoticeBuilderLanding.tsx
 import Dashboard from "./pages/Dashboard.tsx";
 const Obligations = lazy(() => import("./pages/Obligations.tsx"));
 const Subscribe = lazy(() => import("./pages/Subscribe.tsx"));
+const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const SubscribeSuccess = lazy(() => import("./pages/SubscribeSuccess.tsx"));
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import SubscriberRoute from "./components/SubscriberRoute.tsx";
@@ -294,6 +295,7 @@ const App = () => (
               }
             />
             <Route path="/subscribe" element={<Subscribe />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route
               path="/subscribe/success"
               element={
