@@ -24,6 +24,7 @@ export default function BreachNotificationPage() {
         header={{
           eyebrow: "Research · Breach Notification",
           title: "Data Breach Notification Requirements by Jurisdiction",
+          statuteCite: "GDPR Art. 33 · 72-hour supervisory-authority notification",
           description:
             "Breach notification is the most operationally consequential area of privacy law: when something goes wrong, the clock starts immediately and the requirements vary by jurisdiction, sector, and data type. This reference consolidates the obligations you need to know.",
           lastUpdated: "June 10, 2026",
@@ -35,6 +36,21 @@ export default function BreachNotificationPage() {
             { value: "60d", label: "HIPAA breach window" },
           ],
         }}
+        atAGlance={[
+          { label: "GDPR clock", value: "72 hours to supervisory authority (Art. 33)" },
+          { label: "HIPAA clock", value: "60 days to individuals; 60 days to HHS (annual for <500)" },
+          { label: "Toughest US timing", value: "Florida / Colorado / Washington — 30 days" },
+          { label: "Broadest trigger", value: "California — unauthorized access, not just acquisition" },
+        ]}
+        merchandisingRail={{
+          heading: "Use this in your workflow",
+          items: [
+            { label: "Incident-Response Playbook", href: "/ir-playbook", description: "Jurisdiction-specific breach runbook generated for your stack." },
+            { label: "Full International Breach Notice", href: "/breach-notification#international", description: "Reference the 20+ non-EU regimes side-by-side." },
+            { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material breach-related enforcement action, curated weekly." },
+          ],
+        }}
+
         pageSynthesisKey="breach__page"
         topToolCta={{
           toolName: getProduct("ir-playbook").name,
