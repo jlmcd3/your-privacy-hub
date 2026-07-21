@@ -25,6 +25,8 @@ import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
+// RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
+import { withUpstreamRetry, heartbeat as liaHeartbeat, ensureTerminalFnRun as liaEnsureTerminal } from "./reliability.ts";
 
 
 
@@ -75,27 +77,31 @@ async function callAnthropic(
   timeoutMs: number = 720_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userContent }],
-    }),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
-  const data = await res.json();
-  const text = data.content?.[0]?.text || "";
-  const stopReason: string | null = data.stop_reason ?? null;
-  console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
-  return { text, stopReason };
+  // RUNTIME-1 (c): bounded retry on transient upstream failures (connection
+  // reset, 5xx, 429, socket hang up, network) — never on 4xx-non-transient.
+  return await withUpstreamRetry(async () => {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userContent }],
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "";
+    const stopReason: string | null = data.stop_reason ?? null;
+    console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
+    return { text, stopReason };
+  }, { label: `lia:callAnthropic:${model}` });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -478,13 +484,23 @@ export { LIA_ANALYSIS_TOOL_MODULE, LIA_CLASSIFY_TOOL_MODULE, LIA_DOCS_TOOL_MODUL
 // regularly runs 60–120s and an awaited HTTP response can be cut off by the
 // platform even though the row eventually finishes.
 async function generateAssessment(assessment_id: string, assessment: any, fnRun: FnRunHandle): Promise<void> {
+  // RUNTIME-1 (a): guaranteed terminal signal on EVERY exit path (success,
+  // exception, uncaught throw). `terminalReached` flips true only after a
+  // terminal fn-run write has happened; the finally clause is the safety net
+  // if a throw escapes the catch (defensive — the reaper is the last resort
+  // for outright worker eviction).
+  let terminalReached = false;
   try {
     await runAssessment(assessment_id, assessment);
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
+    terminalReached = true;
   } catch (e) {
     console.error("run-li-assessment background error:", e);
     await lifecycleUpdate(supabase, "li_assessments", assessment_id, { status: "failed" }, { fn: "run-li-assessment", phase: "background_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+    terminalReached = true;
+  } finally {
+    await liaEnsureTerminal(supabase, assessment_id, fnRun, terminalReached);
   }
 }
 
@@ -613,6 +629,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 
 
     // ── STAGE 1: Classify use case ──
+    await liaHeartbeat(supabase, assessment_id, "classify");
     const t1Start = Date.now();
     const today = new Date().toISOString().slice(0, 10);
 
@@ -776,6 +793,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       : "No closely analogous precedents found in tracked database. Analysis proceeds on regulatory principles.";
 
     // ── STAGE 2: Three-part test analysis (EDPB Guidelines 1/2024 grounded) ──
+    await liaHeartbeat(supabase, assessment_id, "analysis");
     const purposeDetails = (assessment as any).purpose_details || {};
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
@@ -1298,6 +1316,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
 
 
     // ── STAGE 3: Documentation recommendations ──
+    await liaHeartbeat(supabase, assessment_id, "docs");
     const docsSystemBlocks = buildSystemContent({
       toolModule: LIA_DOCS_TOOL_MODULE,
       currentDate: today,

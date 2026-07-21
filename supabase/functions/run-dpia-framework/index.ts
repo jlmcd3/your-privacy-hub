@@ -40,6 +40,8 @@ const DPIA_T234_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 const DPIA_HALF_MAX_TOKENS = 24_000;
 
 import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
+// RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
+import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
@@ -1475,13 +1477,13 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     return;
   }
   try {
-    const r = await callAnthropicWithContinuation({
+    const r = await dpiaWithRetry(() => callAnthropicWithContinuation({
       model: "claude-sonnet-4-6",
       system: systemBlocks,
       user: userPrompt,
       maxTokens: UNIT_MAX_TOKENS[unit],
       label: `run-dpia-framework:unit:${unit}`,
-    });
+    }), { label: `dpia:unit:${unit}` });
     const elapsedMs = Date.now() - startedMs;
     // Telemetry line (courier §10) — extractable from edge-function logs.
     console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length} continued=${r.continued} cont_retried=${r.contRetried ?? false}`);
@@ -1588,13 +1590,13 @@ async function runStitch(dpia_id: string): Promise<void> {
           console.warn(`[DPIA] QB8-8(a): ${deficient.length} residual_risk_assessment entries missing required fields — repair pass`);
           const repairPrompt = `The following residual_risk_assessment entries from a DPIA are incomplete. Return ONLY a JSON object of the form {"residual_risk_assessment":[...]} containing the SAME entries in the SAME order, completing the listed missing fields for each. Do not change fields that are already populated. Missing fields per entry:\n\n${JSON.stringify(deficient.map((d: any) => ({ index: d.i, entry: d.e, missing_fields: d.missing })), null, 2)}`;
           const systemBlocks = buildSystemBlocksForUnit(shared);
-          const repair = await callAnthropicWithContinuation({
+          const repair = await dpiaWithRetry(() => callAnthropicWithContinuation({
             model: "claude-sonnet-4-6",
             system: systemBlocks,
             user: repairPrompt,
             maxTokens: Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5),
             label: "run-dpia-framework:repair-residual",
-          });
+          }), { label: "dpia:repair-residual" });
           const repaired = parseJsonish(repair.text);
           const repairedArr = Array.isArray(repaired?.residual_risk_assessment) ? repaired.residual_risk_assessment : null;
           if (repairedArr) {
@@ -2197,13 +2199,21 @@ Deno.serve(async (req) => {
 
     // @ts-ignore
     EdgeRuntime.waitUntil((async () => {
+      // RUNTIME-1 (a): guaranteed terminal signal on EVERY exit path
+      // (success, exception, uncaught throw). Companion finally-guard runs
+      // even if a throw escapes the catch below.
+      let terminalReached = false;
       try {
         await runBootstrap(dpia_id, caller);
         await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id, metadata: { phase: "bootstrap_dispatched" } });
+        terminalReached = true;
       } catch (bgErr) {
         console.error("run-dpia-framework bootstrap error:", bgErr);
         await mergePreservingFail(dpia_id, "stitch", bgErr, 0);
         await failFunctionRun(supabase, fnRun, bgErr, { metadata: { phase: "bootstrap" } });
+        terminalReached = true;
+      } finally {
+        await dpiaEnsureTerminal(supabase, dpia_id, fnRun, terminalReached);
       }
     })());
 
