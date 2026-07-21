@@ -99,30 +99,30 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-weight: 400;
-    font-size: 14px;     /* product UI default (v7 §0.1) */
+    font-size: 16px;     /* UX-1a: product UI base raised 14→16 */
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
 
   /* Fluid headings — scale smoothly between mobile and desktop. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-    font-weight: 400;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
     color: hsl(var(--brand-navy));
     letter-spacing: -0.01em;
   }
   h1 {
-    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px */
+    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* UX-1a: 32px → 44px */
     line-height: 1.1;
   }
   h2 {
-    font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px */
+    font-size: clamp(1.5625rem, 1.35rem + 0.75vw, 1.9375rem); /* UX-1a: 25px → 31px */
     line-height: 1.2;
   }
   h3 {
-    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.125rem); /* 17px → 18px */
+    font-size: 1.25rem; /* UX-1a: 20px */
     line-height: 1.35;
   }
 
