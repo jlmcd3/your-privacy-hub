@@ -1998,7 +1998,28 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[dpia] item_unit_map persist skipped:", (e as Error)?.message);
     }
     delete (reportData as any)._staging;
-    try { const { framework_disclaimer: _fdForChecks, ...restForChecks } = (reportData ?? {}) as Record<string, unknown>; const _prose = extractProseFromReport(_fdForChecks === undefined ? restForChecks : { ...restForChecks, framework_disclaimer: _fdForChecks }); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
+    // GRADER-CAL-5R — real disclaimer exclusion. The prior one-liner
+    // destructured framework_disclaimer out and then re-inserted it via a
+    // ternary whose branches were equivalent, so the disclaimer text was
+    // still fed to runFormatChecksGeneric and the sanctioned ownership
+    // sentence was counted as an e6 counsel_referral. Fix: build the
+    // checks-only clone WITHOUT framework_disclaimer (fixed system-supplied
+    // ownership sentence) and WITHOUT jurisdiction_validation (finding
+    // records whose evidence strings may echo body sentences). All other
+    // reader-facing fields — executive_summary, section prose, table cells,
+    // completion_guidance, dpia_metadata narrative, information_needed —
+    // remain in scope so genuine body counsel referrals still fire.
+    try {
+      const src = (reportData ?? {}) as Record<string, unknown>;
+      const {
+        framework_disclaimer: _fdDrop,
+        jurisdiction_validation: _jvDrop,
+        ...restForChecks
+      } = src;
+      const _prose = extractProseFromReport(restForChecks);
+      const _det = runFormatChecksGeneric(_prose).map((x) => ({ ...x, check_type: 'deterministic' as const }));
+      attachDeterministicChecks(reportData as any, _det as any);
+    } catch (_) { /* non-fatal */ }
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,
