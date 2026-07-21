@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
+import { ArrowRight, Shield, ClipboardCheck, Lock, Bot } from "lucide-react";
 import { PRICING_REGISTRY } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
