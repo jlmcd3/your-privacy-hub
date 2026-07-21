@@ -17,6 +17,7 @@ const CPPA_CARD_SLUG: Record<string, string> = {
 
 const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
 const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
+const admtStandalone = PRICING_REGISTRY.cppa_admt_standalone.displayPrice;
 
 const TOOLS = [
   {
