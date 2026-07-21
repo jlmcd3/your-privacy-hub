@@ -131,15 +131,14 @@ export function ResearchPageLayout({
 
         {sections.length > 1 && (
           <nav aria-label="Contents" className="mt-10 mb-10 pb-4 border-b border-brand-navy/15 print:hidden">
-            <p className="text-[28px] leading-relaxed">
-              <span className="text-[22px] font-semibold tracking-[0.1em] uppercase text-brand-mist mr-2">Contents:</span>
+            <p className="text-[15px] font-semibold tracking-[0.1em] uppercase text-brand-mist mb-3">Contents:</p>
+            <ol className="list-none m-0 p-0 space-y-1.5">
               {sections.map((s, i) => (
-                <span key={s.id}>
-                  {i > 0 && <span className="text-brand-mist mx-1.5">·</span>}
+                <li key={s.id} className="text-[19px] leading-relaxed">
                   <a href={`#${s.id}`} className="text-brand-teal-text no-underline hover:underline">{i + 1}. {s.h2}</a>
-                </span>
+                </li>
               ))}
-            </p>
+            </ol>
           </nav>
         )}
 
