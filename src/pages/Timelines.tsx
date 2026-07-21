@@ -4,10 +4,11 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Bot, Map, ScrollText } from 'lucide-react';
 
-const TIMELINES = [
-  { slug: "gdpr-enforcement", title: "GDPR Enforcement Timeline", icon: "🇪🇺", description: "Major GDPR enforcement milestones from adoption in 2016 to the record fines of 2023–2026." },
-  { slug: "us-state-privacy-laws", title: "U.S. State Privacy Laws Timeline", icon: "", description: "When each US state enacted its comprehensive privacy law, from California's CCPA to 2026 newcomers." },
-  { slug: "eu-ai-act", title: "EU AI Act Timeline", icon: "", description: "The EU AI Act from initial proposal in April 2021 through full implementation in August 2026." },
+const TL_LG = "w-8 h-8 text-brand-teal";
+const TIMELINES: { slug: string; title: string; icon: React.ReactNode; description: string }[] = [
+  { slug: "gdpr-enforcement", title: "GDPR Enforcement Timeline", icon: <span className="text-3xl leading-none">🇪🇺</span>, description: "Major GDPR enforcement milestones from adoption in 2016 to the record fines of 2023–2026." },
+  { slug: "us-state-privacy-laws", title: "U.S. State Privacy Laws Timeline", icon: <Map aria-hidden="true" strokeWidth={1.75} className={TL_LG} />, description: "When each US state enacted its comprehensive privacy law, from California's CCPA to 2026 newcomers." },
+  { slug: "eu-ai-act", title: "EU AI Act Timeline", icon: <Bot aria-hidden="true" strokeWidth={1.75} className={TL_LG} />, description: "The EU AI Act from initial proposal in April 2021 through full implementation in August 2026." },
 ];
 
 const Timelines = () => {
