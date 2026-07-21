@@ -28,6 +28,7 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import StatuteRail from "@/components/intake/StatuteRail";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
