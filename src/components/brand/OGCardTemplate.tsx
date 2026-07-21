@@ -73,7 +73,7 @@ export function OGCardTemplate({
         fontFamily="Inter, system-ui, sans-serif"
         fontSize={20}
         fontWeight={600}
-        fill="#9bb4c2"
+        fill="#b5ccd6"
         style={{ letterSpacing: "0.24em" }}
       >
         {eyebrow.toUpperCase()}

@@ -16,5 +16,5 @@
   <!-- Wordmark: Inter 700, -1% tracking -->
   <text x="68" y="28" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="19" font-weight="700" letter-spacing="-0.19" fill="#ffffff">End User Privacy</text>
   <!-- Descriptor: small-caps in brand-mist -->
-  <text x="68.5" y="43" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="600" fill="#9bb4c2" style="letter-spacing:0.28em">PRIVACY INTELLIGENCE</text>
+  <text x="68.5" y="43" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="600" fill="#b5ccd6" style="letter-spacing:0.28em">PRIVACY INTELLIGENCE</text>
 </svg>
