@@ -214,22 +214,7 @@ export default function CPPAHub() {
           </div>
         </section>
 
-        <section className="bg-card border rounded-lg p-6">
-          <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
-          <h3 className="font-serif text-xl mb-2">ADMT Compliance Assessment (Module 3)</h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
-            Sold standalone. If you also need Risk (Module 1) and Cybersecurity (Module 2), the Scope Checker will surface the Full Suite bundle.
-          </p>
-          <Link
-            to="/cppa-admt-checker"
-            onClick={() =>
-              fireConversion("tool_start_click", { tool_slug: "cppa_admt", page_path: "/cppa", user_type: userType })
-            }
-            className="text-sm font-medium text-brand-teal-text hover:underline no-underline"
-          >
-            Open the ADMT Compliance Assessment →
-          </Link>
-        </section>
+
 
         <p className="text-sm text-muted-foreground italic">
           Subscribers: every assessment's review date is tracked for you automatically — your § 7155(a) triennial review goes straight into your Obligations Register.
