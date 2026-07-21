@@ -24,7 +24,8 @@ interface Update {
   ai_summary?: any;
 }
 
-const categoryMeta: Record<string, { title: string; icon: string; description: string }> = {
+const ICON_CLS = "inline w-[1em] h-[1em] align-[-0.125em] mr-1";
+const categoryMeta: Record<string, { title: string; icon: React.ReactNode; description: string }> = {
   "us-federal": {
     title: "U.S. Federal",
     icon: "🇺🇸",
@@ -32,7 +33,7 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
   },
   "us-states": {
     title: "U.S. States",
-    icon: "",
+    icon: <Map aria-hidden="true" strokeWidth={1.75} className={ICON_CLS} />,
     description: "State-level privacy regulatory updates covering all 50 states. Includes new legislation, enforcement actions by state attorneys general, and regulatory guidance from state privacy agencies.",
   },
   "eu-uk": {
@@ -42,22 +43,22 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
   },
   "global": {
     title: "Global",
-    icon: "",
+    icon: <Globe aria-hidden="true" strokeWidth={1.75} className={ICON_CLS} />,
     description: "Privacy regulatory developments from jurisdictions outside the U.S. and EU, including Asia-Pacific, Latin America, Middle East, and Africa. Covers new legislation, enforcement, and cross-border transfer developments.",
   },
   "enforcement": {
     title: "Enforcement Actions",
-    icon: "",
+    icon: <Scale aria-hidden="true" strokeWidth={1.75} className={ICON_CLS} />,
     description: "Privacy enforcement actions worldwide including fines, sanctions, orders, and settlements from all monitored regulators. The definitive source for global privacy enforcement intelligence.",
   },
   "ai-privacy": {
     title: "AI & Privacy",
-    icon: "",
+    icon: <Bot aria-hidden="true" strokeWidth={1.75} className={ICON_CLS} />,
     description: "Regulatory developments at the intersection of artificial intelligence and data privacy. Covers the EU AI Act, automated decision-making regulations, AI training data guidance, and biometric data processing.",
   },
   "adtech": {
     title: "AdTech & Advertising Privacy",
-    icon: "",
+    icon: <Satellite aria-hidden="true" strokeWidth={1.75} className={ICON_CLS} />,
     description: "Regulatory intelligence on advertising technology, cookie consent, behavioral targeting, programmatic advertising, the IAB TCF, and FTC commercial surveillance enforcement.",
   },
 };

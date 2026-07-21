@@ -11,7 +11,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
-import { Bot, CheckCircle2, ClipboardList, FileText, Folder, Lock, MoveRight, Scale, Search, Shield, Siren, Square, Wrench } from 'lucide-react';
+import { Bot, CheckCircle2, ClipboardList, FileSignature, FileText, Fingerprint, Folder, Lock, MoveRight, Scale, Search, Shield, ShieldAlert, Siren, Square, Wrench } from 'lucide-react';
 
 // Map Tools-page slugs to /samples/{sampleSlug} slugs where a published sample exists.
 const SAMPLE_SLUG_MAP: Record<string, string> = {
@@ -179,9 +179,10 @@ const SECTION_HEADERS: Record<ToolSection, {
 };
 
 // ── Differentiators ───────────────────────────────────────────────────────
+const DIFF_ICON = "w-7 h-7 text-brand-teal";
 const DIFFERENTIATORS = [
   {
-    icon: "",
+    icon: <Scale aria-hidden="true" strokeWidth={1.75} className={DIFF_ICON} />,
     title: "Calibrated to enforcement precedent, not just statutory text",
     body: "Regulatory guidance and enforcement decisions frequently diverge – what a law requires and what a regulator has actually penalised are not always the same thing.",
     checkColor: "text-brand-navy",
@@ -192,7 +193,7 @@ const DIFFERENTIATORS = [
     ],
   },
   {
-    icon: "",
+    icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className={DIFF_ICON} />,
     title: "Assessments ordered by enforcement risk, not by topic area",
     body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
     checkColor: "text-accent",
@@ -203,7 +204,7 @@ const DIFFERENTIATORS = [
     ],
   },
   {
-    icon: "",
+    icon: <FileText aria-hidden="true" strokeWidth={1.75} className={DIFF_ICON} />,
     title: "Documents drafted to survive scrutiny, not just satisfy it",
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
     checkColor: "text-amber-800",
@@ -219,7 +220,7 @@ const DIFFERENTIATORS = [
 type ToolDef = {
   slug: string;
   section: ToolSection;
-  icon: string;
+  icon: React.ReactNode;
   name: string;
   tagline: string;
   href: string;
@@ -233,13 +234,18 @@ type ToolDef = {
   requirement?: { tier: "required" | "conditional" | "expected" | "supports" | "free"; text: string };
 };
 
+const T_ICON = "w-7 h-7 text-brand-teal";
+const iconEl = (I: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number | string }>) => (
+  <I aria-hidden="true" strokeWidth={1.75} className={T_ICON} />
+);
+
 // ── Tools — ordered by section to match homepage triptych ─────────────────
 const TOOLS: ToolDef[] = [
   // ── ASSESSMENTS ───────────────────────────────────────────────────────
   {
     slug: "healthcheck",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Shield),
     name: "GDPR Governance Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
@@ -263,7 +269,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "li-assessment",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Scale),
     name: "Legitimate Interest Assessment",
     tagline: "Build a complete, documented Legitimate Interest Assessment: the three-part test, done properly.",
     href: "/li-assessment",
@@ -287,7 +293,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpia",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Search),
     name: "Impact Assessment Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
@@ -310,7 +316,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "biometric-checker",
     section: "assessments",
-    icon: "",
+    icon: iconEl(Fingerprint),
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
@@ -335,7 +341,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpa-generator",
     section: "documents",
-    icon: "",
+    icon: iconEl(FileSignature),
     name: "DPA Generator",
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
@@ -356,7 +362,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "ir-playbook",
     section: "documents",
-    icon: "",
+    icon: iconEl(Siren),
     name: "Incident Response Playbook",
     tagline: "Your complete breach response playbook: deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
@@ -378,7 +384,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "ropa-builder",
     section: "documents",
-    icon: "",
+    icon: iconEl(Folder),
     name: "RoPA Builder (Article 30)",
     tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Included with any subscription.",
     href: "/ropa-builder",
@@ -439,7 +445,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "registration-manager",
     section: "documents",
-    icon: "",
+    icon: iconEl(ClipboardList),
     name: "Registration Manager",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of deadlines. Renewal tracking included with any subscription. You submit the filings.",
     href: "/registration-manager",
@@ -463,7 +469,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-scope-checker",
     section: "cppa",
-    icon: "",
+    icon: iconEl(Search),
     name: "CPPA Scope Checker",
     tagline: "Find out if your organisation is in scope for CCPA/CPRA and the 2027 CPPA audit — always free, no account required.",
     href: "/cppa-scope-checker",
@@ -486,7 +492,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-risk-assessment",
     section: "cppa",
-    icon: "",
+    icon: iconEl(ShieldAlert),
     name: "CPPA Risk Assessment",
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
@@ -508,7 +514,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-cybersecurity",
     section: "cppa",
-    icon: "",
+    icon: iconEl(Lock),
     name: "CPPA Cybersecurity Audit",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
@@ -529,7 +535,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "cppa-admt-checker",
     section: "cppa",
-    icon: "",
+    icon: iconEl(Bot),
     name: "ADMT Compliance Assessment",
     tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
     href: "/cppa-admt-checker",
@@ -638,7 +644,7 @@ export default function Tools() {
         <div className="max-w-[1100px] mx-auto grid md:grid-cols-3 gap-5">
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-brand-cloud rounded-2xl p-6">
-              <div className="text-[28px] mb-3">{d.icon}</div>
+              <div className="mb-3">{d.icon}</div>
               <h3 className="text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-brand-cloud" />

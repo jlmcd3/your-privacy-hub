@@ -1,13 +1,14 @@
 import { Bot, Globe, Hospital, Landmark, Laptop, Shirt, ShoppingCart, Smartphone } from 'lucide-react';
+const ICN = "w-3.5 h-3.5";
 const INDUSTRIES = [
-  { slug: "all",          label: "All Industries",  icon: "" },
-  { slug: "healthcare",   label: "Healthcare",       icon: "" },
-  { slug: "fintech",      label: "Finance & Banking",icon: "" },
-  { slug: "adtech",       label: "AdTech & Media",   icon: "" },
-  { slug: "retail",       label: "Retail & E-com",   icon: "" },
-  { slug: "hr",           label: "HR & Employment",  icon: "" },
-  { slug: "saas",         label: "SaaS & Tech",      icon: "" },
-  { slug: "ai",           label: "AI Companies",     icon: "" },
+  { slug: "all",          label: "All Industries",  icon: <Globe aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "healthcare",   label: "Healthcare",       icon: <Hospital aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "fintech",      label: "Finance & Banking",icon: <Landmark aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "adtech",       label: "AdTech & Media",   icon: <Smartphone aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "retail",       label: "Retail & E-com",   icon: <ShoppingCart aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "hr",           label: "HR & Employment",  icon: <Shirt aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "saas",         label: "SaaS & Tech",      icon: <Laptop aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
+  { slug: "ai",           label: "AI Companies",     icon: <Bot aria-hidden="true" strokeWidth={1.75} className={ICN} /> },
 ];
 
 interface IndustryFilterProps {

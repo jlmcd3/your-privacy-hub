@@ -3,19 +3,19 @@ import { BarChart3, Calendar, ScrollText } from 'lucide-react';
 
 const tools = [
   {
-    icon: "",
+    icon: <Calendar aria-hidden="true" strokeWidth={1.75} className="w-8 h-8 text-brand-teal" />,
     title: "Compliance Calendar",
     sub: "Countdown timers for every regulatory deadline",
     href: "/calendar",
   },
   {
-    icon: "",
+    icon: <ScrollText aria-hidden="true" strokeWidth={1.75} className="w-8 h-8 text-brand-teal" />,
     title: "Legislation Tracker",
     sub: "Bills tracked globally across jurisdictions",
     href: "/legislation-tracker",
   },
   {
-    icon: "",
+    icon: <BarChart3 aria-hidden="true" strokeWidth={1.75} className="w-8 h-8 text-brand-teal" />,
     title: "State Law Comparison",
     sub: "Compare 20 enacted US laws side by side",
     href: "/compare/us-states",
@@ -41,7 +41,7 @@ export default function ToolkitSection() {
               to={t.href}
               className="group bg-card border border-brand-cloud rounded-2xl p-6 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all text-center"
             >
-              <span className="text-3xl block mb-3">{t.icon}</span>
+              <span className="inline-flex justify-center mb-3">{t.icon}</span>
               <h3 className="text-brand-navy text-[15px] mb-1 group-hover:text-brand-teal-text transition-colors">
                 {t.title}
               </h3>

@@ -32,26 +32,27 @@ const ROLES = [
   { value: "privacy_pro",      label: "Privacy Professional" },
 ];
 
+const TRK_CLS = "w-4 h-4";
 const TRACKS = [
-  { value: "us_state",       icon: "", label: "US State Privacy Laws",
+  { value: "us_state",       icon: <Map aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "US State Privacy Laws",
     desc: "New state laws, AG enforcement, CPPA actions, and compliance deadlines" },
   { value: "gdpr",           icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity",
     desc: "DPA fines, EDPB decisions, cross-border enforcement, and legal precedent" },
-  { value: "ai_act",         icon: "", label: "EU AI Act Compliance",
+  { value: "ai_act",         icon: <Bot aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "EU AI Act Compliance",
     desc: "AI Act phases, GPAI obligations, prohibited practices, and GDPR overlap" },
-  { value: "childrens",      icon: "", label: "Children's Privacy & Age Verification",
+  { value: "childrens",      icon: <Baby aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "Children's Privacy & Age Verification",
     desc: "COPPA amendments, state kids' codes, age verification, and teen protections" },
-  { value: "adtech_cookies", icon: "", label: "AdTech, Consent & Cookie Compliance",
+  { value: "adtech_cookies", icon: <Cookie aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "AdTech, Consent & Cookie Compliance",
     desc: "TCF rulings, cookie enforcement, GPC requirements, and dark pattern decisions" },
-  { value: "cross_border",   icon: "", label: "Cross-Border Data Transfers",
+  { value: "cross_border",   icon: <Shuffle aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "Cross-Border Data Transfers",
     desc: "EU-US DPF, DOJ bulk data rule, SCCs, LGPD transfers, and adequacy updates" },
-  { value: "health_hipaa",   icon: "", label: "Health & Medical Data Privacy",
+  { value: "health_hipaa",   icon: <Hospital aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "Health & Medical Data Privacy",
     desc: "HIPAA enforcement, FTC health breach actions, state health laws, and AI in healthcare" },
-  { value: "litigation",     icon: "", label: "Privacy Litigation & Class Actions",
+  { value: "litigation",     icon: <Landmark aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "Privacy Litigation & Class Actions",
     desc: "BIPA filings, VPPA suits, CIPA wiretap cases, MDL proceedings, and settlements" },
-  { value: "biometric",      icon: "", label: "Biometric Data Privacy",
+  { value: "biometric",      icon: <Eye aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "Biometric Data Privacy",
     desc: "BIPA class action tracker, state biometric laws, and AI Act biometric provisions" },
-  { value: "breach",         icon: "", label: "Data Breach & Incident Response",
+  { value: "breach",         icon: <Unlock aria-hidden="true" strokeWidth={1.75} className={TRK_CLS} />, label: "Data Breach & Incident Response",
     desc: "Breach notification law changes, enforcement for late reporting, and SEC rules" },
 ];
 
@@ -78,7 +79,7 @@ const FORMATS = [
 type BriefItem = SampleTrackSection & {
   track: string;
   trackLabel: string;
-  trackIcon: string;
+  trackIcon: React.ReactNode;
 };
 
 const JURISDICTION_FALLBACK_NOTE: Record<string, string> = {

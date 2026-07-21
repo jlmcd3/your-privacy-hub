@@ -5,11 +5,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ClipboardList, Map, Newspaper, Scale } from 'lucide-react';
 
+const DEST_ICON_CLS = "w-6 h-6 text-brand-teal";
 const destinations = [
-  { icon: "", title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
-  { icon: "", title: "Global Law Map", desc: "Jurisdictions mapped and profiled worldwide", href: "/jurisdictions" },
-  { icon: "", title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
-  { icon: "", title: "Sample Brief", desc: "See a full Privacy Intelligence Report example", href: "/#brief" },
+  { icon: <Newspaper aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
+  { icon: <Map aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Global Law Map", desc: "Jurisdictions mapped and profiled worldwide", href: "/jurisdictions" },
+  { icon: <Scale aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
+  { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className={DEST_ICON_CLS} />, title: "Sample Brief", desc: "See a full Privacy Intelligence Report example", href: "/#brief" },
 ];
 
 const NotFound = () => {
@@ -43,7 +44,7 @@ const NotFound = () => {
                 to={d.href}
                 className="group bg-card border border-brand-cloud rounded-xl p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all text-left"
               >
-                <span className="text-2xl block mb-2">{d.icon}</span>
+                <span className="inline-flex mb-2">{d.icon}</span>
                 <p className="font-display font-bold text-brand-navy text-[14px] mb-0.5 group-hover:text-brand-teal-text transition-colors">
                   {d.title}
                 </p>

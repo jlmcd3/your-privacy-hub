@@ -16,10 +16,11 @@ interface TimelineEvent {
   source_url: string;
 }
 
-const TIMELINE_META: Record<string, { title: string; icon: string; description: string; data: TimelineEvent[] }> = {
+const TL_ICON_CLS = "inline w-[1em] h-[1em] align-[-0.125em] mr-2";
+const TIMELINE_META: Record<string, { title: string; icon: React.ReactNode; description: string; data: TimelineEvent[] }> = {
   "gdpr-enforcement": { title: "GDPR Enforcement Timeline", icon: "🇪🇺", description: "Major GDPR enforcement milestones from adoption in 2016 to present.", data: gdprData },
-  "us-state-privacy-laws": { title: "U.S. State Privacy Laws Timeline", icon: "", description: "When each US state enacted its comprehensive privacy law.", data: usStateData },
-  "eu-ai-act": { title: "EU AI Act Timeline", icon: "", description: "From initial proposal (April 2021) to full implementation (August 2026).", data: euAiActData },
+  "us-state-privacy-laws": { title: "U.S. State Privacy Laws Timeline", icon: <Map aria-hidden="true" strokeWidth={1.75} className={TL_ICON_CLS} />, description: "When each US state enacted its comprehensive privacy law.", data: usStateData },
+  "eu-ai-act": { title: "EU AI Act Timeline", icon: <Bot aria-hidden="true" strokeWidth={1.75} className={TL_ICON_CLS} />, description: "From initial proposal (April 2021) to full implementation (August 2026).", data: euAiActData },
 };
 
 const TYPE_COLORS: Record<string, string> = {

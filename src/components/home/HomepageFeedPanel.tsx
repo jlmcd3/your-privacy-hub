@@ -25,10 +25,11 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
   };
 };
 
+const TIER_ICON_CLS = "inline w-[1em] h-[1em] align-[-0.125em] mr-1";
 const SLOT_LABELS = [
-  { icon: "", text: "What any visitor sees", className: "text-brand-steel text-sm" },
-  { icon: "", text: "Free registered — full analysis", className: "text-brand-teal-text text-sm font-medium" },
-  { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal-text text-sm font-semibold" },
+  { icon: <Eye aria-hidden="true" strokeWidth={1.75} className={TIER_ICON_CLS} />, text: "What any visitor sees", className: "text-brand-steel text-sm" },
+  { icon: <Mail aria-hidden="true" strokeWidth={1.75} className={TIER_ICON_CLS} />, text: "Free registered — full analysis", className: "text-brand-teal-text text-sm font-medium" },
+  { icon: <Star aria-hidden="true" strokeWidth={1.75} className={TIER_ICON_CLS} />, text: "Subscriber — + AI investigation prompt", className: "text-brand-teal-text text-sm font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
