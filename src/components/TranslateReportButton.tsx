@@ -142,7 +142,7 @@ export default function TranslateReportButton({
             );
           })}
           <div className="px-3 py-2 text-[11px] text-muted-foreground border-t border-brand-cloud leading-snug">
-            Translations use the official GDPR statutory glossary for legal accuracy.
+            Translations use the official GDPR statutory glossary.
           </div>
         </div>
       )}
