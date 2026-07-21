@@ -40,6 +40,7 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
+import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
 import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
