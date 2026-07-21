@@ -797,7 +797,7 @@ const Navbar = () => {
                       setMobileOpen(false);
                     }}
                   >
-                    ⭐ See plans
+                    <Star aria-hidden="true" strokeWidth={1.75} className="inline w-[1em] h-[1em] align-[-0.125em] mr-1" /> See plans
                   </Link>
                 )}
                 <Link
