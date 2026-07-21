@@ -14,9 +14,6 @@ const CPPA_SCOPE_PRICE = PRICING.tools.cppa_scope.display; // "Free"
 const CPPA_RISK_PRICE = PRICING.tools.cppa_risk.display;   // "$229"
 const CPPA_CYBER_PRICE = PRICING.tools.cppa_cyber.display; // "$299"
 const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
-const DPIA_PRICE = PRICING.tools.dpia.display;             // "$99"
-const IR_PLAYBOOK_PRICE = PRICING.tools.ir_playbook.display; // "$59"
-const DPA_PRICE = PRICING.tools.dpa.display;                 // "$49"
 
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: `3-part LIA · ${LIA_PRICE}` },
@@ -27,11 +24,8 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
 
 const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
   { href: "/cppa-scope-checker", title: "CPPA Scope Checker", sub: `${CPPA_SCOPE_PRICE}` },
-  { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: `${DPIA_PRICE}` },
   { href: "/cppa-risk-assessment", title: "CPPA Risk Assessment", sub: `${CPPA_RISK_PRICE}` },
-  { href: "/ir-playbook", title: "Incident Response Playbook", sub: `${IR_PLAYBOOK_PRICE}` },
   { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
-  { href: "/dpa-generator", title: "DPA / SCC Generator", sub: `${DPA_PRICE}` },
   { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
 ];
 
