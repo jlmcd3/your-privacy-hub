@@ -106,22 +106,15 @@ export default function SearchFirstHero() {
                   </Link>
                 </div>
 
-                {/* US product row — CPPA tools only, bundle highlighted */}
+                {/* US product row — four equal CPPA tabs */}
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl">
                   {US_PRODUCTS.map((p) => (
-                    <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
+                    <li key={p.href}>
                       <Link
                         to={p.href}
-                        className={`block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline ${p.bundle ? "border-l-4 border-l-[#C8922A]" : ""}`}
+                        className="block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline"
                       >
-                        <span className="block text-sm font-semibold text-white">
-                          {p.title}
-                          {p.bundle && (
-                            <span className="ml-2 inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-brand-navy bg-[#C8922A] px-1.5 py-0.5 rounded">
-                              Full Suite
-                            </span>
-                          )}
-                        </span>
+                        <span className="block text-sm font-semibold text-white">{p.title}</span>
                         <span className="block text-xs text-blue-100/80">{p.sub}</span>
                       </Link>
                     </li>
