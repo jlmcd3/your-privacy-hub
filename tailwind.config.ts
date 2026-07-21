@@ -116,12 +116,12 @@ export default {
         "ink-soft": "hsl(var(--ink-soft) / <alpha-value>)",
       },
       fontFamily: {
-        display: ["'DM Serif Display'", "Georgia", "'Times New Roman'", "serif"],
-        serif: ["'DM Serif Display'", "Georgia", "'Times New Roman'", "serif"],
-        "serif-text": ["'Source Serif 4'", "Georgia", "'Times New Roman'", "serif"],
-        body: ["'DM Sans'", "system-ui", "sans-serif"],
-        sans: ["'DM Sans'", "system-ui", "sans-serif"],
-        mono: ["'DM Mono'", "ui-monospace", "monospace"],
+        display: ["'Inter'", "system-ui", "sans-serif"],
+        serif: ["'Inter'", "system-ui", "sans-serif"],
+        "serif-text": ["'Inter'", "system-ui", "sans-serif"],
+        body: ["'Inter'", "system-ui", "sans-serif"],
+        sans: ["'Inter'", "system-ui", "sans-serif"],
+        mono: ["'Roboto Mono'", "ui-monospace", "monospace"],
       },
       // Site-wide bold de-amplification (~15%). Each Tailwind font-weight
       // utility is mapped one notch lighter so previously "too heavy" text
