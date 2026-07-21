@@ -568,7 +568,7 @@ Deno.serve(async (req) => {
       });
     }
     const __body = await req.json();
-    const { assessment_id } = __body;
+    const { assessment_id, resume_stage } = __body;
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
