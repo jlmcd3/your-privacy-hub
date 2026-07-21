@@ -414,6 +414,7 @@ async function runUnit(runId: string) {
       status: "complete",
       run_number: 1,
       mode: "manual",
+      grader_context_version: GRADER_CONTEXT_VERSION, // HOUSEKEEPING-1 T2
     }).select("id").maybeSingle());
     if (qrunErr || !qrun) {
       await log(runId, `${reg.label}: failed to create quality_runs row: ${qrunErr?.message}`, { level: "error", product: next });
