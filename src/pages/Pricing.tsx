@@ -1,140 +1,57 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { Check, X, Sparkles, Wrench } from "lucide-react";
+import { Sparkles, Wrench, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { PRICING, INCLUDED_GENERATIONS_SHORT } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY, INCLUDED_GENERATIONS_SHORT } from "@/config/pricing";
 
 /**
- * /pricing — public pricing page (UX-2e T1).
+ * /pricing — public pricing page.
  *
- * ALL prices are read from src/config/pricing.ts via PRICING.
- * Any hardcoded "$" price string in this file would be a defect.
+ * ALL prices are read from src/config/pricing.ts (PRICING + PRICING_REGISTRY).
+ * Structure mirrors the canonical EndUserPrivacy Price List document:
+ *   1. Subscription plans (cards)
+ *   2. Smart Tools — per-use (Standalone / Subscriber / Annual Credit / +4 Top-Up)
+ *   3. Included / Layer-1 tools (Standalone / Subscriber Access)
  */
 
 const iconProps = { size: 16, strokeWidth: 1.75, "aria-hidden": true } as const;
 
-interface Row {
-  feature: string;
-  intelligence: string | boolean;
-  professional: string | boolean;
-  standalone: string | boolean;
+const reg = PRICING_REGISTRY as Record<string, { displayPrice: string; amountCents: number }>;
+const price = (key: string) => reg[key]?.displayPrice ?? "—";
+
+interface SmartToolRow {
+  tool: string;
+  standaloneKey: string;
+  subscriberKey: string;
+  annualCredit: string;
+  topupKey: string | null;
 }
 
-// Comparison rows. All numeric price cells are pulled from PRICING at render.
-const buildRows = (): Row[] => [
-  {
-    feature: "Daily privacy intelligence feed",
-    intelligence: true,
-    professional: true,
-    standalone: false,
-  },
-  {
-    feature: "Weekly Intelligence Brief",
-    intelligence: true,
-    professional: true,
-    standalone: false,
-  },
-  {
-    feature: "Enforcement tracker + calendar",
-    intelligence: true,
-    professional: true,
-    standalone: true,
-  },
-  {
-    feature: "RoPA Builder",
-    intelligence: "Included",
-    professional: "Included",
-    standalone: "Subscriber only",
-  },
-  {
-    feature: "US Privacy Notice Builder",
-    intelligence: "Included",
-    professional: "Included",
-    standalone: "Subscriber only",
-  },
-  {
-    feature: "EU / Global Privacy Notice Builder",
-    intelligence: "Included",
-    professional: "Included",
-    standalone: "Subscriber only",
-  },
-  {
-    feature: "Client / matter workspace",
-    intelligence: false,
-    professional: "Annual required",
-    standalone: false,
-  },
-  {
-    feature: "Free Smart Tool runs / year",
-    intelligence: "1 (annual)",
-    professional: "3 (annual)",
-    standalone: "—",
-  },
-  {
-    feature: `Biometric Compliance Check`,
-    intelligence: PRICING.tools.biometric.display,
-    professional: PRICING.tools.biometric.display,
-    standalone: PRICING.tools.biometric.display,
-  },
-  {
-    feature: `Breach IR Playbook`,
-    intelligence: PRICING.tools.ir_playbook.display,
-    professional: PRICING.tools.ir_playbook.display,
-    standalone: PRICING.tools.ir_playbook.display,
-  },
-  {
-    feature: `Custom DPA Generator`,
-    intelligence: PRICING.tools.dpa.display,
-    professional: PRICING.tools.dpa.display,
-    standalone: PRICING.tools.dpa.display,
-  },
-  {
-    feature: `Legitimate Interest Assessment`,
-    intelligence: PRICING.tools.lia.display,
-    professional: PRICING.tools.lia.display,
-    standalone: PRICING.tools.lia.display,
-  },
-  {
-    feature: `Impact Assessment Builder (DPIA)`,
-    intelligence: PRICING.tools.dpia.display,
-    professional: PRICING.tools.dpia.display,
-    standalone: PRICING.tools.dpia.display,
-  },
-  {
-    feature: `GDPR Governance Assessment`,
-    intelligence: PRICING.tools.governance.display,
-    professional: PRICING.tools.governance.display,
-    standalone: PRICING.tools.governance.display,
-  },
-  {
-    feature: `CPPA Risk Assessment`,
-    intelligence: PRICING.tools.cppa_risk.display,
-    professional: PRICING.tools.cppa_risk.display,
-    standalone: PRICING.tools.cppa_risk.display,
-  },
-  {
-    feature: `CPPA Cybersecurity Readiness`,
-    intelligence: PRICING.tools.cppa_cyber.display,
-    professional: PRICING.tools.cppa_cyber.display,
-    standalone: PRICING.tools.cppa_cyber.display,
-  },
-  {
-    feature: `CPPA Full Audit Suite`,
-    intelligence: PRICING.tools.cppa_suite.display,
-    professional: PRICING.tools.cppa_suite.display,
-    standalone: PRICING.tools.cppa_suite.display,
-  },
+const SMART_TOOL_ROWS: SmartToolRow[] = [
+  { tool: "GDPR Governance Assessment",              standaloneKey: "hc_standalone_v2",       subscriberKey: "hc_subscriber_v2",       annualCredit: "1 credit / yr", topupKey: "governance_topup_v1" },
+  { tool: "Legitimate Interest Assessment (LIA)",    standaloneKey: "li_standalone_v2",       subscriberKey: "li_subscriber_v2",       annualCredit: "1 credit / yr", topupKey: "li_topup_v1" },
+  { tool: "Impact Assessment Builder (DPIA)",        standaloneKey: "dpia_standalone_v2",     subscriberKey: "dpia_subscriber_v2",     annualCredit: "1 credit / yr", topupKey: "dpia_topup_v1" },
+  { tool: "CPPA Risk Assessment — Module 1",         standaloneKey: "cppa_risk_standalone",   subscriberKey: "cppa_risk_subscriber",   annualCredit: "Not eligible", topupKey: "cppa_risk_topup_v1" },
+  { tool: "CPPA Cybersecurity Readiness — Module 2", standaloneKey: "cppa_cyber_standalone",  subscriberKey: "cppa_cyber_subscriber",  annualCredit: "Not eligible", topupKey: "cppa_cybersecurity_topup_v1" },
+  { tool: "CPPA Full Audit Suite (Modules 1 + 2)",   standaloneKey: "cppa_suite_standalone",  subscriberKey: "cppa_suite_subscriber",  annualCredit: "Not eligible", topupKey: null },
+  { tool: "ADMT Compliance Assessment — Module 3",   standaloneKey: "cppa_admt_standalone",   subscriberKey: "cppa_admt_subscriber",   annualCredit: "Not eligible", topupKey: "cppa_admt_topup_v1" },
 ];
 
-const Cell = ({ value }: { value: string | boolean }) => {
-  if (value === true) return <Check {...iconProps} className="text-brand-teal inline" />;
-  if (value === false) return <X {...iconProps} className="text-muted-foreground/50 inline" />;
-  return <span className="text-sm text-brand-navy">{value}</span>;
-};
+interface IncludedRow { tool: string; standalone: string; access: string; }
+
+const INCLUDED_ROWS: IncludedRow[] = [
+  { tool: "Custom DPA Generator",               standalone: PRICING.tools.dpa.display,        access: "Free for all active subscribers" },
+  { tool: "Incident Response Playbook",         standalone: PRICING.tools.ir_playbook.display, access: "Free for all active subscribers" },
+  { tool: "Biometric Compliance Check",         standalone: PRICING.tools.biometric.display,   access: "Free for all active subscribers" },
+  { tool: "RoPA Builder — Initial Generation",  standalone: "—",       access: "Subscriber-only (free)" },
+  { tool: "RoPA Builder — Annual Refresh",      standalone: "—",       access: "Subscriber-only (free)" },
+  { tool: "US Privacy Notice Builder",          standalone: "—",       access: "Subscriber-only" },
+  { tool: "EU & Global Privacy Notice Builder", standalone: "—",       access: "Subscriber-only" },
+  { tool: "CPPA Scope Checker",                 standalone: "Free",    access: "Free (no account required)" },
+];
 
 export default function Pricing() {
-  const rows = buildRows();
   const intelligence = PRICING.intelligence;
   const professional = PRICING.professional;
 
@@ -187,28 +104,21 @@ export default function Pricing() {
               <li className="flex gap-2"><Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> RoPA + Notice Builders included</li>
               <li className="flex gap-2"><Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> 1 free Smart Tool run / year (annual)</li>
             </ul>
-            <Link
-              to="/subscribe?plan=intelligence"
-              className="inline-flex items-center justify-center bg-brand-teal-deep text-white font-semibold px-5 py-3 rounded-lg no-underline hover:opacity-90"
-            >
+            <Link to="/subscribe?plan=intelligence" className="inline-flex items-center justify-center bg-brand-teal-deep text-white font-semibold px-5 py-3 rounded-lg no-underline hover:opacity-90">
               Start Intelligence →
             </Link>
           </div>
 
           {/* Professional */}
           <div className="bg-card border-2 border-brand-teal rounded-2xl p-6 flex flex-col relative">
-            <div className="absolute -top-3 left-6 bg-brand-teal text-white text-xs font-semibold px-3 py-1 rounded-full">
-              Most complete
-            </div>
+            <div className="absolute -top-3 left-6 bg-brand-teal text-white text-xs font-semibold px-3 py-1 rounded-full">Most complete</div>
             <div className="flex items-center gap-2 mb-2 text-brand-teal">
               <Sparkles {...iconProps} />
               <span className="text-eyebrow">Professional</span>
             </div>
             <h2 className="text-brand-navy mb-2">Everything + client workspace</h2>
             <div className="mb-4">
-              <span className="font-display text-4xl font-bold text-brand-navy">
-                {professional.monthly.display}
-              </span>
+              <span className="font-display text-4xl font-bold text-brand-navy">{professional.monthly.display}</span>
               <span className="text-muted-foreground">/{professional.monthly.label}</span>
               <p className="text-meta text-muted-foreground mt-1">
                 or {professional.annual.display}/{professional.annual.label} — {professional.annual.savingDisplay}
@@ -223,10 +133,7 @@ export default function Pricing() {
               <li className="flex gap-2"><Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> 3 free Smart Tool runs / year (annual)</li>
               <li className="flex gap-2"><Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Free IR Playbook, DPA, Biometric</li>
             </ul>
-            <Link
-              to="/subscribe?plan=professional"
-              className="inline-flex items-center justify-center bg-brand-teal-deep text-white font-semibold px-5 py-3 rounded-lg no-underline hover:opacity-90"
-            >
+            <Link to="/subscribe?plan=professional" className="inline-flex items-center justify-center bg-brand-teal-deep text-white font-semibold px-5 py-3 rounded-lg no-underline hover:opacity-90">
               Start Professional →
             </Link>
           </div>
@@ -239,9 +146,7 @@ export default function Pricing() {
             </div>
             <h2 className="text-brand-navy mb-2">Buy a single tool</h2>
             <div className="mb-4">
-              <span className="font-display text-4xl font-bold text-brand-navy">
-                {PRICING.tools.biometric.display}
-              </span>
+              <span className="font-display text-4xl font-bold text-brand-navy">{PRICING.tools.biometric.display}</span>
               <span className="text-muted-foreground"> – {PRICING.tools.cppa_suite.display}</span>
               <p className="text-meta text-muted-foreground mt-1">
                 Every tool available standalone. No subscription required.
@@ -255,44 +160,78 @@ export default function Pricing() {
               <li className="flex justify-between"><span>Governance</span><span className="tabular-nums">{PRICING.tools.governance.display}</span></li>
               <li className="flex justify-between"><span>CPPA Suite</span><span className="tabular-nums">{PRICING.tools.cppa_suite.display}</span></li>
             </ul>
-            <Link
-              to="/tools"
-              className="inline-flex items-center justify-center border border-brand-navy text-brand-navy font-semibold px-5 py-3 rounded-lg no-underline hover:bg-brand-cloud"
-            >
+            <Link to="/tools" className="inline-flex items-center justify-center border border-brand-navy text-brand-navy font-semibold px-5 py-3 rounded-lg no-underline hover:bg-brand-cloud">
               Browse tools →
             </Link>
           </div>
         </section>
 
-        {/* Comparison table */}
-        <section className="max-w-[1100px] mx-auto px-4 pb-16">
-          <h2 className="text-brand-navy mb-6">Compare plans</h2>
+        {/* Smart Tools — per-use */}
+        <section className="max-w-[1100px] mx-auto px-4 pb-8">
+          <h2 className="text-brand-navy mb-2">Smart Tools — per-use</h2>
+          <p className="text-sm text-muted-foreground mb-6 max-w-3xl">
+            Standalone = full price for non-subscribers or subscribers without an available annual credit.
+            Subscriber = per-use price for active subscribers. Annual Credit shows the free-run allowance
+            included with Professional Annual (3 credits/yr) and Intelligence Annual (1 credit/yr).
+            +4 Top-Up adds four extra generations to an existing report at half the standalone price.
+          </p>
           <div className="overflow-x-auto border rounded-2xl bg-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-brand-cloud/40">
-                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Feature</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Intelligence</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Professional</th>
-                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Standalone</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Tool</th>
+                  <th className="text-right px-4 py-3 font-semibold text-brand-navy">Standalone</th>
+                  <th className="text-right px-4 py-3 font-semibold text-brand-navy">Subscriber</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Annual Credit</th>
+                  <th className="text-right px-4 py-3 font-semibold text-brand-navy">+4 Top-Up</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r, i) => (
-                  <tr key={r.feature} className={i % 2 ? "bg-brand-cloud/20" : ""}>
-                    <td className="px-4 py-3 text-brand-navy">{r.feature}</td>
-                    <td className="px-4 py-3"><Cell value={r.intelligence} /></td>
-                    <td className="px-4 py-3"><Cell value={r.professional} /></td>
-                    <td className="px-4 py-3"><Cell value={r.standalone} /></td>
+                {SMART_TOOL_ROWS.map((r, i) => (
+                  <tr key={r.tool} className={i % 2 ? "bg-brand-cloud/20" : ""}>
+                    <td className="px-4 py-3 text-brand-navy">{r.tool}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-brand-navy">{price(r.standaloneKey)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-brand-navy">{price(r.subscriberKey)}</td>
+                    <td className="px-4 py-3 text-brand-navy">{r.annualCredit}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-brand-navy">{r.topupKey ? price(r.topupKey) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Included / Layer-1 */}
+        <section className="max-w-[1100px] mx-auto px-4 pb-16">
+          <h2 className="text-brand-navy mb-2">Included / Layer-1 tools</h2>
+          <p className="text-sm text-muted-foreground mb-6 max-w-3xl">
+            Free with any active subscription (monthly or annual). Standalone prices shown where the
+            tool is also sold à la carte.
+          </p>
+          <div className="overflow-x-auto border rounded-2xl bg-card">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-brand-cloud/40">
+                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Tool</th>
+                  <th className="text-right px-4 py-3 font-semibold text-brand-navy">Standalone</th>
+                  <th className="text-left px-4 py-3 font-semibold text-brand-navy">Subscriber Access</th>
+                </tr>
+              </thead>
+              <tbody>
+                {INCLUDED_ROWS.map((r, i) => (
+                  <tr key={r.tool} className={i % 2 ? "bg-brand-cloud/20" : ""}>
+                    <td className="px-4 py-3 text-brand-navy">{r.tool}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-brand-navy">{r.standalone}</td>
+                    <td className="px-4 py-3 text-brand-navy">{r.access}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="text-meta text-muted-foreground mt-4">
-            Prices shown are current retail rates from the pricing registry. This
-            document is not legal advice and must be reviewed by qualified legal
-            counsel before any operational use or reliance.
+            Prices shown are current retail rates from the pricing registry. This document is not
+            legal advice and must be reviewed by qualified legal counsel before any operational use
+            or reliance.
           </p>
         </section>
       </main>
