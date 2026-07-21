@@ -180,7 +180,7 @@ const Calendar = () => {
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <Calendar aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Reference
+            <CalendarIcon aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Reference
           </span>
           <h1 className="font-serif text-white mb-3">Regulatory Key Dates Calendar</h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
