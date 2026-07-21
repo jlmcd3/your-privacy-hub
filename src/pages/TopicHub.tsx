@@ -24,40 +24,41 @@ interface Update {
   ai_summary?: any;
 }
 
-const TOPIC_META: Record<string, { name: string; icon: string; description: string; related: string[] }> = {
+const TOPIC_ICON = "inline w-[1em] h-[1em] align-[-0.125em] mr-1";
+const TOPIC_META: Record<string, { name: string; icon: React.ReactNode; description: string; related: string[] }> = {
   "ai-governance": {
     name: "AI Governance & Regulation",
-    icon: "",
+    icon: <Bot aria-hidden="true" strokeWidth={1.75} className={TOPIC_ICON} />,
     description: "Regulatory developments governing artificial intelligence, including the EU AI Act, algorithmic accountability laws, automated decision-making regulations, and AI training data guidance worldwide.",
     related: ["biometric-data", "children-privacy", "data-transfers"],
   },
   "data-breaches": {
     name: "Data Breach & Incident Response",
-    icon: "",
+    icon: <Unlock aria-hidden="true" strokeWidth={1.75} className={TOPIC_ICON} />,
     description: "Data breach notification requirements, incident response regulations, ransomware policy developments, and enforcement actions related to security failures and unauthorized data access.",
     related: ["ai-governance", "adtech", "data-transfers"],
   },
   "biometric-data": {
     name: "Biometric & Facial Recognition Law",
-    icon: "",
+    icon: <Eye aria-hidden="true" strokeWidth={1.75} className={TOPIC_ICON} />,
     description: "Laws and enforcement actions governing biometric identifiers including facial recognition, fingerprint scanning, iris recognition, and voiceprint technology across global jurisdictions.",
     related: ["ai-governance", "children-privacy", "adtech"],
   },
   "data-transfers": {
     name: "Cross-Border Data Transfers",
-    icon: "",
+    icon: <Globe aria-hidden="true" strokeWidth={1.75} className={TOPIC_ICON} />,
     description: "International data transfer mechanisms including adequacy decisions, Standard Contractual Clauses (SCCs), Binding Corporate Rules (BCRs), and data localization requirements worldwide.",
     related: ["ai-governance", "data-breaches", "adtech"],
   },
   "children-privacy": {
     name: "Children's Privacy & Age Verification",
-    icon: "",
+    icon: <Baby aria-hidden="true" strokeWidth={1.75} className={TOPIC_ICON} />,
     description: "Regulatory developments protecting children's data, including COPPA enforcement and modernization, age verification requirements, age-appropriate design codes (UK AADC), state children's privacy laws, and restrictions on targeted advertising and data collection from minors.",
     related: ["ai-governance", "adtech", "biometric-data"],
   },
   "adtech": {
     name: "AdTech, Cookies & Consent",
-    icon: "",
+    icon: <Cookie aria-hidden="true" strokeWidth={1.75} className={TOPIC_ICON} />,
     description: "Regulatory developments affecting advertising technology, cookie consent requirements, real-time bidding scrutiny, consent management platforms, and the deprecation of third-party cookies.",
     related: ["children-privacy", "data-transfers", "biometric-data"],
   },
