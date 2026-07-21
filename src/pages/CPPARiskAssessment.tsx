@@ -47,6 +47,7 @@ import {
   IMPROVEMENT_KIT_DESIGNATED_FIELDS,
   type AssertionMap,
 } from "@/config/improvementKit";
+import { CheckCircle2, Zap } from 'lucide-react';
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { AssertionLevel } from "@/components/cppa/AssertionLevel";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
@@ -234,7 +235,6 @@ export {
   IMPACT_CYBER_GAPS_OPTS,
 } from "./CPPARiskAssessment.enums";
 import {
-import { CheckCircle2, Zap } from 'lucide-react';
   HARM_TYPES,
   IMPACT_LIKELIHOOD_OPTS,
   IMPACT_SEVERITY_OPTS,

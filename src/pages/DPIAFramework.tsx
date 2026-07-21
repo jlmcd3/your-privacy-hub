@@ -51,10 +51,10 @@ export {
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
 } from "@/pages/DPIAFramework.enums";
 import {
-import { ClipboardList, Zap } from 'lucide-react';
   DATA_CATS, TOOLS, SAFEGUARDS, JURISDICTIONS,
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
 } from "@/pages/DPIAFramework.enums";
+import { ClipboardList, Zap } from 'lucide-react';
 // DATA_CATS labels that are Article 9 special categories — drives the conditional Art 9(2) field.
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"];
 

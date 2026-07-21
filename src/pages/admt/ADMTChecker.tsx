@@ -105,7 +105,6 @@ export {
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "./ADMTChecker.enums";
 import {
-import { AlertTriangle } from 'lucide-react';
   ADMT_VENDOR_STATUS_OPTS,
   ADMT_VENDOR_DOCS_OPTS,
   ADMT_YES_NO_UNSURE_OPTS,
@@ -116,6 +115,7 @@ import { AlertTriangle } from 'lucide-react';
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "./ADMTChecker.enums";
+import { AlertTriangle } from 'lucide-react';
 
 function formatRelativeTime(d: Date) {
   const s = Math.round((Date.now() - d.getTime()) / 1000);

@@ -8,13 +8,13 @@ import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import {
-import { CheckCircle2 } from 'lucide-react';
   INDUSTRIES,
   JURISDICTIONS as PREF_JURISDICTIONS,
   TOPICS,
   ROLES,
   BRIEF_FORMATS,
 } from "@/config/briefTaxonomy";
+import { CheckCircle2 } from 'lucide-react';
 
 // INDUSTRIES, PREF_JURISDICTIONS, TOPICS, ROLES, BRIEF_FORMATS are all imported
 // from @/config/briefTaxonomy — the single source of truth shared with

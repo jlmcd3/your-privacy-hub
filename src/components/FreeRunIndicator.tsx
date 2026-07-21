@@ -3,10 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { isIncludedTool } from "@/config/pricing";
 import {
-import { CheckCircle2, Gift } from 'lucide-react';
   isAnnualCreditEligible,
   countAvailableAnnualCredits,
 } from "@/lib/annualToolCredit";
+import { CheckCircle2, Gift } from 'lucide-react';
 
 interface Props {
   /** Tool key (snake_case). */

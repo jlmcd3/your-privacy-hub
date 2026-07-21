@@ -44,9 +44,9 @@ export {
   DATA_CATEGORIES, RELATIONSHIPS, JURISDICTIONS,
 } from "@/pages/LIAssessment.enums";
 import {
-import { Scale } from 'lucide-react';
   DATA_CATEGORIES, RELATIONSHIPS, JURISDICTIONS,
 } from "@/pages/LIAssessment.enums";
+import { Scale } from 'lucide-react';
 
 const MultiPills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">

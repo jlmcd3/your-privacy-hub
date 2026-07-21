@@ -13,10 +13,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, type ToolKey, isIncludedTool } from "@/config/pricing";
 import {
-import { Gift } from 'lucide-react';
   isAnnualCreditEligible,
   countAvailableAnnualCredits,
 } from "@/lib/annualToolCredit";
+import { Gift } from 'lucide-react';
 
 interface Props {
   toolKey: ToolKey;
