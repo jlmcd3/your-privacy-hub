@@ -88,7 +88,7 @@ export default function SearchFirstHero() {
                   California's privacy deadlines are here. Be audit-ready this week.
                 </h1>
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
-                  The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments that satisfy the record — cite-anchored to the final regulations and FSOR commentary.
+                  The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments that satisfy the record — cite-anchored to the final regulations and regulatory commentary.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-8">
                   <Link
@@ -105,18 +105,27 @@ export default function SearchFirstHero() {
                   </Link>
                 </div>
 
-                {/* US stat band — 52,326 / $67k / $449 / 4 */}
-                <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
-                  {US_STATS.map((s) => (
-                    <div
-                      key={s.label}
-                      className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-left"
-                    >
-                      <dt className="text-[11px] uppercase tracking-wider text-blue-100/80">{s.label}</dt>
-                      <dd className="text-xl font-display font-bold text-white leading-tight">{s.value}</dd>
-                    </div>
+                {/* US product row — all CPPA tools, bundle highlighted */}
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl">
+                  {US_PRODUCTS.map((p) => (
+                    <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
+                      <Link
+                        to={p.href}
+                        className={`block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline ${p.bundle ? "border-l-4 border-l-[#C8922A]" : ""}`}
+                      >
+                        <span className="block text-sm font-semibold text-white">
+                          {p.title}
+                          {p.bundle && (
+                            <span className="ml-2 inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-brand-navy bg-[#C8922A] px-1.5 py-0.5 rounded">
+                              Full Suite
+                            </span>
+                          )}
+                        </span>
+                        <span className="block text-xs text-blue-100/80">{p.sub}</span>
+                      </Link>
+                    </li>
                   ))}
-                </dl>
+                </ul>
               </>
             )}
           </div>
