@@ -116,7 +116,7 @@ export default function SearchFirstHero() {
                       to="/cppa-risk-assessment"
                       className="inline-flex items-center justify-center border border-white/40 text-white font-semibold px-6 py-3 rounded-lg no-underline hover:bg-white/10"
                     >
-                      Start a CPPA Risk Assessment — {CPPA_RISK_PRICE} →
+                      Start a CPPA Risk Assessment — {priceLine(CPPA_RISK_PRICE, PRICING_REGISTRY.cppa_risk_subscriber.displayPrice)} →
                     </Link>
                   </div>
 
