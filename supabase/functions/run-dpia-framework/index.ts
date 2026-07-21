@@ -1477,13 +1477,13 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     return;
   }
   try {
-    const r = await callAnthropicWithContinuation({
+    const r = await dpiaWithRetry(() => callAnthropicWithContinuation({
       model: "claude-sonnet-4-6",
       system: systemBlocks,
       user: userPrompt,
       maxTokens: UNIT_MAX_TOKENS[unit],
       label: `run-dpia-framework:unit:${unit}`,
-    });
+    }), { label: `dpia:unit:${unit}` });
     const elapsedMs = Date.now() - startedMs;
     // Telemetry line (courier §10) — extractable from edge-function logs.
     console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length} continued=${r.continued} cont_retried=${r.contRetried ?? false}`);
