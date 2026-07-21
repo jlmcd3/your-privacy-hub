@@ -22,11 +22,10 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
 ];
 
-const US_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
+const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
   { href: "/cppa-admt", title: "ADMT Compliance Check", sub: `${CPPA_ADMT_PRICE}` },
-  { href: "/cppa-risk-assessment", title: "CPPA Risk Assessment", sub: `${CPPA_RISK_PRICE}` },
   { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
-  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value` },
+  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
 ];
 
 export default function SearchFirstHero() {
@@ -106,15 +105,22 @@ export default function SearchFirstHero() {
                   </Link>
                 </div>
 
-                {/* US product row — four equal CPPA tabs */}
+                {/* US product row — three CPPA tabs, bundle highlighted */}
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl">
                   {US_PRODUCTS.map((p) => (
-                    <li key={p.href}>
+                    <li key={p.href} className={p.bundle ? "sm:col-span-2" : undefined}>
                       <Link
                         to={p.href}
-                        className="block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline"
+                        className={`block rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-2 no-underline ${p.bundle ? "border-l-4 border-l-[#C8922A]" : ""}`}
                       >
-                        <span className="block text-sm font-semibold text-white">{p.title}</span>
+                        <span className="flex items-center justify-between text-sm font-semibold text-white">
+                          <span>{p.title}</span>
+                          {p.bundle && (
+                            <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-brand-navy bg-[#C8922A] px-1.5 py-0.5 rounded">
+                              Full Suite
+                            </span>
+                          )}
+                        </span>
                         <span className="block text-xs text-blue-100/80">{p.sub}</span>
                       </Link>
                     </li>
