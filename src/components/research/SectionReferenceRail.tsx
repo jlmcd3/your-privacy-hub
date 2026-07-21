@@ -23,6 +23,7 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
   const [activeId, setActiveId] = useState<string | null>(sectionIds[0] ?? null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const stickyRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const elements = sectionIds
@@ -58,27 +59,51 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
     return () => observer.disconnect();
   }, [sectionIds.join("|")]);
 
-  // Keep the rail top edge aligned with the active section's heading when that heading
-  // is below the default sticky offset (e.g. the last short section on the page).
+  // When the active section's heading is below the default sticky offset (e.g. the last
+  // short section), switch the rail card to fixed positioning so its top edge aligns
+  // with the heading. Sticky positioning alone is constrained by the parent aside's
+  // height and cannot follow a heading that never reaches the top of the viewport.
   useEffect(() => {
     const stickyEl = stickyRef.current;
-    if (!stickyEl || !activeId) return;
+    const cardEl = cardRef.current;
+    if (!stickyEl || !cardEl || !activeId) return;
 
-    const updateTop = () => {
+    const CONTAINER_MAX_WIDTH = 1180;
+    const RAIL_WIDTH = 300;
+    const HORIZONTAL_PADDING = 24;
+
+    const updatePosition = () => {
       const section = document.getElementById(activeId);
       const heading = section?.querySelector("h3");
-      if (!heading || !stickyEl) return;
+      if (!heading) return;
+
       const headingTop = heading.getBoundingClientRect().top;
-      const nextTop = Math.max(DEFAULT_STICKY_TOP, headingTop);
-      stickyEl.style.top = `${nextTop}px`;
+      if (headingTop > DEFAULT_STICKY_TOP) {
+        const viewportWidth = window.innerWidth;
+        const right = Math.max(
+          HORIZONTAL_PADDING,
+          (viewportWidth - CONTAINER_MAX_WIDTH) / 2 + HORIZONTAL_PADDING
+        );
+        cardEl.style.position = "fixed";
+        cardEl.style.top = `${headingTop}px`;
+        cardEl.style.right = `${right}px`;
+        cardEl.style.width = `${RAIL_WIDTH}px`;
+        cardEl.style.zIndex = "30";
+      } else {
+        cardEl.style.position = "";
+        cardEl.style.top = "";
+        cardEl.style.right = "";
+        cardEl.style.width = "";
+        cardEl.style.zIndex = "";
+      }
     };
 
-    updateTop();
-    window.addEventListener("scroll", updateTop, { passive: true });
-    window.addEventListener("resize", updateTop);
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, { passive: true });
+    window.addEventListener("resize", updatePosition);
     return () => {
-      window.removeEventListener("scroll", updateTop);
-      window.removeEventListener("resize", updateTop);
+      window.removeEventListener("scroll", updatePosition);
+      window.removeEventListener("resize", updatePosition);
     };
   }, [activeId]);
 
