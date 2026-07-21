@@ -155,6 +155,7 @@ export default function HealthDataPrivacyPage() {
         header={{
           eyebrow: "Research · Health Data",
           title: "Health Data Privacy: HIPAA, FTC Health Breach Rule, and State Laws",
+          statuteCite: "45 CFR Parts 160 & 164 (HIPAA) · 16 CFR Part 318 (FTC Health Breach Notification Rule)",
           description:
             "Three different regimes regulate health data in the U.S. — and they barely overlap. Use the tracks below to find the rules that actually apply to you.",
           lastUpdated: "March 24, 2026",
@@ -166,6 +167,21 @@ export default function HealthDataPrivacyPage() {
             { value: "5+", label: "state consumer health laws" },
           ],
         }}
+        atAGlance={[
+          { label: "HIPAA scope", value: "Covered entities + business associates — 45 CFR §§ 160, 164" },
+          { label: "Non-HIPAA health apps", value: "FTC Health Breach Notification Rule — 16 CFR Part 318" },
+          { label: "State overlays", value: "Washington My Health My Data, Nevada SB 370, Connecticut CTDPA carve-outs" },
+          { label: "Breach clocks", value: "HIPAA: 60 days to individuals & HHS · MHMDA: consumer rights + 45-day cure" },
+        ]}
+        merchandisingRail={{
+          heading: "Use this in your workflow",
+          items: [
+            { label: "Incident-Response Playbook", href: "/ir-playbook", description: "HIPAA §§ 164.404/408 + FTC HBNR breach runbook wired to your stack." },
+            { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Privacy notice with health-data disclosures for MHMDA and analogues." },
+            { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material HHS-OCR and FTC health-data action, curated weekly." },
+          ],
+        }}
+
         pageSynthesisKey="health__page"
         topToolCta={{
           toolName: "Impact Assessment Builder",

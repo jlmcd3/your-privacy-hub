@@ -168,6 +168,7 @@ export default function CookieConsentPage() {
         header={{
           eyebrow: "Research · Cookie Consent",
           title: "Cookie Consent Requirements by Jurisdiction",
+          statuteCite: "ePrivacy Directive Art. 5(3) · prior informed consent for non-essential storage/access",
           description:
             "Most sites span EU, UK and U.S. visitors at once. Start with the side-by-side matrix and the strictest-applicable banner checklist — then drill into the per-jurisdiction rules below.",
           lastUpdated: "March 24, 2026",
@@ -179,6 +180,21 @@ export default function CookieConsentPage() {
             { value: "100+", label: "ICO notices issued" },
           ],
         }}
+        atAGlance={[
+          { label: "Primary EU rule", value: "ePrivacy Directive Art. 5(3) — prior consent for non-essential cookies" },
+          { label: "US baseline", value: "CCPA/CPRA opt-out for 'sale/share' incl. cross-context behavioural advertising" },
+          { label: "Enforcement pattern", value: "CNIL fines target reject-flow parity, dark patterns, pre-ticked boxes" },
+          { label: "Recognised signal", value: "Global Privacy Control mandatory in CA, CO, CT, DE and expanding" },
+        ]}
+        merchandisingRail={{
+          heading: "Use this in your workflow",
+          items: [
+            { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Cookie/privacy notice tuned to your jurisdiction stack." },
+            { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "For advertising/analytics uses of Art. 6(1)(f)." },
+            { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material adtech / consent enforcement action, curated weekly." },
+          ],
+        }}
+
         pageSynthesisKey="cookie__page"
         topToolCta={{
           toolName: "EU & Global Notice Builder",

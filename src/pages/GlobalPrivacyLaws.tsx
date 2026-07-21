@@ -24,6 +24,7 @@ const GlobalPrivacyLaws = () => (
     header={{
       eyebrow: "Research · Global Privacy",
       title: "Global Privacy Laws",
+      statuteCite: "GDPR-modelled statutes · 140+ jurisdictions with omnibus data-protection regimes",
       description:
         "Over 140 countries have enacted data protection legislation — and the majority are GDPR-modelled, meaning EU-trained compliance instincts transfer further than you might expect. Browse the directory by region, filter by statutory status, and check EU adequacy at a glance. For U.S. law see /us-privacy-laws; for EU/GDPR see /gdpr-enforcement.",
       lastUpdated: "June 10, 2026",
@@ -35,6 +36,21 @@ const GlobalPrivacyLaws = () => (
         { value: "2026", label: "newest regimes active" },
       ],
     }}
+    atAGlance={[
+      { label: "Baseline", value: "GDPR is the reference text for most non-US regimes" },
+      { label: "Adequacy universe", value: "~15 EU adequacy decisions unlock frictionless transfers" },
+      { label: "Rising enforcers", value: "Brazil (ANPD), India (DPDPA), Australia (OAIC), Singapore (PDPC)" },
+      { label: "Common obligation", value: "Local DPO / representative + registration in several regimes" },
+    ]}
+    merchandisingRail={{
+      heading: "Use this in your workflow",
+      items: [
+        { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Full international privacy notice with multi-jurisdiction overlays." },
+        { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "GDPR-shaped LIA that ports cleanly to Brazilian LGPD and UK GDPR." },
+        { label: "DPIA Framework", href: "/dpia-framework", description: "High-risk processing assessment aligned to Art. 35 and its analogues." },
+      ],
+    }}
+
     topToolCta={{
       toolName: "Registration Manager",
       toolDescription:

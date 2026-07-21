@@ -89,6 +89,7 @@ export default function BiometricPrivacyPage() {
         header={{
           eyebrow: "Research · Biometric Privacy",
           title: "Biometric Privacy Laws: BIPA, State Laws & GDPR",
+          statuteCite: "740 ILCS 14 (BIPA) · GDPR Art. 9(1) — special-category biometric identifiers",
           description:
             "Biometric data is regulated more strictly than almost any other category — and exposure compounds quickly under BIPA's per-scan damages model. Start with the checklist to see what applies.",
           lastUpdated: "June 10, 2026",
@@ -100,6 +101,21 @@ export default function BiometricPrivacyPage() {
             { value: "6+", label: "state biometric laws" },
           ],
         }}
+        atAGlance={[
+          { label: "Toughest US regime", value: "Illinois BIPA — private right of action, $1K/$5K per violation" },
+          { label: "Companion state laws", value: "Texas CUBI, Washington HB 1493, Colorado § 6-1-1308(7)" },
+          { label: "EU treatment", value: "GDPR Art. 9(1) — biometric ID data is special-category; Art. 9(2) basis required" },
+          { label: "Recent watershed", value: "$1.4B Texas–Meta settlement (2024) confirms scale of exposure" },
+        ]}
+        merchandisingRail={{
+          heading: "Use this in your workflow",
+          items: [
+            { label: "Biometric Compliance Assessment", href: "/biometric-checker", description: "State-by-state BIPA/CUBI/HB1493 compliance diagnostic." },
+            { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Art. 13/14 notice with Art. 9(2) legal-basis language for biometrics." },
+            { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material biometric enforcement action, curated weekly." },
+          ],
+        }}
+
         pageSynthesisKey="biometric__page"
         topToolCta={{
           toolName: "Biometric Compliance Assessment",
