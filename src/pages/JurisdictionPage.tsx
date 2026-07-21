@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ExternalLink, BarChart3, Bot, Eye, Globe, Landmark, Scale, Star } from 'lucide-react';
+import { ExternalLink, BarChart3, Bot, ChevronDown, Eye, Globe, Landmark, Scale, Star } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -669,15 +669,20 @@ const JurisdictionPage = () => {
                 <div className="mt-6">
                   <button
                     onClick={() => setShowRegional((v) => !v)}
-                    className="w-full flex items-center justify-between text-left py-2 border-t border-brand-cloud hover:text-brand-teal-text transition-colors"
+                    aria-expanded={showRegional}
+                    className="w-full flex items-center justify-between text-left py-3 px-3 rounded-md border border-brand-cloud bg-brand-cloud/30 hover:bg-brand-cloud/60 hover:border-brand-teal transition-colors"
                   >
                     <div>
                       <span className="font-display text-base text-brand-navy">Also relevant to {jurisdiction.name}</span>
-                      <p className="text-xs text-brand-mist mt-0.5">
+                      <p className="text-xs text-brand-navy/70 mt-0.5">
                         Regional or cross-border developments that may affect {jurisdiction.name} ({regionalRecent.length})
                       </p>
                     </div>
-                    <span className="text-slate text-sm">{showRegional ? "−" : "+"}</span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      strokeWidth={2}
+                      className={`h-5 w-5 text-brand-navy shrink-0 ml-3 transition-transform ${showRegional ? "rotate-180" : ""}`}
+                    />
                   </button>
                   {showRegional && (
                     <div className="mt-3">
@@ -687,19 +692,25 @@ const JurisdictionPage = () => {
                 </div>
               )}
 
+
               {hasArchive && (
                 <div className="mt-6">
                   <button
                     onClick={() => setShowArchive((v) => !v)}
-                    className="w-full flex items-center justify-between text-left py-2 border-t border-brand-cloud hover:text-brand-teal-text transition-colors"
+                    aria-expanded={showArchive}
+                    className="w-full flex items-center justify-between text-left py-3 px-3 rounded-md border border-brand-cloud bg-brand-cloud/30 hover:bg-brand-cloud/60 hover:border-brand-teal transition-colors"
                   >
                     <div>
                       <span className="font-display text-base text-brand-navy">Earlier coverage</span>
-                      <p className="text-xs text-brand-mist mt-0.5">
+                      <p className="text-xs text-brand-navy/70 mt-0.5">
                         Older than 90 days ({archive.length})
                       </p>
                     </div>
-                    <span className="text-slate text-sm">{showArchive ? "−" : "+"}</span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      strokeWidth={2}
+                      className={`h-5 w-5 text-brand-navy shrink-0 ml-3 transition-transform ${showArchive ? "rotate-180" : ""}`}
+                    />
                   </button>
                   {showArchive && (
                     <div className="mt-3">
@@ -708,6 +719,7 @@ const JurisdictionPage = () => {
                   )}
                 </div>
               )}
+
 
               {(hasDirect || hasRegional || hasArchive) && (
                 <div className="flex items-center justify-end mt-4 pt-3 border-t border-brand-cloud">
