@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { isIncludedTool } from "@/config/pricing";
 import {
+import { CheckCircle2, Gift } from 'lucide-react';
   isAnnualCreditEligible,
   countAvailableAnnualCredits,
 } from "@/lib/annualToolCredit";
@@ -42,7 +43,7 @@ export default function FreeRunIndicator({ toolKey }: Props) {
   if (isIncludedTool(toolKey)) {
     return (
       <p className="text-sm font-medium text-brand-teal-text">
-        ✓ Included with your subscription
+        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included with your subscription
       </p>
     );
   }
@@ -51,7 +52,7 @@ export default function FreeRunIndicator({ toolKey }: Props) {
     const noun = credits === 1 ? "run" : "runs";
     return (
       <p className="text-sm font-medium text-brand-teal-text">
-        🎁 {credits} free Smart Tool {noun} available this year — redeemable on this assessment
+        <Gift aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {credits} free Smart Tool {noun} available this year — redeemable on this assessment
       </p>
     );
   }

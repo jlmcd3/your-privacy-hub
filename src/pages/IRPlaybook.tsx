@@ -32,6 +32,7 @@ import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
+import { Siren } from 'lucide-react';
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -164,7 +165,7 @@ export default function IRPlaybook() {
         <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>      <header className="bg-brand-slate-teal text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🚨 Incident Response Playbook · ${pricing.price}
+            <Siren aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Incident Response Playbook · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">Incident Response Playbook</h1>
           <RequirementBadge variant="hero" tier="supports" text="Breach notification is mandatory under GDPR Articles 33–34 and every U.S. state breach law — and HIPAA, NYDFS, and DORA require a written incident-response plan." className="mt-2 max-w-3xl" />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -103,7 +103,7 @@ const FAQ = () => {
       <section className="bg-gradient-to-b from-brand-navy to-brand-slate-teal py-16 px-4">
         <div className="max-w-[760px] mx-auto">
         <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
-          ❓ FREQUENTLY ASKED QUESTIONS
+          <HelpCircle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> FREQUENTLY ASKED QUESTIONS
         </span>
         <h1 className="font-display text-white mb-3">
           Everything you need to know

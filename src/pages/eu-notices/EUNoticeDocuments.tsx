@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, FileText, Loader2, RefreshCw, Globe2, Eye, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, FileText, Loader2, RefreshCw, Globe2, Eye, Trash2, ClipboardList } from 'lucide-react';
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -336,8 +336,8 @@ export default function EUNoticeDocuments() {
 
       <RelatedToolsChips
         tools={[
-          { label: "📋 RoPA", to: "/ropa/documents" },
-          { label: "📋 US Notices", to: "/us-notices" },
+          { label: " RoPA", to: "/ropa/documents" },
+          { label: " US Notices", to: "/us-notices" },
         ]}
       />
     </EUNoticeShell>

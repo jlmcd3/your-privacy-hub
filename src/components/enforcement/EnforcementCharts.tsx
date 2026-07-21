@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
+import { BarChart3 } from 'lucide-react';
 
 const FINE_BY_REGULATOR = [
   { regulator: "DPC (Ireland)", amount: 1420, color: "#0d2240" },
@@ -36,7 +37,7 @@ export default function EnforcementCharts() {
   return (
     <div className="mt-10 space-y-6">
       <h2 className="font-display text-brand-navy">
-        📊 Enforcement Analytics
+        <BarChart3 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Enforcement Analytics
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

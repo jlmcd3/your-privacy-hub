@@ -10,17 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
-import {
-  FileText,
-  Plus,
-  RefreshCw,
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  Download,
-  Trash2,
-} from "lucide-react";
+import { FileText, Plus, RefreshCw, AlertTriangle, ArrowRight, CheckCircle2, Clock, Download, Trash2, BookOpen } from 'lucide-react';
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { adminDelete } from "@/lib/adminDelete";
 import { useToast } from "@/hooks/use-toast";
@@ -147,7 +137,7 @@ export default function RopaHome() {
     <RopaShell
       title="RoPA Builder — End User Privacy"
       heading="RoPA Builder"
-      chip="📒 Article 30 Record Builder"
+      chip=" Article 30 Record Builder"
       description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record as a .pdf."
     >
       {loading ? (

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ClipboardList } from 'lucide-react';
 
 interface Annotation {
   enforcement_action_id?: string;
@@ -29,7 +30,7 @@ export function AnnotationCallout({
           className="bg-slate-50 dark:bg-slate-900/40 border-l-2 border-slate-300 dark:border-slate-600 rounded-r px-3 py-2 text-xs"
         >
           <span className="font-semibold text-slate-500 uppercase tracking-wide text-[11px]">
-            📋 Corpus
+            <ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Corpus
           </span>{" "}
           <span className="font-medium text-foreground">{a.regulator}</span>
           {a.jurisdiction ? ` · ${a.jurisdiction}` : ""}

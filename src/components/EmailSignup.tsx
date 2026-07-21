@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Mail } from 'lucide-react';
 
 interface EmailSignupProps {
   variant?: "strip" | "card";
@@ -57,7 +58,7 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
   return (
     <div className={`bg-card border border-border rounded-xl p-5 ${className}`}>
       <h4 className="text-base text-foreground mb-1">
-        📧 Your Personalized Weekly Digest — Free
+        <Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your Personalized Weekly Digest — Free
       </h4>
       <p className="text-xs text-muted-foreground mb-3">
         Create a free account for filtered weekly updates on the developments that matter to your work, plus minimal enrichment views on articles.

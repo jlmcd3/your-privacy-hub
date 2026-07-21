@@ -51,6 +51,7 @@ export {
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
 } from "@/pages/DPIAFramework.enums";
 import {
+import { ClipboardList, Zap } from 'lucide-react';
   DATA_CATS, TOOLS, SAFEGUARDS, JURISDICTIONS,
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
 } from "@/pages/DPIAFramework.enums";
@@ -480,7 +481,7 @@ const DPIAFramework = () => {
       <header className="bg-brand-navy text-white py-12">
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Data Protection Impact Assessment · ${pricing.price}</span>
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment · ${pricing.price}</span>
           <h1 className="text-hero-h1 text-white mb-3">Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></h1>
           <RequirementBadge variant="hero" tier="required" text="A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements.</p>
@@ -577,7 +578,7 @@ const DPIAFramework = () => {
           {dpiaTriggers.length > 0 && (
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wide">
-                ⚡ DPIA triggers detected from your data categories <EnforcementSignalIcon signalKey="dpia_absence" signals={dpiaEnforcementSignals} />
+                <Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> DPIA triggers detected from your data categories <EnforcementSignalIcon signalKey="dpia_absence" signals={dpiaEnforcementSignals} />
               </p>
               {dpiaTriggers.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">

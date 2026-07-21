@@ -11,6 +11,7 @@ import {
 } from "@/lib/li-outcome-palette";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import ToolCTABlock from "@/components/ToolCTABlock";
+import { Scale } from 'lucide-react';
 
 const OUTCOME_ORDER = LI_OUTCOME_ORDER;
 
@@ -95,7 +96,7 @@ const LegitimateInterestTracker = () => {
       <header className="bg-brand-navy text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Intelligence Guide
+            <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Intelligence Guide
           </span>
           <h1 className="font-serif text-white mb-3">Legitimate Interest Tracker</h1>
           <p className="text-slate-300 text-lg max-w-3xl">Global privacy law, tracked daily.</p>

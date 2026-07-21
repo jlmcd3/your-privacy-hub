@@ -105,6 +105,7 @@ export {
   ADMT_SOLELY_ADVERTISING_OPTS,
 } from "./ADMTChecker.enums";
 import {
+import { AlertTriangle } from 'lucide-react';
   ADMT_VENDOR_STATUS_OPTS,
   ADMT_VENDOR_DOCS_OPTS,
   ADMT_YES_NO_UNSURE_OPTS,
@@ -1255,7 +1256,7 @@ export default function ADMTChecker() {
                         </div>
                         {optOutMethods.length > 0 && optOutMethods.length < 2 && (
                           <p className="text-xs text-destructive mt-2">
-                            ⚠ § 7221(c) requires at least two designated methods. Please add another method.
+                            <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> § 7221(c) requires at least two designated methods. Please add another method.
                           </p>
                         )}
                       </div>

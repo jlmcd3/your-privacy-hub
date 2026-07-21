@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { ArrowRight, Check, Globe2, MapPin, RefreshCw, Shield } from "lucide-react";
+import { ArrowRight, Check, Globe2, MapPin, RefreshCw, Shield, CheckCircle2, ClipboardList, Globe } from 'lucide-react';
 
 import Navbar from "@/components/Navbar";
 import { RequirementBadge } from "@/components/RequirementBadge";
@@ -67,13 +67,13 @@ export default function NoticeBuilderLanding() {
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included with your subscription: every US state notice and every EU/Global framework is included at no additional charge.
+            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included with your subscription: every US state notice and every EU/Global framework is included at no additional charge.
           </div>
         )}
       </div>
 
       <PageHero
-        chip={<>🌍 Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
+        chip={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
         title="Generate your privacy notices: US states and EU/Global frameworks, in one place."
         description="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
@@ -120,7 +120,7 @@ export default function NoticeBuilderLanding() {
               <Card>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">📋</span>
+                    <span className="text-2xl"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <h3 className="font-serif text-xl">US Privacy Notice Builder</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -155,7 +155,7 @@ export default function NoticeBuilderLanding() {
               <Card>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">🌍</span>
+                    <span className="text-2xl"><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                     <h3 className="font-serif text-xl">EU & Global Notice Builder</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">

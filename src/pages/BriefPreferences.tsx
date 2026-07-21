@@ -8,6 +8,7 @@ import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import {
+import { CheckCircle2 } from 'lucide-react';
   INDUSTRIES,
   JURISDICTIONS as PREF_JURISDICTIONS,
   TOPICS,
@@ -51,7 +52,7 @@ const Toggle = ({
         <p className={`text-meta mt-0.5 leading-snug ${selected ? "text-blue-200" : "text-slate"}`}>{description}</p>
       )}
     </div>
-    {selected && <span className="text-xs ml-auto flex-shrink-0 mt-0.5 opacity-70">✓</span>}
+    {selected && <span className="text-xs ml-auto flex-shrink-0 mt-0.5 opacity-70"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>}
   </button>
 );
 
@@ -258,7 +259,7 @@ export default function BriefPreferences() {
                 >
                   <span><FlagIcon icon={r.icon} /></span>
                   <span>{r.label}</span>
-                  {role === r.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+                  {role === r.id && <span className="text-xs ml-0.5 opacity-70"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>}
                 </button>
               ))}
             </div>
@@ -316,7 +317,7 @@ export default function BriefPreferences() {
                 >
                   <span><FlagIcon icon={f.icon} /></span>
                   <span>{f.label}</span>
-                  {prefs.format === f.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+                  {prefs.format === f.id && <span className="text-xs ml-0.5 opacity-70"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>}
                 </button>
               ))}
             </div>
@@ -344,7 +345,7 @@ export default function BriefPreferences() {
               disabled={saving}
               className="bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-8 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer border-none"
             >
-              {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
+              {saving ? "Saving…" : saved ? " Saved" : "Save Preferences →"}
             </button>
             <p className="text-slate text-xs">Saved preferences take effect with the next Monday report.</p>
           </div>

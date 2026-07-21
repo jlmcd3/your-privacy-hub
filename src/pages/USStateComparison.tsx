@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, BarChart3, CheckCircle2 } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import comparisonData from "@/data/us_state_comparison.json";
@@ -91,14 +91,14 @@ const USStateComparison = () => {
       <header className="bg-[#1a4a6e] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📊 Comparison Tool
+            <BarChart3 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Comparison Tool
           </span>
           <h1 className="font-serif text-white mb-3">U.S. State Privacy Law Comparison</h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Side-by-side comparison of all {states.length} enacted US comprehensive state privacy laws across 12 standard provisions.
           </p>
           <p className="text-slate-400 text-sm mt-2">
-            Hover or focus any ✓ to see the statute citation. Press <kbd className="px-1 bg-white/10 rounded">Enter</kbd> or click to open the law in a new tab.
+            Hover or focus any <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> to see the statute citation. Press <kbd className="px-1 bg-white/10 rounded">Enter</kbd> or click to open the law in a new tab.
           </p>
         </div>
       </header>
@@ -224,7 +224,7 @@ const USStateComparison = () => {
         </div>
 
         <p className="text-xs text-muted-foreground mt-4">
-          Hover or keyboard-focus any ✓ checkmark to see the applicable statutory citation. Press Enter or click to open the full statute in a new tab.
+          Hover or keyboard-focus any <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> checkmark to see the applicable statutory citation. Press Enter or click to open the full statute in a new tab.
         </p>
 
         <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
@@ -291,7 +291,7 @@ const USStateComparison = () => {
             </p>
             <p>
               <span className="font-medium text-foreground">Checkmark scope.</span>{" "}
-              A ✓ indicates the statute contains the listed provision as a general rule.
+              A <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> indicates the statute contains the listed provision as a general rule.
               Coverage is often conditional in the underlying text — thresholds, definitions,
               exemptions, and effective dates vary by state. <span className="font-medium">Limited</span>{" "}
               and <span className="font-medium">Conditional</span> pills flag common qualifiers;
@@ -310,7 +310,7 @@ const USStateComparison = () => {
               the enumerated criteria (derives ≥50% of global revenues from online ad sales,
               operates a smart speaker with an integrated virtual assistant, or operates an
               app store or digital distribution platform offering ≥250,000 different software
-              applications). Provisions marked ✓ for Florida apply <em>only</em> to entities
+              applications). Provisions marked <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> for Florida apply <em>only</em> to entities
               inside that scope.
             </p>
             <p>

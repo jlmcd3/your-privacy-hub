@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, Star, FlaskConical } from "lucide-react";
+import { ExternalLink, Sparkles, Star, FlaskConical, Eye, Mail } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { normalizeTitle, stripHtml } from "@/lib/utils";
@@ -26,8 +26,8 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 };
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-brand-steel text-sm" },
-  { icon: "✉", text: "Free registered — full analysis", className: "text-brand-teal-text text-sm font-medium" },
+  { icon: "", text: "What any visitor sees", className: "text-brand-steel text-sm" },
+  { icon: "", text: "Free registered — full analysis", className: "text-brand-teal-text text-sm font-medium" },
   { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal-text text-sm font-semibold" },
 ];
 

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SUPPORTED_LANGUAGES, isRtl, type LanguageChip } from "@/lib/languages";
+import { RefreshCw } from 'lucide-react';
 
 interface Props {
   englishContent: string;
@@ -105,7 +106,7 @@ const SampleBriefLanguageToggle: React.FC<Props> = ({ englishContent, onLanguage
                 ? "bg-brand-navy text-white border-brand-navy"
                 : "bg-white text-slate-700 border-slate-200 hover:border-brand-navy hover:bg-slate-50"}`}
           >
-            🔄 English (original)
+            <RefreshCw aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> English (original)
           </button>
         </div>
       )}

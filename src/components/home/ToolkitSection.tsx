@@ -1,20 +1,21 @@
 import { Link } from "react-router-dom";
+import { BarChart3, Calendar, ScrollText } from 'lucide-react';
 
 const tools = [
   {
-    icon: "📅",
+    icon: "",
     title: "Compliance Calendar",
     sub: "Countdown timers for every regulatory deadline",
     href: "/calendar",
   },
   {
-    icon: "📜",
+    icon: "",
     title: "Legislation Tracker",
     sub: "Bills tracked globally across jurisdictions",
     href: "/legislation-tracker",
   },
   {
-    icon: "📊",
+    icon: "",
     title: "State Law Comparison",
     sub: "Compare 20 enacted US laws side by side",
     href: "/compare/us-states",

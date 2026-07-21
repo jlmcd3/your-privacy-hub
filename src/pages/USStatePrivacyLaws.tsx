@@ -1,11 +1,12 @@
 import PillarPage from "@/components/PillarPage";
+import { Map } from 'lucide-react';
 
 const USStatePrivacyLaws = () => (
   <PillarPage
     updateCategory="us-states"
     title="U.S. State Privacy Laws"
     subtitle="Comprehensive guide to enacted and pending state privacy legislation across all 50 states, including enforcement authority, effective dates, and compliance requirements."
-    icon="🗺️"
+    icon=""
     lastUpdated="March 10, 2026"
     intro="The United States lacks a comprehensive federal privacy law, creating a complex patchwork of state-level legislation that privacy professionals must navigate. As of March 2026, 20 states have enacted comprehensive privacy laws, with several more pending. This guide provides a structured overview of the entire U.S. state privacy landscape, covering enacted laws, pending legislation, enforcement authority, and key compliance requirements for each jurisdiction."
     sections={[

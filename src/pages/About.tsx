@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { BarChart3, BookOpen, Bot, Calendar, CheckCircle2, ClipboardList, Globe, Scale, ScrollText, Target, Wrench } from 'lucide-react';
 
 
 const About = () => {
@@ -95,7 +96,7 @@ const About = () => {
 
             <div className="space-y-8">
               <div className="flex gap-4">
-                <div className="text-2xl flex-shrink-0">⚖️</div>
+                <div className="text-2xl flex-shrink-0"><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                 <div>
                   <h3 className="text-brand-navy mb-1">
                     Enforcement-calibrated, not statute-summarising
@@ -112,7 +113,7 @@ const About = () => {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-2xl flex-shrink-0">🤖</div>
+                <div className="text-2xl flex-shrink-0"><Bot aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                 <div>
                   <h3 className="text-brand-navy mb-1">
                     Intelligence, not aggregation
@@ -128,7 +129,7 @@ const About = () => {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-2xl flex-shrink-0">🛠️</div>
+                <div className="text-2xl flex-shrink-0"><Wrench aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                 <div>
                   <h3 className="text-brand-navy mb-1">
                     Intelligence and compliance tools in one platform
@@ -145,7 +146,7 @@ const About = () => {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-2xl flex-shrink-0">🎯</div>
+                <div className="text-2xl flex-shrink-0"><Target aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                 <div>
                   <h3 className="text-brand-navy mb-1">
                     Personalised to your professional context
@@ -199,17 +200,17 @@ const About = () => {
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               {[
-                "📅 Compliance Calendar",
-                "📜 Legislation Tracker",
-                "📊 US State Comparison (20 laws × 12 provisions)",
-                "🌐 Global Jurisdiction Map (150+ jurisdictions)",
-                "⚖️ Enforcement Tracker",
+                " Compliance Calendar",
+                " Legislation Tracker",
+                " US State Comparison (20 laws × 12 provisions)",
+                " Global Jurisdiction Map (150+ jurisdictions)",
+                " Enforcement Tracker",
                 "⏱️ Regulatory Timelines",
-                "📖 Privacy Glossary",
-                "📋 Personalized weekly digest (your regions and topics)",
+                " Privacy Glossary",
+                " Personalized weekly digest (your regions and topics)",
               ].map((t) => (
                 <li key={t} className="flex items-center gap-2 text-brand-navy">
-                  <span className="text-accent">✓</span> {t}
+                  <span className="text-accent"></span> {t}
                 </li>
               ))}
             </ul>

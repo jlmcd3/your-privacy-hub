@@ -20,6 +20,7 @@ import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { IMPROVEMENT_KIT_ENABLED } from "@/config/improvementKit";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { toast } from "@/hooks/use-toast";
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -133,7 +134,7 @@ function RiskReportBody({ row }: { row: any }) {
       )}
 
       <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-        ⚠️ This compliance framework report does not constitute legal advice; additional information may be required to confirm findings against your specific facts.
+        <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> This compliance framework report does not constitute legal advice; additional information may be required to confirm findings against your specific facts.
       </section>
     </div>
   );
@@ -264,7 +265,7 @@ export default function CPPASuiteResult() {
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         {purchased && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
-            ✅ Suite purchase confirmed. Both reports are being generated below.
+            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Suite purchase confirmed. Both reports are being generated below.
           </div>
         )}
 

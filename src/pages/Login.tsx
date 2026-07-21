@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -103,7 +103,7 @@ const Login = () => {
               `Professional from ${PLATFORM_PRICING.standardMonthly()} base + ${PLATFORM_PRICING.clientAddon()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
-                <span className="text-accent font-bold">✓</span>
+                <span className="text-accent font-bold"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                 {item}
               </div>
             ))}

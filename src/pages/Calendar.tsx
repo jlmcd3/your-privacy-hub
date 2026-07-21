@@ -8,6 +8,7 @@ import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 import { supabase } from "@/integrations/supabase/client";
 import { findLaw, isUrlFresh } from "@/data/lawRegistry";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
+import { Bot, Calendar, Globe, Map, Newspaper } from 'lucide-react';
 
 /**
  * Render a law name as: internal jurisdiction link + optional external "↗" to gov source.
@@ -46,11 +47,11 @@ function LawCell({ lawName }: { lawName: string }) {
 const FILTERS = [
   { key: "all", label: "All" },
   { key: "us-federal", label: "🇺🇸 US Federal" },
-  { key: "us-states", label: "🗺️ US States" },
+  { key: "us-states", label: " US States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
-  { key: "global", label: "🌐 Global" },
-  { key: "ai", label: "🤖 AI & Tech" },
-  { key: "from-feed", label: "📰 From Feed" },
+  { key: "global", label: " Global" },
+  { key: "ai", label: " AI & Tech" },
+  { key: "from-feed", label: " From Feed" },
 ];
 
 const TYPE_BADGE: Record<string, { label: string; classes: string }> = {
@@ -179,7 +180,7 @@ const Calendar = () => {
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📅 Reference
+            <Calendar aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Reference
           </span>
           <h1 className="font-serif text-white mb-3">Regulatory Key Dates Calendar</h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">

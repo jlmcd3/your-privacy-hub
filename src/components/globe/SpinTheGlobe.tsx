@@ -4,6 +4,7 @@ import * as THREE from "three";
 import GLOBE_JURISDICTIONS, { type GlobeJurisdiction } from "@/data/globe_jurisdictions";
 import { pickStarClass, powerLawBrightness, twinkle } from "./starPalette";
 import earthTextureAsset from "@/assets/earth-blue-marble.jpg.asset.json";
+import { Globe } from 'lucide-react';
 
 
 
@@ -556,7 +557,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
             }
           >
             <span className="relative z-10 flex items-center justify-center gap-2.5">
-              🌍 Spin the Globe to discover a jurisdiction
+              <Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Spin the Globe to discover a jurisdiction
             </span>
             {!compact && (
               <div className="absolute inset-0 bg-gradient-to-br from-brand-teal/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { XCircle } from 'lucide-react';
 
 /**
  * Hidden UI debug overlay.
@@ -380,7 +381,7 @@ export default function UIDebugOverlay({
           }}
           aria-label="Close UI debug overlay"
         >
-          ✕
+          <XCircle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} />
         </button>
       </div>
       <div style={{ color: "#cbd5e1", marginBottom: 6 }}>

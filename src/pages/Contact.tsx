@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Mail } from 'lucide-react';
 
 const ENQUIRY_TYPES = [
   "General",
@@ -42,7 +43,7 @@ const Contact = () => {
         <section className="bg-gradient-to-br from-brand-navy via-brand-slate-teal to-brand-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
             <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-brand-mist bg-brand-mist/10 border border-brand-mist/20 rounded-full px-3 py-1 mb-4">
-              ✉️ CONTACT
+              <Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> CONTACT
             </span>
             <h1 className="font-display text-white leading-tight mb-4">
               Get in Touch
@@ -57,7 +58,7 @@ const Contact = () => {
           <div className="bg-card border border-brand-cloud rounded-2xl p-8 max-w-[560px] mx-auto">
             {submitted ? (
               <div role="status" aria-live="polite" className="text-center py-4">
-                <div className="text-4xl mb-4" aria-hidden="true">✉️</div>
+                <div className="text-4xl mb-4" aria-hidden="true"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                 <h2 className="font-display text-brand-navy mb-2">Thanks. Your message is on its way.</h2>
                 <p className="text-slate text-[14px] leading-relaxed mb-4">
                   Your email client should have opened with a pre-filled message. If it didn't, you can email us directly at{" "}

@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Mail } from 'lucide-react';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -79,7 +80,7 @@ export default function ForgotPassword() {
             </>
           ) : (
             <div className="text-center py-4">
-              <div className="text-4xl mb-4">📧</div>
+              <div className="text-4xl mb-4"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
               <h2 className="font-display text-brand-navy mb-2">Check your inbox</h2>
               <p className="text-slate text-sm leading-relaxed mb-6">
                 We sent a password reset link to <strong>{email}</strong>.

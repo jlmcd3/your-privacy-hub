@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren, BarChart3, Calendar, ClipboardList, Compass, Eye, FileText, Folder, Lock, Map, Satellite, Shield } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -92,8 +92,8 @@ const navItems: NavItem[] = [
         column: 1,
         items: [
           { icon: "⭐", label: "Weekly Privacy Intelligence Report", href: "/get-intelligence" },
-          { icon: "🛰️", label: "Regulatory Trend Forecast", href: "/horizon" },
-          { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive",
+          { icon: "", label: "Regulatory Trend Forecast", href: "/horizon" },
+          { icon: "", label: "Global Enforcement Database", href: "/enforcement?view=archive",
             description: "Full archive · 3,700+ decisions" },
         ],
       },
@@ -104,11 +104,11 @@ const navItems: NavItem[] = [
         columnBg: "bg-white",
         column: 2,
         items: [
-          { icon: "🗺️", label: "Interactive Global Map", href: "/jurisdictions" },
-          { icon: "📊", label: "State Law Comparison", href: "/compare/us-states" },
-          { icon: "📊", label: "Enforcement Tracker", href: "/enforcement-tracker" },
-          { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
-          { icon: "📋", label: "LI Enforcement Tracker", href: "/legitimate-interest-tracker" },
+          { icon: "", label: "Interactive Global Map", href: "/jurisdictions" },
+          { icon: "", label: "State Law Comparison", href: "/compare/us-states" },
+          { icon: "", label: "Enforcement Tracker", href: "/enforcement-tracker" },
+          { icon: "", label: "Compliance Calendar", href: "/calendar" },
+          { icon: "", label: "LI Enforcement Tracker", href: "/legitimate-interest-tracker" },
         ],
       },
     ],
@@ -126,7 +126,7 @@ const navItems: NavItem[] = [
         column: 1,
         items: [
           {
-            icon: "🏛️",
+            icon: "",
             label: "CPPA Scope Checker",
             href: "/cppa-scope-checker",
             badge: "FREE",
@@ -134,19 +134,19 @@ const navItems: NavItem[] = [
             tooltip: "Find out if your organisation is in scope for the Dec 31 2027 audit",
           },
           {
-            icon: "🏛️",
+            icon: "",
             label: "CPPA Risk Assessment",
             href: "/cppa-risk-assessment",
             tooltip: "Structured risk assessment aligned to CPPA audit regulations",
           },
           {
-            icon: "🔒",
+            icon: "",
             label: "CPPA Cybersecurity Readiness",
             href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline",
           },
           {
-            icon: "🧭",
+            icon: "",
             label: "ADMT Compliance Assessment",
             href: "/cppa-admt-checker",
             tooltip: "Automated Decisionmaking Technology disclosure checker · Jan 1 2027 deadline",
@@ -161,13 +161,13 @@ const navItems: NavItem[] = [
         column: 2,
         items: [
           {
-            icon: "📚",
+            icon: "",
             label: "CPPA Audit Hub",
             href: "/cppa",
             tooltip: "Overview of all CPPA tools, regulations, and the April 2028 deadline",
           },
           {
-            icon: "📅",
+            icon: "",
             label: "Key CPPA Deadlines",
             href: "/cppa#deadlines",
             tooltip: "Dec 31 2027 risk assessment · Apr 1 2028 cybersecurity certification · Jan 1 2027 ADMT",
@@ -188,18 +188,18 @@ const navItems: NavItem[] = [
         columnBg: "bg-[#EEF4FB]",
         column: 1,
         items: [
-          { icon: "⚖️", label: "Legitimate Interest Assessment", href: "/li-assessment",
+          { icon: "", label: "Legitimate Interest Assessment", href: "/li-assessment",
             tooltip: "Full three-part documented LIA, calibrated to enforcement decisions" },
-          { icon: "🛡️", label: "GDPR Governance Assessment", href: "/governance-assessment",
+          { icon: "", label: "GDPR Governance Assessment", href: "/governance-assessment",
             tooltip: "Scored programme health check against what regulators actually enforce" },
-          { icon: "📑", label: "Impact Assessment Builder", href: "/dpia-framework",
+          { icon: "", label: "Impact Assessment Builder", href: "/dpia-framework",
             tooltip: "EDPB-aligned DPIA for high-risk processing activities" },
-          { icon: "👁️", label: "Biometric Compliance Assessment", href: "/biometric-checker",
+          { icon: "", label: "Biometric Compliance Assessment", href: "/biometric-checker",
             tooltip: "BIPA statutory exposure calculator and multi-jurisdiction analysis" },
-          { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator",
+          { icon: "", label: "Custom DPA Generator", href: "/dpa-generator",
             tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
-          { icon: "📄", label: "Sample Reports", href: "/samples" },
-          { icon: "🗂️", label: "All Tools →", href: "/tools", bottom: true },
+          { icon: "", label: "Sample Reports", href: "/samples" },
+          { icon: "", label: "All Tools →", href: "/tools", bottom: true },
         ],
       },
       {
@@ -209,15 +209,15 @@ const navItems: NavItem[] = [
         columnBg: "bg-[#F3FAF0]",
         column: 2,
         items: [
-          { icon: "🚨", label: "Incident Response Playbook", href: "/ir-playbook",
+          { icon: "", label: "Incident Response Playbook", href: "/ir-playbook",
             tooltip: "Sequenced incident response plan with regulator notification deadlines. Free within Intel/Pro pool." },
-          { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notice-builder",
+          { icon: "", label: "US Privacy Notice Builder", href: "/us-notice-builder",
             tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more. Free within Intel/Pro pool." },
-          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
+          { icon: "", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
             tooltip: "GDPR Article 13/14 notices with multi-jurisdiction overlays. Free within Intel/Pro pool." },
-          { icon: "📋", label: "RoPA Builder", href: "/ropa-builder",
+          { icon: "", label: "RoPA Builder", href: "/ropa-builder",
             tooltip: "Versioned Article 30 record of processing activities. Free within Intel/Pro pool." },
-          { icon: "📂", label: "Registration Filings", href: "/registration-manager",
+          { icon: "", label: "Registration Filings", href: "/registration-manager",
             tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions. Free within Intel/Pro pool." },
         ],
       },

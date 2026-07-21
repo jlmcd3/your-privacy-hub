@@ -1,11 +1,12 @@
 import PillarPage from "@/components/PillarPage";
+import { Landmark } from 'lucide-react';
 
 const USFederalPrivacyLaw = () => (
   <PillarPage
     updateCategory="us-federal"
     title="U.S. Federal Privacy Law"
     subtitle="Overview of the U.S. federal privacy regulatory framework including FTC authority, HIPAA, COPPA, and federal privacy bill activity."
-    icon="🏛️"
+    icon=""
     lastUpdated="March 5, 2026"
     intro="The United States does not have a single comprehensive federal privacy law equivalent to the EU's GDPR. Instead, the federal privacy landscape consists of sector-specific statutes, FTC enforcement authority, and an evolving set of proposed but not-yet-enacted comprehensive privacy bills. This guide provides a structured overview of the existing federal privacy framework, key regulatory authorities, major legislation, and the ongoing push for comprehensive federal privacy legislation."
     sections={[

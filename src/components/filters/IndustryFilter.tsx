@@ -1,12 +1,13 @@
+import { Bot, Globe, Hospital, Landmark, Laptop, Shirt, ShoppingCart, Smartphone } from 'lucide-react';
 const INDUSTRIES = [
-  { slug: "all",          label: "All Industries",  icon: "🌐" },
-  { slug: "healthcare",   label: "Healthcare",       icon: "🏥" },
-  { slug: "fintech",      label: "Finance & Banking",icon: "🏦" },
-  { slug: "adtech",       label: "AdTech & Media",   icon: "📱" },
-  { slug: "retail",       label: "Retail & E-com",   icon: "🛒" },
-  { slug: "hr",           label: "HR & Employment",  icon: "👔" },
-  { slug: "saas",         label: "SaaS & Tech",      icon: "💻" },
-  { slug: "ai",           label: "AI Companies",     icon: "🤖" },
+  { slug: "all",          label: "All Industries",  icon: "" },
+  { slug: "healthcare",   label: "Healthcare",       icon: "" },
+  { slug: "fintech",      label: "Finance & Banking",icon: "" },
+  { slug: "adtech",       label: "AdTech & Media",   icon: "" },
+  { slug: "retail",       label: "Retail & E-com",   icon: "" },
+  { slug: "hr",           label: "HR & Employment",  icon: "" },
+  { slug: "saas",         label: "SaaS & Tech",      icon: "" },
+  { slug: "ai",           label: "AI Companies",     icon: "" },
 ];
 
 interface IndustryFilterProps {

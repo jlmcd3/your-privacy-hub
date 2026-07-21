@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Search, ChevronDown, ChevronRight, X } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, X, BookOpen } from 'lucide-react';
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -248,7 +248,7 @@ const Glossary = () => {
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📖 Reference
+            <BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Reference
           </span>
           <h1 className="text-hero-h1 text-white mb-3">Privacy Law Glossary</h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">

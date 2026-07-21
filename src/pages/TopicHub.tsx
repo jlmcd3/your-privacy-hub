@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Baby, Bot, Cookie, Eye, Globe, Mail, Unlock } from 'lucide-react';
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,37 +27,37 @@ interface Update {
 const TOPIC_META: Record<string, { name: string; icon: string; description: string; related: string[] }> = {
   "ai-governance": {
     name: "AI Governance & Regulation",
-    icon: "🤖",
+    icon: "",
     description: "Regulatory developments governing artificial intelligence, including the EU AI Act, algorithmic accountability laws, automated decision-making regulations, and AI training data guidance worldwide.",
     related: ["biometric-data", "children-privacy", "data-transfers"],
   },
   "data-breaches": {
     name: "Data Breach & Incident Response",
-    icon: "🔓",
+    icon: "",
     description: "Data breach notification requirements, incident response regulations, ransomware policy developments, and enforcement actions related to security failures and unauthorized data access.",
     related: ["ai-governance", "adtech", "data-transfers"],
   },
   "biometric-data": {
     name: "Biometric & Facial Recognition Law",
-    icon: "👁️",
+    icon: "",
     description: "Laws and enforcement actions governing biometric identifiers including facial recognition, fingerprint scanning, iris recognition, and voiceprint technology across global jurisdictions.",
     related: ["ai-governance", "children-privacy", "adtech"],
   },
   "data-transfers": {
     name: "Cross-Border Data Transfers",
-    icon: "🌐",
+    icon: "",
     description: "International data transfer mechanisms including adequacy decisions, Standard Contractual Clauses (SCCs), Binding Corporate Rules (BCRs), and data localization requirements worldwide.",
     related: ["ai-governance", "data-breaches", "adtech"],
   },
   "children-privacy": {
     name: "Children's Privacy & Age Verification",
-    icon: "👶",
+    icon: "",
     description: "Regulatory developments protecting children's data, including COPPA enforcement and modernization, age verification requirements, age-appropriate design codes (UK AADC), state children's privacy laws, and restrictions on targeted advertising and data collection from minors.",
     related: ["ai-governance", "adtech", "biometric-data"],
   },
   "adtech": {
     name: "AdTech, Cookies & Consent",
-    icon: "🍪",
+    icon: "",
     description: "Regulatory developments affecting advertising technology, cookie consent requirements, real-time bidding scrutiny, consent management platforms, and the deprecation of third-party cookies.",
     related: ["children-privacy", "data-transfers", "biometric-data"],
   },
@@ -218,7 +218,7 @@ const TopicHub = () => {
 
           {!loading && updates.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-4xl mb-3">📭</p>
+              <p className="text-4xl mb-3"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></p>
               <p className="font-semibold text-foreground">No articles yet</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Articles tagged with this topic will appear here as they are ingested daily.

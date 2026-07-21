@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import usStates from "@/data/us_state_privacy_authorities.json";
 import comparison from "@/data/us_state_comparison.json";
 import { getProduct } from "@/lib/productRegistry";
+import { CheckCircle2 } from 'lucide-react';
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
 
@@ -260,7 +261,7 @@ export default function USStateLawPage() {
                 const value = compEntry.provisions?.[i];
                 if (value === undefined) return null;
                 let display: string;
-                if (value === true) display = "✓";
+                if (value === true) display = "";
                 else if (value === false) display = "—";
                 else display = String(value);
                 return (

@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { CheckCircle2 } from 'lucide-react';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -54,7 +55,7 @@ export default function ResetPassword() {
         <div className="w-full max-w-md bg-card border border-brand-cloud rounded-2xl shadow-eup-sm p-8">
           {success ? (
             <div className="text-center py-4">
-              <div className="text-4xl mb-4">✅</div>
+              <div className="text-4xl mb-4"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
               <h2 className="font-display text-brand-navy mb-2">Password updated</h2>
               <p className="text-slate text-sm">
                 Your password has been changed. Redirecting to your account…

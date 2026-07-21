@@ -234,6 +234,7 @@ export {
   IMPACT_CYBER_GAPS_OPTS,
 } from "./CPPARiskAssessment.enums";
 import {
+import { CheckCircle2, Zap } from 'lucide-react';
   HARM_TYPES,
   IMPACT_LIKELIHOOD_OPTS,
   IMPACT_SEVERITY_OPTS,
@@ -1316,11 +1317,11 @@ export default function CPPARiskAssessment() {
           {!summaryStep && regulatoryFootprint.length > 0 && (
             <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
-                ⚡ Regulatory exposure, updated from your answers
+                <Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Regulatory exposure, updated from your answers
               </p>
               {regulatoryFootprint.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">
-                  <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                  <span className="text-green-600 mt-0.5 shrink-0"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
                   <div className="text-xs">
                     <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
                     <span className="text-foreground ml-2">{item.label}</span>

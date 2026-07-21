@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, Plus, Lock } from "lucide-react";
+import { Bell, Plus, Lock, CheckCircle2, Factory, FileText, Folder, Globe, User } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -33,9 +33,9 @@ const TYPE_FOR_KEY: Record<keyof typeof SUGGESTED, string> = {
 };
 
 const SECTION_HEADINGS: Record<keyof typeof SUGGESTED, string> = {
-  jurisdictions: "🌐 Jurisdictions",
-  topics: "📂 Topics",
-  industries: "🏭 Industries",
+  jurisdictions: " Jurisdictions",
+  topics: " Topics",
+  industries: " Industries",
 };
 
 interface WatchItem { id: string; type: string; slug: string; label: string; flag?: string; }
@@ -155,7 +155,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
       {/* Role — single select (writes to profiles.brief_role) */}
       <div>
         <h3 className="text-brand-navy uppercase tracking-widest mb-3">
-          👤 Your Role
+          <User aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your Role
         </h3>
         <p className="text-slate text-xs mb-3">Pick the one that fits best. Shapes how your brief and AI prompts are written.</p>
         <div className="flex flex-wrap gap-2">
@@ -175,7 +175,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                 <span>{r.icon}</span>
                 {r.label}
                 {!selected && <Plus className="w-3 h-3" />}
-                {selected && <span>✓</span>}
+                {selected && <span><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>}
               </button>
             );
           })}
@@ -209,7 +209,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                   {s.flag && <span>{s.flag}</span>}
                   {s.label}
                   {!inList && <Plus className="w-3 h-3" />}
-                  {inList  && <span>✓</span>}
+                  {inList  && <span><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>}
                 </button>
               );
             })}
@@ -220,7 +220,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
       {/* Report format — single select (writes to user_brief_preferences.format) */}
       <div>
         <h3 className="text-brand-navy uppercase tracking-widest mb-3">
-          📄 Report Format
+          <FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Report Format
         </h3>
         <p className="text-slate text-xs mb-3">How your weekly Privacy Intelligence Report is structured.</p>
         <div className="flex flex-wrap gap-2">
@@ -239,7 +239,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
               >
                 <span>{f.icon}</span>
                 {f.label}
-                {selected && <span>✓</span>}
+                {selected && <span><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>}
               </button>
             );
           })}

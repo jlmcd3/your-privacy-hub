@@ -15,10 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
-import {
-  CheckCircle2, Clock, Globe2, ShieldCheck, FileText, AlertTriangle,
-  Brain, Building2, ArrowRight,
-} from "lucide-react";
+import { CheckCircle2, Clock, Globe2, ShieldCheck, FileText, AlertTriangle, Brain, Building2, ArrowRight, Folder } from 'lucide-react';
 import { formatPrice, PRICING } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,7 +71,7 @@ export default function RegistrationLanding() {
       <header className="bg-brand-navy text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📂 Registration Manager · {formatPrice("registration_standalone")} per filing
+            <Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Registration Manager · {formatPrice("registration_standalone")} per filing
           </span>
           <h1 className="font-serif text-white mb-3">
             Privacy registration filings, drafted and tracked

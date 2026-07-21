@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, ArrowRight, Plus, Lock, Trash2 } from 'lucide-react';
+import { Building2, ArrowRight, Plus, Lock, Trash2, XCircle } from 'lucide-react';
 import { useClientStore, type Client } from '@/stores/clientStore';
 import { useActiveClient } from '@/hooks/useActiveClient';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
@@ -395,7 +395,7 @@ export default function ClientsPortfolio() {
             className="text-slate hover:text-brand-navy bg-transparent border-none text-sm"
             aria-label="Dismiss"
           >
-            ✕
+            <XCircle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} />
           </button>
         </div>
       )}

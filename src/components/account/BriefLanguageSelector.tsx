@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Globe } from "lucide-react";
+import { Globe, CheckCircle2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -102,7 +102,7 @@ export default function BriefLanguageSelector() {
         ))}
       </select>
       {status === "saved" && (
-        <p className="mt-2 text-[12px] text-accent transition-opacity">Preference saved ✓</p>
+        <p className="mt-2 text-[12px] text-accent transition-opacity">Preference saved <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></p>
       )}
       {status === "error" && (
         <p className="mt-2 text-[12px] text-severity-warning">Could not save — please try again</p>

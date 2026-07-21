@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowRight, Check, Shield, RefreshCw, MapPin } from "lucide-react";
+import { ArrowRight, Check, Shield, RefreshCw, MapPin, CheckCircle2, ClipboardList } from 'lucide-react';
 import { US_NOTICE_PRICING, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
@@ -29,9 +29,9 @@ const VIRGINIA_STATES = [
 const PENDING_STATES = ["Kentucky (eff. 2026)", "Rhode Island (eff. 2026)"];
 
 const PRICING_ROWS: Array<{ feature: string; free: string; sub: string; platform: string }> = [
-  { feature: "Answer all questions", free: "Subscribers only", sub: "✓", platform: "✓" },
-  { feature: "Save & resume", free: "Subscribers only", sub: "✓", platform: "✓" },
-  { feature: "Pre-population from RoPA", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Answer all questions", free: "Subscribers only", sub: "", platform: "" },
+  { feature: "Save & resume", free: "Subscribers only", sub: "", platform: "" },
+  { feature: "Pre-population from RoPA", free: "Subscribers only", sub: "", platform: "" },
   { feature: "Single state notice", free: "Subscribers only", sub: "Included", platform: "Included" },
   { feature: "All 20 states", free: "Subscribers only", sub: "Included", platform: "Included" },
   { feature: "Annual refresh", free: "Subscribers only", sub: "Included", platform: "Included" },
@@ -90,12 +90,12 @@ export default function USNoticeLanding() {
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included in your Annual Platform: every US state privacy notice is included at no additional charge.
+            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included in your Annual Platform: every US state privacy notice is included at no additional charge.
           </div>
         )}
       </div>
       <PageHero
-        chip={<>📋 US Privacy Notice Builder · Included with any subscription</>}
+        chip={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> US Privacy Notice Builder · Included with any subscription</>}
         title="Generate US privacy notices for all 20 states, in one session."
         description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >

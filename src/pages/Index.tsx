@@ -11,6 +11,7 @@ import HomepageBriefSection from "@/components/home/HomepageBriefSection";
 import HomepageToolsSection from "@/components/home/HomepageToolsSection";
 import HomepagePricingStrip from "@/components/home/HomepagePricingStrip";
 import { PRICING } from "@/config/pricing";
+import { Brain, Satellite, Scale } from 'lucide-react';
 
 const Index = () => (
   <div className="min-h-screen bg-brand-cloud">
@@ -39,7 +40,7 @@ const Index = () => (
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div>
-            <div className="text-2xl mb-2">📡</div>
+            <div className="text-2xl mb-2"><Satellite aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
             <h3 className="text-brand-navy mb-1">Monitor</h3>
             <p className="text-sm text-gray-600">
               Worldwide privacy authorities tracked daily. Every enforcement action,
@@ -48,7 +49,7 @@ const Index = () => (
             </p>
           </div>
           <div>
-            <div className="text-2xl mb-2">🧠</div>
+            <div className="text-2xl mb-2"><Brain aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
             <h3 className="text-brand-navy mb-1">Analyse</h3>
             <p className="text-sm text-gray-600">
               Your weekly Privacy Intelligence Report synthesises what
@@ -57,7 +58,7 @@ const Index = () => (
             </p>
           </div>
           <div>
-            <div className="text-2xl mb-2">⚖️</div>
+            <div className="text-2xl mb-2"><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
             <h3 className="text-brand-navy mb-1">Act</h3>
             <p className="text-sm text-gray-600">
               Run an LIA. Draft a DPA. Generate an IR playbook. Assess

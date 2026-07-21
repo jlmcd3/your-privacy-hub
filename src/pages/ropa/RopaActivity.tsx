@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Art9Art10Checklist from "@/components/ropa/Art9Art10Checklist";
+import { AlertTriangle, CheckCircle2, Lock, Trash2 } from 'lucide-react';
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
@@ -680,11 +681,11 @@ function ActivityNavList({
               >
                 <span aria-hidden className="mt-0.5">
                   {isComplete
-                    ? "✓"
+                    ? ""
                     : a.status === "in_progress"
                       ? "•"
                       : isLocked
-                        ? "🔒"
+                        ? ""
                         : "○"}
                 </span>
                 <span className="flex-1">{a.display_name}</span>
@@ -700,7 +701,7 @@ function ActivityNavList({
                   title="Delete activity (removes all answers and flags)"
                   className="px-2 text-muted-foreground hover:text-destructive transition-colors"
                 >
-                  🗑
+                  <Trash2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} />
                 </button>
               )}
             </div>
@@ -875,7 +876,7 @@ function FlagPreview({
               : "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
           }`}
         >
-          <p className="text-sm font-semibold">⚠ {c.message}</p>
+          <p className="text-sm font-semibold"><AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {c.message}</p>
           <p className="text-xs text-muted-foreground mt-1">{c.consequence}</p>
           {c.actionLabel && c.actionRoute ? (
             <a
@@ -1007,7 +1008,7 @@ function PriorAnswerSuggestions({
                       : "border-border text-muted-foreground"
                   }`}
                 >
-                  {isSelected ? "✓" : ""}
+                  {isSelected ? "" : ""}
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">

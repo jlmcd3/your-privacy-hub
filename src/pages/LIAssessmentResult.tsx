@@ -24,6 +24,7 @@ import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import { AlertTriangle, Ban, CheckCircle2, ClipboardList } from 'lucide-react';
 
 
 const strengthColor = (s: string) => {
@@ -65,7 +66,7 @@ const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any
           <div key={i} className="bg-slate-50 dark:bg-slate-900/40 border-l-2 border-slate-300 dark:border-slate-600 rounded-r px-3 py-2">
             <div className="flex items-start justify-between gap-2 flex-wrap">
               <div>
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">📋 Corpus citation</span>
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Corpus citation</span>
                 {tl && (
                   <span className={`ml-2 text-[10px] font-semibold px-1.5 py-0.5 border rounded ${tl.tone}`}>{tl.label}</span>
                 )}
@@ -101,7 +102,7 @@ const TestCard = ({ title, test, annotations, precedents, isUk }: { title: strin
     {test?.analysis && <p className="text-sm text-foreground mb-3">{test.analysis}</p>}
     {test?.special_category_flag && (
       <div className="text-sm p-2 bg-amber-50 border border-amber-200 rounded mb-3 text-amber-900">
-        ⚠️ Special category data — heightened scrutiny applies
+        <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Special category data — heightened scrutiny applies
       </div>
     )}
     {Array.isArray(test?.supporting_factors) && test.supporting_factors.length > 0 && (
@@ -192,7 +193,7 @@ const LIAssessmentResult = () => {
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             {assessment?.retry_count > 0
               ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${assessment.retry_count + 1} of 3). No action needed.`
-              : "✅ Purchase confirmed. Your assessment is being generated."}
+              : " Purchase confirmed. Your assessment is being generated."}
           </div>
         )}
 
@@ -319,7 +320,7 @@ const LIAssessmentResult = () => {
               {Array.isArray(overall?.blocking_issues) && overall.blocking_issues.length > 0 && (
                 <section className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-5">
                   <h3 className="font-body text-display-card font-semibold text-red-800 dark:text-red-300 mb-3">
-                    ⛔ Blocking Issues — Resolve Before Relying on Legitimate Interest
+                    <Ban aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Blocking Issues — Resolve Before Relying on Legitimate Interest
                   </h3>
                   <ul className="space-y-2">
                     {overall.blocking_issues.map((issue: string, i: number) => (

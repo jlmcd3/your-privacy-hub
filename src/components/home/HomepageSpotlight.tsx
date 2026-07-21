@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { ExternalLink, Sparkles, Eye, Mail } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
@@ -27,8 +27,8 @@ interface SpotlightArticle {
 }
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-brand-steel" },
-  { icon: "✉", text: "Free account — see this level on every article", className: "text-brand-teal-text font-medium" },
+  { icon: "", text: "What any visitor sees", className: "text-brand-steel" },
+  { icon: "", text: "Free account — see this level on every article", className: "text-brand-teal-text font-medium" },
   { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-brand-teal-text font-semibold" },
 ];
 

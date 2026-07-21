@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { CheckCircle2 } from 'lucide-react';
 
 const StepCard = ({
   step,
@@ -40,7 +41,7 @@ const StepCard = ({
             : "bg-muted text-muted-foreground"
         }`}
       >
-        {status === "complete" ? "✓ Complete" : status === "running" ? "Running…" : "Pending"}
+        {status === "complete" ? " Complete" : status === "running" ? "Running…" : "Pending"}
       </span>
     </div>
     <p className="text-[12px] text-muted-foreground">{description}</p>

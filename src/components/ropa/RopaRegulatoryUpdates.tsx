@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, AlertTriangle, Info, ArrowRight, ExternalLink } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Info, ArrowRight, ExternalLink } from 'lucide-react';
 import { format } from "date-fns";
 
 export interface RegulatoryUpdate {
@@ -273,7 +273,7 @@ export function RopaRegulatoryUpdates({ newSessionId, clientId, lastGeneratedDat
                   disabled={isNoted || actingId === u.article_id}
                   onClick={() => handleNoteAndContinue(u)}
                 >
-                  {isNoted ? "Noted ✓" : "Note and continue"}
+                  {isNoted ? "Noted " : "Note and continue"}
                 </Button>
               </div>
             </div>

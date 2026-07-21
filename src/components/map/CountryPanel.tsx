@@ -1,4 +1,4 @@
-import { X, ExternalLink } from "lucide-react";
+import { X, ExternalLink, CheckCircle2, Scale } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { STATUS_CONFIG } from "./MapLegend";
 
@@ -69,7 +69,7 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
         <ul className="space-y-1.5">
           {j.rights.map((r, i) => (
             <li key={i} className="flex gap-2 text-[12px] text-brand-navy leading-snug">
-              <span className="text-accent font-bold flex-shrink-0">✓</span>
+              <span className="text-accent font-bold flex-shrink-0"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
               {r}
             </li>
           ))}
@@ -87,7 +87,7 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
                 key={i}
                 className="bg-orange-50 border-l-[3px] border-orange-400 px-3 py-2 rounded-r-lg text-[11px] text-orange-800 leading-snug"
               >
-                ⚖️ {f}
+                <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {f}
               </div>
             ))}
           </div>

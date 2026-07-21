@@ -39,6 +39,7 @@ import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
+import { Scale, Zap } from 'lucide-react';
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -477,7 +478,7 @@ const GovernanceAssessment = () => {
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ GDPR Governance Assessment · ${pricing.price}
+            <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Governance Assessment · ${pricing.price}
           </span>
           <h1 className="text-hero-h1 text-white mb-3">GDPR Governance Assessment</h1>
           <RequirementBadge variant="hero" tier="supports" text="GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." className="mt-2 max-w-3xl" />
@@ -733,7 +734,7 @@ const GovernanceAssessment = () => {
           {step > 1 && !summaryStep && gdprFootprint.length > 0 && (
             <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
-                ⚡ GDPR obligations triggered by your answers
+                <Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR obligations triggered by your answers
               </p>
               {gdprFootprint.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">

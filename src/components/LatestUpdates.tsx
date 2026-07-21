@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { type ArticleItem } from "@/components/ArticleCard";
 import { TieredFeed } from "@/components/TieredFeed";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Baby, Bot, Briefcase, Cookie, Dna, Globe, Hospital, Lock, Map, Satellite, Scale } from 'lucide-react';
 
 interface Update {
   id: string;
@@ -110,22 +110,22 @@ const FALLBACK_UPDATES: Update[] = [
 
 const LOCATION_FILTERS = [
   { key: "us-federal", label: "🇺🇸 U.S. Federal" },
-  { key: "us-states", label: "🗺️ U.S. States" },
+  { key: "us-states", label: " U.S. States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
-  { key: "global", label: "🌐 Global" },
+  { key: "global", label: " Global" },
 ];
 
 const TOPIC_FILTERS = [
-  { key: "enforcement", label: "⚖️ Enforcement" },
-  { key: "ai-privacy", label: "🤖 AI & Privacy" },
-  { key: "adtech", label: "📡 AdTech & Advertising" },
-  { key: "health-hipaa", label: "🏥 Health & HIPAA" },
-  { key: "children-privacy", label: "👶 Children's Privacy" },
-  { key: "data-breaches", label: "🔒 Data Breaches" },
-  { key: "cross-border", label: "🌐 Cross-Border Transfers" },
-  { key: "biometric-data", label: "🧬 Biometric Data" },
-  { key: "employee-privacy", label: "💼 Employee Privacy" },
-  { key: "cookie-consent", label: "🍪 Cookie Consent" },
+  { key: "enforcement", label: " Enforcement" },
+  { key: "ai-privacy", label: " AI & Privacy" },
+  { key: "adtech", label: " AdTech & Advertising" },
+  { key: "health-hipaa", label: " Health & HIPAA" },
+  { key: "children-privacy", label: " Children's Privacy" },
+  { key: "data-breaches", label: " Data Breaches" },
+  { key: "cross-border", label: " Cross-Border Transfers" },
+  { key: "biometric-data", label: " Biometric Data" },
+  { key: "employee-privacy", label: " Employee Privacy" },
+  { key: "cookie-consent", label: " Cookie Consent" },
 ];
 
 const SkeletonCard = () => (

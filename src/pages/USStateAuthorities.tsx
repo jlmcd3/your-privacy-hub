@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Landmark } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -56,7 +56,7 @@ const USStateAuthorities = () => {
       <div className="bg-gradient-to-br from-brand-ocean to-brand-slate-teal py-12 px-8">
         <div className="max-w-[1280px] mx-auto">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-brand-mist mb-4 bg-brand-mist/10 px-3 py-1.5 rounded-full border border-brand-mist/20">
-            🏛️ Authority Directory
+            <Landmark aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Authority Directory
           </div>
           <h1 className="font-display text-white mb-3">U.S. State Privacy Authorities</h1>
           <p className="text-base text-brand-mist max-w-[700px]">

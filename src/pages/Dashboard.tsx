@@ -15,7 +15,7 @@ import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
-import { ExternalLink, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronRight, Trash2, ArrowUpToLine, BarChart3, BookOpen, Bot, Calendar, ClipboardList, Eye, Globe, Landmark, Mail, Satellite, Scale, Star, Target, Wrench } from 'lucide-react';
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 import DashboardObligationsCard from "@/components/obligations/DashboardObligationsCard";
 import {
@@ -431,7 +431,7 @@ const Dashboard = () => {
               {!freeDigest && (
                 <div className="px-6 py-10">
                   <div className="rounded-xl border border-border p-8 text-center max-w-lg mx-auto">
-                    <div className="text-3xl mb-3">📋</div>
+                    <div className="text-3xl mb-3"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
                     <h3 className="text-gray-900 mb-2">Your first digest is on its way</h3>
                     <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                       Your personalized digest will arrive Monday morning. While you wait, explore the feed and tools below.
@@ -504,7 +504,7 @@ const Dashboard = () => {
         {canShowPublicBrief && (
           <div className="mb-10">
             <p className="text-meta font-semibold tracking-widest uppercase text-primary mb-2">
-              📋 Weekly Privacy Intelligence Report
+              <ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Weekly Privacy Intelligence Report
             </p>
             <h2 className="font-display text-foreground leading-tight">
               {loading
@@ -531,7 +531,7 @@ const Dashboard = () => {
         {canShowPublicBrief && (
           <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">
             <div className="flex items-start gap-4">
-              <p className="text-3xl">📬</p>
+              <p className="text-3xl"><Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></p>
               <div className="flex-1 min-w-0">
                 <h3 className="text-foreground mb-1">
                   Your Privacy Intelligence Report arrives next Monday
@@ -678,7 +678,7 @@ const Dashboard = () => {
 
         {!loading && canShowPublicBrief && !brief && (
           <div className="text-center py-20">
-            <p className="text-4xl mb-4">📅</p>
+            <p className="text-4xl mb-4"><Calendar aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></p>
             <p className="font-display text-xl text-foreground mb-2">First report coming Monday</p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Your Privacy Intelligence Report is generated every Monday morning from the past week's regulatory activity. Check back then.
@@ -724,20 +724,20 @@ const Dashboard = () => {
 
                   {/* All other sections */}
                   <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" subtitle="Federal agency moves, Congressional bills, and what they mean for your program." content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="U.S. State Analysis" subtitle="State legislatures and attorneys general — new laws, amendments, and enforcement." content={brief.us_states} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="U.S. State Analysis" subtitle="State legislatures and attorneys general — new laws, amendments, and enforcement." content={brief.us_states} sourceMap={brief.source_map ?? {}} />
                   <SectionBlock icon="🇪🇺" title="EU & UK Analysis" subtitle="EDPB, member-state DPAs, and the UK ICO — guidance, enforcement, and rulemaking." content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🌍" title="Global Developments" subtitle="Privacy moves outside the US and EU — APAC, LATAM, Middle East, and Africa." content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🤖" title="AI Governance" subtitle="Where AI regulation meets data privacy — training data, automated decisions, and biometrics." content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" subtitle="Cookies, consent, behavioral targeting, and commercial surveillance enforcement." content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="👁️" title="Biometric Data" subtitle="Face, voice, and biometric processing rules — BIPA, GDPR Art. 9, and parallels worldwide." content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="Privacy Litigation" subtitle="Class actions, settlements, and court rulings shaping how privacy laws are applied." content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📊" title="Enforcement Trends" subtitle="The pattern across this week's actions — what regulators are signaling next." content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="Global Developments" subtitle="Privacy moves outside the US and EU — APAC, LATAM, Middle East, and Africa." content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="AI Governance" subtitle="Where AI regulation meets data privacy — training data, automated decisions, and biometrics." content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="AdTech & Advertising Privacy" subtitle="Cookies, consent, behavioral targeting, and commercial surveillance enforcement." content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="Biometric Data" subtitle="Face, voice, and biometric processing rules — BIPA, GDPR Art. 9, and parallels worldwide." content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="Privacy Litigation" subtitle="Class actions, settlements, and court rulings shaping how privacy laws are applied." content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="" title="Enforcement Trends" subtitle="The pattern across this week's actions — what regulators are signaling next." content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
 
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
                       <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">
-                        ⚖️ Enforcement Actions This Week
+                        <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Enforcement Actions This Week
                       </h3>
                       <div className="cmp-table overflow-x-auto rounded-xl border border-slate-100">
                         <table className="w-full text-sm">
@@ -779,7 +779,7 @@ const Dashboard = () => {
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
                       <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">
-                        🌐 Cross-Jurisdiction Patterns
+                        <Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Cross-Jurisdiction Patterns
                       </h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                         <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
@@ -790,7 +790,7 @@ const Dashboard = () => {
                   {/* Trend signal */}
                   {brief.trend_signal && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">📡 Trend Signal</h3>
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4"><Satellite aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Trend Signal</h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                         <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
                       </div>
@@ -803,7 +803,7 @@ const Dashboard = () => {
                     <section className="py-7">
                       <div className="bg-brand-navy rounded-xl p-6">
                         <h3 className="text-meta uppercase tracking-[0.12em] text-amber-400 mb-5">
-                          🎯 Action Items for This Week
+                          <Target aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Action Items for This Week
                         </h3>
                         <div className="text-sm text-blue-100 leading-relaxed space-y-3">
                           <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
@@ -817,7 +817,7 @@ const Dashboard = () => {
                   {brief.toolkit_ctas && brief.toolkit_ctas.length > 0 && (
                     <section className="py-7 border-t border-slate-100">
                       <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-2">
-                        🧰 From the toolkit
+                        <Wrench aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> From the toolkit
                       </h3>
                       <p className="text-sm text-slate-600 mb-4">
                         Tools from End User Privacy relevant to this week's developments.
@@ -841,7 +841,7 @@ const Dashboard = () => {
                   {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
                     <section className="py-7 border-t border-slate-100">
                       <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
-                        🔝 Top 10 Enforcement Signals
+                        <ArrowUpToLine aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Top 10 Enforcement Signals
                       </h3>
                       <p className="text-meta text-slate-500 mb-4">
                         Ranked by precedent significance and recency across the last 90 days.
@@ -872,7 +872,7 @@ const Dashboard = () => {
                                 <span>{s.jurisdiction}</span>
                                 {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
                                 {s.precedent_significance != null && (
-                                  <><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
+                                  <><span>·</span><span title="Precedent significance">{"".repeat(s.precedent_significance)}{"".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
                                 )}
                               </div>
                               {s.summary && (
@@ -906,7 +906,7 @@ const Dashboard = () => {
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
                   <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-3 flex items-center gap-2">
-                    <span>📚</span> All source articles for this report
+                    <span><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span> All source articles for this report
                   </h3>
                   <p className="text-meta text-slate-400 mb-4">
                     {Object.keys(brief.source_map).length} articles monitored and synthesized for the period covering {describeBriefPeriod(brief.published_at)}. Click any title to read the original.

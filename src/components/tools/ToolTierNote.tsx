@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { CheckCircle2 } from 'lucide-react';
 
 interface ToolTierNoteProps {
   /** When true, this is a CPPA tool (per-use, subscriber rate, never "included"). */
@@ -16,8 +17,8 @@ interface ToolTierNoteProps {
  * (monthly or annual), and per-use tools always show the subscriber rate
  * banner to active subscribers.
  *
- *   Subscriber + included tool → "✓ Included with your subscription"
- *   Subscriber + per-use tool  → "✓ Subscriber rate applied"
+ *   Subscriber + included tool → " Included with your subscription"
+ *   Subscriber + per-use tool  → " Subscriber rate applied"
  *   Non-subscriber             → renders nothing
  */
 export default function ToolTierNote({
@@ -33,7 +34,7 @@ export default function ToolTierNote({
       <p
         className={`text-[12px] text-brand-teal-text bg-brand-teal/10 border border-brand-teal/30 rounded-lg px-3 py-2 mt-2 ${className}`}
       >
-        ✓ Included with your subscription —{" "}
+        <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included with your subscription —{" "}
         <Link to="/account" className="underline">
           manage in account
         </Link>
@@ -46,7 +47,7 @@ export default function ToolTierNote({
     <p
       className={`text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 ${className}`}
     >
-      ✓ Subscriber rate applied{isCppa ? " (CPPA modules)" : ""}.
+      <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Subscriber rate applied{isCppa ? " (CPPA modules)" : ""}.
     </p>
   );
 }

@@ -1,4 +1,5 @@
 import type { RunMeter } from "@/hooks/useRunMeter";
+import { Lock } from 'lucide-react';
 
 export default function IntakeMasthead({
   kicker,
@@ -33,7 +34,7 @@ export default function IntakeMasthead({
       <div className="relative z-10 mt-4 flex flex-wrap items-end gap-5">
         {subjectValue && (
           <div className="flex items-center gap-2.5 rounded-lg border border-white/20 bg-white/[0.06] px-3.5 py-2">
-            <span aria-hidden>🔒</span>
+            <span aria-hidden><Lock aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
             <span className="text-body-small font-semibold">
               <span className="block text-[10px] uppercase tracking-[0.1em] text-brand-mist font-medium">
                 {subjectLabel}
