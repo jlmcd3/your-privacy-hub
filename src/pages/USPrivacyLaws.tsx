@@ -512,7 +512,7 @@ const USPrivacyLaws = () => {
                 to={link.href}
                 className="group bg-card border border-brand-cloud rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all"
               >
-                <span className="text-2xl block mb-2">{link.icon}</span>
+                <span className="inline-flex mb-2">{link.icon}</span>
                 <p className="font-display font-bold text-brand-navy text-sm mb-1 group-hover:text-brand-teal-text transition-colors">
                   {link.label}
                 </p>
