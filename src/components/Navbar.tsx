@@ -414,13 +414,12 @@ const Navbar = () => {
   const { tier } = useSubscriptionTier();
   const { region } = useRegion();
 
-  // UX-2a — Regional nav order: hide "Feed"; US shows CPPA, EU/UK swaps in GDPR Tools.
+  // UX-2a — Regional nav order: US shows CPPA, EU/UK swaps in GDPR Tools.
   const regionalNavItems = useMemo(() => {
-    const base = navItems.filter((n) => n.label !== "Feed");
     if (region === "EU_UK") {
-      return base.map((n) => (n.label === "CPPA" ? GDPR_TOOLS_ITEM : n));
+      return navItems.map((n) => (n.label === "CPPA" ? GDPR_TOOLS_ITEM : n));
     }
-    return base;
+    return navItems;
   }, [region]);
 
   useEffect(() => {
