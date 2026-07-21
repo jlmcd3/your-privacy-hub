@@ -66,11 +66,11 @@ const VIOLATION_TYPES = [
 
 const SIGNIFICANCE = [
   { value: "any", label: "Any significance" },
-  { value: "5", label: " Landmark" },
-  { value: "4", label: " High" },
-  { value: "3", label: " Moderate" },
-  { value: "2", label: " Low" },
-  { value: "1", label: " Routine" },
+  { value: "5", label: "★ Landmark" },
+  { value: "4", label: "★ High" },
+  { value: "3", label: "★ Moderate" },
+  { value: "2", label: "★ Low" },
+  { value: "1", label: "★ Routine" },
 ];
 
 function formatEur(n: number | null) {
@@ -85,9 +85,17 @@ function Stars({ n }: { n: number | null }) {
   if (!n) return <span className="text-muted-foreground text-xs">—</span>;
   const filled = Math.max(0, Math.min(5, n));
   return (
-    <span className="text-xs tracking-tight" aria-label={`${filled} of 5 stars`}>
-      <span className="text-amber-500">{"".repeat(filled)}</span>
-      <span className="text-muted-foreground/30">{"".repeat(5 - filled)}</span>
+    <span className="inline-flex items-center gap-0.5" aria-label={`${filled} of 5 stars`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          size={16}
+          strokeWidth={1.75}
+          className={i < filled ? "text-brand-teal" : "text-muted-foreground/30"}
+          fill={i < filled ? "currentColor" : "none"}
+          aria-hidden
+        />
+      ))}
     </span>
   );
 }
