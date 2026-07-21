@@ -8,7 +8,7 @@ import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useRegion } from "@/hooks/useRegion";
-import RegionSwitcher from "@/components/RegionSwitcher";
+
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
