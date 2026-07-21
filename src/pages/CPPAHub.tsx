@@ -44,6 +44,14 @@ const TOOLS = [
     price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
   },
+  {
+    href: "/cppa-admt-checker",
+    title: "ADMT Compliance Assessment",
+    article: "Module 3 · Article 11 (§§ 7200–7222)",
+    description: "Sold standalone. If you also need Risk (Module 1) and Cybersecurity (Module 2), the Scope Checker will surface the Full Suite bundle.",
+    price: `${admtStandalone} standalone · discounted with a subscription`,
+    icon: Bot,
+  },
 ];
 
 const TIMELINE = [
