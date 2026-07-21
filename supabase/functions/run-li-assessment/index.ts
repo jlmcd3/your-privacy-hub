@@ -25,6 +25,8 @@ import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
+// RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
+import { withUpstreamRetry, heartbeat as liaHeartbeat, ensureTerminalFnRun as liaEnsureTerminal } from "./reliability.ts";
 
 
 
