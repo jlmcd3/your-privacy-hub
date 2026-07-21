@@ -116,6 +116,7 @@ export default function CrossBorderTransfersPage() {
         header={{
           eyebrow: "Research · Cross-Border Transfers",
           title: "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
+          statuteCite: "GDPR Ch. V · Arts. 44–50 — legal basis for every restricted transfer",
           description:
             "International transfers sit on top of fragile legal foundations — Schrems II reset the world, and the DPF could be next. This is the working reference for the mechanisms still in force today.",
           lastUpdated: "June 10, 2026",
@@ -127,6 +128,21 @@ export default function CrossBorderTransfersPage() {
             { value: "Schrems III", label: "challenge ongoing" },
           ],
         }}
+        atAGlance={[
+          { label: "Primary law", value: "GDPR Chapter V (Arts. 44–50)" },
+          { label: "Default mechanism", value: "2021 SCCs — pick the right module (C2C / C2P / P2P / P2C)" },
+          { label: "US route", value: "EU–US Data Privacy Framework (July 2023) — Schrems III pending" },
+          { label: "Required companion", value: "Transfer Impact Assessment (TIA) documenting supplementary measures" },
+        ]}
+        merchandisingRail={{
+          heading: "Use this in your workflow",
+          items: [
+            { label: "Custom DPA + SCC Generator", href: "/dpa-generator", description: "Article 28 DPA with the SCC modules and annexes wired in." },
+            { label: "Legitimate-Interest Assessment", href: "/legitimate-interest-assessment", description: "For transfers that rely on Art. 6(1)(f) plus safeguards." },
+            { label: "DPIA Framework", href: "/dpia-framework", description: "When the transfer is 'likely to result in a high risk' (Art. 35)." },
+          ],
+        }}
+
         pageSynthesisKey="crossborder__page"
         topToolCta={{
           toolName: "Custom DPA Generator",
