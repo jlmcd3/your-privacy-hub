@@ -22,11 +22,10 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
 ];
 
-const US_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
+const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
   { href: "/cppa-admt", title: "ADMT Compliance Check", sub: `${CPPA_ADMT_PRICE}` },
-  { href: "/cppa-risk-assessment", title: "CPPA Risk Assessment", sub: `${CPPA_RISK_PRICE}` },
   { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: `${CPPA_CYBER_PRICE}` },
-  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value` },
+  { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${CPPA_SUITE_PRICE} · bundle · best value`, bundle: true },
 ];
 
 export default function SearchFirstHero() {
