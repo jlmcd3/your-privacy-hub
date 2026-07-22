@@ -1151,27 +1151,37 @@ async function generateValidatedIntakes(tool: string, count: number): Promise<{ 
 // r1b1.4 POLL-RESUME: dispatch-only step. Insert the generator row and fire
 // its edge function; return the source table/row id. Caller then polls the
 // row with a bounded per-isolate deadline and self-reinvokes on deadline.
+// QB-P14 item 3 — dispatchGeneration returns the invocation promise so the
+// caller can `.catch` it and persist the HTTP status + first 200 chars of the
+// error body in the batch progress log. Prior shape swallowed every generator
+// dispatch failure via `.catch(() => {})`, producing bare "dispatch failed"
+// entries with no attribution. On insert/setup failure the function now
+// returns `{ error }` so the caller can surface the reason too.
+export type DispatchResult =
+  | { sourceTable: string; sourceRowId: string; invocation: Promise<any> }
+  | { error: string };
+
 async function dispatchGeneration(
   admin: Admin, tool: string, intake: any, userId: string,
-): Promise<{ sourceTable: string; sourceRowId: string } | null> {
+): Promise<DispatchResult> {
   try {
     if (tool === "cppa-admt") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-admt-checker", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-admt-checker", { assessment_id: rec.id });
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "cppa-risk") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id });
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "cppa-cyber") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "cybersecurity", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id });
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "lia") {
       const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal","supplemental_responses","supplemental_context"];
@@ -1181,8 +1191,8 @@ async function dispatchGeneration(
       if (!cleaned.status) cleaned.status = "pending";
       const { data: rec, error } = await admin.from("li_assessments").insert({ ...cleaned, user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-li-assessment", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "li_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-li-assessment", { assessment_id: rec.id });
+      return { sourceTable: "li_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "dpia") {
       const { data: rec, error } = await admin.from("dpia_frameworks").insert({
@@ -1190,8 +1200,8 @@ async function dispatchGeneration(
         organization_name: intake?.organisation_name ?? intake?.organization_name ?? "Test Org",
       }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-dpia-framework", { dpia_id: rec.id }).catch(() => {});
-      return { sourceTable: "dpia_frameworks", sourceRowId: rec.id };
+      const invocation = invokeFn("run-dpia-framework", { dpia_id: rec.id });
+      return { sourceTable: "dpia_frameworks", sourceRowId: rec.id, invocation };
     }
     if (tool === "governance") {
       const { data: rec, error } = await admin.from("governance_assessments").insert({
@@ -1199,44 +1209,61 @@ async function dispatchGeneration(
         organization_name: intake?.organization_name ?? intake?.company_name ?? "Test Org",
       }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "governance_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-governance-assessment", { assessment_id: rec.id });
+      return { sourceTable: "governance_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "dpa-generator") {
       const { data: rec, error } = await admin.from("dpa_documents").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "dpa_documents", sourceRowId: rec.id };
+      const invocation = invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId });
+      return { sourceTable: "dpa_documents", sourceRowId: rec.id, invocation };
     }
     if (tool === "ir-playbook") {
       const { data: rec, error } = await admin.from("ir_playbooks").insert({ user_id: userId, status: "pending", intake_data: intake, organization_name: intake?.organizationName ?? "Test Org" }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "ir_playbooks", sourceRowId: rec.id };
+      const invocation = invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId });
+      return { sourceTable: "ir_playbooks", sourceRowId: rec.id, invocation };
     }
     if (tool === "biometric-checker") {
       const { data: rec, error } = await admin.from("biometric_assessments").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true }).catch(() => {});
-      return { sourceTable: "biometric_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true });
+      return { sourceTable: "biometric_assessments", sourceRowId: rec.id, invocation };
     }
+    // QB-P14 item 2 — REGISTRATION path.
+    //
+    // Prior harness invoked `generate-registration-docs` with `{order_id}` —
+    // that is the paid order-fulfillment function which rejects immediately
+    // when no order exists (both campaign registration runs died this way
+    // in ~130ms, no error captured). The real customer flow lives in
+    // src/pages/RegistrationAssessment.tsx and calls the FREE, synchronous
+    // `run-registration-assessment` with `{intake_data, user_id}`. That
+    // function creates the `registration_assessments` row itself, runs the
+    // rules engine synchronously, writes status='completed', and returns
+    // `{assessment_id, shareable_token, result_summary}`. Match that flow
+    // exactly here — do NOT seed a row (the callee owns row creation) and
+    // do NOT touch `generate-registration-docs` or any order/payment code.
     if (tool === "registration") {
-      const { data: rec, error } = await admin.from("registration_orders").insert({
-        user_id: userId, status: "pending", intake_data: intake,
-        organization_name: intake?.organizationName ?? "Test Org",
-        jurisdictions: intake?.jurisdictions ?? [],
-      }).select("id").single();
-      if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "registration_orders", sourceRowId: rec.id };
+      const data = await invokeFn("run-registration-assessment", {
+        intake_data: intake, user_id: userId,
+      });
+      const assessmentId = (data as any)?.assessment_id;
+      if (!assessmentId) throw new Error(`run-registration-assessment returned no assessment_id`);
+      return {
+        sourceTable: "registration_assessments",
+        sourceRowId: assessmentId,
+        invocation: Promise.resolve(data),
+      };
     }
     console.warn(`[dispatchGeneration] no dispatcher for tool: ${tool}`);
-    return null;
+    return { error: `no dispatcher for tool: ${tool}` };
   } catch (e) {
-    console.warn(`[dispatchGeneration] failed:`, (e as Error).message);
-    return null;
+    const msg = (e as Error).message ?? String(e);
+    console.warn(`[dispatchGeneration] failed:`, msg);
+    return { error: msg.slice(0, 500) };
   }
 }
+
 
 type PollOutcome =
   | { status: "complete"; reportData: any }
