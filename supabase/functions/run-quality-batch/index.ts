@@ -2605,8 +2605,9 @@ async function runBatch(runId: string): Promise<void> {
 }
 
 Deno.serve(async (req) => {
+  console.log(`[run-quality-batch] boot ${BUILD_STAMP}`);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.method !== "POST") return json({ error: "POST only" }, 405);
+  if (req.method !== "POST") return json({ error: "POST only", build_stamp: BUILD_STAMP }, 405);
 
   const authHeader = req.headers.get("Authorization") ?? "";
   if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized: missing bearer token" }, 401);
