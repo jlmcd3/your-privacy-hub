@@ -1,9 +1,12 @@
 // ADMIN-GATE-UI — Option-A findings-based launch gate scoreboard.
-// Renders one row per product with verdict, failing classes, streak, runs cap,
-// mediums, and (non-gating) telemetry scores. Read-only.
+// QB-P9 — adds median-of-last-3 Claude score per tool and a "certified"
+// badge for tools that campaign mode has retired with reason='certified'.
+// Metric and label only — zero styling / color changes (design tokens frozen).
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useLaunchGateScoreboard,
   GATE_TARGET_STREAK,
@@ -11,6 +14,14 @@ import {
   type GateVerdict,
   type ToolGateRow,
 } from "@/hooks/useLaunchGateScoreboard";
+
+// QB-P9 — compute median of numeric samples (returns null for empty).
+function median(xs: number[]): number | null {
+  if (xs.length === 0) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
 
 function verdictClass(v: GateVerdict): string {
   switch (v) {
@@ -36,7 +47,7 @@ function VerdictBadge({ v, title }: { v: GateVerdict; title?: string }) {
   );
 }
 
-function GateRow({ row }: { row: ToolGateRow }) {
+function GateRow({ row, medianLast3, certified }: { row: ToolGateRow; medianLast3: number | null; certified: boolean }) {
   const latestV = row.latest?.verdict;
   const atCap = row.runsInCap >= GATE_RUNS_CAP;
   return (
@@ -56,6 +67,11 @@ function GateRow({ row }: { row: ToolGateRow }) {
         {row.gateMet && (
           <Badge className="h-5 text-[10px] bg-emerald-600 hover:bg-emerald-600">
             GATE MET
+          </Badge>
+        )}
+        {certified && (
+          <Badge variant="outline" className="h-5 text-[10px]" title="Retired by campaign — reason=certified">
+            CERTIFIED
           </Badge>
         )}
         <div className="ml-auto flex items-center gap-3 text-xs">
@@ -128,6 +144,9 @@ function GateRow({ row }: { row: ToolGateRow }) {
 
       <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground">
         <span>mediums tracked: {row.mediumsCount}</span>
+        <span title="Median Claude overall of the last 3 completed runs (or fewer when fewer exist)">
+          median(last 3): {medianLast3 == null ? "—" : medianLast3.toFixed(1)}
+        </span>
         <span>
           <span className="uppercase tracking-wider text-[9px]">telemetry — non-gating</span>{" "}
           claude {row.score_overall?.toFixed?.(1) ?? "—"} · gpt{" "}
@@ -140,6 +159,49 @@ function GateRow({ row }: { row: ToolGateRow }) {
 
 export function LaunchGateScoreboard({ tools }: { tools: string[] }) {
   const { rows, loading, error, refreshedAt, reload } = useLaunchGateScoreboard(tools);
+
+  // QB-P9 — median-of-last-3 Claude scores per tool + "certified" set from
+  // the single quality_campaigns row. Display-only; no gating impact.
+  const [medianByTool, setMedianByTool] = useState<Record<string, number | null>>({});
+  const [certifiedTools, setCertifiedTools] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: recent } = await supabase
+          .from("quality_runs")
+          .select("tool, score_overall, status, started_at")
+          .in("tool", tools)
+          .eq("status", "complete")
+          .order("started_at", { ascending: false })
+          .limit(tools.length * 3 + 30);
+        const byTool: Record<string, number[]> = {};
+        for (const r of (recent ?? []) as any[]) {
+          if (r.score_overall == null) continue;
+          (byTool[r.tool] ??= []);
+          if (byTool[r.tool].length < 3) byTool[r.tool].push(Number(r.score_overall));
+        }
+        const medians: Record<string, number | null> = {};
+        for (const t of tools) medians[t] = median(byTool[t] ?? []);
+        if (!cancelled) setMedianByTool(medians);
+
+        const { data: campaign } = await supabase
+          .from("quality_campaigns")
+          .select("tool_state")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        const state = ((campaign as any)?.tool_state ?? {}) as Record<string, { retired_reason?: string | null }>;
+        const cert = new Set<string>();
+        for (const [tool, s] of Object.entries(state)) {
+          if (s?.retired_reason === "certified") cert.add(tool);
+        }
+        if (!cancelled) setCertifiedTools(cert);
+      } catch (_) { /* metric-only; ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [tools.join("|"), refreshedAt]);
 
   return (
     <Card>
@@ -169,7 +231,12 @@ export function LaunchGateScoreboard({ tools }: { tools: string[] }) {
         {rows && (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             {rows.map((r) => (
-              <GateRow key={r.tool} row={r} />
+              <GateRow
+                key={r.tool}
+                row={r}
+                medianLast3={medianByTool[r.tool] ?? null}
+                certified={certifiedTools.has(r.tool)}
+              />
             ))}
           </div>
         )}

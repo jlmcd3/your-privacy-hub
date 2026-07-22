@@ -33,7 +33,31 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "qbp7-waves@2026-07-22";
+export const BUILD_STAMP = "qbp9-campaign@2026-07-22";
+
+// QB-P9 — Campaign mode constants.
+// Anthropic Claude Sonnet spend estimate basis (per doc, single run):
+//   generator prompt ≈ 4k input / 3k output,
+//   Claude grader   ≈ 5k input / 2k output,
+//   GPT grader is OpenAI-priced (not Anthropic) — excluded from budget cap.
+// Total Claude tokens per doc ≈ 9k input + 5k output.
+// Sonnet pricing (2026-07): $3 / 1M input, $15 / 1M output.
+//   → 9k × $3/M + 5k × $15/M = $0.027 + $0.075 = $0.102 per doc.
+// Rounded to $0.10/doc for the budget-cap heuristic; adjust here if pricing moves.
+export const CAMPAIGN_EST_CENTS_PER_DOC = 10;
+export const CAMPAIGN_TOKEN_BASIS = "estimate:claude-sonnet@9k_in+5k_out_per_doc";
+export const CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT = 60000; // $600
+export const CAMPAIGN_CERTIFIED_STREAK = 2;
+export const CAMPAIGN_MAX_RUNS = 10;
+
+export type CampaignToolState = {
+  batch_size: number;
+  max_runs: number;
+  runs_completed: number;
+  consecutive_ge98: number;
+  active: boolean;
+  retired_reason: null | "certified" | "max_runs";
+};
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -210,6 +234,30 @@ export function decide(
   return { kind: "wait" };
 }
 
+// QB-P9 — pure stop-rule reducer. Given the current tool_state and the
+// score of a just-completed campaign child run, return the updated state.
+// - runs_completed always increments.
+// - consecutive_ge98 increments when claude overall >= 98, else resets to 0.
+// - retire with 'certified' when the streak reaches CAMPAIGN_CERTIFIED_STREAK.
+// - retire with 'max_runs' when runs_completed reaches CAMPAIGN_MAX_RUNS.
+// Retirement is sticky: once inactive, subsequent calls are no-ops.
+export function applyStopRule(
+  prev: CampaignToolState,
+  claudeOverall: number | null,
+): CampaignToolState {
+  if (!prev.active) return prev;
+  const runs_completed = prev.runs_completed + 1;
+  const passed = typeof claudeOverall === "number" && claudeOverall >= 98;
+  const consecutive_ge98 = passed ? prev.consecutive_ge98 + 1 : 0;
+  if (consecutive_ge98 >= CAMPAIGN_CERTIFIED_STREAK) {
+    return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "certified" };
+  }
+  if (runs_completed >= CAMPAIGN_MAX_RUNS) {
+    return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "max_runs" };
+  }
+  return { ...prev, runs_completed, consecutive_ge98 };
+}
+
 // Pure row-builder mirroring run-quality-batch/index.ts ~L2547–2552's insert
 // payload — exposed so unit tests can assert the exact key set/values with no
 // DB, no network. `createdBy` MUST be the admin who started the batch so the
@@ -231,7 +279,7 @@ export function buildSeedRow(
   };
 }
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string)
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null)
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -241,7 +289,8 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string)
 
   // (b) Insert the pending row — same field set as run-quality-batch's own insert.
   const nowIso = new Date().toISOString();
-  const seed = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
   const { data: run, error: iErr } = await db.from("quality_runs")
     .insert(seed).select("id").single();
   if (iErr || !run) return { ok: false, err: `seed insert: ${iErr?.message ?? "no row"}` };
@@ -361,7 +410,7 @@ async function runUnit(runId: string) {
         // Heartbeat between staggers so the wave-in-progress isn't itself
         // reaped by any batch-level watchdog.
         await heartbeat(runId);
-        const inv = await seedAndResume(tool, (run as any).batch_size, (run as any).created_by);
+        const inv = await seedAndResume(tool, (run as any).batch_size, (run as any).created_by, (run as any).campaign_id ?? null);
         if (!inv.ok) {
           results.push({
             tool, quality_run_id: null, run_number: null,
@@ -440,6 +489,14 @@ async function runUnit(runId: string) {
         tool_results: results,
         current_quality_run_id: stillActive ? (run as any).current_quality_run_id : null,
       }).eq("id", runId);
+
+      // QB-P9 — stop-rule + budget accounting for campaign-initiated waves.
+      const campaignId = (run as any).campaign_id as string | null;
+      if (campaignId) {
+        for (const t of d.terminations) {
+          await applyCampaignTermination(campaignId, t.tool, t.snapshot.score_overall, (run as any).batch_size ?? 0);
+        }
+      }
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
@@ -512,6 +569,189 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   return { ok: true, runId: row.id };
 }
 
+// ─── QB-P9 Campaign machinery ────────────────────────────────────────────────
+
+async function loadCampaign(): Promise<any | null> {
+  const { data } = await admin().from("quality_campaigns")
+    .select("*").order("created_at", { ascending: true }).limit(1).maybeSingle();
+  return data;
+}
+
+async function logCampaign(campaignId: string, message: string, level = "info") {
+  try {
+    const db = admin();
+    const { data: c } = await db.from("quality_campaigns").select("progress_log").eq("id", campaignId).maybeSingle();
+    const log = Array.isArray(c?.progress_log) ? (c!.progress_log as any[]) : [];
+    log.push({ t: new Date().toISOString(), level, msg: message });
+    // Keep the tail bounded to prevent the row from ballooning.
+    const trimmed = log.slice(-500);
+    await db.from("quality_campaigns").update({ progress_log: trimmed }).eq("id", campaignId);
+  } catch (e) { console.error("[campaign] log failed", (e as Error).message); }
+}
+
+// Campaign-owned wave: creates a quality_batch_runs row tagged with campaign_id
+// and returns immediately. The normal wave machinery takes over from there.
+async function startCampaignWave(campaign: any): Promise<{ started: boolean; reason?: string; batchId?: string; tools?: string[] }> {
+  const toolState = (campaign.tool_state ?? {}) as Record<string, CampaignToolState>;
+  // Only dispatch tools that are (a) still active AND (b) recognised by run-quality-batch.
+  const eligible: string[] = [];
+  const skipped: string[] = [];
+  for (const [tool, s] of Object.entries(toolState)) {
+    if (!s?.active) continue;
+    if (!RUN_QUALITY_BATCH_SLUGS.has(tool)) { skipped.push(tool); continue; }
+    eligible.push(tool);
+  }
+  if (skipped.length) {
+    await logCampaign(campaign.id, `Skipping unknown slug(s) this wave: ${skipped.join(", ")}`, "warn");
+  }
+  if (eligible.length === 0) return { started: false, reason: "no_active_tools" };
+
+  // Since batch_size is per-tool but quality_batch_runs stores a single
+  // batch_size, campaign waves use the MAX of eligible tool batch sizes so
+  // no tool is short-changed. Individual tool_state.batch_size is still the
+  // authoritative record. (Deviation from courier where each tool wants its
+  // own size — see report.)
+  const batchSize = Math.max(...eligible.map((t) => toolState[t].batch_size ?? 3));
+  const concurrency = clampConcurrency(campaign.concurrency ?? DEFAULT_CONCURRENCY);
+  const db = admin();
+  const { data: row, error } = await db.from("quality_batch_runs").insert({
+    tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
+    current_tool_index: 0, tool_results: [], created_by: campaign.created_by,
+    instrument_version: GRADER_CONTEXT_VERSION,
+    concurrency,
+    campaign_id: campaign.id,
+  }).select("id").single();
+  if (error || !row) {
+    await logCampaign(campaign.id, `Wave insert failed: ${error?.message}`, "error");
+    return { started: false, reason: `insert: ${error?.message}` };
+  }
+
+  const nextWave = (campaign.wave_number ?? 0) + 1;
+  // Add estimated spend for the wave (Claude only — see CAMPAIGN_TOKEN_BASIS).
+  const est = eligible.length * batchSize * CAMPAIGN_EST_CENTS_PER_DOC;
+  const nowSpend = (campaign.estimated_spend_cents ?? 0) + est;
+  await db.from("quality_campaigns").update({
+    wave_number: nextWave,
+    last_wave_started_at: new Date().toISOString(),
+    estimated_spend_cents: nowSpend,
+  }).eq("id", campaign.id);
+  await log(row.id, `Campaign wave #${nextWave}: ${eligible.length} tool(s), concurrency=${concurrency}, batch_size=${batchSize}`);
+  await logCampaign(campaign.id, `Wave #${nextWave} started → batch ${row.id} · tools=[${eligible.join(", ")}] · est +${(est / 100).toFixed(2)} USD (cumulative ${(nowSpend / 100).toFixed(2)})`);
+
+  // @ts-ignore
+  EdgeRuntime.waitUntil(selfInvoke(row.id));
+  return { started: true, batchId: row.id, tools: eligible };
+}
+
+// QB-P9 — pure decision function for campaign_tick. Kept side-effect free so
+// the orchestrator tests can drive it directly.
+export type CampaignRowLite = {
+  id: string;
+  status: "paused" | "active" | "complete" | "killed";
+  budget_cap_cents: number | null;
+  estimated_spend_cents: number | null;
+  wave_interval_minutes: number | null;
+  last_wave_started_at: string | null;
+  tool_state: Record<string, CampaignToolState> | null;
+};
+
+export type CampaignTickDecision =
+  | { kind: "no_campaign" }
+  | { kind: "budget_paused" }
+  | { kind: "status_noop"; status: string }
+  | { kind: "wave_in_flight" }
+  | { kind: "interval_wait" }
+  | { kind: "complete" }
+  | { kind: "start_wave" };
+
+export function decideCampaignTick(
+  campaign: CampaignRowLite | null,
+  ctx: { hasInflight: boolean; nowMs: number },
+): CampaignTickDecision {
+  if (!campaign) return { kind: "no_campaign" };
+  const cap = campaign.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
+  if ((campaign.estimated_spend_cents ?? 0) >= cap && campaign.status === "active") {
+    return { kind: "budget_paused" };
+  }
+  if (campaign.status !== "active") return { kind: "status_noop", status: campaign.status };
+  if (ctx.hasInflight) return { kind: "wave_in_flight" };
+  const intervalMs = (campaign.wave_interval_minutes ?? 360) * 60_000;
+  const lastMs = campaign.last_wave_started_at ? new Date(campaign.last_wave_started_at).getTime() : 0;
+  if (lastMs && ctx.nowMs - lastMs < intervalMs) return { kind: "interval_wait" };
+  const anyActive = Object.values(campaign.tool_state ?? {}).some((s) => s?.active);
+  if (!anyActive) return { kind: "complete" };
+  return { kind: "start_wave" };
+}
+
+async function campaignTick(): Promise<{ ok: true; action: string; detail?: unknown }> {
+  const campaign = await loadCampaign();
+  const db = admin();
+
+  let hasInflight = false;
+  if (campaign) {
+    const { data: inflight } = await db.from("quality_batch_runs")
+      .select("id, status").eq("campaign_id", campaign.id)
+      .not("status", "in", "(complete,failed,cancelled)").limit(1);
+    hasInflight = (inflight ?? []).length > 0;
+  }
+
+  const decision = decideCampaignTick(campaign as CampaignRowLite | null, {
+    hasInflight, nowMs: Date.now(),
+  });
+
+  switch (decision.kind) {
+    case "no_campaign": return { ok: true, action: "no_campaign" };
+    case "budget_paused": {
+      const cap = campaign!.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
+      await db.from("quality_campaigns").update({ status: "paused" }).eq("id", campaign!.id);
+      await logCampaign(campaign!.id, `Budget cap reached ($${(cap / 100).toFixed(0)}) — campaign auto-paused`, "warn");
+      return { ok: true, action: "budget_paused" };
+    }
+    case "status_noop": return { ok: true, action: `status_${decision.status}` };
+    case "wave_in_flight": return { ok: true, action: "wave_in_flight" };
+    case "interval_wait": return { ok: true, action: "interval_wait" };
+    case "complete": {
+      await db.from("quality_campaigns")
+        .update({ status: "complete", completed_at: new Date().toISOString() })
+        .eq("id", campaign!.id);
+      await logCampaign(campaign!.id, "No active tools remain — campaign complete");
+      return { ok: true, action: "complete" };
+    }
+    case "start_wave": {
+      const started = await startCampaignWave(campaign!);
+      return { ok: true, action: started.started ? "wave_started" : `wave_skipped:${started.reason}` };
+    }
+  }
+}
+
+// Called from process_terminations when the batch is campaign-owned.
+// Applies stop-rule to the tool_state jsonb and appends a progress-log entry.
+export async function applyCampaignTermination(
+  campaignId: string,
+  tool: string,
+  claudeOverall: number | null,
+  _batchSize: number,
+): Promise<void> {
+  const db = admin();
+  const { data: c } = await db.from("quality_campaigns").select("*").eq("id", campaignId).maybeSingle();
+  if (!c) return;
+  const toolState = { ...(c.tool_state ?? {}) } as Record<string, CampaignToolState>;
+  const prev = toolState[tool];
+  if (!prev) {
+    await logCampaign(campaignId, `Termination for tool "${tool}" not in tool_state — ignored`, "warn");
+    return;
+  }
+  const next = applyStopRule(prev, claudeOverall);
+  toolState[tool] = next;
+  await db.from("quality_campaigns").update({ tool_state: toolState }).eq("id", campaignId);
+  if (next.retired_reason && !prev.retired_reason) {
+    await logCampaign(campaignId, `${tool} retired — reason=${next.retired_reason} (runs=${next.runs_completed}, streak=${next.consecutive_ge98})`);
+  } else {
+    await logCampaign(campaignId, `${tool} run recorded — claude=${claudeOverall ?? "—"} · runs=${next.runs_completed}/${prev.max_runs} · streak=${next.consecutive_ge98}/${CAMPAIGN_CERTIFIED_STREAK}`);
+  }
+}
+
+
 Deno.serve(async (req) => {
   console.log(`[qb-orchestrator] boot ${BUILD_STAMP}`);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -523,6 +763,8 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace("Bearer ", "");
   const isInternal = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
+  // QB-P9 — pg_cron path: header `x-internal-cron: 1` + service-role bearer.
+  const isCron     = req.headers.get("x-internal-cron")   === "1" && token === SERVICE_KEY;
 
   // Internal self-chain resume
   if (isInternal && body?.run_id) {
@@ -542,6 +784,13 @@ Deno.serve(async (req) => {
       } catch { /* */ }
     }));
     return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
+  }
+
+  // QB-P9 — campaign tick (pg_cron or admin-forced).
+  if ((isCron || isInternal) && body?.action === "campaign_tick") {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] campaign_tick error", e)));
+    return json({ ok: true, build_stamp: BUILD_STAMP, action: "campaign_tick" }, 202);
   }
 
   // External admin call
@@ -581,6 +830,33 @@ Deno.serve(async (req) => {
   if (body?.run_id) {
     const { data } = await admin().from("quality_batch_runs").select("*").eq("id", body.run_id).maybeSingle();
     return json({ run: data, build_stamp: BUILD_STAMP });
+  }
+
+  // QB-P9 — admin campaign controls.
+  if (body?.action === "campaign_status") {
+    const c = await loadCampaign();
+    return json({ campaign: c, build_stamp: BUILD_STAMP });
+  }
+  if (body?.action === "campaign_resume" || body?.action === "campaign_pause" || body?.action === "campaign_kill") {
+    const target =
+      body.action === "campaign_resume" ? "active" :
+      body.action === "campaign_pause"  ? "paused" : "killed";
+    const c = await loadCampaign();
+    if (!c) return json({ error: "no campaign row" }, 404);
+    await admin().from("quality_campaigns").update({ status: target }).eq("id", c.id);
+    await logCampaign(c.id, `Status changed → ${target} (by ${userId})`);
+    // If resumed, fire an immediate tick so the CEO doesn't wait 15 min.
+    if (target === "active") {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] resume-tick error", e)));
+    }
+    return json({ ok: true, status: target, build_stamp: BUILD_STAMP });
+  }
+  if (body?.action === "campaign_tick") {
+    // Admin-forced tick (bypasses cron).
+    // @ts-ignore
+    EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] admin-tick error", e)));
+    return json({ ok: true, action: "campaign_tick", build_stamp: BUILD_STAMP }, 202);
   }
 
   return json({ error: "Unknown action" }, 400);

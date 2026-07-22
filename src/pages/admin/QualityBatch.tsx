@@ -773,6 +773,9 @@ export default function QualityBatch() {
         </CardContent>
       </Card>
 
+      {/* QB-P9 — Campaign controls (minimal). Pause/Resume/Kill only. */}
+      <CampaignControls />
+
       {/* Launch-gate scoreboard (Option-A findings-based) */}
       <LaunchGateScoreboard tools={TOOLS} />
 
@@ -1012,5 +1015,91 @@ function BatchLogView({ entries }: { entries: BatchLogRow[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+// ─── QB-P9 CampaignControls ───────────────────────────────────────────────
+// Minimal pause/resume/kill control for the single active campaign row.
+// Reuses existing Button/Card styling; no new tokens.
+function CampaignControls() {
+  const [row, setRow] = useState<any | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from("quality_campaigns")
+      .select("id, status, wave_number, wave_interval_minutes, concurrency, spend_cents_estimate, budget_cap_cents, tool_state")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error) setErr(error.message);
+    else setRow(data);
+  };
+
+  useEffect(() => { load(); const t = setInterval(load, 15_000); return () => clearInterval(t); }, []);
+
+  const call = async (action: "campaign_pause" | "campaign_resume" | "campaign_kill") => {
+    if (!row?.id) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.functions.invoke("quality-batch-orchestrator", {
+        body: { action, campaign_id: row.id },
+      });
+      if (error) throw error;
+      await load();
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!row) {
+    return (
+      <Card>
+        <CardHeader><CardTitle>Campaign</CardTitle></CardHeader>
+        <CardContent className="text-xs text-muted-foreground">
+          {err ? `Error: ${err}` : "No campaign row present."}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const spendUsd = ((row.spend_cents_estimate ?? 0) / 100).toFixed(2);
+  const capUsd = ((row.budget_cap_cents ?? 0) / 100).toFixed(2);
+  const toolState = (row.tool_state ?? {}) as Record<string, any>;
+  const activeTools = Object.entries(toolState).filter(([, s]: any) => s?.active).map(([t]) => t);
+  const retired = Object.entries(toolState).filter(([, s]: any) => !s?.active).map(([t, s]: any) => `${t}(${s?.retired_reason ?? "-"})`);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>
+          Campaign <span className="text-xs text-muted-foreground font-normal">· status {row.status} · wave {row.wave_number ?? 0}</span>
+        </CardTitle>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" disabled={busy || row.status !== "paused"} onClick={() => call("campaign_resume")}>Resume</Button>
+          <Button size="sm" variant="outline" disabled={busy || row.status !== "active"} onClick={() => call("campaign_pause")}>Pause</Button>
+          <Button size="sm" variant="destructive" disabled={busy || row.status === "complete" || row.status === "killed"} onClick={() => call("campaign_kill")}>Kill</Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        {err && <div className="text-destructive">{err}</div>}
+        <div className="flex flex-wrap gap-4 text-muted-foreground">
+          <span>interval {row.wave_interval_minutes}m</span>
+          <span>concurrency {row.concurrency}</span>
+          <span>spend est ${spendUsd} / cap ${capUsd}</span>
+        </div>
+        <div className="font-mono break-all">
+          <span className="text-muted-foreground">active: </span>{activeTools.join(", ") || "—"}
+        </div>
+        {retired.length > 0 && (
+          <div className="font-mono break-all">
+            <span className="text-muted-foreground">retired: </span>{retired.join(", ")}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
