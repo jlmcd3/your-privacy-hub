@@ -47,7 +47,7 @@ function VerdictBadge({ v, title }: { v: GateVerdict; title?: string }) {
   );
 }
 
-function GateRow({ row }: { row: ToolGateRow }) {
+function GateRow({ row, medianLast3, certified }: { row: ToolGateRow; medianLast3: number | null; certified: boolean }) {
   const latestV = row.latest?.verdict;
   const atCap = row.runsInCap >= GATE_RUNS_CAP;
   return (
