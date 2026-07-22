@@ -125,3 +125,33 @@ Deno.test("qcChangedPathsAuthorized: unauthorized derived-index (controls[3].sco
   // flip this assertion and add the missing index-scoping code together.
   assertEquals(res.status, "green");
 });
+
+Deno.test("qcChangedPathsAuthorized: prose target resolved via source_fields (i6_vendors)", () => {
+  // W3-VENDOR-2 regression: frozen open_items whose target.path is a prose
+  // phrase (e.g. "the vendor roster") must resolve to the structured intake
+  // path via information_needed[].source_fields before the allowlist check.
+  // Ref: Wave-1 doc 6b206788… 05:16:07Z hollow-resolution 409.
+  const item = { id: "risk-i6-vendors-abc", target: { path: "the vendor roster" } };
+  const informationNeeded = [
+    { field: "i6-vendors", source_fields: ["i6_vendors"] },
+  ];
+  const res = qcChangedPathsAuthorized(
+    [item],
+    ["normalised_intake.activity_details[0].third_party_recipients"],
+    "cppa_risk_assessment",
+    informationNeeded,
+  );
+  assertEquals(res.status, "green");
+});
+
+Deno.test("qcChangedPathsAuthorized: prose target without source_fields still rejects (no weakening)", () => {
+  // Guard: absent source_fields, prose paths remain prose — no substring or
+  // suffix inference. CHECK-A must reject an off-target write.
+  const item = { id: "risk-vendors-xyz", target: { path: "the vendor roster" } };
+  const res = qcChangedPathsAuthorized(
+    [item],
+    ["normalised_intake.activity_details[0].third_party_recipients"],
+    "cppa_risk_assessment",
+  );
+  assertEquals(res.status, "red");
+});

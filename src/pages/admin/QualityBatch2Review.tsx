@@ -90,6 +90,12 @@ function Inner() {
   const { row, loading, error, reload } = useAdminRefineMode(toolType, assessmentId);
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [lastError, setLastError] = useState<null | {
+    status: number;
+    code: string;
+    message?: string;
+    payload: unknown;
+  }>(null);
 
   const openItems: OpenItem[] = useMemo(() => (row?.open_items ?? []) as OpenItem[], [row]);
   const openOpen = openItems.filter((i) => i.status === "open");
@@ -111,6 +117,33 @@ function Inner() {
           <span className="font-mono">{row.user_id ?? "—"}</span>
         </div>
       </div>
+
+      {lastError && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-sm font-semibold text-destructive">
+                Revision failed · HTTP {lastError.status} · <span className="font-mono">{lastError.code}</span>
+              </div>
+              {lastError.message && (
+                <div className="mt-1 text-sm text-destructive/90">{lastError.message}</div>
+              )}
+            </div>
+            <button
+              onClick={() => setLastError(null)}
+              className="text-xs text-muted-foreground underline"
+            >
+              dismiss
+            </button>
+          </div>
+          <details className="mt-2">
+            <summary className="cursor-pointer text-xs text-muted-foreground">Show upstream payload</summary>
+            <pre className="mt-2 max-h-64 overflow-auto rounded bg-muted/40 p-2 text-xs">
+{JSON.stringify(lastError.payload, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
 
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="font-serif text-lg">Intake snapshot</h2>
@@ -135,6 +168,7 @@ function Inner() {
               submitting={submitting}
               onSubmit={async (answered) => {
                 setSubmitting(true);
+                setLastError(null);
                 const res = await adminSubmitRevisionAnswers({
                   toolType, assessmentId, answered,
                 });
@@ -143,11 +177,21 @@ function Inner() {
                   toast({ title: "Revision accepted", description: "Refreshing…" });
                   setTimeout(() => reload(), 1500);
                 } else {
-                  const code = (res.payload as any)?.error ?? res.message ?? "unknown_error";
-                  const detail = (res.payload as any)?.message;
+                  const payload = (res.payload ?? {}) as Record<string, unknown>;
+                  const code = String(payload.error ?? res.message ?? "unknown_error");
+                  const detail =
+                    typeof payload.message === "string" ? payload.message :
+                    typeof (payload.qc as any)?.detail === "string" ? (payload.qc as any).detail :
+                    undefined;
+                  setLastError({
+                    status: res.status,
+                    code,
+                    message: detail,
+                    payload: res.payload ?? { message: res.message },
+                  });
                   toast({
                     title: `Revision failed (HTTP ${res.status})`,
-                    description: detail ? `${code} — ${detail}` : String(code),
+                    description: detail ? `${code} — ${detail}` : code,
                     variant: "destructive",
                   });
                 }
@@ -156,6 +200,7 @@ function Inner() {
           </div>
         )}
       </div>
+
 
       <ReviewNote toolType={toolType} assessmentId={assessmentId} />
     </div>

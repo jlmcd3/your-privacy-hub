@@ -19,9 +19,9 @@
 //
 // This module NEVER changes the frozen open_items array shape or count.
 import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding, validateChangedPathShapes } from "./revision-patch.ts";
-import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
+import { updateOpenItemStatuses, sourceFieldsForOpenItem, type OpenItem } from "./open-items.ts";
 import { qcVerdictConsistency, qcChangedPathsAuthorized, DERIVED_PATHS } from "./revision-qc.ts";
-import { candidateTargetPaths } from "./target-path-aliases.ts";
+import { candidateTargetPaths, resolveEffectiveTargetPath } from "./target-path-aliases.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { mapItemsToUnits } from "./dpia-unit-map.ts";
@@ -137,12 +137,24 @@ function buildRevisionPrompt(opts: {
   answeredItems: Array<{ item: OpenItem; response: string; evidence?: string | null }>;
   advisoryCap: number;
   dpiaUnitSubset?: string[];
+  informationNeeded?: unknown;
 }): { system: string; user: string } {
-  const { toolType, storedReport, intake, answeredItems, advisoryCap, dpiaUnitSubset } = opts;
+  const { toolType, storedReport, intake, answeredItems, advisoryCap, dpiaUnitSubset, informationNeeded } = opts;
+
+  // W3-VENDOR-2 — resolve the effective target path per item BEFORE building
+  // the prompt so the model is instructed with a real writable path when the
+  // frozen path is prose. Structural targets are unchanged.
+  const effectivePathById = new Map<string, string>();
+  for (const a of answeredItems) {
+    const rawPath = a.item.target?.path ?? "";
+    const sourceFields = sourceFieldsForOpenItem({ id: a.item.id }, informationNeeded);
+    const eff = resolveEffectiveTargetPath(toolType, rawPath, sourceFields);
+    effectivePathById.set(a.item.id, eff);
+  }
 
   const answersBlock = answeredItems.map((a) => ({
     id: a.item.id,
-    target_path: a.item.target.path,
+    target_path: effectivePathById.get(a.item.id) ?? a.item.target.path,
     ask: a.item.why_insufficient,
     provision: a.item.provision_key,
     user_response: a.response,
@@ -163,7 +175,7 @@ function buildRevisionPrompt(opts: {
   // index wildcard (matches `[<digit>+]`); every other segment is literal.
   const derivedForTool = DERIVED_PATHS[toolType] ?? [];
   const allowedByItem = answeredItems.map((a) => {
-    const targetPath = a.item.target?.path ?? "";
+    const targetPath = effectivePathById.get(a.item.id) ?? a.item.target?.path ?? "";
     const askUnion = targetPath ? candidateTargetPaths(toolType, targetPath) : [];
     return {
       item_id: a.item.id,
@@ -400,8 +412,11 @@ export async function handleRevisionMode(
   }
 
   const advisoryCap = ADVISORY_CAPS[toolType] ?? 0;
+  // W3-VENDOR-2 — carry the live information_needed through prompt-build and
+  // QC so prose-authored frozen target.paths resolve via source_fields.
+  const informationNeeded = storedReport?.information_needed;
   const { system, user } = buildRevisionPrompt({
-    toolType, storedReport, intake, answeredItems: answeredPack, advisoryCap, dpiaUnitSubset,
+    toolType, storedReport, intake, answeredItems: answeredPack, advisoryCap, dpiaUnitSubset, informationNeeded,
   });
 
   const model = TOOL_MODEL[toolType] ?? DEFAULT_MODEL;
@@ -459,12 +474,24 @@ export async function handleRevisionMode(
   {
     const wouldBeItems = updateOpenItemStatuses(openItems, verdictsRaw as any);
     const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    // W3-VENDOR-2 diagnostic — surface the model's actual patch decisions so a
+    // hollow-resolution / unauthorized-path 409 can be distinguished from a
+    // zero-paths refusal without a full model-output dump.
+    console.log(JSON.stringify({
+      evt: "revision_patch_emitted",
+      tool: toolType,
+      row: rowId,
+      changed_paths: changedPathsIn,
+      changed_path_count: changedPathsIn.length,
+      verdicts: verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
+    }));
     const preQc = qcVerdictConsistency(
       answeredIds,
       verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
       wouldBeItems as any,
       changedPathsIn,
       toolType,
+      informationNeeded,
     );
     if (preQc.status === "red") {
       console.error(`[revision:${toolType}] pre_apply_qc_red ${preQc.code}: ${preQc.detail}`);
@@ -479,9 +506,10 @@ export async function handleRevisionMode(
     // enumerated per-tool DERIVED_PATHS entry. Server-owned bookkeeping
     // keys are stripped pre-check because revision-mode overwrites them.
     const preAllow = qcChangedPathsAuthorized(
-      answeredPack.map((a) => ({ target: { path: a.item.target?.path } })),
+      answeredPack.map((a) => ({ id: a.item.id, target: { path: a.item.target?.path } })),
       changedPathsIn,
       toolType,
+      informationNeeded,
     );
     if (preAllow.status === "red") {
       console.error(`[revision:${toolType}] pre_apply_qc_red ${preAllow.code}: ${preAllow.detail}`);

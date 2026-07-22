@@ -3,7 +3,8 @@
 // completion to verify the on-disk row against the contract invariants.
 // Scoped to contract-enabled tools (currently: cppa_risk_assessment; add as
 // each per-tool courier lands).
-import { candidateTargetPaths } from "./target-path-aliases.ts";
+import { candidateTargetPaths, resolveEffectiveTargetPath } from "./target-path-aliases.ts";
+import { sourceFieldsForOpenItem } from "./open-items.ts";
 
 export const CONTRACT_ENABLED_TOOLS = new Set<string>([
   "cppa_risk_assessment",
@@ -61,12 +62,18 @@ export function qcContractMonotonicity(
 // item that flipped to 'resolved' has at least one changed_path whose target
 // falls under that item's target.path prefix (real content change accompanies
 // resolution). 'not_resolved' verdicts do not require a changed_path.
+//
+// W3-VENDOR-2 (2026-07-22): accepts an optional `informationNeeded` array so a
+// prose-authored frozen target.path resolves through source_fields → alias
+// map BEFORE the coverage check. Callers that omit it fall back to the raw
+// target.path (prior behavior). Structural target paths are unaffected.
 export function qcVerdictConsistency(
   answeredIds: string[],
   verdicts: Array<{ item_id: string; verdict: string }>,
   itemsAfter: Array<{ id: string; target?: { path?: string }; status?: string }>,
   changedPaths: string[],
   toolType?: string,
+  informationNeeded?: unknown,
 ): QcCheckResult {
   if (verdicts.length !== answeredIds.length) {
     return {
@@ -88,7 +95,7 @@ export function qcVerdictConsistency(
   }
   const itemById = new Map(itemsAfter.map((i) => [i.id, i]));
   const missingChange: string[] = [];
-  const missingDetail: Array<{ item_id: string; target: string; candidates: string[] }> = [];
+  const missingDetail: Array<{ item_id: string; target: string; effective: string; candidates: string[] }> = [];
   for (const v of verdicts) {
     if (v.verdict !== "resolved") continue;
     const it = itemById.get(v.item_id);
@@ -96,15 +103,23 @@ export function qcVerdictConsistency(
     if (!targetPath) continue; // narrative-target items not path-checked
     // RC-D.11 — translate ask-vocabulary target → write-vocabulary candidates
     // via the explicit per-tool alias map. No wildcards, no substring inference.
+    // W3-VENDOR-2 — first resolve the effective target via source_fields when
+    // the frozen path is prose (see resolveEffectiveTargetPath).
+    const sourceFields = toolType && it
+      ? sourceFieldsForOpenItem({ id: it.id }, informationNeeded)
+      : null;
+    const effectivePath = toolType
+      ? resolveEffectiveTargetPath(toolType, targetPath, sourceFields)
+      : targetPath;
     const candidates = toolType
-      ? candidateTargetPaths(toolType, targetPath)
-      : [targetPath];
+      ? candidateTargetPaths(toolType, effectivePath)
+      : [effectivePath];
     const touched = changedPaths.some((p) =>
       candidates.some((c) => p === c || p.startsWith(c + ".") || p.startsWith(c + "[")),
     );
     if (!touched) {
       missingChange.push(v.item_id);
-      missingDetail.push({ item_id: v.item_id, target: targetPath, candidates });
+      missingDetail.push({ item_id: v.item_id, target: targetPath, effective: effectivePath, candidates });
     }
   }
   if (missingChange.length > 0) {
@@ -211,10 +226,19 @@ function matchesDerivedPattern(pattern: string, candidate: string): boolean {
 // qc_rc_3_changed_paths_authorized — every declared changed_path must trace
 // back to an answered item (rule a) OR to a per-tool DERIVED_PATHS entry
 // (rule b). Server-owned bookkeeping keys are pre-stripped.
+//
+// W3-VENDOR-2 (2026-07-22): accepts optional `informationNeeded`. When an
+// answered item's target.path is prose (frozen from the model's original
+// prose-authored ask), the effective path is resolved via source_fields →
+// alias map BEFORE candidateTargetPaths expansion. Structural targets are
+// unaffected; no wildcards, no substring inference; the union is a superset
+// of the prior union only for prose-target rows that have concrete
+// source_fields recorded on the live information_needed array.
 export function qcChangedPathsAuthorized(
-  answeredItems: Array<{ target?: { path?: string } }>,
+  answeredItems: Array<{ id?: string; target?: { path?: string } }>,
   changedPaths: string[],
   toolType: string,
+  informationNeeded?: unknown,
 ): QcCheckResult {
   const derived = DERIVED_PATHS[toolType] ?? [];
   const serverOwned = new Set<string>(SERVER_OWNED_PATHS);
@@ -223,7 +247,11 @@ export function qcChangedPathsAuthorized(
   for (const it of answeredItems) {
     const p = it?.target?.path;
     if (!p) continue;
-    for (const c of candidateTargetPaths(toolType, p)) {
+    const sourceFields = it?.id
+      ? sourceFieldsForOpenItem({ id: it.id }, informationNeeded)
+      : null;
+    const effective = resolveEffectiveTargetPath(toolType, p, sourceFields);
+    for (const c of candidateTargetPaths(toolType, effective)) {
       if (c && !askPrefixes.includes(c)) askPrefixes.push(c);
     }
   }
