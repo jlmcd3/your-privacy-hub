@@ -965,9 +965,9 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     // mirrors the Claude path exactly.
     const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
     const rawGpt = parsed.findings ?? [];
-    const { kept: gptKept, dropped: gptDropped } = applyGraderCal1Filter(rawGpt as any);
-    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4) {
-      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4}`);
+    const { kept: gptKept, dropped: gptDropped, suppressed: gptSuppressed } = applyGraderCal1Filter(rawGpt as any);
+    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2) {
+      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2}`);
     }
     parsed.findings = gptKept
       .filter((f: any) => rubricMeta.has(f.check_id))
@@ -975,7 +975,8 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
         const meta = rubricMeta.get(f.check_id)!;
         return { check_id: f.check_id, dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null };
       });
-    return { eval: parsed, postFilterDropped: gptDropped };
+    return { eval: parsed, postFilterDropped: gptDropped, postFilterSuppressed: gptSuppressed };
+
   } catch (e) {
     return { eval: null, error: (e as Error).message };
   }
