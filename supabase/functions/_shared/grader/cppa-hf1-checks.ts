@@ -239,16 +239,13 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
       if (findings.length >= 5) break;
       continue;
     }
+    // CEO ruling (QB-P15 followup): when a §§ 7200–7222 operative anchor
+    // co-appears in the same sentence as § 7001, the ADMT action is grounded
+    // in the operative citation and co-citation with the definitional cite
+    // is PERMITTED. Prior chain-pattern rejection removed — hasAnchor alone
+    // now clears the sentence.
     if (hasAnchor) {
-      // Chain detection: (a) explicit "+" anywhere in the sentence between
-      // a § 722x and § 7001 cite; OR (b) adjacent-token chain pattern.
-      const hasPlusChain = HF4_H6_CHAIN_JOINER_RE.test(s) && /§\s*7001/.test(s) && /§\s*722[012]/.test(s);
-      const hasAdjChain = HF5_H6_ADJ_CHAIN_RE.test(s);
-      if (hasPlusChain || hasAdjChain) {
-        findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
-          `§ 7001 co-cited in ADMT action-citation chain (definitional cite belongs in narrative, not the chain): "${s.slice(0, 1000)}"`));
-        if (findings.length >= 5) break;
-      }
+      // pass — operative § 722x anchor present alongside § 7001 definition
     }
   }
   if (findings.length === 0) {
