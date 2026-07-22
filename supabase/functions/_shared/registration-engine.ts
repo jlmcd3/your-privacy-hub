@@ -252,22 +252,29 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     fired.push("R5_DPO");
   }
 
-  // ------- Rule R6: EU AI Act -------
-  let aiActProvider = false;
+  // ------- Rule R6: EU AI Act (split by role) -------
+  // Chapter III (Arts. 26–29) + Art. 49(2) EU database — high-risk AI DEPLOYER.
+  // Chapter V (Arts. 53–55) — GPAI PROVIDER (places a general-purpose AI
+  // model on the EU market). The two obligation sets are DISTINCT: an org
+  // may be a GPAI provider without deploying a high-risk system, and vice
+  // versa. Do not conflate.
+  let highRiskDeployer = false;
+  let gpaiProvider = false;
   if (intake.ai_high_risk && (intake.has_eu_establishment || euMarkets.length > 0)) {
-    aiActProvider = true;
+    highRiskDeployer = true;
     const target = intake.has_eu_establishment
       ? (intake.eu_lead_member_state || home || "IE")
       : (euMarkets[0] || "IE");
     ensure(map, target, "R6_AI_HIGH_RISK",
-      "Operates a high-risk AI system in the EU — EU database registration (Annex VIII) required",
+      "Deployer/provider of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties and Art. 49(2) EU-database registration engaged",
       "ai_eu_database");
     fired.push("R6_AI_HIGH_RISK");
   }
   if (intake.ai_general_purpose_provider && (intake.has_eu_establishment || euMarkets.length > 0)) {
-    aiActProvider = true;
+    gpaiProvider = true;
     fired.push("R6_AI_GPAI");
   }
+  const aiActProvider = highRiskDeployer || gpaiProvider;
 
   // ------- Rule R7: US data broker registration -------
   const dataBrokerStates: string[] = [];
