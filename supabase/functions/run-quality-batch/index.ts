@@ -1864,20 +1864,35 @@ async function runBatch(runId: string): Promise<void> {
           }
 
           const dispatch = await dispatchGeneration(admin, tool, intake, userId);
-          if (!dispatch) {
-            await log("warn", `${docLabel}: dispatch failed`);
-            await admin.from("quality_run_documents").update({ status: "error", error: "dispatch failed" }).eq("id", docRowId);
+          if ("error" in dispatch) {
+            // QB-P14 item 3 — surface the seed/dispatch error verbatim (was
+            // just "dispatch failed" with no reason).
+            const detail = String(dispatch.error).slice(0, 300);
+            await log("error", `${docLabel}: dispatch failed — ${detail}`);
+            await admin.from("quality_run_documents").update({ status: "error", error: `dispatch failed: ${detail}`.slice(0, 500) }).eq("id", docRowId);
             continue;
           }
           sourceTable = dispatch.sourceTable;
           sourceRowId = dispatch.sourceRowId;
           genStartedAt = Date.now();
           isolateCount = 1;
+          // QB-P14 item 3 — capture the invokeFn promise's failure. invokeFn
+          // throws `${name} ${status}: ${body.slice(0,200)}` on non-2xx or
+          // network error; log that verbatim so a generator that 5xx's or
+          // 404s (e.g. NOT_FOUND_FUNCTION_BLOB) is attributed instead of
+          // disappearing under an unbounded "generator did not reach terminal
+          // state" timeout later.
+          const capturedLabel = docLabel; // freeze for the async handler
+          dispatch.invocation.catch(async (e: unknown) => {
+            const msg = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+            try { await log("error", `${capturedLabel}: generator dispatch failed — ${msg}`); } catch { /* */ }
+          });
           // Persist source refs immediately so a resumed isolate can pick up
           // even if this isolate is torn down before the first poll landing.
           await admin.from("quality_run_documents").update({
             source_table: sourceTable, source_row_id: sourceRowId,
           }).eq("id", docRowId);
+
         }
 
         // Doc-level total-timeout guard: one dead generator must never kill
