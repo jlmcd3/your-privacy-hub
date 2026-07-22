@@ -20,6 +20,9 @@ export async function adminSubmitRevisionAnswers(args: {
   answered: AdminAnsweredItem[];
 }): Promise<AdminSubmitRevisionOutcome> {
   try {
+    // admin-submit-revision now always returns HTTP 200 with an envelope
+    // { ok, upstream_status, payload, dispatch_nonce }. This avoids
+    // FunctionsHttpError swallowing the upstream error code.
     const { data, error } = await supabase.functions.invoke("admin-submit-revision", {
       body: {
         tool_type: args.toolType,
@@ -28,17 +31,16 @@ export async function adminSubmitRevisionAnswers(args: {
       },
     });
     if (error) {
-      const ctx: any = (error as any).context;
-      const status: number = ctx?.status ?? 500;
-      let bodyJson: any = null;
-      try {
-        if (ctx?.response && typeof ctx.response.json === "function") {
-          bodyJson = await ctx.response.clone().json();
-        }
-      } catch { /* ignore */ }
-      return { kind: "error", status, message: error.message, payload: bodyJson };
+      return { kind: "error", status: 0, message: error.message };
     }
-    return { kind: "accepted", payload: data };
+    const env = data as { ok?: boolean; upstream_status?: number; payload?: any } | null;
+    if (env && env.ok === false) {
+      const p = env.payload ?? {};
+      const code = p?.error ?? "unknown_error";
+      const msg = p?.message ? `${code}: ${p.message}` : code;
+      return { kind: "error", status: env.upstream_status ?? 500, message: msg, payload: env.payload };
+    }
+    return { kind: "accepted", payload: env?.payload ?? data };
   } catch (e: any) {
     return { kind: "error", status: 0, message: e?.message ?? "unknown" };
   }
