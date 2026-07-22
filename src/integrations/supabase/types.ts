@@ -4007,6 +4007,42 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_batch2_reviews: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          reviewer_id: string
+          score: number | null
+          tool_type: string
+          updated_at: string
+          verdict: string | null
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewer_id: string
+          score?: number | null
+          tool_type: string
+          updated_at?: string
+          verdict?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewer_id?: string
+          score?: number | null
+          tool_type?: string
+          updated_at?: string
+          verdict?: string | null
+        }
+        Relationships: []
+      }
       quality_check_results: {
         Row: {
           check_id: string
