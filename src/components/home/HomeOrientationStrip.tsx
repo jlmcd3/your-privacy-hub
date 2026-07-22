@@ -15,7 +15,7 @@ const InlineLink = ({
 }) => (
   <Link
     to={to}
-    className="text-brand-teal-text font-medium no-underline hover:underline decoration-brand-teal/50 underline-offset-2"
+    className="text-brand-navy font-medium no-underline hover:underline decoration-brand-navy/40 underline-offset-2"
   >
     {children}
   </Link>
@@ -26,7 +26,7 @@ export default function HomeOrientationStrip() {
     <section className="bg-brand-cloud border-b border-brand-cloud">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 md:py-10">
         <div className="bg-card border border-brand-cloud border-l-4 border-l-brand-teal rounded-2xl shadow-eup-md p-6 md:p-8 lg:p-10">
-          <p className="text-eyebrow text-brand-teal-text mb-3">
+          <p className="text-sm md:text-base font-semibold uppercase tracking-wider text-brand-teal-text mb-3">
             What we do
           </p>
           <p className="text-lg md:text-xl text-brand-navy leading-relaxed">
