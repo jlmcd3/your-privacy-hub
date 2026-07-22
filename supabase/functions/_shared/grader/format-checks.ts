@@ -463,7 +463,7 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
       }
       hits++;
       findings.push(fail("e6_counsel_referral", dim, "high",
-        `body-text counsel referral: "${s.slice(0, 200)}"`));
+        `body-text counsel referral: "${s.slice(0, 1000)}"`));
       if (hits > 10) break;
     }
   }
