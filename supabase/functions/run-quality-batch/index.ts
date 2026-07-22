@@ -1566,6 +1566,8 @@ type PartialState = {
   // QB-P10 — cumulative post-filter drop counters, per grader, per rule.
   claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
   gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
+  // QB-P14 item 4 — audit trail of every finding the post-filter suppressed.
+  postFilterSuppressed: Array<{ doc_index: number; grader: "claude" | "gpt"; rule: string; check_id: string; evidence: string }>;
 };
 
 function emptyState(): PartialState {
@@ -1584,8 +1586,10 @@ function emptyState(): PartialState {
     logBuf: [],
     claudePostFilterDrops: zeroDrops(),
     gptPostFilterDrops: zeroDrops(),
+    postFilterSuppressed: [],
   };
 }
+
 
 async function runBatch(runId: string): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
