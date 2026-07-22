@@ -226,10 +226,19 @@ function matchesDerivedPattern(pattern: string, candidate: string): boolean {
 // qc_rc_3_changed_paths_authorized — every declared changed_path must trace
 // back to an answered item (rule a) OR to a per-tool DERIVED_PATHS entry
 // (rule b). Server-owned bookkeeping keys are pre-stripped.
+//
+// W3-VENDOR-2 (2026-07-22): accepts optional `informationNeeded`. When an
+// answered item's target.path is prose (frozen from the model's original
+// prose-authored ask), the effective path is resolved via source_fields →
+// alias map BEFORE candidateTargetPaths expansion. Structural targets are
+// unaffected; no wildcards, no substring inference; the union is a superset
+// of the prior union only for prose-target rows that have concrete
+// source_fields recorded on the live information_needed array.
 export function qcChangedPathsAuthorized(
-  answeredItems: Array<{ target?: { path?: string } }>,
+  answeredItems: Array<{ id?: string; target?: { path?: string } }>,
   changedPaths: string[],
   toolType: string,
+  informationNeeded?: unknown,
 ): QcCheckResult {
   const derived = DERIVED_PATHS[toolType] ?? [];
   const serverOwned = new Set<string>(SERVER_OWNED_PATHS);
@@ -238,7 +247,11 @@ export function qcChangedPathsAuthorized(
   for (const it of answeredItems) {
     const p = it?.target?.path;
     if (!p) continue;
-    for (const c of candidateTargetPaths(toolType, p)) {
+    const sourceFields = it?.id
+      ? sourceFieldsForOpenItem({ id: it.id }, informationNeeded)
+      : null;
+    const effective = resolveEffectiveTargetPath(toolType, p, sourceFields);
+    for (const c of candidateTargetPaths(toolType, effective)) {
       if (c && !askPrefixes.includes(c)) askPrefixes.push(c);
     }
   }
