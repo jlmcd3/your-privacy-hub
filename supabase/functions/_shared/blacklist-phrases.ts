@@ -22,11 +22,21 @@ export const BLACKLIST_PHRASES = [
   "cannot be confirmed",
   "no basis to assess",
   "in the clear",
+  // QB-P19 (QB-TEAM 2026-07-22): hedging-phrase promotion from run-admt-checker
+  // deterministic ban to all tools. Source: run-admt-checker "NO INTERNAL-
+  // DELIBERATION OR HEDGING LEAKS" rule. Rationale: hedge cues signal a
+  // deliberation the reader must resolve; state the conclusion + named owner.
+  "further internal investigation is advisable",
+  "further analysis is warranted",
+  "further review may be appropriate",
+  "additional consideration is needed",
+  "the drafter recommends further inquiry",
 ] as const;
 
 // Case-insensitive; anchored with word boundaries where meaningful.
 export const BLACKLIST_RE =
-  /\b(insufficient basis|not substantiated|cannot be confirmed|no basis to assess|in the clear)\b/gi;
+  /\b(insufficient basis|not substantiated|cannot be confirmed|no basis to assess|in the clear|further internal investigation is advisable|further analysis is warranted|further review may be appropriate|additional consideration is needed|the drafter recommends further inquiry)\b/gi;
+
 
 // Machine-field path exclusions. Segments/keys we treat as internal chrome.
 // Matches paths like "_meta.*", "*._staging.*", "*.lint_warnings*",
