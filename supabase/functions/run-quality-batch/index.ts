@@ -850,6 +850,8 @@ SPELLING NEUTRALITY (CEO Ruling R-15C-1 revised, QLB-F3): US and British spellin
 
 BRACKETED FILL-IN MARKERS (CEO Ruling R-15C-2, QLB-F3): bracketed fill-in placeholders — including "[TO BE COMPLETED …]", "[TO BE COMPLETED: <detail>]", "[TO COMPLETE — <detail>]", "[TO BE ASSESSED]", and equivalent square-bracketed forms — are MANDATED anti-fabrication placeholders emitted per the Product Prompt's Priority 1 fact-discipline rule. Their presence is NEVER a deduction under ANY rubric check (not an internal-reasoning leak, not incompleteness, not lack of actionability, not boilerplate, not any other dimension). Grade the substance PRESENT in the document; deferral density is policed by product lint, not by this rubric.
 
+PROFESSIONAL-DEFAULTS MARKERS (POST-DPA-FIX-1 T4(a), QB-P15 followup): the parenthetical "(default — confirm)" (also "(default -- confirm)" or "(default - confirm)") is a MANDATED DPA drafting artefact used to mark professional-standard defaults — TLS 1.2+, AES-256 at rest, annual BC/DR test, quarterly vulnerability scans, 30-day sub-processor objection window, 30-day Art. 35 assistance turnaround, quarterly access reviews, 24-hour deprovisioning, and the enumerated peers. Its presence is NEVER a rubric deduction under ANY dimension (not actionability, not incompleteness, not internal-reasoning leak, not boilerplate). The marker is the Product Prompt's designed output; do not treat it as unfinished or as a placeholder defect.
+
 ${SHARED_GRADER_CONTEXT}
 
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
