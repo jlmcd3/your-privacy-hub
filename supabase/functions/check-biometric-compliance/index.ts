@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "qbp18-prompt-architecture@2026-07-22T21:00:00Z";
+export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -857,7 +857,39 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 
   const uniqueJurisdictions = [...new Set(body.jurisdictions)];
   const orgLabel = body.orgName ? `Prepared for: ${body.orgName} (${body.orgType})` : `Organisation type: ${body.orgType}`;
-  const sectionTexts = uniqueJurisdictions.map(stressSection);
+  // QB-P22 item 6 — parameterize hard-coded "Priority actions:" template lines
+  // with an owner role derived from orgType and a concrete trigger/timeframe.
+  // Recurring rubric_actionability failures quoted priority actions without
+  // owners or deadlines (e.g. "Execute written releases before any biometric
+  // collection..."). Legal content unchanged; only ownership/timing slots added.
+  const priorityOwner = /employer/i.test(body.orgType)
+    ? "the HR lead, in coordination with the DPO"
+    : /(customer|consumer|retail|marketing|adtech)/i.test(body.orgType)
+      ? "the Privacy Program Manager"
+      : /healthcare/i.test(body.orgType)
+        ? "the Privacy Officer, in coordination with the CISO"
+        : /financial/i.test(body.orgType)
+          ? "the Chief Compliance Officer, in coordination with the CISO"
+          : "the DPO";
+  const priorityTrigger = /employer/i.test(body.orgType)
+    ? "before any biometric collection from the first affected employee, and in any event within 30 days of this assessment"
+    : "before any biometric collection from the first affected data subject, and in any event within 30 days of this assessment";
+  function parameterizePriorityActions(text: string): string {
+    return text.replace(/(Priority actions:\n)([\s\S]*?)(\n\nCompliance risk rating:)/g, (_m, head, body_, tail) => {
+      const patched = body_.split(/\n/).map((line: string) => {
+        const m = line.match(/^(\d+\.\s+)(.*)$/);
+        if (!m) return line;
+        const rest = m[2];
+        // Skip lines that already name an Owner or a Timeframe (e.g. OtherUS/OS branches).
+        if (/\b(Owner:|Timeframe:|Trigger:)/i.test(rest)) return line;
+        const trimmed = rest.trim().replace(/\s+$/, "");
+        const withPeriod = /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+        return `${m[1]}${withPeriod} Owner: ${priorityOwner}. Timeframe: ${priorityTrigger}.`;
+      }).join("\n");
+      return `${head}${patched}${tail}`;
+    });
+  }
+  const sectionTexts = uniqueJurisdictions.map((jn) => parameterizePriorityActions(stressSection(jn)));
   const assessment_text = scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n"));
 
   const report_data = {

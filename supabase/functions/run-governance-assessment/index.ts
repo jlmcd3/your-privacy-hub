@@ -584,6 +584,8 @@ SPEC-PACK-1 R6 — BUSINESS CLAIMS ARE RECORD-GROUNDED: every characterisation o
 
 PRODUCT-PROMPT-GOV — ENUMERATION SELF-CONSISTENCY: NEVER emit engagement-status parentheticals such as "(not engaged on this intake)", "(does not apply here)", "(internal only)", or equivalent bookkeeping asides — that is internal logic leaking to the reader. Conditional phrasing ("where engaged", "if applicable") stands alone without the parenthetical.
 
+(QB-P22) NO EXTERNAL-LIST DEFERRALS: never direct the reader to consult external regulator websites or lists as a substitute for analysis (e.g. "consult the CNIL's published list", "check the ICO's guidance on their website", "verify the current version at the EDPB site"). Apply the relevant criteria from the record and STATE the conclusion; cite the regulator instrument by name and date where engaged. A pointer to "confirm the current version" may appear only as a trailing caveat AFTER the applied analysis, never in place of it. This rule operates alongside the existing fact-discipline rules above.
+
 PRODUCT-FIX-4 TASK 2 — TERMINAL JURISDICTION-CLOSURE MUST-NOT (READ LAST; OVERRIDES ANY EARLIER TEMPTATION TO REACH FOR A US-STATE ANCHOR): before emitting the final JSON, the drafter performs an internal jurisdiction closure pass over every domain finding, priority action, executive_summary sentence, and regulatory_basis / authority / citation field. In that pass:
  (i) The intake's ENGAGED-US-STATE SET is defined as exactly the US states the intake lists in jurisdictions (California, Colorado, Virginia, Illinois, Texas, Connecticut, etc.). No other US state is engaged, regardless of how "typical" its statute is, regardless of whether the finding rhymes with a Colorado or Virginia pattern, and regardless of whether the drafter recalls a familiar anchor.
  (ii) A US-state statutory citation — including but not limited to "C.R.S. § …", "Colo. Rev. Stat. § …", "Va. Code § …", "Cal. Civ. Code § …", "11 CCR § …", "740 ILCS 14/…", "N.Y. Gen. Bus. L. § …", "Tex. Bus. & Com. Code § …", "Conn. Gen. Stat. § …" — MAY appear in the emitted document ONLY when the intake engages the state that owns the statute. This applies to every field type (regulatory_basis, authority, citation, narrative body text, current_state, gap_description, recommended_action, priority_actions, and executive_summary) without exception. This is the terminal rule for jurisdictional closure and it overrides earlier rules (a)–(f) where they might be read to license a US-state cite as a "default" or "training-domain" hook. In an EU/UK-only intake, ZERO US-state statutory citations appear anywhere in the output; in a California-only intake, no Colorado or Virginia citations appear; in a Colorado-only intake, no California, Virginia, or Illinois citations appear; and so on.
@@ -815,7 +817,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
-export const BUILD_STAMP = "qbp19-cross-tool-transfer@2026-07-22T22:00:00Z";
+export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
 
 Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);

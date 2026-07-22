@@ -13,7 +13,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "qbp18-prompt-architecture@2026-07-22T21:00:00Z";
+export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
@@ -26,6 +26,76 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
+
+// QB-P22 item 5a — ICO Data-Protection Fee tier resolver.
+// ICO tiers (published fee-tier criteria):
+//   Tier 1 (£52): micro — turnover ≤ £632k OR ≤ 10 staff.
+//   Tier 2 (£78): small/medium — not Tier 1, AND (turnover ≤ £36m OR ≤ 250 staff).
+//   Tier 3 (£3,763): large — turnover > £36m AND > 250 staff.
+// Boundary flag fires when the intake sits within one band of a threshold and
+// we can't distinguish the neighbouring tier from the record alone.
+type IcoTierResolution = {
+  tier: 1 | 2 | 3 | null;
+  fee_cents: number | null;
+  narrative: string;
+  boundary: boolean;
+};
+function resolveIcoFeeTier(intake: any): IcoTierResolution {
+  const staff = Number(intake?.employee_count);
+  const revenueUsd = Number(intake?.annual_revenue_usd);
+  const orgSize = String(intake?.organization_size ?? "").toLowerCase();
+  // GBP conversion is deliberately conservative — the ICO thresholds are in GBP;
+  // we use 0.80 GBP/USD as a stable planning proxy. Boundary flag surfaces the caveat.
+  const revenueGbp = Number.isFinite(revenueUsd) ? revenueUsd * 0.80 : NaN;
+  const T1_TURNOVER_GBP = 632_000;
+  const T2_TURNOVER_GBP = 36_000_000;
+  const T1_STAFF = 10;
+  const T2_STAFF = 250;
+  const FEE_T1 = 5200;      // £52.00
+  const FEE_T2 = 7800;      // £78.00
+  const FEE_T3 = 376_300;   // £3,763.00
+  const hasStaff = Number.isFinite(staff) && staff > 0;
+  const hasRevenue = Number.isFinite(revenueGbp);
+  // Fallback via organization_size when explicit fields are absent.
+  const sizeTier: 1 | 2 | 3 | null = orgSize.includes("micro") ? 1
+    : (orgSize.includes("small") || orgSize.includes("medium") || orgSize === "sme") ? 2
+    : (orgSize.includes("large") || orgSize.includes("enterprise")) ? 3
+    : null;
+  let tier: 1 | 2 | 3 | null = null;
+  let boundary = false;
+  if (hasStaff || hasRevenue) {
+    const staffOverT2 = hasStaff && staff > T2_STAFF;
+    const revOverT2 = hasRevenue && revenueGbp > T2_TURNOVER_GBP;
+    const staffLeT1 = hasStaff && staff <= T1_STAFF;
+    const revLeT1 = hasRevenue && revenueGbp <= T1_TURNOVER_GBP;
+    if (staffOverT2 && revOverT2) {
+      tier = 3;
+    } else if (staffLeT1 || revLeT1) {
+      tier = 1;
+      // Boundary if the other axis, when present, pushes above Tier 1.
+      if ((hasStaff && staff > T1_STAFF) || (hasRevenue && revenueGbp > T1_TURNOVER_GBP)) boundary = true;
+    } else {
+      tier = 2;
+      // Boundary if either axis sits within 10% of the T2/T3 threshold.
+      if (hasStaff && staff > T2_STAFF * 0.9 && staff <= T2_STAFF) boundary = true;
+      if (hasRevenue && revenueGbp > T2_TURNOVER_GBP * 0.9 && revenueGbp <= T2_TURNOVER_GBP) boundary = true;
+    }
+  } else if (sizeTier) {
+    tier = sizeTier;
+    boundary = true; // organization_size alone can't confirm the axis-based tier.
+  }
+  const feeMap: Record<1 | 2 | 3, number> = { 1: FEE_T1, 2: FEE_T2, 3: FEE_T3 };
+  const fee_cents = tier ? feeMap[tier] : null;
+  const basisBits: string[] = [];
+  if (hasStaff) basisBits.push(`staff count ${staff}`);
+  if (hasRevenue) basisBits.push(`turnover ≈ £${Math.round(revenueGbp).toLocaleString("en-GB")} (from annual_revenue_usd)`);
+  if (!basisBits.length && sizeTier) basisBits.push(`organization_size "${orgSize}"`);
+  const basis = basisBits.length ? basisBits.join(" and ") : "no distinguishing intake fields";
+  const narrative = tier
+    ? `ICO Data-Protection Fee resolved to Tier ${tier} (£${(feeMap[tier] / 100).toFixed(2)}) from ${basis}.`
+    : `ICO Data-Protection Fee tier could not be resolved from the record (${basis}); confirm the tier via the ICO fee self-assessment.`;
+  return { tier, fee_cents, narrative, boundary };
+}
 
 Deno.serve(async (req) => {
   console.log(`[qb9] run-registration-assessment build active · core=${PROMPT_CORE_VERSION}`);
@@ -171,20 +241,31 @@ Deno.serve(async (req) => {
           representative_required: obligations.includes("eu_representative")
             ? true
             : (obligations.includes("uk_representative") ? true : false),
-          filing_fee_cents: r?.filing_fee_cents ?? null,
+          filing_fee_cents: (() => {
+            // QB-P22 item 5a — resolve ICO tier deterministically from intake.
+            const isIcoUk = j.code === "GB" || j.code === "UK" ||
+              (r?.authority_name ?? "").toLowerCase().includes("ico") ||
+              (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
+            if (!isIcoUk) return r?.filing_fee_cents ?? null;
+            const tier = resolveIcoFeeTier(intake);
+            return tier.fee_cents ?? r?.filing_fee_cents ?? null;
+          })(),
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: (() => {
             const leadNote = "This jurisdiction serves as the organisation's lead supervisory authority under the GDPR one-stop-shop mechanism.";
             const baseNotes = r?.notes ?? null;
             const existing = wasLeadAuthority ? (baseNotes ? `${baseNotes} ${leadNote}` : leadNote) : baseNotes;
-            // QB9-9: ICO fee-tier caveat for UK entries with a base-tier fee.
+            // QB-P22 item 5a — replace generic ICO fee caveat with the resolved tier + basis;
+            // keep a confirm note ONLY when the intake straddles a boundary.
             const isIcoUk = j.code === "GB" || j.code === "UK" ||
               (r?.authority_name ?? "").toLowerCase().includes("ico") ||
               (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
-            const feePresent = (r?.filing_fee_cents ?? null) != null;
-            const icoNote = "The filing fee shown is indicative; the applicable ICO fee tier depends on the organisation's staff count and turnover — Tier 1 (micro: turnover ≤£632K OR ≤10 staff), Tier 2 (small/medium: turnover ≤£36M OR ≤250 staff, not qualifying for Tier 1), Tier 3 (large: BOTH turnover exceeding £36M AND more than 250 staff). Confirm the tier and current amount with the ICO's fee self-assessment before filing.";
-            if (isIcoUk && feePresent) {
+            if (isIcoUk) {
+              const tier = resolveIcoFeeTier(intake);
+              const parts = [tier.narrative];
+              if (tier.boundary) parts.push("Confirm the tier with the ICO fee self-assessment before filing (the intake sits near a tier boundary).");
+              const icoNote = parts.join(" ");
               return existing ? `${existing} ${icoNote}` : icoNote;
             }
             return existing;
@@ -218,6 +299,8 @@ Deno.serve(async (req) => {
         "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
       ]);
       const missing = [...intakeMarkets].filter((c) => c && !emittedCodes.has(c));
+      const ossCoveredCodes: string[] = [];
+      const ossCoveredNames: string[] = [];
       if (missing.length > 0) {
         const missingReqs = await supabase
           .from("jurisdiction_requirements")
@@ -228,11 +311,18 @@ Deno.serve(async (req) => {
           const r = missingReqByCode.get(code) as any;
           const isEu = euEea.has(code);
           const ossActive = isEu && intake.has_eu_establishment === true;
+          // QB-P22 item 5b — for OSS-covered markets, per-entry text is only
+          // the market-specific local-only status; the shared OSS mechanism
+          // paragraph is emitted ONCE in result_summary.oss_group below.
           const reason = ossActive
-            ? "Market covered by the GDPR one-stop-shop mechanism: cross-border processing complaints for this market are directed to the lead supervisory authority identified above (Art. 56 GDPR). This jurisdiction may still impose local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) — those are surfaced under the specific jurisdiction where they apply."
+            ? `${r?.jurisdiction_name || code}: no local-only filings identified on the current record. See the OSS mechanism block for the cross-border complaint routing that applies to this market.`
             : (r?.registration_required === false
                 ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
                 : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
+          if (ossActive) {
+            ossCoveredCodes.push(code);
+            ossCoveredNames.push(r?.jurisdiction_name || code);
+          }
           result_summary.jurisdictions.push({
             code,
             name: r?.jurisdiction_name || code,
@@ -252,10 +342,19 @@ Deno.serve(async (req) => {
             renewal_period_months: r?.renewal_period_months ?? null,
             notes: reason,
             why: reason,
-            rule_id: "R11_MARKET_COVERAGE",
+            rule_id: ossActive ? "R11_MARKET_COVERAGE_OSS" : "R11_MARKET_COVERAGE",
             obligations: [],
           } as any);
         }
+      }
+      // QB-P22 item 5b — single shared OSS mechanism block listing all covered markets.
+      if (ossCoveredCodes.length > 0) {
+        (result_summary as any).oss_group = {
+          mechanism: "GDPR one-stop-shop (Art. 56 GDPR)",
+          covered_markets: ossCoveredCodes,
+          covered_market_names: ossCoveredNames,
+          narrative: `The following markets are covered by the GDPR one-stop-shop mechanism (Art. 56 GDPR): ${ossCoveredNames.join(", ")}. Cross-border processing complaints for these markets are directed to the lead supervisory authority identified above. Local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) are surfaced under each specific jurisdiction entry.`,
+        };
       }
     } catch (e) {
       console.warn("[run-registration-assessment] market-coverage fill skipped:", (e as Error)?.message);

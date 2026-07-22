@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp20-structural-test-design@2026-07-22T23:00:00Z";
+export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -57,6 +57,12 @@ import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
 import { validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
 import { renderContractPrompt } from "../_shared/intake-contracts/render.ts";
 import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
+// QB-P22 item 2 — shared IR TEST-STATES/DEADLINES enrichment (matches
+// generate-ir-playbook so the grader sees the same enriched payload).
+import {
+  renderIrTestStatesBlock as _ir_renderIrTestStatesBlock,
+  type IrBody as _IrBodyForGrader,
+} from "../_shared/ir/test-states.ts";
 import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
 import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
 import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
@@ -97,7 +103,8 @@ QB-P6 — each activity_details purpose_description must be specific to the name
 QB-P5 Item 1 — Every intake MUST contain exactly 18 controls entries — one per canonical slug, each slug used exactly once. The 18 canonical slugs are: c1_auth, c2_encryption, c3_account_access, c4_inventory, c5_secure_config, c6_vuln_mgmt, c7_audit_logs, c8_network_mon, c9_anti_malware, c10_segmentation, c11_port_protocol, c12_awareness, c13_training, c14_secure_dev, c15_third_party, c16_retention, c17_incident, c18_continuity. Never invent alternative slugs (no c14_third_party, no c16_training — legacy/typo aliases; no free-form keys like asset_inventory, mfa).
 QB-P6 — every controls[].notes must cite concrete evidence — tool names, cadence, coverage figures.`,
   "governance": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, SaaS, Retail) and posture — some mature programmes, some with concentrated gaps (no DPO + no DPIA + weak DPA), some EU-only, some US-multi-state, some mixed EU/UK/US.
-QB-P6 — additional_context (when present) and narrative fields must name tools, owners, and dates.`,
+QB-P6 — additional_context (when present) and narrative fields must name tools, owners, and dates.
+QB-P22 item 3 — Each tools[] entry names exactly ONE product — never slash-alternatives like "Otter.ai / Fireflies", never "X or Y". Ambiguous slash-alternatives get treated by the downstream generator as two vendors and produce vendor-count hallucinations.`,
   "dpia": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, EdTech, Retail) and posture — some with mature Art.35 documentation, some with material gaps (missing DPO, no data_subjects_views_sought, weak necessity_proportionality), some with third-country transfers lacking a mechanism. Include EU/UK on at least half of scenarios to exercise the GDPR path.
 QB-P6 — narrative fields must name tools, owners, and dates.`,
   "lia": `Vary sectors (Healthcare, FinTech, Logistics, Retail, AdTech, HR) and posture — some well-balanced, some weak safeguards, some questionable necessity.
@@ -117,11 +124,26 @@ QB-P6 — purpose must name the deployment context and system.`,
 // Safety cap only for extreme pathological payloads (>250KB), well above
 // any real intake shape emitted by the nine tools.
 const INTAKE_HARD_CAP = 250_000;
-function sliceIntakeForGrader(intake: unknown): string {
+function sliceIntakeForGrader(intake: unknown, tool?: string): string {
   const s = JSON.stringify(intake ?? {});
-  if (s.length <= INTAKE_HARD_CAP) return s;
-  return `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
+  const base = s.length <= INTAKE_HARD_CAP
+    ? s
+    : `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
+  // QB-P22 item 2 — for ir-playbook the generator receives an ENRICHED intake
+  // (TEST-STATES + PROVISIONAL DEADLINES block computed by generate-ir-playbook
+  // from the raw intake). The grader previously saw only the raw fixture and
+  // flagged truthful references to that block as hallucination. Append the
+  // same enrichment here so the grader evaluates against the identical payload.
+  if (tool === "ir-playbook") {
+    try {
+      return `${base}\n\n--- ENRICHED CONTEXT (same as generator receives; computed deterministically from the intake above) ---\n${_ir_renderIrTestStatesBlock((intake ?? {}) as _IrBodyForGrader)}`;
+    } catch {
+      return base;
+    }
+  }
+  return base;
 }
+
 
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -897,7 +919,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   let claudeResult: any = null;
   try {
     const sys = buildRubricSystemPrompt("claude", tool);
-    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
+    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake, tool)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
     claudeResult = tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
@@ -969,7 +991,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     if (payload.truncated) {
       console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
     }
-    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nDOCUMENT TO EVALUATE:\n${payload.text}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
+    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake, tool)}\nDOCUMENT TO EVALUATE:\n${payload.text}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
@@ -1028,7 +1050,33 @@ type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
 // list, and the substring list wrongly rejected four contract-legal options
 // ("Other US state", "United States — Federal (FTC)", "Canada (PIPEDA /
 // provincial)", "Australia (Privacy Act)").
-const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {};
+const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
+  // QB-P22 item 1 — DETERMINISTIC IR RECENCY. Batch d7cd2ff0's ir-playbook
+  // fixture carried discoveryDateTime 2025-07-17 (a year old — the prompt-level
+  // 7-day recency rule slipped a year), cascading into temporal-regime
+  // confusion and a 92→81 score. Reject any intake whose discoveryDateTime is
+  // more than 30 days before now or in the future; the caller regenerates once
+  // then rejects (same retry pattern as other validation failures).
+  "ir-playbook": (intake: any) => {
+    const iso = intake?.discoveryDateTime;
+    if (typeof iso !== "string" || !iso.trim()) {
+      return { ok: false, reason: "ir-playbook.discoveryDateTime missing" };
+    }
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) {
+      return { ok: false, reason: `ir-playbook.discoveryDateTime not a valid ISO date-time: ${iso}` };
+    }
+    const now = Date.now();
+    const maxPastMs = 30 * 24 * 60 * 60 * 1000;
+    if (t > now) {
+      return { ok: false, reason: `ir-playbook.discoveryDateTime is in the future: ${iso}` };
+    }
+    if (now - t > maxPastMs) {
+      return { ok: false, reason: `ir-playbook.discoveryDateTime more than 30 days old: ${iso} (age ${Math.round((now - t) / 86_400_000)} days)` };
+    }
+    return { ok: true };
+  },
+};
 function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
   // Contract check (if any) runs first — it's the machine-derived source of
   // truth. Extra per-tool rules run afterward and can only tighten, never
@@ -1109,7 +1157,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.
 
 (a) NAMED-OBJECT DENSITY — every narrative or free-text field must name concrete objects: real-sounding systems and vendors, officers with role titles and plausible names, datasets, cadences, and figures, so a downstream generator can tie every recommendation to a named intake fact.
-(b) CROSS-FIELD COHERENCE — narratives must agree with the enum answers, sector, jurisdictions, and volumes; no contradictions between fields.
+(b) CROSS-FIELD COHERENCE — narratives must agree with the enum answers, sector, jurisdictions, and volumes; no contradictions between fields. (QB-P22 item 3) Every list-field entry names exactly ONE product/tool/vendor — NEVER slash-alternatives ("Otter.ai / Fireflies"), NEVER "X or Y". Ambiguous alternatives get treated by downstream generators as multiple vendors and produce vendor-count hallucinations. If two products are actually in use, emit them as two separate array entries.
 (c) TEMPORAL COHERENCE — all dates recent and mutually consistent.
 (d) BUSINESS-FACTS-ONLY — fixture text states facts about the business, never propositions of law (no adequacy claims, no statutory interpretations, no SCC-module or section assertions), except where a tool's scenario guidance explicitly mandates specific legal phrasing.
 (e) NAME VARIETY — vary company names across scenarios and chunks; never reuse the same base name (e.g. "Meridian") across scenarios.`;
