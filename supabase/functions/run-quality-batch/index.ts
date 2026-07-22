@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp15-product-prompts@2026-07-22T18:00:00Z";
+export const BUILD_STAMP = "qbp17-measurement-integrity@2026-07-22T20:15:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -903,6 +903,15 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
   }
 
+  // QB-P17 item 1 — PARSE-FAILURE QUARANTINE. If Claude returned nothing
+  // parseable, do NOT synthesize an all-60s eval — that made infrastructure
+  // failure indistinguishable from product regression. Signal the caller so
+  // the doc is marked eval_failed and excluded from aggregates + stop-rule.
+  if (!claudeResult || typeof claudeResult !== "object" || !claudeResult.dimension_scores) {
+    console.warn(`[run-quality-batch] eval_failed tool=${tool} — Claude result null/unparseable`);
+    return null;
+  }
+
   // F2: unified `findings` (no more llm_findings); enforce fixed ids
   const rawLlmFindings: any[] = claudeResult?.findings ?? claudeResult?.llm_findings ?? [];
   // GRADER-CAL-1 A2/A3/A4 — drop NOTE-block leaks, whitelisted authorities,
@@ -910,8 +919,8 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   // QB-P14 item 4 — `suppressed` carries the dropped findings' evidence
   // (first 300 chars) so the caller can log an audit trail.
   const { kept: filteredRaw, dropped: cal1Dropped, suppressed: cal1Suppressed } = applyGraderCal1Filter(rawLlmFindings as any);
-  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4 || cal1Dropped.r15c2) {
-    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2}`);
+  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4 || cal1Dropped.r15c2 || cal1Dropped.dpa_defaults) {
+    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2} dpa_defaults=${cal1Dropped.dpa_defaults}`);
   }
 
   const llmFindings = filteredRaw
@@ -936,11 +945,14 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
     }
   }
   const w = weightsFor(tool);
-  const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
-  return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
+  // QB-P17 item 2 — keep the unrounded weighted score for gate comparisons.
+  // overall_score_display is the human-facing rounded copy.
+  const overall_raw = scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting;
+  const overall = Math.round(overall_raw);
+  return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number } }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -968,8 +980,8 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
     const rawGpt = parsed.findings ?? [];
     const { kept: gptKept, dropped: gptDropped, suppressed: gptSuppressed } = applyGraderCal1Filter(rawGpt as any);
-    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2) {
-      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2}`);
+    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2 || gptDropped.dpa_defaults) {
+      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2} dpa_defaults=${gptDropped.dpa_defaults}`);
     }
     parsed.findings = gptKept
       .filter((f: any) => rubricMeta.has(f.check_id))
@@ -1566,15 +1578,15 @@ type PartialState = {
   allDocFindings: any[];
   logBuf: Array<{ t: string; level: string; msg: string }>;
   // QB-P10 — cumulative post-filter drop counters, per grader, per rule.
-  claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
-  gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
+  claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
+  gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
   // QB-P14 item 4 — audit trail of every finding the post-filter suppressed.
   postFilterSuppressed: Array<{ doc_index: number; grader: "claude" | "gpt"; rule: string; check_id: string; evidence: string }>;
 };
 
 function emptyState(): PartialState {
   const zeroDims = () => ({ accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 });
-  const zeroDrops = () => ({ a2: 0, a3: 0, a4: 0, r15c2: 0 });
+  const zeroDrops = () => ({ a2: 0, a3: 0, a4: 0, r15c2: 0, dpa_defaults: 0 });
   return {
     dimTotals: zeroDims(),
     gptTotals: zeroDims(),
@@ -1752,8 +1764,17 @@ async function runBatch(runId: string): Promise<void> {
     // P-A: split is positional and stable across resumes (no `_set` field is injected
     // into the intake object, so buildDocument's schema-strict generators don't choke).
     // The last ~30% of intakes are the held-out set; never used to gate fix candidates.
-    const holdoutStart = Math.floor(intakes.length * 0.7);
-    const scenarioSetFor = (idx: number) => idx >= holdoutStart ? "holdout" : "tuning";
+    // QB-P17 item 6 — holdout floor. Math.floor(n*0.7) puts the ONLY doc of
+    // an n=1 run into "holdout" with an empty tuning set (0/1 tuning, 1/1
+    // holdout) — the overfitting diagnostic is meaningless at that scale.
+    // Fix: floor at 1 so at least one doc is tuning, and skip the split
+    // entirely when n < 4 (all docs tuning; log that diagnostic is unavailable).
+    const holdoutSplitEnabled = intakes.length >= 4;
+    const holdoutStart = Math.max(1, Math.floor(intakes.length * 0.7));
+    if (!holdoutSplitEnabled) {
+      await log("info", `tuning/holdout split disabled (n=${intakes.length} < 4); overfitting diagnostic unavailable this run`);
+    }
+    const scenarioSetFor = (idx: number) => holdoutSplitEnabled && idx >= holdoutStart ? "holdout" : "tuning";
 
     for (let i = startIdx; i < endIdx; i++) {
       // Cancel check
@@ -2080,8 +2101,14 @@ async function runBatch(runId: string): Promise<void> {
       ]);
 
       if (!claudeEval) {
-        await log("error", `${docLabel}: Claude evaluation failed or timed out`);
-        await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed or timed out" }).eq("id", docRowId);
+        // QB-P17 item 1 — PARSE-FAILURE QUARANTINE. Doc is marked eval_failed
+        // (distinct from a product-scoring event); state.built is NOT
+        // incremented so this doc contributes nothing to run aggregates,
+        // and if every doc in the run fails eval, the run terminates as
+        // status="error" with score_overall=null — which applyStopRule in the
+        // orchestrator already treats as "no run slot consumed".
+        await log("error", `${docLabel}: eval_failed — Claude evaluation returned null/unparseable; excluding from aggregates and stop-rule`);
+        await admin.from("quality_run_documents").update({ status: "eval_failed", error: "Claude evaluation returned null/unparseable" }).eq("id", docRowId);
         await persistState({ next_doc_index: i + 1 });
         continue;
       }
@@ -2130,6 +2157,7 @@ async function runBatch(runId: string): Promise<void> {
         state.claudePostFilterDrops.a3 += cd.a3 ?? 0;
         state.claudePostFilterDrops.a4 += cd.a4 ?? 0;
         state.claudePostFilterDrops.r15c2 += cd.r15c2 ?? 0;
+        state.claudePostFilterDrops.dpa_defaults += cd.dpa_defaults ?? 0;
       }
       const gd = (gptResult as any)?.postFilterDropped;
       if (gd) {
@@ -2137,6 +2165,7 @@ async function runBatch(runId: string): Promise<void> {
         state.gptPostFilterDrops.a3 += gd.a3 ?? 0;
         state.gptPostFilterDrops.a4 += gd.a4 ?? 0;
         state.gptPostFilterDrops.r15c2 += gd.r15c2 ?? 0;
+        state.gptPostFilterDrops.dpa_defaults += gd.dpa_defaults ?? 0;
       }
 
       // QB-P14 item 4 — post-filter SUPPRESSION AUDIT TRAIL.
@@ -2292,7 +2321,12 @@ async function runBatch(runId: string): Promise<void> {
       intelligence: avg(state.dimTotals.intelligence), formatting: avg(state.dimTotals.formatting),
     };
     const w = weightsFor(tool);
-    const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
+    // QB-P17 item 2 — keep unrounded overall for certification gate (a true
+    // 97.5 must NOT pass a >=98 gate). `overallDisplay` is the rounded copy
+    // used in log lines / dimension_scores summaries.
+    const overallRaw = scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting;
+    const overall = overallRaw;
+    const overallDisplay = Math.round(overallRaw);
 
     // P-A: tuning/holdout split — overfitting diagnostic. Both numbers are stored;
     // tuning rises while holdout flat/down ⇒ the loop is teaching to the test.
@@ -2505,7 +2539,7 @@ async function runBatch(runId: string): Promise<void> {
       gpt_only_count: gptOnlyTotal,
       conflict_count: conflictTotal,
     });
-    await log("success", `Run complete — overall ${overall}/100 (tuning ${overallTuning ?? "n/a"}/100, holdout ${overallHoldout ?? "n/a"}/100); ${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks`);
+    await log("success", `Run complete — overall ${overallDisplay}/100 (raw ${overallRaw.toFixed(2)}; tuning ${overallTuning ?? "n/a"}/100, holdout ${overallHoldout ?? "n/a"}/100); ${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks`);
 
     // Aggregate snapshot
     try {
@@ -2571,12 +2605,21 @@ async function runBatch(runId: string): Promise<void> {
           suppressed_total: state.postFilterSuppressed.length,
         };
 
-        // Token estimation basis — Claude only, per orchestrator constant.
+        // QB-P17 item 7 — token/cost basis. The Claude grader model is
+        // claude-opus-4-6; historical estimates used Sonnet pricing (~$0.10/doc)
+        // and therefore materially undercount actual burn. Opus rack rate:
+        // $15 / 1M input tokens · $75 / 1M output tokens. Per doc:
+        //   input:  9,000 * $15  / 1e6 = $0.135
+        //   output: 5,000 * $75  / 1e6 = $0.375
+        //   total  ≈ $0.51/doc → 51 cents/doc.
+        const OPUS_INPUT_USD_PER_MTOK = 15;
+        const OPUS_OUTPUT_USD_PER_MTOK = 75;
+        const perDocUsd = (9000 * OPUS_INPUT_USD_PER_MTOK + 5000 * OPUS_OUTPUT_USD_PER_MTOK) / 1_000_000;
         const est = {
           docs: state.built,
           claude_input_tokens: state.built * 9000,
           claude_output_tokens: state.built * 5000,
-          estimated_usd: (state.built * 10) / 100, // $0.10/doc
+          estimated_usd: Number((state.built * perDocUsd).toFixed(4)),
         };
         await admin.from("quality_campaign_digests").insert({
           campaign_id: campaignId,
@@ -2590,7 +2633,7 @@ async function runBatch(runId: string): Promise<void> {
           failing_checks: failing,
           post_filter_drops: postFilterDrops,
           estimated_tokens: est,
-          token_basis: "estimate:claude-sonnet@9k_in+5k_out_per_doc",
+          token_basis: `estimate:claude-opus-4-6@9k_in+5k_out_per_doc@$${OPUS_INPUT_USD_PER_MTOK}/M_in+$${OPUS_OUTPUT_USD_PER_MTOK}/M_out`,
         });
       }
     } catch (digestErr) {

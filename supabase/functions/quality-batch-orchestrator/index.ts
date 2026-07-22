@@ -33,22 +33,29 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "qbp14-per-tool-batch@2026-07-22T17:00:00Z";
+export const BUILD_STAMP = "qbp17-measurement-integrity@2026-07-22T20:15:00Z";
 
 // QB-P9 — Campaign mode constants.
-// Anthropic Claude Sonnet spend estimate basis (per doc, single run):
-//   generator prompt ≈ 4k input / 3k output,
-//   Claude grader   ≈ 5k input / 2k output,
-//   GPT grader is OpenAI-priced (not Anthropic) — excluded from budget cap.
-// Total Claude tokens per doc ≈ 9k input + 5k output.
-// Sonnet pricing (2026-07): $3 / 1M input, $15 / 1M output.
-//   → 9k × $3/M + 5k × $15/M = $0.027 + $0.075 = $0.102 per doc.
-// Rounded to $0.10/doc for the budget-cap heuristic; adjust here if pricing moves.
-export const CAMPAIGN_EST_CENTS_PER_DOC = 10;
-export const CAMPAIGN_TOKEN_BASIS = "estimate:claude-sonnet@9k_in+5k_out_per_doc";
+// QB-P17 item 7 — cost basis corrected to the Claude grader model actually
+// in production: claude-opus-4-6. Historical estimates used Sonnet pricing
+// (~$0.10/doc) and materially UNDERCOUNT actual burn (~5×). Per doc:
+//   generator ≈ 4k input / 3k output; Claude grader ≈ 5k input / 2k output.
+//   Total Claude tokens per doc ≈ 9k input + 5k output.
+//   Opus pricing (2026): $15 / 1M input, $75 / 1M output.
+//     9k × $15/M + 5k × $75/M = $0.135 + $0.375 = $0.51 per doc.
+// GPT-4o grader is OpenAI-priced (not Anthropic) — excluded from budget cap.
+export const CAMPAIGN_EST_CENTS_PER_DOC = 51;
+export const CAMPAIGN_TOKEN_BASIS = "estimate:claude-opus-4-6@9k_in+5k_out_per_doc@$15/M_in+$75/M_out";
 export const CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT = 60000; // $600
 export const CAMPAIGN_CERTIFIED_STREAK = 2;
 export const CAMPAIGN_MAX_RUNS = 10;
+
+// QB-P17 item 3 — GPT disagreement gates certification.
+// A completed run is INELIGIBLE for the consecutive_ge98 streak when
+// |claude_overall − gpt_overall| > GPT_DISAGREEMENT_MAX or any GPT-only
+// finding with severity ∈ {high, critical} exists. The run still counts
+// against runs_completed (real work occurred; costs incurred).
+export const GPT_DISAGREEMENT_MAX = 10;
 
 export type CampaignToolState = {
   batch_size: number;
@@ -272,11 +279,15 @@ export function decide(
 export function applyStopRule(
   prev: CampaignToolState,
   claudeOverall: number | null,
+  // QB-P17 item 3 — when false, the completed run is graded (runs_completed++)
+  // but the consecutive_ge98 streak is FORCED to 0 (no certification credit).
+  // Default true preserves prior behavior for callers that don't opt in.
+  certificationEligible: boolean = true,
 ): CampaignToolState {
   if (!prev.active) return prev;
   const graded = typeof claudeOverall === "number";
   const runs_completed = graded ? prev.runs_completed + 1 : prev.runs_completed;
-  const passed = graded && (claudeOverall as number) >= 98;
+  const passed = graded && certificationEligible && (claudeOverall as number) >= 98;
   const consecutive_ge98 = passed ? prev.consecutive_ge98 + 1 : 0;
   const effectiveMax =
     typeof prev.max_runs === "number" && prev.max_runs > 0 ? prev.max_runs : CAMPAIGN_MAX_RUNS;
@@ -551,7 +562,7 @@ async function runUnit(runId: string) {
       const campaignId = (run as any).campaign_id as string | null;
       if (campaignId) {
         for (const t of d.terminations) {
-          await applyCampaignTermination(campaignId, t.tool, t.snapshot.score_overall, (run as any).batch_size ?? 0);
+          await applyCampaignTermination(campaignId, t.tool, t.runId, t.snapshot.score_overall, t.snapshot.gpt_score_overall, (run as any).batch_size ?? 0);
         }
       }
       // @ts-ignore
@@ -706,7 +717,8 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
     estimated_spend_cents: nowSpend,
   }).eq("id", campaign.id);
   await log(row.id, `Campaign wave #${nextWave}: ${eligible.length} tool(s), concurrency=${concurrency}, batch_size=${batchSize}`);
-  await logCampaign(campaign.id, `Wave #${nextWave} started → batch ${row.id} · tools=[${eligible.join(", ")}] · est +${(est / 100).toFixed(2)} USD (cumulative ${(nowSpend / 100).toFixed(2)})`);
+  await logCampaign(campaign.id, `Wave #${nextWave} started → batch ${row.id} · tools=[${eligible.join(", ")}] · est +${(est / 100).toFixed(2)} USD (cumulative ${(nowSpend / 100).toFixed(2)}) · basis=${CAMPAIGN_TOKEN_BASIS}`);
+  await logCampaign(campaign.id, `NOTE: cost basis corrected to Opus (~$0.51/doc, ${CAMPAIGN_EST_CENTS_PER_DOC}¢/doc). Historical estimated_spend_cents rows written before QB-P17 used Sonnet pricing (~$0.10/doc) and materially undercount actual burn (~5×).`, "warn");
 
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
@@ -841,7 +853,9 @@ async function campaignTick(): Promise<{ ok: true; action: string; detail?: unkn
 export async function applyCampaignTermination(
   campaignId: string,
   tool: string,
+  runId: string,
   claudeOverall: number | null,
+  gptOverall: number | null,
   _batchSize: number,
 ): Promise<void> {
   const db = admin();
@@ -853,13 +867,51 @@ export async function applyCampaignTermination(
     await logCampaign(campaignId, `Termination for tool "${tool}" not in tool_state — ignored`, "warn");
     return;
   }
-  const next = applyStopRule(prev, claudeOverall);
+
+  // QB-P17 item 3 — GPT disagreement gates certification.
+  // A run is ineligible for the streak when
+  //   (a) |claude − gpt| > GPT_DISAGREEMENT_MAX, OR
+  //   (b) any gpt_only finding of severity high|critical exists.
+  // The digest row (written by run-quality-batch at completion — see the
+  // insert in run-quality-batch/index.ts ~L2615) carries failing_checks with
+  // both severity and cross_category, which is exactly what we need. This
+  // read is best-effort: if the digest hasn't landed yet, we default to
+  // ELIGIBLE — the historical behavior — and log the ambiguity.
+  let certificationEligible = true;
+  const ineligibleReasons: string[] = [];
+  if (typeof claudeOverall === "number" && typeof gptOverall === "number") {
+    const diff = Math.abs(claudeOverall - gptOverall);
+    if (diff > GPT_DISAGREEMENT_MAX) {
+      certificationEligible = false;
+      ineligibleReasons.push(`|claude−gpt|=${diff.toFixed(1)}>${GPT_DISAGREEMENT_MAX}`);
+    }
+  }
+  try {
+    const { data: dig } = await db.from("quality_campaign_digests")
+      .select("failing_checks").eq("run_id", runId).maybeSingle();
+    const failing: any[] = Array.isArray((dig as any)?.failing_checks) ? (dig as any).failing_checks : [];
+    const gptOnlyHiCrit = failing.filter((f) =>
+      f && f.cross_category === "gpt_only" &&
+      (f.severity === "high" || f.severity === "critical")
+    );
+    if (gptOnlyHiCrit.length > 0) {
+      certificationEligible = false;
+      ineligibleReasons.push(`gpt_only_high_critical=${gptOnlyHiCrit.length}`);
+    }
+  } catch (e) {
+    await logCampaign(campaignId, `${tool}: digest lookup for GPT-severity gate failed (${(e as Error).message}); defaulting to eligible`, "warn");
+  }
+
+  const next = applyStopRule(prev, claudeOverall, certificationEligible);
   toolState[tool] = next;
   await db.from("quality_campaigns").update({ tool_state: toolState }).eq("id", campaignId);
   if (next.retired_reason && !prev.retired_reason) {
     await logCampaign(campaignId, `${tool} retired — reason=${next.retired_reason} (runs=${next.runs_completed}, streak=${next.consecutive_ge98})`);
   } else {
-    await logCampaign(campaignId, `${tool} run recorded — claude=${claudeOverall ?? "—"} · runs=${next.runs_completed}/${prev.max_runs} · streak=${next.consecutive_ge98}/${CAMPAIGN_CERTIFIED_STREAK}`);
+    const eligibilityNote = certificationEligible
+      ? ""
+      : ` · certification INELIGIBLE (${ineligibleReasons.join(", ")}) — streak reset`;
+    await logCampaign(campaignId, `${tool} run recorded — claude=${claudeOverall ?? "—"} gpt=${gptOverall ?? "—"} · runs=${next.runs_completed}/${prev.max_runs} · streak=${next.consecutive_ge98}/${CAMPAIGN_CERTIFIED_STREAK}${eligibilityNote}`);
   }
 }
 
