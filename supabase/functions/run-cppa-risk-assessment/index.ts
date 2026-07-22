@@ -3,7 +3,9 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
-// CPPA-HF6R BUILD_STAMP: risk-cppa-hf6@2026-07-20T00:00Z
+// CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
+export const BUILD_STAMP = "risk-product-prompt-1@2026-07-22T18:00:00Z";
+console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
