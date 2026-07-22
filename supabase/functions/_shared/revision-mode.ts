@@ -412,8 +412,11 @@ export async function handleRevisionMode(
   }
 
   const advisoryCap = ADVISORY_CAPS[toolType] ?? 0;
+  // W3-VENDOR-2 — carry the live information_needed through prompt-build and
+  // QC so prose-authored frozen target.paths resolve via source_fields.
+  const informationNeeded = storedReport?.information_needed;
   const { system, user } = buildRevisionPrompt({
-    toolType, storedReport, intake, answeredItems: answeredPack, advisoryCap, dpiaUnitSubset,
+    toolType, storedReport, intake, answeredItems: answeredPack, advisoryCap, dpiaUnitSubset, informationNeeded,
   });
 
   const model = TOOL_MODEL[toolType] ?? DEFAULT_MODEL;
