@@ -246,7 +246,7 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
       const hasAdjChain = HF5_H6_ADJ_CHAIN_RE.test(s);
       if (hasPlusChain || hasAdjChain) {
         findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
-          `§ 7001 co-cited in ADMT action-citation chain (definitional cite belongs in narrative, not the chain): "${s.slice(0, 200)}"`));
+          `§ 7001 co-cited in ADMT action-citation chain (definitional cite belongs in narrative, not the chain): "${s.slice(0, 1000)}"`));
         if (findings.length >= 5) break;
       }
     }
