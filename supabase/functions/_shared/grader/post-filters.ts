@@ -87,6 +87,29 @@ const AFFIRMATION_RES = [
   /\brecommendations?\b[^.]{0,120}\bare\s+actionable\b/i,
 ];
 
+// QB-P17 item 4 — adversative / defect-marker guard. When an evidence quote
+// pairs an affirmation ("is correct", "are actionable") with a defect
+// marker ("but", "however", "misapplied", "wrong", "only in name", …),
+// the finding is a MIXED critique — the affirmation is part of the
+// setup for the real defect — and MUST survive the a4 filter. Only drop
+// when NO adversative marker appears.
+const A4_ADVERSATIVE_RES = [
+  /\bbut\b/i,
+  /\bhowever\b/i,
+  /\balthough\b/i,
+  /\bthough\b/i,
+  /\byet\b/i,
+  /\bexcept\b/i,
+  /\bmisappl(?:ied|ies|ying|ication)\b/i,
+  /\bwrong\b/i,
+  /\bincorrect(?:ly)?\b/i,
+  /\blacks?\b/i,
+  /\bfails?\b/i,
+  /\bfailed\b/i,
+  /\bmissing\b/i,
+  /\bonly\s+in\s+name\b/i,
+];
+
 
 function evidenceOf(f: LlmFinding): string {
   const e = (f.evidence ?? "") as string;
