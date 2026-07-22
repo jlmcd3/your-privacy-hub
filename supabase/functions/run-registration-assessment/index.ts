@@ -229,6 +229,8 @@ Deno.serve(async (req) => {
         "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
       ]);
       const missing = [...intakeMarkets].filter((c) => c && !emittedCodes.has(c));
+      const ossCoveredCodes: string[] = [];
+      const ossCoveredNames: string[] = [];
       if (missing.length > 0) {
         const missingReqs = await supabase
           .from("jurisdiction_requirements")
@@ -239,11 +241,18 @@ Deno.serve(async (req) => {
           const r = missingReqByCode.get(code) as any;
           const isEu = euEea.has(code);
           const ossActive = isEu && intake.has_eu_establishment === true;
+          // QB-P22 item 5b — for OSS-covered markets, per-entry text is only
+          // the market-specific local-only status; the shared OSS mechanism
+          // paragraph is emitted ONCE in result_summary.oss_group below.
           const reason = ossActive
-            ? "Market covered by the GDPR one-stop-shop mechanism: cross-border processing complaints for this market are directed to the lead supervisory authority identified above (Art. 56 GDPR). This jurisdiction may still impose local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) — those are surfaced under the specific jurisdiction where they apply."
+            ? `${r?.jurisdiction_name || code}: no local-only filings identified on the current record. See the OSS mechanism block for the cross-border complaint routing that applies to this market.`
             : (r?.registration_required === false
                 ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
                 : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
+          if (ossActive) {
+            ossCoveredCodes.push(code);
+            ossCoveredNames.push(r?.jurisdiction_name || code);
+          }
           result_summary.jurisdictions.push({
             code,
             name: r?.jurisdiction_name || code,
@@ -263,10 +272,19 @@ Deno.serve(async (req) => {
             renewal_period_months: r?.renewal_period_months ?? null,
             notes: reason,
             why: reason,
-            rule_id: "R11_MARKET_COVERAGE",
+            rule_id: ossActive ? "R11_MARKET_COVERAGE_OSS" : "R11_MARKET_COVERAGE",
             obligations: [],
           } as any);
         }
+      }
+      // QB-P22 item 5b — single shared OSS mechanism block listing all covered markets.
+      if (ossCoveredCodes.length > 0) {
+        (result_summary as any).oss_group = {
+          mechanism: "GDPR one-stop-shop (Art. 56 GDPR)",
+          covered_markets: ossCoveredCodes,
+          covered_market_names: ossCoveredNames,
+          narrative: `The following markets are covered by the GDPR one-stop-shop mechanism (Art. 56 GDPR): ${ossCoveredNames.join(", ")}. Cross-border processing complaints for these markets are directed to the lead supervisory authority identified above. Local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) are surfaced under each specific jurisdiction entry.`,
+        };
       }
     } catch (e) {
       console.warn("[run-registration-assessment] market-coverage fill skipped:", (e as Error)?.message);
