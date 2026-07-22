@@ -1074,7 +1074,15 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   // then concatenate.
   const VERBOSE = new Set(["lia", "dpia", "governance", "cppa-risk", "cppa-admt"]);
   const chunkSize = VERBOSE.has(tool) ? 3 : count;
-  const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`;
+  // QB-P6 — expanded intake-generator system prompt. Preserves the original
+  // sentence verbatim and adds five richness rules (a)–(e).
+  const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.
+
+(a) NAMED-OBJECT DENSITY — every narrative or free-text field must name concrete objects: real-sounding systems and vendors, officers with role titles and plausible names, datasets, cadences, and figures, so a downstream generator can tie every recommendation to a named intake fact.
+(b) CROSS-FIELD COHERENCE — narratives must agree with the enum answers, sector, jurisdictions, and volumes; no contradictions between fields.
+(c) TEMPORAL COHERENCE — all dates recent and mutually consistent.
+(d) BUSINESS-FACTS-ONLY — fixture text states facts about the business, never propositions of law (no adequacy claims, no statutory interpretations, no SCC-module or section assertions), except where a tool's scenario guidance explicitly mandates specific legal phrasing.
+(e) NAME VARIETY — vary company names across scenarios and chunks; never reuse the same base name (e.g. "Meridian") across scenarios.`;
 
   const out: any[] = [];
   let chunkIdx = 0;
