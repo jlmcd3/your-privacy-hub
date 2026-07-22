@@ -2028,7 +2028,7 @@ async function runStitch(dpia_id: string): Promise<void> {
       // not fire on sentences that verbatim echo intake-supplied roster
       // entries (e.g. "Legal Counsel (external, Kanzlei Berger & Stein)").
       // Model-added directives ("consult legal counsel") continue to fail.
-      const _intakeRoster = String((dpiaIntake as any)?.dpia_team ?? "");
+      
       const _intakeRoster = extractIntakeRoster(dpiaIntake ?? {}) || String((dpiaIntake as any)?.dpia_team ?? "");
       const _det = runFormatChecksGeneric(_prose, { intakeRoster: _intakeRoster }).map((x) => ({ ...x, check_type: 'deterministic' as const }));
       attachDeterministicChecks(reportData as any, _det as any);
