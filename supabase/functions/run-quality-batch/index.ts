@@ -2562,7 +2562,13 @@ async function runBatch(runId: string): Promise<void> {
           basis: "recorded_v1",
           claude: state.claudePostFilterDrops,
           gpt: state.gptPostFilterDrops,
+          // QB-P14 item 4 — audit trail (capped at 200 entries per digest to
+          // keep the JSON column bounded; the batch progress log holds the
+          // authoritative unbounded record).
+          suppressed_findings: state.postFilterSuppressed.slice(0, 200),
+          suppressed_total: state.postFilterSuppressed.length,
         };
+
         // Token estimation basis — Claude only, per orchestrator constant.
         const est = {
           docs: state.built,
