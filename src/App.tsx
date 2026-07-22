@@ -661,30 +661,6 @@ const App = () => (
               }
             />
             <Route
-              path="/ADMIn/quality-batch2"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
-                      <QualityBatch2 />
-                    </Suspense>
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ADMIn/quality-batch2/:tool/:id"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
-                      <QualityBatch2Review />
-                    </Suspense>
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin/quality-batch2"
               element={
                 <ProtectedRoute>
