@@ -980,8 +980,8 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
     const rawGpt = parsed.findings ?? [];
     const { kept: gptKept, dropped: gptDropped, suppressed: gptSuppressed } = applyGraderCal1Filter(rawGpt as any);
-    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2) {
-      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2}`);
+    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2 || gptDropped.dpa_defaults) {
+      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2} dpa_defaults=${gptDropped.dpa_defaults}`);
     }
     parsed.findings = gptKept
       .filter((f: any) => rubricMeta.has(f.check_id))
