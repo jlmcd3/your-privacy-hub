@@ -43,10 +43,8 @@ export default function HomeOrientationStrip() {
             beyond.{" "}
             <InlineLink to="/pricing">Subscribe</InlineLink> for the{" "}
             <InlineLink to="/get-intelligence">Weekly Intelligence Brief</InlineLink>,
-            {" "}the AI prompts for further research of{" "}
-            <InlineLink to="/updates">Feed</InlineLink> articles, and
-            subscriber pricing for{" "}
-            <InlineLink to="/tools">Tools</InlineLink>.
+            {" "}the AI prompts for further research of Feed articles, and
+            subscriber pricing for Tools.
           </p>
         </div>
       </div>
