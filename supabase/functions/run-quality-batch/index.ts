@@ -117,11 +117,26 @@ QB-P6 — purpose must name the deployment context and system.`,
 // Safety cap only for extreme pathological payloads (>250KB), well above
 // any real intake shape emitted by the nine tools.
 const INTAKE_HARD_CAP = 250_000;
-function sliceIntakeForGrader(intake: unknown): string {
+function sliceIntakeForGrader(intake: unknown, tool?: string): string {
   const s = JSON.stringify(intake ?? {});
-  if (s.length <= INTAKE_HARD_CAP) return s;
-  return `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
+  const base = s.length <= INTAKE_HARD_CAP
+    ? s
+    : `${s.slice(0, INTAKE_HARD_CAP)}[...intake payload exceeded ${INTAKE_HARD_CAP} bytes; tail elided...]`;
+  // QB-P22 item 2 — for ir-playbook the generator receives an ENRICHED intake
+  // (TEST-STATES + PROVISIONAL DEADLINES block computed by generate-ir-playbook
+  // from the raw intake). The grader previously saw only the raw fixture and
+  // flagged truthful references to that block as hallucination. Append the
+  // same enrichment here so the grader evaluates against the identical payload.
+  if (tool === "ir-playbook") {
+    try {
+      return `${base}\n\n--- ENRICHED CONTEXT (same as generator receives; computed deterministically from the intake above) ---\n${_ir_renderIrTestStatesBlock((intake ?? {}) as _IrBodyForGrader)}`;
+    } catch {
+      return base;
+    }
+  }
+  return base;
 }
+
 
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
