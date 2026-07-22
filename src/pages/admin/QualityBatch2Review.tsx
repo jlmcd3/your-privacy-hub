@@ -38,7 +38,7 @@ function ReviewNote({ toolType, assessmentId }: { toolType: string; assessmentId
     };
     const s = Number(score);
     if (Number.isFinite(s)) payload.score = s;
-    const { error } = await supabase.from("quality_batch2_reviews").insert(payload);
+    const { error } = await supabase.from("quality_batch2_reviews").insert(payload as any);
     setSaving(false);
     if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
     else {
