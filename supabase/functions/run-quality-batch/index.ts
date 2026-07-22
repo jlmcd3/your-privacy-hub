@@ -1445,35 +1445,26 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       throw new Error("timeout polling biometric_assessments");
     }
 
-    // B3: Registration — fan-out filing generator. Poll registration_orders.
+    // QB-P14 item 2 — REGISTRATION path in the transient/buildDocument path
+    // (same rewire as dispatchGeneration above). run-registration-assessment
+    // is synchronous and creates the registration_assessments row itself,
+    // returning {assessment_id, result_summary}. Do not seed a
+    // registration_orders row and do not call generate-registration-docs
+    // (that is the paid order-fulfillment function; harness has no order).
     if (tool === "registration") {
-      const { data: rec, error } = await admin.from("registration_orders").insert({
-        user_id: userId,
-        status: "pending",
-        intake_data: intake,
-        organization_name: intake?.organizationName ?? "Test Org",
-        jurisdictions: intake?.jurisdictions ?? [],
-      }).select("id").single();
-      if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
-      // Generous poll budget — multi-jurisdiction filings can run long.
-      for (let i = 0; i < 240; i++) {
-        await new Promise(r => setTimeout(r, 5000));
-        const { data } = await admin.from("registration_orders").select("status").eq("id", rec.id).single();
-        const s = (data as any)?.status;
-        if (s === "complete" || s === "generated") {
-          const { data: docs } = await admin.from("registration_documents")
-            .select("jurisdiction, document_type, content_text").eq("order_id", rec.id);
-          return {
-            sourceTable: "registration_orders",
-            sourceRowId: rec.id,
-            reportData: { documents: docs ?? [], document_count: docs?.length ?? 0 },
-          };
-        }
-        if (["error", "failed", "cancelled"].includes(s ?? "")) throw new Error(`registration_orders status=${s}`);
-      }
-      throw new Error("timeout polling registration_orders");
+      const resp = await invokeFn("run-registration-assessment", {
+        intake_data: intake, user_id: userId,
+      });
+      const assessmentId = (resp as any)?.assessment_id;
+      if (!assessmentId) throw new Error(`run-registration-assessment returned no assessment_id`);
+      const summary = (resp as any)?.result_summary ?? {};
+      return {
+        sourceTable: "registration_assessments",
+        sourceRowId: assessmentId,
+        reportData: summary,
+      };
     }
+
 
     // B3: editorial generators — call the edge function directly, capture the
     // JSON response as the document body. These don't have a per-row "complete"
