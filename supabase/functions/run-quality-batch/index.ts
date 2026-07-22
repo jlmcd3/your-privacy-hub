@@ -972,7 +972,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
         const meta = rubricMeta.get(f.check_id)!;
         return { check_id: f.check_id, dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null };
       });
-    return { eval: parsed };
+    return { eval: parsed, postFilterDropped: gptDropped };
   } catch (e) {
     return { eval: null, error: (e as Error).message };
   }
