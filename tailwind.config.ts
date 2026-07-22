@@ -99,6 +99,7 @@ export default {
           mist: "hsl(var(--brand-mist) / <alpha-value>)",
           cloud: "hsl(var(--brand-cloud) / <alpha-value>)",
           shadow: "hsl(var(--brand-shadow) / <alpha-value>)",
+          "globe-light": "hsl(var(--brand-globe-light) / <alpha-value>)",
         },
         severity: {
           critical: "hsl(var(--severity-critical) / <alpha-value>)",
