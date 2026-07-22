@@ -102,7 +102,7 @@ function evidenceOf(f: LlmFinding): string {
  * so suppressions are auditable in the batch progress log / campaign digest.
  */
 export type SuppressedFinding = {
-  rule: "a2" | "a3" | "a4" | "r15c2";
+  rule: "a2" | "a3" | "a4" | "r15c2" | "dpa_defaults";
   check_id: string;
   evidence: string; // first 300 chars
 };
