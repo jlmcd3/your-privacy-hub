@@ -3956,6 +3956,7 @@ export type Database = {
       quality_batch_runs: {
         Row: {
           batch_size: number
+          campaign_id: string | null
           cancel_requested: boolean
           completed_at: string | null
           concurrency: number
@@ -3974,6 +3975,7 @@ export type Database = {
         }
         Insert: {
           batch_size: number
+          campaign_id?: string | null
           cancel_requested?: boolean
           completed_at?: string | null
           concurrency?: number
@@ -3992,6 +3994,7 @@ export type Database = {
         }
         Update: {
           batch_size?: number
+          campaign_id?: string | null
           cancel_requested?: boolean
           completed_at?: string | null
           concurrency?: number
@@ -4043,6 +4046,116 @@ export type Database = {
           tool_type?: string
           updated_at?: string
           verdict?: string | null
+        }
+        Relationships: []
+      }
+      quality_campaign_digests: {
+        Row: {
+          campaign_id: string
+          claude_dimensions: Json | null
+          claude_overall: number | null
+          created_at: string
+          estimated_tokens: Json | null
+          failing_checks: Json | null
+          gpt_dimensions: Json | null
+          gpt_overall: number | null
+          id: string
+          post_filter_drops: Json | null
+          run_id: string | null
+          token_basis: string | null
+          tool: string
+          wave_number: number | null
+        }
+        Insert: {
+          campaign_id: string
+          claude_dimensions?: Json | null
+          claude_overall?: number | null
+          created_at?: string
+          estimated_tokens?: Json | null
+          failing_checks?: Json | null
+          gpt_dimensions?: Json | null
+          gpt_overall?: number | null
+          id?: string
+          post_filter_drops?: Json | null
+          run_id?: string | null
+          token_basis?: string | null
+          tool: string
+          wave_number?: number | null
+        }
+        Update: {
+          campaign_id?: string
+          claude_dimensions?: Json | null
+          claude_overall?: number | null
+          created_at?: string
+          estimated_tokens?: Json | null
+          failing_checks?: Json | null
+          gpt_dimensions?: Json | null
+          gpt_overall?: number | null
+          id?: string
+          post_filter_drops?: Json | null
+          run_id?: string | null
+          token_basis?: string | null
+          tool?: string
+          wave_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_campaign_digests_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "quality_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_campaigns: {
+        Row: {
+          budget_cap_cents: number
+          completed_at: string | null
+          concurrency: number
+          created_at: string
+          created_by: string | null
+          estimated_spend_cents: number
+          id: string
+          last_wave_started_at: string | null
+          progress_log: Json
+          status: string
+          tool_state: Json
+          updated_at: string
+          wave_interval_minutes: number
+          wave_number: number
+        }
+        Insert: {
+          budget_cap_cents?: number
+          completed_at?: string | null
+          concurrency?: number
+          created_at?: string
+          created_by?: string | null
+          estimated_spend_cents?: number
+          id?: string
+          last_wave_started_at?: string | null
+          progress_log?: Json
+          status?: string
+          tool_state?: Json
+          updated_at?: string
+          wave_interval_minutes?: number
+          wave_number?: number
+        }
+        Update: {
+          budget_cap_cents?: number
+          completed_at?: string | null
+          concurrency?: number
+          created_at?: string
+          created_by?: string | null
+          estimated_spend_cents?: number
+          id?: string
+          last_wave_started_at?: string | null
+          progress_log?: Json
+          status?: string
+          tool_state?: Json
+          updated_at?: string
+          wave_interval_minutes?: number
+          wave_number?: number
         }
         Relationships: []
       }
@@ -4824,6 +4937,7 @@ export type Database = {
       quality_runs: {
         Row: {
           batch_size: number
+          campaign_id: string | null
           cancel_requested: boolean
           checks_failed: number | null
           checks_passed: number | null
@@ -4866,6 +4980,7 @@ export type Database = {
         }
         Insert: {
           batch_size?: number
+          campaign_id?: string | null
           cancel_requested?: boolean
           checks_failed?: number | null
           checks_passed?: number | null
@@ -4908,6 +5023,7 @@ export type Database = {
         }
         Update: {
           batch_size?: number
+          campaign_id?: string | null
           cancel_requested?: boolean
           checks_failed?: number | null
           checks_passed?: number | null
