@@ -24,3 +24,7 @@ Repo-state is not deployed-state.
 - QB-P12: `run-quality-batch` existed in repo but had no deployed function blob (`NOT_FOUND_FUNCTION_BLOB`, wave 1 total dispatch failure).
 
 Any campaign-critical path change must end with a live-endpoint verification (non-404 probe), not just a code commit.
+
+## QB 2026-07-22 waves 2–3 — CPPA-ADMT blanket-citation pattern (2-run confirmed: 5328de4f, 71652354)
+The ADMT generator repeatedly cites '11 CCR §§ 7220–7222 (the ADMT subchapter)' as a catch-all and anchors action duties on § 7001 (definitions). Fix shipped: prompt-level citation-discipline rules (most-specific-section only; § 7001 never a governing anchor). Intake-guidance implication: none — generator-side defect.
+
