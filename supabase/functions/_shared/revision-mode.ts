@@ -19,9 +19,9 @@
 //
 // This module NEVER changes the frozen open_items array shape or count.
 import { applyRevisionPatch, ADVISORY_CAPS, guardAdvisoryNotes, checkAdvisoryGrounding, validateChangedPathShapes } from "./revision-patch.ts";
-import { updateOpenItemStatuses, type OpenItem } from "./open-items.ts";
+import { updateOpenItemStatuses, sourceFieldsForOpenItem, type OpenItem } from "./open-items.ts";
 import { qcVerdictConsistency, qcChangedPathsAuthorized, DERIVED_PATHS } from "./revision-qc.ts";
-import { candidateTargetPaths } from "./target-path-aliases.ts";
+import { candidateTargetPaths, resolveEffectiveTargetPath } from "./target-path-aliases.ts";
 import { callAnthropicWithContinuation } from "./anthropic-call.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { mapItemsToUnits } from "./dpia-unit-map.ts";
