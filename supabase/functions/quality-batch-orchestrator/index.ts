@@ -229,7 +229,31 @@ export function decide(
     const size = Math.min(conc, remaining);
     const nextTools = row.tools.slice(row.current_tool_index, row.current_tool_index + size);
     return { kind: "dispatch_wave", tools: nextTools, startIndex: row.current_tool_index };
+}
+
+// QB-P9 — pure stop-rule reducer. Given the current tool_state and the
+// score of a just-completed campaign child run, return the updated state.
+// - runs_completed always increments.
+// - consecutive_ge98 increments when claude overall >= 98, else resets to 0.
+// - retire with 'certified' when the streak reaches CAMPAIGN_CERTIFIED_STREAK.
+// - retire with 'max_runs' when runs_completed reaches CAMPAIGN_MAX_RUNS.
+// Retirement is sticky: once inactive, subsequent calls are no-ops.
+export function applyStopRule(
+  prev: CampaignToolState,
+  claudeOverall: number | null,
+): CampaignToolState {
+  if (!prev.active) return prev;
+  const runs_completed = prev.runs_completed + 1;
+  const passed = typeof claudeOverall === "number" && claudeOverall >= 98;
+  const consecutive_ge98 = passed ? prev.consecutive_ge98 + 1 : 0;
+  if (consecutive_ge98 >= CAMPAIGN_CERTIFIED_STREAK) {
+    return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "certified" };
   }
+  if (runs_completed >= CAMPAIGN_MAX_RUNS) {
+    return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "max_runs" };
+  }
+  return { ...prev, runs_completed, consecutive_ge98 };
+}
 
   return { kind: "wait" };
 }
