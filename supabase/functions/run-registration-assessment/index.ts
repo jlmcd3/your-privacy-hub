@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
             return `${r?.jurisdiction_name || j.code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry — sector-specific authorisations, if any, are surfaced in notes.`;
           }
           // null — no requirement metadata row was found in jurisdiction_requirements
-          return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm any registration obligations with ${r?.authority_name || "local counsel or the relevant enforcement authority"} before filing.`;
+          return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm any registration obligations with ${r?.authority_name || "the relevant supervisory or enforcement authority"} before filing.`;
         })();
         // PRODUCT-PROMPT-REG — AI-ROLE FACT DISCIPLINE + EU-ACT TERRITORIALITY.
         // Read `ai_general_purpose_provider` and `ai_high_risk` VERBATIM; do
