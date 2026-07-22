@@ -2072,7 +2072,7 @@ async function runBatch(runId: string): Promise<void> {
 
         const remainingTotal = DOC_TOTAL_TIMEOUT_MS - (Date.now() - genStartedAt);
         const isolateBudget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, remainingTotal));
-        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget);
+        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, { tool, log });
 
         if (outcome.status === "deadline") {
           (state as any).pending_gen = {
@@ -2169,7 +2169,7 @@ async function runBatch(runId: string): Promise<void> {
               if (POLL_TOOLS.has(tool)) {
                 const d2 = await dispatchGeneration(admin, tool, intake, userId);
                 if (d2) {
-                  const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS);
+                  const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS, { tool, log });
                   if (outcome2.status === "complete") reportData2 = outcome2.reportData;
                 }
               } else {
