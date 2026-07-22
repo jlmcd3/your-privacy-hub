@@ -480,6 +480,7 @@ export async function handleRevisionMode(
       wouldBeItems as any,
       changedPathsIn,
       toolType,
+      informationNeeded,
     );
     if (preQc.status === "red") {
       console.error(`[revision:${toolType}] pre_apply_qc_red ${preQc.code}: ${preQc.detail}`);
@@ -494,9 +495,10 @@ export async function handleRevisionMode(
     // enumerated per-tool DERIVED_PATHS entry. Server-owned bookkeeping
     // keys are stripped pre-check because revision-mode overwrites them.
     const preAllow = qcChangedPathsAuthorized(
-      answeredPack.map((a) => ({ target: { path: a.item.target?.path } })),
+      answeredPack.map((a) => ({ id: a.item.id, target: { path: a.item.target?.path } })),
       changedPathsIn,
       toolType,
+      informationNeeded,
     );
     if (preAllow.status === "red") {
       console.error(`[revision:${toolType}] pre_apply_qc_red ${preAllow.code}: ${preAllow.detail}`);
