@@ -749,15 +749,28 @@ async function campaignTick(): Promise<{ ok: true; action: string; detail?: unkn
   const db = admin();
 
   let hasInflight = false;
+  let inflightBatchId: string | null = null;
+  let inflightUpdatedAtMs: number | null = null;
   if (campaign) {
+    // QB-P13 — fetch updated_at + last_heartbeat_at so we can resurrect a
+    // batch whose self-invoke chain died mid-flight.
     const { data: inflight } = await db.from("quality_batch_runs")
-      .select("id, status").eq("campaign_id", campaign.id)
-      .not("status", "in", "(complete,failed,cancelled)").limit(1);
-    hasInflight = (inflight ?? []).length > 0;
+      .select("id, status, updated_at, last_heartbeat_at")
+      .eq("campaign_id", campaign.id)
+      .not("status", "in", "(complete,failed,cancelled)")
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    const row = (inflight ?? [])[0] as any;
+    if (row) {
+      hasInflight = true;
+      inflightBatchId = row.id as string;
+      const hbIso = row.last_heartbeat_at ?? row.updated_at ?? null;
+      inflightUpdatedAtMs = hbIso ? new Date(hbIso).getTime() : null;
+    }
   }
 
   const decision = decideCampaignTick(campaign as CampaignRowLite | null, {
-    hasInflight, nowMs: Date.now(),
+    hasInflight, nowMs: Date.now(), inflightBatchId, inflightUpdatedAtMs,
   });
 
   switch (decision.kind) {
@@ -770,6 +783,16 @@ async function campaignTick(): Promise<{ ok: true; action: string; detail?: unkn
     }
     case "status_noop": return { ok: true, action: `status_${decision.status}` };
     case "wave_in_flight": return { ok: true, action: "wave_in_flight" };
+    case "resurrect": {
+      // QB-P13 — self-invoke chain for the campaign batch died; drive one
+      // unit here so decide() runs, stale children hit CHILD_STALL_MS, and
+      // the wave advances. runUnit is idempotent.
+      await logCampaign(campaign!.id, `In-flight batch ${decision.batchId} stale > ${INFLIGHT_STALE_MS / 60000}min — resurrecting`, "warn");
+      // @ts-ignore
+      EdgeRuntime.waitUntil(runUnit(decision.batchId).catch((e) =>
+        console.error("[qb-orchestrator] resurrect runUnit error", e)));
+      return { ok: true, action: "resurrect", detail: { batchId: decision.batchId } };
+    }
     case "interval_wait": return { ok: true, action: "interval_wait" };
     case "complete": {
       await db.from("quality_campaigns")
