@@ -2260,7 +2260,7 @@ async function runBatch(runId: string): Promise<void> {
       else if (gptOnlyCount > 0)                         crossCategory = "gpt_only";
       else if (findings.some(f => !f.passed))            crossCategory = "claude_only";
 
-      const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 3);
+      const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 10);
       const rubricAddition = null; // F6: rubric_addition removed
       const sev = String(first?.severity ?? "").toLowerCase();
       const severityRank = sev === "critical" ? 3 : sev === "high" ? 2 : sev === "medium" ? 1 : 0;
