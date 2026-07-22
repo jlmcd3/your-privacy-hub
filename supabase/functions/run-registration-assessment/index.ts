@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
             ? "Market covered by the GDPR one-stop-shop mechanism: cross-border processing complaints for this market are directed to the lead supervisory authority identified above (Art. 56 GDPR). This jurisdiction may still impose local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) — those are surfaced under the specific jurisdiction where they apply."
             : (r?.registration_required === false
                 ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
-                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "local counsel or the competent supervisory authority"} before concluding no filing is due.`);
+                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
           result_summary.jurisdictions.push({
             code,
             name: r?.jurisdiction_name || code,
