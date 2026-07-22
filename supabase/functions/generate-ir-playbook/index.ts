@@ -26,6 +26,15 @@ import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+// QB-P22 item 2 — TEST-STATES / DEADLINES enrichment is now shared with
+// run-quality-batch so the grader sees the same enriched payload the
+// generator receives (the prior grader saw only the raw fixture and flagged
+// the truthful "DEADLINES block in the intake" reference as hallucination).
+import {
+  computeIrTestStates as _computeIrTestStatesShared,
+  renderIrTestStatesBlock as _renderIrTestStatesBlockShared,
+  type IrBody as _IrBodyShared,
+} from "../_shared/ir/test-states.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
