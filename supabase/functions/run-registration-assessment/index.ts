@@ -13,7 +13,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "reg-product-prompt-1@2026-07-22T18:00:00Z";
+export const BUILD_STAMP = "reg-product-prompt-2-uk-cp1019@2026-07-22T19:15:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
         const aiRequired = isEuEea && (gpaiProvider || highRiskDeployer);
         const aiBasis = (() => {
           if (isUk) {
-            return "EU AI Act obligations do not apply as a UK matter (the Act is EU law; the UK did not retain it post-Brexit). The UK has no comprehensive AI statute currently in force; AI governance in the UK proceeds under sector-regulator guidance following the DSIT 'A pro-innovation approach to AI regulation' White Paper (CP 815, March 2023, response August 2024) and pre-existing UK GDPR, Equality Act 2010, and product-safety duties. Confirm the current status of the UK Government's AI Regulation Bill and any sector-regulator guidance with the ICO and the relevant regulator before concluding no AI-specific filing exists.";
+            return "EU AI Act obligations do not apply as a UK matter (the Act is EU law; the UK did not retain it post-Brexit). The UK has no comprehensive AI statute currently in force; AI governance in the UK proceeds under sector-regulator guidance following the DSIT 'A pro-innovation approach to AI regulation' White Paper (CP 815, March 2023; government response February 2024 (CP 1019)) and pre-existing UK GDPR, Equality Act 2010, and product-safety duties. Confirm the current status of the UK Government's AI Regulation Bill and any sector-regulator guidance with the ICO and the relevant regulator before concluding no AI-specific filing exists.";
           }
           if (!isEuEea) {
             return `The EU AI Act is EU law and does not apply as a ${r?.jurisdiction_name || j.code} filing obligation. Local AI rules, where present, are assessed under the jurisdiction's own framework and are outside the scope of this registration recommendation.`;
