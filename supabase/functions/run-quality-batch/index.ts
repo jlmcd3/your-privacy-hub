@@ -935,7 +935,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number } }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
