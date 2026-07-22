@@ -2605,12 +2605,21 @@ async function runBatch(runId: string): Promise<void> {
           suppressed_total: state.postFilterSuppressed.length,
         };
 
-        // Token estimation basis — Claude only, per orchestrator constant.
+        // QB-P17 item 7 — token/cost basis. The Claude grader model is
+        // claude-opus-4-6; historical estimates used Sonnet pricing (~$0.10/doc)
+        // and therefore materially undercount actual burn. Opus rack rate:
+        // $15 / 1M input tokens · $75 / 1M output tokens. Per doc:
+        //   input:  9,000 * $15  / 1e6 = $0.135
+        //   output: 5,000 * $75  / 1e6 = $0.375
+        //   total  ≈ $0.51/doc → 51 cents/doc.
+        const OPUS_INPUT_USD_PER_MTOK = 15;
+        const OPUS_OUTPUT_USD_PER_MTOK = 75;
+        const perDocUsd = (9000 * OPUS_INPUT_USD_PER_MTOK + 5000 * OPUS_OUTPUT_USD_PER_MTOK) / 1_000_000;
         const est = {
           docs: state.built,
           claude_input_tokens: state.built * 9000,
           claude_output_tokens: state.built * 5000,
-          estimated_usd: (state.built * 10) / 100, // $0.10/doc
+          estimated_usd: Number((state.built * perDocUsd).toFixed(4)),
         };
         await admin.from("quality_campaign_digests").insert({
           campaign_id: campaignId,
@@ -2624,7 +2633,7 @@ async function runBatch(runId: string): Promise<void> {
           failing_checks: failing,
           post_filter_drops: postFilterDrops,
           estimated_tokens: est,
-          token_basis: "estimate:claude-sonnet@9k_in+5k_out_per_doc",
+          token_basis: `estimate:claude-opus-4-6@9k_in+5k_out_per_doc@$${OPUS_INPUT_USD_PER_MTOK}/M_in+$${OPUS_OUTPUT_USD_PER_MTOK}/M_out`,
         });
       }
     } catch (digestErr) {
