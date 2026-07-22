@@ -1586,7 +1586,7 @@ type PartialState = {
 
 function emptyState(): PartialState {
   const zeroDims = () => ({ accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 });
-  const zeroDrops = () => ({ a2: 0, a3: 0, a4: 0, r15c2: 0 });
+  const zeroDrops = () => ({ a2: 0, a3: 0, a4: 0, r15c2: 0, dpa_defaults: 0 });
   return {
     dimTotals: zeroDims(),
     gptTotals: zeroDims(),
@@ -2142,6 +2142,7 @@ async function runBatch(runId: string): Promise<void> {
         state.claudePostFilterDrops.a3 += cd.a3 ?? 0;
         state.claudePostFilterDrops.a4 += cd.a4 ?? 0;
         state.claudePostFilterDrops.r15c2 += cd.r15c2 ?? 0;
+        state.claudePostFilterDrops.dpa_defaults += cd.dpa_defaults ?? 0;
       }
       const gd = (gptResult as any)?.postFilterDropped;
       if (gd) {
@@ -2149,6 +2150,7 @@ async function runBatch(runId: string): Promise<void> {
         state.gptPostFilterDrops.a3 += gd.a3 ?? 0;
         state.gptPostFilterDrops.a4 += gd.a4 ?? 0;
         state.gptPostFilterDrops.r15c2 += gd.r15c2 ?? 0;
+        state.gptPostFilterDrops.dpa_defaults += gd.dpa_defaults ?? 0;
       }
 
       // QB-P14 item 4 — post-filter SUPPRESSION AUDIT TRAIL.
