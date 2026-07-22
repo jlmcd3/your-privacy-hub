@@ -15,3 +15,12 @@ Purpose: evidence from automated quality-batch runs showing where the INTAKE ANS
 5. ALL TOOLS — named roles and systems (multiple 2026-07-21 runs). Documents can only assign owners and timeframes when the intake names roles and systems. Intake-guidance implication: narrative fields should carry placeholder/helper text encouraging users to name officer roles (DPO, CISO, privacy lead), key systems and vendors, and dates.
 
 6. ALL TOOLS — specificity begets specificity (multiple 2026-07-21 runs). Generic narrative answers produce generic analysis flagged by reviewers as boilerplate. Intake-guidance implication: helper text on narrative fields: "The more specific your description — systems, vendors, volumes, dates — the more tailored your analysis will be."
+
+## QB-P12 — Deployed-state drift (2-cycle confirmed pattern)
+
+Repo-state is not deployed-state.
+
+- QB-P11: tick cron existed in design but was never registered.
+- QB-P12: `run-quality-batch` existed in repo but had no deployed function blob (`NOT_FOUND_FUNCTION_BLOB`, wave 1 total dispatch failure).
+
+Any campaign-critical path change must end with a live-endpoint verification (non-404 probe), not just a code commit.

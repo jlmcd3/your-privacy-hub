@@ -447,6 +447,22 @@ async function runUnit(runId: string) {
           current_quality_run_id: inv.ok ? inv.runId : (run as any).current_quality_run_id,
         }).eq("id", runId);
       }
+      // QB-P12 — if every dispatch in this wave failed, no API calls were
+      // made downstream; refund the wave's pre-accrued estimated spend so
+      // deployed-state drift (e.g. NOT_FOUND_FUNCTION_BLOB) does not burn
+      // the campaign budget cap.
+      const campaignIdForRefund = (run as any).campaign_id as string | null;
+      const allFailed = results.length > 0 && results.every((r) => r?.final_status === "dispatch_failed");
+      if (allFailed && campaignIdForRefund) {
+        const refund = d.tools.length * (run as any).batch_size * CAMPAIGN_EST_CENTS_PER_DOC;
+        const { data: camp } = await db.from("quality_campaigns")
+          .select("estimated_spend_cents").eq("id", campaignIdForRefund).maybeSingle();
+        const cur = (camp as any)?.estimated_spend_cents ?? 0;
+        const next = Math.max(0, cur - refund);
+        await db.from("quality_campaigns")
+          .update({ estimated_spend_cents: next }).eq("id", campaignIdForRefund);
+        await logCampaign(campaignIdForRefund, `Wave dispatch total-failure: refunded ${refund}¢ (spend ${cur}¢ → ${next}¢)`, "warn");
+      }
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
