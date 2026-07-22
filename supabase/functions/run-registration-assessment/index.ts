@@ -13,6 +13,9 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
+export const BUILD_STAMP = "reg-product-prompt-1@2026-07-22T18:00:00Z";
+console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
