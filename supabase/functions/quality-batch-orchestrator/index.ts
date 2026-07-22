@@ -796,5 +796,32 @@ Deno.serve(async (req) => {
     return json({ run: data, build_stamp: BUILD_STAMP });
   }
 
+  // QB-P9 — admin campaign controls.
+  if (body?.action === "campaign_status") {
+    const c = await loadCampaign();
+    return json({ campaign: c, build_stamp: BUILD_STAMP });
+  }
+  if (body?.action === "campaign_resume" || body?.action === "campaign_pause" || body?.action === "campaign_kill") {
+    const target =
+      body.action === "campaign_resume" ? "active" :
+      body.action === "campaign_pause"  ? "paused" : "killed";
+    const c = await loadCampaign();
+    if (!c) return json({ error: "no campaign row" }, 404);
+    await admin().from("quality_campaigns").update({ status: target }).eq("id", c.id);
+    await logCampaign(c.id, `Status changed → ${target} (by ${userId})`);
+    // If resumed, fire an immediate tick so the CEO doesn't wait 15 min.
+    if (target === "active") {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] resume-tick error", e)));
+    }
+    return json({ ok: true, status: target, build_stamp: BUILD_STAMP });
+  }
+  if (body?.action === "campaign_tick") {
+    // Admin-forced tick (bypasses cron).
+    // @ts-ignore
+    EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] admin-tick error", e)));
+    return json({ ok: true, action: "campaign_tick", build_stamp: BUILD_STAMP }, 202);
+  }
+
   return json({ error: "Unknown action" }, 400);
 });
