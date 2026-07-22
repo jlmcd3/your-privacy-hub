@@ -41,6 +41,14 @@ const A3_WHITELIST_TOKENS = [
   /\ba8872a\b/i,
 ];
 
+// QB-P2 R-15C-2 — bracketed placeholder fill-in markers ("[TO BE COMPLETED …]",
+// "[TO BE ASSESSED …]", "[TO COMPLETE …]") are anti-fabrication scaffolding per
+// SHARED_GRADER_CONTEXT / GRADER-CAL-1 A4. Prompt-level rubric enforcement has
+// proven insufficient (run 75 dpa-generator: rubric_actionability fired on
+// placeholders despite the rule being in the rubric prompt since 2026-07-15).
+// Drop any LLM rubric finding whose evidence quotes one of these markers.
+const R15C2_PLACEHOLDER_RE = /\[TO\s+(?:BE\s+COMPLETED|BE\s+ASSESSED|COMPLETE)\b/i;
+
 // A4 — Emit-guard. Suppress "findings" the model returns that in fact affirm
 // the document was correct ("This citation is correct", "the report properly
 // cites", "no issue found"). These are noise, not defects.
