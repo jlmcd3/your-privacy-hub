@@ -1,6 +1,7 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // build-marker: cyber-qi3-observations-not-directives-2026-07-03
 console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directives-2026-07-03");
