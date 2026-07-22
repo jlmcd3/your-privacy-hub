@@ -474,6 +474,17 @@ export async function handleRevisionMode(
   {
     const wouldBeItems = updateOpenItemStatuses(openItems, verdictsRaw as any);
     const changedPathsIn: string[] = Array.isArray(patchJson.changed_paths) ? patchJson.changed_paths : [];
+    // W3-VENDOR-2 diagnostic — surface the model's actual patch decisions so a
+    // hollow-resolution / unauthorized-path 409 can be distinguished from a
+    // zero-paths refusal without a full model-output dump.
+    console.log(JSON.stringify({
+      evt: "revision_patch_emitted",
+      tool: toolType,
+      row: rowId,
+      changed_paths: changedPathsIn,
+      changed_path_count: changedPathsIn.length,
+      verdicts: verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
+    }));
     const preQc = qcVerdictConsistency(
       answeredIds,
       verdictsRaw.map((v: any) => ({ item_id: String(v?.item_id ?? ""), verdict: String(v?.verdict ?? "") })),
