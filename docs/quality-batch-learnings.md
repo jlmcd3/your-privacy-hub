@@ -28,3 +28,12 @@ Any campaign-critical path change must end with a live-endpoint verification (no
 ## QB 2026-07-22 waves 2–3 — CPPA-ADMT blanket-citation pattern (2-run confirmed: 5328de4f, 71652354)
 The ADMT generator repeatedly cites '11 CCR §§ 7220–7222 (the ADMT subchapter)' as a catch-all and anchors action duties on § 7001 (definitions). Fix shipped: prompt-level citation-discipline rules (most-specific-section only; § 7001 never a governing anchor). Intake-guidance implication: none — generator-side defect.
 
+## 2026-07-22 — manual batch 304b1070 (all 10 tools, n=1)
+
+7. REGISTRATION — provider vs deployer flag (run 3bb64a86, scored 50). The generator asserted GPAI-provider obligations (EU AI Act Arts. 53–55) although the intake declared ai_general_purpose_provider=false (the org is a deployer of high-risk AI). Generator-side fix is being applied, but the intake page shares blame-surface: the checkbox labels should make the distinction unmistakable — helper text like "Check only if your organisation PROVIDES/develops a general-purpose AI model — not if you merely use AI tools" on ai_general_purpose_provider, and equivalent clarity on ai_high_risk (deployer vs provider of a high-risk system). Hypothesis until seen again.
+
+8. REGISTRATION — markets_served coverage expectation (same run). The report produced no entries for three of the intake's markets_served (FR, NL, SE) with no explanation. Users selecting markets will expect either an entry per market or an explicit statement of why none is needed (e.g. GDPR one-stop-shop). Intake-guidance implication: the markets_served field could carry helper text setting the expectation; generator-side coverage rule being applied in parallel.
+
+9. VALIDATED — biometric-checker intake/prompt fixes (runs 73bac724/4996dbc6 → 48682fe3): score moved 66 → 90 after the Art. 9(2) selection, sector-framework, internal-label, and jurisdiction-specificity rules shipped. Pattern confirmed: grader-evidence-cited prompt rules produce measurable gains in one cycle.
+
+
