@@ -143,9 +143,11 @@ function Inner() {
                   toast({ title: "Revision accepted", description: "Refreshing…" });
                   setTimeout(() => reload(), 1500);
                 } else {
+                  const code = (res.payload as any)?.error ?? res.message ?? "unknown_error";
+                  const detail = (res.payload as any)?.message;
                   toast({
                     title: `Revision failed (HTTP ${res.status})`,
-                    description: (res.payload as any)?.payload?.error ?? res.message,
+                    description: detail ? `${code} — ${detail}` : String(code),
                     variant: "destructive",
                   });
                 }
