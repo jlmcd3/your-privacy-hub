@@ -137,12 +137,24 @@ function buildRevisionPrompt(opts: {
   answeredItems: Array<{ item: OpenItem; response: string; evidence?: string | null }>;
   advisoryCap: number;
   dpiaUnitSubset?: string[];
+  informationNeeded?: unknown;
 }): { system: string; user: string } {
-  const { toolType, storedReport, intake, answeredItems, advisoryCap, dpiaUnitSubset } = opts;
+  const { toolType, storedReport, intake, answeredItems, advisoryCap, dpiaUnitSubset, informationNeeded } = opts;
+
+  // W3-VENDOR-2 — resolve the effective target path per item BEFORE building
+  // the prompt so the model is instructed with a real writable path when the
+  // frozen path is prose. Structural targets are unchanged.
+  const effectivePathById = new Map<string, string>();
+  for (const a of answeredItems) {
+    const rawPath = a.item.target?.path ?? "";
+    const sourceFields = sourceFieldsForOpenItem({ id: a.item.id }, informationNeeded);
+    const eff = resolveEffectiveTargetPath(toolType, rawPath, sourceFields);
+    effectivePathById.set(a.item.id, eff);
+  }
 
   const answersBlock = answeredItems.map((a) => ({
     id: a.item.id,
-    target_path: a.item.target.path,
+    target_path: effectivePathById.get(a.item.id) ?? a.item.target.path,
     ask: a.item.why_insufficient,
     provision: a.item.provision_key,
     user_response: a.response,
@@ -163,7 +175,7 @@ function buildRevisionPrompt(opts: {
   // index wildcard (matches `[<digit>+]`); every other segment is literal.
   const derivedForTool = DERIVED_PATHS[toolType] ?? [];
   const allowedByItem = answeredItems.map((a) => {
-    const targetPath = a.item.target?.path ?? "";
+    const targetPath = effectivePathById.get(a.item.id) ?? a.item.target?.path ?? "";
     const askUnion = targetPath ? candidateTargetPaths(toolType, targetPath) : [];
     return {
       item_id: a.item.id,
