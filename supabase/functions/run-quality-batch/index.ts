@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp17-measurement-integrity@2026-07-22T20:15:00Z";
+export const BUILD_STAMP = "qbp20-structural-test-design@2026-07-22T23:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -1144,13 +1144,31 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
 // regeneration. Drop persistent failures. Returns final accepted intakes plus
 // rejection metadata so the caller can enforce the >30% failure guard.
 async function generateValidatedIntakes(tool: string, count: number): Promise<{ intakes: any[]; rejected: { reason: string }[]; totalAttempted: number }> {
+  const { lintFixture } = await import("../_shared/quality/fixture-lint.ts");
   const initial = await generateIntakes(tool, count);
   const accepted: any[] = [];
   const rejected: { reason: string }[] = [];
 
   for (const item of initial) {
-    const r = validateIntake(tool, item);
-    if (r.ok) { accepted.push(item); continue; }
+    // QB-P20 item 3 — fixture lint (grader-collision screen). Applied
+    // BEFORE contract validation so blacklist/hedge/leak hits are
+    // rejected on first sight; on hit we regenerate once, then reject.
+    const linted = lintFixture(item);
+    let candidate = item;
+    if (linted) {
+      console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${linted.path} — regenerating once`);
+      try {
+        const retry = await generateIntakes(tool, 1);
+        const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
+        if (relint) { rejected.push({ reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` }); continue; }
+        candidate = retry[0];
+      } catch (e) {
+        rejected.push({ reason: `lint regenerate failed — ${(e as Error).message}` });
+        continue;
+      }
+    }
+    const r = validateIntake(tool, candidate);
+    if (r.ok) { accepted.push(candidate); continue; }
     console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
     try {
       const retry = await generateIntakes(tool, 1);
@@ -2621,6 +2639,45 @@ async function runBatch(runId: string): Promise<void> {
           claude_output_tokens: state.built * 5000,
           estimated_usd: Number((state.built * perDocUsd).toFixed(4)),
         };
+        // QB-P20 items 4-6 — coverage tagging, gate_v2, shadow_score.
+        // All REPORT-ONLY: no effect on the legacy overall/certification path.
+        let gateV2Pass: boolean | null = null;
+        let gateV2Reasons: string[] | null = null;
+        let shadowScoreVal: number | null = null;
+        let coverageTagged: Array<{ sector: string; posture: string; branch: string }> | null = null;
+        try {
+          const { evaluateGateV2 } = await import("../_shared/quality/gate-v2.ts");
+          const { shadowScore } = await import("../_shared/quality/shadow-score.ts");
+          const { tagIntake } = await import("../_shared/quality/coverage-matrix.ts");
+          // Pooled doc count across THIS tool's recent consecutive runs.
+          const { data: recent } = await admin.from("quality_runs")
+            .select("batch_size,status,started_at").eq("tool", tool)
+            .order("started_at", { ascending: false }).limit(10);
+          let pooled = 0;
+          for (const r of (recent ?? [])) {
+            if ((r as any).status === "complete") pooled += (r as any).batch_size ?? 0;
+            else break;
+          }
+          const combinedFindings = state.allDocFindings.map((f: any) => ({
+            check_type: f.check_type ?? (f.cross_category ? "llm" : "deterministic"),
+            severity: f.severity ?? null,
+            passed: f.passed,
+          }));
+          const g = evaluateGateV2({ dimensions: claudeDims as any, findings: combinedFindings, pooledDocs: pooled });
+          gateV2Pass = g.pass; gateV2Reasons = g.reasons;
+          shadowScoreVal = shadowScore(overall as number, combinedFindings);
+          coverageTagged = (intakes ?? []).map((it: any) => tagIntake(tool, it));
+          // Cumulative coverage upsert.
+          for (const cell of coverageTagged) {
+            
+            await admin.from("quality_coverage_cells").upsert({
+              tool, sector: cell.sector, posture: cell.posture, branch: cell.branch,
+              hit_count: 1, last_hit_at: new Date().toISOString(),
+            }, { onConflict: "tool,sector,posture,branch", ignoreDuplicates: false }).catch(() => {});
+          }
+        } catch (e) {
+          console.warn("[qbp20] gate/shadow/coverage side-channel failed:", (e as Error).message);
+        }
         await admin.from("quality_campaign_digests").insert({
           campaign_id: campaignId,
           wave_number: (campaign as any)?.wave_number ?? null,
@@ -2634,6 +2691,10 @@ async function runBatch(runId: string): Promise<void> {
           post_filter_drops: postFilterDrops,
           estimated_tokens: est,
           token_basis: `estimate:claude-opus-4-6@9k_in+5k_out_per_doc@$${OPUS_INPUT_USD_PER_MTOK}/M_in+$${OPUS_OUTPUT_USD_PER_MTOK}/M_out`,
+          gate_v2_pass: gateV2Pass,
+          gate_v2_reasons: gateV2Reasons,
+          shadow_score: shadowScoreVal,
+          coverage_cells_tagged: coverageTagged,
         });
       }
     } catch (digestErr) {
