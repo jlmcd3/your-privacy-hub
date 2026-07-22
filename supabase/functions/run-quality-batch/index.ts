@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
+export const BUILD_STAMP = "qbp21-chain-resurrection@2026-07-23T00:15:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -1354,11 +1354,61 @@ type PollOutcome =
   | { status: "error"; error: string }
   | { status: "deadline" };
 
+// QB-P21: harness-side chain resurrection. Some generators (dpia) fan out
+// unit invocations fire-and-forget; a single dispatch failure can strand
+// the row in 'processing' forever. When the polled row is non-terminal AND
+// updated_at is stale >STALE_MS, re-invoke the generator bootstrap (which
+// is idempotent — sweeper re-entry). Cap at MAX_RESURRECTIONS per doc.
+const RESUMABLE_GENERATORS = new Set(["dpia"]);
+const RESURRECT_STALE_MS = 180_000;
+const MAX_RESURRECTIONS = 2;
+const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework" };
+const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id" };
+
+export function shouldResurrect(opts: {
+  tool?: string;
+  updatedAtIso: string | null | undefined;
+  nowMs: number;
+  attempts: number;
+}): boolean {
+  if (!opts.tool || !RESUMABLE_GENERATORS.has(opts.tool)) return false;
+  if (opts.attempts >= MAX_RESURRECTIONS) return false;
+  if (!opts.updatedAtIso) return false;
+  const t = Date.parse(opts.updatedAtIso);
+  if (!Number.isFinite(t)) return false;
+  return opts.nowMs - t > RESURRECT_STALE_MS;
+}
+
+async function resurrectGenerator(
+  tool: string, sourceRowId: string,
+): Promise<{ ok: boolean; detail: string }> {
+  const fn = RESUMABLE_GENERATOR_FN[tool];
+  const idKey = RESUMABLE_ID_KEY[tool];
+  if (!fn || !idKey) return { ok: false, detail: `no resurrector for tool=${tool}` };
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/${fn}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "apikey": SERVICE_KEY,
+      },
+      body: JSON.stringify({ [idKey]: sourceRowId }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    return { ok: r.ok, detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status}: ${(await r.text()).slice(0, 200)}` };
+  } catch (e) {
+    return { ok: false, detail: (e as Error).message };
+  }
+}
+
 async function pollGenerationRow(
   admin: Admin, sourceTable: string, sourceRowId: string, deadlineMs: number,
+  opts?: { tool?: string; log?: (level: string, msg: string) => Promise<void> | void },
 ): Promise<PollOutcome> {
   const deadline = Date.now() + deadlineMs;
   const intervalMs = sourceTable === "biometric_assessments" ? 2500 : 5000;
+  let resurrectAttempts = 0;
   while (Date.now() < deadline) {
     await new Promise(r => setTimeout(r, intervalMs));
     try {
@@ -1410,6 +1460,19 @@ async function pollGenerationRow(
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       }
 
+      // QB-P21 resurrection check — only for RESUMABLE_GENERATORS.
+      if (opts?.tool && RESUMABLE_GENERATORS.has(opts.tool)) {
+        const { data: meta } = await admin.from(sourceTable).select("updated_at").eq("id", sourceRowId).single();
+        const updatedAtIso = (meta as any)?.updated_at ?? null;
+        if (shouldResurrect({ tool: opts.tool, updatedAtIso, nowMs: Date.now(), attempts: resurrectAttempts })) {
+          resurrectAttempts++;
+          const staleS = updatedAtIso ? Math.round((Date.now() - Date.parse(updatedAtIso)) / 1000) : -1;
+          const res = await resurrectGenerator(opts.tool, sourceRowId);
+          const msg = `resurrecting ${opts.tool} chain, attempt ${resurrectAttempts} — stale ${staleS}s (${res.ok ? "dispatched" : "failed"}: ${res.detail})`;
+          if (opts.log) await opts.log(res.ok ? "info" : "warn", msg);
+          else console.warn(`[pollGenerationRow] ${msg}`);
+        }
+      }
     } catch (e) {
       // Transient read errors: keep polling until deadline.
       console.warn(`[pollGenerationRow] read failed for ${sourceTable}/${sourceRowId}:`, (e as Error).message);
@@ -2009,7 +2072,7 @@ async function runBatch(runId: string): Promise<void> {
 
         const remainingTotal = DOC_TOTAL_TIMEOUT_MS - (Date.now() - genStartedAt);
         const isolateBudget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, remainingTotal));
-        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget);
+        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, { tool, log });
 
         if (outcome.status === "deadline") {
           (state as any).pending_gen = {
@@ -2106,7 +2169,7 @@ async function runBatch(runId: string): Promise<void> {
               if (POLL_TOOLS.has(tool)) {
                 const d2 = await dispatchGeneration(admin, tool, intake, userId);
                 if (d2) {
-                  const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS);
+                  const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS, { tool, log });
                   if (outcome2.status === "complete") reportData2 = outcome2.reportData;
                 }
               } else {

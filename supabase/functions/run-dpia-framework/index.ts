@@ -677,7 +677,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "qbp19-cross-tool-transfer@2026-07-22T22:00:00Z";
+export const BUILD_STAMP = "qbp21-chain-resurrection@2026-07-23T00:15:00Z";
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -1398,21 +1398,43 @@ async function mergePreservingFail(
 // ─────────────────────────────────────────────────────────────────────────────
 // Self-reinvoke (mirrors run-quality-batch pattern; STOP-condition #1 CLEAR).
 // ─────────────────────────────────────────────────────────────────────────────
+// QB-P21: up to 2 retries with 2s / 8s backoff before giving up. On final
+// failure, mark the unit's _staging status as "error" with a last_error
+// string on the row so the stall is visible in data and item-2 (harness
+// resurrection) can pick it up. Do not otherwise change unit behavior.
 async function selfInvokeUnit(dpia_id: string, unit: UnitId): Promise<void> {
+  const backoffs = [0, 2_000, 8_000];
+  let lastErr = "";
+  for (let attempt = 0; attempt < backoffs.length; attempt++) {
+    if (backoffs[attempt] > 0) await new Promise((r) => setTimeout(r, backoffs[attempt]));
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/run-dpia-framework`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SERVICE_KEY}`,
+          "x-internal-unit": "1",
+        },
+        body: JSON.stringify({ dpia_id, unit }),
+        signal: AbortSignal.timeout(20_000),
+      });
+      if (r.ok) return;
+      lastErr = `HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`;
+      console.warn(`[run-dpia-framework] self-invoke unit=${unit} attempt=${attempt + 1} ${lastErr}`);
+    } catch (e) {
+      lastErr = (e as Error).message;
+      console.warn(`[run-dpia-framework] self-invoke unit=${unit} attempt=${attempt + 1} failed:`, lastErr);
+    }
+  }
+  // Final failure — record visibility on the row so item-2 can resurrect.
   try {
-    const r = await fetch(`${SUPABASE_URL}/functions/v1/run-dpia-framework`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${SERVICE_KEY}`,
-        "x-internal-unit": "1",
-      },
-      body: JSON.stringify({ dpia_id, unit }),
-      signal: AbortSignal.timeout(20_000),
+    await writeUnitStatus(dpia_id, unit, { status: "error", error: `self-invoke failed: ${lastErr}`.slice(0, 500) });
+    const row = await readRow(dpia_id);
+    await optimisticUpdate(dpia_id, row.updated_at, {
+      last_error: { unit, error: `self-invoke dispatch failed after retries: ${lastErr}`.slice(0, 500), at: new Date().toISOString() },
     });
-    if (!r.ok) console.warn(`[run-dpia-framework] self-invoke unit=${unit} HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
   } catch (e) {
-    console.warn(`[run-dpia-framework] self-invoke unit=${unit} failed:`, (e as Error).message);
+    console.error(`[run-dpia-framework] failed to record self-invoke failure for unit=${unit}:`, (e as Error).message);
   }
 }
 
