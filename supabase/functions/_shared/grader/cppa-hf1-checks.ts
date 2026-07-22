@@ -28,7 +28,7 @@ const fail = (
   severity: "high" | "medium" | "low", evidence: string,
 ): FormatFinding => ({
   check_id: id, check_type: "deterministic",
-  dimension: dim, severity, passed: false, evidence: evidence.slice(0, 400),
+  dimension: dim, severity, passed: false, evidence: evidence.slice(0, 1000),
 });
 
 // ── H1 ────────────────────────────────────────────────────────────────
