@@ -2539,7 +2539,7 @@ async function runBatch(runId: string): Promise<void> {
       gpt_only_count: gptOnlyTotal,
       conflict_count: conflictTotal,
     });
-    await log("success", `Run complete — overall ${overall}/100 (tuning ${overallTuning ?? "n/a"}/100, holdout ${overallHoldout ?? "n/a"}/100); ${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks`);
+    await log("success", `Run complete — overall ${overallDisplay}/100 (raw ${overallRaw.toFixed(2)}; tuning ${overallTuning ?? "n/a"}/100, holdout ${overallHoldout ?? "n/a"}/100); ${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks`);
 
     // Aggregate snapshot
     try {
