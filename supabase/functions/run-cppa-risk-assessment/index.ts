@@ -1156,6 +1156,26 @@ async function runPipeline(assessment_id: string) {
             notes: result.notes.slice(0, 40),
           }));
         }
+
+        // i3-EMITTER FIX — when the LLM asks about i3_ca_consumer_band but
+        // the intake already has the volume band answered, rewrite the ask
+        // to i3_ca_consumer_band_composition so open_items routes to
+        // structured (category mix), not the re-select band. Runs BEFORE
+        // freezeOpenItemsOnFirstRun so the rewrite lands in the frozen set.
+        // Historical (already-frozen) docs are unaffected.
+        if (Array.isArray(parsed?.information_needed)) {
+          const before = parsed.information_needed;
+          const after = rewriteI3CompositionAsks(before, intake);
+          if (after !== before) {
+            parsed.information_needed = after;
+            console.warn(JSON.stringify({
+              evt: "i3_composition_ask_rewritten",
+              fn: "run-cppa-risk-assessment",
+              count: (after as any[]).filter(
+                (e: any) => e?.field === "i3_ca_consumer_band_composition",
+              ).length,
+            }));
+          }
         // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
         logPostGenLint(supabase, {
           functionName: "run-cppa-risk-assessment",
