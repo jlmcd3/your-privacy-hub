@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Sparkles, Wrench, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { PRICING, PRICING_REGISTRY, INCLUDED_GENERATIONS_SHORT } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY } from "@/config/pricing";
 
 /**
  * /pricing — public pricing page.
@@ -127,8 +127,8 @@ export default function Pricing() {
             <p className="text-eyebrow text-brand-teal-on-navy mb-3">Pricing</p>
             <h1 className="text-white mb-4">Intelligence, Professional, or per-use.</h1>
             <p className="text-blue-100 max-w-2xl mx-auto">
-              Subscribe for the daily feed and weekly brief, add the client workspace with Professional, or buy any
-              compliance tool standalone. {INCLUDED_GENERATIONS_SHORT} in every tool run.
+              Subscribe for the daily feed and weekly brief, add the client workspace with Professional, or buy select
+              compliance tools standalone. 4 generations included for select tools.
             </p>
           </div>
         </section>
