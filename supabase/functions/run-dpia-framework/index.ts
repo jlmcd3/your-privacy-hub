@@ -1,6 +1,7 @@
 // qb9 dpia-r1b2.3 sectioned-generation (U1..U5 phase-fan-out; Amendments 1+2)
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
