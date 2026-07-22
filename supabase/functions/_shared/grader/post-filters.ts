@@ -41,6 +41,14 @@ const A3_WHITELIST_TOKENS = [
   /\ba8872a\b/i,
 ];
 
+// QB-P2 R-15C-2 — bracketed placeholder fill-in markers ("[TO BE COMPLETED …]",
+// "[TO BE ASSESSED …]", "[TO COMPLETE …]") are anti-fabrication scaffolding per
+// SHARED_GRADER_CONTEXT / GRADER-CAL-1 A4. Prompt-level rubric enforcement has
+// proven insufficient (run 75 dpa-generator: rubric_actionability fired on
+// placeholders despite the rule being in the rubric prompt since 2026-07-15).
+// Drop any LLM rubric finding whose evidence quotes one of these markers.
+const R15C2_PLACEHOLDER_RE = /\[TO\s+(?:BE\s+COMPLETED|BE\s+ASSESSED|COMPLETE)\b/i;
+
 // A4 — Emit-guard. Suppress "findings" the model returns that in fact affirm
 // the document was correct ("This citation is correct", "the report properly
 // cites", "no issue found"). These are noise, not defects.
@@ -71,8 +79,8 @@ function evidenceOf(f: LlmFinding): string {
  */
 export function applyGraderCal1Filter(
   findings: LlmFinding[],
-): { kept: LlmFinding[]; dropped: { a2: number; a3: number; a4: number } } {
-  const dropped = { a2: 0, a3: 0, a4: 0 };
+): { kept: LlmFinding[]; dropped: { a2: number; a3: number; a4: number; r15c2: number } } {
+  const dropped = { a2: 0, a3: 0, a4: 0, r15c2: 0 };
   const kept: LlmFinding[] = [];
   for (const f of findings ?? []) {
     if (!f || typeof f !== "object") continue;
@@ -99,6 +107,17 @@ export function applyGraderCal1Filter(
       if ((dim === "citation" || dim === "hallucination") &&
           A3_WHITELIST_TOKENS.some((r) => r.test(ev))) {
         dropped.a3++;
+        continue;
+      }
+      // QB-P2 R-15C-2 — bracketed placeholder markers are anti-fabrication
+      // scaffolding, never a defect. Applies to any LLM rubric finding
+      // (both graders) whose evidence quotes one of these markers. Log the
+      // drop with the check_id so telemetry can surface which rubric line
+      // was overzealous.
+      if (typeof f.check_id === "string" && f.check_id.startsWith("rubric_") &&
+          R15C2_PLACEHOLDER_RE.test(ev)) {
+        console.log(`[grader-postfilter] R-15C-2 drop: ${f.check_id} evidence matched placeholder marker`);
+        dropped.r15c2++;
         continue;
       }
     }
