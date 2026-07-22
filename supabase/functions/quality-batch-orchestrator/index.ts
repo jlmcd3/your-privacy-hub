@@ -81,6 +81,10 @@ export const RUN_QUALITY_BATCH_SLUGS = new Set<string>([
   "cppa-admt", "cppa-risk", "cppa-cyber",
   "governance", "dpia", "lia",
   "dpa-generator", "ir-playbook", "biometric-checker",
+  // QB-P10 — registration slug added so campaign_tick can dispatch it.
+  // run-quality-batch already lists "registration" in POLL_TOOLS and provides
+  // an intake description; no other special-casing.
+  "registration",
 ]);
 
 // Terminal statuses written by run-quality-batch's runBatch. Extracted verbatim

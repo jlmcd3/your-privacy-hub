@@ -932,10 +932,10 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   }
   const w = weightsFor(tool);
   const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
-  return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [] };
+  return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number } }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -972,7 +972,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
         const meta = rubricMeta.get(f.check_id)!;
         return { check_id: f.check_id, dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null };
       });
-    return { eval: parsed };
+    return { eval: parsed, postFilterDropped: gptDropped };
   } catch (e) {
     return { eval: null, error: (e as Error).message };
   }
@@ -1524,10 +1524,14 @@ type PartialState = {
   holdoutBuilt: number;
   allDocFindings: any[];
   logBuf: Array<{ t: string; level: string; msg: string }>;
+  // QB-P10 — cumulative post-filter drop counters, per grader, per rule.
+  claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
+  gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
 };
 
 function emptyState(): PartialState {
   const zeroDims = () => ({ accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 });
+  const zeroDrops = () => ({ a2: 0, a3: 0, a4: 0, r15c2: 0 });
   return {
     dimTotals: zeroDims(),
     gptTotals: zeroDims(),
@@ -1539,6 +1543,8 @@ function emptyState(): PartialState {
     holdoutBuilt: 0,
     allDocFindings: [],
     logBuf: [],
+    claudePostFilterDrops: zeroDrops(),
+    gptPostFilterDrops: zeroDrops(),
   };
 }
 
@@ -2057,6 +2063,22 @@ async function runBatch(runId: string): Promise<void> {
       if (scenarioSet === "tuning")  state.tuningBuilt++;
       if (scenarioSet === "holdout") state.holdoutBuilt++;
 
+      // QB-P10 — accumulate per-grader post-filter drop counts for the digest.
+      const cd = (claudeEval as any)?.post_filter_dropped;
+      if (cd) {
+        state.claudePostFilterDrops.a2 += cd.a2 ?? 0;
+        state.claudePostFilterDrops.a3 += cd.a3 ?? 0;
+        state.claudePostFilterDrops.a4 += cd.a4 ?? 0;
+        state.claudePostFilterDrops.r15c2 += cd.r15c2 ?? 0;
+      }
+      const gd = (gptResult as any)?.postFilterDropped;
+      if (gd) {
+        state.gptPostFilterDrops.a2 += gd.a2 ?? 0;
+        state.gptPostFilterDrops.a3 += gd.a3 ?? 0;
+        state.gptPostFilterDrops.a4 += gd.a4 ?? 0;
+        state.gptPostFilterDrops.r15c2 += gd.r15c2 ?? 0;
+      }
+
       const crossStatus = !gptEval ? "gpt_failed" : "complete";
 
       // Persist a lightweight cross-review summary (deterministic, no LLM payload).
@@ -2459,10 +2481,14 @@ async function runBatch(runId: string): Promise<void> {
           check_id: f.check_id, severity: f.severity ?? null, dimension: f.dimension ?? null,
           cross_category: f.cross_category ?? null,
         }));
-        // Post-filter drop counts (a4 + siblings): the run-quality-batch
-        // grader post-filters don't yet expose a per-run counter; record the
-        // basis so downstream can see it's the estimate track.
-        const postFilterDrops = { basis: "not_recorded_v1", a4: null, siblings: null };
+        // QB-P10 — real per-grader post-filter drop counts, threaded from
+        // applyGraderCal1Filter via evaluateDocumentClaude / evaluateDocumentGPT
+        // and accumulated across every doc in this run.
+        const postFilterDrops = {
+          basis: "recorded_v1",
+          claude: state.claudePostFilterDrops,
+          gpt: state.gptPostFilterDrops,
+        };
         // Token estimation basis — Claude only, per orchestrator constant.
         const est = {
           docs: state.built,
