@@ -410,7 +410,7 @@ async function runUnit(runId: string) {
         // Heartbeat between staggers so the wave-in-progress isn't itself
         // reaped by any batch-level watchdog.
         await heartbeat(runId);
-        const inv = await seedAndResume(tool, (run as any).batch_size, (run as any).created_by);
+        const inv = await seedAndResume(tool, (run as any).batch_size, (run as any).created_by, (run as any).campaign_id ?? null);
         if (!inv.ok) {
           results.push({
             tool, quality_run_id: null, run_number: null,
