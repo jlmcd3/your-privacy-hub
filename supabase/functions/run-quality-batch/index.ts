@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp15-product-prompts@2026-07-22T18:00:00Z";
+export const BUILD_STAMP = "qbp17-measurement-integrity@2026-07-22T20:15:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -903,6 +903,15 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
   }
 
+  // QB-P17 item 1 — PARSE-FAILURE QUARANTINE. If Claude returned nothing
+  // parseable, do NOT synthesize an all-60s eval — that made infrastructure
+  // failure indistinguishable from product regression. Signal the caller so
+  // the doc is marked eval_failed and excluded from aggregates + stop-rule.
+  if (!claudeResult || typeof claudeResult !== "object" || !claudeResult.dimension_scores) {
+    console.warn(`[run-quality-batch] eval_failed tool=${tool} — Claude result null/unparseable`);
+    return null;
+  }
+
   // F2: unified `findings` (no more llm_findings); enforce fixed ids
   const rawLlmFindings: any[] = claudeResult?.findings ?? claudeResult?.llm_findings ?? [];
   // GRADER-CAL-1 A2/A3/A4 — drop NOTE-block leaks, whitelisted authorities,
@@ -910,8 +919,8 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   // QB-P14 item 4 — `suppressed` carries the dropped findings' evidence
   // (first 300 chars) so the caller can log an audit trail.
   const { kept: filteredRaw, dropped: cal1Dropped, suppressed: cal1Suppressed } = applyGraderCal1Filter(rawLlmFindings as any);
-  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4 || cal1Dropped.r15c2) {
-    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2}`);
+  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4 || cal1Dropped.r15c2 || cal1Dropped.dpa_defaults) {
+    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2} dpa_defaults=${cal1Dropped.dpa_defaults}`);
   }
 
   const llmFindings = filteredRaw
@@ -936,8 +945,11 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
     }
   }
   const w = weightsFor(tool);
-  const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
-  return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
+  // QB-P17 item 2 — keep the unrounded weighted score for gate comparisons.
+  // overall_score_display is the human-facing rounded copy.
+  const overall_raw = scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting;
+  const overall = Math.round(overall_raw);
+  return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
 }
 
 async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number } }> {
