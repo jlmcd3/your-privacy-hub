@@ -152,23 +152,15 @@ function pickInputSpec(toolType: string, field: string): OpenItemInputSpec {
   if (tClass) {
     return { kind: "re-select", enum_ref: tClass.enum_ref };
   }
-const N_CLASS_HINTS: Record<string, Set<string>> = {
-  cppa_risk_assessment: new Set([
-    "activity_details", "activity_description", "exceptions",
-    "org_context", "content_detail", "cybersecurity_audit_rationale",
-  ]),
-};
-
-// Per-tool per-field input-spec dispatch. Small, safe defaults; extend via
-// T_CLASS_FIELDS as UX-1 enums grow. NEVER emit `re-select` for a field
-// without a registered enum_ref — the refine surface would render a broken
-// select with no options.
-function pickInputSpec(toolType: string, field: string): OpenItemInputSpec {
-  const f = String(field || "").trim();
-  const tClass = T_CLASS_FIELDS[toolType]?.[f];
-  if (tClass) {
-    return { kind: "re-select", enum_ref: tClass.enum_ref };
-  }
+  // N-class aggregate/narrative fields — always bounded-narrative (or structured
+  // if the intake actually stores an object/array). Everything not matched
+  // above falls through the heuristics below.
+  const N_CLASS_HINTS: Record<string, Set<string>> = {
+    cppa_risk_assessment: new Set([
+      "activity_details", "activity_description", "exceptions",
+      "org_context", "content_detail", "cybersecurity_audit_rationale",
+    ]),
+  };
   // Legacy heuristic: intake enum fields that carry the standard qN_/sector/
   // jurisdictions naming AND that we haven't registered yet still get
   // re-select with a computed enum_ref (safe when the enum is added later).
