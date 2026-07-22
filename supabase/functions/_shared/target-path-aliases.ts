@@ -147,3 +147,60 @@ export function candidateTargetPaths(toolType: string, targetPath: string): stri
   }
   return out;
 }
+
+// W3-VENDOR-2 (2026-07-22) — PROSE-TARGET RESOLUTION.
+//
+// buildOpenItems freezes `target.path` from the model's `information_needed[].field`
+// verbatim. When the model authored that field as a PROSE PHRASE ("the vendor
+// roster") instead of the structured intake key ("i6_vendors"), the frozen
+// target.path was prose and every downstream consumer (prompt allowlist echo,
+// qc_rc_2 verdict-consistency, CHECK-A) treated it as literal — producing an
+// empty candidate set and rejecting every revision that resolved the item as
+// `revision_hollow_resolution`. Ref: Wave-1 doc 6b206788… run 05:16:07Z.
+//
+// The subsequent regeneration re-wrote information_needed with the correct
+// structured field ("i6_vendors") plus `source_fields: ["i6_vendors"]`, but
+// the frozen open_item's target.path could not be rewritten (open_items are
+// frozen after first-gen and must not be reshaped by revisions).
+//
+// This helper resolves an EFFECTIVE target path a revision may treat as the
+// authorised write anchor. Precedence (strict, deterministic — no wildcards):
+//   1. rawPath — if it matches a TARGET_PATH_ALIASES key for this tool, OR
+//      contains dot/bracket notation (structural), keep it. This is the
+//      current-behavior branch: structured targets are unchanged.
+//   2. sourceFields — the first entry that has a TARGET_PATH_ALIASES key for
+//      this tool wins. Otherwise, the first non-empty entry wins.
+//   3. rawPath — unchanged fallback (prose path with no source_fields; the
+//      revision will still route through the existing prose-path branches
+//      and RC-2 will fire as today).
+//
+// This does NOT weaken CHECK-A: the effective path is only ever substituted
+// for the RAW prose path when the caller supplies concrete source_fields
+// derived from information_needed. Structural (dotted/bracketed) target paths
+// are returned as-is, and the union of authorised paths still runs through
+// candidateTargetPaths → alias map with no substring/suffix inference.
+export function resolveEffectiveTargetPath(
+  toolType: string,
+  rawPath: string,
+  sourceFields?: readonly string[] | null,
+): string {
+  const map = TARGET_PATH_ALIASES[toolType] ?? {};
+  const raw = String(rawPath ?? "");
+  if (!raw) return raw;
+  // Rule 1: structural OR already-known alias key → keep raw.
+  if (map[raw]) return raw;
+  if (/[.\[]/.test(raw)) return raw;
+  // Rule 2: consult source_fields when provided.
+  if (Array.isArray(sourceFields) && sourceFields.length > 0) {
+    const aliased = sourceFields.find(
+      (f): f is string => typeof f === "string" && !!map[f],
+    );
+    if (aliased) return aliased;
+    const first = sourceFields.find(
+      (f): f is string => typeof f === "string" && f.trim().length > 0,
+    );
+    if (first) return first;
+  }
+  // Rule 3: unchanged fallback.
+  return raw;
+}
