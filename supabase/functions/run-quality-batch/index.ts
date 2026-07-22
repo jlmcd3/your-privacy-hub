@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp20-structural-test-design@2026-07-22T23:00:00Z";
+export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -1050,7 +1050,33 @@ type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
 // list, and the substring list wrongly rejected four contract-legal options
 // ("Other US state", "United States — Federal (FTC)", "Canada (PIPEDA /
 // provincial)", "Australia (Privacy Act)").
-const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {};
+const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
+  // QB-P22 item 1 — DETERMINISTIC IR RECENCY. Batch d7cd2ff0's ir-playbook
+  // fixture carried discoveryDateTime 2025-07-17 (a year old — the prompt-level
+  // 7-day recency rule slipped a year), cascading into temporal-regime
+  // confusion and a 92→81 score. Reject any intake whose discoveryDateTime is
+  // more than 30 days before now or in the future; the caller regenerates once
+  // then rejects (same retry pattern as other validation failures).
+  "ir-playbook": (intake: any) => {
+    const iso = intake?.discoveryDateTime;
+    if (typeof iso !== "string" || !iso.trim()) {
+      return { ok: false, reason: "ir-playbook.discoveryDateTime missing" };
+    }
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) {
+      return { ok: false, reason: `ir-playbook.discoveryDateTime not a valid ISO date-time: ${iso}` };
+    }
+    const now = Date.now();
+    const maxPastMs = 30 * 24 * 60 * 60 * 1000;
+    if (t > now) {
+      return { ok: false, reason: `ir-playbook.discoveryDateTime is in the future: ${iso}` };
+    }
+    if (now - t > maxPastMs) {
+      return { ok: false, reason: `ir-playbook.discoveryDateTime more than 30 days old: ${iso} (age ${Math.round((now - t) / 86_400_000)} days)` };
+    }
+    return { ok: true };
+  },
+};
 function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
   // Contract check (if any) runs first — it's the machine-derived source of
   // truth. Extra per-tool rules run afterward and can only tighten, never
@@ -1131,7 +1157,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.
 
 (a) NAMED-OBJECT DENSITY — every narrative or free-text field must name concrete objects: real-sounding systems and vendors, officers with role titles and plausible names, datasets, cadences, and figures, so a downstream generator can tie every recommendation to a named intake fact.
-(b) CROSS-FIELD COHERENCE — narratives must agree with the enum answers, sector, jurisdictions, and volumes; no contradictions between fields.
+(b) CROSS-FIELD COHERENCE — narratives must agree with the enum answers, sector, jurisdictions, and volumes; no contradictions between fields. (QB-P22 item 3) Every list-field entry names exactly ONE product/tool/vendor — NEVER slash-alternatives ("Otter.ai / Fireflies"), NEVER "X or Y". Ambiguous alternatives get treated by downstream generators as multiple vendors and produce vendor-count hallucinations. If two products are actually in use, emit them as two separate array entries.
 (c) TEMPORAL COHERENCE — all dates recent and mutually consistent.
 (d) BUSINESS-FACTS-ONLY — fixture text states facts about the business, never propositions of law (no adequacy claims, no statutory interpretations, no SCC-module or section assertions), except where a tool's scenario guidance explicitly mandates specific legal phrasing.
 (e) NAME VARIETY — vary company names across scenarios and chunks; never reuse the same base name (e.g. "Meridian") across scenarios.`;
