@@ -2232,7 +2232,8 @@ async function runBatch(runId: string): Promise<void> {
       const passed   = findings.filter(f => f.passed).length;
       const failed   = findings.filter(f => !f.passed).length;
       const failRate = findings.length ? failed / findings.length : 0;
-      const evidence = findings.filter(f => !f.passed && f.evidence).map(f => f.evidence).slice(0, 3);
+      // QB-P5 Item 5(a) — cap raised 3→10 so fail_count>3 rows retain full sample_evidence.
+      const evidence = findings.filter(f => !f.passed && f.evidence).map(f => f.evidence).slice(0, 10);
       const first    = findings[0];
 
       const tuningFindings  = findings.filter(f => f.scenario_set === "tuning");
