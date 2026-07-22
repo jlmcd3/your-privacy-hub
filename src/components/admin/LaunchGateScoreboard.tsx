@@ -69,6 +69,11 @@ function GateRow({ row, medianLast3, certified }: { row: ToolGateRow; medianLast
             GATE MET
           </Badge>
         )}
+        {certified && (
+          <Badge variant="outline" className="h-5 text-[10px]" title="Retired by campaign — reason=certified">
+            CERTIFIED
+          </Badge>
+        )}
         <div className="ml-auto flex items-center gap-3 text-xs">
           <span className="font-mono" title="Option-A basis (RUN 4 forward)">
             streak {row.streak}/{GATE_TARGET_STREAK}
