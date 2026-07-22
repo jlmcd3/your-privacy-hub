@@ -171,20 +171,31 @@ Deno.serve(async (req) => {
           representative_required: obligations.includes("eu_representative")
             ? true
             : (obligations.includes("uk_representative") ? true : false),
-          filing_fee_cents: r?.filing_fee_cents ?? null,
+          filing_fee_cents: (() => {
+            // QB-P22 item 5a — resolve ICO tier deterministically from intake.
+            const isIcoUk = j.code === "GB" || j.code === "UK" ||
+              (r?.authority_name ?? "").toLowerCase().includes("ico") ||
+              (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
+            if (!isIcoUk) return r?.filing_fee_cents ?? null;
+            const tier = resolveIcoFeeTier(intake);
+            return tier.fee_cents ?? r?.filing_fee_cents ?? null;
+          })(),
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: (() => {
             const leadNote = "This jurisdiction serves as the organisation's lead supervisory authority under the GDPR one-stop-shop mechanism.";
             const baseNotes = r?.notes ?? null;
             const existing = wasLeadAuthority ? (baseNotes ? `${baseNotes} ${leadNote}` : leadNote) : baseNotes;
-            // QB9-9: ICO fee-tier caveat for UK entries with a base-tier fee.
+            // QB-P22 item 5a — replace generic ICO fee caveat with the resolved tier + basis;
+            // keep a confirm note ONLY when the intake straddles a boundary.
             const isIcoUk = j.code === "GB" || j.code === "UK" ||
               (r?.authority_name ?? "").toLowerCase().includes("ico") ||
               (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
-            const feePresent = (r?.filing_fee_cents ?? null) != null;
-            const icoNote = "The filing fee shown is indicative; the applicable ICO fee tier depends on the organisation's staff count and turnover — Tier 1 (micro: turnover ≤£632K OR ≤10 staff), Tier 2 (small/medium: turnover ≤£36M OR ≤250 staff, not qualifying for Tier 1), Tier 3 (large: BOTH turnover exceeding £36M AND more than 250 staff). Confirm the tier and current amount with the ICO's fee self-assessment before filing.";
-            if (isIcoUk && feePresent) {
+            if (isIcoUk) {
+              const tier = resolveIcoFeeTier(intake);
+              const parts = [tier.narrative];
+              if (tier.boundary) parts.push("Confirm the tier with the ICO fee self-assessment before filing (the intake sits near a tier boundary).");
+              const icoNote = parts.join(" ");
               return existing ? `${existing} ${icoNote}` : icoNote;
             }
             return existing;
