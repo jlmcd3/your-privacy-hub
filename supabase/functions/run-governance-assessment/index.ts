@@ -1,6 +1,7 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
 // doc-y-6 build marker (Y-6: Art. 39(1)(b) canonical-wording gloss correction, hasEuUk-gated)
 const DOC_Y_BUILD_MARKER = "doc-y-6";
