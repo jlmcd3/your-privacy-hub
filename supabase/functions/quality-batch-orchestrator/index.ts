@@ -453,7 +453,7 @@ async function runUnit(runId: string) {
         const tool = d.tools[i];
         if (i > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
         await heartbeat(runId);
-        const size = Math.max(1, Number(toolStateForBatch[tool]?.batch_size ?? (run as any).batch_size ?? 3));
+        const size = resolveToolBatchSize(tool, toolStateForBatch, (run as any).batch_size);
         perToolSizes[tool] = size;
         const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch);
         if (!inv.ok) {
