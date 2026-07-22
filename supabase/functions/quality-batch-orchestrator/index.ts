@@ -33,7 +33,7 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "qbp11-campaign-cron-auth@2026-07-22";
+export const BUILD_STAMP = "qbp13-stop-rule+resurrect@2026-07-22";
 
 // QB-P9 — Campaign mode constants.
 // Anthropic Claude Sonnet spend estimate basis (per doc, single run):
@@ -241,23 +241,31 @@ export function decide(
 
 // QB-P9 — pure stop-rule reducer. Given the current tool_state and the
 // score of a just-completed campaign child run, return the updated state.
-// - runs_completed always increments.
+// QB-P13 changes:
+//   (a) When claudeOverall is null (errored/stalled — no grading occurred),
+//       DO NOT increment runs_completed. Failed runs must not consume the
+//       tool's authorized run budget. Streak still resets.
+//   (b) Honor per-tool tool_state.max_runs; fall back to CAMPAIGN_MAX_RUNS
+//       only when the per-tool value is absent.
 // - consecutive_ge98 increments when claude overall >= 98, else resets to 0.
 // - retire with 'certified' when the streak reaches CAMPAIGN_CERTIFIED_STREAK.
-// - retire with 'max_runs' when runs_completed reaches CAMPAIGN_MAX_RUNS.
+// - retire with 'max_runs' when runs_completed reaches the effective cap.
 // Retirement is sticky: once inactive, subsequent calls are no-ops.
 export function applyStopRule(
   prev: CampaignToolState,
   claudeOverall: number | null,
 ): CampaignToolState {
   if (!prev.active) return prev;
-  const runs_completed = prev.runs_completed + 1;
-  const passed = typeof claudeOverall === "number" && claudeOverall >= 98;
+  const graded = typeof claudeOverall === "number";
+  const runs_completed = graded ? prev.runs_completed + 1 : prev.runs_completed;
+  const passed = graded && (claudeOverall as number) >= 98;
   const consecutive_ge98 = passed ? prev.consecutive_ge98 + 1 : 0;
+  const effectiveMax =
+    typeof prev.max_runs === "number" && prev.max_runs > 0 ? prev.max_runs : CAMPAIGN_MAX_RUNS;
   if (consecutive_ge98 >= CAMPAIGN_CERTIFIED_STREAK) {
     return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "certified" };
   }
-  if (runs_completed >= CAMPAIGN_MAX_RUNS) {
+  if (runs_completed >= effectiveMax) {
     return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "max_runs" };
   }
   return { ...prev, runs_completed, consecutive_ge98 };
@@ -694,13 +702,25 @@ export type CampaignTickDecision =
   | { kind: "budget_paused" }
   | { kind: "status_noop"; status: string }
   | { kind: "wave_in_flight" }
+  | { kind: "resurrect"; batchId: string }
   | { kind: "interval_wait" }
   | { kind: "complete" }
   | { kind: "start_wave" };
 
+// QB-P13 — stale-inflight resurrection threshold. If the campaign's live
+// batch has not updated in > 10 minutes, its self-invoke chain is dead;
+// campaignTick fires runUnit(batchId) so the child-stall wedge guard runs.
+export const INFLIGHT_STALE_MS = 10 * 60_000;
+
 export function decideCampaignTick(
   campaign: CampaignRowLite | null,
-  ctx: { hasInflight: boolean; nowMs: number },
+  ctx: {
+    hasInflight: boolean;
+    nowMs: number;
+    // QB-P13 — optional in-flight batch metadata for resurrection.
+    inflightBatchId?: string | null;
+    inflightUpdatedAtMs?: number | null;
+  },
 ): CampaignTickDecision {
   if (!campaign) return { kind: "no_campaign" };
   const cap = campaign.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
@@ -708,7 +728,14 @@ export function decideCampaignTick(
     return { kind: "budget_paused" };
   }
   if (campaign.status !== "active") return { kind: "status_noop", status: campaign.status };
-  if (ctx.hasInflight) return { kind: "wave_in_flight" };
+  if (ctx.hasInflight) {
+    const upd = ctx.inflightUpdatedAtMs ?? null;
+    const id = ctx.inflightBatchId ?? null;
+    if (id && upd !== null && ctx.nowMs - upd > INFLIGHT_STALE_MS) {
+      return { kind: "resurrect", batchId: id };
+    }
+    return { kind: "wave_in_flight" };
+  }
   const intervalMs = (campaign.wave_interval_minutes ?? 360) * 60_000;
   const lastMs = campaign.last_wave_started_at ? new Date(campaign.last_wave_started_at).getTime() : 0;
   if (lastMs && ctx.nowMs - lastMs < intervalMs) return { kind: "interval_wait" };
@@ -722,15 +749,28 @@ async function campaignTick(): Promise<{ ok: true; action: string; detail?: unkn
   const db = admin();
 
   let hasInflight = false;
+  let inflightBatchId: string | null = null;
+  let inflightUpdatedAtMs: number | null = null;
   if (campaign) {
+    // QB-P13 — fetch updated_at + last_heartbeat_at so we can resurrect a
+    // batch whose self-invoke chain died mid-flight.
     const { data: inflight } = await db.from("quality_batch_runs")
-      .select("id, status").eq("campaign_id", campaign.id)
-      .not("status", "in", "(complete,failed,cancelled)").limit(1);
-    hasInflight = (inflight ?? []).length > 0;
+      .select("id, status, updated_at, last_heartbeat_at")
+      .eq("campaign_id", campaign.id)
+      .not("status", "in", "(complete,failed,cancelled)")
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    const row = (inflight ?? [])[0] as any;
+    if (row) {
+      hasInflight = true;
+      inflightBatchId = row.id as string;
+      const hbIso = row.last_heartbeat_at ?? row.updated_at ?? null;
+      inflightUpdatedAtMs = hbIso ? new Date(hbIso).getTime() : null;
+    }
   }
 
   const decision = decideCampaignTick(campaign as CampaignRowLite | null, {
-    hasInflight, nowMs: Date.now(),
+    hasInflight, nowMs: Date.now(), inflightBatchId, inflightUpdatedAtMs,
   });
 
   switch (decision.kind) {
@@ -743,6 +783,16 @@ async function campaignTick(): Promise<{ ok: true; action: string; detail?: unkn
     }
     case "status_noop": return { ok: true, action: `status_${decision.status}` };
     case "wave_in_flight": return { ok: true, action: "wave_in_flight" };
+    case "resurrect": {
+      // QB-P13 — self-invoke chain for the campaign batch died; drive one
+      // unit here so decide() runs, stale children hit CHILD_STALL_MS, and
+      // the wave advances. runUnit is idempotent.
+      await logCampaign(campaign!.id, `In-flight batch ${decision.batchId} stale > ${INFLIGHT_STALE_MS / 60000}min — resurrecting`, "warn");
+      // @ts-ignore
+      EdgeRuntime.waitUntil(runUnit(decision.batchId).catch((e) =>
+        console.error("[qb-orchestrator] resurrect runUnit error", e)));
+      return { ok: true, action: "resurrect", detail: { batchId: decision.batchId } };
+    }
     case "interval_wait": return { ok: true, action: "interval_wait" };
     case "complete": {
       await db.from("quality_campaigns")
