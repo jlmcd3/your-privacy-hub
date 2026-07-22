@@ -20,6 +20,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Supabase Edge Runtime host-provided global (waitUntil for background work).
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
+
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,30 +96,49 @@ Deno.serve(async (req) => {
   const new_id = (inserted as any).id as string;
 
   const runner = RUNNER_FOR[tool_type];
-  let invokeStatus = 0, invokeText = "";
-  try {
-    const r = await fetch(`${SUPABASE_URL}/functions/v1/${runner.name}`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${SERVICE_ROLE}`,
-        "apikey": SERVICE_ROLE,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(runner.body(new_id)),
+  // Fire-and-forget: the runner can take 2+ minutes (Anthropic generation +
+  // retries). Awaiting its response blocks the seed's HTTP reply past the
+  // browser/gateway timeout and surfaces as "Edge Function returned a non-2xx
+  // status code" client-side. Dispatch via EdgeRuntime.waitUntil so the
+  // outbound request survives after we return 202 to the admin UI, which
+  // then polls list mode.
+  const dispatch = fetch(`${SUPABASE_URL}/functions/v1/${runner.name}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SERVICE_ROLE}`,
+      "apikey": SERVICE_ROLE,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(runner.body(new_id)),
+  })
+    .then(async (r) => {
+      const text = (await r.text()).slice(0, 400);
+      console.log(JSON.stringify({
+        evt: "seed_runner_dispatched",
+        tool_type, assessment_id: new_id, runner: runner.name,
+        status: r.status, body: text,
+      }));
+    })
+    .catch((e) => {
+      console.error(JSON.stringify({
+        evt: "seed_runner_dispatch_failed",
+        tool_type, assessment_id: new_id, runner: runner.name,
+        error: e instanceof Error ? e.message : String(e),
+      }));
     });
-    invokeStatus = r.status;
-    invokeText = (await r.text()).slice(0, 400);
-  } catch (e) {
-    return json({ ok: true, assessment_id: new_id, warn: "runner_invoke_failed", detail: (e as Error).message }, 200);
-  }
 
-  return json({
+  try { EdgeRuntime.waitUntil(dispatch); } catch { /* runtime missing waitUntil — fetch already in-flight */ }
+
+  return new Response(JSON.stringify({
     ok: true,
     tool_type,
     assessment_id: new_id,
     fixture_id: fix.fixture_id,
     runner: runner.name,
-    runner_status: invokeStatus,
-    runner_text: invokeText,
+    dispatched: true,
+  }), {
+    status: 202,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
+
