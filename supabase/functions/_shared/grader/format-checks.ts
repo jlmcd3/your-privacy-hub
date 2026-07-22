@@ -409,11 +409,37 @@ function computeDisclaimerZones(text: string): {
   return { active: true, preambleEnd, closingStart };
 }
 
-function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp } = {}): FormatFinding[] {
+function normalizeForRosterMatch(s: string): string {
+  return (s ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+// QB-P5 Item 4 — DIRECTIVE-verb detector reused for the intake-echo carve-out
+// below. A model-added counsel-referral directive ("consult legal counsel",
+// "review with outside counsel", "engage external counsel") MUST still fail
+// even if part of the sentence matches an intake roster string. The check is
+// only relaxed when the sentence is a pure echo of intake roster content.
+const INTAKE_ECHO_DIRECTIVE_RE =
+  /\b(?:consult|engage|retain|escalate to|refer to|obtain (?:advice|guidance) from|review with|seek (?:advice|guidance) from|should\s+(?:consult|engage|retain|review))\b/i;
+
+function checkE6(
+  text: string,
+  dim = "hallucination",
+  opts: { exemptRe?: RegExp; intakeRoster?: string } = {},
+): FormatFinding[] {
   const findings: FormatFinding[] = [];
   const doc = text ?? "";
   const sentences = splitSentences(doc);
   const zones = computeDisclaimerZones(doc);
+  // QB-P5 Item 4 — pre-normalize the intake roster once so we can substring-
+  // match sentences against it in O(1) per sentence. When intake supplies a
+  // roster string like "Legal Counsel (external, Kanzlei Berger & Stein)"
+  // and the report echoes that verbatim, the sentence is not a model-added
+  // counsel referral and must not fail e6. Model-added advice-delegation
+  // directives ("consult legal counsel", "engage outside counsel") continue
+  // to fail even when part of the sentence overlaps roster text.
+  const intakeRosterNorm = opts.intakeRoster
+    ? normalizeForRosterMatch(opts.intakeRoster)
+    : "";
   let hits = 0;
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
@@ -424,6 +450,16 @@ function checkE6(text: string, dim = "hallucination", opts: { exemptRe?: RegExp 
       if (zones.active && OWNERSHIP_DISCLAIMER_RE.test(s)) {
         const pos = doc.indexOf(s);
         if (pos >= 0 && (pos < zones.preambleEnd || pos >= zones.closingStart)) {
+          continue;
+        }
+      }
+      // QB-P5 Item 4 — intake-echo carve-out. Skip when the sentence
+      // (normalized) is a substring of the intake roster AND does not
+      // itself contain a model-added counsel-referral directive verb.
+      if (intakeRosterNorm) {
+        const sNorm = normalizeForRosterMatch(s);
+        if (sNorm.length >= 20 && intakeRosterNorm.includes(sNorm) &&
+            !INTAKE_ECHO_DIRECTIVE_RE.test(s)) {
           continue;
         }
       }
