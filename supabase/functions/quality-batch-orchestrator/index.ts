@@ -619,9 +619,22 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
   const batchSize = Math.max(...eligible.map((t) => toolState[t].batch_size ?? 3));
   const concurrency = clampConcurrency(campaign.concurrency ?? DEFAULT_CONCURRENCY);
   const db = admin();
+  let createdBy = campaign.created_by as string | null;
+  if (!createdBy) {
+    const { data: adminRole, error: ownerErr } = await db.from("user_roles")
+      .select("user_id")
+      .eq("role", "admin")
+      .limit(1)
+      .maybeSingle();
+    createdBy = (adminRole as { user_id?: string } | null)?.user_id ?? null;
+    if (ownerErr || !createdBy) {
+      await logCampaign(campaign.id, `Wave insert failed: no admin owner available${ownerErr?.message ? ` (${ownerErr.message})` : ""}`, "error");
+      return { started: false, reason: "no_admin_owner" };
+    }
+  }
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
-    current_tool_index: 0, tool_results: [], created_by: campaign.created_by,
+    current_tool_index: 0, tool_results: [], created_by: createdBy,
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency,
     campaign_id: campaign.id,
