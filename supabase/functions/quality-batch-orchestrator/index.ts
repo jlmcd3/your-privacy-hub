@@ -866,6 +866,23 @@ Deno.serve(async (req) => {
     return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
   }
 
+  if (body?.action === "kick" && body?.run_id) {
+    // Admin-visible refresh/recovery path for a running batch whose self-chain
+    // died after children completed. runUnit is idempotent: it reloads the row,
+    // records terminal children, advances the next wave, or finalizes.
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runUnit(body.run_id).catch(async (e) => {
+      console.error("[qb-orchestrator] admin kick error", e);
+      try {
+        await admin().from("quality_batch_log").insert({
+          run_id: body.run_id, level: "error",
+          message: `Admin kick error: ${(e as Error).message}`.slice(0, 500),
+        });
+      } catch { /* */ }
+    }));
+    return json({ ok: true, action: "kick", build_stamp: BUILD_STAMP }, 202);
+  }
+
   if (body?.run_id) {
     const { data } = await admin().from("quality_batch_runs").select("*").eq("id", body.run_id).maybeSingle();
     return json({ run: data, build_stamp: BUILD_STAMP });

@@ -19,11 +19,12 @@ import {
 } from "../quality-batch-orchestrator/index.ts";
 
 
-Deno.test("slug set matches the nine run-quality-batch slugs exactly", () => {
+Deno.test("slug set matches the run-quality-batch slugs exactly", () => {
   const expected = new Set([
     "cppa-admt", "cppa-risk", "cppa-cyber",
     "governance", "dpia", "lia",
     "dpa-generator", "ir-playbook", "biometric-checker",
+    "registration",
   ]);
   assertEquals(RUN_QUALITY_BATCH_SLUGS.size, expected.size);
   for (const s of expected) assert(RUN_QUALITY_BATCH_SLUGS.has(s), `missing ${s}`);

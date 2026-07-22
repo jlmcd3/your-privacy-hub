@@ -34,6 +34,7 @@ const TOOLS = [
   "dpa-generator",
   "ir-playbook",
   "biometric-checker",
+  "registration",
 ];
 
 type LogEntry = { t?: string; level?: string; msg?: string; [k: string]: unknown };
@@ -52,6 +53,7 @@ type QRun = {
   cross_review_complete: boolean | null;
   error: string | null;
   started_at: string;
+  last_heartbeat_at: string | null;
   completed_at: string | null;
   progress_log: LogEntry[] | null;
 };
@@ -64,6 +66,7 @@ type ToolResult = {
   score_overall: number | null;
   gpt_score_overall: number | null;
   error: string | null;
+  dispatched_at?: string | null;
 };
 
 type BatchRow = {
@@ -78,6 +81,7 @@ type BatchRow = {
   cancel_requested: boolean;
   last_error: string | null;
   started_at: string;
+  last_heartbeat_at: string | null;
   completed_at: string | null;
 };
 
@@ -98,7 +102,7 @@ type Baseline = {
 };
 
 const SELECT_COLS =
-  "id, tool, status, batch_size, run_number, checks_passed, checks_failed, checks_total, score_overall, gpt_score_overall, cross_review_complete, error, started_at, completed_at, progress_log";
+  "id, tool, status, batch_size, run_number, checks_passed, checks_failed, checks_total, score_overall, gpt_score_overall, cross_review_complete, error, started_at, last_heartbeat_at, completed_at, progress_log";
 
 const CHILD_TERMINAL = new Set([
   "complete", "completed", "done", "error", "failed", "cancelled", "canceled",
@@ -208,8 +212,50 @@ export default function QualityBatch() {
       supabase.from("quality_batch_log")
         .select("*").eq("run_id", batchRow.id).order("ts", { ascending: true }).limit(500),
     ]);
-    if (batch) setActiveBatch(batch as unknown as BatchRow);
-    if (log) setBatchLogs(log as unknown as BatchLogRow[]);
+    const currentBatch = (batch as unknown as BatchRow | null) ?? batchRow;
+    if (batch) setActiveBatch(currentBatch);
+
+    const parentLogs = ((log as unknown as BatchLogRow[] | null) ?? []);
+    const childIds = Array.from(new Set(
+      (Array.isArray(currentBatch.tool_results) ? currentBatch.tool_results : [])
+        .map((r) => r?.quality_run_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ));
+
+    let childLogs: BatchLogRow[] = [];
+    if (childIds.length > 0) {
+      const { data: children } = await supabase
+        .from("quality_runs")
+        .select("id, tool, status, run_number, started_at, last_heartbeat_at, completed_at, score_overall, gpt_score_overall, error, progress_log")
+        .in("id", childIds);
+
+      childLogs = ((children as any[]) ?? []).flatMap((child) => {
+        const entries = Array.isArray(child.progress_log) ? child.progress_log : [];
+        const progressEntries: BatchLogRow[] = entries.map((entry: LogEntry, index: number) => ({
+          id: `child-${child.id}-${index}`,
+          ts: String(entry.t ?? child.started_at ?? new Date().toISOString()),
+          level: String(entry.level ?? "info"),
+          tool: child.tool ?? null,
+          message: String(entry.msg ?? JSON.stringify(entry)),
+        }));
+
+        const terminal = child.completed_at ? [{
+          id: `child-${child.id}-terminal`,
+          ts: child.completed_at,
+          level: child.status === "complete" ? "info" : "warn",
+          tool: child.tool ?? null,
+          message: `Child run #${child.run_number ?? "?"} ${child.status}${child.score_overall != null ? ` · score=${child.score_overall}` : ""}${child.gpt_score_overall != null ? ` · gpt=${child.gpt_score_overall}` : ""}${child.error ? ` · ${child.error}` : ""}`,
+        } as BatchLogRow] : [];
+
+        return [...progressEntries, ...terminal];
+      });
+    }
+
+    const merged = [...parentLogs, ...childLogs]
+      .sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime())
+      .slice(-500);
+    setBatchLogs(merged);
+    return currentBatch;
   }
 
   async function loadLatestBatchLogs() {
@@ -221,9 +267,9 @@ export default function QualityBatch() {
       .maybeSingle();
     if (!data) {
       setBatchLogs([]);
-      return;
+      return null;
     }
-    await loadBatchLogs(data as unknown as BatchRow);
+    return await loadBatchLogs(data as unknown as BatchRow);
   }
 
   useEffect(() => {
@@ -246,10 +292,15 @@ export default function QualityBatch() {
   const refreshLog = async () => {
     setLogRefreshing(true);
     try {
-      await Promise.all([
-        loadLatestBatchLogs(),
-        refreshRuns(),
-      ]);
+      const latest = await loadLatestBatchLogs();
+      if (latest && !isBatchTerminal(latest.status)) {
+        await supabase.functions.invoke("quality-batch-orchestrator", {
+          body: { action: "kick", run_id: latest.id },
+        });
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+        await loadBatchLogs(latest);
+      }
+      await refreshRuns();
       setLogRefreshTick((n) => n + 1);
       setLogLastRefreshedAt(new Date().toISOString());
     } catch (e: any) {
@@ -692,6 +743,9 @@ export default function QualityBatch() {
                   {" · "}phase <code>{activeBatch.phase}</code>
                   {" · "}<span className="font-mono">{currentTool ?? "—"}</span>
                   {" · "}{doneCount}/{totalCount} tools
+                  {activeBatch.last_heartbeat_at && (
+                    <> {" · "}heartbeat {new Date(activeBatch.last_heartbeat_at).toLocaleTimeString()}</>
+                  )}
                 </div>
                 <Button size="sm" variant="outline"
                   disabled={isBatchRunning}
@@ -1029,7 +1083,7 @@ function CampaignControls() {
   const load = async () => {
     const { data, error } = await supabase
       .from("quality_campaigns")
-      .select("id, status, wave_number, wave_interval_minutes, concurrency, spend_cents_estimate, budget_cap_cents, tool_state")
+      .select("id, status, wave_number, wave_interval_minutes, concurrency, estimated_spend_cents, budget_cap_cents, tool_state")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -1066,7 +1120,7 @@ function CampaignControls() {
     );
   }
 
-  const spendUsd = ((row.spend_cents_estimate ?? 0) / 100).toFixed(2);
+  const spendUsd = ((row.estimated_spend_cents ?? 0) / 100).toFixed(2);
   const capUsd = ((row.budget_cap_cents ?? 0) / 100).toFixed(2);
   const toolState = (row.tool_state ?? {}) as Record<string, any>;
   const activeTools = Object.entries(toolState).filter(([, s]: any) => s?.active).map(([t]) => t);
