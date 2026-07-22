@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp2r2@2026-07-22T07:00:00Z";
+export const BUILD_STAMP = "qbp14-registration-fix@2026-07-22T17:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -2605,8 +2605,9 @@ async function runBatch(runId: string): Promise<void> {
 }
 
 Deno.serve(async (req) => {
+  console.log(`[run-quality-batch] boot ${BUILD_STAMP}`);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.method !== "POST") return json({ error: "POST only" }, 405);
+  if (req.method !== "POST") return json({ error: "POST only", build_stamp: BUILD_STAMP }, 405);
 
   const authHeader = req.headers.get("Authorization") ?? "";
   if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized: missing bearer token" }, 401);
