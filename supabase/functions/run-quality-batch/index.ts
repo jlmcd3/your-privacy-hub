@@ -2133,6 +2133,22 @@ async function runBatch(runId: string): Promise<void> {
         state.gptPostFilterDrops.r15c2 += gd.r15c2 ?? 0;
       }
 
+      // QB-P14 item 4 — post-filter SUPPRESSION AUDIT TRAIL.
+      // Log each dropped finding to the progress log (check_id, grader, rule,
+      // first 300 chars of evidence) and accumulate onto state so the campaign
+      // digest carries the same audit trail. No behavior change to filtering.
+      const claudeSupp = ((claudeEval as any)?.post_filter_suppressed ?? []) as Array<{ rule: string; check_id: string; evidence: string }>;
+      const gptSupp = ((gptResult as any)?.postFilterSuppressed ?? []) as Array<{ rule: string; check_id: string; evidence: string }>;
+      for (const s of claudeSupp) {
+        await log("info", `${docLabel}: post-filter drop [claude/${s.rule}] ${s.check_id} — evidence: ${s.evidence.replace(/\s+/g, " ").slice(0, 220)}`);
+        state.postFilterSuppressed.push({ doc_index: i, grader: "claude", ...s });
+      }
+      for (const s of gptSupp) {
+        await log("info", `${docLabel}: post-filter drop [gpt/${s.rule}] ${s.check_id} — evidence: ${s.evidence.replace(/\s+/g, " ").slice(0, 220)}`);
+        state.postFilterSuppressed.push({ doc_index: i, grader: "gpt", ...s });
+      }
+
+
       const crossStatus = !gptEval ? "gpt_failed" : "complete";
 
       // Persist a lightweight cross-review summary (deterministic, no LLM payload).
