@@ -1,9 +1,12 @@
 // ADMIN-GATE-UI — Option-A findings-based launch gate scoreboard.
-// Renders one row per product with verdict, failing classes, streak, runs cap,
-// mediums, and (non-gating) telemetry scores. Read-only.
+// QB-P9 — adds median-of-last-3 Claude score per tool and a "certified"
+// badge for tools that campaign mode has retired with reason='certified'.
+// Metric and label only — zero styling / color changes (design tokens frozen).
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useLaunchGateScoreboard,
   GATE_TARGET_STREAK,
@@ -11,6 +14,14 @@ import {
   type GateVerdict,
   type ToolGateRow,
 } from "@/hooks/useLaunchGateScoreboard";
+
+// QB-P9 — compute median of numeric samples (returns null for empty).
+function median(xs: number[]): number | null {
+  if (xs.length === 0) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
 
 function verdictClass(v: GateVerdict): string {
   switch (v) {
