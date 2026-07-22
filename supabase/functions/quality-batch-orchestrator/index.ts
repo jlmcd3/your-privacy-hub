@@ -33,7 +33,31 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "qbp7-waves@2026-07-22";
+export const BUILD_STAMP = "qbp9-campaign@2026-07-22";
+
+// QB-P9 — Campaign mode constants.
+// Anthropic Claude Sonnet spend estimate basis (per doc, single run):
+//   generator prompt ≈ 4k input / 3k output,
+//   Claude grader   ≈ 5k input / 2k output,
+//   GPT grader is OpenAI-priced (not Anthropic) — excluded from budget cap.
+// Total Claude tokens per doc ≈ 9k input + 5k output.
+// Sonnet pricing (2026-07): $3 / 1M input, $15 / 1M output.
+//   → 9k × $3/M + 5k × $15/M = $0.027 + $0.075 = $0.102 per doc.
+// Rounded to $0.10/doc for the budget-cap heuristic; adjust here if pricing moves.
+export const CAMPAIGN_EST_CENTS_PER_DOC = 10;
+export const CAMPAIGN_TOKEN_BASIS = "estimate:claude-sonnet@9k_in+5k_out_per_doc";
+export const CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT = 60000; // $600
+export const CAMPAIGN_CERTIFIED_STREAK = 2;
+export const CAMPAIGN_MAX_RUNS = 10;
+
+export type CampaignToolState = {
+  batch_size: number;
+  max_runs: number;
+  runs_completed: number;
+  consecutive_ge98: number;
+  active: boolean;
+  retired_reason: null | "certified" | "max_runs";
+};
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
