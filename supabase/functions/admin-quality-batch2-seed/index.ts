@@ -20,6 +20,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Supabase Edge Runtime host-provided global (waitUntil for background work).
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
+
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json" },
