@@ -727,6 +727,8 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace("Bearer ", "");
   const isInternal = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
+  // QB-P9 — pg_cron path: header `x-internal-cron: 1` + service-role bearer.
+  const isCron     = req.headers.get("x-internal-cron")   === "1" && token === SERVICE_KEY;
 
   // Internal self-chain resume
   if (isInternal && body?.run_id) {
@@ -746,6 +748,13 @@ Deno.serve(async (req) => {
       } catch { /* */ }
     }));
     return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
+  }
+
+  // QB-P9 — campaign tick (pg_cron or admin-forced).
+  if ((isCron || isInternal) && body?.action === "campaign_tick") {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] campaign_tick error", e)));
+    return json({ ok: true, build_stamp: BUILD_STAMP, action: "campaign_tick" }, 202);
   }
 
   // External admin call
