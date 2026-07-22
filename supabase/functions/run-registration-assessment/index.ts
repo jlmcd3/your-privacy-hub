@@ -197,10 +197,66 @@ Deno.serve(async (req) => {
     // in user-facing product output. Verified grader errors are recorded separately
     // in quality_loop2_notes (kind = 'grader_error_ledger'), not in result_summary.
 
-
-
-
-
+    // PRODUCT-PROMPT-REG — MARKETS-SERVED COVERAGE. Every market the intake
+    // records (organization_country + markets_served) MUST appear in the
+    // output, either as a live-obligation entry (already produced above) or
+    // as an explicit "no filing engaged because …" placeholder that names
+    // the reason. Silent omission is a defect.
+    try {
+      const emittedCodes = new Set(result_summary.jurisdictions.map((j: any) => j.code));
+      const intakeMarkets = new Set<string>([
+        ...(intake.markets_served ?? []),
+        ...(intake.organization_country ? [intake.organization_country] : []),
+      ]);
+      // GB collapses into UK per R4 dedup; treat as covered when UK is emitted.
+      if (emittedCodes.has("UK")) emittedCodes.add("GB");
+      const euEea = new Set([
+        "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+        "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+      ]);
+      const missing = [...intakeMarkets].filter((c) => c && !emittedCodes.has(c));
+      if (missing.length > 0) {
+        const missingReqs = await supabase
+          .from("jurisdiction_requirements")
+          .select("*")
+          .in("jurisdiction_code", missing);
+        const missingReqByCode = new Map((missingReqs.data || []).map((r: any) => [r.jurisdiction_code, r]));
+        for (const code of missing) {
+          const r = missingReqByCode.get(code) as any;
+          const isEu = euEea.has(code);
+          const ossActive = isEu && intake.has_eu_establishment === true;
+          const reason = ossActive
+            ? "Market covered by the GDPR one-stop-shop mechanism: cross-border processing complaints for this market are directed to the lead supervisory authority identified above (Art. 56 GDPR). This jurisdiction may still impose local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) — those are surfaced under the specific jurisdiction where they apply."
+            : (r?.registration_required === false
+                ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
+                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "local counsel or the competent supervisory authority"} before concluding no filing is due.`);
+          result_summary.jurisdictions.push({
+            code,
+            name: r?.jurisdiction_name || code,
+            region: r?.region || null,
+            law: r?.law_name || null,
+            authority: r?.authority_name || null,
+            authority_url: r?.authority_url || null,
+            registration_required: r?.registration_required ?? null,
+            registration_required_basis: reason,
+            dpo_required: engineOutput.obligations_summary.dpo_required,
+            ai_registration_required: false,
+            ai_registration_required_basis: reason,
+            data_broker_evaluation: { definition_cite: null, met: false, basis: reason },
+            representative_required: false,
+            filing_fee_cents: r?.filing_fee_cents ?? null,
+            filing_currency: r?.filing_currency ?? null,
+            renewal_period_months: r?.renewal_period_months ?? null,
+            notes: reason,
+            why: reason,
+            rule_id: "R11_MARKET_COVERAGE",
+            obligations: [],
+          } as any);
+        }
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] market-coverage fill skipped:", (e as Error)?.message);
+    }
 
     // 4. Persist
     let row;
