@@ -549,7 +549,7 @@ export function runFormatChecksIR(text: string): FormatFinding[] {
  */
 export function runFormatChecksGeneric(
   text: string,
-  opts: { sections?: string[]; exemptRe?: RegExp } = {},
+  opts: { sections?: string[]; exemptRe?: RegExp; intakeRoster?: string } = {},
 ): FormatFinding[] {
   const out: FormatFinding[] = [];
   if (opts.sections && opts.sections.length) {
@@ -560,7 +560,7 @@ export function runFormatChecksGeneric(
     ...checkE3(text),
     ...checkE4(text),
     ...checkE5(text),
-    ...checkE6(text, "hallucination", { exemptRe: opts.exemptRe }),
+    ...checkE6(text, "hallucination", { exemptRe: opts.exemptRe, intakeRoster: opts.intakeRoster }),
   );
   return out;
 }
