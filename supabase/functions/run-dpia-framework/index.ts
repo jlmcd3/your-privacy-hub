@@ -2019,7 +2019,12 @@ async function runStitch(dpia_id: string): Promise<void> {
         ...restForChecks
       } = src;
       const _prose = extractProseFromReport(restForChecks);
-      const _det = runFormatChecksGeneric(_prose).map((x) => ({ ...x, check_type: 'deterministic' as const }));
+      // QB-P5 Item 4 — pass intake.dpia_team so e6_counsel_referral does
+      // not fire on sentences that verbatim echo intake-supplied roster
+      // entries (e.g. "Legal Counsel (external, Kanzlei Berger & Stein)").
+      // Model-added directives ("consult legal counsel") continue to fail.
+      const _intakeRoster = String((dpiaIntake as any)?.dpia_team ?? "");
+      const _det = runFormatChecksGeneric(_prose, { intakeRoster: _intakeRoster }).map((x) => ({ ...x, check_type: 'deterministic' as const }));
       attachDeterministicChecks(reportData as any, _det as any);
     } catch (_) { /* non-fatal */ }
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
