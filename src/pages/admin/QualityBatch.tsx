@@ -34,6 +34,7 @@ const TOOLS = [
   "dpa-generator",
   "ir-playbook",
   "biometric-checker",
+  "registration",
 ];
 
 type LogEntry = { t?: string; level?: string; msg?: string; [k: string]: unknown };
@@ -1082,7 +1083,7 @@ function CampaignControls() {
   const load = async () => {
     const { data, error } = await supabase
       .from("quality_campaigns")
-      .select("id, status, wave_number, wave_interval_minutes, concurrency, spend_cents_estimate, budget_cap_cents, tool_state")
+      .select("id, status, wave_number, wave_interval_minutes, concurrency, estimated_spend_cents, budget_cap_cents, tool_state")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
