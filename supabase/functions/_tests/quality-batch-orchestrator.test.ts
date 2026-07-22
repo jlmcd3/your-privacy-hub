@@ -306,3 +306,130 @@ Deno.test("buildSeedRow: exact key set and values match run-quality-batch insert
   assertEquals(row.last_heartbeat_at, nowIso);
   assertEquals(row.next_doc_index, 0);
 });
+
+// ─── QB-P9 campaign-mode tests ────────────────────────────────────────────
+import {
+  applyStopRule,
+  decideCampaignTick,
+  CAMPAIGN_CERTIFIED_STREAK,
+  CAMPAIGN_MAX_RUNS,
+  type CampaignRowLite,
+  type CampaignToolState,
+} from "../quality-batch-orchestrator/index.ts";
+
+const seed: CampaignToolState = {
+  batch_size: 3, max_runs: 10, runs_completed: 0,
+  consecutive_ge98: 0, active: true, retired_reason: null,
+};
+
+Deno.test("QB-P9 stop-rule: two consecutive scores ≥98 retires with reason=certified", () => {
+  const s1 = applyStopRule(seed, 98);
+  assertEquals(s1.active, true);
+  assertEquals(s1.consecutive_ge98, 1);
+  assertEquals(s1.runs_completed, 1);
+  const s2 = applyStopRule(s1, 99);
+  assertEquals(s2.active, false);
+  assertEquals(s2.retired_reason, "certified");
+  assertEquals(s2.consecutive_ge98, CAMPAIGN_CERTIFIED_STREAK);
+});
+
+Deno.test("QB-P9 stop-rule: 98 then 97 resets the streak, does not retire", () => {
+  const s1 = applyStopRule(seed, 98);
+  const s2 = applyStopRule(s1, 97);
+  assertEquals(s2.active, true);
+  assertEquals(s2.consecutive_ge98, 0);
+  assertEquals(s2.runs_completed, 2);
+  assertEquals(s2.retired_reason, null);
+});
+
+Deno.test("QB-P9 stop-rule: 10th run below streak retires with reason=max_runs", () => {
+  let s = seed;
+  for (let i = 0; i < CAMPAIGN_MAX_RUNS - 1; i++) s = applyStopRule(s, 90);
+  assertEquals(s.active, true);
+  assertEquals(s.runs_completed, CAMPAIGN_MAX_RUNS - 1);
+  s = applyStopRule(s, 90);
+  assertEquals(s.active, false);
+  assertEquals(s.retired_reason, "max_runs");
+  assertEquals(s.runs_completed, CAMPAIGN_MAX_RUNS);
+});
+
+Deno.test("QB-P9 stop-rule: retired row is not mutated by further calls", () => {
+  const retired: CampaignToolState = { ...seed, active: false, retired_reason: "certified" };
+  const s = applyStopRule(retired, 100);
+  assertEquals(s, retired);
+});
+
+const baseCampaign: CampaignRowLite = {
+  id: "c1", status: "paused",
+  budget_cap_cents: 60000, estimated_spend_cents: 0,
+  wave_interval_minutes: 360, last_wave_started_at: null,
+  tool_state: { governance: { ...seed } },
+};
+
+Deno.test("QB-P9 tick: does nothing when status='paused'", () => {
+  const d = decideCampaignTick(baseCampaign, { hasInflight: false, nowMs: Date.now() });
+  assertEquals(d.kind, "status_noop");
+});
+
+Deno.test("QB-P9 tick: does nothing when status='complete' or 'killed'", () => {
+  for (const status of ["complete", "killed"] as const) {
+    const d = decideCampaignTick({ ...baseCampaign, status }, { hasInflight: false, nowMs: Date.now() });
+    assertEquals(d.kind, "status_noop");
+  }
+});
+
+Deno.test("QB-P9 tick: no-double-wave guard — active + inflight → wave_in_flight", () => {
+  const d = decideCampaignTick(
+    { ...baseCampaign, status: "active" },
+    { hasInflight: true, nowMs: Date.now() },
+  );
+  assertEquals(d.kind, "wave_in_flight");
+});
+
+Deno.test("QB-P9 tick: active + no inflight + interval elapsed → start_wave", () => {
+  const now = Date.now();
+  const d = decideCampaignTick(
+    {
+      ...baseCampaign, status: "active",
+      last_wave_started_at: new Date(now - 361 * 60_000).toISOString(),
+    },
+    { hasInflight: false, nowMs: now },
+  );
+  assertEquals(d.kind, "start_wave");
+});
+
+Deno.test("QB-P9 tick: active + no inflight + interval NOT elapsed → interval_wait", () => {
+  const now = Date.now();
+  const d = decideCampaignTick(
+    {
+      ...baseCampaign, status: "active",
+      last_wave_started_at: new Date(now - 10 * 60_000).toISOString(),
+    },
+    { hasInflight: false, nowMs: now },
+  );
+  assertEquals(d.kind, "interval_wait");
+});
+
+Deno.test("QB-P9 tick: active + spend ≥ cap → budget_paused", () => {
+  const d = decideCampaignTick(
+    { ...baseCampaign, status: "active", estimated_spend_cents: 60000 },
+    { hasInflight: false, nowMs: Date.now() },
+  );
+  assertEquals(d.kind, "budget_paused");
+});
+
+Deno.test("QB-P9 tick: no active tools → complete", () => {
+  const d = decideCampaignTick(
+    {
+      ...baseCampaign, status: "active",
+      tool_state: { governance: { ...seed, active: false, retired_reason: "certified" } },
+    },
+    { hasInflight: false, nowMs: Date.now() },
+  );
+  assertEquals(d.kind, "complete");
+});
+
+Deno.test("QB-P9 tick: null campaign → no_campaign", () => {
+  const d = decideCampaignTick(null, { hasInflight: false, nowMs: Date.now() });
+  assertEquals(d.kind, "no_campaign");
+});
