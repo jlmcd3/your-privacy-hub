@@ -111,10 +111,10 @@ export function applyGraderCal1Filter(
   findings: LlmFinding[],
 ): {
   kept: LlmFinding[];
-  dropped: { a2: number; a3: number; a4: number; r15c2: number };
+  dropped: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
   suppressed: SuppressedFinding[];
 } {
-  const dropped = { a2: 0, a3: 0, a4: 0, r15c2: 0 };
+  const dropped = { a2: 0, a3: 0, a4: 0, r15c2: 0, dpa_defaults: 0 };
   const suppressed: SuppressedFinding[] = [];
   const kept: LlmFinding[] = [];
   const record = (rule: SuppressedFinding["rule"], f: LlmFinding) => {
@@ -152,11 +152,18 @@ export function applyGraderCal1Filter(
         dropped.r15c2++; record("r15c2", f);
         continue;
       }
+      if (typeof f.check_id === "string" && f.check_id.startsWith("rubric_") &&
+          DPA_DEFAULTS_MARKER_RE.test(ev)) {
+        console.log(`[grader-postfilter] DPA-defaults drop: ${f.check_id} evidence quoted "(default — confirm)"`);
+        dropped.dpa_defaults++; record("dpa_defaults", f);
+        continue;
+      }
     }
     kept.push(f);
   }
   return { kept, dropped, suppressed };
 }
+
 
 
 /**
