@@ -56,18 +56,23 @@ export const TARGET_PATH_ALIASES: Record<string, Record<string, string[]>> = {
     q4_pi_categories: [
       "normalised_intake.activity_details",
     ],
-    // Vendor / recipient roster (§ 7152(a)(2)). The intake key `i6_vendors`
+    // Vendor / recipient roster (§ 7152(a)(2)–(3)). The intake key `i6_vendors`
     // is shimmed by `_shared/cppa-risk-normalise.ts::shimLegacyIntake` into
     // `normalised_intake.activity_details[N].third_party_recipients`, so an
     // honest revision that resolves an i6-class open_item MUST write there.
-    // Without this alias the model's only allowed_path is the bare intake key
-    // `i6_vendors` (not a real report path), and it correctly emits zero
-    // changed_paths — which the RC-2 hollow-resolution guard then rejects
-    // (409 revision_hollow_resolution). Alias mirrors the i1/q4 pattern that
-    // already routes intake-anchored asks into normalised_intake.activity_details.
+    // W3-VENDOR-3 (2026-07-22): § 7152(a)(3) pairs recipient identification
+    // with the safeguard determination that turns on that roster, and the
+    // ask's declared `enables` semantics cover both. Authorize both anchors:
+    // (1) the recipient roster under normalised_intake.activity_details, and
+    // (2) the paired safeguard determinations under risk_assessment_by_activity.
+    // No wildcards, no substring inference — both entries are explicit and
+    // enumerated; candidateTargetPaths already supports multi-path aliases
+    // and prefix-matches descendants.
     i6_vendors: [
       "normalised_intake.activity_details",
+      "risk_assessment_by_activity",
     ],
+
     q19_admt_description: [
       "normalised_intake.content_detail.admt_description",
     ],

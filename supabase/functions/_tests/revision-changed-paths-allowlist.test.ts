@@ -58,6 +58,44 @@ Deno.test("qcChangedPathsAuthorized: alias path (cppa_risk i6_vendors → normal
   assertEquals(res.status, "green");
 });
 
+Deno.test("qcChangedPathsAuthorized: W3-VENDOR-3 — i6_vendors authorizes the 05:34 three-path emission", () => {
+  // W3-VENDOR-3 regression: § 7152(a)(3) pairs recipient identification with
+  // safeguard determination; the ask's `enables` covers both. The exact three
+  // paths emitted by run-cppa-risk-assessment at 2026-07-22 05:34 (doc
+  // 6b206788… revision_patch_emitted) MUST all authorize under the i6_vendors
+  // alias: the intake key itself, the recipient roster subtree, and the
+  // paired safeguard-gaps subtree under risk_assessment_by_activity.
+  const answered = [{ target: { path: "i6_vendors" } }];
+  const res = qcChangedPathsAuthorized(
+    answered,
+    [
+      "i6_vendors",
+      "normalised_intake.activity_details[0].third_party_recipients",
+      "risk_assessment_by_activity[0].safeguard_gaps",
+    ],
+    "cppa_risk_assessment",
+  );
+  assertEquals(res.status, "green");
+});
+
+Deno.test("qcChangedPathsAuthorized: W3-VENDOR-3 no-weakening — unrelated path still rejects under i6_vendors", () => {
+  // Guard: the multi-anchor alias must NOT authorize unrelated subtrees.
+  // org_context.company_name has its own alias key (entity_name) and is
+  // outside both § 7152(a)(3) anchors, so it must still be rejected.
+  const answered = [{ target: { path: "i6_vendors" } }];
+  const res = qcChangedPathsAuthorized(
+    answered,
+    [
+      "normalised_intake.activity_details[0].third_party_recipients",
+      "org_context.company_name",
+    ],
+    "cppa_risk_assessment",
+  );
+  assertEquals(res.status, "red");
+  assert(res.detail.includes("org_context.company_name"));
+});
+
+
 
 
 
