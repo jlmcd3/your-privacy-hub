@@ -56,6 +56,12 @@ Deno.serve(async (req) => {
 
   // Call regenerate-assessment with the internal-verification headers. This
   // is the same path run-quality-batch already uses for revision harness runs.
+  // MUST forward a dispatch_nonce: cppa_assessments has a BEFORE UPDATE
+  // trigger that overwrites updated_at, so the guardrail's timestamp
+  // fallback is structurally impossible on that table (see
+  // _shared/revision-mode.ts). Without a nonce, regenerate → runner returns
+  // 409 revision_inflight (reason=timestamp_mismatch_no_nonce).
+  const dispatch_nonce = crypto.randomUUID();
   const url = `${SUPABASE_URL}/functions/v1/regenerate-assessment`;
   let resp: Response;
   try {
@@ -73,13 +79,18 @@ Deno.serve(async (req) => {
         mode: "revision",
         answered_items,
         internal_user_id: owner_id,
+        dispatch_nonce,
       }),
     });
   } catch (e) {
-    return json({ error: "invoke_failed", detail: (e as Error).message }, 502);
+    // Return HTTP 200 with envelope so supabase.functions.invoke on the
+    // client resolves with data (not error) — the reviewer UI then surfaces
+    // the actual failure code from the envelope instead of the generic
+    // "non-2xx status code" that FunctionsHttpError produces.
+    return json({ ok: false, upstream_status: 0, payload: { error: "invoke_failed", detail: (e as Error).message }, dispatch_nonce }, 200);
   }
   const text = await resp.text();
   let payload: unknown = null;
   try { payload = text ? JSON.parse(text) : null; } catch { payload = { raw: text }; }
-  return json({ status: resp.status, payload }, resp.ok ? 200 : resp.status);
+  return json({ ok: resp.ok, upstream_status: resp.status, payload, dispatch_nonce }, 200);
 });
