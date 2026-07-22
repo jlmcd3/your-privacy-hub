@@ -95,7 +95,7 @@ function ToolSection({ tool }: { tool: { key: string; label: string; seedable: b
                 </td>
                 <td className="py-1">
                   <Link
-                    to={`/ADMIn/quality-batch2/${tool.key}/${it.id}`}
+                    to={`/admin/quality-batch2/${tool.key}/${it.id}`}
                     className="text-sm text-primary underline"
                   >
                     Review
