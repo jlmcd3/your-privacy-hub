@@ -1076,7 +1076,11 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const description = contractForTool
     ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
     : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
-  const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
+  // QB-P14 item 1 — dpia's schema is the largest; QB-P6 richness rules push
+  // intake generation past 180s. Give dpia the same 300s ceiling cppa-risk
+  // already gets; every other tool keeps the 180s default.
+  const intakeTimeoutMs = (tool === "cppa-risk" || tool === "dpia") ? 300_000 : 180_000;
+
   // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt) produce ~1.5-2k tokens per intake;
   // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
   // then concatenate.
