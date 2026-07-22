@@ -1272,6 +1272,8 @@ PRODUCT-FIX-5 T5(e) — RECORD-CONTRADICTION SURFACING (BINDING): where the inta
 
 ${SPECIFICITY_ACTIONABILITY_RULE}
 
+CLAUSE TAILORING (QB-P3): Recitals and operative clauses are drafted for THESE parties, never as a generic template. Wherever an Article 28(3) (or equivalent) obligation is stated, anchor it to the record: use the defined party names, the specific Services description, the listed data categories and data-subject categories, the named sub-processors, and the selected audit, retention, and transfer options. Each major section must contain at least one sentence that could not appear verbatim in another customer's DPA. Statutory language that must be verbatim stays verbatim — tailoring supplements it, never rewrites it.
+
 ${ENGAGED_JURISDICTION_CITATION_RULE}
 
 ${ADVISORY_VOICE_RULES}`;
