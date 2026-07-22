@@ -418,6 +418,8 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
         markets.has("UK") && !intake.has_uk_establishment,
       dpo_required: dpoRequired,
       ai_act_provider_obligations: aiActProvider,
+      gpai_provider_obligations: gpaiProvider,
+      high_risk_ai_deployer_obligations: highRiskDeployer,
       data_broker_registrations: dataBrokerStates,
     },
     confidence: finalConfidence,
