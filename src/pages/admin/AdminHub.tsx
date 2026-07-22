@@ -23,6 +23,7 @@ const SHORTCUTS: Array<{ label: string; to: string; group: string }> = [
   { group: "Quality", label: "Quality loop 2",      to: "/admin/quality-loop2" },
   { group: "Quality", label: "Quality loop 3",      to: "/admin/quality-loop3" },
   { group: "Quality", label: "Quality batch",       to: "/admin/quality-batch" },
+  { group: "Quality", label: "Quality batch 2 (Revision QA)", to: "/admin/quality-batch2" },
   { group: "Quality", label: "Quality augmentation", to: "/admin/quality-augmentation" },
   { group: "Quality", label: "Quality score ledger", to: "/admin/quality-score-ledger" },
   { group: "Quality", label: "Assertion tests",      to: "/admin/test-assertions" },

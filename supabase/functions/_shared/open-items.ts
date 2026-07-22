@@ -129,14 +129,14 @@ const T_CLASS_FIELDS: Record<string, Record<string, { enum_ref: string }>> = {
   },
 };
 
-// N-class aggregate/narrative fields — always bounded-narrative (or structured
-// if the intake actually stores an object/array). Kept for documentation +
-// deliberate audit: everything not in T_CLASS_FIELDS routes here.
-const N_CLASS_HINTS: Record<string, Set<string>> = {
-  cppa_risk_assessment: new Set([
-    "activity_details", "activity_description", "exceptions",
-    "org_context", "content_detail", "cybersecurity_audit_rationale",
-  ]),
+// i3-COMPOSITION FIX — cppa_risk_assessment i3_ca_consumer_band captures a
+// single band literal (CONSUMER_OPTS) and cannot express category composition
+// (patients / caregivers / staff / etc). The band key stays registered as a
+// re-select so historical open_items continue to resolve against
+// CONSUMER_OPTS unchanged. NEW open_items about composition MUST use
+// `i3_ca_consumer_band_composition`, which is routed here to `structured`.
+const STRUCTURED_FIELDS: Record<string, Set<string>> = {
+  cppa_risk_assessment: new Set(["i3_ca_consumer_band_composition"]),
 };
 
 // Per-tool per-field input-spec dispatch. Small, safe defaults; extend via
@@ -145,10 +145,22 @@ const N_CLASS_HINTS: Record<string, Set<string>> = {
 // select with no options.
 function pickInputSpec(toolType: string, field: string): OpenItemInputSpec {
   const f = String(field || "").trim();
+  if (STRUCTURED_FIELDS[toolType]?.has(f)) {
+    return { kind: "structured" };
+  }
   const tClass = T_CLASS_FIELDS[toolType]?.[f];
   if (tClass) {
     return { kind: "re-select", enum_ref: tClass.enum_ref };
   }
+  // N-class aggregate/narrative fields — always bounded-narrative (or structured
+  // if the intake actually stores an object/array). Everything not matched
+  // above falls through the heuristics below.
+  const N_CLASS_HINTS: Record<string, Set<string>> = {
+    cppa_risk_assessment: new Set([
+      "activity_details", "activity_description", "exceptions",
+      "org_context", "content_detail", "cybersecurity_audit_rationale",
+    ]),
+  };
   // Legacy heuristic: intake enum fields that carry the standard qN_/sector/
   // jurisdictions naming AND that we haven't registered yet still get
   // re-select with a computed enum_ref (safe when the enum is added later).
