@@ -1,14 +1,19 @@
-// QB-P1 regression coverage for quality-batch-orchestrator's pure pieces.
-// No live network calls — exercises slug validation, terminal-status set,
-// stall threshold, and the decide() transition function only.
+// QB-P1 + QB-P7 regression coverage for quality-batch-orchestrator's pure
+// pieces. No live network calls — exercises slug validation, terminal-status
+// set, stall threshold, and the wave-aware decide() transition function only.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import {
   RUN_QUALITY_BATCH_SLUGS,
   RUN_QUALITY_BATCH_TERMINAL,
   CHILD_STALL_MS,
+  DEFAULT_CONCURRENCY,
+  MAX_CONCURRENCY,
+  WAVE_STAGGER_MS,
+  clampConcurrency,
   decide,
   buildSeedRow,
+  inFlightEntries,
   type BatchRow,
   type ChildSnapshot,
 } from "../quality-batch-orchestrator/index.ts";
@@ -35,6 +40,24 @@ Deno.test("stall threshold is 6 minutes", () => {
   assertEquals(CHILD_STALL_MS, 6 * 60_000);
 });
 
+Deno.test("QB-P7: wave defaults and bounds", () => {
+  assertEquals(DEFAULT_CONCURRENCY, 3);
+  assertEquals(MAX_CONCURRENCY, 5);
+  assertEquals(WAVE_STAGGER_MS, 10_000);
+  assertEquals(clampConcurrency(undefined), DEFAULT_CONCURRENCY);
+  assertEquals(clampConcurrency(null), DEFAULT_CONCURRENCY);
+  assertEquals(clampConcurrency(0), DEFAULT_CONCURRENCY);
+  assertEquals(clampConcurrency(-4), DEFAULT_CONCURRENCY);
+  assertEquals(clampConcurrency(1), 1);
+  assertEquals(clampConcurrency(3), 3);
+  assertEquals(clampConcurrency(5), 5);
+  // Clamps above MAX_CONCURRENCY.
+  assertEquals(clampConcurrency(9), 5);
+  assertEquals(clampConcurrency("2"), 2);
+});
+
+const emptySnapshots = new Map<string, ChildSnapshot>();
+
 const baseRow: BatchRow = {
   status: "running",
   phase: "kickoff",
@@ -43,78 +66,217 @@ const baseRow: BatchRow = {
   current_tool_index: 0,
   current_quality_run_id: null,
   tool_results: [],
+  concurrency: 1,
 };
 
 Deno.test("decide: non-running row is a no-op", () => {
-  const d = decide({ ...baseRow, status: "complete" }, null, Date.now());
+  const d = decide({ ...baseRow, status: "complete" }, emptySnapshots, Date.now());
   assertEquals(d.kind, "noop");
 });
 
 Deno.test("decide: cancel_requested short-circuits to cancel_terminal", () => {
-  const d = decide({ ...baseRow, cancel_requested: true, phase: "running_tool" }, null, Date.now());
+  const d = decide(
+    { ...baseRow, cancel_requested: true, phase: "running_tool" },
+    emptySnapshots,
+    Date.now(),
+  );
   assertEquals(d.kind, "cancel_terminal");
 });
 
 Deno.test("decide: kickoff advances phase", () => {
-  const d = decide(baseRow, null, Date.now());
+  const d = decide(baseRow, emptySnapshots, Date.now());
   assertEquals(d.kind, "advance_phase_running_tool");
 });
 
-Deno.test("decide: running_tool with no child dispatches next tool", () => {
-  const d = decide({ ...baseRow, phase: "running_tool" }, null, Date.now());
-  assert(d.kind === "dispatch_child");
-  assertEquals(d.tool, "governance");
+Deno.test("decide (concurrency=1): running_tool with no in-flight dispatches one tool", () => {
+  const d = decide(
+    { ...baseRow, phase: "running_tool", concurrency: 1 },
+    emptySnapshots,
+    Date.now(),
+  );
+  assert(d.kind === "dispatch_wave");
+  assertEquals(d.tools, ["governance"]);
+  assertEquals(d.startIndex, 0);
 });
 
-Deno.test("decide: terminal child triggers child_terminal with moreTools flag", () => {
-  const row: BatchRow = { ...baseRow, phase: "running_tool", current_quality_run_id: "abc" };
-  const child: ChildSnapshot = {
-    status: "complete", last_heartbeat_at: new Date().toISOString(),
-    score_overall: 82, gpt_score_overall: 79, error: null, run_number: null,
+Deno.test("QB-P7 decide (concurrency=3): first wave dispatches up to 3 tools", () => {
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    tools: ["governance", "dpia", "lia", "cppa-risk"],
+    concurrency: 3,
   };
-  const d = decide(row, child, Date.now());
-  assert(d.kind === "child_terminal");
-  assertEquals(d.moreTools, true);
-  // Final tool → moreTools=false
-  const d2 = decide({ ...row, current_tool_index: 1 }, child, Date.now());
-  assert(d2.kind === "child_terminal");
-  assertEquals(d2.moreTools, false);
+  const d = decide(row, emptySnapshots, Date.now());
+  assert(d.kind === "dispatch_wave");
+  assertEquals(d.tools, ["governance", "dpia", "lia"]);
+  assertEquals(d.startIndex, 0);
 });
 
-Deno.test("decide: every run-quality-batch terminal status is recognized", () => {
-  const row: BatchRow = { ...baseRow, phase: "running_tool", current_quality_run_id: "abc" };
+Deno.test("QB-P7 decide (concurrency>remaining): wave shrinks to remaining", () => {
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    tools: ["governance", "dpia", "lia", "cppa-risk"],
+    current_tool_index: 3,
+    concurrency: 5,
+  };
+  const d = decide(row, emptySnapshots, Date.now());
+  assert(d.kind === "dispatch_wave");
+  assertEquals(d.tools, ["cppa-risk"]);
+});
+
+Deno.test("QB-P7 decide: terminal child in a wave triggers process_terminations", () => {
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    concurrency: 2,
+    tool_results: [
+      { tool: "governance", quality_run_id: "run-a", final_status: "in_flight" },
+      { tool: "dpia",       quality_run_id: "run-b", final_status: "in_flight" },
+    ] as unknown[],
+    current_tool_index: 2,
+  };
+  const snapshots = new Map<string, ChildSnapshot>([
+    ["run-a", {
+      status: "complete", last_heartbeat_at: new Date().toISOString(),
+      score_overall: 88, gpt_score_overall: 84, error: null, run_number: 12,
+    }],
+    ["run-b", {
+      status: "building", last_heartbeat_at: new Date().toISOString(),
+      score_overall: null, gpt_score_overall: null, error: null, run_number: 4,
+    }],
+  ]);
+  const d = decide(row, snapshots, Date.now());
+  assert(d.kind === "process_terminations");
+  assertEquals(d.terminations.length, 1);
+  assertEquals(d.terminations[0].runId, "run-a");
+  assertEquals(d.terminations[0].stalled, false);
+});
+
+Deno.test("QB-P7 decide: wave stays 'wait' while any child is still live", () => {
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    concurrency: 2,
+    tool_results: [
+      { tool: "governance", quality_run_id: "run-a", final_status: "in_flight" },
+      { tool: "dpia",       quality_run_id: "run-b", final_status: "in_flight" },
+    ] as unknown[],
+    current_tool_index: 2,
+  };
+  const snapshots = new Map<string, ChildSnapshot>([
+    ["run-a", {
+      status: "building", last_heartbeat_at: new Date().toISOString(),
+      score_overall: null, gpt_score_overall: null, error: null, run_number: 1,
+    }],
+    ["run-b", {
+      status: "building", last_heartbeat_at: new Date().toISOString(),
+      score_overall: null, gpt_score_overall: null, error: null, run_number: 2,
+    }],
+  ]);
+  const d = decide(row, snapshots, Date.now());
+  assertEquals(d.kind, "wait");
+});
+
+Deno.test("QB-P7 decide: next wave only after ALL prior wave children reach terminal", () => {
+  // Wave 1 fully drained: both entries carry terminal statuses (no in_flight).
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    concurrency: 2,
+    tools: ["governance", "dpia", "lia"],
+    current_tool_index: 2,
+    tool_results: [
+      { tool: "governance", quality_run_id: "run-a", final_status: "complete" },
+      { tool: "dpia",       quality_run_id: "run-b", final_status: "complete" },
+    ] as unknown[],
+  };
+  const d = decide(row, emptySnapshots, Date.now());
+  assert(d.kind === "dispatch_wave");
+  assertEquals(d.tools, ["lia"]);
+});
+
+Deno.test("QB-P7 decide: all tools terminated → finalize", () => {
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    concurrency: 2,
+    current_tool_index: 2,
+    tool_results: [
+      { tool: "governance", quality_run_id: "run-a", final_status: "complete" },
+      { tool: "dpia",       quality_run_id: "run-b", final_status: "error"    },
+    ] as unknown[],
+  };
+  const d = decide(row, emptySnapshots, Date.now());
+  assertEquals(d.kind, "finalize");
+});
+
+Deno.test("QB-P7 decide: every run-quality-batch terminal status is recognized", () => {
   for (const s of ["complete", "error", "cancelled"]) {
-    const child: ChildSnapshot = {
-      status: s, last_heartbeat_at: new Date().toISOString(),
-      score_overall: null, gpt_score_overall: null, error: null, run_number: null,
+    const row: BatchRow = {
+      ...baseRow,
+      phase: "running_tool",
+      concurrency: 1,
+      tool_results: [{ tool: "governance", quality_run_id: "run-x", final_status: "in_flight" }] as unknown[],
+      current_tool_index: 1,
     };
-    const d = decide(row, child, Date.now());
-    assertEquals(d.kind, "child_terminal", `expected terminal for status=${s}`);
+    const snapshots = new Map<string, ChildSnapshot>([
+      ["run-x", {
+        status: s, last_heartbeat_at: new Date().toISOString(),
+        score_overall: null, gpt_score_overall: null, error: null, run_number: 1,
+      }],
+    ]);
+    const d = decide(row, snapshots, Date.now());
+    assert(d.kind === "process_terminations", `expected process_terminations for ${s}`);
+    assertEquals(d.terminations[0].stalled, false);
   }
 });
 
-Deno.test("decide: stale heartbeat past 6min → child_stalled", () => {
-  const row: BatchRow = { ...baseRow, phase: "running_tool", current_quality_run_id: "abc" };
+Deno.test("QB-P7 decide: stale heartbeat past 6min → stalled termination (wedge-guard preserved)", () => {
   const now = Date.now();
-  const child: ChildSnapshot = {
-    status: "building",
-    last_heartbeat_at: new Date(now - (CHILD_STALL_MS + 1000)).toISOString(),
-    score_overall: null, gpt_score_overall: null, error: null, run_number: null,
+  const row: BatchRow = {
+    ...baseRow,
+    phase: "running_tool",
+    concurrency: 2,
+    current_tool_index: 2,
+    tool_results: [
+      { tool: "governance", quality_run_id: "run-a", final_status: "in_flight" },
+      { tool: "dpia",       quality_run_id: "run-b", final_status: "in_flight" },
+    ] as unknown[],
   };
-  const d = decide(row, child, now);
-  assertEquals(d.kind, "child_stalled");
+  const snapshots = new Map<string, ChildSnapshot>([
+    ["run-a", {
+      status: "building",
+      last_heartbeat_at: new Date(now - (CHILD_STALL_MS + 1000)).toISOString(),
+      score_overall: null, gpt_score_overall: null, error: null, run_number: 1,
+    }],
+    ["run-b", {
+      status: "building",
+      last_heartbeat_at: new Date(now - 5_000).toISOString(),
+      score_overall: null, gpt_score_overall: null, error: null, run_number: 2,
+    }],
+  ]);
+  const d = decide(row, snapshots, now);
+  assert(d.kind === "process_terminations");
+  assertEquals(d.terminations.length, 1);
+  assertEquals(d.terminations[0].runId, "run-a");
+  assertEquals(d.terminations[0].stalled, true);
 });
 
-Deno.test("decide: fresh heartbeat → child_wait", () => {
-  const row: BatchRow = { ...baseRow, phase: "running_tool", current_quality_run_id: "abc" };
-  const now = Date.now();
-  const child: ChildSnapshot = {
-    status: "building",
-    last_heartbeat_at: new Date(now - 5_000).toISOString(),
-    score_overall: null, gpt_score_overall: null, error: null, run_number: null,
+Deno.test("QB-P7 inFlightEntries filters malformed rows", () => {
+  const row: BatchRow = {
+    ...baseRow,
+    tool_results: [
+      { tool: "a", quality_run_id: "r1", final_status: "in_flight" },
+      { tool: "b", quality_run_id: "r2", final_status: "complete" },
+      { tool: "c", final_status: "in_flight" },                  // missing id
+      null,
+      { tool: "d", quality_run_id: 42, final_status: "in_flight" }, // bad id type
+    ] as unknown[],
   };
-  const d = decide(row, child, now);
-  assertEquals(d.kind, "child_wait");
+  const out = inFlightEntries(row);
+  assertEquals(out.length, 1);
+  assertEquals(out[0].quality_run_id, "r1");
 });
 
 Deno.test("ChildSnapshot type carries run_number (compile-time)", () => {
@@ -129,11 +291,10 @@ Deno.test("ChildSnapshot type carries run_number (compile-time)", () => {
 Deno.test("buildSeedRow: exact key set and values match run-quality-batch insert", () => {
   const nowIso = "2026-07-15T00:00:00.000Z";
   const row = buildSeedRow("governance", 5, 7, "admin-uuid", nowIso);
-  // Exact key set — no more, no fewer.
   assertEquals(
     Object.keys(row).sort(),
-    ["batch_size", "created_by", "last_heartbeat_at", "next_doc_index",
-     "run_number", "started_at", "status", "tool", "user_id"],
+    ["batch_size", "created_by", "grader_context_version", "last_heartbeat_at",
+     "next_doc_index", "run_number", "started_at", "status", "tool", "user_id"],
   );
   assertEquals(row.tool, "governance");
   assertEquals(row.status, "pending");

@@ -3958,6 +3958,7 @@ export type Database = {
           batch_size: number
           cancel_requested: boolean
           completed_at: string | null
+          concurrency: number
           created_by: string
           current_quality_run_id: string | null
           current_tool_index: number
@@ -3975,6 +3976,7 @@ export type Database = {
           batch_size: number
           cancel_requested?: boolean
           completed_at?: string | null
+          concurrency?: number
           created_by: string
           current_quality_run_id?: string | null
           current_tool_index?: number
@@ -3992,6 +3994,7 @@ export type Database = {
           batch_size?: number
           cancel_requested?: boolean
           completed_at?: string | null
+          concurrency?: number
           created_by?: string
           current_quality_run_id?: string | null
           current_tool_index?: number

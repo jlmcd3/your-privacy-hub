@@ -1,4 +1,13 @@
-// quality-batch-orchestrator — server-side sequential multi-tool run-quality-batch driver.
+// quality-batch-orchestrator — server-side multi-tool run-quality-batch driver.
+//
+// QB-P7: parallel tool WAVES.
+// Prior architecture ran tools strictly one-at-a-time (concurrency = 1). QB-P7
+// keeps every wedge-guard, resume, and self-chain invariant but launches each
+// wave of tools concurrently — up to `concurrency` children (default 3, max 5),
+// each dispatched with a 10-second stagger. The next wave begins only when
+// every child in the current wave has reached a terminal status (or been
+// advanced past a wedge). concurrency=1 preserves the pre-QB-P7 sequential
+// behavior byte-for-byte.
 //
 // Architecture is a deliberate copy of ql2-orchestrator: return 202 immediately,
 // do ONE bounded unit of work per invocation, persist progress in
@@ -13,13 +22,18 @@
 // { resume_run_id } with `x-internal-resume: 1` + service-role bearer to the
 // internal-resume acceptance path (~L2218–2225) which fires `runBatch(resumeId)`
 // with no JWT. run-quality-batch itself is not modified.
+//
+// Active children are tracked as in-flight sentinels inside tool_results
+// (final_status: "in_flight"). Terminations rewrite the sentinel in place with
+// the completed result. This avoids a second schema addition; the only new
+// column is `concurrency` (QB-P7 migration).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "pdfexport-1-qb-orchestrator@2026-07-17";
+export const BUILD_STAMP = "qbp7-waves@2026-07-22";
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -63,6 +77,18 @@ export const RUN_QUALITY_BATCH_TERMINAL = new Set<string>([
 // wedged — advance the batch instead of hanging the whole queue.
 export const CHILD_STALL_MS = 6 * 60_000;
 
+// QB-P7 wave sizing bounds.
+export const DEFAULT_CONCURRENCY = 3;
+export const MAX_CONCURRENCY = 5;
+// Intra-wave stagger between successive child dispatches, per QB-P7.
+export const WAVE_STAGGER_MS = 10_000;
+
+export function clampConcurrency(raw: unknown): number {
+  const n = Math.floor(Number(raw));
+  if (!Number.isFinite(n) || n < 1) return DEFAULT_CONCURRENCY;
+  return Math.min(MAX_CONCURRENCY, n);
+}
+
 async function log(runId: string, message: string, opts: { level?: string; tool?: string } = {}) {
   try {
     await admin().from("quality_batch_log").insert({
@@ -102,6 +128,7 @@ export type BatchRow = {
   current_tool_index: number;
   current_quality_run_id: string | null;
   tool_results: unknown[];
+  concurrency?: number | null;
 };
 export type ChildSnapshot = {
   status: string | null;
@@ -112,39 +139,75 @@ export type ChildSnapshot = {
   run_number: number | null;
 };
 
+export type InFlightEntry = {
+  tool: string;
+  quality_run_id: string;
+  final_status: "in_flight";
+  run_number?: number | null;
+  dispatched_at?: string;
+};
+
+export type Termination = {
+  runId: string;
+  tool: string;
+  snapshot: ChildSnapshot;
+  stalled: boolean;
+};
+
 export type Decision =
   | { kind: "noop" }
   | { kind: "cancel_terminal" }
   | { kind: "advance_phase_running_tool" }
-  | { kind: "dispatch_child"; tool: string }
-  | { kind: "child_terminal"; snapshot: ChildSnapshot; moreTools: boolean }
-  | { kind: "child_stalled"; moreTools: boolean }
-  | { kind: "child_wait" };
+  | { kind: "dispatch_wave"; tools: string[]; startIndex: number }
+  | { kind: "process_terminations"; terminations: Termination[] }
+  | { kind: "wait" }
+  | { kind: "finalize" };
 
-export function decide(row: BatchRow, child: ChildSnapshot | null, now: number): Decision {
+export function inFlightEntries(row: BatchRow): InFlightEntry[] {
+  return (row.tool_results as any[])
+    .filter((e) => e && e.final_status === "in_flight" && typeof e.quality_run_id === "string")
+    .map((e) => e as InFlightEntry);
+}
+
+export function decide(
+  row: BatchRow,
+  snapshots: Map<string, ChildSnapshot>,
+  now: number,
+): Decision {
   if (row.status !== "running") return { kind: "noop" };
   if (row.cancel_requested) return { kind: "cancel_terminal" };
   if (row.phase === "kickoff") return { kind: "advance_phase_running_tool" };
   if (row.phase !== "running_tool") return { kind: "noop" };
 
-  if (!row.current_quality_run_id) {
-    const tool = row.tools[row.current_tool_index];
-    return { kind: "dispatch_child", tool };
+  const active = inFlightEntries(row);
+  const terminations: Termination[] = [];
+  let liveCount = 0;
+  for (const e of active) {
+    const snap = snapshots.get(e.quality_run_id);
+    if (!snap) { liveCount++; continue; }
+    if (snap.status && RUN_QUALITY_BATCH_TERMINAL.has(snap.status)) {
+      terminations.push({ runId: e.quality_run_id, tool: e.tool, snapshot: snap, stalled: false });
+      continue;
+    }
+    const hbMs = snap.last_heartbeat_at ? new Date(snap.last_heartbeat_at).getTime() : 0;
+    if (hbMs && now - hbMs > CHILD_STALL_MS) {
+      terminations.push({ runId: e.quality_run_id, tool: e.tool, snapshot: snap, stalled: true });
+      continue;
+    }
+    liveCount++;
+  }
+  if (terminations.length) return { kind: "process_terminations", terminations };
+
+  if (liveCount === 0) {
+    if (row.current_tool_index >= row.tools.length) return { kind: "finalize" };
+    const conc = clampConcurrency(row.concurrency ?? 1);
+    const remaining = row.tools.length - row.current_tool_index;
+    const size = Math.min(conc, remaining);
+    const nextTools = row.tools.slice(row.current_tool_index, row.current_tool_index + size);
+    return { kind: "dispatch_wave", tools: nextTools, startIndex: row.current_tool_index };
   }
 
-  if (!child) return { kind: "child_wait" };
-
-  if (child.status && RUN_QUALITY_BATCH_TERMINAL.has(child.status)) {
-    const moreTools = row.current_tool_index + 1 < row.tools.length;
-    return { kind: "child_terminal", snapshot: child, moreTools };
-  }
-
-  const hbMs = child.last_heartbeat_at ? new Date(child.last_heartbeat_at).getTime() : 0;
-  if (hbMs && now - hbMs > CHILD_STALL_MS) {
-    const moreTools = row.current_tool_index + 1 < row.tools.length;
-    return { kind: "child_stalled", moreTools };
-  }
-  return { kind: "child_wait" };
+  return { kind: "wait" };
 }
 
 // Pure row-builder mirroring run-quality-batch/index.ts ~L2547–2552's insert
@@ -231,11 +294,6 @@ async function runUnit(runId: string) {
   const { data: run } = await db.from("quality_batch_runs").select("*").eq("id", runId).maybeSingle();
   if (!run) return;
   // IR-HF1 T3 — F2 EPOCH STAMP AT PICKUP.
-  // MC-S1b Task 4 stamps instrument_version at INSERT for orchestrator-created
-  // batches, but the ratified run-quality-batch kickoff INSERT (kickoff-class
-  // rows) can land NULL. Stamp on the first pickup that observes a null value
-  // so kickoff-class rows carry a version through their lifecycle. Evidence
-  // row 87ef0370 predates this fix and is deliberately not retro-stamped.
   if (!(run as any).instrument_version) {
     await db.from("quality_batch_runs")
       .update({ instrument_version: GRADER_CONTEXT_VERSION })
@@ -245,25 +303,29 @@ async function runUnit(runId: string) {
   }
   await heartbeat(runId);
 
-  // Fetch child snapshot only when there is one to fetch.
-  let child: ChildSnapshot | null = null;
-  if (run.current_quality_run_id) {
-    const { data: c } = await db.from("quality_runs")
-      .select("status, last_heartbeat_at, score_overall, gpt_score_overall, error, run_number")
-      .eq("id", run.current_quality_run_id)
-      .maybeSingle();
-    child = c ? {
-      status: (c as any).status ?? null,
-      last_heartbeat_at: (c as any).last_heartbeat_at ?? null,
-      score_overall: (c as any).score_overall ?? null,
-      gpt_score_overall: (c as any).gpt_score_overall ?? null,
-      error: (c as any).error ?? null,
-      run_number: (c as any).run_number ?? null,
-    } : null;
+  const row = run as any as BatchRow;
+  const active = inFlightEntries(row);
+
+  // Fetch every in-flight child snapshot in parallel.
+  const snapshots = new Map<string, ChildSnapshot>();
+  if (active.length) {
+    const ids = active.map((e) => e.quality_run_id);
+    const { data: rows } = await db.from("quality_runs")
+      .select("id, status, last_heartbeat_at, score_overall, gpt_score_overall, error, run_number")
+      .in("id", ids);
+    for (const c of (rows ?? [])) {
+      snapshots.set((c as any).id, {
+        status: (c as any).status ?? null,
+        last_heartbeat_at: (c as any).last_heartbeat_at ?? null,
+        score_overall: (c as any).score_overall ?? null,
+        gpt_score_overall: (c as any).gpt_score_overall ?? null,
+        error: (c as any).error ?? null,
+        run_number: (c as any).run_number ?? null,
+      });
+    }
   }
 
-
-  const d = decide(run as any as BatchRow, child, Date.now());
+  const d = decide(row, snapshots, Date.now());
 
   switch (d.kind) {
     case "noop": return;
@@ -275,117 +337,126 @@ async function runUnit(runId: string) {
     }
 
     case "advance_phase_running_tool": {
+      const conc = clampConcurrency((row as any).concurrency ?? 1);
       await db.from("quality_batch_runs").update({ phase: "running_tool" }).eq("id", runId);
-      await log(runId, `Batch kickoff: ${run.tools.length} tool(s), batch_size=${run.batch_size} — [${run.tools.join(", ")}]`);
+      await log(
+        runId,
+        `Batch kickoff: ${row.tools.length} tool(s), batch_size=${(run as any).batch_size}, concurrency=${conc} — [${row.tools.join(", ")}]`,
+      );
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
 
-    case "dispatch_child": {
-      const inv = await seedAndResume(d.tool, run.batch_size, run.created_by);
-      if (!inv.ok) {
-        // Record failure for this tool and advance.
-        const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
-        results.push({
-          tool: d.tool, quality_run_id: null, run_number: null,
-          final_status: "dispatch_failed", score_overall: null,
-          gpt_score_overall: null, error: inv.err,
-        });
-        const nextIdx = run.current_tool_index + 1;
-        const done = nextIdx >= run.tools.length;
+    case "dispatch_wave": {
+      // Wave dispatch: seed+resume each tool sequentially with WAVE_STAGGER_MS
+      // spacing so run-quality-batch's own intake-generation isolates do not
+      // land in the same runtime tick. `current_tool_index` is advanced per
+      // dispatch, and each new in-flight sentinel is appended to tool_results.
+      const results: any[] = Array.isArray(row.tool_results) ? [...(row.tool_results as any[])] : [];
+      let nextIdx = row.current_tool_index;
+      for (let i = 0; i < d.tools.length; i++) {
+        const tool = d.tools[i];
+        if (i > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
+        // Heartbeat between staggers so the wave-in-progress isn't itself
+        // reaped by any batch-level watchdog.
+        await heartbeat(runId);
+        const inv = await seedAndResume(tool, (run as any).batch_size, (run as any).created_by);
+        if (!inv.ok) {
+          results.push({
+            tool, quality_run_id: null, run_number: null,
+            final_status: "dispatch_failed", score_overall: null,
+            gpt_score_overall: null, error: inv.err,
+          });
+          await log(runId, `Dispatch failed for ${tool}: ${inv.err}`, { level: "error", tool });
+        } else {
+          results.push({
+            tool,
+            quality_run_id: inv.runId,
+            run_number: inv.runNumber,
+            final_status: "in_flight",
+            score_overall: null,
+            gpt_score_overall: null,
+            error: null,
+            dispatched_at: new Date().toISOString(),
+          } as InFlightEntry & Record<string, unknown>);
+          await log(runId, `Dispatched ${tool} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
+        }
+        nextIdx += 1;
+        // Persist incrementally so a crash mid-wave still leaves a coherent
+        // picture of what has been launched.
         await db.from("quality_batch_runs").update({
           tool_results: results,
           current_tool_index: nextIdx,
-          current_quality_run_id: null,
-          ...(done ? { phase: "done" } : {}),
+          // Keep legacy column populated with the most recent in-flight id
+          // (best-effort; UI can still show a "current" child for compat).
+          current_quality_run_id: inv.ok ? inv.runId : (run as any).current_quality_run_id,
         }).eq("id", runId);
-        await log(runId, `Dispatch failed for ${d.tool}: ${inv.err}`, { level: "error", tool: d.tool });
-        if (done) {
-          await finalizeIfDone(runId);
-        } else {
-          // @ts-ignore
-          EdgeRuntime.waitUntil(selfInvoke(runId));
-        }
-        return;
       }
-      await db.from("quality_batch_runs").update({
-        current_quality_run_id: inv.runId,
-      }).eq("id", runId);
-      await log(runId, `Dispatched ${d.tool} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool: d.tool });
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
 
-
-    case "child_terminal": {
-      const tool = run.tools[run.current_tool_index];
-      const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
-      results.push({
-        tool,
-        quality_run_id: run.current_quality_run_id,
-        run_number: d.snapshot.run_number,
-        final_status: d.snapshot.status,
-        score_overall: d.snapshot.score_overall,
-        gpt_score_overall: d.snapshot.gpt_score_overall,
-        error: d.snapshot.error,
-      });
-
-      const nextIdx = run.current_tool_index + 1;
+    case "process_terminations": {
+      // Rewrite each in-flight sentinel in place with the completed result.
+      const results: any[] = Array.isArray(row.tool_results) ? [...(row.tool_results as any[])] : [];
+      const termByRun = new Map(d.terminations.map((t) => [t.runId, t]));
+      for (let i = 0; i < results.length; i++) {
+        const e = results[i];
+        if (!e || e.final_status !== "in_flight") continue;
+        const t = termByRun.get(e.quality_run_id);
+        if (!t) continue;
+        if (t.stalled) {
+          results[i] = {
+            tool: t.tool,
+            quality_run_id: t.runId,
+            run_number: t.snapshot.run_number ?? e.run_number ?? null,
+            final_status: "stalled",
+            score_overall: null,
+            gpt_score_overall: null,
+            error: `child heartbeat stale > ${CHILD_STALL_MS / 60000}min`,
+          };
+          await log(runId, `${t.tool} stalled — advancing`, { level: "warn", tool: t.tool });
+        } else {
+          results[i] = {
+            tool: t.tool,
+            quality_run_id: t.runId,
+            run_number: t.snapshot.run_number ?? e.run_number ?? null,
+            final_status: t.snapshot.status,
+            score_overall: t.snapshot.score_overall,
+            gpt_score_overall: t.snapshot.gpt_score_overall,
+            error: t.snapshot.error,
+          };
+          await log(
+            runId,
+            `${t.tool} finished: status=${t.snapshot.status} score=${t.snapshot.score_overall ?? "—"} gpt=${t.snapshot.gpt_score_overall ?? "—"}${t.snapshot.error ? ` err=${t.snapshot.error}` : ""}`,
+            { level: t.snapshot.status === "complete" ? "info" : "warn", tool: t.tool },
+          );
+        }
+      }
+      const stillActive = results.some((e) => e?.final_status === "in_flight");
       await db.from("quality_batch_runs").update({
         tool_results: results,
-        current_tool_index: nextIdx,
-        current_quality_run_id: null,
+        current_quality_run_id: stillActive ? (run as any).current_quality_run_id : null,
       }).eq("id", runId);
-      await log(runId,
-        `${tool} finished: status=${d.snapshot.status} score=${d.snapshot.score_overall ?? "—"} gpt=${d.snapshot.gpt_score_overall ?? "—"}${d.snapshot.error ? ` err=${d.snapshot.error}` : ""}`,
-        { level: d.snapshot.status === "complete" ? "info" : "warn", tool });
-      if (d.moreTools) {
-        // @ts-ignore
-        EdgeRuntime.waitUntil(selfInvoke(runId));
-      } else {
-        await finalizeIfDone(runId);
-      }
+      // @ts-ignore
+      EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
 
-    case "child_stalled": {
-      const tool = run.tools[run.current_tool_index];
-      const results = Array.isArray(run.tool_results) ? [...run.tool_results] : [];
-      results.push({
-        tool,
-        quality_run_id: run.current_quality_run_id,
-        run_number: child?.run_number ?? null,
-        final_status: "stalled",
-        score_overall: null,
-        gpt_score_overall: null,
-        error: `child heartbeat stale > ${CHILD_STALL_MS / 60000}min`,
-      });
-
-      const nextIdx = run.current_tool_index + 1;
-      await db.from("quality_batch_runs").update({
-        tool_results: results,
-        current_tool_index: nextIdx,
-        current_quality_run_id: null,
-      }).eq("id", runId);
-      await log(runId, `${tool} stalled — advancing to next tool`, { level: "warn", tool });
-      if (d.moreTools) {
-        // @ts-ignore
-        EdgeRuntime.waitUntil(selfInvoke(runId));
-      } else {
-        await finalizeIfDone(runId);
-      }
-      return;
-    }
-
-    case "child_wait": {
+    case "wait": {
       await heartbeat(runId);
       // @ts-ignore
       EdgeRuntime.waitUntil((async () => {
         await new Promise((r) => setTimeout(r, 15_000));
         await selfInvoke(runId);
       })());
+      return;
+    }
+
+    case "finalize": {
+      await finalizeIfDone(runId);
       return;
     }
   }
@@ -401,15 +472,12 @@ async function finalizeIfDone(runId: string) {
   await markTerminalAll(runId, { status, phase: "done" });
   await log(runId, `Batch ${status} — ${results.length} tool(s); ${results.filter((r) => r?.final_status === "complete").length} succeeded`);
 
-  // PDFEXPORT-1 Task 2: fire-and-forget PDF auto-export. Per-doc failures are
-  // logged into function_runs (event='pdf_export') and NEVER block completion.
+  // PDFEXPORT-1 Task 2: fire-and-forget PDF auto-export.
   // @ts-ignore
   EdgeRuntime.waitUntil((async () => {
     try {
       const out = await exportBatchPdfs(runId, makeLiveDeps(db));
       await log(runId, `PDF export: attempted=${out.attempted} inserted=${out.inserted} failed=${out.failed}`);
-      // FF-2 T3 — done marker on any successful insertion so the sweep skips
-      // this batch even after ratified cleanup deletes qa_pdf_exports rows.
       if (out.inserted > 0 && out.failed === 0) {
         await writeExportDoneMarker(db, runId, out.inserted);
       }
@@ -419,7 +487,7 @@ async function finalizeIfDone(runId: string) {
   })());
 }
 
-async function startRun(userId: string, tools: string[], batchSizeRaw: number)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -427,16 +495,18 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number)
   const bad = tools.filter((t) => !RUN_QUALITY_BATCH_SLUGS.has(t));
   if (bad.length) return { ok: false, status: 400, err: `unknown tool slug(s): ${bad.join(", ")}` };
   const batchSize = Math.max(1, Math.min(50, Math.floor(Number(batchSizeRaw) || 0) || 5));
+  const concurrency = concurrencyRaw == null ? DEFAULT_CONCURRENCY : clampConcurrency(concurrencyRaw);
 
   const db = admin();
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: userId,
     instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
+    concurrency, // QB-P7
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
-  await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}`);
+  await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}, concurrency=${concurrency}`);
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
   return { ok: true, runId: row.id };
@@ -484,7 +554,7 @@ Deno.serve(async (req) => {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }
@@ -492,11 +562,17 @@ Deno.serve(async (req) => {
   if (body?.action === "cancel" && body?.run_id) {
     const db = admin();
     const { data: existing } = await db.from("quality_batch_runs")
-      .select("current_quality_run_id").eq("id", body.run_id).maybeSingle();
+      .select("current_quality_run_id, tool_results").eq("id", body.run_id).maybeSingle();
     await db.from("quality_batch_runs").update({ cancel_requested: true }).eq("id", body.run_id);
-    if ((existing as any)?.current_quality_run_id) {
+    // Cancel every currently in-flight child, not just the legacy singleton.
+    const ids = new Set<string>();
+    if ((existing as any)?.current_quality_run_id) ids.add((existing as any).current_quality_run_id);
+    for (const e of ((existing as any)?.tool_results ?? []) as any[]) {
+      if (e?.final_status === "in_flight" && typeof e.quality_run_id === "string") ids.add(e.quality_run_id);
+    }
+    if (ids.size) {
       await db.from("quality_runs").update({ cancel_requested: true })
-        .eq("id", (existing as any).current_quality_run_id);
+        .in("id", [...ids]);
     }
     await log(body.run_id, "Cancel requested");
     return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
