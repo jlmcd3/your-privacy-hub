@@ -2436,6 +2436,59 @@ async function runBatch(runId: string): Promise<void> {
       console.error("[run-quality-batch] ledger insert failed:", ledgerErr);
     }
 
+    // QB-P9 — campaign digest. If this run was seeded by the campaign
+    // orchestrator (quality_runs.campaign_id set), write one digest row per
+    // completed run. Best-effort; never fails the parent run.
+    try {
+      const { data: linkRow } = await admin.from("quality_runs")
+        .select("campaign_id").eq("id", runId).maybeSingle();
+      const campaignId = (linkRow as any)?.campaign_id ?? null;
+      if (campaignId) {
+        const { data: campaign } = await admin.from("quality_campaigns")
+          .select("wave_number").eq("id", campaignId).maybeSingle();
+        const claudeDims = {
+          accuracy: scores.accuracy, citation: scores.citation, hallucination: scores.hallucination,
+          analysis: scores.analysis, intelligence: scores.intelligence, formatting: scores.formatting,
+        };
+        const gptDims = state.gptBuilt > 0 ? {
+          accuracy: gptScores.gpt_score_accuracy, citation: gptScores.gpt_score_citation,
+          hallucination: gptScores.gpt_score_hallucination, analysis: gptScores.gpt_score_analysis,
+          intelligence: gptScores.gpt_score_intelligence, formatting: gptScores.gpt_score_formatting,
+        } : null;
+        const failing = state.allDocFindings.filter(f => !f.passed).map((f: any) => ({
+          check_id: f.check_id, severity: f.severity ?? null, dimension: f.dimension ?? null,
+          cross_category: f.cross_category ?? null,
+        }));
+        // Post-filter drop counts (a4 + siblings): the run-quality-batch
+        // grader post-filters don't yet expose a per-run counter; record the
+        // basis so downstream can see it's the estimate track.
+        const postFilterDrops = { basis: "not_recorded_v1", a4: null, siblings: null };
+        // Token estimation basis — Claude only, per orchestrator constant.
+        const est = {
+          docs: state.built,
+          claude_input_tokens: state.built * 9000,
+          claude_output_tokens: state.built * 5000,
+          estimated_usd: (state.built * 10) / 100, // $0.10/doc
+        };
+        await admin.from("quality_campaign_digests").insert({
+          campaign_id: campaignId,
+          wave_number: (campaign as any)?.wave_number ?? null,
+          tool,
+          run_id: runId,
+          claude_overall: overall,
+          gpt_overall: gptScores.gpt_score_overall ?? null,
+          claude_dimensions: claudeDims,
+          gpt_dimensions: gptDims,
+          failing_checks: failing,
+          post_filter_drops: postFilterDrops,
+          estimated_tokens: est,
+          token_basis: "estimate:claude-sonnet@9k_in+5k_out_per_doc",
+        });
+      }
+    } catch (digestErr) {
+      console.error("[run-quality-batch] campaign digest insert failed:", digestErr);
+    }
+
   } catch (e) {
     console.error("[run-quality-batch] fatal:", e);
     await log("error", `Fatal: ${(e as Error).message}`);
