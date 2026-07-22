@@ -279,7 +279,7 @@ export function buildSeedRow(
   };
 }
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string)
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null)
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -289,7 +289,8 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string)
 
   // (b) Insert the pending row — same field set as run-quality-batch's own insert.
   const nowIso = new Date().toISOString();
-  const seed = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
   const { data: run, error: iErr } = await db.from("quality_runs")
     .insert(seed).select("id").single();
   if (iErr || !run) return { ok: false, err: `seed insert: ${iErr?.message ?? "no row"}` };
