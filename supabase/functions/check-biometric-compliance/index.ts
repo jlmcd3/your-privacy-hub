@@ -367,13 +367,23 @@ Biometric processing under state comprehensive-privacy laws is a sensitive-data 
 
 
     if (isEU) {
+      const orgLowerEU = (body.orgType || "").toLowerCase();
+      const purposeLowerEU = (body.purpose || "").toLowerCase();
+      const isEmploymentEU = orgLowerEU.includes("employ") || orgLowerEU.includes("hr ") || orgLowerEU.includes("workforce") || purposeLowerEU.includes("time & attendance") || purposeLowerEU.includes("time and attendance") || purposeLowerEU.includes("workforce management") || purposeLowerEU.includes("physical access");
+      const isHealthcareEU = orgLowerEU.includes("health") || orgLowerEU.includes("clinical") || orgLowerEU.includes("medical") || orgLowerEU.includes("hospital") || orgLowerEU.includes("care provider");
+      const art9Line = isEmploymentEU
+        ? `2. Article 9(2) condition on this intake — the employment context engages Article 9(2)(b) (processing necessary for carrying out obligations and exercising specific rights of the controller or of the data subject in the field of employment, social security, and social protection law), conditional on national law authorising the biometric use. Article 9(2)(a) explicit consent is not treated as a valid basis in the employment relationship due to the power imbalance identified in EDPB Guidelines 05/2020 on consent, para. 21. The deciding fact is whether the applicable national employment law authorises this biometric use.`
+        : isHealthcareEU
+        ? `2. Article 9(2) condition on this intake — the health / care context engages Article 9(2)(h) (processing necessary for the purposes of preventive or occupational medicine, medical diagnosis, or the provision of health or social care or treatment), subject to the professional-secrecy safeguards of Article 9(3) and any Member State law adopted under Article 9(4).`
+        : `2. Article 9(2) condition on this intake — Article 9(2)(a) explicit consent applies. Consent must be freely given, specific, informed, and unambiguous; the absence of a clear imbalance of power between the data subject and the controller is a precondition (EDPB Guidelines 05/2020 on consent, para. 21).`;
       return `${jurisdiction} — General Data Protection Regulation (GDPR)
 
 On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for the purpose of uniquely identifying a natural person is special-category data under GDPR Article 9(1), subject to strict prohibition unless an Article 9(2) condition applies.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Lawful basis under Article 6 AND a separate Article 9(2) condition — these must both be identified and documented. Do not conflate them into a single "lawful basis" entry.
-2. Most likely Article 9(2) condition: Article 9(2)(a) explicit consent, or Article 9(2)(b) if required by employment law, or Article 9(2)(h) for health/care providers.
+${art9Line}
+
 3. Conduct a Data Protection Impact Assessment (GDPR Article 35) before deployment — biometric processing for identification is widely treated as high-risk requiring a DPIA; confirm against the lead supervisory authority's published Article 35(4) DPIA criteria.
 4. Provide pre-collection notice under Articles 13/14 covering biometric modalities, Article 9(2) condition relied upon, retention periods, and data subject rights.
 5. Any processor receiving biometric data must have a written DPA under Article 28. Any transfer outside the EEA requires a Chapter V transfer mechanism — either an Article 45 adequacy decision (including the EU–US Data Privacy Framework where the importer is certified) or, absent adequacy, Article 46 appropriate safeguards (SCCs or BCRs).
