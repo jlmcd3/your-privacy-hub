@@ -282,7 +282,7 @@ function checkE5(text: string, dim = "hallucination"): FormatFinding[] {
     if (words.length < 6) {
       bare++;
       findings.push(fail("e5_bare_advisory_close", dim, "medium",
-        `advisory close without named fact: "${s.slice(0, 200)}"`));
+        `advisory close without named fact: "${s.slice(0, 1000)}"`));
       if (bare > 10) break;
     }
   }
