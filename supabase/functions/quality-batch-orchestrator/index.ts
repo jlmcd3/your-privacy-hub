@@ -643,49 +643,85 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
   return { started: true, batchId: row.id, tools: eligible };
 }
 
-async function campaignTick(): Promise<{ ok: true; action: string; detail?: unknown }> {
-  const campaign = await loadCampaign();
-  if (!campaign) return { ok: true, action: "no_campaign" };
-  const db = admin();
+// QB-P9 — pure decision function for campaign_tick. Kept side-effect free so
+// the orchestrator tests can drive it directly.
+export type CampaignRowLite = {
+  id: string;
+  status: "paused" | "active" | "complete" | "killed";
+  budget_cap_cents: number | null;
+  estimated_spend_cents: number | null;
+  wave_interval_minutes: number | null;
+  last_wave_started_at: string | null;
+  tool_state: Record<string, CampaignToolState> | null;
+};
 
-  // Budget auto-pause guard fires regardless of current status so an
-  // already-active campaign gets paused the moment spend crosses the cap.
+export type CampaignTickDecision =
+  | { kind: "no_campaign" }
+  | { kind: "budget_paused" }
+  | { kind: "status_noop"; status: string }
+  | { kind: "wave_in_flight" }
+  | { kind: "interval_wait" }
+  | { kind: "complete" }
+  | { kind: "start_wave" };
+
+export function decideCampaignTick(
+  campaign: CampaignRowLite | null,
+  ctx: { hasInflight: boolean; nowMs: number },
+): CampaignTickDecision {
+  if (!campaign) return { kind: "no_campaign" };
   const cap = campaign.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
   if ((campaign.estimated_spend_cents ?? 0) >= cap && campaign.status === "active") {
-    await db.from("quality_campaigns").update({ status: "paused" }).eq("id", campaign.id);
-    await logCampaign(campaign.id, `Budget cap reached ($${(cap / 100).toFixed(0)}) — campaign auto-paused`, "warn");
-    return { ok: true, action: "budget_paused" };
+    return { kind: "budget_paused" };
   }
-  if (campaign.status !== "active") return { ok: true, action: `status_${campaign.status}` };
-
-  // No-double-wave guard: if any campaign-tagged batch is still running, wait.
-  const { data: inflight } = await db.from("quality_batch_runs")
-    .select("id, status").eq("campaign_id", campaign.id)
-    .not("status", "in", "(complete,failed,cancelled)").limit(1);
-  if ((inflight ?? []).length > 0) {
-    return { ok: true, action: "wave_in_flight" };
-  }
-
-  // Interval guard.
+  if (campaign.status !== "active") return { kind: "status_noop", status: campaign.status };
+  if (ctx.hasInflight) return { kind: "wave_in_flight" };
   const intervalMs = (campaign.wave_interval_minutes ?? 360) * 60_000;
   const lastMs = campaign.last_wave_started_at ? new Date(campaign.last_wave_started_at).getTime() : 0;
-  if (lastMs && Date.now() - lastMs < intervalMs) {
-    return { ok: true, action: "interval_wait" };
+  if (lastMs && ctx.nowMs - lastMs < intervalMs) return { kind: "interval_wait" };
+  const anyActive = Object.values(campaign.tool_state ?? {}).some((s) => s?.active);
+  if (!anyActive) return { kind: "complete" };
+  return { kind: "start_wave" };
+}
+
+async function campaignTick(): Promise<{ ok: true; action: string; detail?: unknown }> {
+  const campaign = await loadCampaign();
+  const db = admin();
+
+  let hasInflight = false;
+  if (campaign) {
+    const { data: inflight } = await db.from("quality_batch_runs")
+      .select("id, status").eq("campaign_id", campaign.id)
+      .not("status", "in", "(complete,failed,cancelled)").limit(1);
+    hasInflight = (inflight ?? []).length > 0;
   }
 
-  // Any tools still active?
-  const toolState = (campaign.tool_state ?? {}) as Record<string, CampaignToolState>;
-  const anyActive = Object.values(toolState).some((s) => s?.active);
-  if (!anyActive) {
-    await db.from("quality_campaigns")
-      .update({ status: "complete", completed_at: new Date().toISOString() })
-      .eq("id", campaign.id);
-    await logCampaign(campaign.id, "No active tools remain — campaign complete");
-    return { ok: true, action: "complete" };
-  }
+  const decision = decideCampaignTick(campaign as CampaignRowLite | null, {
+    hasInflight, nowMs: Date.now(),
+  });
 
-  const started = await startCampaignWave(campaign);
-  return { ok: true, action: started.started ? "wave_started" : `wave_skipped:${started.reason}` };
+  switch (decision.kind) {
+    case "no_campaign": return { ok: true, action: "no_campaign" };
+    case "budget_paused": {
+      const cap = campaign!.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
+      await db.from("quality_campaigns").update({ status: "paused" }).eq("id", campaign!.id);
+      await logCampaign(campaign!.id, `Budget cap reached ($${(cap / 100).toFixed(0)}) — campaign auto-paused`, "warn");
+      return { ok: true, action: "budget_paused" };
+    }
+    case "status_noop": return { ok: true, action: `status_${decision.status}` };
+    case "wave_in_flight": return { ok: true, action: "wave_in_flight" };
+    case "interval_wait": return { ok: true, action: "interval_wait" };
+    case "complete": {
+      await db.from("quality_campaigns")
+        .update({ status: "complete", completed_at: new Date().toISOString() })
+        .eq("id", campaign!.id);
+      await logCampaign(campaign!.id, "No active tools remain — campaign complete");
+      return { ok: true, action: "complete" };
+    }
+    case "start_wave": {
+      const started = await startCampaignWave(campaign!);
+      return { ok: true, action: started.started ? "wave_started" : `wave_skipped:${started.reason}` };
+    }
+  }
 }
 
 // Called from process_terminations when the batch is campaign-owned.
