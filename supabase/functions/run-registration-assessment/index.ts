@@ -104,10 +104,36 @@ Deno.serve(async (req) => {
           // null — no requirement metadata row was found in jurisdiction_requirements
           return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm any registration obligations with ${r?.authority_name || "local counsel or the relevant enforcement authority"} before filing.`;
         })();
-        const aiRequired = engineOutput.obligations_summary.ai_act_provider_obligations;
-        const aiBasis = aiRequired
-          ? "EU AI Act GPAI-provider obligations engaged per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models."
-          : "The intake does not declare the organisation as a provider of a general-purpose AI model, so no EU AI Act Chapter V provider obligations are engaged. High-risk AI use, where present, engages separate duties — including Art. 49/Art. 71 EU-database registration for providers of high-risk AI systems — assessed in the Governance / DPIA products, not through a GPAI filing.";
+        // PRODUCT-PROMPT-REG — AI-ROLE FACT DISCIPLINE + EU-ACT TERRITORIALITY.
+        // Read `ai_general_purpose_provider` and `ai_high_risk` VERBATIM; do
+        // not conflate. Never cite the EU AI Act as a UK obligation.
+        const gpaiProvider = engineOutput.obligations_summary.gpai_provider_obligations === true;
+        const highRiskDeployer = engineOutput.obligations_summary.high_risk_ai_deployer_obligations === true;
+        const isEuEea = new Set([
+          "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+          "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+        ]).has(j.code);
+        const isUk = j.code === "UK" || j.code === "GB";
+        const aiRequired = isEuEea && (gpaiProvider || highRiskDeployer);
+        const aiBasis = (() => {
+          if (isUk) {
+            return "EU AI Act obligations do not apply as a UK matter (the Act is EU law; the UK did not retain it post-Brexit). The UK has no comprehensive AI statute currently in force; AI governance in the UK proceeds under sector-regulator guidance following the DSIT 'A pro-innovation approach to AI regulation' White Paper (CP 815, March 2023, response August 2024) and pre-existing UK GDPR, Equality Act 2010, and product-safety duties. Confirm the current status of the UK Government's AI Regulation Bill and any sector-regulator guidance with the ICO and the relevant regulator before concluding no AI-specific filing exists.";
+          }
+          if (!isEuEea) {
+            return `The EU AI Act is EU law and does not apply as a ${r?.jurisdiction_name || j.code} filing obligation. Local AI rules, where present, are assessed under the jurisdiction's own framework and are outside the scope of this registration recommendation.`;
+          }
+          // EU/EEA — split by declared role
+          if (gpaiProvider && highRiskDeployer) {
+            return "Both EU AI Act tracks engaged in this jurisdiction. (1) GPAI-provider obligations per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. (2) High-risk-AI deployer obligations per the intake's declaration that the organisation deploys a high-risk AI system: Chapter III (Arts. 26–29) imposes deployer duties (human oversight, input-data appropriateness, monitoring, incident reporting, and — where the deployer qualifies — the Art. 27 fundamental-rights impact assessment); Art. 49(2) requires deployers that are public authorities, Union institutions, bodies, offices or agencies (and certain other categories) to register the high-risk system's use in the EU database.";
+          }
+          if (gpaiProvider) {
+            return "EU AI Act GPAI-provider obligations engaged per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models.";
+          }
+          if (highRiskDeployer) {
+            return "EU AI Act high-risk-AI obligations engaged per the intake's declaration that the organisation deploys a high-risk AI system: Regulation (EU) 2024/1689, Chapter III (Arts. 26–29) imposes deployer duties (human oversight per Art. 26(1), input-data appropriateness where the deployer controls input data per Art. 26(4), monitoring per Art. 26(5), incident reporting per Art. 26(5), and record-keeping per Art. 26(6)); where the deployer is a public authority or Union body (or otherwise within Art. 49(2) scope), Art. 49(2) requires registration of the high-risk system's use in the EU database maintained under Art. 71. The Art. 27 fundamental-rights impact assessment applies to the deployer categories enumerated there.";
+          }
+          return "The intake declares neither GPAI-provider nor high-risk-AI-deployer status, so no EU AI Act filing obligation is engaged in this jurisdiction. Other AI uses may still attract transparency, human-oversight, or fundamental-rights duties under Arts. 50, 4, and related provisions — assessed in the Governance / DPIA products, not through this filing.";
+        })();
         // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
         // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
         const isBroker = engineOutput.obligations_summary.data_broker_registrations.includes(j.code);
