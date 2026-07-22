@@ -62,12 +62,18 @@ export function qcContractMonotonicity(
 // item that flipped to 'resolved' has at least one changed_path whose target
 // falls under that item's target.path prefix (real content change accompanies
 // resolution). 'not_resolved' verdicts do not require a changed_path.
+//
+// W3-VENDOR-2 (2026-07-22): accepts an optional `informationNeeded` array so a
+// prose-authored frozen target.path resolves through source_fields → alias
+// map BEFORE the coverage check. Callers that omit it fall back to the raw
+// target.path (prior behavior). Structural target paths are unaffected.
 export function qcVerdictConsistency(
   answeredIds: string[],
   verdicts: Array<{ item_id: string; verdict: string }>,
   itemsAfter: Array<{ id: string; target?: { path?: string }; status?: string }>,
   changedPaths: string[],
   toolType?: string,
+  informationNeeded?: unknown,
 ): QcCheckResult {
   if (verdicts.length !== answeredIds.length) {
     return {
@@ -89,7 +95,7 @@ export function qcVerdictConsistency(
   }
   const itemById = new Map(itemsAfter.map((i) => [i.id, i]));
   const missingChange: string[] = [];
-  const missingDetail: Array<{ item_id: string; target: string; candidates: string[] }> = [];
+  const missingDetail: Array<{ item_id: string; target: string; effective: string; candidates: string[] }> = [];
   for (const v of verdicts) {
     if (v.verdict !== "resolved") continue;
     const it = itemById.get(v.item_id);
@@ -97,15 +103,23 @@ export function qcVerdictConsistency(
     if (!targetPath) continue; // narrative-target items not path-checked
     // RC-D.11 — translate ask-vocabulary target → write-vocabulary candidates
     // via the explicit per-tool alias map. No wildcards, no substring inference.
+    // W3-VENDOR-2 — first resolve the effective target via source_fields when
+    // the frozen path is prose (see resolveEffectiveTargetPath).
+    const sourceFields = toolType && it
+      ? sourceFieldsForOpenItem({ id: it.id }, informationNeeded)
+      : null;
+    const effectivePath = toolType
+      ? resolveEffectiveTargetPath(toolType, targetPath, sourceFields)
+      : targetPath;
     const candidates = toolType
-      ? candidateTargetPaths(toolType, targetPath)
-      : [targetPath];
+      ? candidateTargetPaths(toolType, effectivePath)
+      : [effectivePath];
     const touched = changedPaths.some((p) =>
       candidates.some((c) => p === c || p.startsWith(c + ".") || p.startsWith(c + "[")),
     );
     if (!touched) {
       missingChange.push(v.item_id);
-      missingDetail.push({ item_id: v.item_id, target: targetPath, candidates });
+      missingDetail.push({ item_id: v.item_id, target: targetPath, effective: effectivePath, candidates });
     }
   }
   if (missingChange.length > 0) {
