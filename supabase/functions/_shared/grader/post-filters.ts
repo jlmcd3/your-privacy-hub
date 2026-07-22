@@ -49,6 +49,14 @@ const A3_WHITELIST_TOKENS = [
 // Drop any LLM rubric finding whose evidence quotes one of these markers.
 const R15C2_PLACEHOLDER_RE = /\[TO\s+(?:BE\s+COMPLETED|BE\s+ASSESSED|COMPLETE)\b/i;
 
+// R-15C-2 companion — DPA professional-defaults markers ("(default — confirm)",
+// "(default -- confirm)", "(default - confirm)") are MANDATED DPA drafting
+// output per POST-DPA-FIX-1 T4(a) exception enumeration (TLS 1.2+, AES-256,
+// annual BC/DR test, quarterly vuln scans, 30-day sub-processor objection
+// window, 30-day Art. 35 assistance, quarterly access reviews, 24-hour
+// deprovisioning). Drop any LLM rubric finding whose evidence quotes one.
+const DPA_DEFAULTS_MARKER_RE = /\(\s*default\s*[—\-–]{1,2}\s*confirm\s*\)/i;
+
 // A4 — Emit-guard. Suppress "findings" the model returns that in fact affirm
 // the document was correct ("This citation is correct", "the report properly
 // cites", "no issue found"). These are noise, not defects.
