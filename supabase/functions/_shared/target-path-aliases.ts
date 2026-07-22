@@ -56,9 +56,22 @@ export const TARGET_PATH_ALIASES: Record<string, Record<string, string[]>> = {
     q4_pi_categories: [
       "normalised_intake.activity_details",
     ],
+    // Vendor / recipient roster (§ 7152(a)(2)). The intake key `i6_vendors`
+    // is shimmed by `_shared/cppa-risk-normalise.ts::shimLegacyIntake` into
+    // `normalised_intake.activity_details[N].third_party_recipients`, so an
+    // honest revision that resolves an i6-class open_item MUST write there.
+    // Without this alias the model's only allowed_path is the bare intake key
+    // `i6_vendors` (not a real report path), and it correctly emits zero
+    // changed_paths — which the RC-2 hollow-resolution guard then rejects
+    // (409 revision_hollow_resolution). Alias mirrors the i1/q4 pattern that
+    // already routes intake-anchored asks into normalised_intake.activity_details.
+    i6_vendors: [
+      "normalised_intake.activity_details",
+    ],
     q19_admt_description: [
       "normalised_intake.content_detail.admt_description",
     ],
+
     impact: ["normalised_intake.impact"],
     // Nested triggers.* targets — write path mirrors under normalised_intake.
     "triggers.q1_revenue": ["normalised_intake.triggers.q1_revenue"],
