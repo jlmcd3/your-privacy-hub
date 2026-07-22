@@ -702,13 +702,25 @@ export type CampaignTickDecision =
   | { kind: "budget_paused" }
   | { kind: "status_noop"; status: string }
   | { kind: "wave_in_flight" }
+  | { kind: "resurrect"; batchId: string }
   | { kind: "interval_wait" }
   | { kind: "complete" }
   | { kind: "start_wave" };
 
+// QB-P13 — stale-inflight resurrection threshold. If the campaign's live
+// batch has not updated in > 10 minutes, its self-invoke chain is dead;
+// campaignTick fires runUnit(batchId) so the child-stall wedge guard runs.
+export const INFLIGHT_STALE_MS = 10 * 60_000;
+
 export function decideCampaignTick(
   campaign: CampaignRowLite | null,
-  ctx: { hasInflight: boolean; nowMs: number },
+  ctx: {
+    hasInflight: boolean;
+    nowMs: number;
+    // QB-P13 — optional in-flight batch metadata for resurrection.
+    inflightBatchId?: string | null;
+    inflightUpdatedAtMs?: number | null;
+  },
 ): CampaignTickDecision {
   if (!campaign) return { kind: "no_campaign" };
   const cap = campaign.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
@@ -716,7 +728,14 @@ export function decideCampaignTick(
     return { kind: "budget_paused" };
   }
   if (campaign.status !== "active") return { kind: "status_noop", status: campaign.status };
-  if (ctx.hasInflight) return { kind: "wave_in_flight" };
+  if (ctx.hasInflight) {
+    const upd = ctx.inflightUpdatedAtMs ?? null;
+    const id = ctx.inflightBatchId ?? null;
+    if (id && upd !== null && ctx.nowMs - upd > INFLIGHT_STALE_MS) {
+      return { kind: "resurrect", batchId: id };
+    }
+    return { kind: "wave_in_flight" };
+  }
   const intervalMs = (campaign.wave_interval_minutes ?? 360) * 60_000;
   const lastMs = campaign.last_wave_started_at ? new Date(campaign.last_wave_started_at).getTime() : 0;
   if (lastMs && ctx.nowMs - lastMs < intervalMs) return { kind: "interval_wait" };
