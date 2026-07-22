@@ -1176,6 +1176,7 @@ async function runPipeline(assessment_id: string) {
               ).length,
             }));
           }
+        }
         // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
         logPostGenLint(supabase, {
           functionName: "run-cppa-risk-assessment",
