@@ -152,7 +152,13 @@ export function applyGraderCal1Filter(
     // A4 — affirmations are never findings, regardless of `passed`.
     if (f.passed !== true) {
       const ev = evidenceOf(f);
-      if (ev && AFFIRMATION_RES.some((r) => r.test(ev))) {
+      if (
+        ev &&
+        AFFIRMATION_RES.some((r) => r.test(ev)) &&
+        // QB-P17 item 4 — do NOT drop mixed critiques that pair an
+        // affirmation with an adversative/defect marker.
+        !A4_ADVERSATIVE_RES.some((r) => r.test(ev))
+      ) {
         dropped.a4++; record("a4", f);
         continue;
       }
