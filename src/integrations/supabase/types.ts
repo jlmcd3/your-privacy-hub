@@ -4054,14 +4054,18 @@ export type Database = {
           campaign_id: string
           claude_dimensions: Json | null
           claude_overall: number | null
+          coverage_cells_tagged: Json | null
           created_at: string
           estimated_tokens: Json | null
           failing_checks: Json | null
+          gate_v2_pass: boolean | null
+          gate_v2_reasons: Json | null
           gpt_dimensions: Json | null
           gpt_overall: number | null
           id: string
           post_filter_drops: Json | null
           run_id: string | null
+          shadow_score: number | null
           token_basis: string | null
           tool: string
           wave_number: number | null
@@ -4070,14 +4074,18 @@ export type Database = {
           campaign_id: string
           claude_dimensions?: Json | null
           claude_overall?: number | null
+          coverage_cells_tagged?: Json | null
           created_at?: string
           estimated_tokens?: Json | null
           failing_checks?: Json | null
+          gate_v2_pass?: boolean | null
+          gate_v2_reasons?: Json | null
           gpt_dimensions?: Json | null
           gpt_overall?: number | null
           id?: string
           post_filter_drops?: Json | null
           run_id?: string | null
+          shadow_score?: number | null
           token_basis?: string | null
           tool: string
           wave_number?: number | null
@@ -4086,14 +4094,18 @@ export type Database = {
           campaign_id?: string
           claude_dimensions?: Json | null
           claude_overall?: number | null
+          coverage_cells_tagged?: Json | null
           created_at?: string
           estimated_tokens?: Json | null
           failing_checks?: Json | null
+          gate_v2_pass?: boolean | null
+          gate_v2_reasons?: Json | null
           gpt_dimensions?: Json | null
           gpt_overall?: number | null
           id?: string
           post_filter_drops?: Json | null
           run_id?: string | null
+          shadow_score?: number | null
           token_basis?: string | null
           tool?: string
           wave_number?: number | null
@@ -4265,6 +4277,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quality_coverage_cells: {
+        Row: {
+          branch: string
+          hit_count: number
+          last_hit_at: string | null
+          posture: string
+          sector: string
+          tool: string
+        }
+        Insert: {
+          branch: string
+          hit_count?: number
+          last_hit_at?: string | null
+          posture: string
+          sector: string
+          tool: string
+        }
+        Update: {
+          branch?: string
+          hit_count?: number
+          last_hit_at?: string | null
+          posture?: string
+          sector?: string
+          tool?: string
+        }
+        Relationships: []
       }
       quality_findings: {
         Row: {

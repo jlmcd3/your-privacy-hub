@@ -31,9 +31,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
 
 
-export const BUILD_STAMP = "qbp17-measurement-integrity@2026-07-22T20:15:00Z";
+export const BUILD_STAMP = "qbp20-structural-test-design@2026-07-22T23:00:00Z";
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
@@ -304,24 +305,10 @@ export function applyStopRule(
 // payload — exposed so unit tests can assert the exact key set/values with no
 // DB, no network. `createdBy` MUST be the admin who started the batch so the
 // audit trail attributes child runs to that admin (never null).
-export function buildSeedRow(
-  tool: string, batchSize: number, runNumber: number, createdBy: string, nowIso: string,
-) {
-  return {
-    tool,
-    status: "pending" as const,
-    batch_size: batchSize,
-    run_number: runNumber,
-    created_by: createdBy,
-    user_id: createdBy,
-    started_at: nowIso,
-    last_heartbeat_at: nowIso,
-    next_doc_index: 0,
-    grader_context_version: GRADER_CONTEXT_VERSION, // HOUSEKEEPING-1 T2
-  };
-}
+export { buildSeedRow } from "../_shared/quality/seed-row.ts";
+import { buildSeedRow } from "../_shared/quality/seed-row.ts";
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null)
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null } = {})
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -331,7 +318,11 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
 
   // (b) Insert the pending row — same field set as run-quality-batch's own insert.
   const nowIso = new Date().toISOString();
-  const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso);
+  // QB-P20 item 2 — pin the tool's golden intakes unless explicitly opted out.
+  const pins = opts.pinsOverride !== undefined
+    ? opts.pinsOverride
+    : (opts.noPins ? null : goldenIntakes(tool));
+  const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso, { pins });
   if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
   const { data: run, error: iErr } = await db.from("quality_runs")
     .insert(seed).select("id").single();
@@ -916,7 +907,7 @@ export async function applyCampaignTermination(
 }
 
 
-Deno.serve(async (req) => {
+async function handler(req: Request) {
   console.log(`[qb-orchestrator] boot ${BUILD_STAMP}`);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -1045,5 +1036,40 @@ Deno.serve(async (req) => {
     return json({ ok: true, action: "campaign_tick", build_stamp: BUILD_STAMP }, 202);
   }
 
+  // QB-P20 item 7 — pinned_rerun: re-run ONLY a named tool's golden pins.
+  // Cheap paired-comparison instrument: batch_size == pin count, no
+  // synthesized tail. Returns run id; results are computed as normal and
+  // the caller compares scores against that tool's previous run of the
+  // same pins via the existing digest history.
+  if (body?.action === "pinned_rerun" && body?.tool) {
+    const pins = goldenIntakes(String(body.tool));
+    if (!pins.length) return json({ error: `no goldens for tool ${body.tool}` }, 400);
+    const res = await seedAndResume(String(body.tool), pins.length, userId, null, { pinsOverride: pins });
+    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, 500);
+    return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: pins.length, build_stamp: BUILD_STAMP }, 202);
+  }
+
+  // QB-P20 item 8 — regrade_frozen: re-grade a stored set of existing
+  // documents with both judges; append per-dimension sigma and
+  // Claude-GPT correlation to the digest.
+  // Manual admin-only; NO schedule. Body: { document_ids: string[] }.
+  if (body?.action === "regrade_frozen") {
+    const ids = Array.isArray(body?.document_ids) ? body.document_ids.map(String) : [];
+    if (ids.length < 5) return json({ error: "regrade_frozen requires >=5 document_ids" }, 400);
+    // MVP: enqueue via a marker row in quality_batch_log; the follow-up
+    // regrade worker (deferred) picks it up. Kept explicit so nothing
+    // executes silently against production data before CEO sign-off on
+    // the regrader worker itself.
+    await admin().from("quality_batch_log").insert({
+      run_id: null, level: "info",
+      message: `regrade_frozen queued by ${userId} — ${ids.length} document ids: ${ids.slice(0,10).join(",")}${ids.length>10?"…":""}`.slice(0, 500),
+    }).catch(() => {});
+    return json({ ok: true, action: "regrade_frozen", queued: ids.length, build_stamp: BUILD_STAMP, note: "queued — worker not yet auto-scheduled" }, 202);
+  }
+
   return json({ error: "Unknown action" }, 400);
-});
+}
+// Deno edge functions execute this file as the entrypoint, so ensure
+// the server actually starts in production too — import.meta.main is
+// true when the runtime treats this file as the top-level module.
+Deno.serve(handler);
