@@ -1,0 +1,1 @@
+UPDATE public.quality_campaigns SET status='active', updated_at=now() WHERE id='fd1be147-2cee-4402-acfd-a63114b9a651';
