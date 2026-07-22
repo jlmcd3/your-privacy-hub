@@ -57,6 +57,12 @@ import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
 import { validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
 import { renderContractPrompt } from "../_shared/intake-contracts/render.ts";
 import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
+// QB-P22 item 2 — shared IR TEST-STATES/DEADLINES enrichment (matches
+// generate-ir-playbook so the grader sees the same enriched payload).
+import {
+  renderIrTestStatesBlock as _ir_renderIrTestStatesBlock,
+  type IrBody as _IrBodyForGrader,
+} from "../_shared/ir/test-states.ts";
 import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
 import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
 import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
