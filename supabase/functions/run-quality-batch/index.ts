@@ -1307,12 +1307,25 @@ async function pollGenerationRow(
         const s = (data as any)?.status;
         if (s === "complete") return { status: "complete", reportData: { ...((data as any)?.report_data ?? {}), document_text: (data as any)?.document_text ?? "" } };
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      } else if (sourceTable === "registration_assessments") {
+        // QB-P14 item 2 — the free run-registration-assessment function
+        // writes status='completed' synchronously (single HTTP call) and
+        // stores its output in `result_summary`. Recognize that terminal
+        // status and fold the summary into reportData for the grader.
+        const { data } = await admin.from(sourceTable)
+          .select("status, result_summary").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "completed" || s === "complete") {
+          return { status: "complete", reportData: (data as any)?.result_summary ?? {} };
+        }
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       } else {
         const { data } = await admin.from(sourceTable).select("status, report_data").eq("id", sourceRowId).single();
         const s = (data as any)?.status;
         if (s === "complete") return { status: "complete", reportData: (data as any)?.report_data };
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       }
+
     } catch (e) {
       // Transient read errors: keep polling until deadline.
       console.warn(`[pollGenerationRow] read failed for ${sourceTable}/${sourceRowId}:`, (e as Error).message);
