@@ -63,6 +63,7 @@ export type CampaignToolState = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
+const ADMIN_SECRET_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -767,8 +768,13 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace("Bearer ", "");
   const isInternal = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
-  // QB-P9 — pg_cron path: header `x-internal-cron: 1` + service-role bearer.
-  const isCron     = req.headers.get("x-internal-cron")   === "1" && token === SERVICE_KEY;
+  // QB-P11 — pg_cron path: header `x-internal-cron: 1` plus an internal bearer.
+  // Lovable Cloud does not expose the service-role key to database cron, so the
+  // persisted cron registration uses the existing ADMIN_SECRET_TOKEN vault/env
+  // secret while preserving service-role bearer compatibility.
+  const isCron = req.headers.get("x-internal-cron") === "1" && (
+    token === SERVICE_KEY || (!!ADMIN_SECRET_TOKEN && token === ADMIN_SECRET_TOKEN)
+  );
 
   // Internal self-chain resume
   if (isInternal && body?.run_id) {
