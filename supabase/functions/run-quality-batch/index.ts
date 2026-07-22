@@ -952,7 +952,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number } }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -1578,8 +1578,8 @@ type PartialState = {
   allDocFindings: any[];
   logBuf: Array<{ t: string; level: string; msg: string }>;
   // QB-P10 — cumulative post-filter drop counters, per grader, per rule.
-  claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
-  gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
+  claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
+  gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
   // QB-P14 item 4 — audit trail of every finding the post-filter suppressed.
   postFilterSuppressed: Array<{ doc_index: number; grader: "claude" | "gpt"; rule: string; check_id: string; evidence: string }>;
 };
