@@ -489,6 +489,14 @@ async function runUnit(runId: string) {
         tool_results: results,
         current_quality_run_id: stillActive ? (run as any).current_quality_run_id : null,
       }).eq("id", runId);
+
+      // QB-P9 — stop-rule + budget accounting for campaign-initiated waves.
+      const campaignId = (run as any).campaign_id as string | null;
+      if (campaignId) {
+        for (const t of d.terminations) {
+          await applyCampaignTermination(campaignId, t.tool, t.snapshot.score_overall, (run as any).batch_size ?? 0);
+        }
+      }
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
