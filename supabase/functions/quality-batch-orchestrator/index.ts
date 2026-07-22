@@ -33,7 +33,7 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "qbp9-campaign@2026-07-22";
+export const BUILD_STAMP = "qbp11-campaign-cron-auth@2026-07-22";
 
 // QB-P9 — Campaign mode constants.
 // Anthropic Claude Sonnet spend estimate basis (per doc, single run):
