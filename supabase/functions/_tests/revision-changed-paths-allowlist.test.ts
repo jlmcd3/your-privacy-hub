@@ -56,6 +56,9 @@ Deno.test("qcChangedPathsAuthorized: alias path (cppa_risk i6_vendors → normal
     "cppa_risk_assessment",
   );
   assertEquals(res.status, "green");
+});
+
+
 
 
 Deno.test("qcChangedPathsAuthorized: cyber indexed path (controls.c13_training → controls[12].status)", () => {
