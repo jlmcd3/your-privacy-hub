@@ -15,7 +15,7 @@ const InlineLink = ({
 }) => (
   <Link
     to={to}
-    className="text-brand-teal-text font-medium no-underline hover:underline decoration-brand-teal/50 underline-offset-2"
+    className="text-brand-navy font-medium no-underline hover:underline decoration-brand-navy/40 underline-offset-2"
   >
     {children}
   </Link>
