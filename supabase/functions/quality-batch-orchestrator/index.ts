@@ -112,6 +112,24 @@ export const MAX_CONCURRENCY = 5;
 // Intra-wave stagger between successive child dispatches, per QB-P7.
 export const WAVE_STAGGER_MS = 10_000;
 
+// QB-P14 item 5 — pure helper for wave dispatch to select the batch size for
+// a given tool. Prefers the campaign's per-tool tool_state.batch_size and
+// falls back to the batch-level batch_size (which for campaign waves is the
+// MAX-over-eligible-tools value stored on quality_batch_runs). Exported for
+// unit tests.
+export function resolveToolBatchSize(
+  tool: string,
+  toolState: Record<string, { batch_size?: number } | undefined> | null | undefined,
+  batchLevel: number | null | undefined,
+): number {
+  const perTool = Number(toolState?.[tool]?.batch_size ?? NaN);
+  if (Number.isFinite(perTool) && perTool > 0) return Math.max(1, Math.floor(perTool));
+  const fb = Number(batchLevel ?? NaN);
+  if (Number.isFinite(fb) && fb > 0) return Math.max(1, Math.floor(fb));
+  return 3;
+}
+
+
 export function clampConcurrency(raw: unknown): number {
   const n = Math.floor(Number(raw));
   if (!Number.isFinite(n) || n < 1) return DEFAULT_CONCURRENCY;
