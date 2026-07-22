@@ -1764,8 +1764,17 @@ async function runBatch(runId: string): Promise<void> {
     // P-A: split is positional and stable across resumes (no `_set` field is injected
     // into the intake object, so buildDocument's schema-strict generators don't choke).
     // The last ~30% of intakes are the held-out set; never used to gate fix candidates.
-    const holdoutStart = Math.floor(intakes.length * 0.7);
-    const scenarioSetFor = (idx: number) => idx >= holdoutStart ? "holdout" : "tuning";
+    // QB-P17 item 6 — holdout floor. Math.floor(n*0.7) puts the ONLY doc of
+    // an n=1 run into "holdout" with an empty tuning set (0/1 tuning, 1/1
+    // holdout) — the overfitting diagnostic is meaningless at that scale.
+    // Fix: floor at 1 so at least one doc is tuning, and skip the split
+    // entirely when n < 4 (all docs tuning; log that diagnostic is unavailable).
+    const holdoutSplitEnabled = intakes.length >= 4;
+    const holdoutStart = Math.max(1, Math.floor(intakes.length * 0.7));
+    if (!holdoutSplitEnabled) {
+      await log("info", `tuning/holdout split disabled (n=${intakes.length} < 4); overfitting diagnostic unavailable this run`);
+    }
+    const scenarioSetFor = (idx: number) => holdoutSplitEnabled && idx >= holdoutStart ? "holdout" : "tuning";
 
     for (let i = startIdx; i < endIdx; i++) {
       // Cancel check
@@ -2092,8 +2101,14 @@ async function runBatch(runId: string): Promise<void> {
       ]);
 
       if (!claudeEval) {
-        await log("error", `${docLabel}: Claude evaluation failed or timed out`);
-        await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed or timed out" }).eq("id", docRowId);
+        // QB-P17 item 1 — PARSE-FAILURE QUARANTINE. Doc is marked eval_failed
+        // (distinct from a product-scoring event); state.built is NOT
+        // incremented so this doc contributes nothing to run aggregates,
+        // and if every doc in the run fails eval, the run terminates as
+        // status="error" with score_overall=null — which applyStopRule in the
+        // orchestrator already treats as "no run slot consumed".
+        await log("error", `${docLabel}: eval_failed — Claude evaluation returned null/unparseable; excluding from aggregates and stop-rule`);
+        await admin.from("quality_run_documents").update({ status: "eval_failed", error: "Claude evaluation returned null/unparseable" }).eq("id", docRowId);
         await persistState({ next_doc_index: i + 1 });
         continue;
       }
@@ -2306,7 +2321,12 @@ async function runBatch(runId: string): Promise<void> {
       intelligence: avg(state.dimTotals.intelligence), formatting: avg(state.dimTotals.formatting),
     };
     const w = weightsFor(tool);
-    const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
+    // QB-P17 item 2 — keep unrounded overall for certification gate (a true
+    // 97.5 must NOT pass a >=98 gate). `overallDisplay` is the rounded copy
+    // used in log lines / dimension_scores summaries.
+    const overallRaw = scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting;
+    const overall = overallRaw;
+    const overallDisplay = Math.round(overallRaw);
 
     // P-A: tuning/holdout split — overfitting diagnostic. Both numbers are stored;
     // tuning rises while holdout flat/down ⇒ the loop is teaching to the test.
