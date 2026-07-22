@@ -19,9 +19,6 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
         env.VITE_SUPABASE_PROJECT_ID || "tvksbtrelpzhbyeutzgp",
       ),
-      "import.meta.env.VITE_REVISIONS_ENABLED": JSON.stringify(
-        env.VITE_REVISIONS_ENABLED || "true",
-      ),
     },
     server: {
       host: "::",
