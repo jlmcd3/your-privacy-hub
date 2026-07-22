@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminOnly from "@/components/AdminOnly";
 import { adminSeedQualityBatch2 } from "@/lib/adminRevisionApi";
+import { QUALITY_BATCH2_TOOLS } from "@/lib/qualityBatchTools";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,14 +20,9 @@ interface ListItem {
   open_items_open: number;
 }
 
-const TOOLS: { key: string; label: string; seedable: boolean }[] = [
-  { key: "cppa_risk_assessment", label: "CPPA Risk Assessment", seedable: true },
-  { key: "cppa_admt", label: "CPPA ADMT", seedable: true },
-  { key: "cppa_cybersecurity", label: "CPPA Cybersecurity", seedable: true },
-  { key: "governance_assessment", label: "Governance", seedable: true },
-  { key: "dpia_framework", label: "DPIA Framework", seedable: false },
-  { key: "li_assessment", label: "LIA (Legitimate Interests)", seedable: false },
-];
+// QB-P3 cleanup: tool list moved to src/lib/qualityBatchTools.ts so
+// QualityBatch and QualityBatch2 share one source of truth.
+const TOOLS = QUALITY_BATCH2_TOOLS;
 
 function ToolSection({ tool }: { tool: { key: string; label: string; seedable: boolean } }) {
   const [items, setItems] = useState<ListItem[]>([]);
@@ -99,7 +95,7 @@ function ToolSection({ tool }: { tool: { key: string; label: string; seedable: b
                 </td>
                 <td className="py-1">
                   <Link
-                    to={`/ADMIn/quality-batch2/${tool.key}/${it.id}`}
+                    to={`/admin/quality-batch2/${tool.key}/${it.id}`}
                     className="text-sm text-primary underline"
                   >
                     Review

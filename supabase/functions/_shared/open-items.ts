@@ -301,6 +301,44 @@ export function buildOpenItems(
   return out;
 }
 
+// i3-EMITTER FIX — cppa_risk_assessment only. When the LLM emits an ask
+// targeting `i3_ca_consumer_band` but the intake has ALREADY answered the
+// volume band (annual_consumer_volume / i3_ca_consumer_band non-empty), the
+// real defect is that the CATEGORY MIX (patients / caregivers / staff / etc.)
+// is missing — not the volume band. Rewrite the field to the composition
+// key so buildOpenItems routes it to `structured` input.
+//
+// Historical docs are UNAFFECTED: this only rewrites information_needed
+// BEFORE freeze; once open_items are frozen, no rewrite is possible.
+export function isVolumeBandAnswered(intake: any): boolean {
+  const candidates = [
+    intake?.i3_ca_consumer_band,
+    intake?.annual_consumer_volume,
+    intake?.normalised_intake?.annual_consumer_volume,
+    intake?.triggers?.q2_consumers,
+    intake?.q2_consumers,
+  ];
+  return candidates.some((v) => typeof v === "string" && v.trim().length > 0);
+}
+
+export function rewriteI3CompositionAsks(
+  informationNeeded: unknown,
+  intake: any,
+): unknown {
+  if (!Array.isArray(informationNeeded)) return informationNeeded;
+  if (!isVolumeBandAnswered(intake)) return informationNeeded;
+  let mutated = false;
+  const out = informationNeeded.map((e: any) => {
+    if (!e || typeof e !== "object") return e;
+    if (e.field === "i3_ca_consumer_band") {
+      mutated = true;
+      return { ...e, field: "i3_ca_consumer_band_composition" };
+    }
+    return e;
+  });
+  return mutated ? out : informationNeeded;
+}
+
 // Idempotent freeze — never overwrites an existing open_items array.
 export function freezeOpenItemsOnFirstRun(
   reportData: any,

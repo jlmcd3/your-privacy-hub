@@ -18,19 +18,10 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { LaunchGateScoreboard } from "@/components/admin/LaunchGateScoreboard";
 
-// QB-P3: slug → generate-report-pdf tool_type. Verified against
+// QB-P3 cleanup: SLUG_TO_TOOL_TYPE lives in src/lib/qualityBatchTools.ts so
+// QualityBatch and QualityBatch2 share one source of truth. Verified against
 // supabase/functions/generate-report-pdf/index.ts tableMap (L1853–1868).
-const SLUG_TO_TOOL_TYPE: Record<string, string> = {
-  "cppa-admt": "cppa_admt",
-  "cppa-risk": "cppa_risk",
-  "cppa-cyber": "cppa_cybersecurity",
-  "governance": "governance_assessment",
-  "dpia": "dpia_framework",
-  "lia": "li_assessment",
-  "dpa-generator": "dpa_generator",
-  "ir-playbook": "ir_playbook",
-  "biometric-checker": "biometric_checker",
-};
+import { SLUG_TO_TOOL_TYPE } from "@/lib/qualityBatchTools";
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
 const TOOLS = [

@@ -32,7 +32,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-citation-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
-import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
+import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { validateSourceFields } from "../_shared/source-fields-validator.ts";
@@ -1155,6 +1155,27 @@ async function runPipeline(assessment_id: string) {
             residual_resolved_asks: residualResolvedAsks.length,
             notes: result.notes.slice(0, 40),
           }));
+        }
+
+        // i3-EMITTER FIX — when the LLM asks about i3_ca_consumer_band but
+        // the intake already has the volume band answered, rewrite the ask
+        // to i3_ca_consumer_band_composition so open_items routes to
+        // structured (category mix), not the re-select band. Runs BEFORE
+        // freezeOpenItemsOnFirstRun so the rewrite lands in the frozen set.
+        // Historical (already-frozen) docs are unaffected.
+        if (Array.isArray(parsed?.information_needed)) {
+          const before = parsed.information_needed;
+          const after = rewriteI3CompositionAsks(before, intake);
+          if (after !== before) {
+            parsed.information_needed = after;
+            console.warn(JSON.stringify({
+              evt: "i3_composition_ask_rewritten",
+              fn: "run-cppa-risk-assessment",
+              count: (after as any[]).filter(
+                (e: any) => e?.field === "i3_ca_consumer_band_composition",
+              ).length,
+            }));
+          }
         }
         // REBUILD-DPIA T9 — persist post_gen_lint telemetry (fire-and-forget).
         logPostGenLint(supabase, {
