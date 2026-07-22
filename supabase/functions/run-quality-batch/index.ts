@@ -1524,10 +1524,14 @@ type PartialState = {
   holdoutBuilt: number;
   allDocFindings: any[];
   logBuf: Array<{ t: string; level: string; msg: string }>;
+  // QB-P10 — cumulative post-filter drop counters, per grader, per rule.
+  claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
+  gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
 };
 
 function emptyState(): PartialState {
   const zeroDims = () => ({ accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 });
+  const zeroDrops = () => ({ a2: 0, a3: 0, a4: 0, r15c2: 0 });
   return {
     dimTotals: zeroDims(),
     gptTotals: zeroDims(),
@@ -1539,6 +1543,8 @@ function emptyState(): PartialState {
     holdoutBuilt: 0,
     allDocFindings: [],
     logBuf: [],
+    claudePostFilterDrops: zeroDrops(),
+    gptPostFilterDrops: zeroDrops(),
   };
 }
 
