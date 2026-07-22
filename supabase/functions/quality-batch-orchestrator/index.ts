@@ -229,6 +229,9 @@ export function decide(
     const size = Math.min(conc, remaining);
     const nextTools = row.tools.slice(row.current_tool_index, row.current_tool_index + size);
     return { kind: "dispatch_wave", tools: nextTools, startIndex: row.current_tool_index };
+  }
+
+  return { kind: "wait" };
 }
 
 // QB-P9 — pure stop-rule reducer. Given the current tool_state and the
@@ -253,9 +256,6 @@ export function applyStopRule(
     return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "max_runs" };
   }
   return { ...prev, runs_completed, consecutive_ge98 };
-}
-
-  return { kind: "wait" };
 }
 
 // Pure row-builder mirroring run-quality-batch/index.ts ~L2547–2552's insert
