@@ -55,6 +55,31 @@ const LAST_AUDIT_OPTIONS = [
   "Never",
 ] as const;
 
+// QB-P5 Item 1 — canonical 18 control slugs verified against
+// src/pages/CPPACybersecurity.tsx (form emits these keys position-for-
+// position). Contract now pins controls[].key to this enum so fixture
+// intakes cannot invent alternative slugs (e.g. asset_inventory, mfa).
+export const CYBER_CONTROL_SLUGS = [
+  "c1_auth",
+  "c2_encryption",
+  "c3_account_access",
+  "c4_inventory",
+  "c5_secure_config",
+  "c6_vuln_mgmt",
+  "c7_audit_logs",
+  "c8_network_mon",
+  "c9_anti_malware",
+  "c10_segmentation",
+  "c11_port_protocol",
+  "c12_awareness",
+  "c13_training",
+  "c14_secure_dev",
+  "c15_third_party",
+  "c16_retention",
+  "c17_incident",
+  "c18_continuity",
+] as const;
+
 export const cppaCybersecurityContract: IntakeContract = {
   tool_type: "cppa_cybersecurity",
   table: "cppa_cybersecurity_runs",
@@ -69,7 +94,8 @@ export const cppaCybersecurityContract: IntakeContract = {
     { key: "profile.last_audit",     kind: "enum", required: "always",
       options: LAST_AUDIT_OPTIONS },
     // controls[]
-    { key: "controls[].key",     kind: "text",      required: "always" },
+    { key: "controls[].key",     kind: "enum",      required: "always",
+      options: CYBER_CONTROL_SLUGS },
     { key: "controls[].label",   kind: "text",      required: "always" },
     { key: "controls[].maturity", kind: "enum",     required: "optional",
       options: CYBER_MATURITY_OPTIONS, askEligible: true },
