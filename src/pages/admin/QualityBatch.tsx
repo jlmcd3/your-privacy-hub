@@ -773,6 +773,9 @@ export default function QualityBatch() {
         </CardContent>
       </Card>
 
+      {/* QB-P9 — Campaign controls (minimal). Pause/Resume/Kill only. */}
+      <CampaignControls />
+
       {/* Launch-gate scoreboard (Option-A findings-based) */}
       <LaunchGateScoreboard tools={TOOLS} />
 
