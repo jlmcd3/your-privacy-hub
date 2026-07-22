@@ -88,55 +88,68 @@ function evidenceOf(f: LlmFinding): string {
 /**
  * GRADER-CAL-1 A2/A3/A4 filter. Drops findings that are noise per the calibration
  * rules and returns the retained list + a per-rule count for telemetry.
+ *
+ * QB-P14 item 4 — also returns `suppressed`: the first 300 chars of each
+ * dropped finding's evidence, keyed by the rule (a2/a3/a4/r15c2) and check_id,
+ * so suppressions are auditable in the batch progress log / campaign digest.
  */
+export type SuppressedFinding = {
+  rule: "a2" | "a3" | "a4" | "r15c2";
+  check_id: string;
+  evidence: string; // first 300 chars
+};
+
 export function applyGraderCal1Filter(
   findings: LlmFinding[],
-): { kept: LlmFinding[]; dropped: { a2: number; a3: number; a4: number; r15c2: number } } {
+): {
+  kept: LlmFinding[];
+  dropped: { a2: number; a3: number; a4: number; r15c2: number };
+  suppressed: SuppressedFinding[];
+} {
   const dropped = { a2: 0, a3: 0, a4: 0, r15c2: 0 };
+  const suppressed: SuppressedFinding[] = [];
   const kept: LlmFinding[] = [];
+  const record = (rule: SuppressedFinding["rule"], f: LlmFinding) => {
+    suppressed.push({
+      rule,
+      check_id: typeof f.check_id === "string" ? f.check_id : String(f.check_id ?? "unknown"),
+      evidence: evidenceOf(f).slice(0, 300),
+    });
+  };
   for (const f of findings ?? []) {
     if (!f || typeof f !== "object") continue;
     // A4 — affirmations are never findings, regardless of `passed`.
     if (f.passed !== true) {
       const ev = evidenceOf(f);
       if (ev && AFFIRMATION_RES.some((r) => r.test(ev))) {
-        dropped.a4++;
+        dropped.a4++; record("a4", f);
         continue;
       }
-      // A2 — advisory-formula sentences are not leaks. GRADER-CAL-2 Task 5:
-      // the legacy "NOTE FOR LEGAL REVIEW" whitelist is retired (current
-      // prompts prohibit that heading outright); real occurrences now
-      // surface as legitimate leak findings.
       if (
         f.check_id === "rubric_internal_reasoning_leak" &&
         ADVISORY_FORMULA_RE.test(ev)
       ) {
-        dropped.a2++;
+        dropped.a2++; record("a2", f);
         continue;
       }
-      // A3 — verified-authority whitelist for citation / hallucination bands.
       const dim = (f.dimension ?? "").toString().toLowerCase();
       if ((dim === "citation" || dim === "hallucination") &&
           A3_WHITELIST_TOKENS.some((r) => r.test(ev))) {
-        dropped.a3++;
+        dropped.a3++; record("a3", f);
         continue;
       }
-      // QB-P2 R-15C-2 — bracketed placeholder markers are anti-fabrication
-      // scaffolding, never a defect. Applies to any LLM rubric finding
-      // (both graders) whose evidence quotes one of these markers. Log the
-      // drop with the check_id so telemetry can surface which rubric line
-      // was overzealous.
       if (typeof f.check_id === "string" && f.check_id.startsWith("rubric_") &&
           R15C2_PLACEHOLDER_RE.test(ev)) {
         console.log(`[grader-postfilter] R-15C-2 drop: ${f.check_id} evidence matched placeholder marker`);
-        dropped.r15c2++;
+        dropped.r15c2++; record("r15c2", f);
         continue;
       }
     }
     kept.push(f);
   }
-  return { kept, dropped };
+  return { kept, dropped, suppressed };
 }
+
 
 /**
  * A5 — comparability helper. Recomputes overall_score under the pre-CAL-1

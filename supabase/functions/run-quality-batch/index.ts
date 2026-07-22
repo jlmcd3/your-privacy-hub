@@ -905,10 +905,13 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   const rawLlmFindings: any[] = claudeResult?.findings ?? claudeResult?.llm_findings ?? [];
   // GRADER-CAL-1 A2/A3/A4 — drop NOTE-block leaks, whitelisted authorities,
   // and affirmation-shaped "findings" before mapping to schema.
-  const { kept: filteredRaw, dropped: cal1Dropped } = applyGraderCal1Filter(rawLlmFindings as any);
-  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4) {
-    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4}`);
+  // QB-P14 item 4 — `suppressed` carries the dropped findings' evidence
+  // (first 300 chars) so the caller can log an audit trail.
+  const { kept: filteredRaw, dropped: cal1Dropped, suppressed: cal1Suppressed } = applyGraderCal1Filter(rawLlmFindings as any);
+  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4 || cal1Dropped.r15c2) {
+    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2}`);
   }
+
   const llmFindings = filteredRaw
     .filter(f => rubricMeta.has((f as any).check_id))
     .map(f => {
@@ -932,7 +935,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   }
   const w = weightsFor(tool);
   const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
-  return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped };
+  return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
 }
 
 async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number } }> {
@@ -962,9 +965,9 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     // mirrors the Claude path exactly.
     const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
     const rawGpt = parsed.findings ?? [];
-    const { kept: gptKept, dropped: gptDropped } = applyGraderCal1Filter(rawGpt as any);
-    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4) {
-      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4}`);
+    const { kept: gptKept, dropped: gptDropped, suppressed: gptSuppressed } = applyGraderCal1Filter(rawGpt as any);
+    if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2) {
+      console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2}`);
     }
     parsed.findings = gptKept
       .filter((f: any) => rubricMeta.has(f.check_id))
@@ -972,7 +975,8 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
         const meta = rubricMeta.get(f.check_id)!;
         return { check_id: f.check_id, dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null };
       });
-    return { eval: parsed, postFilterDropped: gptDropped };
+    return { eval: parsed, postFilterDropped: gptDropped, postFilterSuppressed: gptSuppressed };
+
   } catch (e) {
     return { eval: null, error: (e as Error).message };
   }
@@ -1076,7 +1080,11 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const description = contractForTool
     ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
     : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
-  const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
+  // QB-P14 item 1 — dpia's schema is the largest; QB-P6 richness rules push
+  // intake generation past 180s. Give dpia the same 300s ceiling cppa-risk
+  // already gets; every other tool keeps the 180s default.
+  const intakeTimeoutMs = (tool === "cppa-risk" || tool === "dpia") ? 300_000 : 180_000;
+
   // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt) produce ~1.5-2k tokens per intake;
   // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
   // then concatenate.
@@ -1147,27 +1155,37 @@ async function generateValidatedIntakes(tool: string, count: number): Promise<{ 
 // r1b1.4 POLL-RESUME: dispatch-only step. Insert the generator row and fire
 // its edge function; return the source table/row id. Caller then polls the
 // row with a bounded per-isolate deadline and self-reinvokes on deadline.
+// QB-P14 item 3 — dispatchGeneration returns the invocation promise so the
+// caller can `.catch` it and persist the HTTP status + first 200 chars of the
+// error body in the batch progress log. Prior shape swallowed every generator
+// dispatch failure via `.catch(() => {})`, producing bare "dispatch failed"
+// entries with no attribution. On insert/setup failure the function now
+// returns `{ error }` so the caller can surface the reason too.
+export type DispatchResult =
+  | { sourceTable: string; sourceRowId: string; invocation: Promise<any> }
+  | { error: string };
+
 async function dispatchGeneration(
   admin: Admin, tool: string, intake: any, userId: string,
-): Promise<{ sourceTable: string; sourceRowId: string } | null> {
+): Promise<DispatchResult> {
   try {
     if (tool === "cppa-admt") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-admt-checker", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-admt-checker", { assessment_id: rec.id });
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "cppa-risk") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id });
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "cppa-cyber") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "cybersecurity", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id });
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "lia") {
       const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal","supplemental_responses","supplemental_context"];
@@ -1177,8 +1195,8 @@ async function dispatchGeneration(
       if (!cleaned.status) cleaned.status = "pending";
       const { data: rec, error } = await admin.from("li_assessments").insert({ ...cleaned, user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-li-assessment", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "li_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-li-assessment", { assessment_id: rec.id });
+      return { sourceTable: "li_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "dpia") {
       const { data: rec, error } = await admin.from("dpia_frameworks").insert({
@@ -1186,8 +1204,8 @@ async function dispatchGeneration(
         organization_name: intake?.organisation_name ?? intake?.organization_name ?? "Test Org",
       }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-dpia-framework", { dpia_id: rec.id }).catch(() => {});
-      return { sourceTable: "dpia_frameworks", sourceRowId: rec.id };
+      const invocation = invokeFn("run-dpia-framework", { dpia_id: rec.id });
+      return { sourceTable: "dpia_frameworks", sourceRowId: rec.id, invocation };
     }
     if (tool === "governance") {
       const { data: rec, error } = await admin.from("governance_assessments").insert({
@@ -1195,44 +1213,61 @@ async function dispatchGeneration(
         organization_name: intake?.organization_name ?? intake?.company_name ?? "Test Org",
       }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
-      return { sourceTable: "governance_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("run-governance-assessment", { assessment_id: rec.id });
+      return { sourceTable: "governance_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "dpa-generator") {
       const { data: rec, error } = await admin.from("dpa_documents").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "dpa_documents", sourceRowId: rec.id };
+      const invocation = invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId });
+      return { sourceTable: "dpa_documents", sourceRowId: rec.id, invocation };
     }
     if (tool === "ir-playbook") {
       const { data: rec, error } = await admin.from("ir_playbooks").insert({ user_id: userId, status: "pending", intake_data: intake, organization_name: intake?.organizationName ?? "Test Org" }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "ir_playbooks", sourceRowId: rec.id };
+      const invocation = invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId });
+      return { sourceTable: "ir_playbooks", sourceRowId: rec.id, invocation };
     }
     if (tool === "biometric-checker") {
       const { data: rec, error } = await admin.from("biometric_assessments").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true }).catch(() => {});
-      return { sourceTable: "biometric_assessments", sourceRowId: rec.id };
+      const invocation = invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true });
+      return { sourceTable: "biometric_assessments", sourceRowId: rec.id, invocation };
     }
+    // QB-P14 item 2 — REGISTRATION path.
+    //
+    // Prior harness invoked `generate-registration-docs` with `{order_id}` —
+    // that is the paid order-fulfillment function which rejects immediately
+    // when no order exists (both campaign registration runs died this way
+    // in ~130ms, no error captured). The real customer flow lives in
+    // src/pages/RegistrationAssessment.tsx and calls the FREE, synchronous
+    // `run-registration-assessment` with `{intake_data, user_id}`. That
+    // function creates the `registration_assessments` row itself, runs the
+    // rules engine synchronously, writes status='completed', and returns
+    // `{assessment_id, shareable_token, result_summary}`. Match that flow
+    // exactly here — do NOT seed a row (the callee owns row creation) and
+    // do NOT touch `generate-registration-docs` or any order/payment code.
     if (tool === "registration") {
-      const { data: rec, error } = await admin.from("registration_orders").insert({
-        user_id: userId, status: "pending", intake_data: intake,
-        organization_name: intake?.organizationName ?? "Test Org",
-        jurisdictions: intake?.jurisdictions ?? [],
-      }).select("id").single();
-      if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "registration_orders", sourceRowId: rec.id };
+      const data = await invokeFn("run-registration-assessment", {
+        intake_data: intake, user_id: userId,
+      });
+      const assessmentId = (data as any)?.assessment_id;
+      if (!assessmentId) throw new Error(`run-registration-assessment returned no assessment_id`);
+      return {
+        sourceTable: "registration_assessments",
+        sourceRowId: assessmentId,
+        invocation: Promise.resolve(data),
+      };
     }
     console.warn(`[dispatchGeneration] no dispatcher for tool: ${tool}`);
-    return null;
+    return { error: `no dispatcher for tool: ${tool}` };
   } catch (e) {
-    console.warn(`[dispatchGeneration] failed:`, (e as Error).message);
-    return null;
+    const msg = (e as Error).message ?? String(e);
+    console.warn(`[dispatchGeneration] failed:`, msg);
+    return { error: msg.slice(0, 500) };
   }
 }
+
 
 type PollOutcome =
   | { status: "complete"; reportData: any }
@@ -1276,12 +1311,25 @@ async function pollGenerationRow(
         const s = (data as any)?.status;
         if (s === "complete") return { status: "complete", reportData: { ...((data as any)?.report_data ?? {}), document_text: (data as any)?.document_text ?? "" } };
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
+      } else if (sourceTable === "registration_assessments") {
+        // QB-P14 item 2 — the free run-registration-assessment function
+        // writes status='completed' synchronously (single HTTP call) and
+        // stores its output in `result_summary`. Recognize that terminal
+        // status and fold the summary into reportData for the grader.
+        const { data } = await admin.from(sourceTable)
+          .select("status, result_summary").eq("id", sourceRowId).single();
+        const s = (data as any)?.status;
+        if (s === "completed" || s === "complete") {
+          return { status: "complete", reportData: (data as any)?.result_summary ?? {} };
+        }
+        if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       } else {
         const { data } = await admin.from(sourceTable).select("status, report_data").eq("id", sourceRowId).single();
         const s = (data as any)?.status;
         if (s === "complete") return { status: "complete", reportData: (data as any)?.report_data };
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       }
+
     } catch (e) {
       // Transient read errors: keep polling until deadline.
       console.warn(`[pollGenerationRow] read failed for ${sourceTable}/${sourceRowId}:`, (e as Error).message);
@@ -1401,35 +1449,26 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       throw new Error("timeout polling biometric_assessments");
     }
 
-    // B3: Registration — fan-out filing generator. Poll registration_orders.
+    // QB-P14 item 2 — REGISTRATION path in the transient/buildDocument path
+    // (same rewire as dispatchGeneration above). run-registration-assessment
+    // is synchronous and creates the registration_assessments row itself,
+    // returning {assessment_id, result_summary}. Do not seed a
+    // registration_orders row and do not call generate-registration-docs
+    // (that is the paid order-fulfillment function; harness has no order).
     if (tool === "registration") {
-      const { data: rec, error } = await admin.from("registration_orders").insert({
-        user_id: userId,
-        status: "pending",
-        intake_data: intake,
-        organization_name: intake?.organizationName ?? "Test Org",
-        jurisdictions: intake?.jurisdictions ?? [],
-      }).select("id").single();
-      if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
-      // Generous poll budget — multi-jurisdiction filings can run long.
-      for (let i = 0; i < 240; i++) {
-        await new Promise(r => setTimeout(r, 5000));
-        const { data } = await admin.from("registration_orders").select("status").eq("id", rec.id).single();
-        const s = (data as any)?.status;
-        if (s === "complete" || s === "generated") {
-          const { data: docs } = await admin.from("registration_documents")
-            .select("jurisdiction, document_type, content_text").eq("order_id", rec.id);
-          return {
-            sourceTable: "registration_orders",
-            sourceRowId: rec.id,
-            reportData: { documents: docs ?? [], document_count: docs?.length ?? 0 },
-          };
-        }
-        if (["error", "failed", "cancelled"].includes(s ?? "")) throw new Error(`registration_orders status=${s}`);
-      }
-      throw new Error("timeout polling registration_orders");
+      const resp = await invokeFn("run-registration-assessment", {
+        intake_data: intake, user_id: userId,
+      });
+      const assessmentId = (resp as any)?.assessment_id;
+      if (!assessmentId) throw new Error(`run-registration-assessment returned no assessment_id`);
+      const summary = (resp as any)?.result_summary ?? {};
+      return {
+        sourceTable: "registration_assessments",
+        sourceRowId: assessmentId,
+        reportData: summary,
+      };
     }
+
 
     // B3: editorial generators — call the edge function directly, capture the
     // JSON response as the document body. These don't have a per-row "complete"
@@ -1527,6 +1566,8 @@ type PartialState = {
   // QB-P10 — cumulative post-filter drop counters, per grader, per rule.
   claudePostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
   gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number };
+  // QB-P14 item 4 — audit trail of every finding the post-filter suppressed.
+  postFilterSuppressed: Array<{ doc_index: number; grader: "claude" | "gpt"; rule: string; check_id: string; evidence: string }>;
 };
 
 function emptyState(): PartialState {
@@ -1545,8 +1586,10 @@ function emptyState(): PartialState {
     logBuf: [],
     claudePostFilterDrops: zeroDrops(),
     gptPostFilterDrops: zeroDrops(),
+    postFilterSuppressed: [],
   };
 }
+
 
 async function runBatch(runId: string): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
@@ -1829,20 +1872,35 @@ async function runBatch(runId: string): Promise<void> {
           }
 
           const dispatch = await dispatchGeneration(admin, tool, intake, userId);
-          if (!dispatch) {
-            await log("warn", `${docLabel}: dispatch failed`);
-            await admin.from("quality_run_documents").update({ status: "error", error: "dispatch failed" }).eq("id", docRowId);
+          if ("error" in dispatch) {
+            // QB-P14 item 3 — surface the seed/dispatch error verbatim (was
+            // just "dispatch failed" with no reason).
+            const detail = String(dispatch.error).slice(0, 300);
+            await log("error", `${docLabel}: dispatch failed — ${detail}`);
+            await admin.from("quality_run_documents").update({ status: "error", error: `dispatch failed: ${detail}`.slice(0, 500) }).eq("id", docRowId);
             continue;
           }
           sourceTable = dispatch.sourceTable;
           sourceRowId = dispatch.sourceRowId;
           genStartedAt = Date.now();
           isolateCount = 1;
+          // QB-P14 item 3 — capture the invokeFn promise's failure. invokeFn
+          // throws `${name} ${status}: ${body.slice(0,200)}` on non-2xx or
+          // network error; log that verbatim so a generator that 5xx's or
+          // 404s (e.g. NOT_FOUND_FUNCTION_BLOB) is attributed instead of
+          // disappearing under an unbounded "generator did not reach terminal
+          // state" timeout later.
+          const capturedLabel = docLabel; // freeze for the async handler
+          dispatch.invocation.catch(async (e: unknown) => {
+            const msg = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+            try { await log("error", `${capturedLabel}: generator dispatch failed — ${msg}`); } catch { /* */ }
+          });
           // Persist source refs immediately so a resumed isolate can pick up
           // even if this isolate is torn down before the first poll landing.
           await admin.from("quality_run_documents").update({
             source_table: sourceTable, source_row_id: sourceRowId,
           }).eq("id", docRowId);
+
         }
 
         // Doc-level total-timeout guard: one dead generator must never kill
@@ -2078,6 +2136,22 @@ async function runBatch(runId: string): Promise<void> {
         state.gptPostFilterDrops.a4 += gd.a4 ?? 0;
         state.gptPostFilterDrops.r15c2 += gd.r15c2 ?? 0;
       }
+
+      // QB-P14 item 4 — post-filter SUPPRESSION AUDIT TRAIL.
+      // Log each dropped finding to the progress log (check_id, grader, rule,
+      // first 300 chars of evidence) and accumulate onto state so the campaign
+      // digest carries the same audit trail. No behavior change to filtering.
+      const claudeSupp = ((claudeEval as any)?.post_filter_suppressed ?? []) as Array<{ rule: string; check_id: string; evidence: string }>;
+      const gptSupp = ((gptResult as any)?.postFilterSuppressed ?? []) as Array<{ rule: string; check_id: string; evidence: string }>;
+      for (const s of claudeSupp) {
+        await log("info", `${docLabel}: post-filter drop [claude/${s.rule}] ${s.check_id} — evidence: ${s.evidence.replace(/\s+/g, " ").slice(0, 220)}`);
+        state.postFilterSuppressed.push({ doc_index: i, grader: "claude", ...s });
+      }
+      for (const s of gptSupp) {
+        await log("info", `${docLabel}: post-filter drop [gpt/${s.rule}] ${s.check_id} — evidence: ${s.evidence.replace(/\s+/g, " ").slice(0, 220)}`);
+        state.postFilterSuppressed.push({ doc_index: i, grader: "gpt", ...s });
+      }
+
 
       const crossStatus = !gptEval ? "gpt_failed" : "complete";
 
@@ -2488,7 +2562,13 @@ async function runBatch(runId: string): Promise<void> {
           basis: "recorded_v1",
           claude: state.claudePostFilterDrops,
           gpt: state.gptPostFilterDrops,
+          // QB-P14 item 4 — audit trail (capped at 200 entries per digest to
+          // keep the JSON column bounded; the batch progress log holds the
+          // authoritative unbounded record).
+          suppressed_findings: state.postFilterSuppressed.slice(0, 200),
+          suppressed_total: state.postFilterSuppressed.length,
         };
+
         // Token estimation basis — Claude only, per orchestrator constant.
         const est = {
           docs: state.built,

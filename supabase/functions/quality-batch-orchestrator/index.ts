@@ -112,6 +112,24 @@ export const MAX_CONCURRENCY = 5;
 // Intra-wave stagger between successive child dispatches, per QB-P7.
 export const WAVE_STAGGER_MS = 10_000;
 
+// QB-P14 item 5 — pure helper for wave dispatch to select the batch size for
+// a given tool. Prefers the campaign's per-tool tool_state.batch_size and
+// falls back to the batch-level batch_size (which for campaign waves is the
+// MAX-over-eligible-tools value stored on quality_batch_runs). Exported for
+// unit tests.
+export function resolveToolBatchSize(
+  tool: string,
+  toolState: Record<string, { batch_size?: number } | undefined> | null | undefined,
+  batchLevel: number | null | undefined,
+): number {
+  const perTool = Number(toolState?.[tool]?.batch_size ?? NaN);
+  if (Number.isFinite(perTool) && perTool > 0) return Math.max(1, Math.floor(perTool));
+  const fb = Number(batchLevel ?? NaN);
+  if (Number.isFinite(fb) && fb > 0) return Math.max(1, Math.floor(fb));
+  return 3;
+}
+
+
 export function clampConcurrency(raw: unknown): number {
   const n = Math.floor(Number(raw));
   if (!Number.isFinite(n) || n < 1) return DEFAULT_CONCURRENCY;
@@ -417,20 +435,34 @@ async function runUnit(runId: string) {
       // dispatch, and each new in-flight sentinel is appended to tool_results.
       const results: any[] = Array.isArray(row.tool_results) ? [...(row.tool_results as any[])] : [];
       let nextIdx = row.current_tool_index;
+      // QB-P14 item 5 — per-tool batch_size. Campaign waves stored a single
+      // MAX-over-eligible batch_size on quality_batch_runs (see startCampaignWave).
+      // Read the campaign's per-tool tool_state.batch_size and pass it through
+      // to seedAndResume so each tool actually runs the count its own state
+      // requested (falling back to the batch-level value when tool_state has
+      // no override, e.g. non-campaign batches).
+      const campaignIdForBatch = (run as any).campaign_id as string | null;
+      let toolStateForBatch: Record<string, { batch_size?: number }> = {};
+      if (campaignIdForBatch) {
+        const { data: camp } = await db.from("quality_campaigns")
+          .select("tool_state").eq("id", campaignIdForBatch).maybeSingle();
+        toolStateForBatch = ((camp as any)?.tool_state ?? {}) as Record<string, { batch_size?: number }>;
+      }
+      const perToolSizes: Record<string, number> = {};
       for (let i = 0; i < d.tools.length; i++) {
         const tool = d.tools[i];
         if (i > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
-        // Heartbeat between staggers so the wave-in-progress isn't itself
-        // reaped by any batch-level watchdog.
         await heartbeat(runId);
-        const inv = await seedAndResume(tool, (run as any).batch_size, (run as any).created_by, (run as any).campaign_id ?? null);
+        const size = resolveToolBatchSize(tool, toolStateForBatch, (run as any).batch_size);
+        perToolSizes[tool] = size;
+        const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch);
         if (!inv.ok) {
           results.push({
             tool, quality_run_id: null, run_number: null,
             final_status: "dispatch_failed", score_overall: null,
-            gpt_score_overall: null, error: inv.err,
+            gpt_score_overall: null, error: inv.err, batch_size: size,
           });
-          await log(runId, `Dispatch failed for ${tool}: ${inv.err}`, { level: "error", tool });
+          await log(runId, `Dispatch failed for ${tool} (batch_size=${size}): ${inv.err}`, { level: "error", tool });
         } else {
           results.push({
             tool,
@@ -441,36 +473,32 @@ async function runUnit(runId: string) {
             gpt_score_overall: null,
             error: null,
             dispatched_at: new Date().toISOString(),
+            batch_size: size,
           } as InFlightEntry & Record<string, unknown>);
-          await log(runId, `Dispatched ${tool} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
+          await log(runId, `Dispatched ${tool} (batch_size=${size}) → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
         }
         nextIdx += 1;
-        // Persist incrementally so a crash mid-wave still leaves a coherent
-        // picture of what has been launched.
         await db.from("quality_batch_runs").update({
           tool_results: results,
           current_tool_index: nextIdx,
-          // Keep legacy column populated with the most recent in-flight id
-          // (best-effort; UI can still show a "current" child for compat).
           current_quality_run_id: inv.ok ? inv.runId : (run as any).current_quality_run_id,
         }).eq("id", runId);
       }
-      // QB-P12 — if every dispatch in this wave failed, no API calls were
-      // made downstream; refund the wave's pre-accrued estimated spend so
-      // deployed-state drift (e.g. NOT_FOUND_FUNCTION_BLOB) does not burn
-      // the campaign budget cap.
-      const campaignIdForRefund = (run as any).campaign_id as string | null;
+      // QB-P12 — if every dispatch in this wave failed, refund the wave's
+      // pre-accrued estimated spend. QB-P14 item 5 — refund uses the actual
+      // per-tool batch sizes we just seeded, not the batch-level MAX.
       const allFailed = results.length > 0 && results.every((r) => r?.final_status === "dispatch_failed");
-      if (allFailed && campaignIdForRefund) {
-        const refund = d.tools.length * (run as any).batch_size * CAMPAIGN_EST_CENTS_PER_DOC;
+      if (allFailed && campaignIdForBatch) {
+        const refund = d.tools.reduce((sum, t) => sum + (perToolSizes[t] ?? 0) * CAMPAIGN_EST_CENTS_PER_DOC, 0);
         const { data: camp } = await db.from("quality_campaigns")
-          .select("estimated_spend_cents").eq("id", campaignIdForRefund).maybeSingle();
+          .select("estimated_spend_cents").eq("id", campaignIdForBatch).maybeSingle();
         const cur = (camp as any)?.estimated_spend_cents ?? 0;
         const next = Math.max(0, cur - refund);
         await db.from("quality_campaigns")
-          .update({ estimated_spend_cents: next }).eq("id", campaignIdForRefund);
-        await logCampaign(campaignIdForRefund, `Wave dispatch total-failure: refunded ${refund}¢ (spend ${cur}¢ → ${next}¢)`, "warn");
+          .update({ estimated_spend_cents: next }).eq("id", campaignIdForBatch);
+        await logCampaign(campaignIdForBatch, `Wave dispatch total-failure: refunded ${refund}¢ (spend ${cur}¢ → ${next}¢)`, "warn");
       }
+
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
