@@ -35,12 +35,48 @@ const TOOL_PREFIX: Record<string, string> = {
   cppa_cybersecurity: "cyber",
 };
 
-function slugify(s: string, max = 40): string {
+export function slugify(s: string, max = 40): string {
   return String(s || "unknown")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, max) || "x";
+}
+
+// W3-VENDOR-2 (2026-07-22) — bridge from frozen open_items back to the live
+// information_needed for source_fields lookup. buildOpenItems constructs
+// `${prefix}-${slugify(field)}-${slugify(norm.key, 24)}` (see below), so we
+// recover the info_needed entry by slugging each entry's `field` and matching
+// against the item id. Deterministic; no fuzzy matching.
+//
+// Returns:
+//   - the entry's `source_fields` array when it is a non-empty string array;
+//   - otherwise `[entry.field]` when the entry has a non-empty `field`;
+//   - `null` when no matching entry is found or when both are unusable.
+export function sourceFieldsForOpenItem(
+  item: { id: string },
+  informationNeeded: unknown,
+): string[] | null {
+  if (!Array.isArray(informationNeeded)) return null;
+  const id = String(item?.id ?? "");
+  if (!id) return null;
+  for (const raw of informationNeeded as any[]) {
+    if (!raw || typeof raw !== "object") continue;
+    const field = String(raw.field ?? "");
+    if (!field) continue;
+    const slug = slugify(field);
+    // Item id embeds `-${slug}-` (there is always a provision-slug tail),
+    // and for de-duped variants the tail is `-${slug}-...-<n>`.
+    if (!id.includes(`-${slug}-`) && !id.endsWith(`-${slug}`)) continue;
+    const sfRaw = Array.isArray(raw.source_fields) ? raw.source_fields : null;
+    if (sfRaw) {
+      const sf = sfRaw
+        .filter((x: unknown): x is string => typeof x === "string" && x.trim().length > 0);
+      if (sf.length > 0) return sf;
+    }
+    return [field];
+  }
+  return null;
 }
 
 // W3-F (2026-07-16, ratified): the "Your inputs established the surrounding
