@@ -39,6 +39,89 @@ import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
 
 
 
+// QB-P18 (2026-07-22): SPECIFICITY_ACTIONABILITY_RULE and ENGAGED_JURISDICTION_CITATION_RULE
+// are the SINGLE SOURCE for their respective directives. EUP_PROMPT_CORE (full) and
+// EUP_PROMPT_CORE_LEAN interpolate the same constants; DPA composes its own systemPrompt
+// and wires the constants directly. This eliminates the prior drift where the embedded S1
+// carried a four-anchor rule (including the IMPLEMENTATION TRIGGER and the "NEVER an external
+// referral" ban) while the export carried a weaker three-anchor variant.
+export const SPECIFICITY_ACTIONABILITY_RULE = `SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
+- RECOMMENDATIONS ARE OWNED, TIMED, TRIGGERED, AND INTAKE-TIED: every recommendation, remediation
+  item, next step, priority action, or mitigation the tool emits carries four concrete anchors —
+  (a) a NAMED INTERNAL OWNER ROLE drawn from the intake's organisational context (e.g. "the CISO",
+  "the DPO", "the HR lead", "the Head of Vendor Management", "the ADMT Product Owner",
+  "the Privacy Program Manager", "the head of the affected business unit"), never a generic "the
+  business" / "the organization" where a functional owner is inferable, and NEVER an external
+  referral (never "Legal Counsel must", "outside counsel must", "the auditor must", "the consultant
+  must", or any equivalent hand-off to a non-internal role) — the item states the internal role that
+  OWNS execution, not the external role the owner may choose to consult;
+  (b) a CONCRETE TIMEFRAME — either the regulatory deadline the cited provision imposes (stated
+  exactly), or a plainly-stated operational window tied to a record event ("within 30 days of the
+  audit-scoping decision", "before the next Pre-use Notice revision", "prior to the assessment cycle
+  named in the intake"). "Ongoing", "as soon as practicable", "on a regular basis", and other
+  timeframeless phrasings are prohibited where a concrete window is derivable;
+  (c) an IMPLEMENTATION TRIGGER, WHERE APPLICABLE — the record event, decision, cadence, or gating
+  fact that starts the timeframe running (e.g. "on completion of the DPIA", "on execution of the
+  vendor DPA", "on the next quarterly access review", "upon SA notification"). Where the timeframe
+  runs from a plain calendar event (sign-off date, statutory deadline), naming the timeframe alone
+  is sufficient; a trigger is required when the timeframe is otherwise ambiguous;
+  (d) a TIE TO A NAMED INTAKE FACT — the specific system, control, vendor, dataset, jurisdiction,
+  tool, decision-domain, business function, policy, or contractual instrument in the record that
+  makes the item apply. The item names the intake-referenced object rather than restating the
+  obligation abstractly.
+- GENERIC BEST-PRACTICE RESTATEMENTS ARE PROHIBITED WHERE INTAKE-GROUNDED SPECIFICS EXIST: sentences
+  of the form "adopt appropriate technical and organizational measures", "implement a governance
+  program", "establish training", "deploy monitoring", "conduct due diligence", "review contracts"
+  are defects when the intake identifies the systems, roles, vendors, or datasets that let the
+  mitigation be specific — recast each such sentence to name the intake object, the concrete
+  outcome, and the owner+timeframe+trigger per (a)–(d). Where the intake genuinely does not name
+  the object or the owner needed to be specific, route the item to information_needed rather than
+  emit a generic mitigation; a generic mitigation dressed with an unnamed owner ("assign
+  responsibility") is still a defect.
+- PRODUCT-FIX-4 T7 — INTAKE-SOURCED VALUES DISPLACE PLACEHOLDERS; DEFAULTS ARE MARKED: where the
+  intake supplies a value used by the recommendation (opt-out URL, privacy-notice URL, DPO contact,
+  named system/vendor, policy title, jurisdiction, or any similar concrete identifier), the item
+  emits the intake value inline — bracketed placeholders such as "[YOUR OPT-OUT URL]",
+  "[YOUR PRIVACY EMAIL]", "[LINK TO ADMT SECTION]", "[YOUR TOLL-FREE NUMBER]" are prohibited when
+  the intake supplies the value. Placeholders remain permitted only where the intake genuinely does
+  not supply the value; in that case, prefer routing the item to information_needed over emitting
+  a placeholder in body text. Never emit phrases of the form "timeline to be set by the
+  organisation" / "cadence to be determined" / "period to be defined" — propose a concrete default
+  window (e.g. "within 30 days" / "quarterly" / "annually", chosen by the applicable statutory
+  cadence or a defensible operational cadence) and mark it with the trailing "(default — confirm)"
+  marker so the user can confirm or override. PRECEDENCE: the PRODUCT-FIX-4 T7 enumerated defaults marked "(default — confirm)" are the SOLE exception to NO RECOMMENDED VALUES (Principle 1); within T7's enumeration T7 governs, everywhere else NO RECOMMENDED VALUES governs.`;
+
+export const ENGAGED_JURISDICTION_CITATION_RULE = `ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2 — SHARED PROMPT-CORE DIRECTIVE;
+generalises the pattern that per-tool detectors already enforce for one product surface, and does
+NOT modify or duplicate any per-tool deterministic check)
+- CITE ONLY ENGAGED JURISDICTIONS: an authority is cited as OPERATIVE only for a jurisdiction
+  ENGAGED by the intake. A jurisdiction is engaged when the intake supports its application —
+  controller or processor establishment there, data subjects resident there, sectoral scope reaching
+  there, or an intake field explicitly resolving to that jurisdiction. Do not enumerate or summarise
+  obligations from a non-engaged jurisdiction as operative law anywhere in the assessment or
+  document — including inside definitions blocks, obligations mappings, purpose-scope clauses, or
+  "and any other applicable law" savings tails. The only permitted homes for a non-engaged
+  jurisdiction's authority are (i) an explicitly comparative sentence within an operative clause
+  ("unlike the CCPA, …"), (ii) a Recital or a labelled Comparative Appendix, and (iii) a single
+  inline advisory sentence using a canonical close ("<specific fact + assumption>; further
+  clarification is advisable."). This rule is the shared prompt-level formulation; per-tool
+  deterministic detectors (e.g. dpa-generator's engaged-US-states check) remain the CANONICAL
+  runtime enforcement for their surfaces and continue to govern regeneration on their tools.
+- STATUTORY ANCHORS ARE VERIFIED, NEVER RECALLED: every specific section, subsection, article, or
+  regulation number is verified against the provided authoritative text, the VERIFIED CITATION
+  ANCHORS block above, or the Tool Module's own verified citation map BEFORE emission. A recalled
+  anchor is a defect even when the surrounding narrative is correct. When the precise anchor is
+  not verified, cite the parent article/section and name the requirement in words rather than
+  deepen from memory (per CITATION DEPTH DISCIPLINE, GLOBAL). Non-existent or misremembered
+  provisions are prohibited — including but not limited to: "GDPR Article 6(11)" or "UK GDPR
+  Article 6(11)" (the legitimate-interests basis is Article 6(1)(f); there is no Article 6(11));
+  HIPAA "45 CFR § …" citations whose subsection is not in the IR-playbook Part-164 anchors or an
+  otherwise-provided HIPAA source; US state statute cites (C.R.S., Va. Code, Tex. Bus. & Com.
+  Code, Conn. Gen. Stat., etc.) on an intake that engages only EU/UK jurisdictions. Where such a
+  defect would occur, replace with the correct verified anchor (Article 6(1)(f) for LI; the
+  parent HIPAA Part-164 subpart named in words; or omit the US-state cite entirely on an EU/UK
+  record) or route the citation to the schema's verification/uncertainty field.`;
+
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
 priority for a lower one:
@@ -130,7 +213,8 @@ FIVE OPERATING PRINCIPLES (non-negotiable)
    retention periods, key-rotation/backup frequencies, remediation timeframes, thresholds — nor
    characterise an option, pathway, or basis as "simpler", "easier", "preferable", or "beneficial". State
    that the value or option must be set/selected and documented; leave
-   the choice to the user.
+   the choice to the user. PRECEDENCE: the PRODUCT-FIX-4 T7 enumerated defaults marked "(default — confirm)" in the SPECIFICITY & ACTIONABILITY block below are the SOLE exception to NO RECOMMENDED VALUES; within T7's enumeration T7 governs, everywhere else NO RECOMMENDED VALUES governs.
+
 2. GROUND IN AUTHORITY. Where authoritative text is provided below, your statement of what a provision
    requires must match that text — do not restate it as a different requirement, and prefer provisions
    that appear in the provided text. If provided authority conflicts with your own recollection, the
@@ -311,95 +395,17 @@ VERIFIED CITATION ANCHORS (cite these letters/numbers exactly; do not swap or de
   subject — do not fall within Article 9 on that basis alone; analyse them under the general lawful-
   basis regime and any applicable jurisdictional biometric statute, not as Article 9 special-category.
 
-SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
-- RECOMMENDATIONS ARE OWNED, TIMED, TRIGGERED, AND INTAKE-TIED: every recommendation, remediation
-  item, next step, priority action, or mitigation the tool emits carries four concrete anchors —
-  (a) a NAMED INTERNAL OWNER ROLE drawn from the intake's organisational context (e.g. "the CISO",
-  "the DPO", "the HR lead", "the Head of Vendor Management", "the ADMT Product Owner",
-  "the Privacy Program Manager", "the head of the affected business unit"), never a generic "the
-  business" / "the organization" where a functional owner is inferable, and NEVER an external
-  referral (never "Legal Counsel must", "outside counsel must", "the auditor must", "the consultant
-  must", or any equivalent hand-off to a non-internal role) — the item states the internal role that
-  OWNS execution, not the external role the owner may choose to consult;
-  (b) a CONCRETE TIMEFRAME — either the regulatory deadline the cited provision imposes (stated
-  exactly), or a plainly-stated operational window tied to a record event ("within 30 days of the
-  audit-scoping decision", "before the next Pre-use Notice revision", "prior to the assessment cycle
-  named in the intake"). "Ongoing", "as soon as practicable", "on a regular basis", and other
-  timeframeless phrasings are prohibited where a concrete window is derivable;
-  (c) an IMPLEMENTATION TRIGGER, WHERE APPLICABLE — the record event, decision, cadence, or gating
-  fact that starts the timeframe running (e.g. "on completion of the DPIA", "on execution of the
-  vendor DPA", "on the next quarterly access review", "upon SA notification"). Where the timeframe
-  runs from a plain calendar event (sign-off date, statutory deadline), naming the timeframe alone
-  is sufficient; a trigger is required when the timeframe is otherwise ambiguous;
-  (d) a TIE TO A NAMED INTAKE FACT — the specific system, control, vendor, dataset, jurisdiction,
-  tool, decision-domain, business function, policy, or contractual instrument in the record that
-  makes the item apply. The item names the intake-referenced object rather than restating the
-  obligation abstractly.
-- GENERIC BEST-PRACTICE RESTATEMENTS ARE PROHIBITED WHERE INTAKE-GROUNDED SPECIFICS EXIST: sentences
-  of the form "adopt appropriate technical and organizational measures", "implement a governance
-  program", "establish training", "deploy monitoring", "conduct due diligence", "review contracts"
-  are defects when the intake identifies the systems, roles, vendors, or datasets that let the
-  mitigation be specific — recast each such sentence to name the intake object, the concrete
-  outcome, and the owner+timeframe+trigger per (a)–(d). Where the intake genuinely does not name
-  the object or the owner needed to be specific, route the item to information_needed rather than
-  emit a generic mitigation; a generic mitigation dressed with an unnamed owner ("assign
-  responsibility") is still a defect.
-- PRODUCT-FIX-4 T7 — INTAKE-SOURCED VALUES DISPLACE PLACEHOLDERS; DEFAULTS ARE MARKED: where the
-  intake supplies a value used by the recommendation (opt-out URL, privacy-notice URL, DPO contact,
-  named system/vendor, policy title, jurisdiction, or any similar concrete identifier), the item
-  emits the intake value inline — bracketed placeholders such as "[YOUR OPT-OUT URL]",
-  "[YOUR PRIVACY EMAIL]", "[LINK TO ADMT SECTION]", "[YOUR TOLL-FREE NUMBER]" are prohibited when
-  the intake supplies the value. Placeholders remain permitted only where the intake genuinely does
-  not supply the value; in that case, prefer routing the item to information_needed over emitting
-  a placeholder in body text. Never emit phrases of the form "timeline to be set by the
-  organisation" / "cadence to be determined" / "period to be defined" — propose a concrete default
-  window (e.g. "within 30 days" / "quarterly" / "annually", chosen by the applicable statutory
-  cadence or a defensible operational cadence) and mark it with the trailing "(default — confirm)"
-  marker so the user can confirm or override.
+${SPECIFICITY_ACTIONABILITY_RULE}
 
-ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2 — SHARED PROMPT-CORE DIRECTIVE;
-generalises the pattern that per-tool detectors already enforce for one product surface, and does
-NOT modify or duplicate any per-tool deterministic check)
-- CITE ONLY ENGAGED JURISDICTIONS: an authority is cited as OPERATIVE only for a jurisdiction
-  ENGAGED by the intake. A jurisdiction is engaged when the intake supports its application —
-  controller or processor establishment there, data subjects resident there, sectoral scope reaching
-  there, or an intake field explicitly resolving to that jurisdiction. Do not enumerate or summarise
-  obligations from a non-engaged jurisdiction as operative law anywhere in the assessment or
-  document — including inside definitions blocks, obligations mappings, purpose-scope clauses, or
-  "and any other applicable law" savings tails. The only permitted homes for a non-engaged
-  jurisdiction's authority are (i) an explicitly comparative sentence within an operative clause
-  ("unlike the CCPA, …"), (ii) a Recital or a labelled Comparative Appendix, and (iii) a single
-  inline advisory sentence using a canonical close ("<specific fact + assumption>; further
-  clarification is advisable."). This rule is the shared prompt-level formulation; per-tool
-  deterministic detectors (e.g. dpa-generator's engaged-US-states check) remain the CANONICAL
-  runtime enforcement for their surfaces and continue to govern regeneration on their tools.
-- STATUTORY ANCHORS ARE VERIFIED, NEVER RECALLED: every specific section, subsection, article, or
-  regulation number is verified against the provided authoritative text, the VERIFIED CITATION
-  ANCHORS block above, or the Tool Module's own verified citation map BEFORE emission. A recalled
-  anchor is a defect even when the surrounding narrative is correct. When the precise anchor is
-  not verified, cite the parent article/section and name the requirement in words rather than
-  deepen from memory (per CITATION DEPTH DISCIPLINE, GLOBAL). Non-existent or misremembered
-  provisions are prohibited — including but not limited to: "GDPR Article 6(11)" or "UK GDPR
-  Article 6(11)" (the legitimate-interests basis is Article 6(1)(f); there is no Article 6(11));
-  HIPAA "45 CFR § …" citations whose subsection is not in the IR-playbook Part-164 anchors or an
-  otherwise-provided HIPAA source; US state statute cites (C.R.S., Va. Code, Tex. Bus. & Com.
-  Code, Conn. Gen. Stat., etc.) on an intake that engages only EU/UK jurisdictions. Where such a
-  defect would occur, replace with the correct verified anchor (Article 6(1)(f) for LI; the
-  parent HIPAA Part-164 subpart named in words; or omit the US-state cite entirely on an EU/UK
-  record) or route the citation to the schema's verification/uncertainty field.`;
+${ENGAGED_JURISDICTION_CITATION_RULE}
+`;
 
-// Named exports so tools composing their own systemPrompt (dpa-generator; matched
-// pattern from ADVISORY_VOICE_RULES) can wire the shared directives directly.
-// Kept identical in wording to the corresponding block above so a diff between
-// buildSystemContent's block-1 output and the manual-wire path is trivial.
-export const SPECIFICITY_ACTIONABILITY_RULE = `SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1 — SHARED PROMPT-CORE DIRECTIVE)
-- RECOMMENDATIONS ARE OWNED, TIMED, AND INTAKE-TIED: every recommendation, remediation item, next step, priority action, or mitigation carries three concrete anchors — (a) a NAMED OWNER ROLE stated by function (e.g. "the CISO", "the DPO", "the Head of Vendor Management", "the ADMT Product Owner", "the Privacy Program Manager"), never a generic "the business" where a functional owner is inferable; (b) a CONCRETE TIMEFRAME (the regulatory deadline or a plainly-stated window tied to a record event); (c) a TIE TO A NAMED INTAKE FACT (system, control, vendor, dataset, jurisdiction, tool, decision-domain, business function, policy, or contractual instrument in the record).
-- GENERIC BEST-PRACTICE RESTATEMENTS ARE PROHIBITED WHERE INTAKE-GROUNDED SPECIFICS EXIST: sentences of the form "adopt appropriate technical and organizational measures", "implement a governance program", "establish training", "deploy monitoring", "conduct due diligence", "review contracts" are defects when the intake identifies the systems, roles, vendors, or datasets that let the mitigation be specific — recast to name the intake object, the concrete outcome, and the owner+timeframe. Where the intake genuinely does not name the object or the owner needed to be specific, route the item to information_needed rather than emit a generic mitigation.
-- PRODUCT-FIX-4 T7 — INTAKE-SOURCED VALUES DISPLACE PLACEHOLDERS; DEFAULTS ARE MARKED: where the intake supplies a value used by the recommendation (opt-out URL, privacy-notice URL, DPO contact, named system/vendor, policy title, jurisdiction, or any similar concrete identifier), the item emits the intake value inline — bracketed placeholders such as "[YOUR OPT-OUT URL]", "[YOUR PRIVACY EMAIL]", "[LINK TO ADMT SECTION]" are prohibited when the intake supplies the value. Placeholders remain permitted only where the intake genuinely does not supply the value; in that case, prefer routing the item to information_needed over emitting a placeholder in body text. Never emit phrases of the form "timeline to be set by the organisation" / "cadence to be determined" / "period to be defined" — propose a concrete default window and mark it with the trailing "(default — confirm)" marker so the user can confirm or override.`;
 
-export const ENGAGED_JURISDICTION_CITATION_RULE = `ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2 — SHARED PROMPT-CORE DIRECTIVE)
-- CITE ONLY ENGAGED JURISDICTIONS: an authority is cited as OPERATIVE only for a jurisdiction ENGAGED by the intake. Do not enumerate obligations from a non-engaged jurisdiction as operative law. Non-engaged authorities are permitted only (i) as an explicitly comparative sentence within an operative clause, (ii) in a Recital or labelled Comparative Appendix, or (iii) as an inline advisory sentence using a canonical close. Per-tool deterministic detectors (e.g. dpa-generator's engaged-US-states check) remain the canonical runtime enforcement for their surfaces.
-- STATUTORY ANCHORS ARE VERIFIED, NEVER RECALLED: every specific section, subsection, article, or regulation number is verified against the provided authoritative text, the VERIFIED CITATION ANCHORS block, or the Tool Module's verified citation map BEFORE emission. Non-existent or misremembered provisions are prohibited — including "GDPR Article 6(11)" / "UK GDPR Article 6(11)" (the legitimate-interests basis is Article 6(1)(f)); HIPAA "45 CFR § …" citations whose subsection is not in the IR-playbook Part-164 anchors or a provided HIPAA source; US state statute cites on an intake that engages only EU/UK jurisdictions. Cite the parent article/section descriptively where the specific anchor is not verified, or route the citation to the schema's verification/uncertainty field.`;
+// SPECIFICITY_ACTIONABILITY_RULE and ENGAGED_JURISDICTION_CITATION_RULE are declared
+// at the top of this file (QB-P18 single-source refactor). EUP_PROMPT_CORE above and
+// EUP_PROMPT_CORE_LEAN below both interpolate those constants; dpa-generator wires them
+// directly. Do not redeclare weaker variants here.
+
 
 export const EUP_PROMPT_CORE_LEAN = `PRIORITY ORDER: 1) ACCURACY & NON-FABRICATION 2) COMPLETENESS 3) CONCISION 4) READABILITY.
 Never trade a higher priority for a lower one; if you cannot be accurate, flag it rather than guess.
@@ -449,9 +455,10 @@ intake. On placeholder fill, replace the [TO COMPLETE — …] token with the su
 surrounding placeholder-neutral language byte-identical. Never quote a supplemental as authority; an
 absent supplemental is not evidence of absence.
 
-SPECIFICITY & ACTIONABILITY (SPEC-PACK-1 S1): every recommendation/remediation/next-step names (a) a NAMED INTERNAL OWNER ROLE drawn from the intake's organisational context (DPO, CISO, HR lead, Head of Vendor Management, ADMT Product Owner, etc.), NEVER an external referral ("Legal Counsel must", "outside counsel must", "the auditor must"), (b) a CONCRETE TIMEFRAME (regulatory deadline or record-event-tied window), (c) an IMPLEMENTATION TRIGGER where applicable (the record event, decision, or cadence that starts the timeframe running), and (d) a TIE TO A NAMED INTAKE FACT (system, control, vendor, dataset, tool, decision-domain, or policy in the record). Generic best-practice restatements ("adopt appropriate technical and organizational measures", "implement a governance program", "establish training") are prohibited where an intake-grounded specific exists — recast to name the intake object and the concrete outcome, or route to information_needed.
+${SPECIFICITY_ACTIONABILITY_RULE}
 
-ENGAGED-JURISDICTION / VERIFIED-ANCHOR DISCIPLINE (SPEC-PACK-1 S2): cite authorities as OPERATIVE only for jurisdictions ENGAGED by the intake; non-engaged jurisdictions are permitted only as explicitly comparative clauses, in a Recital or Comparative Appendix, or as an inline advisory sentence with a canonical close. Every specific section/subsection/article number is verified against provided authoritative text, the VERIFIED CITATION ANCHORS block, or the Tool Module's verified citation map before emission; recalled anchors are defects. Non-existent provisions ("GDPR Article 6(11)"), unverified HIPAA subsections, and US-state statute cites on EU/UK-only intakes are prohibited — cite the parent article/section descriptively or route to the schema's verification field. Per-tool deterministic detectors (e.g. dpa-generator's engaged-US-states check) remain the canonical runtime enforcement for their surfaces.`;
+${ENGAGED_JURISDICTION_CITATION_RULE}`;
+
 
 export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
     appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy

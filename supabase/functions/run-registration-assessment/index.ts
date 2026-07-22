@@ -13,7 +13,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "reg-product-prompt-2-uk-cp1019@2026-07-22T19:15:00Z";
+export const BUILD_STAMP = "qbp18-prompt-architecture@2026-07-22T21:00:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
             return `${r?.jurisdiction_name || j.code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry — sector-specific authorisations, if any, are surfaced in notes.`;
           }
           // null — no requirement metadata row was found in jurisdiction_requirements
-          return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm any registration obligations with ${r?.authority_name || "local counsel or the relevant enforcement authority"} before filing.`;
+          return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm any registration obligations with ${r?.authority_name || "the relevant supervisory or enforcement authority"} before filing.`;
         })();
         // PRODUCT-PROMPT-REG — AI-ROLE FACT DISCIPLINE + EU-ACT TERRITORIALITY.
         // Read `ai_general_purpose_provider` and `ai_high_risk` VERBATIM; do
@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
             ? "Market covered by the GDPR one-stop-shop mechanism: cross-border processing complaints for this market are directed to the lead supervisory authority identified above (Art. 56 GDPR). This jurisdiction may still impose local-only filings that survive OSS (e.g. member-state DPO thresholds, sector authorisations, biometric registrations) — those are surfaced under the specific jurisdiction where they apply."
             : (r?.registration_required === false
                 ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
-                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "local counsel or the competent supervisory authority"} before concluding no filing is due.`);
+                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
           result_summary.jurisdictions.push({
             code,
             name: r?.jurisdiction_name || code,

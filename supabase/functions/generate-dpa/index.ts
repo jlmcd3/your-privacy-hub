@@ -1,7 +1,9 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "qlb-w2-abcd-pdf1@2026-07-15T03:00Z";
+export const BUILD_STAMP = "qbp18-prompt-architecture@2026-07-22T21:00:00Z";
+console.log(`[generate-dpa] boot build_stamp=${BUILD_STAMP}`);
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
