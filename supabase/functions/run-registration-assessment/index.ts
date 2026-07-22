@@ -27,6 +27,76 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// QB-P22 item 5a — ICO Data-Protection Fee tier resolver.
+// ICO tiers (published fee-tier criteria):
+//   Tier 1 (£52): micro — turnover ≤ £632k OR ≤ 10 staff.
+//   Tier 2 (£78): small/medium — not Tier 1, AND (turnover ≤ £36m OR ≤ 250 staff).
+//   Tier 3 (£3,763): large — turnover > £36m AND > 250 staff.
+// Boundary flag fires when the intake sits within one band of a threshold and
+// we can't distinguish the neighbouring tier from the record alone.
+type IcoTierResolution = {
+  tier: 1 | 2 | 3 | null;
+  fee_cents: number | null;
+  narrative: string;
+  boundary: boolean;
+};
+function resolveIcoFeeTier(intake: any): IcoTierResolution {
+  const staff = Number(intake?.employee_count);
+  const revenueUsd = Number(intake?.annual_revenue_usd);
+  const orgSize = String(intake?.organization_size ?? "").toLowerCase();
+  // GBP conversion is deliberately conservative — the ICO thresholds are in GBP;
+  // we use 0.80 GBP/USD as a stable planning proxy. Boundary flag surfaces the caveat.
+  const revenueGbp = Number.isFinite(revenueUsd) ? revenueUsd * 0.80 : NaN;
+  const T1_TURNOVER_GBP = 632_000;
+  const T2_TURNOVER_GBP = 36_000_000;
+  const T1_STAFF = 10;
+  const T2_STAFF = 250;
+  const FEE_T1 = 5200;      // £52.00
+  const FEE_T2 = 7800;      // £78.00
+  const FEE_T3 = 376_300;   // £3,763.00
+  const hasStaff = Number.isFinite(staff) && staff > 0;
+  const hasRevenue = Number.isFinite(revenueGbp);
+  // Fallback via organization_size when explicit fields are absent.
+  const sizeTier: 1 | 2 | 3 | null = orgSize.includes("micro") ? 1
+    : (orgSize.includes("small") || orgSize.includes("medium") || orgSize === "sme") ? 2
+    : (orgSize.includes("large") || orgSize.includes("enterprise")) ? 3
+    : null;
+  let tier: 1 | 2 | 3 | null = null;
+  let boundary = false;
+  if (hasStaff || hasRevenue) {
+    const staffOverT2 = hasStaff && staff > T2_STAFF;
+    const revOverT2 = hasRevenue && revenueGbp > T2_TURNOVER_GBP;
+    const staffLeT1 = hasStaff && staff <= T1_STAFF;
+    const revLeT1 = hasRevenue && revenueGbp <= T1_TURNOVER_GBP;
+    if (staffOverT2 && revOverT2) {
+      tier = 3;
+    } else if (staffLeT1 || revLeT1) {
+      tier = 1;
+      // Boundary if the other axis, when present, pushes above Tier 1.
+      if ((hasStaff && staff > T1_STAFF) || (hasRevenue && revenueGbp > T1_TURNOVER_GBP)) boundary = true;
+    } else {
+      tier = 2;
+      // Boundary if either axis sits within 10% of the T2/T3 threshold.
+      if (hasStaff && staff > T2_STAFF * 0.9 && staff <= T2_STAFF) boundary = true;
+      if (hasRevenue && revenueGbp > T2_TURNOVER_GBP * 0.9 && revenueGbp <= T2_TURNOVER_GBP) boundary = true;
+    }
+  } else if (sizeTier) {
+    tier = sizeTier;
+    boundary = true; // organization_size alone can't confirm the axis-based tier.
+  }
+  const feeMap: Record<1 | 2 | 3, number> = { 1: FEE_T1, 2: FEE_T2, 3: FEE_T3 };
+  const fee_cents = tier ? feeMap[tier] : null;
+  const basisBits: string[] = [];
+  if (hasStaff) basisBits.push(`staff count ${staff}`);
+  if (hasRevenue) basisBits.push(`turnover ≈ £${Math.round(revenueGbp).toLocaleString("en-GB")} (from annual_revenue_usd)`);
+  if (!basisBits.length && sizeTier) basisBits.push(`organization_size "${orgSize}"`);
+  const basis = basisBits.length ? basisBits.join(" and ") : "no distinguishing intake fields";
+  const narrative = tier
+    ? `ICO Data-Protection Fee resolved to Tier ${tier} (£${(feeMap[tier] / 100).toFixed(2)}) from ${basis}.`
+    : `ICO Data-Protection Fee tier could not be resolved from the record (${basis}); confirm the tier via the ICO fee self-assessment.`;
+  return { tier, fee_cents, narrative, boundary };
+}
+
 Deno.serve(async (req) => {
   console.log(`[qb9] run-registration-assessment build active · core=${PROMPT_CORE_VERSION}`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
