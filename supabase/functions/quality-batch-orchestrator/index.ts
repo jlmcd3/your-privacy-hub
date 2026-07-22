@@ -569,6 +569,153 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   return { ok: true, runId: row.id };
 }
 
+// ─── QB-P9 Campaign machinery ────────────────────────────────────────────────
+
+async function loadCampaign(): Promise<any | null> {
+  const { data } = await admin().from("quality_campaigns")
+    .select("*").order("created_at", { ascending: true }).limit(1).maybeSingle();
+  return data;
+}
+
+async function logCampaign(campaignId: string, message: string, level = "info") {
+  try {
+    const db = admin();
+    const { data: c } = await db.from("quality_campaigns").select("progress_log").eq("id", campaignId).maybeSingle();
+    const log = Array.isArray(c?.progress_log) ? (c!.progress_log as any[]) : [];
+    log.push({ t: new Date().toISOString(), level, msg: message });
+    // Keep the tail bounded to prevent the row from ballooning.
+    const trimmed = log.slice(-500);
+    await db.from("quality_campaigns").update({ progress_log: trimmed }).eq("id", campaignId);
+  } catch (e) { console.error("[campaign] log failed", (e as Error).message); }
+}
+
+// Campaign-owned wave: creates a quality_batch_runs row tagged with campaign_id
+// and returns immediately. The normal wave machinery takes over from there.
+async function startCampaignWave(campaign: any): Promise<{ started: boolean; reason?: string; batchId?: string; tools?: string[] }> {
+  const toolState = (campaign.tool_state ?? {}) as Record<string, CampaignToolState>;
+  // Only dispatch tools that are (a) still active AND (b) recognised by run-quality-batch.
+  const eligible: string[] = [];
+  const skipped: string[] = [];
+  for (const [tool, s] of Object.entries(toolState)) {
+    if (!s?.active) continue;
+    if (!RUN_QUALITY_BATCH_SLUGS.has(tool)) { skipped.push(tool); continue; }
+    eligible.push(tool);
+  }
+  if (skipped.length) {
+    await logCampaign(campaign.id, `Skipping unknown slug(s) this wave: ${skipped.join(", ")}`, "warn");
+  }
+  if (eligible.length === 0) return { started: false, reason: "no_active_tools" };
+
+  // Since batch_size is per-tool but quality_batch_runs stores a single
+  // batch_size, campaign waves use the MAX of eligible tool batch sizes so
+  // no tool is short-changed. Individual tool_state.batch_size is still the
+  // authoritative record. (Deviation from courier where each tool wants its
+  // own size — see report.)
+  const batchSize = Math.max(...eligible.map((t) => toolState[t].batch_size ?? 3));
+  const concurrency = clampConcurrency(campaign.concurrency ?? DEFAULT_CONCURRENCY);
+  const db = admin();
+  const { data: row, error } = await db.from("quality_batch_runs").insert({
+    tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
+    current_tool_index: 0, tool_results: [], created_by: campaign.created_by,
+    instrument_version: GRADER_CONTEXT_VERSION,
+    concurrency,
+    campaign_id: campaign.id,
+  }).select("id").single();
+  if (error || !row) {
+    await logCampaign(campaign.id, `Wave insert failed: ${error?.message}`, "error");
+    return { started: false, reason: `insert: ${error?.message}` };
+  }
+
+  const nextWave = (campaign.wave_number ?? 0) + 1;
+  // Add estimated spend for the wave (Claude only — see CAMPAIGN_TOKEN_BASIS).
+  const est = eligible.length * batchSize * CAMPAIGN_EST_CENTS_PER_DOC;
+  const nowSpend = (campaign.estimated_spend_cents ?? 0) + est;
+  await db.from("quality_campaigns").update({
+    wave_number: nextWave,
+    last_wave_started_at: new Date().toISOString(),
+    estimated_spend_cents: nowSpend,
+  }).eq("id", campaign.id);
+  await log(row.id, `Campaign wave #${nextWave}: ${eligible.length} tool(s), concurrency=${concurrency}, batch_size=${batchSize}`);
+  await logCampaign(campaign.id, `Wave #${nextWave} started → batch ${row.id} · tools=[${eligible.join(", ")}] · est +${(est / 100).toFixed(2)} USD (cumulative ${(nowSpend / 100).toFixed(2)})`);
+
+  // @ts-ignore
+  EdgeRuntime.waitUntil(selfInvoke(row.id));
+  return { started: true, batchId: row.id, tools: eligible };
+}
+
+async function campaignTick(): Promise<{ ok: true; action: string; detail?: unknown }> {
+  const campaign = await loadCampaign();
+  if (!campaign) return { ok: true, action: "no_campaign" };
+  const db = admin();
+
+  // Budget auto-pause guard fires regardless of current status so an
+  // already-active campaign gets paused the moment spend crosses the cap.
+  const cap = campaign.budget_cap_cents ?? CAMPAIGN_BUDGET_CAP_CENTS_DEFAULT;
+  if ((campaign.estimated_spend_cents ?? 0) >= cap && campaign.status === "active") {
+    await db.from("quality_campaigns").update({ status: "paused" }).eq("id", campaign.id);
+    await logCampaign(campaign.id, `Budget cap reached ($${(cap / 100).toFixed(0)}) — campaign auto-paused`, "warn");
+    return { ok: true, action: "budget_paused" };
+  }
+  if (campaign.status !== "active") return { ok: true, action: `status_${campaign.status}` };
+
+  // No-double-wave guard: if any campaign-tagged batch is still running, wait.
+  const { data: inflight } = await db.from("quality_batch_runs")
+    .select("id, status").eq("campaign_id", campaign.id)
+    .not("status", "in", "(complete,failed,cancelled)").limit(1);
+  if ((inflight ?? []).length > 0) {
+    return { ok: true, action: "wave_in_flight" };
+  }
+
+  // Interval guard.
+  const intervalMs = (campaign.wave_interval_minutes ?? 360) * 60_000;
+  const lastMs = campaign.last_wave_started_at ? new Date(campaign.last_wave_started_at).getTime() : 0;
+  if (lastMs && Date.now() - lastMs < intervalMs) {
+    return { ok: true, action: "interval_wait" };
+  }
+
+  // Any tools still active?
+  const toolState = (campaign.tool_state ?? {}) as Record<string, CampaignToolState>;
+  const anyActive = Object.values(toolState).some((s) => s?.active);
+  if (!anyActive) {
+    await db.from("quality_campaigns")
+      .update({ status: "complete", completed_at: new Date().toISOString() })
+      .eq("id", campaign.id);
+    await logCampaign(campaign.id, "No active tools remain — campaign complete");
+    return { ok: true, action: "complete" };
+  }
+
+  const started = await startCampaignWave(campaign);
+  return { ok: true, action: started.started ? "wave_started" : `wave_skipped:${started.reason}` };
+}
+
+// Called from process_terminations when the batch is campaign-owned.
+// Applies stop-rule to the tool_state jsonb and appends a progress-log entry.
+export async function applyCampaignTermination(
+  campaignId: string,
+  tool: string,
+  claudeOverall: number | null,
+  _batchSize: number,
+): Promise<void> {
+  const db = admin();
+  const { data: c } = await db.from("quality_campaigns").select("*").eq("id", campaignId).maybeSingle();
+  if (!c) return;
+  const toolState = { ...(c.tool_state ?? {}) } as Record<string, CampaignToolState>;
+  const prev = toolState[tool];
+  if (!prev) {
+    await logCampaign(campaignId, `Termination for tool "${tool}" not in tool_state — ignored`, "warn");
+    return;
+  }
+  const next = applyStopRule(prev, claudeOverall);
+  toolState[tool] = next;
+  await db.from("quality_campaigns").update({ tool_state: toolState }).eq("id", campaignId);
+  if (next.retired_reason && !prev.retired_reason) {
+    await logCampaign(campaignId, `${tool} retired — reason=${next.retired_reason} (runs=${next.runs_completed}, streak=${next.consecutive_ge98})`);
+  } else {
+    await logCampaign(campaignId, `${tool} run recorded — claude=${claudeOverall ?? "—"} · runs=${next.runs_completed}/${prev.max_runs} · streak=${next.consecutive_ge98}/${CAMPAIGN_CERTIFIED_STREAK}`);
+  }
+}
+
+
 Deno.serve(async (req) => {
   console.log(`[qb-orchestrator] boot ${BUILD_STAMP}`);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
