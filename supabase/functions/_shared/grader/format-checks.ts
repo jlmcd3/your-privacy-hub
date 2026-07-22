@@ -36,7 +36,7 @@ const fail = (
   evidence: string,
 ): FormatFinding => ({
   check_id: id, check_type: "deterministic",
-  dimension, severity, passed: false, evidence: evidence.slice(0, 400),
+  dimension, severity, passed: false, evidence: evidence.slice(0, 1000),
 });
 
 /**
