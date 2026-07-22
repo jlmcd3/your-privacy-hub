@@ -68,3 +68,14 @@ Deno.test("emitter rewrite: alternative intake shapes (i3_ca_consumer_band, norm
     assertEquals(rewritten[0].field, "i3_ca_consumer_band_composition");
   }
 });
+
+Deno.test("emitter rewrite: band ask + intake band 'Unsure' → left as-is (re-select)", () => {
+  const intake = { i3_ca_consumer_band: "  Unsure  " };
+  const infoNeeded = [
+    { field: "i3_ca_consumer_band", class: "record-completeness", provision: "CCPA §1798.140" },
+  ];
+  const rewritten = rewriteI3CompositionAsks(infoNeeded, intake) as any[];
+  assertEquals(rewritten[0].field, "i3_ca_consumer_band");
+  const items = buildOpenItems(rewritten, "cppa_risk_assessment");
+  assertEquals(items[0].input_spec.kind, "re-select");
+});

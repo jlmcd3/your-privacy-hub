@@ -318,7 +318,11 @@ export function isVolumeBandAnswered(intake: any): boolean {
     intake?.triggers?.q2_consumers,
     intake?.q2_consumers,
   ];
-  return candidates.some((v) => typeof v === "string" && v.trim().length > 0);
+  return candidates.some((v) => {
+    if (typeof v !== "string") return false;
+    const trimmed = v.trim();
+    return trimmed.length > 0 && trimmed.toLowerCase() !== "unsure";
+  });
 }
 
 export function rewriteI3CompositionAsks(
