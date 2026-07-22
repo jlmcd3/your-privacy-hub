@@ -2063,6 +2063,22 @@ async function runBatch(runId: string): Promise<void> {
       if (scenarioSet === "tuning")  state.tuningBuilt++;
       if (scenarioSet === "holdout") state.holdoutBuilt++;
 
+      // QB-P10 — accumulate per-grader post-filter drop counts for the digest.
+      const cd = (claudeEval as any)?.post_filter_dropped;
+      if (cd) {
+        state.claudePostFilterDrops.a2 += cd.a2 ?? 0;
+        state.claudePostFilterDrops.a3 += cd.a3 ?? 0;
+        state.claudePostFilterDrops.a4 += cd.a4 ?? 0;
+        state.claudePostFilterDrops.r15c2 += cd.r15c2 ?? 0;
+      }
+      const gd = (gptResult as any)?.postFilterDropped;
+      if (gd) {
+        state.gptPostFilterDrops.a2 += gd.a2 ?? 0;
+        state.gptPostFilterDrops.a3 += gd.a3 ?? 0;
+        state.gptPostFilterDrops.a4 += gd.a4 ?? 0;
+        state.gptPostFilterDrops.r15c2 += gd.r15c2 ?? 0;
+      }
+
       const crossStatus = !gptEval ? "gpt_failed" : "complete";
 
       // Persist a lightweight cross-review summary (deterministic, no LLM payload).
