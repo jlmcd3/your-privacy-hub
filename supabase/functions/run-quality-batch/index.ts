@@ -2481,10 +2481,14 @@ async function runBatch(runId: string): Promise<void> {
           check_id: f.check_id, severity: f.severity ?? null, dimension: f.dimension ?? null,
           cross_category: f.cross_category ?? null,
         }));
-        // Post-filter drop counts (a4 + siblings): the run-quality-batch
-        // grader post-filters don't yet expose a per-run counter; record the
-        // basis so downstream can see it's the estimate track.
-        const postFilterDrops = { basis: "not_recorded_v1", a4: null, siblings: null };
+        // QB-P10 — real per-grader post-filter drop counts, threaded from
+        // applyGraderCal1Filter via evaluateDocumentClaude / evaluateDocumentGPT
+        // and accumulated across every doc in this run.
+        const postFilterDrops = {
+          basis: "recorded_v1",
+          claude: state.claudePostFilterDrops,
+          gpt: state.gptPostFilterDrops,
+        };
         // Token estimation basis — Claude only, per orchestrator constant.
         const est = {
           docs: state.built,
