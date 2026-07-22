@@ -1,6 +1,7 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // run-meter deploy-check v1
 // supabase/functions/run-admt-checker/index.ts
