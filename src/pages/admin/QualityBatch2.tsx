@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminOnly from "@/components/AdminOnly";
 import { adminSeedQualityBatch2 } from "@/lib/adminRevisionApi";
+import { QUALITY_BATCH2_TOOLS } from "@/lib/qualityBatchTools";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
