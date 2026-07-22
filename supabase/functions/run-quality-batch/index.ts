@@ -88,9 +88,11 @@ const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {
 // only). Verbatim-lifted from the pre-P2 hand-typed descriptions so no
 // coverage-matrix guidance is lost.
 const SCENARIO_GUIDANCE: Record<string, string> = {
-  "cppa-admt": `Include a mix: 2 advertising/adtech (NOT significant decisions), 2 gaming (NOT significant decisions), 2 HR/employment (significant decisions), 2 fintech credit scoring (significant decisions), 1 healthcare AI (significant decision), 1 recommendation engine (NOT significant decision).`,
+  "cppa-admt": `Include a mix: 2 advertising/adtech (NOT significant decisions), 2 gaming (NOT significant decisions), 2 HR/employment (significant decisions), 2 fintech credit scoring (significant decisions), 1 healthcare AI (significant decision), 1 recommendation engine (NOT significant decision).
+QB-P5 Item 2 — third_party_admt and admt_system_count are free-text prose in the live form (verified against src/pages/admt/ADMTChecker.tsx). Populate them as short prose using the historically expected shapes: third_party_admt as one of "Yes", "No", or "Unsure" (optionally with a one-sentence gloss); admt_system_count as a count range string like "1", "2-5", "6-20", or ">20" (optionally with a one-sentence gloss). Do NOT emit multi-paragraph narratives.`,
   "cppa-risk": `Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), Healthcare SaaS (sensitive PI, well-documented security/debugging/research/legal exceptions), HR/employment-context-only (single employment_context exception), FinTech credit scoring (profiling_significant_effects + ADMT + cybersecurity gaps), small retailer below thresholds (mostly false triggers — should result in voluntary review), and a high-risk profiling/minors scenario (children_in_scope=true). Mix posture: some weak/undocumented exception claims, some clear gaps, some well-controlled.`,
-  "cppa-cyber": `Vary posture: some fully at the top maturity level, some with clusters of low maturity in specific domains (e.g. training and incident weak; access controls strong), some with several controls left blank (intake gaps), and vary framework across the profile.framework options. Include both under-threshold small businesses and clearly-covered enterprises.`,
+  "cppa-cyber": `Vary posture: some fully at the top maturity level, some with clusters of low maturity in specific domains (e.g. training and incident weak; access controls strong), some with several controls left blank (intake gaps), and vary framework across the profile.framework options. Include both under-threshold small businesses and clearly-covered enterprises.
+QB-P5 Item 1 — Every intake MUST contain exactly 18 controls entries — one per canonical slug, each slug used exactly once. The 18 canonical slugs are: c1_auth, c2_encryption, c3_account_access, c4_inventory, c5_secure_config, c6_vuln_mgmt, c7_audit_logs, c8_network_mon, c9_anti_malware, c10_segmentation, c11_port_protocol, c12_awareness, c13_training, c14_secure_dev, c15_third_party, c16_retention, c17_incident, c18_continuity. Never invent alternative slugs (no c14_third_party, no c16_training — legacy/typo aliases; no free-form keys like asset_inventory, mfa).`,
   "governance": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, SaaS, Retail) and posture — some mature programmes, some with concentrated gaps (no DPO + no DPIA + weak DPA), some EU-only, some US-multi-state, some mixed EU/UK/US.`,
   "dpia": `Vary sectors (Healthcare, FinTech, HR/Employment, AdTech, EdTech, Retail) and posture — some with mature Art.35 documentation, some with material gaps (missing DPO, no data_subjects_views_sought, weak necessity_proportionality), some with third-country transfers lacking a mechanism. Include EU/UK on at least half of scenarios to exercise the GDPR path.`,
   "lia": `Vary sectors (Healthcare, FinTech, Logistics, Retail, AdTech, HR) and posture — some well-balanced, some weak safeguards, some questionable necessity.`,
@@ -2230,7 +2232,8 @@ async function runBatch(runId: string): Promise<void> {
       const passed   = findings.filter(f => f.passed).length;
       const failed   = findings.filter(f => !f.passed).length;
       const failRate = findings.length ? failed / findings.length : 0;
-      const evidence = findings.filter(f => !f.passed && f.evidence).map(f => f.evidence).slice(0, 3);
+      // QB-P5 Item 5(a) — cap raised 3→10 so fail_count>3 rows retain full sample_evidence.
+      const evidence = findings.filter(f => !f.passed && f.evidence).map(f => f.evidence).slice(0, 10);
       const first    = findings[0];
 
       const tuningFindings  = findings.filter(f => f.scenario_set === "tuning");
@@ -2257,7 +2260,7 @@ async function runBatch(runId: string): Promise<void> {
       else if (gptOnlyCount > 0)                         crossCategory = "gpt_only";
       else if (findings.some(f => !f.passed))            crossCategory = "claude_only";
 
-      const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 3);
+      const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 10);
       const rubricAddition = null; // F6: rubric_addition removed
       const sev = String(first?.severity ?? "").toLowerCase();
       const severityRank = sev === "critical" ? 3 : sev === "high" ? 2 : sev === "medium" ? 1 : 0;

@@ -66,7 +66,19 @@ const AFFIRMATION_RES = [
   /\bno\s+clear\s+(leak|violation|defect)\b/i,
   /\bremains?\s+within\s+the\b[^.]{0,60}\bwhitelist/i,
   /\bno\s+leak\s+(found|identified)\b/i,
+  // QB-P5 Item 3 — rubric_actionability inversion. run 88 cppa-cyber:
+  // Claude returned passed=false with evidence "Recommendations such as
+  // ... are actionable." (an affirmation of the check being satisfied).
+  // Broaden the affirmation guard to cover the actionability rubric line
+  // in both directions ("are actionable", "is actionable", "recommendations
+  // ... are actionable", "provides actionable guidance", "meets the
+  // actionability threshold").
+  /\b(?:is|are|were|remain(?:s)?)\s+actionable\b/i,
+  /\bprovides?\s+(?:clear\s+)?actionable\b/i,
+  /\bmeets?\s+the\s+actionability\b/i,
+  /\brecommendations?\b[^.]{0,120}\bare\s+actionable\b/i,
 ];
+
 
 function evidenceOf(f: LlmFinding): string {
   const e = (f.evidence ?? "") as string;
