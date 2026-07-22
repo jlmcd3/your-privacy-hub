@@ -637,7 +637,11 @@ function applyJurisdictionClosureScrub(reportData: any, intakeJurisdictions: str
       if (isEngaged(states)) continue;
       out = out.replace(re, () => {
         scrubbed++;
-        return `the applicable ${label} where engaged (not engaged on this intake)`;
+        // P-QB-P15 fix — internal-logic parenthetical ("(not engaged on this
+        // intake)") was leaking to reader-facing prose. Strip it: the clause
+        // "where engaged" already signals conditionality without exposing
+        // engagement-status bookkeeping.
+        return `the applicable ${label} where engaged`;
       });
     }
     return out;
