@@ -1,4 +1,4 @@
-// /ADMIn/quality-batch2/:tool/:id — reviewer surface. Reuses the customer
+// /admin/quality-batch2/:tool/:id — reviewer surface. Reuses the customer
 // OpenItemsList component verbatim; submissions route through the
 // admin-submit-revision proxy (service-role internal-verification).
 //
