@@ -241,23 +241,31 @@ export function decide(
 
 // QB-P9 — pure stop-rule reducer. Given the current tool_state and the
 // score of a just-completed campaign child run, return the updated state.
-// - runs_completed always increments.
+// QB-P13 changes:
+//   (a) When claudeOverall is null (errored/stalled — no grading occurred),
+//       DO NOT increment runs_completed. Failed runs must not consume the
+//       tool's authorized run budget. Streak still resets.
+//   (b) Honor per-tool tool_state.max_runs; fall back to CAMPAIGN_MAX_RUNS
+//       only when the per-tool value is absent.
 // - consecutive_ge98 increments when claude overall >= 98, else resets to 0.
 // - retire with 'certified' when the streak reaches CAMPAIGN_CERTIFIED_STREAK.
-// - retire with 'max_runs' when runs_completed reaches CAMPAIGN_MAX_RUNS.
+// - retire with 'max_runs' when runs_completed reaches the effective cap.
 // Retirement is sticky: once inactive, subsequent calls are no-ops.
 export function applyStopRule(
   prev: CampaignToolState,
   claudeOverall: number | null,
 ): CampaignToolState {
   if (!prev.active) return prev;
-  const runs_completed = prev.runs_completed + 1;
-  const passed = typeof claudeOverall === "number" && claudeOverall >= 98;
+  const graded = typeof claudeOverall === "number";
+  const runs_completed = graded ? prev.runs_completed + 1 : prev.runs_completed;
+  const passed = graded && (claudeOverall as number) >= 98;
   const consecutive_ge98 = passed ? prev.consecutive_ge98 + 1 : 0;
+  const effectiveMax =
+    typeof prev.max_runs === "number" && prev.max_runs > 0 ? prev.max_runs : CAMPAIGN_MAX_RUNS;
   if (consecutive_ge98 >= CAMPAIGN_CERTIFIED_STREAK) {
     return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "certified" };
   }
-  if (runs_completed >= CAMPAIGN_MAX_RUNS) {
+  if (runs_completed >= effectiveMax) {
     return { ...prev, runs_completed, consecutive_ge98, active: false, retired_reason: "max_runs" };
   }
   return { ...prev, runs_completed, consecutive_ge98 };
