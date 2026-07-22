@@ -49,6 +49,14 @@ const A3_WHITELIST_TOKENS = [
 // Drop any LLM rubric finding whose evidence quotes one of these markers.
 const R15C2_PLACEHOLDER_RE = /\[TO\s+(?:BE\s+COMPLETED|BE\s+ASSESSED|COMPLETE)\b/i;
 
+// R-15C-2 companion — DPA professional-defaults markers ("(default — confirm)",
+// "(default -- confirm)", "(default - confirm)") are MANDATED DPA drafting
+// output per POST-DPA-FIX-1 T4(a) exception enumeration (TLS 1.2+, AES-256,
+// annual BC/DR test, quarterly vuln scans, 30-day sub-processor objection
+// window, 30-day Art. 35 assistance, quarterly access reviews, 24-hour
+// deprovisioning). Drop any LLM rubric finding whose evidence quotes one.
+const DPA_DEFAULTS_MARKER_RE = /\(\s*default\s*[—\-–]{1,2}\s*confirm\s*\)/i;
+
 // A4 — Emit-guard. Suppress "findings" the model returns that in fact affirm
 // the document was correct ("This citation is correct", "the report properly
 // cites", "no issue found"). These are noise, not defects.
@@ -94,7 +102,7 @@ function evidenceOf(f: LlmFinding): string {
  * so suppressions are auditable in the batch progress log / campaign digest.
  */
 export type SuppressedFinding = {
-  rule: "a2" | "a3" | "a4" | "r15c2";
+  rule: "a2" | "a3" | "a4" | "r15c2" | "dpa_defaults";
   check_id: string;
   evidence: string; // first 300 chars
 };
@@ -103,10 +111,10 @@ export function applyGraderCal1Filter(
   findings: LlmFinding[],
 ): {
   kept: LlmFinding[];
-  dropped: { a2: number; a3: number; a4: number; r15c2: number };
+  dropped: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
   suppressed: SuppressedFinding[];
 } {
-  const dropped = { a2: 0, a3: 0, a4: 0, r15c2: 0 };
+  const dropped = { a2: 0, a3: 0, a4: 0, r15c2: 0, dpa_defaults: 0 };
   const suppressed: SuppressedFinding[] = [];
   const kept: LlmFinding[] = [];
   const record = (rule: SuppressedFinding["rule"], f: LlmFinding) => {
@@ -144,11 +152,18 @@ export function applyGraderCal1Filter(
         dropped.r15c2++; record("r15c2", f);
         continue;
       }
+      if (typeof f.check_id === "string" && f.check_id.startsWith("rubric_") &&
+          DPA_DEFAULTS_MARKER_RE.test(ev)) {
+        console.log(`[grader-postfilter] DPA-defaults drop: ${f.check_id} evidence quoted "(default — confirm)"`);
+        dropped.dpa_defaults++; record("dpa_defaults", f);
+        continue;
+      }
     }
     kept.push(f);
   }
   return { kept, dropped, suppressed };
 }
+
 
 
 /**

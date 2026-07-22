@@ -1,13 +1,14 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // build-marker: cyber-qi3-observations-not-directives-2026-07-03
 console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directives-2026-07-03");
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "cyber-cppa-hf6@2026-07-20T00:00Z";
+export const BUILD_STAMP = "cyber-product-prompt-1@2026-07-22T18:00:00Z";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
@@ -1446,7 +1447,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     });
 
 
-    try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+    try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((row as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });

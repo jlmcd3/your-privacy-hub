@@ -1,13 +1,14 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // run-meter deploy-check v1
 // supabase/functions/run-admt-checker/index.ts
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-fix-1@2026-07-20T12:00Z";
+export const BUILD_STAMP = "admt-product-prompt-1@2026-07-22T18:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -1538,7 +1539,7 @@ Return this JSON structure exactly:
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf6c@2026-07-20"), build_stamp: BUILD_STAMP };
-    try { const _prose = extractProseFromReport(report); const _det = [...runFormatChecksGeneric(_prose), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+    try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,

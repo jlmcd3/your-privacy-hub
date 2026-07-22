@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "qbp14-registration-fix@2026-07-22T17:00:00Z";
+export const BUILD_STAMP = "qbp15-product-prompts@2026-07-22T18:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -849,6 +849,8 @@ CORPUS-VERIFIED RECENT AMENDMENTS (do not deduct for these): the platform's lega
 SPELLING NEUTRALITY (CEO Ruling R-15C-1 revised, QLB-F3): US and British spelling differences are NEVER a deduction under ANY dimension. Ignore spelling variety entirely — do not flag "organisation" vs "organization", "recognise" vs "recognize", "behaviour" vs "behavior", or any other locale variant. House-style locale is enforced by the Product Prompts, not by this grading rubric.
 
 BRACKETED FILL-IN MARKERS (CEO Ruling R-15C-2, QLB-F3): bracketed fill-in placeholders — including "[TO BE COMPLETED …]", "[TO BE COMPLETED: <detail>]", "[TO COMPLETE — <detail>]", "[TO BE ASSESSED]", and equivalent square-bracketed forms — are MANDATED anti-fabrication placeholders emitted per the Product Prompt's Priority 1 fact-discipline rule. Their presence is NEVER a deduction under ANY rubric check (not an internal-reasoning leak, not incompleteness, not lack of actionability, not boilerplate, not any other dimension). Grade the substance PRESENT in the document; deferral density is policed by product lint, not by this rubric.
+
+PROFESSIONAL-DEFAULTS MARKERS (POST-DPA-FIX-1 T4(a), QB-P15 followup): the parenthetical "(default — confirm)" (also "(default -- confirm)" or "(default - confirm)") is a MANDATED DPA drafting artefact used to mark professional-standard defaults — TLS 1.2+, AES-256 at rest, annual BC/DR test, quarterly vulnerability scans, 30-day sub-processor objection window, 30-day Art. 35 assistance turnaround, quarterly access reviews, 24-hour deprovisioning, and the enumerated peers. Its presence is NEVER a rubric deduction under ANY dimension (not actionability, not incompleteness, not internal-reasoning leak, not boilerplate). The marker is the Product Prompt's designed output; do not treat it as unfinished or as a placeholder defect.
 
 ${SHARED_GRADER_CONTEXT}
 

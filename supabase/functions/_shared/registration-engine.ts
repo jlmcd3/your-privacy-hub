@@ -80,20 +80,14 @@ export interface AssessmentOutput {
     eu_representative_required: boolean;
     uk_representative_required: boolean;
     dpo_required: boolean;
+    // Retained for back-compat; equals `gpai_provider_obligations ||
+    // high_risk_ai_deployer_obligations`. New callers should read the split
+    // fields below so GPAI-provider duties (Chapter V, Arts. 53–55) are not
+    // conflated with high-risk-AI deployer duties (Chapter III, Arts. 26–29;
+    // Art. 49(2) database).
     ai_act_provider_obligations: boolean;
-    // NB: `data_broker_registrations` is a REGISTRATION-SPECIFIC SUBSET, not
-    // a mirror of every jurisdiction with a "registration" obligation on
-    // `jurisdictions[i].obligations`. It contains only the states where the
-    // R7 data-broker rule fired (i.e. `intake.acts_as_data_broker === true`
-    // and the state operates a standalone data-broker registry — CA, VT, TX,
-    // OR). A jurisdiction can therefore appear on `jurisdictions[]` with
-    // `obligations: ['registration']` (via R1_HOME, R2_ART27, or R3_MARKET
-    // — general residency/market-served filings) while being ABSENT from
-    // `data_broker_registrations` because the intake does not declare the
-    // organisation as a data broker. The two arrays are not inconsistent
-    // when they diverge; consumers displaying "data broker registration"
-    // must read this field only, and consumers displaying "any registration
-    // filing" must read `jurisdictions[i].obligations` only.
+    gpai_provider_obligations: boolean;
+    high_risk_ai_deployer_obligations: boolean;
     data_broker_registrations: string[]; // jurisdiction codes (data-broker registries only)
   };
   confidence: "high" | "medium" | "low";
@@ -258,22 +252,29 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     fired.push("R5_DPO");
   }
 
-  // ------- Rule R6: EU AI Act -------
-  let aiActProvider = false;
+  // ------- Rule R6: EU AI Act (split by role) -------
+  // Chapter III (Arts. 26–29) + Art. 49(2) EU database — high-risk AI DEPLOYER.
+  // Chapter V (Arts. 53–55) — GPAI PROVIDER (places a general-purpose AI
+  // model on the EU market). The two obligation sets are DISTINCT: an org
+  // may be a GPAI provider without deploying a high-risk system, and vice
+  // versa. Do not conflate.
+  let highRiskDeployer = false;
+  let gpaiProvider = false;
   if (intake.ai_high_risk && (intake.has_eu_establishment || euMarkets.length > 0)) {
-    aiActProvider = true;
+    highRiskDeployer = true;
     const target = intake.has_eu_establishment
       ? (intake.eu_lead_member_state || home || "IE")
       : (euMarkets[0] || "IE");
     ensure(map, target, "R6_AI_HIGH_RISK",
-      "Operates a high-risk AI system in the EU — EU database registration (Annex VIII) required",
+      "Deployer/provider of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties and Art. 49(2) EU-database registration engaged",
       "ai_eu_database");
     fired.push("R6_AI_HIGH_RISK");
   }
   if (intake.ai_general_purpose_provider && (intake.has_eu_establishment || euMarkets.length > 0)) {
-    aiActProvider = true;
+    gpaiProvider = true;
     fired.push("R6_AI_GPAI");
   }
+  const aiActProvider = highRiskDeployer || gpaiProvider;
 
   // ------- Rule R7: US data broker registration -------
   const dataBrokerStates: string[] = [];
@@ -417,6 +418,8 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
         markets.has("UK") && !intake.has_uk_establishment,
       dpo_required: dpoRequired,
       ai_act_provider_obligations: aiActProvider,
+      gpai_provider_obligations: gpaiProvider,
+      high_risk_ai_deployer_obligations: highRiskDeployer,
       data_broker_registrations: dataBrokerStates,
     },
     confidence: finalConfidence,

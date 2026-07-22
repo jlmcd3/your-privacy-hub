@@ -1,8 +1,11 @@
 // qb8 build active · cppa-risk r1b1.4-rca continuation-on-truncation + 330s self-report abort + compact cells
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
-// CPPA-HF6R BUILD_STAMP: risk-cppa-hf6@2026-07-20T00:00Z
+// CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
+export const BUILD_STAMP = "risk-product-prompt-1@2026-07-22T18:00:00Z";
+console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -2052,7 +2055,7 @@ async function runPipeline(assessment_id: string) {
       reportData: report_data,
     });
 
-    try { const _prose = extractProseFromReport(report_data); const _det = [...runFormatChecksGeneric(_prose), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
+    try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster((row as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });

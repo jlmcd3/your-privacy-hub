@@ -1,6 +1,7 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
 // doc-y-6 build marker (Y-6: Art. 39(1)(b) canonical-wording gloss correction, hasEuUk-gated)
 const DOC_Y_BUILD_MARKER = "doc-y-6";
@@ -575,6 +576,8 @@ ADDITIONAL_CONTEXT CONSUMPTION (R1b2 rule 2d): the intake carries a free-text 'A
 
 SPEC-PACK-1 R6 — BUSINESS CLAIMS ARE RECORD-GROUNDED: every characterisation of the organisation's operating posture, business model, market position, sectoral role, customer base, product surface, or maturity — in the executive_summary, key_findings, domain findings' current_state, gap description, or recommended_actions — RESTS on a specific value carried by a named intake field OR on the "the organisation notes that…" register drawn from additional_context. Never emit a business-fact claim from memory, from sector priors, or from general commercial knowledge (e.g. "the organisation operates a subscription SaaS model", "the organisation serves enterprise customers", "the organisation has a mature security programme", "the organisation is a mid-market vendor to the healthcare sector") without the intake anchor. Form: "The intake records [field]: [value], from which the assessment treats [derived characterisation]." Where the record does not carry the fact and no additional_context sentence supplies it, either omit the characterisation or surface the missing piece as an information_needed item — never fabricate the fact to complete a paragraph. This rule SUPPLEMENTS the shared engaged-jurisdiction/anchor rule and the PROPORTIONATE ASKS rule; it does not narrow either.
 
+PRODUCT-PROMPT-GOV — ENUMERATION SELF-CONSISTENCY: any stated count in narrative prose ("the four tools", "the three domains", "the five programmes", "these six controls") MUST equal the number of items actually enumerated in the accompanying list, table, or sentence. Before emitting the final JSON, verify every quantified reference by counting the items it introduces; if the count and the list disagree, the count is wrong (never the list — the list is the record). Additionally: NEVER emit engagement-status parentheticals such as "(not engaged on this intake)", "(does not apply here)", "(internal only)", or equivalent bookkeeping asides — that is internal logic leaking to the reader. Conditional phrasing ("where engaged", "if applicable") stands alone without the parenthetical.
+
 PRODUCT-FIX-4 TASK 2 — TERMINAL JURISDICTION-CLOSURE MUST-NOT (READ LAST; OVERRIDES ANY EARLIER TEMPTATION TO REACH FOR A US-STATE ANCHOR): before emitting the final JSON, the drafter performs an internal jurisdiction closure pass over every domain finding, priority action, executive_summary sentence, and regulatory_basis / authority / citation field. In that pass:
  (i) The intake's ENGAGED-US-STATE SET is defined as exactly the US states the intake lists in jurisdictions (California, Colorado, Virginia, Illinois, Texas, Connecticut, etc.). No other US state is engaged, regardless of how "typical" its statute is, regardless of whether the finding rhymes with a Colorado or Virginia pattern, and regardless of whether the drafter recalls a familiar anchor.
  (ii) A US-state statutory citation — including but not limited to "C.R.S. § …", "Colo. Rev. Stat. § …", "Va. Code § …", "Cal. Civ. Code § …", "11 CCR § …", "740 ILCS 14/…", "N.Y. Gen. Bus. L. § …", "Tex. Bus. & Com. Code § …", "Conn. Gen. Stat. § …" — MAY appear in the emitted document ONLY when the intake engages the state that owns the statute. This applies to every field type (regulatory_basis, authority, citation, narrative body text, current_state, gap_description, recommended_action, priority_actions, and executive_summary) without exception. This is the terminal rule for jurisdictional closure and it overrides earlier rules (a)–(f) where they might be read to license a US-state cite as a "default" or "training-domain" hook. In an EU/UK-only intake, ZERO US-state statutory citations appear anywhere in the output; in a California-only intake, no Colorado or Virginia citations appear; in a Colorado-only intake, no California, Virginia, or Illinois citations appear; and so on.
@@ -636,7 +639,11 @@ function applyJurisdictionClosureScrub(reportData: any, intakeJurisdictions: str
       if (isEngaged(states)) continue;
       out = out.replace(re, () => {
         scrubbed++;
-        return `the applicable ${label} where engaged (not engaged on this intake)`;
+        // P-QB-P15 fix — internal-logic parenthetical ("(not engaged on this
+        // intake)") was leaking to reader-facing prose. Strip it: the clause
+        // "where engaged" already signals conditionality without exposing
+        // engagement-status bookkeeping.
+        return `the applicable ${label} where engaged`;
       });
     }
     return out;
@@ -802,7 +809,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
-export const BUILD_STAMP = "cv1-r-gov@2026-07-19T21:00Z";
+export const BUILD_STAMP = "gov-product-prompt-1@2026-07-22T18:00:00Z";
 
 Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
@@ -1306,7 +1313,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       reportData,
     });
 
-    try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
+    try { const _prose = extractProseFromReport(reportData); const _roster = extractIntakeRoster((assessment as any).intake_data ?? intake ?? {}); const _det = runFormatChecksGeneric(_prose, { intakeRoster: _roster }).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
