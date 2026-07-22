@@ -33,7 +33,7 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 
-export const BUILD_STAMP = "qbp9-campaign@2026-07-22";
+export const BUILD_STAMP = "qbp11-campaign-cron-auth@2026-07-22";
 
 // QB-P9 — Campaign mode constants.
 // Anthropic Claude Sonnet spend estimate basis (per doc, single run):
@@ -63,6 +63,7 @@ export type CampaignToolState = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
+const ADMIN_SECRET_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -618,9 +619,22 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
   const batchSize = Math.max(...eligible.map((t) => toolState[t].batch_size ?? 3));
   const concurrency = clampConcurrency(campaign.concurrency ?? DEFAULT_CONCURRENCY);
   const db = admin();
+  let createdBy = campaign.created_by as string | null;
+  if (!createdBy) {
+    const { data: adminRole, error: ownerErr } = await db.from("user_roles")
+      .select("user_id")
+      .eq("role", "admin")
+      .limit(1)
+      .maybeSingle();
+    createdBy = (adminRole as { user_id?: string } | null)?.user_id ?? null;
+    if (ownerErr || !createdBy) {
+      await logCampaign(campaign.id, `Wave insert failed: no admin owner available${ownerErr?.message ? ` (${ownerErr.message})` : ""}`, "error");
+      return { started: false, reason: "no_admin_owner" };
+    }
+  }
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
-    current_tool_index: 0, tool_results: [], created_by: campaign.created_by,
+    current_tool_index: 0, tool_results: [], created_by: createdBy,
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency,
     campaign_id: campaign.id,
@@ -767,8 +781,13 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace("Bearer ", "");
   const isInternal = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
-  // QB-P9 — pg_cron path: header `x-internal-cron: 1` + service-role bearer.
-  const isCron     = req.headers.get("x-internal-cron")   === "1" && token === SERVICE_KEY;
+  // QB-P11 — pg_cron path: header `x-internal-cron: 1` plus an internal bearer.
+  // Lovable Cloud does not expose the service-role key to database cron, so the
+  // persisted cron registration uses the existing ADMIN_SECRET_TOKEN vault/env
+  // secret while preserving service-role bearer compatibility.
+  const isCron = req.headers.get("x-internal-cron") === "1" && (
+    token === SERVICE_KEY || (!!ADMIN_SECRET_TOKEN && token === ADMIN_SECRET_TOKEN)
+  );
 
   // Internal self-chain resume
   if (isInternal && body?.run_id) {
