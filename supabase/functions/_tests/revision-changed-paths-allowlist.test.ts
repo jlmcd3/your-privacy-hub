@@ -42,6 +42,22 @@ Deno.test("qcChangedPathsAuthorized: alias path (cppa_risk q1_revenue → normal
   assertEquals(res.status, "green");
 });
 
+Deno.test("qcChangedPathsAuthorized: alias path (cppa_risk i6_vendors → normalised_intake.activity_details[N].third_party_recipients)", () => {
+  // W3-VENDOR-1 regression: without the i6_vendors alias the model could not
+  // write vendor content into a real report path and RC-2 rejected the patch
+  // as revision_hollow_resolution. Ref: Wave-1 doc 6b206788… (2026-07-22).
+  const answered = [{ target: { path: "i6_vendors" } }];
+  const res = qcChangedPathsAuthorized(
+    answered,
+    [
+      "normalised_intake.activity_details[0].third_party_recipients",
+      "normalised_intake.activity_details[1].third_party_recipients",
+    ],
+    "cppa_risk_assessment",
+  );
+  assertEquals(res.status, "green");
+
+
 Deno.test("qcChangedPathsAuthorized: cyber indexed path (controls.c13_training → controls[12].status)", () => {
   const answered = [{ target: { path: "controls.c13_training" } }];
   const res = qcChangedPathsAuthorized(
