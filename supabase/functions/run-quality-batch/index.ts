@@ -905,10 +905,13 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   const rawLlmFindings: any[] = claudeResult?.findings ?? claudeResult?.llm_findings ?? [];
   // GRADER-CAL-1 A2/A3/A4 — drop NOTE-block leaks, whitelisted authorities,
   // and affirmation-shaped "findings" before mapping to schema.
-  const { kept: filteredRaw, dropped: cal1Dropped } = applyGraderCal1Filter(rawLlmFindings as any);
-  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4) {
-    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4}`);
+  // QB-P14 item 4 — `suppressed` carries the dropped findings' evidence
+  // (first 300 chars) so the caller can log an audit trail.
+  const { kept: filteredRaw, dropped: cal1Dropped, suppressed: cal1Suppressed } = applyGraderCal1Filter(rawLlmFindings as any);
+  if (cal1Dropped.a2 || cal1Dropped.a3 || cal1Dropped.a4 || cal1Dropped.r15c2) {
+    console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2}`);
   }
+
   const llmFindings = filteredRaw
     .filter(f => rubricMeta.has((f as any).check_id))
     .map(f => {
