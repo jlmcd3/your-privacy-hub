@@ -101,7 +101,7 @@ function Inner() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
       <div>
-        <Link to="/ADMIn/quality-batch2" className="text-sm text-muted-foreground underline">
+        <Link to="/admin/quality-batch2" className="text-sm text-muted-foreground underline">
           ← Back to Quality Batch 2
         </Link>
         <h1 className="mt-2 font-serif text-3xl">Reviewer view</h1>
