@@ -235,7 +235,7 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
     const hasAnchor = HF4_H6_ADMT_ANCHOR_RE.test(s);
     if (hasDuty && !hasAnchor) {
       findings.push(fail("h6_admt_governing_anchor", "citation_accuracy", "high",
-        `§ 7001 cited as sole governing anchor for an ADMT action duty: "${s.slice(0, 200)}"`));
+        `§ 7001 cited as sole governing anchor for an ADMT action duty: "${s.slice(0, 1000)}"`));
       if (findings.length >= 5) break;
       continue;
     }
