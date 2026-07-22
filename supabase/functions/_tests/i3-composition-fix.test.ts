@@ -16,7 +16,7 @@ Deno.test("i3 legacy band key stays a re-select (historical open_items resolve)"
   // The enum_ref is registered in T_CLASS_FIELDS and points at CONSUMER_OPTS.
   assertEquals(
     (items[0].input_spec as { enum_ref: string }).enum_ref,
-    "cppa_risk_assessment:consumer_opts",
+    "cppa_risk_assessment:i3_ca_consumer_band",
   );
 });
 
