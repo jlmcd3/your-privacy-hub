@@ -951,15 +951,16 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
     "factors": [
       // W3-T2 PER-FACTOR BALANCING (REQUIRED — exactly four entries in this order):
       //   reasonable_expectations, relationship, impact_severity, safeguards.
-      // Each factor's `reasoning` MUST bind to the named intake_evidence — every
-      // sentence in `reasoning` must name a value or field listed in this
-      // factor's intake_evidence. This is the anti-generic mechanism: a factor
-      // whose reasoning does not cite its own intake_evidence is a defect.
-      // intake_evidence entries MUST reference intake fields that are actually
-      // populated on this record (cross-read the full record per the CROSS-READ
-      // rule above); do NOT invent fields or values. Where no relevant intake
-      // is present for a factor, set intake_evidence to [] and describe the
-      // absence in `reasoning` per FLAG-THE-ABSENCE — never fabricate.
+      // Each factor's reasoning MUST bind to the named intake_evidence — every
+      // sentence in the reasoning field must name a value or field listed in
+      // this factor's intake_evidence. This is the anti-generic mechanism: a
+      // factor whose reasoning does not cite its own intake_evidence is a
+      // defect. intake_evidence entries MUST reference intake fields that are
+      // actually populated on this record (cross-read the full record per the
+      // CROSS-READ rule above); do NOT invent fields or values. Where no
+      // relevant intake is present for a factor, set intake_evidence to [] and
+      // describe the absence in the reasoning field per FLAG-THE-ABSENCE —
+      // never fabricate.
       {
         "factor": "reasonable_expectations | relationship | impact_severity | safeguards",
         "intake_evidence": [
@@ -970,7 +971,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
         "reasoning": "1-3 sentences. MUST bind to the named intake_evidence for this factor (name the value or field in the sentence itself). Refer to the input as 'the record' per CANONICAL RECORD REFERENCE."
       }
     ],
-    "synthesis": "1-2 sentences drawing the four factor `direction` values together into an overall balancing outcome that maps to `verdict`. Names the decisive factor(s) by name.",
+    "synthesis": "1-2 sentences drawing the four factor direction values together into an overall balancing outcome that maps to the verdict field. Names the decisive factor(s) by name.",
     "risk_factors": ["factors tipping the balance toward data subjects"],
     "supporting_factors": ["factors supporting the controller's interest"],
     "open_questions": ["facts that would affect this verdict"],
