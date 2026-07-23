@@ -922,7 +922,11 @@ ADDITIONAL DISCIPLINES:
       const SUBCH_TOKEN_RE = /\bthe\s+cited\s+(?:provision|definition)(?:\s+(?:governing|above|below|referenced))?\b/gi;
       const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+(?:provision|definition)\b/gi;
       const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+(?:provision|definition)\b/gi;
-      const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      // POST-C1-FIX-2A: unresolved-variable fallback becomes NEUTRAL (no citation).
+      // Emitting the "§§ 7220–7222" range as a substitute for unresolved pinpoints
+      // caused the residual ADMT collapse in batch 5aee4b99. Range appears at most
+      // ONCE per document, enforced by post-walker cap below.
+      const SUBCH_FALLBACK = "the applicable ADMT-subchapter provision";
       const SUBCH_SYNONYM_RES: Array<[RegExp, string]> = [
         [/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK],
         [/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK],
