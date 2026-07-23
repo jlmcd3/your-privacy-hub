@@ -431,10 +431,23 @@ function buildDPIAReportHTML(report: any, dpia: any): string {
       return "—";
     }
   };
+  // W3-T1 — provenance badge for rows carrying { intake_field, basis }.
+  const provBadge = (source: any): string => {
+    if (!source || typeof source !== "object") return "";
+    const basis = String((source as any).basis ?? "").toLowerCase();
+    const field = (source as any).intake_field ? String((source as any).intake_field) : "";
+    if (basis === "inferred") {
+      return ` <span style="display:inline-block;margin-left:6px;padding:1px 5px;font-size:9px;border:1px solid #b45309;background:#fef3c7;color:#92400e;border-radius:3px;text-transform:uppercase;">inferred — confirm</span>`;
+    }
+    if (basis === "stated" && field) {
+      return ` <span style="display:inline-block;margin-left:6px;padding:1px 5px;font-size:9px;border:1px solid #047857;background:#d1fae5;color:#065f46;border-radius:3px;text-transform:uppercase;">stated · ${escHtml(field)}</span>`;
+    }
+    return "";
+  };
   const tbl = (cols: { key: string; label: string }[], rows: any[]): string => {
     try {
       return Array.isArray(rows) && rows.length
-        ? `<table class="dt"><thead><tr>${cols.map((c) => `<th>${escHtml(c.label)}</th>`).join("")}</tr></thead><tbody>${rows.map((r: any) => `<tr>${cols.map((c) => `<td>${cellHtml(c.key, r?.[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+        ? `<table class="dt"><thead><tr>${cols.map((c) => `<th>${escHtml(c.label)}</th>`).join("")}</tr></thead><tbody>${rows.map((r: any) => `<tr>${cols.map((c, ci) => `<td>${cellHtml(c.key, r?.[c.key])}${ci === 0 ? provBadge(r?.source) : ""}</td>`).join("")}</tr>`).join("")}</tbody></table>`
         : `<p style="font-style:italic;color:#5c6d7a;">[TO COMPLETE — no rows generated]</p>`;
     } catch (e) {
       console.warn("[dpia-pdf] tbl failed", (e as Error)?.message);
