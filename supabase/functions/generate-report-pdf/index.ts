@@ -364,12 +364,46 @@ ${(() => {
       const heading = dn?.domain_id != null
         ? `Domain ${dn.domain_id} — ${escHtml(dn.domain_name || "")}`
         : escHtml(dn.domain_name || "");
+
+      // QB-P25 B2 — prefer v2 objects with legacy string fallback.
+      const rb2 = Array.isArray(dn?.regulatory_basis_v2) ? dn.regulatory_basis_v2 : null;
+      const rbValidV2 = rb2 && rb2.length > 0 && rb2.every((e: any) =>
+        e && typeof e.citation === "string" && e.citation.trim() &&
+        typeof e.engaged_because === "string" && e.engaged_because.trim());
+      const regulatoryHtml = rbValidV2
+        ? `<p class="label">Regulatory basis</p><ul>${rb2.map((e: any) =>
+            `<li><strong>${escHtml(e.citation)}</strong> — engaged because ${escHtml(e.engaged_because)}</li>`).join("")}</ul>`
+        : `<p class="label">Regulatory basis</p><p>${escHtml(dn.regulatory_basis || "")}</p>`;
+
+      const ra2 = dn?.recommended_action_v2;
+      const raValidV2 = ra2 && typeof ra2 === "object"
+        && typeof ra2.action === "string" && ra2.action.trim()
+        && ra2.owner && typeof ra2.owner.role === "string" && ra2.owner.role.trim()
+        && typeof ra2.owner.intake_field === "string" && ra2.owner.intake_field.trim()
+        && typeof ra2.trigger === "string" && ra2.trigger.trim()
+        && ra2.deadline && (
+          (ra2.deadline.kind === "statutory" && typeof ra2.deadline.citation === "string" && ra2.deadline.citation.trim()) ||
+          (ra2.deadline.kind === "org_set" && typeof ra2.deadline.illustrative_default === "string" && ra2.deadline.illustrative_default.trim())
+        );
+      const timelineSentence = raValidV2
+        ? (ra2.deadline.kind === "statutory"
+            ? `Statutory deadline: ${ra2.deadline.citation}${ra2.deadline.illustrative_default ? ` (illustrative cadence — ${ra2.deadline.illustrative_default})` : ""}`
+            : `Timeline to be set by the organisation (e.g. ${ra2.deadline.illustrative_default})`)
+        : "";
+      const recommendedHtml = raValidV2
+        ? `<p class="label">Recommended action</p>
+           <p><strong>${escHtml(ra2.action)}</strong></p>
+           <p class="meta">Owner: ${escHtml(ra2.owner.role)} (from ${escHtml(ra2.owner.intake_field)})</p>
+           <p class="meta">Trigger: ${escHtml(ra2.trigger)}</p>
+           <p class="meta">${escHtml(timelineSentence)}</p>`
+        : `<p class="label">Recommended action</p><p><strong>${escHtml(dn.recommended_action || "")}</strong></p>
+           <p class="meta">${escHtml(dn.suggested_owner || "")} &nbsp;|&nbsp; ${escHtml(dn.suggested_timeline || "")}</p>`;
+
       return `<div class="domain"><h3>${heading} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${escHtml(dn.severity || "")}</span></h3>
 <p class="label">Current state</p><p>${escHtml(dn.current_state || "")}</p>
 ${dn.gap_description ? `<p class="label">Gap</p><p>${escHtml(dn.gap_description)}</p>` : ""}
-<p class="label">Regulatory basis</p><p>${escHtml(dn.regulatory_basis || "")}</p>
-<p class="label">Recommended action</p><p><strong>${escHtml(dn.recommended_action || "")}</strong></p>
-<p class="meta">${escHtml(dn.suggested_owner || "")} &nbsp;|&nbsp; ${escHtml(dn.suggested_timeline || "")}</p></div>`;
+${regulatoryHtml}
+${recommendedHtml}</div>`;
     }).join("");
   })()}
 <h2>Cross-Domain Considerations</h2>
