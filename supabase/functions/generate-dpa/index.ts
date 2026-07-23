@@ -1536,6 +1536,8 @@ ${ADVISORY_VOICE_RULES}`;
     }
     let dpa_text = stripEnforcementTags(lint.clean);
     let parsedAnnotations = parsed.annotations;
+    // QB-P25 Item 3 — mutable so a retry can overwrite it.
+    let parsedDraftingRecord: Record<string, unknown> | null = parsed.drafting_record;
 
     if (!dpa_text.trim()) {
       throw new Error("AI generation returned an empty document");
@@ -1561,6 +1563,10 @@ ${ADVISORY_VOICE_RULES}`;
         : [],
       deterministic_checks,
       generated_at: new Date().toISOString(),
+      // QB-P25 Item 3 — grader-invisible drafting record (stripped by
+      // METADATA_KEYS in _shared/grader/payload.ts and by _RESERVED_KEYS
+      // in _shared/advisory-voice.ts extractProseFromReport).
+      _drafting_record: parsedDraftingRecord,
       _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-cv1-ff-2026-07-19") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
