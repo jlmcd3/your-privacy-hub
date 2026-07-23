@@ -16,11 +16,11 @@ Heavily deterministic-template-driven generation; residual boilerplate/actionabi
 
 ---
 
-## 2. [SCHEMA] cppa-admt — report schema normalization
+## 2. [SCHEMA] cppa-admt — report schema normalization ✅ SHIPPED 2026-07-23 (POST-C1-FIX-1C)
 
-**Date:** 2026-07-23
-
-Report schema inconsistencies (top-level vs `scope_analysis` nesting) caused the silent scope-gate bug (POST-C1-FIX-1A). A schema-normalization pass with a typed contract would prevent the class.
+**Date opened:** 2026-07-23 · **Shipped:** POST-C1-FIX-1C (2026-07-23T23:15:00Z)
+**Shipping BUILD_STAMP:** `run-admt-checker` → `post-c1-fix-1c-admt-schema-normalization@2026-07-23T23:15:00Z`
+**Files:** `_shared/admt-scope-contract.ts` (new typed contract + `readAdmtScope` + `normalizeAdmtScopeShape` + `assertAdmtScopeShape`); `src/lib/admt/scope.ts` (client mirror); `_tests/admt-scope-contract.test.ts` (7 tests, drift-logging asserted). `run-admt-checker/index.ts` calls `normalizeAdmtScopeShape` at generation and `enforceScopeGateOnGaps` now reads via `readAdmtScope`. `generate-report-pdf/index.ts` and `src/pages/admt/ADMTCheckerResult.tsx` route through the contract for migration-safe display of legacy stored reports. `run-quality-batch/index.ts` grader checks (adtech, gaming, art11 gate, notice_gaps_when_inscope) route through the contract too. Prompt schema block explicitly declares "MUST live inside scope_analysis; do not emit at top level". Structured log `admt_scope_drift_detected` surfaces stored-report drift going forward. Kept item entry in-place per register policy (mark shipped, do not delete).
 
 ---
 
