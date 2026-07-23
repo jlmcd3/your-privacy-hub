@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "post-c1-fix-1ab-admt-gate-and-ccpa-lettering@2026-07-23T16:21:00Z";
+export const BUILD_STAMP = "post-c1-fix-2a-admt-neutral-fallback-and-range-cap@2026-07-23T18:15:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
