@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
+export const BUILD_STAMP = "qbp24-output-structure-corrections@2026-07-23T02:00:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -670,7 +670,7 @@ Key state biometric statutes (by litigation and enforcement risk):
 Federal frameworks applicable to biometrics by sector:
 1. HIPAA: biometric identifiers constitute PHI under HIPAA (45 CFR § 160.103) and are among the 18 identifier categories enumerated in the de-identification safe harbor at § 164.514(b)(2)(i). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
 2. GLBA Safeguards Rule (16 CFR Part 314): financial institutions must protect biometric data as customer information under their written information security programme, implementing safeguards appropriate to the data's sensitivity under 16 CFR § 314.4.
-3. FTC Act Section 5: the FTC has brought unfair or deceptive practice actions relating to biometric data misuse; consent and security failures are enforcement targets.
+3. FTC Act Section 5: the intake's stated purpose "${body.purpose}" — a ${body.orgType} deploying ${body.biometricTypes.join(", ")} — engages the specific unfair-or-deceptive-practices theory the FTC applied in the Rite Aid facial-recognition action (Dec. 2023, FTC File No. 072-3121), where deployment of a biometric identification technology without adequate consumer notice, accuracy testing, and post-deployment monitoring was held to constitute an unfair practice causing substantial injury under 15 U.S.C. § 45(n); the same theory underpins the May 2023 Biometric Information Policy Statement. § 5 exposure attaches to THIS specific practice (the intake's stated purpose paired with the declared biometric type), not as a generic backdrop — confirm the consumer-facing notice, consent posture, and accuracy-testing record for the stated purpose before deployment.
 
 Current enforcement posture:
 At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas Attorney General enforcement of CUBI is active; consult the Attorney General's public enforcement records for current actions. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
