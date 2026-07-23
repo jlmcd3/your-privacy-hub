@@ -111,13 +111,17 @@ Per-state pinpoints in `check-biometric-compliance/index.ts` (CO/IN/IL/etc.) are
 ### 14. [HARNESS] Extend RESUMABLE_GENERATORS to run-admt-checker (2026-07-23)
 Batch 5aee4b99 doc 5 for ADMT died at 1204s with no resurrection. `run-admt-checker` should join the resumable-generator set (checkpoint after each stage; resume on watchdog re-entry) to prevent single-doc timeout losses from truncating a batch.
 
-## Register metadata
-
 ### 15. [ENGINE] Amendments-block source table needs a "post-cutoff case law" row type (2026-07-23)
 Per CEO ruling in POST-C1-FIX-2-AMEND, verified post-training-cutoff authorities (case law) must be whitelisted in the grader amendments block, not stripped from products. The block currently composes from `dpia-jurisdiction-registry` + `admt-citation-registry` + static amendment strings; Clay v. Union Pacific was added as a dedicated block sourced from `_shared/registry/statutory-rules-registry.ts` (BIPA_CITATIONS). Durable fix: promote a first-class "post-cutoff case law" row type in the amendments-block builder so future verified rulings (e.g. Illinois Supreme Court retroactivity guidance, EU CJEU post-cutoff decisions) auto-render with docket / court / date / holding / never-deduct guidance.
 
+### 16. [ENGINE] Indiana biometric pinpoint — primary-source verification required (2026-07-23)
+Per CEO ruling on deviation D-FIX2-D-INDIANA, softening Indiana's biometric citation to the parent chapter is acknowledged as a temporary hedge, not verification. Before the next CPPA/biometric batch, the Indiana pinpoint(s) used by `check-biometric-compliance` must be pinpoint-verified against the primary source (Indiana Code Title 24, Article 4, Chapter 14 biometric-data provisions, or the current statutory home) with `verified_on` date and primary-source URL captured in the state-statute registry alongside the entry (dovetails with #13 verified-pinpoint discipline).
+
+### 17. [SCHEMA] quality_run_documents — persist pdf_export state at doc grain (2026-07-23)
+Per CEO ruling on deviation D-PDF-STATE-NOT-PERSISTED, the batch-mode ledger cannot currently report PDF export status because `quality_run_documents` has no `pdf_export_url` / `pdf_export_status` / `pdf_export_error` columns. Batch reports must fall back to inference. Durable fix: add `pdf_export_status` (enum: `pending|success|failed|skipped`), `pdf_export_url` (text nullable), `pdf_export_error` (text nullable), and `pdf_exported_at` (timestamptz) to `quality_run_documents`; wire the export path in the orchestrator/generator to write these fields; surface the aggregate in batch result queries.
+
 ## Register metadata
 
-- **Sections:** 15
+- **Sections:** 17
 - **Created:** 2026-07-23
-- **Last reviewed:** 2026-07-23 (POST-C1-FIX-2-AMEND)
+- **Last reviewed:** 2026-07-23 (POST-C1-FIX-2-RERUN rulings)
