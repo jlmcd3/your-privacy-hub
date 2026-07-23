@@ -238,25 +238,55 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     markets.has("GB");
   let dpoRequired = false;
   const dpoReasons: string[] = [];
-  if (
-    hasEuOrUkScope &&
-    (
-      intake.processes_special_categories ||
-      intake.large_scale_monitoring ||
-      (intake.processes_personal_data && (intake.data_subjects_count ?? 0) > 100_000)
-    )
-  ) {
-    dpoRequired = true;
-    dpoReasons.push("GDPR Art. 37(1)(b)/(c): large-scale or special-category processing");
+  // QB-P24 Addendum Item 9(a) — track engaged trigger + conditional path.
+  let dpoTrigger: string | null = null;
+  let dpoCondition: string | null = null;
+  const isSmallController =
+    (intake.organization_size === "small" || intake.organization_size === "micro") &&
+    (intake.employee_count ?? 0) < 50;
+  if (hasEuOrUkScope) {
+    // Art. 37(1)(b) — systematic monitoring on a large scale. Requires the
+    // large_scale_monitoring flag; special-categories alone does not engage it.
+    if (intake.large_scale_monitoring) {
+      dpoRequired = true;
+      dpoTrigger = "GDPR Art. 37(1)(b) — core activities require regular and systematic monitoring of data subjects on a large scale";
+      dpoReasons.push(dpoTrigger);
+    }
+    // Art. 37(1)(c) — core activities consist of large-scale processing of
+    // special categories. The intake's data_subjects_count >100k is a
+    // reasonable large-scale proxy; special_categories alone for a small
+    // controller does NOT establish the "core activities / large scale" prong.
+    if (
+      intake.processes_special_categories &&
+      intake.processes_personal_data &&
+      (intake.data_subjects_count ?? 0) > 100_000
+    ) {
+      dpoRequired = true;
+      dpoTrigger = dpoTrigger
+        ? `${dpoTrigger}; and GDPR Art. 37(1)(c) — large-scale processing of special categories`
+        : "GDPR Art. 37(1)(c) — core activities consist of large-scale processing of special categories of personal data";
+      dpoReasons.push("GDPR Art. 37(1)(c): large-scale special-category processing");
+    } else if (intake.processes_special_categories && isSmallController) {
+      // Small controller processes special categories but neither large_scale
+      // nor a >100k subject base is declared — emit conditional per the
+      // addendum instead of an over-inclusive `true`.
+      dpoCondition =
+        "Conditional on GDPR Art. 37(1)(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.";
+    }
   }
   if (
     (home === "DE" || markets.has("DE")) &&
     (intake.employee_count ?? 0) >= 20
   ) {
     dpoRequired = true;
-    dpoReasons.push("German BDSG §38: ≥20 employees handling personal data → DPO required");
+    // QB-P24 Addendum Item 9(b) — headline aligned to the actual BDSG §38
+    // threshold (persons constantly engaged in automated processing), not
+    // the misleading "20+ employees" shorthand.
+    const bdsgTrigger = "BDSG §38 — DPO required where 20+ persons are constantly engaged in the automated processing of personal data";
+    dpoReasons.push(`${bdsgTrigger}; the intake reports ${intake.employee_count ?? 0} employees — confirm how many are constantly engaged in automated processing before concluding the threshold is met`);
+    dpoTrigger = dpoTrigger ? `${dpoTrigger}; and ${bdsgTrigger}` : bdsgTrigger;
     ensure(map, "DE", "R5_DE_DPO",
-      "BDSG §38 — DPO mandatory at 20+ employees",
+      "BDSG §38 — DPO required at 20+ persons constantly engaged in automated processing (assess whether the reported employee count meets this threshold in your operations)",
       "dpo");
   }
   if (dpoRequired) {
