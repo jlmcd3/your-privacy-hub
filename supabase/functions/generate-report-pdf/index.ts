@@ -1234,7 +1234,10 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 
     ${exceptions.length ? `<section><h2>Exception Analysis</h2>
       ${exceptions.map((e: any) => {
-        const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+        const resolvedStrengthen: any[] = Array.isArray(e.strengthen_item_ids)
+          ? e.strengthen_item_ids.map((id: string) => strengthenItemsMap[id]).filter(Boolean)
+          : [];
+        const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length) || resolvedStrengthen.length);
         const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
         const argLbl = argStrengthLabelPDF(e.argument_strength);
         const argHeader = argLbl === "Counsel review recommended"
@@ -1247,8 +1250,11 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
         ${hasNew ? `
           ${e.facts_supporting ? `<p><span class="label">Facts supporting the exception:</span> ${text(e.facts_supporting)}</p>` : ""}
           ${argHeader ? `<p><span class="label">${text(argHeader)}</span>${e.argument_strength_rationale ? ` — ${text(e.argument_strength_rationale)}` : ""}</p>` : ""}
-          ${Array.isArray(e.strengthen_position) && e.strengthen_position.length
-            ? `<p class="label" style="margin-top:6px;">What would strengthen the position</p><ul>${e.strengthen_position.map((sp: any) => `<li>${text(sp)}</li>`).join("")}</ul>`
+          ${(resolvedStrengthen.length || (Array.isArray(e.strengthen_position) && e.strengthen_position.length))
+            ? `<p class="label" style="margin-top:6px;">What would strengthen the position</p><ul>${
+                resolvedStrengthen.map((it: any) => `<li>${text(it.recorded_basis || it.item_id || "")}${it.citation ? ` <span class="label">${text(it.citation)}</span>` : ""}${Array.isArray(it.field_ids) && it.field_ids.length ? ` — fields: ${text(it.field_ids.join(", "))}` : ""}</li>`).join("")
+                + (Array.isArray(e.strengthen_position) ? e.strengthen_position.map((sp: any) => `<li>${text(sp)}</li>`).join("") : "")
+              }</ul>`
             : ""}
         ` : (hasOld ? `
           ${e.scope_described ? `<p><span class="label">Scope:</span> ${text(e.scope_described)}</p>` : ""}
