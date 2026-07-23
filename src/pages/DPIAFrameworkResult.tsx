@@ -89,6 +89,34 @@ const renderCell = (key: string, val: any) => {
   return <span className="whitespace-pre-wrap">{String(val)}</span>;
 };
 
+// W3-T1 — provenance badge for rows that carry a { intake_field, basis } source
+const ProvenanceBadge = ({ source }: { source: any }) => {
+  if (!source || typeof source !== "object") return null;
+  const basis = String(source.basis ?? "").toLowerCase();
+  const field = source.intake_field ? String(source.intake_field) : "";
+  if (basis === "inferred") {
+    return (
+      <span
+        className="ml-2 inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wide rounded border border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+        title={`Inferred from ${field || "intake"}; confirm before relying on it`}
+      >
+        inferred — confirm
+      </span>
+    );
+  }
+  if (basis === "stated" && field) {
+    return (
+      <span
+        className="ml-2 inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wide rounded border border-emerald-500/60 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+        title={`Stated in intake field: ${field}`}
+      >
+        stated · {field}
+      </span>
+    );
+  }
+  return null;
+};
+
 const DataTable = ({ columns, rows }: { columns: { key: string; label: string }[]; rows: any[] }) =>
   Array.isArray(rows) && rows.length ? (
     <div className="overflow-x-auto rounded border">
@@ -103,7 +131,12 @@ const DataTable = ({ columns, rows }: { columns: { key: string; label: string }[
         <tbody>
           {rows.map((r, i) => (
             <tr key={i} className="border-b last:border-0 align-top">
-              {columns.map((c) => <td key={c.key} className="px-3 py-2">{renderCell(c.key, r?.[c.key])}</td>)}
+              {columns.map((c, ci) => (
+                <td key={c.key} className="px-3 py-2">
+                  {renderCell(c.key, r?.[c.key])}
+                  {ci === 0 && r && typeof r === "object" ? <ProvenanceBadge source={(r as any).source} /> : null}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
