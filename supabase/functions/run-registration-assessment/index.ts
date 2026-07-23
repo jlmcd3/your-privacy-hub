@@ -77,8 +77,11 @@ function dpoBasisForJurisdiction(
       basis: `Conditional in ${eeaWho} under ${gdprCite}(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.`,
     };
   }
-  // Art. 37(1)(a) — public authority.
-  if (String(intake?.role ?? "").toLowerCase().includes("public") || intake?.is_public_authority === true) {
+  // Art. 37(1)(a) — public authority. Gated strictly on the intake's
+  // is_public_authority flag (CEO decision 2026-07-23). The prior
+  // role-string sniff is retired because the intake role field is
+  // controller/processor/both only.
+  if (intake?.is_public_authority === true) {
     return {
       required: true,
       basis: `DPO required in ${eeaWho} under ${gdprCite}(a) — processing is carried out by a public authority or body.`,
