@@ -90,10 +90,20 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
         <section className="bg-card border rounded-lg p-6">
           <h2 className="font-body text-display-card font-semibold mb-4">Control Findings</h2>
           <Accordion type="multiple">
-            {report.controls.map((d: any, i: number) => (
+            {/* QB-P25 CYBER — render controls sorted by generator-assigned `rank` (1 = highest reader priority). */}
+            {[...report.controls]
+              .sort((a: any, b: any) => {
+                const ra = Number.isFinite(Number(a?.rank)) ? Number(a.rank) : 999;
+                const rb = Number.isFinite(Number(b?.rank)) ? Number(b.rank) : 999;
+                return ra - rb;
+              })
+              .map((d: any, i: number) => (
               <AccordionItem key={i} value={`c${i}`}>
                 <AccordionTrigger>
                   <div className="flex items-center gap-3 flex-wrap">
+                    {Number.isFinite(Number(d?.rank)) && (
+                      <span className="text-xs font-mono text-muted-foreground">#{d.rank}</span>
+                    )}
                     <span>{d.control}</span>
                     {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                     {d.status && <span className={`px-2 py-0.5 text-xs rounded ${controlStatusColor(d.status)}`}>{d.status}</span>}
@@ -101,6 +111,8 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
                 </AccordionTrigger>
                 <AccordionContent className="space-y-2">
                   {d.finding && <p className="text-sm"><strong>Finding:</strong> {d.finding}</p>}
+                  {d.evidence && <p className="text-sm"><strong>Evidence:</strong> {d.evidence}</p>}
+                  {d.differentiator && <p className="text-sm"><strong>Why this ranks here:</strong> {d.differentiator}</p>}
                   {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
                   {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                   {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
