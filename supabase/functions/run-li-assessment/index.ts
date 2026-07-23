@@ -3,8 +3,8 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
-export const BUILD_STAMP = "c1-a-uk-art-6-11-verbatim@2026-07-23T14:20:00Z";
-console.log(`[run-li-assessment] boot build_stamp=${BUILD_STAMP}`);
+export const BUILD_STAMP = "c1-d-engagement-map-v1@2026-07-23T23:55:00Z";
+console.log(`[run-li-assessment] boot ${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -24,6 +24,7 @@ import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { buildLiaEngagementMap } from "../_shared/engagement-map.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
@@ -1609,6 +1610,16 @@ Return JSON:
     });
 
     try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
+    // C1-d — Engagement Map v1 (additive metadata; document structure unchanged)
+    try {
+      (reportData as any).engagement_map = buildLiaEngagementMap(
+        liaIntakeObject as Record<string, unknown>,
+        liaTestStates as any,
+        engagedFrameworks,
+      );
+    } catch (e) {
+      console.warn("[run-li-assessment] engagement_map build skipped:", (e as Error)?.message);
+    }
     const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
