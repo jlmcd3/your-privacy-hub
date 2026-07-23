@@ -220,8 +220,26 @@ ${["purpose_test", "necessity_test", "balancing_test"].map(key => {
     const verdictClass = (t.verdict || "uncertain").includes("pass") ? "pass" : (t.verdict || "").includes("fail") ? "fail" : "uncertain";
     const rawVerdict = t.verdict || "Uncertain";
     const verdictLabel = (rawVerdict.charAt(0).toUpperCase() + rawVerdict.slice(1)).replace(/_/g, " ");
+    // W3-T2: render balancing_test.factors when present.
+    const factorLabelMap: Record<string, string> = {
+      reasonable_expectations: "Reasonable expectations",
+      relationship: "Nature of the relationship",
+      impact_severity: "Impact and severity",
+      safeguards: "Safeguards (incl. opt-out)",
+    };
+    const dirLabel = (dv: string) => dv === "for_controller" ? "Tips for controller"
+      : dv === "for_subjects" ? "Tips for data subjects" : "Neutral";
+    const factorsHtml = (key === "balancing_test" && Array.isArray(t.factors) && t.factors.length)
+      ? `<p class="label">EDPB four-factor balancing:</p>${t.factors.map((f: any) => `
+<div class="section" style="margin-left:12px">
+<p><strong>${sanitizeNarrative(factorLabelMap[f?.factor] || f?.factor || "")}</strong> — <em>${sanitizeNarrative(dirLabel(String(f?.direction || "")))}</em></p>
+${f?.reasoning ? `<p>${sanitizeNarrative(f.reasoning)}</p>` : ""}
+${Array.isArray(f?.intake_evidence) && f.intake_evidence.length ? `<ul>${f.intake_evidence.map((ev: any) => `<li><strong>${sanitizeNarrative(ev?.field || "")}:</strong> ${sanitizeNarrative(String(ev?.value ?? ""))}</li>`).join("")}</ul>` : ""}
+</div>`).join("")}${t.synthesis ? `<p><em>${sanitizeNarrative(t.synthesis)}</em></p>` : ""}`
+      : "";
     return `<div class="section"><h3>${label} <span class="verdict-${verdictClass}">— ${verdictLabel}</span></h3>
 <p>${sanitizeNarrative(t.analysis || "")}</p>
+${factorsHtml}
 ${(t.risk_factors || []).length ? `<p class="label">Risk factors:</p><ul>${(t.risk_factors || []).map((r: string) => `<li>${sanitizeNarrative(r)}</li>`).join("")}</ul>` : ""}
 ${(t.supporting_factors || []).length ? `<p class="label">Supporting factors:</p><ul>${(t.supporting_factors || []).map((s: string) => `<li>${sanitizeNarrative(s)}</li>`).join("")}</ul>` : ""}
 </div>`;
