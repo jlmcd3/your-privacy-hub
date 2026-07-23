@@ -62,7 +62,7 @@ interface IntakeState {
 
 const EMPTY: IntakeState = {
   organization_name: "",
-  organization_country: "",
+  is_public_authority: false,
   organization_size: "",
   industry: "",
   email: "",
