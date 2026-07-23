@@ -13,7 +13,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "qbp24-output-structure-corrections@2026-07-23T02:00:00Z";
+export const BUILD_STAMP = "qbp24-addendum-registration-refinements@2026-07-23T03:00:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
