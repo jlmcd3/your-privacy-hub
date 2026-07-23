@@ -1659,6 +1659,7 @@ ${ADVISORY_VOICE_RULES}`;
           lint = retryLint;
           dpa_text = repairedText;
           parsedAnnotations = retryParsed.annotations;
+          parsedDraftingRecord = retryParsed.drafting_record;
           report_data = buildReportData();
           try {
             const guarded = guardInformationNeeded(
