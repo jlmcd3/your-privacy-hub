@@ -254,8 +254,52 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
   return findings;
 }
 
+// ── H7 (QB-P23 item 2a) ──────────────────────────────────────────────
+// Blanket ADMT range citations used as the anchor in a duty-bearing
+// sentence. Model persistently writes "must … per §§ 7220–7222" instead
+// of the specific operative subsection. A single scope-framing sentence
+// per document is allowed (e.g. "This report addresses §§ 7220–7222.");
+// every subsequent duty-bearing use of a blanket range is flagged.
+//
+// Range shapes covered (any spacing / dash variant):
+//   §§ 7220–7222 · §§7220-7222 · §§ 7200–7222 · sections 7220 to 7222 ·
+//   sections 7220 through 7222
+// Duty verbs reuse the HF4_H6_ADMT_DUTY_VERBS set (must disclose /
+// shall provide / response must / access response / opt-out response /
+// pre-use notice / access request / the business must).
+export const HF7_ADMT_RANGE_RE =
+  /§§?\s*72[02]0\s*(?:[-–—]|to|through)\s*7222\b|(?:\bsections?\s+72[02]0\s*(?:[-–—]|to|through)\s*7222\b)/i;
+
+export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
+  if (!text) return [pass("h7_admt_blanket_range_ok", "citation_accuracy")];
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const findings: FormatFinding[] = [];
+  let scopeAllowanceUsed = false;
+  for (const s of sentences) {
+    if (!HF7_ADMT_RANGE_RE.test(s)) continue;
+    const hasDuty = HF4_H6_ADMT_DUTY_VERBS.test(s);
+    if (!hasDuty) {
+      // Non-duty scope framing — permit the first, flag additional ones.
+      if (!scopeAllowanceUsed) {
+        scopeAllowanceUsed = true;
+        continue;
+      }
+      // Subsequent non-duty range mentions are permitted (headings,
+      // recitations of the rulebook's own title). No hit.
+      continue;
+    }
+    findings.push(fail("h7_admt_blanket_range", "citation_accuracy", "medium",
+      `blanket §§ 7220–7222 range used as duty-anchor: "${s.slice(0, 400)}"`));
+    if (findings.length >= 5) break;
+  }
+  if (findings.length === 0) {
+    findings.push(pass("h7_admt_blanket_range_ok", "citation_accuracy"));
+  }
+  return findings;
+}
+
 // ── Runners ───────────────────────────────────────────────────────────
-/** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 + H5 (no H3/H6 — ADMT-scoped). */
+/** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 + H5 (no H3/H6/H7 — ADMT-scoped). */
 export function runCppaHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
@@ -265,7 +309,7 @@ export function runCppaHf1Checks(text: string): FormatFinding[] {
   ];
 }
 
-/** ADMT: H1 + H2 + H3 + H4 + H5 + H6. */
+/** ADMT: H1 + H2 + H3 + H4 + H5 + H6 + H7. */
 export function runAdmtHf1Checks(text: string): FormatFinding[] {
   return [
     ...checkH1ArticlePhrasing(text),
@@ -274,5 +318,6 @@ export function runAdmtHf1Checks(text: string): FormatFinding[] {
     ...checkH4EvasivePlaceholder(text),
     ...checkH5InternalNoteBlock(text),
     ...checkH6AdmtGoverningAnchor(text),
+    ...checkH7BlanketAdmtRange(text),
   ];
 }
