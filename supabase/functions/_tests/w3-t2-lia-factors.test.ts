@@ -49,5 +49,5 @@ Deno.test("W3-T2: goldens require factor names + intake_evidence anchors", () =>
 });
 
 Deno.test("W3-T2: BUILD_STAMP bumped", () => {
-  assertStringIncludes(src, "w3-t2-lia-per-factor-balancing@2026-07-23T15:00:00Z");
+  assertStringIncludes(src, "r-turn-3-eu-product-fixes@2026-07-23T11:20:00Z-a");
 });
