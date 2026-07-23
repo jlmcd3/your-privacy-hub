@@ -630,15 +630,23 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "aggregate_exposure_note": "Based on the gaps identified and the consumer volume provided (or noted as not provided), briefly describe the scale of potential exposure. Note that the CPPA may count each affected consumer as a separate violation. Do not cite specific enforcement actions or settlements unless they appear in the REGULATION AUTHORITIES block provided — if none do, omit that reference. Do NOT characterise historical settlement levels or enforcement outcomes (e.g. that matters 'typically settle below the statutory maximum') — that is uncited memory; state only the statutory per-violation exposure and that actual outcomes depend on the facts."
   },
 
+  // ── QB-P25 A3: two possible shapes per entry ─────────────────────────────
+  //   * When scope_analysis.determination_basis === "established" → FULL:
+  //       { element_id, element, status, finding, citation:"", remediation, enforcement_exposure }
+  //     where enforcement_exposure ∈ { "per_violation", "per_consumer_scalable", "na" }.
+  //   * When scope_analysis.determination_basis === "conservative_assumption" → COMPACT:
+  //       { element_id, element, duty_if_in_scope, citation:"" }
+  //     — no status, no finding, no remediation, no enforcement_exposure.
   "notice_gaps": [
     {
       "element_id": "notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret",
       "element": "Plain-English name of the element (no section number)",
-      "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding in plain language. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
+      "status": "compliant | gap | missing   // FULL mode only",
+      "finding": "Specific finding in plain language. FULL mode only. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
       "citation": "",
-      "remediation": "Specific action the business must take. No section numbers.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
+      "remediation": "Specific action the business must take. FULL mode only. No section numbers.",
+      "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only. NEVER dollar figures or narrative.",
+      "duty_if_in_scope": "COMPACT mode only. Single plain-language sentence stating what the business would owe under this element IF the scope determination is confirmed."
     }
   ],
 
@@ -646,11 +654,12 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     {
       "element_id": "optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing",
       "element": "Plain-English name of the element (no section number)",
-      "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this under optout_processing. No section numbers.",
+      "status": "compliant | gap | missing   // FULL mode only",
+      "finding": "Specific finding. FULL mode only. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this under optout_processing. No section numbers.",
       "citation": "",
-      "remediation": "Specific action required. No section numbers.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
+      "remediation": "Specific action required. FULL mode only. No section numbers.",
+      "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only.",
+      "duty_if_in_scope": "COMPACT mode only. Single plain-language sentence."
     }
   ],
 
@@ -658,11 +667,12 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     {
       "element_id": "access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification",
       "element": "Plain-English name of the element (no section number)",
-      "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding. No section numbers.",
+      "status": "compliant | gap | missing   // FULL mode only",
+      "finding": "Specific finding. FULL mode only. No section numbers.",
       "citation": "",
-      "remediation": "Specific action required. No section numbers.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
+      "remediation": "Specific action required. FULL mode only. No section numbers.",
+      "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only.",
+      "duty_if_in_scope": "COMPACT mode only. Single plain-language sentence."
     }
   ],
 
