@@ -1205,7 +1205,7 @@ ADDITIONAL DISCIPLINES:
             const SUBCH_TOKEN_RE_L = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
             const SUBCH_UNDER_RE_L = /\bunder\s+the\s+cited\s+provision\b/gi;
             const SUBCH_PURSUANT_RE_L = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
-            const SUBCH_FALLBACK_L = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+            const SUBCH_FALLBACK_L = "the applicable ADMT-subchapter provision";
             const consumeStrL = (v: string): string => {
               let next = v;
               next = next.replace(/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK_L);
