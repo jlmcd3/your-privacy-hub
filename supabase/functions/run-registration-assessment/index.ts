@@ -217,7 +217,12 @@ Deno.serve(async (req) => {
       confidence_reasons: engineOutput.confidence_reasons,
       rules_fired: engineOutput.rules_fired,
       warnings: engineOutput.warnings,
-      obligations_summary: engineOutput.obligations_summary,
+      obligations_summary: (() => {
+        const os: any = { ...engineOutput.obligations_summary };
+        // QB-P26 Item 2 — retire deprecated alias from graded payload.
+        delete os.ai_act_provider_obligations;
+        return os;
+      })(),
       jurisdictions: engineOutput.jurisdictions.map((j) => {
         const r = reqByCode.get(j.code);
         const regRequired = r?.registration_required ?? null;
