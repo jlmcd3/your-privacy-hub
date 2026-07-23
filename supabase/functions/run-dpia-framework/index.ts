@@ -745,10 +745,10 @@ const U1_SKELETON = `{
     "title": "Systematic Description of the Processing",
     "guidance_note": "EDPB Section 1 / GDPR Art. 35(7)(a) — processed data, purposes, secondary uses, nature/scope/context, functional description, supporting assets, and codes of conduct.",
     "processed_personal_data": [
-      { "item": "data item / element", "explanation": "data type, data subject category, details", "special_category": { "is_special": true, "categories": ["e.g. data concerning health; biometric data for unique identification"] } }
+      { "item": "data item / element", "explanation": "data type, data subject category, details", "special_category": { "is_special": true, "categories": ["e.g. data concerning health; biometric data for unique identification"] }, "source": { "intake_field": "name of the intake field this row is anchored to (e.g. 'data_categories', 'description'); use 'inferred' ONLY when no intake field supports it", "basis": "stated | inferred" } }
     ],
     "purposes": [
-      { "purpose": "specific and explicit purpose", "personal_data_involved_and_justification": "which data (from processed_personal_data) and why it is needed" }
+      { "purpose": "specific and explicit purpose", "personal_data_involved_and_justification": "which data (from processed_personal_data) and why it is needed", "source": { "intake_field": "intake field anchoring this purpose (e.g. 'purpose', 'description', 'processing_activity_name'); use 'inferred' ONLY when no intake field supports it", "basis": "stated | inferred" } }
     ],
     "secondary_uses": [
       { "use": "secondary / compatible use, or 'None identified'", "conditions_and_compatibility": "conditions and a compatibility assessment" }
@@ -759,7 +759,7 @@ const U1_SKELETON = `{
     "cross_border": "Yes / No, with justification",
     "international_transfers": "Yes / No — third country and transfer mechanism, or 'None'",
     "functional_description": [
-      { "phase": "processing phase / stage", "operations": ["Collection","Use","Storage","Sharing and Transfer","Deletion and Destruction"], "explanation": "what happens in this phase across the controller/processor chain" }
+      { "phase": "processing phase / stage", "operations": ["Collection","Use","Storage","Sharing and Transfer","Deletion and Destruction"], "explanation": "what happens in this phase across the controller/processor chain", "source": { "intake_field": "intake field anchoring this phase's operations (e.g. 'description', 'nature_scope_context', 'functional_description'); use 'inferred' ONLY when no intake field supports it", "basis": "stated | inferred" } }
     ],
     "supporting_assets": [
       { "phase": "phase (from functional_description)", "assets": "means of processing and essential supporting assets", "explanation": "how the asset relates to the processing and to risk" }
