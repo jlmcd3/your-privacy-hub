@@ -359,6 +359,17 @@ Deno.serve(async (req) => {
             why: reason,
             rule_id: ossActive ? "R11_MARKET_COVERAGE_OSS" : "R11_MARKET_COVERAGE",
             obligations: [],
+            // QB-P24 Item 2 — additive `unresolved` block on placeholder entries
+            // when the registry does not affirm a filing obligation. Existing
+            // keys unchanged.
+            unresolved: (r?.registration_required === true) ? null : {
+              status: "unresolved" as const,
+              authority_to_confirm: r?.authority_name || "the competent supervisory authority",
+              reason: ossActive
+                ? "local-only filing status not affirmed on the current record; OSS covers cross-border complaints"
+                : (r ? "no registration obligation was identified from the requirements registry for this market" : "no requirements registry row was found for this market"),
+              next_step: `Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`,
+            },
           } as any);
         }
       }
