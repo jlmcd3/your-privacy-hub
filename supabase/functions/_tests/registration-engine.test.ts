@@ -58,7 +58,7 @@ Deno.test("EU fixture: OSS lead + non-EU country ISO codes, no display-name leak
 });
 
 // ── CEO decision 2026-07-23 — public-authority gate ─────────────────
-import { runRegistrationAssessment } from "../_shared/registration-engine.ts";
+// duplicate import removed — already imported at top of file
 
 Deno.test("R6 private high-risk deployer: no Art. 49(3) content, no public-authority framing", () => {
   const out = runRegistrationAssessment({
