@@ -552,6 +552,17 @@ Deno.serve(async (req) => {
       console.warn("[run-registration-assessment] dpo_precision emit skipped:", (e as Error)?.message);
     }
 
+    // QB-P26 Item 2 — retired alias parked under `_meta` for internal readers
+    // that still reference it (generate-report-pdf falls back to the new key
+    // first). NEVER surfaced in graded payload structure.
+    (result_summary as any)._meta = {
+      ...((result_summary as any)._meta || {}),
+      ai_act_provider_obligations_alias: engineOutput.obligations_summary.ai_act_obligations_engaged === true,
+      alias_retirement: "ai_act_provider_obligations is retired from obligations_summary (QB-P26). Use ai_act_obligations_engaged.",
+    };
+
+
+
 
 
     // 4. Persist
