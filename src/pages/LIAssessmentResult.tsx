@@ -118,13 +118,17 @@ const BalancingFactors = ({ factors, synthesis }: { factors: any[]; synthesis?: 
             <span className={`text-[11px] px-2 py-0.5 rounded border ${chip.cls}`}>{chip.label}</span>
           </div>
           {f?.reasoning && <p className="text-sm text-foreground mb-2">{f.reasoning}</p>}
-          {Array.isArray(f?.intake_evidence) && f.intake_evidence.length > 0 && (
+          {Array.isArray(f?.intake_evidence) && f.intake_evidence.length > 0 ? (
             <ul className="text-[11px] text-muted-foreground list-disc pl-4 space-y-0.5">
               {f.intake_evidence.map((ev: any, j: number) => (
                 <li key={j}><span className="font-medium">{ev?.field}:</span> {String(ev?.value ?? "")}</li>
               ))}
             </ul>
-          )}
+          ) : (f?.evidence_absence ? (
+            <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              <span className="font-medium">Intake evidence absent:</span> {String(f.evidence_absence)}
+            </p>
+          ) : null)}
         </div>
       );
     })}

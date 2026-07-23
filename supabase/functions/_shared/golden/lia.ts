@@ -91,4 +91,31 @@ export const LIA_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "intake_evidence", label: "factors carry intake_evidence anchors" },
     ],
   },
+  {
+    // R-TURN-3: absence-convention adversarial fixture. Intake omits any
+    // safeguards or opt-out signal, so the safeguards factor MUST use the
+    // absence convention (intake_evidence: [], evidence_absence populated).
+    id: "lia-absence-convention-adversarial",
+    tool: "lia",
+    set: "adversarial",
+    intake: {
+      ...base,
+      organization_name: "Northwind Retail Ltd",
+      subject_anchor: "Loyalty-programme members",
+      processing_description: "Segmentation of loyalty-programme members for cross-sell campaigns.",
+      data_categories: ["Loyalty-programme transaction history", "Contact identifiers"],
+      relationship_type: "Existing customer (loyalty enrolment)",
+      stated_purpose: "Improve relevance of cross-sell offers to loyalty members.",
+      balancing_details: {
+        reasonable_expectation: "Yes",
+        potential_harm: "Minor",
+        // NB: opt_out_mechanism deliberately omitted; safeguards intake is silent.
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "evidence_absence", label: "safeguards factor uses R-TURN-3 absence convention" },
+      { kind: "must_include", pattern: "does not present", flags: "i", label: "canonical absence sentence surfaces" },
+      { kind: "must_include", pattern: "\"factor\"\\s*:\\s*\"safeguards\"", label: "safeguards factor present" },
+    ],
+  },
 ];
