@@ -218,6 +218,20 @@ Deno.serve(async (req) => {
           : (isCalifornia
               ? `No data-broker-registry filing is engaged for ${j.code}: the intake does not indicate the organisation meets the Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") or analogous state definitions.`
               : `No data-broker-registry filing is engaged for ${j.code}: the intake does not indicate the organisation meets a data-broker definition requiring registry filing in this jurisdiction.`);
+        // QB-P24 Item 2 — additive `unresolved` block. When registration
+        // resolution fails (no metadata row OR registration_required is null),
+        // ship a structured block naming the authority to confirm with. Existing
+        // keys are UNCHANGED — this is purely additive so the frozen revision
+        // path (regenerate-assessment) is not affected.
+        const isUnresolved = !r || regRequired === null;
+        const unresolved = isUnresolved ? {
+          status: "unresolved" as const,
+          authority_to_confirm: r?.authority_name || "the competent supervisory authority",
+          reason: r
+            ? `registration status for ${r?.jurisdiction_name || j.code} is not marked in the requirements registry`
+            : `no requirements metadata row was found for ${j.code} in the registry available to this assessment`,
+          next_step: `Confirm any general controller-registration, representative-appointment, or sector-authorisation obligations with ${r?.authority_name || "the competent supervisory authority"} before filing.`,
+        } : null;
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
@@ -273,6 +287,7 @@ Deno.serve(async (req) => {
           why: j.why,
           rule_id: j.rule_id,
           obligations,
+          unresolved,
         };
       }),
     };
