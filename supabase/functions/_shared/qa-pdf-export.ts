@@ -29,6 +29,11 @@ export const TOOL_SLUG_TO_PDF_TYPE: Record<string, string> = {
   "dpa-generator": "dpa_generator",
   "ir-playbook": "ir_playbook",
   "biometric-checker": "biometric_checker",
+  // QB-P24 Addendum Item 6 — registration was missing; PDF export logged
+  // no_pdf_renderer_for_tool for every registration doc in batch ad3dc390.
+  // generate-report-pdf already handles "registration_assessment" (see
+  // PDFDownloadButton.tsx toolType matrix), so this is a wiring-only fix.
+  "registration": "registration_assessment",
 };
 
 export type QaDocRow = {

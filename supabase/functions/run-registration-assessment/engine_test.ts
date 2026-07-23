@@ -119,7 +119,9 @@ Deno.test("Persona 4 — French AdTech, GPAI provider, US data broker", () => {
   // Data broker registries: "US" is in markets, so all four state registries fire
   const brokerStates = out.obligations_summary.data_broker_registrations.sort();
   assertEquals(brokerStates, ["US-CA","US-OR","US-TX","US-VT"]);
-  // GPAI obligations
+  // GPAI obligations (QB-P24 Addendum Item 7 — read via honest name;
+  // legacy alias still asserted so the deprecation window is observable).
+  assert(out.obligations_summary.ai_act_obligations_engaged);
   assert(out.obligations_summary.ai_act_provider_obligations);
   assert(out.rules_fired.includes("R6_AI_GPAI"));
   // DPO required (large-scale monitoring)

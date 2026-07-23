@@ -80,11 +80,22 @@ export interface AssessmentOutput {
     eu_representative_required: boolean;
     uk_representative_required: boolean;
     dpo_required: boolean;
-    // Retained for back-compat; equals `gpai_provider_obligations ||
-    // high_risk_ai_deployer_obligations`. New callers should read the split
-    // fields below so GPAI-provider duties (Chapter V, Arts. 53–55) are not
-    // conflated with high-risk-AI deployer duties (Chapter III, Arts. 26–29;
-    // Art. 49(2) database).
+    // QB-P24 Addendum Item 9(a) — DPO precision. `dpo_trigger` names the
+    // engaged Art. 37(1) branch (or BDSG §38) when `dpo_required=true`.
+    // `dpo_condition` carries the deciding fact when the intake does not
+    // establish an unconditional trigger for a small controller (in which
+    // case `dpo_required` is false, per the addendum).
+    dpo_trigger: string | null;
+    dpo_condition: string | null;
+    // QB-P24 Addendum Item 7 — honest name. Value equals
+    // `gpai_provider_obligations || high_risk_ai_deployer_obligations`. The
+    // legacy key `ai_act_provider_obligations` is retained here purely as a
+    // read-only alias for any downstream reader that still reaches for it —
+    // internal consumers verified this turn: generate-report-pdf and
+    // engine_test only. Both are updated to read the new key; the alias is
+    // scheduled for removal in the next courier.
+    ai_act_obligations_engaged: boolean;
+    /** @deprecated Use `ai_act_obligations_engaged`. */
     ai_act_provider_obligations: boolean;
     gpai_provider_obligations: boolean;
     high_risk_ai_deployer_obligations: boolean;
@@ -227,25 +238,55 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     markets.has("GB");
   let dpoRequired = false;
   const dpoReasons: string[] = [];
-  if (
-    hasEuOrUkScope &&
-    (
-      intake.processes_special_categories ||
-      intake.large_scale_monitoring ||
-      (intake.processes_personal_data && (intake.data_subjects_count ?? 0) > 100_000)
-    )
-  ) {
-    dpoRequired = true;
-    dpoReasons.push("GDPR Art. 37(1)(b)/(c): large-scale or special-category processing");
+  // QB-P24 Addendum Item 9(a) — track engaged trigger + conditional path.
+  let dpoTrigger: string | null = null;
+  let dpoCondition: string | null = null;
+  const isSmallController =
+    (intake.organization_size === "small" || intake.organization_size === "micro") &&
+    (intake.employee_count ?? 0) < 50;
+  if (hasEuOrUkScope) {
+    // Art. 37(1)(b) — systematic monitoring on a large scale. Requires the
+    // large_scale_monitoring flag; special-categories alone does not engage it.
+    if (intake.large_scale_monitoring) {
+      dpoRequired = true;
+      dpoTrigger = "GDPR Art. 37(1)(b) — core activities require regular and systematic monitoring of data subjects on a large scale";
+      dpoReasons.push(dpoTrigger);
+    }
+    // Art. 37(1)(c) — core activities consist of large-scale processing of
+    // special categories. The intake's data_subjects_count >100k is a
+    // reasonable large-scale proxy; special_categories alone for a small
+    // controller does NOT establish the "core activities / large scale" prong.
+    if (
+      intake.processes_special_categories &&
+      intake.processes_personal_data &&
+      ((intake.data_subjects_count ?? 0) > 100_000 || !isSmallController)
+    ) {
+      dpoRequired = true;
+      dpoTrigger = dpoTrigger
+        ? `${dpoTrigger}; and GDPR Art. 37(1)(c) — large-scale processing of special categories`
+        : "GDPR Art. 37(1)(c) — core activities consist of large-scale processing of special categories of personal data";
+      dpoReasons.push("GDPR Art. 37(1)(c): large-scale special-category processing");
+    } else if (intake.processes_special_categories && isSmallController) {
+      // Small controller processes special categories but neither large_scale
+      // nor a >100k subject base is declared — emit conditional per the
+      // addendum instead of an over-inclusive `true`.
+      dpoCondition =
+        "Conditional on GDPR Art. 37(1)(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.";
+    }
   }
   if (
     (home === "DE" || markets.has("DE")) &&
     (intake.employee_count ?? 0) >= 20
   ) {
     dpoRequired = true;
-    dpoReasons.push("German BDSG §38: ≥20 employees handling personal data → DPO required");
+    // QB-P24 Addendum Item 9(b) — headline aligned to the actual BDSG §38
+    // threshold (persons constantly engaged in automated processing), not
+    // the misleading "20+ employees" shorthand.
+    const bdsgTrigger = "BDSG §38 — DPO required where 20+ persons are constantly engaged in the automated processing of personal data";
+    dpoReasons.push(`${bdsgTrigger}; the intake reports ${intake.employee_count ?? 0} employees — confirm how many are constantly engaged in automated processing before concluding the threshold is met`);
+    dpoTrigger = dpoTrigger ? `${dpoTrigger}; and ${bdsgTrigger}` : bdsgTrigger;
     ensure(map, "DE", "R5_DE_DPO",
-      "BDSG §38 — DPO mandatory at 20+ employees",
+      "BDSG §38 — DPO required at 20+ persons constantly engaged in automated processing (assess whether the reported employee count meets this threshold in your operations)",
       "dpo");
   }
   if (dpoRequired) {
@@ -417,6 +458,10 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       uk_representative_required:
         markets.has("UK") && !intake.has_uk_establishment,
       dpo_required: dpoRequired,
+      dpo_trigger: dpoTrigger,
+      dpo_condition: dpoCondition,
+      ai_act_obligations_engaged: aiActProvider,
+      // Deprecated alias — see interface comment.
       ai_act_provider_obligations: aiActProvider,
       gpai_provider_obligations: gpaiProvider,
       high_risk_ai_deployer_obligations: highRiskDeployer,

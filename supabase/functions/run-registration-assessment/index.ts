@@ -13,7 +13,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "qbp24-output-structure-corrections@2026-07-23T02:00:00Z";
+export const BUILD_STAMP = "qbp24-addendum-registration-refinements@2026-07-23T03:00:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
@@ -195,17 +195,18 @@ Deno.serve(async (req) => {
           if (!isEuEea) {
             return `The EU AI Act is EU law and does not apply as a ${r?.jurisdiction_name || j.code} filing obligation. Local AI rules, where present, are assessed under the jurisdiction's own framework and are outside the scope of this registration recommendation.`;
           }
-          // EU/EEA — split by declared role
-          if (gpaiProvider && highRiskDeployer) {
-            return "Both EU AI Act tracks engaged in this jurisdiction. (1) GPAI-provider obligations per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. (2) High-risk-AI deployer obligations per the intake's declaration that the organisation deploys a high-risk AI system: Chapter III (Arts. 26–29) imposes deployer duties (human oversight, input-data appropriateness, monitoring, incident reporting, and — where the deployer qualifies — the Art. 27 fundamental-rights impact assessment); Art. 49(2) requires deployers that are public authorities, Union institutions, bodies, offices or agencies (and certain other categories) to register the high-risk system's use in the EU database.";
+          // QB-P24 Addendum Item 8 — EU-level basis is emitted ONCE in
+          // result_summary.eu_ai_act_basis below. Per-jurisdiction entries
+          // carry a short pointer plus the jurisdiction-specific delta
+          // (identity of the competent supervisory authority for the EU
+          // database filing under Art. 71). Prior behaviour repeated the
+          // full statutory narrative verbatim for every EU jurisdiction —
+          // grader flagged this as duplicated content (same class as OSS).
+          if (!aiRequired) {
+            return `EU AI Act filing obligations are not engaged in ${r?.jurisdiction_name || j.code}: the intake declares neither GPAI-provider nor high-risk-AI-deployer status. See the EU AI Act basis section for the framework's territorial scope.`;
           }
-          if (gpaiProvider) {
-            return "EU AI Act GPAI-provider obligations engaged per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models.";
-          }
-          if (highRiskDeployer) {
-            return "EU AI Act high-risk-AI obligations engaged per the intake's declaration that the organisation deploys a high-risk AI system: Regulation (EU) 2024/1689, Chapter III (Arts. 26–29) imposes deployer duties (human oversight per Art. 26(1), input-data appropriateness where the deployer controls input data per Art. 26(4), monitoring per Art. 26(5), incident reporting per Art. 26(5), and record-keeping per Art. 26(6)); where the deployer is a public authority or Union body (or otherwise within Art. 49(2) scope), Art. 49(2) requires registration of the high-risk system's use in the EU database maintained under Art. 71. The Art. 27 fundamental-rights impact assessment applies to the deployer categories enumerated there.";
-          }
-          return "The intake declares neither GPAI-provider nor high-risk-AI-deployer status, so no EU AI Act filing obligation is engaged in this jurisdiction. Other AI uses may still attract transparency, human-oversight, or fundamental-rights duties under Arts. 50, 4, and related provisions — assessed in the Governance / DPIA products, not through this filing.";
+          const authority = r?.authority_name || "the competent supervisory authority";
+          return `EU AI Act obligations engaged in ${r?.jurisdiction_name || j.code}; see the EU AI Act basis section for the full Chapter III / Chapter V / Art. 49(2) statutory basis. Jurisdiction-specific delta: any Art. 49(2) EU-database entry for a high-risk system deployed in this Member State is coordinated with ${authority}.`;
         })();
         // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
         // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
@@ -385,6 +386,79 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.warn("[run-registration-assessment] market-coverage fill skipped:", (e as Error)?.message);
     }
+
+    // QB-P24 Addendum Item 8 — single shared EU AI Act basis block. The full
+    // statutory narrative is stated ONCE here; each EU jurisdiction card
+    // carries only the jurisdiction-specific delta (authority coordinating
+    // any Art. 49(2) database filing). Emitted only when the intake actually
+    // engages one or both AI-Act tracks, or when EU/EEA scope is present.
+    try {
+      const gpaiProv = engineOutput.obligations_summary.gpai_provider_obligations === true;
+      const highRiskDep = engineOutput.obligations_summary.high_risk_ai_deployer_obligations === true;
+      const hasEuJur = (result_summary.jurisdictions as any[]).some((j) =>
+        new Set([
+          "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+          "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+        ]).has(j.code)
+      );
+      if (hasEuJur && (gpaiProv || highRiskDep)) {
+        (result_summary as any).eu_ai_act_basis = {
+          engaged_tracks: [
+            gpaiProv ? "gpai_provider" : null,
+            highRiskDep ? "high_risk_deployer" : null,
+          ].filter(Boolean),
+          narrative: (gpaiProv && highRiskDep)
+            ? "Both EU AI Act tracks are engaged for this organisation across its EU/EEA footprint. (1) GPAI-provider obligations per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. (2) High-risk-AI deployer obligations per the intake's declaration that the organisation deploys a high-risk AI system: Chapter III (Arts. 26–29) imposes deployer duties (human oversight, input-data appropriateness, monitoring, incident reporting, and — where the deployer qualifies — the Art. 27 fundamental-rights impact assessment); Art. 49(2) requires deployers that are public authorities, Union institutions, bodies, offices or agencies (and certain other categories) to register the high-risk system's use in the EU database maintained under Art. 71. These obligations attach to the organisation once, not per Member State; the per-jurisdiction cards below identify only the competent supervisory authority for any Art. 49(2) database filing."
+            : gpaiProv
+              ? "EU AI Act GPAI-provider obligations are engaged for this organisation across its EU/EEA footprint per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models. The obligation attaches to the organisation once, not per Member State."
+              : "EU AI Act high-risk-AI deployer obligations are engaged for this organisation across its EU/EEA footprint per the intake's declaration that the organisation deploys a high-risk AI system: Regulation (EU) 2024/1689, Chapter III (Arts. 26–29) imposes deployer duties (human oversight per Art. 26(1), input-data appropriateness where the deployer controls input data per Art. 26(4), monitoring per Art. 26(5), incident reporting per Art. 26(5), and record-keeping per Art. 26(6)); where the deployer is a public authority or Union body (or otherwise within Art. 49(2) scope), Art. 49(2) requires registration of the high-risk system's use in the EU database maintained under Art. 71. The per-jurisdiction cards below identify only the competent supervisory authority for any Art. 49(2) database filing.",
+        };
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] eu_ai_act_basis emit skipped:", (e as Error)?.message);
+    }
+
+    // QB-P24 Addendum Item 10 — Art. 27(4) EU representative guidance. When
+    // more than one EU/EEA jurisdiction engages Art. 27 (i.e., the intake
+    // targets multiple EU Member States without an EU establishment), state
+    // ONCE that a single representative in one Member State satisfies the
+    // obligation and recommend the selection basis.
+    try {
+      const isEuEeaCode = (c: string) => new Set([
+        "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+        "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+      ]).has(c);
+      const art27Codes = (result_summary.jurisdictions as any[])
+        .filter((j) => isEuEeaCode(j.code) && Array.isArray(j.obligations) && j.obligations.includes("eu_representative"))
+        .map((j) => j.code as string);
+      if (art27Codes.length > 1) {
+        (result_summary as any).eu_representative_group = {
+          mechanism: "GDPR Art. 27 (single EU representative)",
+          engaged_markets: art27Codes,
+          narrative: `Art. 27(1) GDPR requires an EU representative in this scenario (organisation not established in the Union but offering goods/services to, or monitoring, data subjects in the Union). Art. 27(4) makes clear that ONE representative established in ONE Member State suffices for the whole Union — a separate representative in each of ${art27Codes.join(", ")} is NOT required. Selection basis (WP29 / EDPB guidance): appoint the representative in the Member State where the largest share of monitored data subjects is located, or where the most significant processing activities take place; a mailbox-only arrangement does not satisfy Art. 27's mandate to receive supervisory-authority and data-subject correspondence.`,
+        };
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] eu_representative_group emit skipped:", (e as Error)?.message);
+    }
+
+    // QB-P24 Addendum Item 9(a) — echo the DPO trigger / conditional at the
+    // top-level result so the renderer does not have to reconstruct the
+    // deciding fact from `dpo_required` alone. Additive, non-breaking.
+    try {
+      const os = engineOutput.obligations_summary as any;
+      if (os && (os.dpo_trigger || os.dpo_condition)) {
+        (result_summary as any).dpo_precision = {
+          required: engineOutput.obligations_summary.dpo_required,
+          trigger: os.dpo_trigger || null,
+          condition: os.dpo_condition || null,
+        };
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] dpo_precision emit skipped:", (e as Error)?.message);
+    }
+
+
 
     // 4. Persist
     let row;
