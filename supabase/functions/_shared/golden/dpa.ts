@@ -36,6 +36,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "Module\\s+Two", flags: "i", label: "correct SCC module label" },
       { kind: "must_not_include", pattern: "Modules?\\s*1\\s*and\\s*2", flags: "i", label: "no Module 1+2 conflation" },
+      ...DRAFTING_RECORD_GUARDS,
     ],
   },
   {
