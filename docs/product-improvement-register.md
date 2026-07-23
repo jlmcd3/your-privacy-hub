@@ -104,8 +104,15 @@ Implement `docs/quality-batch-learnings.md` items (provider-vs-deployer helper t
 
 ---
 
+
+### 13. [ENGINE] Biometric state-statute registry — verified-pinpoint discipline (2026-07-23)
+Per-state pinpoints in `check-biometric-compliance/index.ts` (CO/IN/IL/etc.) are hardcoded without per-entry verification metadata. Post-C1-Fix-2D corrected Rite Aid (2023190) and softened Indiana pinpoints to parent chapter + named-uncertainty; a durable fix carries a `verified_on` date and primary-source URL alongside each pinpoint, and a build-time check that stale entries beyond a threshold surface a warning.
+
+### 14. [HARNESS] Extend RESUMABLE_GENERATORS to run-admt-checker (2026-07-23)
+Batch 5aee4b99 doc 5 for ADMT died at 1204s with no resurrection. `run-admt-checker` should join the resumable-generator set (checkpoint after each stage; resume on watchdog re-entry) to prevent single-doc timeout losses from truncating a batch.
+
 ## Register metadata
 
-- **Sections:** 12
+- **Sections:** 14
 - **Created:** 2026-07-23
-- **Last reviewed:** 2026-07-23
+- **Last reviewed:** 2026-07-23 (POST-C1-FIX-2)
