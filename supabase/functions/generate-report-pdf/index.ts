@@ -2,7 +2,7 @@
 // BUILD_STAMP — real exported constant (was previously absent; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "cv1-r-pdf@2026-07-19T21:00Z";
+export const BUILD_STAMP = "qbp24-addendum-registration-pdf-map@2026-07-23T03:00:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";

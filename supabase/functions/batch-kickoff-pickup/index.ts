@@ -28,7 +28,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "translate-2-resumable-sweep@2026-07-18";
+export const BUILD_STAMP = "qbp24-addendum-registration-pdf-map@2026-07-23T03:00:00Z";
 export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;

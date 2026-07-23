@@ -34,7 +34,7 @@ import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
 
 
-export const BUILD_STAMP = "qbp23-golden-baseline-regression@2026-07-23T01:00:00Z";
+export const BUILD_STAMP = "qbp24-addendum-registration-pdf-map@2026-07-23T03:00:00Z";
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
