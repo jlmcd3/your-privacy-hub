@@ -45,7 +45,11 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     id: "risk-saas-clean-tuning",
     tool: "cppa-risk",
     set: "tuning",
-    intake: { ...base },
+    // QB-P25 boundary-batch fix: the pristine "no trigger" base failed the
+    // § 7150(b) pre-generation validator (VALIDATION_FAILED). Enable a
+    // single trigger (profiling with significant effects) so the fixture
+    // reaches generation while preserving its "clean posture" character.
+    intake: { ...base, q5b_profiling_observation: "Yes" },
     assertions: [
       { kind: "must_include", pattern: "risk assessment|Article", flags: "i", label: "risk framing present" },
     ],
