@@ -91,7 +91,7 @@ Deno.test("normalizeRiskV2: priority_actions renumbers 1..N and preserves rank o
   const s = normalizeRiskV2(report);
   assertEquals(report.priority_actions.map((a: any) => a.action), ["a", "b", "c"]);
   assertEquals(report.priority_actions.map((a: any) => a.rank), [1, 2, 3]);
-  assertEquals(s.ranksRenumbered, 2); // "a" was 2, becomes 1 (change); "b" stays 2 (no change); "c" was 9, becomes 3.
+  assertEquals(s.ranksRenumbered, 3); // a:2→1, b:5→2, c:9→3 — all change.
 });
 
 Deno.test("normalizeRiskV2: priority_actions with collisions keeps input order and assigns 1..N", () => {
