@@ -14,7 +14,11 @@ export type GoldenCase = {
   tool: string;
   intake: Record<string, any>;
   assertions: GoldenAssertion[];
-  set: "tuning" | "holdout";
+  // W3-T5 (f) — widened union so goldens can be tagged as "adversarial"
+  // without forcing `--no-check` on Deno test runs. "adversarial" fixtures
+  // exercise edge cases and hostile intakes; "tuning" and "holdout" retain
+  // their prior meaning.
+  set: "tuning" | "holdout" | "adversarial";
 };
 
 export type GoldenEvalResult = {
