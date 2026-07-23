@@ -1041,7 +1041,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
       for (const tk of testKeys) {
         const t = a?.[tk];
         if (!t || typeof t !== "object") continue;
-        for (const f of ["analysis"]) {
+        for (const f of ["analysis", "synthesis"]) {
           if (typeof t[f] === "string") {
             const r = lintReportText(t[f]);
             t[f] = r.clean;
@@ -1059,6 +1059,19 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
               return r.clean;
             });
           }
+        }
+        // W3-T2: lint each per-factor reasoning string on balancing_test.factors.
+        if (Array.isArray(t.factors)) {
+          t.factors = t.factors.map((entry: any, idx: number) => {
+            if (!entry || typeof entry !== "object") return entry;
+            if (typeof entry.reasoning === "string") {
+              const r = lintReportText(entry.reasoning);
+              entry.reasoning = r.clean;
+              for (const v of r.violations) lintViolations.push({ field: `${tk}.factors[${idx}].reasoning`, ...v });
+              if (hasHardViolations(r)) hardSeen = true;
+            }
+            return entry;
+          });
         }
       }
       const oa = a?.overall_assessment;
