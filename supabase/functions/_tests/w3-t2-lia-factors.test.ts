@@ -1,5 +1,5 @@
 // W3-T2 acceptance tests — LIA per-factor balancing objects.
-import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 const src = Deno.readTextFileSync(new URL("../run-li-assessment/index.ts", import.meta.url));
 
