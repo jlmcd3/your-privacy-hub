@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
+import GovernanceDomainV2Fields from "@/components/reports/GovernanceDomainV2Fields";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { CheckCircle2 } from 'lucide-react';
 
