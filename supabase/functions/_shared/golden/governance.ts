@@ -40,6 +40,12 @@ const base = {
   inventory_audit: "Yes — audited + formal approval process",
 };
 
+const V2_ANTI_HEDGE_GUARDS = [
+  { kind: "must_not_include" as const, pattern: "engaged_because\":\\s*\"(if|may|possibly|potentially|could)\\b", flags: "i", label: "regulatory_basis_v2 entries never hedged" },
+  { kind: "must_not_include" as const, pattern: "\"trigger\":\\s*\"(tbd|to be determined|placeholder)\\b", flags: "i", label: "recommended_action_v2.trigger not hedged" },
+  { kind: "must_not_include" as const, pattern: "\"intake_field\":\\s*\"\"", label: "recommended_action_v2.owner.intake_field never empty when emitted" },
+];
+
 export const GOVERNANCE_GOLDEN: GoldenCase[] = [
   {
     id: "gov-eu-mature-tuning",
@@ -48,6 +54,7 @@ export const GOVERNANCE_GOLDEN: GoldenCase[] = [
     intake: { ...base },
     assertions: [
       { kind: "must_include", pattern: "DPO", flags: "i", label: "DPO named" },
+      ...V2_ANTI_HEDGE_GUARDS,
     ],
   },
   {
@@ -69,6 +76,7 @@ export const GOVERNANCE_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "CCPA|CPRA", flags: "i", label: "CCPA/CPRA named" },
+      ...V2_ANTI_HEDGE_GUARDS,
     ],
   },
   {
@@ -89,6 +97,7 @@ export const GOVERNANCE_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_not_include", pattern: "\\bfour tools\\b", flags: "i", label: "does not repeat count-trap 'four tools'" },
+      ...V2_ANTI_HEDGE_GUARDS,
     ],
   },
 ];
