@@ -23,11 +23,12 @@ import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 interface JurisdictionResult {
   code: string;
   name: string;
-  region: string;
-  law: string;
-  authority: string;
-  authority_url?: string;
-  registration_required: boolean;
+  region: string | null;
+  law: string | null;
+  authority: string | null;
+  authority_url?: string | null;
+  registration_required: boolean | null;
+  registration_required_basis?: string | null;
   dpo_required: boolean;
   ai_registration_required: boolean;
   representative_required: boolean;
@@ -36,6 +37,14 @@ interface JurisdictionResult {
   renewal_period_months: number | null;
   notes: string | null;
   why?: string;
+  // QB-P24 Item 2 — structured unresolved block added by the engine when
+  // registration resolution fails; consumed by the tri-state renderer.
+  unresolved?: {
+    status: "unresolved";
+    authority_to_confirm: string;
+    reason: string;
+    next_step: string;
+  } | null;
 }
 
 export default function RegistrationAssessmentResult() {
