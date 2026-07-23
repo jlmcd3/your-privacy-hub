@@ -16,7 +16,7 @@ import { useCitationVerification } from "@/hooks/useCitationVerification";
 import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
 import { readinessColor, controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
 import { AlertTriangle } from 'lucide-react';
-import { CYBER_BANDS, isCyberGapStatus } from "@/lib/cppaCyberBands";
+import { CYBER_BANDS, isCyberGapStatus, type CyberStatus } from "@/lib/cppaCyberBands";
 
 export function CybersecurityReportBody({ row, hideHeader = false }: { row: any; hideHeader?: boolean }) {
   const report = row?.report_data || {};
