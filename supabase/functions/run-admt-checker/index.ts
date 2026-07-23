@@ -8,9 +8,10 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "post-c1-fix-2a-admt-neutral-fallback-and-range-cap@2026-07-23T18:15:00Z";
+export const BUILD_STAMP = "post-c1-fix-1c-admt-schema-normalization@2026-07-23T23:15:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-contract.ts";
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 // R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
 // prompt and registry cannot drift.
@@ -606,6 +607,9 @@ ACCESS RIGHT:
 
 
 Return this JSON structure exactly. Do not add fields not listed here. Do not omit required fields.
+
+SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST live INSIDE "scope_analysis". Do NOT emit any of {is_admt, triggers_significant_decision, human_review_qualifies, triggers_risk_assessment, triggers_profiling, exception_qualifies} at the top level of the report. A post-generation normalizer will migrate strays back into scope_analysis and log drift, but emitting them at the top level is a schema violation.
+
 {
   "system_name": "${intake.system_name}",
   "compliance_deadline": "January 1, 2027",
@@ -1467,6 +1471,23 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);
     }
 
+    // ── POST-C1-FIX-1C SCHEMA NORMALIZATION ─────────────────────────────────
+    // Move any stray top-level scope fields into scope_analysis BEFORE any
+    // downstream reader touches the report. This kills the dual-path read
+    // class: from here forward, `readAdmtScope` returns the canonical value
+    // and no consumer needs to know about the top-level shape.
+    try {
+      const diag = normalizeAdmtScopeShape(report);
+      if (diag.moved.length > 0 || diag.conflicts.length > 0) {
+        console.warn(JSON.stringify({
+          evt: "admt_scope_shape_normalized_at_generate", fn: "run-admt-checker",
+          build_stamp: BUILD_STAMP, moved: diag.moved, conflicts: diag.conflicts,
+        }));
+      }
+    } catch (e) {
+      console.error("[ADMT] POST-C1-FIX-1C scope-shape normalizer errored (non-fatal):", e);
+    }
+
     // ── QB-P25 A3 normalizer ────────────────────────────────────────────────
     // Extracted to ./_qbp25_a3_normalize.ts so B0-a can exercise it directly.
     // Behavior and log messages are preserved bit-for-bit.
@@ -1482,24 +1503,20 @@ Return this JSON structure exactly:
       console.error("[ADMT] QB-P25 A3 normalizer errored (non-fatal):", e);
     }
 
-
-
-
-    // QB11-3 + POST-C1-FIX-1A: Step-2 hard rule — when triggers_significant_decision is false,
-    // the three ADMT gap arrays (§§ 7200–7222) MUST be empty. The scope boolean lives at
-    // report.scope_analysis.triggers_significant_decision per the output schema (see :617);
-    // read that nested path first and fall back to the top-level for backward compatibility.
+    // QB11-3 + POST-C1-FIX-1A + POST-C1-FIX-1C: Step-2 hard rule — when
+    // triggers_significant_decision is false, the three ADMT gap arrays
+    // (§§ 7200–7222) MUST be empty. Post-1C the scope boolean is guaranteed
+    // canonical under scope_analysis (normalizer above migrates strays);
+    // `readAdmtScope` remains the sole reader.
     function enforceScopeGateOnGaps(report: any): any {
       try {
-        const nested = report?.scope_analysis?.triggers_significant_decision;
-        const top = report?.triggers_significant_decision;
-        const trigger = (nested === false || nested === true) ? nested : top;
+        const scope = readAdmtScope(report, { context: "enforceScopeGateOnGaps" });
         console.log(JSON.stringify({
           evt: "admt_scope_gate_read", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
-          nested_present: typeof nested === "boolean", top_present: typeof top === "boolean",
-          resolved_trigger: trigger === undefined ? null : trigger,
+          resolved_trigger: scope.triggers_significant_decision,
+          determination_basis: scope.determination_basis ?? null,
         }));
-        if (trigger === false) {
+        if (scope.triggers_significant_decision === false) {
           for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
             if (Array.isArray(report?.[key]) && report[key].length > 0) {
               console.warn(`[ADMT] POST-C1-FIX-1A: triggers_significant_decision=false but ${key} had ${report[key].length} entries — emptied per Step-2 rule`);
