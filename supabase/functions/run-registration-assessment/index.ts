@@ -312,6 +312,10 @@ Deno.serve(async (req) => {
             : `no requirements metadata row was found for ${j.code} in the registry available to this assessment`,
           next_step: `Confirm any general controller-registration, representative-appointment, or sector-authorisation obligations with ${r?.authority_name || "the competent supervisory authority"} before filing.`,
         } : null;
+        // QB-P26 Item 1 — per-jurisdiction DPO basis. Global dpo_required
+        // stays for back-compat; the per-card `dpo_basis` prevents national
+        // statutes (e.g. BDSG §38) from bleeding into non-DE cards.
+        const perJurDpo = dpoBasisForJurisdiction(j.code, r?.jurisdiction_name || j.code, intake);
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
@@ -321,10 +325,9 @@ Deno.serve(async (req) => {
           authority_url: r?.authority_url || null,
           registration_required: regRequired,
           registration_required_basis: regBasis,
-          // Use engine-computed values rather than the generic DB row defaults.
-          // The DB row encodes a jurisdiction's rules; the engine applies them
-          // to the entity's actual data (size, processing scope, establishment).
-          dpo_required: engineOutput.obligations_summary.dpo_required,
+          // Per-jurisdiction DPO conclusion.
+          dpo_required: perJurDpo.required,
+          dpo_basis: perJurDpo.basis,
           ai_registration_required: aiRequired,
           ai_registration_required_basis: aiBasis,
           data_broker_evaluation: {
