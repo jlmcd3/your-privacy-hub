@@ -8,7 +8,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "qbp25-cyber-evidence-differentiator-rank@2026-07-23T05:00:00Z";
+export const BUILD_STAMP = "w3-t4-t5-cyber-glba-conditional-once@2026-07-23T17:00:00Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 
 function boundedErr(e: unknown, max = 2000): string {

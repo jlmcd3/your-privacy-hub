@@ -34,7 +34,7 @@ import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
 
 
-export const BUILD_STAMP = "qbp25-boundary-fixes-golden-contract-guard@2026-07-23T12:00:00Z";
+export const BUILD_STAMP = "w3-t4-t5-inference-discipline-ses-ledger-scrub@2026-07-23T17:00:00Z";
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
