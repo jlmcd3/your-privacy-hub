@@ -292,7 +292,17 @@ export default function RegistrationAssessmentResult() {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <CardTitle className="text-xl">{j.name} <span className="text-sm text-muted-foreground font-normal">— {j.law}</span></CardTitle>
+                          <CardTitle className="text-xl">
+                            {j.name}
+                            {j.law ? (
+                              <span className="text-sm text-muted-foreground font-normal"> — {j.law}</span>
+                            ) : null}
+                          </CardTitle>
+                          {/* QB-P24 Item 1 — when law is null, surface the resolution
+                              narrative instead of a blank em-dash. */}
+                          {!j.law && j.registration_required_basis && (
+                            <p className="text-sm text-muted-foreground mt-1">{j.registration_required_basis}</p>
+                          )}
                           {j.why && <p className="text-sm text-muted-foreground mt-1">{j.why}</p>}
                         </div>
                         <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -311,14 +321,29 @@ export default function RegistrationAssessmentResult() {
                     </CardHeader>
                     <CardContent>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                        <Fact label="DPA filing" value={j.registration_required ? "Required" : "Not required"} />
+                        {/* QB-P24 Item 1 — tri-state: null renders as an explicit
+                            "could not be resolved" ask rather than a false negative. */}
+                        <Fact
+                          label="DPA filing"
+                          value={
+                            j.registration_required === true
+                              ? "Required"
+                              : j.registration_required === false
+                                ? "Not required"
+                                : `Could not be resolved — confirm with ${j.authority || j?.unresolved?.authority_to_confirm || "the competent supervisory authority"}`
+                          }
+                        />
                         <Fact label="DPO" value={j.dpo_required ? "Required" : "Recommended"} />
                         <Fact label="EU AI Act" value={j.ai_registration_required ? "Yes (high-risk)" : "—"} />
                         <Fact label="Article 27 rep" value={j.representative_required ? "Required" : "—"} />
-                        <Fact label="Filing fee" value={j.filing_fee_cents ? `${(j.filing_fee_cents / 100).toFixed(2)} ${j.filing_currency}` : "Free"} />
+                        {/* QB-P24 Item 1 — omit fee row entirely when null (matches
+                            PDF renderer in generate-report-pdf/index.ts:1795-1802). */}
+                        {j.filing_fee_cents != null && j.filing_currency ? (
+                          <Fact label="Filing fee" value={`${(j.filing_fee_cents / 100).toFixed(2)} ${j.filing_currency}`} />
+                        ) : null}
                         <Fact label="Renewal" value={j.renewal_period_months ? `Every ${j.renewal_period_months} months` : "None"} />
-                        <Fact label="Authority" value={j.authority} />
-                        <Fact label="Region" value={j.region} />
+                        <Fact label="Authority" value={j.authority || j?.unresolved?.authority_to_confirm || "—"} />
+                        <Fact label="Region" value={j.region || "—"} />
                       </div>
                       {j.notes && <p className="text-xs text-muted-foreground mt-3"><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {j.notes}</p>}
                     </CardContent>
