@@ -1443,21 +1443,30 @@ Return this JSON structure exactly:
 
 
 
-    // QB11-3: Step-2 hard rule enforcement — when triggers_significant_decision is false,
-    // the three ADMT gap arrays (§§ 7200–7222) MUST be empty (rule text already mandates this; this
-    // makes it structural).
+    // QB11-3 + POST-C1-FIX-1A: Step-2 hard rule — when triggers_significant_decision is false,
+    // the three ADMT gap arrays (§§ 7200–7222) MUST be empty. The scope boolean lives at
+    // report.scope_analysis.triggers_significant_decision per the output schema (see :617);
+    // read that nested path first and fall back to the top-level for backward compatibility.
     function enforceScopeGateOnGaps(report: any): any {
       try {
-        if (report && report.triggers_significant_decision === false) {
+        const nested = report?.scope_analysis?.triggers_significant_decision;
+        const top = report?.triggers_significant_decision;
+        const trigger = (nested === false || nested === true) ? nested : top;
+        console.log(JSON.stringify({
+          evt: "admt_scope_gate_read", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+          nested_present: typeof nested === "boolean", top_present: typeof top === "boolean",
+          resolved_trigger: trigger === undefined ? null : trigger,
+        }));
+        if (trigger === false) {
           for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
-            if (Array.isArray(report[key]) && report[key].length > 0) {
-              console.warn(`[ADMT] QB11-3: triggers_significant_decision=false but ${key} had ${report[key].length} entries — emptied per Step-2 rule`);
+            if (Array.isArray(report?.[key]) && report[key].length > 0) {
+              console.warn(`[ADMT] POST-C1-FIX-1A: triggers_significant_decision=false but ${key} had ${report[key].length} entries — emptied per Step-2 rule`);
               report[key] = [];
             }
           }
         }
       } catch (e) {
-        console.error("[ADMT] QB11-3 scope-gate enforcement errored:", e);
+        console.error("[ADMT] POST-C1-FIX-1A scope-gate enforcement errored:", e);
       }
       return report;
     }
