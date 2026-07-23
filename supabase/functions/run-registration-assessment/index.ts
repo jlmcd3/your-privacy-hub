@@ -13,8 +13,82 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "qbp24-addendum-registration-refinements@2026-07-23T03:00:00Z";
+export const BUILD_STAMP = "qbp26-registration-per-jur-dpo-alias-retirement@2026-07-23T13:00:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
+
+// QB-P26 Item 1 — per-jurisdiction DPO basis. The engine emits a single
+// global `dpo_required` + trigger; but the trigger it names may be a
+// national statute (e.g. BDSG §38 for DE), which must NOT be cited as
+// the DPO basis on non-DE cards. This helper derives a per-jurisdiction
+// basis sentence from the intake, so UK, FR, IE, NL et al. cite the
+// correct UK GDPR / GDPR Art. 37(1) branch and DE cites BDSG §38.
+function isEuEeaCode(c: string): boolean {
+  return new Set([
+    "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+    "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+  ]).has(c);
+}
+function dpoBasisForJurisdiction(
+  code: string,
+  jurName: string,
+  intake: any,
+): { required: boolean; basis: string } {
+  const employeeCount = Number(intake?.employee_count ?? 0);
+  const largeScaleMonitoring = intake?.large_scale_monitoring === true;
+  const specialCategories = intake?.processes_special_categories === true;
+  const dataSubjectsCount = Number(intake?.data_subjects_count ?? 0);
+  const isSmallController =
+    (intake?.organization_size === "small" || intake?.organization_size === "micro") &&
+    employeeCount < 50;
+
+  // Germany — BDSG §38 (national statute) sits ALONGSIDE GDPR Art. 37(1).
+  if (code === "DE") {
+    if (employeeCount >= 20) {
+      return {
+        required: true,
+        basis:
+          `DPO required in ${jurName} under BDSG §38 — DPO is mandatory where 20+ persons are constantly engaged in the automated processing of personal data. The intake reports ${employeeCount} employees; confirm how many are constantly engaged in automated processing before concluding the threshold is met. GDPR Art. 37(1)(b)/(c) may also engage — assess independently.`,
+      };
+    }
+    // Fall through to GDPR-only analysis for DE below.
+  }
+
+  const isUk = code === "UK" || code === "GB";
+  const gdprCite = isUk ? "UK GDPR Art. 37(1)" : "GDPR Art. 37(1)";
+  const eeaWho = isUk ? "United Kingdom" : jurName;
+
+  // Art. 37(1)(b) — large-scale systematic monitoring.
+  if (largeScaleMonitoring) {
+    return {
+      required: true,
+      basis: `DPO required in ${eeaWho} under ${gdprCite}(b) — core activities require regular and systematic monitoring of data subjects on a large scale (as declared in the intake).`,
+    };
+  }
+  // Art. 37(1)(c) — large-scale processing of special categories.
+  if (specialCategories && intake?.processes_personal_data && (dataSubjectsCount > 100_000 || !isSmallController)) {
+    return {
+      required: true,
+      basis: `DPO required in ${eeaWho} under ${gdprCite}(c) — core activities consist of large-scale processing of special categories of personal data. The intake declares special-category processing at a scale that engages this branch (${dataSubjectsCount > 100_000 ? "data-subjects count exceeds 100,000" : "controller is not a small controller under the EDPB WP243 factors"}).`,
+    };
+  }
+  if (specialCategories && isSmallController) {
+    return {
+      required: false,
+      basis: `Conditional in ${eeaWho} under ${gdprCite}(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.`,
+    };
+  }
+  // Art. 37(1)(a) — public authority.
+  if (String(intake?.role ?? "").toLowerCase().includes("public") || intake?.is_public_authority === true) {
+    return {
+      required: true,
+      basis: `DPO required in ${eeaWho} under ${gdprCite}(a) — processing is carried out by a public authority or body.`,
+    };
+  }
+  return {
+    required: false,
+    basis: `No mandatory DPO trigger identified in ${eeaWho} under ${gdprCite}: the intake does not declare (a) public-authority status, (b) core-activity large-scale systematic monitoring, or (c) core-activity large-scale special-category processing. A voluntary DPO appointment remains available and is often recommended for organisations of this profile.`,
+  };
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -143,7 +217,12 @@ Deno.serve(async (req) => {
       confidence_reasons: engineOutput.confidence_reasons,
       rules_fired: engineOutput.rules_fired,
       warnings: engineOutput.warnings,
-      obligations_summary: engineOutput.obligations_summary,
+      obligations_summary: (() => {
+        const os: any = { ...engineOutput.obligations_summary };
+        // QB-P26 Item 2 — retire deprecated alias from graded payload.
+        delete os.ai_act_provider_obligations;
+        return os;
+      })(),
       jurisdictions: engineOutput.jurisdictions.map((j) => {
         const r = reqByCode.get(j.code);
         const regRequired = r?.registration_required ?? null;
@@ -233,6 +312,10 @@ Deno.serve(async (req) => {
             : `no requirements metadata row was found for ${j.code} in the registry available to this assessment`,
           next_step: `Confirm any general controller-registration, representative-appointment, or sector-authorisation obligations with ${r?.authority_name || "the competent supervisory authority"} before filing.`,
         } : null;
+        // QB-P26 Item 1 — per-jurisdiction DPO basis. Global dpo_required
+        // stays for back-compat; the per-card `dpo_basis` prevents national
+        // statutes (e.g. BDSG §38) from bleeding into non-DE cards.
+        const perJurDpo = dpoBasisForJurisdiction(j.code, r?.jurisdiction_name || j.code, intake);
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
@@ -242,10 +325,9 @@ Deno.serve(async (req) => {
           authority_url: r?.authority_url || null,
           registration_required: regRequired,
           registration_required_basis: regBasis,
-          // Use engine-computed values rather than the generic DB row defaults.
-          // The DB row encodes a jurisdiction's rules; the engine applies them
-          // to the entity's actual data (size, processing scope, establishment).
-          dpo_required: engineOutput.obligations_summary.dpo_required,
+          // Per-jurisdiction DPO conclusion.
+          dpo_required: perJurDpo.required,
+          dpo_basis: perJurDpo.basis,
           ai_registration_required: aiRequired,
           ai_registration_required_basis: aiBasis,
           data_broker_evaluation: {
@@ -327,42 +409,53 @@ Deno.serve(async (req) => {
           const r = missingReqByCode.get(code) as any;
           const isEu = euEea.has(code);
           const ossActive = isEu && intake.has_eu_establishment === true;
-          // QB-P22 item 5b — for OSS-covered markets, per-entry text is only
-          // the market-specific local-only status; the shared OSS mechanism
-          // paragraph is emitted ONCE in result_summary.oss_group below.
-          const reason = ossActive
-            ? `${r?.jurisdiction_name || code}: no local-only filings identified on the current record. See the OSS mechanism block for the cross-border complaint routing that applies to this market.`
+          const jurName = r?.jurisdiction_name || code;
+          // QB-P26 Item 4 — field-appropriate market-coverage filler. Prior
+          // implementation copied the same sentence into 5 fields (why, notes,
+          // registration_required_basis, ai_registration_required_basis,
+          // data_broker_evaluation.basis) — flagged as boilerplate. Each field
+          // now carries a scope-appropriate sentence and `notes` may be null.
+          const regBasisTxt = ossActive
+            ? `${jurName}: no local-only controller-registration filing identified on the current record. Cross-border complaints are routed via the GDPR one-stop-shop mechanism — see the oss_group block.`
             : (r?.registration_required === false
-                ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
-                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
+                ? `${jurName} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market.`
+                : `No general controller-registration obligation was identified for ${jurName} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
+          const aiBasisTxt = isEu
+            ? `EU AI Act filing obligations are not engaged in ${jurName}: the intake declares neither GPAI-provider nor high-risk-AI-deployer status. See the EU AI Act basis section for the framework's territorial scope.`
+            : `The EU AI Act is EU law and does not apply as a ${jurName} filing obligation.`;
+          const brokerBasisTxt = `No data-broker-registry filing is engaged for ${jurName}: the intake does not indicate the organisation meets a data-broker definition requiring registry filing in this jurisdiction.`;
+          const whyTxt = ossActive
+            ? `Market recorded in intake; local-only filings not engaged, OSS covers cross-border complaints.`
+            : (r?.registration_required === false
+                ? `Market recorded in intake; ${jurName} operates no general controller-registration scheme.`
+                : `Market recorded in intake; no filing obligation identified on current record.`);
           if (ossActive) {
             ossCoveredCodes.push(code);
-            ossCoveredNames.push(r?.jurisdiction_name || code);
+            ossCoveredNames.push(jurName);
           }
+          const perJurDpo = dpoBasisForJurisdiction(code, jurName, intake);
           result_summary.jurisdictions.push({
             code,
-            name: r?.jurisdiction_name || code,
+            name: jurName,
             region: r?.region || null,
             law: r?.law_name || null,
             authority: r?.authority_name || null,
             authority_url: r?.authority_url || null,
             registration_required: r?.registration_required ?? null,
-            registration_required_basis: reason,
-            dpo_required: engineOutput.obligations_summary.dpo_required,
+            registration_required_basis: regBasisTxt,
+            dpo_required: perJurDpo.required,
+            dpo_basis: perJurDpo.basis,
             ai_registration_required: false,
-            ai_registration_required_basis: reason,
-            data_broker_evaluation: { definition_cite: null, met: false, basis: reason },
+            ai_registration_required_basis: aiBasisTxt,
+            data_broker_evaluation: { definition_cite: null, met: false, basis: brokerBasisTxt },
             representative_required: false,
             filing_fee_cents: r?.filing_fee_cents ?? null,
             filing_currency: r?.filing_currency ?? null,
             renewal_period_months: r?.renewal_period_months ?? null,
-            notes: reason,
-            why: reason,
+            notes: null,
+            why: whyTxt,
             rule_id: ossActive ? "R11_MARKET_COVERAGE_OSS" : "R11_MARKET_COVERAGE",
             obligations: [],
-            // QB-P24 Item 2 — additive `unresolved` block on placeholder entries
-            // when the registry does not affirm a filing obligation. Existing
-            // keys unchanged.
             unresolved: (r?.registration_required === true) ? null : {
               status: "unresolved" as const,
               authority_to_confirm: r?.authority_name || "the competent supervisory authority",
@@ -458,6 +551,17 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.warn("[run-registration-assessment] dpo_precision emit skipped:", (e as Error)?.message);
     }
+
+    // QB-P26 Item 2 — retired alias parked under `_meta` for internal readers
+    // that still reference it (generate-report-pdf falls back to the new key
+    // first). NEVER surfaced in graded payload structure.
+    (result_summary as any)._meta = {
+      ...((result_summary as any)._meta || {}),
+      ai_act_provider_obligations_alias: engineOutput.obligations_summary.ai_act_obligations_engaged === true,
+      alias_retirement: "ai_act_provider_obligations is retired from obligations_summary (QB-P26). Use ai_act_obligations_engaged.",
+    };
+
+
 
 
 
