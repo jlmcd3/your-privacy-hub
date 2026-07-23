@@ -990,19 +990,16 @@ async function handler(req: Request) {
     return json({ ok: true, build_stamp: BUILD_STAMP, action: "campaign_tick" }, 202);
   }
 
-  // QB-P23 item 5 — internal-only pinned_rerun invocation path.
-  // Rationale: courier explicitly authorises this rerun; edge-function
-  // callers in the sandbox have no admin JWT. Gated by the same
-  // isInternal check (x-internal-resume:1 + service-role bearer) that
-  // already covers resume; created_by is stamped with the sentinel
-  // string "system:qbp23-pinned-rerun" so audit trails distinguish it
-  // from user-initiated pinned_reruns.
+  // QB-P25 Final-B R1 — internal-only pinned_rerun (service-role bearer).
+  // Now creates a quality_batch_runs PARENT so the rerun appears on the admin
+  // page, exports, and gets PDFs. created_by is a resolved admin UUID; the
+  // sentinel string is logged for audit attribution.
   if (isInternal && body?.action === "pinned_rerun" && body?.tool) {
-    const pins = goldenIntakes(String(body.tool));
-    if (!pins.length) return json({ error: `no goldens for tool ${body.tool}` }, 400);
-    const res = await seedAndResume(String(body.tool), pins.length, "system:qbp23-pinned-rerun", null, { pinsOverride: pins });
-    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, 500);
-    return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: pins.length, build_stamp: BUILD_STAMP, internal: true }, 202);
+    const owner = await resolveAdminOwner();
+    if (!owner) return json({ error: "no admin owner available for internal pinned_rerun" }, 500);
+    const res = await startPinnedRerunBatch(String(body.tool), owner, "system:qbp25-pinned-rerun");
+    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
+    return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: res.pins, build_stamp: BUILD_STAMP, internal: true }, 202);
   }
 
   // External admin call
