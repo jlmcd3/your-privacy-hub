@@ -56,3 +56,54 @@ Deno.test("EU fixture: OSS lead + non-EU country ISO codes, no display-name leak
   const isoRe = /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/;
   for (const c of codes) assert(isoRe.test(c), `non-ISO code: "${c}"`);
 });
+
+// ── CEO decision 2026-07-23 — public-authority gate ─────────────────
+import { runRegistrationAssessment } from "../_shared/registration-engine.ts";
+
+Deno.test("R6 private high-risk deployer: no Art. 49(3) content, no public-authority framing", () => {
+  const out = runRegistrationAssessment({
+    organization_name: "PolyCare AI",
+    organization_country: "GB",
+    has_uk_establishment: true,
+    ai_high_risk: true,
+    markets_served: ["DE", "FR", "IE"],
+    is_public_authority: false,
+  });
+  const dump = JSON.stringify(out);
+  if (/Art(?:icle|\.)?\s*49\(3\)/i.test(dump)) throw new Error("engine leaked Art. 49(3) for private deployer");
+  if (/public[- ]authority|Union body/i.test(dump)) throw new Error("engine leaked public-authority framing for private deployer");
+  if (!out.rules_fired.includes("R6_AI_HIGH_RISK")) throw new Error("R6 did not fire");
+  const target = out.jurisdictions.find((j) => j.rule_id === "R6_AI_HIGH_RISK");
+  if (!target || !target.obligations.includes("ai_deployer_duties")) {
+    throw new Error("expected ai_deployer_duties obligation for private high-risk deployer");
+  }
+});
+
+Deno.test("R6 public-authority high-risk deployer: emits Art. 49(3) EU-database card", () => {
+  const out = runRegistrationAssessment({
+    organization_name: "City of Rotterdam",
+    organization_country: "NL",
+    has_eu_establishment: true,
+    eu_lead_member_state: "NL",
+    ai_high_risk: true,
+    markets_served: ["NL"],
+    is_public_authority: true,
+  });
+  const dump = JSON.stringify(out);
+  if (!/Art(?:icle|\.)?\s*49\(3\)/i.test(dump)) throw new Error("expected Art. 49(3) for public-authority deployer");
+  const target = out.jurisdictions.find((j) => j.rule_id === "R6_AI_HIGH_RISK");
+  if (!target || !target.obligations.includes("ai_eu_database_public_authority")) {
+    throw new Error("expected ai_eu_database_public_authority obligation");
+  }
+});
+
+Deno.test("R6 default (is_public_authority absent) treated as private — no Art. 49(3)", () => {
+  const out = runRegistrationAssessment({
+    organization_country: "IE",
+    has_eu_establishment: true,
+    ai_high_risk: true,
+    markets_served: ["IE"],
+  });
+  const dump = JSON.stringify(out);
+  if (/Art(?:icle|\.)?\s*49\(3\)/i.test(dump)) throw new Error("default (absent flag) leaked Art. 49(3)");
+});
