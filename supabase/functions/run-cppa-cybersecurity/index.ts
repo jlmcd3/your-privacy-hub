@@ -621,16 +621,48 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         finding: stripMd(c?.finding),
         regulatory_basis: stripMd(c?.regulatory_basis),
         remediation: stripMd(c?.remediation),
+        // QB-P25 CYBER — preserve/clean new customer-facing fields.
+        evidence: stripMd(c?.evidence),
+        differentiator: stripMd(c?.differentiator),
+        rank: Number.isFinite(Number(c?.rank)) ? Number(c.rank) : null,
       }));
+      // QB-P25 CYBER — RANK NORMALISATION: renumber ranks to a unique 1..N run
+      // (worst-priority first). If the model omitted or duplicated ranks, sort
+      // by (status severity, ascending score) to derive a deterministic order.
+      const STATUS_WEIGHT: Record<string, number> = {
+        "critical gap": 0, "gap": 1, "partial": 2,
+        "insufficient information": 3, "implemented": 4, "mature": 5,
+      };
+      const ordered = [...r.controls]
+        .map((c: any, idx: number) => ({ c, idx }))
+        .sort((a: any, b: any) => {
+          const wa = STATUS_WEIGHT[String(a.c?.status ?? "").toLowerCase()] ?? 6;
+          const wb = STATUS_WEIGHT[String(b.c?.status ?? "").toLowerCase()] ?? 6;
+          if (wa !== wb) return wa - wb;
+          const sa = Number(a.c?.score) || 0;
+          const sb = Number(b.c?.score) || 0;
+          return sa - sb;
+        });
+      ordered.forEach((o: any, i: number) => { r.controls[o.idx].rank = i + 1; });
       r.top_risks = (Array.isArray(r.top_risks) ? r.top_risks : []).map((t: any) => ({
         ...t,
         title: stripMd(t?.title),
         description: cleanSection(t?.description),
         consequence: cleanSection(t?.consequence),
       }));
-      r.next_steps = (Array.isArray(r.next_steps) ? r.next_steps : []).map((s: any) =>
-        typeof s === "string" ? cleanSection(s) : s
-      );
+      // QB-P25 CYBER — next_steps: coerce legacy strings into { text, owner, trigger }
+      // and CAP at 3 items.
+      const nsRaw = Array.isArray(r.next_steps) ? r.next_steps : [];
+      r.next_steps = nsRaw.slice(0, 3).map((s: any) => {
+        if (typeof s === "string") {
+          return { text: cleanSection(s), owner: "", trigger: "" };
+        }
+        return {
+          text: cleanSection(s?.text ?? ""),
+          owner: stripMd(s?.owner ?? ""),
+          trigger: stripMd(s?.trigger ?? ""),
+        };
+      });
     }
 
     function assembleControlsNarrative(controls: any[]): string {
