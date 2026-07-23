@@ -230,3 +230,39 @@ Deno.test("HF5 C — H6 still passes when § 7001 is a narrative definitional re
   const findings = checkH6AdmtGoverningAnchor(narrative);
   assertEquals(findings.every((f) => f.passed), true);
 });
+
+// ── R-TURN-1 additions ────────────────────────────────────────────────
+
+Deno.test("R-TURN-1 item 1 — H6 accepts § 7200(a) as an operative co-cite for § 7001 duty", () => {
+  const ok = "Under § 7200(a), the business must provide the required access response, applying the § 7001(e)(1) definitional element.";
+  const findings = checkH6AdmtGoverningAnchor(ok);
+  assertEquals(findings.every((f) => f.passed), true);
+});
+
+Deno.test("R-TURN-1 item 1 — H6 still flags § 7001-only duty (no § 72xx anchor)", () => {
+  const bad = "Under § 7001(e)(1), the business must respond to access requests.";
+  const findings = checkH6AdmtGoverningAnchor(bad);
+  assertEquals(findings.some((f) => !f.passed), true);
+});
+
+Deno.test("R-TURN-1 item 2 — H7 negation guard: 'must respond' inside a 'not triggered' sentence does NOT flag", () => {
+  const negated = "Under §§ 7220–7222 the Pre-use Notice duty to respond is not triggered where no significant decision is made.";
+  const findings = checkH7BlanketAdmtRange(negated);
+  assertEquals(findings.every((f) => f.passed), true);
+});
+
+Deno.test("R-TURN-1 item 2 — H7 still flags affirmative blanket-range duty", () => {
+  const bad = "The business must respond per §§ 7220–7222 to every access request.";
+  const findings = checkH7BlanketAdmtRange(bad);
+  assertEquals(findings.some((f) => !f.passed && f.check_id === "h7_admt_blanket_range"), true);
+});
+
+Deno.test("R-TURN-1 item 2 — H7 negation variants ('does not attach', 'not applicable') do NOT flag", () => {
+  for (const s of [
+    "Under §§ 7220–7222 the notice duty does not attach on this record.",
+    "The access response requirement is not applicable to §§ 7220–7222 where the exception is engaged.",
+  ]) {
+    const findings = checkH7BlanketAdmtRange(s);
+    assertEquals(findings.every((f) => f.passed), true, `expected pass on: ${s}`);
+  }
+});
