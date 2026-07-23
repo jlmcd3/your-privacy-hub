@@ -1087,6 +1087,10 @@ Deno.serve(async (req) => {
     const otherUsStateApplies = body.jurisdictions.some(
       (j) => j.toLowerCase().includes("other us"));
 
+    // W3-T3 — did the intake NAME the specific US state(s)?
+    const otherUsStateNamesRaw = (body.other_state_names ?? "").trim();
+    const otherUsStateNamed = otherUsStateApplies && otherUsStateNamesRaw.length > 0;
+
     // Explicit Texas CUBI selection — triggers CUBI-specific context injection
     // (distinct from "Other US state" which has its own broader catch-all block).
     const texasApplies = body.jurisdictions.some(
@@ -1100,6 +1104,7 @@ Deno.serve(async (req) => {
     // UK GDPR — triggers UK DPA 2018 and ICO context injection.
     const ukGdprApplies = body.jurisdictions.some(
       (j) => j.toLowerCase().includes("united kingdom") || j.toLowerCase().includes("uk gdpr"));
+
 
     // Step 3 — Haiku
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
