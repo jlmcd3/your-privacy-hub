@@ -681,7 +681,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "c1-d-engagement-map-v1@2026-07-23T23:55:00Z";
+export const BUILD_STAMP = "post-c1-fix-1b-ccpa-lettering@2026-07-23T16:21:00Z";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP}`);
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).

@@ -68,10 +68,13 @@ function cppaAdmt7220Block(): string {
 }
 
 const CCPA_140_LETTERING_BLOCK = [
-  "CCPA Cal. Civ. Code § 1798.140 — current post-CPRA lettering (corpus-verified via _shared/citation-pair-verifier.ts):",
-  "- § 1798.140(ah) defines \"sensitive personal information\".",
-  "- § 1798.140(aj) defines \"share / sharing\" (cross-context behavioural advertising IS a \"share\").",
-  "- Grader guidance: a report citing § 1798.140(ah) for the SPI predicate and § 1798.140(aj) for a share/sharing predicate is CORRECT. Swapped citations (SPI cited to (aj), or share cited to (ah)) are a confusion-pair defect already deterministically flagged by citation-pair-verifier — do NOT treat the flag as a fabrication finding; treat it as a citation defect at the pair-verifier's severity.",
+  "CCPA Cal. Civ. Code § 1798.140 — current post-CPRA lettering (primary source: leginfo.legislature.ca.gov § 1798.140; cross-referenced against caprivacy.org CPRA text and codes.findlaw.com/ca/civil-code/civ-sect-1798-140):",
+  "- § 1798.140(ae) defines \"sensitive personal information\".",
+  "- § 1798.140(ag) defines \"service provider\".",
+  "- § 1798.140(ah) defines \"share / sharing\" (cross-context behavioural advertising IS a \"share\").",
+  "- § 1798.140(ai) defines \"third party\".",
+  "- § 1798.140(aj) defines \"unique identifier\".",
+  "- Grader guidance: a report citing § 1798.140(ae) for the SPI predicate and § 1798.140(ah) for a share/sharing predicate is CORRECT current statute. Do NOT flag those pairings as invented, misapplied, or fabricated. The prior post-CPRA lettering assumed elsewhere in the pipeline (SPI at (ah), share at (aj)) was inverted and has been corrected under POST-C1-FIX-1B (2026-07-23); grading anchors here take precedence.",
 ].join("\n");
 
 const OTHER_POST_2024_AMENDMENTS_BLOCK = [
