@@ -343,8 +343,23 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
       {Array.isArray(report?.next_steps) && report.next_steps.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
           <h2 className="font-body text-display-card font-semibold mb-3">Next Steps</h2>
-          <ol className="list-decimal pl-5 space-y-1 text-sm">
-            {report.next_steps.map((s: string, i: number) => <li key={i}>{s}</li>)}
+          {/* QB-P25 CYBER — next_steps are objects { text, owner, trigger } (legacy strings tolerated). */}
+          <ol className="list-decimal pl-5 space-y-2 text-sm">
+            {report.next_steps.slice(0, 3).map((s: any, i: number) => {
+              if (typeof s === "string") return <li key={i}>{s}</li>;
+              return (
+                <li key={i} className="space-y-1">
+                  <p>{s?.text}</p>
+                  {(s?.owner || s?.trigger) && (
+                    <p className="text-xs text-muted-foreground">
+                      {s?.owner && <><span className="font-semibold">Owner:</span> {s.owner}</>}
+                      {s?.owner && s?.trigger && <span className="mx-2">·</span>}
+                      {s?.trigger && <><span className="font-semibold">Trigger:</span> {s.trigger}</>}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </section>
       )}
