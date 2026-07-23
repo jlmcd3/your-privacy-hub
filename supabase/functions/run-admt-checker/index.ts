@@ -8,9 +8,13 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w3-t5-admt-normalized-intake-scrub@2026-07-23T17:00:00Z";
+export const BUILD_STAMP = "r-turn-1-measurement-honesty@2026-07-23T20:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
+// R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
+// prompt and registry cannot drift.
+const ADMT_VERIFIED_WHITELIST_TEXT = buildAdmtVerifiedWhitelist().join(", ");
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
