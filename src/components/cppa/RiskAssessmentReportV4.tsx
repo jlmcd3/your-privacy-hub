@@ -303,7 +303,10 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
           <Accordion type="multiple">
             {exceptions.map((e, i) => {
               // Branch on field presence: new advocate-drafter shape vs legacy shape.
-              const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+              const resolvedStrengthen: any[] = Array.isArray(e.strengthen_item_ids)
+                ? e.strengthen_item_ids.map((id) => strengthenItemsMap[id]).filter(Boolean)
+                : [];
+              const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length) || resolvedStrengthen.length);
               const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
               return (
                 <AccordionItem key={i} value={`e${i}`}>
