@@ -1257,14 +1257,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const strippedDomainFindings: Record<string, any> = {};
     for (const [k, v] of Object.entries(domainResults || {})) {
       const dn: any = v;
+      // QB-P25 B2: v2 fields pass through untouched when structurally valid.
+      // Malformed or hedged-placeholder v2 objects are dropped (there is no
+      // hedged-placeholder slot; either the entry names a specific engaged
+      // fact/statute or it is omitted).
+      const recV2Valid = isRecommendedActionV2Valid(dn?.recommended_action_v2);
+      const basV2Valid = isRegulatoryBasisV2Valid(dn?.regulatory_basis_v2);
       strippedDomainFindings[k] = {
         ...dn,
         current_state: stripMd(dn?.current_state),
         gap_description: stripMd(dn?.gap_description),
         regulatory_basis: stripMd(dn?.regulatory_basis),
         recommended_action: stripMd(dn?.recommended_action),
+        recommended_action_v2: recV2Valid ? dn.recommended_action_v2 : undefined,
+        regulatory_basis_v2: basV2Valid ? dn.regulatory_basis_v2 : undefined,
       };
     }
+
 
     let reportData: any = {
       generated_at: new Date().toISOString(),
