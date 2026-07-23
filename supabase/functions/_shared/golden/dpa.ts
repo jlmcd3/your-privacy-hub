@@ -57,6 +57,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_not_include", pattern: "no adequacy decision.*between the EU and the UK", flags: "i",
         label: "no false adequacy denial" },
+      ...DRAFTING_RECORD_GUARDS,
     ],
   },
   {
