@@ -61,10 +61,14 @@ const BODY_FIELDS: Record<GraderReportFamily, string[]> = {
     "section_2_necessity", "section_3_risks", "section_4_measures",
     "section_5_stakeholders", "section_6_conclusion", "section_7_annex",
   ],
-  // run-li-assessment
+  // run-li-assessment — actual report_data keys (verified against
+  // supabase/functions/run-li-assessment/index.ts assembly ~L1510).
+  // three_part_test hosts the balancing_test.factors objects added under
+  // W3-T2, so it MUST lead the grader payload.
   "lia": [
-    "purpose", "necessity", "balancing", "outcome",
-    "safeguards", "priority_actions", "assessment_summary",
+    "three_part_test", "annotations", "information_needed",
+    "documentation_recommendations", "enforcement_precedents",
+    "enforcement_precedents_note", "data_currency_note",
   ],
   // generate-ir-playbook — playbook_text is a SEPARATE column merged by
   // the poll shim; it shows up here so the payload leads with the body.

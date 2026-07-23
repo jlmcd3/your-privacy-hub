@@ -3,7 +3,7 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
-export const BUILD_STAMP = "qbp19-cross-tool-transfer@2026-07-22T22:00:00Z";
+export const BUILD_STAMP = "w3-t2-lia-per-factor-balancing@2026-07-23T15:00:00Z";
 console.log(`[run-li-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
@@ -948,6 +948,30 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   "balancing_test": {
     "verdict": "likely_passes | likely_fails | uncertain",
     "analysis": "4-5 sentences applying the EDPB four-factor balancing: (1) reasonable expectations, (2) nature of the relationship, (3) potential impact and severity, (4) safeguards including opt-out. Address vulnerable subjects if any. Where the analysis references a worst-case harm scenario (e.g. 'unexpected profiling if safeguards fail'), include a QUALITATIVE assessment of BOTH (a) the likelihood that the safeguard-failure scenario occurs on the facts stated (rare / plausible / foreseeable) AND (b) the nature and severity of the resulting harm to data subjects (limited / significant / severe, and the type of harm — reputational, financial, discrimination, chilling effect on rights, etc.), per EDPB Guidelines 1/2024 para. 39 (impact of the processing on the data subjects — qualitative assessment of the likely impact covering nature, context and further consequences). Do NOT quantify probability numerically and do NOT treat the absence of quantification as, by itself, a deficiency (see LIKELY IMPACT rule).",
+    "factors": [
+      // W3-T2 PER-FACTOR BALANCING (REQUIRED — exactly four entries in this order):
+      //   reasonable_expectations, relationship, impact_severity, safeguards.
+      // Each factor's reasoning MUST bind to the named intake_evidence — every
+      // sentence in the reasoning field must name a value or field listed in
+      // this factor's intake_evidence. This is the anti-generic mechanism: a
+      // factor whose reasoning does not cite its own intake_evidence is a
+      // defect. intake_evidence entries MUST reference intake fields that are
+      // actually populated on this record (cross-read the full record per the
+      // CROSS-READ rule above); do NOT invent fields or values. Where no
+      // relevant intake is present for a factor, set intake_evidence to [] and
+      // describe the absence in the reasoning field per FLAG-THE-ABSENCE —
+      // never fabricate.
+      {
+        "factor": "reasonable_expectations | relationship | impact_severity | safeguards",
+        "intake_evidence": [
+          { "field": "<intake field name from the record — e.g. relationship_type, balancing_details.reasonable_expectation, balancing_details.safeguards, balancing_details.opt_out_mechanism, balancing_details.potential_harm, balancing_details.vulnerable_subjects, balancing_details.additional_context>",
+            "value": "<the verbatim or lightly-condensed value from that field in the record>" }
+        ],
+        "direction": "for_controller | for_subjects | neutral",
+        "reasoning": "1-3 sentences. MUST bind to the named intake_evidence for this factor (name the value or field in the sentence itself). Refer to the input as 'the record' per CANONICAL RECORD REFERENCE."
+      }
+    ],
+    "synthesis": "1-2 sentences drawing the four factor direction values together into an overall balancing outcome that maps to the verdict field. Names the decisive factor(s) by name.",
     "risk_factors": ["factors tipping the balance toward data subjects"],
     "supporting_factors": ["factors supporting the controller's interest"],
     "open_questions": ["facts that would affect this verdict"],
@@ -1018,7 +1042,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
       for (const tk of testKeys) {
         const t = a?.[tk];
         if (!t || typeof t !== "object") continue;
-        for (const f of ["analysis"]) {
+        for (const f of ["analysis", "synthesis"]) {
           if (typeof t[f] === "string") {
             const r = lintReportText(t[f]);
             t[f] = r.clean;
@@ -1036,6 +1060,19 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
               return r.clean;
             });
           }
+        }
+        // W3-T2: lint each per-factor reasoning string on balancing_test.factors.
+        if (Array.isArray(t.factors)) {
+          t.factors = t.factors.map((entry: any, idx: number) => {
+            if (!entry || typeof entry !== "object") return entry;
+            if (typeof entry.reasoning === "string") {
+              const r = lintReportText(entry.reasoning);
+              entry.reasoning = r.clean;
+              for (const v of r.violations) lintViolations.push({ field: `${tk}.factors[${idx}].reasoning`, ...v });
+              if (hasHardViolations(r)) hardSeen = true;
+            }
+            return entry;
+          });
         }
       }
       const oa = a?.overall_assessment;
