@@ -33,6 +33,7 @@ import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { normalizeQbp25A3 } from "./_qbp25_a3_normalize.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
