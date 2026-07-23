@@ -283,7 +283,22 @@ export default function BiometricChecker() {
                   consumer health data privacy policy, and a private right of action via the WA Consumer Protection Act.
                 </p>
               )}
+              {form.jurisdictions.some(j => j.includes("Other US state")) && (
+                <div className="mt-2 border border-border rounded p-2 bg-muted/30">
+                  <label className="text-meta font-semibold text-brand-navy block">
+                    Which state(s)? <span className="text-muted-foreground font-normal">(optional — name the US state(s) whose residents' biometrics are captured; enables a single conditional-framework section for that state instead of a general candidate-statute list)</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                    placeholder="e.g., Colorado; Oregon; New York"
+                    value={form.other_state_names}
+                    onChange={(e) => setForm(f => ({ ...f, other_state_names: e.target.value }))}
+                  />
+                </div>
+              )}
             </fieldset>
+
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
