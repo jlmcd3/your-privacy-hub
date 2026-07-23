@@ -351,8 +351,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   // in markets or home), the hosting provider must be HDS-certified per Code de
   // la santé publique art. L1111-8 and the HDS référentiel (ASIP Santé / ANS).
   const marketsHasFR = markets.has("FR") || home === "FR";
-  const dataCategoriesLower = (intake.data_categories || []).map((c) => String(c).toLowerCase());
-  const hostsFrenchHealthData = marketsHasFR && dataCategoriesLower.some((c) => c.includes("health") || c.includes("santé") || c.includes("sante") || c.includes("medical") || c.includes("patient"));
+  const hostsFrenchHealthData = marketsHasFR && (intake.processes_special_categories === true);
   if (hostsFrenchHealthData) {
     ensure(map, "FR", "R8_FR_HDS",
       "French health data hosting engaged — the hosting provider (or the controller where it self-hosts) must hold HDS certification (hébergeur de données de santé) per Code de la santé publique art. L1111-8 and the HDS référentiel maintained by the Agence du Numérique en Santé (ANS). Confirm the certified scope covers the actual hosting activities (storage, back-up, restore, administration) before production go-live.",
