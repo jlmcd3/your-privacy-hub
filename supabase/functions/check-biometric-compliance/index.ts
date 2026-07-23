@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "qbp27-biometric-named-state-registry@2026-07-23T19:00:00Z";
+export const BUILD_STAMP = "post-c1-fix-2cd-biometric-suggested-owner-and-cites@2026-07-23T18:25:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -491,11 +491,11 @@ Compliance risk rating: UNRESOLVED — statute-specific obligations, penalties, 
         },
         "Indiana": {
           law: "Indiana Consumer Data Protection Act (INCDPA), Ind. Code § 24-15-1-1 et seq.",
-          sensitiveCite: "Ind. Code § 24-15-2-28 (biometric data used to identify an individual = sensitive data)",
-          consentCite: "Ind. Code § 24-15-4-1(4)",
-          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 24-15-4-1(4)).",
-          retention: "Data minimization under § 24-15-4-1(1)–(2). Effective 1 January 2026.",
-          enforcement: "Indiana Attorney General has exclusive enforcement authority (§ 24-15-10-2); NO private right of action; 30-day cure period.",
+          sensitiveCite: "Ind. Code ch. 24-15 (INCDPA); the biometric-sensitive-data pinpoint is § 24-15-2-28 as recorded in this registry — verification against the enacted text is recommended before external distribution.",
+          consentCite: "Ind. Code ch. 24-15 (INCDPA consent provision recorded here as § 24-15-4-1(4); verify against the enacted text before external distribution)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data under the INCDPA sensitive-data regime (Ind. Code ch. 24-15).",
+          retention: "Data minimization under the INCDPA controller duties (Ind. Code ch. 24-15). Effective 1 January 2026.",
+          enforcement: "Indiana Attorney General has exclusive enforcement authority under the INCDPA (Ind. Code ch. 24-15); NO private right of action; 30-day cure period.",
           risk: "MEDIUM",
           riskWhy: "AG-only enforcement in a jurisdiction with a live 1 January 2026 effective date — opt-in mechanism must be in place before then.",
         },
@@ -681,21 +681,21 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 4. Processor obligations: bind every recipient under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements.${dpiaLine}
 
 Consent and notice:
-${r.consent} Pre-collection notice must name the biometric modality, specific purpose, retention, recipients, and applicable rights. Owner: ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
+${r.consent} Pre-collection notice must name the biometric modality, specific purpose, retention, recipients, and applicable rights. Suggested owner (confirm): ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
 
 Retention and destruction:
-${r.retention} Owner: ${orgOwner}. Timeframe: publish the destruction schedule within 60 days of assessment sign-off.
+${r.retention} Suggested owner (confirm): ${orgOwner}. Timeframe: publish the destruction schedule within 60 days of assessment sign-off.
 
 Sale and sharing restrictions:
-Bind every recipient of biometric data under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements. Assess whether the intended sharing constitutes a "sale" or "sharing" under ${canonical}'s law and, if so, provide the required opt-out or authorization. Owner: the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
+Bind every recipient of biometric data under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements. Assess whether the intended sharing constitutes a "sale" or "sharing" under ${canonical}'s law and, if so, provide the required opt-out or authorization. Suggested owner (confirm): the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
 
 Current enforcement posture:
 ${r.enforcement} Consult the ${canonical} Attorney General's public enforcement register for pending or resolved biometric or sensitive-data matters — never quantify enforcement magnitudes from memory.
 
 Priority actions:
-1. Implement the ${canonical} consent mechanism required by ${r.consentCite} before any biometric capture from a ${canonical} resident. Owner: ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
-2. Publish a biometric retention and destruction schedule keyed to purpose expiry, consistent with ${canonical}'s data-minimization duty. Owner: ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
-3. Execute processor agreements binding every recipient of biometric data under ${canonical}'s controller-processor requirements. Owner: the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.${r.dpiaCite ? `\n4. Complete the ${canonical} data protection assessment required by ${r.dpiaCite} before deploying to ${canonical} residents. Owner: ${orgOwner}. Timeframe: prior to deployment.` : ""}
+1. Implement the ${canonical} consent mechanism required by ${r.consentCite} before any biometric capture from a ${canonical} resident. Suggested owner (confirm): ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
+2. Publish a biometric retention and destruction schedule keyed to purpose expiry, consistent with ${canonical}'s data-minimization duty. Suggested owner (confirm): ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
+3. Execute processor agreements binding every recipient of biometric data under ${canonical}'s controller-processor requirements. Suggested owner (confirm): the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.${r.dpiaCite ? `\n4. Complete the ${canonical} data protection assessment required by ${r.dpiaCite} before deploying to ${canonical} residents. Suggested owner (confirm): ${orgOwner}. Timeframe: prior to deployment.` : ""}
 
 Compliance risk rating: ${r.risk}
 ${r.riskWhy}
@@ -1032,7 +1032,7 @@ Key state biometric statutes (by litigation and enforcement risk):
 Federal frameworks applicable to biometrics by sector:
 1. HIPAA: biometric identifiers constitute PHI under HIPAA (45 CFR § 160.103) and are among the 18 identifier categories enumerated in the de-identification safe harbor at § 164.514(b)(2)(i). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
 2. GLBA Safeguards Rule (16 CFR Part 314): financial institutions must protect biometric data as customer information under their written information security programme, implementing safeguards appropriate to the data's sensitivity under 16 CFR § 314.4.
-3. FTC Act Section 5: the intake's stated purpose "${body.purpose}" — a ${body.orgType} deploying ${body.biometricTypes.join(", ")} — engages the specific unfair-or-deceptive-practices theory the FTC applied in the Rite Aid facial-recognition action (Dec. 2023, FTC File No. 072-3121), where deployment of a biometric identification technology without adequate consumer notice, accuracy testing, and post-deployment monitoring was held to constitute an unfair practice causing substantial injury under 15 U.S.C. § 45(n); the same theory underpins the May 2023 Biometric Information Policy Statement. § 5 exposure attaches to THIS specific practice (the intake's stated purpose paired with the declared biometric type), not as a generic backdrop — confirm the consumer-facing notice, consent posture, and accuracy-testing record for the stated purpose before deployment.
+3. FTC Act Section 5: the intake's stated purpose "${body.purpose}" — a ${body.orgType} deploying ${body.biometricTypes.join(", ")} — engages the specific unfair-or-deceptive-practices theory the FTC applied in the Rite Aid facial-recognition action (FTC v. Rite Aid Corp., Case No. 2:23-cv-5023 (E.D. Pa. Dec. 19, 2023); FTC Matter/File No. 2023190), where deployment of a biometric identification technology without adequate consumer notice, accuracy testing, and post-deployment monitoring was held to constitute an unfair practice causing substantial injury under 15 U.S.C. § 45(n); the same theory underpins the May 2023 Biometric Information Policy Statement. § 5 exposure attaches to THIS specific practice (the intake's stated purpose paired with the declared biometric type), not as a generic backdrop — confirm the consumer-facing notice, consent posture, and accuracy-testing record for the stated purpose before deployment.
 
 Current enforcement posture:
 At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas Attorney General enforcement of CUBI is active; consult the Attorney General's public enforcement records for current actions. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
@@ -1246,7 +1246,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
         if (/\b(Owner:|Timeframe:|Trigger:)/i.test(rest)) return line;
         const trimmed = rest.trim().replace(/\s+$/, "");
         const withPeriod = /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
-        return `${m[1]}${withPeriod} Owner: ${priorityOwner}. Timeframe: ${priorityTrigger}.`;
+        return `${m[1]}${withPeriod} Suggested owner (confirm): ${priorityOwner}. Timeframe: ${priorityTrigger}.`;
       }).join("\n");
       return `${head}${patched}${tail}`;
     });

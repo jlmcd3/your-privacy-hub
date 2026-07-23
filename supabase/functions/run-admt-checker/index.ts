@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "post-c1-fix-1ab-admt-gate-and-ccpa-lettering@2026-07-23T16:21:00Z";
+export const BUILD_STAMP = "post-c1-fix-2a-admt-neutral-fallback-and-range-cap@2026-07-23T18:15:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
@@ -922,7 +922,11 @@ ADDITIONAL DISCIPLINES:
       const SUBCH_TOKEN_RE = /\bthe\s+cited\s+(?:provision|definition)(?:\s+(?:governing|above|below|referenced))?\b/gi;
       const SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+(?:provision|definition)\b/gi;
       const SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+(?:provision|definition)\b/gi;
-      const SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      // POST-C1-FIX-2A: unresolved-variable fallback becomes NEUTRAL (no citation).
+      // Emitting the "§§ 7220–7222" range as a substitute for unresolved pinpoints
+      // caused the residual ADMT collapse in batch 5aee4b99. Range appears at most
+      // ONCE per document, enforced by post-walker cap below.
+      const SUBCH_FALLBACK = "the applicable ADMT-subchapter provision";
       const SUBCH_SYNONYM_RES: Array<[RegExp, string]> = [
         [/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK],
         [/\bthe\s+applicable\s+regulation\s+section\b/gi, SUBCH_FALLBACK],
@@ -996,7 +1000,7 @@ ADDITIONAL DISCIPLINES:
     // upstream exception. Idempotent: if the main block already ran, all
     // patterns are already consumed and this is a no-op.
     try {
-      const HF6C_SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      const HF6C_SUBCH_FALLBACK = "the applicable ADMT-subchapter provision";
       const HF6C_SUBCH_TOKEN_RE = /\bthe\s+cited\s+(?:provision|definition)(?:\s+(?:governing|above|below|referenced))?\b/gi;
       const HF6C_SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+(?:provision|definition)\b/gi;
       const HF6C_SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+(?:provision|definition)\b/gi;
@@ -1035,6 +1039,44 @@ ADDITIONAL DISCIPLINES:
       hf6cWalk(report);
     } catch (e) {
       console.warn("[run-admt-checker] HF6C post-resolver fallback consume failed (non-fatal):", e);
+    }
+
+    // POST-C1-FIX-2A — DETERMINISTIC RANGE-CAP.
+    // "11 CCR §§ 7220–7222" (with or without the "(the ADMT subchapter)" parenthetical)
+    // may appear AT MOST ONCE per document — reserved for the scope_analysis.summary
+    // framing sentence. Second and later occurrences are downgraded to the neutral
+    // phrase, matching the model rule at line ~278. Idempotent; fail-open.
+    try {
+      const RANGE_RE = /11\s*CCR\s*§§\s*7220\s*[–-]\s*7222(?:\s*\(the\s+ADMT\s+subchapter\))?/gi;
+      let hits = 0;
+      const capStr = (v: string): string =>
+        v.replace(RANGE_RE, (m) => (++hits === 1 ? m : "the applicable ADMT-subchapter provision"));
+      const capWalk = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) {
+            const v = node[i];
+            if (typeof v === "string") node[i] = capStr(v);
+            else if (v && typeof v === "object") capWalk(v);
+          }
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") (node as any)[k] = capStr(v);
+          else if (v && typeof v === "object") capWalk(v);
+        }
+      };
+      capWalk(report);
+      console.log(JSON.stringify({
+        evt: "admt_range_cap",
+        fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        range_occurrences_before_cap: hits,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] range-cap failed (non-fatal):", (e as Error)?.message);
     }
 
     // C1-b (2026-07-23T14:20:00Z) — CITATION PAIR VERIFIER wired for ADMT.
@@ -1201,7 +1243,7 @@ ADDITIONAL DISCIPLINES:
             const SUBCH_TOKEN_RE_L = /\bthe\s+cited\s+provision(?:\s+(?:governing|above|below|referenced))?\b/gi;
             const SUBCH_UNDER_RE_L = /\bunder\s+the\s+cited\s+provision\b/gi;
             const SUBCH_PURSUANT_RE_L = /\bpursuant\s+to\s+the\s+cited\s+provision\b/gi;
-            const SUBCH_FALLBACK_L = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+            const SUBCH_FALLBACK_L = "the applicable ADMT-subchapter provision";
             const consumeStrL = (v: string): string => {
               let next = v;
               next = next.replace(/\bthe\s+applicable\s+definitional\s+provision\b/gi, SUBCH_FALLBACK_L);

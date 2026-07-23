@@ -50,6 +50,7 @@ COUNSEL-VOICE-1 — ADVISORY VOICE (BINDING, applies to every generated body sen
          — use for facts internal to the subscriber's organization (retention practice, vendor list, processing volumes, etc.).
 - SPECIFICITY INVARIANT: every advisory sentence names the fact and the current assumption. Example: "The record identifies the Processor's jurisdiction of incorporation as Ireland; further clarification is advisable." A bare close without a named fact is a defect.
 - [TO BE COMPLETED — …] hard blanks and verification-gated citation placeholders are unchanged; use them for missing statutory or party-identity data.
+- POST-C1-FIX-2B — NO CHAIN-OF-THOUGHT / SELF-CORRECTION LEAK: customer prose is FINAL TEXT ONLY. Silently apply corrections before emission. Banned patterns in body text include "— wait,", "Correcting:", "let me reconsider", "actually, [the/that/this] …", "on second thought", "strike that", "scratch that", "I meant". Emit the conclusion supported by the record, not the deliberation.
 `.trim();
 
 /** Split a body of text into sentences (best-effort, punctuation-based). */

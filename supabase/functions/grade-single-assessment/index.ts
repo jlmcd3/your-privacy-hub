@@ -62,7 +62,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // QLB-F3 (2026-07-15): grader payload rebuild (body-first, metadata-strip,
 // equal budget), spelling-neutral prompt preamble, and fill-in placeholder
 // exemption mirrored verbatim with run-quality-batch.
-export const BUILD_STAMP = "hygiene-1-amendments-docstring@2026-07-23T16:35:00Z";
+export const BUILD_STAMP = "post-c1-fix-2-grader-context-suggested-owner-neutral-fallback@2026-07-23T18:30:00Z";
 console.log(`[grade-single-assessment] boot ${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "grader_build_stamp", fn: "grade-single-assessment", build_stamp: BUILD_STAMP }));
 

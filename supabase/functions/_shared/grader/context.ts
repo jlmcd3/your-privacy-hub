@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-c1-c";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-post-c1-fix-2";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
@@ -119,4 +119,12 @@ R-TURN-3 ADDITIONS (2026-07-23, BINDING; do NOT flag as defects):
 (4) DPA CLAUSE PARTY-VOICE (designed output — do NOT flag): controller-specific obligations are drafted in the Controller's voice ("Controller shall …") and processor-specific obligations in the Processor's voice ("Processor shall …"). Generic "the Parties shall …" is reserved for mutual duties (e.g. cooperation, confidentiality, notice mechanics). Do NOT flag Controller-voice or Processor-voice clauses as inconsistent with the parties-shall phrasing used in mutual duty clauses, and do NOT demand every duty be recast in "the Parties shall" form.
 
 (5) DPA CONDITIONAL MODULES (designed output — do NOT flag): targeted-advertising, minors / children's-data, HIPAA/PHI, GLBA, and AI/ML-training clauses appear ONLY when the record establishes the corresponding processing fact (SPECULATIVE-CLAUSE BAN, REBUILD-DPA T2 as extended in R-TURN-3). A DPA that OMITS a targeted-advertising or minors clause because the record is silent on that fact is CORRECT — do not flag the omission as incomplete coverage of state-law modules. A DPA that INCLUDES the clause because the record establishes the fact is likewise CORRECT.
+
+POST-C1-FIX-2 ADDITIONS (2026-07-23, BINDING; do NOT flag as defects):
+
+(1) BIOMETRIC / CYBER / GOVERNANCE — SUGGESTED OWNER (CONFIRM) FORM IS DESIGNED OUTPUT: where a functional owner is DERIVED from the intake's orgType (e.g. "Suggested owner (confirm): the HR lead, in coordination with the DPO or Head of Privacy") the "Suggested owner (confirm):" prefix marks the owner as a professional-default suggestion, NOT as a record-fact claim about who occupies the role. Do NOT flag the "Suggested owner (confirm): <role>" form as an invented internal role, an unsupported business claim, or a fabricated ownership assertion. The bare "Owner: <named individual>" form (with a specific personal name that the record did not supply) remains a fabrication defect. The distinction is: SUGGESTED-OWNER-CONFIRM is designed output; a BARE assertion naming a role the intake never mentioned remains a deduction defect.
+
+(2) ADMT NEUTRAL FALLBACK PHRASE IS DESIGNED OUTPUT: the phrase "the applicable ADMT-subchapter provision" appearing in an ADMT report is a NEUTRAL post-resolver fallback used when the model's citation could not be resolved to a pinpoint from the ADMT-citation registry. It replaces the previously-used range-label fallback (which caused the h7_admt_blanket_range defect class). Do NOT flag "the applicable ADMT-subchapter provision" as a missing citation, an unresolved variable, or a placeholder defect. The report retains its other pinpoint citations; the neutral phrase is the correct fallback when a specific pinpoint is unavailable.
+
+(3) FTC RITE AID CITATION — CANONICAL FORM: the correct citation for the FTC Rite Aid facial-recognition matter is "FTC v. Rite Aid Corp., Case No. 2:23-cv-5023 (E.D. Pa. Dec. 19, 2023); FTC Matter/File No. 2023190". Do NOT flag this canonical form as inaccurate. Earlier drafts using "FTC File No. 072-3121" were incorrect and have been corrected in the biometric template.
 `.trim();
