@@ -69,6 +69,8 @@ type Exception = {
   argument_strength?: "strong" | "colorable" | "counsel-review" | string;
   argument_strength_rationale?: string;
   strengthen_position?: string[];
+  // QB-P25 B3 — pointer(s) into report.strengthen_items[] (single home).
+  strengthen_item_ids?: string[];
   // Legacy shape (back-compat for rows generated pre-rebuild)
   scope_described?: string;
   safeguards_described?: string;
