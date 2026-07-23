@@ -303,7 +303,11 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   }
 
   // ------- Rule R6: EU AI Act (split by role) -------
-  // Chapter III (Arts. 26–29) + Art. 49(2) EU database — high-risk AI DEPLOYER.
+  // Chapter III (Arts. 26–29) — high-risk AI DEPLOYER duties (all deployers).
+  // Art. 49(3) — deployer-side EU-database registration is a PUBLIC-AUTHORITY
+  // (and Union body / certain other public-sector) duty ONLY. Private-sector
+  // high-risk deployers have Chapter III duties but no Art. 49 database
+  // filing. CEO decision 2026-07-23 gates Art. 49(3) on `is_public_authority`.
   // Chapter V (Arts. 53–55) — GPAI PROVIDER (places a general-purpose AI
   // model on the EU market). The two obligation sets are DISTINCT: an org
   // may be a GPAI provider without deploying a high-risk system, and vice
@@ -315,9 +319,15 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     const target = intake.has_eu_establishment
       ? (intake.eu_lead_member_state || home || "IE")
       : (euMarkets[0] || "IE");
-    ensure(map, target, "R6_AI_HIGH_RISK",
-      "Deployer/provider of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties and Art. 49(2) EU-database registration engaged",
-      "ai_eu_database");
+    if (intake.is_public_authority === true) {
+      ensure(map, target, "R6_AI_HIGH_RISK",
+        "Public-authority deployer of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties AND Art. 49(3) EU-database registration engaged (public authorities and Union bodies deploying high-risk AI must register the use in the Art. 71 EU database)",
+        "ai_eu_database_public_authority");
+    } else {
+      ensure(map, target, "R6_AI_HIGH_RISK",
+        "Deployer of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties engaged (human oversight, input-data appropriateness, monitoring, incident reporting, record-keeping). Art. 49(3) EU-database deployer registration does NOT apply to private-sector deployers.",
+        "ai_deployer_duties");
+    }
     fired.push("R6_AI_HIGH_RISK");
   }
   if (intake.ai_general_purpose_provider && (intake.has_eu_establishment || euMarkets.length > 0)) {
