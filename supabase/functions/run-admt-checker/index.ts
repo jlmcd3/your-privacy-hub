@@ -1000,7 +1000,7 @@ ADDITIONAL DISCIPLINES:
     // upstream exception. Idempotent: if the main block already ran, all
     // patterns are already consumed and this is a no-op.
     try {
-      const HF6C_SUBCH_FALLBACK = "11 CCR §§ 7220–7222 (the ADMT subchapter)";
+      const HF6C_SUBCH_FALLBACK = "the applicable ADMT-subchapter provision";
       const HF6C_SUBCH_TOKEN_RE = /\bthe\s+cited\s+(?:provision|definition)(?:\s+(?:governing|above|below|referenced))?\b/gi;
       const HF6C_SUBCH_UNDER_RE = /\bunder\s+the\s+cited\s+(?:provision|definition)\b/gi;
       const HF6C_SUBCH_PURSUANT_RE = /\bpursuant\s+to\s+the\s+cited\s+(?:provision|definition)\b/gi;
