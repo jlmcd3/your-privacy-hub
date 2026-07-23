@@ -235,6 +235,12 @@ interface Body {
   orgName?: string;
   purpose: string;
   jurisdictions: string[];
+  // W3-T3 — optional free-text naming the specific US state(s) engaged when
+  // "Other US state" is selected. When populated, the generator produces a
+  // single conditional-framework section for the named state(s); when blank
+  // (or "Other US state" is not selected) the generator emits a compact
+  // structured-unresolved section with max 5 candidate statutes.
+  other_state_names?: string;
   // enrolledCount retired 2026-07-14 — legacy stored intakes may still carry the key; it is ignored, not read.
   assessment_id?: string;
   user_id?: string;
@@ -249,6 +255,7 @@ interface Body {
   // Used by improve-prompt A/B evaluation so candidate runs don't pollute biometric_assessments.
   dry_run?: boolean;
 }
+
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
