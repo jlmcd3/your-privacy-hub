@@ -458,6 +458,10 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       uk_representative_required:
         markets.has("UK") && !intake.has_uk_establishment,
       dpo_required: dpoRequired,
+      dpo_trigger: dpoTrigger,
+      dpo_condition: dpoCondition,
+      ai_act_obligations_engaged: aiActProvider,
+      // Deprecated alias — see interface comment.
       ai_act_provider_obligations: aiActProvider,
       gpai_provider_obligations: gpaiProvider,
       high_risk_ai_deployer_obligations: highRiskDeployer,
