@@ -566,11 +566,11 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "scope_notes": string
   },
   "exception_analysis": [
-    { "exception_name": string, "statutory_basis": string, "claimed": boolean, "facts_supporting": string, "argument_strength": "strong" | "colorable" | "counsel-review", "argument_strength_rationale": string, "strengthen_position": string[], "flags": string[] }
+    { "exception_name": string, "statutory_basis": string, "claimed": boolean, "facts_supporting": string, "argument_strength": "strong" | "colorable" | "counsel-review", "argument_strength_rationale": string, "strengthen_position": string[], "strengthen_item_ids": string[], "flags": string[] }
   ],
   "risk_assessment_by_activity": [
     { "activity": string, "statutory_basis": string, "purpose": string, "benefits_to_business": string, "benefits_to_consumers": string,
-      "adverse_effects": [ { "harm_type": string, "likelihood": string, "severity": string, "description": string } ],
+      "adverse_effects": [ { "harm_type": string, "likelihood": "Unlikely" | "Possible" | "Likely" | "Highly likely", "severity": "Minimal" | "Moderate" | "Significant" | "Severe", "description": string } ],
       "current_safeguards": string, "safeguard_gaps": string,
       "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Colorable argument — benefits appear to outweigh risks; completing the named items would allow this to be recorded as established", "benefits_outweigh_risks_rationale": string,
       "section_7152_mapping": string }
@@ -582,7 +582,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "relevant_precedents": string, "sector_specific_patterns": string, "audit_division_priorities": string
   },
   "priority_actions": [
-    { "action": string, "statutory_basis": string, "severity": "Immediate" | "High" | "Medium" | "Low", "deadline": string, "deadline_basis": string }
+    { "action": string, "statutory_basis": string, "severity": "Immediate" | "High" | "Medium" | "Low", "deadline": string, "deadline_basis": string, "rank": number }
   ],
   "cross_tool_recommendations": {
     "cybersecurity_audit": boolean, "cybersecurity_audit_rationale": string,
@@ -597,7 +597,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   "information_needed": [
     { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>", "source_fields": string[] }
   ],
-  "record_sufficiency": { "complete": boolean, "statement": string },
+  "record_sufficiency": { "complete": boolean, "statement": string, "strengthen_item_ids": string[] },
   "strengthen_items": [
     { "item_id": string, "citation": string, "field_ids": string[], "recorded_basis": string }
   ]
