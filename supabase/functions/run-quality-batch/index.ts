@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "w3-t4-t5-inference-discipline-ses-ledger-scrub@2026-07-23T17:00:00Z";
+export const BUILD_STAMP = "r-turn-1-measurement-honesty@2026-07-23T20:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -18,6 +18,8 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForBatchTool,
 } from "../_shared/grader/payload.ts";
+// R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
+import { matchFixtureSet } from "../_shared/golden/registry.ts";
 // GRADER-1 Tasks 2/3 — shared authoritative context block injected into
 // BOTH grader system prompts (Claude rubric + GPT cross-review).
 import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
