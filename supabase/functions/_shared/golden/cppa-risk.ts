@@ -49,7 +49,7 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     // § 7150(b) pre-generation validator (VALIDATION_FAILED). Enable a
     // single trigger (profiling with significant effects) so the fixture
     // reaches generation while preserving its "clean posture" character.
-    intake: { ...base, q5b_profiling_observation: "Yes" },
+    intake: { ...base, q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants" },
     assertions: [
       { kind: "must_include", pattern: "risk assessment|Article", flags: "i", label: "risk framing present" },
     ],
