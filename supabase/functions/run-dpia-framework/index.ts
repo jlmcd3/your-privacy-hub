@@ -23,6 +23,7 @@ import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
+import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -679,7 +680,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:00:00Z-a1";
+export const BUILD_STAMP = "c1-b-citation-pair-verifier@2026-07-23T14:20:00Z";
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -1908,6 +1909,77 @@ async function runStitch(dpia_id: string): Promise<void> {
         sourceTable: "dpia_frameworks",
         sourceRowId: dpia_id ?? null,
       });
+
+      // C1-b (2026-07-23T14:20:00Z) — CITATION PAIR VERIFIER wired for DPIA.
+      // Walks every string leaf, flags confusion-pair defects; regime is
+      // derived from the resolved DPIA jurisdiction where available. Never
+      // silently emits — flagged sentences carry inline warnings. Fail-open.
+      try {
+        const gdprCites: string[] = [];
+        try {
+          const gc = (typeof getGdprContext === "function") ? await getGdprContext({ articles: ["6","9","13","14","21","35","36"] }) : null;
+          if (Array.isArray((gc as any)?.gdprCites)) for (const c of (gc as any).gdprCites) gdprCites.push(String(c));
+        } catch { /* fail-open */ }
+        const regime: "gdpr" | "uk_gdpr" | "unknown" = (() => {
+          try {
+            const resolved = (reportData as any)?.dpia_metadata?.resolved_jurisdiction || (reportData as any)?.resolved_jurisdiction;
+            if (typeof resolved === "string" && /uk/i.test(resolved)) return "uk_gdpr";
+            if (typeof resolved === "string" && /(gdpr|eu|eea|ie|de|fr|nl|es|it|be|at|se|dk|fi|pt|pl)/i.test(resolved)) return "gdpr";
+          } catch { /* pass */ }
+          return "unknown";
+        })();
+        const paragraphIndex = buildParagraphIndex({ gdprCites });
+        let scanned = 0;
+        let flagged = 0;
+        const allFindings: Array<{ pair: string; reason: string }> = [];
+        const walkAndVerify = (node: any) => {
+          if (node == null) return;
+          if (Array.isArray(node)) {
+            for (let i = 0; i < node.length; i++) {
+              const v = node[i];
+              if (typeof v === "string") {
+                scanned += 1;
+                const r = verifyCitationPairs(v, { paragraphIndex, regime });
+                if (r.findings.length > 0) {
+                  flagged += 1;
+                  for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
+                  node[i] = r.text;
+                }
+              } else if (v && typeof v === "object") walkAndVerify(v);
+            }
+            return;
+          }
+          if (typeof node !== "object") return;
+          for (const k of Object.keys(node)) {
+            const v = (node as any)[k];
+            if (typeof v === "string") {
+              scanned += 1;
+              const r = verifyCitationPairs(v, { paragraphIndex, regime });
+              if (r.findings.length > 0) {
+                flagged += 1;
+                for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
+                (node as any)[k] = r.text;
+              }
+            } else if (v && typeof v === "object") walkAndVerify(v);
+          }
+        };
+        console.log(JSON.stringify({ evt: "citation_pair_check_before", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, regime }));
+        walkAndVerify(reportData);
+        console.log(JSON.stringify({
+          evt: "citation_pair_check_after",
+          fn: "run-dpia-framework",
+          build_stamp: BUILD_STAMP,
+          regime,
+          scanned_strings: scanned,
+          flagged_strings: flagged,
+          findings_total: allFindings.length,
+          by_pair: allFindings.reduce((acc, f) => { acc[f.pair] = (acc[f.pair] || 0) + 1; return acc; }, {} as Record<string, number>),
+          sample: allFindings.slice(0, 3),
+        }));
+      } catch (e) {
+        console.warn("[run-dpia-framework] citation-pair verifier failed (non-fatal):", (e as Error)?.message);
+      }
+
 
       // PRODUCT-FIX-4 T3 — mid-body ownership-disclaimer scrub. The exact
       // sentence and its close paraphrases are permitted ONLY in the page-1
