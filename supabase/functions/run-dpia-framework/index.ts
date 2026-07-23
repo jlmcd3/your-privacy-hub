@@ -677,7 +677,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "qbp21-chain-resurrection@2026-07-23T00:15:00Z";
+export const BUILD_STAMP = "w3-t1-dpia-provenance-typed-rows@2026-07-23T14:00:00Z";
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -745,10 +745,10 @@ const U1_SKELETON = `{
     "title": "Systematic Description of the Processing",
     "guidance_note": "EDPB Section 1 / GDPR Art. 35(7)(a) — processed data, purposes, secondary uses, nature/scope/context, functional description, supporting assets, and codes of conduct.",
     "processed_personal_data": [
-      { "item": "data item / element", "explanation": "data type, data subject category, details", "special_category": { "is_special": true, "categories": ["e.g. data concerning health; biometric data for unique identification"] } }
+      { "item": "data item / element", "explanation": "data type, data subject category, details", "special_category": { "is_special": true, "categories": ["e.g. data concerning health; biometric data for unique identification"] }, "source": { "intake_field": "name of the intake field this row is anchored to (e.g. 'data_categories', 'description'); use 'inferred' ONLY when no intake field supports it", "basis": "stated | inferred" } }
     ],
     "purposes": [
-      { "purpose": "specific and explicit purpose", "personal_data_involved_and_justification": "which data (from processed_personal_data) and why it is needed" }
+      { "purpose": "specific and explicit purpose", "personal_data_involved_and_justification": "which data (from processed_personal_data) and why it is needed", "source": { "intake_field": "intake field anchoring this purpose (e.g. 'purpose', 'description', 'processing_activity_name'); use 'inferred' ONLY when no intake field supports it", "basis": "stated | inferred" } }
     ],
     "secondary_uses": [
       { "use": "secondary / compatible use, or 'None identified'", "conditions_and_compatibility": "conditions and a compatibility assessment" }
@@ -759,7 +759,7 @@ const U1_SKELETON = `{
     "cross_border": "Yes / No, with justification",
     "international_transfers": "Yes / No — third country and transfer mechanism, or 'None'",
     "functional_description": [
-      { "phase": "processing phase / stage", "operations": ["Collection","Use","Storage","Sharing and Transfer","Deletion and Destruction"], "explanation": "what happens in this phase across the controller/processor chain" }
+      { "phase": "processing phase / stage", "operations": ["Collection","Use","Storage","Sharing and Transfer","Deletion and Destruction"], "explanation": "what happens in this phase across the controller/processor chain", "source": { "intake_field": "intake field anchoring this phase's operations (e.g. 'description', 'nature_scope_context', 'functional_description'); use 'inferred' ONLY when no intake field supports it", "basis": "stated | inferred" } }
     ],
     "supporting_assets": [
       { "phase": "phase (from functional_description)", "assets": "means of processing and essential supporting assets", "explanation": "how the asset relates to the processing and to risk" }
@@ -893,7 +893,7 @@ const PER_UNIT_BLACKLIST_BAN =
   " HARD PROSE BLACKLIST (repeated per-unit — no unit is exempt): the five phrases \"insufficient basis\", \"not substantiated\", \"cannot be confirmed\", \"no basis to assess\", \"in the clear\" MUST NOT appear in ANY user-facing string emitted by this unit (executive_summary, section prose, table cells, completion_guidance, information_needed, [TO COMPLETE …] placeholders, dpia_metadata, framework_disclaimer — every reader-visible field). REQUIRED ALTERNATIVE CONSTRUCTION: (1) STATE what the record DOES establish, then (2) name the residual using the form \"the record does not yet establish/resolve [X]; [named fact, document, or intake field] completes it.\" Examples of substitutions you MUST make: instead of \"the Art. 6(1)(f) basis cannot be confirmed\" → \"the record establishes purposes A and B; the record does not yet resolve which Art. 6(1) basis applies to purpose C; recording the purpose-specific balancing test completes it.\" Instead of \"feed integrity cannot be confirmed\" → \"feed integrity remains unvalidated on the record; recording the source-data validation procedure completes it.\" Instead of \"insufficient basis for the Art. 9(2) condition\" → \"the record does not yet resolve the Art. 9(2) condition; recording the selected condition and its supporting facts completes it.\" Instead of \"no basis to assess the transfer\" → \"the record does not yet resolve the transfer mechanism; recording the destination country and Art. 46 instrument completes it.\" Instead of \"the DPIA is in the clear on retention\" → \"the record establishes a [N] retention period; adding the deletion procedure would deepen the DPIA.\" Instead of \"the safeguards are not substantiated\" → \"the record establishes safeguards X and Y; the record does not yet evidence safeguard Z; recording the implementation status completes it.\" This ban is not conditional on subject matter — it applies to legal-basis prose, transfer prose, risk prose, operational prose (feed integrity, monitoring, controls), and every other user-facing string this unit emits.";
 
 const UNIT_INSTRUCTION: Record<UnitId, string> = {
-  u1: "Generate the DPIA overview, metadata, and systematic description. Populate the repeatable tables (controllers, processors, data items, purposes) with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred from the intake. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
+  u1: "Generate the DPIA overview, metadata, and systematic description. Populate the repeatable tables (controllers, processors, data items, purposes) with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred from the intake.\n\nPROVENANCE (W3-T1, REQUIRED):\n- Every row of processed_personal_data, purposes, and functional_description MUST carry a `source` object of the form {\"intake_field\": <string>, \"basis\": \"stated\"|\"inferred\"}.\n- `basis: \"stated\"` means the row's substance is directly supported by the named intake_field's value. Use the exact intake key from the record (e.g. 'data_categories', 'purpose', 'description', 'processing_activity_name', 'functional_description', 'nature_scope_context').\n- `basis: \"inferred\"` means the row is a reasonable inference the intake does not directly enumerate; set intake_field to the closest supporting field the inference draws from, or \"inferred\" if none.\n- Do NOT invent enumerations (e.g. specific portal event types, purchase history categories, unnamed central-administration facts). If it isn't stated, mark it inferred and keep it high-level.\n\nReturn ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
   u2: "Generate the compliance analysis section. Provide one row per Article 5(1)(a–f) principle for measures_article5, one row per data-subject right group for measures_rights, and one row per other GDPR requirement for measures_other. Populate every table with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
   u3: "Generate the necessity & proportionality section. CRITICAL: design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context) — this list will be reused verbatim by Section 4. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
   u4: "Generate the risk assessment & management section. CRITICAL — keep the EDPB design-risk vs incident-risk distinction: incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors). inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts (supplied below verbatim) and incident_risk_impacts, each scored likelihood × severity with modulating factors. residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
@@ -1942,6 +1942,20 @@ async function runStitch(dpia_id: string): Promise<void> {
       }
     }
 
+
+    // W3-T1 §3 — metadata dedup: processing_name is an emit-time cross-reference
+    // of dpia_metadata.processing_activity_name (single source of truth). We
+    // mirror the metadata value into section_0_overview.processing_name whenever
+    // the metadata carries a value, so both surfaces always agree.
+    try {
+      const activityName =
+        (reportData as any)?.dpia_metadata?.processing_activity_name ??
+        (reportData as any)?.dpia_metadata?.processing_name ?? null;
+      if (activityName && typeof activityName === "string" && activityName.trim()) {
+        const ov = (reportData as any).section_0_overview ?? ((reportData as any).section_0_overview = {});
+        ov.processing_name = activityName.trim();
+      }
+    } catch { /* non-fatal */ }
 
     // Hard-key validation (courier §7). Guard against a stitched-empty doc.
     if (!reportData.section_0_overview && !reportData.section_4_risk_management) {

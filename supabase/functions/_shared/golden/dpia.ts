@@ -28,6 +28,9 @@ export const DPIA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "Article\\s*9\\(2\\)\\(h\\)", flags: "i", label: "Art 9(2)(h) selected" },
       { kind: "must_include", pattern: "necessity|proportionality", flags: "i", label: "necessity/proportionality" },
+      // W3-T1 — provenance-typed rows in section_1_description
+      { kind: "must_include", pattern: "\"intake_field\"", label: "row source.intake_field present" },
+      { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
     ],
   },
   {
@@ -50,6 +53,8 @@ export const DPIA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "UK GDPR", flags: "i", label: "UK GDPR named" },
       { kind: "must_not_include", pattern: "BIPA", flags: "i", label: "no US BIPA" },
+      { kind: "must_include", pattern: "\"intake_field\"", label: "row source.intake_field present" },
+      { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
     ],
   },
   {
@@ -74,6 +79,8 @@ export const DPIA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "main\\s+establishment|central administration", flags: "i",
         label: "Main Establishment analysis surfaces" },
+      { kind: "must_include", pattern: "\"intake_field\"", label: "row source.intake_field present" },
+      { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
     ],
   },
 ];
