@@ -96,7 +96,35 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: string; showNoGapsMessage?: boolean }) {
+// QB-P25 A3 — enum chip for enforcement_exposure. FULL-mode entries carry
+// one of three tokens; the dollar detail lives in enforcement_context.
+function ExposureChip({ value }: { value: string }) {
+  const label =
+    value === "per_consumer_scalable" ? "Scales per California consumer" :
+    value === "per_violation" ? "Per-violation exposure" :
+    "Not applicable";
+  const cls =
+    value === "per_consumer_scalable" ? "bg-red-100 text-red-800 border-red-200" :
+    value === "per_violation" ? "bg-amber-100 text-amber-800 border-amber-200" :
+    "bg-muted text-muted-foreground border-border";
+  return (
+    <span className={`inline-flex items-center text-[10px] font-semibold uppercase tracking-wide rounded-full border px-2 py-0.5 ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
+function GapTable({
+  items,
+  title,
+  showNoGapsMessage,
+  compact,
+}: {
+  items: any[];
+  title: string;
+  showNoGapsMessage?: boolean;
+  compact?: boolean;
+}) {
   if (!items || items.length === 0) {
     if (showNoGapsMessage) {
       return (
@@ -110,6 +138,38 @@ function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: st
     }
     return null;
   }
+
+  // QB-P25 A3 — COMPACT mode: entries carry only element / duty_if_in_scope / citation.
+  if (compact) {
+    return (
+      <section className="space-y-3">
+        <h3 className="font-body text-display-card font-semibold">{title}</h3>
+        <div className="rounded-lg border bg-card divide-y">
+          {items.map((item, i) => (
+            <div key={i} className="px-4 py-3 space-y-1">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <p className="text-[13px] font-medium">{item.element}</p>
+                {item.citation && (
+                  <a
+                    href={OFFICIAL_REG_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[11px] text-[hsl(var(--cobalt))] hover:underline shrink-0"
+                  >
+                    {item.citation}
+                  </a>
+                )}
+              </div>
+              {item.duty_if_in_scope && (
+                <p className="text-[12px] leading-relaxed text-foreground/80">{item.duty_if_in_scope}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   const gaps = items.filter((i) => i.status !== "compliant");
   const ok = items.filter((i) => i.status === "compliant");
   return (
@@ -131,7 +191,12 @@ function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: st
                     {item.citation}
                   </a>
                 </div>
-                <StatusBadge status={item.status} />
+                <div className="flex items-center gap-2 shrink-0">
+                  {item.enforcement_exposure && item.enforcement_exposure !== "na" && item.status !== "compliant" && (
+                    <ExposureChip value={item.enforcement_exposure} />
+                  )}
+                  <StatusBadge status={item.status} />
+                </div>
               </div>
               <p className="text-[13px] text-foreground/80">{item.finding}</p>
               {item.remediation && (
@@ -140,14 +205,6 @@ function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: st
                     Remediation
                   </p>
                   <p className="text-[12px] leading-relaxed">{item.remediation}</p>
-                </div>
-              )}
-              {item.enforcement_exposure && item.status !== "compliant" && (
-                <div className="rounded-md bg-red-50/30 border border-red-100 px-3 py-2">
-                  <p className="text-[11px] font-semibold text-red-700 uppercase tracking-wide mb-0.5">
-                    Enforcement Exposure
-                  </p>
-                  <p className="text-[12px] leading-relaxed text-foreground/80">{item.enforcement_exposure}</p>
                 </div>
               )}
               {item.sample_language && (
