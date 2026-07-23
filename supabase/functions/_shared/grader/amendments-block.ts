@@ -1,4 +1,6 @@
 // C1-c (2026-07-23T23:30:00Z) — GRADER AMENDMENTS BLOCK FROM CORPUS
+// HYGIENE-1 (2026-07-23T16:35:00Z) — docstring lettering corrected to match
+// active exported strings and citation-pair-verifier: (ae)=SPI, (ah)=share.
 //
 // Purpose: supply the Opus grader with corpus-verified statements of the
 // CURRENT/AMENDED law it is judging against, so grading is not silently
@@ -14,11 +16,11 @@
 //     § 7222 family section→label map treated as the single source of truth
 //     for verified ADMT section paths (OAL approval 2025-09-23, effective
 //     2026-01-01, phased through 2030).
-//   - Static entries below reproduce the CCPA § 1798.140 (ah)/(aj) lettering
-//     mapping that is already the operative anchor of citation-pair-verifier
-//     (§ 1798.140(ah) = "sensitive personal information"; § 1798.140(aj) =
-//     "share"). This is corpus-verified against the pair verifier's inline
-//     documentation, not model recall.
+//   - Static entries below reproduce the CCPA § 1798.140 (ae)/(ah) lettering
+//     mapping that is the operative anchor of citation-pair-verifier
+//     (§ 1798.140(ae) = "sensitive personal information"; § 1798.140(ah) =
+//     "share"/"sharing"). This is corpus-verified against the pair verifier's
+//     inline documentation, not model recall.
 //   - The DUAA 2025 in-force date (5 Feb 2026) and the OAL-approved CCR
 //     § 7000-series effective/phased dates are drawn from the same in-repo
 //     docstrings.
