@@ -109,7 +109,14 @@ export const LIA_GOLDEN: GoldenCase[] = [
       balancing_details: {
         reasonable_expectation: "Yes",
         potential_harm: "Minor",
-        // NB: opt_out_mechanism deliberately omitted; safeguards intake is silent.
+        // R-TURN-3 absence convention target is the SAFEGUARDS factor
+        // (safeguards / safeguards_other / additional_context all omitted).
+        // opt_out_mechanism is required-always by the LIA contract; we
+        // populate it with a scenario-consistent narrative that itself
+        // records an absence of a working mechanism, so the adversarial
+        // intent (evidence_absence surfaces on the safeguards factor) is
+        // preserved while the contract validator passes.
+        opt_out_mechanism: "No standing opt-out mechanism is offered to loyalty members for cross-sell segmentation; profile removal requires unsubscribing from the loyalty programme.",
       },
     },
     assertions: [
