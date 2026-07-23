@@ -210,7 +210,7 @@ function docYStripUnlabeledGdprSentences(s: string, fieldPath: string): string {
   return kept.join(" ").replace(/\s+/g, " ").trim();
 }
 
-const DOC_Y_CAL_CIV_RE = /Cal\.?\s*Civ\.?\s*Code\s*(?:§\s*)?(\d{4}\.\d+(?:\.\d+)?)(\([a-z](?:\)\([a-z0-9]+)*\))?/gi;
+const DOC_Y_CAL_CIV_RE = /Cal\.?\s*Civ\.?\s*Code\s*(?:§\s*)?(\d{4}\.\d+(?:\.\d+)?)(\([a-zA-Z0-9]+(?:\)\([a-zA-Z0-9]+)*\))?/gi;
 
 function docYValidateCalCivCitations(s: string, fieldPath: string): string {
   if (!s || typeof s !== "string") return s;

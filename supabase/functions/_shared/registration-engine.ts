@@ -335,7 +335,29 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   }
   if (intake.ai_general_purpose_provider && (intake.has_eu_establishment || euMarkets.length > 0)) {
     gpaiProvider = true;
+    const gpaiTarget = intake.has_eu_establishment
+      ? (intake.eu_lead_member_state || home || "IE")
+      : (euMarkets[0] || "IE");
+    // R-TURN-3 Turn B item 3a — Art. 49(1) applies to PROVIDERS placing high-risk
+    // AI systems / GPAI models on the EU market. Art. 49(3) is public-authority
+    // only and is handled above under R6_AI_HIGH_RISK gated by is_public_authority.
+    ensure(map, gpaiTarget, "R6_AI_GPAI",
+      "GPAI provider obligations engaged — Regulation (EU) 2024/1689, Chapter V (Arts. 53–55). Where the provider places a high-risk AI system on the EU market, Art. 49(1) further requires the provider (or its authorised representative) to register the system in the Art. 71 EU database prior to placing on the market or putting into service. Art. 49(3) is a distinct public-authority-deployer duty and is not engaged by provider status.",
+      "ai_gpai_provider");
     fired.push("R6_AI_GPAI");
+  }
+  // R-TURN-3 Turn B item 3c — French HDS (hébergeur de données de santé) overlay.
+  // Where the record shows French health-data hosting (French health data + FR
+  // in markets or home), the hosting provider must be HDS-certified per Code de
+  // la santé publique art. L1111-8 and the HDS référentiel (ASIP Santé / ANS).
+  const marketsHasFR = markets.has("FR") || home === "FR";
+  const dataCategoriesLower = (intake.data_categories || []).map((c) => String(c).toLowerCase());
+  const hostsFrenchHealthData = marketsHasFR && dataCategoriesLower.some((c) => c.includes("health") || c.includes("santé") || c.includes("sante") || c.includes("medical") || c.includes("patient"));
+  if (hostsFrenchHealthData) {
+    ensure(map, "FR", "R8_FR_HDS",
+      "French health data hosting engaged — the hosting provider (or the controller where it self-hosts) must hold HDS certification (hébergeur de données de santé) per Code de la santé publique art. L1111-8 and the HDS référentiel maintained by the Agence du Numérique en Santé (ANS). Confirm the certified scope covers the actual hosting activities (storage, back-up, restore, administration) before production go-live.",
+      "fr_hds_certification");
+    fired.push("R8_FR_HDS");
   }
   const aiActProvider = highRiskDeployer || gpaiProvider;
 
