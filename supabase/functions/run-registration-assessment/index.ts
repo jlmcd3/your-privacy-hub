@@ -409,42 +409,53 @@ Deno.serve(async (req) => {
           const r = missingReqByCode.get(code) as any;
           const isEu = euEea.has(code);
           const ossActive = isEu && intake.has_eu_establishment === true;
-          // QB-P22 item 5b — for OSS-covered markets, per-entry text is only
-          // the market-specific local-only status; the shared OSS mechanism
-          // paragraph is emitted ONCE in result_summary.oss_group below.
-          const reason = ossActive
-            ? `${r?.jurisdiction_name || code}: no local-only filings identified on the current record. See the OSS mechanism block for the cross-border complaint routing that applies to this market.`
+          const jurName = r?.jurisdiction_name || code;
+          // QB-P26 Item 4 — field-appropriate market-coverage filler. Prior
+          // implementation copied the same sentence into 5 fields (why, notes,
+          // registration_required_basis, ai_registration_required_basis,
+          // data_broker_evaluation.basis) — flagged as boilerplate. Each field
+          // now carries a scope-appropriate sentence and `notes` may be null.
+          const regBasisTxt = ossActive
+            ? `${jurName}: no local-only controller-registration filing identified on the current record. Cross-border complaints are routed via the GDPR one-stop-shop mechanism — see the oss_group block.`
             : (r?.registration_required === false
-                ? `${r?.jurisdiction_name || code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market. Sector-specific authorisations, if any, are outside the scope of a general registration filing.`
-                : `The intake records this market but no registration obligation was identified for ${r?.jurisdiction_name || code} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
+                ? `${jurName} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market.`
+                : `No general controller-registration obligation was identified for ${jurName} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
+          const aiBasisTxt = isEu
+            ? `EU AI Act filing obligations are not engaged in ${jurName}: the intake declares neither GPAI-provider nor high-risk-AI-deployer status. See the EU AI Act basis section for the framework's territorial scope.`
+            : `The EU AI Act is EU law and does not apply as a ${jurName} filing obligation.`;
+          const brokerBasisTxt = `No data-broker-registry filing is engaged for ${jurName}: the intake does not indicate the organisation meets a data-broker definition requiring registry filing in this jurisdiction.`;
+          const whyTxt = ossActive
+            ? `Market recorded in intake; local-only filings not engaged, OSS covers cross-border complaints.`
+            : (r?.registration_required === false
+                ? `Market recorded in intake; ${jurName} operates no general controller-registration scheme.`
+                : `Market recorded in intake; no filing obligation identified on current record.`);
           if (ossActive) {
             ossCoveredCodes.push(code);
-            ossCoveredNames.push(r?.jurisdiction_name || code);
+            ossCoveredNames.push(jurName);
           }
+          const perJurDpo = dpoBasisForJurisdiction(code, jurName, intake);
           result_summary.jurisdictions.push({
             code,
-            name: r?.jurisdiction_name || code,
+            name: jurName,
             region: r?.region || null,
             law: r?.law_name || null,
             authority: r?.authority_name || null,
             authority_url: r?.authority_url || null,
             registration_required: r?.registration_required ?? null,
-            registration_required_basis: reason,
-            dpo_required: engineOutput.obligations_summary.dpo_required,
+            registration_required_basis: regBasisTxt,
+            dpo_required: perJurDpo.required,
+            dpo_basis: perJurDpo.basis,
             ai_registration_required: false,
-            ai_registration_required_basis: reason,
-            data_broker_evaluation: { definition_cite: null, met: false, basis: reason },
+            ai_registration_required_basis: aiBasisTxt,
+            data_broker_evaluation: { definition_cite: null, met: false, basis: brokerBasisTxt },
             representative_required: false,
             filing_fee_cents: r?.filing_fee_cents ?? null,
             filing_currency: r?.filing_currency ?? null,
             renewal_period_months: r?.renewal_period_months ?? null,
-            notes: reason,
-            why: reason,
+            notes: null,
+            why: whyTxt,
             rule_id: ossActive ? "R11_MARKET_COVERAGE_OSS" : "R11_MARKET_COVERAGE",
             obligations: [],
-            // QB-P24 Item 2 — additive `unresolved` block on placeholder entries
-            // when the registry does not affirm a filing obligation. Existing
-            // keys unchanged.
             unresolved: (r?.registration_required === true) ? null : {
               status: "unresolved" as const,
               authority_to_confirm: r?.authority_name || "the competent supervisory authority",
