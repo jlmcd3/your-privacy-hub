@@ -65,6 +65,15 @@ export interface IntakeData {
   acts_as_data_broker?: boolean;
   sells_or_shares_personal_info?: boolean; // CCPA "sale or share"
   processes_biometrics_for_id?: boolean; // BIPA / IL, TX CUBI, WA
+
+  // CEO decision — registration public-entity handling (2026-07-23).
+  // Optional flag. Default false/absent = private entity: no Art. 49(3)
+  // deployer-database card, no Art. 37(1)(a) public-authority DPO
+  // trigger, no public-authority narrative anywhere in the output.
+  // True = engage public-authority-specific obligations (Art. 49(3)
+  // deployer registration for high-risk AI; Art. 37(1)(a) DPO). Provider
+  // Art. 49(1) duties are independent of this flag.
+  is_public_authority?: boolean;
 }
 
 export interface RecommendedJurisdiction {
