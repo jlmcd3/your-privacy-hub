@@ -34,7 +34,7 @@ import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
 
 
-export const BUILD_STAMP = "w3-t4-t5-inference-discipline-ses-ledger-scrub@2026-07-23T17:00:00Z";
+export const BUILD_STAMP = "automation-enabler-internal-start@2026-07-23T18:00:00Z";
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
@@ -989,6 +989,40 @@ async function handler(req: Request) {
     EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] campaign_tick error", e)));
     return json({ ok: true, build_stamp: BUILD_STAMP, action: "campaign_tick" }, 202);
   }
+
+  // AUTOMATION-ENABLER — internal start path for automated boundary launches.
+  // Gated on the SAME ADMIN_SECRET_TOKEN vault-bearer path the campaign_tick
+  // cron already uses (isCron: x-internal-cron:1 header + ADMIN_SECRET_TOKEN
+  // OR service-role). This is deliberately NOT gated on `isInternal` (bare
+  // service-role bearer) because the caller runs from the same automation
+  // surface as the cron and must not require an admin USER JWT. Mirrors the
+  // pinned_rerun internal branch shape (~L998): resolve an admin owner UUID
+  // for created_by, delegate to startRun, and record an audit line.
+  if (isCron && body?.action === "start") {
+    const owner = await resolveAdminOwner();
+    if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency);
+    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
+    try {
+      await admin().from("admin_action_log").insert({
+        actor_user_id: owner,
+        action: "system:automated-boundary-start",
+        target_table: "quality_batch_runs",
+        target_id: res.runId,
+        payload: {
+          tools: body?.tools ?? null,
+          batch_size: body?.batch_size ?? null,
+          concurrency: body?.concurrency ?? null,
+        },
+        result: { run_id: res.runId },
+        ok: true,
+      });
+    } catch (e) {
+      console.error("[qb-orchestrator] automation-enabler audit-log insert failed:", (e as Error).message);
+    }
+    return json({ ok: true, action: "start", run_id: res.runId, build_stamp: BUILD_STAMP, internal: true }, 202);
+  }
+
 
   // QB-P25 Final-B R1 — internal-only pinned_rerun (service-role bearer).
   // Now creates a quality_batch_runs PARENT so the rerun appears on the admin
