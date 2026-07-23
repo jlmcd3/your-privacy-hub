@@ -465,7 +465,7 @@ ${intakeJson}
 Per-control digest (already assessed; do not re-score):
 ${controlsDigest}
 
-System-computed overall_score (mean of the 18 control scores, rounded): ${computedScore}
+System-computed overall_score (mean of the N assessed controls, rounded; N excludes any control with status "Insufficient information"): ${computedScore}
 Your executive_summary and readiness_level MUST be consistent with this overall_score.
 
 NEXT-STEPS CONSISTENCY AND CAP (QB-P25 CYBER): every deadline in next_steps must restate a deadline already given in a control's remediation — never introduce a different timeframe for the same action. Refer to controls by NAME, never "component N" (component numbers are not rendered). The next_steps array is CAPPED AT THREE items — never emit more than three. Each next_step is an OBJECT { text, owner, trigger } where 'owner' names the intake-supplied accountable function (e.g. "Security Engineering", "the DPO", "the incident-response lead") and 'trigger' names the concrete artefact or condition that closes the step (e.g. "when the c14_secure_dev intake entry supplies a SAST tool name"). String-only next_steps are legacy and will be normalised; new output MUST use the object form.
