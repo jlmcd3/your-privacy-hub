@@ -685,6 +685,9 @@ function applyTimelineForm(report: any): void {
       ? `timeline to be set by the organisation (e.g. ${v.trim()})`
       : v;
   for (const df of Object.values(report?.domain_findings ?? {})) {
+    // QB-P25 B2: v2 findings compose the timeline sentence from
+    // recommended_action_v2.deadline; the legacy wrapper is retired for them.
+    if (findingHasV2Deadline(df)) continue;
     if (df && typeof df === "object" && "suggested_timeline" in (df as any)) {
       (df as any).suggested_timeline = wrap((df as any).suggested_timeline);
     }
