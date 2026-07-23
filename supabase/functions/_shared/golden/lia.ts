@@ -31,6 +31,12 @@ export const LIA_GOLDEN: GoldenCase[] = [
     intake: { ...base },
     assertions: [
       { kind: "must_include", pattern: "legitimate interest|Article\\s*6\\(1\\)\\(f\\)", flags: "i", label: "LI basis named" },
+      // W3-T2: per-factor balancing objects with intake_evidence.
+      { kind: "must_include", pattern: "reasonable_expectations", label: "factor: reasonable_expectations present" },
+      { kind: "must_include", pattern: "\"factor\"\\s*:\\s*\"relationship\"", label: "factor: relationship present" },
+      { kind: "must_include", pattern: "impact_severity", label: "factor: impact_severity present" },
+      { kind: "must_include", pattern: "\"factor\"\\s*:\\s*\"safeguards\"", label: "factor: safeguards present" },
+      { kind: "must_include", pattern: "intake_evidence", label: "factors carry intake_evidence anchors" },
     ],
   },
   {
