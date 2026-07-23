@@ -32,6 +32,7 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 interface IntakeState {
   // Step 1
   organization_name: string;
+  is_public_authority: boolean;
   organization_country: string;
   organization_size: string;
   industry: string;
