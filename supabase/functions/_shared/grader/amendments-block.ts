@@ -1,4 +1,6 @@
 // C1-c (2026-07-23T23:30:00Z) — GRADER AMENDMENTS BLOCK FROM CORPUS
+// POST-C1-FIX-2-AMEND (2026-07-23T18:45:00Z) — dedicated post-cutoff case-law
+// block for Clay v. Union Pacific (registry-sourced, verified real).
 // HYGIENE-1 (2026-07-23T16:35:00Z) — docstring lettering corrected to match
 // active exported strings and citation-pair-verifier: (ae)=SPI, (ah)=share.
 //
