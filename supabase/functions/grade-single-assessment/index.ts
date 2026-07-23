@@ -225,7 +225,7 @@ async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, repo
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
   const family = familyForSingleTool(tool);
   const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
   if (payload.truncated) {
     console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
