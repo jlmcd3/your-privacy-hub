@@ -827,8 +827,23 @@ const RUBRIC_ADMT: RubricCheck[] = [
     description: "ADMT citation outside the real range (real sections: 7001, 7150–7157, 7200–7222)." },
 ];
 
+// QB-P25 B2 — Governance rubric note.
+// When the generator emits recommended_action_v2 or regulatory_basis_v2, those
+// objects are DESIGNED, structured output; never grade their JSON shape or
+// key names as an "internal-reasoning leak" or as "internal metadata." They
+// are additive to the legacy strings (recommended_action / regulatory_basis /
+// suggested_owner / suggested_timeline) and never replace them. If both are
+// present, grade the substance in the legacy strings AND the substance in
+// the v2 objects as a single finding; do not double-count the same content
+// as either strength or weakness.
+const RUBRIC_GOVERNANCE: RubricCheck[] = [
+  { id: "rubric_governance_v2_shape_is_designed", dimension: "hallucination", severity: "low",
+    description: "recommended_action_v2 / regulatory_basis_v2 are DESIGNED structured outputs (QB-P25 B2); never deduct for their presence or their JSON shape. Grade substance only." },
+];
+
 const RUBRIC_CHECKS: Record<string, RubricCheck[]> = {
   "cppa-admt": [...RUBRIC_GENERAL, ...RUBRIC_ADMT],
+  "governance": [...RUBRIC_GENERAL, ...RUBRIC_GOVERNANCE],
   // All other tools use the general list. Add tool-specific entries here as they're identified.
 };
 

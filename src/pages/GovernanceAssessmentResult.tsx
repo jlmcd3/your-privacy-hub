@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
+import GovernanceDomainV2Fields from "@/components/reports/GovernanceDomainV2Fields";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { CheckCircle2 } from 'lucide-react';
 
@@ -316,12 +317,12 @@ const GovernanceAssessmentResult = () => {
                             {d.gap_description && (
                               <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>
                             )}
-                            {d.regulatory_basis && (
-                              <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>
-                            )}
-                            {d.recommended_action && (
-                              <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>
-                            )}
+                            <GovernanceDomainV2Fields
+                              recommendedActionV2={(d as any).recommended_action_v2}
+                              regulatoryBasisV2={(d as any).regulatory_basis_v2}
+                              legacyRecommendedAction={d.recommended_action}
+                              legacyRegulatoryBasis={d.regulatory_basis}
+                            />
                             <div className="flex gap-3 text-xs text-muted-foreground">
                               {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
                               {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
@@ -367,8 +368,12 @@ const GovernanceAssessmentResult = () => {
                         <AccordionContent>
                           {d.current_state && <p className="text-sm mb-2"><strong>Current state:</strong> {d.current_state}</p>}
                           {d.gap_description && <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>}
-                          {d.regulatory_basis && <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
-                          {d.recommended_action && <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>}
+                          <GovernanceDomainV2Fields
+                            recommendedActionV2={(d as any).recommended_action_v2}
+                            regulatoryBasisV2={(d as any).regulatory_basis_v2}
+                            legacyRecommendedAction={d.recommended_action}
+                            legacyRegulatoryBasis={d.regulatory_basis}
+                          />
                           <div className="flex gap-3 text-xs text-muted-foreground">
                             {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
                             {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
