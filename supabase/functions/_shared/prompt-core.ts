@@ -31,8 +31,39 @@
 // Both are embedded into EUP_PROMPT_CORE (full) and EUP_PROMPT_CORE_LEAN so every
 // tool consuming buildSystemContent inherits them; DPA composes its own systemPrompt
 // and wires the two named exports directly (same pattern as ADVISORY_VOICE_RULES).
-export const PROMPT_CORE_VERSION = "3.10.2-product-fix-4";
-export const BUILD_TAG = "qb19";
+export const PROMPT_CORE_VERSION = "3.10.3-w3-t4-inference-discipline";
+export const BUILD_TAG = "w3t4";
+
+// W3-T4 (b) — SHARED INFERENCE-DISCIPLINE RULE. Single source of truth used
+// by every tool prompt. Complements CARDINAL RULE — NO FABRICATION by
+// governing how a permitted inference is LABELED when it appears in output.
+// Never invent an anchor; when an inference is made, name it as one.
+export const INFERENCE_DISCIPLINE_RULE = `INFERENCE DISCIPLINE (W3-T4 — SHARED PROMPT-CORE DIRECTIVE)
+Where a finding is directly stated by the intake or by injected authoritative material, present it as
+stated and anchor it to the exact intake field or the exact statute/regulation cited to you. Where a
+finding is a reasonable inference from those inputs (not directly stated but soundly derivable), present
+it as an inference and (a) name the closest supporting intake field or authoritative anchor it draws
+from, and (b) label the derivation in prose ("this is an inference from …") rather than presenting it
+as a stated fact. Never dress an inference up as a stated fact, and never invent a supporting anchor
+where none exists — if no supporting field or anchor exists, mark the item as insufficient basis and
+route it to information_needed. Provenance fields required by the tool schema (e.g. source.basis =
+"stated" | "inferred") MUST reflect this distinction verbatim.`;
+
+// W3-T4 (a) — STRUCTURED EXECUTIVE SUMMARY. Every tool that emits an
+// executive summary MUST include a `top_3_actions` array of exactly three
+// concrete, prioritised, non-templated actions derived from the report's
+// own findings. Each action is a single sentence naming the specific control
+// / obligation / clause AND the specific evidence gap it closes. No boilerplate.
+export const STRUCTURED_EXEC_SUMMARY_RULE = `STRUCTURED EXECUTIVE SUMMARY — top_3_actions (W3-T4 — SHARED PROMPT-CORE DIRECTIVE)
+executive_summary MUST include a top_3_actions array of exactly three (3) prioritised action strings.
+Each string names (i) the specific control/obligation/clause the action addresses and (ii) the concrete
+evidence, artifact, or decision that would close it. Actions are derived from THIS report's own
+findings — never generic ("engage counsel", "review policies", "conduct training"), never a restatement
+of a section heading, and never duplicated across the three slots. Order is priority order (highest
+first). If fewer than three distinct actions are supportable by the record, populate the remaining
+slots with insufficient-basis entries that name the specific missing input needed to identify the next
+action — never with filler.`;
+
 
 import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
 
