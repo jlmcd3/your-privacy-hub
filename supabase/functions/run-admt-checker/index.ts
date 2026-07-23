@@ -599,6 +599,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "is_admt": true | false,
     "is_admt_reasoning": "Cite the specific element(s) of the system description that do or do not satisfy 11 CCR § 7001(e). Quote relevant facts.",
     "triggers_significant_decision": true | false,
+    "determination_basis": "established" | "conservative_assumption",   // REQUIRED (QB-P25 A3). "established" = intake affirmatively identifies an enumerated § 7001(ddd) category; "conservative_assumption" = intake does not resolve the category and the tool is defaulting to in-scope pending business confirmation. Governs whether gap entries are FULL or COMPACT.
     "significant_decision_reasoning": "Cite which § 7001(ddd) subcategory applies (or does not) and why, based on the system description.",
     "human_review_qualifies": true | false,
     "human_review_reasoning": "Analyze whether the described human review satisfies all three elements of § 7001(e)(1)(A)-(C). State clearly whether it does or does not constitute 'human involvement' as defined.",
@@ -609,7 +610,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "exception_qualifies": true | false | "cannot_determine",
     "exception_reasoning": "If an exception was claimed, analyze whether the specific facts described satisfy the statutory requirements. Be direct: state whether the exception is or is not established based on the facts provided. If the business did not claim an exception, state 'No exception claimed — opt-out right required.'",
     "third_party_responsibility_note": "If third-party ADMT tools were listed, note here that the business remains the CCPA-responsible party. Otherwise leave as empty string.",
-    "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above."
+    "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above. When determination_basis is 'conservative_assumption', state the conditional-pending-confirmation clause here ONCE per THE CONDITION IS STATED ONCE, UP FRONT."
   },
 
   "consolidated_notice_analysis": {
