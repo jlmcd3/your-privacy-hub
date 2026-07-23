@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "admt-product-prompt-1@2026-07-22T18:00:00Z";
+export const BUILD_STAMP = "qbp25-admt-determination-basis-and-exposure-enum@2026-07-23T06:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -281,7 +281,11 @@ ANSWERED INTAKE FIELDS RESOLVE THE QUESTION — SOLE-FACTOR EXTENSION (QL2-FIX-1
 
 EACH ELEMENT IS ASSESSED ON ITS OWN RECORD — NO PROXY EVALUATION: never evaluate one document's element by analysing a different document's text (e.g. assessing the access response's purpose disclosure by quoting the Pre-use Notice). Where the element's own text is not supplied, state that its sufficiency cannot be confirmed on this record and stop; the other document's deficiency is addressed in its own finding only.
 
-BOOLEAN FIELDS ASSERT ESTABLISHED FACTS ONLY: a trigger boolean (e.g. triggers_significant_decision) is true only where the trigger is established on the intake. Where the determination is conditional on a business confirmation, the boolean is false and the reasoning states the condition and what confirmation flips it; a separately listed trigger entry distinguishes 'established on intake' triggers from 'pending business confirmation' triggers as two entries, never one caveated entry. Sibling cross-references name the exact array location and element_id ('see notice_gaps[0], element_id notice_purpose'), never a bare 'see the finding above'.
+BOOLEAN FIELDS + DETERMINATION_BASIS (QB-P25 A3 RECONCILIATION): triggers_significant_decision is a DEFINITIVE true/false (per SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE) — never hedged, never split into "established" and "pending" siblings. Where the intake genuinely does not resolve whether the service falls within an enumerated § 7001(ddd) category, apply the conservative in-scope determination (boolean = true) AND set scope_analysis.determination_basis = "conservative_assumption"; where the intake affirmatively establishes the category, set scope_analysis.determination_basis = "established". The determination_basis field is REQUIRED on every run. All downstream findings, priority actions, and cross-references stay consistent with the boolean; the "conditional pending business confirmation" clause is stated ONCE in scope_analysis.summary per THE CONDITION IS STATED ONCE, UP FRONT. Sibling cross-references still name the exact array location and element_id ('see notice_gaps[0], element_id notice_purpose'), never a bare 'see the finding above'.
+
+QB-P25 A3 — COMPACT-GAP MODE UNDER CONSERVATIVE ASSUMPTION: when scope_analysis.determination_basis === "conservative_assumption", every entry in notice_gaps, opt_out_gaps, and access_gaps MUST be a COMPACT form containing ONLY these fields: { "element_id", "element", "duty_if_in_scope", "citation" } — omit "status", "finding", "remediation", "enforcement_exposure", "sample_language", and "usage_note" entirely. "duty_if_in_scope" is a single plain-language sentence stating what the business would owe under that element IF the scope determination is confirmed (e.g. "Provide a pre-use notice describing the specific decision the ADMT informs before any consumer data is collected for that purpose."). The compact entries render under the single banner "Obligations if the scope determination is confirmed"; DO NOT emit per-entry findings, remediations, exposures, or drafted sample language in this mode — those attach only after the business confirms the enumerated category. Element_id vocabulary and array names are UNCHANGED (preserves grader + open-items contracts). When scope_analysis.determination_basis === "established", emit the FULL entries as documented in the JSON schema and Pass-2 sample-language drafting proceeds normally.
+
+QB-P25 A3 — ENFORCEMENT_EXPOSURE IS AN ENUM: on every gap entry (full-mode only), enforcement_exposure MUST be one of exactly three enum values: "per_violation" (single per-consumer statutory exposure), "per_consumer_scalable" (exposure scales per affected California consumer because ca_consumer_count is provided AND the element applies uniformly to each such consumer), or "na" (element is compliant or exposure is not applicable). NEVER emit a free-form sentence, dollar figure, or narrative in the per-entry enforcement_exposure field — the dollar analysis lives EXCLUSIVELY in enforcement_context (unchanged). Compact-mode entries omit enforcement_exposure entirely.
 
 SAMPLE LANGUAGE NEVER INVENTS COMMITMENTS: bracketed placeholders in sample consumer language never introduce a numeric commitment (review timelines, response periods) that the cited provision does not require — where the provision requires only a description of a process, the sample says 'as promptly as feasible' or defers to the business's terms of service, and never offers a fill-in [NUMBER] that would become a binding notice commitment.
 
@@ -595,6 +599,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "is_admt": true | false,
     "is_admt_reasoning": "Cite the specific element(s) of the system description that do or do not satisfy 11 CCR § 7001(e). Quote relevant facts.",
     "triggers_significant_decision": true | false,
+    "determination_basis": "established" | "conservative_assumption",   // REQUIRED (QB-P25 A3). "established" = intake affirmatively identifies an enumerated § 7001(ddd) category; "conservative_assumption" = intake does not resolve the category and the tool is defaulting to in-scope pending business confirmation. Governs whether gap entries are FULL or COMPACT.
     "significant_decision_reasoning": "Cite which § 7001(ddd) subcategory applies (or does not) and why, based on the system description.",
     "human_review_qualifies": true | false,
     "human_review_reasoning": "Analyze whether the described human review satisfies all three elements of § 7001(e)(1)(A)-(C). State clearly whether it does or does not constitute 'human involvement' as defined.",
@@ -605,7 +610,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "exception_qualifies": true | false | "cannot_determine",
     "exception_reasoning": "If an exception was claimed, analyze whether the specific facts described satisfy the statutory requirements. Be direct: state whether the exception is or is not established based on the facts provided. If the business did not claim an exception, state 'No exception claimed — opt-out right required.'",
     "third_party_responsibility_note": "If third-party ADMT tools were listed, note here that the business remains the CCPA-responsible party. Otherwise leave as empty string.",
-    "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above."
+    "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above. When determination_basis is 'conservative_assumption', state the conditional-pending-confirmation clause here ONCE per THE CONDITION IS STATED ONCE, UP FRONT."
   },
 
   "consolidated_notice_analysis": {
@@ -625,15 +630,23 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "aggregate_exposure_note": "Based on the gaps identified and the consumer volume provided (or noted as not provided), briefly describe the scale of potential exposure. Note that the CPPA may count each affected consumer as a separate violation. Do not cite specific enforcement actions or settlements unless they appear in the REGULATION AUTHORITIES block provided — if none do, omit that reference. Do NOT characterise historical settlement levels or enforcement outcomes (e.g. that matters 'typically settle below the statutory maximum') — that is uncited memory; state only the statutory per-violation exposure and that actual outcomes depend on the facts."
   },
 
+  // ── QB-P25 A3: two possible shapes per entry ─────────────────────────────
+  //   * When scope_analysis.determination_basis === "established" → FULL:
+  //       { element_id, element, status, finding, citation:"", remediation, enforcement_exposure }
+  //     where enforcement_exposure ∈ { "per_violation", "per_consumer_scalable", "na" }.
+  //   * When scope_analysis.determination_basis === "conservative_assumption" → COMPACT:
+  //       { element_id, element, duty_if_in_scope, citation:"" }
+  //     — no status, no finding, no remediation, no enforcement_exposure.
   "notice_gaps": [
     {
       "element_id": "notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret",
       "element": "Plain-English name of the element (no section number)",
-      "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding in plain language. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
+      "status": "compliant | gap | missing   // FULL mode only",
+      "finding": "Specific finding in plain language. FULL mode only. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
       "citation": "",
-      "remediation": "Specific action the business must take. No section numbers.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
+      "remediation": "Specific action the business must take. FULL mode only. No section numbers.",
+      "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only. NEVER dollar figures or narrative.",
+      "duty_if_in_scope": "COMPACT mode only. Single plain-language sentence stating what the business would owe under this element IF the scope determination is confirmed."
     }
   ],
 
@@ -641,11 +654,12 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     {
       "element_id": "optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing",
       "element": "Plain-English name of the element (no section number)",
-      "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this under optout_processing. No section numbers.",
+      "status": "compliant | gap | missing   // FULL mode only",
+      "finding": "Specific finding. FULL mode only. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this under optout_processing. No section numbers.",
       "citation": "",
-      "remediation": "Specific action required. No section numbers.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
+      "remediation": "Specific action required. FULL mode only. No section numbers.",
+      "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only.",
+      "duty_if_in_scope": "COMPACT mode only. Single plain-language sentence."
     }
   ],
 
@@ -653,11 +667,12 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     {
       "element_id": "access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification",
       "element": "Plain-English name of the element (no section number)",
-      "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding. No section numbers.",
+      "status": "compliant | gap | missing   // FULL mode only",
+      "finding": "Specific finding. FULL mode only. No section numbers.",
       "citation": "",
-      "remediation": "Specific action required. No section numbers.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
+      "remediation": "Specific action required. FULL mode only. No section numbers.",
+      "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only.",
+      "duty_if_in_scope": "COMPACT mode only. Single plain-language sentence."
     }
   ],
 
@@ -1177,7 +1192,11 @@ ADDITIONAL DISCIPLINES:
     // business must supply themselves (URLs, contact emails, specific dates).
     // Non-fatal: if this call fails, the gap analysis result is still saved.
 
-    const gapItems = [
+    // QB-P25 A3 — skip Pass-2 sample-language drafting entirely under
+    // conservative_assumption; compact entries have no finding/remediation
+    // scaffold for the drafter to consume.
+    const _detBasis = (report?.scope_analysis?.determination_basis === "conservative_assumption");
+    const gapItems = _detBasis ? [] : [
       ...(report.notice_gaps ?? []).filter((i: any) => i.status !== "compliant").map((i: any) => ({ ...i, section: "notice" })),
       ...(report.opt_out_gaps ?? []).filter((i: any) => i.status !== "compliant").map((i: any) => ({ ...i, section: "opt_out" })),
       ...(report.access_gaps ?? []).filter((i: any) => i.status !== "compliant").map((i: any) => ({ ...i, section: "access" })),
@@ -1326,6 +1345,65 @@ Return this JSON structure exactly:
     } catch (e) {
       console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);
     }
+
+    // ── QB-P25 A3 normalizer ────────────────────────────────────────────────
+    // (1) determination_basis: default missing/invalid to "established" so
+    //     legacy runs remain FULL-mode by fiat.
+    // (2) enforcement_exposure: coerce every FULL-mode gap entry to the
+    //     three-enum vocabulary { per_violation | per_consumer_scalable | na }.
+    // (3) COMPACT mode: when determination_basis === "conservative_assumption",
+    //     strip each entry to { element_id, element, duty_if_in_scope, citation }
+    //     and drop any status/finding/remediation/enforcement_exposure/sample_language.
+    try {
+      const sa = (report as any).scope_analysis;
+      if (sa && typeof sa === "object") {
+        const dbRaw = String(sa.determination_basis ?? "").trim();
+        if (dbRaw !== "established" && dbRaw !== "conservative_assumption") {
+          sa.determination_basis = "established";
+          console.warn(`[ADMT] QB-P25 A3: determination_basis missing/invalid (${JSON.stringify(dbRaw)}); defaulted to 'established'`);
+        }
+      }
+      const detBasis = (report as any)?.scope_analysis?.determination_basis;
+      const EXPOSURE_ENUM = new Set(["per_violation", "per_consumer_scalable", "na"]);
+      const caCount = String(((assessment as any)?.intake_data as any)?.ca_consumer_count ?? "").trim();
+      const hasCaCount = caCount.length > 0 && !/not\s+provided/i.test(caCount);
+      const coerceExposure = (v: unknown, status: string): string => {
+        if (typeof v === "string" && EXPOSURE_ENUM.has(v)) return v;
+        if (status === "compliant") return "na";
+        return hasCaCount ? "per_consumer_scalable" : "per_violation";
+      };
+      const COMPACT_KEYS = new Set(["element_id", "element", "duty_if_in_scope", "citation"]);
+      let compactStripped = 0;
+      let exposureCoerced = 0;
+      for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
+        const arr = (report as any)[key];
+        if (!Array.isArray(arr)) continue;
+        for (let i = 0; i < arr.length; i++) {
+          const it = arr[i];
+          if (!it || typeof it !== "object") continue;
+          if (detBasis === "conservative_assumption") {
+            // Synthesize duty_if_in_scope from remediation/finding if the
+            // model didn't emit one (legacy shape).
+            if (typeof it.duty_if_in_scope !== "string" || !it.duty_if_in_scope.trim()) {
+              const src = String(it.remediation ?? it.finding ?? it.element ?? "").trim();
+              it.duty_if_in_scope = src ? src.split(/(?<=[.!?])\s/)[0] : String(it.element ?? "");
+            }
+            for (const k of Object.keys(it)) {
+              if (!COMPACT_KEYS.has(k)) { delete it[k]; compactStripped++; }
+            }
+            if (!("citation" in it)) it.citation = "";
+          } else {
+            const coerced = coerceExposure(it.enforcement_exposure, String(it.status ?? ""));
+            if (it.enforcement_exposure !== coerced) { it.enforcement_exposure = coerced; exposureCoerced++; }
+          }
+        }
+      }
+      if (compactStripped > 0) console.warn(`[ADMT] QB-P25 A3 compact-mode: stripped ${compactStripped} non-compact keys across gap entries`);
+      if (exposureCoerced > 0) console.warn(`[ADMT] QB-P25 A3 enforcement_exposure: coerced ${exposureCoerced} entries to enum`);
+    } catch (e) {
+      console.error("[ADMT] QB-P25 A3 normalizer errored (non-fatal):", e);
+    }
+
 
     // QB11-3: Step-2 hard rule enforcement — when triggers_significant_decision is false,
     // the three ADMT gap arrays (§§ 7200–7222) MUST be empty (rule text already mandates this; this
@@ -1538,7 +1616,7 @@ Return this JSON structure exactly:
     }
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
-    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-cppa-hf6c@2026-07-20"), build_stamp: BUILD_STAMP };
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-qbp25-a3@2026-07-23"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
