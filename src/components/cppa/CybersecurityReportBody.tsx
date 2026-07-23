@@ -16,6 +16,7 @@ import { useCitationVerification } from "@/hooks/useCitationVerification";
 import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
 import { readinessColor, controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
 import { AlertTriangle } from 'lucide-react';
+import { CYBER_BANDS, isCyberGapStatus } from "@/lib/cppaCyberBands";
 
 export function CybersecurityReportBody({ row, hideHeader = false }: { row: any; hideHeader?: boolean }) {
   const report = row?.report_data || {};
@@ -172,10 +173,18 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
         <section className="bg-card border rounded-lg p-4 text-sm">
           <p className="font-semibold mb-2">How to read these scores</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
-            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-900">Critical Gap</span><span className="text-xs text-muted-foreground">0–24</span></div>
-            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-orange-100 text-orange-900">Gap</span><span className="text-xs text-muted-foreground">25–49</span></div>
-            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-900">Partial Gap</span><span className="text-xs text-muted-foreground">50–74</span></div>
-            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-900">Implemented</span><span className="text-xs text-muted-foreground">75–100</span></div>
+            {CYBER_BANDS.map((b) => {
+              const cls = b.label === "Critical Gap" ? "bg-red-100 text-red-900"
+                : b.label === "Gap / Partial" ? "bg-orange-100 text-orange-900"
+                : b.label === "Implemented" ? "bg-emerald-100 text-emerald-900"
+                : "bg-sky-100 text-sky-900";
+              return (
+                <div key={b.label} className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 text-xs rounded ${cls}`}>{b.label}</span>
+                  <span className="text-xs text-muted-foreground">{b.bandText}</span>
+                </div>
+              );
+            })}
           </div>
           <p className="text-xs text-muted-foreground">
             Scores reflect this tool's assessment of program maturity based on the inputs you provided. They are not a substitute for an independent auditor's determination and should be reviewed with a qualified CPPA-registered or equivalent cybersecurity auditor before certification.
@@ -192,11 +201,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
       {/* Sprint 1 #4 — Pre-audit readiness gap log */}
       {Array.isArray(report?.controls) && (() => {
-        const isGap = (s?: string) => {
-          const x = (s || "").toLowerCase();
-          return x === "critical gap" || x === "gap" || x === "partial gap";
-        };
-        const gaps = report.controls.filter((c: any) => isGap(c.status));
+        const gaps = report.controls.filter((c: any) => isCyberGapStatus(c.status));
         if (gaps.length === 0) return null;
         // Back-solve from the fixed April 1, 2028 audit submission deadline.
         // Tighter buffer for higher-severity gaps so remediation lands well

@@ -405,6 +405,32 @@ export default function QualityBatch() {
     }
   }
 
+
+
+  // QB-P24 Item 5 — CEO-requested per-tool "Pinned rerun" trigger. Reuses the
+  // orchestrator's pinned_rerun action added in QB-P23; disabled while any
+  // batch is running so we do not stomp an in-flight session.
+  const [pinning, setPinning] = useState<string | null>(null);
+  async function onPinnedRerun(tool: string) {
+    if (isBatchRunning) {
+      toast.error("A batch is running — wait for it to finish before pinning a rerun.");
+      return;
+    }
+    setPinning(tool);
+    try {
+      const { data, error } = await supabase.functions.invoke("quality-batch-orchestrator", {
+        body: { action: "pinned_rerun", tool },
+      });
+      if (error) throw error;
+      toast.success(`Pinned rerun dispatched for ${tool}${data?.run_id ? ` (${String(data.run_id).slice(0, 8)})` : ""}`);
+    } catch (e: any) {
+      toast.error(`Pinned rerun failed for ${tool}: ${e?.message ?? e}`);
+    } finally {
+      setPinning(null);
+    }
+  }
+
+
   async function onResumeChildRun() {
     if (!resumeId.trim()) { toast.error("resume_run_id required"); return; }
     setResuming(true);
@@ -797,6 +823,31 @@ export default function QualityBatch() {
               </div>
             </div>
           )}
+
+          {/* QB-P24 Item 5 — per-tool Pinned rerun. Reuses the QB-P23
+              orchestrator action; admin JWT is carried by supabase.functions.invoke.
+              Disabled while a batch is running so we do not stomp a session. */}
+          <div className="pt-2 border-t space-y-2">
+            <Label>Pinned rerun (golden fixtures)</Label>
+            <div className="flex flex-wrap gap-2">
+              {TOOLS.map((t) => (
+                <Button
+                  key={t}
+                  size="sm"
+                  variant="outline"
+                  disabled={isBatchRunning || pinning === t}
+                  onClick={() => onPinnedRerun(t)}
+                  title={isBatchRunning ? "Finish the running batch first" : `Rerun ${t} against its pinned golden fixtures`}
+                >
+                  {pinning === t ? "…" : t}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Dispatches <code>{'{ action: "pinned_rerun", tool }'}</code> to quality-batch-orchestrator.
+            </p>
+          </div>
+
 
           {/* Resume existing child run — unchanged from prior page */}
           <div className="pt-2 border-t space-y-2">

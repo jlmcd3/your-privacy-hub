@@ -8,7 +8,8 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "qbp19-cross-tool-transfer@2026-07-22T22:00:00Z";
+export const BUILD_STAMP = "qbp24-output-structure-corrections@2026-07-23T02:00:00Z";
+import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
@@ -432,10 +433,7 @@ Components ${startIdx}–${endIdx} to assess (in this order):
 ${numbered}
 
 SCORING RULES:
-- Score 0–20 → status must be "Critical Gap"
-- Score 21–59 → status must be "Partial" or "Gap" (use "Gap" when the control is completely absent; "Partial" when it partially exists)
-- Score 60–89 → status must be "Implemented"
-- Score 90–100 → status must be "Mature"
+${generatorScoringRulesText()}
 - If the intake provides no information bearing on a control, set status to "Insufficient information" and omit the score (leave it as 0); do NOT label it "Gap".
 The status MUST be consistent with the score. Never assign "Implemented" to a control scoring 90 or above.
 - ABSENT-CONTROL BINDING: The score and status MUST be consistent with the finding text. If the finding states the control is absent, "not in the intake", "no dedicated/discrete control entry", or a "material gap", the score MUST fall in the 21–59 Gap band with status "Gap" — never 60 or above, and never "Implemented" or "Mature". If there is genuinely no information bearing on the control, use status "Insufficient information" and leave the score at 0. A finding that describes absence or a gap may not carry an "Implemented"/"Mature" status or a score ≥ 60.
