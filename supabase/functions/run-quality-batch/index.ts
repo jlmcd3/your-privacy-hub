@@ -841,9 +841,27 @@ const RUBRIC_GOVERNANCE: RubricCheck[] = [
     description: "recommended_action_v2 / regulatory_basis_v2 are DESIGNED structured outputs (QB-P25 B2); never deduct for their presence or their JSON shape. Grade substance only." },
 ];
 
+// QB-P25 B3 — RISK rubric note. When exception_analysis or record_sufficiency
+// carry strengthen_item_ids (pointer array into strengthen_items), the item
+// text lives ONCE in strengthen_items (single home). The pointer array itself
+// is DESIGNED structural output; never grade it as an "internal-reasoning
+// leak" or count strengthen_items + strengthen_item_ids as duplicated content
+// (they are one item viewed via a pointer). adverse_effects[].likelihood and
+// .severity are the § 7152 four-value enums (Unlikely/Possible/Likely/Highly
+// likely; Minimal/Moderate/Significant/Severe); do not deduct for enum
+// terseness. priority_actions[].rank is mechanically renumbered 1..N by the
+// post-processor; do not comment on ordering rationale unless the substance
+// of a specific action is wrong. information_needed remains under the frozen
+// open-items contract and is NEVER a strengthen home.
+const RUBRIC_RISK: RubricCheck[] = [
+  { id: "rubric_risk_v2_pointers_are_designed", dimension: "hallucination", severity: "low",
+    description: "strengthen_item_ids pointers (exception_analysis / record_sufficiency) are DESIGNED structured output (QB-P25 B3); never grade as content duplication or metadata leak. Score substance in the pointed-to strengthen_items entry ONCE." },
+];
+
 const RUBRIC_CHECKS: Record<string, RubricCheck[]> = {
   "cppa-admt": [...RUBRIC_GENERAL, ...RUBRIC_ADMT],
   "governance": [...RUBRIC_GENERAL, ...RUBRIC_GOVERNANCE],
+  "cppa-risk": [...RUBRIC_GENERAL, ...RUBRIC_RISK],
   // All other tools use the general list. Add tool-specific entries here as they're identified.
 };
 
