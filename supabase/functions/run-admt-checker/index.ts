@@ -1346,6 +1346,65 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);
     }
 
+    // ── QB-P25 A3 normalizer ────────────────────────────────────────────────
+    // (1) determination_basis: default missing/invalid to "established" so
+    //     legacy runs remain FULL-mode by fiat.
+    // (2) enforcement_exposure: coerce every FULL-mode gap entry to the
+    //     three-enum vocabulary { per_violation | per_consumer_scalable | na }.
+    // (3) COMPACT mode: when determination_basis === "conservative_assumption",
+    //     strip each entry to { element_id, element, duty_if_in_scope, citation }
+    //     and drop any status/finding/remediation/enforcement_exposure/sample_language.
+    try {
+      const sa = (report as any).scope_analysis;
+      if (sa && typeof sa === "object") {
+        const dbRaw = String(sa.determination_basis ?? "").trim();
+        if (dbRaw !== "established" && dbRaw !== "conservative_assumption") {
+          sa.determination_basis = "established";
+          console.warn(`[ADMT] QB-P25 A3: determination_basis missing/invalid (${JSON.stringify(dbRaw)}); defaulted to 'established'`);
+        }
+      }
+      const detBasis = (report as any)?.scope_analysis?.determination_basis;
+      const EXPOSURE_ENUM = new Set(["per_violation", "per_consumer_scalable", "na"]);
+      const caCount = String(((assessment as any)?.intake_data as any)?.ca_consumer_count ?? "").trim();
+      const hasCaCount = caCount.length > 0 && !/not\s+provided/i.test(caCount);
+      const coerceExposure = (v: unknown, status: string): string => {
+        if (typeof v === "string" && EXPOSURE_ENUM.has(v)) return v;
+        if (status === "compliant") return "na";
+        return hasCaCount ? "per_consumer_scalable" : "per_violation";
+      };
+      const COMPACT_KEYS = new Set(["element_id", "element", "duty_if_in_scope", "citation"]);
+      let compactStripped = 0;
+      let exposureCoerced = 0;
+      for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
+        const arr = (report as any)[key];
+        if (!Array.isArray(arr)) continue;
+        for (let i = 0; i < arr.length; i++) {
+          const it = arr[i];
+          if (!it || typeof it !== "object") continue;
+          if (detBasis === "conservative_assumption") {
+            // Synthesize duty_if_in_scope from remediation/finding if the
+            // model didn't emit one (legacy shape).
+            if (typeof it.duty_if_in_scope !== "string" || !it.duty_if_in_scope.trim()) {
+              const src = String(it.remediation ?? it.finding ?? it.element ?? "").trim();
+              it.duty_if_in_scope = src ? src.split(/(?<=[.!?])\s/)[0] : String(it.element ?? "");
+            }
+            for (const k of Object.keys(it)) {
+              if (!COMPACT_KEYS.has(k)) { delete it[k]; compactStripped++; }
+            }
+            if (!("citation" in it)) it.citation = "";
+          } else {
+            const coerced = coerceExposure(it.enforcement_exposure, String(it.status ?? ""));
+            if (it.enforcement_exposure !== coerced) { it.enforcement_exposure = coerced; exposureCoerced++; }
+          }
+        }
+      }
+      if (compactStripped > 0) console.warn(`[ADMT] QB-P25 A3 compact-mode: stripped ${compactStripped} non-compact keys across gap entries`);
+      if (exposureCoerced > 0) console.warn(`[ADMT] QB-P25 A3 enforcement_exposure: coerced ${exposureCoerced} entries to enum`);
+    } catch (e) {
+      console.error("[ADMT] QB-P25 A3 normalizer errored (non-fatal):", e);
+    }
+
+
     // QB11-3: Step-2 hard rule enforcement — when triggers_significant_decision is false,
     // the three ADMT gap arrays (§§ 7200–7222) MUST be empty (rule text already mandates this; this
     // makes it structural).
