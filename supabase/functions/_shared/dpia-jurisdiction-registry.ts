@@ -598,8 +598,19 @@ export type GdprRegime = "gdpr" | "uk_gdpr";
 /**
  * Article-6 legitimate-interest example citations, jurisdiction-conditional.
  * EU GDPR has NO Article 6(11); recital citations are the correct anchor.
- * UK GDPR (DUAA 2025) added Article 6(11) and the separate Article 6(1)(ea)+Annex 1
- * "recognised legitimate interests" basis; never conflate the two.
+ * UK GDPR (DUAA 2025, in force 5 Feb 2026) inserted Article 6(11) with an
+ * exhaustive list of recognised-legitimate-interests examples, and separately
+ * Article 6(1)(ea) + Annex 1 (recognised-legitimate-interests basis — no
+ * balancing test, five public-interest purposes, private/third-sector only).
+ * These two provisions are distinct and must never be conflated.
+ *
+ * C1-a (2026-07-23T14:20:00Z) — the three UK sites are parameterised by regime
+ * and quote the corpus-verified verbatim UK Article 6(11) text (see
+ * grade-single-assessment/index.ts L144 and run-quality-batch/index.ts L904:
+ * "UK GDPR Article 6(11), inserted by the Data (Use and Access) Act 2025
+ * (recognised-legitimate-interests examples: direct marketing, intra-group
+ * transmission for internal administrative purposes, network and information
+ * security)"). Each site names its example verbatim; no paraphrase.
  */
 export function resolveArticle6Examples(regime: GdprRegime): {
   directMarketing: string;
@@ -609,18 +620,21 @@ export function resolveArticle6Examples(regime: GdprRegime): {
 } {
   if (regime === "uk_gdpr") {
     return {
+      // Site 1 — verbatim from the corpus-verified Art. 6(11) list.
       directMarketing:
-        "Article 6(11) UK GDPR (example legitimate interest; LIA/balancing test still required)",
+        "Article 6(11) UK GDPR, inserted by the Data (Use and Access) Act 2025 — recognised-legitimate-interests example: \"direct marketing\" (LIA/balancing test still required).",
+      // Site 2 — verbatim from the corpus-verified Art. 6(11) list.
       intraGroup:
-        "Article 6(11) UK GDPR (example legitimate interest; LIA/balancing test still required)",
+        "Article 6(11) UK GDPR, inserted by the Data (Use and Access) Act 2025 — recognised-legitimate-interests example: \"intra-group transmission for internal administrative purposes\" (LIA/balancing test still required).",
+      // Site 3 — verbatim from the corpus-verified Art. 6(11) list.
       networkSecurity:
-        "Article 6(11) UK GDPR (example legitimate interest; LIA/balancing test still required)",
+        "Article 6(11) UK GDPR, inserted by the Data (Use and Access) Act 2025 — recognised-legitimate-interests example: \"network and information security\" (LIA/balancing test still required).",
       recognisedLI:
         "Article 6(1)(ea) + Annex 1 UK GDPR — recognised legitimate interests (no balancing test; five public-interest purposes; private/third-sector only). Do NOT conflate with Article 6(11).",
     };
   }
   return {
-    // EU GDPR — no Article 6(11)
+    // EU GDPR — no Article 6(11).
     directMarketing: "Recital 47 EU GDPR",
     intraGroup: "Recital 48 EU GDPR",
     networkSecurity: "Recital 49 EU GDPR",

@@ -346,16 +346,17 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       "ai_gpai_provider");
     fired.push("R6_AI_GPAI");
   }
-  // R-TURN-3 Turn B item 3c — French HDS (hébergeur de données de santé) overlay.
-  // Where the record shows French health-data hosting (French health data + FR
-  // in markets or home), the hosting provider must be HDS-certified per Code de
-  // la santé publique art. L1111-8 and the HDS référentiel (ASIP Santé / ANS).
+  // R-TURN-3 ACK ruling R-1 — French HDS overlay is CONDITIONAL on health-data
+  // hosting. `processes_special_categories` is over-inclusive (covers biometric,
+  // trade-union, religious, etc.) so the intake does not resolve whether health
+  // data specifically is hosted. Emit as conditional, surface the unresolved
+  // fact, and do NOT categorically assert French HDS is engaged.
   const marketsHasFR = markets.has("FR") || home === "FR";
-  const hostsFrenchHealthData = marketsHasFR && (intake.processes_special_categories === true);
-  if (hostsFrenchHealthData) {
+  const specialCategoryFrance = marketsHasFR && (intake.processes_special_categories === true);
+  if (specialCategoryFrance) {
     ensure(map, "FR", "R8_FR_HDS",
-      "French health data hosting engaged — the hosting provider (or the controller where it self-hosts) must hold HDS certification (hébergeur de données de santé) per Code de la santé publique art. L1111-8 and the HDS référentiel maintained by the Agence du Numérique en Santé (ANS). Confirm the certified scope covers the actual hosting activities (storage, back-up, restore, administration) before production go-live.",
-      "fr_hds_certification");
+      "The intake establishes special-category processing engaging the French market, but does not resolve whether the special-category data includes health data. WHERE health data is hosted in France, the hosting provider (or the controller where it self-hosts) must hold HDS certification (hébergeur de données de santé) per Code de la santé publique art. L1111-8 and the HDS référentiel maintained by the Agence du Numérique en Santé (ANS); confirm the certified scope covers the actual hosting activities (storage, back-up, restore, administration) before production go-live. Unresolved fact: confirm whether the special-category data includes health data.",
+      "fr_hds_certification_conditional");
     fired.push("R8_FR_HDS");
   }
   const aiActProvider = highRiskDeployer || gpaiProvider;

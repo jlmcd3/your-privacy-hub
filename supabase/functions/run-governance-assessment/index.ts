@@ -3,7 +3,7 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
-// doc-y-7 build marker — R-TURN-3 Turn B: CAL_CIV regex case-fold, comparative-exemption ban in gap/basis fields, owner-roster post-check.
+// doc-y-7 build marker — R-TURN-3 Turn B: CAL_CIV regex case-fold, comparative-exemption ban in gap/basis fields, owner-roster consistency (prompt rule (d); deterministic post-check deferred).
 const DOC_Y_BUILD_MARKER = "doc-y-7";
 export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:15:00Z-b";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER} build_stamp=${BUILD_STAMP}`);
