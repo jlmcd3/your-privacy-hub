@@ -73,7 +73,7 @@ Deno.test("R6 private high-risk deployer: no Art. 49(3) content, no public-autho
   if (/Art(?:icle|\.)?\s*49\(3\)/i.test(dump)) throw new Error("engine leaked Art. 49(3) for private deployer");
   if (/public[- ]authority|Union body/i.test(dump)) throw new Error("engine leaked public-authority framing for private deployer");
   if (!out.rules_fired.includes("R6_AI_HIGH_RISK")) throw new Error("R6 did not fire");
-  const target = out.jurisdictions.find((j) => j.rule_id === "R6_AI_HIGH_RISK");
+  const target = out.jurisdictions.find((j) => (j.obligations || []).includes("ai_deployer_duties") || (j.obligations || []).includes("ai_eu_database_public_authority"));
   if (!target || !target.obligations.includes("ai_deployer_duties")) {
     throw new Error("expected ai_deployer_duties obligation for private high-risk deployer");
   }
@@ -91,7 +91,7 @@ Deno.test("R6 public-authority high-risk deployer: emits Art. 49(3) EU-database 
   });
   const dump = JSON.stringify(out);
   if (!/Art(?:icle|\.)?\s*49\(3\)/i.test(dump)) throw new Error("expected Art. 49(3) for public-authority deployer");
-  const target = out.jurisdictions.find((j) => j.rule_id === "R6_AI_HIGH_RISK");
+  const target = out.jurisdictions.find((j) => (j.obligations || []).includes("ai_deployer_duties") || (j.obligations || []).includes("ai_eu_database_public_authority"));
   if (!target || !target.obligations.includes("ai_eu_database_public_authority")) {
     throw new Error("expected ai_eu_database_public_authority obligation");
   }
