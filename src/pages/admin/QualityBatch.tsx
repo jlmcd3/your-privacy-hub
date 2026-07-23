@@ -824,6 +824,31 @@ export default function QualityBatch() {
             </div>
           )}
 
+          {/* QB-P24 Item 5 — per-tool Pinned rerun. Reuses the QB-P23
+              orchestrator action; admin JWT is carried by supabase.functions.invoke.
+              Disabled while a batch is running so we do not stomp a session. */}
+          <div className="pt-2 border-t space-y-2">
+            <Label>Pinned rerun (golden fixtures)</Label>
+            <div className="flex flex-wrap gap-2">
+              {TOOLS.map((t) => (
+                <Button
+                  key={t}
+                  size="sm"
+                  variant="outline"
+                  disabled={isBatchRunning || pinning === t}
+                  onClick={() => onPinnedRerun(t)}
+                  title={isBatchRunning ? "Finish the running batch first" : `Rerun ${t} against its pinned golden fixtures`}
+                >
+                  {pinning === t ? "…" : t}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Dispatches <code>{'{ action: "pinned_rerun", tool }'}</code> to quality-batch-orchestrator.
+            </p>
+          </div>
+
+
           {/* Resume existing child run — unchanged from prior page */}
           <div className="pt-2 border-t space-y-2">
             <Label>Resume existing run (single child quality_runs row)</Label>
