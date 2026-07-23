@@ -13,10 +13,14 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-r-turn-3-a";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-c1-c";
 
+import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
 export const SHARED_GRADER_CONTEXT = `
+${AMENDMENTS_BLOCK}
+
+
 VERIFIED-ANCHOR MAP (X10a; do NOT flag these as misapplied):
 - § 1798.140(d)(1)(A) — annual gross revenue threshold ($25M).
 - § 1798.140(d)(1)(B) — 100,000+ consumers/households threshold.
