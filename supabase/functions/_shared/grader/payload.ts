@@ -138,6 +138,7 @@ export function buildGraderPayload(
   family: GraderReportFamily,
   report: unknown,
   budget: number = GRADER_PAYLOAD_BUDGET,
+  opts: { fixtureSet?: string | null } = {},
 ): BuiltGraderPayload {
   const rd = (report && typeof report === "object")
     ? (report as Record<string, unknown>)
@@ -160,6 +161,12 @@ export function buildGraderPayload(
   }
 
   const parts: string[] = [];
+  // R-TURN-1 item 6: fixture-class gating header — the grader reads
+  // GOLDEN_FIXTURE_SET to calibrate sibling-template findings on
+  // adversarial fixtures per the SHARED_GRADER_CONTEXT rule.
+  if (opts.fixtureSet && typeof opts.fixtureSet === "string") {
+    parts.push(`GOLDEN_FIXTURE_SET: ${opts.fixtureSet}`);
+  }
   if (Object.keys(bodyObj).length > 0) {
     parts.push(`--- DOCUMENT BODY ---\n${safeStringify(bodyObj)}`);
   }

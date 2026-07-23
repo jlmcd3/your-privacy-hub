@@ -217,13 +217,16 @@ export function checkH5InternalNoteBlock(text: string): FormatFinding[] {
 const HF4_H6_ADMT_DUTY_VERBS =
   /\b(?:must\s+(?:disclose|provide|notify|respond|confirm|deliver|honor|honour|allow|permit)|shall\s+(?:disclose|provide|notify|respond|honor|honour)|the\s+business\s+must|response\s+must|access\s+response|opt[-\s]?out\s+response|pre[-\s]?use\s+notice|access\s+request)\b/i;
 const HF4_H6_S7001_RE = /\bs?§?\s*7001(?:\([a-z0-9]+\))*/i;
-const HF4_H6_ADMT_ANCHOR_RE = /\bs?§?\s*722[012](?:\([a-z0-9]+\))*/i;
+// R-TURN-1 item 1: § 7200 is the ADMT-subchapter scope_apply anchor
+// (registry entry `scope_apply` = "11 CCR § 7200(a)"). Widened from
+// 722[012] → 72(00|2[012]) so § 7200 co-cites clear H6.
+const HF4_H6_ADMT_ANCHOR_RE = /\bs?§?\s*72(?:00|2[012])(?:\([a-z0-9]+\))*/i;
 // A "chain" is a compact sequence of §-cites joined by "+" or by direct
 // enumeration with only whitespace/punctuation between the section tokens.
 // Prose references like "…, per § 7001(e)(1) definition, the …" are NOT
 // chains — they contain word tokens between the § tokens and are permitted.
 const HF4_H6_CHAIN_JOINER_RE = /\+/;
-const HF5_H6_ADJ_CHAIN_RE = /§\s*7001(?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)?\s*(?:11\s*CCR\s*)?§\s*722[012]|§\s*722[012](?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)\s*(?:11\s*CCR\s*)?§\s*7001/i;
+const HF5_H6_ADJ_CHAIN_RE = /§\s*7001(?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)?\s*(?:11\s*CCR\s*)?§\s*72(?:00|2[012])|§\s*72(?:00|2[012])(?:\([a-z0-9]+\))*[\s,;]*(?:\+|and|with)\s*(?:11\s*CCR\s*)?§\s*7001/i;
 
 export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
   if (!text) return [pass("h6_admt_governing_anchor_ok", "citation_accuracy")];
@@ -270,6 +273,14 @@ export function checkH6AdmtGoverningAnchor(text: string): FormatFinding[] {
 export const HF7_ADMT_RANGE_RE =
   /§§?\s*72[02]0\s*(?:[-–—]|to|through)\s*7222\b|(?:\bsections?\s+72[02]0\s*(?:[-–—]|to|through)\s*7222\b)/i;
 
+// R-TURN-1 item 2: sentences that expressly negate the duty ("not
+// triggered", "do/does not attach", "not required", "does/do not apply",
+// "not applicable") are the OPPOSITE of duty-anchored uses and must NOT
+// flag under H7. A duty-verb inside a negation is descriptive of the
+// non-obligation, not the assertion of one.
+export const HF7_NEGATION_RE =
+  /\b(?:not\s+triggered|do(?:es)?\s+not\s+attach|not\s+required|do(?:es)?\s+not\s+apply|is\s+not\s+triggered|are\s+not\s+triggered|not\s+applicable|no\s+obligation(?:s)?|does\s+not\s+attach|do\s+not\s+attach)\b/i;
+
 export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
   if (!text) return [pass("h7_admt_blanket_range_ok", "citation_accuracy")];
   const sentences = text.split(/(?<=[.!?])\s+/);
@@ -288,6 +299,8 @@ export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
       // recitations of the rulebook's own title). No hit.
       continue;
     }
+    // R-TURN-1 item 2 negation guard.
+    if (HF7_NEGATION_RE.test(s)) continue;
     findings.push(fail("h7_admt_blanket_range", "citation_accuracy", "medium",
       `blanket §§ 7220–7222 range used as duty-anchor: "${s.slice(0, 400)}"`));
     if (findings.length >= 5) break;

@@ -73,6 +73,11 @@ export const DPIA_GOLDEN: GoldenCase[] = [
       jurisdictions: ["EU (GDPR)"],
       legal_basis_proposed: "Contract (Art. 6(1)(b))",
       article_9_condition: "",
+      // R-TURN-1 item 8 — retail override: prevent healthcare "cohort-level
+      // care gaps" language from base.necessity_proportionality leaking into
+      // this retail-loyalty fixture via the ...base spread.
+      necessity_proportionality: "Loyalty data limited to purchase and offer-engagement events; alternatives (aggregate market-basket analytics) rejected because they cannot personalise offers at member level.",
+      retention_period: "Duration of membership; deleted 24 months after the last transaction.",
       controller_country: "Sweden",
       central_administration_country: "Germany",
     },
