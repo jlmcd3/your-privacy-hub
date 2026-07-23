@@ -15,16 +15,20 @@ const idx = await Deno.readTextFile(
 );
 
 Deno.test("W3-T1 · U1_SKELETON: processed_personal_data rows require source{intake_field,basis}", () => {
-  // The three affected row schemas each declare `source` inline with the
-  // required { intake_field, basis } shape.
-  const ppd = idx.match(/"processed_personal_data":\s*\[\s*\{[^}]*"source":\s*\{[^}]*"intake_field"[^}]*"basis":\s*"stated \| inferred"/);
-  assert(ppd, "processed_personal_data row must declare source{intake_field,basis:'stated | inferred'}");
-
-  const purp = idx.match(/"purposes":\s*\[\s*\{[^}]*"source":\s*\{[^}]*"intake_field"[^}]*"basis":\s*"stated \| inferred"/);
-  assert(purp, "purposes row must declare source{intake_field,basis:'stated | inferred'}");
-
-  const fd = idx.match(/"functional_description":\s*\[\s*\{[^}]*"source":\s*\{[^}]*"intake_field"[^}]*"basis":\s*"stated \| inferred"/);
-  assert(fd, "functional_description row must declare source{intake_field,basis:'stated | inferred'}");
+  // Locate section_1_description and check the three enumerated row schemas
+  // each declare `source` with intake_field + basis: 'stated | inferred'.
+  const s1Start = idx.indexOf(`"section_1_description"`);
+  assert(s1Start > 0, "section_1_description not found");
+  const s1End = idx.indexOf(`}`, idx.indexOf(`"completion_guidance"`, s1Start));
+  const s1 = idx.slice(s1Start, s1End);
+  for (const key of ["processed_personal_data", "purposes", "functional_description"]) {
+    const anchor = s1.indexOf(`"${key}"`);
+    assert(anchor > 0, `${key} not found in section_1_description`);
+    const row = s1.slice(anchor, anchor + 800);
+    assert(/"source"\s*:\s*\{/.test(row), `${key} row must declare source object`);
+    assert(/"intake_field"/.test(row), `${key} row.source must include intake_field`);
+    assert(/"basis"\s*:\s*"stated \| inferred"/.test(row), `${key} row.source.basis must be 'stated | inferred'`);
+  }
 });
 
 Deno.test("W3-T1 · UNIT_INSTRUCTION.u1 carries the PROVENANCE rule", () => {
