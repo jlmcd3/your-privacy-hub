@@ -403,7 +403,30 @@ export default function QualityBatch() {
     } finally {
       setStopping(false);
     }
+
+  // QB-P24 Item 5 — CEO-requested per-tool "Pinned rerun" trigger. Reuses the
+  // orchestrator's pinned_rerun action added in QB-P23; disabled while any
+  // batch is running so we do not stomp an in-flight session.
+  const [pinning, setPinning] = useState<string | null>(null);
+  async function onPinnedRerun(tool: string) {
+    if (activeBatch && !TERMINAL_UI.includes((activeBatch.status || "").toLowerCase())) {
+      toast.error("A batch is running — wait for it to finish before pinning a rerun.");
+      return;
+    }
+    setPinning(tool);
+    try {
+      const { data, error } = await supabase.functions.invoke("quality-batch-orchestrator", {
+        body: { action: "pinned_rerun", tool },
+      });
+      if (error) throw error;
+      toast.success(`Pinned rerun dispatched for ${tool}${data?.run_id ? ` (${String(data.run_id).slice(0, 8)})` : ""}`);
+    } catch (e: any) {
+      toast.error(`Pinned rerun failed for ${tool}: ${e?.message ?? e}`);
+    } finally {
+      setPinning(null);
+    }
   }
+
 
   async function onResumeChildRun() {
     if (!resumeId.trim()) { toast.error("resume_run_id required"); return; }
