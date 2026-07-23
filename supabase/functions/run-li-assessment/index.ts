@@ -3,7 +3,7 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
-export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T11:20:00Z-a";
+export const BUILD_STAMP = "c1-a-uk-art-6-11-verbatim@2026-07-23T14:20:00Z";
 console.log(`[run-li-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";

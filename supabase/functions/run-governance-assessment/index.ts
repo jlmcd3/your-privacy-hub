@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
 // doc-y-7 build marker — R-TURN-3 Turn B: CAL_CIV regex case-fold, comparative-exemption ban in gap/basis fields, owner-roster consistency (prompt rule (d); deterministic post-check deferred).
 const DOC_Y_BUILD_MARKER = "doc-y-7";
-export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:15:00Z-b";
+export const BUILD_STAMP = "c1-a-uk-art-6-11-verbatim+g1-comment@2026-07-23T14:20:00Z";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER} build_stamp=${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
