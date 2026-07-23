@@ -219,11 +219,15 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
         // Tighter buffer for higher-severity gaps so remediation lands well
         // before the auditor walks in.
         const AUDIT_DEADLINE = new Date("2028-04-01T00:00:00Z");
-        const targetForSeverity = (status: string): Date => {
-          const x = (status || "").toLowerCase();
+        // QB-P25 Final-B R5 — re-keyed to the shared CyberStatus enum from
+        // cppaCyberBands. Semantics preserved: more-severe status = earlier
+        // target date (deeper remediation buffer before the audit deadline).
+        // No styling changes.
+        const targetForSeverity = (status: CyberStatus | string): Date => {
+          const s = String(status || "").toLowerCase();
           const d = new Date(AUDIT_DEADLINE);
-          if (x === "critical gap") d.setUTCMonth(d.getUTCMonth() - 6);
-          else if (x === "gap") d.setUTCMonth(d.getUTCMonth() - 3);
+          if (s === "critical gap") d.setUTCMonth(d.getUTCMonth() - 6);
+          else if (s === "gap" || s === "partial") d.setUTCMonth(d.getUTCMonth() - 3);
           else d.setUTCMonth(d.getUTCMonth() - 1);
           return d;
         };
