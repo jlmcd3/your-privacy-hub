@@ -1085,17 +1085,15 @@ async function handler(req: Request) {
     return json({ ok: true, action: "campaign_tick", build_stamp: BUILD_STAMP }, 202);
   }
 
-  // QB-P20 item 7 — pinned_rerun: re-run ONLY a named tool's golden pins.
-  // Cheap paired-comparison instrument: batch_size == pin count, no
-  // synthesized tail. Returns run id; results are computed as normal and
-  // the caller compares scores against that tool's previous run of the
-  // same pins via the existing digest history.
+  // QB-P25 Final-B R1 — admin pinned_rerun. Creates a single-tool
+  // quality_batch_runs PARENT (created_by = admin userId) so the rerun
+  // renders on /admin/quality-batch, exports, and gets PDFs like any batch.
+  // Kickoff → dispatch_wave calls seedAndResume which pins goldens by default,
+  // so batch_size == pins.length IS a pinned rerun.
   if (body?.action === "pinned_rerun" && body?.tool) {
-    const pins = goldenIntakes(String(body.tool));
-    if (!pins.length) return json({ error: `no goldens for tool ${body.tool}` }, 400);
-    const res = await seedAndResume(String(body.tool), pins.length, userId, null, { pinsOverride: pins });
-    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, 500);
-    return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: pins.length, build_stamp: BUILD_STAMP }, 202);
+    const res = await startPinnedRerunBatch(String(body.tool), userId, null);
+    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
+    return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: res.pins, build_stamp: BUILD_STAMP }, 202);
   }
 
   // QB-P20 item 8 — regrade_frozen: re-grade a stored set of existing
