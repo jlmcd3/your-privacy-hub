@@ -677,7 +677,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "qbp21-chain-resurrection@2026-07-23T00:15:00Z";
+export const BUILD_STAMP = "w3-t1-dpia-provenance-typed-rows@2026-07-23T14:00:00Z";
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
