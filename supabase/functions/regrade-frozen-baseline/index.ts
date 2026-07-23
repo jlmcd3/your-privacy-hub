@@ -1,32 +1,28 @@
-// regrade-frozen-baseline — QB-P20 item 8 worker.
+// regrade-frozen-baseline — QB-P20 item 8 worker (per-doc + aggregate).
 //
-// Instrument-variance baseline: pick 10 stored complete documents spanning
-// >=5 tools, re-grade EACH doc with BOTH judges (Claude + GPT) using the
-// SAME rubric path as live grading (delegates to grade-single-assessment).
-// Repeat each doc's Claude evaluation 3 times to measure single-run noise.
+// Chunked variant: each invocation processes ONE doc (3 Claude + 1 GPT via
+// 3 grade-single-assessment calls), persisting its raw per-doc payload as
+// a quality_loop2_notes row with kind='regrade_frozen_baseline_v1_partial'
+// carrying the session_id. A final `aggregate` invocation loads all partials
+// for the session_id, computes per-dimension stddev, Claude-GPT correlation,
+// and the implied noise floor, and stores the summary as a note with
+// kind='regrade_frozen_baseline_v1'.
 //
-// Reports:
-//   - per-dimension standard deviation of Claude scores (avg across docs)
-//   - Pearson correlation between mean-Claude-overall and GPT-overall
-//   - implied noise floor for single-run overall scores
+// Chunking is required because Supabase edge functions time out background
+// tasks (>90s per doc × 10 docs > runtime budget) — first attempt with
+// waitUntil got killed mid-run after 3 docs.
 //
-// Persistence: quality_loop2_notes rows (kind: 'regrade_frozen_baseline_v1').
-// DEVIATION: courier said "digest table" (quality_campaign_digests). That
-// schema is per-wave, per-run, campaign-scoped, and cannot represent a
-// standalone variance instrument. quality_loop2_notes is the durable ad-hoc
-// results store used by grade-single-assessment for the same class of
-// out-of-campaign measurements.
+// DEVIATION: courier said "digest table". quality_campaign_digests is
+// campaign/wave scoped and cannot represent a standalone variance
+// instrument. quality_loop2_notes is the durable ad-hoc grader result store
+// (grade-single-assessment writes there too).
 //
-// Auth: admin USER JWT (has_role admin) OR internal cron path
-// (x-internal-cron:1 + ADMIN_SECRET_TOKEN | SERVICE_ROLE).
-//
-// No product-code effects. Read-only over the source tables. Grader model
-// paths are the live paths (grade-single-assessment invokes the exact same
-// Claude/GPT calls used by run-quality-batch).
+// Auth: internal cron path (x-internal-cron:1 + ADMIN_SECRET_TOKEN | SR).
+// Admin USER JWT also accepted for manual runs.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-export const BUILD_STAMP = "regrade-frozen-baseline-v1@2026-07-23T22:35:00Z";
+export const BUILD_STAMP = "regrade-frozen-baseline-v1-chunked@2026-07-23T22:50:00Z";
 console.log(`[regrade-frozen-baseline] boot ${BUILD_STAMP}`);
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -41,44 +37,17 @@ const cors = {
 };
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
-
 const admin = () => createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-
-// Map quality_run_documents.tool → grade-single-assessment tool slug.
-const TOOL_ALIAS: Record<string, string> = {
-  "biometric-checker": "biometric",
-  "dpa-generator": "dpa",
-  // registration is NOT supported by grade-single-assessment; excluded from selection.
-};
-const KNOWN_GRADER_TOOLS = new Set([
-  "governance", "cppa-risk", "cppa-cyber", "cppa-admt",
-  "dpia", "lia", "ir-playbook", "biometric", "dpa",
-]);
 
 const DIMS = ["accuracy", "citation", "hallucination", "analysis", "intelligence", "formatting"] as const;
 type Dim = typeof DIMS[number];
 
-type ClaudeRun = { overall: number; dims: Record<Dim, number> };
-type GptRun = { overall: number; dims: Record<Dim, number> };
-type DocResult = {
-  doc_id: string;
-  tool_raw: string;
-  tool_grader: string;
-  source_table: string;
-  source_row_id: string;
-  claude_runs: ClaudeRun[];
-  claude_errors: string[];
-  gpt_run: GptRun | null;
-  gpt_error: string | null;
-};
-
 function stddev(xs: number[]): number {
   if (xs.length < 2) return 0;
   const m = xs.reduce((a, b) => a + b, 0) / xs.length;
-  const v = xs.reduce((a, b) => a + (b - m) * (b - m), 0) / (xs.length - 1); // sample SD
+  const v = xs.reduce((a, b) => a + (b - m) * (b - m), 0) / (xs.length - 1);
   return Math.sqrt(v);
 }
-
 function pearson(xs: number[], ys: number[]): number | null {
   const n = Math.min(xs.length, ys.length);
   if (n < 2) return null;
@@ -93,9 +62,7 @@ function pearson(xs: number[], ys: number[]): number | null {
   return den === 0 ? null : num / den;
 }
 
-async function callGrader(assessmentId: string, tool: string): Promise<
-  { claude: ClaudeRun | null; claudeErr: string | null; gpt: GptRun | null; gptErr: string | null }
-> {
+async function callGrader(assessmentId: string, tool: string) {
   const r = await fetch(`${SUPABASE_URL}/functions/v1/grade-single-assessment`, {
     method: "POST",
     headers: {
@@ -104,228 +71,163 @@ async function callGrader(assessmentId: string, tool: string): Promise<
       apikey: SERVICE_KEY,
       "x-internal-resume": "1",
     },
-    body: JSON.stringify({
-      assessment_id: assessmentId,
-      tool,
-      dry_run: true,
-      fixture_label: "regrade_frozen_baseline_v1",
-    }),
-    signal: AbortSignal.timeout(240_000),
+    body: JSON.stringify({ assessment_id: assessmentId, tool, dry_run: true, fixture_label: "regrade_frozen_baseline_v1" }),
+    signal: AbortSignal.timeout(250_000),
   });
   const text = await r.text();
-  if (!r.ok) {
-    return { claude: null, claudeErr: `grader_http_${r.status}: ${text.slice(0, 200)}`, gpt: null, gptErr: `grader_http_${r.status}` };
-  }
-  let body: any;
-  try { body = JSON.parse(text); } catch { return { claude: null, claudeErr: "grader_bad_json", gpt: null, gptErr: "grader_bad_json" }; }
-  const p = body?.payload;
-  let claude: ClaudeRun | null = null;
-  let claudeErr: string | null = null;
-  if (p?.claude && typeof p.claude.overall_score === "number") {
-    const d = p.claude.dimension_scores ?? {};
-    claude = {
-      overall: Number(p.claude.overall_score),
-      dims: Object.fromEntries(DIMS.map((k) => [k, Number(d[k] ?? 60)])) as Record<Dim, number>,
-    };
-  } else {
-    claudeErr = String(p?.claude?.error ?? "claude_missing");
-  }
-  let gpt: GptRun | null = null;
-  let gptErr: string | null = null;
-  if (p?.gpt && typeof p.gpt.overall_score === "number") {
-    const d = p.gpt.dimension_scores ?? {};
-    gpt = {
-      overall: Number(p.gpt.overall_score),
-      dims: Object.fromEntries(DIMS.map((k) => [k, Number(d[k] ?? 60)])) as Record<Dim, number>,
-    };
-  } else {
-    gptErr = String(p?.gpt?.error ?? "gpt_missing");
-  }
-  return { claude, claudeErr, gpt, gptErr };
+  if (!r.ok) return { __err: `grader_http_${r.status}: ${text.slice(0, 200)}` };
+  try { return JSON.parse(text); } catch { return { __err: "grader_bad_json" }; }
 }
 
-async function selectDocs(db: ReturnType<typeof admin>): Promise<Array<{
-  doc_id: string; tool_raw: string; tool_grader: string; source_table: string; source_row_id: string;
-}>> {
-  // Prefer 5 diverse tools × 2 most-recent complete docs each.
-  const preferred = ["cppa-risk", "cppa-cyber", "dpia", "lia", "biometric-checker"];
-  const picked: Array<{ doc_id: string; tool_raw: string; tool_grader: string; source_table: string; source_row_id: string }> = [];
-  for (const t of preferred) {
-    const { data } = await db
-      .from("quality_run_documents")
-      .select("id, tool, source_table, source_row_id, created_at")
-      .eq("status", "complete")
-      .eq("tool", t)
-      .not("report_data", "is", null)
-      .not("source_row_id", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(2);
-    for (const r of (data ?? []) as any[]) {
-      const grader = TOOL_ALIAS[t] ?? t;
-      if (!KNOWN_GRADER_TOOLS.has(grader)) continue;
-      picked.push({
-        doc_id: r.id,
-        tool_raw: t,
-        tool_grader: grader,
-        source_table: r.source_table,
-        source_row_id: r.source_row_id,
-      });
+function pullSide(payload: any, key: "claude" | "gpt") {
+  const v = payload?.[key];
+  if (!v || typeof v.overall_score !== "number") return { val: null as any, err: String(v?.error ?? `${key}_missing`) };
+  const d = v.dimension_scores ?? {};
+  return {
+    val: { overall: Number(v.overall_score), dims: Object.fromEntries(DIMS.map((k) => [k, Number(d[k] ?? 60)])) as Record<Dim, number> },
+    err: null as string | null,
+  };
+}
+
+async function gradeOneDoc(sessionId: string, docSourceRowId: string, toolRaw: string, toolGrader: string) {
+  const claude_runs: Array<{ overall: number; dims: Record<Dim, number> }> = [];
+  const claude_errors: string[] = [];
+  let gpt_run: { overall: number; dims: Record<Dim, number> } | null = null;
+  let gpt_error: string | null = null;
+  for (let i = 0; i < 3; i++) {
+    const r: any = await callGrader(docSourceRowId, toolGrader);
+    if (r.__err) {
+      claude_errors.push(r.__err);
+      if (i === 0) gpt_error = r.__err;
+      continue;
+    }
+    const p = r?.payload;
+    const c = pullSide(p, "claude");
+    if (c.val) claude_runs.push(c.val); else if (c.err) claude_errors.push(c.err);
+    if (i === 0) {
+      const g = pullSide(p, "gpt");
+      if (g.val) gpt_run = g.val; else gpt_error = g.err;
     }
   }
-  return picked;
+  const partial = {
+    session_id: sessionId, doc_source_row_id: docSourceRowId,
+    tool_raw: toolRaw, tool_grader: toolGrader,
+    claude_runs, claude_errors, gpt_run, gpt_error,
+    created_at: new Date().toISOString(),
+  };
+  await admin().from("quality_loop2_notes").insert({
+    kind: "regrade_frozen_baseline_v1_partial", note: JSON.stringify(partial),
+  });
+  return partial;
 }
 
-async function runBaseline(): Promise<any> {
+async function aggregateSession(sessionId: string) {
   const db = admin();
-  const startedAt = new Date().toISOString();
-  const docs = await selectDocs(db);
-  const tools = new Set(docs.map((d) => d.tool_raw));
-  if (docs.length < 10 || tools.size < 5) {
-    return {
-      ok: false, error: "insufficient_docs",
-      selected: docs.length, tool_span: tools.size,
-    };
+  const { data: rows, error } = await db.from("quality_loop2_notes")
+    .select("id, note, created_at")
+    .eq("kind", "regrade_frozen_baseline_v1_partial")
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error) return { ok: false, error: error.message };
+  const partials: any[] = [];
+  for (const r of (rows ?? []) as any[]) {
+    try {
+      const p = JSON.parse(r.note);
+      if (p?.session_id === sessionId) partials.push(p);
+    } catch { /* skip */ }
   }
+  if (partials.length === 0) return { ok: false, error: "no_partials_for_session", session_id: sessionId };
 
-  const results: DocResult[] = [];
-  for (const d of docs) {
-    const res: DocResult = {
-      doc_id: d.doc_id, tool_raw: d.tool_raw, tool_grader: d.tool_grader,
-      source_table: d.source_table, source_row_id: d.source_row_id,
-      claude_runs: [], claude_errors: [], gpt_run: null, gpt_error: null,
-    };
-    // 3 Claude runs. grade-single-assessment always calls both judges each
-    // invocation; keep the first invocation's GPT result and discard the
-    // GPT results from the two extra Claude repeats (variance instrument
-    // only measures Claude repeat variance).
-    for (let i = 0; i < 3; i++) {
-      const g = await callGrader(d.source_row_id, d.tool_grader);
-      if (g.claude) res.claude_runs.push(g.claude);
-      if (g.claudeErr) res.claude_errors.push(g.claudeErr);
-      if (i === 0) {
-        if (g.gpt) res.gpt_run = g.gpt;
-        if (g.gptErr) res.gpt_error = g.gptErr;
-      }
-    }
-    results.push(res);
-    console.log(`[regrade-frozen-baseline] doc=${d.doc_id} tool=${d.tool_raw} claude_runs=${res.claude_runs.length} gpt=${res.gpt_run ? "ok" : "err"}`);
-  }
-
-  // ---- Aggregate stats ----
-  // Per-dimension SD across the 3 Claude runs per doc, then averaged over docs.
-  const perDimAvgSD: Record<string, number> = {};
+  const perDimSD: Record<string, number> = {};
   for (const dim of DIMS) {
-    const perDocSDs: number[] = [];
-    for (const r of results) {
-      if (r.claude_runs.length >= 2) {
-        perDocSDs.push(stddev(r.claude_runs.map((c) => c.dims[dim])));
-      }
+    const sds: number[] = [];
+    for (const p of partials) {
+      const cr = p.claude_runs ?? [];
+      if (cr.length >= 2) sds.push(stddev(cr.map((c: any) => c.dims[dim])));
     }
-    perDimAvgSD[dim] = perDocSDs.length
-      ? Math.round((perDocSDs.reduce((a, b) => a + b, 0) / perDocSDs.length) * 1000) / 1000
-      : 0;
+    perDimSD[dim] = sds.length ? Math.round((sds.reduce((a, b) => a + b, 0) / sds.length) * 1000) / 1000 : 0;
   }
-  // Overall SD across 3 Claude runs per doc, averaged over docs = noise floor
-  // for a single-run overall score.
-  const perDocOverallSDs: number[] = [];
-  for (const r of results) {
-    if (r.claude_runs.length >= 2) perDocOverallSDs.push(stddev(r.claude_runs.map((c) => c.overall)));
+  const overallSDs: number[] = [];
+  for (const p of partials) {
+    const cr = p.claude_runs ?? [];
+    if (cr.length >= 2) overallSDs.push(stddev(cr.map((c: any) => c.overall)));
   }
-  const noise_floor_single_run_overall = perDocOverallSDs.length
-    ? Math.round((perDocOverallSDs.reduce((a, b) => a + b, 0) / perDocOverallSDs.length) * 1000) / 1000
-    : 0;
+  const noise_floor = overallSDs.length ? Math.round((overallSDs.reduce((a, b) => a + b, 0) / overallSDs.length) * 1000) / 1000 : 0;
 
-  // Claude-GPT correlation: mean-Claude-overall (per doc) vs GPT-overall (per doc).
-  const claudeMeans: number[] = [];
-  const gptOveralls: number[] = [];
-  for (const r of results) {
-    if (r.claude_runs.length && r.gpt_run) {
-      const m = r.claude_runs.reduce((a, b) => a + b.overall, 0) / r.claude_runs.length;
-      claudeMeans.push(m);
-      gptOveralls.push(r.gpt_run.overall);
+  const xs: number[] = [], ys: number[] = [];
+  for (const p of partials) {
+    if ((p.claude_runs?.length ?? 0) >= 1 && p.gpt_run) {
+      xs.push(p.claude_runs.reduce((a: number, b: any) => a + b.overall, 0) / p.claude_runs.length);
+      ys.push(p.gpt_run.overall);
     }
   }
-  const rawCorr = pearson(claudeMeans, gptOveralls);
-  const claude_gpt_correlation = rawCorr == null ? null : Math.round(rawCorr * 1000) / 1000;
+  const rc = pearson(xs, ys);
+  const corr = rc == null ? null : Math.round(rc * 1000) / 1000;
 
-  const finishedAt = new Date().toISOString();
   const summary = {
     build_stamp: BUILD_STAMP,
-    started_at: startedAt,
-    finished_at: finishedAt,
-    docs_selected: docs.length,
-    tools_spanned: [...tools],
-    per_dimension_avg_sd_claude_3x: perDimAvgSD,
-    noise_floor_single_run_overall,
-    claude_gpt_correlation,
-    correlation_n: claudeMeans.length,
-    per_doc: results.map((r) => ({
-      doc_id: r.doc_id,
-      tool_raw: r.tool_raw,
-      tool_grader: r.tool_grader,
-      source_row_id: r.source_row_id,
-      claude_overalls: r.claude_runs.map((c) => c.overall),
-      claude_overall_sd: r.claude_runs.length >= 2 ? Math.round(stddev(r.claude_runs.map((c) => c.overall)) * 1000) / 1000 : null,
-      claude_errors: r.claude_errors,
-      gpt_overall: r.gpt_run?.overall ?? null,
-      gpt_error: r.gpt_error,
+    session_id: sessionId,
+    finished_at: new Date().toISOString(),
+    docs_measured: partials.length,
+    tools_spanned: [...new Set(partials.map((p) => p.tool_raw))].sort(),
+    per_dimension_avg_sd_claude_3x: perDimSD,
+    noise_floor_single_run_overall: noise_floor,
+    claude_gpt_correlation: corr,
+    correlation_n: xs.length,
+    per_doc: partials.map((p) => ({
+      doc_source_row_id: p.doc_source_row_id,
+      tool_raw: p.tool_raw,
+      tool_grader: p.tool_grader,
+      claude_overalls: (p.claude_runs ?? []).map((c: any) => Math.round(c.overall * 100) / 100),
+      claude_overall_sd: (p.claude_runs?.length ?? 0) >= 2
+        ? Math.round(stddev(p.claude_runs.map((c: any) => c.overall)) * 1000) / 1000 : null,
+      claude_errors: p.claude_errors ?? [],
+      gpt_overall: p.gpt_run ? Math.round(p.gpt_run.overall * 100) / 100 : null,
+      gpt_error: p.gpt_error,
     })),
-    note: "Per-dimension SD is the sample SD across the 3 Claude repeats for each doc, then averaged across docs with >=2 successful Claude runs. Noise floor is the same aggregation applied to the composite overall score. Claude-GPT correlation is Pearson r between per-doc mean-Claude-overall and per-doc GPT-overall.",
+    note: "Per-dimension SD = sample stdev across 3 Claude repeats per doc, averaged over docs with >=2 Claude runs. Noise floor = same aggregation on composite overall score. Claude-GPT correlation = Pearson r of per-doc mean-Claude-overall vs per-doc GPT-overall.",
   };
-
-  // Persistence — see file header DEVIATION note.
-  const { data: noteRow, error: noteErr } = await db
-    .from("quality_loop2_notes")
+  const { data: ins, error: insErr } = await db.from("quality_loop2_notes")
     .insert({ kind: "regrade_frozen_baseline_v1", note: JSON.stringify(summary) })
-    .select("id")
-    .single();
-  if (noteErr) {
-    return { ok: false, error: `note_insert_failed: ${noteErr.message}`, summary };
-  }
-  return { ok: true, stored_note_id: noteRow?.id ?? null, summary };
+    .select("id").single();
+  if (insErr) return { ok: false, error: insErr.message, summary };
+  return { ok: true, stored_note_id: ins?.id ?? null, summary };
 }
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
-
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace(/^Bearer\s+/i, "");
   const isCron = req.headers.get("x-internal-cron") === "1" && (
     token === SERVICE_KEY || (!!ADMIN_SECRET_TOKEN && token === ADMIN_SECRET_TOKEN)
   );
-
   if (!isCron) {
     if (!token) return json({ error: "missing_authorization" }, 401);
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: `Bearer ${token}` } } });
-    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
-    if (userErr || !userData?.user) return json({ error: "invalid_jwt" }, 401);
-    const { data: isAdmin } = await userClient.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+    const uc = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: `Bearer ${token}` } } });
+    const { data: u, error: ue } = await uc.auth.getUser(token);
+    if (ue || !u?.user) return json({ error: "invalid_jwt" }, 401);
+    const { data: isAdmin } = await uc.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
     if (!isAdmin) return json({ error: "admin_only" }, 403);
   }
 
-  let body: { action?: string } = {};
-  try { body = await req.json(); } catch { /* allow empty */ }
+  let body: any = {};
+  try { body = await req.json(); } catch { /* */ }
 
   if (body?.action === "ping") return json({ ok: true, build_stamp: BUILD_STAMP });
 
-  // Default action = run baseline. Long-running (~5-10 min). Kick off in
-  // background and return 202 with a marker so callers don't time out.
-  if (body?.action === "run" || body?.action === undefined) {
-    const p = runBaseline()
-      .then((r) => console.log(`[regrade-frozen-baseline] done ok=${(r as any).ok} note=${(r as any).stored_note_id ?? "-"}`))
-      .catch((e) => console.error("[regrade-frozen-baseline] error", (e as Error).message));
-    // @ts-ignore edge runtime
-    if (typeof EdgeRuntime !== "undefined" && (EdgeRuntime as any).waitUntil) {
-      // @ts-ignore
-      EdgeRuntime.waitUntil(p);
+  if (body?.action === "grade_one") {
+    const { session_id, doc_source_row_id, tool_raw, tool_grader } = body;
+    if (!session_id || !doc_source_row_id || !tool_raw || !tool_grader) {
+      return json({ error: "missing_fields", need: ["session_id","doc_source_row_id","tool_raw","tool_grader"] }, 400);
     }
-    return json({ ok: true, action: "run", build_stamp: BUILD_STAMP, note: "baseline running; results in quality_loop2_notes kind=regrade_frozen_baseline_v1" }, 202);
+    const p = await gradeOneDoc(String(session_id), String(doc_source_row_id), String(tool_raw), String(tool_grader));
+    return json({ ok: true, build_stamp: BUILD_STAMP, partial: p });
   }
 
-  // Synchronous mode for callers willing to hold the connection.
-  if (body?.action === "run_sync") {
-    const r = await runBaseline();
+  if (body?.action === "aggregate") {
+    if (!body?.session_id) return json({ error: "missing_session_id" }, 400);
+    const r = await aggregateSession(String(body.session_id));
     return json({ ...r, build_stamp: BUILD_STAMP });
   }
 
