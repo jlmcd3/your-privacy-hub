@@ -38,6 +38,10 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "7221", flags: "i", label: "§7221 anchored" },
+      // QB-P25 A3 — established basis when the intake identifies the category.
+      { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"established\"", flags: "", label: "determination_basis=established" },
+      // Per-entry enforcement_exposure is now enum-only; free-form dollar text is banned.
+      { kind: "must_not_include", pattern: "\"enforcement_exposure\"\\s*:\\s*\"[^\"]*\\$", flags: "", label: "no dollar figures in per-entry enforcement_exposure" },
     ],
   },
   {
@@ -58,6 +62,7 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "opt[- ]?out", flags: "i", label: "opt-out framed" },
+      { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"established\"", flags: "", label: "determination_basis=established" },
     ],
   },
   {
@@ -80,6 +85,35 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_not_include", pattern: "significant decision", flags: "i",
         label: "does NOT invent significant-decision status" },
+      // Established out-of-scope: solely_advertising = Yes resolves the category.
+      { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"established\"", flags: "", label: "determination_basis=established (out-of-scope resolved)" },
+    ],
+  },
+  // QB-P25 A3 — conservative-assumption fixture: the intake does not name an
+  // enumerated § 7001(ddd) category, so triggers_significant_decision is set
+  // TRUE with determination_basis="conservative_assumption" and the three gap
+  // arrays render in COMPACT mode.
+  {
+    id: "admt-service-eligibility-conservative",
+    tool: "cppa-admt",
+    set: "adversarial",
+    intake: {
+      organization_name: "Northstar Platform Inc",
+      system_name: "TierSelect",
+      system_type: "Rules engine",
+      system_description: "TierSelect assigns customers to service tiers for a general consumer subscription product; the intake does not identify the underlying service as financial, lending, housing, education, employment, or healthcare.",
+      decision_domains: [],
+      human_review: "No — fully automated, no human review",
+      training_data_use: "No",
+      profiling_use: "No",
+      ...commonNotice,
+      opt_out_exception: "No exception — we provide a full opt-out right",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"conservative_assumption\"", flags: "", label: "determination_basis=conservative_assumption" },
+      { kind: "must_include", pattern: "duty_if_in_scope", flags: "", label: "COMPACT entries carry duty_if_in_scope" },
+      // COMPACT entries omit remediation entirely.
+      { kind: "must_not_include", pattern: "\"remediation\"", flags: "", label: "no remediation field in COMPACT mode" },
     ],
   },
 ];
