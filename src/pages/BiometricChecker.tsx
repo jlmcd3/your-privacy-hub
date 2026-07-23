@@ -63,7 +63,11 @@ export default function BiometricChecker() {
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], orgName: "", purpose: PURPOSE[0],
     jurisdictions: [] as string[],
+    // W3-T3 — optional text: which US state(s) when "Other US state" is
+    // selected. Sent as `other_state_names`; blank when the toggle is off.
+    other_state_names: "",
   });
+
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
   // bipa_risk retired 2026-07-14 — dropped from result state shape.
   const [result, setResult] = useState<{ assessment_text: string; jurisdictions_analysed: string[] } | null>(null);
