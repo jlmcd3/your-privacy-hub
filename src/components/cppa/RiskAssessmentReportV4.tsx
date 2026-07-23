@@ -343,11 +343,22 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                             {e.argument_strength_rationale && <p>{e.argument_strength_rationale}</p>}
                           </div>
                         )}
-                        {Array.isArray(e.strengthen_position) && e.strengthen_position.length > 0 && (
+                        {(resolvedStrengthen.length > 0 || (Array.isArray(e.strengthen_position) && e.strengthen_position.length > 0)) && (
                           <div>
                             <p className="font-semibold">What would strengthen the position</p>
                             <ul className="list-disc pl-5">
-                              {e.strengthen_position.map((sp, si) => <li key={si}>{sp}</li>)}
+                              {resolvedStrengthen.map((it, si) => (
+                                <li key={`ptr-${si}`}>
+                                  {it.recorded_basis || it.item_id}
+                                  {(it.citation || (Array.isArray(it.field_ids) && it.field_ids.length)) && (
+                                    <span className="text-xs text-muted-foreground ml-2">
+                                      {it.citation ? <span className="font-mono">{it.citation}</span> : null}
+                                      {Array.isArray(it.field_ids) && it.field_ids.length ? <> · fields: {it.field_ids.join(", ")}</> : null}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                              {Array.isArray(e.strengthen_position) && e.strengthen_position.map((sp, si) => <li key={`sp-${si}`}>{sp}</li>)}
                             </ul>
                           </div>
                         )}
