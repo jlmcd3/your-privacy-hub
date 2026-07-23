@@ -34,7 +34,7 @@ import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
 
 
-export const BUILD_STAMP = "qbp20-structural-test-design@2026-07-22T23:00:00Z";
+export const BUILD_STAMP = "qbp23-golden-baseline-regression@2026-07-23T01:00:00Z";
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
@@ -951,6 +951,21 @@ async function handler(req: Request) {
     // @ts-ignore
     EdgeRuntime.waitUntil(campaignTick().catch((e) => console.error("[qb-orchestrator] campaign_tick error", e)));
     return json({ ok: true, build_stamp: BUILD_STAMP, action: "campaign_tick" }, 202);
+  }
+
+  // QB-P23 item 5 — internal-only pinned_rerun invocation path.
+  // Rationale: courier explicitly authorises this rerun; edge-function
+  // callers in the sandbox have no admin JWT. Gated by the same
+  // isInternal check (x-internal-resume:1 + service-role bearer) that
+  // already covers resume; created_by is stamped with the sentinel
+  // string "system:qbp23-pinned-rerun" so audit trails distinguish it
+  // from user-initiated pinned_reruns.
+  if (isInternal && body?.action === "pinned_rerun" && body?.tool) {
+    const pins = goldenIntakes(String(body.tool));
+    if (!pins.length) return json({ error: `no goldens for tool ${body.tool}` }, 400);
+    const res = await seedAndResume(String(body.tool), pins.length, "system:qbp23-pinned-rerun", null, { pinsOverride: pins });
+    if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, 500);
+    return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: pins.length, build_stamp: BUILD_STAMP, internal: true }, 202);
   }
 
   // External admin call
