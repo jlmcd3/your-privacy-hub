@@ -36,3 +36,24 @@ export const GOLDEN_BY_TOOL: Record<string, GoldenCase[]> = {
 export function goldenIntakes(tool: string): unknown[] {
   return (GOLDEN_BY_TOOL[tool] ?? []).map(c => c.intake);
 }
+
+/**
+ * R-TURN-1 item 6 — resolve the golden fixture set (tuning/holdout/adversarial)
+ * for a given tool + intake by deep-equal comparison against the tool's
+ * GoldenCase[] intakes. Returns null when the intake is not a pinned golden
+ * (generated intakes never carry a fixture-set label). Used by
+ * run-quality-batch and grade-single-assessment to thread the label into
+ * the grader payload header.
+ */
+export function matchFixtureSet(tool: string, intake: unknown): string | null {
+  const cases = GOLDEN_BY_TOOL[tool] ?? [];
+  if (!cases.length || intake == null) return null;
+  let needle = "";
+  try { needle = JSON.stringify(intake); } catch { return null; }
+  for (const c of cases) {
+    let hay = "";
+    try { hay = JSON.stringify(c.intake); } catch { continue; }
+    if (hay === needle) return c.set;
+  }
+  return null;
+}

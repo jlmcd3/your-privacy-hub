@@ -70,6 +70,13 @@ export const LIA_GOLDEN: GoldenCase[] = [
       subject_anchor: "Employees",
       processing_description: "Internal collaboration analytics.",
       relationship_type: "Employee",
+      // R-TURN-1 item 8 — HR sector override: prevent website-visitor
+      // marketing base fields (data_categories, stated_purpose,
+      // purpose_details) from leaking into an employee-analytics fixture.
+      data_categories: ["Collaboration-platform metadata", "Employee identifiers"],
+      stated_purpose: "Understand internal collaboration patterns and workload distribution to support workforce planning.",
+      purpose_details: { interest_holder: "Cascade HR Ltd", interest_type: "Employer — workforce administration", interest_statement: "Support workload planning and internal collaboration." },
+      necessity_details: { alternatives: "Manager self-report considered; insufficient granularity and consistency for workload planning." },
       balancing_details: {
         ...base.balancing_details,
         // Fact recorded ONLY here — tests cross-read:

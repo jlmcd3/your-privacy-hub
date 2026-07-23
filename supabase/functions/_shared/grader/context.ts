@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-21-grader-cal-5r";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-r-turn-1";
 
 
 export const SHARED_GRADER_CONTEXT = `
@@ -78,4 +78,19 @@ GRADER-CAL-1 A3 — POST-CUTOFF VERIFIED AUTHORITY ADDITIONS (do NOT flag; do NO
 
 GRADER-CAL-1 A4 — EMIT-GUARD (BINDING):
 A "finding" that concludes the document was CORRECT on the point in question ("this citation is correct", "the report properly cites …", "no issue found") is not a finding — do NOT emit it. Findings surface DEFECTS; affirmations belong in strengths, if anywhere. This rule is enforced deterministically in the post-filter regardless of what the model emits.
+
+R-TURN-1 ADDITIONS (2026-07-23, BINDING; do NOT flag as defects):
+
+(1) § 7221 VERIFIED SUBSECTION MAP (item 3): the following § 7221 subsection paths are VERIFIED against the current 11 CCR text via _shared/admt-citation-registry.ts and are CORRECT depth citations — do NOT flag as "rubric_invented_admt_section" or as fabricated subsections: § 7221(a), § 7221(b), § 7221(b)(1), § 7221(b)(2), § 7221(b)(3), § 7221(c), § 7221(c)(1), § 7221(c)(4), § 7221(d), § 7221(e), § 7221(f), § 7221(g), § 7221(h), § 7221(i), § 7221(j), § 7221(k), § 7221(l), § 7221(m), § 7221(n), § 7221(n)(1), § 7221(n)(2). The § 7220/§ 7222 verified paths shipped previously remain in force. A fabrication verdict on any of these paths is a false positive and must be retracted; the registry is the single source of truth and the product prompt's VERIFIED-DEPTH RULE is regenerated from it at build time so drift is impossible.
+
+(2) ADVERSE-EFFECTS ANALYSIS CALIBRATION (item 4): 11 CCR § 7152 REQUIRES the risk assessment to enumerate PROSPECTIVE harms with severity and likelihood judgments — an adverse_effects[] entry is defensibility-judged analytical projection ("what could go wrong if this processing proceeds"), NOT a record-fact claim. Do NOT flag prospective harm enumerations as "fabricated business facts" or as hallucination unless the entry is phrased as a present-tense record fact ("we suffered X on Y date"). Grade the DEFENSIBILITY of the projection (is the harm plausible on the processing described? does the severity/likelihood ranking cohere with the record?) — not the presence of a projection where none is recorded.
+
+(3) DERIVED-TRIGGER NAMING (item 5): the normalised_intake object binds targeted_advertising as DERIVED from q5_sell_share = "Both" | "Share only" per the § 1798.140(ah) "sharing" definition (cross-context behavioural advertising IS a "share" under CCPA post-CPRA); it is not a distinct intake field. A report treating targeted_advertising as an operative trigger while the intake shows q5_sell_share = "Both" or "Share only" is CORRECT — do NOT flag the derivation as fabrication. This binds every fabrication check across CPPA Risk, ADMT, and DPIA.
+
+(4) FIXTURE-CLASS GATING (item 6): the grader user turn may include a "GOLDEN_FIXTURE_SET: <tuning|holdout|adversarial>" header. When the header reads "adversarial" AND the fixture is a sibling-notes pattern (e.g. cppa-cyber adversarial ADMT-sibling notes on uniformly thin evidence), parallel template findings across siblings are the CORRECT honest output — the record supplies the same thin evidence to each sibling, so identical framing is the accurate reflection of the record, not a differentiation defect. Judge differentiation only where the record supplies materially different evidence between siblings.
+
+(5) DRAFTING-INSTRUMENT CALIBRATION (item 7):
+  (a) STATUTORY-DEFINITION RECITALS IN DRAFTING INSTRUMENTS — recitals or clauses in a DPA (or any drafting instrument) that recite the statutory definition of a term the clause governs (e.g. GDPR Art. 4(2) "processing" recital opening a processing-instructions clause) are STANDARD LEGAL DRAFTING, not boilerplate deductions. Do NOT flag statutory-definition recitals in drafting-instrument outputs as "boilerplate" or "unsupported deduction".
+  (b) GOVERNANCE ORG_SET DEADLINE PLACEHOLDERS — governance org_set entries whose deadline field carries an illustrative default (e.g. "quarterly", "annually", "within 30 days of the effective date") accompanied by a "confirm and tailor to your operational cadence" advisory close are WORKING AS DESIGNED. Do NOT flag illustrative-default deadlines as fabrication or as invented dates; the placeholder is the anti-fabrication signal (the record supplied no cadence, so the tool named the professional default and flagged it for confirmation).
+  (c) DPIA CONCLUSION OWNER PLACEHOLDERS — dpia conclusion.responsible_person and equivalent role fields MAY use "owner to be designated" (or equivalent placeholder) when the record supplies no roles; this is anti-fabrication scaffolding, not incompleteness. Do NOT flag "owner to be designated" as missing content — flag ONLY where the record NAMES a role and the report ignored it.
 `.trim();

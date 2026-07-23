@@ -23,6 +23,8 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
+// R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
+import { matchFixtureSet } from "../_shared/golden/registry.ts";
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 
@@ -60,7 +62,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // QLB-F3 (2026-07-15): grader payload rebuild (body-first, metadata-strip,
 // equal budget), spelling-neutral prompt preamble, and fill-in placeholder
 // exemption mirrored verbatim with run-quality-batch.
-export const BUILD_STAMP = "ql3-qlbf3-grader-payload@2026-07-15T02:00Z";
+export const BUILD_STAMP = "r-turn-1-measurement-honesty@2026-07-23T20:00:00Z";
 
 // QL3 tool slug allow-list (mirrors ql3-orchestrator.TOOL_TABLE keys).
 export const KNOWN_TOOL_SLUGS = [
@@ -223,7 +225,7 @@ async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, repo
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
   const family = familyForSingleTool(tool);
   const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
   if (payload.truncated) {
     console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
