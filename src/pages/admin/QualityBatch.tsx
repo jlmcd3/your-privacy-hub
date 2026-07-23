@@ -422,7 +422,17 @@ export default function QualityBatch() {
         body: { action: "pinned_rerun", tool },
       });
       if (error) throw error;
-      toast.success(`Pinned rerun dispatched for ${tool}${data?.run_id ? ` (${String(data.run_id).slice(0, 8)})` : ""}`);
+      const runId = (data as any)?.run_id as string | undefined;
+      // QB-P25 Final-B R3 — bind the log/progress panel to the returned batch id
+      // so the pinned-rerun batch renders live (like a normal batch), rather
+      // than only surfacing via a toast.
+      if (runId) {
+        const { data: row } = await supabase
+          .from("quality_batch_runs").select("*").eq("id", runId).maybeSingle();
+        if (row) setActiveBatch(row as unknown as BatchRow);
+        setBatchLogs([]);
+      }
+      toast.success(`Pinned rerun dispatched for ${tool}${runId ? ` (${runId.slice(0, 8)})` : ""}`);
     } catch (e: any) {
       toast.error(`Pinned rerun failed for ${tool}: ${e?.message ?? e}`);
     } finally {
