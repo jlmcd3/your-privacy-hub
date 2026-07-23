@@ -813,6 +813,20 @@ Output format:
   }
 ]
 - If no cases from the context informed any clause choice, output an empty array [].
+- Then, on a new line, output the exact separator:
+===DRAFTING_RECORD===
+- Then, output a JSON object recording the deliberations behind the drafting choices in this document. This block is a private record retained on the assessment; it is NOT shown to reviewers, graders, or end users. Its purpose is to make future revisions traceable. Use this shape:
+{
+  "framework_selection": "one sentence: why this documentType/framework was used given the intake jurisdictions",
+  "module_selection": "one sentence: which SCC / IDTA / addendum module(s) were selected and why (or 'n/a' if no transfer mechanism applies)",
+  "clause_deviations": [
+    { "clause": "clause number or heading", "choice": "the option taken", "reason": "one sentence why" }
+  ],
+  "open_placeholders": [ "short label of each [TO BE COMPLETED] placeholder deliberately left for the Parties" ],
+  "enforcement_influence": "one sentence: how the enforcement context (if any) influenced clause choices — or 'no enforcement influence'"
+}
+- If no deviations or open placeholders exist, use empty arrays. Never place operative contract text, party-facing commentary, or apology language inside this block; it is a drafting record only.
+
 
 12. ENTITY LEGAL FORM CONSISTENCY. Before drafting, inspect the controller name and processor name for legal form suffixes and verify they are consistent with the stated incorporation jurisdiction. Apply these known mappings:
 - B.V. (Besloten Vennootschap) → Netherlands only. If the stated jurisdiction is not the Netherlands, flag it.
