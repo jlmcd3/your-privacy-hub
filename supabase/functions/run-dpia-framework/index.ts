@@ -21,6 +21,7 @@ import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
+import { buildDpiaEngagementMap } from "../_shared/engagement-map.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
 import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
@@ -680,7 +681,8 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "c1-b-citation-pair-verifier@2026-07-23T14:20:00Z";
+export const BUILD_STAMP = "c1-d-engagement-map-v1@2026-07-23T23:55:00Z";
+console.log(`[run-dpia-framework] boot ${BUILD_STAMP}`);
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -2169,6 +2171,15 @@ async function runStitch(dpia_id: string): Promise<void> {
       const _det = runFormatChecksGeneric(_prose, { intakeRoster: _intakeRoster }).map((x) => ({ ...x, check_type: 'deterministic' as const }));
       attachDeterministicChecks(reportData as any, _det as any);
     } catch (_) { /* non-fatal */ }
+    // C1-d — Engagement Map v1 (additive metadata; document structure unchanged)
+    try {
+      (reportData as any).engagement_map = buildDpiaEngagementMap(
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+        resolved as any,
+      );
+    } catch (e) {
+      console.warn("[run-dpia-framework] engagement_map build skipped:", (e as Error)?.message);
+    }
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,
