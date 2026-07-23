@@ -1132,7 +1132,18 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
   const scope = report.scope_and_triggers || {};
   const activities = Array.isArray(report.risk_assessment_by_activity) ? report.risk_assessment_by_activity : [];
   const exceptions = Array.isArray(report.exception_analysis) ? report.exception_analysis : [];
-  const actions = Array.isArray(report.priority_actions) ? report.priority_actions : [];
+  // QB-P25 B3 — sort priority actions by rank (1 = highest); missing ranks sink last.
+  const actionsRaw = Array.isArray(report.priority_actions) ? report.priority_actions : [];
+  const actions = [...actionsRaw].sort((a: any, b: any) => {
+    const ar = typeof a?.rank === "number" ? a.rank : Number.POSITIVE_INFINITY;
+    const br = typeof b?.rank === "number" ? b.rank : Number.POSITIVE_INFINITY;
+    return ar - br;
+  });
+  // QB-P25 B3 — lookup for strengthen_item_ids pointer resolution.
+  const strengthenItemsMap: Record<string, any> = {};
+  for (const it of (Array.isArray(report.strengthen_items) ? report.strengthen_items : [])) {
+    if (it && typeof it === "object" && typeof it.item_id === "string") strengthenItemsMap[it.item_id] = it;
+  }
   const flags = Array.isArray(report.inconsistency_flags) ? report.inconsistency_flags : [];
   const enf = report.enforcement_context || {};
   const xrec = report.cross_tool_recommendations || {};
