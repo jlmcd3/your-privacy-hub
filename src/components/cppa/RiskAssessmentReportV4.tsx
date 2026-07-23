@@ -200,9 +200,25 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
   const exceptions = report.exception_analysis || [];
   const activities = report.risk_assessment_by_activity || [];
   const inconsistencies = report.inconsistency_flags || [];
-  const actions = report.priority_actions || [];
+  // QB-P25 B3 — priority_actions sorted by rank (ascending, 1 = highest);
+  // entries missing a numeric rank sink to the end preserving input order.
+  const actionsRaw = report.priority_actions || [];
+  const actions = [...actionsRaw].sort((a: any, b: any) => {
+    const ar = typeof a?.rank === "number" ? a.rank : Number.POSITIVE_INFINITY;
+    const br = typeof b?.rank === "number" ? b.rank : Number.POSITIVE_INFINITY;
+    return ar - br;
+  });
   const xtool = report.cross_tool_recommendations || {};
   const enf = report.enforcement_context;
+
+  // QB-P25 B3 — strengthen_items lookup for resolving strengthen_item_ids
+  // pointers from exception_analysis / record_sufficiency entries.
+  const strengthenItemsMap: Record<string, any> = {};
+  for (const it of ((report as any).strengthen_items ?? [])) {
+    if (it && typeof it === "object" && typeof it.item_id === "string") {
+      strengthenItemsMap[it.item_id] = it;
+    }
+  }
 
   return (
     <div className="space-y-6 font-serif-text">
