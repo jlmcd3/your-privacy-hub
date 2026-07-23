@@ -80,11 +80,22 @@ export interface AssessmentOutput {
     eu_representative_required: boolean;
     uk_representative_required: boolean;
     dpo_required: boolean;
-    // Retained for back-compat; equals `gpai_provider_obligations ||
-    // high_risk_ai_deployer_obligations`. New callers should read the split
-    // fields below so GPAI-provider duties (Chapter V, Arts. 53–55) are not
-    // conflated with high-risk-AI deployer duties (Chapter III, Arts. 26–29;
-    // Art. 49(2) database).
+    // QB-P24 Addendum Item 9(a) — DPO precision. `dpo_trigger` names the
+    // engaged Art. 37(1) branch (or BDSG §38) when `dpo_required=true`.
+    // `dpo_condition` carries the deciding fact when the intake does not
+    // establish an unconditional trigger for a small controller (in which
+    // case `dpo_required` is false, per the addendum).
+    dpo_trigger: string | null;
+    dpo_condition: string | null;
+    // QB-P24 Addendum Item 7 — honest name. Value equals
+    // `gpai_provider_obligations || high_risk_ai_deployer_obligations`. The
+    // legacy key `ai_act_provider_obligations` is retained here purely as a
+    // read-only alias for any downstream reader that still reaches for it —
+    // internal consumers verified this turn: generate-report-pdf and
+    // engine_test only. Both are updated to read the new key; the alias is
+    // scheduled for removal in the next courier.
+    ai_act_obligations_engaged: boolean;
+    /** @deprecated Use `ai_act_obligations_engaged`. */
     ai_act_provider_obligations: boolean;
     gpai_provider_obligations: boolean;
     high_risk_ai_deployer_obligations: boolean;
