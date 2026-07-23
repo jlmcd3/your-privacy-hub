@@ -78,6 +78,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "biometric", flags: "i", label: "biometric acknowledged" },
+      ...DRAFTING_RECORD_GUARDS,
     ],
   },
 ];
