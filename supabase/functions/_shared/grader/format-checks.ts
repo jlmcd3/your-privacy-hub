@@ -228,17 +228,44 @@ function checkE2(text: string, dim = "formatting"): FormatFinding[] {
 }
 
 function checkE3(text: string, dim = "formatting"): FormatFinding[] {
+  // QB-P23 item 3 — MULTI-LINE AWARE. Prior line-scoped regex
+  // (/\[TO BE COMPLETED[^\]\n]{0,400}$/gim) flagged any placeholder
+  // whose closing "]" landed on a subsequent line as unclosed, e.g.:
+  //   [TO BE COMPLETED: describe steps
+  //   - a
+  //   - b]
+  // Evidence: IR run bc909da1 doc 747fcb46 — 3 e3_tbc_unclosed hits,
+  // each a properly-closed multi-line bulleted placeholder.
+  //
+  // New logic: walk every "[TO BE COMPLETED" occurrence; require a "]"
+  // before the next "[TO BE COMPLETED" (or EOF) within a 1200-char
+  // window (long enough for a bulleted list, short enough to prevent a
+  // stray "]" a page later from masking a truly unclosed bracket).
   const findings: FormatFinding[] = [];
-  // Any "[TO BE COMPLETED" not eventually closed by "]" on the same line
-  // (allowing colons, dashes, verbs in between).
-  const re = /\[TO BE COMPLETED[^\]\n]{0,400}$/gim;
+  const src = text ?? "";
+  const openRe = /\[TO BE COMPLETED/gi;
+  const MAX_WINDOW = 1200;
   let m: RegExpExecArray | null;
   let hits = 0;
-  while ((m = re.exec(text ?? "")) !== null) {
-    hits++;
-    findings.push(fail("e3_tbc_unclosed", dim, "medium",
-      `unclosed [TO BE COMPLETED bracket at "${m[0].slice(0, 80)}…"`));
-    if (hits > 20) break;
+  while ((m = openRe.exec(src)) !== null) {
+    const start = m.index;
+    // Next opener bounds the search window (nested / adjacent placeholders).
+    openRe.lastIndex = start + m[0].length;
+    const nextOpen = openRe.exec(src);
+    const bound = Math.min(
+      src.length,
+      nextOpen ? nextOpen.index : src.length,
+      start + MAX_WINDOW,
+    );
+    // Reset outer walker to the next opener so we don't skip it.
+    openRe.lastIndex = nextOpen ? nextOpen.index : src.length;
+    const window = src.slice(start, bound);
+    if (window.indexOf("]") === -1) {
+      hits++;
+      findings.push(fail("e3_tbc_unclosed", dim, "medium",
+        `unclosed [TO BE COMPLETED bracket at "${window.slice(0, 80)}…"`));
+      if (hits > 20) break;
+    }
   }
   if (findings.length === 0) findings.push(pass("e3_tbc_brackets_ok", dim));
   return findings;
