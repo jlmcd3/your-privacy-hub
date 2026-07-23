@@ -1655,6 +1655,18 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionFlags(report_data);
 
+    // QB-P25 B3 — deterministic normaliser for strengthen_item_ids pointers,
+    // adverse_effects enum coercion, and priority_actions rank uniqueness.
+    // Pure post-processor; does not touch information_needed (frozen).
+    try {
+      const summary = normalizeRiskV2(report_data);
+      if (summary.strippedIds || summary.droppedLikelihood || summary.droppedSeverity || summary.ranksRenumbered) {
+        console.log("[RISK] qbp25-b3 normaliser summary:", summary);
+      }
+    } catch (e) {
+      console.error("[RISK] qbp25-b3 normaliser errored:", e);
+    }
+
     // REBUILD-RISK C6 — LABEL ACCURACY LINT: for each inconsistency_flags
     // entry, verify that each conflicting_inputs field name (source_fields
     // / intake_field_1 / intake_field_2) appears in the flag's own
