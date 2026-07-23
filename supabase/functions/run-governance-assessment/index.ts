@@ -3,9 +3,10 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
-// doc-y-6 build marker (Y-6: Art. 39(1)(b) canonical-wording gloss correction, hasEuUk-gated)
-const DOC_Y_BUILD_MARKER = "doc-y-6";
-console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
+// doc-y-7 build marker — R-TURN-3 Turn B: CAL_CIV regex case-fold, comparative-exemption ban in gap/basis fields, owner-roster post-check.
+const DOC_Y_BUILD_MARKER = "doc-y-7";
+export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:15:00Z-b";
+console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER} build_stamp=${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -209,7 +210,7 @@ function docYStripUnlabeledGdprSentences(s: string, fieldPath: string): string {
   return kept.join(" ").replace(/\s+/g, " ").trim();
 }
 
-const DOC_Y_CAL_CIV_RE = /Cal\.?\s*Civ\.?\s*Code\s*(?:§\s*)?(\d{4}\.\d+(?:\.\d+)?)(\([a-z](?:\)\([a-z0-9]+)*\))?/gi;
+const DOC_Y_CAL_CIV_RE = /Cal\.?\s*Civ\.?\s*Code\s*(?:§\s*)?(\d{4}\.\d+(?:\.\d+)?)(\([a-zA-Z0-9]+(?:\)\([a-zA-Z0-9]+)*\))?/gi;
 
 function docYValidateCalCivCitations(s: string, fieldPath: string): string {
   if (!s || typeof s !== "string") return s;
@@ -587,6 +588,12 @@ JURISDICTION COVERAGE (QB-TEAM 2026-07-22; adapted from run-registration-assessm
 
 SPEC-PACK-1 R6 — BUSINESS CLAIMS ARE RECORD-GROUNDED: every characterisation of the organisation's operating posture, business model, market position, sectoral role, customer base, product surface, or maturity — in the executive_summary, key_findings, domain findings' current_state, gap description, or recommended_actions — RESTS on a specific value carried by a named intake field OR on the "the organisation notes that…" register drawn from additional_context. Never emit a business-fact claim from memory, from sector priors, or from general commercial knowledge (e.g. "the organisation operates a subscription SaaS model", "the organisation serves enterprise customers", "the organisation has a mature security programme", "the organisation is a mid-market vendor to the healthcare sector") without the intake anchor. Form: "The intake records [field]: [value], from which the assessment treats [derived characterisation]." Where the record does not carry the fact and no additional_context sentence supplies it, either omit the characterisation or surface the missing piece as an information_needed item — never fabricate the fact to complete a paragraph. This rule SUPPLEMENTS the shared engaged-jurisdiction/anchor rule and the PROPORTIONATE ASKS rule; it does not narrow either.
 
+R-TURN-3 TURN B ITEM 2 — GOVERNANCE FIELD DISCIPLINE:
+(a) WP248 VOCABULARY: when invoking DPIA "high-risk" criteria, use the WP248rev.01 vocabulary verbatim — "evaluation or scoring", "automated decision-making with legal or similar significant effect", "systematic monitoring", "sensitive data or data of a highly personal nature", "data processed on a large scale", "matching or combining datasets", "data concerning vulnerable data subjects", "innovative use or applying new technological or organisational solutions", "processing that prevents data subjects from exercising a right or using a service". Do not paraphrase these criteria; do not substitute synonyms; do not invent additional criteria.
+(b) NO COMPARATIVE-EXEMPTION PHRASING IN gap_description OR regulatory_basis: those two fields NEVER contain phrasing that frames a gap or basis as an exemption relative to another regime ("unlike GDPR, US law does not require …", "in contrast to Colorado, California exempts …", "by comparison the organisation is exempt from …"). State the operative rule affirmatively in the governing regime and confine any comparative framing to explicitly-labelled narrative fields (executive_summary, key_findings body prose).
+(c) ALLOWED-ROLES PLACEHOLDERS: every action owner in immediate_actions, priority_actions, recommended_action, suggested_owner, and roadmap resolves to a role the intake establishes OR the placeholder form "the organisation's [function] lead (role to be designated)" — never a role the intake does not establish.
+(d) OWNER-ROSTER CONSISTENCY: every named owner appearing anywhere in the report must also appear in the owner roster derived from the intake (or be the designated-placeholder form above). A named owner not on the roster is a defect.
+
 PRODUCT-PROMPT-GOV — ENUMERATION SELF-CONSISTENCY: NEVER emit engagement-status parentheticals such as "(not engaged on this intake)", "(does not apply here)", "(internal only)", or equivalent bookkeeping asides — that is internal logic leaking to the reader. Conditional phrasing ("where engaged", "if applicable") stands alone without the parenthetical.
 
 (QB-P22) NO EXTERNAL-LIST DEFERRALS: never direct the reader to consult external regulator websites or lists as a substitute for analysis (e.g. "consult the CNIL's published list", "check the ICO's guidance on their website", "verify the current version at the EDPB site"). Apply the relevant criteria from the record and STATE the conclusion; cite the regulator instrument by name and date where engaged. A pointer to "confirm the current version" may appear only as a trailing caveat AFTER the applied analysis, never in place of it. This rule operates alongside the existing fact-discipline rules above.
@@ -825,7 +832,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
-export const BUILD_STAMP = "w3-t4-governance-top3-actions@2026-07-23T17:00:00Z";
+// BUILD_STAMP is exported at file top (line 8); do not redeclare.
 
 Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);

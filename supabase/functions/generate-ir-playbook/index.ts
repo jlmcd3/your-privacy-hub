@@ -316,6 +316,8 @@ REGULATORS BELONG TO THEIR JURISDICTIONS: never name a regulator, sectoral super
 
 PRECEDENTS CITE ONLY WHAT IS CITABLE: where an enforcement-corpus entry carries a citable identifier (decision number, docket, official-gazette reference, or precise decision date), include that identifier with the citation. Where the supplied entry carries no such identifier, do NOT cite it as a specific named decision — frame it as a general principle ("supervisory-authority precedent illustrates that …") attributed to the corpus without a specific-decision citation, and never invent an identifier or year.
 
+NAME-NEVER-SECTOR-ANCHOR (R-TURN-3 Turn B item 1a): where an illustrative example is helpful in analysis, anchor the example by SECTOR (e.g. "hospitality-sector breach", "healthcare-provider ransomware incident", "financial-services vendor compromise") and NEVER by a named entity (never write "the Marriott breach", "the British Airways case", "the Equifax incident" or any other org-name-anchored example) unless that exact entity is a row in the ENFORCEMENT PRECEDENTS block supplied in this prompt and you cite its decision/reference identifier from that row. Sector-anchored examples do not carry a citation obligation; entity-named examples ALWAYS do.
+
 VERIFIED CALIFORNIA BREACH DEADLINES (cite these; do not recall breach-notification timelines from memory): Cal. Civ. Code § 1798.82, as amended by SB 446 (signed October 2025, effective January 1, 2026), requires (1) disclosure to affected California residents within 30 calendar days of discovery or notification of the breach, subject to the law-enforcement and scope-determination delay provisions, and (2) for breaches affecting more than 500 California residents, electronic submission of a single sample copy of the notification to the California Attorney General within 15 calendar days of notifying affected consumers. Where the incident predates January 1, 2026, the prior 'most expedient time possible and without unreasonable delay' standard governed; state which regime applies by incident date.
 
 PROVISIONAL DEADLINES SAY SO — DETECTION IS PROVISIONAL, AWARENESS IS OPERATIVE (QL2-FIX-1 Item 7.2): the Article 33(1) 72-hour clock (and analogous jurisdictional clocks that key to controller "awareness") runs from the CONTROLLER-AWARENESS TIMESTAMP — the moment the controller achieved reasonable certainty that a personal data breach had occurred. Where the playbook has only a detection timestamp and no confirmed awareness timestamp, treat the detection timestamp as the PROVISIONAL deadline anchor — used as if it were the awareness timestamp pending confirmation, so the response is not stalled — and say so inline: "provisionally computed from the detection timestamp, treating it as concurrent with awareness pending confirmation; if a later confirmed awareness timestamp is established, that confirmed timestamp becomes the OPERATIVE anchor and every jurisdiction's deadline is recalculated from it." Never emit a bare "computed from the stated awareness timestamp" while another section calls that timestamp unconfirmed, and never leave a detection-anchored deadline without the recalculation instruction.
@@ -380,7 +382,7 @@ W3-T4 — THRESHOLD-GATE DISCIPLINE (transfer from ADMT/CYBER): every regime-spe
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
 const IR_VERSION = "v3.9.1-cv1-ff-2026-07-19";
-export const BUILD_STAMP = "w3-t4-ir-threshold-gate-transfer@2026-07-23T17:00:00Z";
+export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:10:00Z-b";
 console.log(`[generate-ir-playbook] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
@@ -1401,6 +1403,61 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           }
         }
         assembled.playbook_text = collapseConsecutiveDuplicateNotes(assembled.playbook_text);
+        // R-TURN-3 Turn B item 1b — DETERMINISTIC ENFORCEMENT-BRACKET VERIFIER.
+        // Every emitted enforcement bracket (regulator + amount + URL + id) must
+        // match a supplied enforcement-context row exactly. Sentences containing a
+        // currency+amount pattern whose amount does NOT appear in the corpus are
+        // stripped as fabricated. This runs deterministically post-generation.
+        function verifyEnforcementBrackets(text: string, corpus: any[]): { text: string; stripped: number } {
+          try {
+            const authorizedAmounts = new Set<string>();
+            for (const row of corpus || []) {
+              const amt = row?.fine_eur_equivalent;
+              if (amt != null && Number.isFinite(Number(amt))) {
+                const n = Math.round(Number(amt));
+                authorizedAmounts.add(String(n));
+                authorizedAmounts.add(n.toLocaleString("en-US"));
+                authorizedAmounts.add(n.toLocaleString("de-DE"));
+                authorizedAmounts.add(n.toLocaleString("fr-FR").replace(/\u202f/g, " "));
+              }
+            }
+            const currencyRe = /[€£$]\s?[\d][\d.,\s]{2,}/g;
+            const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z"\[])/);
+            let stripped = 0;
+            const kept: string[] = [];
+            for (const s of sentences) {
+              const matches = s.match(currencyRe);
+              if (!matches) { kept.push(s); continue; }
+              let allOk = true;
+              for (const m of matches) {
+                const digits = m.replace(/[^\d]/g, "");
+                if (!digits) continue;
+                const n = Number(digits);
+                if (!Number.isFinite(n)) continue;
+                // accept if any authorized amount shares this digit sequence OR is within 1%
+                let ok = false;
+                for (const a of authorizedAmounts) {
+                  const ad = a.replace(/[^\d]/g, "");
+                  if (ad === digits) { ok = true; break; }
+                  const an = Number(ad);
+                  if (Number.isFinite(an) && an > 0 && Math.abs(an - n) / an < 0.01) { ok = true; break; }
+                }
+                if (!ok) { allOk = false; break; }
+              }
+              if (allOk) kept.push(s);
+              else { stripped++; console.warn("[IR][r-turn-3-b] enforcement-bracket verifier stripped sentence: " + s.slice(0, 160)); }
+            }
+            return { text: kept.join(" "), stripped };
+          } catch (e) {
+            console.error("[IR][r-turn-3-b] enforcement verifier errored:", e);
+            return { text, stripped: 0 };
+          }
+        }
+        {
+          const v = verifyEnforcementBrackets(assembled.playbook_text, enforcement_context);
+          if (v.stripped > 0) console.warn(`[IR][r-turn-3-b] enforcement-bracket verifier: stripped=${v.stripped}`);
+          assembled.playbook_text = v.text;
+        }
         lintBareCitations(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];

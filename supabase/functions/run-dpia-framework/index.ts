@@ -679,7 +679,7 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T11:20:00Z-a";
+export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:00:00Z-a1";
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -986,7 +986,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
         },
       }),
       getGdprContext(supabase, {
-        articles: ["35", "36"],
+        articles: ["9", "13", "14", "35", "36"],
         jurisdiction: gdprJurisdiction,
         recitals: [75, 84, 90],
         guidelineArticles: ["35"],
