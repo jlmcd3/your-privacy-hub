@@ -93,6 +93,45 @@ const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any
   );
 };
 
+// W3-T2: factor label + direction chip helpers.
+const FACTOR_LABEL: Record<string, string> = {
+  reasonable_expectations: "Reasonable expectations",
+  relationship: "Nature of the relationship",
+  impact_severity: "Impact and severity",
+  safeguards: "Safeguards (incl. opt-out)",
+};
+const directionChip = (d?: string) => {
+  const dir = String(d || "").toLowerCase();
+  if (dir === "for_controller") return { label: "Tips for controller", cls: "bg-emerald-50 text-emerald-800 border-emerald-200" };
+  if (dir === "for_subjects")   return { label: "Tips for data subjects", cls: "bg-red-50 text-red-800 border-red-200" };
+  return { label: "Neutral", cls: "bg-slate-50 text-slate-700 border-slate-200" };
+};
+const BalancingFactors = ({ factors, synthesis }: { factors: any[]; synthesis?: string }) => (
+  <div className="mb-3 space-y-3">
+    <p className="text-xs font-medium text-foreground/80">EDPB four-factor balancing</p>
+    {factors.map((f: any, i: number) => {
+      const chip = directionChip(f?.direction);
+      return (
+        <div key={i} className="border rounded p-3 bg-muted/30">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-sm font-semibold">{FACTOR_LABEL[f?.factor] || f?.factor || `Factor ${i + 1}`}</span>
+            <span className={`text-[11px] px-2 py-0.5 rounded border ${chip.cls}`}>{chip.label}</span>
+          </div>
+          {f?.reasoning && <p className="text-sm text-foreground mb-2">{f.reasoning}</p>}
+          {Array.isArray(f?.intake_evidence) && f.intake_evidence.length > 0 && (
+            <ul className="text-[11px] text-muted-foreground list-disc pl-4 space-y-0.5">
+              {f.intake_evidence.map((ev: any, j: number) => (
+                <li key={j}><span className="font-medium">{ev?.field}:</span> {String(ev?.value ?? "")}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    })}
+    {synthesis && <p className="text-sm text-foreground italic">{synthesis}</p>}
+  </div>
+);
+
 const TestCard = ({ title, test, annotations, precedents, isUk }: { title: string; test: any; annotations?: any[]; precedents?: any[]; isUk: boolean }) => (
   <div className="bg-card border rounded-lg p-5">
     <div className="flex items-center justify-between mb-3">
@@ -100,6 +139,9 @@ const TestCard = ({ title, test, annotations, precedents, isUk }: { title: strin
       {test?.verdict && <span className={`px-2 py-1 text-xs rounded ${verdictColor(test.verdict)}`}>{verdictLabel(test.verdict)}</span>}
     </div>
     {test?.analysis && <p className="text-sm text-foreground mb-3">{test.analysis}</p>}
+    {Array.isArray(test?.factors) && test.factors.length > 0 && (
+      <BalancingFactors factors={test.factors} synthesis={test?.synthesis} />
+    )}
     {test?.special_category_flag && (
       <div className="text-sm p-2 bg-amber-50 border border-amber-200 rounded mb-3 text-amber-900">
         <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Special category data — heightened scrutiny applies
