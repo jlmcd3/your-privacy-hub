@@ -492,10 +492,25 @@ Deno.test("intake-contracts / biometric FIXTURES — synthesised form payload va
     orgType: "Employer (employee biometrics)",
     purpose: "Time & attendance / workforce management",
     jurisdictions: ["Illinois, USA (BIPA)"],
+    other_state_names: "",
   };
   const res = validateIntake(biometricCheckerContract, payload);
   assert(res.ok, JSON.stringify(res.violations));
 });
+
+Deno.test("intake-contracts / biometric W3-T3 — other_state_names accepted when Other US state selected", () => {
+  const payload = {
+    orgName: "Front Range Employer Co.",
+    biometricTypes: ["Fingerprint / palm print"],
+    orgType: "Employer (employee biometrics)",
+    purpose: "Time & attendance / workforce management",
+    jurisdictions: ["Other US state"],
+    other_state_names: "Colorado",
+  };
+  const res = validateIntake(biometricCheckerContract, payload);
+  assert(res.ok, JSON.stringify(res.violations));
+});
+
 
 Deno.test("intake-contracts / dpia FIXTURES — synthesised form payload validates", () => {
   const payload = {

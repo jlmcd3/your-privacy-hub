@@ -60,5 +60,11 @@ export const biometricCheckerContract: IntakeContract = {
     { key: "orgType", kind: "enum", required: "always", options: ORG },
     { key: "purpose", kind: "enum", required: "always", options: PURPOSE },
     { key: "jurisdictions", kind: "multi-enum", required: "always", options: JURS },
+    // W3-T3 — optional free-text naming the specific US state(s) when the
+    // "Other US state" jurisdiction is selected. Present ⇒ the generator
+    // produces a single conditional-framework section for that state
+    // instead of the compact unresolved candidate-statute block.
+    { key: "other_state_names", kind: "text", required: "optional" },
   ],
 };
+

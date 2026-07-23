@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "qbp24-output-structure-corrections@2026-07-23T02:00:00Z";
+export const BUILD_STAMP = "w3-t3-biometric-resolve-or-narrow@2026-07-23T16:00:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -235,6 +235,12 @@ interface Body {
   orgName?: string;
   purpose: string;
   jurisdictions: string[];
+  // W3-T3 — optional free-text naming the specific US state(s) engaged when
+  // "Other US state" is selected. When populated, the generator produces a
+  // single conditional-framework section for the named state(s); when blank
+  // (or "Other US state" is not selected) the generator emits a compact
+  // structured-unresolved section with max 5 candidate statutes.
+  other_state_names?: string;
   // enrolledCount retired 2026-07-14 — legacy stored intakes may still carry the key; it is ignored, not read.
   assessment_id?: string;
   user_id?: string;
@@ -249,6 +255,7 @@ interface Body {
   // Used by improve-prompt A/B evaluation so candidate runs don't pollute biometric_assessments.
   dry_run?: boolean;
 }
+
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -323,47 +330,62 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
         : /healthcare/i.test(body.orgType) ? "the Privacy Officer and CISO"
         : /financial/i.test(body.orgType) ? "the Chief Compliance Officer and CISO"
         : "the Head of Privacy (or DPO where designated) and the Head of Security";
-      return `Other US state — General US Biometric Privacy Posture
 
-On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. No single "Other US state" statute exists; the applicable hooks depend on which state's residents' biometric data is captured. Named candidate statutes and their operative hooks (assess each against the state actually engaged):
+      // W3-T3 — named vs unnamed state paths.
+      const namedRaw = (body.other_state_names ?? "").trim();
+      if (namedRaw.length === 0) {
+        // Compact structured-unresolved block. No full-catalogue enumeration.
+        return `Other US State — State Not Named
 
-1. State comprehensive privacy laws treating biometric data as SENSITIVE personal data (opt-in consent, DPIA/data-protection-assessment, purpose limitation). NAMED CANDIDATE HOOKS:
-   - California — CCPA/CPRA, Cal. Civ. Code § 1798.140(ae) (sensitive PI, biometric identifiers) and § 1798.121 (right to limit use of SPI); 11 CCR §§ 7150–7157 (risk assessment) where triggers apply.
-   - Colorado — CPA, C.R.S. § 6-1-1303(24) (sensitive data — biometric data used for unique identification); § 6-1-1308(7) (duty regarding sensitive data — consent required before processing); § 6-1-1309 (data-protection assessment).
-   - Connecticut — CTDPA, Conn. Gen. Stat. § 42-515(28)/(29) (sensitive data); § 42-520(a)(6) (consent); § 42-522 (data-protection assessment).
-   - Virginia — VCDPA, Va. Code § 59.1-575 (sensitive data — biometric); § 59.1-578(A)(5) (consent); § 59.1-580 (data-protection assessment).
-   - Utah — UCPA, Utah Code § 13-61-101 (sensitive data); § 13-61-302 (consent and notice).
-   - Oregon — OCPA, Or. Rev. Stat. § 646A.570 (sensitive data — biometric); § 646A.578 (data-protection assessment).
-   - Texas — TDPSA, Tex. Bus. & Com. Code § 541.001(30) (sensitive data — biometric); § 541.101 (consent for sensitive data); § 541.105 (data-protection assessment). This is SEPARATE from CUBI (see (2) below).
-   - Montana / Tennessee / Iowa / Indiana / Delaware / New Hampshire / New Jersey / Maryland / Minnesota — comparable state comprehensive-privacy statutes; hooks vary by state and MUST be verified against the actual state cited before drafting.
-2. Texas Capture or Use of Biometric Identifier Act (CUBI), Tex. Bus. & Com. Code § 503.001 — pre-capture notice and consent (§ 503.001(b)); reasonable security (§ 503.001(c)(2)); destruction within a reasonable time no later than one year after PURPOSE expiry (§ 503.001(c)(3)); civil penalty up to $25,000 per violation (§ 503.001(d)) — Texas AG enforcement only, no private right of action; § 503.001(e) AI-development exemption (effective Jan 2026).
-3. Washington My Health My Data Act (RCW ch. 19.373) — where biometrics INFER health status, consumer-health-data hooks engage: opt-in consent, geofence restrictions (§ 19.373.030), and a private right of action via the Washington CPA (§ 19.86.090).
-4. State UDAP / consumer-protection statutes enforceable by the state Attorney General (e.g. FTC Act § 5-analogue statutes) — unfair or deceptive practices claims where notice, consent, or security practices misrepresent the biometric processing.
-5. Illinois BIPA (740 ILCS 14/*) — applies only if Illinois residents are enrolled; if not, do not cite. Where Illinois may be engaged, § 14/15(b) written informed consent, § 14/15(a) retention/destruction policy, § 14/15(c) no profit, § 14/15(e) reasonable safeguards, § 14/20 private right of action.
+states_to_confirm_reason: The specific US state(s) whose residents' biometrics are captured must be confirmed before jurisdiction-specific obligations can be enumerated. Populate the intake field "other_state_names" to enable a resolved analysis; without it, the applicable statute stack cannot be identified.
+
+top_candidate_statutes (top-5 candidates for a ${body.orgType} deploying ${body.biometricTypes[0]} for ${body.purpose}; each is a candidate only — final selection turns on the named state):
+- California CCPA/CPRA — Cal. Civ. Code § 1798.140(ae) (sensitive PI — biometric identifiers); § 1798.121 (right to limit use of SPI).
+- Colorado CPA — C.R.S. § 6-1-1303(24) (sensitive data — biometric); § 6-1-1308(7) (opt-in consent).
+- Virginia VCDPA — Va. Code § 59.1-575 (sensitive data — biometric); § 59.1-578(A)(5) (consent); § 59.1-580 (data-protection assessment).
+- Texas CUBI — Tex. Bus. & Com. Code § 503.001 (notice/consent, security, destruction; AG-only enforcement).
+- Washington MHMD — RCW ch. 19.373 (consumer health data where biometrics infer health status; private right of action via CPA § 19.86.090).
+
+next_step: Populate "other_state_names" with the specific state(s) engaged (or, if a single state is already known, name it in the intake) and re-run the assessment; obligations, consent form, and enforcement posture will resolve to the named state(s).
+
+information_needed_entry: field=other_state_names — dimensions="specific US state(s) whose residents' biometrics are captured"; owner: ${orgOwner}; without this the assessment cannot render statute-specific obligations for the "Other US state" jurisdiction.
+
+Compliance risk rating: UNRESOLVED — statute-specific obligations, penalties, and enforcement posture cannot be assigned until the specific state(s) are named.
+---`;
+      }
+
+      // Named-state path — narrow to the identified state(s).
+      const stateLine = namedRaw;
+      return `Other US State — ${stateLine} (Named-State Path)
+
+On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Analysis is scoped to the named state(s): ${stateLine}. Statutes from states NOT named above are OUT OF SCOPE and are not enumerated here.
+
+For each named state, the drafter identifies (a) the state's comprehensive consumer-privacy statute if one is in force (with citation), (b) its biometric-specific statute if one is in force (with citation), and (c) the state UDAP / breach-notification hook that applies in the absence of (a) or (b). Where the named state has no comprehensive privacy statute in force as of the assessment date, the drafter states that fact by name and relies on the UDAP + breach-notification hooks.
 
 Consent and notice:
-For any state whose comprehensive law treats biometric data as sensitive, obtain opt-in consent that satisfies the state statute's consent definition (typically clear, affirmative, and informed) BEFORE first capture. Provide pre-collection notice naming the biometric modality, the specific purpose, retention, recipients, and applicable rights. Owner: ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
+Obtain opt-in consent conforming to the named state's consent standard BEFORE first capture, with pre-collection notice naming the biometric modality, specific purpose, retention, recipients, and applicable rights. Owner: ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
 
 Retention and destruction:
-Adopt a written retention and destruction schedule keyed to purpose expiry, not "last interaction". For any Texas-engaged deployment, CUBI § 503.001(c)(3) requires destruction no later than one year after purpose expiry. Owner: ${orgOwner}. Timeframe: publish the schedule within 60 days of assessment sign-off; trigger: on assessment sign-off.
+Adopt a written retention and destruction schedule keyed to purpose expiry. Where the named state is Texas, CUBI § 503.001(c)(3) requires destruction no later than one year after purpose expiry. Owner: ${orgOwner}. Timeframe: publish the schedule within 60 days of assessment sign-off.
 
 Sale and sharing restrictions:
-Assess whether the intended sharing constitutes a "sale" or "sharing" under each engaged state's comprehensive law, and whether it involves sensitive personal data triggering the right to limit use. Bind every recipient under a written data-processing agreement conforming to the engaged state's controller-processor requirements (e.g. Cal. Civ. Code § 1798.100(d); C.R.S. § 6-1-1305; Va. Code § 59.1-579). Owner: the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off; trigger: on assessment sign-off.
+Assess whether the intended sharing constitutes a "sale" or "sharing" under the named state's law, and whether it involves sensitive personal data triggering the right to limit use. Bind every recipient under a written data-processing agreement conforming to the named state's controller-processor requirements. Owner: the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
 
 Current enforcement posture:
-Enforcement across the "Other US state" surface is Attorney General-led (except Illinois BIPA, which is largely private-action-driven). Consult the engaged state's AG public enforcement register for pending or resolved biometric or sensitive-data matters — never quantify enforcement magnitudes from memory.
+Enforcement in the named state is AG-led (or, where the named state is Illinois, largely private-action-driven under BIPA). Consult the named state's AG public enforcement register for pending or resolved biometric or sensitive-data matters — never quantify enforcement magnitudes from memory.
 
 Priority actions:
-1. Identify by NAME the specific state(s) whose residents are captured, and map each to the applicable statute(s) above. Owner: ${orgOwner}. Timeframe: within 14 days of assessment sign-off; trigger: on assessment sign-off.
-2. Implement opt-in consent and pre-capture notice conforming to the identified statute(s). Owner: ${orgOwner}. Timeframe: within 45 days of assessment sign-off; trigger: on completion of statute identification (action 1).
-3. Adopt a written biometric retention and destruction schedule keyed to purpose expiry, honouring CUBI's one-year-after-purpose limit where Texas is engaged. Owner: ${orgOwner}. Timeframe: within 60 days of assessment sign-off; trigger: on assessment sign-off.
-4. Execute processor agreements binding every recipient of biometric data under the engaged state's controller-processor contract requirements. Owner: the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off; trigger: on identification of recipients.
-5. Conduct the applicable state data-protection assessment (e.g. C.R.S. § 6-1-1309, Va. Code § 59.1-580, 11 CCR §§ 7150–7157 where CA is engaged) BEFORE deploying to residents of the engaged state. Owner: ${orgOwner}. Timeframe: prior to deployment to residents of the engaged state; trigger: on scoping of the deployment.
+1. Map the named state(s) to the applicable statute stack. Owner: ${orgOwner}. Timeframe: within 14 days of assessment sign-off.
+2. Implement opt-in consent and pre-capture notice conforming to the identified statute(s). Owner: ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
+3. Adopt a written biometric retention and destruction schedule keyed to purpose expiry. Owner: ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
+4. Execute processor agreements binding every recipient under the named state's controller-processor requirements. Owner: the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.
+5. Conduct any state-required data-protection assessment BEFORE deploying to residents of the named state. Owner: ${orgOwner}. Timeframe: prior to deployment.
 
 Compliance risk rating: HIGH
 Biometric processing under state comprehensive-privacy laws is a sensitive-data category with AG enforcement risk and, where Illinois or Washington are engaged, private-action exposure; execute the priority actions above before capture.
 ---`;
     }
+
 
 
     if (isEU) {
@@ -1080,6 +1102,10 @@ Deno.serve(async (req) => {
     const otherUsStateApplies = body.jurisdictions.some(
       (j) => j.toLowerCase().includes("other us"));
 
+    // W3-T3 — did the intake NAME the specific US state(s)?
+    const otherUsStateNamesRaw = (body.other_state_names ?? "").trim();
+    const otherUsStateNamed = otherUsStateApplies && otherUsStateNamesRaw.length > 0;
+
     // Explicit Texas CUBI selection — triggers CUBI-specific context injection
     // (distinct from "Other US state" which has its own broader catch-all block).
     const texasApplies = body.jurisdictions.some(
@@ -1093,6 +1119,7 @@ Deno.serve(async (req) => {
     // UK GDPR — triggers UK DPA 2018 and ICO context injection.
     const ukGdprApplies = body.jurisdictions.some(
       (j) => j.toLowerCase().includes("united kingdom") || j.toLowerCase().includes("uk gdpr"));
+
 
     // Step 3 — Haiku
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -1140,19 +1167,52 @@ For the UK section: (1) label as "UK GDPR and Data Protection Act 2018" — not 
 ENFORCEMENT POSTURE IS CORPUS-ONLY, INCLUDING MAGNITUDES: any characterisation of enforcement outcomes — settlement or fine magnitudes ("multi-billion dollar settlements"), counts of actions, named parties, dates, or dockets — must come from the supplied enforcement corpus and be attributable to it. Absent an on-point corpus entry, describe the posture qualitatively and without magnitudes ("Texas AG enforcement of CUBI is active; consult the Attorney General's public enforcement records") — never quantify from memory. This applies to every "current enforcement posture" or landscape narrative in the output.
 
 PRODUCT-FIX-2 T3(a) — ATTRIBUTION AS PLEADED, NEVER AGGREGATED UNDER ONE STATUTE: any characterisation of an enforcement outcome (settlement, judgment, consent decree) must name the statute(s) actually pleaded in the underlying action, exactly as the source describes them. The Texas Attorney General's Meta (2024) and Google (2025) biometric settlements were pleaded under BOTH the Capture or Use of Biometric Identifier Act (CUBI, Tex. Bus. & Com. Code § 503.001) AND the Texas Deceptive Trade Practices Act (DTPA); the settlement sums are NOT publicly allocated statute-by-statute. NEVER label those settlement figures as "CUBI settlements", "CUBI-only settlements", or aggregate them under a single statute label (e.g. "Texas has secured over $X in CUBI settlements") — that misstates the pleaded basis. Describe them as "actions pleaded under CUBI together with the DTPA" and do not aggregate sums under a single-statute banner unless the corpus entry itself does so. The same rule applies to any multi-statute enforcement action.
-${otherUsStateApplies ? `
-OTHER US STATE — APPLICABILITY FLAG
-"Other US state" is in scope. Produce a dedicated "Other US State — General US Biometric Privacy Posture" section that:
-  - names, for the state actually identified in the intake (where available), the applicable general privacy / consumer-protection / attorney-general enforcement hooks — e.g. the state's comprehensive privacy law if one is in force (CCPA/CPA/VCDPA/CTDPA/UCPA/OCPA and successors), the state UDAP/consumer-protection statute enforceable by the AG, and any biometric-specific provisions in existing law; state explicitly and by name when no dedicated biometric statute exists in that state and identify what does apply,
-  - names the specific action, the OWNER role (e.g. Head of Privacy, DPO, or General Counsel), and a concrete TIMEFRAME (e.g. "within 30 days of assessment sign-off") for every recommendation in this section — per SPEC-PACK-1 S1 (specificity/actionability),
-  - notes Texas Capture or Use of Biometric Identifier Act (CUBI) requirements: § 503.001(b) notice and consent before capture (no signed written release required — that is Illinois BIPA); § 503.001(c)(2) reasonable security; § 503.001(c)(3) destruction within reasonable time no later than one year after PURPOSE expiry (not "last interaction"); § 503.001(d) civil penalty up to $25,000/violation, Texas AG enforcement only — no private right of action; § 503.001(e) [effective Jan 2026] AI development exemption,
-  - notes Washington My Health My Data Act exposure where biometrics infer health status,
-  - covers the broader pattern across CA/CO/CT/VA/UT/OR comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and DPIAs,
-  - identifies the most likely applicable state regime based on the organisation type and purpose described.
-Do NOT skip this section even though no specific state was named. Do NOT emit generic "Confirm which biometric privacy or data protection law applies…" boilerplate in place of the analysis above — the section must name the applicable hooks (or state explicitly that none exist) rather than deferring the question back to the reader.
-POST-BIOMETRIC-FIX-1 T5 BANNED SENTENCE PATTERNS in this section (any of these renders the section non-compliant and must be recast): "Identify the applicable biometric or sensitive-data law in this jurisdiction", "Confirm which biometric privacy or data protection law applies", "Applicable biometric and sensitive-data obligations depend on the specific laws in force in this jurisdiction", "Consult the applicable supervisory authority or attorney general's enforcement register for this jurisdiction — enforcement posture varies and is not captured in this assessment", "review its specific requirements", "implement jurisdiction-appropriate consent and notice procedures" (with no named statute), "should be supplemented with jurisdiction-specific legal advice". EVERY recommendation in this section names (a) a specific candidate statute or hook by name and citation drawn from the enumeration above (state comprehensive-privacy laws with sensitive-data / consent / assessment provisions, CUBI § 503.001, Washington MHMD Act, state UDAP statutes, and Illinois BIPA where Illinois residents may be enrolled), (b) an INTERNAL OWNER ROLE (e.g. "the Head of Privacy", "the DPO", "the HR lead where the org type is Employer"), and (c) a CONCRETE TIMEFRAME tied to a record event (e.g. "within 30 days of assessment sign-off", "before deployment to residents of the engaged state"). NEVER emit a section that defers naming the applicable law to the reader; if the intake lacks a specific state, enumerate the candidate hooks that would apply once identified.
-PRODUCT-FIX-4 T5 SCAFFOLD-LABEL BAN (applies to ALL sections in this document, not just Other US state): NEVER emit parenthetical prompt-engineering labels, internal task IDs, scaffold annotations, or courier tags in any output heading, section title, or body text. Banned patterns include, non-exhaustively: "(POST-BIOMETRIC-FIX-1 T5 scaffold — …)", "(PRODUCT-FIX-N T#)", "(SPEC-PACK-1 …)", "(courier …)", "(scaffold — …)", "(POST-… scaffold …)", any "(… TN scaffold …)" parenthetical, any "(POST-… fix …)" parenthetical, any bracketed "[POST-…]" or "[SCAFFOLD-…]" tag. These labels are internal-only tracking metadata; they must never appear in reader-facing output. Emit the substantive heading only — e.g. "Other US state — General US Biometric Privacy Posture" — with no trailing parenthetical tag.
-` : ""}ENFORCEMENT PRECEDENTS
+${otherUsStateApplies ? (otherUsStateNamed ? `
+OTHER US STATE — NAMED-STATE PATH (W3-T3)
+The intake NAMES the specific US state(s) engaged: ${otherUsStateNamesRaw}. Produce ONE conditional-framework section per named state (heading form: "[State] — [Named comprehensive privacy statute or, if none, state UDAP / breach-notification hook]"). Each named-state section:
+  - Names the specific applicable statute(s) with citation drawn from the following registry — DO NOT invent statute names or section numbers, and do NOT list statutes for states that were not named:
+      Alabama: no comprehensive privacy law; Ala. Code § 8-38 (breach notification) + Ala. Code § 8-19 (Deceptive Trade Practices Act, AG-enforced).
+      California: CCPA/CPRA, Cal. Civ. Code § 1798.140(ae) (sensitive PI — biometric identifiers), § 1798.121 (right to limit use of SPI); 11 CCR §§ 7150-7157 (risk assessment).
+      Colorado: CPA, C.R.S. § 6-1-1303(24) (sensitive data — biometric), § 6-1-1308(7) (opt-in consent for sensitive data), § 6-1-1309 (data-protection assessment).
+      Connecticut: CTDPA, Conn. Gen. Stat. § 42-515(28)/(29), § 42-520(a)(6) (consent), § 42-522 (data-protection assessment).
+      Delaware: DPDPA, 6 Del. C. § 12D-102 (sensitive data — biometric), § 12D-105 (consent), § 12D-108 (data-protection assessment).
+      Indiana: Ind. Code § 24-15 (Indiana Consumer Data Protection Act) — sensitive data, opt-in consent, data-protection assessment.
+      Iowa: Iowa Code § 715D — consumer data protection act; sensitive data opt-in consent.
+      Maryland: MODPA, Md. Code Ann., Com. Law § 14-4601 et seq. — biometric identifiers as sensitive data.
+      Minnesota: Minn. Stat. § 325O — Minnesota Consumer Data Privacy Act; opt-in consent for sensitive data.
+      Montana: Mont. Code Ann. § 30-14-2801 et seq. (MCDPA) — sensitive data, consent, data-protection assessment.
+      New Hampshire: N.H. Rev. Stat. § 507-H — consumer data privacy; sensitive data consent.
+      New Jersey: N.J. Stat. § 56:8-166.4 et seq. (Data Privacy Act) — sensitive data opt-in consent, data-protection assessment.
+      New York: SHIELD Act (N.Y. Gen. Bus. Law § 899-BB) — reasonable security for private information including biometric information; NY Civil Rights Law § 79-L (limited biometric use rules); no comprehensive consumer-privacy statute in force as of the assessment date.
+      Oregon: OCPA, Or. Rev. Stat. § 646A.570 (sensitive data — biometric), § 646A.578 (data-protection assessment).
+      Tennessee: TIPA, Tenn. Code § 47-18-3201 et seq. — sensitive data opt-in consent.
+      Texas: TDPSA, Tex. Bus. & Com. Code § 541.001(30) (sensitive data — biometric), § 541.101 (consent), § 541.105 (assessment); SEPARATE from CUBI § 503.001.
+      Utah: UCPA, Utah Code § 13-61-101 (sensitive data), § 13-61-302 (consent and notice).
+      Virginia: VCDPA, Va. Code § 59.1-575 (sensitive data — biometric), § 59.1-578(A)(5) (consent), § 59.1-580 (data-protection assessment).
+      Any other named state: state that no comprehensive consumer-privacy statute is in force in that state as of the assessment date (if that is the fact), and rely on the state's UDAP / consumer-protection statute (AG-enforced) and its breach-notification statute — name both by citation.
+  - Names the OWNER role and a CONCRETE TIMEFRAME for every recommendation (per SPEC-PACK-1 S1).
+  - Does NOT list candidate statutes from other states; the section is scoped to the named state(s) only.
+  - Retains the CUBI / MHMD / BIPA sections ONLY where the named state is Texas / Washington / Illinois respectively — otherwise those statutes are OUT OF SCOPE and MUST NOT appear.
+BANNED in the named-state path: enumerating the full ~18-state catalogue; naming statutes for states the reader did not identify.
+PRODUCT-FIX-4 T5 SCAFFOLD-LABEL BAN (applies to ALL sections): NEVER emit parenthetical prompt-engineering labels, internal task IDs, scaffold annotations, or courier tags in any output heading, section title, or body text. Banned patterns include, non-exhaustively: "(POST-BIOMETRIC-FIX-1 T5 scaffold — …)", "(PRODUCT-FIX-N T#)", "(SPEC-PACK-1 …)", "(courier …)", "(W3-T3 …)", any bracketed "[POST-…]" or "[SCAFFOLD-…]" tag. Emit the substantive heading only — with no trailing parenthetical tag.
+` : `
+OTHER US STATE — UNRESOLVED-STATE PATH (W3-T3 compact structured-unresolved)
+"Other US state" is in scope BUT the intake did NOT name the specific state. Produce ONE compact "Other US State — State Not Named" section with EXACTLY these four labelled sub-blocks, and NOTHING ELSE (no full-catalogue enumeration, no per-state paragraphs):
+
+  states_to_confirm_reason: One or two sentences explaining that the specific state(s) whose residents' biometrics are captured must be confirmed before jurisdiction-specific obligations can be enumerated. Reference the intake field "other_state_names" by name as the field the reader should populate.
+
+  top_candidate_statutes (MAX 5, each ONE line, named with citation, chosen for the ${body.orgType} / ${body.purpose} intake — NEVER more than 5):
+    - Pick from: California CCPA/CPRA (Cal. Civ. Code § 1798.140(ae) / § 1798.121); Colorado CPA (C.R.S. § 6-1-1303(24) / § 6-1-1308(7)); Connecticut CTDPA (Conn. Gen. Stat. § 42-520(a)(6)); Virginia VCDPA (Va. Code § 59.1-575 / § 59.1-578(A)(5)); Texas CUBI (Tex. Bus. & Com. Code § 503.001); Washington MHMD (RCW ch. 19.373); New York SHIELD Act (N.Y. Gen. Bus. Law § 899-BB); Illinois BIPA (740 ILCS 14).
+    - One line per candidate. Do NOT reproduce full-registry paragraphs.
+
+  next_step: One sentence. The concrete action the reader should take to enable a resolved analysis (populate other_state_names in a re-run; or, if a single state is already known, name it).
+
+  information_needed_entry: An INFORMATION-NEEDED item pointing to the "other_state_names" intake field. Also emit this same item verbatim in the ===INFORMATION_NEEDED=== annotations block at the end of the document (field=other_state_names, dimensions="specific US state(s) whose residents' biometrics are captured").
+
+BANNED in the unresolved path: the ~18-state candidate catalogue (Alabama through Wyoming); per-state paragraph enumerations beyond the top-5 line entries; any implication that the assessment covers all US states; the prior "General US Biometric Privacy Posture" scaffold heading.
+PRODUCT-FIX-4 T5 SCAFFOLD-LABEL BAN: NEVER emit parenthetical prompt-engineering labels, internal task IDs, scaffold annotations, or courier tags in any output heading, section title, or body text. Emit the substantive heading only.
+`) : ""}
+ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
 
 
