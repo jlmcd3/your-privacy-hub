@@ -387,6 +387,79 @@ Deno.serve(async (req) => {
       console.warn("[run-registration-assessment] market-coverage fill skipped:", (e as Error)?.message);
     }
 
+    // QB-P24 Addendum Item 8 — single shared EU AI Act basis block. The full
+    // statutory narrative is stated ONCE here; each EU jurisdiction card
+    // carries only the jurisdiction-specific delta (authority coordinating
+    // any Art. 49(2) database filing). Emitted only when the intake actually
+    // engages one or both AI-Act tracks, or when EU/EEA scope is present.
+    try {
+      const gpaiProv = engineOutput.obligations_summary.gpai_provider_obligations === true;
+      const highRiskDep = engineOutput.obligations_summary.high_risk_ai_deployer_obligations === true;
+      const hasEuJur = (result_summary.jurisdictions as any[]).some((j) =>
+        new Set([
+          "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+          "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+        ]).has(j.code)
+      );
+      if (hasEuJur && (gpaiProv || highRiskDep)) {
+        (result_summary as any).eu_ai_act_basis = {
+          engaged_tracks: [
+            gpaiProv ? "gpai_provider" : null,
+            highRiskDep ? "high_risk_deployer" : null,
+          ].filter(Boolean),
+          narrative: (gpaiProv && highRiskDep)
+            ? "Both EU AI Act tracks are engaged for this organisation across its EU/EEA footprint. (1) GPAI-provider obligations per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. (2) High-risk-AI deployer obligations per the intake's declaration that the organisation deploys a high-risk AI system: Chapter III (Arts. 26–29) imposes deployer duties (human oversight, input-data appropriateness, monitoring, incident reporting, and — where the deployer qualifies — the Art. 27 fundamental-rights impact assessment); Art. 49(2) requires deployers that are public authorities, Union institutions, bodies, offices or agencies (and certain other categories) to register the high-risk system's use in the EU database maintained under Art. 71. These obligations attach to the organisation once, not per Member State; the per-jurisdiction cards below identify only the competent supervisory authority for any Art. 49(2) database filing."
+            : gpaiProv
+              ? "EU AI Act GPAI-provider obligations are engaged for this organisation across its EU/EEA footprint per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models. The obligation attaches to the organisation once, not per Member State."
+              : "EU AI Act high-risk-AI deployer obligations are engaged for this organisation across its EU/EEA footprint per the intake's declaration that the organisation deploys a high-risk AI system: Regulation (EU) 2024/1689, Chapter III (Arts. 26–29) imposes deployer duties (human oversight per Art. 26(1), input-data appropriateness where the deployer controls input data per Art. 26(4), monitoring per Art. 26(5), incident reporting per Art. 26(5), and record-keeping per Art. 26(6)); where the deployer is a public authority or Union body (or otherwise within Art. 49(2) scope), Art. 49(2) requires registration of the high-risk system's use in the EU database maintained under Art. 71. The per-jurisdiction cards below identify only the competent supervisory authority for any Art. 49(2) database filing.",
+        };
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] eu_ai_act_basis emit skipped:", (e as Error)?.message);
+    }
+
+    // QB-P24 Addendum Item 10 — Art. 27(4) EU representative guidance. When
+    // more than one EU/EEA jurisdiction engages Art. 27 (i.e., the intake
+    // targets multiple EU Member States without an EU establishment), state
+    // ONCE that a single representative in one Member State satisfies the
+    // obligation and recommend the selection basis.
+    try {
+      const isEuEeaCode = (c: string) => new Set([
+        "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+        "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","NO","IS","LI",
+      ]).has(c);
+      const art27Codes = (result_summary.jurisdictions as any[])
+        .filter((j) => isEuEeaCode(j.code) && Array.isArray(j.obligations) && j.obligations.includes("eu_representative"))
+        .map((j) => j.code as string);
+      if (art27Codes.length > 1) {
+        (result_summary as any).eu_representative_group = {
+          mechanism: "GDPR Art. 27 (single EU representative)",
+          engaged_markets: art27Codes,
+          narrative: `Art. 27(1) GDPR requires an EU representative in this scenario (organisation not established in the Union but offering goods/services to, or monitoring, data subjects in the Union). Art. 27(4) makes clear that ONE representative established in ONE Member State suffices for the whole Union — a separate representative in each of ${art27Codes.join(", ")} is NOT required. Selection basis (WP29 / EDPB guidance): appoint the representative in the Member State where the largest share of monitored data subjects is located, or where the most significant processing activities take place; a mailbox-only arrangement does not satisfy Art. 27's mandate to receive supervisory-authority and data-subject correspondence.`,
+        };
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] eu_representative_group emit skipped:", (e as Error)?.message);
+    }
+
+    // QB-P24 Addendum Item 9(a) — echo the DPO trigger / conditional at the
+    // top-level result so the renderer does not have to reconstruct the
+    // deciding fact from `dpo_required` alone. Additive, non-breaking.
+    try {
+      const os = engineOutput.obligations_summary as any;
+      if (os && (os.dpo_trigger || os.dpo_condition)) {
+        (result_summary as any).dpo_precision = {
+          required: engineOutput.obligations_summary.dpo_required,
+          trigger: os.dpo_trigger || null,
+          condition: os.dpo_condition || null,
+        };
+      }
+    } catch (e) {
+      console.warn("[run-registration-assessment] dpo_precision emit skipped:", (e as Error)?.message);
+    }
+
+
+
     // 4. Persist
     let row;
     const persistPayload = {
