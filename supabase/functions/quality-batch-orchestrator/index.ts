@@ -628,6 +628,43 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   return { ok: true, runId: row.id };
 }
 
+// QB-P25 Final-B R1 — single-tool pinned-rerun BATCH parent.
+// Creates a real quality_batch_runs row (tools=[tool], batch_size=pins.length,
+// concurrency=1) so the rerun renders on /admin/quality-batch, exports, and
+// gets PDFs like any batch. The kickoff → dispatch_wave path calls
+// seedAndResume which pins goldenIntakes(tool) by default, so no extra
+// pins-override plumbing is required — a single-tool batch of size==pins.length
+// IS a pinned rerun. Used by both the internal (service-role) and admin-JWT
+// branches; `createdBy` MUST be a real admin UUID (schema is uuid NOT NULL).
+async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: string | null)
+  : Promise<{ ok: true; runId: string; pins: number } | { ok: false; status: number; err: string }> {
+  if (!RUN_QUALITY_BATCH_SLUGS.has(tool)) return { ok: false, status: 400, err: `unknown tool slug: ${tool}` };
+  const pins = goldenIntakes(tool);
+  if (!pins.length) return { ok: false, status: 400, err: `no goldens for tool ${tool}` };
+  const db = admin();
+  const { data: row, error } = await db.from("quality_batch_runs").insert({
+    tools: [tool], batch_size: pins.length, status: "running", phase: "kickoff",
+    current_tool_index: 0, tool_results: [], created_by: createdBy,
+    instrument_version: GRADER_CONTEXT_VERSION,
+    concurrency: 1,
+  }).select("id").single();
+  if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
+  const attribution = sentinel ? ` (attribution=${sentinel})` : "";
+  await log(row.id, `Pinned rerun batch created: tool=${tool}, pins=${pins.length}${attribution}`);
+  // @ts-ignore
+  EdgeRuntime.waitUntil(selfInvoke(row.id));
+  return { ok: true, runId: row.id, pins: pins.length };
+}
+
+// Resolve an admin owner UUID for internal-branch pinned reruns where the
+// caller has no JWT (schema requires created_by NOT NULL uuid). Mirrors the
+// fallback in startCampaignWave.
+async function resolveAdminOwner(): Promise<string | null> {
+  const { data } = await admin().from("user_roles")
+    .select("user_id").eq("role", "admin").limit(1).maybeSingle();
+  return (data as { user_id?: string } | null)?.user_id ?? null;
+}
+
 // ─── QB-P9 Campaign machinery ────────────────────────────────────────────────
 
 async function loadCampaign(): Promise<any | null> {
