@@ -945,7 +945,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   // QLB-F3: body-first, metadata-stripped, equal-budget grader payload.
   const family = familyForBatchTool(tool);
   const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
   if (payload.truncated) {
     console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=claude original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
@@ -1021,7 +1021,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     // QLB-F3: same body-first payload + equal budget as Claude path.
     const family = familyForBatchTool(tool);
     const payload = family
-      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET)
+      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
       : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
     if (payload.truncated) {
       console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
