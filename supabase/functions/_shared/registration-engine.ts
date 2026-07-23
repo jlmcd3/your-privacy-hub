@@ -324,8 +324,11 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
         "Public-authority deployer of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties AND Art. 49(3) EU-database registration engaged (public authorities and Union bodies deploying high-risk AI must register the use in the Art. 71 EU database)",
         "ai_eu_database_public_authority");
     } else {
+      // CEO decision 2026-07-23 — private-sector high-risk deployer:
+      // ZERO Art. 49 / public-authority mentions (even negations). Emit
+      // Chapter III duties only.
       ensure(map, target, "R6_AI_HIGH_RISK",
-        "Deployer of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties engaged (human oversight, input-data appropriateness, monitoring, incident reporting, record-keeping). Art. 49(3) EU-database deployer registration does NOT apply to private-sector deployers.",
+        "Deployer of a high-risk AI system in the EU — Chapter III (Arts. 26–29) deployer duties engaged (human oversight, input-data appropriateness, monitoring, incident reporting, record-keeping).",
         "ai_deployer_duties");
     }
     fired.push("R6_AI_HIGH_RISK");
