@@ -380,7 +380,7 @@ W3-T4 — THRESHOLD-GATE DISCIPLINE (transfer from ADMT/CYBER): every regime-spe
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
 const IR_VERSION = "v3.9.1-cv1-ff-2026-07-19";
-export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
+export const BUILD_STAMP = "w3-t4-ir-threshold-gate-transfer@2026-07-23T17:00:00Z";
 console.log(`[generate-ir-playbook] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
