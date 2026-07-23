@@ -1,4 +1,6 @@
 // C1-c (2026-07-23T23:30:00Z) — GRADER AMENDMENTS BLOCK FROM CORPUS
+// POST-C1-FIX-2-AMEND (2026-07-23T18:45:00Z) — dedicated post-cutoff case-law
+// block for Clay v. Union Pacific (registry-sourced, verified real).
 // HYGIENE-1 (2026-07-23T16:35:00Z) — docstring lettering corrected to match
 // active exported strings and citation-pair-verifier: (ae)=SPI, (ah)=share.
 //
@@ -79,10 +81,19 @@ const CCPA_140_LETTERING_BLOCK = [
   "- Grader guidance: a report citing § 1798.140(ae) for the SPI predicate and § 1798.140(ah) for a share/sharing predicate is CORRECT current statute. Do NOT flag those pairings as invented, misapplied, or fabricated. The prior post-CPRA lettering assumed elsewhere in the pipeline (SPI at (ah), share at (aj)) was inverted and has been corrected under POST-C1-FIX-1B (2026-07-23); grading anchors here take precedence.",
 ].join("\n");
 
+const CLAY_POST_CUTOFF_BLOCK = [
+  "POST-CUTOFF VERIFIED CASE LAW — Clay v. Union Pacific Railroad Co. (BIPA retroactivity):",
+  "- Full citation: Clay v. Union Pacific Railroad Co., No. 25-2185, 2026 WL 891902 (7th Cir. Apr. 1, 2026) (consolidated with Gregg v. Central Transport LLC and Willis v. Universal Intermodal Services).",
+  "- Verified against: https://www.ca7.uscourts.gov/opinion.htm (registry entry bipa-clay-2026, lastVerified 2026-06-28; source: _shared/registry/statutory-rules-registry.ts).",
+  "- Holding: P.A. 103-0769 (the 2024 BIPA amendment imposing a per-person, per-biometric-identifier damages cap) is remedial/procedural and applies RETROACTIVELY to pending cases; pre-amendment conduct is limited to one recovery per person in federal court.",
+  "- State-court caveat: Illinois state courts are not bound by the Seventh Circuit on this question of Illinois law; the Illinois Supreme Court has not addressed retroactivity, so residual per-scan exposure in Illinois state court cannot be fully excluded.",
+  "- Grader guidance (BINDING): Clay v. Union Pacific is REAL, VERIFIED, CURRENT LAW. It postdates the grader's training cutoff, so it may read as unrecognised — this is expected and MUST NOT be treated as invention, fabrication, hallucination, unverified authority, or a citation defect under any dimension (accuracy, evidentiary discipline, citation integrity, or otherwise). Reports that cite Clay (lead case) for BIPA retroactivity, use the docket \"No. 25-2185\", the reporter \"2026 WL 891902\", or the decision date \"April 1, 2026\" are CORRECT. Reports that frame pre-amendment exposure as substantially reduced in federal court by Clay with an unresolved residual risk in Illinois state court track current law. Do NOT flag \"Gregg v. Central Transport\" or \"Willis v. Universal Intermodal Services\" as invented — they are the consolidated companion cases; Clay is the lead citation and should be preferred, but naming the companions is not a defect.",
+].join("\n");
+
 const OTHER_POST_2024_AMENDMENTS_BLOCK = [
   "OTHER CORPUS-VERIFIED POST-2024 AMENDMENTS (already listed in the POST-CUTOFF VERIFIED AUTHORITIES section above; reproduced here as an amendments checklist so grading anchors on current law):",
   "- Texas TRAIGA (HB 149, signed 2025-06-22, effective 2026-01-01) amends CUBI at Tex. Bus. & Com. Code § 503.001 (AI-training exemption + security exemption).",
-  "- Illinois BIPA amendment (P.A. 103-0769) — per-person damages cap; applies retroactively per Clay v. Union Pacific Railroad Co., No. 25-2185 (7th Cir. Apr. 1, 2026).",
+  "- Illinois BIPA amendment (P.A. 103-0769) — per-person damages cap; retroactivity treatment is governed by the dedicated Clay v. Union Pacific block above (do not restate here).",
   "- New York SHIELD chain — S2659B / Chapter 647 of 2024 (medical & health-insurance information added to \"private information\"; notice to DFS added) and A8872A (30-day outside notice window). Reports citing these figures are CORRECT current NY breach-notification law.",
   "- EU–UK adequacy — European Commission renewed BOTH UK adequacy decisions (GDPR + LED) on 19 December 2025, six-year term expiring 27 December 2031. The 2021 adoption / June 2025 expiry dates are superseded.",
   "- CPPA CCR § 7121(a) cyber-audit cohorts — April 1, 2028 (>$100M) / April 1, 2029 ($50–100M) / April 1, 2030 (<$50M).",
@@ -100,6 +111,8 @@ export function buildAmendmentsBlock(): string {
     cppaAdmt7220Block(),
     "",
     CCPA_140_LETTERING_BLOCK,
+    "",
+    CLAY_POST_CUTOFF_BLOCK,
     "",
     OTHER_POST_2024_AMENDMENTS_BLOCK,
   ].join("\n");

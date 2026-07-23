@@ -113,6 +113,11 @@ Batch 5aee4b99 doc 5 for ADMT died at 1204s with no resurrection. `run-admt-chec
 
 ## Register metadata
 
-- **Sections:** 14
+### 15. [ENGINE] Amendments-block source table needs a "post-cutoff case law" row type (2026-07-23)
+Per CEO ruling in POST-C1-FIX-2-AMEND, verified post-training-cutoff authorities (case law) must be whitelisted in the grader amendments block, not stripped from products. The block currently composes from `dpia-jurisdiction-registry` + `admt-citation-registry` + static amendment strings; Clay v. Union Pacific was added as a dedicated block sourced from `_shared/registry/statutory-rules-registry.ts` (BIPA_CITATIONS). Durable fix: promote a first-class "post-cutoff case law" row type in the amendments-block builder so future verified rulings (e.g. Illinois Supreme Court retroactivity guidance, EU CJEU post-cutoff decisions) auto-render with docket / court / date / holding / never-deduct guidance.
+
+## Register metadata
+
+- **Sections:** 15
 - **Created:** 2026-07-23
-- **Last reviewed:** 2026-07-23 (POST-C1-FIX-2)
+- **Last reviewed:** 2026-07-23 (POST-C1-FIX-2-AMEND)
