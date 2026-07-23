@@ -1943,6 +1943,20 @@ async function runStitch(dpia_id: string): Promise<void> {
     }
 
 
+    // W3-T1 §3 — metadata dedup: processing_name is an emit-time cross-reference
+    // of dpia_metadata.processing_activity_name (single source of truth). We
+    // mirror the metadata value into section_0_overview.processing_name whenever
+    // the metadata carries a value, so both surfaces always agree.
+    try {
+      const activityName =
+        (reportData as any)?.dpia_metadata?.processing_activity_name ??
+        (reportData as any)?.dpia_metadata?.processing_name ?? null;
+      if (activityName && typeof activityName === "string" && activityName.trim()) {
+        const ov = (reportData as any).section_0_overview ?? ((reportData as any).section_0_overview = {});
+        ov.processing_name = activityName.trim();
+      }
+    } catch { /* non-fatal */ }
+
     // Hard-key validation (courier §7). Guard against a stitched-empty doc.
     if (!reportData.section_0_overview && !reportData.section_4_risk_management) {
       throw new Error("stitched report missing both section_0_overview and section_4_risk_management");
