@@ -1,4 +1,4 @@
-// CPPA-HF1/HF2/HF3 — deterministic-check coverage.
+// CPPA-HF1/HF2/HF3/HF4/HF5 — deterministic-check coverage.
 import { assertEquals } from "https://deno.land/std@0.208.0/testing/asserts.ts";
 import {
   checkH1ArticlePhrasing,
@@ -7,6 +7,7 @@ import {
   checkH4EvasivePlaceholder,
   checkH5InternalNoteBlock,
   checkH6AdmtGoverningAnchor,
+  checkH7BlanketAdmtRange,
   runCppaHf1Checks,
   runAdmtHf1Checks,
   ADMT_VERIFIED_CITES,
