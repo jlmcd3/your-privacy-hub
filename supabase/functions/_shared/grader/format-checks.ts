@@ -228,44 +228,61 @@ function checkE2(text: string, dim = "formatting"): FormatFinding[] {
 }
 
 function checkE3(text: string, dim = "formatting"): FormatFinding[] {
-  // QB-P23 item 3 — MULTI-LINE AWARE. Prior line-scoped regex
-  // (/\[TO BE COMPLETED[^\]\n]{0,400}$/gim) flagged any placeholder
-  // whose closing "]" landed on a subsequent line as unclosed, e.g.:
-  //   [TO BE COMPLETED: describe steps
-  //   - a
-  //   - b]
-  // Evidence: IR run bc909da1 doc 747fcb46 — 3 e3_tbc_unclosed hits,
-  // each a properly-closed multi-line bulleted placeholder.
+  // QB-P26 Item 3 — NESTING-AWARE. Prior implementation bounded the
+  // search window at the next "[TO BE COMPLETED" opener, so a legitimate
+  // nested placeholder (e.g. IR breach-notice template where the outer
+  // "[TO BE COMPLETED: if X, include: '...[TO BE COMPLETED: describe Y]...']"
+  // wraps inner placeholders) was flagged as unclosed because the outer's
+  // closing "]" sits AFTER the inner opener.
+  // Evidence: IR run 474ac70f doc 02d9dca8 — outer "[TO BE COMPLETED: if
+  // Meridian Health Systems..." spans two inner placeholders and closes
+  // properly at the end. The matcher misread the first inner opener as
+  // the boundary.
   //
-  // New logic: walk every "[TO BE COMPLETED" occurrence; require a "]"
-  // before the next "[TO BE COMPLETED" (or EOF) within a 1200-char
-  // window (long enough for a bulleted list, short enough to prevent a
-  // stray "]" a page later from masking a truly unclosed bracket).
+  // New logic: walk char-by-char, tracking TBC-opener depth. Every
+  // "[TO BE COMPLETED" occurrence increments depth; every "]" decrements
+  // (never below 0 — stray "]" ignored). If we reach EOF or a 4000-char
+  // ceiling from the outermost opener with depth > 0, flag as unclosed.
   const findings: FormatFinding[] = [];
   const src = text ?? "";
   const openRe = /\[TO BE COMPLETED/gi;
-  const MAX_WINDOW = 1200;
+  const MAX_SPAN = 4000;
+  const opens: number[] = [];
   let m: RegExpExecArray | null;
+  while ((m = openRe.exec(src)) !== null) opens.push(m.index);
   let hits = 0;
-  while ((m = openRe.exec(src)) !== null) {
-    const start = m.index;
-    // Next opener bounds the search window (nested / adjacent placeholders).
-    openRe.lastIndex = start + m[0].length;
-    const nextOpen = openRe.exec(src);
-    const bound = Math.min(
-      src.length,
-      nextOpen ? nextOpen.index : src.length,
-      start + MAX_WINDOW,
-    );
-    // Reset outer walker to the next opener so we don't skip it.
-    openRe.lastIndex = nextOpen ? nextOpen.index : src.length;
-    const window = src.slice(start, bound);
-    if (window.indexOf("]") === -1) {
+  let i = 0;
+  while (i < opens.length) {
+    const start = opens[i];
+    let depth = 1;
+    // Positions of subsequent openers within span.
+    let j = i + 1;
+    const bound = Math.min(src.length, start + MAX_SPAN);
+    let pos = start + "[TO BE COMPLETED".length;
+    let closed = false;
+    while (pos < bound) {
+      const nextClose = src.indexOf("]", pos);
+      const nextOpen = j < opens.length ? opens[j] : -1;
+      if (nextClose === -1 || nextClose >= bound) break;
+      if (nextOpen !== -1 && nextOpen < nextClose && nextOpen < bound) {
+        depth++;
+        j++;
+        pos = nextOpen + "[TO BE COMPLETED".length;
+        continue;
+      }
+      depth--;
+      pos = nextClose + 1;
+      if (depth === 0) { closed = true; break; }
+    }
+    if (!closed) {
       hits++;
+      const window = src.slice(start, Math.min(src.length, start + 120));
       findings.push(fail("e3_tbc_unclosed", dim, "medium",
         `unclosed [TO BE COMPLETED bracket at "${window.slice(0, 80)}…"`));
       if (hits > 20) break;
     }
+    // Advance outer walker past every opener consumed by this span.
+    i = j;
   }
   if (findings.length === 0) findings.push(pass("e3_tbc_brackets_ok", dim));
   return findings;
