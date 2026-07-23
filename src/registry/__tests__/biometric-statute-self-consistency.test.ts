@@ -11,7 +11,7 @@ import {
   BIOMETRIC_REGISTRY_JURISDICTIONS,
   BIOMETRIC_REGISTRY_VERSION,
   listRegistryJurisdictions,
-} from "../../supabase/functions/_shared/registry/biometric-statute-registry.ts";
+} from "../../../supabase/functions/_shared/registry/biometric-statute-registry.ts";
 
 describe("biometric statute registry — self-consistency", () => {
   it("stamps a non-empty registry version", () => {
