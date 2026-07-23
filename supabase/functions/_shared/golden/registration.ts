@@ -31,6 +31,10 @@ const base = {
   markets_served: ["UK"],
   ai_high_risk: false,
   ai_general_purpose_provider: false,
+  // CEO decision 2026-07-23 — private organisations by default. Existing
+  // fixtures must NOT emit any public-authority content (Art. 49(3),
+  // "public authority", Art. 37(1)(a)).
+  is_public_authority: false,
 };
 
 export const REGISTRATION_GOLDEN: GoldenCase[] = [
@@ -41,6 +45,8 @@ export const REGISTRATION_GOLDEN: GoldenCase[] = [
     intake: { ...base },
     assertions: [
       { kind: "must_include", pattern: "ICO|Information Commissioner", flags: "i", label: "UK ICO named" },
+      { kind: "must_not_include", pattern: "Art(?:icle|\\.)?\\s*49\\(3\\)", flags: "i", label: "no Art. 49(3) content for private org" },
+      { kind: "must_not_include", pattern: "public[- ]authority|Union body", flags: "i", label: "no public-authority framing for private org" },
     ],
   },
   {
@@ -58,6 +64,8 @@ export const REGISTRATION_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "supervisory authority|DPA|Datainspektionen|IMY", flags: "i", label: "SA/DPA named" },
+      { kind: "must_not_include", pattern: "Art(?:icle|\\.)?\\s*49\\(3\\)", flags: "i", label: "no Art. 49(3) content for private org" },
+      { kind: "must_not_include", pattern: "public[- ]authority|Union body", flags: "i", label: "no public-authority framing for private org" },
     ],
   },
   {
@@ -76,7 +84,34 @@ export const REGISTRATION_GOLDEN: GoldenCase[] = [
       markets_served: ["DE", "FR", "UK", "IE", "NL"],
     },
     assertions: [
-      { kind: "must_include", pattern: "high[- ]?risk|Annex III|Chapter III|Art(?:icle|\\.)?\\s*49", flags: "i", label: "AI Act high-risk framing" },
+      { kind: "must_include", pattern: "high[- ]?risk|Annex III|Chapter III", flags: "i", label: "AI Act high-risk framing" },
+      // CEO decision 2026-07-23 — private high-risk deployer must NOT emit
+      // Art. 49(3) content or public-authority framing.
+      { kind: "must_not_include", pattern: "Art(?:icle|\\.)?\\s*49\\(3\\)", flags: "i", label: "no Art. 49(3) card for private deployer" },
+      { kind: "must_not_include", pattern: "public[- ]authority|Union body", flags: "i", label: "no public-authority framing for private deployer" },
+    ],
+  },
+  {
+    id: "reg-high-risk-public-authority-adversarial",
+    tool: "registration",
+    set: "adversarial",
+    intake: {
+      ...base,
+      organization_name: "City of Rotterdam — Municipal AI Office",
+      organization_country: "NL",
+      has_uk_establishment: false,
+      has_eu_establishment: true,
+      eu_lead_member_state: "NL",
+      ai_high_risk: true,
+      ai_general_purpose_provider: false,
+      uses_ai_systems: true,
+      markets_served: ["NL"],
+      is_public_authority: true,
+    },
+    assertions: [
+      { kind: "must_include", pattern: "Art(?:icle|\\.)?\\s*49\\(3\\)", flags: "i", label: "Art. 49(3) card appears for public-authority deployer" },
+      { kind: "must_include", pattern: "public[- ]authority|Union body", flags: "i", label: "public-authority framing present" },
+      { kind: "must_include", pattern: "Chapter III|Arts?\\.?\\s*26", flags: "i", label: "Chapter III deployer duties still cited" },
     ],
   },
 ];

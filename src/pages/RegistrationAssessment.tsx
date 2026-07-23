@@ -32,6 +32,7 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 interface IntakeState {
   // Step 1
   organization_name: string;
+  is_public_authority: boolean;
   organization_country: string;
   organization_size: string;
   industry: string;
@@ -61,6 +62,7 @@ interface IntakeState {
 
 const EMPTY: IntakeState = {
   organization_name: "",
+  is_public_authority: false,
   organization_country: "",
   organization_size: "",
   industry: "",
@@ -262,6 +264,14 @@ export default function RegistrationAssessment() {
                       <Input id="org" value={intake.organization_name} autoComplete="organization"
                         placeholder="e.g., Acme Retail, Inc."
                         onChange={(e) => setIntake({ ...intake, organization_name: e.target.value })} />
+                    </div>
+                    <div>
+                      {/* CEO decision 2026-07-23 — optional public-authority flag. Unchecked default. */}
+                      <CheckRow
+                        checked={intake.is_public_authority}
+                        onChange={(v) => setIntake({ ...intake, is_public_authority: v })}
+                        label="This organisation is a public authority or public/Union body"
+                      />
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
