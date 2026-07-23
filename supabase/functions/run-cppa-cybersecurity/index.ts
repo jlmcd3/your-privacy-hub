@@ -413,7 +413,10 @@ ${enforcementBlock}Respond with this exact JSON structure (controls array MUST c
       "finding": "string (1-2 sentences — specific gap or confirmation only — use US English)",
       "regulatory_basis": "string (the specific program component being assessed, in plain language — do NOT begin with 'and document', 'and maintain', or 'document and' — write a clean noun phrase that completes the sentence 'the annual cybersecurity audit must assess [your text]'; do NOT include a section citation; the citation is added by the system)",
       "remediation": "string (2-3 specific steps, plain language, US English)",
-      "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
+      "priority": "Immediate | Within 90 days | Within 6 months | Monitor",
+      "evidence": "string (REQUIRED; 1 sentence naming the specific intake artefact — vendor / coverage figure / cadence / ISO date / ticket id — that supports the score; if the intake supplies nothing bearing on this control, write exactly: 'the intake supplies no artefact for this component')",
+      "differentiator": "string (REQUIRED; 1 sentence naming the specific intake fact that distinguishes THIS control's score/status from its sibling controls, or — when the score is uniform across the report — why the uniformity reflects evidentiary depth rather than implementation failure; must NOT be a boilerplate sentence)",
+      "rank": 0
     }
   ],
   "annotations": [
