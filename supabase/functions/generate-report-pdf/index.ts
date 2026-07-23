@@ -1848,7 +1848,7 @@ function buildRegistrationReportHTML(record: any): string {
     ["DPO required", obSummary.dpo_required === true ? "✓ Yes" : "No"],
     ["EU representative required", obSummary.eu_representative_required === true ? "✓ Yes" : "No"],
     ["UK representative required", obSummary.uk_representative_required === true ? "✓ Yes" : "No"],
-    ["EU AI Act provider obligations", obSummary.ai_act_provider_obligations === true ? "✓ Yes" : "No"],
+    ["EU AI Act obligations engaged", (obSummary.ai_act_obligations_engaged ?? obSummary.ai_act_provider_obligations) === true ? "✓ Yes" : "No"],
     ["Data broker registrations", brokerRegs.length > 0 ? brokerRegs.join(", ") : "None"],
   ];
 
