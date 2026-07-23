@@ -292,7 +292,7 @@ Deno.serve(async (req) => {
           if (isPublicAuth) {
             return `EU AI Act obligations engaged in ${r?.jurisdiction_name || j.code}; see the EU AI Act basis section for the full Chapter III / Chapter V / Art. 49(3) statutory basis. Jurisdiction-specific delta: any Art. 49(3) EU-database entry for a high-risk system deployed by this public-authority deployer in this Member State is coordinated with ${authority}.`;
           }
-          return `EU AI Act obligations engaged in ${r?.jurisdiction_name || j.code}; see the EU AI Act basis section for the full Chapter III / Chapter V statutory basis. Jurisdiction-specific delta: Chapter III deployer duties are supervised by ${authority}. Art. 49(3) EU-database deployer registration does not apply to private-sector deployers; Art. 49(1) provider registration, where engaged, is coordinated with ${authority}.`;
+          return `EU AI Act obligations engaged in ${r?.jurisdiction_name || j.code}; see the EU AI Act basis section for the Chapter III / Chapter V statutory basis. Jurisdiction-specific delta: Chapter III deployer duties are supervised by ${authority}.`;
         })();
         // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
         // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
