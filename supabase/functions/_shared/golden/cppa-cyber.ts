@@ -75,6 +75,16 @@ const helios: Record<string, CtrlSpec> = {
   c18_continuity: { notes: "Three-region active-active (Frankfurt, Dublin, Zurich); RTO 30m / RPO 5m; full DR test 2026-04 with successful customer-facing failover." },
 };
 
+// QB-P25 CYBER — schema-shape assertions applied to every fixture. The three
+// new customer-facing fields (evidence, differentiator, rank) are DESIGNED
+// OUTPUT, so their presence is a hard contract rather than a rubric hint;
+// they must appear on every control in the persisted report body.
+const CYBER_SCHEMA_GUARDS = [
+  { kind: "must_include" as const, pattern: "\"evidence\"", label: "control.evidence present" },
+  { kind: "must_include" as const, pattern: "\"differentiator\"", label: "control.differentiator present" },
+  { kind: "must_include" as const, pattern: "\"rank\"", label: "control.rank present" },
+];
+
 export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
   {
     id: "cyber-nist-mid-tuning",
@@ -86,6 +96,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "NIST CSF", flags: "i", label: "framework named" },
+      ...CYBER_SCHEMA_GUARDS,
     ],
   },
   {
@@ -98,6 +109,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "ISO\\s*27001", flags: "i", label: "framework named" },
+      ...CYBER_SCHEMA_GUARDS,
     ],
   },
   {
@@ -106,7 +118,6 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     set: "adversarial",
     intake: {
       profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago" },
-      // Encryption evidence written into c1_auth notes (sibling drift):
       controls: build({
         c1_auth: { notes: "MFA via Okta. Encryption: AES-256 at rest with KMS-managed keys; TLS 1.3 in transit." },
         c2_encryption: { notes: "See auth notes." },
@@ -115,6 +126,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "encryption|AES", flags: "i",
         label: "encryption evidence surfaces even though written under c1_auth" },
+      ...CYBER_SCHEMA_GUARDS,
     ],
   },
 ];

@@ -8,7 +8,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "qbp24-output-structure-corrections@2026-07-23T02:00:00Z";
+export const BUILD_STAMP = "qbp25-cyber-evidence-differentiator-rank@2026-07-23T05:00:00Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
@@ -75,7 +75,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "NO FALSE TOTALIZERS — NARRATIVES STATE THE ACTUAL DISTRIBUTION: top_risks, executive_summary, and next_steps must never say 'every control', 'all controls', or 'all 18' unless it is literally true of all 18. Where control statuses are mixed, state the actual counts and treat each population on its own terms (e.g. \"Eleven controls are recorded as implemented but lack the operational specifics an auditor must examine; seven could not be assessed because the intake provided insufficient information\"). A risk narrative that misstates the status distribution is a factual error, whatever its analytical point.",
     "ZERO-TRUST NOTE VOICE: when applying the ZERO-TRUST IS NOT A REGULATORY CRITERION rule, the user-facing note states the regulatory point only — 11 CCR § 7123(c) as finalised does not include zero-trust as a standalone criterion, and the auditable requirement is segmentation (logical or physical separation) under § 7123(c)(10) — and directs the business to retain documentation of its segmentation architecture. The note NEVER speculates on how the business's documentation 'was designed', never references the business's 'framing' choices, and never comments on the drafting history of the business's own records: that is generator commentary about inputs, not a finding about the control.",
     "EACH FINDING IS DOCUMENTED ONCE: where a single intake entry covers two components (e.g. one undifferentiated entry spanning cybersecurity awareness and cybersecurity education/training), diagnose the documentation-separation issue fully ONCE, in the first affected component's finding; the sibling component's finding carries a one-line cross-reference ('as noted under the cybersecurity awareness component, the intake records both as a single entry; this component faces the same documentation-separation requirement') plus only what is specific to it. top_risks entries never restate control-level findings: a top risk is a systemic or cross-cutting exposure, phrased at that level, pointing to (not repeating) the underlying control findings — so the reader cannot count one defect twice.",
-    "UNIFORM SCORES STATE THEIR RATIONALE: where every control (or nearly every control) receives the same score because the record lacks operational evidence rather than because implementation gaps were found, the executive_summary must state that rationale explicitly — the score reflects the evidentiary depth available to an auditor, not implementation failure — and must sit consistently beside the priority ratings (a uniform evidentiary score with all findings at 'Monitor' priority is coherent only when this rationale is stated). This rule adds the explanation; it does not change how scores are computed.",
+    "QB-P25 CYBER SCHEMA (evidence / differentiator / rank; DESIGNED OUTPUT, NEVER INTERNAL-REASONING LEAKS): every control emits three additional customer-facing fields alongside the existing finding/remediation. (i) evidence — 1 sentence, US English, quoting or paraphrasing the SPECIFIC intake artefact(s) (named tool, coverage figure, cadence, ISO date, ticket id) that supports the score for THIS control; where the intake supplies nothing, write 'the intake supplies no artefact for this component'. (ii) differentiator — 1 sentence explaining why THIS control's score / status differs from its sibling controls (or, when uniform across the report, why the uniformity itself reflects the evidentiary depth available rather than implementation failure — this replaces the prior UNIFORM-SCORES rationale requirement, and no separate exec-summary rationale sentence is required once the per-control differentiators are populated). Boilerplate differentiators that could apply to any control ('this control is important', 'this control is a gap') are defects; the sentence names the SPECIFIC intake fact that separates this control from its neighbours. (iii) rank — an integer 1..18, unique across the report's controls, where 1 is the reader's HIGHEST-priority remediation focus (worst gap / greatest exposure) and 18 is the LOWEST; rank is a reader-facing ordering, not the raw score, so mature/implemented controls take the higher rank numbers. Evidence and differentiator are DESIGNED, USER-FACING OUTPUT — they are the reader's audit-prep record — and are NEVER labelled or bracketed as internal notes, reasoning traces, self-critique, or model process (see CPPA-HF3 B2). NEXT-STEPS CAP: the top-level next_steps array is capped at THREE items; each next_step object carries { text, owner, trigger } where owner names the intake-supplied accountable function (e.g. 'Security Engineering', 'the DPO', 'the incident-response lead') and trigger names the concrete condition or artefact that closes the step ('when the c14_secure_dev intake entry supplies a SAST tool name', 'once the § 7123(c)(4) inventory is retained in [named CMDB]'). More than three next_steps is a defect; a next_step without a named owner and trigger is a defect.",
     "SUMMARY ENUMERATIONS COUNT WHAT THEY COUNT: where the executive_summary enumerates priority documentation gaps, state explicitly whether the numbered items are gap CATEGORIES or individual controls, and how many of the 18 components each item spans (e.g. 'three categories of documentation deficiency spanning six components, including …'). Never present a numbered list that could be read as a one-to-one mapping to components when items group multiple controls.",
     "FSOR COMMENTARY CARRIES ITS OWN SECTION: FSOR commentary attached to a control discusses the rulemaking record and may reference a different section number than the control's fsor_citation. Never present the commentary's section as the control's citation: where they differ, introduce the commentary as 'FSOR discussion under § [n] bearing on this control' so the reader cannot mistake it for the control's operative citation, and never alter the control's fsor_citation to match the commentary. Where the supplied commentary's internal citation uses the PROPOSAL's numbering (e.g. § 7123(b)(2)(B)) for a component the final regulation locates in § 7123(c), say so in one clause — 'the FSOR discussion references the proposal's numbering; the final regulation locates this component at [the control's fsor_citation]' — grounded only in the citations actually present in the supplied commentary and the control's own fsor_citation, never in asserted regulatory history beyond them.",
     "NOTES ADDRESS THE READER, NOT THE SYSTEM: any note or remediation sentence must read as guidance to the organisation, never as an instruction the generator is giving itself. 'Confirm that documentation does not rely solely on a zero-trust architecture framing' becomes 'The business should retain documentation describing the logical or physical separation controls themselves — segment scope, zone definitions, and boundary enforcement — which is the auditable requirement under the final regulation.' If a sentence would make sense addressed to the model, rewrite it addressed to the reader.",
@@ -413,7 +413,10 @@ ${enforcementBlock}Respond with this exact JSON structure (controls array MUST c
       "finding": "string (1-2 sentences — specific gap or confirmation only — use US English)",
       "regulatory_basis": "string (the specific program component being assessed, in plain language — do NOT begin with 'and document', 'and maintain', or 'document and' — write a clean noun phrase that completes the sentence 'the annual cybersecurity audit must assess [your text]'; do NOT include a section citation; the citation is added by the system)",
       "remediation": "string (2-3 specific steps, plain language, US English)",
-      "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
+      "priority": "Immediate | Within 90 days | Within 6 months | Monitor",
+      "evidence": "string (REQUIRED; 1 sentence naming the specific intake artefact — vendor / coverage figure / cadence / ISO date / ticket id — that supports the score; if the intake supplies nothing bearing on this control, write exactly: 'the intake supplies no artefact for this component')",
+      "differentiator": "string (REQUIRED; 1 sentence naming the specific intake fact that distinguishes THIS control's score/status from its sibling controls, or — when the score is uniform across the report — why the uniformity reflects evidentiary depth rather than implementation failure; must NOT be a boilerplate sentence)",
+      "rank": 0
     }
   ],
   "annotations": [
@@ -437,6 +440,7 @@ ${generatorScoringRulesText()}
 - If the intake provides no information bearing on a control, set status to "Insufficient information" and omit the score (leave it as 0); do NOT label it "Gap".
 The status MUST be consistent with the score. Never assign "Implemented" to a control scoring 90 or above.
 - ABSENT-CONTROL BINDING: The score and status MUST be consistent with the finding text. If the finding states the control is absent, "not in the intake", "no dedicated/discrete control entry", or a "material gap", the score MUST fall in the 21–59 Gap band with status "Gap" — never 60 or above, and never "Implemented" or "Mature". If there is genuinely no information bearing on the control, use status "Insufficient information" and leave the score at 0. A finding that describes absence or a gap may not carry an "Implemented"/"Mature" status or a score ≥ 60.
+- EVIDENCE / DIFFERENTIATOR / RANK (QB-P25 CYBER): every control MUST include the three new fields — evidence, differentiator, and rank — as specified in the QB-P25 CYBER SCHEMA rule in the system prompt. Both evidence and differentiator are USER-FACING output for the reader's audit-prep record — NEVER phrase them as internal notes, model reasoning, or self-critique. rank is an integer 1..18 with 1 = highest reader-priority (worst gap / greatest exposure) and 18 = lowest; ranks must be UNIQUE across the report's controls. When emitting a half, assign ranks within your half consistent with severity (the system will renumber to 1..18 across the full report if needed).
 
 SECTOR RULES — include the following additional context in findings and remediation where applicable to the detected industry sector (from intake industry_sector field):
 - Financial Services / Fintech: note overlap with GLBA Safeguards Rule (FTC, 16 CFR Part 314) where relevant to the control. Controls for encryption, access control, vendor oversight, and incident response all have GLBA Safeguards Rule counterparts. Mention "GLBA Safeguards Rule alignment" where applicable.
@@ -463,7 +467,7 @@ ${controlsDigest}
 System-computed overall_score (mean of the 18 control scores, rounded): ${computedScore}
 Your executive_summary and readiness_level MUST be consistent with this overall_score.
 
-NEXT-STEPS CONSISTENCY: every deadline in next_steps must restate a deadline already given in a control's remediation — never introduce a different timeframe for the same action. Refer to controls by NAME, never "component N" (component numbers are not rendered).
+NEXT-STEPS CONSISTENCY AND CAP (QB-P25 CYBER): every deadline in next_steps must restate a deadline already given in a control's remediation — never introduce a different timeframe for the same action. Refer to controls by NAME, never "component N" (component numbers are not rendered). The next_steps array is CAPPED AT THREE items — never emit more than three. Each next_step is an OBJECT { text, owner, trigger } where 'owner' names the intake-supplied accountable function (e.g. "Security Engineering", "the DPO", "the incident-response lead") and 'trigger' names the concrete artefact or condition that closes the step (e.g. "when the c14_secure_dev intake entry supplies a SAST tool name"). String-only next_steps are legacy and will be normalised; new output MUST use the object form.
 
 EXEC SUMMARY: use US English throughout (organization, program, defense, authorized). Reference "NIST CSF 2.0" not "NIST CSF". This is a readiness assessment, not the Article 9 audit — do not describe it as the cybersecurity audit itself. The executive_summary MUST explicitly name every control whose status is "Gap" or "Critical Gap" (or score < 50) as a priority remediation item, even when the overall_score sits in the Substantially Ready band — a satisfactory mean does not excuse silence on critical individual gaps.
 CERTIFICATION DISTINCTION: The formal CPPA cybersecurity audit under § 7122 must be performed by a qualified, objective, independent professional who issues an audit report under § 7123(e). Separately, the business's executive submits the certification under § 7124. These are two different documents from two different parties. The audit report (§ 7123(e)(4)) may include identified gaps with remediation plans — this does not mean the executive certification excuses the gaps. Write "the independent auditor will document any gaps in the audit report; the business's executive then submits the certification under § 7124" — do not collapse these into one step.
@@ -479,7 +483,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
   "enforcement_context": "string (2-3 sentences: (1) cite phase-in deadlines under 11 CCR § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million. (2) State one sector-relevant enforcement observation using hedged language — 'this sector may attract scrutiny because [specific reason]' — do not assert CPPA has made specific sector-priority announcements without a source. (3) Note that the audit must be performed by a qualified, independent professional and the executive then submits the certification.)",
-  "next_steps": ["string"],
+  "next_steps": [ { "text": "string", "owner": "string (intake-named accountable function)", "trigger": "string (concrete artefact / condition that closes the step)" } ],
   "information_needed": [
     { "field": "<intake key that exists in the intake — for a per-control gap use the DOTTED ask path 'controls.<slug>', e.g. controls.c14_secure_dev>", "dimensions": "<what specifically to add, as dimensions — never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
   ]
@@ -617,16 +621,48 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         finding: stripMd(c?.finding),
         regulatory_basis: stripMd(c?.regulatory_basis),
         remediation: stripMd(c?.remediation),
+        // QB-P25 CYBER — preserve/clean new customer-facing fields.
+        evidence: stripMd(c?.evidence),
+        differentiator: stripMd(c?.differentiator),
+        rank: Number.isFinite(Number(c?.rank)) ? Number(c.rank) : null,
       }));
+      // QB-P25 CYBER — RANK NORMALISATION: renumber ranks to a unique 1..N run
+      // (worst-priority first). If the model omitted or duplicated ranks, sort
+      // by (status severity, ascending score) to derive a deterministic order.
+      const STATUS_WEIGHT: Record<string, number> = {
+        "critical gap": 0, "gap": 1, "partial": 2,
+        "insufficient information": 3, "implemented": 4, "mature": 5,
+      };
+      const ordered = [...r.controls]
+        .map((c: any, idx: number) => ({ c, idx }))
+        .sort((a: any, b: any) => {
+          const wa = STATUS_WEIGHT[String(a.c?.status ?? "").toLowerCase()] ?? 6;
+          const wb = STATUS_WEIGHT[String(b.c?.status ?? "").toLowerCase()] ?? 6;
+          if (wa !== wb) return wa - wb;
+          const sa = Number(a.c?.score) || 0;
+          const sb = Number(b.c?.score) || 0;
+          return sa - sb;
+        });
+      ordered.forEach((o: any, i: number) => { r.controls[o.idx].rank = i + 1; });
       r.top_risks = (Array.isArray(r.top_risks) ? r.top_risks : []).map((t: any) => ({
         ...t,
         title: stripMd(t?.title),
         description: cleanSection(t?.description),
         consequence: cleanSection(t?.consequence),
       }));
-      r.next_steps = (Array.isArray(r.next_steps) ? r.next_steps : []).map((s: any) =>
-        typeof s === "string" ? cleanSection(s) : s
-      );
+      // QB-P25 CYBER — next_steps: coerce legacy strings into { text, owner, trigger }
+      // and CAP at 3 items.
+      const nsRaw = Array.isArray(r.next_steps) ? r.next_steps : [];
+      r.next_steps = nsRaw.slice(0, 3).map((s: any) => {
+        if (typeof s === "string") {
+          return { text: cleanSection(s), owner: "", trigger: "" };
+        }
+        return {
+          text: cleanSection(s?.text ?? ""),
+          owner: stripMd(s?.owner ?? ""),
+          trigger: stripMd(s?.trigger ?? ""),
+        };
+      });
     }
 
     function assembleControlsNarrative(controls: any[]): string {
@@ -644,7 +680,11 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       for (const t of (r?.top_risks || [])) {
         parts.push([t?.title, t?.description, t?.consequence].filter(Boolean).join(" "));
       }
-      for (const n of (r?.next_steps || [])) parts.push(String(n || ""));
+      for (const n of (r?.next_steps || [])) {
+        // QB-P25 CYBER — next_steps are objects { text, owner, trigger }.
+        if (typeof n === "string") parts.push(n);
+        else parts.push([n?.text, n?.owner, n?.trigger].filter(Boolean).join(" "));
+      }
       return parts.join("\n\n");
     }
 

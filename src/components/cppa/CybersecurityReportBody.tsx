@@ -90,10 +90,20 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
         <section className="bg-card border rounded-lg p-6">
           <h2 className="font-body text-display-card font-semibold mb-4">Control Findings</h2>
           <Accordion type="multiple">
-            {report.controls.map((d: any, i: number) => (
+            {/* QB-P25 CYBER — render controls sorted by generator-assigned `rank` (1 = highest reader priority). */}
+            {[...report.controls]
+              .sort((a: any, b: any) => {
+                const ra = Number.isFinite(Number(a?.rank)) ? Number(a.rank) : 999;
+                const rb = Number.isFinite(Number(b?.rank)) ? Number(b.rank) : 999;
+                return ra - rb;
+              })
+              .map((d: any, i: number) => (
               <AccordionItem key={i} value={`c${i}`}>
                 <AccordionTrigger>
                   <div className="flex items-center gap-3 flex-wrap">
+                    {Number.isFinite(Number(d?.rank)) && (
+                      <span className="text-xs font-mono text-muted-foreground">#{d.rank}</span>
+                    )}
                     <span>{d.control}</span>
                     {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                     {d.status && <span className={`px-2 py-0.5 text-xs rounded ${controlStatusColor(d.status)}`}>{d.status}</span>}
@@ -101,6 +111,8 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
                 </AccordionTrigger>
                 <AccordionContent className="space-y-2">
                   {d.finding && <p className="text-sm"><strong>Finding:</strong> {d.finding}</p>}
+                  {d.evidence && <p className="text-sm"><strong>Evidence:</strong> {d.evidence}</p>}
+                  {d.differentiator && <p className="text-sm"><strong>Why this ranks here:</strong> {d.differentiator}</p>}
                   {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
                   {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                   {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
@@ -331,8 +343,23 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
       {Array.isArray(report?.next_steps) && report.next_steps.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
           <h2 className="font-body text-display-card font-semibold mb-3">Next Steps</h2>
-          <ol className="list-decimal pl-5 space-y-1 text-sm">
-            {report.next_steps.map((s: string, i: number) => <li key={i}>{s}</li>)}
+          {/* QB-P25 CYBER — next_steps are objects { text, owner, trigger } (legacy strings tolerated). */}
+          <ol className="list-decimal pl-5 space-y-2 text-sm">
+            {report.next_steps.slice(0, 3).map((s: any, i: number) => {
+              if (typeof s === "string") return <li key={i}>{s}</li>;
+              return (
+                <li key={i} className="space-y-1">
+                  <p>{s?.text}</p>
+                  {(s?.owner || s?.trigger) && (
+                    <p className="text-xs text-muted-foreground">
+                      {s?.owner && <><span className="font-semibold">Owner:</span> {s.owner}</>}
+                      {s?.owner && s?.trigger && <span className="mx-2">·</span>}
+                      {s?.trigger && <><span className="font-semibold">Trigger:</span> {s.trigger}</>}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </section>
       )}
