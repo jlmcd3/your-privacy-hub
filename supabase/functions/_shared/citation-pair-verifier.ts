@@ -234,7 +234,7 @@ export function verifyCitationPairs(text: string, opts: VerifyOpts): VerifyResul
     push(detect_13_14(body));
     push(detect_21_1_vs_2(body));
     push(detect_6_1_f_vs_6_11(body, opts.regime));
-    push(detect_ccpa_ah_aj(body));
+    push(detect_ccpa_ae_ah(body));
     push(detect_7220_depth(body, idx));
     if (local.length === 0) {
       rebuilt.push(body + sep);
