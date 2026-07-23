@@ -79,6 +79,8 @@ export const DPIA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "main\\s+establishment|central administration", flags: "i",
         label: "Main Establishment analysis surfaces" },
+      { kind: "must_include", pattern: "\"intake_field\"", label: "row source.intake_field present" },
+      { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
     ],
   },
 ];
