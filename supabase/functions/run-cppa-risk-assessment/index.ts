@@ -4,7 +4,7 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "qbp19-cross-tool-transfer@2026-07-22T22:00:00Z";
+export const BUILD_STAMP = "qbp25-b3-risk-pointers-enums-rank@2026-07-23T10:00:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
@@ -38,6 +38,7 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
+import { normalizeRiskV2 } from "./_qbp25_b3_pointers.ts";
 import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -538,6 +539,9 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "STATE-ONCE (REBUILD-RISK C4): each analysis, contradiction, and deadline appears in FULL exactly once, in its designated home section. Later references from other sections are one-line pointers to that home section, never restatements. This is the same discipline as EACH INCONSISTENCY IS DOCUMENTED ONCE and MANDATED TEXT APPEARS ONCE, extended to every analysis, contradiction, and deadline in the document.",
     "ENFORCEMENT POSTURE GROUNDING (REBUILD-RISK C8; extends ENFORCEMENT CLAIMS ARE CORPUS-ONLY): regulator-posture claims (operational dates of enforcement divisions, stated priorities of the CPPA or its divisions, published enforcement themes) appear ONLY when supplied by the corpus context. Absent corpus support, use generic framing ('the CPPA has published enforcement priorities in its public statements') and route the reader to the CPPA's public enforcement register — NEVER assert a specific division start date, priority theme, or posture from memory.",
     "CPPA-HF1 R1 — CITATION HOMES (minimization; § 1798.140(e) subsections): (a) Data-minimization / purpose-limitation controls are anchored at 11 CCR § 7002 (purpose limitation and data minimization requirements), NOT Cal. Civ. Code § 1798.100(a)(3). Cite 11 CCR § 7002 wherever a minimization control is analysed. (b) § 1798.140(e) enumerates specific business purposes; each subsection has a specific enumerated purpose (e.g. § 1798.140(e)(7) covers advertising/marketing as a business purpose). NEVER cite a § 1798.140(e) subsection unless the enumerated purpose in that subsection actually matches the analysed context. A consent-inconsistency flag has no home in § 1798.140(e) unless the specific purpose fits; cite the operative consent provision (11 CCR § 7004 / § 7025 / § 7027 as applicable) instead.",
+    "QB-P25 B3 — STRENGTHEN POINTERS (single home): every believed-basis 'what would strengthen the position' item lives in strengthen_items EXACTLY ONCE (its single home). When an exception_analysis entry or record_sufficiency wants to surface such an item, it uses strengthen_item_ids: string[] with the item_id(s) of the strengthen_items entry — NEVER by duplicating prose into strengthen_position, and NEVER by embedding the ask in record_sufficiency.statement. Rules: (i) every id in strengthen_item_ids must exist in strengthen_items[].item_id (unknown ids are stripped post-generation); (ii) strengthen_position remains available ONLY for non-believed-basis prose items that are not eligible for strengthen_items membership — if the item is believed-basis, it goes to strengthen_items and the exception references it by id; (iii) information_needed is UNTOUCHED — the open-items contract (freeze on first run) is unchanged; never move a strengthen item into information_needed or vice versa.",
+    "QB-P25 B3 — ADVERSE-EFFECTS ENUMS: adverse_effects[].likelihood is exactly one of 'Unlikely' | 'Possible' | 'Likely' | 'Highly likely'. adverse_effects[].severity is exactly one of 'Minimal' | 'Moderate' | 'Significant' | 'Severe'. These are the § 7152 impact-assessment scales; no synonyms, no numbers, no free text. Values are coerced post-generation; unknown values are counted as normaliser drops.",
+    "QB-P25 B3 — PRIORITY_ACTIONS RANK: every priority_actions entry carries an integer 'rank' field. Ranks are unique 1..N across the list, with 1 = highest priority. Do not tie ranks; do not skip integers. A deterministic post-processor renumbers 1..N mechanically to guarantee uniqueness, so emitting duplicate or non-numeric ranks is a defect the normaliser corrects (and counts).",
     "CPPA-HF1 R2 — INTERNAL-VOCAB CLASS BAN (extends INTERNAL-VOCAB CLASS BAN): pipeline-internal vocabulary — 'determination-resolved', 'the sale/share-revenue determination', 'the sensitive-PI determination resolved', 'the audit-cohort determination', 'the audit-cohort determination resolved', 'normalised_intake', 'normalized_intake', and any raw intake field id (e.g. i7_internal_contributors, i5_admt_logic, q1[5-9][a-z]?_*) — NEVER appears in customer-facing prose. Restate the conclusion in plain regulatory language. Intake contributor rosters (i7_internal_contributors and equivalents) are SUMMARIZED in prose ('the record identifies five internal contributors, including [role X] and [role Y]') and NEVER reproduced verbatim as body text.",
     "CPPA-HF2 B — EVASIVE-PLACEHOLDER BAN: NEVER emit narrative substitutes for a real citation. Banned phrasings include 'the cited provision governing [X]', 'under the cited provision', 'pursuant to the cited provision', and 'the cited section above'. Where the deepest verified anchor supports a real citation, cite it; where it does not, use plain-English element names ('the § 7150(b) trigger analysis', 'the risk-assessment scope determination') without pretending a hidden citation exists.",
     "CPPA-HF2 G — RISK INTERNAL CONSISTENCY (§ 7150(b) SUBSECTIONS): where a single trigger (e.g. § 7150(b)(3) significant-decision, § 7150(b)(6) training) is analysed across multiple sections of the report, every reference to that trigger uses the SAME subsection numbering. Do not cite § 7150(b)(3) in one section and § 7150(b)(4) for the same fact pattern in another. The cross-tool recommendation, the applicability analysis, the priority actions, and the exception analysis must all use identical subsection references for the same underlying trigger.",
@@ -566,11 +570,11 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "scope_notes": string
   },
   "exception_analysis": [
-    { "exception_name": string, "statutory_basis": string, "claimed": boolean, "facts_supporting": string, "argument_strength": "strong" | "colorable" | "counsel-review", "argument_strength_rationale": string, "strengthen_position": string[], "flags": string[] }
+    { "exception_name": string, "statutory_basis": string, "claimed": boolean, "facts_supporting": string, "argument_strength": "strong" | "colorable" | "counsel-review", "argument_strength_rationale": string, "strengthen_position": string[], "strengthen_item_ids": string[], "flags": string[] }
   ],
   "risk_assessment_by_activity": [
     { "activity": string, "statutory_basis": string, "purpose": string, "benefits_to_business": string, "benefits_to_consumers": string,
-      "adverse_effects": [ { "harm_type": string, "likelihood": string, "severity": string, "description": string } ],
+      "adverse_effects": [ { "harm_type": string, "likelihood": "Unlikely" | "Possible" | "Likely" | "Highly likely", "severity": "Minimal" | "Moderate" | "Significant" | "Severe", "description": string } ],
       "current_safeguards": string, "safeguard_gaps": string,
       "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Colorable argument — benefits appear to outweigh risks; completing the named items would allow this to be recorded as established", "benefits_outweigh_risks_rationale": string,
       "section_7152_mapping": string }
@@ -582,7 +586,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "relevant_precedents": string, "sector_specific_patterns": string, "audit_division_priorities": string
   },
   "priority_actions": [
-    { "action": string, "statutory_basis": string, "severity": "Immediate" | "High" | "Medium" | "Low", "deadline": string, "deadline_basis": string }
+    { "action": string, "statutory_basis": string, "severity": "Immediate" | "High" | "Medium" | "Low", "deadline": string, "deadline_basis": string, "rank": number }
   ],
   "cross_tool_recommendations": {
     "cybersecurity_audit": boolean, "cybersecurity_audit_rationale": string,
@@ -597,7 +601,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   "information_needed": [
     { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>", "source_fields": string[] }
   ],
-  "record_sufficiency": { "complete": boolean, "statement": string },
+  "record_sufficiency": { "complete": boolean, "statement": string, "strengthen_item_ids": string[] },
   "strengthen_items": [
     { "item_id": string, "citation": string, "field_ids": string[], "recorded_basis": string }
   ]
@@ -1650,6 +1654,18 @@ async function runPipeline(assessment_id: string) {
       return report;
     }
     report_data = dedupeExceptionFlags(report_data);
+
+    // QB-P25 B3 — deterministic normaliser for strengthen_item_ids pointers,
+    // adverse_effects enum coercion, and priority_actions rank uniqueness.
+    // Pure post-processor; does not touch information_needed (frozen).
+    try {
+      const summary = normalizeRiskV2(report_data);
+      if (summary.strippedIds || summary.droppedLikelihood || summary.droppedSeverity || summary.ranksRenumbered) {
+        console.log("[RISK] qbp25-b3 normaliser summary:", summary);
+      }
+    } catch (e) {
+      console.error("[RISK] qbp25-b3 normaliser errored:", e);
+    }
 
     // REBUILD-RISK C6 — LABEL ACCURACY LINT: for each inconsistency_flags
     // entry, verify that each conflicting_inputs field name (source_fields

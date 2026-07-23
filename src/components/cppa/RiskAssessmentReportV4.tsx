@@ -69,6 +69,8 @@ type Exception = {
   argument_strength?: "strong" | "colorable" | "counsel-review" | string;
   argument_strength_rationale?: string;
   strengthen_position?: string[];
+  // QB-P25 B3 — pointer(s) into report.strengthen_items[] (single home).
+  strengthen_item_ids?: string[];
   // Legacy shape (back-compat for rows generated pre-rebuild)
   scope_described?: string;
   safeguards_described?: string;
@@ -198,9 +200,25 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
   const exceptions = report.exception_analysis || [];
   const activities = report.risk_assessment_by_activity || [];
   const inconsistencies = report.inconsistency_flags || [];
-  const actions = report.priority_actions || [];
+  // QB-P25 B3 — priority_actions sorted by rank (ascending, 1 = highest);
+  // entries missing a numeric rank sink to the end preserving input order.
+  const actionsRaw = report.priority_actions || [];
+  const actions = [...actionsRaw].sort((a: any, b: any) => {
+    const ar = typeof a?.rank === "number" ? a.rank : Number.POSITIVE_INFINITY;
+    const br = typeof b?.rank === "number" ? b.rank : Number.POSITIVE_INFINITY;
+    return ar - br;
+  });
   const xtool = report.cross_tool_recommendations || {};
   const enf = report.enforcement_context;
+
+  // QB-P25 B3 — strengthen_items lookup for resolving strengthen_item_ids
+  // pointers from exception_analysis / record_sufficiency entries.
+  const strengthenItemsMap: Record<string, any> = {};
+  for (const it of ((report as any).strengthen_items ?? [])) {
+    if (it && typeof it === "object" && typeof it.item_id === "string") {
+      strengthenItemsMap[it.item_id] = it;
+    }
+  }
 
   return (
     <div className="space-y-6 font-serif-text">
@@ -285,7 +303,10 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
           <Accordion type="multiple">
             {exceptions.map((e, i) => {
               // Branch on field presence: new advocate-drafter shape vs legacy shape.
-              const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+              const resolvedStrengthen: any[] = Array.isArray(e.strengthen_item_ids)
+                ? e.strengthen_item_ids.map((id) => strengthenItemsMap[id]).filter(Boolean)
+                : [];
+              const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length) || resolvedStrengthen.length);
               const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
               return (
                 <AccordionItem key={i} value={`e${i}`}>
@@ -322,11 +343,22 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                             {e.argument_strength_rationale && <p>{e.argument_strength_rationale}</p>}
                           </div>
                         )}
-                        {Array.isArray(e.strengthen_position) && e.strengthen_position.length > 0 && (
+                        {(resolvedStrengthen.length > 0 || (Array.isArray(e.strengthen_position) && e.strengthen_position.length > 0)) && (
                           <div>
                             <p className="font-semibold">What would strengthen the position</p>
                             <ul className="list-disc pl-5">
-                              {e.strengthen_position.map((sp, si) => <li key={si}>{sp}</li>)}
+                              {resolvedStrengthen.map((it, si) => (
+                                <li key={`ptr-${si}`}>
+                                  {it.recorded_basis || it.item_id}
+                                  {(it.citation || (Array.isArray(it.field_ids) && it.field_ids.length)) && (
+                                    <span className="text-xs text-muted-foreground ml-2">
+                                      {it.citation ? <span className="font-mono">{it.citation}</span> : null}
+                                      {Array.isArray(it.field_ids) && it.field_ids.length ? <> · fields: {it.field_ids.join(", ")}</> : null}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                              {Array.isArray(e.strengthen_position) && e.strengthen_position.map((sp, si) => <li key={`sp-${si}`}>{sp}</li>)}
                             </ul>
                           </div>
                         )}

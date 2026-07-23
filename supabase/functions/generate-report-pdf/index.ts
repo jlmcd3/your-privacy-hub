@@ -1132,7 +1132,18 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
   const scope = report.scope_and_triggers || {};
   const activities = Array.isArray(report.risk_assessment_by_activity) ? report.risk_assessment_by_activity : [];
   const exceptions = Array.isArray(report.exception_analysis) ? report.exception_analysis : [];
-  const actions = Array.isArray(report.priority_actions) ? report.priority_actions : [];
+  // QB-P25 B3 — sort priority actions by rank (1 = highest); missing ranks sink last.
+  const actionsRaw = Array.isArray(report.priority_actions) ? report.priority_actions : [];
+  const actions = [...actionsRaw].sort((a: any, b: any) => {
+    const ar = typeof a?.rank === "number" ? a.rank : Number.POSITIVE_INFINITY;
+    const br = typeof b?.rank === "number" ? b.rank : Number.POSITIVE_INFINITY;
+    return ar - br;
+  });
+  // QB-P25 B3 — lookup for strengthen_item_ids pointer resolution.
+  const strengthenItemsMap: Record<string, any> = {};
+  for (const it of (Array.isArray(report.strengthen_items) ? report.strengthen_items : [])) {
+    if (it && typeof it === "object" && typeof it.item_id === "string") strengthenItemsMap[it.item_id] = it;
+  }
   const flags = Array.isArray(report.inconsistency_flags) ? report.inconsistency_flags : [];
   const enf = report.enforcement_context || {};
   const xrec = report.cross_tool_recommendations || {};
@@ -1223,7 +1234,10 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 
     ${exceptions.length ? `<section><h2>Exception Analysis</h2>
       ${exceptions.map((e: any) => {
-        const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length));
+        const resolvedStrengthen: any[] = Array.isArray(e.strengthen_item_ids)
+          ? e.strengthen_item_ids.map((id: string) => strengthenItemsMap[id]).filter(Boolean)
+          : [];
+        const hasNew = !!(e.facts_supporting || e.argument_strength || (Array.isArray(e.strengthen_position) && e.strengthen_position.length) || resolvedStrengthen.length);
         const hasOld = !!(e.documentation_status || e.validity_assessment || e.scope_described || e.safeguards_described);
         const argLbl = argStrengthLabelPDF(e.argument_strength);
         const argHeader = argLbl === "Counsel review recommended"
@@ -1236,8 +1250,11 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
         ${hasNew ? `
           ${e.facts_supporting ? `<p><span class="label">Facts supporting the exception:</span> ${text(e.facts_supporting)}</p>` : ""}
           ${argHeader ? `<p><span class="label">${text(argHeader)}</span>${e.argument_strength_rationale ? ` — ${text(e.argument_strength_rationale)}` : ""}</p>` : ""}
-          ${Array.isArray(e.strengthen_position) && e.strengthen_position.length
-            ? `<p class="label" style="margin-top:6px;">What would strengthen the position</p><ul>${e.strengthen_position.map((sp: any) => `<li>${text(sp)}</li>`).join("")}</ul>`
+          ${(resolvedStrengthen.length || (Array.isArray(e.strengthen_position) && e.strengthen_position.length))
+            ? `<p class="label" style="margin-top:6px;">What would strengthen the position</p><ul>${
+                resolvedStrengthen.map((it: any) => `<li>${text(it.recorded_basis || it.item_id || "")}${it.citation ? ` <span class="label">${text(it.citation)}</span>` : ""}${Array.isArray(it.field_ids) && it.field_ids.length ? ` — fields: ${text(it.field_ids.join(", "))}` : ""}</li>`).join("")
+                + (Array.isArray(e.strengthen_position) ? e.strengthen_position.map((sp: any) => `<li>${text(sp)}</li>`).join("") : "")
+              }</ul>`
             : ""}
         ` : (hasOld ? `
           ${e.scope_described ? `<p><span class="label">Scope:</span> ${text(e.scope_described)}</p>` : ""}
