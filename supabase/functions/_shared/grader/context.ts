@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-r-turn-1";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-r-turn-2";
 
 
 export const SHARED_GRADER_CONTEXT = `
