@@ -1,4 +1,11 @@
-// QB-P20 — governance golden set. 3 fixtures.
+// QB-P20 — governance golden set.
+// QB-P25 B2 — every case now also asserts that when the v2 fields
+// (recommended_action_v2 / regulatory_basis_v2) appear, they are STRUCTURED
+// values, not hedged-placeholder strings. There is no hedged-placeholder
+// slot: a v2 entry either names a specific engaged fact/statute or is
+// omitted entirely. The guards below prevent the "if this applies …" /
+// "may apply …" / "possibly relevant …" leak patterns and prevent stray
+// v2 key names surfacing as legacy string content.
 // Adversarial "count-trap": five distinct AI tools where the narrative
 // tempts a "four" count — tests whether the assessment enumerates
 // correctly rather than paraphrasing a number.
