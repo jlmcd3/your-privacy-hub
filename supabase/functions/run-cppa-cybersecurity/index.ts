@@ -680,7 +680,11 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       for (const t of (r?.top_risks || [])) {
         parts.push([t?.title, t?.description, t?.consequence].filter(Boolean).join(" "));
       }
-      for (const n of (r?.next_steps || [])) parts.push(String(n || ""));
+      for (const n of (r?.next_steps || [])) {
+        // QB-P25 CYBER — next_steps are objects { text, owner, trigger }.
+        if (typeof n === "string") parts.push(n);
+        else parts.push([n?.text, n?.owner, n?.trigger].filter(Boolean).join(" "));
+      }
       return parts.join("\n\n");
     }
 
