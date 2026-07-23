@@ -1041,6 +1041,44 @@ ADDITIONAL DISCIPLINES:
       console.warn("[run-admt-checker] HF6C post-resolver fallback consume failed (non-fatal):", e);
     }
 
+    // POST-C1-FIX-2A — DETERMINISTIC RANGE-CAP.
+    // "11 CCR §§ 7220–7222" (with or without the "(the ADMT subchapter)" parenthetical)
+    // may appear AT MOST ONCE per document — reserved for the scope_analysis.summary
+    // framing sentence. Second and later occurrences are downgraded to the neutral
+    // phrase, matching the model rule at line ~278. Idempotent; fail-open.
+    try {
+      const RANGE_RE = /11\s*CCR\s*§§\s*7220\s*[–-]\s*7222(?:\s*\(the\s+ADMT\s+subchapter\))?/gi;
+      let hits = 0;
+      const capStr = (v: string): string =>
+        v.replace(RANGE_RE, (m) => (++hits === 1 ? m : "the applicable ADMT-subchapter provision"));
+      const capWalk = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) {
+            const v = node[i];
+            if (typeof v === "string") node[i] = capStr(v);
+            else if (v && typeof v === "object") capWalk(v);
+          }
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") (node as any)[k] = capStr(v);
+          else if (v && typeof v === "object") capWalk(v);
+        }
+      };
+      capWalk(report);
+      console.log(JSON.stringify({
+        evt: "admt_range_cap",
+        fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        range_occurrences_before_cap: hits,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] range-cap failed (non-fatal):", (e as Error)?.message);
+    }
+
     // C1-b (2026-07-23T14:20:00Z) — CITATION PAIR VERIFIER wired for ADMT.
     // Walks every string leaf, flags confusion-pair defects (13/14, 21(1)/(2),
     // 6(1)(f)/6(11), (ah)/(aj), § 7220 depth). Never silently emits — flagged
