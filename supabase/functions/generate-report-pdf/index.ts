@@ -1740,8 +1740,10 @@ function buildADMTReportHTML(report: any, record: any): string {
     return `<section class="section"><h2>${escHtml(title)}</h2>${rows}</section>`;
   };
 
-  const scopeBlock = report?.scope_analysis ? (() => {
-    const sa = report.scope_analysis;
+  const scopeBlock = (report?.scope_analysis || report?.is_admt !== undefined) ? (() => {
+    // POST-C1-FIX-1C: read via canonical contract so historical reports with
+    // top-level scope fields still render correctly.
+    const sa = readAdmtScope(report, { context: "generate-report-pdf" });
     const rows: Array<[string, any]> = [
       ["Qualifies as ADMT (§ 7001(e))", sa.is_admt],
       ["Triggers significant decision obligations (§ 7200)", sa.triggers_significant_decision],
@@ -1749,7 +1751,7 @@ function buildADMTReportHTML(report: any, record: any): string {
       ["Triggers risk assessment — profiling/inference (§ 7150(b)(4)–(5))", sa.triggers_profiling],
     ];
     const items = rows.map(([label, val]) =>
-      `<li><span class="label">${escHtml(label)}:</span> ${val ? "Yes — obligations apply" : "No — not triggered"}</li>`
+      `<li><span class="label">${escHtml(label)}:</span> ${val === true ? "Yes — obligations apply" : val === false ? "No — not triggered" : "Not determined"}</li>`
     ).join("");
     return `<section class="section"><h2>Scope Analysis</h2><ul>${items}</ul>${sa.summary ? `<p>${text(sa.summary)}</p>` : ""}</section>`;
   })() : "";
