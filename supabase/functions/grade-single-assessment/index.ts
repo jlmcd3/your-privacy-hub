@@ -60,7 +60,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // QLB-F3 (2026-07-15): grader payload rebuild (body-first, metadata-strip,
 // equal budget), spelling-neutral prompt preamble, and fill-in placeholder
 // exemption mirrored verbatim with run-quality-batch.
-export const BUILD_STAMP = "ql3-qlbf3-grader-payload@2026-07-15T02:00Z";
+export const BUILD_STAMP = "r-turn-1-measurement-honesty@2026-07-23T20:00:00Z";
 
 // QL3 tool slug allow-list (mirrors ql3-orchestrator.TOOL_TABLE keys).
 export const KNOWN_TOOL_SLUGS = [
