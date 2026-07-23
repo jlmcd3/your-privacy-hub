@@ -89,6 +89,11 @@ const BODY_FIELDS: Record<GraderReportFamily, string[]> = {
 const METADATA_KEYS: readonly string[] = [
   "_meta",
   "_staging",
+  // QB-P25 Item 3 (DPA) — private drafting record. The DPA generator emits
+  // a ===DRAFTING_RECORD=== block explaining the reasoning behind clause
+  // choices; it is stored on report_data as `_drafting_record` and MUST NOT
+  // reach the grader (grader-invisible by contract).
+  "_drafting_record",
   "prompt_version",
   "build_stamp",
   "lint_warnings",

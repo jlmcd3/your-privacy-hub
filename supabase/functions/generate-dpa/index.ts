@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "qbp18-prompt-architecture@2026-07-22T21:00:00Z";
+export const BUILD_STAMP = "qbp25-dpa-drafting-record@2026-07-23T04:00:00Z";
 console.log(`[generate-dpa] boot build_stamp=${BUILD_STAMP}`);
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -813,6 +813,20 @@ Output format:
   }
 ]
 - If no cases from the context informed any clause choice, output an empty array [].
+- Then, on a new line, output the exact separator:
+===DRAFTING_RECORD===
+- Then, output a JSON object recording the deliberations behind the drafting choices in this document. This block is a private record retained on the assessment; it is NOT shown to reviewers, graders, or end users. Its purpose is to make future revisions traceable. Use this shape:
+{
+  "framework_selection": "one sentence: why this documentType/framework was used given the intake jurisdictions",
+  "module_selection": "one sentence: which SCC / IDTA / addendum module(s) were selected and why (or 'n/a' if no transfer mechanism applies)",
+  "clause_deviations": [
+    { "clause": "clause number or heading", "choice": "the option taken", "reason": "one sentence why" }
+  ],
+  "open_placeholders": [ "short label of each [TO BE COMPLETED] placeholder deliberately left for the Parties" ],
+  "enforcement_influence": "one sentence: how the enforcement context (if any) influenced clause choices — or 'no enforcement influence'"
+}
+- If no deviations or open placeholders exist, use empty arrays. Never place operative contract text, party-facing commentary, or apology language inside this block; it is a drafting record only.
+
 
 12. ENTITY LEGAL FORM CONSISTENCY. Before drafting, inspect the controller name and processor name for legal form suffixes and verify they are consistent with the stated incorporation jurisdiction. Apply these known mappings:
 - B.V. (Besloten Vennootschap) → Netherlands only. If the stated jurisdiction is not the Netherlands, flag it.
@@ -1357,11 +1371,11 @@ ${ADVISORY_VOICE_RULES}`;
     }
 
 
-    function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
+    function parseDpa(fullText: string): { dpa_text: string; annotations: any[]; drafting_record: Record<string, unknown> | null } {
       // FF-DPA nd1 — defensive strip of the NOTE_BEGIN/NOTE_END render-instruction
       // delimiters used to fence the customer-facing fallback note. If the model
       // copies the delimiters through, remove them (the enclosed text stays).
-      let dpa_text = fullText
+      const stripFmt = (s: string) => s
         .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
         .replace(/\s*<<<NOTE_END>>>/g, '')
         .replace(/^#{1,6}\s+/gm, '')
@@ -1370,20 +1384,21 @@ ${ADVISORY_VOICE_RULES}`;
         .replace(/\*([^*\n]+)\*/g, '$1')
         .replace(/^>\s?/gm, '')
         .replace(/^\*\s+/gm, '• ');
+      let dpa_text = stripFmt(fullText);
       let parsedAnnotations: any[] = [];
+      let drafting_record: Record<string, unknown> | null = null;
       try {
-        const sepIdx = fullText.indexOf("===ANNOTATIONS===");
-        if (sepIdx !== -1) {
-          dpa_text = fullText.slice(0, sepIdx).trim()
-            .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
-            .replace(/\s*<<<NOTE_END>>>/g, '')
-            .replace(/^#{1,6}\s+/gm, '')
-            .replace(/\*\*\*/g, '')
-            .replace(/\*\*/g, '')
-            .replace(/\*([^*\n]+)\*/g, '$1')
-            .replace(/^>\s?/gm, '')
-            .replace(/^\*\s+/gm, '• ');
-          const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        // QB-P25 Item 3 — split into three ordered sections. DRAFTING_RECORD
+        // follows ANNOTATIONS; either or both may be absent (defensive).
+        const annIdx = fullText.indexOf("===ANNOTATIONS===");
+        const drIdx = fullText.indexOf("===DRAFTING_RECORD===");
+        const bodyEnd = annIdx !== -1 ? annIdx : (drIdx !== -1 ? drIdx : -1);
+        if (bodyEnd !== -1) {
+          dpa_text = stripFmt(fullText.slice(0, bodyEnd).trim());
+        }
+        if (annIdx !== -1) {
+          const annEnd = drIdx !== -1 && drIdx > annIdx ? drIdx : fullText.length;
+          const annotationsRaw = fullText.slice(annIdx + "===ANNOTATIONS===".length, annEnd).trim();
           const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
           const start = cleaned.indexOf("[");
           const end = cleaned.lastIndexOf("]");
@@ -1392,11 +1407,27 @@ ${ADVISORY_VOICE_RULES}`;
             if (Array.isArray(arr)) parsedAnnotations = arr;
           }
         }
+        if (drIdx !== -1) {
+          const drRaw = fullText.slice(drIdx + "===DRAFTING_RECORD===".length).trim();
+          const cleaned = drRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+          const start = cleaned.indexOf("{");
+          const end = cleaned.lastIndexOf("}");
+          if (start !== -1 && end !== -1) {
+            try {
+              const obj = JSON.parse(cleaned.slice(start, end + 1));
+              if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+                drafting_record = obj as Record<string, unknown>;
+              }
+            } catch (e) {
+              console.warn("[DPA] drafting_record parse failed (non-fatal):", (e as Error).message);
+            }
+          }
+        }
       } catch (e) {
-        console.warn("[DPA] annotation parse failed (non-fatal):", e);
+        console.warn("[DPA] annotation/drafting-record parse failed (non-fatal):", e);
         parsedAnnotations = [];
       }
-      return { dpa_text, annotations: parsedAnnotations };
+      return { dpa_text, annotations: parsedAnnotations, drafting_record };
     }
 
     let fullText: string;
@@ -1505,6 +1536,8 @@ ${ADVISORY_VOICE_RULES}`;
     }
     let dpa_text = stripEnforcementTags(lint.clean);
     let parsedAnnotations = parsed.annotations;
+    // QB-P25 Item 3 — mutable so a retry can overwrite it.
+    let parsedDraftingRecord: Record<string, unknown> | null = parsed.drafting_record;
 
     if (!dpa_text.trim()) {
       throw new Error("AI generation returned an empty document");
@@ -1530,6 +1563,10 @@ ${ADVISORY_VOICE_RULES}`;
         : [],
       deterministic_checks,
       generated_at: new Date().toISOString(),
+      // QB-P25 Item 3 — grader-invisible drafting record (stripped by
+      // METADATA_KEYS in _shared/grader/payload.ts and by _RESERVED_KEYS
+      // in _shared/advisory-voice.ts extractProseFromReport).
+      _drafting_record: parsedDraftingRecord,
       _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-cv1-ff-2026-07-19") },
     });
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
@@ -1622,6 +1659,7 @@ ${ADVISORY_VOICE_RULES}`;
           lint = retryLint;
           dpa_text = repairedText;
           parsedAnnotations = retryParsed.annotations;
+          parsedDraftingRecord = retryParsed.drafting_record;
           report_data = buildReportData();
           try {
             const guarded = guardInformationNeeded(

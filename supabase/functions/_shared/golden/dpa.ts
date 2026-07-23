@@ -1,8 +1,19 @@
 // QB-P20 — DPA golden set. 3 fixtures.
+// QB-P25 Item 3 — every case now also asserts that the DRAFTING_RECORD
+// delimiter and its private field names never leak into the persisted
+// document body (dpa_text). The drafting record is grader-invisible by
+// contract; a leak into body text would be a regression.
 // Adversarial: biometric data category selected without a
 // uniquely-identifying purpose in `services` — tests whether the DPA
 // generator refrains from over-triggering Art 9 language.
 import type { GoldenCase } from "./types.ts";
+
+const DRAFTING_RECORD_GUARDS = [
+  { kind: "must_not_include" as const, pattern: "===DRAFTING_RECORD===", label: "drafting-record delimiter stripped from body" },
+  { kind: "must_not_include" as const, pattern: "framework_selection", label: "drafting-record private field name absent from body" },
+  { kind: "must_not_include" as const, pattern: "clause_deviations", label: "drafting-record private field name absent from body" },
+];
+
 
 export const DPA_GOLDEN: GoldenCase[] = [
   {
@@ -25,6 +36,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "Module\\s+Two", flags: "i", label: "correct SCC module label" },
       { kind: "must_not_include", pattern: "Modules?\\s*1\\s*and\\s*2", flags: "i", label: "no Module 1+2 conflation" },
+      ...DRAFTING_RECORD_GUARDS,
     ],
   },
   {
@@ -45,6 +57,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_not_include", pattern: "no adequacy decision.*between the EU and the UK", flags: "i",
         label: "no false adequacy denial" },
+      ...DRAFTING_RECORD_GUARDS,
     ],
   },
   {
@@ -65,6 +78,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "biometric", flags: "i", label: "biometric acknowledged" },
+      ...DRAFTING_RECORD_GUARDS,
     ],
   },
 ];

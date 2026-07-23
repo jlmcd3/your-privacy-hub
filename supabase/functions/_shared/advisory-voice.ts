@@ -181,6 +181,9 @@ const _RESERVED_KEYS = new Set([
   // exclude so H2 internal-vocab scanning stays scoped to narrative.
   "citation_ids", "field_ids", "source_fields", "element_id",
   "intake_field_1", "intake_field_2", "canonical_fields",
+  // QB-P25 Item 3 (DPA) — grader-invisible drafting record. Skipped from
+  // prose extraction so lint/blacklist scanners never see it.
+  "_drafting_record",
 ]);
 
 export function extractProseFromReport(report: unknown, budget = 200_000): string {
