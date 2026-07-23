@@ -35,7 +35,7 @@ export type ConfusionPair =
   | "gdpr_13_14"
   | "gdpr_21_1_vs_2"
   | "gdpr_6_1_f_vs_6_11"
-  | "ccpa_ah_vs_aj"
+  | "ccpa_ae_ah_lettering"
   | "cpra_7220_depth";
 
 export interface ParagraphIndex {
