@@ -234,7 +234,7 @@ ${["purpose_test", "necessity_test", "balancing_test"].map(key => {
 <div class="section" style="margin-left:12px">
 <p><strong>${sanitizeNarrative(factorLabelMap[f?.factor] || f?.factor || "")}</strong> — <em>${sanitizeNarrative(dirLabel(String(f?.direction || "")))}</em></p>
 ${f?.reasoning ? `<p>${sanitizeNarrative(f.reasoning)}</p>` : ""}
-${Array.isArray(f?.intake_evidence) && f.intake_evidence.length ? `<ul>${f.intake_evidence.map((ev: any) => `<li><strong>${sanitizeNarrative(ev?.field || "")}:</strong> ${sanitizeNarrative(String(ev?.value ?? ""))}</li>`).join("")}</ul>` : ""}
+${Array.isArray(f?.intake_evidence) && f.intake_evidence.length ? `<ul>${f.intake_evidence.map((ev: any) => `<li><strong>${sanitizeNarrative(ev?.field || "")}:</strong> ${sanitizeNarrative(String(ev?.value ?? ""))}</li>`).join("")}</ul>` : (f?.evidence_absence ? `<p><em>Intake evidence absent:</em> ${sanitizeNarrative(String(f.evidence_absence))}</p>` : "")}
 </div>`).join("")}${t.synthesis ? `<p><em>${sanitizeNarrative(t.synthesis)}</em></p>` : ""}`
       : "";
     return `<div class="section"><h3>${label} <span class="verdict-${verdictClass}">— ${verdictLabel}</span></h3>
