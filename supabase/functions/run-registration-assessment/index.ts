@@ -13,7 +13,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
-export const BUILD_STAMP = "qbp26-registration-per-jur-dpo-alias-retirement@2026-07-23T13:00:00Z";
+export const BUILD_STAMP = "r-turn-3-registration-public-authority-gate@2026-07-23T21:00:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
 
 // QB-P26 Item 1 — per-jurisdiction DPO basis. The engine emits a single
