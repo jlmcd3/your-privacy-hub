@@ -83,6 +83,10 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
       // Right on the trigger boundary:
       q2_consumers: "100,000–249,999",
       i3_ca_consumer_band: "100,000–1,000,000",
+      // QB-P25 boundary-batch fix: enable ADMT trigger so the fixture
+      // clears the § 7150(b) pre-generation validator; the boundary
+      // character (consumer-volume enum edge) is unchanged.
+      q18_admt_use: "Yes",
     },
     assertions: [
       { kind: "must_include", pattern: "100,000", flags: "i", label: "boundary threshold surfaced" },
