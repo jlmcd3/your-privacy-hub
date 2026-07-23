@@ -24,6 +24,11 @@ import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { invokeGated } from "../_shared/invoke-gated.ts";
+import {
+  findingHasV2Deadline,
+  isRecommendedActionV2Valid,
+  isRegulatoryBasisV2Valid,
+} from "./_qbp25_b1_v2.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
