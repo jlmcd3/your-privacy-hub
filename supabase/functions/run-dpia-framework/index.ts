@@ -1492,8 +1492,18 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     console.log(`[unit:${unit}] already done — skip`);
     return;
   }
-  // Optimistic transition → processing.
-  await writeUnitStatus(dpia_id, unit, { status: "processing", started_at: new Date(startedMs).toISOString() });
+  // Optimistic transition → processing (writes updated_at + started_at).
+  await writeUnitStatus(dpia_id, unit, { status: "processing", started_at: new Date(startedMs).toISOString(), last_heartbeat_at: new Date(startedMs).toISOString() });
+
+  // DPIA-STALL-1(a) — per-unit heartbeat. Refresh updated_at + staging
+  // unit heartbeat every 30s while the anthropic call is in flight so
+  // stalls are attributable to a specific unit and downstream watchdogs
+  // (reap-stuck-generations + quality_runs_watchdog) do not fire while
+  // the model call is legitimately progressing.
+  const heartbeat = setInterval(() => {
+    writeUnitStatus(dpia_id, unit, { last_heartbeat_at: new Date().toISOString() })
+      .then(() => {}, () => {});
+  }, 30_000);
 
   const shared: SharedContextData = staging.shared;
   // Rebuild system blocks from code (Amendment 2 — never persisted).
@@ -1507,6 +1517,7 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
   if (Deno.env.get("DPIA_FORCE_FAIL_UNIT") === unit) {
     const elapsedMs = Date.now() - startedMs;
     console.log(`[run-dpia-framework] stage=unit:${unit} forced-fail (DPIA_FORCE_FAIL_UNIT)`);
+    clearInterval(heartbeat);
     await mergePreservingFail(dpia_id, unit, new Error(`forced-fail: DPIA_FORCE_FAIL_UNIT=${unit}`), elapsedMs);
     return;
   }
