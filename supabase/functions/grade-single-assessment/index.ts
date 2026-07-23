@@ -23,6 +23,8 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
+// R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
+import { matchFixtureSet } from "../_shared/golden/registry.ts";
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 
