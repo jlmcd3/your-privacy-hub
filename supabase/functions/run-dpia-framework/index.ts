@@ -986,7 +986,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
         },
       }),
       getGdprContext(supabase, {
-        articles: ["35", "36"],
+        articles: ["9", "13", "14", "35", "36"],
         jurisdiction: gdprJurisdiction,
         recitals: [75, 84, 90],
         guidelineArticles: ["35"],
