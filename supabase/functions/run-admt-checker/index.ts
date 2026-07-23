@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "r-turn-2-cppa-product-fixes@2026-07-23T22:00:00Z";
+export const BUILD_STAMP = "c1-b-citation-pair-verifier@2026-07-23T14:20:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
@@ -38,6 +38,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { normalizeQbp25A3 } from "./_qbp25_a3_normalize.ts";
+import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
