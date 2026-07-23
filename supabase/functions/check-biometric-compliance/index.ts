@@ -681,21 +681,21 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 4. Processor obligations: bind every recipient under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements.${dpiaLine}
 
 Consent and notice:
-${r.consent} Pre-collection notice must name the biometric modality, specific purpose, retention, recipients, and applicable rights. Owner: ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
+${r.consent} Pre-collection notice must name the biometric modality, specific purpose, retention, recipients, and applicable rights. Suggested owner (confirm): ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
 
 Retention and destruction:
-${r.retention} Owner: ${orgOwner}. Timeframe: publish the destruction schedule within 60 days of assessment sign-off.
+${r.retention} Suggested owner (confirm): ${orgOwner}. Timeframe: publish the destruction schedule within 60 days of assessment sign-off.
 
 Sale and sharing restrictions:
-Bind every recipient of biometric data under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements. Assess whether the intended sharing constitutes a "sale" or "sharing" under ${canonical}'s law and, if so, provide the required opt-out or authorization. Owner: the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
+Bind every recipient of biometric data under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements. Assess whether the intended sharing constitutes a "sale" or "sharing" under ${canonical}'s law and, if so, provide the required opt-out or authorization. Suggested owner (confirm): the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
 
 Current enforcement posture:
 ${r.enforcement} Consult the ${canonical} Attorney General's public enforcement register for pending or resolved biometric or sensitive-data matters — never quantify enforcement magnitudes from memory.
 
 Priority actions:
-1. Implement the ${canonical} consent mechanism required by ${r.consentCite} before any biometric capture from a ${canonical} resident. Owner: ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
-2. Publish a biometric retention and destruction schedule keyed to purpose expiry, consistent with ${canonical}'s data-minimization duty. Owner: ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
-3. Execute processor agreements binding every recipient of biometric data under ${canonical}'s controller-processor requirements. Owner: the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.${r.dpiaCite ? `\n4. Complete the ${canonical} data protection assessment required by ${r.dpiaCite} before deploying to ${canonical} residents. Owner: ${orgOwner}. Timeframe: prior to deployment.` : ""}
+1. Implement the ${canonical} consent mechanism required by ${r.consentCite} before any biometric capture from a ${canonical} resident. Suggested owner (confirm): ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
+2. Publish a biometric retention and destruction schedule keyed to purpose expiry, consistent with ${canonical}'s data-minimization duty. Suggested owner (confirm): ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
+3. Execute processor agreements binding every recipient of biometric data under ${canonical}'s controller-processor requirements. Suggested owner (confirm): the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.${r.dpiaCite ? `\n4. Complete the ${canonical} data protection assessment required by ${r.dpiaCite} before deploying to ${canonical} residents. Suggested owner (confirm): ${orgOwner}. Timeframe: prior to deployment.` : ""}
 
 Compliance risk rating: ${r.risk}
 ${r.riskWhy}
@@ -1246,7 +1246,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
         if (/\b(Owner:|Timeframe:|Trigger:)/i.test(rest)) return line;
         const trimmed = rest.trim().replace(/\s+$/, "");
         const withPeriod = /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
-        return `${m[1]}${withPeriod} Owner: ${priorityOwner}. Timeframe: ${priorityTrigger}.`;
+        return `${m[1]}${withPeriod} Suggested owner (confirm): ${priorityOwner}. Timeframe: ${priorityTrigger}.`;
       }).join("\n");
       return `${head}${patched}${tail}`;
     });
