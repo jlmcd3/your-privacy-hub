@@ -403,6 +403,9 @@ export default function QualityBatch() {
     } finally {
       setStopping(false);
     }
+  }
+
+
 
   // QB-P24 Item 5 — CEO-requested per-tool "Pinned rerun" trigger. Reuses the
   // orchestrator's pinned_rerun action added in QB-P23; disabled while any
