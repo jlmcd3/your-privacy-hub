@@ -31,11 +31,23 @@ export const BLACKLIST_PHRASES = [
   "further review may be appropriate",
   "additional consideration is needed",
   "the drafter recommends further inquiry",
+  // QB-P23 item 2b (QB-TEAM 2026-07-23): "timeline to be set by the
+  // organisation" family — a hedge that offloads the cadence decision
+  // back to the reader. Rule: state a specific default cadence (annual,
+  // biennial, on-change) or say the cadence is set by named policy.
+  "timeline to be set by the organisation",
+  "timeline to be set by the organization",
+  "cadence to be determined",
+  "period to be defined",
+  "timeline to be determined",
+  "timeline to be defined",
+  "frequency to be determined",
+  "frequency to be defined",
 ] as const;
 
 // Case-insensitive; anchored with word boundaries where meaningful.
 export const BLACKLIST_RE =
-  /\b(insufficient basis|not substantiated|cannot be confirmed|no basis to assess|in the clear|further internal investigation is advisable|further analysis is warranted|further review may be appropriate|additional consideration is needed|the drafter recommends further inquiry)\b/gi;
+  /\b(insufficient basis|not substantiated|cannot be confirmed|no basis to assess|in the clear|further internal investigation is advisable|further analysis is warranted|further review may be appropriate|additional consideration is needed|the drafter recommends further inquiry|timeline to be set by the organisation|timeline to be set by the organization|cadence to be determined|period to be defined|timeline to be determined|timeline to be defined|frequency to be determined|frequency to be defined)\b/gi;
 
 
 // Machine-field path exclusions. Segments/keys we treat as internal chrome.
