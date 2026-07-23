@@ -660,21 +660,43 @@ export default function ADMTCheckerResult() {
           </section>
         )}
 
-        <GapTable
-          items={report.notice_gaps ?? []}
-          title="Pre-Use Notice (§ 7220)"
-          showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true}
-        />
-        <GapTable
-          items={report.opt_out_gaps ?? []}
-          title="Opt-Out Rights (§ 7221)"
-          showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true}
-        />
-        <GapTable
-          items={report.access_gaps ?? []}
-          title="Access Rights (§ 7222)"
-          showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true}
-        />
+        {(() => {
+          const conservative = report.scope_analysis?.determination_basis === "conservative_assumption";
+          return (
+            <>
+              {conservative && (
+                <section className="space-y-2">
+                  <div className="rounded-lg border-l-4 border-amber-400 bg-amber-50/40 dark:bg-amber-950/10 px-4 py-3">
+                    <p className="text-[12px] font-semibold text-amber-900 dark:text-amber-200 mb-1">
+                      Obligations if the scope determination is confirmed
+                    </p>
+                    <p className="text-[12px] leading-relaxed text-foreground/80">
+                      The intake does not affirmatively place this system inside an enumerated § 7001(ddd) category, so the § 7220–§ 7222 duties below are stated as prospective obligations that attach only after the business confirms the significant-decision category. Per-element findings, remediations, and drafted sample language are withheld until that confirmation.
+                    </p>
+                  </div>
+                </section>
+              )}
+              <GapTable
+                items={report.notice_gaps ?? []}
+                title="Pre-Use Notice (§ 7220)"
+                showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true && !conservative}
+                compact={conservative}
+              />
+              <GapTable
+                items={report.opt_out_gaps ?? []}
+                title="Opt-Out Rights (§ 7221)"
+                showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true && !conservative}
+                compact={conservative}
+              />
+              <GapTable
+                items={report.access_gaps ?? []}
+                title="Access Rights (§ 7222)"
+                showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true && !conservative}
+                compact={conservative}
+              />
+            </>
+          );
+        })()}
 
         {report.risk_assessment_obligation?.required && (
           <section className="font-serif-text space-y-3">
