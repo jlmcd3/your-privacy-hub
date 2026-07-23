@@ -265,6 +265,14 @@ export default function RegistrationAssessment() {
                         placeholder="e.g., Acme Retail, Inc."
                         onChange={(e) => setIntake({ ...intake, organization_name: e.target.value })} />
                     </div>
+                    <div>
+                      {/* CEO decision 2026-07-23 — optional public-authority flag. Unchecked default. */}
+                      <CheckRow
+                        checked={intake.is_public_authority}
+                        onChange={(v) => setIntake({ ...intake, is_public_authority: v })}
+                        label="This organisation is a public authority or public/Union body"
+                      />
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Where is your org established?</Label>
