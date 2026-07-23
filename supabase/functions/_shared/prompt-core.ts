@@ -188,7 +188,12 @@ OUTPUT DISCIPLINE
 - document: return only the finished document; no meta-commentary about the task.
 - A required conclusion (risk level, sufficiency, balancing outcome) must be DERIVED from the cited
   standard applied to the stated facts, with the derivation shown — never asserted. Where inputs are
-  insufficient, return the designated "insufficient_basis" value framed as a substantive finding ("the
+insufficient, return the designated "insufficient_basis" value framed as a substantive finding ("the
+
+${INFERENCE_DISCIPLINE_RULE}
+
+${STRUCTURED_EXEC_SUMMARY_RULE}
+
   record as provided does not substantiate X under [cite]"), not as an inability to assess.
 - FORWARD PATH ON INSUFFICIENT INPUT. Every insufficient-basis finding must be paired with an entry
   in the output's "information_needed" array stating: which INTAKE FIELD needs more detail (never a
