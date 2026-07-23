@@ -409,7 +409,7 @@ export default function QualityBatch() {
   // batch is running so we do not stomp an in-flight session.
   const [pinning, setPinning] = useState<string | null>(null);
   async function onPinnedRerun(tool: string) {
-    if (activeBatch && !TERMINAL_UI.includes((activeBatch.status || "").toLowerCase())) {
+    if (isBatchRunning) {
       toast.error("A batch is running — wait for it to finish before pinning a rerun.");
       return;
     }
