@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "qbp25-dpa-drafting-record@2026-07-23T04:00:00Z";
+export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T11:20:00Z-a";
 console.log(`[generate-dpa] boot build_stamp=${BUILD_STAMP}`);
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
