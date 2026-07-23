@@ -370,14 +370,17 @@ const IR_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Cite US state breach-notification statutes by code section (e.g. Cal. Civ. Code §1798.82; Tex. Bus. & Com. Code §521.053; N.Y. Gen. Bus. Law §899-aa); GDPR/UK GDPR breach duties as Articles 33–34; HIPAA by 45 C.F.R. section per the anchors in the rules below. Cite enforcement actions and fines ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; use only regulator-portal URLs provided in the prompt; never assert a fine amount or fabricate a URL from training knowledge. PORTAL URL EXACT-MATCH: when a regulator-portal URL is supplied in the prompt (e.g. the CNIL notification portal), reproduce that exact string everywhere the portal is referenced in the document — do not paraphrase the hostname, shorten it to the bare domain, or substitute a remembered alternate hostname (e.g. do not write \"cnil.fr\" or \"teleservice.cnil.fr\" if the supplied URL is \"notifications.cnil.fr\"). If the same portal is referenced in more than one section, copy the identical string each time.",
   identity: IR_IDENTITY,
-  extraRules: IR_RULEBOOK,
+  extraRules: IR_RULEBOOK + `
+
+W3-T4 — THRESHOLD-GATE DISCIPLINE (transfer from ADMT/CYBER): every regime-specific notification duty is gated by the regime's engagement test — HIPAA (§ 160.103 covered-entity or business-associate status), GLBA (§ 6809(3) financial-institution status), GDPR/UK GDPR (Art. 3 establishment / offering / monitoring), state breach statutes (statutory personal-information definition + affected residents). Do NOT emit a bare "you must notify under X" duty without first stating the engagement test AND either applying it to the intake ("the record establishes covered-entity status because …") or framing the duty as conditional ("if the business is a HIPAA covered entity, then …"). Where the engagement test is not answerable from the intake, the duty is CONDITIONAL and information_needed carries the specific fact required to resolve engagement — never assert engagement from a sector label alone.
+`,
 };
 
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
 const IR_VERSION = "v3.9.1-cv1-ff-2026-07-19";
-export const BUILD_STAMP = "qbp22-batch-d7cd2ff0-fixes@2026-07-23T00:00:00Z";
+export const BUILD_STAMP = "w3-t4-ir-threshold-gate-transfer@2026-07-23T17:00:00Z";
 console.log(`[generate-ir-playbook] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {

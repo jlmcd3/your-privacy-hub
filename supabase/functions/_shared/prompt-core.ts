@@ -31,8 +31,39 @@
 // Both are embedded into EUP_PROMPT_CORE (full) and EUP_PROMPT_CORE_LEAN so every
 // tool consuming buildSystemContent inherits them; DPA composes its own systemPrompt
 // and wires the two named exports directly (same pattern as ADVISORY_VOICE_RULES).
-export const PROMPT_CORE_VERSION = "3.10.2-product-fix-4";
-export const BUILD_TAG = "qb19";
+export const PROMPT_CORE_VERSION = "3.10.3-w3-t4-inference-discipline";
+export const BUILD_TAG = "w3t4";
+
+// W3-T4 (b) — SHARED INFERENCE-DISCIPLINE RULE. Single source of truth used
+// by every tool prompt. Complements CARDINAL RULE — NO FABRICATION by
+// governing how a permitted inference is LABELED when it appears in output.
+// Never invent an anchor; when an inference is made, name it as one.
+export const INFERENCE_DISCIPLINE_RULE = `INFERENCE DISCIPLINE (W3-T4 — SHARED PROMPT-CORE DIRECTIVE)
+Where a finding is directly stated by the intake or by injected authoritative material, present it as
+stated and anchor it to the exact intake field or the exact statute/regulation cited to you. Where a
+finding is a reasonable inference from those inputs (not directly stated but soundly derivable), present
+it as an inference and (a) name the closest supporting intake field or authoritative anchor it draws
+from, and (b) label the derivation in prose ("this is an inference from …") rather than presenting it
+as a stated fact. Never dress an inference up as a stated fact, and never invent a supporting anchor
+where none exists — if no supporting field or anchor exists, mark the item as insufficient basis and
+route it to information_needed. Provenance fields required by the tool schema (e.g. source.basis =
+"stated" | "inferred") MUST reflect this distinction verbatim.`;
+
+// W3-T4 (a) — STRUCTURED EXECUTIVE SUMMARY. Every tool that emits an
+// executive summary MUST include a `top_3_actions` array of exactly three
+// concrete, prioritised, non-templated actions derived from the report's
+// own findings. Each action is a single sentence naming the specific control
+// / obligation / clause AND the specific evidence gap it closes. No boilerplate.
+export const STRUCTURED_EXEC_SUMMARY_RULE = `STRUCTURED EXECUTIVE SUMMARY — top_3_actions (W3-T4 — SHARED PROMPT-CORE DIRECTIVE)
+executive_summary MUST include a top_3_actions array of exactly three (3) prioritised action strings.
+Each string names (i) the specific control/obligation/clause the action addresses and (ii) the concrete
+evidence, artifact, or decision that would close it. Actions are derived from THIS report's own
+findings — never generic ("engage counsel", "review policies", "conduct training"), never a restatement
+of a section heading, and never duplicated across the three slots. Order is priority order (highest
+first). If fewer than three distinct actions are supportable by the record, populate the remaining
+slots with insufficient-basis entries that name the specific missing input needed to identify the next
+action — never with filler.`;
+
 
 import { ADVISORY_VOICE_RULES } from "./advisory-voice.ts";
 
@@ -157,7 +188,12 @@ OUTPUT DISCIPLINE
 - document: return only the finished document; no meta-commentary about the task.
 - A required conclusion (risk level, sufficiency, balancing outcome) must be DERIVED from the cited
   standard applied to the stated facts, with the derivation shown — never asserted. Where inputs are
-  insufficient, return the designated "insufficient_basis" value framed as a substantive finding ("the
+insufficient, return the designated "insufficient_basis" value framed as a substantive finding ("the
+
+${INFERENCE_DISCIPLINE_RULE}
+
+${STRUCTURED_EXEC_SUMMARY_RULE}
+
   record as provided does not substantiate X under [cite]"), not as an inability to assess.
 - FORWARD PATH ON INSUFFICIENT INPUT. Every insufficient-basis finding must be paired with an entry
   in the output's "information_needed" array stating: which INTAKE FIELD needs more detail (never a
@@ -457,7 +493,11 @@ absent supplemental is not evidence of absence.
 
 ${SPECIFICITY_ACTIONABILITY_RULE}
 
-${ENGAGED_JURISDICTION_CITATION_RULE}`;
+${ENGAGED_JURISDICTION_CITATION_RULE}
+
+${INFERENCE_DISCIPLINE_RULE}
+
+${STRUCTURED_EXEC_SUMMARY_RULE}`;
 
 
 export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46

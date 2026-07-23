@@ -98,6 +98,10 @@ const METADATA_KEYS: readonly string[] = [
   // choices; it is stored on report_data as `_drafting_record` and MUST NOT
   // reach the grader (grader-invisible by contract).
   "_drafting_record",
+  // W3-T5 (a) — ADMT normalizer output stored on report_data as
+  // `_normalized_intake`. Grader-invisible: strips machine-readable intake
+  // echoes so grader never scores generator-emitted normalization metadata.
+  "_normalized_intake",
   "prompt_version",
   "build_stamp",
   "lint_warnings",

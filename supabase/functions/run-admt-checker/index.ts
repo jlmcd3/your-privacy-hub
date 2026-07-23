@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "qbp25-admt-normalizer-extracted-for-b0a@2026-07-23T07:00:00Z";
+export const BUILD_STAMP = "w3-t5-admt-normalized-intake-scrub@2026-07-23T17:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 
@@ -233,6 +233,9 @@ export const ADMT_TOOL_MODULE: ToolModule = {
   outputMode: "strict-JSON",
   includeEuTransfers: false,
   extraRules: ADMT_EXTRA_RULES + `
+
+W3-T5 (a) — NORMALIZED-INTAKE METADATA IS INTERNAL: the ADMT normalizer output (persisted on report_data as _normalized_intake) is grader-invisible bookkeeping. NEVER surface normalizer keys, normalized enum tokens, or the string "_normalized_intake" in ANY user-facing field (executive_summary, triggers_identified, findings, remediation, next_steps, disclosure element sample_language, information_needed). Refer to the underlying fact in plain prose ("the record confirms fully automated operation"), never to the normalizer key or its normalized token.
+
 
 STANDARDS BELONG TO THEIR SUBSECTION: never attribute characterising language ("expressly prohibits generic descriptions", a sufficiency standard, a consumer-understanding test) to a provision unless that language appears in the supplied regulation text for that provision. Where two provisions carry parallel or complementary standards (e.g. the pre-use-notice purpose requirement and the access-response purpose requirement; a trade-secret carve-out and the surviving logic-disclosure obligation), name BOTH by their plain-English element names, state which obligation each imposes, and keep their findings separable so the system can inject each provision's canonical citation — never blend two provisions' standards under one element name.
 

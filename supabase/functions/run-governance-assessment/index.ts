@@ -825,7 +825,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 }
 
 
-export const BUILD_STAMP = "qbp25-b2-governance-v2-complete@2026-07-23T09:00:00Z";
+export const BUILD_STAMP = "w3-t4-governance-top3-actions@2026-07-23T17:00:00Z";
 
 Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
