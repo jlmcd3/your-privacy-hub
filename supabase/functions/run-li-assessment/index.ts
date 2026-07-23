@@ -957,18 +957,31 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
       // factor whose reasoning does not cite its own intake_evidence is a
       // defect. intake_evidence entries MUST reference intake fields that are
       // actually populated on this record (cross-read the full record per the
-      // CROSS-READ rule above); do NOT invent fields or values. Where no
-      // relevant intake is present for a factor, set intake_evidence to [] and
-      // describe the absence in the reasoning field per FLAG-THE-ABSENCE —
-      // never fabricate.
+      // CROSS-READ rule above); do NOT invent fields or values.
+      //
+      // R-TURN-3 INTAKE_EVIDENCE ABSENCE CONVENTION (canonical):
+      // When no relevant intake field supports a factor, the object MUST:
+      //   (i)   set "intake_evidence" to [] (empty array — never omit the key,
+      //         never fabricate a placeholder field/value pair, never a
+      //         "field: 'not stated'" pseudo-entry);
+      //   (ii)  set "evidence_absence" to a non-empty string in canonical form:
+      //         "The record supplied to this assessment does not present
+      //         [what is missing for this factor]; document [X] in the
+      //         balancing record."
+      //   (iii) set "reasoning" to characterise the absence (per OUTPUT-ABSENCE
+      //         and FLAG-THE-ABSENCE) rather than hedge into pseudo-evidence.
+      // When intake_evidence is non-empty, evidence_absence MUST be null.
+      // Renderers surface evidence_absence to users as an explicit absence
+      // notice; grader recognises evidence_absence as designed output.
       {
         "factor": "reasonable_expectations | relationship | impact_severity | safeguards",
         "intake_evidence": [
           { "field": "<intake field name from the record — e.g. relationship_type, balancing_details.reasonable_expectation, balancing_details.safeguards, balancing_details.opt_out_mechanism, balancing_details.potential_harm, balancing_details.vulnerable_subjects, balancing_details.additional_context>",
             "value": "<the verbatim or lightly-condensed value from that field in the record>" }
         ],
+        "evidence_absence": null,
         "direction": "for_controller | for_subjects | neutral",
-        "reasoning": "1-3 sentences. MUST bind to the named intake_evidence for this factor (name the value or field in the sentence itself). Refer to the input as 'the record' per CANONICAL RECORD REFERENCE."
+        "reasoning": "1-3 sentences. MUST bind to the named intake_evidence for this factor (name the value or field in the sentence itself), OR — when intake_evidence is [] — characterise the absence per the ABSENCE CONVENTION above. Refer to the input as 'the record' per CANONICAL RECORD REFERENCE."
       }
     ],
     "synthesis": "1-2 sentences drawing the four factor direction values together into an overall balancing outcome that maps to the verdict field. Names the decisive factor(s) by name.",
