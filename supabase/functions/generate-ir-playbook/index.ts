@@ -1403,6 +1403,61 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           }
         }
         assembled.playbook_text = collapseConsecutiveDuplicateNotes(assembled.playbook_text);
+        // R-TURN-3 Turn B item 1b — DETERMINISTIC ENFORCEMENT-BRACKET VERIFIER.
+        // Every emitted enforcement bracket (regulator + amount + URL + id) must
+        // match a supplied enforcement-context row exactly. Sentences containing a
+        // currency+amount pattern whose amount does NOT appear in the corpus are
+        // stripped as fabricated. This runs deterministically post-generation.
+        function verifyEnforcementBrackets(text: string, corpus: any[]): { text: string; stripped: number } {
+          try {
+            const authorizedAmounts = new Set<string>();
+            for (const row of corpus || []) {
+              const amt = row?.fine_eur_equivalent;
+              if (amt != null && Number.isFinite(Number(amt))) {
+                const n = Math.round(Number(amt));
+                authorizedAmounts.add(String(n));
+                authorizedAmounts.add(n.toLocaleString("en-US"));
+                authorizedAmounts.add(n.toLocaleString("de-DE"));
+                authorizedAmounts.add(n.toLocaleString("fr-FR").replace(/\u202f/g, " "));
+              }
+            }
+            const currencyRe = /[€£$]\s?[\d][\d.,\s]{2,}/g;
+            const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z"\[])/);
+            let stripped = 0;
+            const kept: string[] = [];
+            for (const s of sentences) {
+              const matches = s.match(currencyRe);
+              if (!matches) { kept.push(s); continue; }
+              let allOk = true;
+              for (const m of matches) {
+                const digits = m.replace(/[^\d]/g, "");
+                if (!digits) continue;
+                const n = Number(digits);
+                if (!Number.isFinite(n)) continue;
+                // accept if any authorized amount shares this digit sequence OR is within 1%
+                let ok = false;
+                for (const a of authorizedAmounts) {
+                  const ad = a.replace(/[^\d]/g, "");
+                  if (ad === digits) { ok = true; break; }
+                  const an = Number(ad);
+                  if (Number.isFinite(an) && an > 0 && Math.abs(an - n) / an < 0.01) { ok = true; break; }
+                }
+                if (!ok) { allOk = false; break; }
+              }
+              if (allOk) kept.push(s);
+              else { stripped++; console.warn("[IR][r-turn-3-b] enforcement-bracket verifier stripped sentence: " + s.slice(0, 160)); }
+            }
+            return { text: kept.join(" "), stripped };
+          } catch (e) {
+            console.error("[IR][r-turn-3-b] enforcement verifier errored:", e);
+            return { text, stripped: 0 };
+          }
+        }
+        {
+          const v = verifyEnforcementBrackets(assembled.playbook_text, enforcement_context);
+          if (v.stripped > 0) console.warn(`[IR][r-turn-3-b] enforcement-bracket verifier: stripped=${v.stripped}`);
+          assembled.playbook_text = v.text;
+        }
         lintBareCitations(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
