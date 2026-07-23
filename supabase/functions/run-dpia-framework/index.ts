@@ -1567,11 +1567,20 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       stop_reason: r.stopReason ?? null,
       continued: r.continued,
       cont_retried: r.contRetried ?? false,
+      last_heartbeat_at: new Date().toISOString(),
     });
+    clearInterval(heartbeat);
   } catch (e) {
+    clearInterval(heartbeat);
     const elapsedMs = Date.now() - startedMs;
-    console.error(`[unit:${unit}] error after ${elapsedMs}ms:`, e);
-    await mergePreservingFail(dpia_id, unit, e, elapsedMs);
+    // DPIA-STALL-1(b) — parse upstream API status/error out of the thrown
+    // message ("Anthropic <status>: <body>") so the failure row records a
+    // structured upstream_status rather than only a free-form string.
+    const raw = (e as Error)?.message ?? String(e);
+    const m = /Anthropic\s+(\d{3}):\s*(.*)$/i.exec(raw);
+    const upstream = m ? { upstream_provider: "anthropic", upstream_status: Number(m[1]), upstream_body: m[2].slice(0, 300) } : null;
+    console.error(`[unit:${unit}] error after ${elapsedMs}ms upstream=${JSON.stringify(upstream)}:`, raw);
+    await mergePreservingFail(dpia_id, unit, e, elapsedMs, upstream ? ({ upstream } as any) : undefined);
     return;
   }
 
