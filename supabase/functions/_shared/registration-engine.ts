@@ -259,7 +259,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     if (
       intake.processes_special_categories &&
       intake.processes_personal_data &&
-      (intake.data_subjects_count ?? 0) > 100_000
+      ((intake.data_subjects_count ?? 0) > 100_000 || !isSmallController)
     ) {
       dpoRequired = true;
       dpoTrigger = dpoTrigger
