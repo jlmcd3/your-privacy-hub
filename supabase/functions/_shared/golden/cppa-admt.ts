@@ -101,8 +101,15 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       organization_name: "Northstar Platform Inc",
       system_name: "TierSelect",
       system_type: "Rules engine",
-      system_description: "TierSelect assigns customers to service tiers for a general consumer subscription product; the intake does not identify the underlying service as financial, lending, housing, education, employment, or healthcare.",
-      decision_domains: [],
+      system_description: "TierSelect assigns customers to service tiers for a general consumer subscription product. The operations team originally flagged this as financial-adjacent when scoping the review, but the platform is a general consumer subscription — the tier assignment does NOT determine credit decisions, loan eligibility, account approval, or any other financial-services outcome. The intake does not identify the underlying service as clearly falling within any enumerated § 7001(ddd) category (financial, lending, housing, education, employment, or healthcare).",
+      // QB-P25 boundary-batch fix: SIGNIFICANT_DECISION_DOMAINS is
+      // required-always in the contract (multi-enum, min 1). We supply the
+      // operator's originally-flagged candidate to satisfy the contract
+      // while the system_description above disclaims it, preserving the
+      // conservative_assumption bait (intake does not affirmatively
+      // establish the category — the model should still default to
+      // determination_basis="conservative_assumption").
+      decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
       human_review: "No — fully automated, no human review",
       training_data_use: "No",
       profiling_use: "No",
