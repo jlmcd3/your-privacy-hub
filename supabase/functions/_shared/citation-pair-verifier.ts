@@ -163,18 +163,42 @@ function detect_6_1_f_vs_6_11(s: string, regime: VerifyOpts["regime"]): PairFind
   return null;
 }
 
-// (ah) vs (aj): Cal. Civ. Code § 1798.140. Post-CPRA lettering — (ag) is
-// "service provider"; (ah) is "sensitive personal information"; (aj) is
-// "share". Flag common cross-pairings.
-function detect_ccpa_ah_aj(s: string): PairFinding | null {
-  const cites_ah = /1798\.140\s*\(\s*ah\s*\)/i.test(s);
-  const cites_aj = /1798\.140\s*\(\s*aj\s*\)/i.test(s);
+// POST-C1-FIX-1B — Cal. Civ. Code § 1798.140 CORRECTED post-CPRA lettering
+// (primary sources: leginfo.legislature.ca.gov § 1798.140; caprivacy.org CPRA text;
+//  codes.findlaw.com/ca/civil-code/civ-sect-1798-140):
+//   (ae) = "sensitive personal information"
+//   (ag) = "service provider" (unchanged)
+//   (ah) = "share / sharing" (includes cross-context behavioural advertising)
+//   (ai) = "third party"
+//   (aj) = "unique identifier"
+// The prior map had (ah)/(aj) inverted, which caused correct product citations to
+// be flagged. Flag two predicate/citation mismatches:
+//   (i)  SPI predicate cited to anything other than (ae)
+//   (ii) share/sharing predicate cited to anything other than (ah)
+function detect_ccpa_ae_ah(s: string): PairFinding | null {
+  const cite_re = /1798\.140\s*\(\s*([a-z]{1,3})\s*\)/gi;
+  const cited = new Set<string>();
+  let m: RegExpExecArray | null;
+  while ((m = cite_re.exec(s)) !== null) cited.add(m[1].toLowerCase());
+  if (cited.size === 0) return null;
   const lower = s.toLowerCase();
-  if (cites_ah && /\b(share|sharing|cross[- ]context\s+behavioral\s+advertising)\b/.test(lower) && !/sensitive/.test(lower)) {
-    return { pair: "ccpa_ah_vs_aj", sentence: s, reason: "§ 1798.140(ah) cited for 'share/sharing' predicate; 'share' is defined at (aj), (ah) defines 'sensitive personal information'." };
+  const spiPredicate = /\bsensitive\s+personal\s+information\b/.test(lower);
+  const sharePredicate = /\b(share|sharing|cross[- ]context\s+behavioral\s+advertising)\b/.test(lower);
+  // (i) SPI predicate + a § 1798.140 subdivision cite that is NOT (ae).
+  if (spiPredicate && !cited.has("ae") && [...cited].some((c) => c !== "ae")) {
+    return {
+      pair: "ccpa_ae_ah_lettering",
+      sentence: s,
+      reason: `Sensitive personal information predicate cited to § 1798.140(${[...cited].join("|")}); post-CPRA lettering places "sensitive personal information" at § 1798.140(ae) (source: leginfo.legislature.ca.gov § 1798.140).`,
+    };
   }
-  if (cites_aj && /\bsensitive\s+personal\s+information\b/.test(lower) && !/\bshare\b/.test(lower)) {
-    return { pair: "ccpa_ah_vs_aj", sentence: s, reason: "§ 1798.140(aj) cited for 'sensitive personal information'; that definition is at (ah), (aj) defines 'share'." };
+  // (ii) share/sharing predicate + a § 1798.140 subdivision cite that is NOT (ah).
+  if (sharePredicate && !cited.has("ah") && [...cited].some((c) => c !== "ah")) {
+    return {
+      pair: "ccpa_ae_ah_lettering",
+      sentence: s,
+      reason: `Share/sharing predicate cited to § 1798.140(${[...cited].join("|")}); post-CPRA lettering places "share/sharing" at § 1798.140(ah) (source: leginfo.legislature.ca.gov § 1798.140).`,
+    };
   }
   return null;
 }
