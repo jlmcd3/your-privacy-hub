@@ -79,6 +79,9 @@ export const LIA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "Works Council|manager", flags: "i",
         label: "consumes fact from balancing_details.additional_context" },
+      { kind: "must_include", pattern: "reasonable_expectations", label: "factor: reasonable_expectations present" },
+      { kind: "must_include", pattern: "\"factor\"\\s*:\\s*\"safeguards\"", label: "factor: safeguards present" },
+      { kind: "must_include", pattern: "intake_evidence", label: "factors carry intake_evidence anchors" },
     ],
   },
 ];
