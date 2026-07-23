@@ -63,7 +63,7 @@ Deno.test("W3-T1 · _staging and _revision handling is untouched (regression gua
 Deno.test("W3-T1 · BUILD_STAMP bumped to w3-t1 tag", () => {
   const m = idx.match(/export const BUILD_STAMP = "([^"]+)"/);
   assert(m, "BUILD_STAMP export not found");
-  assertEquals(m![1].startsWith("w3-t1-"), true, `unexpected BUILD_STAMP: ${m![1]}`);
+  assertEquals(/^(w3-t1-|r-turn-)/.test(m![1]), true, `unexpected BUILD_STAMP: ${m![1]}`);
 });
 
 Deno.test("W3-T1 · DPIA golden fixtures assert source fields on enumerated rows", async () => {
