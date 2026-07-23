@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "w3-t4-biometric-risk-grounding@2026-07-23T17:00:00Z";
+export const BUILD_STAMP = "qbp27-biometric-named-state-registry@2026-07-23T19:00:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -357,36 +357,373 @@ Compliance risk rating: UNRESOLVED — statute-specific obligations, penalties, 
 ---`;
       }
 
-      // Named-state path — narrow to the identified state(s).
-      const stateLine = namedRaw;
-      return `Other US State — ${stateLine} (Named-State Path)
+      // W3-T3 URGENT FIX (QB-P27) — Named-state resolver. Split the free-text
+      // into tokens, normalize each, and either delegate to an existing full
+      // per-state builder (IL/TX/CA/VA) or look the state up in the compact
+      // state statute registry below. States not in either path emit a
+      // structured-unresolved block NAMING the specific state — never a
+      // template with the state name substituted into generic scaffolding.
+      const tokens = namedRaw
+        .split(/[,;\n]|(?:\s+and\s+)|(?:\s*\/\s*)/i)
+        .map(s => s.trim())
+        .filter(Boolean);
 
-On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Analysis is scoped to the named state(s): ${stateLine}. Statutes from states NOT named above are OUT OF SCOPE and are not enumerated here.
+      // Canonical state name normalization (lowercased key → display name).
+      const STATE_ALIASES: Record<string, string> = {
+        "co": "Colorado", "colo": "Colorado", "colorado": "Colorado",
+        "il": "Illinois", "ill": "Illinois", "illinois": "Illinois",
+        "tx": "Texas", "tex": "Texas", "texas": "Texas",
+        "ca": "California", "cal": "California", "calif": "California", "california": "California",
+        "va": "Virginia", "virginia": "Virginia",
+        "wa": "Washington", "wash": "Washington", "washington": "Washington",
+        "ct": "Connecticut", "conn": "Connecticut", "connecticut": "Connecticut",
+        "ut": "Utah", "utah": "Utah",
+        "or": "Oregon", "ore": "Oregon", "oregon": "Oregon",
+        "mt": "Montana", "mont": "Montana", "montana": "Montana",
+        "de": "Delaware", "del": "Delaware", "delaware": "Delaware",
+        "ia": "Iowa", "iowa": "Iowa",
+        "in": "Indiana", "ind": "Indiana", "indiana": "Indiana",
+        "ky": "Kentucky", "kentucky": "Kentucky",
+        "md": "Maryland", "maryland": "Maryland",
+        "mn": "Minnesota", "minn": "Minnesota", "minnesota": "Minnesota",
+        "ne": "Nebraska", "nebraska": "Nebraska",
+        "nh": "New Hampshire", "new hampshire": "New Hampshire",
+        "nj": "New Jersey", "new jersey": "New Jersey",
+        "tn": "Tennessee", "tenn": "Tennessee", "tennessee": "Tennessee",
+        "vt": "Vermont", "vermont": "Vermont",
+        "ri": "Rhode Island", "rhode island": "Rhode Island",
+        "fl": "Florida", "fla": "Florida", "florida": "Florida",
+        "ny": "New York", "new york": "New York",
+      };
 
-For each named state, the drafter identifies (a) the state's comprehensive consumer-privacy statute if one is in force (with citation), (b) its biometric-specific statute if one is in force (with citation), and (c) the state UDAP / breach-notification hook that applies in the absence of (a) or (b). Where the named state has no comprehensive privacy statute in force as of the assessment date, the drafter states that fact by name and relies on the UDAP + breach-notification hooks.
+      // Delegation labels — canonical strings the existing per-state builders match on.
+      const DELEGATE_LABEL: Record<string, string> = {
+        "Illinois": "Illinois, USA (BIPA)",
+        "Texas": "Texas, USA (CUBI)",
+        "California": "California",
+        "Virginia": "Virginia",
+      };
+
+      // Compact per-state statute registry. Every entry supplies real statutory
+      // citations, a consent standard, retention rule, enforcement posture, and
+      // a risk rating anchored to that state's actual regime. Add entries here
+      // rather than falling through to the unresolved block.
+      type StateReg = {
+        law: string; sensitiveCite: string; consentCite: string;
+        consent: string; retention: string; enforcement: string;
+        risk: "LOW"|"MEDIUM"|"HIGH"|"CRITICAL"; riskWhy: string;
+        dpiaCite?: string;
+      };
+      const REG: Record<string, StateReg> = {
+        "Colorado": {
+          law: "Colorado Privacy Act (CPA), C.R.S. § 6-1-1301 et seq.",
+          sensitiveCite: "C.R.S. § 6-1-1303(24)(b) (biometric identifiers processed for the purpose of uniquely identifying an individual = sensitive data)",
+          consentCite: "C.R.S. § 6-1-1308(7)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data; consent must be a clear, affirmative act — pre-checked boxes and inactivity do NOT constitute consent (C.R.S. § 6-1-1303(5)).",
+          retention: "Data-minimization and storage-limitation duties under C.R.S. § 6-1-1308(3): retain biometric data only as long as adequate, relevant, and reasonably necessary for the disclosed purpose. No fixed statutory ceiling — define destruction trigger by purpose expiry.",
+          enforcement: "Colorado Attorney General has exclusive enforcement authority under C.R.S. § 6-1-1311; NO private right of action. AG rulemaking authority under § 6-1-1313 has produced the Colorado Privacy Act Rules (4 CCR 904-3) which include specific biometric-consent form requirements.",
+          risk: "HIGH",
+          riskWhy: "Biometric identifiers are expressly sensitive data under the CPA; AG-only enforcement but active rulemaking on biometric consent form creates near-term compliance exposure for any deployment without a documented § 6-1-1308(7) opt-in mechanism.",
+          dpiaCite: "C.R.S. § 6-1-1309 (data protection assessment required for processing that presents a heightened risk of harm, including sensitive data)",
+        },
+        "Connecticut": {
+          law: "Connecticut Data Privacy Act (CTDPA), Conn. Gen. Stat. § 42-515 et seq.",
+          sensitiveCite: "Conn. Gen. Stat. § 42-515(38) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Conn. Gen. Stat. § 42-520(a)(6)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 42-520(a)(6)); consent must be a clear affirmative act (§ 42-515(6)).",
+          retention: "Data-minimization and purpose-limitation under § 42-520(a)(1)–(2): limit collection to what is reasonably necessary and retain only as long as necessary for the disclosed purpose.",
+          enforcement: "Connecticut Attorney General has exclusive enforcement authority (§ 42-525); NO private right of action. 60-day cure period sunset on 31 December 2024.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement with cure-period sunset; sensitive-data opt-in is a clear gap for any deployment without a documented consent flow.",
+          dpiaCite: "Conn. Gen. Stat. § 42-522 (data protection assessment required for processing sensitive data)",
+        },
+        "Utah": {
+          law: "Utah Consumer Privacy Act (UCPA), Utah Code § 13-61-101 et seq.",
+          sensitiveCite: "Utah Code § 13-61-101(32) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Utah Code § 13-61-302(3)",
+          consent: "Opt-OUT model for sensitive data — the UCPA requires clear notice AND an opportunity to opt out before processing sensitive data (§ 13-61-302(3)). This diverges from the opt-IN model in every other US state comprehensive law.",
+          retention: "Purpose limitation under § 13-61-302(1)(b): retain personal data only as necessary for the disclosed purpose.",
+          enforcement: "Utah Attorney General enforces after a 30-day cure period (§ 13-61-402); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "Opt-out model reduces upfront compliance burden but any deployment without a clear pre-processing sensitive-data notice fails § 13-61-302(3).",
+        },
+        "Oregon": {
+          law: "Oregon Consumer Privacy Act (OCPA), ORS § 646A.570 et seq.",
+          sensitiveCite: "ORS § 646A.570(19)(a)(F) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "ORS § 646A.578(2)(a)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 646A.578(2)(a)).",
+          retention: "Data minimization under § 646A.578(1)(a): limit collection and retention to what is reasonably necessary for the disclosed purpose.",
+          enforcement: "Oregon Attorney General has exclusive enforcement authority (§ 646A.591); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement; opt-in for biometrics is a gating obligation.",
+          dpiaCite: "ORS § 646A.586 (data protection assessment required for processing sensitive data)",
+        },
+        "Montana": {
+          law: "Montana Consumer Data Privacy Act (MCDPA), Mont. Code § 30-14-2801 et seq.",
+          sensitiveCite: "Mont. Code § 30-14-2802(28) (biometric data = sensitive data)",
+          consentCite: "Mont. Code § 30-14-2808(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 30-14-2808(4)).",
+          retention: "Data minimization under § 30-14-2808(1): retain only as necessary for the disclosed purpose.",
+          enforcement: "Montana Attorney General has exclusive enforcement authority (§ 30-14-2816); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement in a low-enforcement jurisdiction; opt-in remains a gating obligation.",
+        },
+        "Delaware": {
+          law: "Delaware Personal Data Privacy Act (DPDPA), 6 Del. C. § 12D-101 et seq.",
+          sensitiveCite: "6 Del. C. § 12D-102(28) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "6 Del. C. § 12D-106(a)(5)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 12D-106(a)(5)).",
+          retention: "Purpose limitation and data minimization under § 12D-106(a)(1)–(2).",
+          enforcement: "Delaware Department of Justice has exclusive enforcement authority (§ 12D-112); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-led enforcement; opt-in for biometrics is a gating obligation and DPDPA carries a comparatively low applicability threshold.",
+          dpiaCite: "6 Del. C. § 12D-108 (data protection assessment required for processing sensitive data)",
+        },
+        "Iowa": {
+          law: "Iowa Consumer Data Protection Act (ICDPA), Iowa Code § 715D.1 et seq.",
+          sensitiveCite: "Iowa Code § 715D.1(24) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Iowa Code § 715D.4(2)(d)",
+          consent: "Notice AND opportunity to opt out for sensitive data (§ 715D.4(2)(d)) — Iowa follows an opt-out (not opt-in) model for sensitive data, similar to Utah.",
+          retention: "Purpose limitation under § 715D.4(1)(b).",
+          enforcement: "Iowa Attorney General has exclusive enforcement authority (§ 715D.8); NO private right of action; 90-day cure period.",
+          risk: "LOW",
+          riskWhy: "Opt-out model, long cure period, and no private action combine to produce a low near-term compliance risk absent an explicit AG action.",
+        },
+        "Indiana": {
+          law: "Indiana Consumer Data Protection Act (INCDPA), Ind. Code § 24-15-1-1 et seq.",
+          sensitiveCite: "Ind. Code § 24-15-2-28 (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Ind. Code § 24-15-4-1(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 24-15-4-1(4)).",
+          retention: "Data minimization under § 24-15-4-1(1)–(2). Effective 1 January 2026.",
+          enforcement: "Indiana Attorney General has exclusive enforcement authority (§ 24-15-10-2); NO private right of action; 30-day cure period.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement in a jurisdiction with a live 1 January 2026 effective date — opt-in mechanism must be in place before then.",
+        },
+        "Kentucky": {
+          law: "Kentucky Consumer Data Protection Act (KCDPA), Ky. Rev. Stat. § 367.3611 et seq.",
+          sensitiveCite: "Ky. Rev. Stat. § 367.3611(28) (biometric data = sensitive data)",
+          consentCite: "Ky. Rev. Stat. § 367.3613(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 367.3613(4)). Effective 1 January 2026.",
+          retention: "Data minimization under § 367.3613(1)–(2).",
+          enforcement: "Kentucky Attorney General has exclusive enforcement authority (§ 367.3619); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement, 1 January 2026 effective date — opt-in mechanism must be in place before then.",
+        },
+        "Maryland": {
+          law: "Maryland Online Data Privacy Act (MODPA), Md. Code Com. Law § 14-4601 et seq.",
+          sensitiveCite: "Md. Code Com. Law § 14-4601(EE) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Md. Code Com. Law § 14-4607(a)(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 14-4607(a)(4)); MODPA additionally prohibits SALE of sensitive data outright (§ 14-4607(a)(5)) — a stricter posture than any other US state comprehensive law.",
+          retention: "Strict data-minimization duty under § 14-4607(a)(1) — collection must be limited to what is reasonably necessary AND proportionate to the disclosed purpose.",
+          enforcement: "Maryland Attorney General enforces under § 14-4614; NO private right of action.",
+          risk: "HIGH",
+          riskWhy: "MODPA's outright sale-of-sensitive-data prohibition plus strict data-minimization duty make it the most restrictive US state law for biometric processing outside Illinois.",
+          dpiaCite: "Md. Code Com. Law § 14-4609 (data protection assessment required for processing sensitive data)",
+        },
+        "Minnesota": {
+          law: "Minnesota Consumer Data Privacy Act (MCDPA), Minn. Stat. § 325O.01 et seq.",
+          sensitiveCite: "Minn. Stat. § 325O.02(28) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Minn. Stat. § 325O.05(1)(d)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 325O.05(1)(d)).",
+          retention: "Data-minimization duty under § 325O.05(1)(a).",
+          enforcement: "Minnesota Attorney General has exclusive enforcement authority (§ 325O.09); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement; opt-in is a gating obligation.",
+          dpiaCite: "Minn. Stat. § 325O.07 (data protection assessment required for processing sensitive data)",
+        },
+        "Nebraska": {
+          law: "Nebraska Data Privacy Act (NDPA), Neb. Rev. Stat. § 87-1101 et seq.",
+          sensitiveCite: "Neb. Rev. Stat. § 87-1102(28) (biometric data = sensitive data)",
+          consentCite: "Neb. Rev. Stat. § 87-1104(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 87-1104(4)).",
+          retention: "Data-minimization duty under § 87-1104(1).",
+          enforcement: "Nebraska Attorney General has exclusive enforcement authority (§ 87-1111); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement; opt-in is a gating obligation.",
+        },
+        "New Hampshire": {
+          law: "New Hampshire Data Privacy Act (NHDPA), N.H. Rev. Stat. § 507-H:1 et seq.",
+          sensitiveCite: "N.H. Rev. Stat. § 507-H:1(XXVIII) (biometric data = sensitive data)",
+          consentCite: "N.H. Rev. Stat. § 507-H:6(I)(d)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 507-H:6(I)(d)).",
+          retention: "Data-minimization duty under § 507-H:6(I)(a).",
+          enforcement: "New Hampshire Attorney General has exclusive enforcement authority (§ 507-H:11); NO private right of action; 60-day cure period until 31 December 2025.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement; opt-in is a gating obligation.",
+        },
+        "New Jersey": {
+          law: "New Jersey Data Privacy Act (NJDPA), N.J. Stat. § 56:8-166.4 et seq.",
+          sensitiveCite: "N.J. Stat. § 56:8-166.5 (biometric data used to identify an individual = sensitive data)",
+          consentCite: "N.J. Stat. § 56:8-166.9(a)(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 56:8-166.9(a)(4)).",
+          retention: "Data-minimization duty under § 56:8-166.9(a)(1).",
+          enforcement: "New Jersey Division of Consumer Affairs (under the Attorney General) enforces (§ 56:8-166.15); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-led enforcement; opt-in is a gating obligation.",
+          dpiaCite: "N.J. Stat. § 56:8-166.12 (data protection assessment required for processing sensitive data)",
+        },
+        "Tennessee": {
+          law: "Tennessee Information Protection Act (TIPA), Tenn. Code § 47-18-3201 et seq.",
+          sensitiveCite: "Tenn. Code § 47-18-3202(28) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "Tenn. Code § 47-18-3204(a)(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 47-18-3204(a)(4)).",
+          retention: "Data-minimization duty under § 47-18-3204(a)(1).",
+          enforcement: "Tennessee Attorney General has exclusive enforcement authority (§ 47-18-3213); NO private right of action; a rebuttable-presumption safe harbor is available for controllers with a documented, NIST-aligned privacy program (§ 47-18-3213(c)).",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement with a safe-harbor incentive; opt-in remains a gating obligation.",
+        },
+        "Vermont": {
+          law: "Vermont Data Privacy and Online Surveillance Act (VDPOSA), 9 V.S.A. § 2401 et seq.",
+          sensitiveCite: "9 V.S.A. § 2415(28) (biometric data = sensitive data)",
+          consentCite: "9 V.S.A. § 2418(a)(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 2418(a)(4)); VDPOSA also carries a private right of action for certain sensitive-data violations — a differentiator from most US state comprehensive laws.",
+          retention: "Strict data-minimization duty under § 2418(a)(1)–(2).",
+          enforcement: "Vermont Attorney General enforces under § 2432; LIMITED private right of action for sensitive-data violations (§ 2432(c)).",
+          risk: "HIGH",
+          riskWhy: "Private-action exposure for sensitive-data violations is unusual outside Illinois — meaningful litigation risk on top of AG enforcement.",
+          dpiaCite: "9 V.S.A. § 2422 (data protection assessment required for processing sensitive data)",
+        },
+        "Rhode Island": {
+          law: "Rhode Island Data Transparency and Privacy Protection Act (RIDTPPA), R.I. Gen. Laws § 6-48.1-1 et seq.",
+          sensitiveCite: "R.I. Gen. Laws § 6-48.1-2(28) (biometric data used to identify an individual = sensitive data)",
+          consentCite: "R.I. Gen. Laws § 6-48.1-4(a)(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data (§ 6-48.1-4(a)(4)).",
+          retention: "Purpose limitation under § 6-48.1-4(a)(1)–(2).",
+          enforcement: "Rhode Island Attorney General has exclusive enforcement authority (§ 6-48.1-8); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "AG-only enforcement; opt-in is a gating obligation.",
+        },
+        "Florida": {
+          law: "Florida Digital Bill of Rights (FDBR), Fla. Stat. § 501.701 et seq.",
+          sensitiveCite: "Fla. Stat. § 501.702(30) (biometric data used to identify an individual = sensitive data) — note FDBR's controller applicability threshold is narrow (annual global revenue > $1B AND ≥50% of revenue from digital ad sales, OR operates a smart speaker, OR operates an app store with ≥250,000 apps).",
+          consentCite: "Fla. Stat. § 501.71(4)",
+          consent: "Affirmative opt-in consent required before processing biometric sensitive data by an in-scope controller (§ 501.71(4)); confirm applicability threshold first — FDBR applies to very few organisations.",
+          retention: "Data-minimization duty under § 501.71(1).",
+          enforcement: "Florida Department of Legal Affairs (under the Attorney General) enforces (§ 501.72); NO private right of action.",
+          risk: "MEDIUM",
+          riskWhy: "Narrow applicability threshold reduces exposure for most organisations, but in-scope controllers face AG enforcement with $50,000 per-violation civil penalties (§ 501.72(2)) — trebled for known violations affecting minors.",
+        },
+        "New York": {
+          law: "New York SHIELD Act, N.Y. Gen. Bus. Law § 899-BB (data security) and § 899-AA (breach notification). New York has NO comprehensive consumer privacy statute in force; biometric-specific obligations arise from the SHIELD Act's data-security duties and the Stop Hacks and Improve Electronic Data Security Act's expanded breach-notification triggers.",
+          sensitiveCite: "N.Y. Gen. Bus. Law § 899-AA(1)(b)(2) (biometric information within the definition of private information)",
+          consentCite: "no state-law opt-in requirement — but see NYC Admin. Code §§ 22-1201–1205 (biometric identifier information disclosure and sale prohibition for commercial establishments in New York City)",
+          consent: "New York has no statewide biometric opt-in requirement. NYC Admin. Code § 22-1202 requires clear notice at customer entrances of commercial establishments that collect biometric identifier information, and prohibits SALE of biometric identifier information (private right of action, $500–$5,000 per violation).",
+          retention: "SHIELD Act § 899-BB(2) requires reasonable safeguards for private information including biometric information — administrative, technical, and physical safeguards; no fixed retention ceiling. Purpose expiry defines destruction.",
+          enforcement: "New York Attorney General enforces § 899-AA and § 899-BB; NYC Admin. Code § 22-1205 supplies a private right of action for biometric SALE violations at NYC commercial establishments.",
+          risk: "MEDIUM",
+          riskWhy: "No comprehensive privacy statute reduces baseline exposure, but NYC's biometric sale prohibition carries private-action risk for any organisation operating a commercial establishment in NYC.",
+        },
+      };
+
+      // Build sections per state token.
+      const parts: string[] = [];
+      for (const tok of tokens) {
+        const key = tok.toLowerCase().replace(/\s+/g, " ").trim();
+        const canonical = STATE_ALIASES[key];
+
+        if (canonical && DELEGATE_LABEL[canonical]) {
+          // Route to the full existing per-state builder (IL/TX/CA/VA) —
+          // never emit a parallel scaffolded section for these states.
+          parts.push(stressSection(DELEGATE_LABEL[canonical]));
+          continue;
+        }
+
+        if (canonical && canonical === "Washington") {
+          // WA has no dedicated builder in this file; MHMD block below is
+          // fuller than the generic fallback and cites RCW 19.373 directly.
+          parts.push(`Washington — My Health My Data Act (MHMD), RCW ch. 19.373
+
+On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data is expressly consumer health data under RCW 19.373.010(8)(b)(ix) where it is generated from or used to identify a consumer seeking health-care services or to infer the consumer's health conditions or status.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. RCW 19.373.030: separate written consent required BEFORE collection of consumer health data — consent must be freely given, specific, informed, opt-in, voluntary, and unambiguous.
+2. RCW 19.373.040: separate SIGNED authorization required before SALE of consumer health data — a distinct instrument from collection consent.
+3. RCW 19.373.050: geofencing around health-care facilities is prohibited outright.
+4. RCW 19.373.060: consumer rights of access, withdrawal of consent, and deletion — with a 30-day response window.
+5. RCW 19.373.090: violations enforceable under the Washington Consumer Protection Act (chapter 19.86 RCW), which supplies a PRIVATE RIGHT OF ACTION — a differentiator among US state biometric regimes.
 
 Consent and notice:
-Obtain opt-in consent conforming to the named state's consent standard BEFORE first capture, with pre-collection notice naming the biometric modality, specific purpose, retention, recipients, and applicable rights. Owner: ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
+Opt-in written consent BEFORE any collection of biometric consumer health data; separate signed authorization BEFORE any sale. Notice must appear in the consumer health data privacy policy required by RCW 19.373.020.
 
 Retention and destruction:
-Adopt a written retention and destruction schedule keyed to purpose expiry. Where the named state is Texas, CUBI § 503.001(c)(3) requires destruction no later than one year after purpose expiry. Owner: ${orgOwner}. Timeframe: publish the schedule within 60 days of assessment sign-off.
+No fixed retention ceiling; destruction triggered by consumer deletion request under RCW 19.373.060(1)(c) or when purpose expires.
 
 Sale and sharing restrictions:
-Assess whether the intended sharing constitutes a "sale" or "sharing" under the named state's law, and whether it involves sensitive personal data triggering the right to limit use. Bind every recipient under a written data-processing agreement conforming to the named state's controller-processor requirements. Owner: the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
+Sale prohibited absent a separate signed authorization (§ 19.373.040); processors bound by written contract (§ 19.373.080).
 
 Current enforcement posture:
-Enforcement in the named state is AG-led (or, where the named state is Illinois, largely private-action-driven under BIPA). Consult the named state's AG public enforcement register for pending or resolved biometric or sensitive-data matters — never quantify enforcement magnitudes from memory.
+Washington AG and private plaintiffs both enforce. Private-action exposure via the Consumer Protection Act's per-violation damages plus attorney fees makes MHMD one of the highest-exposure US state biometric regimes.
 
 Priority actions:
-1. Map the named state(s) to the applicable statute stack. Owner: ${orgOwner}. Timeframe: within 14 days of assessment sign-off.
-2. Implement opt-in consent and pre-capture notice conforming to the identified statute(s). Owner: ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
-3. Adopt a written biometric retention and destruction schedule keyed to purpose expiry. Owner: ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
-4. Execute processor agreements binding every recipient under the named state's controller-processor requirements. Owner: the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.
-5. Conduct any state-required data-protection assessment BEFORE deploying to residents of the named state. Owner: ${orgOwner}. Timeframe: prior to deployment.
+1. Publish a consumer health data privacy policy conforming to RCW 19.373.020 before collection.
+2. Implement separate opt-in consent (collection) AND separate signed authorization (sale) flows.
+3. Audit vendor contracts against RCW 19.373.080 processor requirements.
 
 Compliance risk rating: HIGH
-Biometric processing under state comprehensive-privacy laws is a sensitive-data category with AG enforcement risk and, where Illinois or Washington are engaged, private-action exposure; execute the priority actions above before capture.
----`;
+Private right of action via the Consumer Protection Act plus separate consent-and-authorization requirements create material litigation and regulatory exposure.
+---`);
+          continue;
+        }
+
+        if (canonical && REG[canonical]) {
+          const r = REG[canonical];
+          const dpiaLine = r.dpiaCite
+            ? `\n5. ${r.dpiaCite}.`
+            : "";
+          parts.push(`${canonical} — ${r.law}
+
+On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data used to identify an individual is a category of sensitive data under ${canonical}'s comprehensive privacy statute. Analysis is scoped to ${canonical}; statutes of other states are OUT OF SCOPE and not enumerated here.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Sensitive-data classification: ${r.sensitiveCite}.
+2. Consent standard: ${r.consentCite}.
+3. Retention and minimization: ${r.retention}
+4. Processor obligations: bind every recipient under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements.${dpiaLine}
+
+Consent and notice:
+${r.consent} Pre-collection notice must name the biometric modality, specific purpose, retention, recipients, and applicable rights. Owner: ${orgOwner}. Timeframe: implement notice and consent flows within 45 days of assessment sign-off; trigger: on assessment sign-off.
+
+Retention and destruction:
+${r.retention} Owner: ${orgOwner}. Timeframe: publish the destruction schedule within 60 days of assessment sign-off.
+
+Sale and sharing restrictions:
+Bind every recipient of biometric data under a written data-processing agreement conforming to ${canonical}'s controller-processor requirements. Assess whether the intended sharing constitutes a "sale" or "sharing" under ${canonical}'s law and, if so, provide the required opt-out or authorization. Owner: the Head of Vendor Management, in coordination with ${orgOwner}. Timeframe: complete the sharing assessment within 30 days of assessment sign-off.
+
+Current enforcement posture:
+${r.enforcement} Consult the ${canonical} Attorney General's public enforcement register for pending or resolved biometric or sensitive-data matters — never quantify enforcement magnitudes from memory.
+
+Priority actions:
+1. Implement the ${canonical} consent mechanism required by ${r.consentCite} before any biometric capture from a ${canonical} resident. Owner: ${orgOwner}. Timeframe: within 45 days of assessment sign-off.
+2. Publish a biometric retention and destruction schedule keyed to purpose expiry, consistent with ${canonical}'s data-minimization duty. Owner: ${orgOwner}. Timeframe: within 60 days of assessment sign-off.
+3. Execute processor agreements binding every recipient of biometric data under ${canonical}'s controller-processor requirements. Owner: the Head of Vendor Management. Timeframe: within 90 days of assessment sign-off.${r.dpiaCite ? `\n4. Complete the ${canonical} data protection assessment required by ${r.dpiaCite} before deploying to ${canonical} residents. Owner: ${orgOwner}. Timeframe: prior to deployment.` : ""}
+
+Compliance risk rating: ${r.risk}
+${r.riskWhy}
+---`);
+          continue;
+        }
+
+        // State not in registry — structured-unresolved block, NAMING the state.
+        const displayName = canonical ?? tok;
+        parts.push(`Other US State — ${displayName} (Unresolved: Not in Statute Registry)
+
+states_to_confirm_reason: The intake names "${displayName}", but no entry for ${displayName} exists in this tool's statute registry. Rather than substitute the name into a generic template, ${displayName} is flagged UNRESOLVED and its analysis is deferred until the registry is updated or a manual jurisdiction-specific review is conducted.
+
+top_candidate_hooks_for_${displayName.replace(/\s+/g, "_")} (each is a candidate only — final selection requires confirmation of the applicable ${displayName} statute):
+- ${displayName}'s comprehensive consumer-privacy statute, if one is in force — verify enactment date, applicability threshold, and sensitive-data classification of biometric identifiers.
+- ${displayName}'s biometric-specific statute, if one is in force — verify scope and consent standard.
+- ${displayName}'s Unfair or Deceptive Acts or Practices (UDAP) statute — applies to any material misrepresentation about biometric collection.
+- ${displayName}'s data-breach notification statute — verify whether biometric identifiers fall within the definition of "personal information" for notification purposes.
+
+next_step: A manual ${displayName}-specific review is required before obligations, consent form, and enforcement posture can be enumerated. Populate this tool's state registry with a ${displayName} entry (statute cite, consent standard, retention rule, enforcement posture) and re-run.
+
+information_needed_entry: field=other_state_names — dimensions="confirm the specific ${displayName} statute in force and its biometric-scoping provisions"; owner: ${orgOwner}; without this, the assessment cannot render statute-specific obligations for ${displayName}.
+
+Compliance risk rating: UNRESOLVED — ${displayName}-specific obligations, penalties, and enforcement posture cannot be assigned until the registry is updated.
+---`);
+      }
+
+      return parts.join("\n\n");
     }
 
 
