@@ -1008,7 +1008,33 @@ Return JSON:
   "regulatory_basis": "specific regulatory provision(s) requiring this — e.g. GDPR Art. 28, CCPA §1798.100",
   "recommended_action": "specific action required — must name the regulation and the action",
   "suggested_owner": "one of the roles the intake establishes, or 'role to be designated'",
-  "suggested_timeline": "a statutory deadline with citation where one governs the action; otherwise exactly: timeline to be set by the organisation (e.g. within 7 days | this quarter | this year | ongoing — pick ONE as the illustrative cadence)"
+  "suggested_timeline": "a statutory deadline with citation where one governs the action; otherwise exactly: timeline to be set by the organisation (e.g. within 7 days | this quarter | this year | ongoing — pick ONE as the illustrative cadence)",
+
+  // ── QB-P25 B2 — STRUCTURED V2 FIELDS (additive; legacy strings above stay unchanged) ──
+  // OMIT a v2 field entirely when you cannot ground it in a named intake fact
+  // and a specific engaged statute. There is NO hedged-placeholder slot; a v2
+  // entry either names an ENGAGED provision/fact or is omitted.
+  //
+  // "recommended_action_v2": {
+  //   "action":  "imperative sentence — same discipline as recommended_action",
+  //   "owner":   { "role": "<role the intake establishes, or 'role to be designated'>",
+  //                "intake_field": "<intake key that establishes the role, e.g. 'dpo_status', or 'designation' when the role must be created>" },
+  //   "trigger": "the condition that fires the action, in the intake's terms",
+  //   "deadline":
+  //      { "kind": "statutory", "citation": "e.g. GDPR Art. 33(1)", "illustrative_default": "optional cadence hint" }
+  //      OR
+  //      { "kind": "org_set",   "illustrative_default": "within 7 days | this quarter | this year | ongoing" }
+  // }
+  //
+  // "regulatory_basis_v2": [
+  //   { "citation": "e.g. GDPR Art. 28(3)(f)", "engaged_because": "<named intake fact that engages the provision — never generic>" }
+  // ]
+  //
+  // The renderer composes the timeline sentence from deadline; do not repeat
+  // the timeline in the "action" string. Legacy suggested_timeline is retired
+  // for domains that emit a valid recommended_action_v2 — do not wrap.
+  "recommended_action_v2": null,
+  "regulatory_basis_v2": null
 }${renderSupplementalBlock({ responses: (intake as any)?.supplemental_responses, context: (intake as any)?.supplemental_context })}`;
         const firstText = await callAnthropic(model, domainSystem, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
         let parsed = tryParseJson(firstText);
