@@ -1232,6 +1232,69 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk v4] forward-path guard preview error:", e);
     }
 
+    // POST-C1-FIX-2B — CHAIN-OF-THOUGHT / SELF-CORRECTION LEAK GUARD.
+    // Batch 5aee4b99 shipped visible self-correction in scope_notes
+    // ("— wait, ... Correcting: ..."). Detect banned self-correction markers
+    // across all customer-prose string leaves; on hit, fire ONE regeneration
+    // with an explicit instruction to emit final text only. Log both outcomes.
+    try {
+      const SELF_CORRECTION_RE =
+        /(—\s*wait\b|\bCorrecting\s*:|\blet\s+me\s+reconsider\b|\bactually,\s+(?:the|that|this)\b|\bon\s+second\s+thought\b|\bstrike\s+that\b|\bscratch\s+that\b|\bI\s+meant\b)/i;
+      const hitPaths: string[] = [];
+      const walkDetect = (node: any, path: string) => {
+        if (node == null) return;
+        if (typeof node === "string") {
+          if (SELF_CORRECTION_RE.test(node)) hitPaths.push(path);
+          return;
+        }
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) walkDetect(node[i], `${path}[${i}]`);
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) walkDetect((node as any)[k], path ? `${path}.${k}` : k);
+      };
+      walkDetect(parsed, "");
+      if (hitPaths.length > 0) {
+        console.warn(JSON.stringify({
+          evt: "cot_leak_detected",
+          fn: "run-cppa-risk-assessment",
+          build_stamp: BUILD_STAMP,
+          paths: hitPaths.slice(0, 8),
+          count: hitPaths.length,
+        }));
+        const cotInstruction = "\n\nYour previous output contained visible self-correction or chain-of-thought markers (e.g. \"— wait,\", \"Correcting:\", \"let me reconsider\", \"actually,\", \"on second thought\"). CUSTOMER PROSE IS FINAL TEXT ONLY — corrections must be applied SILENTLY before emission. Re-emit the JSON with clean, final prose in every string leaf, including scope_notes.";
+        const retry = await callModel(system, userPrompt + cotInstruction, "generate-v4-cot-leak-retry");
+        const retryParsed = tryParseJson(retry.text);
+        if (retryParsed && retryParsed.assessment_summary) {
+          // Verify the retry is clean; if still dirty, keep retry but log.
+          const stillDirty: string[] = [];
+          walkDetect.call(null, retryParsed, "");
+          const walk2 = (node: any, path: string) => {
+            if (node == null) return;
+            if (typeof node === "string") { if (SELF_CORRECTION_RE.test(node)) stillDirty.push(path); return; }
+            if (Array.isArray(node)) { for (let i = 0; i < node.length; i++) walk2(node[i], `${path}[${i}]`); return; }
+            if (typeof node !== "object") return;
+            for (const k of Object.keys(node)) walk2((node as any)[k], path ? `${path}.${k}` : k);
+          };
+          walk2(retryParsed, "");
+          console.log(JSON.stringify({
+            evt: "cot_leak_retry_result",
+            fn: "run-cppa-risk-assessment",
+            build_stamp: BUILD_STAMP,
+            still_dirty_paths: stillDirty.slice(0, 8),
+            still_dirty_count: stillDirty.length,
+          }));
+          parsed = retryParsed;
+          lastStopReason = retry.stopReason;
+          debugRaw = retry.text;
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk v4] CoT leak guard failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     // DETERMINISTIC § 7157 DEADLINE NORMALISATION (Branch A — corpus-confirmed date):
     // 11 CCR § 7157(a)(1) confirms that risk assessments conducted in 2026 and 2027
