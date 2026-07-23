@@ -1371,11 +1371,11 @@ ${ADVISORY_VOICE_RULES}`;
     }
 
 
-    function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
+    function parseDpa(fullText: string): { dpa_text: string; annotations: any[]; drafting_record: Record<string, unknown> | null } {
       // FF-DPA nd1 — defensive strip of the NOTE_BEGIN/NOTE_END render-instruction
       // delimiters used to fence the customer-facing fallback note. If the model
       // copies the delimiters through, remove them (the enclosed text stays).
-      let dpa_text = fullText
+      const stripFmt = (s: string) => s
         .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
         .replace(/\s*<<<NOTE_END>>>/g, '')
         .replace(/^#{1,6}\s+/gm, '')
@@ -1384,20 +1384,21 @@ ${ADVISORY_VOICE_RULES}`;
         .replace(/\*([^*\n]+)\*/g, '$1')
         .replace(/^>\s?/gm, '')
         .replace(/^\*\s+/gm, '• ');
+      let dpa_text = stripFmt(fullText);
       let parsedAnnotations: any[] = [];
+      let drafting_record: Record<string, unknown> | null = null;
       try {
-        const sepIdx = fullText.indexOf("===ANNOTATIONS===");
-        if (sepIdx !== -1) {
-          dpa_text = fullText.slice(0, sepIdx).trim()
-            .replace(/<<<NOTE_BEGIN>>>\s*/g, '')
-            .replace(/\s*<<<NOTE_END>>>/g, '')
-            .replace(/^#{1,6}\s+/gm, '')
-            .replace(/\*\*\*/g, '')
-            .replace(/\*\*/g, '')
-            .replace(/\*([^*\n]+)\*/g, '$1')
-            .replace(/^>\s?/gm, '')
-            .replace(/^\*\s+/gm, '• ');
-          const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        // QB-P25 Item 3 — split into three ordered sections. DRAFTING_RECORD
+        // follows ANNOTATIONS; either or both may be absent (defensive).
+        const annIdx = fullText.indexOf("===ANNOTATIONS===");
+        const drIdx = fullText.indexOf("===DRAFTING_RECORD===");
+        const bodyEnd = annIdx !== -1 ? annIdx : (drIdx !== -1 ? drIdx : -1);
+        if (bodyEnd !== -1) {
+          dpa_text = stripFmt(fullText.slice(0, bodyEnd).trim());
+        }
+        if (annIdx !== -1) {
+          const annEnd = drIdx !== -1 && drIdx > annIdx ? drIdx : fullText.length;
+          const annotationsRaw = fullText.slice(annIdx + "===ANNOTATIONS===".length, annEnd).trim();
           const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
           const start = cleaned.indexOf("[");
           const end = cleaned.lastIndexOf("]");
@@ -1406,11 +1407,27 @@ ${ADVISORY_VOICE_RULES}`;
             if (Array.isArray(arr)) parsedAnnotations = arr;
           }
         }
+        if (drIdx !== -1) {
+          const drRaw = fullText.slice(drIdx + "===DRAFTING_RECORD===".length).trim();
+          const cleaned = drRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+          const start = cleaned.indexOf("{");
+          const end = cleaned.lastIndexOf("}");
+          if (start !== -1 && end !== -1) {
+            try {
+              const obj = JSON.parse(cleaned.slice(start, end + 1));
+              if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+                drafting_record = obj as Record<string, unknown>;
+              }
+            } catch (e) {
+              console.warn("[DPA] drafting_record parse failed (non-fatal):", (e as Error).message);
+            }
+          }
+        }
       } catch (e) {
-        console.warn("[DPA] annotation parse failed (non-fatal):", e);
+        console.warn("[DPA] annotation/drafting-record parse failed (non-fatal):", e);
         parsedAnnotations = [];
       }
-      return { dpa_text, annotations: parsedAnnotations };
+      return { dpa_text, annotations: parsedAnnotations, drafting_record };
     }
 
     let fullText: string;
