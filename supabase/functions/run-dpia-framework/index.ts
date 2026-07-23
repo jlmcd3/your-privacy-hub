@@ -2041,6 +2041,32 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[dpia] item_unit_map persist skipped:", (e as Error)?.message);
     }
     delete (reportData as any)._staging;
+    // W3-T5 (d) — defensive source-provenance normalizer. Every row of
+    // processed_personal_data, purposes, and functional_description that the
+    // model returned without a well-formed `source` object gets one stamped
+    // as {intake_field: "inferred", basis: "inferred"} so downstream UI /
+    // PDF renderers never see undefined provenance and the grader can rely
+    // on the field's presence. This never overwrites a model-supplied
+    // source; it only fills missing ones.
+    try {
+      const s1 = ((reportData as any)?.section_1_description ?? {}) as Record<string, unknown>;
+      for (const key of ["processed_personal_data", "purposes", "functional_description"]) {
+        const arr = (s1 as any)?.[key];
+        if (!Array.isArray(arr)) continue;
+        for (const row of arr) {
+          if (!row || typeof row !== "object") continue;
+          const src = (row as any).source;
+          const wellFormed = src && typeof src === "object"
+            && typeof (src as any).intake_field === "string"
+            && ((src as any).basis === "stated" || (src as any).basis === "inferred");
+          if (!wellFormed) {
+            (row as any).source = { intake_field: "inferred", basis: "inferred" };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[dpia] source-provenance normalizer skipped:", (e as Error)?.message);
+    }
     // GRADER-CAL-5R — real disclaimer exclusion. The prior one-liner
     // destructured framework_disclaimer out and then re-inserted it via a
     // ternary whose branches were equivalent, so the disclaimer text was
