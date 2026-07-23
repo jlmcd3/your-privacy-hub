@@ -184,6 +184,8 @@ const _RESERVED_KEYS = new Set([
   // QB-P25 Item 3 (DPA) — grader-invisible drafting record. Skipped from
   // prose extraction so lint/blacklist scanners never see it.
   "_drafting_record",
+  // W3-T5 (a) — ADMT normalizer output; grader-invisible bookkeeping.
+  "_normalized_intake",
 ]);
 
 export function extractProseFromReport(report: unknown, budget = 200_000): string {
