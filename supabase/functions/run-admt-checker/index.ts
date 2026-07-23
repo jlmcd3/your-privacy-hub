@@ -1192,7 +1192,11 @@ ADDITIONAL DISCIPLINES:
     // business must supply themselves (URLs, contact emails, specific dates).
     // Non-fatal: if this call fails, the gap analysis result is still saved.
 
-    const gapItems = [
+    // QB-P25 A3 — skip Pass-2 sample-language drafting entirely under
+    // conservative_assumption; compact entries have no finding/remediation
+    // scaffold for the drafter to consume.
+    const _detBasis = (report?.scope_analysis?.determination_basis === "conservative_assumption");
+    const gapItems = _detBasis ? [] : [
       ...(report.notice_gaps ?? []).filter((i: any) => i.status !== "compliant").map((i: any) => ({ ...i, section: "notice" })),
       ...(report.opt_out_gaps ?? []).filter((i: any) => i.status !== "compliant").map((i: any) => ({ ...i, section: "opt_out" })),
       ...(report.access_gaps ?? []).filter((i: any) => i.status !== "compliant").map((i: any) => ({ ...i, section: "access" })),
