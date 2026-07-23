@@ -27,6 +27,7 @@ import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // CV1-R2 T4c — counsel-voice auto-regen trigger predicate.
 import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "../_shared/grader/counsel-voice-regen.ts";
+import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
@@ -314,8 +315,8 @@ const CHECKS: Check[] = [
     run: (intake, report) => {
       const domains: string[] = intake?.decision_domains ?? [];
       if (!domains.some(d => /advertising|adtech|audience/i.test(d))) return { passed: true };
-      const triggers = report?.scope_analysis?.triggers_significant_decision;
-      if (triggers === true || triggers === "true")
+      const triggers = readAdmtScope(report, { context: "adtech_not_significant_decision" }).triggers_significant_decision;
+      if (triggers === true)
         return { passed: false, evidence: `triggers_significant_decision=true for advertising domain` };
       return { passed: true };
     },
@@ -328,8 +329,8 @@ const CHECKS: Check[] = [
       const desc: string = intake?.system_description ?? "";
       if (!domains.some(d => /entertainment|gaming/i.test(d)) && !/gaming|entertainment/i.test(desc))
         return { passed: true };
-      const triggers = report?.scope_analysis?.triggers_significant_decision;
-      if (triggers === true || triggers === "true")
+      const triggers = readAdmtScope(report, { context: "gaming_not_significant_decision" }).triggers_significant_decision;
+      if (triggers === true)
         return { passed: false, evidence: `triggers_significant_decision=true for gaming/entertainment` };
       return { passed: true };
     },
@@ -338,8 +339,8 @@ const CHECKS: Check[] = [
     id: "art11_gate_enforced", dimension: "accuracy", severity: "critical",
     tools: ADMT_ONLY,
     run: (_intake, report) => {
-      const triggers = report?.scope_analysis?.triggers_significant_decision;
-      if (triggers === true || triggers === "true") return { passed: true };
+      const triggers = readAdmtScope(report, { context: "art11_gate_enforced" }).triggers_significant_decision;
+      if (triggers === true) return { passed: true };
       const gaps = [
         ...(report?.notice_gaps ?? []),
         ...(report?.opt_out_gaps ?? []),
@@ -400,8 +401,8 @@ const CHECKS: Check[] = [
     id: "notice_gaps_when_inscope", dimension: "accuracy", severity: "high",
     tools: ADMT_ONLY,
     run: (_intake, report) => {
-      const triggers = report?.scope_analysis?.triggers_significant_decision;
-      if (triggers !== true && triggers !== "true") return { passed: true };
+      const triggers = readAdmtScope(report, { context: "notice_gaps_when_inscope" }).triggers_significant_decision;
+      if (triggers !== true) return { passed: true };
       if (!report?.notice_gaps?.length)
         return { passed: false, evidence: "notice_gaps empty despite triggers_significant_decision=true" };
       return { passed: true };

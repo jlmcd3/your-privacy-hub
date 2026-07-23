@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check, CheckCircle2 } from 'lucide-react';
 import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
+import { readAdmtScope } from "@/lib/admt/scope";
 
 const OFFICIAL_REG_URL =
   "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
@@ -337,7 +338,12 @@ export default function ADMTCheckerResult() {
     );
   }
 
-  const report = assessment.report_data as any;
+  const rawReport = assessment.report_data as any;
+  // POST-C1-FIX-1C: hydrate canonical scope_analysis from the shared contract so
+  // historical reports carrying top-level scope fields still render correctly.
+  const report = rawReport && typeof rawReport === "object"
+    ? { ...rawReport, scope_analysis: { ...(rawReport.scope_analysis ?? {}), ...readAdmtScope(rawReport) } }
+    : rawReport;
 
   if (assessment.status === "error" || !report) {
     return (
