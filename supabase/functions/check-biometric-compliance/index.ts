@@ -219,7 +219,10 @@ const BIOMETRIC_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Cite statutes by official identifier: BIPA = 740 ILCS 14 (section letters 15(a)/(b)/(d), 20); Texas CUBI = Tex. Bus. & Com. Code § 503.001; California = Cal. Civ. Code §§ 1798.x; EU/UK biometric special-category data = GDPR / UK GDPR Article 9. Cite enforcement actions and case law ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; never assert a fine or settlement amount from training knowledge — direct the reader to the regulator's enforcement register.",
   identity: BIOMETRIC_IDENTITY,
-  extraRules: BIOMETRIC_RULEBOOK,
+  extraRules: BIOMETRIC_RULEBOOK + `
+
+W3-T4 (c) — PER-JURISDICTION RISK RATING IS INTAKE-GROUNDED: every per-jurisdiction Compliance risk rating (LOW / MEDIUM / HIGH / UNRESOLVED) MUST be traceable to (i) a named intake fact (e.g. modality, use case, consent status, retention, minor involvement, employee context, cross-border transfer), or (ii) a named injected test-state / statutory anchor. The rating's justification prose names both the driving fact and the driving statute — never "based on jurisdictional risk" or "generally elevated" or any bare qualifier. Where no intake fact and no anchor support a rating, the rating is UNRESOLVED with information_needed naming the specific missing fact.
+`,
 
 };
 
