@@ -55,6 +55,9 @@ export const LIA_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "necessity", flags: "i", label: "necessity assessed" },
+      { kind: "must_include", pattern: "reasonable_expectations", label: "factor: reasonable_expectations present" },
+      { kind: "must_include", pattern: "impact_severity", label: "factor: impact_severity present" },
+      { kind: "must_include", pattern: "intake_evidence", label: "factors carry intake_evidence anchors" },
     ],
   },
   {
