@@ -219,10 +219,10 @@ Deno.test("HF5 H — H5 flags [INTERNAL REVIEW] and [INTERNAL: ...] siblings", (
   }
 });
 
-Deno.test("HF5 C — H6 flags § 7001 in an action-citation chain (+, direct)", () => {
+Deno.test("HF5 C — H6 permits § 7001 in an action-citation chain when a § 722x anchor co-appears (QB-P15 CEO ruling; regression-checked R-TURN-1)", () => {
   const chain = "The response draws on 11 CCR § 7222(b)(3) + 11 CCR § 7001(e)(1) + 11 CCR § 7222(b)(3)(A).";
   const findings = checkH6AdmtGoverningAnchor(chain);
-  assertEquals(findings.some((f) => !f.passed && f.check_id === "h6_admt_governing_anchor"), true);
+  assertEquals(findings.every((f) => f.passed), true);
 });
 
 Deno.test("HF5 C — H6 still passes when § 7001 is a narrative definitional reference", () => {
