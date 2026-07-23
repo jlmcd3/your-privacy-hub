@@ -85,3 +85,68 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     ],
   },
 ];
+
+// QB-P25 B3 — structural guards for the risk v2 pointer/enum/rank contract.
+// Purpose: allow the grader to verify shape without re-scoring substance.
+// Applied by consumers that run structural checks over report_data (see
+// run-quality-batch RUBRIC_RISK note). Each guard returns null on pass or a
+// short failure label on violation. Pure functions; no I/O.
+
+export const RISK_LIKELIHOOD_ENUM = ["Unlikely", "Possible", "Likely", "Highly likely"];
+export const RISK_SEVERITY_ENUM = ["Minimal", "Moderate", "Significant", "Severe"];
+
+export const RISK_V2_STRUCTURAL_GUARDS: {
+  id: string;
+  label: string;
+  check: (report: any) => string | null;
+}[] = [
+  {
+    id: "risk_strengthen_item_ids_resolve",
+    label: "exception_analysis[].strengthen_item_ids and record_sufficiency.strengthen_item_ids must resolve to a strengthen_items[].item_id",
+    check(report) {
+      const valid = new Set<string>();
+      for (const it of (report?.strengthen_items ?? [])) {
+        if (typeof it?.item_id === "string") valid.add(it.item_id);
+      }
+      const bad: string[] = [];
+      for (const ex of (report?.exception_analysis ?? [])) {
+        for (const id of (ex?.strengthen_item_ids ?? [])) {
+          if (typeof id !== "string" || !valid.has(id)) bad.push(String(id));
+        }
+      }
+      for (const id of (report?.record_sufficiency?.strengthen_item_ids ?? [])) {
+        if (typeof id !== "string" || !valid.has(id)) bad.push(String(id));
+      }
+      return bad.length ? `unresolved strengthen_item_ids: ${bad.join(", ")}` : null;
+    },
+  },
+  {
+    id: "risk_adverse_effects_enums",
+    label: "adverse_effects[].likelihood and .severity must be enum values (QB-P25 B3)",
+    check(report) {
+      const bad: string[] = [];
+      for (const act of (report?.risk_assessment_by_activity ?? [])) {
+        for (const ae of (act?.adverse_effects ?? [])) {
+          if (ae?.likelihood && !RISK_LIKELIHOOD_ENUM.includes(ae.likelihood)) bad.push(`likelihood=${ae.likelihood}`);
+          if (ae?.severity && !RISK_SEVERITY_ENUM.includes(ae.severity)) bad.push(`severity=${ae.severity}`);
+        }
+      }
+      return bad.length ? bad.join("; ") : null;
+    },
+  },
+  {
+    id: "risk_priority_actions_unique_rank",
+    label: "priority_actions[].rank must be unique 1..N",
+    check(report) {
+      const items = Array.isArray(report?.priority_actions) ? report.priority_actions : [];
+      if (items.length === 0) return null;
+      const ranks = items.map((a: any) => a?.rank);
+      const nums = ranks.filter((r: any) => typeof r === "number" && Number.isFinite(r));
+      if (nums.length !== items.length) return "one or more priority_actions missing numeric rank";
+      if (new Set(nums).size !== nums.length) return `duplicate ranks: ${nums.join(",")}`;
+      const sorted = [...nums].sort((a: number, b: number) => a - b);
+      for (let i = 0; i < sorted.length; i++) if (sorted[i] !== i + 1) return `ranks are not 1..N (got ${sorted.join(",")})`;
+      return null;
+    },
+  },
+];
