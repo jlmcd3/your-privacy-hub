@@ -523,3 +523,27 @@ export async function verifyRegistryAgainstCorpus(supabase: SupabaseLike): Promi
   }
 }
 
+/**
+ * R-TURN-1 item 3 — regenerate the ADMT product-prompt VERIFIED-DEPTH
+ * whitelist from the registry at module-load time so the prompt and the
+ * registry can NEVER drift. Returns an ordered, de-duplicated list of
+ * every § 720x / § 722x citation path (with all ancestor prefixes) that
+ * CITATION_REGISTRY carries.
+ */
+export function buildAdmtVerifiedWhitelist(): string[] {
+  const set = new Set<string>();
+  const RE = /^11 CCR (§\s*72(?:00|2[012])(?:\([a-z0-9]+\))*)$/i;
+  for (const e of Object.values(CITATION_REGISTRY)) {
+    const m = e.section.match(RE);
+    if (!m) continue;
+    const base = m[1].replace(/§\s*/, "§ ");
+    const tokens = base.match(/§\s*\d+|\([a-z0-9]+\)/gi) ?? [];
+    let acc = "";
+    for (const t of tokens) {
+      acc += (acc && !t.startsWith("(") ? " " : "") + t;
+      set.add(acc.replace(/§\s*/, "§ "));
+    }
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
+}
+
