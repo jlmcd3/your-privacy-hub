@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "r-turn-2-cppa-product-fixes@2026-07-23T22:00:00Z";
+export const BUILD_STAMP = "c1-b-citation-pair-verifier@2026-07-23T14:20:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
@@ -38,6 +38,7 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { normalizeQbp25A3 } from "./_qbp25_a3_normalize.ts";
+import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -1034,6 +1035,69 @@ ADDITIONAL DISCIPLINES:
       hf6cWalk(report);
     } catch (e) {
       console.warn("[run-admt-checker] HF6C post-resolver fallback consume failed (non-fatal):", e);
+    }
+
+    // C1-b (2026-07-23T14:20:00Z) — CITATION PAIR VERIFIER wired for ADMT.
+    // Walks every string leaf, flags confusion-pair defects (13/14, 21(1)/(2),
+    // 6(1)(f)/6(11), (ah)/(aj), § 7220 depth). Never silently emits — flagged
+    // sentences carry inline warnings. Before/after lint events are logged
+    // so catch-rate can be measured. Fail-open.
+    try {
+      const authorityCites: string[] = [];
+      try {
+        const wl = buildAdmtVerifiedWhitelist();
+        for (const s of wl) authorityCites.push(String(s));
+      } catch { /* fail-open */ }
+      const paragraphIndex = buildParagraphIndex({ authorityCites });
+      let scanned = 0;
+      let flagged = 0;
+      const allFindings: Array<{ pair: string; reason: string }> = [];
+      const walkAndVerify = (node: any) => {
+        if (node == null) return;
+        if (typeof node === "string") return;
+        if (Array.isArray(node)) {
+          for (let i = 0; i < node.length; i++) {
+            const v = node[i];
+            if (typeof v === "string") {
+              scanned += 1;
+              const r = verifyCitationPairs(v, { paragraphIndex, regime: "unknown" });
+              if (r.findings.length > 0) {
+                flagged += 1;
+                for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
+                node[i] = r.text;
+              }
+            } else if (v && typeof v === "object") walkAndVerify(v);
+          }
+          return;
+        }
+        if (typeof node !== "object") return;
+        for (const k of Object.keys(node)) {
+          const v = (node as any)[k];
+          if (typeof v === "string") {
+            scanned += 1;
+            const r = verifyCitationPairs(v, { paragraphIndex, regime: "unknown" });
+            if (r.findings.length > 0) {
+              flagged += 1;
+              for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
+              (node as any)[k] = r.text;
+            }
+          } else if (v && typeof v === "object") walkAndVerify(v);
+        }
+      };
+      console.log(JSON.stringify({ evt: "citation_pair_check_before", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+      walkAndVerify(report);
+      console.log(JSON.stringify({
+        evt: "citation_pair_check_after",
+        fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        scanned_strings: scanned,
+        flagged_strings: flagged,
+        findings_total: allFindings.length,
+        by_pair: allFindings.reduce((acc, f) => { acc[f.pair] = (acc[f.pair] || 0) + 1; return acc; }, {} as Record<string, number>),
+        sample: allFindings.slice(0, 3),
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] citation-pair verifier failed (non-fatal):", (e as Error)?.message);
     }
 
 
