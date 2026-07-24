@@ -99,3 +99,42 @@ describe("biometric selector — discrete enum-label mapping (S2b)", () => {
     });
   }
 });
+
+// S3 — enum-label → registry-row mapping CI for the Wave-3 non-US regimes.
+// UK GDPR must NOT co-select EU GDPR (and vice-versa) when only one is
+// selected; both may co-exist when both labels are present.
+describe("biometric selector — discrete enum-label mapping (S3)", () => {
+  const cases: Array<[string, string]> = [
+    ["EU / EEA (GDPR)", "eu_gdpr"],
+    ["United Kingdom (UK GDPR)", "uk_gdpr"],
+    ["Canada (PIPEDA / provincial)", "ca_pipeda"],
+    ["Australia (Privacy Act)", "au_privacy_act"],
+    ["Singapore (PDPA)", "sg_pdpa"],
+  ];
+  for (const [label, expectedId] of cases) {
+    it(`maps "${label}" → ${expectedId} via direct_selection`, () => {
+      const r = resolveJurisdictions({ jurisdictions: [label], other_state_names: "" });
+      const hit = r.registered.find((x) => x.jurisdiction_id === expectedId);
+      expect(hit, `no registered row for ${label}`).toBeTruthy();
+      expect(hit!.source).toBe("direct_selection");
+    });
+  }
+
+  it("UK-only selection does NOT co-select EU GDPR", () => {
+    const r = resolveJurisdictions({
+      jurisdictions: ["United Kingdom (UK GDPR)"],
+      other_state_names: "",
+    });
+    expect(r.registered.some((x) => x.jurisdiction_id === "eu_gdpr")).toBe(false);
+    expect(r.registered.some((x) => x.jurisdiction_id === "uk_gdpr")).toBe(true);
+  });
+
+  it("EU + UK selection produces both registry ids", () => {
+    const r = resolveJurisdictions({
+      jurisdictions: ["EU / EEA (GDPR)", "United Kingdom (UK GDPR)"],
+      other_state_names: "",
+    });
+    expect(r.registered.some((x) => x.jurisdiction_id === "eu_gdpr")).toBe(true);
+    expect(r.registered.some((x) => x.jurisdiction_id === "uk_gdpr")).toBe(true);
+  });
+});
