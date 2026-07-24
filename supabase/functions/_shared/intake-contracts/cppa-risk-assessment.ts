@@ -15,6 +15,20 @@ import type { IntakeContract } from "./types.ts";
 
 // ── Verbatim option copies ──────────────────────────────────────────────
 export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"] as const;
+// Verbatim copy of SENSITIVE_LOCATION_BASIS_OPTS from
+// src/pages/CPPARiskAssessment.enums.ts. Parity asserted by the risk
+// option-drift test (single source of truth = the .enums.ts export).
+export const SENSITIVE_LOCATION_BASIS_OPTS = [
+  "Not applicable — no sensitive-location processing",
+  "Healthcare facility or medical office",
+  "Domestic-violence shelter or family-justice services",
+  "Place of worship",
+  "School or educational facility",
+  "Reproductive- or sexual-health services",
+  "Substance-use or mental-health treatment facility",
+  "Immigration- or refugee-services facility",
+  "Other sensitive location (describe in the intake)",
+] as const;
 export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"] as const;
 export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
 export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
