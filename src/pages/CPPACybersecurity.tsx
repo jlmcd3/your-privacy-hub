@@ -45,8 +45,8 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 // RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
 // shared components (refine surface) don't import this page module. Re-export
 // kept for any external references to `@/pages/CPPACybersecurity`.
-export { MATURITY } from "./CPPACybersecurity.enums";
-import { MATURITY } from "./CPPACybersecurity.enums";
+export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
+import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
 
 type Control = { key: string; label: string; description: string; citation: string };
 
@@ -94,10 +94,24 @@ export default function CPPACybersecurity() {
   const { meter } = useRunMeter("cppa_cybersecurity", refine.assessmentId);
   const [maturity, setMaturity] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [profile, setProfile] = useState({ entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "" });
+  const [evidence, setEvidence] = useState<Record<string, string[]>>({});
+  const [profile, setProfile] = useState({
+    entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "",
+    in_scope_frameworks: [] as string[], audit_scope_rationale: "",
+  });
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
+  const toggleEvidence = (k: string, opt: string) =>
+    setEvidence((s) => {
+      const cur = s[k] || [];
+      return { ...s, [k]: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
+    });
+  const toggleInScopeFramework = (opt: string) =>
+    setProfile((p) => {
+      const cur = p.in_scope_frameworks || [];
+      return { ...p, in_scope_frameworks: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
+    });
 
   const [activeCyberRailKey, setActiveCyberRailKey] = useState<string | null>(null);
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
@@ -134,16 +148,20 @@ export default function CPPACybersecurity() {
         label: c.label,
         maturity: maturity[c.key] || "",
         notes: notes[c.key] || "",
+        evidence: evidence[c.key] || [],
       })),
     }),
-    [profile, maturity, notes]
+    [profile, maturity, notes, evidence]
   );
 
-  const draftData = useMemo(() => ({ profile, maturity, notes }), [profile, maturity, notes]);
+  const draftData = useMemo(
+    () => ({ profile, maturity, notes, evidence }),
+    [profile, maturity, notes, evidence],
+  );
   const touched = useMemo(
-    () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0
-      || Object.values(profile).some((v) => (v ?? "").toString().trim() !== ""),
-    [profile, maturity, notes],
+    () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0 || Object.keys(evidence).length > 0
+      || Object.values(profile).some((v) => Array.isArray(v) ? v.length > 0 : (v ?? "").toString().trim() !== ""),
+    [profile, maturity, notes, evidence],
   );
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
@@ -155,11 +173,12 @@ export default function CPPACybersecurity() {
     enabled: !!user && touched,
   });
   const applyRestore = () => {
-    const d = restoreData as { profile?: any; maturity?: any; notes?: any } | null;
+    const d = restoreData as { profile?: any; maturity?: any; notes?: any; evidence?: any } | null;
     if (!d) return;
     if (d.profile && typeof d.profile === "object") setProfile((prev) => ({ ...prev, ...d.profile }));
     if (d.maturity && typeof d.maturity === "object") setMaturity(d.maturity);
     if (d.notes && typeof d.notes === "object") setNotes(d.notes);
+    if (d.evidence && typeof d.evidence === "object") setEvidence(d.evidence);
   };
 
   const notifyUnassessed = () => {
@@ -316,6 +335,26 @@ export default function CPPACybersecurity() {
               <option>Within 12 months</option><option>12–24 months ago</option><option>Over 24 months ago</option><option>Never</option>
             </select>
           </div>
+          <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
+            <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional — select every framework whose evidence you intend to leverage under § 7123(f))</span></Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {CYBER_IN_SCOPE_FRAMEWORKS.map((opt) => {
+                const selected = profile.in_scope_frameworks.includes(opt);
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => toggleInScopeFramework(opt)}
+                    className={`text-xs px-3 py-1 rounded-full border ${selected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input"}`}
+                  >{opt}</button>
+                );
+              })}
+            </div>
+          </div>
+          <div data-rail-key="audit_scope_rationale" onFocus={() => focusRail('audit_scope_rationale')}>
+            <Label>Audit scope rationale <span className="text-xs text-muted-foreground font-normal">(optional — explain what the audit covers and, if leveraging a prior framework under § 7123(f), how it supplements)</span></Label>
+            <Textarea rows={3} value={profile.audit_scope_rationale} onChange={(e) => setProfile({ ...profile, audit_scope_rationale: e.target.value })} className="mt-2" placeholder="e.g., Audit covers the SaaS production estate; leverages last year's SOC 2 Type II, supplemented for § 7123(c) components not covered by SOC 2 (segmentation, retention)." />
+          </div>
         </section>
 
         <section className="bg-card border rounded-lg p-6 space-y-6">
@@ -350,6 +389,22 @@ export default function CPPACybersecurity() {
                 <div>
                   <Label className="text-xs">Notes (optional)</Label>
                   <Textarea rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tools, scope, exceptions…" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <Label className="text-xs">Evidence available (optional) <span className="text-xs text-muted-foreground font-normal">— tick every artefact the auditor can test</span></Label>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {CYBER_EVIDENCE_OPTS.map((opt) => {
+                    const selected = (evidence[c.key] || []).includes(opt);
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => toggleEvidence(c.key, opt)}
+                        className={`text-xs px-3 py-1 rounded-full border ${selected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input"}`}
+                      >{opt}</button>
+                    );
+                  })}
                 </div>
               </div>
               {c.key === "c1_auth" && (

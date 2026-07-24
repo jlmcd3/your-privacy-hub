@@ -299,4 +299,67 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     commonMistake:
       "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
+
+  // TURN 3 RETROFIT — intake-rail parity for three new scope + evidence fields.
+  // Corpus consulted:
+  //   • cppa_authorities row id=1e296c7f-e5d0-443c-b139-e2439d3c1890 (citation
+  //     "11 CCR § 7122") — subsection (a) auditor qualifications; (g) five-year
+  //     document retention. Anchors evidence-availability and audit-scope.
+  //   • cppa_authorities row id=1aee5b20-705a-4c50-8795-ed37d89f81ea (citation
+  //     "11 CCR § 7123") — subsection (b) audit scope discipline; (f) leveraging
+  //     prior audits with supplementation. Anchors in_scope_frameworks and
+  //     audit_scope_rationale.
+
+  in_scope_frameworks: {
+    fieldLabel: "Frameworks in scope for this audit",
+    citation: "11 CCR § 7123(f)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "A business may use a cybersecurity audit, assessment, or evaluation it prepared for another purpose (for example, a NIST CSF 2.0 audit) toward the § 7123 requirement — provided the prior work meets every Article 9 element, alone or with supplementation. The frameworks you record here name what the assessment considers 'in scope' for that leverage.",
+    regulationText:
+      "A business may utilize a cybersecurity audit, assessment, or evaluation that it has prepared for another purpose, provided that it meets all of the requirements of this Article, either on its own or through supplementation. For example, a business may have engaged in an audit that uses the National Institute of Standards and Technology Cybersecurity Framework 2.0 and meets all of the requirements of this Article.",
+    coachLead: "Select every framework whose evidence the auditor will actually rely on.",
+    coachBody:
+      "Pick only frameworks whose work-product you can produce (report, letter, workpapers). If a framework will not contribute evidence, leave it out — over-selecting suggests coverage the § 7123(f) supplementation test cannot support.",
+    goodAnswer:
+      "A payments processor selects SOC 2 (annual report on file) and PCI DSS (attestation of compliance) because both produce workpapers the auditor can leverage; it does not select NIST CSF because it has no assessed evidence against that framework.",
+    commonMistake:
+      "Selecting every framework the team has ever mentioned. § 7123(f) permits leverage only where the prior work meets the Article's elements — unbacked selections weaken the scope justification.",
+  },
+
+  audit_scope_rationale: {
+    fieldLabel: "Audit scope rationale",
+    citation: "11 CCR § 7123(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The audit must assess the cybersecurity program in light of the business's size, complexity, and the nature and scope of its processing activities. The rationale you record here is what the audit's scope memo carries forward — what is covered, what is deliberately excluded, and how any prior framework is supplemented under § 7123(f).",
+    regulationText:
+      "The cybersecurity audit must assess: (1) The business's establishment, implementation, and maintenance of its cybersecurity program, including the related written documentation thereof (e.g., policies and procedures), that is appropriate to the business's size and complexity and the nature and scope of its processing activities, taking into account the state of the art and cost of implementing the components of a cybersecurity program; and (2) Each of the components of a cybersecurity program listed in subsection (c) that the auditor deems applicable to the business's information system.",
+    coachLead: "State what is in, what is out, and (if leveraging a prior audit) how you supplement.",
+    coachBody:
+      "Name the systems and processing activities in scope, the ones intentionally excluded (with reason), and — where a prior framework audit is being leveraged under § 7123(f) — the components the supplementation covers. Vague coverage claims leave the scope memo unreviewable.",
+    goodAnswer:
+      "A healthcare SaaS writes: 'In scope: multi-tenant production estate and the customer-facing web app. Out of scope: internal HR systems (no PI processing). Leverages 2026 SOC 2 Type II; supplements for retention (§ 7123(c)(16)) and segmentation (§ 7123(c)(10)) which SOC 2 does not test directly.'",
+    commonMistake:
+      "Leaving the rationale as 'company-wide.' Company-wide is a boundary claim, not a scope memo — the auditor still has to name systems, exclusions, and supplementation.",
+  },
+
+  evidence_availability: {
+    fieldLabel: "Evidence available (per component)",
+    citation: "11 CCR § 7122(g)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The business and its auditor must retain all documents relevant to each cybersecurity audit for at least five years after completion. The evidence types you check here name what the auditor can test today — a maturity claim without evidence forces an insufficient-basis finding.",
+    regulationText:
+      "The business and the auditor must retain all documents relevant to each cybersecurity audit for a minimum of five (5) years after completion of the cybersecurity audit.",
+    enforcementNote:
+      "ISO 19011 evidence typing (documentary, testimonial, observation, analytical) is the profession-standard method the § 7122(a) auditor is expected to apply. Selecting 'None on file' converts a self-rated maturity into an insufficient-basis finding — accurate, not adverse.",
+    coachLead: "Tick only the artefacts the auditor can hand a reviewer today.",
+    coachBody:
+      "Select every evidence type the business already has on file for this component. If nothing exists yet, select 'None on file' — the assessment prefers an honest insufficient-basis finding to a maturity claim the auditor cannot test.",
+    goodAnswer:
+      "For its authentication component, a SaaS ticks Policy / procedure document, Runbook / SOP, and Sample log / report — each corresponds to a file it can hand the auditor. It leaves Screenshot / config export unticked because the export capability has not yet been built.",
+    commonMistake:
+      "Ticking every evidence type to signal preparedness. If the auditor asks for the file and it does not exist, the maturity claim collapses; accuracy protects the readiness score.",
+  },
 };

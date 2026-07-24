@@ -8,9 +8,10 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "w6-cyber-fix-v2@2026-07-24T09:00:00Z";
+export const BUILD_STAMP = "w9-cyber-turn3@2026-07-24T10:42:00Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
+import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
@@ -1532,6 +1533,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       (report as any)._w6_cyber_fix = { version: W6_CYBER_FIX_VERSION, ...w6 };
     } catch (w6Err) {
       console.error("[W6-CYBER-FIX] non-fatal:", String(w6Err));
+    }
+
+    // W9 TURN 3 — deterministic slot reprojection (component_matrix,
+    // scope_justification, top_3_actions). Runs after W6 scrub; fail-open.
+    try {
+      const intakeForW9 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const w9 = attachAndValidateCyberSlots(report as any, intakeForW9);
+      console.log(JSON.stringify({
+        evt: "w9_cyber_slots_attached",
+        build_stamp: BUILD_STAMP,
+        w9_stamp: W9_CYBER_SLOTS_STAMP,
+        attached: w9.attached,
+        validation: w9.validation,
+      }));
+      (report as any)._w9_cyber_slots = { stamp: W9_CYBER_SLOTS_STAMP, ...w9 };
+    } catch (w9Err) {
+      console.error("[W9-CYBER-TURN3] non-fatal:", String(w9Err));
     }
 
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };

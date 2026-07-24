@@ -22,14 +22,23 @@ const LABEL: Record<string, string> = {
   c13_training:"Training", c14_secure_dev:"Secure development", c15_third_party:"Third-party",
   c16_retention:"Retention", c17_incident:"Incident response", c18_continuity:"Continuity",
 };
-type CtrlSpec = { notes: string; maturity?: string };
+type CtrlSpec = { notes: string; maturity?: string; evidence?: string[] };
 const build = (spec: Record<string, CtrlSpec>, defaultMaturity: string) =>
   SLUGS.map(k => ({
     key: k,
     label: LABEL[k],
     maturity: spec[k]?.maturity ?? defaultMaturity,
     notes: spec[k]?.notes ?? "Documented; reviewed quarterly.",
+    // TURN 3 — evidence-availability checklist (dummy defaults).
+    evidence: spec[k]?.evidence ?? ["Policy / procedure document", "Runbook / SOP"],
   }));
+
+// TURN 3 — dummy scope-framing profile additions used across all fixtures.
+const DEFAULT_SCOPE = {
+  in_scope_frameworks: ["SOC 2"] as string[],
+  audit_scope_rationale:
+    "Audit covers the production processing estate; supplements the primary framework where § 7123(c) components are not fully addressed.",
+};
 
 // ─── Fixture 1: Meridian SaaS Inc. — mid-maturity NIST CSF, mixed posture ───
 const meridian: Record<string, CtrlSpec> = {
@@ -91,7 +100,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months" },
+      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"] },
       controls: build(meridian, "Implemented across organization"),
     },
     assertions: [
@@ -104,7 +113,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Helios Fintech", industry: "Financial services", incidents_12mo: "None", framework: "ISO 27001", last_audit: "Within 12 months" },
+      profile: { entity_name: "Helios Fintech", industry: "Financial services", incidents_12mo: "None", framework: "ISO 27001", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["ISO 27001"] },
       controls: build(helios, "Implemented with continuous monitoring"),
     },
     assertions: [
@@ -117,7 +126,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "adversarial",
     intake: {
-      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago" },
+      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"] },
       controls: build({
         c1_auth: { notes: "MFA via Okta. Encryption: AES-256 at rest with KMS-managed keys; TLS 1.3 in transit." },
         c2_encryption: { notes: "See auth notes." },
