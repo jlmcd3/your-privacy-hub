@@ -41,8 +41,11 @@ const F_LIA_UK: SampleFixture = {
   result_url_pattern: "/li-assessment/result/{id}",
   fixture: {
     insert: {
-      stage: "submitted",
-      preview_assessment_id: "sample-preview-lia-uk-000",
+      // Mechanical Stage-A row columns (LIAssessment.tsx L158 .insert{...}); allow-listed in validate.ts:
+      status: "pending",
+      stage: "submitted", // Stage-A row starts "preview"; Stage-B intake_data flips to "submitted" (LIAssessmentIntake.tsx L310). Fixture represents post-submit state.
+      preview_signal: { sample_run: true, use_case_label: "Employee safety telemetry" }, // LIAssessment.tsx L158 stores preview-fn payload on the row
+      preview_assessment_id: "sample-preview-lia-uk-000", // required by Stage-B contract (LIAssessmentIntake.tsx L311: preview_assessment_id: row.id)
       organization_name: "North Pole Manual Mining Ltd",
       subject_anchor:
         "Wearable safety telemetry (underground location and heart rate) on underground shift workers",
