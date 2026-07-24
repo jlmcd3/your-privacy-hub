@@ -242,6 +242,8 @@ export const ADMT_TOOL_MODULE: ToolModule = {
   includeEuTransfers: false,
   extraRules: ADMT_EXTRA_RULES + `
 
+C2-2 FSOR ANCHOR ECHO BAN: The AGENCY POSITIONS — FSOR ANCHORS block that may appear in the injected system context is DRAFTING CONTEXT ONLY. NEVER echo the bracketed "[Agency position — FSOR: <citation>, <package>, <page_ref>]: …" format into ANY user-facing field (executive_summary, triggers_identified, findings, remediation, next_steps, sample_language, information_needed, disclosure elements). Weave the Agency's position into the analysis in plain professional prose, citing the FSOR in prose form — e.g., "The Agency's Final Statement of Reasons for § 7001(ddd) explains that behavioural advertising was removed from the significant-decision definition …" or "Per the CPPA's FSOR (Appendix, p. 20), the three-part human-involvement test requires …". The bracketed context markers are internal drafting scaffolding; echoing them verbatim into the report is treated as an internal-reasoning leak.
+
 W3-T5 (a) — NORMALIZED-INTAKE METADATA IS INTERNAL: the ADMT normalizer output (persisted on report_data as _normalized_intake) is grader-invisible bookkeeping. NEVER surface normalizer keys, normalized enum tokens, or the string "_normalized_intake" in ANY user-facing field (executive_summary, triggers_identified, findings, remediation, next_steps, disclosure element sample_language, information_needed). Refer to the underlying fact in plain prose ("the record confirms fully automated operation"), never to the normalizer key or its normalized token.
 
 
