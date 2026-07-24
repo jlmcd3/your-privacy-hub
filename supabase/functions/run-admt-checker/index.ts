@@ -8,9 +8,22 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w14-admt-corpuslive@2026-07-24T21:01:33Z";
+export const BUILD_STAMP = "w15-admt-factledger@2026-07-24T23:31:41Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+// S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
+// Blocks wave-14/15 unsupported-positive, contradiction, and
+// negative-from-silence classes on client-fact surfaces. Runs BEFORE the
+// W9-ADMT-WIRE L1 VA stamp pass so citations attach to rewritten claim text.
+import {
+  buildFactLedger,
+  enforceLedger,
+  FACT_LEDGER_VERSION,
+} from "../_shared/intake/fact-ledger.ts";
+console.log(JSON.stringify({
+  evt: "fact_ledger_loaded", fn: "run-admt-checker",
+  version: FACT_LEDGER_VERSION,
+}));
 // TURN 2 — deterministic slots (applicability_verdict, deadline_table, adequacy_finding).
 import {
   attachAndValidateAdmtSlots,
