@@ -8,11 +8,12 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "w10-cyber-a1a2@2026-07-24T12:25:18Z";
+export const BUILD_STAMP = "w12-cyber-turne@2026-07-24T17:32:35Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 import { attachCyberAggregates, W10_CYBER_AGG_STAMP } from "./_w10_cyber_aggregates.ts";
+import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
