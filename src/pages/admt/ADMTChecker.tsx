@@ -117,6 +117,8 @@ import {
   ADMT_DECISION_CADENCE_OPTS,
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
+  ADMT_AFFECTED_POPULATION_BAND_OPTS,
+  ADMT_ROLE_ROSTER_OPTS,
 } from "./ADMTChecker.enums";
 import { AlertTriangle } from 'lucide-react';
 
