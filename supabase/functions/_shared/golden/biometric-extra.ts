@@ -177,9 +177,10 @@ export const BIOMETRIC_GOLDEN_EXTRA: GoldenCase[] = [
     ],
   },
 
-  // ── Wave-2 (S2) registered: California CCPA/CPRA ────────────────────
+  // ── Wave-2 (S2 → S2b) registered: California CCPA/CPRA selected via
+  // the discrete JURS enum entry (no free-text state name required).
   {
-    id: "bio-reg-w2-ca-cpra-facial-authentication",
+    id: "bio-reg-w2-ca-cpra-facial-authentication-enum",
     tool: "biometric-checker",
     set: "tuning",
     intake: {
@@ -187,11 +188,12 @@ export const BIOMETRIC_GOLDEN_EXTRA: GoldenCase[] = [
       biometricTypes: ["Facial geometry / facial recognition"],
       orgType: "Consumer app or platform",
       purpose: "Customer authentication",
-      jurisdictions: ["Other US state"],
-      other_state_names: "California",
+      // S2b — discrete enum entry, NOT "Other US state" + free-text.
+      jurisdictions: ["California, USA (CCPA/CPRA)"],
+      other_state_names: "",
     },
     assertions: [
-      { kind: "jurisdiction_resolved", label: "resolves the named state to California" },
+      { kind: "jurisdiction_resolved", label: "resolves the discrete California enum entry" },
       { kind: "must_include", pattern: "California", flags: "i", label: "names California" },
       { kind: "must_include", pattern: "Cal\\.\\s*Civ\\.\\s*Code\\s*§\\s*1798\\.140\\(l\\)", flags: "i",
         label: "cites registry pinpoint § 1798.140(l) (biometric information)" },
