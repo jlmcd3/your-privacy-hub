@@ -4,8 +4,9 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
+export const BUILD_STAMP = "w6-risk-fix@2026-07-24T08:00:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
@@ -484,6 +485,9 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "PRECISE DEFINITION CITES: when definitions of sell/share/service-provider/contractor are invoked, cite in this precise form — \"§ 1798.140(ad) ('sell'); § 1798.140(ah) ('share'); § 1798.140(ag) (service provider); § 1798.140(j) (contractor); 11 CCR § 7150(b)(1)\". Do not paraphrase these subsection labels.",
     "PF6 T3(a) — TRIGGERED-ACTIVITY INFERENCE DISCLOSURE (mirrors admt CONDITIONAL FINDINGS STAY CONDITIONAL): a § 7150(b) triggered activity may be asserted in assessment_summary, the triggered-activities list, findings, or narrative fields ONLY when the same clause names the specific intake basis for the classification. Regulatory category labels the intake does not itself use — including \"cross-context behavioural advertising\", \"cross-context behavioural / targeted advertising\", \"targeted advertising\", \"selling personal information\", \"sharing personal information\", \"processing sensitive personal information\", \"significant decision\", and \"extensive profiling\" — are NEVER stated as intake facts. Correct form: \"based on the intake's description of [X: e.g. use of Meta/Google advertising pixels serving ads on other businesses' properties], this constitutes cross-context behavioural advertising under § 7150(b)(1)\" — the category label is presented as a CLASSIFICATION of the named intake fact, not as a fact the intake itself asserts. Where the intake does not supply a basis, do NOT list the activity as triggered; list it under information_needed instead, naming the specific intake question whose answer would establish or exclude the trigger. This rule applies to every field including assessment_summary.triggered_activities, individual finding descriptions, headings, and executive-summary prose.",
     "PF6 T3(b) — § 1798.185 IS RULEMAKING AUTHORITY ONLY, NEVER AN OBLIGATION SOURCE (mirrors admt CITE THE OBLIGATION, NOT THE DEFINITION): Cal. Civ. Code § 1798.185 authorises the Agency to adopt regulations; it imposes NO obligations on businesses. § 1798.185 is NEVER cited as authority for a corrective-action item, a remediation step, a documentation duty, a deadline, or any other business-facing obligation. Obligations for risk-assessment conduct cite the OPERATIVE regulation — the specific 11 CCR § 7150–7157 subsection that imposes the duty (e.g. § 7152(a)(N) for exception-documentation elements, § 7154 for content requirements, § 7155(a)(1)/(2)/(b) for timing, § 7156 for attestation submission, § 7157 for retention). Where narrative context requires acknowledging the rulemaking basis, phrase it in narrative form (\"the CPPA adopted §§ 7150–7157 under its § 1798.185 rulemaking authority\") and never attach an action verb, deadline, or obligation to the § 1798.185 cite. A statutory_basis field or corrective-action citation containing § 1798.185 alone — or § 1798.185 paired with an action duty — is a citation-misapplied defect.",
+    "W6-RISK-FIX (1) INTAKE-STATE DISCIPLINE: NEVER state that a § 7150(b) trigger 'was asserted', 'was selected', 'was indicated', 'was stated', or 'was chosen' in the intake unless a specific intake field explicitly selects it, AND that field is named in the same clause. The only supported predicate for § 7150(b)(4) is q5b_profiling_observation = 'Yes — systematic observation of workers/students/applicants'; sell/share ↔ q3_sell_share; targeted advertising ↔ q4_targeted_ads; ADMT ↔ q18_admt_use / q18b_admt_training; sensitive PI ↔ q15_sensitive_pi. A § 7150(b) subsection with no explicit intake basis may be raised ONLY as an unconfirmed possibility routed to inconsistency_flags / information_needed / next-steps, phrased explicitly as 'not present in the intake' — NEVER as intake-asserted. This applies to every field including assessment_summary, triggered_activities, findings, and executive_summary.",
+    "W6-RISK-FIX (2) TRIGGER MAPPING BY FACTUAL PREDICATE — NO HABITUAL BUNDLING: map intake fields to § 7150(b) subsections only when the field's content satisfies that subsection's predicate. Systematic observation of workers/students/applicants is the § 7150(b)(4) predicate and MUST NOT spawn a companion § 7150(b)(5) citation absent an explicit sensitive-location intake basis. Do NOT bundle § 7150(b)(4) and § 7150(b)(5) as a pair by habit ('§ 7150(b)(4) and § 7150(b)(5)', '§ 7150(b)(4)/(5)', 'structured indicators for § 7150(b)(4) … and § 7150(b)(5) …'). Each subsection cited stands on its own named intake basis; if no basis exists for a subsection, omit it.",
+    "W6-RISK-FIX (3) SUBSECTION-LABEL CONSISTENCY: before finalising, sweep all § 7150(b)(N) references in the document. Each distinct trigger must carry ONE consistent subsection number document-wide; do NOT interpolate subsection numbers from model recall or vary between (b)(5) and (b)(6) (or any other pairing) for the same trigger across sections. Where the precise subsection cannot be confirmed against the regulation text supplied to you, cite the parent § 7150(b) and describe the trigger textually rather than guessing at a subsection number.",
     "§ 7001(ddd) GLOSS: when referencing the significant-decision categories, use the phrase \"decisions enumerated in § 7001(ddd)\" rather than a partial illustrative list. Never truncate the enumeration to a subset (e.g. financial services and lending only) as though those were exhaustive.",
     "PURPOSE-DOCUMENTATION IMMEDIATE RATIONALE: where a priority_action for purpose documentation is marked Immediate against a 2027 statutory deadline, append this user-facing rationale verbatim: \"marked Immediate because § 7152(a)(1) requires a specific, non-generic statement of purpose before the assessment can be relied on.\" User-facing text NEVER references validators, system checks, internal flags, generation stages, or any other internal machinery — every rationale cites the provision that creates the requirement, nothing about how the system detected it.",
     "REQUIRED-DOCUMENTATION VOICE: do NOT emit the internal-voice phrase \"This is a required fill-in:\" anywhere in the output. Frame such items as \"Required documentation: [specific, non-generic purpose … per § 7152(a)(1)].\"",
@@ -2126,7 +2130,21 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (_) { /* non-fatal */ }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "risk-cppa-hf6@2026-07-20"), build_stamp: "risk-cppa-hf6@2026-07-20T00:00Z" };
+    // W6-RISK-FIX (2026-07-24) — intake-state discipline, (b)(4)/(b)(5)
+    // de-bundling, and § 7150(b)(N) subsection-consistency sweep.
+    // Fail-open; runs immediately before the _meta stamp so counters are
+    // captured on the report.
+    try {
+      const _intakeForFix = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _w6rc } = applyW6RiskFix(report_data, _intakeForFix);
+      if ((_w6rc.intake_state_rewrites + _w6rc.bundled_pairs_debundled + _w6rc.subsection_normalized) > 0) {
+        console.warn(`[RISK] W6-RISK-FIX applied: intake_state=${_w6rc.intake_state_rewrites} debundled=${_w6rc.bundled_pairs_debundled} normalized=${_w6rc.subsection_normalized} scanned=${_w6rc.scanned_string_nodes}`);
+      }
+      (report_data as any)._w6_risk_fix = _w6rc;
+    } catch (e) { console.error("[RISK] W6-RISK-FIX errored (fail-open):", e); }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w6-risk-fix@2026-07-24"), build_stamp: BUILD_STAMP };
+
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
     report_data = freezeOpenItemsOnFirstRun(report_data, (report_data as any).information_needed, "cppa_risk_assessment", false);
