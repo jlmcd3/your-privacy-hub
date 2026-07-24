@@ -1121,6 +1121,66 @@ export type Database = {
           },
         ]
       }
+      delivery_contracts: {
+        Row: {
+          attempts: Json
+          checkpoint_ref: Json
+          created_at: string
+          failure_class: string | null
+          heartbeat_at: string
+          id: string
+          last_error: string | null
+          overall_deadline_at: string
+          run_class: string
+          stage: string
+          stage_deadline_at: string
+          subject_id: string
+          subject_table: string
+          terminal_state: string | null
+          tool: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: Json
+          checkpoint_ref?: Json
+          created_at?: string
+          failure_class?: string | null
+          heartbeat_at?: string
+          id?: string
+          last_error?: string | null
+          overall_deadline_at: string
+          run_class: string
+          stage?: string
+          stage_deadline_at: string
+          subject_id: string
+          subject_table: string
+          terminal_state?: string | null
+          tool: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: Json
+          checkpoint_ref?: Json
+          created_at?: string
+          failure_class?: string | null
+          heartbeat_at?: string
+          id?: string
+          last_error?: string | null
+          overall_deadline_at?: string
+          run_class?: string
+          stage?: string
+          stage_deadline_at?: string
+          subject_id?: string
+          subject_table?: string
+          terminal_state?: string | null
+          tool?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       dpa_documents: {
         Row: {
           client_id: string | null
