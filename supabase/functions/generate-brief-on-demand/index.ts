@@ -20,7 +20,7 @@ Deno.serve((req) => {
     JSON.stringify({
       error: "On-demand brief generation has been retired.",
       message:
-        "Briefs are now generated weekly. Update your preferences at /brief-preferences — changes take effect with the next Monday brief.",
+        "Briefs are now generated weekly. Update your preferences at /brief-preferences — changes take effect with the next Weekly Intelligence Brief (delivered Monday).",
     }),
     {
       status: 410, // Gone
