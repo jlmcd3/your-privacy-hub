@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-24T22:42:44Z — WAVE-15 DIGEST EXTRACTED (docs-only tick turn, batch b35cee1a) — clean finish #2; admt 86.15 first corpus-live read; risk 81.35 (−4.10, beyond σ); cyber 86.30; no gate_v2 pass; zero criticals; deploy locks released.
+**Last updated:** 2026-07-24T22:52:40Z — RISK-REGISTRY-WIRING DONE (deploy). `run-cppa-risk-assessment` BUILD_STAMP `w15-risk-regwire@2026-07-24T22:49:09Z` (supersedes `w12-risk-turnd@…T17:23:28Z`); risk verified-authority registry (`risk-va-w1-2026-07-24`, 44 rows) LIVE with § 7150(b) subsection-collapse guard; W6 risk restamp DISCHARGED.
 
 ---
 
