@@ -15,6 +15,20 @@ import type { IntakeContract } from "./types.ts";
 
 // ── Verbatim option copies ──────────────────────────────────────────────
 export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"] as const;
+// Verbatim copy of SENSITIVE_LOCATION_BASIS_OPTS from
+// src/pages/CPPARiskAssessment.enums.ts. Parity asserted by the risk
+// option-drift test (single source of truth = the .enums.ts export).
+export const SENSITIVE_LOCATION_BASIS_OPTS = [
+  "Not applicable — no sensitive-location processing",
+  "Healthcare facility or medical office",
+  "Domestic-violence shelter or family-justice services",
+  "Place of worship",
+  "School or educational facility",
+  "Reproductive- or sexual-health services",
+  "Substance-use or mental-health treatment facility",
+  "Immigration- or refugee-services facility",
+  "Other sensitive location (describe in the intake)",
+] as const;
 export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"] as const;
 export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
 export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
@@ -167,6 +181,18 @@ export const cppaRiskContract: IntakeContract = {
     { key: "q5c_share_revenue_50pct", kind: "enum", required: "conditional",
       requiredWhen: 'q5_sell_share starts with "Yes"', hiddenValue: "",
       options: SHARE_REVENUE_50PCT_OPTS },
+    // TURN 1b intake fields (RISK CONTRACT DRIFT fix). Options for
+    // sensitive_location_basis MUST match SENSITIVE_LOCATION_BASIS_OPTS in
+    // src/pages/CPPARiskAssessment.enums.ts verbatim; parity is asserted
+    // by _tests/golden-contract.test.ts and the risk option-drift test.
+    { key: "sensitive_location_basis", kind: "enum", required: "optional",
+      options: SENSITIVE_LOCATION_BASIS_OPTS },
+    // Public privacy-policy URL rendered as a record anchor in the
+    // attestation_block and submission_summary. Free-form text; the
+    // contract's convention for URL/text fields is `kind: "text"`
+    // (see subject_anchor above).
+    { key: "public_privacy_policy_url", kind: "text", required: "optional" },
+
 
     // Consumer rights (Step 2)
     { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; " — free-form joined string, not enum-checkable
