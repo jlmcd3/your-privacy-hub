@@ -1,123 +1,128 @@
+# CPPA ≥98 — Product Improvement Plan (CPPA-PRODUCT-1)
 
-# quality-batch2 — Admin Stage-Two (Revision) QA
+Plan-only. No code, no deploys, no batch launches. Wave 8 undisturbed. Measurement never weakened.
 
-Repeatable admin surface to certify the revision path end-to-end using production prompts, without enabling revisions for customers. `REVISIONS_ENABLED` stays off; the customer refine surface is unchanged.
+## Diagnosis from our own data (W5–W7, quality_findings, last 30d, failing checks)
 
-Assumptions (flagged, verify before code):
-- `regenerate-assessment` already supports an internal-verification branch keyed on `x-internal-verification: 1` + service-role bearer, and accepts `internal_user_id` to override ownership. Both `mode:"revision"` gate checks in that file honor `isInternalVerification` today (lines 333 and 656).
-- Admin gating uses the existing `AdminOnly` + `useIsAdmin` pattern (public.user_roles).
-- Prod prompts are exercised end-to-end because the internal-verification branch reaches the same tool generator the customer path uses.
+Recurring, non-stylistic classes dominate — post-hoc scrubbers can't reach them because the generator never sees verified data:
 
-## Scope
+- **cppa-admt** (top failures): `rubric_citation_misapplied` (58), `h3_admt_citation_depth` (37), `rubric_unsupported_business_claim` (36), `e6_counsel_referral` (29), `h7_admt_blanket_range` (26), `rubric_internal_reasoning_leak` (26), `rubric_invented_admt_section` (17), `h6_admt_governing_anchor` (11).
+- **cppa-risk**: `rubric_unsupported_business_claim` (54), `rubric_citation_misapplied` (41), `h2_internal_vocab` (30), `no_british_spelling` (28), `e6_counsel_referral` (18), `qc_r1_1_no_asks_on_resolved_tests` (15), `qc_r1_4_cohort_determinism` (11).
+- **cppa-cyber**: `rubric_unsupported_business_claim` (50), `rubric_actionability` (29), `rubric_generic_boilerplate` (27), `rubric_citation_misapplied` (11), `e6_counsel_referral` (10).
 
-### 1. New admin route + index page
+Two structural signatures across all three: **(A) citation/pinpoint errors** driven by model recall vs. registry (misapplied / invented / wrong depth / wrong anchor), and **(B) unsupported business claims / actionability / boilerplate** driven by intake silence being narrated as fact. These are exactly the failure modes registry-injection + pre-emit validation fixed on biometric (+10/+6 gate gain, WA +61).
 
-`src/pages/admin/QualityBatch2.tsx` (new)
-- Route: `/admin/quality-batch2`, wrapped in `AdminOnly`.
-- Per-tool tab strip using the same 9 tool slugs as `QualityBatch.tsx` (single source: `SLUG_TO_TOOL_TYPE`).
-- Table of candidate docs for the selected tool: id, owner, created_at, `report_data.open_items` count (`open` only), latest reviewer score if any. Query is a `SELECT id, user_id, created_at, report_data->'open_items'` on the tool's result table (from `TABLE_MAP` in `useRefineMode`), server-filtered to rows where `jsonb_array_length(open_items filtered by status='open') > 0`. A shared SQL helper avoids per-tool drift.
-- Actions per row: **Open in reviewer**, **View report**, **Trigger fresh generation** (see §3).
-- Add route to `App.tsx` and a card link on `src/pages/admin/AdminHub.tsx`.
+Existing assets we already own and would consume:
+- `cppa_authorities` (116 rows, verified_by/verified_at/official_url; unique current-citation index) — direct analog to biometric registry.
+- `cppa_source_registry`, `cppa_fsor_commentary`, `cppa_fsor_extract` outputs — proposition-to-source glue.
+- `cppa-retrieve-context` edge function — existing retrieval seam to reuse.
+- `_shared/intake-contracts/*`, `_shared/golden/*`, `_shared/registry/*` (biometric pattern proven).
+- W6 fix modules (`_w6_admt_fix.ts`, `_w6_risk_fix.ts`, `_w6_cyber_fix.ts`) — repurpose as the gate rule library, not deletion.
+- `quality_findings` (tool, check_id, dimension, severity, doc_id, run_number) — enough to drive the classifier without schema surgery.
 
-### 2. Reviewer view — reuses customer components verbatim
+## Levers, feasibility, and sequencing
 
-`src/pages/admin/QualityBatch2Doc.tsx` (new)
-- Route: `/admin/quality-batch2/:toolType/:assessmentId`, `AdminOnly`.
-- Renders `<RefinePanel />` / underlying `<OpenItemsList />` with the exact same props the customer refine page passes. No fork of those components.
-- Ownership problem: `useRefineMode` reads the row via the customer supabase client and is subject to RLS. Do NOT loosen RLS. Fix by:
-  - `src/hooks/useAdminRefineMode.ts` (new): mirrors `useRefineMode` but fetches the row through a thin edge function `admin-fetch-assessment` (new) that runs under service role after `verifyCaller(req, "admin")`. Returns the same `{ intake, infoNeeded, openItems, resolveFields, lockedFields, runsRemaining, ... }` shape so the panel props are unchanged.
-- Submission path: `src/lib/adminRevisionApi.ts` (new) — sibling to `revisionApi.ts`. Calls a new edge function `admin-submit-revision` (see §2a) instead of hitting `regenerate-assessment` directly from the browser, because the service-role bearer must never touch the client.
-- Reviewer annotation form under the panel: score (0–100), pass/fail band, verbatim notes, reviewer id captured from `auth.uid()`, submitted_at. Writes to `quality_batch2_reviews` (§4).
+### L1 — Verified-Citation Injection At Generation (registry-driven authoring)
+**Port the biometric registry-injection architecture to admt / risk / cyber.**
 
-#### 2a. Server proxy — new edge function
+Build three thin, tool-scoped registries under `_shared/registry/`:
+- `cppa-admt-registry.ts` — § 7000-series (esp. § 7001, § 7220, § 7221, ADMT triggers/exclusions, art. 11), each row: `{ proposition_key, citation, subsection, verbatim_quote, depth_class, governing_anchor, verified_on, primary_source_url }`. Source: `cppa_authorities` filtered by `authority_type` + FSOR overlays.
+- `cppa-risk-registry.ts` — § 7150(b)(1)–(7) triggers, § 7152 negligible-benefit test, SPI/50% prong definitions. Each row keyed by `intake_predicate` so `computeIntakeSelectedSubsections()` (already added under W6-RISK-FIX) selects rows deterministically.
+- `cppa-cyber-registry.ts` — § 7123(a)–(c) components with the operative-vs-comparative flag from W6-CYBER-FIX v2 (HIPAA/NIST/HITRUST are comparative, never operative unless in-scope).
 
-`supabase/functions/admin-submit-revision/index.ts` (new)
-- `verifyCaller(req, "admin")` → 403 for non-admins.
-- Body: `{ tool_type, assessment_id, answered_items }` (same shape as `revisionApi.submitRevisionAnswers`).
-- Reads the row's owner `user_id` server-side.
-- Invokes `regenerate-assessment` with `Authorization: Bearer <SERVICE_ROLE>`, `x-internal-verification: 1`, and body `{ mode: "revision", answered_items, internal_user_id: <owner> }`. Passes through the response.
-- This is the ONLY component that touches service-role material. The `REVISIONS_ENABLED` gate in `regenerate-assessment` is already bypassed on the internal-verification branch (verified above) — no change to that file.
+Generator flow (per section): compute intake predicates → select registry rows → inject as a **structured "verified facts" block** into the prompt (proposition → pinpoint + verbatim_quote + depth_class) → model composes prose *around* fixed pinpoints. Same shape biometric uses today; we already have the retrieval function (`cppa-retrieve-context`) to plug in.
 
-`supabase/functions/admin-fetch-assessment/index.ts` (new)
-- `verifyCaller(req, "admin")` → 403 for non-admins.
-- Body: `{ tool_type, assessment_id }` → returns the same shape `useRefineMode` reads today (intake fields per `INTAKE_READ_MAP` + `report_data`), plus the row's `user_id`. Service-role client bypasses RLS so admins can review any owner's doc.
+- **Finding-class coverage (mapped):** `rubric_citation_misapplied` (110 across three tools), `h3_admt_citation_depth`, `h6_admt_governing_anchor`, `h7_admt_blanket_range`, `rubric_invented_admt_section`, `no_hallucinated_section_numbers`, `art11_gate_enforced`.
+- **Effort:** ~2 days per tool for registry authoring from `cppa_authorities` + 1 day per tool for generator wiring + goldens/contract. Total ≈ 9 dev-days across three tools.
+- **Consumes:** `cppa_authorities`, `cppa_fsor_commentary`, existing `_shared/registry` pattern, existing `cppa-retrieve-context`.
+- **Risk:** registry gaps → generator refuses to cite (safe failure). Mitigation: registry coverage report before flip.
 
-### 3. Fresh single-doc generation from batch fixtures
+### L2 — Pre-Emit Validation Gate (harness checks in the product path)
+Promote the deterministic h-series / e-series / qc-series checks from the QA harness to the generator's output pipeline. Pattern per tool:
 
-`supabase/functions/admin-quality-batch2-seed/index.ts` (new)
-- `verifyCaller(req, "admin")`.
-- Body: `{ tool_type }`.
-- Reuses the same fixture source `run-quality-batch` uses (`_shared/*fixtures*` per tool — the same ones the batch orchestrator invokes). Picks a fixture, calls the corresponding `run-*` function via `invoke-gated` under service role, records the resulting `assessment_id`.
-- Row is created with `user_id` = the invoking admin, so it shows up in that admin's My Reports and stays inside RLS. Reviewer opens it via the QualityBatch2 table.
+1. Model emits candidate JSON (already structured internally).
+2. Run the same check library the harness uses (extracted to `_shared/preemit/{tool}.ts`).
+3. On failure, **structured-repair the failing field only** — either (a) regenerate that field with an amended prompt naming the violated rule + registry row, or (b) apply a deterministic rewrite from the W6 fix modules (`rewriteUncitedNamedRules`, `regulatoryBasisScrubZeroRuns`, `computeIntakeSelectedSubsections`, etc.).
+4. Bounded retry: max 2 field-level repairs per section; if still failing, emit a typed "insufficient-basis" placeholder (never fabricate).
 
-Reused, not forked: fixture files and `run-*` generators. Any drift between batch fixtures and this surface is impossible because the import path is identical.
+- **Finding-class coverage:** `h3/h5/h6/h7`, `e5/e6`, `rubric_internal_reasoning_leak`, `qc_r1_*`, `no_british_spelling`.
+- **Cost/run estimate:** +150–400ms per section for local checks (no model call); +1 model call for ~15–25% of sections that repair (based on W7 failure rates). Expected p95 latency delta ≤ +8s per full run; token cost delta ≤ ~15%.
+- **Effort:** ~1.5 days per tool; the check code exists — this is extraction + wiring + retry policy.
+- **Data consumed:** existing harness check modules; W6 fix modules become the deterministic repair library.
 
-### 4. Reviewer annotation storage
+### L3 — Hard Schema Slots (S5, already queued) — confirm and scope residual
+Typed exec-summary slots for admt/cyber close: `rubric_actionability` (29 cyber, 8 admt), `rubric_generic_boilerplate` (27 cyber, 10 admt), `rubric_unsupported_business_claim` (partial — the "narration" half; the "invention" half needs L1+L4), `e5_bare_advisory_close`. Does **not** close citation-family findings — those need L1. Estimated residual after S5 alone: cyber ~ +2, admt ~ +1 on grader mean; needs L1+L2 to reach 98.
 
-New migration adds `public.quality_batch2_reviews` — one row per (assessment_id, reviewer, submitted_at):
+- **Effort:** already scoped in S5 backlog. Confirm S5 ships **after** L1 registries land so the typed slots can reference registry keys.
 
+### L4 — Intake Features From Finding Data (R-12 accelerated)
+Mine `quality_findings` (waves 1–7) for every finding whose evidence names an intake-implicating silence. From current top failures, the discrete intake fields we already have signal for:
+
+- **admt AdPicker "contextual vs targeted" disambiguation** → enum: `contextual_only | behavioral | mixed | unknown` (drives § 7001(e) branch).
+- **admt population counts** → integer with `unknown` sentinel (drives blanket-range gate `h7`).
+- **admt cessation-process** → structured `{ has_process: bool, sla_days?: int, evidence_url?: str }` (drives `e6_counsel_referral` when null).
+- **risk role identification** → repeatable `{ role_name, controller_or_processor, contact }` (kills invented-role class).
+- **cyber in-scope frameworks** → multi-select w/ `none` (drives HIPAA/NIST/HITRUST operative-vs-comparative flag in registry).
+- **risk SPI/50% prong evidence** → typed toggles (drives `qc_r1_2`, `qc_r1_3`).
+
+Each intake change carries the **standing same-turn contract-update + fixture + golden + form-parity rule** — enumerated per field so the courier lands atomically.
+
+- **Effort:** 1 day per field family (contract + form + golden + fixtures + registry predicate wiring) — ≈ 6 dev-days total.
+- **Consumes:** `quality_findings.evidence` text; existing `_shared/intake-contracts/*`.
+
+### L5 — Findings-to-Backlog Pipeline (repeatable classifier)
+A durable surface so every wave feeds product, not just prompts.
+
+**Schema (new table, minimal):**
+```text
+public.quality_finding_backlog
+  id                uuid pk
+  finding_check_id  text        -- e.g. rubric_citation_misapplied
+  tool              text
+  first_seen_wave   int
+  last_seen_wave    int
+  occurrence_count  int
+  class             text        -- 'prompt' | 'feature' | 'intake' | 'measurement_noise'
+  proposed_lever    text        -- 'L1' | 'L2' | 'L3' | 'L4' | 'prompt' | 'variance'
+  registry_key      text null   -- when class='feature' via L1
+  intake_field      text null   -- when class='intake'
+  status            text        -- 'open' | 'in_progress' | 'shipped' | 'accepted_variance'
+  notes             text
+  created_at, updated_at
 ```
-id uuid pk default gen_random_uuid()
-tool_type text not null
-assessment_id uuid not null
-reviewer_id uuid not null references auth.users(id)
-score int check (score between 0 and 100)
-band text check (band in ('pass','borderline','fail'))
-notes text not null
-open_items_snapshot jsonb  -- captured at submit time
-regen_response jsonb       -- captured from admin-submit-revision
-created_at timestamptz not null default now()
-```
+Plus one nightly job `classify-quality-findings` (edge function) that:
+1. Reads new `quality_findings` since last run.
+2. Applies a rules table (`check_id` → default class + proposed_lever) — starter mapping derived from the W5–W7 data above.
+3. Upserts backlog rows, updates counts.
+4. Emits an admin view row for the existing `/admin/quality-batch` page.
 
-Grants per project rule: `GRANT SELECT, INSERT ON public.quality_batch2_reviews TO authenticated; GRANT ALL ... TO service_role;` No anon grant. RLS: SELECT/INSERT allowed only for `has_role(auth.uid(),'admin')` or `'moderator'`. Index on `(tool_type, assessment_id, created_at desc)`.
+- **Effort:** 1 day (table + rules table + edge function + view row).
+- **Data consumed:** `quality_findings`; classification rules stored in code so they're change-controlled.
 
-### 5. Known-defect fix — i3_ca_consumer_band enum composition
+## Variance hardening (integrity — never rubric loosening)
+To move ±6 grader variance to ±2 without touching the rubric:
+- Raise pooled doc count above the currently-observed gate ("pooled docs 9 < 15"): make **N_docs ≥ 15** and **replicates ≥ 3** the campaign default for CPPA tools.
+- Record grader model + prompt hash on each `quality_findings` row (already in `run_id`); require **same-hash comparisons** for wave-over-wave deltas.
+- Do this in the campaign config, not the rubric.
 
-Current: `CONSUMER_OPTS` (single-band volume list) is used both as the intake enum and as the `re-select` enum inside the open-item. It cannot express the Answer Table's category-composition oracle (e.g., patients + caregivers), so wave-1 i3 answers are blocked.
+## Recommended sequencing (post wave-8 ACK, no work this turn)
 
-Fix, scoped to the ask-surface only (do NOT change intake semantics or scope-checker thresholds):
+1. **L5 first (1 day)** — turns every subsequent wave into product signal; costs nothing to ship.
+2. **L1 admt registry (2 days) → wire (1 day) → S5 admt slot (queued)** — attacks the biggest failure cluster first.
+3. **L2 pre-emit gate for admt (1.5 days)** on top of L1 — converts h/e/qc checks into product behavior.
+4. **Repeat L1 + L2 for risk, then cyber.**
+5. **L4 intake fields** land in parallel per tool as L1 registries expose their intake predicates (same-turn contract+form+golden+fixtures).
+6. Variance-hardening campaign-config change before the first attribution wave for each tool.
 
-- `supabase/functions/_shared/field-enums.ts`: introduce a new key `cppa_risk_assessment:i3_ca_consumer_band_composition` whose values are the category-composition options from the oracle set. Keep the existing `cppa_risk_assessment:i3_ca_consumer_band` untouched so historical open_items still resolve.
-- `supabase/functions/_shared/open-items.ts` (line 71): change the `enum_ref` for `i3_ca_consumer_band` to the new composition key AND upgrade its `input_spec.kind` from `re-select` to `structured` when the volume band is already answered, so both the volume (already stored) and the category mix (asked) can be captured. The generator's revision-mode fold already accepts `structured` values via `StructuredFieldEditor`.
-- `src/components/refine/fieldEnums.ts` (line 94): mirror the new option list.
-- Regression: existing `re-select` open_items already frozen on old reports keep resolving against `CONSUMER_OPTS`; only newly generated open_items adopt the composition enum. Add a fixture test under `src/lib/__tests__/` asserting both keys resolve.
+**Total ≈ 18–20 dev-days** to move all three CPPA tools onto registry-injection + pre-emit-gate architecture with intake support and a backlog pipeline.
 
-### 6. Guardrails — customer path must not move
+## Non-goals / constraints honored
+- No edits to `cppa-admt` / `cppa-risk` / `cppa-cyber` this turn.
+- No batch launches, no `active=true` flips.
+- No rubric changes; variance is closed by more pooled docs and same-hash comparisons only.
+- W6 fix modules stay as the deterministic repair library for L2 — they are not deleted.
 
-- `REVISIONS_ENABLED` / `VITE_REVISIONS_ENABLED` remain off. Nothing in this plan flips either.
-- No change to `regenerate-assessment/index.ts`.
-- No change to `RefinePanel.tsx` / `OpenItemsList.tsx`.
-- No RLS loosened. Admin reads/writes go through service-role edge functions only.
-- Customer `revisionApi.ts` unchanged; admin uses a separate `adminRevisionApi.ts`.
-
-## Technical details
-
-- Route wiring: `src/App.tsx` gets two new `<Route>` entries inside the existing admin block.
-- Auth in edge functions: `_shared/verify-caller.ts` already provides `mode:"admin"` with `has_role` check.
-- Tool-type mapping: reuse `SLUG_TO_TOOL_TYPE` from `QualityBatch.tsx` by extracting it to `src/lib/qualityBatchTools.ts` so both admin pages import it (single source of truth).
-- The reviewer's per-doc view should surface, side by side: the open_items list (interactive), the currently persisted `report_data.open_items` statuses, and after a submit, the regenerated report diff link (`/report-versions/:assessmentId`).
-- Analytics: fire `admin_qb2_open`, `admin_qb2_submit`, `admin_qb2_review_saved`, `admin_qb2_seed` via `trackEvent` for run-book auditing.
-
-## File-level scope (new unless marked)
-
-- `src/pages/admin/QualityBatch2.tsx`
-- `src/pages/admin/QualityBatch2Doc.tsx`
-- `src/hooks/useAdminRefineMode.ts`
-- `src/lib/adminRevisionApi.ts`
-- `src/lib/qualityBatchTools.ts` (extracted)
-- `supabase/functions/admin-fetch-assessment/index.ts`
-- `supabase/functions/admin-submit-revision/index.ts`
-- `supabase/functions/admin-quality-batch2-seed/index.ts`
-- Migration: `quality_batch2_reviews` table + grants + RLS
-- `supabase/functions/_shared/field-enums.ts` (add composition key)
-- `supabase/functions/_shared/open-items.ts` (i3 mapping + input_spec)
-- `src/components/refine/fieldEnums.ts` (mirror)
-- `src/App.tsx` (routes)
-- `src/pages/admin/AdminHub.tsx` (card)
-
-## Out of scope
-
-- Enabling revisions for customers.
-- Modifying `regenerate-assessment`, `RefinePanel`, `OpenItemsList`.
-- Any change to scope-checker thresholds, `CONSUMER_OPTS` intake values, or historical open_items resolution.
-- Bulk auto-grading — reviewer scores are human-entered.
+## Open questions for the CEO before build
+1. Confirm the registry-injection pattern for CPPA should mirror biometric's `verbatim_quote + verified_on + primary_source_url` row shape (recommended) rather than a new schema.
+2. Confirm L5 backlog table lives in `public` with admin-only RLS (mirrors `quality_batch2_reviews`), surfaced on `/admin/quality-batch`.
+3. Confirm campaign variance defaults (N_docs=15, replicates=3) may be raised for CPPA tools before the next attribution wave.
