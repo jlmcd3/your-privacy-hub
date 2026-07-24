@@ -1,9 +1,14 @@
-// CPPA-PRODUCT-1 / S-A — cppa-admt verified-authority registry (content).
+// CPPA-PRODUCT-1 — cppa-admt verified-authority registry (content).
 //
-// This is the L1 registry the admt generator will (in a follow-up dispatch)
-// consult at emit time to stamp citation/subsection/verbatim_quote for each
-// proposition it asserts. This file is CONTENT ONLY — no callers are wired
-// yet (per R-ruling: S-A is authoring only).
+// WIRED CONSUMERS (customer-affecting once deployed):
+//   - supabase/functions/run-admt-checker/index.ts consumes this registry at
+//     emit time (registry injection + pre-emit citation whitelist gate).
+//   - supabase/functions/_shared/_w9_admt_slots.ts consults rows during the
+//     S5 hard-slot pass (top_3_actions anchor validation).
+//
+// Any edit here changes what customers see in the next admt run. Corrections
+// MUST be true corpus-verbatim substrings; paraphrases are prohibited and
+// will fail the ADMT-REGISTRY-CORPUS pin test.
 //
 // Sourcing:
 //   - Regulation text: 11 CCR Article 10 (§§ 7150–7157) and Article 11
@@ -14,13 +19,13 @@
 //   - FSOR overlays: agency positions from cppa_fsor_commentary keyed to
 //     the same section pinpoints (advertising / gaming exclusions under
 //     § 7001(ddd); three-part human-involvement test under § 7001(e)(1)).
+//     Preferred resolution: quote the regulation text itself where the
+//     agency position IS embedded in § 7001. Re-anchoring to a specific
+//     cppa_fsor_commentary row (with source_kind='fsor') is the fallback.
 //   - Statutory anchors: Cal. Civ. Code §§ 1798.140, 1798.185 (rule-making).
 //
 // Verbatim quotes are excerpted from the OAL-approved text. Each row's
 // depth_class reflects the pinpoint depth of `subsection`.
-//
-// A row's presence in this registry does NOT change generator behavior on
-// its own — wiring happens in the follow-up admt deploy turn.
 
 import type {
   VerifiedAuthorityRegistry,
@@ -28,7 +33,7 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w1-2026-07-24";
+export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w2-2026-07-24";
 
 /** Canonical published text for §§ 7000-series (OAL-approved package). */
 const CCR_URL =
@@ -62,7 +67,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(e)",
     verbatim_quote:
-      "\"Automated Decisionmaking Technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.",
+      "\"Automated decisionmaking technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -71,10 +76,10 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
   admt_def_profiling: R({
     proposition_key: "admt_def_profiling",
     citation: "11 CCR § 7001",
-    subsection: "11 CCR § 7001(hh)",
+    subsection: "11 CCR § 7001(e)(2)",
     verbatim_quote:
-      "\"Profiling\" means any form of automated processing of personal information to evaluate certain personal aspects relating to a natural person, and in particular to analyze or predict aspects concerning that natural person's performance at work, economic situation, health, personal preferences, interests, reliability, behavior, location, or movements.",
-    depth_class: "subsection",
+      "ADMT includes profiling that replaces human decisionmaking or substantially replaces human decisionmaking.",
+    depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
     primary_source_url: CCR_URL,
@@ -84,7 +89,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(e)(1)",
     verbatim_quote:
-      "To \"substantially replace human decisionmaking\" means to use the technology's output as a key factor in a human's decisionmaking. This includes situations in which the business uses the technology's output to make a decision without human involvement, or in which the human reviewer does not know how to interpret and use the technology's output to make the decision, does not review the technology's output along with other information beyond the output, or does not have the authority to override the technology's output and make or change the decision.",
+      "For purposes of this definition, to \"substantially replace human decisionmaking\" means a business uses the technology's output to make a decision without human involvement.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -97,7 +102,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)",
     verbatim_quote:
-      "\"Significant decision\" means a decision using automated decisionmaking technology that results in the provision or denial by the business of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.",
+      "\"Significant decision\" means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -108,7 +113,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(1)",
     verbatim_quote:
-      "\"Financial or lending services\" means the extension of credit, credit-scoring, credit-reporting, loan servicing, or the provision of banking, brokerage, insurance underwriting, or similar financial services or products to a consumer.",
+      "\"Financial or lending services\" means the extension of credit or a loan, transmitting or exchanging funds, the provision of deposit or checking accounts, check cashing, or installment payment plans.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -119,7 +124,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(2)",
     verbatim_quote:
-      "\"Housing\" means the provision or denial of housing, including the sale, rental, or leasing of a dwelling.",
+      "\"Housing\" means any building, structure, or portion thereof that is used or occupied as, or designed, arranged, or intended to be used or occupied as, a home, residence, or sleeping place by one or more consumers including for permanent or temporary occupancy.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -130,7 +135,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(3)",
     verbatim_quote:
-      "\"Education enrollment or opportunities\" means admission or acceptance into academic or vocational programs, educational credentials, suspension and expulsion, and assessments (including detecting cheating or plagiarism).",
+      "(A) Admission or acceptance into academic or vocational programs; (B) Educational credentials (e.g., a degree, diploma, or certificate); and (C) Suspension and expulsion.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -141,7 +146,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(4)",
     verbatim_quote:
-      "\"Employment or independent contracting opportunities or compensation\" means hiring; allocation or assignment of work; compensation; promotion, demotion, suspension, and termination.",
+      "\"Employment or independent contracting opportunities or compensation\" means: (A) Hiring; (B) Allocation or assignment of work for employees; or salary, hourly or per-assignment compensation, incentive compensation such as a bonus, or another benefit (\"allocation/assignment of work and compensation\"); (C) Promotion; and (D) Demotion, suspension, and termination.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -152,7 +157,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(5)",
     verbatim_quote:
-      "\"Healthcare services\" means the provision or denial by the business of medical services, including mental-health services, dental services, and vision services.",
+      "\"Healthcare services\" means services related to the diagnosis, prevention, or treatment of human disease or impairment, or the assessment or care of an individual's health.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -432,15 +437,17 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
   }),
 
   // ---- FSOR overlays (agency positions) -------------------------------------
-  // Presented as separate proposition keys so the generator can cite the FSOR
-  // package (via cppa_fsor_commentary rows) alongside the reg pinpoint.
+  // Preferred resolution: the agency position is embedded in § 7001 regulation
+  // text itself, so both rows below quote § 7001 verbatim (option 1 of the
+  // ADMT-REGISTRY-CORPUS-1 resolution rule). No fallback to
+  // cppa_fsor_commentary.agency_response was required.
   fsor_advertising_exclusion: R({
     proposition_key: "fsor_advertising_exclusion",
     citation: "11 CCR § 7001",
-    subsection: "11 CCR § 7001(ddd)",
+    subsection: "11 CCR § 7001(ddd)(6)",
     verbatim_quote:
-      "The provision or denial of advertising to a consumer, standing alone, is not a \"significant decision\" under section 7001(ddd) unless it results in the provision or denial of one of the enumerated categories (financial or lending services, housing, education, employment, or healthcare).",
-    depth_class: "subsection",
+      "Significant decision does not include advertising to a consumer.",
+    depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
     primary_source_url: CCR_URL,
@@ -450,7 +457,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(e)(1)",
     verbatim_quote:
-      "Human involvement is qualifying only where the reviewer (1) knows how to interpret and use the output, (2) reviews the output alongside other information beyond the output, and (3) has authority to override the output and change the decision.",
+      "(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,

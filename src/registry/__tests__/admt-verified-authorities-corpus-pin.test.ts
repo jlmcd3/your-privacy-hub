@@ -19,13 +19,15 @@
 import { describe, it, expect } from "vitest";
 import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
 
-/** All 34 rows known to be paraphrased at audit time. Shrink as corrections land. */
+/** Rows known to be paraphrased. Shrink as corrections land. */
 const KNOWN_PARAPHRASED_KEYS = new Set<string>([
+  // Corrected in ADMT-REGISTRY-CORPUS-1 (§ 7001 batch, 2026-07-24):
+  //   admt_def, admt_def_profiling, human_involvement,
+  //   sig_decision, sig_financial, sig_housing, sig_education,
+  //   sig_employment, sig_healthcare,
+  //   fsor_advertising_exclusion, fsor_human_involvement_three_part.
   "access_logic", "access_outcome", "access_provide",
-  "admt_def", "admt_def_profiling",
   "ccpa_defs", "ccpa_rulemaking",
-  "fsor_advertising_exclusion", "fsor_human_involvement_three_part",
-  "human_involvement",
   "notice_access", "notice_altprocess", "notice_antiretal",
   "notice_howworks_inputs", "notice_howworks_output",
   "notice_optout", "notice_purpose", "notice_timing",
@@ -33,8 +35,6 @@ const KNOWN_PARAPHRASED_KEYS = new Set<string>([
   "ra_submit", "ra_timing_existing", "ra_timing_new",
   "ra_trigger_admt", "ra_trigger_train",
   "scope_apply", "scope_deadline",
-  "sig_decision", "sig_education", "sig_employment",
-  "sig_financial", "sig_healthcare", "sig_housing",
 ]);
 
 function norm(s: string): string {
