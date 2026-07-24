@@ -1926,7 +1926,21 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     for (const v of t234Violations) lintViolations.push(v);
     assessment_text = scrubVoiceLeaks(assessment_text);
 
-
+    // BIO-REG-W1 T2(a) — post-generation registry citation validator. Strips
+    // any Wave-1 statute citation whose (pinpoint) is not in the supplied
+    // registry rows; strips long verbatim-looking quotes that don't appear in
+    // a supplied verbatim_quote. Logged for observability.
+    const citationValidation = validateBiometricCitations(assessment_text, applicableRegistryRows);
+    if (citationValidation.strippedCitations.length > 0 || citationValidation.strippedQuotes.length > 0) {
+      console.warn("[biometric_citation_out_of_registry]", JSON.stringify({
+        assessment_id: body.assessment_id ?? null,
+        registry_version: citationValidation.registry_version,
+        stripped_citations: citationValidation.strippedCitations.slice(0, 40),
+        stripped_quotes: citationValidation.strippedQuotes.slice(0, 20),
+        supplied_row_ids: applicableRegistryRows.map((r) => r.id),
+      }));
+    }
+    assessment_text = citationValidation.clean;
 
     const report_data = {
       // bipa_risk field retired 2026-07-14
@@ -1936,7 +1950,17 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP },
+      registry_version: BIOMETRIC_REGISTRY_VERSION,
+      registry_applied: {
+        version: BIOMETRIC_REGISTRY_VERSION,
+        supplied_row_ids: applicableRegistryRows.map((r) => r.id),
+        resolved_jurisdictions: resolvedJurisdictions.registered.map((r) => r.jurisdiction_id),
+        named_but_unregistered: resolvedJurisdictions.namedButUnregistered,
+        other_us_state_selected_but_no_names: resolvedJurisdictions.otherUsStateSelectedButNoNames,
+        stripped_citations: citationValidation.strippedCitations,
+        stripped_quotes: citationValidation.strippedQuotes,
+      },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
     };
     try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster(body ?? {}); const _det = runFormatChecksGeneric(_prose, { intakeRoster: _roster }).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
 
