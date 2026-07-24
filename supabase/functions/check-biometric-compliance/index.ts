@@ -1616,15 +1616,26 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     // them into the composed system alongside the registry-sourced facts.
     const biometricTestStates = computeBiometricTestStates(body as unknown as Record<string, unknown>);
     const biometricTestStatesBlock = renderBiometricTestStatesBlock(biometricTestStates);
+    // BIO-REG-W1 T2(a) — registry-bound composition. Applicable rows are
+    // computed from intake facts (jurisdictions + other_state_names +
+    // biometricTypes); the prompt authorises citations ONLY from these rows.
+    const registryIntake = {
+      jurisdictions: body.jurisdictions,
+      other_state_names: (body as any).other_state_names,
+      biometricTypes: body.biometricTypes,
+      generation_date: today,
+    };
+    const applicableRegistryRows = selectApplicableRows(registryIntake);
+    const resolvedJurisdictions = resolveJurisdictions(registryIntake);
+    const registryStatutesBlock = renderRegistryStatutesBlock(applicableRegistryRows);
+    const registryUnresolvedBlock = renderRegistryUnresolvedBlock(resolvedJurisdictions);
+    const registryComposeDirective = `REGISTRY COMPOSITION GATE (${BIOMETRIC_REGISTRY_VERSION}) — for Wave-1 jurisdictions (Illinois BIPA, Texas CUBI, Washington HB 1493, Colorado HB24-1130), compose every statutory citation strictly from the REGISTRY-BOUND STATUTES block using the exact statute_short + pinpoint pairs supplied there. Do NOT cite Wave-1 statute subsections that are not supplied. Do NOT quote statutory text verbatim unless the sentence appears inside a supplied verbatim_quote. For jurisdictions flagged in REGISTRY-UNRESOLVED JURISDICTIONS, emit the structured-unresolved shape (state the state is out of Wave-1 registry coverage, name the intake field that would resolve it, log an INFORMATION_NEEDED item). Non-Wave-1 jurisdictions (EU, UK, other US federal, etc.) continue under their existing prompt rules and are NOT gated by this block.`;
     const composedSystem: SystemBlock[] = buildSystemContent({
       toolModule: BIOMETRIC_TOOL_MODULE,
       variant: isStressRun ? "lean" : "full",
       currentDate: today,
       cache: true,
-      // FORK-R1 R4: facts (ICO figures, BIPA citations, CUBI map, FDBR, PRA-by-statute)
-      // come from the registry — never from inline prose. A one-line registry edit
-      // changes the biometric output on the next run.
-      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}`,
+      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}\n\n${registryStatutesBlock}\n\n${registryUnresolvedBlock}\n\n${registryComposeDirective}`,
     });
     // Pilot override: service-role callers can fully replace the system prompt to
     // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).
