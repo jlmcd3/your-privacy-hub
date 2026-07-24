@@ -38,6 +38,12 @@
 
 import { resolveArticle6Examples } from "../dpia-jurisdiction-registry.ts";
 import { CITATION_REGISTRY } from "../admt-citation-registry.ts";
+import {
+  BIOMETRIC_STATUTE_REGISTRY,
+  BIOMETRIC_REGISTRY_VERSION,
+  type BiometricStatuteRow,
+} from "../registry/biometric-statute-registry.ts";
+
 
 function ukArt611Block(): string {
   const a6 = resolveArticle6Examples("uk_gdpr");
@@ -101,26 +107,38 @@ const OTHER_POST_2024_AMENDMENTS_BLOCK = [
   "- Cal. Civ. Code § 1798.155(a) penalty pair — statutory base $2,500 / $7,500; CPI-adjusted 2025-2026 $2,663 / $7,988 (both presentations correct).",
 ].join("\n");
 
-// BIO-REG-W1 T2(c) D3 FIX — RULING-COLORADO-FP-1 made effective at grading
-// time. The Colorado Privacy Act pinpoints below were verified against the
-// enacted text (Colo. Rev. Stat.) during the POST-C1-FIX-2 turn and ruled
-// CORRECT product citations; they were then re-flagged as grader false
-// positives in the T2(c) evidence-gate batch (dd7bdde6 + ec0df4c1). Adding
-// them to the grader's verified-pinpoint context stops that FP class from
-// re-firing per batch instead of being re-ruled each batch. Pinpoints are
-// cross-referenced against _shared/registry/biometric-statute-registry.ts
-// rows `us_co_hb24_1130.*` (registry_version bio-reg-w1-2026-07-24), whose
-// pinpoint-in-verbatim-quote consistency is enforced by
-// tests/registry/biometric-statute-self-consistency.test.ts.
-const COLORADO_VERIFIED_PINPOINTS_BLOCK = [
-  "COLORADO PRIVACY ACT — VERIFIED PINPOINTS (RULING-COLORADO-FP-1; primary source: Colo. Rev. Stat. § 6-1-1301 et seq. as amended by HB24-1130):",
-  "- C.R.S. § 6-1-1303(5) defines \"consent\" as a clear, affirmative act — pre-checked boxes and inactivity do NOT constitute consent. Reports citing (5) for the consent-form standard track current statute.",
-  "- C.R.S. § 6-1-1303(24)(b) classifies biometric identifiers processed for the purpose of uniquely identifying an individual as sensitive data. Reports citing (24)(b) for the sensitive-data classification of biometrics track current statute.",
-  "- C.R.S. § 6-1-1308(7) requires affirmative opt-in consent before processing biometric sensitive data.",
-  "- C.R.S. § 6-1-1309 requires a data protection assessment for processing that presents a heightened risk of harm, including sensitive data.",
-  "- C.R.S. § 6-1-1311 vests exclusive enforcement authority in the Colorado Attorney General; NO private right of action.",
-  "- Grader guidance (BINDING): the pinpoint pairings above are CORRECT current Colorado law. Do NOT flag them as invented, misapplied, fabricated, unverified, or as citation defects under any dimension. Regrader classes `citation_misapplication`, `pinpoint_not_verified`, and neighbours firing against these pairings are RULING-COLORADO-FP-1 false positives and MUST be suppressed. Reports citing HB24-1130 as the enabling amendment for the § 6-1-1303(24)(b) biometric-sensitive-data classification are CORRECT.",
-].join("\n");
+// S1 (2026-07-24) — REGISTRY-DERIVED VERIFIED-PINPOINT WHITELIST.
+// The prior hand-scoped COLORADO_VERIFIED_PINPOINTS_BLOCK is retired.
+// This block is auto-generated from every row in
+// _shared/registry/biometric-statute-registry.ts, so any pinpoint the
+// generator can cite (because it was supplied a registry row for it) is
+// simultaneously listed to the grader as verified. Pinpoint→verbatim-quote
+// consistency is enforced at CI by
+// tests/registry/biometric-statute-self-consistency.test.ts, so the whitelist
+// cannot drift from the registry. Colorado, Washington, Illinois, Texas —
+// and every wave-2/3 jurisdiction added later — flow through this one path.
+function biometricRegistryWhitelistBlock(): string {
+  const rowsByJuris = new Map<string, BiometricStatuteRow[]>();
+  for (const row of BIOMETRIC_STATUTE_REGISTRY) {
+    const arr = rowsByJuris.get(row.jurisdiction_display) ?? [];
+    arr.push(row);
+    rowsByJuris.set(row.jurisdiction_display, arr);
+  }
+  const jurisSections: string[] = [];
+  for (const [juris, rows] of Array.from(rowsByJuris.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
+    jurisSections.push(`- ${juris} (${rows[0].statute_short}${rows[0].statute_short !== rows[rows.length - 1].statute_short ? " et al." : ""}):`);
+    for (const r of rows.sort((a, b) => a.pinpoint.localeCompare(b.pinpoint))) {
+      jurisSections.push(`    · ${r.pinpoint} — ${r.topic.replace(/_/g, " ")} (verified ${r.verification_date}; source: ${r.primary_source_url})`);
+    }
+  }
+  return [
+    `BIOMETRIC STATUTE REGISTRY — VERIFIED PINPOINTS (auto-derived from _shared/registry/biometric-statute-registry.ts; registry_version=${BIOMETRIC_REGISTRY_VERSION}; pinpoint↔verbatim-quote consistency enforced by biometric-statute-self-consistency.test.ts):`,
+    ...jurisSections,
+    "- Grader guidance (BINDING): every pinpoint listed above is CORRECT current law and is present in the generator's supplied registry rows with a verbatim quote. Do NOT flag any pinpoint above as invented, misapplied, fabricated, unverified, or as a citation defect under any dimension (accuracy, evidentiary discipline, citation integrity, or otherwise). Regrader classes `citation_misapplication`, `pinpoint_not_verified`, `rubric_citation_misapplied`, `rubric_unsupported_business_claim` firing against these pinpoints are RULING-COLORADO-FP-1-class false positives and MUST be suppressed. Pinpoints NOT in the list may still be flagged as unverified depth.",
+    "- Note: 4 CCR 904-3 (Colorado Privacy Act Rules) is promulgated under C.R.S. § 6-1-1313 (AG rulemaking authority); reports referencing 4 CCR 904-3 as the source of Colorado biometric-consent rules track current regulation.",
+  ].join("\n");
+}
+
 
 // BIO-REG-W1 T2(c) D4 FIX — structured-unresolved calibration. Same pattern
 // as R-15C-2 (Risk fallback silence): the biometric tool's structured-
@@ -151,7 +169,7 @@ export function buildAmendmentsBlock(): string {
     "",
     OTHER_POST_2024_AMENDMENTS_BLOCK,
     "",
-    COLORADO_VERIFIED_PINPOINTS_BLOCK,
+    biometricRegistryWhitelistBlock(),
     "",
     STRUCTURED_UNRESOLVED_CALIBRATION_BLOCK,
   ].join("\n");
