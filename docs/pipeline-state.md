@@ -48,21 +48,64 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
-- **Turn:** `REGISTRY-VERBATIM-AUDIT` (dropped-order restore from courier ACK; anti-drop rule invoked).
-- **Real-time:** 2026-07-24T17:51:06Z (sandbox `date -u`).
-- **Scope (frontend/test + docs only, no edge deploy):**
-  - **ADMT audit** — for each of the 34 rows in `_shared/registry/admt-verified-authorities.ts`, normalized (`smart→straight quote`, `en/em-dash→hyphen`, whitespace collapse) both the `verbatim_quote` and the corresponding `cppa_authorities.full_text WHERE status='current'`, then tested substring match. **0/34 EXACT.** Fallback 80-char head/tail windows: 1 head-only, 2 tail-only, **31 NOT_FOUND**. Conclusion: **all 34 seeded rows are paraphrases labelled as `verbatim_quote`** — identical defect class to the TURN C fabricated `§ 7222(c)` row. Two spot examples in the report: `scope_apply` (§ 7200(a)) and `notice_purpose` (§ 7220(c)(1)) both paraphrase language that appears in a different form (or nowhere) in the OAL-approved text.
-  - **Biometric audit** — 46/46 rows pass the pinpoint-in-quote CI (self-consistency test in `src/registry/__tests__/biometric-statute-self-consistency.test.ts`); 46/46 supply `https://` `primary_source_url`. Corpus-anchored verification is **infeasible today** — no ingested corpus for BIPA, CUBI, RCW, GDPR, UK GDPR, PIPEDA, Aus Privacy Act, or SG PDPA. Standing risk logged: self-consistency alone cannot reject a paraphrase in a biometric row's `verbatim_quote`. Follow-on program item: ingest biometric primary text so the same CI can extend.
-  - **Files shipped this turn:**
-    - `docs/courier/REGISTRY-VERBATIM-AUDIT-2026-07-24.md` — full per-row report + method + queued correction turns.
-    - `src/registry/__tests__/admt-verified-authorities-corpus-pin.test.ts` — allow-list CI: shells to `psql` (skips when `PGHOST` unset), asserts every row's normalized `verbatim_quote` is a substring of `cppa_authorities.full_text`, carries frozen `KNOWN_PARAPHRASED_KEYS` (all 34 keys enumerated in the courier report). Fails on: (a) any new row failing corpus-pin (regression guard); (b) any listed key starting to pass (forces set to shrink to empty as correction turns land). Uses `describe.skipIf(!CAN_RUN)` so dev/CI without Postgres env vars stay green.
-  - **§4 LIA correction** — restored: §4 now reflects the current HEAD state (this turn). Prior §4 text described the STAND-DOWN'd/reverted `SAMPLES-CONTRACT-lia` in-turn revision at commit `d7efef9`; that entry is superseded (LIA 5/8 completion remains logged in §2 item 4).
-  - **Standing rule adopted:** *no registry row lands without corpus verification* — extends to any future verified-authority registry (risk, cyber, DPIA, IR).
-  - **Ledger anti-drop accounting:** all three dispatched orders resolved this turn — (i) audit + report + CI; (ii) §4 rewrite; (iii) cyber shape-test fix folded into next SAMPLES turn (queued at §2 item 9).
+- **Turn:** `SAMPLES-CONTRACT-governance` (6/8) — team-reviewed dispatch (five-lens).
+- **Real-time:** 2026-07-24T17:55:49Z (sandbox `date -u`).
+- **Scope (frontend/test only, no edge deploy):**
+  - **Audited surface:** `insert.intake_data` per SAMPLE_MAP in `_tests/contract-surface-audit.test.ts`. Only intake keys are validated — row-level `status: "pending"` at `insert` root is not walked; no `ALLOWED_TOPLEVEL_EXTRAS` change needed for governance (contrast with LIA 5/8, whose `insert` root itself was the audited surface).
+  - **Contract source of truth:** `governanceContract` in `_shared/intake-contracts/governance-assessment.ts`; option lists inline (`GOV_SECTORS`, `GOV_SIZES`, `GOV_JURISDICTIONS`, `GOV_TOOLS`, `GOV_DATA_CATS`, `GOV_SPECIAL_CATS`, `PRIVACY_POLICY`, `PRIVACY_NOTICE_COVERAGE`, `DPO_STATUS`, `DPIA_STATUS`, `DPIA_AI_COVERAGE`, `INCIDENT_RESPONSE`, `TRAINING_STATUS`, `TRAINING_AI_COVERAGE`, `TOOL_INSTRUCTION`, `DPA_STATUS`, `DPA_ART28`, `TRANSFER_STATUS`, `TRANSFER_MECHANISM`, `TECHNICAL_CONTROLS`, `TECHNICAL_CONTROLS_LIST`, `DSR_CAPABILITY`, `DSR_RIGHTS_TESTED`, `INVENTORY_AUDIT`).
+  - **Form source of truth:** `src/pages/GovernanceAssessment.tsx` `buildIntake()` L200-224; `.insert({...})` at L237-247. `sample_run` verified NOT present in either.
+  - **Per-key audit + classification** (F_GOV_EU + F_GOV_US, both `insert.intake_data`):
+    - `organization_name` — contract ✓; unchanged.
+    - `sector` — free text ("Logistics / e-commerce fulfilment", "Logistics / SaaS") NOT in `GOV_SECTORS` → normalized to `"Other"` (form uses fixed radio list; there is no free-text "Other: …" fold-in for sector). Sector prose preserved verbatim in `additional_context`. Cite: `GovernanceAssessment.tsx` renders sector as Radio group over `GOV_SECTORS`; contract L125.
+    - `org_size` — `"51-250"`, `"251-1000"` ✓; unchanged.
+    - `jurisdictions` — `"EU (GDPR)"`, `"California (CCPA/CPRA)"` ✓; `"Ireland (Data Protection Act 2018)"`, `"Colorado (CPA)"`, `"Virginia (VCDPA)"`, `"Illinois (BIPA)"` NOT in `GOV_JURISDICTIONS` → normalized to `"Other"` (EU) and `"Other US States"` (US). All state/national overlay specifics preserved verbatim in `additional_context`. Cite: contract L127.
+    - `eu_uk_data` — `"Yes"`/`"No"` ✓; unchanged.
+    - `tools` — multi-enum on `GOV_TOOLS`. `"Microsoft 365 / Copilot"`, `"HubSpot"` ✓; `"Shopify Plus"`, `"ShipHero WMS"`, `"Salesforce"` (contract has `"Salesforce + Einstein"` — different string), `"Snowflake"` NOT in options → dropped from array; preserved verbatim in `additional_context`. Cite: contract L139; form L203 note about `"Other: …"` fold does not apply to these fixture entries.
+    - `data_categories` — multi-enum on `GOV_DATA_CATS`. `"Customer records"`, `"Employee records"` ✓; `"Contact identifiers"` → `"Contact details"` (contract literal); `"Order history"` → `"Other"` (preserved in `additional_context`); `"Internet/network activity"` → `"Other"` (preserved); `"Biometric identifiers (fingerprint timeclocks)"` → `"Biometric data"` (fingerprint-timeclock gloss preserved). Cite: contract L140.
+    - `special_category` — `"No"`/`"Yes"` ✓; unchanged.
+    - `special_categories_list` — `[]` ✓ (EU); `"Biometric data (fingerprint templates)"` → `"Biometric data"` (US); template gloss preserved in `additional_context`. Cite: contract L142.
+    - `privacy_policy` — `"Yes, up to date"` NOT in `PRIVACY_POLICY` → `"Yes, current (reviewed in last 12 months)"` (contract literal). Cite: contract L143 + inline list L45-49.
+    - `privacy_notice_coverage` — MISSING (conditional; privacy_policy starts with "Yes" ⇒ required). ADDED as `"Yes — notice covers all current activities, transfers, retention, and rights"`. Cite: contract L144-146 + inline list L50-55.
+    - `dpo_status` — `"Yes, formally appointed DPO"` / `"Yes, formally appointed privacy officer"` NOT in `DPO_STATUS` → `"Yes, formal DPO"` (best-fit contract literal). Cite: contract L147-149 + inline list L56.
+    - `dpia_status` — `"Yes, formal DPIA programme with register"` NOT in `DPIA_STATUS` → `"Yes, multiple DPIAs completed"`. Cite: contract L150 + inline list L57-60.
+    - `dpia_ai_coverage` — MISSING (conditional on dpia_status starts with "Yes"). ADDED as `"Yes — all AI/high-risk tools assessed"`. Cite: contract L169-171 + inline list L61-64.
+    - `incident_response` — `"Yes, tested in last 12 months"` ✓; unchanged. Cite: contract L151 + inline list L65-68.
+    - `training_status` — `"Yes, annual mandatory"` NOT in `TRAINING_STATUS` → `"Yes, formal onboarding + annual refresh"`. Cite: contract L152 + inline list L69-72.
+    - `training_ai_coverage` — MISSING (conditional on training_status starts with "Yes"). ADDED as `"Yes — explicitly covers AI tools"`. Cite: contract L172-174 + inline list L73-76.
+    - `tool_instruction` — `"Documented policy"` NOT in `TOOL_INSTRUCTION` → `"Yes, written policy with specific prohibitions"`. Cite: contract L153 + inline list L77-80.
+    - `dpa_status` — `"All vendors"` NOT in `DPA_STATUS` → `"Yes, all vendors"`. Cite: contract L154-156 + inline list L81-83.
+    - `dpa_art28_verified` — MISSING (conditional on dpa_status ∈ {"Yes, all vendors","Most vendors"}). ADDED as `"Yes — verified"`. Cite: contract L175-177 + inline list L84.
+    - `transfer_status` — EU: `"Yes, with SCCs and TIAs in place"` NOT in `TRANSFER_STATUS` → `"Yes, other non-adequate countries"` (best fit for non-US non-adequate transfers with SCCs+TIAs; SCCs+TIAs preserved in `additional_context`). US: `"No (US-only operations)"` → `"n/a"` (form emits `"n/a"` when `eu_uk_data === "No"`, per L213). Cite: contract L157-159 + form L213.
+    - `transfer_mechanism` — MISSING EU (conditional on transfer_status ∈ US-based / other-non-adequate). ADDED as `"EU Standard Contractual Clauses (SCCs)"`. US: `"n/a"` (mirrors transfer_status). Cite: contract L178-180 + inline list L92-98.
+    - `technical_controls` — MISSING (required-always). ADDED as `"Yes — DLP/content filtering actively enforced"`. Cite: contract L160 + inline list L99-103.
+    - `technical_controls_list` — MISSING (conditional on technical_controls ∈ "Yes — DLP …"/"Partial …"). ADDED as `["DLP rules","Content filtering","Endpoint upload restrictions"]`. Cite: contract L161-163 + inline list L104-107.
+    - `dsr_capability` — MISSING (required-always). ADDED as `"Yes — documented and tested across all vendors"`. Cite: contract L164 + inline list L108-112.
+    - `dsr_rights_tested` — MISSING (conditional on dsr_capability ∈ "Yes — documented and tested …"). ADDED as `["Access","Erasure","Portability","Rectification"]`. Cite: contract L165-167 + inline list L113.
+    - `inventory_audit` — MISSING (required-always). ADDED as `"Yes — audited + formal approval process"`. Cite: contract L168 + inline list L114-118.
+    - `additional_context` — narrative, optional. POPULATED to preserve every dropped/normalized item verbatim (sector prose; jurisdictional overlays Ireland DPA 2018 / Colorado CPA / Virginia VCDPA / Illinois BIPA; tools Shopify Plus / ShipHero WMS / Salesforce / Snowflake; data-category glosses Order history / internet-network activity / fingerprint-timeclock BIPA driver; special-category gloss fingerprint templates; TIA supplement to SCCs). Cite: contract L181.
+    - `sample_run` — UNKNOWN top-level key. Live-form audit: NOT emitted by `buildIntake()` (`GovernanceAssessment.tsx` L200-224) and NOT written on the `.insert({...})` payload at L237-247. `rg` confirms only occurrences were the two fixture literals. Classification: **fixture-only marker with no consumers** → REMOVED from both fixtures. No showcase content to preserve.
+  - **`ALLOWED_TOPLEVEL_EXTRAS` change:** NONE for governance. The audited surface is `insert.intake_data`; row-level extras (`status`, `user_id`, `client_id`, `is_subscriber_credit`, etc.) do not flow through this validator run.
+  - **Advisory-tool set flip:** `governance` REMOVED from `SAMPLE_ADVISORY_TOOLS` in `supabase/functions/_tests/contract-surface-audit.test.ts`; counter comment updated to `Reconciled so far: cppa_risk (1/8), cppa_admt (2/8), cppa_cyber (3/8), dpia (4/8), li_assessment (5/8), governance (6/8).` Remaining ADVISORY set: `dpa`, `ir_playbook`, `biometric`.
+  - **No validator/rubric/contract weakening.** No golden edits. No edge-function changes. No sample-report regen click (REGEN flag only, see §6).
 - **Tests (green — pasted):**
-  - `src/registry/__tests__/biometric-statute-self-consistency.test.ts` — pre-existing 46-row self-consistency pass; unchanged.
-  - `src/registry/__tests__/admt-verified-authorities-corpus-pin.test.ts` — new. Skips in this sandbox (`PGHOST` not exported to the vitest child); will execute against `cppa_authorities` in the CI environment where PG* is set.
-- **Deploy:** none this turn (no edge-function or backend code changed).
+
+  ```text
+  $ deno test --allow-all supabase/functions/_tests/contract-surface-audit.test.ts
+  running 3 tests from ./functions/_tests/contract-surface-audit.test.ts
+  contract-surface-audit / golden fixtures validate ... ok (3ms)
+  contract-surface-audit / pinned contract-scenario fixtures validate ... ok (0ms)
+  contract-surface-audit / sample-report fixtures validate ... ok (4ms)
+  ok | 3 passed | 0 failed (14ms)
+  ```
+  ADVISORY drift log now lists 5 rows (2× ir_playbook, 2× biometric, 1× biometric-supplemental); NO governance rows appear in either the ADVISORY set or the FATAL failures set.
+
+  ```text
+  $ bunx vitest run src/lib/__tests__/sampleFixtures.shape.test.ts
+  Test Files  1 failed (1)
+       Tests  2 failed | 50 passed (52)
+  ```
+  Both failures = pre-existing `cppa_cyber/us-supplemental` (missing `company_name`, `profile_industry`, `profile_audit`, `industry_sector`) — from TURN A supplemental clone; explicitly OUT OF SCOPE per this dispatch. All 4 governance-related assertions (EU/US × carries-intake / carries-required-keys) PASS.
+- **Deploy:** none this turn.
 
 ## 5. Sample-Report Register
 
@@ -101,7 +144,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
-- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8), `dpia` (4/8), `li_assessment` (5/8). Regen click deferred to end-of-program walk-through (admin-UI click — queued for morning per overnight standing order §1).
+- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8), `dpia` (4/8), `li_assessment` (5/8), `governance` (6/8). Regen click deferred to end-of-program walk-through (admin-UI click — queued for morning per overnight standing order §1).
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt/risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
   - W6 cyber — SUPERSEDED this turn by `w10-cyber-a1a2` (fresh-clock stamp).
