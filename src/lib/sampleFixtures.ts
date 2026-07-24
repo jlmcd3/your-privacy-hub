@@ -41,21 +41,21 @@ const F_LIA_UK: SampleFixture = {
   result_url_pattern: "/li-assessment/result/{id}",
   fixture: {
     insert: {
-      stage: "final",
-      status: "pending",
+      stage: "submitted",
+      preview_assessment_id: "sample-preview-lia-uk-000",
       organization_name: "North Pole Manual Mining Ltd",
       subject_anchor:
         "Wearable safety telemetry (underground location and heart rate) on underground shift workers",
       processing_description:
-        "North Pole Manual Mining Ltd proposes wearable safety telemetry on underground shift workers at its UK rare-earth mining sites. Devices record approximate underground location (via beacon proximity) and continuous heart-rate. Data feeds a real-time control-room dashboard so supervisors can trigger evacuation, dispatch medics, or pause haulage when a worker exhibits signs of physiological stress or has entered a restricted zone.",
-      relationship_type: "Employee (existing employment relationship)",
+        "North Pole Manual Mining Ltd proposes wearable safety telemetry on underground shift workers at its UK rare-earth mining sites (sector: Mining and resource extraction). Devices record approximate underground location (via beacon proximity) and continuous heart-rate. Data feeds a real-time control-room dashboard so supervisors can trigger evacuation, dispatch medics, or pause haulage when a worker exhibits signs of physiological stress or has entered a restricted zone.",
+      relationship_type: "Employee",
       data_categories: [
-        "Location data (workplace beacon proximity)",
-        "Health or medical data (heart rate)",
-        "Employee records",
+        "Location data",
+        "Health or medical data",
+        "Employment data",
+        "Other: beacon-proximity zone identifier (not GPS-precise)",
       ],
       jurisdictions: ["United Kingdom (UK GDPR)"],
-      sector: "Mining and resource extraction",
       stated_purpose:
         "To reduce the risk of fatality and serious injury underground by detecting medical events and unauthorised zone entry in real time so the control room can intervene immediately.",
       alternatives_considered:
@@ -63,7 +63,7 @@ const F_LIA_UK: SampleFixture = {
       purpose_details: {
         interest_holder: "Controller (North Pole Manual Mining) and the shift workforce",
         interest_type: "Health and safety / vital interests of workers",
-        purpose_text:
+        interest_statement:
           "Real-time detection of medical events and unauthorised zone entry to prevent fatalities and serious injury.",
       },
       necessity_details: {
@@ -77,11 +77,13 @@ const F_LIA_UK: SampleFixture = {
           "Dashboards display shift-ID and zone, not name. Identity is re-linked only when an alarm is triggered and only for the named on-call supervisor and medic.",
       },
       balancing_details: {
-        reasonable_expectation:
-          "Workers reasonably expect proportionate safety monitoring underground given the inherent risks of the work environment, but do not expect continuous physiological monitoring without notice.",
+        reasonable_expectation: "Partly",
+        reasonable_expectation_detail:
+          "Workers reasonably expect proportionate safety monitoring underground given the inherent risks of the work environment, but do not expect continuous physiological monitoring without notice; the works-council consultation and handbook addendum close that expectation gap before deployment.",
         vulnerable_subjects: ["Employees in a power-imbalance relationship"],
-        potential_harm:
-          "Misuse for productivity surveillance; inference of medical conditions; chilling effect on legitimate rest breaks.",
+        potential_harm: "Severe",
+        potential_harm_detail:
+          "Without safeguards, continuous heart-rate and zone telemetry could enable misuse for productivity surveillance, inference of medical conditions (cardiac, pregnancy, stress disorders), and a chilling effect on legitimate rest breaks — hence the strict purpose-limitation, pseudonymisation and works-council oversight controls listed below.",
         safeguards: [
           "Pseudonymised dashboards (shift-ID, zone only)",
           "90-day raw-data retention; 12-month aggregate retention",
@@ -96,10 +98,9 @@ const F_LIA_UK: SampleFixture = {
           "Works-council agreement signed; no individual-level data shared with line managers; safety-only purpose written into the employment-handbook addendum.",
         statutory_restrictions:
           "Mines Regulations 2014; Health and Safety at Work etc. Act 1974; UK GDPR Art. 9(2)(b) employment-law condition for health data.",
-        balancing_text:
+        additional_context:
           "Strong safety justification (vital interests of workers in a hazardous environment); proportionate technical safeguards; works-council oversight; explicit purpose limitation prevents secondary use.",
       },
-      preview_signal: { sample_run: true },
     },
     invoke: { fn: "run-li-assessment", id_key: "assessment_id" },
     poll: { table: "li_assessments", terminal: ["complete", "failed"], max: 75, interval_ms: 4000 },
