@@ -18,7 +18,8 @@ export type ToolSlug =
   | "cppa_admt"
   | "ropa"
   | "us_notice"
-  | "eu_notice";
+  | "eu_notice"
+  | "registration";
 
 export interface SampleFixture {
   tool_slug: ToolSlug;
@@ -1002,6 +1003,91 @@ const F_CPPA_ADMT_US_SUPP = withSupplemental(F_CPPA_ADMT_US, "insert.intake_data
   scenario_summary: "ADMT supplemental-capture variant: closes human-override scope and opt-out SLA questions.",
 });
 
+// --- Registration Assessment fixtures (2026-07-24, authoring turn) -------
+// invoke_body.intake_data is the shape run-registration-assessment reads
+// (see src/pages/RegistrationAssessment.tsx L187-190). Numeric fields are
+// emitted as Number by the form (L181-183); fixtures mirror that.
+const F_REGISTRATION_EU: SampleFixture = {
+  tool_slug: "registration",
+  variant: "eu",
+  title: "EU controller — Irish lead SA, multi-market",
+  scenario_summary:
+    "North Pole Manual Mining Ltd (medium manufacturer) is established in Ireland and markets across IE/DE/FR/UK. Cross-border transfers to a US processor; no biometric identity, no data-broker registration.",
+  source_table: "registration_assessments",
+  result_url_pattern: "/registration/assessment/result/{id}",
+  fixture: {
+    invoke_body: {
+      intake_data: {
+        organization_name: "North Pole Manual Mining Ltd",
+        is_public_authority: false,
+        organization_country: "IE",
+        organization_size: "medium",
+        industry: "Manufacturing",
+        email: "privacy@example.com",
+        employee_count: 320,
+        annual_revenue_usd: 78000000,
+        data_subjects_count: 12000,
+        role: "controller",
+        processes_personal_data: true,
+        processes_special_categories: false,
+        processes_children_data: false,
+        large_scale_monitoring: false,
+        uses_ai_systems: false,
+        ai_high_risk: false,
+        ai_general_purpose_provider: false,
+        cross_border_transfers: true,
+        acts_as_data_broker: false,
+        sells_or_shares_personal_info: false,
+        processes_biometrics_for_id: false,
+        has_eu_establishment: true,
+        has_uk_establishment: false,
+        eu_lead_member_state: "IE",
+        markets_served: ["IE", "DE", "FR", "UK"],
+      },
+    },
+  },
+};
+
+const F_REGISTRATION_US: SampleFixture = {
+  tool_slug: "registration",
+  variant: "us",
+  title: "US AdTech data broker — CA/CO/VA markets",
+  scenario_summary:
+    "Busted Sled Solutions, Inc. (small AdTech firm) sells/shares personal information across California, Colorado, and Virginia. No EU/UK establishment; no biometric identification.",
+  source_table: "registration_assessments",
+  result_url_pattern: "/registration/assessment/result/{id}",
+  fixture: {
+    invoke_body: {
+      intake_data: {
+        organization_name: "Busted Sled Solutions, Inc.",
+        is_public_authority: false,
+        organization_country: "US",
+        organization_size: "small",
+        industry: "AdTech / MarTech",
+        email: "privacy@example.com",
+        employee_count: 42,
+        annual_revenue_usd: 9000000,
+        data_subjects_count: 250000,
+        role: "controller",
+        processes_personal_data: true,
+        processes_special_categories: false,
+        processes_children_data: false,
+        large_scale_monitoring: true,
+        uses_ai_systems: false,
+        ai_high_risk: false,
+        ai_general_purpose_provider: false,
+        cross_border_transfers: false,
+        acts_as_data_broker: true,
+        sells_or_shares_personal_info: true,
+        processes_biometrics_for_id: false,
+        has_eu_establishment: false,
+        has_uk_establishment: false,
+        markets_served: ["US-CA", "US-CO", "US-VA"],
+      },
+    },
+  },
+};
+
 export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_LIA_UK,
   F_DPIA_EU,
@@ -1017,6 +1103,8 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_ROPA_EU,
   F_US_NOTICE,
   F_EU_NOTICE,
+  F_REGISTRATION_EU,
+  F_REGISTRATION_US,
   // WS6 v2.1 supplemental-capture variants (9 total, one per wired family)
   F_LIA_UK_SUPP,
   F_DPIA_EU_SUPP,

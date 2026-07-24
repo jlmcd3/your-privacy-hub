@@ -221,4 +221,10 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
     locator: { at: "root" },
     required: ["session", "frameworks", "universal"],
   },
+  registration: {
+    locator: { at: "invoke_body" },
+    required: [
+      "intake_data",
+    ],
+  },
 };
