@@ -67,7 +67,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(e)",
     verbatim_quote:
-      "\"Automated Decisionmaking Technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.",
+      "\"Automated decisionmaking technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -76,10 +76,10 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
   admt_def_profiling: R({
     proposition_key: "admt_def_profiling",
     citation: "11 CCR § 7001",
-    subsection: "11 CCR § 7001(hh)",
+    subsection: "11 CCR § 7001(e)(2)",
     verbatim_quote:
-      "\"Profiling\" means any form of automated processing of personal information to evaluate certain personal aspects relating to a natural person, and in particular to analyze or predict aspects concerning that natural person's performance at work, economic situation, health, personal preferences, interests, reliability, behavior, location, or movements.",
-    depth_class: "subsection",
+      "ADMT includes profiling that replaces human decisionmaking or substantially replaces human decisionmaking.",
+    depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
     primary_source_url: CCR_URL,
@@ -89,7 +89,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(e)(1)",
     verbatim_quote:
-      "To \"substantially replace human decisionmaking\" means to use the technology's output as a key factor in a human's decisionmaking. This includes situations in which the business uses the technology's output to make a decision without human involvement, or in which the human reviewer does not know how to interpret and use the technology's output to make the decision, does not review the technology's output along with other information beyond the output, or does not have the authority to override the technology's output and make or change the decision.",
+      "For purposes of this definition, to \"substantially replace human decisionmaking\" means a business uses the technology's output to make a decision without human involvement.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -102,7 +102,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)",
     verbatim_quote:
-      "\"Significant decision\" means a decision using automated decisionmaking technology that results in the provision or denial by the business of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.",
+      "\"Significant decision\" means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -113,7 +113,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(1)",
     verbatim_quote:
-      "\"Financial or lending services\" means the extension of credit, credit-scoring, credit-reporting, loan servicing, or the provision of banking, brokerage, insurance underwriting, or similar financial services or products to a consumer.",
+      "\"Financial or lending services\" means the extension of credit or a loan, transmitting or exchanging funds, the provision of deposit or checking accounts, check cashing, or installment payment plans.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -124,7 +124,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(2)",
     verbatim_quote:
-      "\"Housing\" means the provision or denial of housing, including the sale, rental, or leasing of a dwelling.",
+      "\"Housing\" means any building, structure, or portion thereof that is used or occupied as, or designed, arranged, or intended to be used or occupied as, a home, residence, or sleeping place by one or more consumers including for permanent or temporary occupancy.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -135,7 +135,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(3)",
     verbatim_quote:
-      "\"Education enrollment or opportunities\" means admission or acceptance into academic or vocational programs, educational credentials, suspension and expulsion, and assessments (including detecting cheating or plagiarism).",
+      "(A) Admission or acceptance into academic or vocational programs; (B) Educational credentials (e.g., a degree, diploma, or certificate); and (C) Suspension and expulsion.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -146,7 +146,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(4)",
     verbatim_quote:
-      "\"Employment or independent contracting opportunities or compensation\" means hiring; allocation or assignment of work; compensation; promotion, demotion, suspension, and termination.",
+      "\"Employment or independent contracting opportunities or compensation\" means: (A) Hiring; (B) Allocation or assignment of work for employees; or salary, hourly or per-assignment compensation, incentive compensation such as a bonus, or another benefit (\"allocation/assignment of work and compensation\"); (C) Promotion; and (D) Demotion, suspension, and termination.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -157,7 +157,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(ddd)(5)",
     verbatim_quote:
-      "\"Healthcare services\" means the provision or denial by the business of medical services, including mental-health services, dental services, and vision services.",
+      "\"Healthcare services\" means services related to the diagnosis, prevention, or treatment of human disease or impairment, or the assessment or care of an individual's health.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
