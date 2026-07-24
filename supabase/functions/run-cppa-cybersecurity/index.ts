@@ -1636,6 +1636,93 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W12-CYBER-E1] non-fatal:", String(e1Err));
     }
 
+    // W15 CYBER-REGISTRY-WIRING — L1 verified-authority STAMP PASS.
+    // Walk every citation-bearing surface. When an entry carries a
+    // proposition_key we can resolve, stamp citation/subsection/verbatim_quote
+    // deterministically (overwrites any LLM-authored citation). Retention-
+    // anchor guard: any entry whose text mentions the § 7122(g) five-year
+    // retention rule (or mis-anchors it to § 7123(e)) is re-anchored to the
+    // cyber_retention_5yr row. Fail-open.
+    try {
+      let stamped = 0;
+      let retentionReanchored = 0;
+      let unresolved = 0;
+      let scanned = 0;
+
+      const RETENTION_HINT = /five[-\s]?year|5[-\s]?year|retain(?:ing|ed)?\s+(?:the\s+)?(?:supporting\s+)?documentation|audit[-\s]?record\s+retention|records?\s+retention/i;
+      const MISANCHOR_7123E = /§\s*7123\(e\)/;
+
+      function textOf(entry: any): string {
+        const bits: string[] = [];
+        for (const k of ["finding", "remediation", "text", "action", "risk", "step", "description", "note", "regulatory_basis"]) {
+          const v = entry?.[k];
+          if (typeof v === "string") bits.push(v);
+        }
+        return bits.join(" \n ");
+      }
+
+      function stampEntry(entry: any) {
+        if (!entry || typeof entry !== "object") return;
+        scanned++;
+        const prose = textOf(entry);
+        const hasRetention = RETENTION_HINT.test(prose);
+        const misAnchored = hasRetention && MISANCHOR_7123E.test(prose) &&
+          !/§\s*7122\(g\)/.test(prose);
+
+        // Retention re-anchor: promote proposition_key when the sentence is
+        // clearly about audit-record retention. Never touches per-component
+        // (c)(N) operational citations.
+        if (misAnchored && !entry.proposition_key) {
+          entry.proposition_key = "cyber_retention_5yr";
+          retentionReanchored++;
+        }
+
+        const key = typeof entry.proposition_key === "string" ? entry.proposition_key : null;
+        if (!key) return;
+        const row = resolveByPropositionKey(CYBER_VERIFIED_AUTHORITIES, key);
+        if (!row) {
+          unresolved++;
+          entry.information_needed = true;
+          if (typeof entry.citation === "string") entry.citation = "";
+          return;
+        }
+        entry.citation = row.citation;
+        entry.subsection = row.subsection;
+        entry.verbatim_quote = row.verbatim_quote;
+        entry.governing_anchor = row.governing_anchor;
+        entry.primary_source_url = row.primary_source_url;
+        stamped++;
+      }
+
+      const walkList = (arr: unknown) => {
+        if (!Array.isArray(arr)) return;
+        for (const it of arr) stampEntry(it);
+      };
+
+      walkList((report as any).top_risks);
+      walkList((report as any).next_steps);
+      walkList((report as any).top_3_actions);
+      walkList((report as any).information_needed);
+      walkList((report as any).remediation);
+      walkList((report as any).crosswalk);
+      // controls[] can carry retention prose in finding/remediation.
+      walkList((report as any).controls);
+
+      const meta: any = (report as any)._meta ?? ((report as any)._meta = {});
+      meta.internal = meta.internal ?? {};
+      meta.internal.cyber_va = {
+        version: CYBER_VERIFIED_AUTHORITY_VERSION,
+        scanned, stamped, unresolved, retention_reanchored: retentionReanchored,
+      };
+      console.log(JSON.stringify({
+        evt: "cyber_va_stamp_pass", build_stamp: BUILD_STAMP,
+        va_version: CYBER_VERIFIED_AUTHORITY_VERSION,
+        scanned, stamped, unresolved, retention_reanchored: retentionReanchored,
+      }));
+    } catch (vaErr) {
+      console.error("[W15-CYBER-VA] non-fatal:", String(vaErr));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
