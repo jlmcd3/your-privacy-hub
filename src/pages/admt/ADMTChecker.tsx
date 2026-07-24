@@ -825,8 +825,8 @@ export default function ADMTChecker() {
                   </div>
 
                   {/* TURN 2 — affected population band */}
-                  <div>
-                    <Label>Approximate California consumers subject to this ADMT (affected-population band) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                  <div data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>
+                    <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>Approximate California consumers subject to this ADMT (affected-population band) <span className="text-xs text-muted-foreground font-normal">(optional)</span> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
                     <p className="text-xs text-muted-foreground mt-1">Used to size the risk exposure and the applicability verdict. Optional.</p>
                     <div className="mt-2">
                       <Pills
@@ -838,8 +838,8 @@ export default function ADMTChecker() {
                   </div>
 
                   {/* TURN 2 — internal role roster */}
-                  <div>
-                    <Label>Internal roles with defined responsibilities for this ADMT (role roster) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                  <div data-rail-key="role_roster" onFocus={() => focus("role_roster")}>
+                    <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Internal roles with defined responsibilities for this ADMT (role roster) <span className="text-xs text-muted-foreground font-normal">(optional)</span> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
                     <p className="text-xs text-muted-foreground mt-1">Select every role that already has a defined responsibility for this system.</p>
                     <div className="mt-2">
                       <Pills
@@ -849,6 +849,7 @@ export default function ADMTChecker() {
                       />
                     </div>
                   </div>
+
 
 
 
