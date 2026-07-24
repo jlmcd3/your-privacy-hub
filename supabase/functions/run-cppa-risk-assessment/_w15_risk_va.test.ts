@@ -14,11 +14,14 @@ import {
 import { resolveByPropositionKey, registrySize } from "../_shared/verified-authority-resolver.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W15 (a) registry loads + version stamp exported + BUILD_STAMP w15-risk-regwire", () => {
+Deno.test("W15 (a) registry loads + version stamp exported + BUILD_STAMP w15-risk-* wave", () => {
   assert(RISK_VERIFIED_AUTHORITY_VERSION.startsWith("risk-va-w1-"), `unexpected va version: ${RISK_VERIFIED_AUTHORITY_VERSION}`);
   assert(registrySize(RISK_VERIFIED_AUTHORITIES) >= 40, "registry too small");
   assert(RISK_VERIFIED_AUTHORITY_ROWS.length === registrySize(RISK_VERIFIED_AUTHORITIES));
-  assert(BUILD_STAMP.startsWith("w15-risk-regwire@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
+  assert(
+    BUILD_STAMP.startsWith("w15-risk-regwire@") || BUILD_STAMP.startsWith("w15-risk-factledger@"),
+    `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
+  );
 });
 
 Deno.test("W15 (b) covered proposition_key resolves to exact registry quote", () => {
