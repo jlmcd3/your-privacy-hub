@@ -97,7 +97,7 @@ describe("cppa-cybersecurity verified-authority registry — row-shape contract"
   it("§ 7124(d)(4) attestation preserves the penalty-of-perjury opening verbatim", () => {
     const att = requireVerified(CYBER_VERIFIED_AUTHORITIES, "cyber_cert_attestation_text");
     expect(att.subsection).toBe("11 CCR § 7124(d)(4)");
-    expect(att.verbatim_quote).toMatch(/I attest that I meet the requirements/);
+    expect(att.verbatim_quote).toMatch(/I attest\s+that I meet the requirements/);
   });
 
   it("all rows share a single verified_on stamp (hand-verification pass)", () => {
