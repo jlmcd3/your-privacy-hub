@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T12:25:18Z — turn `RECOVERY-BATCH-FIXES / TURN A (cppa-cyber A1+A2)`
+**Last updated:** 2026-07-24T12:29:34Z — turn `BATCH-5e0558f3-EXTRACT`
 
 ---
 
@@ -16,11 +16,14 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 ## 2. Queue Order (as currently dispatched)
 
-1. **DONE THIS TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 placeholder-leak fix + A2 deterministic aggregates) — deployed.
-2. **NEXT** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1 field cross-wiring). Deploy window closes ~13:05Z (before wave 11 at ~13:15Z) or HOLD.
+1. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 placeholder-leak fix + A2 deterministic aggregates) — deployed.
+2. **NEXT** — `CPPA-CYBER-FIX-CN-PLACEHOLDER` — fix the § 7123(c)(N) unresolved-substitution bug in `run-cppa-cybersecurity` (+ regression test); bundle exec-summary mean/count verification. Deploy respects §3 checks. _CEO CPPA-first priority; inserted ahead of dpia per BATCH-5e0558f3-EXTRACT digest._
 3. Then — resume `SAMPLES-CONTRACT-dpia` (4/8) → `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (5/8 … 8/8).
 4. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §7 sentinel gap).
 5. Deferred — W9 admt build restamp (bundled with next admt deploy; joins W6 restamp deferral in §6).
+6. Deferred — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1 field cross-wiring) — subsumed into cppa-risk's next product turn per note below.
+
+_Note:_ cppa-risk field-attribution pattern (2 findings in §5 digest) to be addressed in cppa-risk's next product turn; RETRO-AUDIT rides that turn.
 
 ## 3. Deploy Locks
 
@@ -30,10 +33,10 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:25:18Z):**
-- Recovery batch `5e0558f3` reached terminal `complete` at 2026-07-24T12:16:46Z. Both cyber & risk deploy locks RELEASED at that moment.
-- `run-cppa-cybersecurity` deployed this turn (12:25Z) — no in-flight customer row.
-- All other functions: **unlocked**. Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
+**Current lock state (2026-07-24T12:29:34Z):**
+- Batch `5e0558f3` reached terminal `complete` at 2026-07-24T12:16:46Z (`phase=done`, `last_error=null`, verified via query_database). §3 locks on `run-cppa-risk-assessment` and `run-cppa-cybersecurity` tied to that batch are **RELEASED**.
+- All functions **unlocked**. Customer-path in-flight: **none** at last check.
+- Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
 
 ## 4. Last Completed Turn
 
@@ -62,7 +65,18 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 | cppa-cyber | `7e70e8a6-ce22-409b-9540-7fb6f9c2815d` | complete | ✅ | 2026-07-24 11:52:32Z |
 
 **Recovery batches (terminal):**
-- `5e0558f3` — launched ~12:01Z; **complete at 2026-07-24T12:16:46Z**. Deploy locks released.
+- `5e0558f3` — launched ~12:01Z; **COMPLETE at 2026-07-24T12:16:46Z**. Deploy locks released. Wave-10 lost reads reclaimed. Instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg`. Results:
+  - **cppa-risk** run 123 (quality_run `c0d7fd2a`) — overall **84.55** / GPT 89, checks 69/75.
+  - **cppa-cyber** run 104 (quality_run `be400771`) — overall **83.60** / GPT 86, checks 50/60.
+
+### Batch 5e0558f3 digest (CPPA recovery reads)
+
+- **cppa-cyber HIGH — citation** (doc `fdf1f109`): malformed unresolved placeholder `"11 CCR § 7123(c)(N)"` appears verbatim in Authentication, Audit-log management, and Segmentation remediation — template variable not substituted in `run-cppa-cybersecurity` output path. Concrete bug; top fix candidate → queued as §2 item 2 `CPPA-CYBER-FIX-CN-PLACEHOLDER`.
+- **cppa-cyber HIGH — hallucination** (doc `54602516`): exec summary asserts "mean score of 81 across all 18 scored components" not verifiable from visible output; also miscounts controls "Implemented or Mature". Bundled into the same §2 item 2 turn.
+- **cppa-cyber MEDIUM ×2** (doc `fdf1f109`): near-identical boilerplate remediation across 16/18 controls; actionability lacks cohort deadlines (e.g. April 1, 2028 >$100M cohort), artefact specificity, and owners.
+- **cppa-risk HIGH — hallucination** (doc `fcbcc203`): `inconsistency_flags` attributes `q5b_profiling_observation` value to `sensitive_location_basis` (actual intake: "Not applicable — no sensitive-location processing") — intake field cross-attribution.
+- **cppa-risk HIGH — hallucination** (doc `1b32c6a9`): risk register states "profiling/inference generation confirmed" derived from `i1_processing_purpose` which does not state it — overclaiming from intake.
+- **Note on counts:** `quality_findings` rows log ALL check results; `severity` = check tier, `passed` = outcome. The 6 critical-tier rows on cppa-risk are `passed=true` (qc_r1_1, qc_r1_4 PASSED on all 3 docs). Failure counts: cppa-risk **2 high**; cppa-cyber **2 high + 2 medium**.
 
 ## 6. Carry-Forward Registers
 
