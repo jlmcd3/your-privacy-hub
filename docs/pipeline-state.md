@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T17:12:00Z — WAVE12-FIX TURN C (cppa-admt) shipped: fabricated `access_timeline` row removed from registry, `deadline_table` neutral placeholder path added, top-level `_`-prefixed telemetry moved to `_meta.internal`, per-entry `_va_stamp*` diagnostics stripped, `§ 7001 + § 7001` chain dedupe added, `run-admt-checker` restamped `w12-admt-turnc@2026-07-24T17:02:00Z` (fresh clock, deferred W9 restamp discharged).
+**Last updated:** 2026-07-24T17:12:11Z — WAVE12-FIX TURN C (cppa-admt) DEPLOYED with fresh-clock restamp `w12-admt-turnc@2026-07-24T17:10:43Z` (boot log confirmed 17:11:54Z). C1 metadata-leak strip live + guarded by `_w12_c1_leak_guard.test.ts` (2/2 green); C2 fabricated `access_timeline` row removed from `admt-verified-authorities.ts`, neutral placeholder path emits `information_needed:true` with no verbatim quote; C4 §7001-chain dedupe live in `walkAnchorGuard`. C3 fallback-density deferred to next dispatch (needs resolvable-proposition roster). W9 restamp deferral DISCHARGED.
 
 ---
 
@@ -12,7 +12,7 @@
 
 _None at this time._
 
-Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and shipped as `run-admt-checker` build stamped `w9-admt-preemit` (real deploy ~11:49Z; the in-code `@…T12:30:00Z` marker is future-dated — restamp at admt's next deploy per stamp-doctrine correction).
+Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and shipped as `run-admt-checker` build stamped `w9-admt-preemit` (real deploy ~11:49Z; future-dated `@…T12:30:00Z` marker was DISCHARGED at TURN C deploy 17:11:54Z with fresh-clock stamp `w12-admt-turnc@2026-07-24T17:10:43Z`).
 
 ## 2. Queue Order (as currently dispatched)
 
@@ -20,7 +20,7 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 2. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a field-provenance + B1b claims guard) — deployed 12:39Z.
 3. **DONE PRIOR TURN** — `SAMPLES-CONTRACT-dpia` (4/8) — frontend/test only, no deploy.
 4. **DONE PRIOR TURN** — `SAMPLES-CONTRACT-lia` (5/8) — frontend/test only, no deploy.
-5. **DONE THIS TURN** — `WAVE12-FIX TURN C` (cppa-admt): deployed `run-admt-checker` at 2026-07-24T17:11Z, build stamp `w12-admt-turnc@2026-07-24T17:02:00Z`. Registry `access_timeline` row removed (fabricated §7222(c) quote); `_w9_admt_slots.buildDeadlineTable` now emits `information_needed:true` with empty citation/quote when a pk is unresolved (never fabricates); terminal write strips top-level underscore-prefixed telemetry (`_w6_admt_fix`, `_w9_admt_wire`, `_w9_admt_slots`, `_w9_admt_regen`, `_w9_admt_pre_emit`) into `_meta.internal` and removes per-entry `_va_stamp`, `_va_stamp_unresolved`, `_w9_regen`; `walkAnchorGuard` adds a §7001-chain dedupe (any "+"-joined citation containing more than one §7001 pinpoint collapses to the first §7001 anchor + non-§7001 anchors, counted under `p1_anchor_dedupes`); `ADMT_COVERAGE.rubric_citation_misapplied.prevented_by` pruned of `access_timeline`. C3 fallback-density expansion deferred: wave-12 evidence did not include the underlying propositional list — logged as follow-up (§6). Tests: registry (13/13) + turn2 parity (2/2) green.
+5. **DONE THIS TURN** — `WAVE12-FIX TURN C` (cppa-admt): deployed `run-admt-checker` at 2026-07-24T17:11:54Z (boot log confirmed), fresh-clock BUILD_STAMP `w12-admt-turnc@2026-07-24T17:10:43Z`. Registry `access_timeline` row removed (fabricated §7222(c) quote); `_w9_admt_slots.buildDeadlineTable` now emits `information_needed:true` with empty citation/quote when a pk is unresolved (never fabricates); terminal write strips top-level underscore-prefixed telemetry (`_w6_admt_fix`, `_w9_admt_wire`, `_w9_admt_slots`, `_w9_admt_regen`, `_w9_admt_pre_emit`, any future `_w<digits>_*`) into `_meta.internal` and removes per-entry `_va_stamp`, `_va_stamp_unresolved`, `_w9_regen`; `walkAnchorGuard` adds a §7001-chain dedupe; `ADMT_COVERAGE.rubric_citation_misapplied.prevented_by` pruned of `access_timeline`. **C1 leak-guard test** `_w12_c1_leak_guard.test.ts` added (2/2 green: (i) `_w<digits>_*` telemetry moved to `_meta.internal`, entry diagnostics scrubbed; (ii) no customer-surface key matches `/^_w\d+_/` after strip). C3 fallback-density deferred: wave-12 evidence delivered headline count only, not underlying propositional list — logged as follow-up (§6 + §2 item 13). Tests: leak-guard 2/2 + w6_admt_fix 16/16 + registry 13/13 + turn2 parity 2/2 all green.
 6. **NEXT** — `WAVE12-FIX TURN D` (cppa-risk, deploy turn): (D1) volume-prong threshold wired to wrong field — used `q2_consumers` ("100,000–249,999") instead of `i3_ca_consumer_band` ("100,000–1,000,000") for §7120(b)(2)(A) 250k test → wrong scope conclusion (HIGH doc `9ce32381`); (D2) profiling-claim guard hardening — TURN B fixed `sensitive_location` cross-attribution (not observed wave 12) but overclaim mutated: "profiling and inference generation" asserted from a purpose field that doesn't state it (HIGH `9ce32381`) and "no profiling inferences are recorded" contradicting `q5b_profiling_observation=Yes` (HIGH `864495a3`); (D3) third-party definition cite `§1798.140(ad)` → correct post-CPRA lettering `§1798.140(ai)` (HIGH `864495a3`).
 7. Then — `WAVE12-FIX TURN E` (cppa-cyber, deploy turn): framework-crosswalk sentence assembler emits garbled/truncated fragments — `"the ISO 27001 framework provides comparative guidance on;"` / dangling `")"` / duplicated operative-requirement sentences (HIGH ×3, docs `66187172` + `57bebb53`). TURN A placeholder fix VERIFIED effective: `"§7123(c)(N)"` and the 18-component mean-score hallucination were NOT observed in wave 12. Boilerplate remediation across 16/18 controls persists (MEDIUM, deferred to E or later).
 8. Then — `SAMPLES-CONTRACT-governance` (6/8). Frontend-only; not deploy-locked.
@@ -109,7 +109,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt/risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
   - W6 cyber — SUPERSEDED this turn by `w10-cyber-a1a2` (fresh-clock stamp).
-  - W9 admt (`w9-admt-preemit` marker future-dated) — restamp at admt's next deploy (no solo redeploy).
+  - W9 admt (`w9-admt-preemit` marker future-dated) — **DISCHARGED 2026-07-24T17:11:54Z** at TURN C deploy (fresh-clock stamp `w12-admt-turnc@2026-07-24T17:10:43Z`, boot log confirmed).
 - **L5 backlog:** 85 aggregate rows, 0 unclassified. Standard cron continues.
 - **Sentinel gap:** orchestrator runs not yet registered as `delivery_contracts` (DS-T2 sweep would not catch orchestrator isolate death). Wiring queued between waves.
 
@@ -142,6 +142,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
 
+- 2026-07-24T17:12:11Z — `WAVE12-FIX TURN C` (cppa-admt) DEPLOYED with fresh-clock BUILD_STAMP `w12-admt-turnc@2026-07-24T17:10:43Z` (boot log confirms `[run-admt-checker] boot build_stamp=w12-admt-turnc@2026-07-24T17:10:43Z` at 17:11:54Z). C1 metadata strip (leak-guard test 2/2), C2 fabricated `access_timeline` row removed + neutral placeholder path, C4 §7001 chain dedupe. W9 restamp deferral DISCHARGED. C3 deferred to next digest with proposition roster. TURN D promoted to NEXT.
 - 2026-07-24T16:56:21Z — WAVE-11 reconciled (isolate death #2) + WAVE-12 digest extracted; no gate_v2 pass; CPPA fix turns C/D/E queued ahead of governance 6/8; TURN A/B fixes verified effective on wave-12 re-measure.
 - 2026-07-24T12:58:36Z — `SAMPLES-CONTRACT-lia (5/8)` REVISED per team-reviewed dispatch — DONE (frontend/test only, no deploy). Live-form audit resolved `stage`/`status`/`preview_signal` as mechanical row columns → allowlisted in `validate.ts` and restored in fixture; `potential_harm` corrected `"Severe"` → `"Moderate"` per counsel reading; ADVISORY drift 10 → 8; `li_assessment` now FATAL-tier. Regen queued (admin-UI, morning).
 - 2026-07-24T12:53:21Z — `SAMPLES-CONTRACT-lia (5/8)` initial pass — SUPERSEDED by 12:58:36Z revision (missed mechanical-row-key form audit and used Severe over Moderate).
