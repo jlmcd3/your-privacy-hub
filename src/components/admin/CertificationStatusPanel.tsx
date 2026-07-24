@@ -120,7 +120,8 @@ export function CertificationStatusPanel() {
             digest_id: d.id,
             gate_v2_pass: d.gate_v2_pass,
             failing_checks: Array.isArray(d.failing_checks)
-              ? (d.failing_checks as { severity?: string; cross_category?: string }[])
+              ? (d.failing_checks as Array<{ severity?: string | null; cross_category?: string | null }>)
+                  .map(f => ({ severity: f.severity ?? null, cross_category: (f.cross_category ?? null) as never }))
               : [],
             instrument_hash: anchor?.grader_context_version ?? null,
             n_docs: anchor?.batch_size ?? null,
