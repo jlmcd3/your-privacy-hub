@@ -2129,6 +2129,10 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           jurisdictions_analysed: body.jurisdictions,
           enforcement_precedents: report_data.enforcement_precedents,
           generated_at: report_data.generated_at,
+          // BIO-REG-W1 T2(c) D2 FIX — surface registry_version on the streamed
+          // response envelope so downstream measurement can read it without
+          // decoding report_data.
+          registry_version: BIOMETRIC_REGISTRY_VERSION,
         })));
       } catch (e) {
         clearInterval(keepAlive);
