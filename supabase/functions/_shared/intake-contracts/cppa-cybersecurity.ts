@@ -80,6 +80,22 @@ export const CYBER_CONTROL_SLUGS = [
   "c18_continuity",
 ] as const;
 
+// TURN 3 — per-component evidence-availability checklist (ISO 19011 evidence
+// typing surface). LITERAL COPY of CPPACybersecurity.enums.ts
+// CYBER_EVIDENCE_OPTS. Parity is asserted in cppaCyberTurn3Parity.test.ts.
+export const CYBER_EVIDENCE_OPTS = [
+  "Policy / procedure document",
+  "Runbook / SOP",
+  "Screenshot / config export",
+  "Sample log / report",
+  "SOC 2 or auditor letter",
+  "None on file",
+] as const;
+
+// TURN 3 — in_scope_frameworks: multi-enum drawn from FRAMEWORK_OPTIONS so
+// callers cannot invent alternative framework names.
+export const CYBER_IN_SCOPE_FRAMEWORKS = FRAMEWORK_OPTIONS;
+
 export const cppaCybersecurityContract: IntakeContract = {
   tool_type: "cppa_cybersecurity",
   table: "cppa_cybersecurity_runs",
@@ -93,6 +109,11 @@ export const cppaCybersecurityContract: IntakeContract = {
       options: FRAMEWORK_OPTIONS },
     { key: "profile.last_audit",     kind: "enum", required: "always",
       options: LAST_AUDIT_OPTIONS },
+    // TURN 3 — scope framing fields (optional; feed C-C scope justification).
+    { key: "profile.in_scope_frameworks", kind: "multi_enum", required: "optional",
+      options: CYBER_IN_SCOPE_FRAMEWORKS, askEligible: true },
+    { key: "profile.audit_scope_rationale", kind: "narrative", required: "optional",
+      askEligible: true },
     // controls[]
     { key: "controls[].key",     kind: "enum",      required: "always",
       options: CYBER_CONTROL_SLUGS },
@@ -100,5 +121,8 @@ export const cppaCybersecurityContract: IntakeContract = {
     { key: "controls[].maturity", kind: "enum",     required: "optional",
       options: CYBER_MATURITY_OPTIONS, askEligible: true },
     { key: "controls[].notes",   kind: "narrative", required: "optional" },
+    // TURN 3 — per-component evidence-availability checklist.
+    { key: "controls[].evidence", kind: "multi_enum", required: "optional",
+      options: CYBER_EVIDENCE_OPTS, askEligible: true },
   ],
 };
