@@ -540,11 +540,16 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().slice(0, 10);
 
+    // C2-1 — FSOR agency-position anchors appended beneath the advertising,
+    // gaming, and human-involvement hand rules. Warn-and-ship-unanchored when
+    // no matching row is on record (the hand rule stays in force).
+    const admtFsorAnchorBlock = await buildFsorAnchorBlock(supabase, ADMT_FSOR_ANCHOR_SPECS);
+
     const authoritiesBlock = `REGULATION AUTHORITIES:
 ${authBlock}
 
 COMPLIANCE DEADLINES:
-${deadlineBlock}`;
+${deadlineBlock}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
 
     const system: SystemBlock[] = buildSystemContent({
       toolModule: ADMT_TOOL_MODULE,
