@@ -331,7 +331,12 @@ export function applyW6CyberFix(
   const framework = readIntakeFramework(intake);
   counters.framework = framework ?? null;
 
-  const applyToString = (s: unknown, key?: string): string | undefined => {
+  // A1 (2026-07-24): resolve the calling control's § 7123(c) citation from
+  // the report's own control label so rewriteComparativeAsOperative can
+  // stamp the correct operative anchor. For fields with no per-control
+  // context (executive_summary/top_risks/next_steps), citation is omitted
+  // and the operative tail is not appended.
+  const applyToString = (s: unknown, key?: string, controlCitation?: string): string | undefined => {
     if (typeof s !== "string") return undefined;
     if (key && ANCHOR_KEYS.has(key)) return undefined;
     let out = s;
@@ -340,7 +345,7 @@ export function applyW6CyberFix(
       out = fw.out;
       counters.frameworkRewritten += fw.rewritten;
     }
-    const comp = rewriteComparativeAsOperative(out);
+    const comp = rewriteComparativeAsOperative(out, { controlCitation });
     out = comp.out;
     counters.comparativeOperativeRewritten += comp.rewritten;
     const named = rewriteUncitedNamedRules(out);
@@ -356,8 +361,9 @@ export function applyW6CyberFix(
   let rbScrubbed = 0;
   for (const c of controls) {
     if (!c || typeof c !== "object") continue;
+    const cite = resolveControlCitation((c as any).control);
     for (const key of PROSE_FIELDS) {
-      const patched = applyToString((c as any)[key], key);
+      const patched = applyToString((c as any)[key], key, cite);
       if (patched !== undefined) (c as any)[key] = patched;
     }
     const rb = (c as any).regulatory_basis;
