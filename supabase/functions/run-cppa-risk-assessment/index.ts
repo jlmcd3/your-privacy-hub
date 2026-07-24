@@ -885,6 +885,7 @@ async function runPipeline(assessment_id: string) {
       `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
       testStatesBlock,
       riskDeadlineBlock,
+      RISK_VERIFIED_AUTHORITY_BLOCK,
     ].filter(Boolean).join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
