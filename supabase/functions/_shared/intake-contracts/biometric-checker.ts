@@ -48,6 +48,8 @@ const JURS = [
   "United States — Federal (FTC)",
   "Canada (PIPEDA / provincial)",
   "Australia (Privacy Act)",
+  // BIO-REG-W1-S3 — Singapore added as a discrete registry-backed enum.
+  "Singapore (PDPA)",
 ] as const;
 
 export {
