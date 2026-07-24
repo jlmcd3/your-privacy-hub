@@ -11,6 +11,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 
 
 import DigestPreferences from "@/components/DigestPreferences";
+import MondayReportWhatYouGet from "@/components/subscribe/MondayReportWhatYouGet";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
@@ -404,12 +405,15 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* "What you get" descriptor for the free Monday Report — non-premium context. */}
+          <MondayReportWhatYouGet className="mb-6" />
+
           {/* Digest preferences prompt */}
           {!digestPrefsSet && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="text-card-title text-gray-900 mb-1">Set up your weekly digest</p>
-                <p className="text-sm text-gray-700">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
+                <p className="text-card-title text-gray-900 mb-1">Set up your Monday Report</p>
+                <p className="text-sm text-gray-700">Choose up to 2 regions and up to 2 topics to receive the Monday Privacy Intelligence Report — filtered to your selections, every Monday.</p>
               </div>
               <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-brand-navy text-white font-semibold text-sm px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
                 Set up digest →
