@@ -109,7 +109,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt/risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
   - W6 cyber — SUPERSEDED this turn by `w10-cyber-a1a2` (fresh-clock stamp).
-  - W9 admt (`w9-admt-preemit` marker future-dated) — restamp at admt's next deploy (no solo redeploy).
+  - W9 admt (`w9-admt-preemit` marker future-dated) — **DISCHARGED 2026-07-24T17:11:54Z** at TURN C deploy (fresh-clock stamp `w12-admt-turnc@2026-07-24T17:10:43Z`, boot log confirmed).
 - **L5 backlog:** 85 aggregate rows, 0 unclassified. Standard cron continues.
 - **Sentinel gap:** orchestrator runs not yet registered as `delivery_contracts` (DS-T2 sweep would not catch orchestrator isolate death). Wiring queued between waves.
 
