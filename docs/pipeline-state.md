@@ -108,3 +108,9 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **Outcome:** Duplicate work item removed; TURN B restored as NEXT within the same tick (~5 minutes). No code deployed or execution started for the duplicate.
 - **Root cause:** Controller read the ledger at tick start and did not re-clone before dispatching an insert, while another parallel turn completed its work and updated the ledger in between.
 - **Remediation:** Reinforces the standing header rule: **re-clone immediately before dispatch, not at tick start.** All controllers must read `docs/pipeline-state.md` from a fresh clone before acting.
+
+## 8. While-You-Slept (overnight standing-order run log)
+
+Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
+
+- 2026-07-24T12:53:21Z — `SAMPLES-CONTRACT-lia (5/8)` — DONE (frontend/test only, no deploy). ADVISORY drift 10 → 8; `li_assessment` now FATAL-tier. Regen queued (admin-UI, morning).
