@@ -464,6 +464,7 @@ async function runAssessment(assessment_id: string): Promise<void> {
     const cyberInjectedParts = [cyberTestStatesBlock];
     if (cyberFsorAnchorBlock) cyberInjectedParts.push(cyberFsorAnchorBlock);
     if (cyberDeadlineBlock) cyberInjectedParts.push(cyberDeadlineBlock);
+    cyberInjectedParts.push(CYBER_VERIFIED_AUTHORITY_BLOCK);
     const cyberInjected = cyberInjectedParts.join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
