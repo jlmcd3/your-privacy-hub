@@ -3516,6 +3516,71 @@ export type Database = {
         }
         Relationships: []
       }
+      pdf_render_queue: {
+        Row: {
+          attempts: number
+          contract_id: string | null
+          created_at: string
+          html_body: string | null
+          id: string
+          last_error: string | null
+          notified_at: string | null
+          pdf_path: string | null
+          run_class: string
+          status: string
+          subject_id: string
+          subject_table: string
+          title: string | null
+          tool: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          contract_id?: string | null
+          created_at?: string
+          html_body?: string | null
+          id?: string
+          last_error?: string | null
+          notified_at?: string | null
+          pdf_path?: string | null
+          run_class: string
+          status?: string
+          subject_id: string
+          subject_table: string
+          title?: string | null
+          tool: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          contract_id?: string | null
+          created_at?: string
+          html_body?: string | null
+          id?: string
+          last_error?: string | null
+          notified_at?: string | null
+          pdf_path?: string | null
+          run_class?: string
+          status?: string
+          subject_id?: string
+          subject_table?: string
+          title?: string | null
+          tool?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdf_render_queue_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       primary_source_fetch_runs: {
         Row: {
           completed_at: string | null
