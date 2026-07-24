@@ -167,6 +167,18 @@ export const cppaRiskContract: IntakeContract = {
     { key: "q5c_share_revenue_50pct", kind: "enum", required: "conditional",
       requiredWhen: 'q5_sell_share starts with "Yes"', hiddenValue: "",
       options: SHARE_REVENUE_50PCT_OPTS },
+    // TURN 1b intake fields (RISK CONTRACT DRIFT fix). Options for
+    // sensitive_location_basis MUST match SENSITIVE_LOCATION_BASIS_OPTS in
+    // src/pages/CPPARiskAssessment.enums.ts verbatim; parity is asserted
+    // by _tests/golden-contract.test.ts and the risk option-drift test.
+    { key: "sensitive_location_basis", kind: "enum", required: "optional",
+      options: SENSITIVE_LOCATION_BASIS_OPTS },
+    // Public privacy-policy URL rendered as a record anchor in the
+    // attestation_block and submission_summary. Free-form text; the
+    // contract's convention for URL/text fields is `kind: "text"`
+    // (see subject_anchor above).
+    { key: "public_privacy_policy_url", kind: "text", required: "optional" },
+
 
     // Consumer rights (Step 2)
     { key: "q6_right_know",       kind: "text",       required: "always" }, // form joins q6Multi with "; " — free-form joined string, not enum-checkable
