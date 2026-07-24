@@ -306,6 +306,36 @@ const ANCHOR_KEYS = new Set([
   "intake_field_1", "intake_field_2", "canonical_fields", "element_id",
 ]);
 
+// A1 (2026-07-24): per-control § 7123(c) citation registry keyed by the
+// canonical report control label. Mirrors index.ts COMPONENT_CITATIONS.
+// Any label not in this map yields undefined → operative tail is OMITTED
+// (never emits "(N)" or an unresolved placeholder).
+const COMPONENT_CITATION_BY_LABEL: Record<string, string> = {
+  "Authentication": "11 CCR § 7123(c)(1)",
+  "Encryption of personal information": "11 CCR § 7123(c)(2)",
+  "Account management and access controls": "11 CCR § 7123(c)(3)",
+  "Inventory and management of personal information and systems": "11 CCR § 7123(c)(4)",
+  "Secure configuration of hardware and software": "11 CCR § 7123(c)(5)",
+  "Vulnerability scanning and penetration testing": "11 CCR § 7123(c)(6)",
+  "Audit-log management": "11 CCR § 7123(c)(7)",
+  "Network monitoring and defenses": "11 CCR § 7123(c)(8)",
+  "Antivirus and anti-malware protections": "11 CCR § 7123(c)(9)",
+  "Segmentation of an information system": "11 CCR § 7123(c)(10)",
+  "Port and protocol management and protection": "11 CCR § 7123(c)(11)",
+  "Cybersecurity awareness": "11 CCR § 7123(c)(12)",
+  "Cybersecurity education and training": "11 CCR § 7123(c)(13)",
+  "Secure development and coding practices": "11 CCR § 7123(c)(14)",
+  "Oversight of service providers, contractors, and third parties": "11 CCR § 7123(c)(15)",
+  "Retention schedules and proper disposal of personal information": "11 CCR § 7123(c)(16)",
+  "Security-incident response management": "11 CCR § 7123(c)(17)",
+  "Business-continuity and disaster-recovery planning": "11 CCR § 7123(c)(18)",
+};
+
+function resolveControlCitation(label: unknown): string | undefined {
+  if (typeof label !== "string") return undefined;
+  return COMPONENT_CITATION_BY_LABEL[label.trim()];
+}
+
 export function applyW6CyberFix(
   report: CyberReport | null | undefined,
   intake: CyberIntake | null | undefined,
