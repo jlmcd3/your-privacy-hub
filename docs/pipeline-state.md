@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T13:03:07Z — STAND-DOWN / SUPERSEDE on duplicate `SAMPLES-CONTRACT-lia (5/8)` dispatch; uncommitted revised edits reverted to `d7efef9` state.
+**Last updated:** 2026-07-24T16:56:21Z — WAVE-11 reconciliation recorded + WAVE-12 digest (batch `a289c96e`) extracted; CPPA fix turns C/D/E queued ahead of SAMPLES-CONTRACT-governance per CEO CPPA priority.
 
 ---
 
