@@ -2270,6 +2270,82 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (e) { console.error("[RISK] W10-RISK-B1 errored (fail-open):", e); }
 
+    // ── S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring — pre-VA-stamp ──
+    // Blocks wave-15 unsupported-positive / contradiction / negative-from-
+    // silence classes on the same client-fact surfaces the VA stamp walks.
+    // ORDER: after W6/W9/W10 retro-audit scrubs; BEFORE the w15 risk_va L1
+    // citation stamp pass so stamps attach to final (rewritten) claim text.
+    // Fail-open. Telemetry sequestered under _meta.internal.fact_ledger only.
+    try {
+      const _intakeForFL = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const ledger = buildFactLedger(_intakeForFL);
+      const NEG_RE = /\b(no|none|not|never|absence of|does not|is not|are not|without)\b/i;
+      const pickText = (o: any): string => {
+        if (!o || typeof o !== "object") return "";
+        return String(
+          o.description ?? o.text ?? o.harm_type ?? o.action ?? o.statement ??
+            o.title ?? o.note ?? o.rationale ?? o.detail ?? "",
+        );
+      };
+      const pickField = (o: any): string | undefined => {
+        if (!o || typeof o !== "object") return undefined;
+        const f = o.field ?? o.intake_field_1 ??
+          (Array.isArray(o.source_fields) && o.source_fields[0]);
+        return typeof f === "string" && f.trim() ? f.trim() : undefined;
+      };
+      const setText = (o: any, next: string): void => {
+        if (!o || typeof o !== "object") return;
+        for (const k of ["description", "text", "harm_type", "action", "statement", "title", "note", "rationale", "detail"]) {
+          if (typeof o[k] === "string" && o[k]) { o[k] = next; return; }
+        }
+      };
+      const claims: Array<{ text: string; field?: string; direction: "positive" | "negative"; surfacePath?: string; needle?: string; __ref?: any }> = [];
+      const scan = (arr: any, path: string): void => {
+        if (!Array.isArray(arr)) return;
+        arr.forEach((it, i) => {
+          const text = pickText(it);
+          if (!text) return;
+          const field = pickField(it);
+          const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
+          // Needle for cross-attribution: first quoted phrase, if any.
+          const q = text.match(/["“]([^"”]{6,120})["”]/);
+          const needle = q ? q[1] : undefined;
+          claims.push({ text, field, direction, surfacePath: `${path}[${i}]`, needle, __ref: it });
+        });
+      };
+      const r0: any = report_data;
+      scan(r0.information_needed, "information_needed");
+      scan(r0.strengthen_items, "strengthen_items");
+      scan(r0.inconsistency_flags, "inconsistency_flags");
+      scan(r0.top_3_actions, "top_3_actions");
+      scan(r0.top_actions, "top_actions");
+      if (r0.risk_register && typeof r0.risk_register === "object") {
+        scan(r0.risk_register.entries, "risk_register.entries");
+      }
+      const sa: any = r0.scope_analysis ?? r0.trigger_analysis;
+      if (sa && typeof sa === "object") {
+        const text = pickText(sa);
+        if (text) {
+          const field = pickField(sa);
+          const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
+          claims.push({ text, field, direction, surfacePath: "scope_analysis", __ref: sa });
+        }
+      }
+      const flRes = enforceLedger(r0, ledger, { claims: claims.map(({ __ref, ...c }) => c) });
+      // Apply rewrites to surface entries (D2-mirror phrasing sourced from module).
+      for (const rw of flRes.rewrites) {
+        const src = claims.find((c) => c.surfacePath === rw.surfacePath && c.text === rw.from);
+        if (src && src.__ref) setText(src.__ref, rw.to);
+      }
+      console.log(JSON.stringify({
+        evt: "fact_ledger_pass", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, version: FACT_LEDGER_VERSION,
+        ledger_rows: ledger.length, ...flRes.counters,
+      }));
+    } catch (e) {
+      console.warn("[RISK] S-B fact-ledger errored (fail-open):", (e as Error)?.message);
+    }
+
     // ── W15 RISK-REGISTRY-WIRING — L1 REGISTRY-STAMPED CITATIONS pass ──
     // Walks every finding/entry that emitted a proposition_key and stamps
     // citation + subsection + verbatim_quote from RISK_VERIFIED_AUTHORITIES.
