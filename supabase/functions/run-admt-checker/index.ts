@@ -630,7 +630,9 @@ Deno.serve(async (req) => {
 ${authBlock}
 
 COMPLIANCE DEADLINES:
-${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
+${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}
+
+${ADMT_VERIFIED_AUTHORITY_BLOCK}`;
 
     const system: SystemBlock[] = buildSystemContent({
       toolModule: ADMT_TOOL_MODULE,
