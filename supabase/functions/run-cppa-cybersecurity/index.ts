@@ -385,11 +385,17 @@ async function runAssessment(assessment_id: string): Promise<void> {
     // R1b2 — compute deterministic TEST-STATES and inject them into the system content.
     const cyberTestStates = computeCyberTestStates((row.intake_data as Record<string, any>) ?? {});
     const cyberTestStatesBlock = renderCyberTestStatesBlock(cyberTestStates);
+    // C2-1 — FSOR agency-position anchor beneath the zero-trust deletion note.
+    // Warn-and-ship-unanchored when no matching row exists.
+    const cyberFsorAnchorBlock = await buildFsorAnchorBlock(supabase, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS);
+    const cyberInjected = cyberFsorAnchorBlock
+      ? `${cyberTestStatesBlock}\n\n${cyberFsorAnchorBlock}`
+      : cyberTestStatesBlock;
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
       currentDate: today,
       cache: true,
-      injected: cyberTestStatesBlock,
+      injected: cyberInjected,
     });
 
     const enforcementBlock = enforcementContext
