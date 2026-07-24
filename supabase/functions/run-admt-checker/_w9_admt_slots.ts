@@ -1,379 +1,335 @@
 // TURN 2 (cppa-admt) — deterministic slot reprojection.
 //
-// Three typed hard slots the customer-facing report MUST expose. Every value
-// is derived from the intake + the model's own scope_analysis; nothing is
-// invented. Registry-sourced deadlines come from ADMT_VERIFIED_AUTHORITIES.
+// A-C. APPLICABILITY VERDICT (top-of-report) + REGISTRY-SOURCED DEADLINE TABLE.
+// A-A. EDPB LOGIC-DISCLOSURE ADEQUACY (access-right § 7222(b)(3)).
+// A-B. Art 22(3) HUMAN-INTERVENTION QUALIFICATION (three-element § 7001(e)(1)).
 //
-// Slots emitted:
-//   * applicability_verdict — TOP-of-report verdict placed BEFORE any duty
-//     analysis (A-C: applicability first). Enums are closed.
-//   * deadline_table        — registry-sourced deadline matrix (A-C).
-//   * adequacy_finding      — EDPB logic-disclosure adequacy (A-A) + Art 22(3)
-//                             three-element human-intervention qualification (A-B).
-//
-// Pattern mirrors run-cppa-risk-assessment/_w9_risk_slots.ts (TURN 1a/1b).
+// Follows the deterministic-reprojection pattern established for cppa-risk in
+// _w9_risk_slots.ts: the generator emits `null` in the three slots; this module
+// stamps the final values from intake + scope_analysis + the ADMT verified-
+// authority registry. No LLM calls. No fabrication. Fail-open on any error.
 
 import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
 } from "../_shared/registry/admt-verified-authorities.ts";
 
-export const W9_ADMT_SLOTS_STAMP =
-  "w9-admt-turn2-slots@2026-07-24T10:12:00Z";
-
-type Report = Record<string, any>;
-type Intake = Record<string, any>;
-
-const s = (v: unknown): string => (typeof v === "string" ? v : "");
-const truthy = (v: unknown): boolean => v === true || v === "true" || v === "Yes" || v === "yes";
+export const W9_ADMT_SLOTS_STAMP = "w9-admt-turn2-slots@2026-07-24T10:12:00Z";
 
 // ---------------------------------------------------------------------------
-// Enum vocabularies (A-C: applicability verdict first).
+// Types
 // ---------------------------------------------------------------------------
-export const APPLICABILITY_VERDICTS = [
-  "in_scope",
-  "out_of_scope",
-  "conservative_assumption",
-  "insufficient_basis",
-] as const;
-export type ApplicabilityVerdict = typeof APPLICABILITY_VERDICTS[number];
 
-export interface ApplicabilityBlock {
-  verdict: ApplicabilityVerdict;
-  basis: string;                   // one-sentence deterministic prose
-  statutory_anchors: string[];     // registry-stamped pinpoints
-  determination_basis: "established" | "conservative_assumption" | "unknown";
-  compliance_deadline: string;     // § 7200(b)
+export type ApplicabilityLabel =
+  | "in_scope"
+  | "out_of_scope"
+  | "conservative_assumption"
+  | "insufficient_basis";
+
+export interface ApplicabilityVerdict {
+  label: ApplicabilityLabel;
+  reason: string;
+  authorities: Array<{ proposition_key: string; subsection: string; verbatim_quote: string }>;
+  drivers: {
+    is_admt: boolean | null;
+    triggers_significant_decision: boolean | null;
+    determination_basis: string | null;
+    human_review_qualifies: boolean | null;
+  };
 }
 
-export interface DeadlineRow {
+export interface DeadlineTableRow {
   obligation: string;
-  deadline: string;
-  citation: string;
-  subsection: string;
+  compliance_deadline: string;
   proposition_key: string;
-  applies_when: string;
-}
-
-export interface ThreeElementQualification {
-  knows_how_to_interpret_output: boolean | null;
-  reviews_output_with_other_information: boolean | null;
-  has_authority_to_override: boolean | null;
-  all_three_satisfied: boolean | null;
-  basis: string;
+  subsection: string;
+  verbatim_quote: string;
 }
 
 export interface AdequacyFinding {
-  logic_disclosure_adequate: boolean | null;
-  logic_disclosure_basis: string;
-  logic_disclosure_registry_anchor: string;
-  three_element_human_intervention: ThreeElementQualification;
-  overall_summary: string;
+  logic_disclosure: {
+    // EDPB three elements: inputs, output, use
+    element_inputs_present: boolean | null;
+    element_output_present: boolean | null;
+    element_use_present: boolean | null;
+    conclusion: "adequate" | "inadequate" | "insufficient_basis";
+    reason: string;
+    authorities: Array<{ proposition_key: string; subsection: string }>;
+  };
+  human_intervention: {
+    // Art 22(3) three elements: A) interpret output, B) reviews other info, C) authority to override
+    element_a_interpret: boolean | null;
+    element_b_other_info: boolean | null;
+    element_c_override: boolean | null;
+    conclusion: "qualifies" | "does_not_qualify" | "insufficient_basis";
+    reason: string;
+    authorities: Array<{ proposition_key: string; subsection: string }>;
+  };
+}
+
+export interface SlotValidation {
+  ok: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
 // ---------------------------------------------------------------------------
-// Registry-sourced deadline table (A-C).
+// Helpers
 // ---------------------------------------------------------------------------
-function pin(pk: string): { citation: string; subsection: string } {
+
+const YES = new Set(["yes", "true", "y", "1", "confirmed"]);
+const NO = new Set(["no", "false", "n", "0"]);
+
+function triBool(v: unknown): boolean | null {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (YES.has(s)) return true;
+    if (NO.has(s)) return false;
+  }
+  return null;
+}
+
+function auth(pk: string): { proposition_key: string; subsection: string; verbatim_quote: string } | null {
   const row = (ADMT_VERIFIED_AUTHORITIES as any)[pk];
-  return row
-    ? { citation: row.citation, subsection: row.subsection }
-    : { citation: "", subsection: "" };
+  if (!row) return null;
+  return {
+    proposition_key: pk,
+    subsection: String(row.subsection || ""),
+    verbatim_quote: String(row.verbatim_quote || ""),
+  };
 }
 
-export function buildDeadlineTable(intake: Intake, report: Report): DeadlineRow[] {
-  const rows: DeadlineRow[] = [];
-  const scope = (report?.scope_analysis ?? {}) as Record<string, any>;
-  const inScope =
-    scope.triggers_significant_decision === true &&
-    scope.determination_basis !== "insufficient_basis";
-  const trainingUse = truthy((intake as any).training_data_use);
+function authThin(pk: string): { proposition_key: string; subsection: string } | null {
+  const row = (ADMT_VERIFIED_AUTHORITIES as any)[pk];
+  if (!row) return null;
+  return { proposition_key: pk, subsection: String(row.subsection || "") };
+}
 
-  // 1) § 7200(b) — Article 11 compliance deadline for existing uses.
-  {
-    const p = pin("scope_deadline");
-    rows.push({
-      obligation: "Article 11 (ADMT) compliance — existing uses",
-      deadline: "January 1, 2027",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "scope_deadline",
-      applies_when: "Business uses ADMT for a significant decision (in scope).",
-    });
+// ---------------------------------------------------------------------------
+// A-C.1 — APPLICABILITY VERDICT
+// ---------------------------------------------------------------------------
+
+export function buildApplicabilityVerdict(intake: any, report: any): ApplicabilityVerdict {
+  const sa = (report && typeof report === "object" ? report.scope_analysis : null) || {};
+  const isAdmt = triBool(sa.is_admt);
+  const trig = triBool(sa.triggers_significant_decision);
+  const detBasis = typeof sa.determination_basis === "string" ? sa.determination_basis : null;
+  const humQual = triBool(sa.human_review_qualifies);
+
+  const authorities: ApplicabilityVerdict["authorities"] = [];
+  const pushAuth = (pk: string) => { const a = auth(pk); if (a) authorities.push(a); };
+  pushAuth("admt_def");
+  pushAuth("significant_decision_def");
+  pushAuth("scope_deadline");
+
+  let label: ApplicabilityLabel;
+  let reason: string;
+
+  if (isAdmt === false) {
+    label = "out_of_scope";
+    reason = "System does not satisfy the § 7001(e) definition of ADMT; Article 11 duties do not apply.";
+  } else if (isAdmt === true && trig === true) {
+    if (detBasis === "conservative_assumption") {
+      label = "conservative_assumption";
+      reason = "System qualifies as ADMT and the intake supports a significant-decision assumption pending business confirmation of the § 7001(ddd) category.";
+    } else {
+      label = "in_scope";
+      reason = "System qualifies as ADMT under § 7001(e) and triggers a significant decision under § 7001(ddd); Article 11 duties apply.";
+    }
+  } else if (isAdmt === true && trig === false) {
+    label = "out_of_scope";
+    reason = "System is ADMT but no significant-decision trigger is established under § 7001(ddd); Article 11 duties do not attach on this record.";
+  } else {
+    label = "insufficient_basis";
+    reason = "The record does not resolve whether the system is ADMT and/or whether it triggers a significant decision; supply the missing intake dimensions and re-run.";
   }
-  // 2) § 7220(b) — Pre-use Notice timing (pre-processing).
-  if (inScope) {
-    const p = pin("notice_timing");
+
+  return {
+    label,
+    reason,
+    authorities,
+    drivers: {
+      is_admt: isAdmt,
+      triggers_significant_decision: trig,
+      determination_basis: detBasis,
+      human_review_qualifies: humQual,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// A-C.2 — REGISTRY-SOURCED DEADLINE TABLE
+// ---------------------------------------------------------------------------
+
+/**
+ * Row spec (obligation label → registry proposition_key). Only registry-backed
+ * rows are emitted. If a proposition_key is missing from the registry the row
+ * is dropped rather than fabricated.
+ */
+const DEADLINE_SPECS: Array<{ obligation: string; pk: string; deadline: string }> = [
+  { obligation: "Article 11 (ADMT) compliance effective date", pk: "scope_deadline", deadline: "January 1, 2027" },
+  { obligation: "Pre-use notice — timing (before first use)", pk: "notice_timing", deadline: "Before first use of the ADMT for a significant decision" },
+  { obligation: "Risk assessment — new significant-decision uses", pk: "ra_timing_new", deadline: "Before initiating the new processing" },
+  { obligation: "Risk assessment — existing significant-decision uses", pk: "ra_timing_existing", deadline: "By December 31, 2027" },
+  { obligation: "Risk assessment — submission to CPPA", pk: "ra_submit", deadline: "By April 1, 2028 (first submission cycle)" },
+  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: "Within 45 days of a verifiable request (extendable once by 45 days with notice)" },
+];
+
+export function buildDeadlineTable(_intake: any, _report: any): DeadlineTableRow[] {
+  const rows: DeadlineTableRow[] = [];
+  for (const spec of DEADLINE_SPECS) {
+    const a = auth(spec.pk);
+    if (!a) continue;
     rows.push({
-      obligation: "Deliver Pre-use Notice before processing",
-      deadline: "Before initiating ADMT processing for a significant decision",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "notice_timing",
-      applies_when: "Applicable each time before the ADMT is used for a significant decision.",
-    });
-  }
-  // 3) § 7155(a)(1) — Risk assessment before initiating new activities.
-  if (inScope) {
-    const p = pin("ra_timing_new");
-    rows.push({
-      obligation: "Conduct risk assessment before initiating new ADMT processing",
-      deadline: "Before initiating the § 7150(b) processing",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "ra_timing_new",
-      applies_when: "Any new processing added under § 7150(b).",
-    });
-  }
-  // 4) § 7155(b) — Risk assessment for existing activities.
-  if (inScope) {
-    const p = pin("ra_timing_existing");
-    rows.push({
-      obligation: "Conduct risk assessment for existing ADMT processing",
-      deadline: "December 31, 2027",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "ra_timing_existing",
-      applies_when: "Processing initiated before the effective date and continuing after it.",
-    });
-  }
-  // 5) § 7157(a)(1) — Agency attestation window.
-  if (inScope) {
-    const p = pin("ra_submit");
-    rows.push({
-      obligation: "Submit attestation + risk-assessment info to the Agency",
-      deadline: "April 1, 2028",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "ra_submit",
-      applies_when: "One-time submission covering assessments through December 31, 2027.",
-    });
-  }
-  // 6) § 7150(b)(6) — training trigger — appears regardless of downstream scope.
-  if (trainingUse) {
-    const p = pin("ra_trigger_train");
-    rows.push({
-      obligation: "Risk assessment for training ADMT/AI on personal information",
-      deadline: "Before initiating the training processing",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "ra_trigger_train",
-      applies_when: "Business processes personal information to train ADMT/AI capable of significant decisions or biometric/identity uses.",
-    });
-  }
-  // 7) § 7222(c) — access request response window.
-  if (inScope) {
-    const p = pin("access_timeline");
-    rows.push({
-      obligation: "Respond to consumer ADMT access requests",
-      deadline: "Within 45 calendar days",
-      citation: p.citation,
-      subsection: p.subsection,
-      proposition_key: "access_timeline",
-      applies_when: "Verifiable consumer access request received under § 7222.",
+      obligation: spec.obligation,
+      compliance_deadline: spec.deadline,
+      proposition_key: a.proposition_key,
+      subsection: a.subsection,
+      verbatim_quote: a.verbatim_quote,
     });
   }
   return rows;
 }
 
 // ---------------------------------------------------------------------------
-// A-C — Applicability verdict (top-of-report).
+// A-A + A-B — ADEQUACY FINDING
 // ---------------------------------------------------------------------------
-export function buildApplicabilityVerdict(intake: Intake, report: Report): ApplicabilityBlock {
-  const scope = (report?.scope_analysis ?? {}) as Record<string, any>;
-  const trigSD: boolean | null =
-    typeof scope.triggers_significant_decision === "boolean" ? scope.triggers_significant_decision : null;
-  const detBasisRaw = s(scope.determination_basis);
-  const determination_basis: ApplicabilityBlock["determination_basis"] =
-    detBasisRaw === "established" || detBasisRaw === "conservative_assumption"
-      ? detBasisRaw
-      : "unknown";
-  const humanQualifies: boolean | null =
-    typeof scope.human_review_qualifies === "boolean" ? scope.human_review_qualifies : null;
 
-  let verdict: ApplicabilityVerdict = "insufficient_basis";
-  let basis = "The intake does not resolve the § 7001(e) ADMT test or the § 7001(ddd) significant-decision test; applicability cannot be established on this record.";
+export function buildAdequacyFinding(intake: any, _report: any): AdequacyFinding {
+  const i: any = intake || {};
+  const d: any = i.admt_detail || {};
 
-  if (trigSD === true && humanQualifies !== true) {
-    if (determination_basis === "conservative_assumption") {
-      verdict = "conservative_assumption";
-      basis = "The intake does not affirmatively identify an enumerated § 7001(ddd) category; the checker defaults to in-scope pending business confirmation. If confirmed, all Article 11 duties attach; if the underlying service falls outside § 7001(ddd), the verdict flips to out-of-scope.";
-    } else {
-      verdict = "in_scope";
-      basis = "The intake affirmatively identifies a § 7001(ddd) significant decision and no qualifying human reviewer overrides the output before it issues, so Article 11 duties (Pre-use Notice, opt-out, access) attach.";
-    }
-  } else if (trigSD === false || humanQualifies === true) {
-    verdict = "out_of_scope";
-    basis = humanQualifies === true
-      ? "A qualifying § 7001(e)(1) human reviewer overrides the output before the decision issues; the technology does not substantially replace human decisionmaking and Article 11 duties do not attach on this record."
-      : "The intake does not describe a § 7001(ddd) significant decision; Article 11 duties do not attach on this record.";
-  }
+  // ---- A-A EDPB logic-disclosure adequacy (§ 7222(b)(3)) --------------------
+  // Elements: (1) input categories, (2) output, (3) how output is used.
+  const purposeText: string = String(i.notice_purpose_text || "").toLowerCase();
+  const howItWorks: boolean | null = triBool(i.notice_has_how_it_works);
+  // Heuristic: the "how it works" toggle alone is not sufficient; we require
+  // at least one indicator per element in the purpose text OR the how-it-works
+  // affirmative. On absence of any signal, return insufficient_basis.
+  const inputSignals = /input|data element|categor(y|ies)|features|training data|attribute/i.test(purposeText);
+  const outputSignals = /output|score|prediction|classification|recommendation|decision/i.test(purposeText);
+  const useSignals = /use|used to|inform|drive|determine|feed|combined with/i.test(purposeText);
+  const elementInputs = howItWorks === true || inputSignals ? (howItWorks !== false && (howItWorks === true || inputSignals)) : (howItWorks === false ? false : null);
+  const elementOutput = howItWorks === true || outputSignals ? (howItWorks !== false && (howItWorks === true || outputSignals)) : (howItWorks === false ? false : null);
+  const elementUse = howItWorks === true || useSignals ? (howItWorks !== false && (howItWorks === true || useSignals)) : (howItWorks === false ? false : null);
 
-  const anchors: string[] = [];
-  const push = (pk: string) => { const p = pin(pk); if (p.subsection) anchors.push(p.subsection); };
-  push("admt_def");
-  push("human_involvement");
-  push("sig_decision");
-  push("scope_apply");
-
-  return {
-    verdict,
-    basis,
-    statutory_anchors: anchors,
-    determination_basis,
-    compliance_deadline: "January 1, 2027",
-  };
-}
-
-// ---------------------------------------------------------------------------
-// A-A + A-B — Adequacy finding.
-// ---------------------------------------------------------------------------
-function coerceYesNo(v: unknown): boolean | null {
-  if (v === true || v === "Yes" || v === "yes") return true;
-  if (v === false || v === "No" || v === "no") return false;
-  return null;
-}
-
-export function buildAdequacyFinding(intake: Intake, report: Report): AdequacyFinding {
-  // A-A: EDPB logic-disclosure adequacy — a disclosure is adequate only when
-  // it names inputs, output, and how the output is used in the decision.
-  const logicText = s((intake as any).access_logic_disclosure);
-  const outcomeText = s((intake as any).access_outcome_disclosure);
-  const lower = (logicText + " " + outcomeText).toLowerCase();
-  const namesInputs = /input|feature|variable|signal|factor|data used/.test(lower);
-  const namesOutput = /output|score|rank|classif|prediction|result/.test(lower);
-  const namesUse = /decision|used|weight|threshold|gate|approv|denial|rank/.test(lower);
-  const wordCount = logicText.trim().split(/\s+/).filter(Boolean).length;
-  const hasSubstance = wordCount >= 20 && logicText.trim().length >= 120;
-  let logic_disclosure_adequate: boolean | null = null;
-  let logic_basis: string;
-  if (!logicText.trim()) {
-    logic_disclosure_adequate = null;
-    logic_basis = "insufficient basis — the intake does not describe the logic disclosure.";
-  } else if (namesInputs && namesOutput && namesUse && hasSubstance) {
-    logic_disclosure_adequate = true;
-    logic_basis = "The logic disclosure names inputs, the output, and how the output is used in the decision — meeting the EDPB-informed § 7222(b)(3) plain-language explanation standard.";
+  let ldConclusion: AdequacyFinding["logic_disclosure"]["conclusion"];
+  let ldReason: string;
+  const anyLdNull = elementInputs === null || elementOutput === null || elementUse === null;
+  if (anyLdNull) {
+    ldConclusion = "insufficient_basis";
+    ldReason = "The record does not resolve all three EDPB elements (input categories, output, and use of output) for the access-right logic disclosure under § 7222(b)(3). Supply the disclosure text or attest each element and re-run.";
+  } else if (elementInputs && elementOutput && elementUse) {
+    ldConclusion = "adequate";
+    ldReason = "Access-right logic disclosure names all three EDPB elements: (1) input categories, (2) output produced, and (3) how the output is used in the decision.";
   } else {
-    logic_disclosure_adequate = false;
-    const missing: string[] = [];
-    if (!namesInputs) missing.push("input categories");
-    if (!namesOutput) missing.push("output");
-    if (!namesUse) missing.push("how the output is used in the decision");
-    if (!hasSubstance) missing.push("sufficient specificity");
-    logic_basis = `The logic disclosure omits: ${missing.join(", ")}. § 7222(b)(3) requires each element in plain language.`;
+    ldConclusion = "inadequate";
+    const missing = [
+      !elementInputs ? "input categories" : null,
+      !elementOutput ? "output" : null,
+      !elementUse ? "use of output" : null,
+    ].filter(Boolean).join(", ");
+    ldReason = `Access-right logic disclosure is inadequate under § 7222(b)(3); missing element(s): ${missing}.`;
   }
-  const logicRegistry = pin("access_logic").subsection;
 
-  // A-B: Art 22(3) three-element human-intervention qualification.
-  const adv = ((intake as any).admt_detail ?? {}) as Record<string, any>;
-  const hr = s((intake as any).human_review);
-  const shortcircuitAll = hr.startsWith("Yes — reviewer knows");
-  const knows = shortcircuitAll ? true : coerceYesNo(adv.hi_trained);
-  const reviews = shortcircuitAll ? true : coerceYesNo(adv.hi_reviews_other_info);
-  const authority = shortcircuitAll ? true : coerceYesNo(adv.hi_authority_override);
-  const explicitNoHR = hr.startsWith("No — fully automated") || hr === "Partial — reviewer sees the output but cannot override it";
-  const anyDefined = knows !== null || reviews !== null || authority !== null || explicitNoHR;
-  const allTrue = knows === true && reviews === true && authority === true;
-  const anyFalse = knows === false || reviews === false || authority === false;
-  let all_three: boolean | null = null;
-  if (explicitNoHR) all_three = false;
-  else if (allTrue) all_three = true;
-  else if (anyFalse) all_three = false;
-  else if (!anyDefined) all_three = null;
+  const ldAuths: AdequacyFinding["logic_disclosure"]["authorities"] = [];
+  for (const pk of ["access_logic_disclosure", "access_disclosure_scope"]) {
+    const a = authThin(pk); if (a) ldAuths.push(a);
+  }
 
-  const three: ThreeElementQualification = {
-    knows_how_to_interpret_output: explicitNoHR ? false : knows,
-    reviews_output_with_other_information: explicitNoHR ? false : reviews,
-    has_authority_to_override: explicitNoHR ? false : authority,
-    all_three_satisfied: all_three,
-    basis: all_three === true
-      ? "The human reviewer satisfies all three § 7001(e)(1) elements — interpretation, review-with-other-information, and override authority — so § 7001(e) is not engaged on this record."
-      : all_three === false
-        ? "The human review does not satisfy all three § 7001(e)(1) elements; the technology substantially replaces human decisionmaking under § 7001(e)."
-        : "insufficient basis — the intake does not resolve all three § 7001(e)(1) elements.",
-  };
+  // ---- A-B Art 22(3) human-intervention qualification (§ 7001(e)(1)) --------
+  const elA = triBool(d.hi_trained);              // knows how to interpret
+  const elB = triBool(d.hi_reviews_other_info);   // reviews other info
+  const elC = triBool(d.hi_authority_override);   // authority to override
 
-  const overall =
-    logic_disclosure_adequate === true && all_three === true
-      ? "Both the § 7222(b)(3) logic disclosure and the § 7001(e)(1) human-intervention posture are adequate on this record."
-      : logic_disclosure_adequate === false || all_three === false
-        ? "At least one adequacy element (§ 7222(b)(3) logic disclosure or § 7001(e)(1) human intervention) is deficient on this record; see basis."
-        : "insufficient basis to conclude adequacy for one or more elements; see basis.";
+  let hiConclusion: AdequacyFinding["human_intervention"]["conclusion"];
+  let hiReason: string;
+  if (elA === null || elB === null || elC === null) {
+    hiConclusion = "insufficient_basis";
+    hiReason = "The record does not resolve all three elements of the § 7001(e)(1) human-involvement test (interpretation, review with other information, and override authority). Supply the missing intake dimensions and re-run.";
+  } else if (elA && elB && elC) {
+    hiConclusion = "qualifies";
+    hiReason = "Human reviewer satisfies all three § 7001(e)(1) elements: (A) knows how to interpret the output, (B) reviews the output alongside other information, and (C) has authority to override.";
+  } else {
+    hiConclusion = "does_not_qualify";
+    const missing = [
+      !elA ? "(A) interpret output" : null,
+      !elB ? "(B) review with other information" : null,
+      !elC ? "(C) authority to override" : null,
+    ].filter(Boolean).join(", ");
+    hiReason = `Human involvement does not qualify under § 7001(e)(1); unmet element(s): ${missing}.`;
+  }
+
+  const hiAuths: AdequacyFinding["human_intervention"]["authorities"] = [];
+  for (const pk of ["human_involvement", "fsor_human_involvement_three_part"]) {
+    const a = authThin(pk); if (a) hiAuths.push(a);
+  }
 
   return {
-    logic_disclosure_adequate,
-    logic_disclosure_basis: logic_basis,
-    logic_disclosure_registry_anchor: logicRegistry,
-    three_element_human_intervention: three,
-    overall_summary: overall,
+    logic_disclosure: {
+      element_inputs_present: elementInputs,
+      element_output_present: elementOutput,
+      element_use_present: elementUse,
+      conclusion: ldConclusion,
+      reason: ldReason,
+      authorities: ldAuths,
+    },
+    human_intervention: {
+      element_a_interpret: elA,
+      element_b_other_info: elB,
+      element_c_override: elC,
+      conclusion: hiConclusion,
+      reason: hiReason,
+      authorities: hiAuths,
+    },
   };
 }
 
 // ---------------------------------------------------------------------------
-// Intake → § 7150(b) subsections (parity with risk slots computeIntakeSelectedSubsections).
+// Validator (non-blocking)
 // ---------------------------------------------------------------------------
-export function computeAdmtSelectedSubsections(intake: Intake): string[] {
-  const out: string[] = [];
-  const push = (x: string) => { if (!out.includes(x)) out.push(x); };
-  const scope = (intake?.scope_analysis ?? {}) as Record<string, any>;
-  const trigSD = scope.triggers_significant_decision === true;
-  if (trigSD) push("§ 7150(b)(3)");
-  if (truthy((intake as any).training_data_use)) push("§ 7150(b)(6)");
-  return out;
-}
 
-// ---------------------------------------------------------------------------
-// Validation.
-// ---------------------------------------------------------------------------
-export interface SlotValidation { ok: boolean; errors: string[]; warnings: string[] }
-
-export function validateAdmtSlots(report: Report): SlotValidation {
+export function validateAdmtSlots(report: any): SlotValidation {
   const errors: string[] = [];
   const warnings: string[] = [];
+
   const av = report?.applicability_verdict;
+  if (!av || typeof av !== "object") errors.push("applicability_verdict missing");
+  else if (!["in_scope", "out_of_scope", "conservative_assumption", "insufficient_basis"].includes(av.label)) {
+    errors.push(`applicability_verdict.label invalid: ${av.label}`);
+  }
+
   const dt = report?.deadline_table;
+  if (!Array.isArray(dt)) errors.push("deadline_table missing");
+  else if (dt.length === 0) warnings.push("deadline_table empty");
+
   const af = report?.adequacy_finding;
-
-  if (!av || typeof av !== "object") errors.push("applicability_verdict missing or non-object");
+  if (!af || typeof af !== "object") errors.push("adequacy_finding missing");
   else {
-    for (const k of ["verdict", "basis", "statutory_anchors", "determination_basis", "compliance_deadline"]) {
-      if (!(k in av)) errors.push(`applicability_verdict.${k} missing`);
+    if (!af.logic_disclosure || !["adequate", "inadequate", "insufficient_basis"].includes(af.logic_disclosure.conclusion)) {
+      errors.push("adequacy_finding.logic_disclosure.conclusion invalid");
     }
-    if (!APPLICABILITY_VERDICTS.includes(av.verdict)) errors.push(`applicability_verdict.verdict invalid enum: ${av.verdict}`);
-    if (!Array.isArray(av.statutory_anchors)) errors.push("applicability_verdict.statutory_anchors not an array");
-  }
-
-  if (!Array.isArray(dt)) errors.push("deadline_table missing or non-array");
-  else {
-    dt.forEach((r: any, i: number) => {
-      for (const k of ["obligation", "deadline", "citation", "subsection", "proposition_key", "applies_when"]) {
-        if (!(k in r)) errors.push(`deadline_table[${i}].${k} missing`);
-      }
-    });
-  }
-
-  if (!af || typeof af !== "object") errors.push("adequacy_finding missing or non-object");
-  else {
-    for (const k of ["logic_disclosure_adequate", "logic_disclosure_basis", "logic_disclosure_registry_anchor", "three_element_human_intervention", "overall_summary"]) {
-      if (!(k in af)) errors.push(`adequacy_finding.${k} missing`);
-    }
-    const tei = af.three_element_human_intervention;
-    if (!tei || typeof tei !== "object") errors.push("adequacy_finding.three_element_human_intervention missing");
-    else {
-      for (const k of ["knows_how_to_interpret_output", "reviews_output_with_other_information", "has_authority_to_override", "all_three_satisfied", "basis"]) {
-        if (!(k in tei)) errors.push(`adequacy_finding.three_element_human_intervention.${k} missing`);
-      }
+    if (!af.human_intervention || !["qualifies", "does_not_qualify", "insufficient_basis"].includes(af.human_intervention.conclusion)) {
+      errors.push("adequacy_finding.human_intervention.conclusion invalid");
     }
   }
+
   return { ok: errors.length === 0, errors, warnings };
 }
 
-export function attachAndValidateAdmtSlots(report: Report, intake: Intake): {
-  attached: string[]; validation: SlotValidation; va_version: string;
+// ---------------------------------------------------------------------------
+// Attach entrypoint (called from run-admt-checker/index.ts)
+// ---------------------------------------------------------------------------
+
+export function attachAndValidateAdmtSlots(report: any, intake: any): {
+  attached: string[];
+  validation: SlotValidation;
+  va_version: string;
 } {
   const attached: string[] = [];
-  try { report.applicability_verdict = buildApplicabilityVerdict(intake, report); attached.push("applicability_verdict"); } catch (_) {}
-  try { report.deadline_table = buildDeadlineTable(intake, report); attached.push("deadline_table"); } catch (_) {}
-  try { report.adequacy_finding = buildAdequacyFinding(intake, report); attached.push("adequacy_finding"); } catch (_) {}
+  try { report.applicability_verdict = buildApplicabilityVerdict(intake, report); attached.push("applicability_verdict"); } catch (_) { /* noop */ }
+  try { report.deadline_table = buildDeadlineTable(intake, report); attached.push("deadline_table"); } catch (_) { /* noop */ }
+  try { report.adequacy_finding = buildAdequacyFinding(intake, report); attached.push("adequacy_finding"); } catch (_) { /* noop */ }
   return { attached, validation: validateAdmtSlots(report), va_version: ADMT_VERIFIED_AUTHORITY_VERSION };
 }
