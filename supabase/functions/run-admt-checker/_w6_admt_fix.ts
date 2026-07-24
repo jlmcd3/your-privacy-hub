@@ -230,9 +230,14 @@ export function rewriteSilenceAsFact(s: string): string {
   let next = s;
   // "The record explicitly notes that X is not described/provided/named" →
   //   "The record does not describe/provide/name X"
+  const VERB_BASE: Record<string, string> = {
+    described: "describe", provided: "provide", named: "name",
+    specified: "specify", disclosed: "disclose",
+  };
   next = next.replace(
     /\bThe\s+record\s+explicitly\s+notes\s+that\s+([^.]*?)\s+is\s+not\s+(described|provided|named|specified|disclosed)\b/gi,
-    (_m, subj: string, verb: string) => `The record does not ${verb} ${subj.trim()}`,
+    (_m, subj: string, verb: string) =>
+      `The record does not ${VERB_BASE[verb.toLowerCase()] ?? verb} ${subj.trim()}`,
   );
   // "the record explicitly notes the absence of X" → "the record does not identify X"
   next = next.replace(
