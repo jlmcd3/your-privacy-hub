@@ -356,4 +356,56 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7222(d)", label: "No dark patterns in access submission methods" },
     ],
   },
+
+  // TURN 2 RETROFIT — intake-rail parity for the two new fields.
+  // Corpus consulted: cppa_authorities row citation="11 CCR § 7152"
+  // (id f509e45b-ce32-4564-b1c2-b0553c1751b9); regulationText is the verbatim
+  // subsection (a)(3)(D) extracted from that row's full_text.
+  affected_population_band: {
+    fieldLabel: "Affected-population band (approximate California consumers subject to this ADMT)",
+    citation: "11 CCR § 7152(a)(3)(D)",
+    plainSummary:
+      "The risk assessment must document the approximate number of consumers whose personal information the business plans to process. The band you record here is what the assessment carries forward when sizing exposure and shaping the applicability verdict.",
+    regulationText:
+      "(D) The approximate number of consumers whose personal information the business plans to process.",
+    coachLead: "Record the band your own analytics support — do not round to make the number smaller.",
+    coachBody:
+      "Pick the band whose lower bound your best available count actually meets. If your systems can only estimate an order of magnitude, choose the band that contains that order — the assessment carries the band, not a false precision.",
+    goodAnswer:
+      "A payroll platform's segmentation shows ~48,000 California employees run through its automated pay-decision model in a year; it picks the 10,000–100,000 band.",
+    commonMistake:
+      "Selecting a smaller band because 'exact numbers aren't known.' The § 7152(a)(3)(D) element is the approximate number, not a certified number; understating it distorts every downstream weighting.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)", label: "Operational elements of the processing" },
+      { citation: "11 CCR § 7150(a)", label: "Risk-assessment trigger" },
+    ],
+  },
+
+  // Corpus consulted: cppa_authorities row citation="11 CCR § 7157"
+  // (id a2e0974a-0dbb-48b5-bebb-14784cf02730); regulationText is the verbatim
+  // subsection (c) extracted from that row's full_text. FSOR commentary
+  // consulted: cppa_fsor_commentary rows on § 7157 responsibility scope
+  // (ids c49a76e8-8c96-48d8-9fc7-3d1f1d2d546c, 23bfcaed-a6ea-4752-882c-89608dc07f5e).
+  role_roster: {
+    fieldLabel: "Internal role roster (roles with defined responsibilities for this ADMT)",
+    citation: "11 CCR § 7157(c)",
+    plainSummary:
+      "The person who submits the risk assessment to the Agency must be an executive who is directly responsible for risk-assessment compliance, has sufficient knowledge of the assessment to provide accurate information, and has authority to submit it. The roster you record here is what the assessment relies on to identify that individual and the roles supporting them.",
+    regulationText:
+      "(c) The individual submitting the information set forth in subsection (b) must be a member of the business's executive management team who: (1) Is directly responsible for the business's risk-assessment compliance; (2) Has sufficient knowledge of the business's risk assessment to provide accurate information; and (3) Has the authority to submit the risk assessment information to the Agency.",
+    enforcementNote:
+      "The § 7157(b)(5) attestation is signed under penalty of perjury. FSOR commentary on § 7157 (rows c49a76e8… and 23bfcaed…) confirms the Agency's focus on who bears direct responsibility and who is authorised to submit — not who merely reviewed the assessment.",
+    coachLead: "Select every role that already has a defined responsibility — do not select roles you plan to assign later.",
+    coachBody:
+      "For each role picked, a real person should already own a documented duty for this ADMT (design, monitoring, human-review authority, incident escalation, or attestation). Roles that are aspirational belong in the remediation plan, not this roster.",
+    goodAnswer:
+      "A retailer picks Chief Privacy Officer, Model Owner, and Fair-Lending Reviewer because each already holds a written responsibility for the credit-decision ADMT; it leaves Ombudsperson unselected because no one currently holds that duty.",
+    commonMistake:
+      "Selecting every conceivable role to look complete. § 7157(c) rewards accuracy about who actually holds the responsibility — an over-broad roster weakens the attestation, not strengthens it.",
+    relatedCitations: [
+      { citation: "11 CCR § 7157(b)(5)", label: "Attestation under penalty of perjury" },
+      { citation: "11 CCR § 7157(b)(6)", label: "Submitter name and title" },
+    ],
+  },
 };
+
