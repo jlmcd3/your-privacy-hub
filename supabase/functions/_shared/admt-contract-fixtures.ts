@@ -84,6 +84,9 @@ export const FIXTURE_ADMT_YIELD_K1: AdmtContractFixture = {
     access_trade_secret_policy: "Rubric weights withheld as trade secret (Civil Code § 3426.1(d))",
     // Free-text <input> (L709–714).
     ca_consumer_count: "50000",
+    // TURN 2 — new intake fields (dummy data).
+    affected_population_band: "10,001 – 100,000",
+    role_roster: ["Privacy officer / DPO", "Product owner", "Human reviewer"],
     // prior_access_requests_12mo removed (RC-P6).
   },
   answer_targets: ["notice_purpose_text", "opt_out_methods"],

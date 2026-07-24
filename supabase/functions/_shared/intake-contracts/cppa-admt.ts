@@ -24,6 +24,28 @@ export const ADMT_DECISION_CADENCE_OPTS = ["One-time", "Repeated", "Continuous",
 export const ADMT_SOLE_FACTOR_OPTS = ["Sole factor — output alone determines the outcome", "Material factor — heavily weighted alongside others", "One of many factors"] as const;
 export const ADMT_SOLELY_ADVERTISING_OPTS = ["Yes — solely advertising", "No"] as const;
 
+// TURN 2 — discrete enum options for the two new intake fields.
+export const ADMT_AFFECTED_POPULATION_BAND_OPTS = [
+  "Under 1,000",
+  "1,000 – 10,000",
+  "10,001 – 100,000",
+  "100,001 – 1,000,000",
+  "Over 1,000,000",
+  "Unsure",
+] as const;
+export const ADMT_ROLE_ROSTER_OPTS = [
+  "Executive sponsor",
+  "Privacy officer / DPO",
+  "Legal counsel",
+  "Product owner",
+  "Data scientist / ML engineer",
+  "Security officer",
+  "Human reviewer",
+  "Consumer-request handler",
+  "Vendor manager",
+] as const;
+
+
 // ── Verbatim inline lists from ADMTChecker.tsx ─────────────────────────
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
@@ -146,6 +168,11 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "ca_consumer_count",   kind: "text", required: "optional" },
     { key: "third_party_admt",    kind: "text", required: "optional" },
     { key: "admt_system_count",   kind: "text", required: "optional" },
+
+    // TURN 2 — new intake fields (both optional; drive A-C applicability + role clarity)
+    { key: "affected_population_band", kind: "enum", required: "optional", options: ADMT_AFFECTED_POPULATION_BAND_OPTS },
+    { key: "role_roster",              kind: "multi-enum", required: "optional", options: ADMT_ROLE_ROSTER_OPTS },
+
 
     // admt_detail — structured nested object; all 38 leaves are optional
     // (form does not gate on any of them in stepValid). Enum leaves are

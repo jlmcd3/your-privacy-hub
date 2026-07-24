@@ -35,6 +35,9 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       profiling_use: "No",
       ...commonNotice,
       opt_out_exception: "Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination",
+      // TURN 2 — dummy data for new intake fields
+      affected_population_band: "10,001 – 100,000",
+      role_roster: ["Privacy officer / DPO", "Product owner", "Human reviewer"],
     },
     assertions: [
       { kind: "must_include", pattern: "7221", flags: "i", label: "§7221 anchored" },
@@ -44,6 +47,10 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       { kind: "must_not_include", pattern: "\"enforcement_exposure\"\\s*:\\s*\"[^\"]*\\$", flags: "", label: "no dollar figures in per-entry enforcement_exposure" },
       // W9-ADMT-WIRE S5 — top_3_actions hard slot always present (post-gen normalizer pads to 3).
       { kind: "must_include", pattern: "\"top_3_actions\"", flags: "", label: "S5 top_3_actions slot present" },
+      // TURN 2 — deterministic slots must be present in every emit.
+      { kind: "must_include", pattern: "\"applicability_verdict\"", flags: "", label: "A-C applicability_verdict slot present" },
+      { kind: "must_include", pattern: "\"deadline_table\"", flags: "", label: "A-C deadline_table slot present" },
+      { kind: "must_include", pattern: "\"adequacy_finding\"", flags: "", label: "A-A/A-B adequacy_finding slot present" },
     ],
   },
   {

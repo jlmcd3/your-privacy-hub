@@ -104,6 +104,8 @@ export {
   ADMT_DECISION_CADENCE_OPTS,
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
+  ADMT_AFFECTED_POPULATION_BAND_OPTS,
+  ADMT_ROLE_ROSTER_OPTS,
 } from "./ADMTChecker.enums";
 import {
   ADMT_VENDOR_STATUS_OPTS,
@@ -115,6 +117,8 @@ import {
   ADMT_DECISION_CADENCE_OPTS,
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
+  ADMT_AFFECTED_POPULATION_BAND_OPTS,
+  ADMT_ROLE_ROSTER_OPTS,
 } from "./ADMTChecker.enums";
 import { AlertTriangle } from 'lucide-react';
 
@@ -224,6 +228,9 @@ export default function ADMTChecker() {
   const [caConsumerCount, setCaConsumerCount] = useState("");
   const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
   const [admtSystemCount, setAdmtSystemCount] = useState("");
+  // TURN 2 — new intake fields
+  const [affectedPopulationBand, setAffectedPopulationBand] = useState("");
+  const [roleRoster, setRoleRoster] = useState<string[]>([]);
   // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
   // Step 2
@@ -382,6 +389,9 @@ export default function ADMTChecker() {
       ca_consumer_count: caConsumerCount,
       third_party_admt: thirdPartyAdmt,
       admt_system_count: admtSystemCount,
+      // TURN 2 — new intake fields
+      affected_population_band: affectedPopulationBand,
+      role_roster: roleRoster,
       // prior_access_requests_12mo removed (RC-P6).
       opt_out_15_day_process: optOut15DayProcess,
       opt_out_service_provider_notice: optOutServiceProviderNotice,
@@ -397,7 +407,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy,
-      caConsumerCount, thirdPartyAdmt, admtSystemCount, optOut15DayProcess, optOutServiceProviderNotice, adv,
+      caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, optOutServiceProviderNotice, adv,
     ],
   );
 
@@ -480,6 +490,8 @@ export default function ADMTChecker() {
     if (typeof d.third_party_admt === "string") setThirdPartyAdmt(d.third_party_admt);
     if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
     if (typeof d.admt_system_count === "string") setAdmtSystemCount(d.admt_system_count);
+    if (typeof d.affected_population_band === "string") setAffectedPopulationBand(d.affected_population_band);
+    if (Array.isArray(d.role_roster)) setRoleRoster(d.role_roster.filter((x: unknown) => typeof x === "string"));
     // d.prior_access_requests_12mo (legacy drafts) intentionally ignored — field removed (RC-P6).
     if (d.admt_detail && typeof d.admt_detail === "object") setAdv(d.admt_detail);
     if (typeof restoreStage === "number") setStep(restoreStage);
@@ -811,6 +823,35 @@ export default function ADMTChecker() {
                       placeholder="e.g. 1, 2, 3"
                     />
                   </div>
+
+                  {/* TURN 2 — affected population band */}
+                  <div>
+                    <Label>Approximate California consumers subject to this ADMT (affected-population band) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">Used to size the risk exposure and the applicability verdict. Optional.</p>
+                    <div className="mt-2">
+                      <Pills
+                        options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
+                        value={affectedPopulationBand ? [affectedPopulationBand] : []}
+                        onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
+                      />
+                    </div>
+                  </div>
+
+                  {/* TURN 2 — internal role roster */}
+                  <div>
+                    <Label>Internal roles with defined responsibilities for this ADMT (role roster) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">Select every role that already has a defined responsibility for this system.</p>
+                    <div className="mt-2">
+                      <Pills
+                        options={ADMT_ROLE_ROSTER_OPTS}
+                        value={roleRoster}
+                        onChange={setRoleRoster}
+                      />
+                    </div>
+                  </div>
+
+
+
 
 
 
