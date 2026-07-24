@@ -199,6 +199,12 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - Root cause: final re-clone happened before analysis/composition, not immediately before send. The stale-clone remediation ("re-clone immediately before dispatch") must mean: compose first, then fresh-clone verify the queue item is still open, then send within the same minute.
 - Remediation (standing): controllers compose the courier message BEFORE the final clone check; the final check verifies ledger "Last updated" stamp and queue state; any stamp movement aborts the send.
 
+### 2026-07-24 — Wave-13 Orchestrator Stall #3 (batch `7a4923fe`)
+- **Timeline:** Batch launched 18:00:02Z; orchestrator heartbeat stopped 18:10:46Z in `running_tool` phase. Unlike waves 10/11, **all three runs (`cppa-admt` 102, `cppa-risk` 126, `cppa-cyber` 106) completed independently and per-run digests were written — no reads lost.** Row reconciled at 18:34:27Z by the continuation-session controller (`status=cancelled`, `phase=done`, `last_error` populated) per wave-10/11 precedent. Deploy locks released.
+- **Third orchestrator isolate death in one day.** Priority of queue item 18 (DS orchestrator → `delivery_contracts` wiring) raised again.
+- **DS-T2 sentinel would still not have caught this** — orchestrator runs are not yet registered as `delivery_contracts` (root of the wiring queue item).
+
+
 ## 8. While-You-Slept (overnight standing-order run log)
 
 Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
