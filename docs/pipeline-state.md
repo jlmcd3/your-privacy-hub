@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T13:03:07Z — STAND-DOWN / SUPERSEDE on duplicate `SAMPLES-CONTRACT-lia (5/8)` dispatch; uncommitted revised edits reverted to `d7efef9` state.
+**Last updated:** 2026-07-24T16:56:21Z — WAVE-11 reconciliation recorded + WAVE-12 digest (batch `a289c96e`) extracted; CPPA fix turns C/D/E queued ahead of SAMPLES-CONTRACT-governance per CEO CPPA priority.
 
 ---
 
@@ -20,11 +20,15 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 2. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a field-provenance + B1b claims guard) — deployed 12:39Z.
 3. **DONE PRIOR TURN** — `SAMPLES-CONTRACT-dpia` (4/8) — frontend/test only, no deploy.
 4. **DONE THIS TURN** — `SAMPLES-CONTRACT-lia` (5/8) — frontend/test only, no deploy.
-5. **NEXT** — `SAMPLES-CONTRACT-governance` (6/8). Frontend-only; not deploy-locked.
-6. Then — `-ir_playbook` → `-biometric` → `-dpa` (7/8, 8/8, then 9/8-out-of-8 dpa closes the series — note: series is 8 tools, dpa is #8).
-7. After 8/8 — `REGISTRATION-INTAKE-CONTRACT-RAIL-MAP` (pre-approved authoring turn per overnight standing order: shared contract + rail-map + corpus-cited rails + dummy data).
-8. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §6 sentinel gap).
-9. Deferred — W9 admt build restamp (bundled with next admt deploy).
+5. **NEXT** — `WAVE12-FIX TURN C` (cppa-admt, deploy turn): (C1) strip internal pipeline metadata objects (`_w6_admt_fix`, `_w9_admt_wire`, `_w9_admt_pre_emit`) from customer-facing report output — HIGH leak, wave-12 doc `a731c375`; (C2) fix `deadline_table` access-timeline citation wiring: report cites "11 CCR § 7222(c)" with a fabricated verbatim 45-day quote; registry: §7222(c)(1)=trade-secret carve-out, §7222(d)=submission methods — CRITICAL doc `a731c375` + HIGH doc `ea958ad9` (systemic, 2 docs); (C3) reduce "applicable ADMT-subchapter provision" fallback density (25 instances/doc) where registry sections resolve; (C4) fix h6 doubled `"§7001(e) + §7001(e)"` governing-anchor emission. Bundle the deferred W9 admt build restamp into this deploy (fresh clock). Requires five-lens TEAM-REVIEWED dispatch + deploy-lock checks (§3) before send.
+6. Then — `WAVE12-FIX TURN D` (cppa-risk, deploy turn): (D1) volume-prong threshold wired to wrong field — used `q2_consumers` ("100,000–249,999") instead of `i3_ca_consumer_band` ("100,000–1,000,000") for §7120(b)(2)(A) 250k test → wrong scope conclusion (HIGH doc `9ce32381`); (D2) profiling-claim guard hardening — TURN B fixed `sensitive_location` cross-attribution (not observed wave 12) but overclaim mutated: "profiling and inference generation" asserted from a purpose field that doesn't state it (HIGH `9ce32381`) and "no profiling inferences are recorded" contradicting `q5b_profiling_observation=Yes` (HIGH `864495a3`); (D3) third-party definition cite `§1798.140(ad)` → correct post-CPRA lettering `§1798.140(ai)` (HIGH `864495a3`).
+7. Then — `WAVE12-FIX TURN E` (cppa-cyber, deploy turn): framework-crosswalk sentence assembler emits garbled/truncated fragments — `"the ISO 27001 framework provides comparative guidance on;"` / dangling `")"` / duplicated operative-requirement sentences (HIGH ×3, docs `66187172` + `57bebb53`). TURN A placeholder fix VERIFIED effective: `"§7123(c)(N)"` and the 18-component mean-score hallucination were NOT observed in wave 12. Boilerplate remediation across 16/18 controls persists (MEDIUM, deferred to E or later).
+8. Then — `SAMPLES-CONTRACT-governance` (6/8). Frontend-only; not deploy-locked.
+9. Then — `-ir_playbook` → `-biometric` → `-dpa` (7/8, 8/8, then dpa closes the series).
+10. Then — DPIA wave-12 product fixes (HIGH ×4: OSS/main-establishment contradiction with Art. 4(16)(a); unsupported central-administration claims docs `093625f6`/`e3bb4a51`; inferred portal event data category) — QUEUED BEHIND CPPA turns per CEO priority; may be folded into dpia's next product turn.
+11. After samples 8/8 — `REGISTRATION-INTAKE-CONTRACT-RAIL-MAP` (pre-approved authoring turn per overnight standing order: shared contract + rail-map + corpus-cited rails + dummy data).
+12. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves; priority raised — second isolate death in one day, see §5-adjacent).
+13. Deferred — W9 admt build restamp (bundled into TURN C deploy above).
 
 _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope shipped as TURN A. Do not re-queue.
 
@@ -86,6 +90,18 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **cppa-risk HIGH — hallucination** (doc `1b32c6a9`): risk register states "profiling/inference generation confirmed" derived from `i1_processing_purpose` which does not state it — overclaiming from intake. **FIXED by TURN B deploy 12:39Z; verify at wave 11 re-measure.**
 - **Note on counts:** `quality_findings` rows log ALL check results; `severity` = check tier, `passed` = outcome. The 6 critical-tier rows on cppa-risk are `passed=true` (qc_r1_1, qc_r1_4 PASSED on all 3 docs). Failure counts: cppa-risk **2 high**; cppa-cyber **2 high + 2 medium**.
 
+### Wave 11 + Wave 12 (campaign `fd1be147`)
+
+- **Wave 11 batch `3a22d2f8`** (launched 13:30:03Z): orchestrator isolate death ~13:42Z (heartbeat stopped after `cppa-risk` dispatch). `dpia` run 116 + `cppa-risk` run 124 completed independently; `cppa-admt` run 100 orphaned/failed; `cppa-cyber` never dispatched. Row reconciled 16:50:39Z (`status=cancelled`, `phase=done`, `last_error` populated) per wave-10 precedent. **SECOND orchestrator isolate death in one day** — raises priority of DS-T2b orchestrator→`delivery_contracts` wiring (still queued between waves).
+- **Wave 12 batch `a289c96e`** (15:45:02→16:14:55Z, COMPLETE): instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg` (frozen hash maintained), N=3/tool. Scores (overall / GPT / checks / dims acc-cit-hall-ana-int-fmt):
+  - `cppa-admt` run 101: **84.95** / 85 / 121-131 / 88-81-84-87-85-85
+  - `cppa-risk` run 125: **85.30** / 89 / 67-75 / 84-88-87-81-84-90
+  - `cppa-cyber` run 105: **85.45** / 91 / 49-58 / 85-87-88-81-81-83
+  - `dpia` run 117: **86.25** / 89 / 39-50 / 85-88-88-84-83-91
+- **gate_v2:** NO tool passes wave 12 (all dims ≥90 required; only formatting reaches 90-91 anywhere). Certification counters: 0 consecutive for all tools; critical/high survivors present (admt 1 critical + 4 high; risk 4 high; cyber 3 high; dpia 4 high).
+- **ADMT trajectory callout:** wave 11 read lost (orphaned run 100); wave 12 = 84.95, lowest CPPA score, citation dim 81 worst-in-batch; NEW regression — W9 pre-emit wiring leaks internal diagnostic objects into customer output (also exposes the future-dated w9 stamp). Trajectory NEGATIVE this wave; TURN C is the recovery path.
+- **TURN A/B verification (wave-12 re-measure):** cyber placeholder + mean-score hallucination FIXED (not observed); risk `sensitive_location` cross-attribution FIXED (not observed). New distinct defects logged in TURNs C/D/E scopes — ruthless attribution: these are new/mutated failure modes, not regressions of the shipped fixes.
+
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
@@ -126,5 +142,6 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
 
+- 2026-07-24T16:56:21Z — WAVE-11 reconciled (isolate death #2) + WAVE-12 digest extracted; no gate_v2 pass; CPPA fix turns C/D/E queued ahead of governance 6/8; TURN A/B fixes verified effective on wave-12 re-measure.
 - 2026-07-24T12:58:36Z — `SAMPLES-CONTRACT-lia (5/8)` REVISED per team-reviewed dispatch — DONE (frontend/test only, no deploy). Live-form audit resolved `stage`/`status`/`preview_signal` as mechanical row columns → allowlisted in `validate.ts` and restored in fixture; `potential_harm` corrected `"Severe"` → `"Moderate"` per counsel reading; ADVISORY drift 10 → 8; `li_assessment` now FATAL-tier. Regen queued (admin-UI, morning).
 - 2026-07-24T12:53:21Z — `SAMPLES-CONTRACT-lia (5/8)` initial pass — SUPERSEDED by 12:58:36Z revision (missed mechanical-row-key form audit and used Severe over Moderate).
