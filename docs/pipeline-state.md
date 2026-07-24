@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T12:02:26Z — turn `SAMPLES-CONTRACT-cppa-admt` (2/8)
+**Last updated:** 2026-07-24T12:06:32Z — turn `SAMPLES-CONTRACT-cppa-cyber` (3/8)
 
 ---
 
@@ -16,11 +16,11 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 ## 2. Queue Order (as currently dispatched)
 
-1. **THIS TURN** — `SAMPLES-CONTRACT-cppa-admt` (2/8) — reconciled, FATAL flipped, green.
-2. **NEXT** — `SAMPLES-CONTRACT-cppa-cyber` (3/8) — **BLOCKED by Deploy Lock**: recovery batch 5e0558f3 exercises `run-cppa-cybersecurity`. Frontend-only fixture edits are safe; do not deploy the cyber function until batch terminates. (cppa-cyber fixture reconciliation is frontend-only, so it may proceed; only a cyber-function deploy is locked.)
-3. Then — `SAMPLES-CONTRACT-dpia` → `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (4/8 … 8/8).
+1. **THIS TURN** — `SAMPLES-CONTRACT-cppa-cyber` (3/8) — reconciled, FATAL flipped, green.
+2. **NEXT** — `SAMPLES-CONTRACT-dpia` (4/8).
+3. Then — `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (5/8 … 8/8).
 4. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §7 sentinel gap).
-5. Deferred — W9 admt build restamp (bundled with next admt deploy, per stamp-doctrine correction; joins W6 restamp deferral in §6).
+5. Deferred — W9 admt build restamp (bundled with next admt deploy; joins W6 restamp deferral in §6).
 
 ## 3. Deploy Locks
 
@@ -30,19 +30,19 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:02:26Z):**
-- **LOCKED — `run-cppa-risk-assessment`** and **`run-cppa-cybersecurity`**: recovery batch `5e0558f3` launched ~12:01Z from admin UI (cppa-risk + cppa-cyber, batch_size 3). Lock releases when batch reaches terminal state.
-- Customer-path in-flight (last 15 min, NULL report): **none** across cppa/dpia/lia/gov/ir/bio tables at last check (12:02:26Z).
+**Current lock state (2026-07-24T12:06:32Z):**
+- **LOCKED — `run-cppa-risk-assessment`** and **`run-cppa-cybersecurity`**: recovery batch `5e0558f3` still running (`running_tool` confirmed ~12:05Z by dispatcher). Lock releases when batch reaches terminal state.
+- Customer-path in-flight (last 15 min, NULL report): **none** at last check.
 - Other functions: **unlocked**.
 
 ## 4. Last Completed Turn
 
-- **Turn:** `SAMPLES-CONTRACT-cppa-admt` (2/8)
-- **Real-time:** 2026-07-24T12:02:26Z (sandbox `date -u`)
-- **Scope:** Reconciled `src/lib/sampleFixtures.ts` `F_CPPA_ADMT_US` against `_shared/intake-contracts/cppa-admt.ts`. Substituted 9 enum/multi-enum values, removed 1 unknown top-level key (`notice_how_it_works_method`). Flipped `cppa_admt` out of `SAMPLE_ADVISORY_TOOLS` in `_tests/contract-surface-audit.test.ts` (FATAL tier).
-- **Tests:** 3/3 green in `contract-surface-audit.test.ts`; `cppa_admt` no longer appears in advisory drift list.
-- **Deploy:** N/A (frontend-only).
-- **REGEN-NEEDED:** `cppa_admt` sample fixture (regenerate showcase output on next content pass).
+- **Turn:** `SAMPLES-CONTRACT-cppa-cyber` (3/8)
+- **Real-time:** 2026-07-24T12:06:32Z (sandbox `date -u`)
+- **Scope:** Reconciled `src/lib/sampleFixtures.ts` `F_CPPA_CYBER_US` against `_shared/intake-contracts/cppa-cybersecurity.ts`. Removed 4 unknown top-level keys (`company_name`, `profile_industry`, `profile_audit`, `industry_sector`); substituted `profile.incidents_12mo: "0"` → `"None"`; normalised 16 occurrences of `"Implemented across organisation"` → `"Implemented across organization"` (contract spelling). Flipped `cppa_cyber` out of `SAMPLE_ADVISORY_TOOLS` (FATAL tier).
+- **Tests (green):** `contract-surface-audit` 3/3; `intake-contracts` 31/31 (incl. cyber PARITY/MIRROR/FIXTURES); `cppa-cyber.test.ts` 14/14. `cppa_cyber` no longer appears in advisory drift list.
+- **Deploy:** N/A (frontend-only; deploy lock respected — `run-cppa-cybersecurity` NOT deployed).
+- **REGEN-NEEDED:** `cppa_cyber` sample fixture added to register (regen deferred to end-of-program walk-through).
 
 ## 5. Sample-Report Register
 
@@ -58,7 +58,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5 (moved from report-text-only).
-- **REGEN-NEEDED (samples-contract):** `cppa_risk` (turn 1/8), `cppa_admt` (turn 2/8). Regenerate showcase output on next content pass.
+- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8). Regen click deferred to end-of-program walk-through.
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt/risk/cyber) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
   - W9 admt (`w9-admt-preemit` marker future-dated) — restamp at admt's next deploy (no solo redeploy).
