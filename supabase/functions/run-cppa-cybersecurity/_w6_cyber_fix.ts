@@ -176,23 +176,42 @@ const COMPARATIVE_FRAMEWORKS: Array<{ label: string; re: RegExp }> = [
 const OPERATIVE_VERBS_RE =
   /\b(?:requires?|governs?|drives?|mandates?|dictates?|controls?|is\s+the\s+operative\s+standard\s+for|is\s+the\s+governing\s+standard\s+for)\b/i;
 
-export function rewriteComparativeAsOperative(s: string): { out: string; rewritten: number } {
+// A1 fix (2026-07-24): the appended operative tail must resolve the § 7123(c)
+// subsection from the CALLING control's own citation. When the caller has no
+// per-control context (executive_summary / top_risks / next_steps), the tail
+// is OMITTED entirely — we NEVER emit "(N)" or any unresolved placeholder
+// token in customer-facing output.
+export interface RewriteCompOpts {
+  /** Full per-control citation, e.g. "11 CCR § 7123(c)(1)". If omitted, no
+   *  operative tail is appended. */
+  controlCitation?: string;
+}
+
+// Safety net — strip any stray "(N)" literal that slipped through earlier
+// builds. Also normalizes "§ 7123(c)(N)" → "§ 7123(c)" when N is the literal
+// token "N".
+function stripLiteralNPlaceholder(s: string): string {
+  return s
+    .replace(/11\s*CCR\s*§\s*7123\(c\)\(N\)/gi, "11 CCR § 7123(c)")
+    .replace(/§\s*7123\(c\)\(N\)/gi, "§ 7123(c)")
+    .replace(/\(c\)\(N\)/g, "(c)");
+}
+
+export function rewriteComparativeAsOperative(
+  s: string,
+  opts: RewriteCompOpts = {},
+): { out: string; rewritten: number } {
   if (!s) return { out: s ?? "", rewritten: 0 };
   let rewritten = 0;
   const sentences = s.split(/(?<=[.;])\s+/);
   const patched = sentences.map((sent) => {
     if (!OPERATIVE_VERBS_RE.test(sent)) return sent;
-    // Find any comparative framework mention in the same sentence
     const hit = COMPARATIVE_FRAMEWORKS.find((f) => f.re.test(sent));
     if (!hit) return sent;
-    // Skip if the sentence itself is the operative CPPA cite
     if (/11\s*CCR\s*§\s*7123/i.test(sent) && !hit.re.test(sent.split(/11\s*CCR/i)[0] ?? "")) {
       return sent;
     }
     rewritten++;
-    // Prepend the comparative framing and neutralize the verb window by
-    // rewriting operative verbs to "addresses"/"provides comparative
-    // guidance on", and stamping the operative standard.
     let rewritten_sent = sent
       .replace(/\brequires?\b/gi, "addresses")
       .replace(/\bmandates?\b/gi, "addresses")
@@ -201,19 +220,21 @@ export function rewriteComparativeAsOperative(s: string): { out: string; rewritt
       .replace(/\bdictates?\b/gi, "addresses")
       .replace(/\bis\s+the\s+operative\s+standard\s+for\b/gi, "provides comparative context for")
       .replace(/\bis\s+the\s+governing\s+standard\s+for\b/gi, "provides comparative context for");
-    // Prefix comparative framing once, and append the operative-standard
-    // stamp so the reader is not left thinking the comparative framework
-    // is authoritative.
     if (!/for\s+comparative\s+context/i.test(rewritten_sent)) {
       rewritten_sent = `For comparative context, ${rewritten_sent.charAt(0).toLowerCase()}${rewritten_sent.slice(1)}`;
     }
-    if (!/operative\s+requirement\s+is\s+11\s*CCR\s*§\s*7123/i.test(rewritten_sent)) {
+    // A1: append the operative tail ONLY when we have a resolved per-control
+    // citation. Otherwise omit — never emit "(N)".
+    const cite = opts.controlCitation && /11\s*CCR\s*§\s*7123\(c\)\(\d+\)/i.test(opts.controlCitation)
+      ? opts.controlCitation
+      : "";
+    if (cite && !/operative\s+requirement\s+is\s+11\s*CCR\s*§\s*7123/i.test(rewritten_sent)) {
       rewritten_sent = rewritten_sent.replace(/[.;]?\s*$/, "") +
-        "; the operative requirement is 11 CCR § 7123(c)(N).";
+        `; the operative requirement is ${cite}.`;
     }
     return rewritten_sent;
   });
-  return { out: patched.join(" ").replace(/[ \t]{2,}/g, " "), rewritten };
+  return { out: stripLiteralNPlaceholder(patched.join(" ").replace(/[ \t]{2,}/g, " ")), rewritten };
 }
 
 // ── (3) Derived / cross-control figure porting ──────────────────────────
@@ -285,6 +306,36 @@ const ANCHOR_KEYS = new Set([
   "intake_field_1", "intake_field_2", "canonical_fields", "element_id",
 ]);
 
+// A1 (2026-07-24): per-control § 7123(c) citation registry keyed by the
+// canonical report control label. Mirrors index.ts COMPONENT_CITATIONS.
+// Any label not in this map yields undefined → operative tail is OMITTED
+// (never emits "(N)" or an unresolved placeholder).
+const COMPONENT_CITATION_BY_LABEL: Record<string, string> = {
+  "Authentication": "11 CCR § 7123(c)(1)",
+  "Encryption of personal information": "11 CCR § 7123(c)(2)",
+  "Account management and access controls": "11 CCR § 7123(c)(3)",
+  "Inventory and management of personal information and systems": "11 CCR § 7123(c)(4)",
+  "Secure configuration of hardware and software": "11 CCR § 7123(c)(5)",
+  "Vulnerability scanning and penetration testing": "11 CCR § 7123(c)(6)",
+  "Audit-log management": "11 CCR § 7123(c)(7)",
+  "Network monitoring and defenses": "11 CCR § 7123(c)(8)",
+  "Antivirus and anti-malware protections": "11 CCR § 7123(c)(9)",
+  "Segmentation of an information system": "11 CCR § 7123(c)(10)",
+  "Port and protocol management and protection": "11 CCR § 7123(c)(11)",
+  "Cybersecurity awareness": "11 CCR § 7123(c)(12)",
+  "Cybersecurity education and training": "11 CCR § 7123(c)(13)",
+  "Secure development and coding practices": "11 CCR § 7123(c)(14)",
+  "Oversight of service providers, contractors, and third parties": "11 CCR § 7123(c)(15)",
+  "Retention schedules and proper disposal of personal information": "11 CCR § 7123(c)(16)",
+  "Security-incident response management": "11 CCR § 7123(c)(17)",
+  "Business-continuity and disaster-recovery planning": "11 CCR § 7123(c)(18)",
+};
+
+function resolveControlCitation(label: unknown): string | undefined {
+  if (typeof label !== "string") return undefined;
+  return COMPONENT_CITATION_BY_LABEL[label.trim()];
+}
+
 export function applyW6CyberFix(
   report: CyberReport | null | undefined,
   intake: CyberIntake | null | undefined,
@@ -310,7 +361,12 @@ export function applyW6CyberFix(
   const framework = readIntakeFramework(intake);
   counters.framework = framework ?? null;
 
-  const applyToString = (s: unknown, key?: string): string | undefined => {
+  // A1 (2026-07-24): resolve the calling control's § 7123(c) citation from
+  // the report's own control label so rewriteComparativeAsOperative can
+  // stamp the correct operative anchor. For fields with no per-control
+  // context (executive_summary/top_risks/next_steps), citation is omitted
+  // and the operative tail is not appended.
+  const applyToString = (s: unknown, key?: string, controlCitation?: string): string | undefined => {
     if (typeof s !== "string") return undefined;
     if (key && ANCHOR_KEYS.has(key)) return undefined;
     let out = s;
@@ -319,7 +375,7 @@ export function applyW6CyberFix(
       out = fw.out;
       counters.frameworkRewritten += fw.rewritten;
     }
-    const comp = rewriteComparativeAsOperative(out);
+    const comp = rewriteComparativeAsOperative(out, { controlCitation });
     out = comp.out;
     counters.comparativeOperativeRewritten += comp.rewritten;
     const named = rewriteUncitedNamedRules(out);
@@ -335,8 +391,9 @@ export function applyW6CyberFix(
   let rbScrubbed = 0;
   for (const c of controls) {
     if (!c || typeof c !== "object") continue;
+    const cite = resolveControlCitation((c as any).control);
     for (const key of PROSE_FIELDS) {
-      const patched = applyToString((c as any)[key], key);
+      const patched = applyToString((c as any)[key], key, cite);
       if (patched !== undefined) (c as any)[key] = patched;
     }
     const rb = (c as any).regulatory_basis;

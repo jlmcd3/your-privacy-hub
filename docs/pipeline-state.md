@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T12:06:32Z — turn `SAMPLES-CONTRACT-cppa-cyber` (3/8)
+**Last updated:** 2026-07-24T12:25:18Z — turn `RECOVERY-BATCH-FIXES / TURN A (cppa-cyber A1+A2)`
 
 ---
 
@@ -16,9 +16,9 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 ## 2. Queue Order (as currently dispatched)
 
-1. **THIS TURN** — `SAMPLES-CONTRACT-cppa-cyber` (3/8) — reconciled, FATAL flipped, green.
-2. **NEXT** — `SAMPLES-CONTRACT-dpia` (4/8).
-3. Then — `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (5/8 … 8/8).
+1. **DONE THIS TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 placeholder-leak fix + A2 deterministic aggregates) — deployed.
+2. **NEXT** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1 field cross-wiring). Deploy window closes ~13:05Z (before wave 11 at ~13:15Z) or HOLD.
+3. Then — resume `SAMPLES-CONTRACT-dpia` (4/8) → `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (5/8 … 8/8).
 4. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §7 sentinel gap).
 5. Deferred — W9 admt build restamp (bundled with next admt deploy; joins W6 restamp deferral in §6).
 
@@ -30,19 +30,28 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:06:32Z):**
-- **LOCKED — `run-cppa-risk-assessment`** and **`run-cppa-cybersecurity`**: recovery batch `5e0558f3` still running (`running_tool` confirmed ~12:05Z by dispatcher). Lock releases when batch reaches terminal state.
-- Customer-path in-flight (last 15 min, NULL report): **none** at last check.
-- Other functions: **unlocked**.
+**Current lock state (2026-07-24T12:25:18Z):**
+- Recovery batch `5e0558f3` reached terminal `complete` at 2026-07-24T12:16:46Z. Both cyber & risk deploy locks RELEASED at that moment.
+- `run-cppa-cybersecurity` deployed this turn (12:25Z) — no in-flight customer row.
+- All other functions: **unlocked**. Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
 
 ## 4. Last Completed Turn
 
-- **Turn:** `SAMPLES-CONTRACT-cppa-cyber` (3/8)
-- **Real-time:** 2026-07-24T12:06:32Z (sandbox `date -u`)
-- **Scope:** Reconciled `src/lib/sampleFixtures.ts` `F_CPPA_CYBER_US` against `_shared/intake-contracts/cppa-cybersecurity.ts`. Removed 4 unknown top-level keys (`company_name`, `profile_industry`, `profile_audit`, `industry_sector`); substituted `profile.incidents_12mo: "0"` → `"None"`; normalised 16 occurrences of `"Implemented across organisation"` → `"Implemented across organization"` (contract spelling). Flipped `cppa_cyber` out of `SAMPLE_ADVISORY_TOOLS` (FATAL tier).
-- **Tests (green):** `contract-surface-audit` 3/3; `intake-contracts` 31/31 (incl. cyber PARITY/MIRROR/FIXTURES); `cppa-cyber.test.ts` 14/14. `cppa_cyber` no longer appears in advisory drift list.
-- **Deploy:** N/A (frontend-only; deploy lock respected — `run-cppa-cybersecurity` NOT deployed).
-- **REGEN-NEEDED:** `cppa_cyber` sample fixture added to register (regen deferred to end-of-program walk-through).
+- **Turn:** `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 + A2)
+- **Real-time:** 2026-07-24T12:25:18Z (sandbox `date -u`)
+- **Scope:**
+  - **A1 (placeholder leak):** `_w6_cyber_fix.ts` — `rewriteComparativeAsOperative(s, opts?)` now takes `{ controlCitation }`. Per-control walker resolves the § 7123(c)(N) citation from a new `COMPONENT_CITATION_BY_LABEL` map (18 labels, mirrors index.ts `COMPONENT_CITATIONS`). Where citation resolves, the operative tail names the actual subsection (`; the operative requirement is 11 CCR § 7123(c)(N).`). Where the caller has no per-control context (executive_summary / top_risks / next_steps) or the label is unknown, the tail is **OMITTED entirely** — never `(N)`. Added `stripLiteralNPlaceholder` safety-net for `§ 7123(c)(N)` residue.
+  - **A2 (derived mean):** new `_w10_cyber_aggregates.ts` (`W10_CYBER_AGG_STAMP = w10-cyber-aggregates@2026-07-24`). `computeCyberAggregates(controls)` returns `{ total_components:18, scored_count, insufficient_count, mean_score, distribution, canonical_sentence }` per PF6 T2 (mean over SCORED status only; excludes "Insufficient information"). `scrubAuthoredAggregates` replaces any model-authored `mean/average/aggregate score of NN` phrasing across `executive_summary` / `top_risks` / `next_steps` with the deterministic canonical sentence. `attachCyberAggregates` injects `report.aggregates` slot. Telemetry counter `authored_aggregates_replaced` logged in `w10_cyber_aggregates_attached` evt.
+  - **Wiring:** `run-cppa-cybersecurity/index.ts` — new import + call after W9 slots, fail-open with `console.log` telemetry. `_meta._w10_cyber_aggregates` written to report.
+- **BUILD_STAMP:** bumped `w9-cyber-turn3@2026-07-24T10:51:31Z` → `w10-cyber-a1a2@2026-07-24T12:25:18Z` (fresh `date -u` read this turn).
+- **Tests (green):** 47 pass / 0 fail. Files: `run-cppa-cybersecurity/*.test.ts` + `_tests/cppa-cyber.test.ts`. New pins:
+  - `A1 — no unresolved (N) placeholder survives in any narrative field` (end-to-end, 3-control fixture spanning known-label / unknown-label / no-context surfaces).
+  - `A1 — without per-control citation, operative tail is OMITTED entirely`.
+  - `A1 — literal (N) placeholder is stripped as a safety net`.
+  - `A2 — computeCyberAggregates excludes Insufficient information from the mean`.
+  - `A2 — model-authored 'mean score of 81' is replaced with deterministic sentence`.
+  - `A2 — scrub catches 'average score' and 'aggregate score' variants`.
+- **Deploy:** `run-cppa-cybersecurity` deployed 2026-07-24T12:25Z. Boot log will emit `[qb9-rcb1] run-cppa-cybersecurity build active … build_stamp=w10-cyber-a1a2@2026-07-24T12:25:18Z` on first invocation (function is background-invoked; no boot log surfaces until wave 11 dispatch).
 
 ## 5. Sample-Report Register
 
@@ -52,15 +61,16 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 | cppa-admt | `8f6b316d-cc1e-4f08-867c-b2c771e8efd3` | complete | ✅ | 2026-07-24 11:53:48Z |
 | cppa-cyber | `7e70e8a6-ce22-409b-9540-7fb6f9c2815d` | complete | ✅ | 2026-07-24 11:52:32Z |
 
-**Recovery batches in flight:**
-- `5e0558f3` — launched ~12:01Z from admin UI; tools=[cppa-risk, cppa-cyber]; batch_size=3. Recovers Wave-10 lost reads. Terminal-state watch active; deploy locks §3 apply until it completes.
+**Recovery batches (terminal):**
+- `5e0558f3` — launched ~12:01Z; **complete at 2026-07-24T12:16:46Z**. Deploy locks released.
 
 ## 6. Carry-Forward Registers
 
-- **Sample-Report Register** — see §5 (moved from report-text-only).
+- **Sample-Report Register** — see §5.
 - **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8). Regen click deferred to end-of-program walk-through.
 - **Build-stamp restamp deferral:**
-  - W6 scrubbers (admt/risk/cyber) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
+  - W6 scrubbers (admt/risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
+  - W6 cyber — SUPERSEDED this turn by `w10-cyber-a1a2` (fresh-clock stamp).
   - W9 admt (`w9-admt-preemit` marker future-dated) — restamp at admt's next deploy (no solo redeploy).
 - **L5 backlog:** 85 aggregate rows, 0 unclassified. Standard cron continues.
 - **Sentinel gap:** orchestrator runs not yet registered as `delivery_contracts` (DS-T2 sweep would not catch orchestrator isolate death). Wiring queued between waves.

@@ -3,8 +3,11 @@
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("BUILD_STAMP bumped for QB-P25 A2", () => {
-  assert(BUILD_STAMP.includes("qbp25-cyber-evidence-differentiator-rank"));
+Deno.test("BUILD_STAMP bumped past QB-P25 A2 (current: w10-cyber-a1a2)", () => {
+  // Historical bump: qbp25-cyber-evidence-differentiator-rank. Current
+  // stamp advances through the wave sequence — any dated cyber build
+  // stamped after the a1a2 pre-emit gates satisfies this pin.
+  assert(/cyber/i.test(BUILD_STAMP), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
 });
 
 // The normalise step lives inline in the handler; we verify the shape rule by

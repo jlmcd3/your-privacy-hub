@@ -176,13 +176,30 @@ Deno.test("W6-CYBER v2 (1b) — named rule WITH pinpoint cite is left alone", ()
   assertEquals(out, s);
 });
 
-Deno.test("W6-CYBER v2 (2) — HIPAA framed as operative is rewritten to comparative context", () => {
+Deno.test("W6-CYBER v2 (2) — HIPAA framed as operative is rewritten to comparative context [with per-control citation]", () => {
   const s = "The HIPAA Security Rule (45 CFR Part 164) requires MFA on privileged accounts.";
-  const { out, rewritten } = rewriteComparativeAsOperative(s);
+  const { out, rewritten } = rewriteComparativeAsOperative(s, { controlCitation: "11 CCR § 7123(c)(1)" });
   assert(rewritten >= 1);
   assert(/for comparative context/i.test(out), out);
   assert(!/\brequires\b/i.test(out), out);
-  assert(/operative requirement is 11 CCR § 7123/i.test(out), out);
+  assert(/operative requirement is 11 CCR § 7123\(c\)\(1\)/.test(out), out);
+  assert(!/\(N\)/.test(out), `must not emit (N): ${out}`);
+});
+
+Deno.test("A1 (2026-07-24) — without per-control citation, operative tail is OMITTED entirely", () => {
+  const s = "The HIPAA Security Rule requires MFA on privileged accounts.";
+  const { out, rewritten } = rewriteComparativeAsOperative(s);
+  assert(rewritten >= 1);
+  assert(/for comparative context/i.test(out), out);
+  assert(!/operative requirement is/i.test(out), `tail must be omitted: ${out}`);
+  assert(!/\(N\)/.test(out), `no placeholder: ${out}`);
+});
+
+Deno.test("A1 (2026-07-24) — literal (N) placeholder is stripped as a safety net", () => {
+  const s = "See the operative requirement at 11 CCR § 7123(c)(N).";
+  const { out } = rewriteComparativeAsOperative(s);
+  assert(!/\(N\)/.test(out), out);
+  assert(/11 CCR § 7123\(c\)/.test(out), out);
 });
 
 Deno.test("W6-CYBER v2 (2) — NIST CSF 'governs this assessment' rewritten", () => {
@@ -202,6 +219,7 @@ Deno.test("W6-CYBER v2 (2) — HITRUST / ISO 27001 / SOC 2 operative framing rew
     const { out, rewritten } = rewriteComparativeAsOperative(sent);
     assert(rewritten >= 1, `${name} not rewritten: ${out}`);
     assert(/for comparative context/i.test(out), `${name} missing prefix: ${out}`);
+    assert(!/\(N\)/.test(out), `${name} emitted (N): ${out}`);
   }
 });
 
