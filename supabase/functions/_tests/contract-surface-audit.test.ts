@@ -28,6 +28,7 @@ import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-asses
 import { dpaGeneratorContract }     from "../_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract }       from "../_shared/intake-contracts/ir-playbook.ts";
 import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-checker.ts";
+import { registrationContract }     from "../_shared/intake-contracts/registration-assessment.ts";
 
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES }      from "../_shared/admt-contract-fixtures.ts";
@@ -48,6 +49,7 @@ const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {
   "dpa-generator":     dpaGeneratorContract,
   "ir-playbook":       irPlaybookContract,
   "biometric-checker": biometricCheckerContract,
+  "registration":      registrationContract,
 };
 
 // Sample-slug → (tool key, intake path). Path is dotted with support for
@@ -62,6 +64,9 @@ const SAMPLE_MAP: Record<string, { tool: string; path: string }> = {
   cppa_risk:     { tool: "cppa-risk",         path: "insert.intake_data" },
   cppa_cyber:    { tool: "cppa-cyber",        path: "insert.intake_data" },
   cppa_admt:     { tool: "cppa-admt",         path: "insert.intake_data" },
+  // Registration submit body: invoke_body.intake_data (see
+  // src/pages/RegistrationAssessment.tsx L187-190).
+  registration:  { tool: "registration",      path: "invoke_body.intake_data" },
   // Non-contract:
   // ropa, us_notice, eu_notice → skipped
 };
