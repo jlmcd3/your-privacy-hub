@@ -140,13 +140,18 @@ export function rewriteFrameworkOverride(
   // attached to a NIST-CSF sentence. § 7123(e) does not incorporate NIST CSF.
   // If a sentence contains a NIST CSF mention and "as required under ... 7123(e)",
   // strip the "as required" clause.
-  out = out.replace(
-    /([^.]*NIST\s+CSF[^.]*?),?\s+as required under\s+(?:11\s*CCR\s+)?§?\s*7123\(e\)[^.]*/gi,
-    (_m, head: string) => {
-      rewritten++;
-      return `${head.trim()} (optional crosswalk; the intake-elected ${fw} framework governs)`;
-    },
-  );
+  // Sentence guard — split on periods so an unrelated preceding sentence
+  // isn't dragged in; use character classes that TOLERATE version dots
+  // ("2.0") within the NIST-CSF vicinity.
+  out = out.split(/(?<=\.)\s+/).map((sent) => {
+    if (!/NIST\s+CSF/i.test(sent)) return sent;
+    const m = sent.match(/,?\s+as required under\s+(?:11\s*CCR\s+)?§?\s*7123\(e\)/i);
+    if (!m) return sent;
+    rewritten++;
+    const before = sent.slice(0, m.index!).replace(/[,\s]+$/g, "");
+    const after = sent.slice(m.index! + m[0].length);
+    return `${before} (optional crosswalk; the intake-elected ${fw} framework governs)${after}`;
+  }).join(" ");
 
   return { out: out.replace(/[ \t]{2,}/g, " "), rewritten };
 }
