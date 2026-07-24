@@ -1191,6 +1191,49 @@ The AEPD actively enforces biometric obligations, and its proportionality requir
 ---`;
     }
 
+    if (isWA) {
+      // BIO-REG-W1 T2(c) D1 FIX (2026-07-24) — dedicated Washington branch.
+      // Before this fix, isWA was defined at line 330 but no `if (isWA)`
+      // branch existed, so jurisdictions like "Washington state, USA" fell
+      // through every per-state block and landed in the generic fallback
+      // (the 24.5-score "boilerplate" collapse observed in POST-C1-MEASURE
+      // T2(c) evidence-gate). Section content composed from the RCW 19.375
+      // rows in _shared/registry/biometric-statute-registry.ts. MHMD
+      // (RCW 19.373) remains covered separately via the "Other US State"
+      // named-Washington path for consumer-health contexts.
+      return `${jurisdiction} — Washington Biometric Identifiers Act (HB 1493), RCW 19.375
+
+On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. RCW 19.375 governs the enrolment of biometric identifiers in a database for a commercial purpose in Washington. Where the biometric processing is generated from or used to infer a consumer's health status, the Washington My Health My Data Act (RCW ch. 19.373) applies in addition — that regime is addressed under the "Other US State — Washington" named-state path.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. RCW 19.375.010: definitional scope — "biometric identifier" covers fingerprint, voiceprint, eye retinas, irises, and other unique biological patterns used to identify a specific individual; photographs, audio/video recordings, and HIPAA-scoped healthcare data are excluded from the definition.
+2. RCW 19.375.020(1): before enrolling a biometric identifier in a database for a commercial purpose, provide notice, obtain consent, OR provide a mechanism to prevent subsequent commercial use of the biometric identifier. The exact notice and consent type is context-dependent — the statute does not prescribe a signed written release (contrast Illinois BIPA § 15(b)).
+3. RCW 19.375.020(3): sale, lease, or other disclosure of an enrolled biometric identifier for a commercial purpose is prohibited except with the individual's consent, to provide a requested product or service, to complete a requested financial transaction, as required or expressly authorised by federal/state law or municipal ordinance, or to law enforcement in response to a court order, warrant, or subpoena.
+4. RCW 19.375.020(4): possessor must take reasonable care to guard against unauthorised access to and acquisition of enrolled biometric identifiers; retention is limited to the period reasonably necessary to provide the services for which the identifier was enrolled, prevent fraud or criminal activity, or use consistent with consent.
+5. RCW 19.375.030: violations are enforceable SOLELY by the Washington Attorney General under the Consumer Protection Act (chapter 19.86 RCW). NO private right of action under RCW 19.375 itself — this is a material differentiator from Illinois BIPA. Private-action exposure in Washington biometric matters arises separately under the MHMD path (RCW 19.373.090) where the data qualifies as consumer health data.
+
+Consent and notice:
+Notice, consent, or an opt-out mechanism satisfies RCW 19.375.020(1) — the choice among the three is context-dependent. Documented notice at or before enrolment (signage at the enrolment point, an in-app disclosure, or a written notice) is the defensible practice; where the biometric use extends to sale or disclosure under RCW 19.375.020(3), affirmative consent is the safer path because the enumerated exceptions are narrowly drawn.
+
+Retention and destruction:
+No fixed statutory ceiling; RCW 19.375.020(4) ties retention to the enrolment purpose plus fraud-prevention and consent-scope tails. Define the specific event that ends the enrolment purpose for each use case (employment termination, account closure, contract end) and document the destruction schedule.
+
+Sale and sharing restrictions:
+RCW 19.375.020(3) prohibits sale, lease, or disclosure for a commercial purpose absent an enumerated exception. Processor arrangements must be structured so the vendor's use falls within an exception (typically consent or a requested service) and does not itself constitute a prohibited sale under the statute's definition.
+
+Current enforcement posture:
+Attorney General enforcement under the Consumer Protection Act. Consult the Washington Attorney General's public enforcement register for pending or resolved biometric matters — never quantify enforcement magnitudes from memory. Where the underlying data also qualifies as consumer health data, MHMD's private right of action via RCW 19.86 substantially raises exposure.
+
+Priority actions:
+1. Implement an RCW 19.375.020(1)-compliant notice-and-consent (or opt-out) workflow before any biometric enrolment for a commercial purpose in Washington.
+2. Publish a retention and destruction schedule keyed to enrolment-purpose expiry, consistent with RCW 19.375.020(4).
+3. Audit vendor contracts to confirm that any disclosure of enrolled biometric identifiers falls within an RCW 19.375.020(3) exception and does not itself constitute a prohibited sale.
+
+Compliance risk rating: HIGH
+Attorney General enforcement under the Consumer Protection Act plus overlapping MHMD private-action exposure where biometrics infer health status create material Washington-specific risk; the absence of a private right of action under RCW 19.375 itself is not a safe harbour where MHMD scope is engaged.
+---`;
+    }
+
     // Generic fallback for other jurisdictions
     return `${jurisdiction} — biometric privacy assessment
 
