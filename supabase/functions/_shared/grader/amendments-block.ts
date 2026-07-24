@@ -38,6 +38,12 @@
 
 import { resolveArticle6Examples } from "../dpia-jurisdiction-registry.ts";
 import { CITATION_REGISTRY } from "../admt-citation-registry.ts";
+import {
+  BIOMETRIC_STATUTE_REGISTRY,
+  BIOMETRIC_REGISTRY_VERSION,
+  type BiometricStatuteRow,
+} from "../registry/biometric-statute-registry.ts";
+
 
 function ukArt611Block(): string {
   const a6 = resolveArticle6Examples("uk_gdpr");
