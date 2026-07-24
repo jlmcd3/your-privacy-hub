@@ -26,14 +26,15 @@ const KNOWN_PARAPHRASED_KEYS = new Set<string>([
   //   sig_decision, sig_financial, sig_housing, sig_education,
   //   sig_employment, sig_healthcare,
   //   fsor_advertising_exclusion, fsor_human_involvement_three_part.
+  // Corrected in ADMT-REGISTRY-CORPUS-2 (§ 7150/7155/7157 RA batch, 2026-07-24):
+  //   ra_trigger_admt, ra_trigger_train, ra_timing_new,
+  //   ra_timing_existing, ra_submit.
   "access_logic", "access_outcome", "access_provide",
   "ccpa_defs", "ccpa_rulemaking",
   "notice_access", "notice_altprocess", "notice_antiretal",
   "notice_howworks_inputs", "notice_howworks_output",
   "notice_optout", "notice_purpose", "notice_timing",
   "optout_exc_appeal", "optout_exc_hire", "optout_offer",
-  "ra_submit", "ra_timing_existing", "ra_timing_new",
-  "ra_trigger_admt", "ra_trigger_train",
   "scope_apply", "scope_deadline",
 ]);
 

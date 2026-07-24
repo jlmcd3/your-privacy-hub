@@ -33,7 +33,7 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w2-2026-07-24";
+export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w3-2026-07-24";
 
 /** Canonical published text for §§ 7000-series (OAL-approved package). */
 const CCR_URL =
@@ -194,7 +194,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7150",
     subsection: "11 CCR § 7150(b)(3)",
     verbatim_quote:
-      "A business must conduct a risk assessment before it uses automated decisionmaking technology (ADMT) for a significant decision concerning a consumer.",
+      "Using ADMT for a significant decision concerning a consumer.",
     depth_class: "sub_subsection",
     governing_anchor: ART10,
     verified_on: VOD,
@@ -205,7 +205,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7150",
     subsection: "11 CCR § 7150(b)(6)",
     verbatim_quote:
-      "A business must conduct a risk assessment before it processes personal information to train automated decisionmaking technology or artificial intelligence that is capable of being used for a significant decision, to establish individual identity, for physical or biological identification or profiling, for the generation of a deepfake, or for the operation of generative models.",
+      "Processing the personal information of consumers, which the business intends to use to train an ADMT for a significant decision concerning a consumer; or train a facial-recognition, emotion-recognition, or other technology that verifies a consumer's identity, or conducts physical or biological identification or profiling of a consumer.",
     depth_class: "sub_subsection",
     governing_anchor: ART10,
     verified_on: VOD,
@@ -216,7 +216,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7155",
     subsection: "11 CCR § 7155(a)(1)",
     verbatim_quote:
-      "A business must conduct and document a risk assessment before initiating the processing identified in section 7150, subsection (b).",
+      "A business must conduct and document a risk assessment in accordance with the requirements of this Article before initiating any processing activity identified in section 7150, subsection (b).",
     depth_class: "sub_subsection",
     governing_anchor: ART10,
     verified_on: VOD,
@@ -227,7 +227,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7155",
     subsection: "11 CCR § 7155(b)",
     verbatim_quote:
-      "For processing that the business initiated before the effective date of these regulations and that continues after the effective date, the business must conduct and document a risk assessment by December 31, 2027.",
+      "For any processing activity identified in section 7150, subsection (b), that the business initiated prior to [OAL to fill in the effective date of these regulations] and that continues after [OAL to fill in the effective date of these regulations], the business must conduct, and document as set forth in section 7152, a risk assessment in accordance with the requirements of this Article no later than December 31, 2027.",
     depth_class: "subsection",
     governing_anchor: ART10,
     verified_on: VOD,
@@ -238,7 +238,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7157",
     subsection: "11 CCR § 7157(a)(1)",
     verbatim_quote:
-      "By April 1, 2028, a business must submit to the Agency an attestation and the risk-assessment information required by this section for every risk assessment the business conducted or updated during the period beginning on the effective date of these regulations and ending on December 31, 2027.",
+      "For risk assessments conducted in 2026 and 2027, the business must submit to the Agency the information required by subsection (b) no later than April 1, 2028.",
     depth_class: "sub_subsection",
     governing_anchor: ART10,
     verified_on: VOD,
