@@ -22,14 +22,23 @@ const LABEL: Record<string, string> = {
   c13_training:"Training", c14_secure_dev:"Secure development", c15_third_party:"Third-party",
   c16_retention:"Retention", c17_incident:"Incident response", c18_continuity:"Continuity",
 };
-type CtrlSpec = { notes: string; maturity?: string };
+type CtrlSpec = { notes: string; maturity?: string; evidence?: string[] };
 const build = (spec: Record<string, CtrlSpec>, defaultMaturity: string) =>
   SLUGS.map(k => ({
     key: k,
     label: LABEL[k],
     maturity: spec[k]?.maturity ?? defaultMaturity,
     notes: spec[k]?.notes ?? "Documented; reviewed quarterly.",
+    // TURN 3 — evidence-availability checklist (dummy defaults).
+    evidence: spec[k]?.evidence ?? ["Policy / procedure document", "Runbook / SOP"],
   }));
+
+// TURN 3 — dummy scope-framing profile additions used across all fixtures.
+const DEFAULT_SCOPE = {
+  in_scope_frameworks: ["SOC 2"] as string[],
+  audit_scope_rationale:
+    "Audit covers the production processing estate; supplements the primary framework where § 7123(c) components are not fully addressed.",
+};
 
 // ─── Fixture 1: Meridian SaaS Inc. — mid-maturity NIST CSF, mixed posture ───
 const meridian: Record<string, CtrlSpec> = {
