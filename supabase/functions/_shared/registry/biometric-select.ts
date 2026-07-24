@@ -94,6 +94,32 @@ export function resolveJurisdictions(
   if (jurs.some((j) => j.includes("arkansas"))) {
     push("us_ar_pipa", "direct_selection");
   }
+  // BIO-REG-W1-S3 — non-US registered jurisdictions. All selected via
+  // discrete JURS enum labels only; there is no free-text path (state_names
+  // is a US-only concept). Substrings chosen so both the exact enum labels
+  // and reasonable synonyms map cleanly.
+  if (jurs.some((j) => j.includes("eu") || j.includes("eea") || j.includes("gdpr"))) {
+    // Avoid double-tagging when the user selects UK GDPR (below) — the UK
+    // label contains "gdpr" too. The UK guard runs first via includes("uk"|
+    // "united kingdom") which sets the UK id; the EU push is skipped when
+    // ONLY the UK label is present.
+    const onlyUk = jurs.every(
+      (j) => j.includes("united kingdom") || j.includes("uk gdpr"),
+    );
+    if (!onlyUk) push("eu_gdpr", "direct_selection");
+  }
+  if (jurs.some((j) => j.includes("united kingdom") || j.includes("uk gdpr"))) {
+    push("uk_gdpr", "direct_selection");
+  }
+  if (jurs.some((j) => j.includes("canada") || j.includes("pipeda"))) {
+    push("ca_pipeda", "direct_selection");
+  }
+  if (jurs.some((j) => j.includes("australia") || j.includes("privacy act"))) {
+    push("au_privacy_act", "direct_selection");
+  }
+  if (jurs.some((j) => j.includes("singapore") || j.includes("pdpa"))) {
+    push("sg_pdpa", "direct_selection");
+  }
 
   const isOtherUs = jurs.some((j) => j.includes("other us"));
   const namedRaw = (intake.other_state_names ?? "").trim();
