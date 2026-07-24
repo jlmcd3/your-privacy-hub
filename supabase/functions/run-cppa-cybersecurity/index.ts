@@ -8,11 +8,12 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "w10-cyber-a1a2@2026-07-24T12:25:18Z";
+export const BUILD_STAMP = "w12-cyber-turne@2026-07-24T17:32:35Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 import { attachCyberAggregates, W10_CYBER_AGG_STAMP } from "./_w10_cyber_aggregates.ts";
+import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
@@ -1572,6 +1573,27 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       };
     } catch (w10Err) {
       console.error("[W10-CYBER-AGG] non-fatal:", String(w10Err));
+    }
+
+    // WAVE12-FIX TURN E — defensive crosswalk sanitizer. Runs LAST among
+    // scrubs so it sees the final assembled prose (post-W6, post-W9, post-W10).
+    // Drops truncated ";"/":" fragments, drops sentences with unbalanced
+    // parens, and dedupes exact-match operative sentences per surface.
+    // Telemetry lands under _meta.internal.crosswalk (NOT customer-visible).
+    // Fail-open.
+    try {
+      const e1 = applyW12CyberE1(report as any);
+      console.log(JSON.stringify({
+        evt: "w12_cyber_e1_applied",
+        build_stamp: BUILD_STAMP,
+        e1_stamp: W12_CYBER_E1_STAMP,
+        counters: e1.counters,
+      }));
+      const meta: any = (report as any)._meta ?? ((report as any)._meta = {});
+      meta.internal = meta.internal ?? {};
+      meta.internal.crosswalk = { stamp: W12_CYBER_E1_STAMP, ...e1.counters };
+    } catch (e1Err) {
+      console.error("[W12-CYBER-E1] non-fatal:", String(e1Err));
     }
 
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
