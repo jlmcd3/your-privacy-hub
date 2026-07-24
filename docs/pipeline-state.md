@@ -47,26 +47,20 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
-- **Turn:** `SAMPLES-CONTRACT-lia` (5/8) — revised in-turn per team-reviewed dispatch (form-parity resolution of mechanical row keys + harm-severity correction).
-- **Real-time:** 2026-07-24T12:58:36Z (sandbox `date -u`)
-- **Scope (frontend/test only, no edge deploy):**
-  - Reconciled `F_LIA_UK` in `src/lib/sampleFixtures.ts` against `liAssessmentStageBContract`. `F_LIA_UK_SUPP` inherits the reconciliation via `withSupplemental`'s JSON deep-clone (no separate edit).
-  - **Live-form audit** for the four ambiguous top-level keys (LIAssessment.tsx L158 = Stage-A `.insert({...})`; LIAssessmentIntake.tsx L270-311 = Stage-B intake_data):
-    - `stage` — **mechanical row column** (Stage A writes `"preview"`, Stage B intake_data flips to `"submitted"`). Added to `ALLOWED_TOPLEVEL_EXTRAS` in `_shared/intake-contracts/validate.ts` with citation comment; **restored** in fixture as `"submitted"` (post-submit truth).
-    - `status` — **mechanical row column** (Stage A writes `"pending"`). Added to `ALLOWED_TOPLEVEL_EXTRAS`; **restored** in fixture as `"pending"`.
-    - `preview_signal` — **mechanical row column** (Stage A writes preview-fn payload to the row; not intake content emitted by the Stage-B form). Added to `ALLOWED_TOPLEVEL_EXTRAS`; **restored** in fixture with realistic showcase payload.
-    - `sector` — **not emitted by either form**. Correctly removed from the fixture; sector text preserved verbatim inline in `processing_description` prose so showcase content survives.
-  - `preview_assessment_id` — Stage-B form always posts `preview_assessment_id: row.id` (LIAssessmentIntake.tsx L311). Fixture now supplies `"sample-preview-lia-uk-000"` (contract-required, form-emitted). Contract's required-always flag left untouched.
-  - Normalised `data_categories` to `LI_DATA_CATEGORIES` enum values (`"Location data"`, `"Health or medical data"`, `"Employment data"`) with the "beacon-proximity zone" descriptor folded into an `"Other: …"` element as the contract expressly permits (see contract comment L48-51). "Employee records" retagged to `"Employment data"` (LIA enum) rather than the DPIA-only "Employee records" enum; parenthetical specifics preserved in `processing_description`.
-  - Normalised `relationship_type` from `"Employee (existing employment relationship)"` → enum literal `"Employee"`; the "existing employment relationship" gloss remains in `processing_description`.
-  - Split `balancing_details.reasonable_expectation` into enum literal `"Partly"` + full original sentence moved verbatim into `reasonable_expectation_detail` (optional narrative slot).
-  - Split `balancing_details.potential_harm` into enum literal **`"Moderate"`** (per dispatch: pseudonymisation + purpose-limitation + works-council oversight materially reduce residual severity below Severe) + full original sentence moved verbatim into `potential_harm_detail`, with the safeguard-rationale appended.
-  - Renamed `purpose_details.purpose_text` → `interest_statement` (actual contract slot per L79); `balancing_details.balancing_text` → `additional_context` (actual contract slot per L112).
-  - `_shared/intake-contracts/validate.ts` — added three LIA mechanical row-infrastructure keys to `ALLOWED_TOPLEVEL_EXTRAS` with inline citations to LIAssessment.tsx L158 / LIAssessmentIntake.tsx L310. **No validator/rubric/contract weakening** — allowlist only expanded for mechanical row columns whose emission is verified in the form source.
-  - Flipped `li_assessment` out of `SAMPLE_ADVISORY_TOOLS` in `_tests/contract-surface-audit.test.ts` → **FATAL** tier. Counter comment: `Reconciled so far: cppa_risk (1/8), cppa_admt (2/8), cppa_cyber (3/8), dpia (4/8), li_assessment (5/8).`
+- **Turn:** `REGISTRY-VERBATIM-AUDIT` (dropped-order restore from courier ACK; anti-drop rule invoked).
+- **Real-time:** 2026-07-24T17:51:06Z (sandbox `date -u`).
+- **Scope (frontend/test + docs only, no edge deploy):**
+  - **ADMT audit** — for each of the 34 rows in `_shared/registry/admt-verified-authorities.ts`, normalized (`smart→straight quote`, `en/em-dash→hyphen`, whitespace collapse) both the `verbatim_quote` and the corresponding `cppa_authorities.full_text WHERE status='current'`, then tested substring match. **0/34 EXACT.** Fallback 80-char head/tail windows: 1 head-only, 2 tail-only, **31 NOT_FOUND**. Conclusion: **all 34 seeded rows are paraphrases labelled as `verbatim_quote`** — identical defect class to the TURN C fabricated `§ 7222(c)` row. Two spot examples in the report: `scope_apply` (§ 7200(a)) and `notice_purpose` (§ 7220(c)(1)) both paraphrase language that appears in a different form (or nowhere) in the OAL-approved text.
+  - **Biometric audit** — 46/46 rows pass the pinpoint-in-quote CI (self-consistency test in `src/registry/__tests__/biometric-statute-self-consistency.test.ts`); 46/46 supply `https://` `primary_source_url`. Corpus-anchored verification is **infeasible today** — no ingested corpus for BIPA, CUBI, RCW, GDPR, UK GDPR, PIPEDA, Aus Privacy Act, or SG PDPA. Standing risk logged: self-consistency alone cannot reject a paraphrase in a biometric row's `verbatim_quote`. Follow-on program item: ingest biometric primary text so the same CI can extend.
+  - **Files shipped this turn:**
+    - `docs/courier/REGISTRY-VERBATIM-AUDIT-2026-07-24.md` — full per-row report + method + queued correction turns.
+    - `src/registry/__tests__/admt-verified-authorities-corpus-pin.test.ts` — allow-list CI: shells to `psql` (skips when `PGHOST` unset), asserts every row's normalized `verbatim_quote` is a substring of `cppa_authorities.full_text`, carries frozen `KNOWN_PARAPHRASED_KEYS` (all 34 keys enumerated in the courier report). Fails on: (a) any new row failing corpus-pin (regression guard); (b) any listed key starting to pass (forces set to shrink to empty as correction turns land). Uses `describe.skipIf(!CAN_RUN)` so dev/CI without Postgres env vars stay green.
+  - **§4 LIA correction** — restored: §4 now reflects the current HEAD state (this turn). Prior §4 text described the STAND-DOWN'd/reverted `SAMPLES-CONTRACT-lia` in-turn revision at commit `d7efef9`; that entry is superseded (LIA 5/8 completion remains logged in §2 item 4).
+  - **Standing rule adopted:** *no registry row lands without corpus verification* — extends to any future verified-authority registry (risk, cyber, DPIA, IR).
+  - **Ledger anti-drop accounting:** all three dispatched orders resolved this turn — (i) audit + report + CI; (ii) §4 rewrite; (iii) cyber shape-test fix folded into next SAMPLES turn (queued at §2 item 9).
 - **Tests (green — pasted):**
-  - `supabase/functions/_tests/contract-surface-audit.test.ts` — `3 passed | 0 failed (18ms)`. `li_assessment:uk` and `li_assessment:uk-supplemental` absent from ADVISORY list; ADVISORY count 10 → 8, confined to `governance`, `ir_playbook`, `biometric` per dispatch (dpa has no advisory row currently — the DPA fixture path validates without violations under the current sampleMap).
-  - `src/lib/__tests__/sampleFixtures.shape.test.ts` — 50 passed / 2 failed. Both failures are on `cppa_cyber/us-supplemental` (missing `company_name, profile_industry, profile_audit, industry_sector` at supplemental top level — pre-existing from TURN A supplemental clone; NOT introduced by this turn). All 4 `li_assessment/*` shape assertions PASS.
+  - `src/registry/__tests__/biometric-statute-self-consistency.test.ts` — pre-existing 46-row self-consistency pass; unchanged.
+  - `src/registry/__tests__/admt-verified-authorities-corpus-pin.test.ts` — new. Skips in this sandbox (`PGHOST` not exported to the vitest child); will execute against `cppa_authorities` in the CI environment where PG* is set.
 - **Deploy:** none this turn (no edge-function or backend code changed).
 
 ## 5. Sample-Report Register
