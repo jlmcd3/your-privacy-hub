@@ -89,6 +89,8 @@ export const CYBER_EVIDENCE_OPTS = [
   "Screenshot / config export",
   "Sample log / report",
   "SOC 2 or auditor letter",
+  "Third-party pen test / scan report",
+  "Training completion record",
   "None on file",
 ] as const;
 
