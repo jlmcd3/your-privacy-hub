@@ -64,7 +64,12 @@ Deno.serve(async (req) => {
       GROUP BY f.check_id, f.tool
     `;
 
-    const { data: rows, error: aggErr } = await supabase.rpc("exec_sql_readonly", { sql: aggSql }).catch(() => ({ data: null, error: { message: "rpc_missing" } as any }));
+    let rows: any = null;
+    let aggErr: any = { message: "rpc_skipped" };
+    try {
+      const r = await supabase.rpc("exec_sql_readonly", { sql: aggSql });
+      rows = r.data; aggErr = r.error;
+    } catch (_) { /* fall through to client-side aggregation */ }
 
     let aggregates: Aggregate[];
     if (aggErr || !rows) {
