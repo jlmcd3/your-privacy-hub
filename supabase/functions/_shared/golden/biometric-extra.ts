@@ -305,6 +305,7 @@ export const BIOMETRIC_GOLDEN_EXTRA: GoldenCase[] = [
         label: "does NOT frame SHIELD as a private-right-of-action regime" },
       { kind: "must_not_include", pattern: "opt-in\\s+consent|written\\s+release", flags: "i",
         label: "does NOT frame SHIELD as a consent regime (breach-notification + safeguards only)" },
+    ],
   },
 
   // ── S3 — EU / EEA (GDPR) discrete enum ─────────────────────────────
