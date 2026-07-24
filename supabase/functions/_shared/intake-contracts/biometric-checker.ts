@@ -38,6 +38,12 @@ const JURS = [
   "Illinois, USA (BIPA)",
   "Texas, USA (CUBI)",
   "Washington state, USA",
+  // BIO-REG-W1-S2b — discrete registry-backed US enum entries. Each maps
+  // directly to a Wave-1/Wave-2 registered jurisdiction via
+  // biometric-select.ts. "Other US state" remains for everything else.
+  "California, USA (CCPA/CPRA)",
+  "Colorado, USA (CPA)",
+  "New York, USA (SHIELD)",
   "Other US state",
   "United States — Federal (FTC)",
   "Canada (PIPEDA / provincial)",
