@@ -437,15 +437,17 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
   }),
 
   // ---- FSOR overlays (agency positions) -------------------------------------
-  // Presented as separate proposition keys so the generator can cite the FSOR
-  // package (via cppa_fsor_commentary rows) alongside the reg pinpoint.
+  // Preferred resolution: the agency position is embedded in § 7001 regulation
+  // text itself, so both rows below quote § 7001 verbatim (option 1 of the
+  // ADMT-REGISTRY-CORPUS-1 resolution rule). No fallback to
+  // cppa_fsor_commentary.agency_response was required.
   fsor_advertising_exclusion: R({
     proposition_key: "fsor_advertising_exclusion",
     citation: "11 CCR § 7001",
-    subsection: "11 CCR § 7001(ddd)",
+    subsection: "11 CCR § 7001(ddd)(6)",
     verbatim_quote:
-      "The provision or denial of advertising to a consumer, standing alone, is not a \"significant decision\" under section 7001(ddd) unless it results in the provision or denial of one of the enumerated categories (financial or lending services, housing, education, employment, or healthcare).",
-    depth_class: "subsection",
+      "Significant decision does not include advertising to a consumer.",
+    depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
     primary_source_url: CCR_URL,
@@ -455,7 +457,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7001",
     subsection: "11 CCR § 7001(e)(1)",
     verbatim_quote:
-      "Human involvement is qualifying only where the reviewer (1) knows how to interpret and use the output, (2) reviews the output alongside other information beyond the output, and (3) has authority to override the output and change the decision.",
+      "(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
