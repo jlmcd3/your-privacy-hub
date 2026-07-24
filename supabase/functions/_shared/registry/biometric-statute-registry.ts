@@ -35,7 +35,13 @@ export type BiometricStatuteRow = {
     // ── Wave 2 (S2) ────────────────────────────────────────────────
     | "us_ca_cpra"
     | "us_ny_shield"
-    | "us_ar_pipa";
+    | "us_ar_pipa"
+    // ── Wave 3 (S3) — EU / UK / CA / AU / SG ───────────────────────
+    | "eu_gdpr"
+    | "uk_gdpr"
+    | "ca_pipeda"
+    | "au_privacy_act"
+    | "sg_pdpa";
   /** Human-readable jurisdiction display label. */
   jurisdiction_display: string;
   /** Long form of the statute (e.g. "Illinois Biometric Information Privacy Act"). */
