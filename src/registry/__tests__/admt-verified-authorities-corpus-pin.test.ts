@@ -31,11 +31,12 @@ const KNOWN_PARAPHRASED_KEYS = new Set<string>([
   //   ra_timing_existing, ra_submit.
   // Corrected in ADMT-REGISTRY-CORPUS-3 (§ 7200 batch, 2026-07-24):
   //   scope_apply, scope_deadline.
+  // Corrected in ADMT-REGISTRY-CORPUS-4 (§ 7220 notice batch, 2026-07-24):
+  //   notice_timing, notice_purpose, notice_optout, notice_access,
+  //   notice_antiretal, notice_howworks_inputs, notice_howworks_output,
+  //   notice_altprocess.
   "access_logic", "access_outcome", "access_provide",
   "ccpa_defs", "ccpa_rulemaking",
-  "notice_access", "notice_altprocess", "notice_antiretal",
-  "notice_howworks_inputs", "notice_howworks_output",
-  "notice_optout", "notice_purpose", "notice_timing",
   "optout_exc_appeal", "optout_exc_hire", "optout_offer",
 ]);
 
