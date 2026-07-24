@@ -311,6 +311,18 @@ export default function QualityBatch() {
     }
   };
 
+  // Keyboard shortcut: Ctrl/Cmd+Shift+R refreshes the live log.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        refreshLog();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   // ─── Recent batches + baselines for the score matrix ─────────────────────
   useEffect(() => {
     let cancelled = false;
