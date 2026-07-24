@@ -142,5 +142,110 @@ Deno.test("W6-CYBER orchestrator — idempotent (second pass is a no-op)", () =>
 });
 
 Deno.test("W6-CYBER version stamp shape", () => {
-  assert(/^w6-cyber-fix@\d{4}-\d{2}-\d{2}$/.test(W6_CYBER_FIX_VERSION));
+  assert(/^w6-cyber-fix@\d{4}-\d{2}-\d{2}(?:-v\d+)?$/.test(W6_CYBER_FIX_VERSION));
 });
+
+// ── Wave-7 additions ────────────────────────────────────────────────────
+
+Deno.test("W6-CYBER v2 (1) — 'integrity protection' token truncates regulatory_basis", () => {
+  const s = "the annual cybersecurity audit must assess audit logging and monitoring, with integrity protection controls";
+  const { out, truncated } = truncateRegulatoryBasisInflation(s);
+  assertEquals(truncated, true);
+  assert(!/integrity protection/i.test(out), out);
+});
+
+Deno.test("W6-CYBER v2 (1) — 'security-relevant logs' token truncates", () => {
+  const s = "logging of security-relevant events, including security-relevant logs across the environment";
+  const { out, truncated } = truncateRegulatoryBasisInflation(s);
+  assertEquals(truncated, true);
+  assert(!/security-relevant logs/i.test(out), out);
+});
+
+Deno.test("W6-CYBER v2 (1b) — named 'five-year retention rule' without pinpoint is rewritten", () => {
+  const s = "The business must comply with the five-year audit-record retention rule.";
+  const { out, rewritten } = rewriteUncitedNamedRules(s);
+  assert(rewritten >= 1);
+  assert(/retention requirement \(confirm pinpoint cite, see § 7124/i.test(out), out);
+  assert(!/five-year audit-record retention rule/i.test(out), out);
+});
+
+Deno.test("W6-CYBER v2 (1b) — named rule WITH pinpoint cite is left alone", () => {
+  const s = "The five-year retention rule under § 7124(a) applies.";
+  const { out, rewritten } = rewriteUncitedNamedRules(s);
+  assertEquals(rewritten, 0);
+  assertEquals(out, s);
+});
+
+Deno.test("W6-CYBER v2 (2) — HIPAA framed as operative is rewritten to comparative context", () => {
+  const s = "The HIPAA Security Rule (45 CFR Part 164) requires MFA on privileged accounts.";
+  const { out, rewritten } = rewriteComparativeAsOperative(s);
+  assert(rewritten >= 1);
+  assert(/for comparative context/i.test(out), out);
+  assert(!/\brequires\b/i.test(out), out);
+  assert(/operative requirement is 11 CCR § 7123/i.test(out), out);
+});
+
+Deno.test("W6-CYBER v2 (2) — NIST CSF 'governs this assessment' rewritten", () => {
+  const s = "NIST CSF 2.0 governs this assessment's framework mapping.";
+  const { out, rewritten } = rewriteComparativeAsOperative(s);
+  assert(rewritten >= 1);
+  assert(!/\bgoverns\b/i.test(out), out);
+  assert(/for comparative context/i.test(out), out);
+});
+
+Deno.test("W6-CYBER v2 (2) — HITRUST / ISO 27001 / SOC 2 operative framing rewritten", () => {
+  for (const [name, sent] of [
+    ["HITRUST", "HITRUST CSF requires log-retention controls."],
+    ["ISO 27001", "ISO/IEC 27001 mandates access reviews."],
+    ["SOC 2", "SOC 2 governs vendor oversight."],
+  ] as const) {
+    const { out, rewritten } = rewriteComparativeAsOperative(sent);
+    assert(rewritten >= 1, `${name} not rewritten: ${out}`);
+    assert(/for comparative context/i.test(out), `${name} missing prefix: ${out}`);
+  }
+});
+
+Deno.test("W6-CYBER v2 (2) — sentence without operative verb is untouched", () => {
+  const s = "HIPAA covers protected health information for covered entities.";
+  const { out, rewritten } = rewriteComparativeAsOperative(s);
+  assertEquals(rewritten, 0);
+  assertEquals(out, s);
+});
+
+Deno.test("W6-CYBER v2 orchestrator — telemetry surfaces new counters", () => {
+  const report: any = {
+    controls: [
+      {
+        control: "audit-logging",
+        finding: "The HIPAA Security Rule requires log integrity.",
+        remediation: "Comply with the five-year audit-record retention rule.",
+        regulatory_basis: "Assessed under 11 CCR § 7123(c)(7): the annual cybersecurity audit must assess audit-logging controls, including integrity protection, as applicable to the business.",
+      },
+    ],
+  };
+  const intake: any = { profile: { framework: "HITRUST" } };
+  const c = applyW6CyberFix(report, intake);
+  assert(c.regulatoryBasisTruncated >= 1);
+  assert(c.namedRuleRewritten >= 1);
+  assert(c.comparativeOperativeRewritten >= 1);
+  assert(!/integrity protection/i.test(report.controls[0].regulatory_basis));
+  assert(!/five-year audit-record retention rule/i.test(report.controls[0].remediation));
+  assert(/for comparative context/i.test(report.controls[0].finding));
+});
+
+Deno.test("W6-CYBER v2 orchestrator — zero-scrub run counter fires when clean", () => {
+  const report: any = {
+    controls: [
+      {
+        control: "encryption",
+        finding: "Encryption at rest and in transit is implemented.",
+        remediation: "Retain evidence of KMS configuration.",
+        regulatory_basis: "Assessed under 11 CCR § 7123(c)(2): the annual cybersecurity audit must assess encryption of personal information at rest and in transit, as applicable to the business.",
+      },
+    ],
+  };
+  const c = applyW6CyberFix(report, { profile: { framework: "NIST CSF 2.0" } } as any);
+  assertEquals(c.regulatoryBasisTruncated, 0);
+  assertEquals(c.regulatoryBasisScrubZeroRuns, 1);
+});
+
