@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import MondayReportWhatYouGet from "./MondayReportWhatYouGet";
+import MondayVsWeeklyBrief from "./MondayVsWeeklyBrief";
 
 interface FreeDigestSignupProps {
   /** Tag forwarded to the signup redirect (defaults to "website") */
@@ -26,11 +28,19 @@ const FreeDigestSignup = ({ source = "website", className = "" }: FreeDigestSign
           id="free-digest-signup-heading"
           className="font-display text-foreground mb-2"
         >
-          Not ready for the full Privacy Intelligence Report?
+          Not ready for the full Weekly Brief?
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
-          Create a free account to get the personalized weekly digest — filtered to your regions and topics, every Monday — plus minimal enrichment views on articles.
+          Create a free account to receive the Monday Privacy Intelligence
+          Report — a short, filtered headline digest of the past week's
+          regulatory activity, sent every Monday. It is a different, shorter
+          product than the subscriber Weekly Brief.
         </p>
+
+        <div className="text-left mb-6 space-y-4">
+          <MondayReportWhatYouGet variant="compact" />
+          <MondayVsWeeklyBrief />
+        </div>
 
         <div className="flex flex-col items-center gap-2">
           <Link
