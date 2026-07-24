@@ -103,10 +103,10 @@ function applyGates(text: string, c: W9PreEmitCounters): string {
   let mutated = false;
 
   // G4 first — token-level rewrite is context-free.
-  const g4Before = text;
-  text = text.replace(G4_INVENTED_SECTION_RE, G4_REPLACEMENT);
-  if (text !== g4Before) {
-    c.g4_invented_section_rewrites++;
+  const g4Matches = text.match(G4_INVENTED_SECTION_RE);
+  if (g4Matches && g4Matches.length > 0) {
+    text = text.replace(G4_INVENTED_SECTION_RE, G4_REPLACEMENT);
+    c.g4_invented_section_rewrites += g4Matches.length;
     mutated = true;
   }
 
