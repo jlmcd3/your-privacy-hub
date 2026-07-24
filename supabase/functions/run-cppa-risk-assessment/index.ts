@@ -4,10 +4,11 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "w9-risk-slots-p1@2026-07-24T09:58:12Z";
+export const BUILD_STAMP = "w10-risk-b1@2026-07-24T12:38:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
+import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 console.log(`[run-cppa-risk-assessment] boot slots_stamp=${W9_RISK_SLOTS_STAMP}`);
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // run-meter deploy-check v1
@@ -2200,7 +2201,20 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (e) { console.error("[RISK] W9-RISK-SLOTS errored (fail-open):", e); }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w9-risk-slots@2026-07-24"), build_stamp: BUILD_STAMP };
+    // W10-RISK-B1 (TURN B) — field-provenance validation for
+    // inconsistency_flags + claims guard over risk_register / executive_summary.
+    // Runs AFTER W9 slots so the deterministic risk_register reprojection is
+    // the target of the claims guard.
+    try {
+      const _intakeForB1 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _b1c } = applyW10RiskB1(report_data as any, _intakeForB1);
+      (report_data as any)._w10_risk_b1 = { stamp: W10_RISK_B1_STAMP, ...(_b1c as any) };
+      if (_b1c.flags_rekeyed + _b1c.flags_dropped + _b1c.claims_downgraded > 0) {
+        console.warn(`[RISK] W10-RISK-B1 rekey=${_b1c.flags_rekeyed} drop=${_b1c.flags_dropped} claims_downgraded=${_b1c.claims_downgraded}`);
+      }
+    } catch (e) { console.error("[RISK] W10-RISK-B1 errored (fail-open):", e); }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w10-risk-b1@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
