@@ -1999,6 +1999,19 @@ Return this JSON structure exactly:
               w9Metrics.p1_7001_sole_anchor_fallbacks++;
             }
           }
+          // (d) WAVE12-FIX TURN C — collapse multiple § 7001 pinpoints joined
+          //     by "+" (e.g. "§ 7001(e) + § 7001(e)" or "§ 7001(e) + § 7001(e)(1)").
+          //     Per PF6 T1, § 7001 subdivisions are NEVER chained. Keep only
+          //     the first § 7001 pinpoint; retain all non-§7001 anchors.
+          {
+            const parts = splitAnchors(c);
+            const s7001 = parts.filter(isSection7001);
+            if (s7001.length > 1) {
+              const other = parts.filter((p) => !isSection7001(p));
+              c = [s7001[0], ...other].join(" + ");
+              w9Metrics.p1_anchor_dedupes++;
+            }
+          }
           it.citation = c;
         }
       };
