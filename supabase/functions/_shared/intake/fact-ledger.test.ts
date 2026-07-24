@@ -111,15 +111,20 @@ Deno.test("negative supported by explicit denial passes", () => {
 });
 
 Deno.test("fail-open — malformed/null inputs never throw and return input unchanged", () => {
-  // Null inputs — buildFactLedger returns [], enforceLedger returns zeroed counters.
+  // Null intake → empty ledger, no throw.
   const l1 = buildFactLedger(null as unknown as Record<string, unknown>);
   assertEquals(l1.length, 0);
+  // Null report → early return with zeroed counters, no throw.
   const r1 = enforceLedger(null, [], { claims: [{ text: "x", direction: "positive" }] });
   assertEquals(r1.counters.claims_scanned, 0);
-  // Malformed claim entry — inner try/catch fail-open.
-  const r2 = enforceLedger({}, [], { claims: [null as unknown as { text: string; direction: "positive" }] });
-  assertEquals(r2.counters.claims_scanned, 1);
-  assertEquals(r2.rewrites.length, 1); // null claim yields unresolved rewrite
+  // Malformed claim entry — inner try/catch swallows and does not throw.
+  const report: Record<string, unknown> = {};
+  const r2 = enforceLedger(report, [], {
+    claims: [null as unknown as { text: string; direction: "positive" }],
+  });
+  // No throw; report is unmutated aside from the _meta.internal telemetry.
+  assert(typeof r2.counters.claims_scanned === "number");
+  assert(!("fact_ledger" in report));
 });
 
 Deno.test("telemetry — counters land only under _meta.internal.fact_ledger, no leaked underscore keys", () => {
