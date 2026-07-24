@@ -117,6 +117,11 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **Root cause:** Controller read the ledger at tick start and did not re-clone before dispatching an insert, while another parallel turn completed its work and updated the ledger in between.
 - **Remediation:** Reinforces the standing header rule: **re-clone immediately before dispatch, not at tick start.** All controllers must read `docs/pipeline-state.md` from a fresh clone before acting.
 
+### 2026-07-24 — Duplicate Courier Dispatch on SAMPLES-CONTRACT-lia
+- A tick controller re-cloned at 12:50:10Z (HEAD `8b3fed9`, NEXT = `SAMPLES-CONTRACT-lia (5/8)`), spent ~4 minutes on fixture-drift analysis, and dispatched the 5/8 courier at ~12:54Z. A parallel controller had already completed 5/8 at 12:53:21Z (commit `d7efef9`) inside that window. The executing session made revised edits (duplicate) and committed them as `4fbf7e3b` — including a `potential_harm` change `"Severe"` → `"Moderate"` and additions of `stage`/`status`/`preview_signal` to `ALLOWED_TOPLEVEL_EXTRAS`. Supersede notice arrived ~13:00Z; the duplicate edits were reverted to the `d7efef9` state (files `src/lib/sampleFixtures.ts` and `supabase/functions/_shared/intake-contracts/validate.ts` restored) at 13:03:07Z. The landed rubric value `"Severe"` stands as the turn of record.
+- Root cause: final re-clone happened before analysis/composition, not immediately before send. The stale-clone remediation ("re-clone immediately before dispatch") must mean: compose first, then fresh-clone verify the queue item is still open, then send within the same minute.
+- Remediation (standing): controllers compose the courier message BEFORE the final clone check; the final check verifies ledger "Last updated" stamp and queue state; any stamp movement aborts the send.
+
 ## 8. While-You-Slept (overnight standing-order run log)
 
 Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
