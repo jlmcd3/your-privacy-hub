@@ -799,13 +799,18 @@ async function runPipeline(assessment_id: string) {
     const testStates = computeTestStates(fiveStage, rawIntake as Record<string, any>);
     const testStatesBlock = formatTestStatesBlock(testStates);
 
+    // C2-2 — corpus-sourced CPPA canonical deadlines + startup drift-lint.
+    verifyCppaDeadlineDrift(supabase, "risk");
+    const riskDeadlineBlock = await buildCppaDeadlineBlock(supabase, "risk");
+
     const injected = [
       `ENFORCEMENT CONTEXT FROM CORPUS:\n${enforcementContext || "(none returned)"}`,
       `LONGITUDINAL ENFORCEMENT PATTERNS:\n${longitudinalSynthesis || "(none returned)"}`,
       `VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):\n${statuteContext || "(none returned)"}`,
       `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
       testStatesBlock,
-    ].join("\n\n");
+      riskDeadlineBlock,
+    ].filter(Boolean).join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
       currentDate: today,
