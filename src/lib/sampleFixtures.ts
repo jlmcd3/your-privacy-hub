@@ -163,7 +163,7 @@ const F_DPIA_EU: SampleFixture = {
 };
 
 // --- 3. DPA / EU ---------------------------------------------------------
-// SAMPLES-CONTRACT-dpa (closes series 8/8) reconciliation notes:
+// SAMPLES-CONTRACT-dpa (9/9 — closes series) reconciliation notes:
 //   - Audited surface: `invoke_body_extras` per SAMPLE_MAP.
 //   - Contract source: `dpaGeneratorContract` (supabase/functions/_shared/
 //     intake-contracts/dpa-generator.ts).
