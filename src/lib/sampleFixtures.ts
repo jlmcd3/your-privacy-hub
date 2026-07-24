@@ -163,6 +163,33 @@ const F_DPIA_EU: SampleFixture = {
 };
 
 // --- 3. DPA / EU ---------------------------------------------------------
+// SAMPLES-CONTRACT-dpa (closes series 8/8) reconciliation notes:
+//   - Audited surface: `invoke_body_extras` per SAMPLE_MAP.
+//   - Contract source: `dpaGeneratorContract` (supabase/functions/_shared/
+//     intake-contracts/dpa-generator.ts).
+//   - Live-form audit — src/pages/DPAGenerator.tsx L131-158 (buildInvokeBody):
+//     the form emits { entityName, controllerName, controllerJurisdiction,
+//     processorName, processorJurisdiction, services, dataCategories,
+//     retention, hasSubProcessors, subProcessorList, auditRights,
+//     includeTransferClause, transferMechanism, documentType }. The three
+//     latter are wire-passed but contract-derived (documentType via
+//     detectDocumentType(); includeTransferClause from transfersInvolved;
+//     legalFramework via frameworkFor()) — contract carries them as
+//     optional "structured" for downstream visibility, and the fixture
+//     omits them (permitted; validator does not require optional keys).
+//   - Fold-in fields — retention "Fixed period: <text>" and auditRights
+//     "Other: <text>" are recognised extensions of the enum members
+//     "Fixed period — specify" / "Custom — describe" per contract L85-92;
+//     kind:"text" bypasses enum-verbatim checking so validator accepts.
+//   - No unknown keys; no drift removed. All required-always keys present:
+//     entityName, controllerName, controllerJurisdiction ("United Kingdom"
+//     ∈ JURS_EU), processorName, processorJurisdiction ("Germany" ∈ JURS_EU),
+//     services, dataCategories (["Employee / HR data", "Financial / payment
+//     data"] ⊂ DATA_CATS), retention (fold-in), auditRights (enum literal).
+//     transferMechanism ("UK IDTA / UK Addendum to EU SCCs") ∈
+//     TRANSFER_MECHANISM_OPTIONS.
+//   - `dpa` flipped OUT of SAMPLE_ADVISORY_TOOLS → FATAL tier; the set is
+//     now EMPTY and the SAMPLES-CONTRACT series is complete.
 const F_DPA_EU: SampleFixture = {
   tool_slug: "dpa",
   variant: "eu",
