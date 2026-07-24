@@ -1513,6 +1513,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     } catch (_) { /* non-fatal */ }
 
+    // W6-CYBER-FIX (2026-07-24) — atomic post-generation scrub applied to
+    // the fully-assembled report AFTER all prior scrubs (component-cite,
+    // slug, enforcement-tag, exec-summary count reconciliation) and BEFORE
+    // the _meta stamp / terminal write. Idempotent, fail-open.
+    try {
+      const intakeForW6 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const w6 = applyW6CyberFix(report as any, intakeForW6 as any);
+      console.log(JSON.stringify({
+        evt: "w6_cyber_fix_applied",
+        build_stamp: BUILD_STAMP, w6_version: W6_CYBER_FIX_VERSION,
+        ...w6,
+      }));
+      (report as any)._w6_cyber_fix = { version: W6_CYBER_FIX_VERSION, ...w6 };
+    } catch (w6Err) {
+      console.error("[W6-CYBER-FIX] non-fatal:", String(w6Err));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
