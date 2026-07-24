@@ -49,6 +49,14 @@ function newCounters(): W12CyberE1Counters {
 const TRUNCATED_TERMINATOR_RE = /[;:]\s*$/;
 const ORPHAN_PREP_RE = /\b(on|of|for|to|in|at|with|by|from|as)\s*[;:.]\s*$/i;
 
+// Mid-string orphan-preposition-then-terminator stub. Matches the wave-12
+// fragment "…provides comparative guidance on;" appearing INSIDE a longer
+// sentence (before a subsequent capitalised clause or end). Removed
+// atomically as a pre-pass BEFORE sentence splitting so downstream logic
+// sees clean prose. Bounded to 260 chars back to avoid runaway matches.
+const MID_STRING_STUB_RE =
+  /[A-Z][^.!?]{0,260}?\b(?:on|of|for|to|in|at|with|by|from|as)\s*[;:]\s+(?=[A-Z0-9]|$)/g;
+
 function isUnbalancedParens(sent: string): boolean {
   // Character-level scan: () only. Brackets/braces intentionally ignored —
   // markdown-like syntax can carry them legitimately.
@@ -79,9 +87,21 @@ export function sanitizeCrosswalkText(
 ): string {
   if (typeof input !== "string" || input.length === 0) return input;
   counters.surfaces_scanned += 1;
+
+  // Pre-pass: strip mid-string orphan-preposition stubs (the wave-12
+  // "provides comparative guidance on;" class). Each removal counts as one
+  // fragment drop. Runs before sentence splitting so surviving prose flows
+  // cleanly.
+  let working = input;
+  const stubMatches = working.match(MID_STRING_STUB_RE);
+  if (stubMatches && stubMatches.length > 0) {
+    counters.crosswalk_fragments_dropped += stubMatches.length;
+    working = working.replace(MID_STRING_STUB_RE, "");
+  }
+
   // Split on real sentence terminators; keep the terminator with the
   // preceding sentence via lookbehind (matches _w6_cyber_fix.ts).
-  const sentences = input.split(/(?<=[.!?])\s+/);
+  const sentences = working.split(/(?<=[.!?])\s+/);
   const seen = new Set<string>();
   const kept: string[] = [];
   for (const raw of sentences) {
