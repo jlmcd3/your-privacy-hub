@@ -335,5 +335,14 @@ export function applyW10RiskB1(
     }
   }
 
+  // D2 — profiling-denial guard over the same narrative surfaces plus
+  // inconsistency_flags (denials sometimes surface inside a flag description).
+  for (const key of ["risk_register", "executive_summary", "risk_assessment_by_activity", "inconsistency_flags", "assessment_summary"] as const) {
+    const v = (report as Record<string, unknown>)[key];
+    if (v !== undefined) {
+      (report as Record<string, unknown>)[key] = guardDenialsDeep(v, intakeFlat, counters);
+    }
+  }
+
   return { counters };
 }
