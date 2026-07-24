@@ -643,6 +643,8 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
 Every indeterminate advocate-drafter finding elsewhere in this output (where a determination names a specific completing item under REBUILD-RISK C1) MUST have a corresponding information_needed entry anchored to that item; otherwise return an empty array.
 NOTE ON THE THREE TYPED SLOTS (attestation_block / submission_summary / risk_register): the pipeline REPROJECTS these three slots deterministically after your output, from the intake and from your own risk_assessment_by_activity output. You should emit them per the schema above, but the deterministic reprojection is authoritative and will overwrite any drift; the pre-emit validator rejects an output where the reprojected slots fail their required-key or enum checks.`,
 };
+
+function buildUserPrompt(intake: FiveStageIntake, subjectAnchor = "", q1RevenueBand = "Not specified"): string {
   const { triggers, exceptions, activity_details, impact, org_context } = intake;
   const noExceptions = Object.values(exceptions).every((v: any) => !v?.claimed);
 
