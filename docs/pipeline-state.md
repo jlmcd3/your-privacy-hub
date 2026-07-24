@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-24T22:52:40Z — RISK-REGISTRY-WIRING DONE (deploy). `run-cppa-risk-assessment` BUILD_STAMP `w15-risk-regwire@2026-07-24T22:49:09Z` (supersedes `w12-risk-turnd@…T17:23:28Z`); risk verified-authority registry (`risk-va-w1-2026-07-24`, 44 rows) LIVE with § 7150(b) subsection-collapse guard; W6 risk restamp DISCHARGED.
+**Last updated:** 2026-07-24T23:08:00Z — CYBER-REGISTRY-WIRING DONE (deploy). `run-cppa-cybersecurity` BUILD_STAMP `w15-cyber-regwire@2026-07-24T23:05:14Z` (supersedes `w12-cyber-turne@…T17:32:35Z`); cyber verified-authority registry (`cyber-va-w1-2026-07-24`, 44 rows) LIVE with retention re-anchor guard (§ 7122(g) supersedes § 7123(e) mis-anchor). §2 item 15 CLOSED; queue head advances to §2 item 16 (S-B INTAKE-FACT-LEDGER already DONE-AUTHORING; wiring turn queued).
 
 ---
 
