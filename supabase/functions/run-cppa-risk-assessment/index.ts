@@ -4,15 +4,26 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-// W15 RISK-REGISTRY-WIRING (2026-07-24) — corpus-live risk verified-authority
-// registry (risk-va-w1) wired at emit time; generator authors no §-tokens for
-// registry-covered propositions; resolver stamps citation/subsection/quote.
-export const BUILD_STAMP = "w15-risk-regwire@2026-07-24T22:49:09Z";
+// W15 RISK-FACT-LEDGER-WIRING (2026-07-24) — shared intake fact-ledger
+// (sb-fl-w1) wired pre-VA-stamp to block wave-15 unsupported/contradictory
+// claim classes (sensitive-location contradiction, worker/free-tier positive
+// projections). Runs after W6/W9/W10 retro-audits, before the w15 risk_va
+// L1 citation stamp so citations attach to final claim text. Fail-open.
+export const BUILD_STAMP = "w15-risk-factledger@2026-07-24T23:18:23Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
+import {
+  buildFactLedger,
+  enforceLedger,
+  FACT_LEDGER_VERSION,
+} from "../_shared/intake/fact-ledger.ts";
 console.log(`[run-cppa-risk-assessment] boot slots_stamp=${W9_RISK_SLOTS_STAMP}`);
+console.log(JSON.stringify({
+  evt: "fact_ledger_loaded", fn: "run-cppa-risk-assessment",
+  version: FACT_LEDGER_VERSION,
+}));
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // W15 RISK-REGISTRY-WIRING — L1 verified-authority resolver + risk registry
 // (mirrors W9-ADMT-WIRE pattern in run-admt-checker/index.ts L28-L66).
