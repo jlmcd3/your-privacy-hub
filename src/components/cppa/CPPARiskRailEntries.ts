@@ -539,4 +539,73 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7002", label: "Dark patterns / restrictions on use" },
     ],
   },
+
+  // TURN 1b RETROFIT — intake-rail parity for the two TURN 1b fields.
+  // Corpus consulted: cppa_authorities row citation="11 CCR § 7150"
+  // (id 419236d1-3d51-4839-9b17-193391bbda24); regulationText is the verbatim
+  // subsection (b)(5) extracted from that row's full_text. This adapts (does
+  // not duplicate) q18b_admt_training's § 7150(b)(5) anchor — that entry is
+  // scoped to the training-data trigger; this entry is scoped to the
+  // sensitive-location trigger the intake field records.
+  // FSOR commentary consulted: cppa_fsor_commentary row
+  // id 30d841cf-02af-4aca-aae3-51a08aab7820 (agency response on § 7150(b)(5)
+  // sensitive-location scope).
+  sensitive_location_basis: {
+    fieldLabel: "Q5d: Sensitive-location processing basis",
+    citation: "11 CCR § 7150(b)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Using automated processing to infer or extrapolate characteristics or behaviour from a consumer's presence in a sensitive location is an independent trigger for a risk assessment — separate from processing sensitive personal information generally. A narrow carve-out exists for using personal information solely to deliver goods to, or provide transportation for, that consumer at a sensitive location.",
+    regulationText:
+      "(5) Using automated processing to infer or extrapolate a consumer's intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), personal preferences, interests, reliability, predispositions, behavior, or movements, based upon that consumer's presence in a sensitive location. \"Infer or extrapolate\" does not include a business using a consumer's personal information solely to deliver goods to, or provide transportation for, that consumer at a sensitive location.",
+    enforcementNote:
+      "FSOR commentary on § 7150(b)(5) (row 30d841cf…) records the Agency's response to comments challenging its authority to regulate 'sensitive locations' — the Agency retained the trigger and treats presence-based inference as a distinct risk from sensitive-PI processing.",
+    coachLead: "Record the basis that matches how the processing actually uses the location — not the label you would prefer.",
+    coachBody:
+      "Check whether presence at the location itself feeds an inference or extrapolation about the consumer. Delivery-only or transportation-only uses at the same location are carved out — the carve-out attaches to the use, not to the venue.",
+    goodAnswer:
+      "A fitness app that flags 'in reproductive-health facility' events to shape wellness content selects the inference basis; a grocery courier app that only uses the same address to route the order selects the delivery-only carve-out.",
+    commonMistake:
+      "Selecting 'not applicable' because the location is not itself in a published sensitive-location list. The trigger fires on the use — inferring or extrapolating from presence — regardless of how the venue is labelled.",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(2)", label: "Processing sensitive PI trigger (contrast)" },
+      { citation: "11 CCR § 7150(b)(4)", label: "Systematic-observation trigger (contrast)" },
+      { citation: "11 CCR § 7152(a)(3)", label: "Operational elements of the processing" },
+    ],
+  },
+
+  // Corpus consulted: cppa_authorities row citation="11 CCR § 7152"
+  // (id f509e45b-ce32-4564-b1c2-b0553c1751b9); regulationText is the verbatim
+  // subsection (a)(3)(E) extracted from that row's full_text. The corpus
+  // review found NO direct provision that governs a publicly hosted privacy
+  // policy URL as a risk-assessment input — the nearest anchor is the
+  // "disclosures made to the consumer" operational element under
+  // § 7152(a)(3)(E). FSOR commentary rows on § 7152(a)(2)–(3) (ids
+  // 44ae985c-5bb4-4336-91a7-1f17e2424456, 61609bb4-42bb-4226-b682-0c245471d265,
+  // 707c0cef-ae71-46d3-8850-db93d5f8e5fb) were reviewed for a notice-
+  // consistency discussion tied to a public policy URL and none was found.
+  // The related-CCPA anchor Cal. Civ. Code § 1798.130(a)(5) (which requires
+  // the privacy-policy disclosures themselves) is linked below as the
+  // ordinary source of the URL's content, not as authority for this field.
+  public_privacy_policy_url: {
+    fieldLabel: "Public privacy-policy URL",
+    citation: "11 CCR § 7152(a)(3)(E)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The risk assessment must identify what disclosures the business has made or plans to make to the consumer about the processing, and how those disclosures were or will be made. The URL you record here anchors the disclosure the assessment references — it is not itself a trigger and not itself a required element.",
+    regulationText:
+      "(E) What disclosures the business has made or plans to make to the consumer about the processing of their personal information and how these disclosures were or will be made (e.g., via a just-in-time notice).",
+    coachLead: "Record the URL of the disclosure the assessment actually references — leave blank if none is in place.",
+    coachBody:
+      "The value is an anchor for the disclosure element, not a certification that the policy is compliant. If the processing is disclosed only in a just-in-time notice, leave the URL blank and describe that in the disclosure narrative.",
+    goodAnswer:
+      "A staffing-tech company records https://example.com/privacy because that is the notice its intake questionnaire references; a payroll platform whose only disclosure is a just-in-time banner leaves the URL blank.",
+    commonMistake:
+      "Recording a URL for a policy that does not describe the processing being assessed. The § 7152(a)(3)(E) element is what disclosure has been made about THIS processing — an unrelated general policy fails that element.",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.130(a)(5)", label: "Statutory source of the privacy-policy disclosures themselves" },
+      { citation: "11 CCR § 7152(a)(3)", label: "Operational elements of the processing" },
+    ],
+  },
 };
+
