@@ -33,10 +33,10 @@ _Note:_ cppa-risk field-attribution pattern (2 findings in §5 digest) to be add
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:25:18Z):**
-- Recovery batch `5e0558f3` reached terminal `complete` at 2026-07-24T12:16:46Z. Both cyber & risk deploy locks RELEASED at that moment.
-- `run-cppa-cybersecurity` deployed this turn (12:25Z) — no in-flight customer row.
-- All other functions: **unlocked**. Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
+**Current lock state (2026-07-24T12:29:34Z):**
+- Batch `5e0558f3` reached terminal `complete` at 2026-07-24T12:16:46Z (`phase=done`, `last_error=null`, verified via query_database). §3 locks on `run-cppa-risk-assessment` and `run-cppa-cybersecurity` tied to that batch are **RELEASED**.
+- All functions **unlocked**. Customer-path in-flight: **none** at last check.
+- Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
 
 ## 4. Last Completed Turn
 
