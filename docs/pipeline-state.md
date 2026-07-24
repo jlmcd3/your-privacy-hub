@@ -42,18 +42,26 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
-- **Turn:** `SAMPLES-CONTRACT-lia` (5/8)
-- **Real-time:** 2026-07-24T12:53:21Z (sandbox `date -u`)
+- **Turn:** `SAMPLES-CONTRACT-lia` (5/8) — revised in-turn per team-reviewed dispatch (form-parity resolution of mechanical row keys + harm-severity correction).
+- **Real-time:** 2026-07-24T12:58:36Z (sandbox `date -u`)
 - **Scope (frontend/test only, no edge deploy):**
-  - Reconciled `F_LIA_UK` in `src/lib/sampleFixtures.ts` against `liAssessmentStageBContract`. `F_LIA_UK_SUPP` inherits the reconciliation via `withSupplemental`'s deep-clone.
-  - Removed unknown top-level keys `status`, `sector`, `preview_signal`; sector text preserved verbatim inline in `processing_description` so showcase quality is retained.
-  - Normalised `data_categories` to `LI_DATA_CATEGORIES` enum values (`"Location data"`, `"Health or medical data"`, `"Employment data"`) with the "beacon-proximity zone" descriptor folded into an `"Other: …"` element as the contract expressly permits (see contract comment L48-51).
-  - Normalised `relationship_type` from `"Employee (existing employment relationship)"` to the enum literal `"Employee"`; the "existing employment relationship" gloss remains in `processing_description`.
-  - Split `balancing_details.reasonable_expectation` (was a full sentence) into enum literal `"Partly"` + narrative moved to new `reasonable_expectation_detail`.
-  - Split `balancing_details.potential_harm` (was a full sentence) into enum literal `"Severe"` + narrative moved to new `potential_harm_detail`.
-  - Added required-always `preview_assessment_id: "sample-preview-lia-uk-000"`; changed `stage` from `"final"` → `"submitted"` per contract semantics (line 114 of the contract expects `"submitted"`).
-  - Renamed `purpose_details.purpose_text` → `interest_statement` (the actual contract slot); `balancing_details.balancing_text` → `additional_context`.
-- **Tests (green):** `_tests/contract-surface-audit.test.ts` — 3 pass / 0 fail. `li_assessment:uk` and `li_assessment:uk-supplemental` no longer appear in ADVISORY drift; ADVISORY count dropped 10 → 8. Remaining advisory drift is confined to still-queued tools (`governance`, `ir_playbook`, `biometric`).
+  - Reconciled `F_LIA_UK` in `src/lib/sampleFixtures.ts` against `liAssessmentStageBContract`. `F_LIA_UK_SUPP` inherits the reconciliation via `withSupplemental`'s JSON deep-clone (no separate edit).
+  - **Live-form audit** for the four ambiguous top-level keys (LIAssessment.tsx L158 = Stage-A `.insert({...})`; LIAssessmentIntake.tsx L270-311 = Stage-B intake_data):
+    - `stage` — **mechanical row column** (Stage A writes `"preview"`, Stage B intake_data flips to `"submitted"`). Added to `ALLOWED_TOPLEVEL_EXTRAS` in `_shared/intake-contracts/validate.ts` with citation comment; **restored** in fixture as `"submitted"` (post-submit truth).
+    - `status` — **mechanical row column** (Stage A writes `"pending"`). Added to `ALLOWED_TOPLEVEL_EXTRAS`; **restored** in fixture as `"pending"`.
+    - `preview_signal` — **mechanical row column** (Stage A writes preview-fn payload to the row; not intake content emitted by the Stage-B form). Added to `ALLOWED_TOPLEVEL_EXTRAS`; **restored** in fixture with realistic showcase payload.
+    - `sector` — **not emitted by either form**. Correctly removed from the fixture; sector text preserved verbatim inline in `processing_description` prose so showcase content survives.
+  - `preview_assessment_id` — Stage-B form always posts `preview_assessment_id: row.id` (LIAssessmentIntake.tsx L311). Fixture now supplies `"sample-preview-lia-uk-000"` (contract-required, form-emitted). Contract's required-always flag left untouched.
+  - Normalised `data_categories` to `LI_DATA_CATEGORIES` enum values (`"Location data"`, `"Health or medical data"`, `"Employment data"`) with the "beacon-proximity zone" descriptor folded into an `"Other: …"` element as the contract expressly permits (see contract comment L48-51). "Employee records" retagged to `"Employment data"` (LIA enum) rather than the DPIA-only "Employee records" enum; parenthetical specifics preserved in `processing_description`.
+  - Normalised `relationship_type` from `"Employee (existing employment relationship)"` → enum literal `"Employee"`; the "existing employment relationship" gloss remains in `processing_description`.
+  - Split `balancing_details.reasonable_expectation` into enum literal `"Partly"` + full original sentence moved verbatim into `reasonable_expectation_detail` (optional narrative slot).
+  - Split `balancing_details.potential_harm` into enum literal **`"Moderate"`** (per dispatch: pseudonymisation + purpose-limitation + works-council oversight materially reduce residual severity below Severe) + full original sentence moved verbatim into `potential_harm_detail`, with the safeguard-rationale appended.
+  - Renamed `purpose_details.purpose_text` → `interest_statement` (actual contract slot per L79); `balancing_details.balancing_text` → `additional_context` (actual contract slot per L112).
+  - `_shared/intake-contracts/validate.ts` — added three LIA mechanical row-infrastructure keys to `ALLOWED_TOPLEVEL_EXTRAS` with inline citations to LIAssessment.tsx L158 / LIAssessmentIntake.tsx L310. **No validator/rubric/contract weakening** — allowlist only expanded for mechanical row columns whose emission is verified in the form source.
+  - Flipped `li_assessment` out of `SAMPLE_ADVISORY_TOOLS` in `_tests/contract-surface-audit.test.ts` → **FATAL** tier. Counter comment: `Reconciled so far: cppa_risk (1/8), cppa_admt (2/8), cppa_cyber (3/8), dpia (4/8), li_assessment (5/8).`
+- **Tests (green — pasted):**
+  - `supabase/functions/_tests/contract-surface-audit.test.ts` — `3 passed | 0 failed (18ms)`. `li_assessment:uk` and `li_assessment:uk-supplemental` absent from ADVISORY list; ADVISORY count 10 → 8, confined to `governance`, `ir_playbook`, `biometric` per dispatch (dpa has no advisory row currently — the DPA fixture path validates without violations under the current sampleMap).
+  - `src/lib/__tests__/sampleFixtures.shape.test.ts` — 50 passed / 2 failed. Both failures are on `cppa_cyber/us-supplemental` (missing `company_name, profile_industry, profile_audit, industry_sector` at supplemental top level — pre-existing from TURN A supplemental clone; NOT introduced by this turn). All 4 `li_assessment/*` shape assertions PASS.
 - **Deploy:** none this turn (no edge-function or backend code changed).
 
 ## 5. Sample-Report Register
