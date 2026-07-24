@@ -43,3 +43,51 @@ Deno.test("unknown check_id falls back to unclassified/null lever", () => {
   assertEquals(r.class, "unclassified");
   assertEquals(r.lever, null);
 });
+
+// L5-followup: eight previously-unclassified rows are now closed.
+Deno.test("L5-followup / e1_section_present + e1_section_order → feature/L3", () => {
+  for (const id of ["e1_section_present", "e1_section_order"]) {
+    const r = classify(id);
+    assertEquals(r.class, "feature");
+    assertEquals(r.lever, "L3");
+    assert(r.notes && /typed slots/i.test(r.notes), `${id} notes should reference typed slots`);
+  }
+});
+
+Deno.test("L5-followup / h1_article_phrasing → feature/L2 (pre-emit gate)", () => {
+  const r = classify("h1_article_phrasing");
+  assertEquals(r.class, "feature");
+  assertEquals(r.lever, "L2");
+  assert(r.notes && /pre-emit/i.test(r.notes));
+});
+
+Deno.test("L5-followup / h5_internal_note_block + h4_evasive_placeholder → feature/L2/in_progress", () => {
+  for (const id of ["h5_internal_note_block", "h4_evasive_placeholder"]) {
+    const r = classify(id);
+    assertEquals(r.class, "feature");
+    assertEquals(r.lever, "L2");
+    assertEquals(r.status, "in_progress");
+    assert(r.notes && /Scrubber shipped W6/.test(r.notes));
+  }
+});
+
+Deno.test("L5-followup / e3_tbc_unclosed → feature/L2/in_progress (likely extinct)", () => {
+  const r = classify("e3_tbc_unclosed");
+  assertEquals(r.class, "feature");
+  assertEquals(r.lever, "L2");
+  assertEquals(r.status, "in_progress");
+  assert(r.notes && /Named-gap doctrine/.test(r.notes));
+  assert(r.notes && /last seen wave 1/i.test(r.notes));
+});
+
+Deno.test("L5-followup / zero previously-unclassified rows remain in this batch", () => {
+  const closed = [
+    "e1_section_present", "e1_section_order",
+    "h1_article_phrasing",
+    "h5_internal_note_block", "h4_evasive_placeholder",
+    "e3_tbc_unclosed",
+  ];
+  for (const id of closed) {
+    assertEquals(classify(id).class !== "unclassified", true, `${id} still unclassified`);
+  }
+});
