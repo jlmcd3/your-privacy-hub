@@ -1843,6 +1843,10 @@ Return this JSON structure exactly:
       va_stamps_unresolved: 0,
       top3_padded: 0,
       top3_final_len: 0,
+      // W9-ADMT-WIRE-P1 telemetry
+      p1_anchor_dedupes: 0,        // defect #2: "X + X" collapsed to "X"
+      p1_7150_depth_downgrades: 0, // defect #3a: § 7150(b)(N) below registry granularity → § 7150
+      p1_7001_sole_anchor_fallbacks: 0, // defect #3b: § 7001-only anchor on action-duty finding → neutral fallback
     };
     try {
       const stampArr = (arr: any): void => {
