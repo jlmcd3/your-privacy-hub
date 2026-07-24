@@ -85,7 +85,7 @@ export type BiometricStatuteRow = {
 };
 
 /** Registry version stamp; threaded into the report envelope. */
-export const BIOMETRIC_REGISTRY_VERSION = "bio-reg-w1-s2-2026-07-24";
+export const BIOMETRIC_REGISTRY_VERSION = "bio-reg-w1-s2a-2026-07-24";
 
 // ─────────────────────────────────────────────────────────────────────────
 // us_il_bipa — Illinois Biometric Information Privacy Act (740 ILCS 14/-)
@@ -569,38 +569,40 @@ const CO_HB24_1130_ROWS: BiometricStatuteRow[] = [
 
 const CA_CPRA_ROWS: BiometricStatuteRow[] = [
   {
-    id: "us_ca_cpra.140_l_biometric_information_definition",
+    id: "us_ca_cpra.140_c_biometric_information_definition",
     jurisdiction_id: "us_ca_cpra",
     jurisdiction_display: "California",
     statute_long:
       "California Consumer Privacy Act, as amended by the California Privacy Rights Act (CPRA)",
     statute_short: "CCPA/CPRA",
-    pinpoint: "Cal. Civ. Code § 1798.140(l)",
+    pinpoint: "Cal. Civ. Code § 1798.140(c)",
     verbatim_quote:
-      "Cal. Civ. Code § 1798.140(l): \"Biometric information\" means an individual's physiological, biological, or behavioral characteristics, including information pertaining to an individual's deoxyribonucleic acid (DNA), that is used or is intended to be used singly or in combination with each other or with other identifying data, to establish individual identity. Biometric information includes, but is not limited to, imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, and voice recordings, from which an identifier template, such as a faceprint, a minutiae template, or a voiceprint, can be extracted, and keystroke patterns or rhythms, gait patterns or rhythms, and sleep, health, or exercise data that contain identifying information.",
+      "Cal. Civ. Code § 1798.140(c): \"Biometric information\" means an individual's physiological, biological, or behavioral characteristics, including information pertaining to an individual's deoxyribonucleic acid (DNA), that is used or is intended to be used singly or in combination with each other or with other identifying data, to establish individual identity. Biometric information includes, but is not limited to, imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, and voice recordings, from which an identifier template, such as a faceprint, a minutiae template, or a voiceprint, can be extracted, and keystroke patterns or rhythms, gait patterns or rhythms, and sleep, health, or exercise data that contain identifying information.",
     topic: "definition",
     primary_source_url:
       "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:California"],
+    note:
+      "S2a-corrected: Post-CPRA renumbering places 'Biometric information' at § 1798.140(c). Subdivision (l) is 'Dark pattern' and must not be cited for the biometric definition.",
   },
   {
-    id: "us_ca_cpra.140_ae_2_c_spi_biometric",
+    id: "us_ca_cpra.140_ae_2_a_spi_biometric",
     jurisdiction_id: "us_ca_cpra",
     jurisdiction_display: "California",
     statute_long:
       "California Consumer Privacy Act, as amended by CPRA — Sensitive Personal Information",
     statute_short: "CCPA/CPRA",
-    pinpoint: "Cal. Civ. Code § 1798.140(ae)(2)(C)",
+    pinpoint: "Cal. Civ. Code § 1798.140(ae)(2)(A)",
     verbatim_quote:
-      "Cal. Civ. Code § 1798.140(ae)(2)(C): \"Sensitive personal information\" means: (2)(C) The processing of biometric information for the purpose of uniquely identifying a consumer.",
+      "Cal. Civ. Code § 1798.140(ae)(2)(A): \"Sensitive personal information\" means: (2)(A) The processing of biometric information for the purpose of uniquely identifying a consumer.",
     topic: "sensitive_data_classification",
     primary_source_url:
       "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:California"],
     note:
-      "S2-verified: SPI carve-out is triggered only when biometric information is processed for the purpose of uniquely identifying a consumer. Enrolment for authentication/identification therefore engages § 1798.121 right-to-limit; incidental biometric capture that is not used for identification does not.",
+      "S2a-corrected: Current § 1798.140(ae)(2)(A) — not (2)(C) — is the biometric SPI carve-out, triggered only when biometric information is processed for the purpose of uniquely identifying a consumer. Enrolment for authentication/identification therefore engages § 1798.121 right-to-limit; incidental biometric capture that is not used for identification does not.",
   },
   {
     id: "us_ca_cpra.121_a_right_to_limit_spi",
@@ -630,22 +632,22 @@ const CA_CPRA_ROWS: BiometricStatuteRow[] = [
 
 const NY_SHIELD_ROWS: BiometricStatuteRow[] = [
   {
-    id: "us_ny_shield.899_aa_biometric_private_info",
+    id: "us_ny_shield.899_aa_1_b_i_5_biometric_private_info",
     jurisdiction_id: "us_ny_shield",
     jurisdiction_display: "New York",
     statute_long:
       "New York Stop Hacks and Improve Electronic Data Security (SHIELD) Act — breach notification",
     statute_short: "N.Y. Gen. Bus. Law § 899-aa",
-    pinpoint: "N.Y. Gen. Bus. Law § 899-aa(1)(b)(ii)",
+    pinpoint: "N.Y. Gen. Bus. Law § 899-aa(1)(b)(i)(5)",
     verbatim_quote:
-      "N.Y. Gen. Bus. Law § 899-aa(1)(b)(ii): \"Private information\" shall mean either: (ii) biometric information, meaning data generated by electronic measurements of an individual's unique physical characteristics, such as a fingerprint, voice print, or retina or iris image, or other unique physical representation or digital representation of biometric data which are used to authenticate or ascertain the individual's identity.",
+      "N.Y. Gen. Bus. Law § 899-aa(1)(b)(i)(5): \"Private information\" shall mean either: (i) personal information consisting of any information in combination with any one or more of the following data elements, when either the data element or the combination of personal information plus the data element is not encrypted, or is encrypted with an encryption key that has also been accessed or acquired: … (5) biometric information, meaning data generated by electronic measurements of an individual's unique physical characteristics, such as a fingerprint, voice print, or retina or iris image, or other unique physical representation or digital representation of biometric data which are used to authenticate or ascertain the individual's identity.",
     topic: "definition",
     primary_source_url:
       "https://www.nysenate.gov/legislation/laws/GBS/899-AA",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:New York"],
     note:
-      "S2-verified: New York has no dedicated biometric privacy statute; biometric information is regulated through the SHIELD Act's breach-notification and safeguards regime.",
+      "S2a-corrected: Under the current § 899-aa (rev. 2025-03-28), biometric information is data element (5) within paragraph (b)(i). The 2019 SHIELD amendment inserted a new element (4), pushing biometric to (5); do not cite (4). Subparagraph (ii) is a separate branch covering username/e-mail + password and must not be cited for the biometric definition.",
   },
   {
     id: "us_ny_shield.899_bb_reasonable_safeguards",
@@ -662,6 +664,8 @@ const NY_SHIELD_ROWS: BiometricStatuteRow[] = [
       "https://www.nysenate.gov/legislation/laws/GBS/899-BB",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:New York"],
+    note:
+      "S2a-verified against nysenate.gov/legislation/laws/GBS/899-BB (current revision, retrieved 2026-07-24): subdivision (2)(a) is the reasonable-safeguards duty; pinpoint text appears verbatim in the official statute page. Companion pinpoint § 899-bb(2)(b)(ii) enumerates administrative/technical/physical safeguards; not asserted here but available at the same primary source.",
   },
 ];
 
@@ -686,7 +690,7 @@ const AR_PIPA_ROWS: BiometricStatuteRow[] = [
       "Ark. Code Ann. § 4-110-103(7): \"Personal information\" means an individual's first name or first initial and his or her last name in combination with any one (1) or more of the following data elements when either the name or the data element is not encrypted or redacted: (E) Biometric data.",
     topic: "definition",
     primary_source_url:
-      "https://advance.lexis.com/container?config=00JAA2ZjZiM2VhNS0wNTVlLTQ3NzUtYjQzYy0yYWZmODJiODRmMDYKAFBvZENhdGFsb2fXiYCnsel0plIgqpYkw9PK&crid=arkansas-code",
+      "https://arkleg.state.ar.us/Home/FTPDocument?path=%2FCode%2FA.C.A+Titles%2FTitle+4%2FSubtitle+7%2FChapter+110.pdf",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:Arkansas"],
     note:

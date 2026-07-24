@@ -16,7 +16,7 @@ import {
 describe("biometric statute registry — self-consistency", () => {
   it("stamps a non-empty registry version", () => {
     // Registry version tag family — bio-reg-w<wave>[-s<sweep>]-YYYY-MM-DD.
-    expect(BIOMETRIC_REGISTRY_VERSION).toMatch(/^bio-reg-w\d(?:-s\d)?-\d{4}-\d{2}-\d{2}$/);
+    expect(BIOMETRIC_REGISTRY_VERSION).toMatch(/^bio-reg-w\d(?:-s\d+[a-z]?)?-\d{4}-\d{2}-\d{2}$/);
   });
 
   it("declares the Wave-1 and Wave-2 (S2) jurisdictions", () => {
