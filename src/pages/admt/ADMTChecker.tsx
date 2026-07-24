@@ -833,7 +833,6 @@ export default function ADMTChecker() {
                         options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
                         value={affectedPopulationBand ? [affectedPopulationBand] : []}
                         onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
-                        multi={false}
                       />
                     </div>
                   </div>
