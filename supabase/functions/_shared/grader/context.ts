@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-23-post-c1-fix-2";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-24-c2-2";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
@@ -127,4 +127,8 @@ POST-C1-FIX-2 ADDITIONS (2026-07-23, BINDING; do NOT flag as defects):
 (2) ADMT NEUTRAL FALLBACK PHRASE IS DESIGNED OUTPUT: the phrase "the applicable ADMT-subchapter provision" appearing in an ADMT report is a NEUTRAL post-resolver fallback used when the model's citation could not be resolved to a pinpoint from the ADMT-citation registry. It replaces the previously-used range-label fallback (which caused the h7_admt_blanket_range defect class). Do NOT flag "the applicable ADMT-subchapter provision" as a missing citation, an unresolved variable, or a placeholder defect. The report retains its other pinpoint citations; the neutral phrase is the correct fallback when a specific pinpoint is unavailable.
 
 (3) FTC RITE AID CITATION — CANONICAL FORM: the correct citation for the FTC Rite Aid facial-recognition matter is "FTC v. Rite Aid Corp., Case No. 2:23-cv-5023 (E.D. Pa. Dec. 19, 2023); FTC Matter/File No. 2023190". Do NOT flag this canonical form as inaccurate. Earlier drafts using "FTC File No. 072-3121" were incorrect and have been corrected in the biometric template.
-`.trim();
+
+C2-2 ADDITION (2026-07-24, BINDING; do NOT flag as defects):
+
+(1) IN-PROSE FSOR CITATIONS ARE DESIGNED OUTPUT: ADMT and CPPA-Cybersecurity now receive an FSOR-anchor injection block at assembly time (see _shared/fsor-anchor-block.ts). The injected block is DRAFTING CONTEXT ONLY — the generator is instructed NEVER to echo the internal bracketed "[Agency position — FSOR: <citation>, <package>, <page_ref>]: …" form into report prose, and instead to weave the Agency's position into the analysis in plain professional prose form (e.g., "The Agency's Final Statement of Reasons for 11 CCR § 7001(ddd) explains that behavioural advertising was removed from the significant-decision definition …" or "Per the CPPA's FSOR (Appendix, p. 25), zero-trust architecture was declined as a mandated component …"). Reports containing plain-prose FSOR citations — including the tokens "Final Statement of Reasons", "FSOR", "the Agency explained", "the Agency declined", or an "Appendix, p. NN" page cite — anchored to a real § 7001(ddd) / § 7001(e) / § 7001(e)(1) / § 7123 provision are CORRECT designed output; do NOT flag them as invented Agency positions, unsupported business claims, internal-reasoning leaks, or fabricated commentary. The bracketed injection format itself would be a leak IF echoed verbatim; grade that separately under the existing internal-reasoning-leak rubric.
+\`.trim();
