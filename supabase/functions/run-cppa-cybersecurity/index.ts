@@ -1535,6 +1535,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W6-CYBER-FIX] non-fatal:", String(w6Err));
     }
 
+    // W9 TURN 3 — deterministic slot reprojection (component_matrix,
+    // scope_justification, top_3_actions). Runs after W6 scrub; fail-open.
+    try {
+      const intakeForW9 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const w9 = attachAndValidateCyberSlots(report as any, intakeForW9);
+      console.log(JSON.stringify({
+        evt: "w9_cyber_slots_attached",
+        build_stamp: BUILD_STAMP,
+        w9_stamp: W9_CYBER_SLOTS_STAMP,
+        attached: w9.attached,
+        validation: w9.validation,
+      }));
+      (report as any)._w9_cyber_slots = { stamp: W9_CYBER_SLOTS_STAMP, ...w9 };
+    } catch (w9Err) {
+      console.error("[W9-CYBER-TURN3] non-fatal:", String(w9Err));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
