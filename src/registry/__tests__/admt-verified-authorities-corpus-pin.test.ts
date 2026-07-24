@@ -39,7 +39,8 @@ const KNOWN_PARAPHRASED_KEYS = new Set<string>([
   //   optout_offer, optout_exc_appeal, optout_exc_hire.
   // Corrected in ADMT-REGISTRY-CORPUS-6 (§ 7222 access batch, 2026-07-24):
   //   access_provide, access_logic, access_outcome.
-  "ccpa_defs", "ccpa_rulemaking",
+  // Corrected in ADMT-REGISTRY-CORPUS-7 (Civ. Code § 1798.140/§ 1798.185 final batch, 2026-07-24):
+  //   ccpa_defs, ccpa_rulemaking.
 ]);
 
 function norm(s: string): string {

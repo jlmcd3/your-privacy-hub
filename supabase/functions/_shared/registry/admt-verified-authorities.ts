@@ -33,7 +33,7 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w7-2026-07-24";
+export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w8-2026-07-24";
 
 /** Canonical published text for §§ 7000-series (OAL-approved package). */
 const CCR_URL =
@@ -418,7 +418,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "Cal. Civ. Code § 1798.140",
     subsection: "Cal. Civ. Code § 1798.140",
     verbatim_quote:
-      "For purposes of this title, the following definitions apply. (Definitions of \"business,\" \"consumer,\" \"personal information,\" \"sensitive personal information,\" and related terms follow.)",
+      "For purposes of this title:",
     depth_class: "section",
     governing_anchor: CCPA_STATUTE,
     verified_on: VOD,
@@ -429,7 +429,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "Cal. Civ. Code § 1798.185",
     subsection: "Cal. Civ. Code § 1798.185(a)(15)",
     verbatim_quote:
-      "The California Privacy Protection Agency shall adopt regulations governing access and opt-out rights with respect to businesses' use of automated decisionmaking technology, including profiling.",
+      "Issuing regulations governing access and opt-out rights with respect to a business\u2019 use of automated decisionmaking technology, including profiling and requiring a business\u2019 response to access requests to include meaningful information about the logic involved in those decisionmaking processes, as well as a description of the likely outcome of the process with respect to the consumer.",
     depth_class: "sub_subsection",
     governing_anchor: CCPA_STATUTE,
     verified_on: VOD,
