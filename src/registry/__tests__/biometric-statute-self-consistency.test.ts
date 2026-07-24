@@ -15,16 +15,27 @@ import {
 
 describe("biometric statute registry — self-consistency", () => {
   it("stamps a non-empty registry version", () => {
-    expect(BIOMETRIC_REGISTRY_VERSION).toMatch(/^bio-reg-w\d/);
+    // Registry version tag family — bio-reg-w<wave>[-s<sweep>]-YYYY-MM-DD.
+    expect(BIOMETRIC_REGISTRY_VERSION).toMatch(/^bio-reg-w\d(?:-s\d)?-\d{4}-\d{2}-\d{2}$/);
   });
 
-  it("declares the four Wave-1 jurisdictions", () => {
+  it("declares the Wave-1 and Wave-2 (S2) jurisdictions", () => {
     expect(listRegistryJurisdictions().sort()).toEqual(
-      ["us_co_hb24_1130", "us_il_bipa", "us_tx_cubi", "us_wa_hb1493"].sort(),
+      [
+        // Wave 1
+        "us_co_hb24_1130",
+        "us_il_bipa",
+        "us_tx_cubi",
+        "us_wa_hb1493",
+        // Wave 2 (S2)
+        "us_ar_pipa",
+        "us_ca_cpra",
+        "us_ny_shield",
+      ].sort(),
     );
   });
 
-  it("has at least one row per Wave-1 jurisdiction", () => {
+  it("has at least one row per registered jurisdiction", () => {
     for (const jid of Object.keys(BIOMETRIC_REGISTRY_JURISDICTIONS)) {
       const rows = BIOMETRIC_STATUTE_REGISTRY.filter(
         (r) => r.jurisdiction_id === jid,
