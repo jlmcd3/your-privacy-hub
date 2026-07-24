@@ -399,17 +399,13 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
-  access_timeline: R({
-    proposition_key: "access_timeline",
-    citation: "11 CCR § 7222",
-    subsection: "11 CCR § 7222(c)",
-    verbatim_quote:
-      "A business must respond to a verifiable consumer request to access information about its use of automated decisionmaking technology within 45 calendar days of receipt of the request.",
-    depth_class: "subsection",
-    governing_anchor: ART11,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
+  // ── access_timeline REMOVED (WAVE12-FIX TURN C, 2026-07-24T16:59Z) ──
+  // The prior row cited "11 CCR § 7222(c)" with a fabricated verbatim quote
+  // (§ 7222(c) is the trade-secret carve-out, not the 45-day timeline).
+  // Consumer-access response timing is governed by CCPA-side timelines under
+  // Cal. Civ. Code § 1798.130 / § 1798.145, not by an ADMT-subchapter row —
+  // no verified 11 CCR ADMT-subchapter row supports a 45-day quote today.
+  // Downstream slots must emit information_needed rather than fabricate.
 
   // ---- Statutory anchors ----------------------------------------------------
   ccpa_defs: R({

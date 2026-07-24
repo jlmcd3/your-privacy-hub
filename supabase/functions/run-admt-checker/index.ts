@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w9-admt-preemit@2026-07-24T12:30:00Z";
+export const BUILD_STAMP = "w12-admt-turnc@2026-07-24T17:02:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // TURN 2 — deterministic slots (applicability_verdict, deadline_table, adequacy_finding).
@@ -1999,6 +1999,19 @@ Return this JSON structure exactly:
               w9Metrics.p1_7001_sole_anchor_fallbacks++;
             }
           }
+          // (d) WAVE12-FIX TURN C — collapse multiple § 7001 pinpoints joined
+          //     by "+" (e.g. "§ 7001(e) + § 7001(e)" or "§ 7001(e) + § 7001(e)(1)").
+          //     Per PF6 T1, § 7001 subdivisions are NEVER chained. Keep only
+          //     the first § 7001 pinpoint; retain all non-§7001 anchors.
+          {
+            const parts = splitAnchors(c);
+            const s7001 = parts.filter(isSection7001);
+            if (s7001.length > 1) {
+              const other = parts.filter((p) => !isSection7001(p));
+              c = [s7001[0], ...other].join(" + ");
+              w9Metrics.p1_anchor_dedupes++;
+            }
+          }
           it.citation = c;
         }
       };
@@ -2137,6 +2150,40 @@ Return this JSON structure exactly:
     }
 
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+
+    // ── WAVE12-FIX TURN C1 — customer-payload metadata strip ──
+    // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
+    // _w9_admt_wire, _w9_admt_slots, _w9_admt_regen, _w9_admt_pre_emit, and
+    // any future _*) off the customer-facing surface and into
+    // _meta.internal. Also strip per-entry underscore-prefixed diagnostics
+    // (_va_stamp, _va_stamp_unresolved, _w9_regen) from finding buckets.
+    // Non-fatal: on error, we still write the report (previous behaviour).
+    try {
+      const r: any = report as any;
+      const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
+      const internal: Record<string, unknown> = (meta.internal && typeof meta.internal === "object") ? meta.internal : {};
+      for (const k of Object.keys(r)) {
+        if (k === "_meta") continue;
+        if (k.startsWith("_")) { internal[k] = r[k]; delete r[k]; }
+      }
+      meta.internal = internal;
+      const BUCKETS = ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"];
+      const ENTRY_INTERNAL = ["_va_stamp", "_va_stamp_unresolved", "_w9_regen"];
+      for (const b of BUCKETS) {
+        const arr = r[b];
+        if (!Array.isArray(arr)) continue;
+        for (const it of arr) {
+          if (!it || typeof it !== "object") continue;
+          for (const k of ENTRY_INTERNAL) if (k in it) delete it[k];
+        }
+      }
+      const sa: any = r.scope_analysis;
+      if (sa && typeof sa === "object") {
+        for (const k of ENTRY_INTERNAL) if (k in sa) delete sa[k];
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] W12-C1 metadata strip failed (non-fatal):", (e as Error)?.message);
+    }
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",

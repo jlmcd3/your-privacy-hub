@@ -76,7 +76,7 @@ export const ADMT_COVERAGE: Record<string, {
       "notice_purpose", "notice_optout", "notice_access", "notice_antiretal",
       "notice_howworks_inputs", "notice_howworks_output", "notice_altprocess",
       "optout_offer", "optout_exc_appeal", "optout_exc_hire",
-      "access_provide", "access_logic", "access_outcome", "access_timeline",
+      "access_provide", "access_logic", "access_outcome",
       "ra_trigger_admt", "ra_trigger_train", "ra_timing_new", "ra_timing_existing", "ra_submit",
       "fsor_advertising_exclusion", "fsor_human_involvement_three_part",
     ],
