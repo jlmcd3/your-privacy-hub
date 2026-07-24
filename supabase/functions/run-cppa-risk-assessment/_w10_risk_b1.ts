@@ -34,6 +34,9 @@ export interface W10RiskB1Counters {
   claims_scanned: number;
   claims_downgraded: number;
   claims_removed: number;
+  // D2 — profiling-denial guard (bidirectional).
+  profiling_denials_scanned: number;
+  profiling_denials_downgraded: number;
 }
 
 const emptyCounters = (): W10RiskB1Counters => ({
@@ -43,6 +46,8 @@ const emptyCounters = (): W10RiskB1Counters => ({
   claims_scanned: 0,
   claims_downgraded: 0,
   claims_removed: 0,
+  profiling_denials_scanned: 0,
+  profiling_denials_downgraded: 0,
 });
 
 // ---------- Intake flattening ----------
