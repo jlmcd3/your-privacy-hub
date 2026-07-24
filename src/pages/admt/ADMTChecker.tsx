@@ -403,7 +403,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy,
-      caConsumerCount, thirdPartyAdmt, admtSystemCount, optOut15DayProcess, optOutServiceProviderNotice, adv,
+      caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, optOutServiceProviderNotice, adv,
     ],
   );
 
