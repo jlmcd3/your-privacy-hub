@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w9-admt-citefix@2026-07-24T07:58:00Z";
+export const BUILD_STAMP = "w9-admt-wire@2026-07-24T08:25:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
@@ -16,9 +16,45 @@ import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-co
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
+// W9-ADMT-WIRE — L1 verified-authority resolver + admt registry (S-A live).
+// Generator never authors a citation: it emits proposition_key on findings;
+// this resolver stamps citation/subsection/verbatim_quote at emit time.
+import {
+  ADMT_VERIFIED_AUTHORITIES,
+  ADMT_VERIFIED_AUTHORITY_VERSION,
+} from "../_shared/registry/admt-verified-authorities.ts";
+import {
+  resolveByPropositionKey,
+  registrySize as vaRegistrySize,
+} from "../_shared/verified-authority-resolver.ts";
 // R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
 // prompt and registry cannot drift.
 const ADMT_VERIFIED_WHITELIST_TEXT = buildAdmtVerifiedWhitelist().join(", ");
+
+// W9-ADMT-WIRE — VERIFIED-AUTHORITY BLOCK, injected into the system prompt so
+// the model composes prose around stamped pinpoints (never authors §-tokens
+// from recall). Single source of truth: admt-verified-authorities.ts. This
+// block REPLACES the prompt-text verified-registry list previously embedded
+// inside POST-C1-FIX-3(b) — one source of truth, per ACK 2 standing order.
+function buildAdmtVerifiedAuthorityBlock(): string {
+  const rows = Object.values(ADMT_VERIFIED_AUTHORITIES);
+  const lines = rows.map((r) =>
+    `- [${r.proposition_key}] ${r.subsection} — "${r.verbatim_quote.replace(/\s+/g, " ").slice(0, 260)}"`
+  );
+  return `VERIFIED-AUTHORITY REGISTRY (${ADMT_VERIFIED_AUTHORITY_VERSION}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR ADMT CITATIONS; replaces the prompt-embedded verified-citation list):
+Every citation the report emits must be REGISTRY-STAMPED, never authored by you from recall. When a finding asserts a proposition covered by a row below, emit a "proposition_key": "<key>" field on that finding entry (in addition to element_id). The resolver deterministically stamps citation, subsection, and verbatim_quote onto the finding; you write the prose around the stamped pinpoint and NEVER type a "§" or "11 CCR" token yourself. If no row covers the proposition, omit proposition_key and rely on the neutral fallback ("the applicable ADMT-subchapter provision") per POST-C1-FIX-3(a)+(c); the unresolvable-proposition path is counted in telemetry and routed to information_needed per the SCAFFOLDING LEAK GUARD.
+
+Row shape shown as "[proposition_key] pinpoint — verbatim quote":
+${lines.join("\n")}
+`;
+}
+const ADMT_VERIFIED_AUTHORITY_BLOCK = buildAdmtVerifiedAuthorityBlock();
+console.log(JSON.stringify({
+  evt: "admt_va_registry_loaded", fn: "run-admt-checker",
+  build_stamp: BUILD_STAMP,
+  va_version: ADMT_VERIFIED_AUTHORITY_VERSION,
+  va_rows: vaRegistrySize(ADMT_VERIFIED_AUTHORITIES),
+}));
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
