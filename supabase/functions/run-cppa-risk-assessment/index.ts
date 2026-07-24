@@ -2276,27 +2276,22 @@ async function runPipeline(assessment_id: string) {
         va_information_needed_added: 0,
         buckets_scanned: 0,
       };
-      const stampEntry = (it: any): void => {
-        if (!it || typeof it !== "object") return;
+      const stampEntry = (it: any): boolean => {
+        if (!it || typeof it !== "object") return false;
+        let stamped = false;
         const pk = typeof it.proposition_key === "string" ? it.proposition_key.trim() : "";
         if (pk) {
           const row = resolveByPropositionKey(RISK_VERIFIED_AUTHORITIES, pk);
           if (row) {
             it.citation = row.subsection;
             it.verbatim_quote = row.verbatim_quote;
-            it.__va_stamp = {
-              proposition_key: pk,
-              subsection: row.subsection,
-              depth_class: row.depth_class,
-              verified_on: row.verified_on,
-            };
             vaMetrics.va_stamps_applied++;
+            stamped = true;
           } else {
             // Emit-time whitelist gate: covered surface, unresolved key ⇒
             // empty citation + information_needed marker; never fabricate.
             it.citation = "";
             it.information_needed = true;
-            it.__va_stamp_unresolved = { proposition_key: pk };
             vaMetrics.va_stamps_unresolved++;
             vaMetrics.va_information_needed_added++;
           }
@@ -2306,18 +2301,24 @@ async function runPipeline(assessment_id: string) {
         // 7150(b)" fragment) with no predicate pinpoint is flagged as
         // information_needed rather than emitted as an undifferentiated repeat.
         const cit = typeof it.citation === "string" ? it.citation : "";
-        if (cit && !it.__va_stamp) {
-          const bareCollapse = /(?:11\s*CCR\s*)?§\s*7150\(b\)(?![\)\s]*\()/i;
-          const doubledCollapse = /§\s*7150\(b\)[^§]{0,40}§\s*7150\(b\)(?![\)\s]*\()/i;
-          if (bareCollapse.test(cit) && !/\(b\)\s*\(\s*\d/.test(cit)) {
-            it.__va_collapse_flag = { citation: cit, kind: "bare_7150_b" };
+        if (cit && !stamped) {
+          const hasPredicate = /\(b\)\s*\(\s*\d/.test(cit);
+          const bareCollapse = /(?:11\s*CCR\s*)?§\s*7150\(b\)/i;
+          const doubledCollapse = /§\s*7150\(b\)[^§]{0,60}§\s*7150\(b\)/i;
+          if (doubledCollapse.test(cit)) {
+            it.citation = "";
             it.information_needed = true;
             vaMetrics.va_subsection_collapse_flagged++;
             vaMetrics.va_information_needed_added++;
-          } else if (doubledCollapse.test(cit)) {
-            it.__va_collapse_flag = { citation: cit, kind: "doubled_7150_b" };
+          } else if (bareCollapse.test(cit) && !hasPredicate) {
+            it.citation = "";
             it.information_needed = true;
             vaMetrics.va_subsection_collapse_flagged++;
+            vaMetrics.va_information_needed_added++;
+          }
+        }
+        return stamped;
+      };
             vaMetrics.va_information_needed_added++;
           }
         }
