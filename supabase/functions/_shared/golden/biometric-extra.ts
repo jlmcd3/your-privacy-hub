@@ -175,6 +175,7 @@ export const BIOMETRIC_GOLDEN_EXTRA: GoldenCase[] = [
       { kind: "must_not_include", pattern: "C\\.R\\.S\\.\\s*§\\s*6-1-1303", flags: "i",
         label: "does NOT fabricate Colorado CPA citations for Ohio" },
     ],
+  },
 
   // ── Wave-2 (S2) registered: California CCPA/CPRA ────────────────────
   {
