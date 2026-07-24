@@ -4,6 +4,8 @@ import {
   applyW6CyberFix,
   truncateRegulatoryBasisInflation,
   rewriteFrameworkOverride,
+  rewriteUncitedNamedRules,
+  rewriteComparativeAsOperative,
   scrubCrossControlDerivedFigures,
   W6_CYBER_FIX_VERSION,
 } from "./_w6_cyber_fix.ts";
