@@ -90,6 +90,18 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **cppa-risk HIGH — hallucination** (doc `1b32c6a9`): risk register states "profiling/inference generation confirmed" derived from `i1_processing_purpose` which does not state it — overclaiming from intake. **FIXED by TURN B deploy 12:39Z; verify at wave 11 re-measure.**
 - **Note on counts:** `quality_findings` rows log ALL check results; `severity` = check tier, `passed` = outcome. The 6 critical-tier rows on cppa-risk are `passed=true` (qc_r1_1, qc_r1_4 PASSED on all 3 docs). Failure counts: cppa-risk **2 high**; cppa-cyber **2 high + 2 medium**.
 
+### Wave 11 + Wave 12 (campaign `fd1be147`)
+
+- **Wave 11 batch `3a22d2f8`** (launched 13:30:03Z): orchestrator isolate death ~13:42Z (heartbeat stopped after `cppa-risk` dispatch). `dpia` run 116 + `cppa-risk` run 124 completed independently; `cppa-admt` run 100 orphaned/failed; `cppa-cyber` never dispatched. Row reconciled 16:50:39Z (`status=cancelled`, `phase=done`, `last_error` populated) per wave-10 precedent. **SECOND orchestrator isolate death in one day** — raises priority of DS-T2b orchestrator→`delivery_contracts` wiring (still queued between waves).
+- **Wave 12 batch `a289c96e`** (15:45:02→16:14:55Z, COMPLETE): instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg` (frozen hash maintained), N=3/tool. Scores (overall / GPT / checks / dims acc-cit-hall-ana-int-fmt):
+  - `cppa-admt` run 101: **84.95** / 85 / 121-131 / 88-81-84-87-85-85
+  - `cppa-risk` run 125: **85.30** / 89 / 67-75 / 84-88-87-81-84-90
+  - `cppa-cyber` run 105: **85.45** / 91 / 49-58 / 85-87-88-81-81-83
+  - `dpia` run 117: **86.25** / 89 / 39-50 / 85-88-88-84-83-91
+- **gate_v2:** NO tool passes wave 12 (all dims ≥90 required; only formatting reaches 90-91 anywhere). Certification counters: 0 consecutive for all tools; critical/high survivors present (admt 1 critical + 4 high; risk 4 high; cyber 3 high; dpia 4 high).
+- **ADMT trajectory callout:** wave 11 read lost (orphaned run 100); wave 12 = 84.95, lowest CPPA score, citation dim 81 worst-in-batch; NEW regression — W9 pre-emit wiring leaks internal diagnostic objects into customer output (also exposes the future-dated w9 stamp). Trajectory NEGATIVE this wave; TURN C is the recovery path.
+- **TURN A/B verification (wave-12 re-measure):** cyber placeholder + mean-score hallucination FIXED (not observed); risk `sensitive_location` cross-attribution FIXED (not observed). New distinct defects logged in TURNs C/D/E scopes — ruthless attribution: these are new/mutated failure modes, not regressions of the shipped fixes.
+
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
