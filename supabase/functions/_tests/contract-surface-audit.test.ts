@@ -129,10 +129,11 @@ Deno.test("contract-surface-audit / pinned contract-scenario fixtures validate",
 // each SAMPLES-CONTRACT-<tool> courier lands, flip its slug out of
 // SAMPLE_ADVISORY_TOOLS to convert to fatal.
 // SAMPLES-CONTRACT reconciled tools flip out of this set (FATAL tier).
-// Reconciled so far: cppa_risk (1/8), cppa_admt (2/8), cppa_cyber (3/8), dpia (4/8), li_assessment (5/8), governance (6/8), ir_playbook (7/8).
+// Reconciled so far: cppa_risk (1/8), cppa_admt (2/8), cppa_cyber (3/8), dpia (4/8), li_assessment (5/8), governance (6/8), ir_playbook (7/8), biometric (8/8).
 const SAMPLE_ADVISORY_TOOLS = new Set<string>([
-  "dpa", "biometric",
+  "dpa",
 ]);
+
 
 Deno.test("contract-surface-audit / sample-report fixtures validate", () => {
   const failures: string[] = [];

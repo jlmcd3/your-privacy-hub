@@ -396,23 +396,22 @@ const F_BIO_US: SampleFixture = {
   variant: "us",
   title: "Fingerprint time-clocks across Illinois warehouses",
   scenario_summary:
-    "Busted Sled Solutions, Inc. uses vendor-hosted fingerprint time-clocks across its Illinois warehouses (~600 enrolled workers). The assessment covers BIPA §15(a)–(d) exposure, vendor template handling, written release wording, and the retention/destruction schedule.",
+    "Busted Sled Solutions, Inc. uses vendor-hosted fingerprint time-clocks across its Illinois warehouses (~600 enrolled workers). The assessment covers BIPA §15(a)–(d) exposure, vendor template handling, written release wording, and the retention/destruction schedule. Original intake narrative (preserved verbatim from prior free-text `orgType`/`purpose` fields before contract-enum normalization): orgType — 'logistics-technology company'. purpose — 'Time and attendance for warehouse shift workers across three Illinois facilities. Sector: Logistics. Vendor: Yes — fingerprint timeclock hardware and template storage provided by a US-based vendor bound by a written BIPA-compliant DPA that prohibits secondary use, sale, or lease of templates and requires deletion on request. Existing consent: Standalone written BIPA release signed by each enrolled worker before enrollment, separate from the employment agreement, referencing specific purpose (time and attendance), retention (3 years after last interaction or separation, whichever first), and destruction schedule. Published BIPA policy on the company intranet and worker handbook. Retention policy: Formally documented and published — templates destroyed when the initial purpose is satisfied or within 3 years of the individual\u2019s last interaction, whichever occurs first, with automated deletion job and quarterly attestation.'",
   source_table: "biometric_assessments",
   result_url_pattern: "/biometric-checker/result/{id}",
   fixture: {
     invoke_body_extras: {
       orgName: "Busted Sled Solutions, Inc.",
-      orgType: "logistics-technology company",
-      biometricTypes: ["fingerprint"],
-      purpose:
-        "Time and attendance for warehouse shift workers across three Illinois facilities. Sector: Logistics. Vendor: Yes — fingerprint timeclock hardware and template storage provided by a US-based vendor bound by a written BIPA-compliant DPA that prohibits secondary use, sale, or lease of templates and requires deletion on request. Existing consent: Standalone written BIPA release signed by each enrolled worker before enrollment, separate from the employment agreement, referencing specific purpose (time and attendance), retention (3 years after last interaction or separation, whichever first), and destruction schedule. Published BIPA policy on the company intranet and worker handbook. Retention policy: Formally documented and published — templates destroyed when the initial purpose is satisfied or within 3 years of the individual's last interaction, whichever occurs first, with automated deletion job and quarterly attestation.",
+      orgType: "Employer (employee biometrics)",
+      biometricTypes: ["Fingerprint / palm print"],
+      purpose: "Time & attendance / workforce management",
       jurisdictions: ["Illinois, USA (BIPA)"],
-      is_free_tier: false,
     },
     invoke: { fn: "check-biometric-compliance", returns_id: true },
     poll: null,
   },
 };
+
 
 // --- 9. CPPA Risk / US ---------------------------------------------------
 const F_CPPA_RISK_US: SampleFixture = {
