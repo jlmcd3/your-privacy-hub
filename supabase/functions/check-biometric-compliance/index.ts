@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "post-c1-fix-2cd-biometric-suggested-owner-and-cites@2026-07-23T18:25:00Z";
+export const BUILD_STAMP = "bio-reg-w1-t2a-registry-wired@2026-07-24T01:30:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -22,6 +22,14 @@ import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+import {
+  selectApplicableRows,
+  resolveJurisdictions,
+  renderRegistryStatutesBlock,
+  renderRegistryUnresolvedBlock,
+  validateBiometricCitations,
+  BIOMETRIC_REGISTRY_VERSION,
+} from "../_shared/registry/biometric-select.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -1608,15 +1616,26 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     // them into the composed system alongside the registry-sourced facts.
     const biometricTestStates = computeBiometricTestStates(body as unknown as Record<string, unknown>);
     const biometricTestStatesBlock = renderBiometricTestStatesBlock(biometricTestStates);
+    // BIO-REG-W1 T2(a) — registry-bound composition. Applicable rows are
+    // computed from intake facts (jurisdictions + other_state_names +
+    // biometricTypes); the prompt authorises citations ONLY from these rows.
+    const registryIntake = {
+      jurisdictions: body.jurisdictions,
+      other_state_names: (body as any).other_state_names,
+      biometricTypes: body.biometricTypes,
+      generation_date: today,
+    };
+    const applicableRegistryRows = selectApplicableRows(registryIntake);
+    const resolvedJurisdictions = resolveJurisdictions(registryIntake);
+    const registryStatutesBlock = renderRegistryStatutesBlock(applicableRegistryRows);
+    const registryUnresolvedBlock = renderRegistryUnresolvedBlock(resolvedJurisdictions);
+    const registryComposeDirective = `REGISTRY COMPOSITION GATE (${BIOMETRIC_REGISTRY_VERSION}) — for Wave-1 jurisdictions (Illinois BIPA, Texas CUBI, Washington HB 1493, Colorado HB24-1130), compose every statutory citation strictly from the REGISTRY-BOUND STATUTES block using the exact statute_short + pinpoint pairs supplied there. Do NOT cite Wave-1 statute subsections that are not supplied. Do NOT quote statutory text verbatim unless the sentence appears inside a supplied verbatim_quote. For jurisdictions flagged in REGISTRY-UNRESOLVED JURISDICTIONS, emit the structured-unresolved shape (state the state is out of Wave-1 registry coverage, name the intake field that would resolve it, log an INFORMATION_NEEDED item). Non-Wave-1 jurisdictions (EU, UK, other US federal, etc.) continue under their existing prompt rules and are NOT gated by this block.`;
     const composedSystem: SystemBlock[] = buildSystemContent({
       toolModule: BIOMETRIC_TOOL_MODULE,
       variant: isStressRun ? "lean" : "full",
       currentDate: today,
       cache: true,
-      // FORK-R1 R4: facts (ICO figures, BIPA citations, CUBI map, FDBR, PRA-by-statute)
-      // come from the registry — never from inline prose. A one-line registry edit
-      // changes the biometric output on the next run.
-      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}`,
+      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}\n\n${registryStatutesBlock}\n\n${registryUnresolvedBlock}\n\n${registryComposeDirective}`,
     });
     // Pilot override: service-role callers can fully replace the system prompt to
     // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).
@@ -1907,7 +1926,21 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     for (const v of t234Violations) lintViolations.push(v);
     assessment_text = scrubVoiceLeaks(assessment_text);
 
-
+    // BIO-REG-W1 T2(a) — post-generation registry citation validator. Strips
+    // any Wave-1 statute citation whose (pinpoint) is not in the supplied
+    // registry rows; strips long verbatim-looking quotes that don't appear in
+    // a supplied verbatim_quote. Logged for observability.
+    const citationValidation = validateBiometricCitations(assessment_text, applicableRegistryRows);
+    if (citationValidation.strippedCitations.length > 0 || citationValidation.strippedQuotes.length > 0) {
+      console.warn("[biometric_citation_out_of_registry]", JSON.stringify({
+        assessment_id: body.assessment_id ?? null,
+        registry_version: citationValidation.registry_version,
+        stripped_citations: citationValidation.strippedCitations.slice(0, 40),
+        stripped_quotes: citationValidation.strippedQuotes.slice(0, 20),
+        supplied_row_ids: applicableRegistryRows.map((r) => r.id),
+      }));
+    }
+    assessment_text = citationValidation.clean;
 
     const report_data = {
       // bipa_risk field retired 2026-07-14
@@ -1917,7 +1950,17 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP },
+      registry_version: BIOMETRIC_REGISTRY_VERSION,
+      registry_applied: {
+        version: BIOMETRIC_REGISTRY_VERSION,
+        supplied_row_ids: applicableRegistryRows.map((r) => r.id),
+        resolved_jurisdictions: resolvedJurisdictions.registered.map((r) => r.jurisdiction_id),
+        named_but_unregistered: resolvedJurisdictions.namedButUnregistered,
+        other_us_state_selected_but_no_names: resolvedJurisdictions.otherUsStateSelectedButNoNames,
+        stripped_citations: citationValidation.strippedCitations,
+        stripped_quotes: citationValidation.strippedQuotes,
+      },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
     };
     try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster(body ?? {}); const _det = runFormatChecksGeneric(_prose, { intakeRoster: _roster }).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
 
