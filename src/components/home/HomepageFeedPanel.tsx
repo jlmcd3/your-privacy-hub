@@ -108,7 +108,7 @@ const HomepageArticleCard = ({
           <Star className="w-4 h-4 text-amber-500 fill-amber-400 flex-shrink-0 mt-0.5" />
           <span className="min-w-0">
             <span className="block text-[13px] font-semibold text-brand-navy leading-tight">
-              Get analysis personalized in your Monday brief
+              Get analysis personalized in your Weekly Intelligence Brief
             </span>
             <span className="block text-[11px] text-slate mt-0.5">
               <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your industry, your role, your interests &amp; jurisdictions
