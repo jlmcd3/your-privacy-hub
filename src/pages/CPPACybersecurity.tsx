@@ -45,8 +45,8 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 // RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
 // shared components (refine surface) don't import this page module. Re-export
 // kept for any external references to `@/pages/CPPACybersecurity`.
-export { MATURITY } from "./CPPACybersecurity.enums";
-import { MATURITY } from "./CPPACybersecurity.enums";
+export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
+import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
 
 type Control = { key: string; label: string; description: string; citation: string };
 
