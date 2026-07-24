@@ -1354,6 +1354,9 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     jurisdictions_analysed: body.jurisdictions,
     enforcement_precedents: [],
     generated_at: report_data.generated_at,
+    // BIO-REG-W1 T2(c) D2 FIX — surface registry_version on the stress-path
+    // response envelope for measurement parity with the LLM path.
+    registry_version: BIOMETRIC_REGISTRY_VERSION,
   }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
 
