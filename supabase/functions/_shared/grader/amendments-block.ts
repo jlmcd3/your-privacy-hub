@@ -101,6 +101,41 @@ const OTHER_POST_2024_AMENDMENTS_BLOCK = [
   "- Cal. Civ. Code § 1798.155(a) penalty pair — statutory base $2,500 / $7,500; CPI-adjusted 2025-2026 $2,663 / $7,988 (both presentations correct).",
 ].join("\n");
 
+// BIO-REG-W1 T2(c) D3 FIX — RULING-COLORADO-FP-1 made effective at grading
+// time. The Colorado Privacy Act pinpoints below were verified against the
+// enacted text (Colo. Rev. Stat.) during the POST-C1-FIX-2 turn and ruled
+// CORRECT product citations; they were then re-flagged as grader false
+// positives in the T2(c) evidence-gate batch (dd7bdde6 + ec0df4c1). Adding
+// them to the grader's verified-pinpoint context stops that FP class from
+// re-firing per batch instead of being re-ruled each batch. Pinpoints are
+// cross-referenced against _shared/registry/biometric-statute-registry.ts
+// rows `us_co_hb24_1130.*` (registry_version bio-reg-w1-2026-07-24), whose
+// pinpoint-in-verbatim-quote consistency is enforced by
+// tests/registry/biometric-statute-self-consistency.test.ts.
+const COLORADO_VERIFIED_PINPOINTS_BLOCK = [
+  "COLORADO PRIVACY ACT — VERIFIED PINPOINTS (RULING-COLORADO-FP-1; primary source: Colo. Rev. Stat. § 6-1-1301 et seq. as amended by HB24-1130):",
+  "- C.R.S. § 6-1-1303(5) defines \"consent\" as a clear, affirmative act — pre-checked boxes and inactivity do NOT constitute consent. Reports citing (5) for the consent-form standard track current statute.",
+  "- C.R.S. § 6-1-1303(24)(b) classifies biometric identifiers processed for the purpose of uniquely identifying an individual as sensitive data. Reports citing (24)(b) for the sensitive-data classification of biometrics track current statute.",
+  "- C.R.S. § 6-1-1308(7) requires affirmative opt-in consent before processing biometric sensitive data.",
+  "- C.R.S. § 6-1-1309 requires a data protection assessment for processing that presents a heightened risk of harm, including sensitive data.",
+  "- C.R.S. § 6-1-1311 vests exclusive enforcement authority in the Colorado Attorney General; NO private right of action.",
+  "- Grader guidance (BINDING): the pinpoint pairings above are CORRECT current Colorado law. Do NOT flag them as invented, misapplied, fabricated, unverified, or as citation defects under any dimension. Regrader classes `citation_misapplication`, `pinpoint_not_verified`, and neighbours firing against these pairings are RULING-COLORADO-FP-1 false positives and MUST be suppressed. Reports citing HB24-1130 as the enabling amendment for the § 6-1-1303(24)(b) biometric-sensitive-data classification are CORRECT.",
+].join("\n");
+
+// BIO-REG-W1 T2(c) D4 FIX — structured-unresolved calibration. Same pattern
+// as R-15C-2 (Risk fallback silence): the biometric tool's structured-
+// unresolved shape is DESIGNED OUTPUT for unregistered/unnamed states, not
+// evidence of an internal-reasoning-leak or a boilerplate deduction. Without
+// this calibration, the grader repeatedly (mis)fires `boilerplate_generic`
+// / `reasoning_leak` against valid unresolved sections (Ohio in the T2(c)
+// gate batch is the archetype).
+const STRUCTURED_UNRESOLVED_CALIBRATION_BLOCK = [
+  "STRUCTURED-UNRESOLVED SHAPE — DESIGNED OUTPUT (BIO-REG-W1 T2(c) D4; parallels R-15C-2):",
+  "- Where the intake names a US state that is NOT in the biometric tool's Wave-1 registry (currently: Illinois, Texas, Washington, Colorado) OR selects \"Other US state\" without populating other_state_names, the tool emits a compact structured block containing: states_to_confirm_reason, top_candidate_statutes (or top_candidate_hooks_for_<state>), next_step, and an information_needed_entry.",
+  "- This shape is the CORRECT ANSWER for out-of-registry / unnamed jurisdictions — it is NOT boilerplate, NOT scaffolding leaked into the report, NOT an internal-reasoning-leak, and NOT a generic template with the state name substituted in.",
+  "- Grader guidance (BINDING): do NOT flag the structured-unresolved shape as `boilerplate_generic`, `reasoning_leak`, `internal_reasoning_leak`, `template_leak`, `scaffolding_visible`, `generic_prose_fallback`, or any neighbouring class. The presence of the fields listed above with a state name in the section header (e.g. \"Other US State — Ohio (Unresolved: Not in Statute Registry)\") is the correct designed output. Score for whether the block correctly identifies the intake field the reader must populate — do NOT score for absence of statute-specific obligations, penalties, or enforcement posture, which are correctly deferred by design.",
+].join("\n");
+
 export function buildAmendmentsBlock(): string {
   return [
     "GRADER AMENDMENTS BLOCK — CURRENT LAW SNAPSHOT (C1-c; corpus-verified only; context supply, not a rubric change):",
@@ -115,6 +150,10 @@ export function buildAmendmentsBlock(): string {
     CLAY_POST_CUTOFF_BLOCK,
     "",
     OTHER_POST_2024_AMENDMENTS_BLOCK,
+    "",
+    COLORADO_VERIFIED_PINPOINTS_BLOCK,
+    "",
+    STRUCTURED_UNRESOLVED_CALIBRATION_BLOCK,
   ].join("\n");
 }
 
