@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "bio-reg-w1-t2c-fixes-wa-branch+stamp+co-verified+unresolved-calibration@2026-07-24T02:30:00Z";
+export const BUILD_STAMP = "bio-reg-w1-s1-registry-derived-whitelist+envelope-registry-version@2026-07-24T03:15:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1313,10 +1313,12 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     annotations: [],
     lint_warnings: [],
     generated_at: new Date().toISOString(),
-    // BIO-REG-W1 T2(c) D2 FIX — persist registry_version on the report
-    // envelope (surface stamp). Was 0/6 in the T2(c) gate batch.
+    // BIO-REG-W1 T2(c) D2 FIX + S1 — persist registry_version at BOTH the
+    // report top-level AND under report_data.envelope per original spec.
     registry_version: BIOMETRIC_REGISTRY_VERSION,
+    envelope: { registry_version: BIOMETRIC_REGISTRY_VERSION },
     _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
+
   };
 
   let savedId: string | null = null;
@@ -2000,6 +2002,8 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
       registry_version: BIOMETRIC_REGISTRY_VERSION,
+      // S1 — envelope.registry_version per original T2(c) D2 spec.
+      envelope: { registry_version: BIOMETRIC_REGISTRY_VERSION },
       registry_applied: {
         version: BIOMETRIC_REGISTRY_VERSION,
         supplied_row_ids: applicableRegistryRows.map((r) => r.id),
@@ -2011,6 +2015,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       },
       _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
     };
+
     try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster(body ?? {}); const _det = runFormatChecksGeneric(_prose, { intakeRoster: _roster }).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
 
 
