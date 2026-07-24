@@ -170,7 +170,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7200",
     subsection: "11 CCR § 7200(a)",
     verbatim_quote:
-      "This Article applies to a business's use of automated decisionmaking technology (ADMT) for a significant decision concerning a consumer.",
+      "A business that uses ADMT to make a significant decision concerning a consumer must comply with the requirements of this Article.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -181,7 +181,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7200",
     subsection: "11 CCR § 7200(b)",
     verbatim_quote:
-      "A business must comply with the requirements of this Article by January 1, 2027, for its existing uses of automated decisionmaking technology.",
+      "A business that uses ADMT for a significant decision prior to January 1, 2027, must be in compliance with the requirements of this Article no later than January 1, 2027. A business that uses ADMT on or after January 1, 2027, must be in compliance with the requirements of this Article any time it is using ADMT for a significant decision.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
