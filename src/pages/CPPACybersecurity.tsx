@@ -94,10 +94,24 @@ export default function CPPACybersecurity() {
   const { meter } = useRunMeter("cppa_cybersecurity", refine.assessmentId);
   const [maturity, setMaturity] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [profile, setProfile] = useState({ entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "" });
+  const [evidence, setEvidence] = useState<Record<string, string[]>>({});
+  const [profile, setProfile] = useState({
+    entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "",
+    in_scope_frameworks: [] as string[], audit_scope_rationale: "",
+  });
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
+  const toggleEvidence = (k: string, opt: string) =>
+    setEvidence((s) => {
+      const cur = s[k] || [];
+      return { ...s, [k]: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
+    });
+  const toggleInScopeFramework = (opt: string) =>
+    setProfile((p) => {
+      const cur = p.in_scope_frameworks || [];
+      return { ...p, in_scope_frameworks: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
+    });
 
   const [activeCyberRailKey, setActiveCyberRailKey] = useState<string | null>(null);
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
