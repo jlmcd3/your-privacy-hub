@@ -2319,10 +2319,6 @@ async function runPipeline(assessment_id: string) {
         }
         return stamped;
       };
-            vaMetrics.va_information_needed_added++;
-          }
-        }
-      };
       const walkBucket = (arr: any): void => {
         if (!Array.isArray(arr)) return;
         vaMetrics.buckets_scanned++;
