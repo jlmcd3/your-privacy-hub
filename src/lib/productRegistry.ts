@@ -282,7 +282,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     name: "Privacy Intelligence Report",
     route: "/get-intelligence",
     shortPitch:
-      "Weekly Monday brief — what changed in privacy regulation, personalized to your jurisdictions and topics.",
+      "Weekly Intelligence Brief — what changed in privacy regulation, personalized to your jurisdictions and topics. Arrives every Monday.",
     tierIncluded: true,
     priority: 15,
     triggers: [
