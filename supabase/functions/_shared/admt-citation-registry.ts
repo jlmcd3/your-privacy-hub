@@ -236,15 +236,26 @@ export function normalizeIntake(intake: any): NormalizedIntake {
 
 function entry(id: CitationId) { return CITATION_REGISTRY[id]; }
 function pack(ids: CitationId[], assumptionFlag: string | null = null): ResolverResult {
-  // de-dup, preserve order
+  // de-dup by CitationId, preserve order
   const seen = new Set<CitationId>();
   const ordered = ids.filter((i) => (seen.has(i) ? false : (seen.add(i), true)));
-  return {
-    citationIds: ordered,
-    sections: ordered.map((i) => entry(i).section),
-    evidence: ordered.map((i) => entry(i).snippet),
-    assumptionFlag,
-  };
+  // W9-ADMT-WIRE-P1 defect #2 — dedupe by canonical section string as well.
+  // Two distinct CitationIds can resolve to the same rendered section
+  // (e.g. two rows pointing at "11 CCR § 7001(e)"), which produced
+  // "11 CCR § 7001(e) + 11 CCR § 7001(e)" when joined at emit time.
+  const seenSection = new Set<string>();
+  const sections: string[] = [];
+  const evidence: string[] = [];
+  const dedupedIds: CitationId[] = [];
+  for (const i of ordered) {
+    const sec = entry(i).section;
+    if (seenSection.has(sec)) continue;
+    seenSection.add(sec);
+    sections.push(sec);
+    evidence.push(entry(i).snippet);
+    dedupedIds.push(i);
+  }
+  return { citationIds: dedupedIds, sections, evidence, assumptionFlag };
 }
 
 export function resolveCitations(elementId: ElementId, raw: any): ResolverResult {
@@ -421,10 +432,16 @@ export function validateReport(report: any, _intake: any): ValidatorIssue[] {
 export function stripModelCitations(text: unknown): string {
   if (typeof text !== "string") return "";
   let out = text;
-  // Remove "11 CCR § 7XXX..." spans, "§ 7XXX..." spans, "§ 3426..." spans.
-  out = out.replace(/\b11\s*CCR\s*§+\s*7\d{3}[A-Za-z0-9()\-–.,\s]*?(?=[.;,)\]\s]|$)/g, "the cited provision");
-  out = out.replace(/§+\s*7\d{3}[A-Za-z0-9()\-–.,]*/g, "the cited provision");
+  // W9-ADMT-WIRE-P1 defect #1 — swallow the ENTIRE citation token, including
+  // every trailing "(x)" / "(x)(y)" / "(x)(y)(z)" subsection chain. The
+  // prior lazy match stopped at the first ")" and left "(3)", ")(4)" or a
+  // dangling ")" behind.
+  const SUBS = String.raw`(?:\s*\([A-Za-z0-9]+\))*`;
+  out = out.replace(new RegExp(String.raw`\b11\s*CCR\s*§+\s*7\d{3}` + SUBS, "g"), "the cited provision");
+  out = out.replace(new RegExp(String.raw`§+\s*7\d{3}` + SUBS, "g"), "the cited provision");
   out = out.replace(/§+\s*3426\.1\([a-z]\)/gi, "Cal. Civ. Code § 3426.1(d)"); // preserve legit trade-secret reference
+  // Clean up any orphan ")(x)" fragments left by upstream mangling before this fix shipped.
+  out = out.replace(/\bthe\s+cited\s+provision\s*\)?(?:\s*\([A-Za-z0-9]+\))+/g, "the cited provision");
   // Collapse double spaces.
   out = out.replace(/\s{2,}/g, " ").trim();
   return out;

@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w9-admt-wire@2026-07-24T08:42:00Z";
+export const BUILD_STAMP = "w9-admt-wire-p1@2026-07-24T09:32:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
@@ -1843,6 +1843,10 @@ Return this JSON structure exactly:
       va_stamps_unresolved: 0,
       top3_padded: 0,
       top3_final_len: 0,
+      // W9-ADMT-WIRE-P1 telemetry
+      p1_anchor_dedupes: 0,        // defect #2: "X + X" collapsed to "X"
+      p1_7150_depth_downgrades: 0, // defect #3a: § 7150(b)(N) below registry granularity → § 7150
+      p1_7001_sole_anchor_fallbacks: 0, // defect #3b: § 7001-only anchor on action-duty finding → neutral fallback
     };
     try {
       const stampArr = (arr: any): void => {
@@ -1864,6 +1868,78 @@ Return this JSON structure exactly:
       };
       for (const bucket of ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"]) {
         stampArr((report as any)[bucket]);
+      }
+
+      // ── W9-ADMT-WIRE-P1 — post-stamp anchor hygiene (defects #2 + #3) ──
+      // Runs after both the L0 resolveInto pass and the L1 VA stamp pass so
+      // it sees every finding's final citation string regardless of source.
+      // Non-fatal: on any error we log and continue with the original citation.
+      const SUBCH_FALLBACK = "the applicable ADMT-subchapter provision";
+      // Set of every subsection/section string the L1 verified registry
+      // affirmatively supports. Anything deeper than this is not "verified".
+      const VA_VERIFIED_SUBSECTIONS: Set<string> = new Set(
+        Object.values(ADMT_VERIFIED_AUTHORITIES).map((r: any) => String(r.subsection || "")),
+      );
+      const ACTION_DUTY_BUCKETS = new Set(["notice_gaps", "opt_out_gaps", "access_gaps"]);
+      const splitAnchors = (s: string): string[] =>
+        s.split(/\s*\+\s*/).map((x) => x.trim()).filter(Boolean);
+      const isSection7001 = (a: string) => /^11\s*CCR\s*§\s*7001(\b|\()/.test(a);
+      const isSection7150Deep = (a: string) => /^11\s*CCR\s*§\s*7150\s*\(/.test(a);
+      const dedupeAnchors = (s: string): { out: string; changed: boolean } => {
+        const parts = splitAnchors(s);
+        if (parts.length <= 1) return { out: s, changed: false };
+        const seen = new Set<string>();
+        const kept = parts.filter((p) => (seen.has(p) ? false : (seen.add(p), true)));
+        const out = kept.join(" + ");
+        return { out, changed: out !== s };
+      };
+      const walkAnchorGuard = (bucket: string, arr: any): void => {
+        if (!Array.isArray(arr)) return;
+        for (const it of arr) {
+          if (!it || typeof it !== "object") continue;
+          let c = typeof it.citation === "string" ? it.citation : "";
+          if (!c) continue;
+          // (a) dedupe identical anchors joined by " + " (defect #2)
+          const dd = dedupeAnchors(c);
+          if (dd.changed) { c = dd.out; w9Metrics.p1_anchor_dedupes++; }
+          // (b) § 7150 subsection depth guard (defect #3a) — any § 7150(x)(y)
+          //     pinpoint whose exact string is NOT in the L1 verified registry
+          //     downgrades to section-level "11 CCR § 7150".
+          {
+            const parts = splitAnchors(c);
+            let changed = false;
+            const next = parts.map((p) => {
+              if (isSection7150Deep(p) && !VA_VERIFIED_SUBSECTIONS.has(p)) {
+                changed = true;
+                return "11 CCR § 7150";
+              }
+              return p;
+            });
+            if (changed) {
+              const seen = new Set<string>();
+              const kept = next.filter((p) => (seen.has(p) ? false : (seen.add(p), true)));
+              c = kept.join(" + ");
+              w9Metrics.p1_7150_depth_downgrades++;
+            }
+          }
+          // (c) § 7001 sole-anchor guard (defect #3b) — on action-duty buckets
+          //     (notice/opt-out/access), a citation composed only of § 7001
+          //     pinpoints is a definition standing in for an operative anchor.
+          //     Replace with the neutral subchapter fallback; § 7001 companion
+          //     citations remain permitted when at least one non-§7001 anchor
+          //     is present alongside them.
+          if (ACTION_DUTY_BUCKETS.has(bucket)) {
+            const parts = splitAnchors(c);
+            if (parts.length > 0 && parts.every(isSection7001)) {
+              c = SUBCH_FALLBACK;
+              w9Metrics.p1_7001_sole_anchor_fallbacks++;
+            }
+          }
+          it.citation = c;
+        }
+      };
+      for (const bucket of ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"]) {
+        walkAnchorGuard(bucket, (report as any)[bucket]);
       }
 
       // ── S5 top_3_actions normalizer — exact-3 shape, no fabricated deadlines/citations
