@@ -724,16 +724,16 @@ SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST 
 
   // A-C — APPLICABILITY VERDICT SLOT (top-of-report). Post-generation reprojection
   // deterministically writes this from scope_analysis + intake using the VERIFIED-AUTHORITY
-  // REGISTRY. Emit as `null` if unsure; the reprojector fills the final value.
+  // REGISTRY. Emit as JSON null if unsure; the reprojector fills the final value.
   "applicability_verdict": null,
 
   // A-C — REGISTRY-SOURCED DEADLINE TABLE SLOT. Post-generation reprojection stamps
-  // this from ADMT_VERIFIED_AUTHORITIES; do not author rows yourself. Emit as `null`.
+  // this from ADMT_VERIFIED_AUTHORITIES; do not author rows yourself. Emit as JSON null.
   "deadline_table": null,
 
   // A-A + A-B — ADEQUACY FINDING SLOT (EDPB logic-disclosure + Art 22(3) three-element
   // human-intervention qualification). Post-generation reprojection deterministically
-  // writes this from intake + scope_analysis. Emit as `null`.
+  // writes this from intake + scope_analysis. Emit as JSON null.
   "adequacy_finding": null,
 
   "scope_analysis": {
