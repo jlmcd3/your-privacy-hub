@@ -12,7 +12,7 @@
 
 _None at this time._
 
-Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and shipped as `run-admt-checker` build stamped `w9-admt-preemit` (real deploy ~11:49Z; the in-code `@…T12:30:00Z` marker is future-dated — restamp at admt's next deploy per stamp-doctrine correction).
+Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and shipped as `run-admt-checker` build stamped `w9-admt-preemit` (real deploy ~11:49Z; future-dated `@…T12:30:00Z` marker was DISCHARGED at TURN C deploy 17:11:54Z with fresh-clock stamp `w12-admt-turnc@2026-07-24T17:10:43Z`).
 
 ## 2. Queue Order (as currently dispatched)
 
