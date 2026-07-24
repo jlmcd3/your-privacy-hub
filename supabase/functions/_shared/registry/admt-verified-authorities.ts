@@ -376,7 +376,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7222",
     subsection: "11 CCR § 7222(a)",
     verbatim_quote:
-      "A business that uses automated decisionmaking technology for a significant decision concerning a consumer must provide the consumer with the ability to access information about the business's use of the automated decisionmaking technology with respect to the consumer.",
+      "A business that uses ADMT to make a significant decision must provide a consumer with information about this use when responding to a consumer\u2019s request to access ADMT.",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -385,9 +385,9 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
   access_logic: R({
     proposition_key: "access_logic",
     citation: "11 CCR § 7222",
-    subsection: "11 CCR § 7222(b)(3)",
+    subsection: "11 CCR § 7222(b)(2)",
     verbatim_quote:
-      "In response to an access request, the business must provide a plain-language explanation of the logic used in the automated decisionmaking technology, including the key parameters that affected the output of the automated decisionmaking technology with respect to the consumer.",
+      "Information about the logic of the ADMT. Such information must enable a consumer to understand how the ADMT processed their personal information to generate an output with respect to them, which may include the parameters that generated the output as well as the specific output with respect to the consumer.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -396,9 +396,9 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
   access_outcome: R({
     proposition_key: "access_outcome",
     citation: "11 CCR § 7222",
-    subsection: "11 CCR § 7222(b)(4)",
+    subsection: "11 CCR § 7222(b)(3)",
     verbatim_quote:
-      "In response to an access request, the business must provide the output of the automated decisionmaking technology with respect to the consumer and a plain-language explanation of how the business used the output to make the decision.",
+      "The outcome of the decisionmaking process for the consumer, including how the business used the output of the ADMT to make a significant decision with respect to the consumer.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
