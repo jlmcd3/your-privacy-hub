@@ -909,23 +909,30 @@ async function runPipeline(assessment_id: string) {
       const banned = BANNED_PHRASES.filter((p) => flat.includes(p));
       const lint = lintReportText(flat, { banGapWord: true });
 
-      // T-1 — deterministic band-vs-threshold backstop for the § 7120(b)(2)(A)
-      // 250,000-consumer volume prong. Derived from the SAME normalised intake
-      // the prompt consumes (fiveStage.annual_consumer_volume).
+      // T-1 (WAVE12-FIX TURN D — D1) — deterministic band-vs-threshold
+      // backstop for the § 7120(b)(2)(A) 250,000-consumer volume prong.
       //
-      // Clean bands (aligned to the 250,000 breakpoint) resolve deterministically:
-      //   "Fewer than 100,000" / "100,000–249,999" — entirely BELOW 250,000 →
+      // Wave-12 defect (HIGH doc 9ce32381): T-1 read q2_consumers whose
+      // CONSUMER_OPTS bands already align to the 250k breakpoint (e.g.
+      // "100,000–249,999" resolves BELOW). The correct field for the CA
+      // 12-month count is `i3_ca_consumer_band`, whose CA_CONSUMER_BAND
+      // bands are coarser and DO straddle 250k. Reading q2 hid a straddle
+      // and let a definitive "not met" ship. Fix: read i3_ca_consumer_band
+      // and evaluate against its own band set.
+      //
+      // CA_CONSUMER_BAND resolution:
+      //   "Fewer than 10,000" / "10,000–100,000" — entirely BELOW 250,000 →
       //       definitive "met" claims are violations.
-      //   "250,000–1 million" / "1–10 million" / "Over 10 million" — entirely
-      //       AT OR ABOVE 250,000 → definitive "not met" claims are violations.
-      //
-      // Legacy straddling band "100,000–1 million" and "Unsure" cannot resolve
-      // the threshold — ANY definitive met/not-met claim (either direction) is
-      // a violation and the report must state indeterminate.
-      const volumeBand = String(fiveStage.annual_consumer_volume ?? "").trim();
-      const belowBands = new Set(["Fewer than 100,000", "100,000–249,999"]);
-      const aboveBands = new Set(["250,000–1 million", "1–10 million", "Over 10 million"]);
-      const straddleOrUnsure = volumeBand === "100,000–1 million" || volumeBand.toLowerCase() === "unsure";
+      //   "More than 1,000,000" — entirely ABOVE 250,000 → definitive
+      //       "not met" claims are violations.
+      //   "100,000–1,000,000" — STRADDLES 250,000 → any definitive
+      //       met/not-met claim is a violation; must resolve indeterminate.
+      //   "Unsure" — indeterminate; same rule as straddle.
+      const i3Band = String((rawIntake as Record<string, unknown>)?.i3_ca_consumer_band ?? "").trim();
+      const belowBands = new Set(["Fewer than 10,000", "10,000–100,000"]);
+      const aboveBands = new Set(["More than 1,000,000"]);
+      const straddleOrUnsure = i3Band === "100,000–1,000,000" || i3Band.toLowerCase() === "unsure";
+      const volumeBand = i3Band; // for telemetry parity below
 
       const metPatterns: RegExp[] = [
         /exceeds the 250,000/i,
