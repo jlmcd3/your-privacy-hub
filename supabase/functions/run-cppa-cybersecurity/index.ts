@@ -8,7 +8,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "w6-cyber-fix@2026-07-24T07:30:00Z";
+export const BUILD_STAMP = "w6-cyber-fix-v2@2026-07-24T09:00:00Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 
