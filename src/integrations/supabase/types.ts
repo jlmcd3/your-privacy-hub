@@ -4305,6 +4305,60 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_finding_backlog: {
+        Row: {
+          class: string
+          created_at: string
+          finding_check_id: string
+          first_seen_wave: number | null
+          grader_hash: string | null
+          id: string
+          intake_field: string | null
+          last_seen_wave: number | null
+          notes: string | null
+          occurrence_count: number
+          proposed_lever: string | null
+          registry_key: string | null
+          status: string
+          tool: string
+          updated_at: string
+        }
+        Insert: {
+          class?: string
+          created_at?: string
+          finding_check_id: string
+          first_seen_wave?: number | null
+          grader_hash?: string | null
+          id?: string
+          intake_field?: string | null
+          last_seen_wave?: number | null
+          notes?: string | null
+          occurrence_count?: number
+          proposed_lever?: string | null
+          registry_key?: string | null
+          status?: string
+          tool: string
+          updated_at?: string
+        }
+        Update: {
+          class?: string
+          created_at?: string
+          finding_check_id?: string
+          first_seen_wave?: number | null
+          grader_hash?: string | null
+          id?: string
+          intake_field?: string | null
+          last_seen_wave?: number | null
+          notes?: string | null
+          occurrence_count?: number
+          proposed_lever?: string | null
+          registry_key?: string | null
+          status?: string
+          tool?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quality_findings: {
         Row: {
           check_id: string
