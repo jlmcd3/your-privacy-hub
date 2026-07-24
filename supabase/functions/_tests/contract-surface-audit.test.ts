@@ -130,7 +130,7 @@ Deno.test("contract-surface-audit / pinned contract-scenario fixtures validate",
 // SAMPLE_ADVISORY_TOOLS to convert to fatal.
 const SAMPLE_ADVISORY_TOOLS = new Set<string>([
   "li_assessment", "dpia", "dpa", "governance", "ir_playbook",
-  "biometric", "cppa_risk", "cppa_cyber", "cppa_admt",
+  "biometric", "cppa_cyber", "cppa_admt",
 ]);
 
 Deno.test("contract-surface-audit / sample-report fixtures validate", () => {
