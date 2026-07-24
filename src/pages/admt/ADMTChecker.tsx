@@ -822,6 +822,36 @@ export default function ADMTChecker() {
                     />
                   </div>
 
+                  {/* TURN 2 — affected population band */}
+                  <div>
+                    <Label>Approximate California consumers subject to this ADMT (affected-population band) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">Used to size the risk exposure and the applicability verdict. Optional.</p>
+                    <div className="mt-2">
+                      <Pills
+                        options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
+                        value={affectedPopulationBand ? [affectedPopulationBand] : []}
+                        onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
+                        multi={false}
+                      />
+                    </div>
+                  </div>
+
+                  {/* TURN 2 — internal role roster */}
+                  <div>
+                    <Label>Internal roles with defined responsibilities for this ADMT (role roster) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">Select every role that already has a defined responsibility for this system.</p>
+                    <div className="mt-2">
+                      <Pills
+                        options={ADMT_ROLE_ROSTER_OPTS}
+                        value={roleRoster}
+                        onChange={setRoleRoster}
+                      />
+                    </div>
+                  </div>
+
+
+
+
 
 
                   <div>
