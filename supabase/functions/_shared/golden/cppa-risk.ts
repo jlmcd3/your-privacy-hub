@@ -38,6 +38,10 @@ const base = {
   i8_certifying_exec_name: "Jane Doe",
   i8_certifying_exec_title: "Chief Privacy Officer",
   i9_has_existing_dpia: "No",
+  // TURN 1b — new optional intake fields; base fixture uses safe defaults so
+  // no fixture accidentally engages § 7150(b)(5) unless it opts in.
+  public_privacy_policy_url: "https://meridian.example/privacy",
+  sensitive_location_basis: "Not applicable — no sensitive-location processing",
 };
 
 export const CPPA_RISK_GOLDEN: GoldenCase[] = [

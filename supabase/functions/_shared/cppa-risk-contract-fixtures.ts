@@ -104,6 +104,9 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
     q19_admt_description: "",
     q20_admt_opt_out: "",
     i1_processing_purpose: "AI-driven mental-health triage with mood-diary intake",
+    // TURN 1b — new intake fields.
+    public_privacy_policy_url: "https://meridian.example/privacy",
+    sensitive_location_basis: "Healthcare facility or medical office",
     impact_intake: {
       likelihood: "Possible",
       // severity intentionally omitted — shim defaults to "Moderate"
@@ -148,6 +151,9 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
     q19_admt_description: "Real-time credit scoring using behavioural signals",
     q20_admt_opt_out: "", // ask
     i1_processing_purpose: "Real-time credit scoring using behavioural signals",
+    // TURN 1b — new intake fields.
+    public_privacy_policy_url: "https://solstice.example/privacy",
+    sensitive_location_basis: "Not applicable — no sensitive-location processing",
     impact_intake: {
       likelihood: "Likely",
       severity: "Significant",
@@ -184,6 +190,9 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
     q19_admt_description: "Loyalty-tier personalization from purchase and location signals",
     q20_admt_opt_out: "Planned for implementation",
     i1_processing_purpose: "Loyalty-tier personalization from purchase and location signals",
+    // TURN 1b — new intake fields (retail store visits ≠ § 7150(b)(5) sensitive location).
+    public_privacy_policy_url: "https://aurora.example/privacy",
+    sensitive_location_basis: "Not applicable — no sensitive-location processing",
     impact_intake: {
       likelihood: "Possible",
       severity: "Moderate",

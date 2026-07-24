@@ -10,6 +10,7 @@ import {
   buildRiskRegister,
   validateSlots,
   attachAndValidateSlots,
+  computeIntakeSelectedSubsections,
 } from "../../../supabase/functions/run-cppa-risk-assessment/_w9_risk_slots";
 
 const GOLDEN_INTAKE = {
@@ -79,17 +80,50 @@ describe("W9-RISK-SLOTS golden presence", () => {
     expect(ss.compliance_deadline).toBe("December 31, 2027");
   });
 
-  it("risk_register fans adverse_effects one-row-per (activity × harm) with stable IDs", () => {
+  it("risk_register fans adverse_effects one-row-per (activity × harm) with stable IDs + pre/post scoring (TURN 1b)", () => {
     const rr = buildRiskRegister(GOLDEN_REPORT());
     expect(rr.entries).toHaveLength(3);
     expect(rr.entries.map((e) => e.id)).toEqual(["RR-001", "RR-002", "RR-003"]);
     expect(rr.entries[0].gap_status).toBe("open");
     expect(rr.entries[1].gap_status).toBe("mitigated");
     for (const e of rr.entries) {
-      for (const k of ["activity", "harm_type", "likelihood", "severity", "current_safeguards", "gap_status", "residual_risk_level", "statutory_basis"]) {
+      for (const k of ["activity", "harm_type", "likelihood", "severity", "pre_safeguard_likelihood", "pre_safeguard_severity", "pre_safeguard_residual_risk_level", "current_safeguards", "gap_status", "residual_risk_level", "statutory_basis"]) {
         expect(e).toHaveProperty(k);
       }
     }
+    // CNIL bump-up: RR-002 has safeguards + no gaps → pre severity bumps
+    // Moderate → Significant, pre likelihood bumps Possible → Likely.
+    expect(rr.entries[1].pre_safeguard_likelihood).toBe("Likely");
+    expect(rr.entries[1].pre_safeguard_severity).toBe("Significant");
+    // RR-001 has an open gap (safeguard_gaps non-empty) → pre == post.
+    expect(rr.entries[0].pre_safeguard_likelihood).toBe(rr.entries[0].likelihood);
+    expect(rr.entries[0].pre_safeguard_severity).toBe(rr.entries[0].severity);
+  });
+
+  it("computeIntakeSelectedSubsections resolves § 7150(b)(N) triggers deterministically (TURN 1b)", () => {
+    // (b)(1) sell/share, (b)(4) profiling, (b)(3) ADMT, (b)(5) sensitive location, (b)(6) training.
+    const intake = {
+      q5_sell_share: "Both",
+      q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
+      q18_admt_use: "Yes",
+      q15_sensitive_pi: "No",
+      sensitive_location_basis: "Healthcare facility or medical office",
+      q18b_admt_training: "Yes",
+    };
+    const subs = computeIntakeSelectedSubsections(intake);
+    expect(subs).toEqual([
+      "§ 7150(b)(1)",
+      "§ 7150(b)(4)",
+      "§ 7150(b)(3)",
+      "§ 7150(b)(5)",
+      "§ 7150(b)(6)",
+    ]);
+    // "Not applicable" enum member must NOT engage (b)(5).
+    const subs2 = computeIntakeSelectedSubsections({
+      ...intake,
+      sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    });
+    expect(subs2).not.toContain("§ 7150(b)(5)");
   });
 
   it("attachAndValidateSlots emits all three keys and validation is clean", () => {
