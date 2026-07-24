@@ -8,7 +8,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "r-turn-2-cppa-product-fixes@2026-07-23T22:00:00Z";
+export const BUILD_STAMP = "c2-1-fsor-anchored-rules@2026-07-24T00:30:00Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
@@ -22,6 +22,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { buildFsorAnchorBlock, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
@@ -384,11 +385,17 @@ async function runAssessment(assessment_id: string): Promise<void> {
     // R1b2 — compute deterministic TEST-STATES and inject them into the system content.
     const cyberTestStates = computeCyberTestStates((row.intake_data as Record<string, any>) ?? {});
     const cyberTestStatesBlock = renderCyberTestStatesBlock(cyberTestStates);
+    // C2-1 — FSOR agency-position anchor beneath the zero-trust deletion note.
+    // Warn-and-ship-unanchored when no matching row exists.
+    const cyberFsorAnchorBlock = await buildFsorAnchorBlock(supabase, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS);
+    const cyberInjected = cyberFsorAnchorBlock
+      ? `${cyberTestStatesBlock}\n\n${cyberFsorAnchorBlock}`
+      : cyberTestStatesBlock;
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
       currentDate: today,
       cache: true,
-      injected: cyberTestStatesBlock,
+      injected: cyberInjected,
     });
 
     const enforcementBlock = enforcementContext
