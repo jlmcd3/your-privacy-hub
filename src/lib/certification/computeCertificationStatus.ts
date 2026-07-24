@@ -106,9 +106,8 @@ export function computeToolCertification(
     } else if (hash && hash === streakHash) {
       streak += 1;
     } else {
-      // Instrument changed → window resets, this wave starts a new streak.
-      streakHash = hash;
-      streak = 1;
+      // Instrument hash changed → certification window closed at the top.
+      break;
     }
   }
 
