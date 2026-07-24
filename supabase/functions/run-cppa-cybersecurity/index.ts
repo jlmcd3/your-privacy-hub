@@ -8,12 +8,51 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "w12-cyber-turne@2026-07-24T17:32:35Z";
+// W15 CYBER-REGISTRY-WIRING (2026-07-24) — corpus-live cyber verified-authority
+// registry (cyber-va-w1) wired at emit time; deterministic post-generation
+// stamping of citation_bearing surfaces from proposition_key; § 7122(g)
+// retention re-anchor guard supersedes § 7123(e) mis-anchor (wave-15 HIGH).
+export const BUILD_STAMP = "w15-cyber-regwire@2026-07-24T23:05:14Z";
+console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 import { attachCyberAggregates, W10_CYBER_AGG_STAMP } from "./_w10_cyber_aggregates.ts";
 import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
+// W15 CYBER-REGISTRY-WIRING — L1 verified-authority resolver + cyber registry
+// (mirrors W15 RISK-REGISTRY-WIRING pattern in run-cppa-risk-assessment).
+import {
+  CYBER_VERIFIED_AUTHORITIES,
+  CYBER_VERIFIED_AUTHORITY_VERSION,
+} from "../_shared/registry/cyber-verified-authorities.ts";
+import {
+  resolveByPropositionKey,
+  registrySize as vaRegistrySize,
+} from "../_shared/verified-authority-resolver.ts";
+
+function buildCyberVerifiedAuthorityBlock(): string {
+  const rows = Object.values(CYBER_VERIFIED_AUTHORITIES);
+  const lines = rows.map((r) =>
+    `- [${r.proposition_key}] ${r.subsection} — "${r.verbatim_quote.replace(/\s+/g, " ").slice(0, 260)}"`
+  );
+  return `VERIFIED-AUTHORITY REGISTRY (${CYBER_VERIFIED_AUTHORITY_VERSION}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR CPPA-CYBER CITATIONS; wired W15 CYBER-REGISTRY-WIRING):
+Every citation this report emits SHOULD be REGISTRY-STAMPED, never authored from recall. When a finding, control, top-risk, next-step, remediation, or crosswalk surface asserts a proposition covered by a row below, emit "proposition_key": "<key>" on that entry. The resolver deterministically stamps citation, subsection, and verbatim_quote onto the entry post-generation; you write the prose around the stamped pinpoint and NEVER type a "§" or "11 CCR" token yourself for a registry-covered proposition.
+
+RETENTION-ANCHOR RULE (WAVE-15 REMEDY): The FIVE-YEAR audit-record retention rule anchors to 11 CCR § 7122(g) (proposition_key "cyber_retention_5yr"), NEVER § 7123(e). Any retention claim that would otherwise cite § 7123(e) must carry proposition_key "cyber_retention_5yr" and be resolved to § 7122(g). This complements the existing § 7122(g) SCOPE NOTE rule.
+
+If no row covers a proposition, omit proposition_key and rely on the existing corpus-grounded prose; unresolvable pinpoints are counted in telemetry (report._meta.internal.cyber_va) and never fabricated. Per-component § 7123(c)(N) citations continue to flow from CONTROL_CITATIONS (deterministic map); the registry supplements procedural/cross-cutting citations (§§ 7120-7122, 7123 chapeau/(d)/(e), § 7124, and CCPA cross-refs).
+
+Row shape shown as "[proposition_key] pinpoint — verbatim quote":
+${lines.join("\n")}
+`;
+}
+const CYBER_VERIFIED_AUTHORITY_BLOCK = buildCyberVerifiedAuthorityBlock();
+console.log(JSON.stringify({
+  evt: "cyber_va_registry_loaded", fn: "run-cppa-cybersecurity",
+  build_stamp: BUILD_STAMP,
+  va_version: CYBER_VERIFIED_AUTHORITY_VERSION,
+  va_rows: vaRegistrySize(CYBER_VERIFIED_AUTHORITIES),
+}));
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
