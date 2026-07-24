@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w9-admt-turn2@2026-07-24T10:19:30Z";
+export const BUILD_STAMP = "w9-admt-preemit@2026-07-24T12:30:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // TURN 2 — deterministic slots (applicability_verdict, deadline_table, adequacy_finding).
@@ -18,6 +18,9 @@ import {
 } from "./_w9_admt_slots.ts";
 console.log(`[run-admt-checker] boot admt_slots_stamp=${W9_ADMT_SLOTS_STAMP}`);
 import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
+// ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
+import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
+console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
 import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-contract.ts";
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
@@ -2115,7 +2118,26 @@ Return this JSON structure exactly:
     // TURN 2 — prompt_version lockstep bump.
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-turn2@2026-07-24"), build_stamp: BUILD_STAMP };
 
+    // ── ADMT-FIX-W9 — PRE-EMIT DETERMINISTIC GATES.
+    // Runs BEFORE the attached-deterministic pass so the grader-visible prose
+    // reflects post-gate content and residual defects attribute to the model
+    // (not to stale pre-scrub text). Mutates in place; counters attach under
+    // _w9_admt_pre_emit and stream to logs for wave-level attribution.
+    try {
+      const preEmit = applyW9AdmtPreEmitGates(report);
+      (report as any)._w9_admt_pre_emit = preEmit;
+      console.log(JSON.stringify({
+        evt: "_w9_admt_pre_emit",
+        fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        ...preEmit,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W9-ADMT-PRE-EMIT failed (non-fatal):", (e as Error)?.message);
+    }
+
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,
