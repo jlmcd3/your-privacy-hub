@@ -164,9 +164,25 @@ Deno.serve(async (req) => {
     const aggregates = Array.from(bucket.values());
 
     // ---- Upsert into backlog ----
+    // Pre-fetch existing backlog rows to preserve operator-set status/notes
+    // when the classification rule doesn't specify them (rule-supplied
+    // metadata always wins; absent rule metadata falls back to whatever
+    // the row currently holds; brand-new rows use the column defaults).
+    const { data: existingRows, error: existingErr } = await supabase
+      .from("quality_finding_backlog")
+      .select("finding_check_id,tool,status,notes");
+    if (existingErr) throw new Error(`select quality_finding_backlog: ${existingErr.message}`);
+    const existingByKey = new Map<string, { status: string | null; notes: string | null }>();
+    for (const r of existingRows ?? []) {
+      existingByKey.set(`${r.finding_check_id}::${r.tool}`, { status: r.status, notes: r.notes });
+    }
+
     const upserts = aggregates.map((a) => {
       const rule = classify(a.check_id);
-      const row: Record<string, unknown> = {
+      const prev = existingByKey.get(`${a.check_id}::${a.tool}`);
+      const status = rule.status ?? prev?.status ?? "open";
+      const notes = rule.notes ?? prev?.notes ?? null;
+      return {
         finding_check_id: a.check_id,
         tool: a.tool,
         first_seen_wave: a.first_seen_wave,
@@ -175,13 +191,9 @@ Deno.serve(async (req) => {
         class: rule.class,
         proposed_lever: rule.lever,
         grader_hash: a.grader_hash,
+        status,
+        notes,
       };
-      // Only set status/notes when the rule specifies them, so operator
-      // edits on rows without rule-supplied metadata are preserved on
-      // conflict (absent keys aren't in EXCLUDED and won't overwrite).
-      if (rule.status) row.status = rule.status;
-      if (rule.notes) row.notes = rule.notes;
-      return row;
     });
 
     let written = 0;
