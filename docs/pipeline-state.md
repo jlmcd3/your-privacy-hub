@@ -41,23 +41,18 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
-- **Turn:** `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a + B1b)
-- **Real-time:** 2026-07-24T12:39:11Z (sandbox `date -u`)
-- **Scope:**
-  - **B1a (field cross-attribution):** new `_w10_risk_b1.ts` — `applyW10RiskB1(report, intake)` flattens the intake tree, extracts every quoted string from each `inconsistency_flags` entry's prose (`description` / `explanation` / `resolution_required` / `detail` / `narrative`), and validates the quoted value against the referenced intake keys (`intake_field_1` / `intake_field_2` / `source_field_a/b` / `source_fields` / `field_key`) using normalised equality-or-substring match. If a quoted value fails validation, the module locates the intake field that actually contains it and extends `source_fields` (with a `_w10_rekeyed` provenance breadcrumb) instead of silently overwriting the model's anchor; if no intake field contains the quote, the flag is **dropped**.
-  - **B1b (overclaiming from intake):** same module scans `risk_register`, `executive_summary`, and `risk_assessment_by_activity` narrative surfaces for sentences matching `X (confirmed | is/are performed | is/are conducted | is/are established)` that also name an intake field id (`[iq]\d+[a-z]?_…`, `sensitive_location_basis`, `public_privacy_policy_url`, `impact_intake`, `content_detail.*`). If the subject's ≥4-char tokens are absent from every named field's actual content, the assertion is **downgraded** to conditional phrasing ("is not confirmed by the record and requires verification"). Never weakens a check or rubric — repairs the generator.
-  - **Wiring:** `run-cppa-risk-assessment/index.ts` — new import + call immediately after W9 slots and before the `_meta` stamp. Fail-open; telemetry lands on `report._w10_risk_b1 = { stamp, flags_scanned, flags_rekeyed, flags_dropped, claims_scanned, claims_downgraded, claims_removed }`. `_meta.prompt_version` bumped to `w10-risk-b1@2026-07-24`.
-- **BUILD_STAMP:** bumped `w9-risk-slots-p1@2026-07-24T09:58:12Z` → `w10-risk-b1@2026-07-24T12:38:00Z` (fresh `date -u` read this turn). Boot log emits it on next invocation.
-- **Tests (green):** 35 pass / 0 fail across `_tests/cppa-risk.test.ts` + `run-cppa-risk-assessment/*.test.ts` (6 new B1 pins + 29 existing risk pins). Pins added:
-  - `B1a: fcbcc203 mirror — flag attributes q5b value to sensitive_location_basis → re-keyed` (extends `source_fields` with `q5b_profiling_observation`).
-  - `B1a: quoted value nowhere in intake → flag DROPPED` (zero survivors).
-  - `B1a: quoted value actually matches the referenced field → flag kept unchanged` (no false positives).
-  - `B1b: 1b32c6a9 mirror — "profiling/inference generation confirmed" unsupported by i1_processing_purpose → downgraded` (harm text loses the categorical "confirmed").
-  - `B1b: supported claim (subject token present in named field) → kept` (no false positives).
-  - `W10-RISK-B1 stamp present`.
-- **Preexisting failures (NOT introduced by this turn):** `_tests/rebuild-dpia-cpparisk.test.ts` — 2 failures on `REBUILD-DPIA T10a` "M6 cohort → audit-cohort" scrub; test targets a `postScrubCleanup` behaviour independent of B1 surfaces. Logged for a separate DPIA-scrub turn; does not gate TURN B.
-- **RETRO-AUDIT (rides this turn):** swept `run-cppa-risk-assessment` for narrative surfaces that quote/attribute intake fields without provenance validation. In-scope surfaces wired through B1a/B1b: `inconsistency_flags[*]`, `risk_register.entries[*]` (all string fields), `executive_summary`, `risk_assessment_by_activity`. Out-of-scope for this turn (no evidence of attribution-error class in batch 5e0558f3 samples; queued as follow-up if a later batch reads flag them): `safeguard_gaps[*]`, `priority_actions[*].rationale`, `exception_analysis[*]`, `benefits_outweigh_risks_rationale`. `strengthen_items` is mechanically derived from `intake_data.assertions` and already provenance-safe by construction.
-- **Deploy:** `run-cppa-risk-assessment` deployed 2026-07-24T12:39Z via `supabase--deploy_edge_functions` (single-function deploy; no other function affected). Wave 11 will measure B1 fixes on first re-read.
+- **Turn:** `SAMPLES-CONTRACT-dpia` (4/8)
+- **Real-time:** 2026-07-24T12:48:04Z (sandbox `date -u`)
+- **Scope (frontend/test only, no edge deploy):**
+  - Reconciled `F_DPIA_EU` in `src/lib/sampleFixtures.ts` against `_shared/intake-contracts/dpia-framework.ts`. `F_DPIA_EU_SUPP` inherits via `withSupplemental` and clears in the same edit.
+  - Removed unknown top-level keys `automated_decisions` and `sector`; folded their content into contract-supported narrative surfaces (`dp_by_design_measures`, `nature_scope_context`) and the new `controller_sector` slot to preserve showcase quality without dropping the drone-blurring narrative.
+  - `data_categories` reduced to the DPIA_DATA_CATS enum (`"Location data"`, `"Other"`); descriptive parentheticals moved into `nature_scope_context`.
+  - `existing_safeguards` normalised to DPIA_SAFEGUARDS enum members (`"Data minimisation"`, `"Anonymisation"`, `"Access controls"`, `"DPA signed with processor"`); operational specifics (flight-planning, human-QA, lifecycle policy) preserved verbatim in `dp_by_design_measures`.
+  - `legal_basis_proposed` collapsed to the DPIA_LEGAL_BASES enum literal `"Legitimate interest (Art. 6(1)(f))"`; rationale text moved into `necessity_proportionality` (already present) and `nature_scope_context`.
+  - Added `controller_country: "Germany"` to feed the jurisdiction-resolver Main Establishment path.
+  - Flipped `dpia` out of `SAMPLE_ADVISORY_TOOLS` in `_tests/contract-surface-audit.test.ts` → `dpia` sample-fixture drift is now **FATAL** tier. Counter comment updated to `dpia (4/8)`.
+- **Tests (green):** `_tests/contract-surface-audit.test.ts` — 3 pass / 0 fail. `dpia:eu` and `dpia:eu-supplemental` no longer appear in the ADVISORY drift list; remaining advisory drift is confined to the still-queued tools (`li_assessment`, `governance`, `ir_playbook`, `biometric`, `dpa`).
+- **Deploy:** none this turn (no edge-function or backend code changed).
 
 ## 5. Sample-Report Register
 
