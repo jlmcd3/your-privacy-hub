@@ -45,7 +45,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
 
   const FEATURES = useMemo(
     () => [
-      { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
+      { icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />, label: "Monday Privacy Intelligence Report", desc: "Free weekly headline digest, filtered to your regions and topics. Sent Monday." },
       {
         icon: <BarChart3 aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
         label: "Comparison Tools",

@@ -26,10 +26,10 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
             <h3 className="text-white mb-1">
-              Free: your personalized weekly digest, every Monday
+              Free: the Monday Privacy Intelligence Report
             </h3>
             <p className="text-sm text-brand-mist">
-              Create a free account to get filtered regulatory developments every Monday — plus minimal enrichment views on articles. Always free.
+              Create a free account to receive the Monday Report — a filtered headline digest of the past week's regulatory activity for the regions and topics you choose. Sent every Monday. Always free. (Different, shorter product than the subscriber Weekly Brief.)
             </p>
           </div>
           <div className="flex flex-col items-center md:items-end gap-1.5 w-full md:w-auto">
@@ -58,10 +58,10 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
   return (
     <div className={`bg-card border border-border rounded-xl p-5 ${className}`}>
       <h4 className="text-base text-foreground mb-1">
-        <Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your Personalized Weekly Digest — Free
+        <Mail aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Monday Privacy Intelligence Report — Free
       </h4>
       <p className="text-xs text-muted-foreground mb-3">
-        Create a free account for filtered weekly updates on the developments that matter to your work, plus minimal enrichment views on articles.
+        Create a free account to receive a filtered headline digest of the past week's regulatory activity — regions and topics you choose — every Monday. A different, shorter product than the subscriber Weekly Brief.
       </p>
       <Link
         to={signupHref}

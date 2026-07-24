@@ -51,11 +51,14 @@ const WeeklyBriefTeaser = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display tracking-tight text-brand-navy">
-              This Week's Privacy Intelligence Report
+              This Week's Weekly Brief
             </h2>
             <p className="text-sm text-slate mt-1">
               Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
-              8 sections · Published every Monday · <strong>Intelligence</strong>
+              8 sections · Published every Monday · <strong>Intelligence subscribers</strong>
+              <span className="block text-[11px] text-brand-steel mt-1">
+                Different from the free Monday Privacy Intelligence Report, which is a filtered headline digest.
+              </span>
             </p>
           </div>
           <Link
