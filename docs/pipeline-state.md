@@ -34,9 +34,9 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:39:11Z):**
+**Current lock state (2026-07-24T12:48:04Z):**
 - All functions **unlocked**. Customer-path in-flight: none at last check.
-- TURN B deploy of `run-cppa-risk-assessment` completed at 12:39Z within window (closes 13:05Z).
+- No deploys this turn (frontend/test files only).
 - Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
 
 ## 4. Last Completed Turn
