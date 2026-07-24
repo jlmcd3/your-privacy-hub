@@ -486,6 +486,8 @@ export default function ADMTChecker() {
     if (typeof d.third_party_admt === "string") setThirdPartyAdmt(d.third_party_admt);
     if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
     if (typeof d.admt_system_count === "string") setAdmtSystemCount(d.admt_system_count);
+    if (typeof d.affected_population_band === "string") setAffectedPopulationBand(d.affected_population_band);
+    if (Array.isArray(d.role_roster)) setRoleRoster(d.role_roster.filter((x: unknown) => typeof x === "string"));
     // d.prior_access_requests_12mo (legacy drafts) intentionally ignored — field removed (RC-P6).
     if (d.admt_detail && typeof d.admt_detail === "object") setAdv(d.admt_detail);
     if (typeof restoreStage === "number") setStep(restoreStage);
