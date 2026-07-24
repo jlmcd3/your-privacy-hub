@@ -1,9 +1,14 @@
-// CPPA-PRODUCT-1 / S-A — cppa-admt verified-authority registry (content).
+// CPPA-PRODUCT-1 — cppa-admt verified-authority registry (content).
 //
-// This is the L1 registry the admt generator will (in a follow-up dispatch)
-// consult at emit time to stamp citation/subsection/verbatim_quote for each
-// proposition it asserts. This file is CONTENT ONLY — no callers are wired
-// yet (per R-ruling: S-A is authoring only).
+// WIRED CONSUMERS (customer-affecting once deployed):
+//   - supabase/functions/run-admt-checker/index.ts consumes this registry at
+//     emit time (registry injection + pre-emit citation whitelist gate).
+//   - supabase/functions/_shared/_w9_admt_slots.ts consults rows during the
+//     S5 hard-slot pass (top_3_actions anchor validation).
+//
+// Any edit here changes what customers see in the next admt run. Corrections
+// MUST be true corpus-verbatim substrings; paraphrases are prohibited and
+// will fail the ADMT-REGISTRY-CORPUS pin test.
 //
 // Sourcing:
 //   - Regulation text: 11 CCR Article 10 (§§ 7150–7157) and Article 11
@@ -14,13 +19,13 @@
 //   - FSOR overlays: agency positions from cppa_fsor_commentary keyed to
 //     the same section pinpoints (advertising / gaming exclusions under
 //     § 7001(ddd); three-part human-involvement test under § 7001(e)(1)).
+//     Preferred resolution: quote the regulation text itself where the
+//     agency position IS embedded in § 7001. Re-anchoring to a specific
+//     cppa_fsor_commentary row (with source_kind='fsor') is the fallback.
 //   - Statutory anchors: Cal. Civ. Code §§ 1798.140, 1798.185 (rule-making).
 //
 // Verbatim quotes are excerpted from the OAL-approved text. Each row's
 // depth_class reflects the pinpoint depth of `subsection`.
-//
-// A row's presence in this registry does NOT change generator behavior on
-// its own — wiring happens in the follow-up admt deploy turn.
 
 import type {
   VerifiedAuthorityRegistry,
@@ -28,7 +33,7 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w1-2026-07-24";
+export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w2-2026-07-24";
 
 /** Canonical published text for §§ 7000-series (OAL-approved package). */
 const CCR_URL =
