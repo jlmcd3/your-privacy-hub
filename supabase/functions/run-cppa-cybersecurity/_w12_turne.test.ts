@@ -35,10 +35,10 @@ Deno.test("TURN E — W12_CYBER_E1_STAMP is set", () => {
   assert(W12_CYBER_E1_STAMP.startsWith("w12-cyber-e1@"), W12_CYBER_E1_STAMP);
 });
 
-Deno.test("TURN E — BUILD_STAMP restamped to w12-cyber-turne", async () => {
+Deno.test("TURN E — BUILD_STAMP restamped (w12-cyber-turne or later cyber wave)", async () => {
   const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
-  assert(m && m[1].startsWith("w12-cyber-turne@"), `unexpected stamp: ${m?.[1]}`);
+  assert(m && /^(w12-cyber-turne|w15-cyber-regwire)@/.test(m[1]), `unexpected stamp: ${m?.[1]}`);
 });
 
 // ---- E1a: truncated clause ----
