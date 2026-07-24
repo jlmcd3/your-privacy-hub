@@ -40,9 +40,9 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:53:21Z):**
-- All functions **unlocked**. No deploys this turn (frontend/test files only).
-- Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
+**Current lock state (2026-07-24T17:34:54Z):**
+- `run-cppa-cybersecurity` **unlocked** post-TURN E deploy. All other functions unlocked.
+- Deferred: MEDIUM cyber boilerplate-remediation across 16/18 controls (own future turn — not co-located in the crosswalk assembler).
 
 ## 4. Last Completed Turn
 
