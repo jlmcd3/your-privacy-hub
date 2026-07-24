@@ -4,13 +4,50 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "w12-risk-turnd@2026-07-24T17:23:28Z";
+// W15 RISK-REGISTRY-WIRING (2026-07-24) — corpus-live risk verified-authority
+// registry (risk-va-w1) wired at emit time; generator authors no §-tokens for
+// registry-covered propositions; resolver stamps citation/subsection/quote.
+export const BUILD_STAMP = "w15-risk-regwire@2026-07-24T22:49:09Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 console.log(`[run-cppa-risk-assessment] boot slots_stamp=${W9_RISK_SLOTS_STAMP}`);
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
+// W15 RISK-REGISTRY-WIRING — L1 verified-authority resolver + risk registry
+// (mirrors W9-ADMT-WIRE pattern in run-admt-checker/index.ts L28-L66).
+import {
+  RISK_VERIFIED_AUTHORITIES,
+  RISK_VERIFIED_AUTHORITY_VERSION,
+} from "../_shared/registry/risk-verified-authorities.ts";
+import {
+  resolveByPropositionKey,
+  registrySize as vaRegistrySize,
+} from "../_shared/verified-authority-resolver.ts";
+
+function buildRiskVerifiedAuthorityBlock(): string {
+  const rows = Object.values(RISK_VERIFIED_AUTHORITIES);
+  const lines = rows.map((r) =>
+    `- [${r.proposition_key}] ${r.subsection} — "${r.verbatim_quote.replace(/\s+/g, " ").slice(0, 260)}"`
+  );
+  return `VERIFIED-AUTHORITY REGISTRY (${RISK_VERIFIED_AUTHORITY_VERSION}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR RISK-ASSESSMENT CITATIONS; wired W15 RISK-REGISTRY-WIRING):
+Every citation this report emits SHOULD be REGISTRY-STAMPED, never authored from recall. When a finding, risk_register entry, trigger claim, scope note, or executive-summary sentence asserts a proposition covered by a row below, emit "proposition_key": "<key>" on that entry (alongside any existing element_id / source_fields). The resolver deterministically stamps citation, subsection, and verbatim_quote onto the entry post-generation; you write the prose around the stamped pinpoint and NEVER type a "§" or "11 CCR" token yourself for a registry-covered proposition.
+
+SUBSECTION DISCIPLINE — § 7150(b) triggers: (b)(1)–(b)(6) are SEPARATE rows with predicate-distinct pinpoints. Never collapse a trigger claim to a bare "§ 7150(b)" or repeat "§ 7150(b) … § 7150(b)" as an undifferentiated pair. Emit the specific proposition_key (ra_trigger_sell_share / ra_trigger_admt_significant / ra_trigger_train_admt / ra_trigger_sensitive / ra_trigger_public_surveillance / ra_trigger_precise_geo). If a claim's predicate is under-specified by the intake, omit proposition_key and route to information_needed with an empty citation — never repeat bare "§ 7150(b)".
+
+If no row covers a proposition, omit proposition_key and rely on the existing corpus-grounded prose; the unresolvable path is counted in telemetry (report._meta.internal.risk_va) and never fabricated as a stamped citation. RISK ASSESSMENTS ARE ARTICLE 10 (§ 7150 et seq.), NEVER § 7221 OR ITS SUBDIVISIONS — this substantive discipline is retained.
+
+Row shape shown as "[proposition_key] pinpoint — verbatim quote":
+${lines.join("\n")}
+`;
+}
+const RISK_VERIFIED_AUTHORITY_BLOCK = buildRiskVerifiedAuthorityBlock();
+console.log(JSON.stringify({
+  evt: "risk_va_registry_loaded", fn: "run-cppa-risk-assessment",
+  build_stamp: BUILD_STAMP,
+  va_version: RISK_VERIFIED_AUTHORITY_VERSION,
+  va_rows: vaRegistrySize(RISK_VERIFIED_AUTHORITIES),
+}));
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
