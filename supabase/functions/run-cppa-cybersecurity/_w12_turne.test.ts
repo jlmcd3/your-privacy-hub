@@ -54,13 +54,12 @@ Deno.test("E1a: wave-12 exact fragment 'provides comparative guidance on;' is dr
   assert(/operative requirement is 11 CCR § 7123\./.test(out));
 });
 
-Deno.test("E1a: bare terminator ':' at absolute sentence end is dropped", () => {
+Deno.test("E1a: sentence ending in bare ';' at absolute end is dropped", () => {
   const c = emptyCounters();
-  const out = sanitizeCrosswalkText("The findings are: The control is implemented.", c);
-  // "The findings are:" is a colon-terminated stub. The mid-string prep
-  // stripper (…as: [A-Z]) removes it; the surviving sentence stands.
-  assert(c.crosswalk_fragments_dropped >= 1);
-  assert(/The control is implemented\./.test(out));
+  const out = sanitizeCrosswalkText("MFA is enforced. Access reviews are annual;", c);
+  assertEquals(c.crosswalk_fragments_dropped, 1);
+  assert(/MFA is enforced\./.test(out));
+  assert(!/Access reviews are annual;/.test(out));
 });
 
 // ---- E1b: unbalanced parens ----
