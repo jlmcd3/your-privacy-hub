@@ -4,13 +4,50 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "w12-risk-turnd@2026-07-24T17:23:28Z";
+// W15 RISK-REGISTRY-WIRING (2026-07-24) — corpus-live risk verified-authority
+// registry (risk-va-w1) wired at emit time; generator authors no §-tokens for
+// registry-covered propositions; resolver stamps citation/subsection/quote.
+export const BUILD_STAMP = "w15-risk-regwire@2026-07-24T22:49:09Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 console.log(`[run-cppa-risk-assessment] boot slots_stamp=${W9_RISK_SLOTS_STAMP}`);
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
+// W15 RISK-REGISTRY-WIRING — L1 verified-authority resolver + risk registry
+// (mirrors W9-ADMT-WIRE pattern in run-admt-checker/index.ts L28-L66).
+import {
+  RISK_VERIFIED_AUTHORITIES,
+  RISK_VERIFIED_AUTHORITY_VERSION,
+} from "../_shared/registry/risk-verified-authorities.ts";
+import {
+  resolveByPropositionKey,
+  registrySize as vaRegistrySize,
+} from "../_shared/verified-authority-resolver.ts";
+
+function buildRiskVerifiedAuthorityBlock(): string {
+  const rows = Object.values(RISK_VERIFIED_AUTHORITIES);
+  const lines = rows.map((r) =>
+    `- [${r.proposition_key}] ${r.subsection} — "${r.verbatim_quote.replace(/\s+/g, " ").slice(0, 260)}"`
+  );
+  return `VERIFIED-AUTHORITY REGISTRY (${RISK_VERIFIED_AUTHORITY_VERSION}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR RISK-ASSESSMENT CITATIONS; wired W15 RISK-REGISTRY-WIRING):
+Every citation this report emits SHOULD be REGISTRY-STAMPED, never authored from recall. When a finding, risk_register entry, trigger claim, scope note, or executive-summary sentence asserts a proposition covered by a row below, emit "proposition_key": "<key>" on that entry (alongside any existing element_id / source_fields). The resolver deterministically stamps citation, subsection, and verbatim_quote onto the entry post-generation; you write the prose around the stamped pinpoint and NEVER type a "§" or "11 CCR" token yourself for a registry-covered proposition.
+
+SUBSECTION DISCIPLINE — § 7150(b) triggers: (b)(1)–(b)(6) are SEPARATE rows with predicate-distinct pinpoints. Never collapse a trigger claim to a bare "§ 7150(b)" or repeat "§ 7150(b) … § 7150(b)" as an undifferentiated pair. Emit the specific proposition_key (ra_trigger_sell_share / ra_trigger_sensitive / ra_trigger_sensitive_hr_exclusion / ra_trigger_admt / ra_trigger_infer_context / ra_trigger_infer_sensitive_location / ra_trigger_train). If a claim's predicate is under-specified by the intake, omit proposition_key and route to information_needed with an empty citation — never repeat bare "§ 7150(b)".
+
+If no row covers a proposition, omit proposition_key and rely on the existing corpus-grounded prose; the unresolvable path is counted in telemetry (report._meta.internal.risk_va) and never fabricated as a stamped citation. RISK ASSESSMENTS ARE ARTICLE 10 (§ 7150 et seq.), NEVER § 7221 OR ITS SUBDIVISIONS — this substantive discipline is retained.
+
+Row shape shown as "[proposition_key] pinpoint — verbatim quote":
+${lines.join("\n")}
+`;
+}
+const RISK_VERIFIED_AUTHORITY_BLOCK = buildRiskVerifiedAuthorityBlock();
+console.log(JSON.stringify({
+  evt: "risk_va_registry_loaded", fn: "run-cppa-risk-assessment",
+  build_stamp: BUILD_STAMP,
+  va_version: RISK_VERIFIED_AUTHORITY_VERSION,
+  va_rows: vaRegistrySize(RISK_VERIFIED_AUTHORITIES),
+}));
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -848,6 +885,7 @@ async function runPipeline(assessment_id: string) {
       `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
       testStatesBlock,
       riskDeadlineBlock,
+      RISK_VERIFIED_AUTHORITY_BLOCK,
     ].filter(Boolean).join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
@@ -2221,7 +2259,96 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (e) { console.error("[RISK] W10-RISK-B1 errored (fail-open):", e); }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w10-risk-b1@2026-07-24"), build_stamp: BUILD_STAMP };
+    // ── W15 RISK-REGISTRY-WIRING — L1 REGISTRY-STAMPED CITATIONS pass ──
+    // Walks every finding/entry that emitted a proposition_key and stamps
+    // citation + subsection + verbatim_quote from RISK_VERIFIED_AUTHORITIES.
+    // Runs AFTER W6/W9/W10 so it sees the final registry-facing shape.
+    // Also flags any bare "§ 7150(b)" survivor (subsection-collapse guard).
+    // Fail-open: all telemetry lands under report_data._meta.internal.risk_va;
+    // never mutates a top-level customer key with an underscore prefix.
+    try {
+      const vaMetrics = {
+        va_version: RISK_VERIFIED_AUTHORITY_VERSION,
+        va_rows: vaRegistrySize(RISK_VERIFIED_AUTHORITIES),
+        va_stamps_applied: 0,
+        va_stamps_unresolved: 0,
+        va_subsection_collapse_flagged: 0,
+        va_information_needed_added: 0,
+        buckets_scanned: 0,
+      };
+      const stampEntry = (it: any): boolean => {
+        if (!it || typeof it !== "object") return false;
+        let stamped = false;
+        const pk = typeof it.proposition_key === "string" ? it.proposition_key.trim() : "";
+        if (pk) {
+          const row = resolveByPropositionKey(RISK_VERIFIED_AUTHORITIES, pk);
+          if (row) {
+            it.citation = row.subsection;
+            it.verbatim_quote = row.verbatim_quote;
+            vaMetrics.va_stamps_applied++;
+            stamped = true;
+          } else {
+            // Emit-time whitelist gate: covered surface, unresolved key ⇒
+            // empty citation + information_needed marker; never fabricate.
+            it.citation = "";
+            it.information_needed = true;
+            vaMetrics.va_stamps_unresolved++;
+            vaMetrics.va_information_needed_added++;
+          }
+        }
+        // § 7150(b) subsection-collapse guard: any trigger surface whose
+        // citation is a bare "§ 7150(b)" (or a duplicated "§ 7150(b) … §
+        // 7150(b)" fragment) with no predicate pinpoint is flagged as
+        // information_needed rather than emitted as an undifferentiated repeat.
+        const cit = typeof it.citation === "string" ? it.citation : "";
+        if (cit && !stamped) {
+          const hasPredicate = /\(b\)\s*\(\s*\d/.test(cit);
+          const bareCollapse = /(?:11\s*CCR\s*)?§\s*7150\(b\)/i;
+          const doubledCollapse = /§\s*7150\(b\)[^§]{0,60}§\s*7150\(b\)/i;
+          if (doubledCollapse.test(cit)) {
+            it.citation = "";
+            it.information_needed = true;
+            vaMetrics.va_subsection_collapse_flagged++;
+            vaMetrics.va_information_needed_added++;
+          } else if (bareCollapse.test(cit) && !hasPredicate) {
+            it.citation = "";
+            it.information_needed = true;
+            vaMetrics.va_subsection_collapse_flagged++;
+            vaMetrics.va_information_needed_added++;
+          }
+        }
+        return stamped;
+      };
+      const walkBucket = (arr: any): void => {
+        if (!Array.isArray(arr)) return;
+        vaMetrics.buckets_scanned++;
+        for (const it of arr) stampEntry(it);
+      };
+      const r: any = report_data;
+      walkBucket(r.information_needed);
+      walkBucket(r.strengthen_items);
+      walkBucket(r.inconsistency_flags);
+      walkBucket(r.top_3_actions);
+      walkBucket(r.top_actions);
+      if (r.risk_register && typeof r.risk_register === "object") {
+        walkBucket(r.risk_register.entries);
+      }
+      // scope_analysis / trigger surface (single object).
+      const sa: any = r.scope_analysis ?? r.trigger_analysis;
+      if (sa && typeof sa === "object") stampEntry(sa);
+      // Persist telemetry under _meta.internal (C1-strip compatible).
+      const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
+      const internal = (meta.internal = meta.internal && typeof meta.internal === "object" ? meta.internal : {});
+      internal.risk_va = { build_stamp: BUILD_STAMP, ...vaMetrics };
+      console.log(JSON.stringify({
+        evt: "_w15_risk_va_wire", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, ...vaMetrics,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W15 RISK-REGISTRY-WIRING failed (non-fatal):", (e as Error)?.message);
+    }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
