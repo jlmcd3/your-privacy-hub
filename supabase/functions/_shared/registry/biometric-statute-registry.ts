@@ -31,7 +31,11 @@ export type BiometricStatuteRow = {
     | "us_il_bipa"
     | "us_tx_cubi"
     | "us_wa_hb1493"
-    | "us_co_hb24_1130";
+    | "us_co_hb24_1130"
+    // ── Wave 2 (S2) ────────────────────────────────────────────────
+    | "us_ca_cpra"
+    | "us_ny_shield"
+    | "us_ar_pipa";
   /** Human-readable jurisdiction display label. */
   jurisdiction_display: string;
   /** Long form of the statute (e.g. "Illinois Biometric Information Privacy Act"). */
