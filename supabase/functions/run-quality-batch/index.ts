@@ -1395,11 +1395,13 @@ type PollOutcome =
 // the row in 'processing' forever. When the polled row is non-terminal AND
 // updated_at is stale >STALE_MS, re-invoke the generator bootstrap (which
 // is idempotent — sweeper re-entry). Cap at MAX_RESURRECTIONS per doc.
-const RESUMABLE_GENERATORS = new Set(["dpia"]);
+// W9-ADMT-WIRE (register #14 RESUMABLE admt): cppa-admt added so a stalled
+// heartbeat can no longer strand a wave digest (wave 8 stall cost us the read).
+const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt"]);
 const RESURRECT_STALE_MS = 180_000;
 const MAX_RESURRECTIONS = 2;
-const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework" };
-const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id" };
+const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker" };
+const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id" };
 
 export function shouldResurrect(opts: {
   tool?: string;
