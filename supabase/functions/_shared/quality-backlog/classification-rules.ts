@@ -22,9 +22,12 @@ export type ProposedLever =
   | "variance"
   | null;
 
+export type BacklogStatus = "open" | "in_progress" | "shipped" | "wont_fix";
+
 export interface ClassificationRule {
   class: BacklogClass;
   lever: ProposedLever;
+  status?: BacklogStatus;
   notes?: string;
 }
 
