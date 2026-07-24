@@ -167,6 +167,38 @@ export type V4Report = {
     compliance_deadline?: string;
     disclaimer?: string;
   };
+  // W9-RISK-SLOTS (TURN 1a) — three typed slots reprojected by the pipeline.
+  attestation_block?: {
+    certifying_executive_name?: string;
+    certifying_executive_title?: string;
+    certifying_contact_email?: string;
+    certification_statement?: string;
+    statutory_basis?: string;
+    submission_status?: "pending" | "submitted" | "not_required";
+    submission_deadline?: string;
+  };
+  submission_summary?: {
+    assessment_date?: string;
+    business_name?: string;
+    statutory_framework?: string;
+    triggered_subsections?: string[];
+    compliance_deadline?: string;
+    submission_deadline?: string;
+    submission_basis?: string;
+  };
+  risk_register?: {
+    entries?: Array<{
+      id?: string;
+      activity?: string;
+      harm_type?: string;
+      likelihood?: string;
+      severity?: string;
+      current_safeguards?: string;
+      gap_status?: "open" | "mitigated" | "accepted" | "unassessed";
+      residual_risk_level?: "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis";
+      statutory_basis?: string;
+    }>;
+  };
 };
 
 export function isV4Report(rd: any): boolean {
