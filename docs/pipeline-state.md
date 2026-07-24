@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-24T21:02:31Z — ADMT-DEPLOY-CORPUS-LIVE DONE — `run-admt-checker` deployed 21:01:57Z with fresh-clock `BUILD_STAMP=w14-admt-corpuslive@2026-07-24T21:01:33Z`; corpus-corrected registry (`admt-va-w8-2026-07-24`, 34 rows, KNOWN_PARAPHRASED_KEYS EMPTY) LIVE; W6 admt restamp DISCHARGED (`w12-admt-turnc@2026-07-24T17:10:43Z` → `w14-admt-corpuslive@2026-07-24T21:01:33Z`); wave-15 first to measure corpus-corrected registry live.
+**Last updated:** 2026-07-24T21:13:01Z — RISK-REGISTRY-AUTHORING DONE — `_shared/registry/risk-verified-authorities.ts` seeded with 44 rows across §§ 7150–7157 + Cal. Civ. Code § 1798.140(ai)/§ 1798.185(a)(15) at registry version `risk-va-w1-2026-07-24`; every row corpus-verified pre-write via psql `position()`>0 substring check against `cppa_authorities.full_text` (status='current'); KNOWN_PARAPHRASED_KEYS EMPTY on entry per audit standing order; corpus-pin + shape suites 13/13 green (PGHOST unskipped); wiring/deploy into `run-cppa-risk-assessment` remains queued as a SEPARATE later turn.
 
 ---
 
