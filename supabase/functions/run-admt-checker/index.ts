@@ -816,6 +816,27 @@ SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST 
     "Numbered action item with specific deadline where known. Based only on gaps identified above."
   ],
 
+  "top_3_actions": [
+    // W9-ADMT-WIRE S5 HARD SLOT — typed exec-summary schema. EXACTLY 3 entries, in
+    // descending priority. Each entry is one object with the fields below; no free
+    // text, no additional keys. If fewer than 3 substantive actions exist, pad
+    // with an entry whose "action" is "insufficient basis to state a top action"
+    // and whose "citation"/"deadline" are the empty string — never fabricate a
+    // deadline or a §-token. Every non-empty "citation" MUST be a full verified
+    // pinpoint per POST-C1-FIX-3 (never the neutral fallback phrase, never a
+    // hybrid), or the empty string. This block is IN ADDITION to priority_actions;
+    // priority_actions is the full narrative list, top_3_actions is the fixed-shape
+    // executive summary slot the customer UI renders at the top of the report.
+    { "rank": 1,
+      "action": "One-sentence directive (imperative, ≤ 220 chars).",
+      "citation": "§ 7220(c)(2)(A) | § 7221(a) | ... (verified pinpoint OR empty string)",
+      "deadline": "YYYY-MM-DD anchored to § 7200(b) compliance date (2027-01-01) OR the empty string when not applicable",
+      "proposition_key": "<optional proposition_key from the VERIFIED-AUTHORITY REGISTRY; when present the resolver stamps citation deterministically>"
+    }
+  ],
+
+
+
   "compliant_elements": ["List of elements assessed as compliant, with brief explanation."],
 
   "information_needed": [
