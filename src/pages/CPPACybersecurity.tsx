@@ -148,16 +148,20 @@ export default function CPPACybersecurity() {
         label: c.label,
         maturity: maturity[c.key] || "",
         notes: notes[c.key] || "",
+        evidence: evidence[c.key] || [],
       })),
     }),
-    [profile, maturity, notes]
+    [profile, maturity, notes, evidence]
   );
 
-  const draftData = useMemo(() => ({ profile, maturity, notes }), [profile, maturity, notes]);
+  const draftData = useMemo(
+    () => ({ profile, maturity, notes, evidence }),
+    [profile, maturity, notes, evidence],
+  );
   const touched = useMemo(
-    () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0
-      || Object.values(profile).some((v) => (v ?? "").toString().trim() !== ""),
-    [profile, maturity, notes],
+    () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0 || Object.keys(evidence).length > 0
+      || Object.values(profile).some((v) => Array.isArray(v) ? v.length > 0 : (v ?? "").toString().trim() !== ""),
+    [profile, maturity, notes, evidence],
   );
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
@@ -169,11 +173,12 @@ export default function CPPACybersecurity() {
     enabled: !!user && touched,
   });
   const applyRestore = () => {
-    const d = restoreData as { profile?: any; maturity?: any; notes?: any } | null;
+    const d = restoreData as { profile?: any; maturity?: any; notes?: any; evidence?: any } | null;
     if (!d) return;
     if (d.profile && typeof d.profile === "object") setProfile((prev) => ({ ...prev, ...d.profile }));
     if (d.maturity && typeof d.maturity === "object") setMaturity(d.maturity);
     if (d.notes && typeof d.notes === "object") setNotes(d.notes);
+    if (d.evidence && typeof d.evidence === "object") setEvidence(d.evidence);
   };
 
   const notifyUnassessed = () => {
