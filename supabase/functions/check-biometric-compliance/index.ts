@@ -22,6 +22,14 @@ import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+import {
+  selectApplicableRows,
+  resolveJurisdictions,
+  renderRegistryStatutesBlock,
+  renderRegistryUnresolvedBlock,
+  validateBiometricCitations,
+  BIOMETRIC_REGISTRY_VERSION,
+} from "../_shared/registry/biometric-select.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
