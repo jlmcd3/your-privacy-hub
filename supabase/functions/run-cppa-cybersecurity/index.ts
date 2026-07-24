@@ -360,24 +360,41 @@ async function runAssessment(assessment_id: string): Promise<void> {
       }
     }
 
-    // Unconditional CCPA definitions supply — verbatim Cal. Civ. Code § 1798.140.
-    // Definitions ("personal information", "business", "service provider", etc.)
-    // are load-bearing for every cyber run. Same mechanism as 1798.82.
+    // C2-2 — CCPA definitions supply is now DEFINES_TERMS-CONDITIONAL.
+    // Predicate: the intake must supply enough profile substance for the
+    // defined-term consumers (§ 1798.140(ag) "business", § 1798.140(e)
+    // "service provider", § 1798.140 personal-information family) to be
+    // load-bearing. Skeleton intakes (no entity name, no industry) skip
+    // the ~5KB verbatim dump and save prompt tokens. Decision is logged.
     let caDefinitionsAuthorityBlock = "";
     {
-      const { data: defRows } = await supabase
-        .from("cppa_authorities")
-        .select("citation, full_text")
-        .eq("citation", `Cal. Civ. Code ${S} 1798.140`)
-        .eq("status", "current")
-        .limit(1);
-      if (defRows && defRows.length > 0 && (defRows[0] as any).full_text) {
-        const r = defRows[0] as any;
-        caDefinitionsAuthorityBlock =
-          "\n\nCCPA DEFINITIONS AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.140 content ONLY from the text below, never from recollection):\n" +
-          `[${r.citation}]\n${r.full_text}`;
-      } else {
-        console.warn("[cppa-cyber] 1798.140 authority row unavailable");
+      const intakeProfile = ((row.intake_data as any)?.profile ?? {}) as Record<string, unknown>;
+      const definesTerms = !!(intakeProfile.entity_name && intakeProfile.industry);
+      console.log(
+        JSON.stringify({
+          evt: "cyber_defines_terms_decision",
+          fn: "run-cppa-cybersecurity",
+          defines_terms: definesTerms,
+          reason: definesTerms
+            ? "profile present — § 1798.140(ag) business + (e) service-provider terms in scope"
+            : "skeleton intake — defined-term consumers not detected; skipping § 1798.140 supply",
+        }),
+      );
+      if (definesTerms) {
+        const { data: defRows } = await supabase
+          .from("cppa_authorities")
+          .select("citation, full_text")
+          .eq("citation", `Cal. Civ. Code ${S} 1798.140`)
+          .eq("status", "current")
+          .limit(1);
+        if (defRows && defRows.length > 0 && (defRows[0] as any).full_text) {
+          const r = defRows[0] as any;
+          caDefinitionsAuthorityBlock =
+            "\n\nCCPA DEFINITIONS AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.140 content ONLY from the text below, never from recollection):\n" +
+            `[${r.citation}]\n${r.full_text}`;
+        } else {
+          console.warn("[cppa-cyber] 1798.140 authority row unavailable");
+        }
       }
     }
 
@@ -390,9 +407,14 @@ async function runAssessment(assessment_id: string): Promise<void> {
     // C2-1 — FSOR agency-position anchor beneath the zero-trust deletion note.
     // Warn-and-ship-unanchored when no matching row exists.
     const cyberFsorAnchorBlock = await buildFsorAnchorBlock(supabase, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS);
-    const cyberInjected = cyberFsorAnchorBlock
-      ? `${cyberTestStatesBlock}\n\n${cyberFsorAnchorBlock}`
-      : cyberTestStatesBlock;
+    // C2-2 — corpus-sourced CPPA canonical deadlines + startup drift-lint.
+    verifyCppaDeadlineDrift(supabase, "cyber");
+    verifyIcoFiguresDrift();
+    const cyberDeadlineBlock = await buildCppaDeadlineBlock(supabase, "cyber");
+    const cyberInjectedParts = [cyberTestStatesBlock];
+    if (cyberFsorAnchorBlock) cyberInjectedParts.push(cyberFsorAnchorBlock);
+    if (cyberDeadlineBlock) cyberInjectedParts.push(cyberDeadlineBlock);
+    const cyberInjected = cyberInjectedParts.join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
       currentDate: today,
