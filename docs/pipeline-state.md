@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T12:48:04Z — turn `SAMPLES-CONTRACT-dpia (4/8)`
+**Last updated:** 2026-07-24T12:53:21Z — turn `SAMPLES-CONTRACT-lia (5/8)`
 
 ---
 
@@ -18,11 +18,13 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 1. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 + A2) — deployed 12:25Z.
 2. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a field-provenance + B1b claims guard) — deployed 12:39Z.
-3. **DONE THIS TURN** — `SAMPLES-CONTRACT-dpia` (4/8) — frontend/test only, no deploy.
-4. **NEXT** — `SAMPLES-CONTRACT-lia` (5/8). Frontend-only; not deploy-locked.
-5. Then — `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (6/8 … 8/8).
-6. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §6 sentinel gap).
-7. Deferred — W9 admt build restamp (bundled with next admt deploy).
+3. **DONE PRIOR TURN** — `SAMPLES-CONTRACT-dpia` (4/8) — frontend/test only, no deploy.
+4. **DONE THIS TURN** — `SAMPLES-CONTRACT-lia` (5/8) — frontend/test only, no deploy.
+5. **NEXT** — `SAMPLES-CONTRACT-governance` (6/8). Frontend-only; not deploy-locked.
+6. Then — `-ir_playbook` → `-biometric` → `-dpa` (7/8, 8/8, then 9/8-out-of-8 dpa closes the series — note: series is 8 tools, dpa is #8).
+7. After 8/8 — `REGISTRATION-INTAKE-CONTRACT-RAIL-MAP` (pre-approved authoring turn per overnight standing order: shared contract + rail-map + corpus-cited rails + dummy data).
+8. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §6 sentinel gap).
+9. Deferred — W9 admt build restamp (bundled with next admt deploy).
 
 _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope shipped as TURN A. Do not re-queue.
 
@@ -34,24 +36,24 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:48:04Z):**
-- All functions **unlocked**. Customer-path in-flight: none at last check.
-- No deploys this turn (frontend/test files only).
+**Current lock state (2026-07-24T12:53:21Z):**
+- All functions **unlocked**. No deploys this turn (frontend/test files only).
 - Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
 
 ## 4. Last Completed Turn
 
-- **Turn:** `SAMPLES-CONTRACT-dpia` (4/8)
-- **Real-time:** 2026-07-24T12:48:04Z (sandbox `date -u`)
+- **Turn:** `SAMPLES-CONTRACT-lia` (5/8)
+- **Real-time:** 2026-07-24T12:53:21Z (sandbox `date -u`)
 - **Scope (frontend/test only, no edge deploy):**
-  - Reconciled `F_DPIA_EU` in `src/lib/sampleFixtures.ts` against `_shared/intake-contracts/dpia-framework.ts`. `F_DPIA_EU_SUPP` inherits via `withSupplemental` and clears in the same edit.
-  - Removed unknown top-level keys `automated_decisions` and `sector`; folded their content into contract-supported narrative surfaces (`dp_by_design_measures`, `nature_scope_context`) and the new `controller_sector` slot to preserve showcase quality without dropping the drone-blurring narrative.
-  - `data_categories` reduced to the DPIA_DATA_CATS enum (`"Location data"`, `"Other"`); descriptive parentheticals moved into `nature_scope_context`.
-  - `existing_safeguards` normalised to DPIA_SAFEGUARDS enum members (`"Data minimisation"`, `"Anonymisation"`, `"Access controls"`, `"DPA signed with processor"`); operational specifics (flight-planning, human-QA, lifecycle policy) preserved verbatim in `dp_by_design_measures`.
-  - `legal_basis_proposed` collapsed to the DPIA_LEGAL_BASES enum literal `"Legitimate interest (Art. 6(1)(f))"`; rationale text moved into `necessity_proportionality` (already present) and `nature_scope_context`.
-  - Added `controller_country: "Germany"` to feed the jurisdiction-resolver Main Establishment path.
-  - Flipped `dpia` out of `SAMPLE_ADVISORY_TOOLS` in `_tests/contract-surface-audit.test.ts` → `dpia` sample-fixture drift is now **FATAL** tier. Counter comment updated to `dpia (4/8)`.
-- **Tests (green):** `_tests/contract-surface-audit.test.ts` — 3 pass / 0 fail. `dpia:eu` and `dpia:eu-supplemental` no longer appear in the ADVISORY drift list; remaining advisory drift is confined to the still-queued tools (`li_assessment`, `governance`, `ir_playbook`, `biometric`, `dpa`).
+  - Reconciled `F_LIA_UK` in `src/lib/sampleFixtures.ts` against `liAssessmentStageBContract`. `F_LIA_UK_SUPP` inherits the reconciliation via `withSupplemental`'s deep-clone.
+  - Removed unknown top-level keys `status`, `sector`, `preview_signal`; sector text preserved verbatim inline in `processing_description` so showcase quality is retained.
+  - Normalised `data_categories` to `LI_DATA_CATEGORIES` enum values (`"Location data"`, `"Health or medical data"`, `"Employment data"`) with the "beacon-proximity zone" descriptor folded into an `"Other: …"` element as the contract expressly permits (see contract comment L48-51).
+  - Normalised `relationship_type` from `"Employee (existing employment relationship)"` to the enum literal `"Employee"`; the "existing employment relationship" gloss remains in `processing_description`.
+  - Split `balancing_details.reasonable_expectation` (was a full sentence) into enum literal `"Partly"` + narrative moved to new `reasonable_expectation_detail`.
+  - Split `balancing_details.potential_harm` (was a full sentence) into enum literal `"Severe"` + narrative moved to new `potential_harm_detail`.
+  - Added required-always `preview_assessment_id: "sample-preview-lia-uk-000"`; changed `stage` from `"final"` → `"submitted"` per contract semantics (line 114 of the contract expects `"submitted"`).
+  - Renamed `purpose_details.purpose_text` → `interest_statement` (the actual contract slot); `balancing_details.balancing_text` → `additional_context`.
+- **Tests (green):** `_tests/contract-surface-audit.test.ts` — 3 pass / 0 fail. `li_assessment:uk` and `li_assessment:uk-supplemental` no longer appear in ADVISORY drift; ADVISORY count dropped 10 → 8. Remaining advisory drift is confined to still-queued tools (`governance`, `ir_playbook`, `biometric`).
 - **Deploy:** none this turn (no edge-function or backend code changed).
 
 ## 5. Sample-Report Register
@@ -79,7 +81,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
-- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8), `dpia` (4/8). Regen click deferred to end-of-program walk-through.
+- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8), `dpia` (4/8), `li_assessment` (5/8). Regen click deferred to end-of-program walk-through (admin-UI click — queued for morning per overnight standing order §1).
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt/risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
   - W6 cyber — SUPERSEDED this turn by `w10-cyber-a1a2` (fresh-clock stamp).
@@ -106,3 +108,9 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **Outcome:** Duplicate work item removed; TURN B restored as NEXT within the same tick (~5 minutes). No code deployed or execution started for the duplicate.
 - **Root cause:** Controller read the ledger at tick start and did not re-clone before dispatching an insert, while another parallel turn completed its work and updated the ledger in between.
 - **Remediation:** Reinforces the standing header rule: **re-clone immediately before dispatch, not at tick start.** All controllers must read `docs/pipeline-state.md` from a fresh clone before acting.
+
+## 8. While-You-Slept (overnight standing-order run log)
+
+Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
+
+- 2026-07-24T12:53:21Z — `SAMPLES-CONTRACT-lia (5/8)` — DONE (frontend/test only, no deploy). ADVISORY drift 10 → 8; `li_assessment` now FATAL-tier. Regen queued (admin-UI, morning).
