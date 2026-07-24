@@ -112,7 +112,7 @@ export const cppaCybersecurityContract: IntakeContract = {
     { key: "profile.last_audit",     kind: "enum", required: "always",
       options: LAST_AUDIT_OPTIONS },
     // TURN 3 — scope framing fields (optional; feed C-C scope justification).
-    { key: "profile.in_scope_frameworks", kind: "multi_enum", required: "optional",
+    { key: "profile.in_scope_frameworks", kind: "multi-enum", required: "optional",
       options: CYBER_IN_SCOPE_FRAMEWORKS, askEligible: true },
     { key: "profile.audit_scope_rationale", kind: "narrative", required: "optional",
       askEligible: true },
@@ -124,7 +124,7 @@ export const cppaCybersecurityContract: IntakeContract = {
       options: CYBER_MATURITY_OPTIONS, askEligible: true },
     { key: "controls[].notes",   kind: "narrative", required: "optional" },
     // TURN 3 — per-component evidence-availability checklist.
-    { key: "controls[].evidence", kind: "multi_enum", required: "optional",
+    { key: "controls[].evidence", kind: "multi-enum", required: "optional",
       options: CYBER_EVIDENCE_OPTS, askEligible: true },
   ],
 };
