@@ -2172,7 +2172,31 @@ async function runPipeline(assessment_id: string) {
       (report_data as any)._w6_risk_fix = _w6rc;
     } catch (e) { console.error("[RISK] W6-RISK-FIX errored (fail-open):", e); }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w6-risk-fix@2026-07-24"), build_stamp: BUILD_STAMP };
+    // W9-RISK-SLOTS (TURN 1a) — deterministic reprojection of the three typed
+    // slots (attestation_block, submission_summary, risk_register) + pre-emit
+    // validation. Any model-emitted values for these three keys are overwritten
+    // by the deterministic reprojection. Validation is non-blocking (counters
+    // are attached under _meta.w9_risk_slots) — deploy-time defects surface via
+    // the counter, not by aborting the write; the CI unit test enforces the
+    // structural contract at build time.
+    try {
+      const _intakeForSlots = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { attached, validation } = attachW9RiskSlots(report_data as any, _intakeForSlots);
+      (report_data as any)._w9_risk_slots = {
+        stamp: W9_RISK_SLOTS_STAMP,
+        attached,
+        ok: validation.ok,
+        errors: validation.errors,
+        warnings: validation.warnings,
+      };
+      if (!validation.ok) {
+        console.warn(`[RISK] W9-RISK-SLOTS validator flagged ${validation.errors.length} defect(s): ${validation.errors.join("; ")}`);
+      } else {
+        console.log(`[RISK] W9-RISK-SLOTS attached ${attached.join(",")} (clean)`);
+      }
+    } catch (e) { console.error("[RISK] W9-RISK-SLOTS errored (fail-open):", e); }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w9-risk-slots@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
