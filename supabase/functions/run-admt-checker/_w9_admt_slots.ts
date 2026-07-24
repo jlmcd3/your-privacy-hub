@@ -177,21 +177,37 @@ const DEADLINE_SPECS: Array<{ obligation: string; pk: string; deadline: string }
   { obligation: "Risk assessment — new significant-decision uses", pk: "ra_timing_new", deadline: "Before initiating the new processing" },
   { obligation: "Risk assessment — existing significant-decision uses", pk: "ra_timing_existing", deadline: "By December 31, 2027" },
   { obligation: "Risk assessment — submission to CPPA", pk: "ra_submit", deadline: "By April 1, 2028 (first submission cycle)" },
-  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: "Within 45 days of a verifiable request (extendable once by 45 days with notice)" },
+  // WAVE12-FIX TURN C — access_timeline was REMOVED from the registry (its
+  // prior verbatim quote was fabricated against § 7222(c)). Row is preserved
+  // for user-facing completeness but emits information_needed rather than a
+  // §-pinpoint or quote.
+  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: "Governed by CCPA response-timeline provisions (Cal. Civ. Code § 1798.130 / § 1798.145); no ADMT-subchapter row currently verified" },
 ];
 
 export function buildDeadlineTable(_intake: any, _report: any): DeadlineTableRow[] {
   const rows: DeadlineTableRow[] = [];
   for (const spec of DEADLINE_SPECS) {
     const a = auth(spec.pk);
-    if (!a) continue;
-    rows.push({
-      obligation: spec.obligation,
-      compliance_deadline: spec.deadline,
-      proposition_key: a.proposition_key,
-      subsection: a.subsection,
-      verbatim_quote: a.verbatim_quote,
-    });
+    if (a) {
+      rows.push({
+        obligation: spec.obligation,
+        compliance_deadline: spec.deadline,
+        proposition_key: a.proposition_key,
+        subsection: a.subsection,
+        verbatim_quote: a.verbatim_quote,
+        information_needed: false,
+      });
+    } else {
+      // No verified row — emit neutral placeholder; NEVER fabricate quote/citation.
+      rows.push({
+        obligation: spec.obligation,
+        compliance_deadline: spec.deadline,
+        proposition_key: spec.pk,
+        subsection: "",
+        verbatim_quote: "",
+        information_needed: true,
+      });
+    }
   }
   return rows;
 }
