@@ -236,15 +236,26 @@ export function normalizeIntake(intake: any): NormalizedIntake {
 
 function entry(id: CitationId) { return CITATION_REGISTRY[id]; }
 function pack(ids: CitationId[], assumptionFlag: string | null = null): ResolverResult {
-  // de-dup, preserve order
+  // de-dup by CitationId, preserve order
   const seen = new Set<CitationId>();
   const ordered = ids.filter((i) => (seen.has(i) ? false : (seen.add(i), true)));
-  return {
-    citationIds: ordered,
-    sections: ordered.map((i) => entry(i).section),
-    evidence: ordered.map((i) => entry(i).snippet),
-    assumptionFlag,
-  };
+  // W9-ADMT-WIRE-P1 defect #2 — dedupe by canonical section string as well.
+  // Two distinct CitationIds can resolve to the same rendered section
+  // (e.g. two rows pointing at "11 CCR § 7001(e)"), which produced
+  // "11 CCR § 7001(e) + 11 CCR § 7001(e)" when joined at emit time.
+  const seenSection = new Set<string>();
+  const sections: string[] = [];
+  const evidence: string[] = [];
+  const dedupedIds: CitationId[] = [];
+  for (const i of ordered) {
+    const sec = entry(i).section;
+    if (seenSection.has(sec)) continue;
+    seenSection.add(sec);
+    sections.push(sec);
+    evidence.push(entry(i).snippet);
+    dedupedIds.push(i);
+  }
+  return { citationIds: dedupedIds, sections, evidence, assumptionFlag };
 }
 
 export function resolveCitations(elementId: ElementId, raw: any): ResolverResult {
