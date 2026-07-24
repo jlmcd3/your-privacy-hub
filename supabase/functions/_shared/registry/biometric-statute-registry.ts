@@ -91,7 +91,7 @@ export type BiometricStatuteRow = {
 };
 
 /** Registry version stamp; threaded into the report envelope. */
-export const BIOMETRIC_REGISTRY_VERSION = "bio-reg-w1-s2b-2026-07-24";
+export const BIOMETRIC_REGISTRY_VERSION = "bio-reg-w1-s3-2026-07-24";
 
 // ─────────────────────────────────────────────────────────────────────────
 // us_il_bipa — Illinois Biometric Information Privacy Act (740 ILCS 14/-)
