@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
     // ---- Upsert into backlog ----
     const upserts = aggregates.map((a) => {
       const rule = classify(a.check_id);
-      return {
+      const row: Record<string, unknown> = {
         finding_check_id: a.check_id,
         tool: a.tool,
         first_seen_wave: a.first_seen_wave,
@@ -176,6 +176,12 @@ Deno.serve(async (req) => {
         proposed_lever: rule.lever,
         grader_hash: a.grader_hash,
       };
+      // Only set status/notes when the rule specifies them, so operator
+      // edits on rows without rule-supplied metadata are preserved on
+      // conflict (absent keys aren't in EXCLUDED and won't overwrite).
+      if (rule.status) row.status = rule.status;
+      if (rule.notes) row.notes = rule.notes;
+      return row;
     });
 
     let written = 0;
