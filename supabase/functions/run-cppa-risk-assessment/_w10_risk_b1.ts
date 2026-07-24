@@ -257,7 +257,7 @@ function guardObjectDeep(
 // present. We only fire when the intake ACTUALLY asserts profiling; if the
 // intake denies profiling, the sentence stands.
 const PROFILING_DENIAL_RE =
-  /([A-Z][^.!?\n]{0,220}?\b(?:no\s+profiling\b|no\s+[^.!?\n]{0,60}?\binferences?\b|profiling\s+(?:is|are)\s+not\b|does\s+not\s+(?:perform|conduct|engage\s+in)\s+profiling|not\s+performing\s+profiling|no\s+systematic\s+observation)[^.!?\n]{0,120})[.!?]/g;
+  /([^.!?\n]*?\b(?:no\s+profiling\b|no\s+[a-z0-9\s,-]{0,80}?inferences?\b|profiling\s+(?:is|are)\s+not\b|does\s+not\s+(?:perform|conduct|engage\s+in)\s+profiling|not\s+performing\s+profiling|no\s+systematic\s+observation)[^.!?\n]*)[.!?]/gi;
 
 function intakeAssertsProfiling(intakeFlat: Record<string, string>): boolean {
   const q5b = intakeFlat["q5b_profiling_observation"];
