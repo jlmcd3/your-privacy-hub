@@ -100,7 +100,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months" },
+      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"] },
       controls: build(meridian, "Implemented across organization"),
     },
     assertions: [
