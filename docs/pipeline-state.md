@@ -197,7 +197,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/9), `cppa_admt` (2/9), `cppa_cyber` (3/9), `dpia` (4/9), `li_assessment` (5/9), `governance` (6/9), `ir_playbook` (7/9), `biometric` (8/9), `dpa` (9/9), `registration` (10/10 — contract+fixtures authored 21:53:12Z). Regen click deferred to end-of-program walk-through (admin-UI click — queued for morning per overnight standing order §1).
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt) — **DISCHARGED 2026-07-24T21:01:57Z** at ADMT-DEPLOY-CORPUS-LIVE (fresh-clock `w14-admt-corpuslive@2026-07-24T21:01:33Z`; old `w12-admt-turnc@2026-07-24T17:10:43Z`; boot log confirmed).
-  - W6 scrubbers (risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
+  - W6 scrubbers (risk) — **DISCHARGED 2026-07-24T22:52:12Z** at RISK-REGISTRY-WIRING deploy (fresh-clock `BUILD_STAMP=w15-risk-regwire@2026-07-24T22:49:09Z`; old `w12-risk-turnd@2026-07-24T17:23:28Z`; boot log confirmed).
   - W6 cyber — SUPERSEDED by `w10-cyber-a1a2` (fresh-clock stamp).
   - W9 admt (`w9-admt-preemit` marker future-dated) — **DISCHARGED 2026-07-24T17:11:54Z** at TURN C deploy (fresh-clock stamp `w12-admt-turnc@2026-07-24T17:10:43Z`, boot log confirmed).
 - **L5 backlog:** 85 aggregate rows, 0 unclassified. Standard cron continues.
