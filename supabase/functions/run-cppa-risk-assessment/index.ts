@@ -4,7 +4,7 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "w10-risk-b1@2026-07-24T12:38:00Z";
+export const BUILD_STAMP = "w12-risk-turnd@2026-07-24T17:23:28Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
@@ -492,7 +492,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "INCONSISTENCY FLAGS MUST CITE, NEVER RESOLVE, NEVER PRESCRIBE A METHOD: when flagging an inconsistency (e.g. ADMT disclosure vs. negated profiling field), resolution_required must name the controlling provision(s) and state that the controller must resolve and document the determination — it must NEVER state what the controller should conclude, NEVER assert 'if [condition] applies, [consequence] is required,' NEVER direct a specific follow-on action contingent on an unresolved determination, and NEVER direct the controller to a specific resolution method (consulting counsel, commissioning an audit, internal analysis, or any other). Correct form: 'The controller must resolve, with reference to § 7001(ddd) and § 7150(b)(3)–(4), whether the rules-based scoring system triggers either provision, and document the determination in the assessment record.' Incorrect forms: 'if X applies, Y is required' (tells the user the consequence of a determination the tool has not made) and 'consult privacy counsel to confirm/determine …' (prescribes the resolution method — the choice of method belongs to the controller). Strip both constructions wherever they arise and replace with 'The controller must resolve and document [the determination] in the assessment record.' This applies to resolution_required, priority_actions, rationale text, and every narrative field.",
     "EXCEPTIONS_STATUS MUST AGREE WITH THE RECORD: do not set assessment_summary.exceptions_status to 'All well-documented' when the same assessment identifies missing required fields (e.g. § 7152(a)(4) benefits documentation, sources of PI, minimum-necessary determinations) elsewhere in the output. If required fill-ins remain open anywhere in the document, exceptions_status must reflect that — e.g. 'No exceptions claimed; § 7152(a)(4) benefits documentation incomplete' — not an unqualified 'All well-documented.'",
     "STATUTORY_BASIS MUST COVER BOTH DETERMINATIONS: where an action item states two separate determinations are required (recipient classification vs. sale/share characterisation — see the THIRD PARTY ≠ SALE/SHARE rule), statutory_basis must cite provisions for BOTH: § 1798.140(ag) (service provider) and § 1798.140(j) (contractor) for the classification determination, alongside § 7150(b)(1) and the relevant § 1798.140 sale/share definitions for the second. Do not cite only the sale/share provision when the action also asks the user to make a classification determination.",
-    "PRECISE DEFINITION CITES: when definitions of sell/share/service-provider/contractor are invoked, cite in this precise form — \"§ 1798.140(ad) ('sell'); § 1798.140(ah) ('share'); § 1798.140(ag) (service provider); § 1798.140(j) (contractor); 11 CCR § 7150(b)(1)\". Do not paraphrase these subsection labels.",
+    "PRECISE DEFINITION CITES: when definitions of sell/share/service-provider/contractor/third party are invoked, cite in this precise form — \"§ 1798.140(ad) ('sell'); § 1798.140(ah) ('share'); § 1798.140(ag) (service provider); § 1798.140(j) (contractor); § 1798.140(ai) ('third party'); 11 CCR § 7150(b)(1)\". Do not paraphrase these subsection labels. In particular, the post-CPRA lettering for the 'third party' definition is § 1798.140(ai) — never § 1798.140(ad) (which is 'sell') and never invent an unlettered '§ 1798.140' cite when the third-party definition is the operative authority.",
     "PF6 T3(a) — TRIGGERED-ACTIVITY INFERENCE DISCLOSURE (mirrors admt CONDITIONAL FINDINGS STAY CONDITIONAL): a § 7150(b) triggered activity may be asserted in assessment_summary, the triggered-activities list, findings, or narrative fields ONLY when the same clause names the specific intake basis for the classification. Regulatory category labels the intake does not itself use — including \"cross-context behavioural advertising\", \"cross-context behavioural / targeted advertising\", \"targeted advertising\", \"selling personal information\", \"sharing personal information\", \"processing sensitive personal information\", \"significant decision\", and \"extensive profiling\" — are NEVER stated as intake facts. Correct form: \"based on the intake's description of [X: e.g. use of Meta/Google advertising pixels serving ads on other businesses' properties], this constitutes cross-context behavioural advertising under § 7150(b)(1)\" — the category label is presented as a CLASSIFICATION of the named intake fact, not as a fact the intake itself asserts. Where the intake does not supply a basis, do NOT list the activity as triggered; list it under information_needed instead, naming the specific intake question whose answer would establish or exclude the trigger. This rule applies to every field including assessment_summary.triggered_activities, individual finding descriptions, headings, and executive-summary prose.",
     "PF6 T3(b) — § 1798.185 IS RULEMAKING AUTHORITY ONLY, NEVER AN OBLIGATION SOURCE (mirrors admt CITE THE OBLIGATION, NOT THE DEFINITION): Cal. Civ. Code § 1798.185 authorises the Agency to adopt regulations; it imposes NO obligations on businesses. § 1798.185 is NEVER cited as authority for a corrective-action item, a remediation step, a documentation duty, a deadline, or any other business-facing obligation. Obligations for risk-assessment conduct cite the OPERATIVE regulation — the specific 11 CCR § 7150–7157 subsection that imposes the duty (e.g. § 7152(a)(N) for exception-documentation elements, § 7154 for content requirements, § 7155(a)(1)/(2)/(b) for timing, § 7156 for attestation submission, § 7157 for retention). Where narrative context requires acknowledging the rulemaking basis, phrase it in narrative form (\"the CPPA adopted §§ 7150–7157 under its § 1798.185 rulemaking authority\") and never attach an action verb, deadline, or obligation to the § 1798.185 cite. A statutory_basis field or corrective-action citation containing § 1798.185 alone — or § 1798.185 paired with an action duty — is a citation-misapplied defect.",
     "W6-RISK-FIX (1) INTAKE-STATE DISCIPLINE: NEVER state that a § 7150(b) trigger 'was asserted', 'was selected', 'was indicated', 'was stated', or 'was chosen' in the intake unless a specific intake field explicitly selects it, AND that field is named in the same clause. The only supported predicate for § 7150(b)(4) is q5b_profiling_observation = 'Yes — systematic observation of workers/students/applicants'; sell/share ↔ q3_sell_share; targeted advertising ↔ q4_targeted_ads; ADMT ↔ q18_admt_use / q18b_admt_training; sensitive PI ↔ q15_sensitive_pi. A § 7150(b) subsection with no explicit intake basis may be raised ONLY as an unconfirmed possibility routed to inconsistency_flags / information_needed / next-steps, phrased explicitly as 'not present in the intake' — NEVER as intake-asserted. This applies to every field including assessment_summary, triggered_activities, findings, and executive_summary.",
@@ -909,23 +909,30 @@ async function runPipeline(assessment_id: string) {
       const banned = BANNED_PHRASES.filter((p) => flat.includes(p));
       const lint = lintReportText(flat, { banGapWord: true });
 
-      // T-1 — deterministic band-vs-threshold backstop for the § 7120(b)(2)(A)
-      // 250,000-consumer volume prong. Derived from the SAME normalised intake
-      // the prompt consumes (fiveStage.annual_consumer_volume).
+      // T-1 (WAVE12-FIX TURN D — D1) — deterministic band-vs-threshold
+      // backstop for the § 7120(b)(2)(A) 250,000-consumer volume prong.
       //
-      // Clean bands (aligned to the 250,000 breakpoint) resolve deterministically:
-      //   "Fewer than 100,000" / "100,000–249,999" — entirely BELOW 250,000 →
+      // Wave-12 defect (HIGH doc 9ce32381): T-1 read q2_consumers whose
+      // CONSUMER_OPTS bands already align to the 250k breakpoint (e.g.
+      // "100,000–249,999" resolves BELOW). The correct field for the CA
+      // 12-month count is `i3_ca_consumer_band`, whose CA_CONSUMER_BAND
+      // bands are coarser and DO straddle 250k. Reading q2 hid a straddle
+      // and let a definitive "not met" ship. Fix: read i3_ca_consumer_band
+      // and evaluate against its own band set.
+      //
+      // CA_CONSUMER_BAND resolution:
+      //   "Fewer than 10,000" / "10,000–100,000" — entirely BELOW 250,000 →
       //       definitive "met" claims are violations.
-      //   "250,000–1 million" / "1–10 million" / "Over 10 million" — entirely
-      //       AT OR ABOVE 250,000 → definitive "not met" claims are violations.
-      //
-      // Legacy straddling band "100,000–1 million" and "Unsure" cannot resolve
-      // the threshold — ANY definitive met/not-met claim (either direction) is
-      // a violation and the report must state indeterminate.
-      const volumeBand = String(fiveStage.annual_consumer_volume ?? "").trim();
-      const belowBands = new Set(["Fewer than 100,000", "100,000–249,999"]);
-      const aboveBands = new Set(["250,000–1 million", "1–10 million", "Over 10 million"]);
-      const straddleOrUnsure = volumeBand === "100,000–1 million" || volumeBand.toLowerCase() === "unsure";
+      //   "More than 1,000,000" — entirely ABOVE 250,000 → definitive
+      //       "not met" claims are violations.
+      //   "100,000–1,000,000" — STRADDLES 250,000 → any definitive
+      //       met/not-met claim is a violation; must resolve indeterminate.
+      //   "Unsure" — indeterminate; same rule as straddle.
+      const i3Band = String((rawIntake as Record<string, unknown>)?.i3_ca_consumer_band ?? "").trim();
+      const belowBands = new Set(["Fewer than 10,000", "10,000–100,000"]);
+      const aboveBands = new Set(["More than 1,000,000"]);
+      const straddleOrUnsure = i3Band === "100,000–1,000,000" || i3Band.toLowerCase() === "unsure";
+      const volumeBand = i3Band; // for telemetry parity below
 
       const metPatterns: RegExp[] = [
         /exceeds the 250,000/i,

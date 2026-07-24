@@ -21,6 +21,11 @@
 // Fail-open, non-blocking; counters attach at _w10_risk_b1 for telemetry.
 
 export const W10_RISK_B1_STAMP = "w10-risk-b1@2026-07-24T12:37:00Z";
+// TURN D (WAVE12-FIX / cppa-risk) — D2 hardening. Bidirectional profiling
+// guard: never assert profiling absent an intake basis (B1b, above) AND
+// never DENY profiling that q5b_profiling_observation asserts. Fail-open;
+// telemetry lands under _w10_risk_b1.counters.profiling_denials_*.
+export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-24T17:20:00Z";
 
 export interface W10RiskB1Counters {
   flags_scanned: number;
@@ -29,6 +34,9 @@ export interface W10RiskB1Counters {
   claims_scanned: number;
   claims_downgraded: number;
   claims_removed: number;
+  // D2 — profiling-denial guard (bidirectional).
+  profiling_denials_scanned: number;
+  profiling_denials_downgraded: number;
 }
 
 const emptyCounters = (): W10RiskB1Counters => ({
@@ -38,6 +46,8 @@ const emptyCounters = (): W10RiskB1Counters => ({
   claims_scanned: 0,
   claims_downgraded: 0,
   claims_removed: 0,
+  profiling_denials_scanned: 0,
+  profiling_denials_downgraded: 0,
 });
 
 // ---------- Intake flattening ----------
@@ -239,6 +249,62 @@ function guardObjectDeep(
   return node;
 }
 
+// ---------- D2 — profiling-denial guard (reverse direction of B1b) ----------
+// Wave-12 defect (doc 864495a3): the report wrote "no profiling inferences
+// are recorded" while intake q5b_profiling_observation asserted
+// "Yes — systematic observation of workers/students/applicants". A denial
+// is a false negative that must never be emitted when the intake basis is
+// present. We only fire when the intake ACTUALLY asserts profiling; if the
+// intake denies profiling, the sentence stands.
+const PROFILING_DENIAL_RE =
+  /([^.!?\n]*?\b(?:no\s+profiling\b|no\s+[a-z0-9\s,-]{0,80}?inferences?\b|profiling\s+(?:is|are)\s+not\b|does\s+not\s+(?:perform|conduct|engage\s+in)\s+profiling|not\s+performing\s+profiling|no\s+systematic\s+observation)[^.!?\n]*)[.!?]/gi;
+
+function intakeAssertsProfiling(intakeFlat: Record<string, string>): boolean {
+  const q5b = intakeFlat["q5b_profiling_observation"];
+  if (!q5b) return false;
+  const n = normalise(q5b);
+  // Any non-"no"/"not applicable"/"unsure" value beginning with "yes" counts.
+  return /^yes\b/.test(n);
+}
+
+function guardProfilingDenials(
+  text: string,
+  intakeFlat: Record<string, string>,
+  counters: W10RiskB1Counters,
+): string {
+  if (typeof text !== "string" || text.length === 0) return text;
+  if (!intakeAssertsProfiling(intakeFlat)) return text;
+  return text.replace(PROFILING_DENIAL_RE, (m, sentence: string) => {
+    counters.profiling_denials_scanned += 1;
+    const trailing = m.slice(sentence.length);
+    counters.profiling_denials_downgraded += 1;
+    // Preserve leading context; append a corrective clause that flags the
+    // contradiction rather than restating the false negative.
+    return (
+      "The intake asserts systematic-observation profiling " +
+      "(q5b_profiling_observation = Yes); the earlier statement that " +
+      sentence.trim().replace(/^"|"$/g, "").toLowerCase() +
+      " is not supported by the intake and must be reconciled" +
+      trailing
+    );
+  });
+}
+
+function guardDenialsDeep(
+  node: unknown,
+  intakeFlat: Record<string, string>,
+  counters: W10RiskB1Counters,
+): unknown {
+  if (typeof node === "string") return guardProfilingDenials(node, intakeFlat, counters);
+  if (Array.isArray(node)) return node.map((v) => guardDenialsDeep(v, intakeFlat, counters));
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node)) out[k] = guardDenialsDeep(v, intakeFlat, counters);
+    return out;
+  }
+  return node;
+}
+
 // ---------- Public entry ----------
 export function applyW10RiskB1(
   report: Record<string, unknown>,
@@ -266,6 +332,15 @@ export function applyW10RiskB1(
     const v = (report as Record<string, unknown>)[key];
     if (v !== undefined) {
       (report as Record<string, unknown>)[key] = guardObjectDeep(v, intakeFlat, counters);
+    }
+  }
+
+  // D2 — profiling-denial guard over the same narrative surfaces plus
+  // inconsistency_flags (denials sometimes surface inside a flag description).
+  for (const key of ["risk_register", "executive_summary", "risk_assessment_by_activity", "inconsistency_flags", "assessment_summary"] as const) {
+    const v = (report as Record<string, unknown>)[key];
+    if (v !== undefined) {
+      (report as Record<string, unknown>)[key] = guardDenialsDeep(v, intakeFlat, counters);
     }
   }
 
