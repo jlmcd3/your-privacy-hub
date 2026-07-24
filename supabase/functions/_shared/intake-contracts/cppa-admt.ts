@@ -147,6 +147,11 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "third_party_admt",    kind: "text", required: "optional" },
     { key: "admt_system_count",   kind: "text", required: "optional" },
 
+    // TURN 2 — new intake fields (both optional; drive A-C applicability + role clarity)
+    { key: "affected_population_band", kind: "enum", required: "optional", options: ADMT_AFFECTED_POPULATION_BAND_OPTS },
+    { key: "role_roster",              kind: "multi-enum", required: "optional", options: ADMT_ROLE_ROSTER_OPTS },
+
+
     // admt_detail — structured nested object; all 38 leaves are optional
     // (form does not gate on any of them in stepValid). Enum leaves are
     // registered so validateIntake enforces option verbatim-ness when a
