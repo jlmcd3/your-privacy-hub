@@ -49,8 +49,8 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T21:02:31Z):**
-- `run-admt-checker` **deployed 21:01:57Z** (ADMT-DEPLOY-CORPUS-LIVE, `w14-admt-corpuslive@2026-07-24T21:01:33Z`); pre-deploy lock recheck at 21:01:33Z clear (`quality_batch_runs` running/pending = 0; `cppa_assessments` <15 min NULL report = 0). `run-cppa-cybersecurity` unlocked. All other functions unlocked.
+**Current lock state (2026-07-24T22:42:44Z):**
+- Batch `b35cee1a` COMPLETE 2026-07-24T22:36:54Z; no running/pending `quality_batch_runs`; all edge functions unlocked. Deploys still subject to the standing <15-min in-flight customer-path check at deploy time (per §3 rule above).
 - Deferred: MEDIUM cyber boilerplate-remediation across 16/18 controls (own future turn — not co-located in the crosswalk assembler).
 
 ## 4. Last Completed Turn
