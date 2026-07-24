@@ -21,6 +21,11 @@
 // Fail-open, non-blocking; counters attach at _w10_risk_b1 for telemetry.
 
 export const W10_RISK_B1_STAMP = "w10-risk-b1@2026-07-24T12:37:00Z";
+// TURN D (WAVE12-FIX / cppa-risk) — D2 hardening. Bidirectional profiling
+// guard: never assert profiling absent an intake basis (B1b, above) AND
+// never DENY profiling that q5b_profiling_observation asserts. Fail-open;
+// telemetry lands under _w10_risk_b1.counters.profiling_denials_*.
+export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-24T17:20:00Z";
 
 export interface W10RiskB1Counters {
   flags_scanned: number;
