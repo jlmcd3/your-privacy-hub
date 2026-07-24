@@ -79,7 +79,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
-- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8). Regen click deferred to end-of-program walk-through.
+- **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/8), `cppa_admt` (2/8), `cppa_cyber` (3/8), `dpia` (4/8). Regen click deferred to end-of-program walk-through.
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt/risk) — held until after wave 8 completes (T2-S3-VERIFY-1). Wave 10 landed; may be considered after wave 11 measurement.
   - W6 cyber — SUPERSEDED this turn by `w10-cyber-a1a2` (fresh-clock stamp).
