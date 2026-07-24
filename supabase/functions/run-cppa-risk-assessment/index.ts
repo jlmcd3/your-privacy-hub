@@ -4,7 +4,7 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "c2-2-corpus-facts-drift-lint@2026-07-24T01:00:00Z";
+export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // run-meter deploy-check v1
