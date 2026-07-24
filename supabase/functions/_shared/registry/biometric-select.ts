@@ -76,6 +76,20 @@ export function resolveJurisdictions(
   if (jurs.some((j) => j.includes("washington"))) {
     push("us_wa_hb1493", "direct_selection");
   }
+  // BIO-REG-W1-S2 — direct-selection hooks for Wave-2 jurisdictions. The
+  // biometric intake JURS enum does not (yet) list CA / NY / AR discretely,
+  // so these fire when the user pastes a matching label; the Other US state
+  // free-text path continues to resolve via BIOMETRIC_REGISTRY_JURISDICTIONS
+  // state_names below.
+  if (jurs.some((j) => j.includes("california") || j.includes("ccpa") || j.includes("cpra"))) {
+    push("us_ca_cpra", "direct_selection");
+  }
+  if (jurs.some((j) => j.includes("new york") || j.includes("shield"))) {
+    push("us_ny_shield", "direct_selection");
+  }
+  if (jurs.some((j) => j.includes("arkansas"))) {
+    push("us_ar_pipa", "direct_selection");
+  }
 
   const isOtherUs = jurs.some((j) => j.includes("other us"));
   const namedRaw = (intake.other_state_names ?? "").trim();
