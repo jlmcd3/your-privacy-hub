@@ -545,12 +545,15 @@ Deno.serve(async (req) => {
     // gaming, and human-involvement hand rules. Warn-and-ship-unanchored when
     // no matching row is on record (the hand rule stays in force).
     const admtFsorAnchorBlock = await buildFsorAnchorBlock(supabase, ADMT_FSOR_ANCHOR_SPECS);
+    // C2-2 — corpus-sourced canonical deadlines + startup drift-lint.
+    verifyCppaDeadlineDrift(supabase, "admt");
+    const admtDeadlineBlock = await buildCppaDeadlineBlock(supabase, "admt");
 
     const authoritiesBlock = `REGULATION AUTHORITIES:
 ${authBlock}
 
 COMPLIANCE DEADLINES:
-${deadlineBlock}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
+${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
 
     const system: SystemBlock[] = buildSystemContent({
       toolModule: ADMT_TOOL_MODULE,
