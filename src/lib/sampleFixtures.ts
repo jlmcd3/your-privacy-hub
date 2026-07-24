@@ -195,6 +195,21 @@ const F_DPA_EU: SampleFixture = {
 };
 
 // --- 4. Governance / EU --------------------------------------------------
+// SAMPLES-CONTRACT-governance (6/8) reconciliation notes:
+//   - Intake keys and enum literals mirror GovernanceAssessment.tsx
+//     buildIntake() (L200-224) and governanceContract exactly.
+//   - Free-text drift ("Yes, up to date", "All vendors", "Logistics /
+//     e-commerce fulfilment", etc.) normalized to contract enum literals.
+//   - Showcase substance NOT lost: sector prose, extra tools (Shopify Plus,
+//     ShipHero WMS), Order-history data category, and the Irish DPA-2018
+//     national overlay are preserved verbatim in `additional_context`.
+//   - `sample_run` removed — verified NOT emitted by buildIntake()
+//     (GovernanceAssessment.tsx L200-224); it was a fixture-only marker
+//     with no downstream consumers (rg confirmed).
+//   - Conditional slots (privacy_notice_coverage, dpo_status,
+//     dpia_ai_coverage, training_ai_coverage, dpa_art28_verified,
+//     transfer_mechanism) populated with valid enum literals so the
+//     showcase reads as a realistic mature-programme submission.
 const F_GOV_EU: SampleFixture = {
   tool_slug: "governance",
   variant: "eu",
@@ -208,23 +223,39 @@ const F_GOV_EU: SampleFixture = {
       status: "pending",
       intake_data: {
         organization_name: "Misfit Toys Logistics Ltd",
-        sector: "Logistics / e-commerce fulfilment",
+        sector: "Other",
         org_size: "51-250",
-        jurisdictions: ["EU (GDPR)", "Ireland (Data Protection Act 2018)"],
+        jurisdictions: ["EU (GDPR)", "Other"],
         eu_uk_data: "Yes",
-        tools: ["Microsoft 365 / Copilot", "Shopify Plus", "ShipHero WMS"],
-        data_categories: ["Customer records", "Employee records", "Contact identifiers", "Order history"],
+        tools: ["Microsoft 365 / Copilot"],
+        data_categories: ["Customer records", "Employee records", "Contact details", "Other"],
         special_category: "No",
         special_categories_list: [],
-        privacy_policy: "Yes, up to date",
-        dpo_status: "Yes, formally appointed DPO",
-        dpia_status: "Yes, formal DPIA programme with register",
+        privacy_policy: "Yes, current (reviewed in last 12 months)",
+        privacy_notice_coverage:
+          "Yes — notice covers all current activities, transfers, retention, and rights",
+        dpo_status: "Yes, formal DPO",
+        dpia_status: "Yes, multiple DPIAs completed",
+        dpia_ai_coverage: "Yes — all AI/high-risk tools assessed",
         incident_response: "Yes, tested in last 12 months",
-        training_status: "Yes, annual mandatory",
-        tool_instruction: "Documented policy",
-        dpa_status: "All vendors",
-        transfer_status: "Yes, with SCCs and TIAs in place",
-        sample_run: true,
+        training_status: "Yes, formal onboarding + annual refresh",
+        training_ai_coverage: "Yes — explicitly covers AI tools",
+        tool_instruction: "Yes, written policy with specific prohibitions",
+        dpa_status: "Yes, all vendors",
+        dpa_art28_verified: "Yes — verified",
+        transfer_status: "Yes, other non-adequate countries",
+        transfer_mechanism: "EU Standard Contractual Clauses (SCCs)",
+        technical_controls: "Yes — DLP/content filtering actively enforced",
+        technical_controls_list: ["DLP rules", "Content filtering", "Endpoint upload restrictions"],
+        dsr_capability: "Yes — documented and tested across all vendors",
+        dsr_rights_tested: ["Access", "Erasure", "Portability", "Rectification"],
+        inventory_audit: "Yes — audited + formal approval process",
+        additional_context:
+          "Sector context: logistics / e-commerce fulfilment operating across 11 EU jurisdictions. " +
+          "Additional jurisdictional overlay folded into 'Other': Irish Data Protection Act 2018 as the national implementation of the GDPR. " +
+          "Additional operational tools folded into the intake narrative (not on the standard governance tool list): Shopify Plus (storefront platform) and ShipHero WMS (warehouse-management system). " +
+          "Additional data category folded into 'Other': order history (used for fulfilment routing and returns). " +
+          "Transfer mechanism SCCs are supplemented by transfer impact assessments (TIAs) for each US-based sub-processor.",
       },
     },
     invoke: { fn: "run-governance-assessment", id_key: "assessment_id" },
@@ -233,6 +264,20 @@ const F_GOV_EU: SampleFixture = {
 };
 
 // --- 5. Governance / US --------------------------------------------------
+// SAMPLES-CONTRACT-governance (6/8) reconciliation notes:
+//   - Same reconciliation model as F_GOV_EU (see above).
+//   - US state overlays (Colorado CPA, Virginia VCDPA, Illinois BIPA)
+//     folded into the contract's `Other US States` enum literal; the state
+//     specifics — including the BIPA driver (fingerprint timeclocks) —
+//     preserved verbatim in `additional_context`.
+//   - Tools not on GOV_TOOLS ("Salesforce" ≠ "Salesforce + Einstein",
+//     "Snowflake") preserved in `additional_context`.
+//   - Biometric identifier specifics folded to the contract enum literal
+//     "Biometric data"; fingerprint-templates gloss preserved in
+//     `additional_context`.
+//   - transfer_status/transfer_mechanism = "n/a" per form behaviour when
+//     eu_uk_data === "No" (GovernanceAssessment.tsx L213, L222).
+//   - `sample_run` removed for the same reason as EU variant.
 const F_GOV_US: SampleFixture = {
   tool_slug: "governance",
   variant: "us",
@@ -246,30 +291,46 @@ const F_GOV_US: SampleFixture = {
       status: "pending",
       intake_data: {
         organization_name: "Busted Sled Solutions, Inc.",
-        sector: "Logistics / SaaS",
+        sector: "Other",
         org_size: "251-1000",
-        jurisdictions: ["California (CCPA/CPRA)", "Colorado (CPA)", "Virginia (VCDPA)", "Illinois (BIPA)"],
+        jurisdictions: ["California (CCPA/CPRA)", "Other US States"],
         eu_uk_data: "No",
-        tools: ["Microsoft 365 / Copilot", "Salesforce", "Snowflake", "HubSpot"],
+        tools: ["Microsoft 365 / Copilot", "HubSpot"],
         data_categories: [
           "Customer records",
           "Employee records",
-          "Contact identifiers",
-          "Internet/network activity",
-          "Biometric identifiers (fingerprint timeclocks)",
+          "Contact details",
+          "Biometric data",
+          "Other",
         ],
         special_category: "Yes",
-        special_categories_list: ["Biometric data (fingerprint templates)"],
-        privacy_policy: "Yes, up to date",
-        
-        dpo_status: "Yes, formally appointed privacy officer",
-        dpia_status: "Yes, formal DPIA programme with register",
+        special_categories_list: ["Biometric data"],
+        privacy_policy: "Yes, current (reviewed in last 12 months)",
+        privacy_notice_coverage:
+          "Yes — notice covers all current activities, transfers, retention, and rights",
+        dpo_status: "Yes, formal DPO",
+        dpia_status: "Yes, multiple DPIAs completed",
+        dpia_ai_coverage: "Yes — all AI/high-risk tools assessed",
         incident_response: "Yes, tested in last 12 months",
-        training_status: "Yes, annual mandatory",
-        tool_instruction: "Documented policy",
-        dpa_status: "All vendors",
-        transfer_status: "No (US-only operations)",
-        sample_run: true,
+        training_status: "Yes, formal onboarding + annual refresh",
+        training_ai_coverage: "Yes — explicitly covers AI tools",
+        tool_instruction: "Yes, written policy with specific prohibitions",
+        dpa_status: "Yes, all vendors",
+        dpa_art28_verified: "Yes — verified",
+        transfer_status: "n/a",
+        transfer_mechanism: "n/a",
+        technical_controls: "Yes — DLP/content filtering actively enforced",
+        technical_controls_list: ["DLP rules", "Content filtering", "Endpoint upload restrictions"],
+        dsr_capability: "Yes — documented and tested across all vendors",
+        dsr_rights_tested: ["Access", "Erasure", "Portability", "Rectification"],
+        inventory_audit: "Yes — audited + formal approval process",
+        additional_context:
+          "Sector context: multi-state US logistics/SaaS with consumer-facing shipment tracking; Delaware-incorporated, Illinois HQ. " +
+          "State overlays folded into 'Other US States': Colorado Privacy Act (CPA), Virginia Consumer Data Protection Act (VCDPA), and Illinois Biometric Information Privacy Act (BIPA). " +
+          "The Illinois BIPA exposure is driven by fingerprint timeclocks in warehouse operations. " +
+          "Additional operational tools folded into the intake narrative (not on the standard governance tool list): Salesforce (CRM) and Snowflake (analytical data warehouse). " +
+          "Additional data category folded into 'Other': internet/network activity (product telemetry from the shipment-tracking web experience). " +
+          "Biometric identifier specifics: fingerprint templates enrolled and matched at the employee timeclock endpoint.",
       },
     },
     invoke: { fn: "run-governance-assessment", id_key: "assessment_id" },
