@@ -22,6 +22,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { buildFsorAnchorBlock, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
