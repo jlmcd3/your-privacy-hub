@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T12:39:11Z — turn `RECOVERY-BATCH-FIXES / TURN B`
+**Last updated:** 2026-07-24T12:48:04Z — turn `SAMPLES-CONTRACT-dpia (4/8)`
 
 ---
 
