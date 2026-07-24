@@ -16,11 +16,14 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 
 ## 2. Queue Order (as currently dispatched)
 
-1. **DONE THIS TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 placeholder-leak fix + A2 deterministic aggregates) — deployed.
-2. **NEXT** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1 field cross-wiring). Deploy window closes ~13:05Z (before wave 11 at ~13:15Z) or HOLD.
+1. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 placeholder-leak fix + A2 deterministic aggregates) — deployed.
+2. **NEXT** — `CPPA-CYBER-FIX-CN-PLACEHOLDER` — fix the § 7123(c)(N) unresolved-substitution bug in `run-cppa-cybersecurity` (+ regression test); bundle exec-summary mean/count verification. Deploy respects §3 checks. _CEO CPPA-first priority; inserted ahead of dpia per BATCH-5e0558f3-EXTRACT digest._
 3. Then — resume `SAMPLES-CONTRACT-dpia` (4/8) → `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (5/8 … 8/8).
 4. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §7 sentinel gap).
 5. Deferred — W9 admt build restamp (bundled with next admt deploy; joins W6 restamp deferral in §6).
+6. Deferred — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1 field cross-wiring) — subsumed into cppa-risk's next product turn per note below.
+
+_Note:_ cppa-risk field-attribution pattern (2 findings in §5 digest) to be addressed in cppa-risk's next product turn; RETRO-AUDIT rides that turn.
 
 ## 3. Deploy Locks
 
