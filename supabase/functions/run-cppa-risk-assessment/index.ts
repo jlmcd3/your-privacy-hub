@@ -2127,7 +2127,21 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (_) { /* non-fatal */ }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "risk-cppa-hf6@2026-07-20"), build_stamp: "risk-cppa-hf6@2026-07-20T00:00Z" };
+    // W6-RISK-FIX (2026-07-24) — intake-state discipline, (b)(4)/(b)(5)
+    // de-bundling, and § 7150(b)(N) subsection-consistency sweep.
+    // Fail-open; runs immediately before the _meta stamp so counters are
+    // captured on the report.
+    try {
+      const _intakeForFix = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _w6rc } = applyW6RiskFix(report_data, _intakeForFix);
+      if ((_w6rc.intake_state_rewrites + _w6rc.bundled_pairs_debundled + _w6rc.subsection_normalized) > 0) {
+        console.warn(`[RISK] W6-RISK-FIX applied: intake_state=${_w6rc.intake_state_rewrites} debundled=${_w6rc.bundled_pairs_debundled} normalized=${_w6rc.subsection_normalized} scanned=${_w6rc.scanned_string_nodes}`);
+      }
+      (report_data as any)._w6_risk_fix = _w6rc;
+    } catch (e) { console.error("[RISK] W6-RISK-FIX errored (fail-open):", e); }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w6-risk-fix@2026-07-24"), build_stamp: BUILD_STAMP };
+
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
     report_data = freezeOpenItemsOnFirstRun(report_data, (report_data as any).information_needed, "cppa_risk_assessment", false);
