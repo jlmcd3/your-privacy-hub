@@ -341,7 +341,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7221",
     subsection: "11 CCR § 7221(a)",
     verbatim_quote:
-      "A business that uses automated decisionmaking technology for a significant decision concerning a consumer must provide the consumer with the ability to opt-out of the business's use of the automated decisionmaking technology, unless an exception in subsection (b) applies.",
+      "A business must provide consumers with the ability to opt-out of the use of ADMT to make a significant decision concerning the consumer, except as set forth in subsection (b).",
     depth_class: "subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -352,7 +352,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7221",
     subsection: "11 CCR § 7221(b)(1)",
     verbatim_quote:
-      "A business is not required to provide the consumer with the ability to opt-out of the business's use of the automated decisionmaking technology if the business provides the consumer with a method to appeal the decision to a qualified human reviewer who has the authority to overturn the decision.",
+      "The business provides the consumer with a method to appeal the decision to a human reviewer who has the authority to overturn the decision.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
@@ -363,7 +363,7 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7221",
     subsection: "11 CCR § 7221(b)(2)",
     verbatim_quote:
-      "A business is not required to provide the consumer with the ability to opt-out of the business's use of the automated decisionmaking technology for admission, acceptance, or hiring decisions if the automated decisionmaking technology is used solely to assess the consumer's ability to perform in the applicable position and does not unlawfully discriminate.",
+      "For admission, acceptance, or hiring decisions as set forth in section 7001, subsections (ddd)(3)(A) and (ddd)(4)(A), if the following are true:\n(A) The business uses the ADMT solely for the business’s assessment of the consumer’s ability to perform at work or in an educational program to determine whether to admit, accept, or hire them; and\n(B) The ADMT works for the business’s purpose and does not unlawfully discriminate based upon protected characteristics.",
     depth_class: "sub_subsection",
     governing_anchor: ART11,
     verified_on: VOD,
