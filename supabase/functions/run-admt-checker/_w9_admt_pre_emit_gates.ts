@@ -75,7 +75,7 @@ const G3_LEAK_RES: RegExp[] = [
 // fallback; the walk-anchor guard around structured `citation` fields is
 // unaffected (those go through the resolver).
 const G4_INVENTED_SECTION_RE =
-  /\b(?:11\s*CCR\s*)?§+\s*(71[6-9][0-9]|719[0-9]|72(?:2[3-9]|[3-9]\d))(?:\s*\([a-z0-9]+\))*/gi;
+  /(?:11\s*CCR\s*)?§+\s*(71[6-9][0-9]|72(?:2[3-9]|[3-9]\d))(?:\s*\([a-z0-9]+\))*/gi;
 const G4_REPLACEMENT = "11 CCR §§ 7220–7222";
 
 // ── Sentence splitter ───────────────────────────────────────────────────
