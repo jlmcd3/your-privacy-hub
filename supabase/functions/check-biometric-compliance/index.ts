@@ -1313,7 +1313,10 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     annotations: [],
     lint_warnings: [],
     generated_at: new Date().toISOString(),
-    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP },
+    // BIO-REG-W1 T2(c) D2 FIX — persist registry_version on the report
+    // envelope (surface stamp). Was 0/6 in the T2(c) gate batch.
+    registry_version: BIOMETRIC_REGISTRY_VERSION,
+    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
   };
 
   let savedId: string | null = null;
