@@ -4,7 +4,9 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T19:19:16Z — ADMT-REGISTRY-CORPUS-1 (§ 7001 batch, 1 of 8) DONE — 11 registry rows corrected to corpus-verbatim (commit fe76f1c); KNOWN_PARAPHRASED_KEYS 34 → 23.
+**Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
+
+**Last updated:** 2026-07-24T19:25:08Z — docs-only ledger update — Backend access law standing order added to header; no code, no deploy.
 
 ---
 
