@@ -126,7 +126,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "adversarial",
     intake: {
-      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago" },
+      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"] },
       controls: build({
         c1_auth: { notes: "MFA via Okta. Encryption: AES-256 at rest with KMS-managed keys; TLS 1.3 in transit." },
         c2_encryption: { notes: "See auth notes." },
