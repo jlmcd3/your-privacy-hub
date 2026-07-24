@@ -19,6 +19,7 @@ import JSZip from "jszip";
 import { RefreshCw } from "lucide-react";
 import { LaunchGateScoreboard } from "@/components/admin/LaunchGateScoreboard";
 import { QualityFindingBacklogPanel } from "@/components/admin/QualityFindingBacklogPanel";
+import { CertificationStatusPanel } from "@/components/admin/CertificationStatusPanel";
 
 // QB-P3 cleanup: SLUG_TO_TOOL_TYPE lives in src/lib/qualityBatchTools.ts so
 // QualityBatch and QualityBatch2 share one source of truth. Verified against
@@ -910,6 +911,9 @@ export default function QualityBatch() {
 
       {/* CPPA-PRODUCT-1 L5 — Findings-to-Backlog surface */}
       <QualityFindingBacklogPanel />
+
+      {/* CEO CERTIFICATION STANDARD (2026-07-24) — per-tool 3-consecutive-wave state */}
+      <CertificationStatusPanel />
 
       {/* Panel B — Live log */}
       <Card>
