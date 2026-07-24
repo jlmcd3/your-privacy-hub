@@ -22,10 +22,10 @@ import {
   registrySize,
 } from "../_shared/verified-authority-resolver.ts";
 
-Deno.test("W15: BUILD_STAMP is w15-cyber-regwire@<iso>", async () => {
+Deno.test("W15: BUILD_STAMP is w15-cyber-regwire@<iso> or w15-cyber-factledger@<iso>", async () => {
   const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
-  assert(m && /^w15-cyber-regwire@\d{4}-\d{2}-\d{2}T/.test(m[1]), `unexpected stamp: ${m?.[1]}`);
+  assert(m && /^(w15-cyber-regwire|w15-cyber-factledger)@\d{4}-\d{2}-\d{2}T/.test(m[1]), `unexpected stamp: ${m?.[1]}`);
 });
 
 Deno.test("W15: index.ts imports cyber registry + resolver + injects VA block", async () => {
