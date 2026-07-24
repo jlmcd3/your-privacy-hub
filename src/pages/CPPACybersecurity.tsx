@@ -335,6 +335,26 @@ export default function CPPACybersecurity() {
               <option>Within 12 months</option><option>12–24 months ago</option><option>Over 24 months ago</option><option>Never</option>
             </select>
           </div>
+          <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
+            <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional — select every framework whose evidence you intend to leverage under § 7123(f))</span></Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {CYBER_IN_SCOPE_FRAMEWORKS.map((opt) => {
+                const selected = profile.in_scope_frameworks.includes(opt);
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => toggleInScopeFramework(opt)}
+                    className={`text-xs px-3 py-1 rounded-full border ${selected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input"}`}
+                  >{opt}</button>
+                );
+              })}
+            </div>
+          </div>
+          <div data-rail-key="audit_scope_rationale" onFocus={() => focusRail('audit_scope_rationale')}>
+            <Label>Audit scope rationale <span className="text-xs text-muted-foreground font-normal">(optional — explain what the audit covers and, if leveraging a prior framework under § 7123(f), how it supplements)</span></Label>
+            <Textarea rows={3} value={profile.audit_scope_rationale} onChange={(e) => setProfile({ ...profile, audit_scope_rationale: e.target.value })} className="mt-2" placeholder="e.g., Audit covers the SaaS production estate; leverages last year's SOC 2 Type II, supplemented for § 7123(c) components not covered by SOC 2 (segmentation, retention)." />
+          </div>
         </section>
 
         <section className="bg-card border rounded-lg p-6 space-y-6">
