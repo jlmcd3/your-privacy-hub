@@ -72,6 +72,55 @@ export const CLASS_BY_CHECK_ID: Record<string, ClassificationRule> = {
   notice_gaps_when_inscope: { class: "intake", lever: "L4" },
   gaming_not_significant_decision: { class: "intake", lever: "L4" },
   adtech_not_significant_decision: { class: "intake", lever: "L4" },
+
+  // ── L5-followup: structural section checks → L3 typed slots ───────────
+  // dpa-generator: annex-architecture turn closes these by construction.
+  // ir-playbook:  instruments turn (CPPA-PRODUCT plan) closes these.
+  e1_section_present: {
+    class: "feature",
+    lever: "L3",
+    notes: "Closed by construction via typed slots — DPA annex-architecture turn and IR instruments turn (CPPA-PRODUCT plan).",
+  },
+  e1_section_order: {
+    class: "feature",
+    lever: "L3",
+    notes: "Closed by construction via typed slots — DPA annex-architecture turn and IR instruments turn (CPPA-PRODUCT plan).",
+  },
+
+  // ── L5-followup: deterministic phrasing normalization → L2 pre-emit ───
+  h1_article_phrasing: {
+    class: "feature",
+    lever: "L2",
+    notes: "Deterministic Article-phrasing normalization belongs in the ADMT pre-emit gate (ADMT-FIX-W9 scope).",
+  },
+
+  // ── L5-followup: ADMT scaffolding-leak family → L2, in-progress ───────
+  // Scrubber shipped W6 (_w6_admt_fix.ts); bounded-regen shipped W9 Turn 2
+  // (run-admt-checker w9-admt-wire). Flip to shipped when a full wave
+  // shows zero occurrences on the current build.
+  h5_internal_note_block: {
+    class: "feature",
+    lever: "L2",
+    status: "in_progress",
+    notes: "Scrubber shipped W6 / bounded-regen shipped Turn 2 — flip to shipped when a full wave shows zero occurrences on the current build.",
+  },
+  h4_evasive_placeholder: {
+    class: "feature",
+    lever: "L2",
+    status: "in_progress",
+    notes: "Scrubber shipped W6 / bounded-regen shipped Turn 2 — flip to shipped when a full wave shows zero occurrences on the current build.",
+  },
+
+  // ── L5-followup: IR unclosed-TBC → L2 named-gap doctrine ──────────────
+  // Named-gap doctrine + pre-emit placeholder guard. Backlog data: last
+  // seen wave 1 (ir-playbook), 5 occurrences — likely extinct on current
+  // builds; verify via a wave-9+ read before flipping to shipped.
+  e3_tbc_unclosed: {
+    class: "feature",
+    lever: "L2",
+    status: "in_progress",
+    notes: "Named-gap doctrine + pre-emit placeholder guard. Likely extinct: last seen wave 1 (ir-playbook, 5 occurrences); flip to shipped after a wave-9+ verification read shows zero occurrences.",
+  },
 };
 
 export function classify(checkId: string): ClassificationRule {
