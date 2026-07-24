@@ -12,6 +12,7 @@ export const BUILD_STAMP = "w9-cyber-turn3@2026-07-24T10:51:31Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
+import { attachCyberAggregates, W10_CYBER_AGG_STAMP } from "./_w10_cyber_aggregates.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
   const s = e instanceof Error ? `${e.name}: ${e.message}` : (typeof e === "string" ? e : (() => { try { return JSON.stringify(e); } catch { return String(e); } })());
