@@ -1,10 +1,11 @@
 // classify-quality-findings — CPPA-PRODUCT-1 L5.
 //
-// Reads new quality_findings since the last run, buckets by (check_id, tool),
-// derives wave_number + grader_hash via quality_batch_runs -> quality_campaigns,
-// applies the change-controlled classification rules table, and upserts rows
-// into public.quality_finding_backlog. On first run (backlog empty) it
-// backfills across ALL waves and all ten tools.
+// Reads failing quality_findings across all history, buckets by (check_id, tool),
+// derives wave_number per batch from quality_campaigns.wave_number /
+// last_wave_started_at / wave_interval_minutes, pulls grader_hash from
+// quality_runs.grader_context_version, applies the change-controlled
+// classification rules table, and upserts rows into
+// public.quality_finding_backlog.
 //
 // Standing rule: BUILD_STAMP = actual build time at authoring, never projected.
 
@@ -12,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { classify } from "../_shared/quality-backlog/classification-rules.ts";
 
-const BUILD_STAMP = "classify-quality-findings@2026-07-24T06:42:28Z";
+const BUILD_STAMP = "classify-quality-findings@2026-07-24T07:18:44Z";
 
 console.log(JSON.stringify({ evt: "boot", fn: "classify-quality-findings", build_stamp: BUILD_STAMP }));
 
@@ -25,6 +26,50 @@ interface Aggregate {
   grader_hash: string | null;
 }
 
+function deriveWave(
+  batchStartedAt: string | null,
+  campaign: {
+    wave_number: number | null;
+    last_wave_started_at: string | null;
+    wave_interval_minutes: number | null;
+  } | undefined | null,
+): number | null {
+  if (!campaign || campaign.wave_number == null) return null;
+  const N = campaign.wave_number;
+  if (!batchStartedAt || !campaign.last_wave_started_at || !campaign.wave_interval_minutes) {
+    // No timing info — best available attribution is the current wave.
+    return N;
+  }
+  const started = Date.parse(batchStartedAt);
+  const lastWave = Date.parse(campaign.last_wave_started_at);
+  const intervalMs = campaign.wave_interval_minutes * 60_000;
+  if (!isFinite(started) || !isFinite(lastWave) || intervalMs <= 0) return N;
+  const wavesBack = Math.floor((lastWave - started) / intervalMs);
+  return Math.max(1, N - Math.max(0, wavesBack));
+}
+
+async function fetchAllPaginated<T>(
+  supabase: any,
+  table: string,
+  select: string,
+  filter?: (q: any) => any,
+  pageSize = 1000,
+): Promise<T[]> {
+  const out: T[] = [];
+  let from = 0;
+  while (true) {
+    let q = supabase.from(table).select(select).range(from, from + pageSize - 1);
+    if (filter) q = filter(q);
+    const { data, error } = await q;
+    if (error) throw new Error(`select ${table}: ${error.message}`);
+    if (!data || data.length === 0) break;
+    out.push(...(data as T[]));
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -34,106 +79,91 @@ Deno.serve(async (req) => {
   );
 
   try {
-    // Aggregate failing findings across ALL history, joining through
-    // quality_batch_runs.tool_results (jsonb) to reach quality_campaigns for
-    // wave_number + grader_context_version.
-    const aggSql = `
-      WITH run_wave AS (
-        SELECT DISTINCT ON (qr.id)
-          qr.id AS run_id,
-          qc.wave_number,
-          qc.grader_context_version AS grader_hash
-        FROM public.quality_runs qr
-        LEFT JOIN public.quality_batch_runs qbr
-          ON qbr.tool_results::text LIKE '%' || qr.id::text || '%'
-        LEFT JOIN public.quality_campaigns qc
-          ON qc.id = qbr.campaign_id
-        ORDER BY qr.id, qbr.started_at DESC NULLS LAST
-      )
-      SELECT
-        f.check_id,
-        f.tool,
-        COUNT(*)::int                                    AS occurrence_count,
-        MIN(rw.wave_number)::int                         AS first_seen_wave,
-        MAX(rw.wave_number)::int                         AS last_seen_wave,
-        (array_agg(rw.grader_hash ORDER BY f.created_at DESC)
-          FILTER (WHERE rw.grader_hash IS NOT NULL))[1]  AS grader_hash
-      FROM public.quality_findings f
-      LEFT JOIN run_wave rw ON rw.run_id = f.run_id
-      WHERE f.passed = false
-      GROUP BY f.check_id, f.tool
-    `;
+    // ---- Load campaigns (source of truth for wave timing) ----
+    const campaigns = await fetchAllPaginated<{
+      id: string;
+      wave_number: number | null;
+      last_wave_started_at: string | null;
+      wave_interval_minutes: number | null;
+    }>(supabase, "quality_campaigns", "id, wave_number, last_wave_started_at, wave_interval_minutes");
+    const campaignById = new Map<string, { wave_number: number | null; last_wave_started_at: string | null; wave_interval_minutes: number | null }>();
+    campaigns.forEach((c) => campaignById.set(c.id, c));
 
-    let rows: any = null;
-    let aggErr: any = { message: "rpc_skipped" };
-    try {
-      const r = await supabase.rpc("exec_sql_readonly", { sql: aggSql });
-      rows = r.data; aggErr = r.error;
-    } catch (_) { /* fall through to client-side aggregation */ }
+    // ---- Load batch runs; derive wave per batch, extract embedded run_ids ----
+    const batches = await fetchAllPaginated<{
+      campaign_id: string | null;
+      tool_results: unknown;
+      started_at: string | null;
+    }>(supabase, "quality_batch_runs", "campaign_id, tool_results, started_at");
 
-    let aggregates: Aggregate[];
-    if (aggErr || !rows) {
-      // Fallback: no exec_sql_readonly RPC available — do it client-side.
-      const { data: findings, error: fErr } = await supabase
-        .from("quality_findings")
-        .select("check_id, tool, run_id, created_at")
-        .eq("passed", false);
-      if (fErr) throw fErr;
-
-      const { data: batches } = await supabase
-        .from("quality_batch_runs")
-        .select("campaign_id, tool_results, started_at");
-      const { data: campaigns } = await supabase
-        .from("quality_campaigns")
-        .select("id, wave_number, grader_context_version");
-
-      const campaignById = new Map<string, { wave_number: number | null; grader_context_version: string | null }>();
-      (campaigns ?? []).forEach((c: any) => campaignById.set(c.id, c));
-
-      // run_id -> {wave, grader}
-      const runWave = new Map<string, { wave: number | null; grader: string | null }>();
-      (batches ?? []).forEach((b: any) => {
-        const camp = b.campaign_id ? campaignById.get(b.campaign_id) : null;
-        const wave = camp?.wave_number ?? null;
-        const grader = camp?.grader_context_version ?? null;
-        const blob = JSON.stringify(b.tool_results ?? {});
-        // extract UUIDs in tool_results
-        const uuids = blob.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi) ?? [];
-        for (const u of uuids) {
-          if (!runWave.has(u)) runWave.set(u, { wave, grader });
+    // run_id -> {wave}
+    const runWave = new Map<string, number | null>();
+    for (const b of batches) {
+      const camp = b.campaign_id ? campaignById.get(b.campaign_id) : null;
+      const wave = deriveWave(b.started_at ?? null, camp ?? null);
+      const blob = JSON.stringify(b.tool_results ?? {});
+      const uuids = blob.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi) ?? [];
+      for (const u of uuids) {
+        const uLower = u.toLowerCase();
+        // Widen the range: keep MIN wave (earliest sighting) — later reconciled per finding.
+        const cur = runWave.get(uLower);
+        if (cur == null || (wave != null && (cur == null || wave < cur))) {
+          runWave.set(uLower, wave);
         }
-      });
-
-      const bucket = new Map<string, Aggregate>();
-      (findings ?? []).forEach((f: any) => {
-        const key = `${f.tool}::${f.check_id}`;
-        const rw = runWave.get(f.run_id) ?? { wave: null, grader: null };
-        const cur = bucket.get(key);
-        if (!cur) {
-          bucket.set(key, {
-            check_id: f.check_id,
-            tool: f.tool,
-            occurrence_count: 1,
-            first_seen_wave: rw.wave,
-            last_seen_wave: rw.wave,
-            grader_hash: rw.grader,
-          });
-        } else {
-          cur.occurrence_count += 1;
-          if (rw.wave != null) {
-            cur.first_seen_wave = cur.first_seen_wave == null ? rw.wave : Math.min(cur.first_seen_wave, rw.wave);
-            cur.last_seen_wave = cur.last_seen_wave == null ? rw.wave : Math.max(cur.last_seen_wave, rw.wave);
-          }
-          if (rw.grader && !cur.grader_hash) cur.grader_hash = rw.grader;
-        }
-      });
-      aggregates = Array.from(bucket.values());
-    } else {
-      aggregates = rows as Aggregate[];
+      }
     }
 
-    // Upsert into quality_finding_backlog. On conflict merge counts + widen
-    // wave range; keep existing status/notes intact.
+    // ---- Load quality_runs for grader_context_version per run_id ----
+    const runs = await fetchAllPaginated<{
+      id: string;
+      grader_context_version: string | null;
+    }>(supabase, "quality_runs", "id, grader_context_version");
+    const runGrader = new Map<string, string | null>();
+    runs.forEach((r) => runGrader.set(r.id.toLowerCase(), r.grader_context_version ?? null));
+
+    // ---- Load failing findings (paginated) ----
+    const findings = await fetchAllPaginated<{
+      check_id: string;
+      tool: string;
+      run_id: string;
+      created_at: string;
+    }>(
+      supabase,
+      "quality_findings",
+      "check_id, tool, run_id, created_at",
+      (q) => q.eq("passed", false),
+      1000,
+    );
+
+    // ---- Aggregate ----
+    const bucket = new Map<string, Aggregate>();
+    for (const f of findings) {
+      const key = `${f.tool}::${f.check_id}`;
+      const runIdLower = (f.run_id ?? "").toLowerCase();
+      const wave = runWave.has(runIdLower) ? runWave.get(runIdLower)! : null;
+      const grader = runGrader.get(runIdLower) ?? null;
+      const cur = bucket.get(key);
+      if (!cur) {
+        bucket.set(key, {
+          check_id: f.check_id,
+          tool: f.tool,
+          occurrence_count: 1,
+          first_seen_wave: wave,
+          last_seen_wave: wave,
+          grader_hash: grader,
+        });
+      } else {
+        cur.occurrence_count += 1;
+        if (wave != null) {
+          cur.first_seen_wave = cur.first_seen_wave == null ? wave : Math.min(cur.first_seen_wave, wave);
+          cur.last_seen_wave = cur.last_seen_wave == null ? wave : Math.max(cur.last_seen_wave, wave);
+        }
+        if (grader && !cur.grader_hash) cur.grader_hash = grader;
+      }
+    }
+    const aggregates = Array.from(bucket.values());
+
+    // ---- Upsert into backlog ----
     const upserts = aggregates.map((a) => {
       const rule = classify(a.check_id);
       return {
@@ -155,17 +185,23 @@ Deno.serve(async (req) => {
       const { error } = await supabase
         .from("quality_finding_backlog")
         .upsert(chunk, { onConflict: "finding_check_id,tool" });
-      if (error) throw error;
+      if (error) throw new Error(`upsert quality_finding_backlog: ${error.message}`);
       written += chunk.length;
     }
 
     const summary = {
       ok: true,
       build_stamp: BUILD_STAMP,
+      findings_scanned: findings.length,
+      batches_scanned: batches.length,
+      campaigns_scanned: campaigns.length,
+      runs_scanned: runs.length,
       aggregates: aggregates.length,
       upserted: written,
       classified: upserts.filter((u) => u.class !== "unclassified").length,
       unclassified: upserts.filter((u) => u.class === "unclassified").length,
+      with_wave: upserts.filter((u) => u.first_seen_wave != null).length,
+      with_grader: upserts.filter((u) => u.grader_hash != null).length,
     };
     console.log(JSON.stringify({ evt: "classify_done", ...summary }));
 
