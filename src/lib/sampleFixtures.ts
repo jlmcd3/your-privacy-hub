@@ -468,6 +468,9 @@ const F_CPPA_RISK_US: SampleFixture = {
           harmCauses:
             "Over-broad ad-segment sharing; retention beyond the stated period; credential-stuffing exposure",
         },
+        public_privacy_policy_url: "https://www.tomorrow4cariboo.example/privacy",
+        sensitive_location_basis:
+          "Precise geolocation is collected only from consenting delivery-driver users while on active shipment routes, for the sole purpose of last-mile ETA accuracy and driver safety. Coordinates are truncated to 3 decimal places at ingest, retained 30 days, never shared with ad partners, and excluded from all audience-segment models — consistent with 11 CCR § 7150(b)(5).",
       },
     },
     invoke: { fn: "run-cppa-risk-assessment", id_key: "assessment_id" },
@@ -589,6 +592,15 @@ const F_CPPA_ADMT_US: SampleFixture = {
           "We disclose the decision outcome (approved / referred / declined), the primary factors driving the outcome in plain language, and the steps the consumer can take to improve future outcomes",
         access_response_timeline: "Within 45 calendar days (standard)",
         access_trade_secret_policy: "We do not withhold information required by 11 CCR § 7222 on trade-secret grounds; where a granular model weight would reveal proprietary information, we provide a plain-language equivalent that satisfies the disclosure requirement",
+        affected_population_band: "100,001 – 1,000,000",
+        role_roster: [
+          "Privacy officer / DPO",
+          "Product owner",
+          "Model risk / ML engineering lead",
+          "Human reviewer (trained underwriter)",
+          "Legal counsel",
+          "Consumer-rights operations",
+        ],
       },
     },
     invoke: { fn: "run-admt-checker", id_key: "assessment_id" },
