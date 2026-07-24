@@ -51,20 +51,20 @@ const CAN_RUN = !!process.env.PGHOST && !!process.env.PGDATABASE;
 
 describe.skipIf(!CAN_RUN)("ADMT verified-authority registry — corpus-pin (allow-list)", () => {
   it("audits every row against cppa_authorities.full_text", async () => {
-    // Lazy-import pg only when the test actually runs.
-    const { Client } = await import("pg");
-    const client = new Client({ ssl: { rejectUnauthorized: false } });
-    await client.connect();
-
+    // Shell out to `psql` (already in the CI sandbox with PG* env vars set);
+    // avoids adding a `pg` dependency solely for one guard test.
+    const { execFileSync } = await import("node:child_process");
     const citations = [...new Set(Object.values(ADMT_VERIFIED_AUTHORITIES).map((r) => r.citation))];
-    const { rows } = await client.query<{ citation: string; full_text: string }>(
-      "SELECT citation, full_text FROM cppa_authorities WHERE status='current' AND citation = ANY($1)",
-      [citations],
-    );
-    await client.end();
-
+    const sql =
+      "SELECT citation || E'\\x1f' || full_text || E'\\x1e' " +
+      "FROM cppa_authorities WHERE status='current' AND citation = ANY(string_to_array($$" +
+      citations.join("|") + "$$, '|'))";
+    const out = execFileSync("psql", ["-tAX", "-c", sql], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
     const corpus: Record<string, string> = {};
-    for (const r of rows) corpus[r.citation] = norm(r.full_text ?? "");
+    for (const rec of out.split("\x1e")) {
+      const [cit, body] = rec.split("\x1f");
+      if (cit && body) corpus[cit.trim()] = norm(body);
+    }
 
     const shouldPassButFailed: string[] = [];
     const listedButPassed: string[] = [];
