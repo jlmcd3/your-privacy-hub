@@ -13,3 +13,24 @@ export const ADMT_DECISION_EFFECT_OPTS = ["Provision", "Denial", "Ranking", "Eli
 export const ADMT_DECISION_CADENCE_OPTS = ["One-time", "Repeated", "Continuous", "Systematic"];
 export const ADMT_SOLE_FACTOR_OPTS = ["Sole factor — output alone determines the outcome", "Material factor — heavily weighted alongside others", "One of many factors"];
 export const ADMT_SOLELY_ADVERTISING_OPTS = ["Yes — solely advertising", "No"];
+
+// TURN 2 — new intake fields (parity mirror of contract options).
+export const ADMT_AFFECTED_POPULATION_BAND_OPTS = [
+  "Under 1,000",
+  "1,000 – 10,000",
+  "10,001 – 100,000",
+  "100,001 – 1,000,000",
+  "Over 1,000,000",
+  "Unsure",
+];
+export const ADMT_ROLE_ROSTER_OPTS = [
+  "Executive sponsor",
+  "Privacy officer / DPO",
+  "Legal counsel",
+  "Product owner",
+  "Data scientist / ML engineer",
+  "Security officer",
+  "Human reviewer",
+  "Consumer-request handler",
+  "Vendor manager",
+];
