@@ -27,15 +27,6 @@ const ALLOWED_TOPLEVEL_EXTRAS = new Set<string>([
   "run_id",
   "report_data",
   "meta",
-  // LIA Stage-A mechanical row columns (li_assessments table). These are
-  // persisted by src/pages/LIAssessment.tsx (~L158 .insert({...})) — not
-  // by the Stage-B intake_data payload — but the sample-report fixture
-  // for li_assessment lives at fixture.insert (the full row), so the row
-  // columns coexist with the Stage-B intake fields when the row is
-  // validated against liAssessmentStageBContract. Mechanical, not intake.
-  "stage",           // LIAssessment.tsx L158: stage: "preview"; LIAssessmentIntake.tsx L310 sets intake_data.stage: "submitted"
-  "status",          // LIAssessment.tsx L158: status: "pending"
-  "preview_signal",  // LIAssessment.tsx L158: preview_signal: previewData (row column, populated by preview-li-assessment)
 ]);
 
 export interface Violation {
