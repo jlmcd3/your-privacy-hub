@@ -94,7 +94,7 @@ export async function buildFsorAnchorBlock(
     parts.push(`• Rule: ${spec.ruleLabel}\n${picked.map(renderRow).join("\n")}`);
   }
   if (parts.length === 0) return "";
-  return `${header} (append the matching line beneath the corresponding hand rule; if a rule has no matching row, ship the rule as unanchored):\n${parts.join("\n\n")}`;
+  return `${header} (DRAFTING CONTEXT ONLY — NEVER echo the bracketed "[Agency position — FSOR: …]" format into report prose; weave the agency position into the analysis in plain language, citing the FSOR anchor in professional prose form, e.g. "The Agency's Final Statement of Reasons for § 7001(ddd) explains that …". Append the relevant agency position beneath the corresponding hand rule; if a rule has no matching row, ship the rule as unanchored):\n${parts.join("\n\n")}`;
 }
 
 /** ADMT spec set — advertising, gaming, human-involvement hand rules. */

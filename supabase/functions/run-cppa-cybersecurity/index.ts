@@ -8,7 +8,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // RC-C3.CYB-2 — BUILD_STAMP added; git short-sha + ISO. Bumped on every
 // behavior edit. External-verification gate: clone HEAD sha == BUILD_STAMP
 // sha observed in the first post-deploy telemetry row carrying it.
-export const BUILD_STAMP = "c2-1-fsor-anchored-rules@2026-07-24T00:30:00Z";
+export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 
 function boundedErr(e: unknown, max = 2000): string {
@@ -23,6 +23,8 @@ import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { buildFsorAnchorBlock, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
+import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
+import { verifyIcoFiguresDrift } from "../_shared/enforcement-figures-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
@@ -42,6 +44,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
   outputMode: "strict-JSON",
   includeEuTransfers: false,
   extraRules: [
+    "C2-2 FSOR ANCHOR ECHO BAN: The AGENCY POSITIONS — FSOR ANCHORS block that may appear in the injected system context (see the zero-trust deletion note beneath 11 CCR § 7123) is DRAFTING CONTEXT ONLY. NEVER echo the bracketed \"[Agency position — FSOR: <citation>, <package>, <page_ref>]: …\" format into ANY user-facing field (executive_summary, per-control findings, remediation, next_steps, enforcement_context). Weave the Agency's position into the analysis in plain professional prose, citing the FSOR in prose form — e.g., \"Per the CPPA's Final Statement of Reasons (Appendix, p. 25), the Agency declined to mandate zero-trust architecture as a component of § 7123, leaving zero-trust as a permissible but not required implementation choice.\" The bracketed context markers are internal drafting scaffolding; echoing them verbatim into the report is treated as an internal-reasoning leak.",
     "W3-T5 (c) — GLBA CONDITIONAL APPEARS AT MOST ONCE: any conditional reference to the Gramm-Leach-Bliley Act ('if the business is a GLBA-covered financial institution', 'where GLBA applies', etc.) appears in AT MOST ONE section of the report — the applicability section that scopes cross-statute obligations. Never restate the same GLBA-conditional caveat in executive_summary, per-control finding, remediation, next_steps, and enforcement_context. Once stated in scope, downstream sections either treat GLBA as engaged (with the intake evidence for that determination) or omit the reference entirely. R-TURN-2 REINFORCEMENT: the applicability/scope section is the SINGLE authoritative site for the GLBA scoping conditional — sector-overlay lines in per-control findings/remediation may mention 'GLBA Safeguards Rule alignment' as a factual crosswalk only when the applicability section has already established (or conditionally scoped) GLBA engagement; the sector-overlay crosswalk MUST NOT restate the conditional itself ('if the business is a GLBA-covered financial institution…') — that conditional lives only in the scope section.",
     "R-TURN-2 § 7122(g) SCOPE NOTE — AUDIT-SUPPORT RECORD RETENTION, NOT OPERATIONAL CONTROLS: 11 CCR § 7122(g) governs the FIVE-YEAR RETENTION of records and information supporting the cybersecurity audit — it is a records-retention duty attached to audit evidence, NOT an operational-control obligation. Cite § 7122(g) ONLY when the sentence concerns audit-support record retention (retaining maturity attestations, control evidence, test results, remediation logs for auditor inspection). Do NOT cite § 7122(g) as the anchor for the operational control itself (e.g. never write 'implement encryption per § 7122(g)' or 'access controls under § 7122(g)') — the operational-control anchor is the specific § 7123(c)(N) component citation. Canonical form: '[operational control obligation under § 7123(c)(N)]; retain the supporting documentation per the § 7122(g) five-year audit-record retention rule.'",
     "R-TURN-2 DERIVED-SUMS RULE — SHOW OPERANDS, CLAIM ONLY DESCRIBED COVERAGE: any aggregate sum, count, mean, or percentage stated in the report (executive_summary aggregate counts, mean/average scores, N-of-M coverage statements, gap counts) MUST show its operands — the sentence names the specific controls or the count of controls being aggregated (e.g. 'the mean of NN across the M scored components (excluding K Insufficient-information controls)' — see the PF6 T2 mean-score rule; 'N Gap findings across [control names]'; 'K of the 18 § 7123(c) components are assessed as Implemented on this record'). NEVER state an aggregate that implies coverage beyond what the controls[] array actually describes: if only 12 of 18 components have status ∈ {Critical Gap, Gap, Partial, Implemented, Mature} and 6 are Insufficient-information, the report MUST NOT state or imply 'audit-ready across the 18 components' or '18/18 assessed' — the aggregate names the 12 assessed and the 6 unassessed separately.",
@@ -358,24 +361,41 @@ async function runAssessment(assessment_id: string): Promise<void> {
       }
     }
 
-    // Unconditional CCPA definitions supply — verbatim Cal. Civ. Code § 1798.140.
-    // Definitions ("personal information", "business", "service provider", etc.)
-    // are load-bearing for every cyber run. Same mechanism as 1798.82.
+    // C2-2 — CCPA definitions supply is now DEFINES_TERMS-CONDITIONAL.
+    // Predicate: the intake must supply enough profile substance for the
+    // defined-term consumers (§ 1798.140(ag) "business", § 1798.140(e)
+    // "service provider", § 1798.140 personal-information family) to be
+    // load-bearing. Skeleton intakes (no entity name, no industry) skip
+    // the ~5KB verbatim dump and save prompt tokens. Decision is logged.
     let caDefinitionsAuthorityBlock = "";
     {
-      const { data: defRows } = await supabase
-        .from("cppa_authorities")
-        .select("citation, full_text")
-        .eq("citation", `Cal. Civ. Code ${S} 1798.140`)
-        .eq("status", "current")
-        .limit(1);
-      if (defRows && defRows.length > 0 && (defRows[0] as any).full_text) {
-        const r = defRows[0] as any;
-        caDefinitionsAuthorityBlock =
-          "\n\nCCPA DEFINITIONS AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.140 content ONLY from the text below, never from recollection):\n" +
-          `[${r.citation}]\n${r.full_text}`;
-      } else {
-        console.warn("[cppa-cyber] 1798.140 authority row unavailable");
+      const intakeProfile = ((row.intake_data as any)?.profile ?? {}) as Record<string, unknown>;
+      const definesTerms = !!(intakeProfile.entity_name && intakeProfile.industry);
+      console.log(
+        JSON.stringify({
+          evt: "cyber_defines_terms_decision",
+          fn: "run-cppa-cybersecurity",
+          defines_terms: definesTerms,
+          reason: definesTerms
+            ? "profile present — § 1798.140(ag) business + (e) service-provider terms in scope"
+            : "skeleton intake — defined-term consumers not detected; skipping § 1798.140 supply",
+        }),
+      );
+      if (definesTerms) {
+        const { data: defRows } = await supabase
+          .from("cppa_authorities")
+          .select("citation, full_text")
+          .eq("citation", `Cal. Civ. Code ${S} 1798.140`)
+          .eq("status", "current")
+          .limit(1);
+        if (defRows && defRows.length > 0 && (defRows[0] as any).full_text) {
+          const r = defRows[0] as any;
+          caDefinitionsAuthorityBlock =
+            "\n\nCCPA DEFINITIONS AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.140 content ONLY from the text below, never from recollection):\n" +
+            `[${r.citation}]\n${r.full_text}`;
+        } else {
+          console.warn("[cppa-cyber] 1798.140 authority row unavailable");
+        }
       }
     }
 
@@ -388,9 +408,14 @@ async function runAssessment(assessment_id: string): Promise<void> {
     // C2-1 — FSOR agency-position anchor beneath the zero-trust deletion note.
     // Warn-and-ship-unanchored when no matching row exists.
     const cyberFsorAnchorBlock = await buildFsorAnchorBlock(supabase, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS);
-    const cyberInjected = cyberFsorAnchorBlock
-      ? `${cyberTestStatesBlock}\n\n${cyberFsorAnchorBlock}`
-      : cyberTestStatesBlock;
+    // C2-2 — corpus-sourced CPPA canonical deadlines + startup drift-lint.
+    verifyCppaDeadlineDrift(supabase, "cyber");
+    verifyIcoFiguresDrift();
+    const cyberDeadlineBlock = await buildCppaDeadlineBlock(supabase, "cyber");
+    const cyberInjectedParts = [cyberTestStatesBlock];
+    if (cyberFsorAnchorBlock) cyberInjectedParts.push(cyberFsorAnchorBlock);
+    if (cyberDeadlineBlock) cyberInjectedParts.push(cyberDeadlineBlock);
+    const cyberInjected = cyberInjectedParts.join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
       currentDate: today,

@@ -4,8 +4,9 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "post-c1-fix-2b-risk-cot-leak-guard@2026-07-23T18:20:00Z";
+export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
@@ -798,13 +799,18 @@ async function runPipeline(assessment_id: string) {
     const testStates = computeTestStates(fiveStage, rawIntake as Record<string, any>);
     const testStatesBlock = formatTestStatesBlock(testStates);
 
+    // C2-2 — corpus-sourced CPPA canonical deadlines + startup drift-lint.
+    verifyCppaDeadlineDrift(supabase, "risk");
+    const riskDeadlineBlock = await buildCppaDeadlineBlock(supabase, "risk");
+
     const injected = [
       `ENFORCEMENT CONTEXT FROM CORPUS:\n${enforcementContext || "(none returned)"}`,
       `LONGITUDINAL ENFORCEMENT PATTERNS:\n${longitudinalSynthesis || "(none returned)"}`,
       `VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):\n${statuteContext || "(none returned)"}`,
       `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
       testStatesBlock,
-    ].join("\n\n");
+      riskDeadlineBlock,
+    ].filter(Boolean).join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
       currentDate: today,

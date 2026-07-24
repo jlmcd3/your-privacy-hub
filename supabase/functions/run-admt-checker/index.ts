@@ -8,12 +8,13 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "c2-1-fsor-anchored-rules@2026-07-24T00:30:00Z";
+export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-contract.ts";
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
+import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
 // prompt and registry cannot drift.
 const ADMT_VERIFIED_WHITELIST_TEXT = buildAdmtVerifiedWhitelist().join(", ");
@@ -240,6 +241,8 @@ export const ADMT_TOOL_MODULE: ToolModule = {
   outputMode: "strict-JSON",
   includeEuTransfers: false,
   extraRules: ADMT_EXTRA_RULES + `
+
+C2-2 FSOR ANCHOR ECHO BAN: The AGENCY POSITIONS — FSOR ANCHORS block that may appear in the injected system context is DRAFTING CONTEXT ONLY. NEVER echo the bracketed "[Agency position — FSOR: <citation>, <package>, <page_ref>]: …" format into ANY user-facing field (executive_summary, triggers_identified, findings, remediation, next_steps, sample_language, information_needed, disclosure elements). Weave the Agency's position into the analysis in plain professional prose, citing the FSOR in prose form — e.g., "The Agency's Final Statement of Reasons for § 7001(ddd) explains that behavioural advertising was removed from the significant-decision definition …" or "Per the CPPA's FSOR (Appendix, p. 20), the three-part human-involvement test requires …". The bracketed context markers are internal drafting scaffolding; echoing them verbatim into the report is treated as an internal-reasoning leak.
 
 W3-T5 (a) — NORMALIZED-INTAKE METADATA IS INTERNAL: the ADMT normalizer output (persisted on report_data as _normalized_intake) is grader-invisible bookkeeping. NEVER surface normalizer keys, normalized enum tokens, or the string "_normalized_intake" in ANY user-facing field (executive_summary, triggers_identified, findings, remediation, next_steps, disclosure element sample_language, information_needed). Refer to the underlying fact in plain prose ("the record confirms fully automated operation"), never to the normalizer key or its normalized token.
 
@@ -544,12 +547,15 @@ Deno.serve(async (req) => {
     // gaming, and human-involvement hand rules. Warn-and-ship-unanchored when
     // no matching row is on record (the hand rule stays in force).
     const admtFsorAnchorBlock = await buildFsorAnchorBlock(supabase, ADMT_FSOR_ANCHOR_SPECS);
+    // C2-2 — corpus-sourced canonical deadlines + startup drift-lint.
+    verifyCppaDeadlineDrift(supabase, "admt");
+    const admtDeadlineBlock = await buildCppaDeadlineBlock(supabase, "admt");
 
     const authoritiesBlock = `REGULATION AUTHORITIES:
 ${authBlock}
 
 COMPLIANCE DEADLINES:
-${deadlineBlock}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
+${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
 
     const system: SystemBlock[] = buildSystemContent({
       toolModule: ADMT_TOOL_MODULE,
