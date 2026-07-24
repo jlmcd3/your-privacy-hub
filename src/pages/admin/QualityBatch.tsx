@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import JSZip from "jszip";
+import { RefreshCw } from "lucide-react";
 import { LaunchGateScoreboard } from "@/components/admin/LaunchGateScoreboard";
 
 // QB-P3 cleanup: SLUG_TO_TOOL_TYPE lives in src/lib/qualityBatchTools.ts so
