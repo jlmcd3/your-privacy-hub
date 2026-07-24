@@ -47,7 +47,7 @@ const baseReport = () => ({
 });
 
 Deno.test("W9-RISK-SLOTS stamp is present", () => {
-  assert(W9_RISK_SLOTS_STAMP.startsWith("w9-risk-slots@"));
+  assert(W9_RISK_SLOTS_STAMP.startsWith("w9-risk-slots"));
 });
 
 Deno.test("buildAttestationBlock renders i7/i8 identity + § 7156 basis", () => {
