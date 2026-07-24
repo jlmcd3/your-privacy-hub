@@ -234,5 +234,8 @@ verify_jwt = false
 [functions.batch-kickoff-pickup]
 verify_jwt = false
 
+[functions.classify-quality-findings]
+verify_jwt = false
+
 
 
