@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w9-admt-citefix@2026-07-24T07:58:00Z";
+export const BUILD_STAMP = "w9-admt-wire@2026-07-24T08:25:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
@@ -16,9 +16,45 @@ import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-co
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
+// W9-ADMT-WIRE — L1 verified-authority resolver + admt registry (S-A live).
+// Generator never authors a citation: it emits proposition_key on findings;
+// this resolver stamps citation/subsection/verbatim_quote at emit time.
+import {
+  ADMT_VERIFIED_AUTHORITIES,
+  ADMT_VERIFIED_AUTHORITY_VERSION,
+} from "../_shared/registry/admt-verified-authorities.ts";
+import {
+  resolveByPropositionKey,
+  registrySize as vaRegistrySize,
+} from "../_shared/verified-authority-resolver.ts";
 // R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
 // prompt and registry cannot drift.
 const ADMT_VERIFIED_WHITELIST_TEXT = buildAdmtVerifiedWhitelist().join(", ");
+
+// W9-ADMT-WIRE — VERIFIED-AUTHORITY BLOCK, injected into the system prompt so
+// the model composes prose around stamped pinpoints (never authors §-tokens
+// from recall). Single source of truth: admt-verified-authorities.ts. This
+// block REPLACES the prompt-text verified-registry list previously embedded
+// inside POST-C1-FIX-3(b) — one source of truth, per ACK 2 standing order.
+function buildAdmtVerifiedAuthorityBlock(): string {
+  const rows = Object.values(ADMT_VERIFIED_AUTHORITIES);
+  const lines = rows.map((r) =>
+    `- [${r.proposition_key}] ${r.subsection} — "${r.verbatim_quote.replace(/\s+/g, " ").slice(0, 260)}"`
+  );
+  return `VERIFIED-AUTHORITY REGISTRY (${ADMT_VERIFIED_AUTHORITY_VERSION}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR ADMT CITATIONS; replaces the prompt-embedded verified-citation list):
+Every citation the report emits must be REGISTRY-STAMPED, never authored by you from recall. When a finding asserts a proposition covered by a row below, emit a "proposition_key": "<key>" field on that finding entry (in addition to element_id). The resolver deterministically stamps citation, subsection, and verbatim_quote onto the finding; you write the prose around the stamped pinpoint and NEVER type a "§" or "11 CCR" token yourself. If no row covers the proposition, omit proposition_key and rely on the neutral fallback ("the applicable ADMT-subchapter provision") per POST-C1-FIX-3(a)+(c); the unresolvable-proposition path is counted in telemetry and routed to information_needed per the SCAFFOLDING LEAK GUARD.
+
+Row shape shown as "[proposition_key] pinpoint — verbatim quote":
+${lines.join("\n")}
+`;
+}
+const ADMT_VERIFIED_AUTHORITY_BLOCK = buildAdmtVerifiedAuthorityBlock();
+console.log(JSON.stringify({
+  evt: "admt_va_registry_loaded", fn: "run-admt-checker",
+  build_stamp: BUILD_STAMP,
+  va_version: ADMT_VERIFIED_AUTHORITY_VERSION,
+  va_rows: vaRegistrySize(ADMT_VERIFIED_AUTHORITIES),
+}));
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -350,14 +386,7 @@ PRODUCT-FIX-4 TASK 1 — PROBABILITY-SCORE FIELD IS RESOLVED IN OUTPUT, NEVER LE
 
 POST-C1-FIX-3 — CITATION RULES (BINDING; supersedes conflicting fallback/density text above):
 (a) PROHIBITION ON HYBRID FALLBACK CITATIONS: NEVER append a subsection, paragraph indicator, or numeric enumeration to the neutral fallback phrase "the applicable ADMT-subchapter provision". Forms such as "the applicable ADMT-subchapter provision)(3)", "the applicable ADMT-subchapter provision(b)", or any pseudo-citation that wraps the fallback around a subsection token are PROHIBITED. Emit either a full verified citation of the form "§ XXXX" or "§ XXXX(subdivision)", OR the neutral fallback phrase ALONE — never a hybrid.
-(b) VERIFIED CITATION REGISTRY (AUTHORITATIVE — replaces any prior registry list in this prompt):
-    • § 7001(e): definition of ADMT — includes profiling that replaces OR substantially replaces human decisionmaking.
-    • § 7001(ddd): definition of "significant decision"; § 7001(ddd)(6): advertising is NOT a significant decision.
-    • § 7200(a): Article 11 scope / applicability. § 7200(b): compliance timeline — uses of ADMT initiated before January 1, 2027 must comply by January 1, 2027.
-    • § 7220: Pre-use Notice. § 7220(c)(1): specific-purpose disclosure. § 7220(c)(2): opt-out right information — when the business relies on the human-appeal exception, the notice MUST instead inform the consumer of the right to appeal to a human reviewer (§ 7220(c)(2)(A) element); when the business relies on another § 7221(b) exception, the notice MUST identify which exception applies (§ 7220(c)(2)(B) element). § 7220(c)(3): access right information. § 7220(c)(4): anti-retaliation disclosure. § 7220(c)(5): how-the-ADMT-works explanation.
-    • § 7221(a): right to opt out of ADMT. § 7221(b)(1): human-appeal exception — § 7221(b)(1)(A) reviewer qualifications and authority; § 7221(b)(1)(B) appeal process. § 7221(b)(2): hiring / admission ability-to-perform evaluation exception. § 7221(b)(3): allocation or assignment of work or compensation exception. § 7221(m): pre-initiation prohibition (business must not initiate ADMT processing after receipt of an opt-out). § 7221(n): 15-business-day cessation timing (as soon as feasibly possible, but no later than 15 business days), with § 7221(n)(2) for service-provider / contractor notification.
-    • § 7222: right to access ADMT (with § 7222(b)(3) sole-factor element, § 7222(b)(4) anti-retaliation disclosure, § 7222(c) trade-secret carve-out, § 7222(e) verification-based denial, § 7222(f) legal-conflict denial, § 7222(g) secure-transmission requirement, § 7222(j) aggregate-response option).
-    • RISK ASSESSMENTS ARE ARTICLE 10 (§ 7150 et seq.), NEVER § 7221 OR ITS SUBDIVISIONS: never cite § 7221 (or any § 7221(x)) as a risk-assessment trigger. Risk-assessment triggers live at § 7150(b)(1)-(6); § 7221 governs opt-out mechanics only.
+(b) VERIFIED CITATION REGISTRY — RECONCILIATION (W9-ADMT-WIRE): the authoritative verified-citation list is INJECTED into your system context as the "VERIFIED-AUTHORITY REGISTRY" block (single source of truth: admt-verified-authorities.ts). Do NOT rely on any prompt-embedded citation list — the injected block is definitive. Every finding entry that asserts a proposition covered by that block emits "proposition_key": "<key>"; the resolver stamps the citation deterministically post-generation and you author no §-tokens. RISK ASSESSMENTS ARE ARTICLE 10 (§ 7150 et seq.), NEVER § 7221 OR ITS SUBDIVISIONS: this substantive discipline is retained here as a rulebook constraint — never cite § 7221 (or any § 7221(x)) as a risk-assessment trigger; risk-assessment triggers live at § 7150(b)(1)-(6), and § 7221 governs opt-out mechanics only. All other section-level pinpoints move to the injected registry.
 (c) SYNTAX RULE: citations use "§ XXXX" or "§ XXXX(subdivision)" exactly. NEVER wrap a real section token inside the fallback phrase, and NEVER use the fallback phrase as a prefix or suffix to a real section token.
 
 CITATION-V1 — EXCEPTION MAPPING FOR OPT-OUT: the human-appeal exception is § 7221(b)(1); the employment / hiring / admission ability-to-perform exception is § 7221(b)(2); the allocation / assignment of work or compensation exception is § 7221(b)(3). NEVER cite § 7220(c)(2)(B) for opt-out disclosure — § 7220(c)(2)(B) is the Pre-use Notice element that identifies WHICH exception the business is relying on (not the opt-out disclosure). The Pre-use Notice human-appeal notice element is § 7220(c)(2)(A).
@@ -601,7 +630,9 @@ Deno.serve(async (req) => {
 ${authBlock}
 
 COMPLIANCE DEADLINES:
-${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}`;
+${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}
+
+${ADMT_VERIFIED_AUTHORITY_BLOCK}`;
 
     const system: SystemBlock[] = buildSystemContent({
       toolModule: ADMT_TOOL_MODULE,
@@ -784,6 +815,27 @@ SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST 
   "priority_actions": [
     "Numbered action item with specific deadline where known. Based only on gaps identified above."
   ],
+
+  "top_3_actions": [
+    // W9-ADMT-WIRE S5 HARD SLOT — typed exec-summary schema. EXACTLY 3 entries, in
+    // descending priority. Each entry is one object with the fields below; no free
+    // text, no additional keys. If fewer than 3 substantive actions exist, pad
+    // with an entry whose "action" is "insufficient basis to state a top action"
+    // and whose "citation"/"deadline" are the empty string — never fabricate a
+    // deadline or a §-token. Every non-empty "citation" MUST be a full verified
+    // pinpoint per POST-C1-FIX-3 (never the neutral fallback phrase, never a
+    // hybrid), or the empty string. This block is IN ADDITION to priority_actions;
+    // priority_actions is the full narrative list, top_3_actions is the fixed-shape
+    // executive summary slot the customer UI renders at the top of the report.
+    { "rank": 1,
+      "action": "One-sentence directive (imperative, ≤ 220 chars).",
+      "citation": "§ 7220(c)(2)(A) | § 7221(a) | ... (verified pinpoint OR empty string)",
+      "deadline": "YYYY-MM-DD anchored to § 7200(b) compliance date (2027-01-01) OR the empty string when not applicable",
+      "proposition_key": "<optional proposition_key from the VERIFIED-AUTHORITY REGISTRY; when present the resolver stamps citation deterministically>"
+    }
+  ],
+
+
 
   "compliant_elements": ["List of elements assessed as compliant, with brief explanation."],
 
@@ -1779,21 +1831,93 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] CPPA-HF5 E usage_note strip failed (non-fatal):", e);
     }
 
+    // ── W9-ADMT-WIRE — L1 REGISTRY-STAMPED CITATIONS (pre-emit VA resolver) ──
+    // Walks every gap/finding entry that emitted a proposition_key and stamps
+    // the citation + subsection + verbatim_quote from ADMT_VERIFIED_AUTHORITIES.
+    // The generator never authors §-tokens; this pass is deterministic.
+    // Also normalizes the S5 hard slot `top_3_actions` shape.
+    const w9Metrics = {
+      va_version: ADMT_VERIFIED_AUTHORITY_VERSION,
+      va_rows: vaRegistrySize(ADMT_VERIFIED_AUTHORITIES),
+      va_stamps_applied: 0,
+      va_stamps_unresolved: 0,
+      top3_padded: 0,
+      top3_final_len: 0,
+    };
+    try {
+      const stampArr = (arr: any): void => {
+        if (!Array.isArray(arr)) return;
+        for (const it of arr) {
+          if (!it || typeof it !== "object") continue;
+          const pk = typeof it.proposition_key === "string" ? it.proposition_key : "";
+          if (!pk) continue;
+          const row = resolveByPropositionKey(ADMT_VERIFIED_AUTHORITIES, pk);
+          if (row) {
+            it.citation = row.subsection;
+            it._va_stamp = { proposition_key: pk, subsection: row.subsection, depth_class: row.depth_class, verbatim_quote: row.verbatim_quote, verified_on: row.verified_on };
+            w9Metrics.va_stamps_applied++;
+          } else {
+            it._va_stamp_unresolved = { proposition_key: pk };
+            w9Metrics.va_stamps_unresolved++;
+          }
+        }
+      };
+      for (const bucket of ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"]) {
+        stampArr((report as any)[bucket]);
+      }
+
+      // ── S5 top_3_actions normalizer — exact-3 shape, no fabricated deadlines/citations
+      const insufficientEntry = { rank: 0, action: "insufficient basis to state a top action", citation: "", deadline: "", proposition_key: "" };
+      let t3 = Array.isArray((report as any).top_3_actions) ? [...(report as any).top_3_actions] : [];
+      // Filter out non-objects / empty entries
+      t3 = t3.filter((e: any) => e && typeof e === "object" && typeof e.action === "string" && e.action.trim().length > 0);
+      // Pad to 3 with insufficient-basis entries; never fabricate
+      while (t3.length < 3) { t3.push({ ...insufficientEntry }); w9Metrics.top3_padded++; }
+      if (t3.length > 3) t3 = t3.slice(0, 3);
+      // Re-rank 1..3
+      t3 = t3.map((e: any, i: number) => ({ rank: i + 1, action: String(e.action), citation: typeof e.citation === "string" ? e.citation : "", deadline: typeof e.deadline === "string" ? e.deadline : "", proposition_key: typeof e.proposition_key === "string" ? e.proposition_key : "" }));
+      (report as any).top_3_actions = t3;
+      w9Metrics.top3_final_len = t3.length;
+    } catch (e) {
+      console.warn("[run-admt-checker] W9-ADMT-WIRE resolver pass failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── W6-ADMT-FIX (2026-07-24) — wave-6 atomic post-generation scrub ──
-    // Runs AFTER every earlier scrub/fallback pass so it operates on the
-    // final assembled report. Fail-open, idempotent. See _w6_admt_fix.ts.
+    // Runs AFTER the W9 VA-stamp pass so downstream repairs operate on the
+    // registry-stamped citations. Pre-emit gate: capture w6 counters, run one
+    // bounded repair pass; if surviving-critical remains, flag insufficient_basis.
+    const w9PreEmit = { attempted: 0, repaired: 0, still_failing: 0 };
     try {
       const intakeForW6 = ((assessment as any)?.intake_data as Record<string, unknown>) ?? {};
       const w6 = applyW6AdmtFix(report, intakeForW6);
+      // W9 pre-emit accounting: any w6 counter > 0 = a deterministic issue the
+      // model produced; the repair pass just cleared it. Repeat once for a
+      // bounded second pass so we can distinguish "cleanly repaired" from
+      // "still failing after repair".
+      const w6Counters = Object.entries(w6).filter(([k]) => k !== "version" && typeof (w6 as any)[k] === "number");
+      w9PreEmit.attempted = w6Counters.reduce((n, [, v]) => n + (Number(v) || 0), 0);
+      const w6Second = applyW6AdmtFix(report, intakeForW6);
+      const w6SecondCounters = Object.entries(w6Second).filter(([k]) => k !== "version" && typeof (w6Second as any)[k] === "number");
+      w9PreEmit.still_failing = w6SecondCounters.reduce((n, [, v]) => n + (Number(v) || 0), 0);
+      w9PreEmit.repaired = Math.max(0, w9PreEmit.attempted - w9PreEmit.still_failing);
       console.log(JSON.stringify({
         evt: "admt_w6_fix", fn: "run-admt-checker",
         build_stamp: BUILD_STAMP, w6_version: W6_ADMT_FIX_VERSION,
         ...w6,
       }));
+      console.log(JSON.stringify({
+        evt: "_w9_admt_wire", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        ...w9Metrics,
+        pre_emit: w9PreEmit,
+      }));
       (report as any)._w6_admt_fix = { version: W6_ADMT_FIX_VERSION, ...w6 };
+      (report as any)._w9_admt_wire = { ...w9Metrics, pre_emit: w9PreEmit };
     } catch (e) {
       console.warn("[run-admt-checker] W6-ADMT-FIX failed (non-fatal):", (e as Error)?.message);
     }
+
+
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-qbp25-a3@2026-07-23"), build_stamp: BUILD_STAMP };

@@ -652,6 +652,35 @@ export default function ADMTCheckerResult() {
           </section>
         )}
 
+        {Array.isArray(report.top_3_actions) && report.top_3_actions.length > 0 && (
+          <section className="font-serif-text space-y-2">
+            <h3 className="font-body text-display-card font-semibold">Top 3 Actions</h3>
+            <div className="rounded-lg border border-brand-teal/30 bg-brand-teal/5 divide-y divide-brand-teal/20">
+              {report.top_3_actions.map((entry: any, i: number) => {
+                const action = typeof entry?.action === "string" ? entry.action : "";
+                const citation = typeof entry?.citation === "string" ? entry.citation : "";
+                const deadline = typeof entry?.deadline === "string" ? entry.deadline : "";
+                const insufficient = action === "insufficient basis to state a top action";
+                return (
+                  <div key={i} className="flex gap-3 px-4 py-3">
+                    <span className="text-[11px] font-bold text-brand-teal shrink-0 mt-0.5">{entry?.rank ?? i + 1}</span>
+                    <div className="flex-1 space-y-1">
+                      <p className={`text-[13px] leading-relaxed ${insufficient ? "italic text-muted-foreground" : ""}`}>{action}</p>
+                      {(citation || deadline) && (
+                        <p className="text-[11px] font-mono text-muted-foreground">
+                          {citation && <span>{citation}</span>}
+                          {citation && deadline && <span> · </span>}
+                          {deadline && <span>Deadline: {deadline}</span>}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {report.priority_actions?.length > 0 && (
           <section className="font-serif-text space-y-2">
             <h3 className="font-body text-display-card font-semibold">Priority Actions</h3>
