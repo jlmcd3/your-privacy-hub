@@ -1881,6 +1881,80 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] CPPA-HF5 E usage_note strip failed (non-fatal):", e);
     }
 
+    // ── S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring — pre-VA-stamp ──
+    // Blocks wave-14/15 unsupported-positive / contradiction /
+    // negative-from-silence classes on the same client-fact surfaces the
+    // VA stamp walks. Runs AFTER the pre-VA scrub chain (HF5/CPPA usage_note)
+    // and BEFORE the W9-ADMT-WIRE L1 citation stamp pass so stamps attach
+    // to final (rewritten) claim text. Fail-open. Telemetry sequestered
+    // under _meta.internal.fact_ledger only (survives TURN C1 leak-guard).
+    try {
+      const _intakeForFL = ((assessment as any)?.intake_data as Record<string, unknown>) ?? {};
+      const ledger = buildFactLedger(_intakeForFL);
+      const NEG_RE = /\b(no|none|not|never|absence of|does not|is not|are not|without)\b/i;
+      const pickText = (o: any): string => {
+        if (!o || typeof o !== "object") return "";
+        return String(
+          o.finding ?? o.description ?? o.text ?? o.action ?? o.statement ??
+            o.title ?? o.note ?? o.rationale ?? o.detail ?? o.usage_note ?? "",
+        );
+      };
+      const pickField = (o: any): string | undefined => {
+        if (!o || typeof o !== "object") return undefined;
+        const f = o.field ?? o.intake_field ?? o.intake_field_1 ??
+          (Array.isArray(o.source_fields) && o.source_fields[0]);
+        return typeof f === "string" && f.trim() ? f.trim() : undefined;
+      };
+      const setText = (o: any, next: string): void => {
+        if (!o || typeof o !== "object") return;
+        for (const k of ["finding", "description", "text", "action", "statement", "title", "note", "rationale", "detail", "usage_note"]) {
+          if (typeof o[k] === "string" && o[k]) { o[k] = next; return; }
+        }
+      };
+      const claims: Array<{ text: string; field?: string; direction: "positive" | "negative"; surfacePath?: string; needle?: string; __ref?: any }> = [];
+      const scan = (arr: any, path: string): void => {
+        if (!Array.isArray(arr)) return;
+        arr.forEach((it, i) => {
+          const text = pickText(it);
+          if (!text) return;
+          const field = pickField(it);
+          const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
+          const q = text.match(/["“]([^"”]{6,120})["”]/);
+          const needle = q ? q[1] : undefined;
+          claims.push({ text, field, direction, surfacePath: `${path}[${i}]`, needle, __ref: it });
+        });
+      };
+      const r0: any = report;
+      scan(r0.information_needed, "information_needed");
+      scan(r0.notice_gaps, "notice_gaps");
+      scan(r0.opt_out_gaps, "opt_out_gaps");
+      scan(r0.access_gaps, "access_gaps");
+      scan(r0.documentation_to_maintain, "documentation_to_maintain");
+      scan(r0.top_3_actions, "top_3_actions");
+      scan(r0.deadline_table, "deadline_table");
+      const sa: any = r0.scope_analysis;
+      if (sa && typeof sa === "object") {
+        const text = pickText(sa);
+        if (text) {
+          const field = pickField(sa);
+          const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
+          claims.push({ text, field, direction, surfacePath: "scope_analysis", __ref: sa });
+        }
+      }
+      const flRes = enforceLedger(r0, ledger, { claims: claims.map(({ __ref, ...c }) => c) });
+      for (const rw of flRes.rewrites) {
+        const src = claims.find((c) => c.surfacePath === rw.surfacePath && c.text === rw.from);
+        if (src && src.__ref) setText(src.__ref, rw.to);
+      }
+      console.log(JSON.stringify({
+        evt: "fact_ledger_pass", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, version: FACT_LEDGER_VERSION,
+        ledger_rows: ledger.length, ...flRes.counters,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] S-B fact-ledger errored (fail-open):", (e as Error)?.message);
+    }
+
     // ── W9-ADMT-WIRE — L1 REGISTRY-STAMPED CITATIONS (pre-emit VA resolver) ──
     // Walks every gap/finding entry that emitted a proposition_key and stamps
     // the citation + subsection + verbatim_quote from ADMT_VERIFIED_AUTHORITIES.
