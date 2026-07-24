@@ -569,38 +569,40 @@ const CO_HB24_1130_ROWS: BiometricStatuteRow[] = [
 
 const CA_CPRA_ROWS: BiometricStatuteRow[] = [
   {
-    id: "us_ca_cpra.140_l_biometric_information_definition",
+    id: "us_ca_cpra.140_c_biometric_information_definition",
     jurisdiction_id: "us_ca_cpra",
     jurisdiction_display: "California",
     statute_long:
       "California Consumer Privacy Act, as amended by the California Privacy Rights Act (CPRA)",
     statute_short: "CCPA/CPRA",
-    pinpoint: "Cal. Civ. Code § 1798.140(l)",
+    pinpoint: "Cal. Civ. Code § 1798.140(c)",
     verbatim_quote:
-      "Cal. Civ. Code § 1798.140(l): \"Biometric information\" means an individual's physiological, biological, or behavioral characteristics, including information pertaining to an individual's deoxyribonucleic acid (DNA), that is used or is intended to be used singly or in combination with each other or with other identifying data, to establish individual identity. Biometric information includes, but is not limited to, imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, and voice recordings, from which an identifier template, such as a faceprint, a minutiae template, or a voiceprint, can be extracted, and keystroke patterns or rhythms, gait patterns or rhythms, and sleep, health, or exercise data that contain identifying information.",
+      "Cal. Civ. Code § 1798.140(c): \"Biometric information\" means an individual's physiological, biological, or behavioral characteristics, including information pertaining to an individual's deoxyribonucleic acid (DNA), that is used or is intended to be used singly or in combination with each other or with other identifying data, to establish individual identity. Biometric information includes, but is not limited to, imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, and voice recordings, from which an identifier template, such as a faceprint, a minutiae template, or a voiceprint, can be extracted, and keystroke patterns or rhythms, gait patterns or rhythms, and sleep, health, or exercise data that contain identifying information.",
     topic: "definition",
     primary_source_url:
       "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:California"],
+    note:
+      "S2a-corrected: Post-CPRA renumbering places 'Biometric information' at § 1798.140(c). Subdivision (l) is 'Dark pattern' and must not be cited for the biometric definition.",
   },
   {
-    id: "us_ca_cpra.140_ae_2_c_spi_biometric",
+    id: "us_ca_cpra.140_ae_2_a_spi_biometric",
     jurisdiction_id: "us_ca_cpra",
     jurisdiction_display: "California",
     statute_long:
       "California Consumer Privacy Act, as amended by CPRA — Sensitive Personal Information",
     statute_short: "CCPA/CPRA",
-    pinpoint: "Cal. Civ. Code § 1798.140(ae)(2)(C)",
+    pinpoint: "Cal. Civ. Code § 1798.140(ae)(2)(A)",
     verbatim_quote:
-      "Cal. Civ. Code § 1798.140(ae)(2)(C): \"Sensitive personal information\" means: (2)(C) The processing of biometric information for the purpose of uniquely identifying a consumer.",
+      "Cal. Civ. Code § 1798.140(ae)(2)(A): \"Sensitive personal information\" means: (2)(A) The processing of biometric information for the purpose of uniquely identifying a consumer.",
     topic: "sensitive_data_classification",
     primary_source_url:
       "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:California"],
     note:
-      "S2-verified: SPI carve-out is triggered only when biometric information is processed for the purpose of uniquely identifying a consumer. Enrolment for authentication/identification therefore engages § 1798.121 right-to-limit; incidental biometric capture that is not used for identification does not.",
+      "S2a-corrected: Current § 1798.140(ae)(2)(A) — not (2)(C) — is the biometric SPI carve-out, triggered only when biometric information is processed for the purpose of uniquely identifying a consumer. Enrolment for authentication/identification therefore engages § 1798.121 right-to-limit; incidental biometric capture that is not used for identification does not.",
   },
   {
     id: "us_ca_cpra.121_a_right_to_limit_spi",
