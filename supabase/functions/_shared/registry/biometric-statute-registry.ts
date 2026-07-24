@@ -476,6 +476,63 @@ const CO_HB24_1130_ROWS: BiometricStatuteRow[] = [
       "Because HB24-1130 makes biometric data sensitive data, opt-in consent under § 6-1-1308(7) is required for biometric processing by controllers subject to the CPA.",
   },
   {
+    id: "us_co_hb24_1130.1308_3_data_minimization",
+    jurisdiction_id: "us_co_hb24_1130",
+    jurisdiction_display: "Colorado",
+    statute_long:
+      "Colorado Privacy Act (duty of data minimization)",
+    statute_short: "CPA",
+    pinpoint: "C.R.S. § 6-1-1308(3)",
+    verbatim_quote:
+      "C.R.S. § 6-1-1308(3): Duty of data minimization. A controller's collection of personal data must be adequate, relevant, and limited to what is reasonably necessary in relation to the specified purposes for which the data are processed.",
+    topic: "retention",
+    primary_source_url:
+      "https://colorado.public.law/statutes/crs_6-1-1308",
+    verification_date: "2026-07-24",
+    applicability_predicates: [
+      "jurisdiction_named:Colorado",
+    ],
+    note:
+      "S1-verified: under the enrolled CRS 2024 text at leg.colorado.gov and the public.law mirror, (3) is Duty of Data Minimization; (7) is Duty regarding Sensitive Data. Reports pairing (3) with minimization / adequate-relevant-limited framing are correct current statute. HB24-1130 does not renumber (3).",
+  },
+  {
+    id: "us_co_hb24_1130.1313_ag_rulemaking",
+    jurisdiction_id: "us_co_hb24_1130",
+    jurisdiction_display: "Colorado",
+    statute_long: "Colorado Privacy Act — rulemaking",
+    statute_short: "CPA",
+    pinpoint: "C.R.S. § 6-1-1313",
+    verbatim_quote:
+      "C.R.S. § 6-1-1313: Rules. (1) The attorney general may promulgate rules for the purpose of carrying out this part 13.",
+    topic: "enforcement",
+    primary_source_url:
+      "https://colorado.public.law/statutes/crs_6-1-1313",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Colorado"],
+    note:
+      "S1-verified: § 6-1-1313 is the CPA AG-rulemaking authority. The Colorado Privacy Act Rules at 4 CCR 904-3 are promulgated under this authority (see companion row us_co_hb24_1130.4ccr_904_3_7_09).",
+  },
+  {
+    id: "us_co_hb24_1130.4ccr_904_3_7_09",
+    jurisdiction_id: "us_co_hb24_1130",
+    jurisdiction_display: "Colorado",
+    statute_long:
+      "Colorado Privacy Act Rules — Employee consent to collect and process biometric identifiers",
+    statute_short: "4 CCR 904-3",
+    pinpoint: "4 CCR 904-3, Rule 7.09",
+    verbatim_quote:
+      "4 CCR 904-3, Rule 7.09 — Employee Consent to Collect and Process Biometric Identifiers: A. Employers may only require as a condition of employment that an Employee or a prospective Employee Consent to the collection and Processing of the Employee's or prospective Employee's Biometric Identifier consistent with C.R.S. § 6-1-1314(6). B. Consent requested by an Employer shall be consistent with all requirements for disclosures and communications to Consumers provided in 4 CCR 904-3, Rule 3.02(A). C. Consent required by an Employer shall be consistent with the requirements for Consent provided in 4 CCR 904-3, Rules 7.03-7.08.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://www.law.cornell.edu/regulations/colorado/4-CCR-904-3-7.09",
+    verification_date: "2026-07-24",
+    applicability_predicates: [
+      "jurisdiction_named:Colorado",
+    ],
+    note:
+      "S1-verified: 4 CCR 904-3 is the Colorado Privacy Act Rules published by the Colorado Department of Law under § 6-1-1313. Rule 7.09 is the biometric employee-consent rule. Reports referencing 4 CCR 904-3 for biometric-consent rules are correct.",
+  },
+  {
     id: "us_co_hb24_1130.1130_effective_date",
     jurisdiction_id: "us_co_hb24_1130",
     jurisdiction_display: "Colorado",
@@ -497,6 +554,7 @@ const CO_HB24_1130_ROWS: BiometricStatuteRow[] = [
       "The verbatim quote is a plain-English restatement of the act clause; the operative fact — effective date July 1, 2025 — is drawn directly from the signed act linked in primary_source_url. Corpus reviewer: replace with the exact enrolled-bill effective-date sentence at next verification pass.",
   },
 ];
+
 
 // ─────────────────────────────────────────────────────────────────────────
 // Aggregate
