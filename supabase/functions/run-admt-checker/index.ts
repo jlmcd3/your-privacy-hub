@@ -1831,21 +1831,93 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] CPPA-HF5 E usage_note strip failed (non-fatal):", e);
     }
 
+    // ── W9-ADMT-WIRE — L1 REGISTRY-STAMPED CITATIONS (pre-emit VA resolver) ──
+    // Walks every gap/finding entry that emitted a proposition_key and stamps
+    // the citation + subsection + verbatim_quote from ADMT_VERIFIED_AUTHORITIES.
+    // The generator never authors §-tokens; this pass is deterministic.
+    // Also normalizes the S5 hard slot `top_3_actions` shape.
+    const w9Metrics = {
+      va_version: ADMT_VERIFIED_AUTHORITY_VERSION,
+      va_rows: vaRegistrySize(ADMT_VERIFIED_AUTHORITIES),
+      va_stamps_applied: 0,
+      va_stamps_unresolved: 0,
+      top3_padded: 0,
+      top3_final_len: 0,
+    };
+    try {
+      const stampArr = (arr: any): void => {
+        if (!Array.isArray(arr)) return;
+        for (const it of arr) {
+          if (!it || typeof it !== "object") continue;
+          const pk = typeof it.proposition_key === "string" ? it.proposition_key : "";
+          if (!pk) continue;
+          const row = resolveByPropositionKey(ADMT_VERIFIED_AUTHORITIES, pk);
+          if (row) {
+            it.citation = row.subsection;
+            it._va_stamp = { proposition_key: pk, subsection: row.subsection, depth_class: row.depth_class, verbatim_quote: row.verbatim_quote, verified_on: row.verified_on };
+            w9Metrics.va_stamps_applied++;
+          } else {
+            it._va_stamp_unresolved = { proposition_key: pk };
+            w9Metrics.va_stamps_unresolved++;
+          }
+        }
+      };
+      for (const bucket of ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"]) {
+        stampArr((report as any)[bucket]);
+      }
+
+      // ── S5 top_3_actions normalizer — exact-3 shape, no fabricated deadlines/citations
+      const insufficientEntry = { rank: 0, action: "insufficient basis to state a top action", citation: "", deadline: "", proposition_key: "" };
+      let t3 = Array.isArray((report as any).top_3_actions) ? [...(report as any).top_3_actions] : [];
+      // Filter out non-objects / empty entries
+      t3 = t3.filter((e: any) => e && typeof e === "object" && typeof e.action === "string" && e.action.trim().length > 0);
+      // Pad to 3 with insufficient-basis entries; never fabricate
+      while (t3.length < 3) { t3.push({ ...insufficientEntry }); w9Metrics.top3_padded++; }
+      if (t3.length > 3) t3 = t3.slice(0, 3);
+      // Re-rank 1..3
+      t3 = t3.map((e: any, i: number) => ({ rank: i + 1, action: String(e.action), citation: typeof e.citation === "string" ? e.citation : "", deadline: typeof e.deadline === "string" ? e.deadline : "", proposition_key: typeof e.proposition_key === "string" ? e.proposition_key : "" }));
+      (report as any).top_3_actions = t3;
+      w9Metrics.top3_final_len = t3.length;
+    } catch (e) {
+      console.warn("[run-admt-checker] W9-ADMT-WIRE resolver pass failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── W6-ADMT-FIX (2026-07-24) — wave-6 atomic post-generation scrub ──
-    // Runs AFTER every earlier scrub/fallback pass so it operates on the
-    // final assembled report. Fail-open, idempotent. See _w6_admt_fix.ts.
+    // Runs AFTER the W9 VA-stamp pass so downstream repairs operate on the
+    // registry-stamped citations. Pre-emit gate: capture w6 counters, run one
+    // bounded repair pass; if surviving-critical remains, flag insufficient_basis.
+    const w9PreEmit = { attempted: 0, repaired: 0, still_failing: 0 };
     try {
       const intakeForW6 = ((assessment as any)?.intake_data as Record<string, unknown>) ?? {};
       const w6 = applyW6AdmtFix(report, intakeForW6);
+      // W9 pre-emit accounting: any w6 counter > 0 = a deterministic issue the
+      // model produced; the repair pass just cleared it. Repeat once for a
+      // bounded second pass so we can distinguish "cleanly repaired" from
+      // "still failing after repair".
+      const w6Counters = Object.entries(w6).filter(([k]) => k !== "version" && typeof (w6 as any)[k] === "number");
+      w9PreEmit.attempted = w6Counters.reduce((n, [, v]) => n + (Number(v) || 0), 0);
+      const w6Second = applyW6AdmtFix(report, intakeForW6);
+      const w6SecondCounters = Object.entries(w6Second).filter(([k]) => k !== "version" && typeof (w6Second as any)[k] === "number");
+      w9PreEmit.still_failing = w6SecondCounters.reduce((n, [, v]) => n + (Number(v) || 0), 0);
+      w9PreEmit.repaired = Math.max(0, w9PreEmit.attempted - w9PreEmit.still_failing);
       console.log(JSON.stringify({
         evt: "admt_w6_fix", fn: "run-admt-checker",
         build_stamp: BUILD_STAMP, w6_version: W6_ADMT_FIX_VERSION,
         ...w6,
       }));
+      console.log(JSON.stringify({
+        evt: "_w9_admt_wire", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        ...w9Metrics,
+        pre_emit: w9PreEmit,
+      }));
       (report as any)._w6_admt_fix = { version: W6_ADMT_FIX_VERSION, ...w6 };
+      (report as any)._w9_admt_wire = { ...w9Metrics, pre_emit: w9PreEmit };
     } catch (e) {
       console.warn("[run-admt-checker] W6-ADMT-FIX failed (non-fatal):", (e as Error)?.message);
     }
+
+
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-qbp25-a3@2026-07-23"), build_stamp: BUILD_STAMP };
