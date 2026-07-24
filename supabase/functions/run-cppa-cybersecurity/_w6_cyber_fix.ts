@@ -176,23 +176,42 @@ const COMPARATIVE_FRAMEWORKS: Array<{ label: string; re: RegExp }> = [
 const OPERATIVE_VERBS_RE =
   /\b(?:requires?|governs?|drives?|mandates?|dictates?|controls?|is\s+the\s+operative\s+standard\s+for|is\s+the\s+governing\s+standard\s+for)\b/i;
 
-export function rewriteComparativeAsOperative(s: string): { out: string; rewritten: number } {
+// A1 fix (2026-07-24): the appended operative tail must resolve the § 7123(c)
+// subsection from the CALLING control's own citation. When the caller has no
+// per-control context (executive_summary / top_risks / next_steps), the tail
+// is OMITTED entirely — we NEVER emit "(N)" or any unresolved placeholder
+// token in customer-facing output.
+export interface RewriteCompOpts {
+  /** Full per-control citation, e.g. "11 CCR § 7123(c)(1)". If omitted, no
+   *  operative tail is appended. */
+  controlCitation?: string;
+}
+
+// Safety net — strip any stray "(N)" literal that slipped through earlier
+// builds. Also normalizes "§ 7123(c)(N)" → "§ 7123(c)" when N is the literal
+// token "N".
+function stripLiteralNPlaceholder(s: string): string {
+  return s
+    .replace(/11\s*CCR\s*§\s*7123\(c\)\(N\)/gi, "11 CCR § 7123(c)")
+    .replace(/§\s*7123\(c\)\(N\)/gi, "§ 7123(c)")
+    .replace(/\(c\)\(N\)/g, "(c)");
+}
+
+export function rewriteComparativeAsOperative(
+  s: string,
+  opts: RewriteCompOpts = {},
+): { out: string; rewritten: number } {
   if (!s) return { out: s ?? "", rewritten: 0 };
   let rewritten = 0;
   const sentences = s.split(/(?<=[.;])\s+/);
   const patched = sentences.map((sent) => {
     if (!OPERATIVE_VERBS_RE.test(sent)) return sent;
-    // Find any comparative framework mention in the same sentence
     const hit = COMPARATIVE_FRAMEWORKS.find((f) => f.re.test(sent));
     if (!hit) return sent;
-    // Skip if the sentence itself is the operative CPPA cite
     if (/11\s*CCR\s*§\s*7123/i.test(sent) && !hit.re.test(sent.split(/11\s*CCR/i)[0] ?? "")) {
       return sent;
     }
     rewritten++;
-    // Prepend the comparative framing and neutralize the verb window by
-    // rewriting operative verbs to "addresses"/"provides comparative
-    // guidance on", and stamping the operative standard.
     let rewritten_sent = sent
       .replace(/\brequires?\b/gi, "addresses")
       .replace(/\bmandates?\b/gi, "addresses")
@@ -201,19 +220,21 @@ export function rewriteComparativeAsOperative(s: string): { out: string; rewritt
       .replace(/\bdictates?\b/gi, "addresses")
       .replace(/\bis\s+the\s+operative\s+standard\s+for\b/gi, "provides comparative context for")
       .replace(/\bis\s+the\s+governing\s+standard\s+for\b/gi, "provides comparative context for");
-    // Prefix comparative framing once, and append the operative-standard
-    // stamp so the reader is not left thinking the comparative framework
-    // is authoritative.
     if (!/for\s+comparative\s+context/i.test(rewritten_sent)) {
       rewritten_sent = `For comparative context, ${rewritten_sent.charAt(0).toLowerCase()}${rewritten_sent.slice(1)}`;
     }
-    if (!/operative\s+requirement\s+is\s+11\s*CCR\s*§\s*7123/i.test(rewritten_sent)) {
+    // A1: append the operative tail ONLY when we have a resolved per-control
+    // citation. Otherwise omit — never emit "(N)".
+    const cite = opts.controlCitation && /11\s*CCR\s*§\s*7123\(c\)\(\d+\)/i.test(opts.controlCitation)
+      ? opts.controlCitation
+      : "";
+    if (cite && !/operative\s+requirement\s+is\s+11\s*CCR\s*§\s*7123/i.test(rewritten_sent)) {
       rewritten_sent = rewritten_sent.replace(/[.;]?\s*$/, "") +
-        "; the operative requirement is 11 CCR § 7123(c)(N).";
+        `; the operative requirement is ${cite}.`;
     }
     return rewritten_sent;
   });
-  return { out: patched.join(" ").replace(/[ \t]{2,}/g, " "), rewritten };
+  return { out: stripLiteralNPlaceholder(patched.join(" ").replace(/[ \t]{2,}/g, " ")), rewritten };
 }
 
 // ── (3) Derived / cross-control figure porting ──────────────────────────
