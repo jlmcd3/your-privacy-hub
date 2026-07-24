@@ -19,7 +19,7 @@ describe("biometric statute registry — self-consistency", () => {
     expect(BIOMETRIC_REGISTRY_VERSION).toMatch(/^bio-reg-w\d(?:-s\d+[a-z]?)?-\d{4}-\d{2}-\d{2}$/);
   });
 
-  it("declares the Wave-1 and Wave-2 (S2) jurisdictions", () => {
+  it("declares the Wave-1, Wave-2 (S2), and Wave-3 (S3) jurisdictions", () => {
     expect(listRegistryJurisdictions().sort()).toEqual(
       [
         // Wave 1
@@ -31,6 +31,12 @@ describe("biometric statute registry — self-consistency", () => {
         "us_ar_pipa",
         "us_ca_cpra",
         "us_ny_shield",
+        // Wave 3 (S3)
+        "au_privacy_act",
+        "ca_pipeda",
+        "eu_gdpr",
+        "sg_pdpa",
+        "uk_gdpr",
       ].sort(),
     );
   });
@@ -92,4 +98,43 @@ describe("biometric selector — discrete enum-label mapping (S2b)", () => {
       expect(hit!.source).toBe("direct_selection");
     });
   }
+});
+
+// S3 — enum-label → registry-row mapping CI for the Wave-3 non-US regimes.
+// UK GDPR must NOT co-select EU GDPR (and vice-versa) when only one is
+// selected; both may co-exist when both labels are present.
+describe("biometric selector — discrete enum-label mapping (S3)", () => {
+  const cases: Array<[string, string]> = [
+    ["EU / EEA (GDPR)", "eu_gdpr"],
+    ["United Kingdom (UK GDPR)", "uk_gdpr"],
+    ["Canada (PIPEDA / provincial)", "ca_pipeda"],
+    ["Australia (Privacy Act)", "au_privacy_act"],
+    ["Singapore (PDPA)", "sg_pdpa"],
+  ];
+  for (const [label, expectedId] of cases) {
+    it(`maps "${label}" → ${expectedId} via direct_selection`, () => {
+      const r = resolveJurisdictions({ jurisdictions: [label], other_state_names: "" });
+      const hit = r.registered.find((x) => x.jurisdiction_id === expectedId);
+      expect(hit, `no registered row for ${label}`).toBeTruthy();
+      expect(hit!.source).toBe("direct_selection");
+    });
+  }
+
+  it("UK-only selection does NOT co-select EU GDPR", () => {
+    const r = resolveJurisdictions({
+      jurisdictions: ["United Kingdom (UK GDPR)"],
+      other_state_names: "",
+    });
+    expect(r.registered.some((x) => x.jurisdiction_id === "eu_gdpr")).toBe(false);
+    expect(r.registered.some((x) => x.jurisdiction_id === "uk_gdpr")).toBe(true);
+  });
+
+  it("EU + UK selection produces both registry ids", () => {
+    const r = resolveJurisdictions({
+      jurisdictions: ["EU / EEA (GDPR)", "United Kingdom (UK GDPR)"],
+      other_state_names: "",
+    });
+    expect(r.registered.some((x) => x.jurisdiction_id === "eu_gdpr")).toBe(true);
+    expect(r.registered.some((x) => x.jurisdiction_id === "uk_gdpr")).toBe(true);
+  });
 });

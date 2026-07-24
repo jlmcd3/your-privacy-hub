@@ -35,7 +35,13 @@ export type BiometricStatuteRow = {
     // ── Wave 2 (S2) ────────────────────────────────────────────────
     | "us_ca_cpra"
     | "us_ny_shield"
-    | "us_ar_pipa";
+    | "us_ar_pipa"
+    // ── Wave 3 (S3) — EU / UK / CA / AU / SG ───────────────────────
+    | "eu_gdpr"
+    | "uk_gdpr"
+    | "ca_pipeda"
+    | "au_privacy_act"
+    | "sg_pdpa";
   /** Human-readable jurisdiction display label. */
   jurisdiction_display: string;
   /** Long form of the statute (e.g. "Illinois Biometric Information Privacy Act"). */
@@ -85,7 +91,7 @@ export type BiometricStatuteRow = {
 };
 
 /** Registry version stamp; threaded into the report envelope. */
-export const BIOMETRIC_REGISTRY_VERSION = "bio-reg-w1-s2b-2026-07-24";
+export const BIOMETRIC_REGISTRY_VERSION = "bio-reg-w1-s3-2026-07-24";
 
 // ─────────────────────────────────────────────────────────────────────────
 // us_il_bipa — Illinois Biometric Information Privacy Act (740 ILCS 14/-)
@@ -700,6 +706,305 @@ const AR_PIPA_ROWS: BiometricStatuteRow[] = [
 
 
 // ─────────────────────────────────────────────────────────────────────────
+// eu_gdpr — EU General Data Protection Regulation (Regulation 2016/679).
+// Biometric surface: Art. 4(14) definition, Art. 9(1) special-category
+// prohibition, Art. 9(2)(a) explicit-consent exception.
+// ─────────────────────────────────────────────────────────────────────────
+
+const EU_GDPR_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "eu_gdpr.art_4_14_biometric_data_definition",
+    jurisdiction_id: "eu_gdpr",
+    jurisdiction_display: "EU/EEA",
+    statute_long:
+      "Regulation (EU) 2016/679 of the European Parliament and of the Council (GDPR) — Definitions",
+    statute_short: "GDPR",
+    pinpoint: "Article 4(14) GDPR",
+    verbatim_quote:
+      "Article 4(14) GDPR: 'biometric data' means personal data resulting from specific technical processing relating to the physical, physiological or behavioural characteristics of a natural person, which allow or confirm the unique identification of that natural person, such as facial images or dactyloscopic data.",
+    topic: "definition",
+    primary_source_url:
+      "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02016R0679-20160504",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:EU/EEA"],
+    note:
+      "S3-verified against EUR-Lex consolidated text (retrieved 2026-07-24). GDPR biometric data is a defined term at Art. 4(14); the special-category trigger at Art. 9(1) attaches only when processing is 'for the purpose of uniquely identifying a natural person'.",
+  },
+  {
+    id: "eu_gdpr.art_9_1_special_category_prohibition",
+    jurisdiction_id: "eu_gdpr",
+    jurisdiction_display: "EU/EEA",
+    statute_long:
+      "GDPR — Processing of special categories of personal data",
+    statute_short: "GDPR",
+    pinpoint: "Article 9(1) GDPR",
+    verbatim_quote:
+      "Article 9(1) GDPR: Processing of personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, and the processing of genetic data, biometric data for the purpose of uniquely identifying a natural person, data concerning health or data concerning a natural person's sex life or sexual orientation shall be prohibited.",
+    topic: "sensitive_data_classification",
+    primary_source_url:
+      "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02016R0679-20160504",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:EU/EEA"],
+    note:
+      "S3-verified: Art. 9(1) prohibition is engaged only when biometric data is processed 'for the purpose of uniquely identifying a natural person' — incidental biometric capture that is not used for unique identification (e.g. crowd-count video) does not trigger Art. 9.",
+  },
+  {
+    id: "eu_gdpr.art_9_2_a_explicit_consent",
+    jurisdiction_id: "eu_gdpr",
+    jurisdiction_display: "EU/EEA",
+    statute_long:
+      "GDPR — Exceptions to the Art. 9(1) prohibition",
+    statute_short: "GDPR",
+    pinpoint: "Article 9(2)(a) GDPR",
+    verbatim_quote:
+      "Article 9(2)(a) GDPR: paragraph 1 shall not apply if one of the following applies: (a) the data subject has given explicit consent to the processing of those personal data for one or more specified purposes, except where Union or Member State law provide that the prohibition referred to in paragraph 1 may not be lifted by the data subject.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02016R0679-20160504",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:EU/EEA"],
+    note:
+      "S3-verified: Explicit consent under Art. 9(2)(a) is the default lawful-basis exception for biometric identification. Employer/employee contexts must still satisfy Art. 7 freely-given requirements — EDPB Guidelines 05/2020 treat consent in employment as generally invalid absent Member-State-law grounding.",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// uk_gdpr — UK GDPR (retained EU law) as amended by DPPEC Regs 2019.
+// Biometric surface mirrors EU Art. 4(14) / 9(1) / 9(2)(a).
+// ─────────────────────────────────────────────────────────────────────────
+
+const UK_GDPR_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "uk_gdpr.art_4_14_biometric_data_definition",
+    jurisdiction_id: "uk_gdpr",
+    jurisdiction_display: "United Kingdom",
+    statute_long:
+      "UK General Data Protection Regulation (Retained EU Regulation 2016/679)",
+    statute_short: "UK GDPR",
+    pinpoint: "Article 4(14) UK GDPR",
+    verbatim_quote:
+      "Article 4(14) UK GDPR: 'biometric data' means personal data resulting from specific technical processing relating to the physical, physiological or behavioural characteristics of a natural person, which allow or confirm the unique identification of that natural person, such as facial images or dactyloscopic data.",
+    topic: "definition",
+    primary_source_url:
+      "https://www.legislation.gov.uk/eur/2016/679/article/4",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:United Kingdom"],
+    note:
+      "S3-verified against legislation.gov.uk retained-EU text (retrieved 2026-07-24). Substantive text is identical to EU Art. 4(14); citation must be styled as 'Article 4(14) UK GDPR' (not 'Article 4(14) GDPR') to reflect the post-Brexit source of law.",
+  },
+  {
+    id: "uk_gdpr.art_9_1_special_category_prohibition",
+    jurisdiction_id: "uk_gdpr",
+    jurisdiction_display: "United Kingdom",
+    statute_long:
+      "UK GDPR — Processing of special categories of personal data",
+    statute_short: "UK GDPR",
+    pinpoint: "Article 9(1) UK GDPR",
+    verbatim_quote:
+      "Article 9(1) UK GDPR: Processing of personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, and the processing of genetic data, biometric data for the purpose of uniquely identifying a natural person, data concerning health or data concerning a natural person's sex life or sexual orientation shall be prohibited.",
+    topic: "sensitive_data_classification",
+    primary_source_url:
+      "https://www.legislation.gov.uk/eur/2016/679/article/9",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:United Kingdom"],
+    note:
+      "S3-verified: identical operative text to EU Art. 9(1). UK-specific lawful-basis conditions for special-category data live in DPA 2018 Sched 1 — cited separately when relevant, not asserted in the S3 core registry.",
+  },
+  {
+    id: "uk_gdpr.art_9_2_a_explicit_consent",
+    jurisdiction_id: "uk_gdpr",
+    jurisdiction_display: "United Kingdom",
+    statute_long:
+      "UK GDPR — Exceptions to the Art. 9(1) prohibition",
+    statute_short: "UK GDPR",
+    pinpoint: "Article 9(2)(a) UK GDPR",
+    verbatim_quote:
+      "Article 9(2)(a) UK GDPR: paragraph 1 shall not apply if one of the following applies: (a) the data subject has given explicit consent to the processing of those personal data for one or more specified purposes, except where domestic law provides that the prohibition referred to in paragraph 1 may not be lifted by the data subject.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://www.legislation.gov.uk/eur/2016/679/article/9",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:United Kingdom"],
+    note:
+      "S3-verified: post-Brexit UK GDPR replaces 'Union or Member State law' with 'domestic law' in Art. 9(2)(a) — reproduced verbatim from legislation.gov.uk.",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// ca_pipeda — Canada Personal Information Protection and Electronic
+// Documents Act, S.C. 2000, c. 5. Biometric data is treated as personal
+// information under s. 2(1); consent, appropriate-purposes, and
+// safeguards principles apply (no dedicated biometric statute).
+// ─────────────────────────────────────────────────────────────────────────
+
+const CA_PIPEDA_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "ca_pipeda.s_5_3_appropriate_purposes",
+    jurisdiction_id: "ca_pipeda",
+    jurisdiction_display: "Canada",
+    statute_long:
+      "Personal Information Protection and Electronic Documents Act (PIPEDA), S.C. 2000, c. 5",
+    statute_short: "PIPEDA",
+    pinpoint: "PIPEDA s. 5(3)",
+    verbatim_quote:
+      "PIPEDA s. 5(3): An organization may collect, use or disclose personal information only for purposes that a reasonable person would consider are appropriate in the circumstances.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://laws-lois.justice.gc.ca/eng/acts/P-8.6/section-5.html",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Canada"],
+    note:
+      "S3-verified: OPC applies s. 5(3) to biometric enrolments as a proportionality gate (see OPC PIPEDA Report of Findings #2020-004). Purpose test is engaged in addition to — not in lieu of — Sched. 1 consent.",
+  },
+  {
+    id: "ca_pipeda.sched_1_cl_4_3_consent_principle",
+    jurisdiction_id: "ca_pipeda",
+    jurisdiction_display: "Canada",
+    statute_long:
+      "PIPEDA — Schedule 1 (Model Code), Principle 3 (Consent)",
+    statute_short: "PIPEDA Sch. 1",
+    pinpoint: "PIPEDA, Sch. 1, cl. 4.3",
+    verbatim_quote:
+      "PIPEDA, Sch. 1, cl. 4.3 — Principle 3 (Consent): The knowledge and consent of the individual are required for the collection, use, or disclosure of personal information, except where inappropriate.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://laws-lois.justice.gc.ca/eng/acts/P-8.6/page-7.html",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Canada"],
+    note:
+      "S3-verified: OPC treats biometric characteristics as sensitive under cl. 4.3.4, driving an express-consent expectation for enrolment. Reports must state consent form (express vs implied) is fact-specific.",
+  },
+  {
+    id: "ca_pipeda.sched_1_cl_4_7_safeguards",
+    jurisdiction_id: "ca_pipeda",
+    jurisdiction_display: "Canada",
+    statute_long:
+      "PIPEDA — Schedule 1 (Model Code), Principle 7 (Safeguards)",
+    statute_short: "PIPEDA Sch. 1",
+    pinpoint: "PIPEDA, Sch. 1, cl. 4.7.1",
+    verbatim_quote:
+      "PIPEDA, Sch. 1, cl. 4.7.1: The security safeguards shall protect personal information against loss or theft, as well as unauthorized access, disclosure, copying, use, or modification. Organizations shall protect personal information regardless of the format in which it is held.",
+    topic: "security",
+    primary_source_url:
+      "https://laws-lois.justice.gc.ca/eng/acts/P-8.6/page-7.html",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Canada"],
+    note:
+      "S3-verified: cl. 4.7.2 requires safeguards proportionate to sensitivity; biometric templates are sensitive by default, so cl. 4.7 requires higher-tier controls (encryption at rest, key custody separation).",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// au_privacy_act — Australian Privacy Act 1988 (Cth). Biometric information
+// and templates are enumerated 'sensitive information' under s. 6(1); APP 3
+// governs collection; APP 11 governs security.
+// ─────────────────────────────────────────────────────────────────────────
+
+const AU_PRIVACY_ACT_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "au_privacy_act.s_6_1_sensitive_information_biometric",
+    jurisdiction_id: "au_privacy_act",
+    jurisdiction_display: "Australia",
+    statute_long:
+      "Privacy Act 1988 (Cth) — Interpretation",
+    statute_short: "Privacy Act 1988 (Cth)",
+    pinpoint: "s. 6(1) Privacy Act 1988 (Cth)",
+    verbatim_quote:
+      "s. 6(1) Privacy Act 1988 (Cth): sensitive information means: (a) information or an opinion about an individual's … (viii) biometric information that is to be used for the purpose of automated biometric verification or biometric identification; or (ix) biometric templates.",
+    topic: "sensitive_data_classification",
+    primary_source_url:
+      "https://www.legislation.gov.au/C2004A03712/latest/text",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Australia"],
+    note:
+      "S3-verified against legislation.gov.au consolidated Act (retrieved 2026-07-24). Australia classes both raw biometric information used for verification/identification and derived biometric templates as sensitive — parallel to EU Art. 9 but expressed at the definitional layer.",
+  },
+  {
+    id: "au_privacy_act.app_3_3_collection_of_sensitive_info",
+    jurisdiction_id: "au_privacy_act",
+    jurisdiction_display: "Australia",
+    statute_long:
+      "Privacy Act 1988 (Cth) — Australian Privacy Principle 3 (Collection of solicited personal information)",
+    statute_short: "APP 3",
+    pinpoint: "APP 3.3",
+    verbatim_quote:
+      "APP 3.3: An APP entity must not collect sensitive information about an individual unless: (a) the individual consents to the collection of the information and: (i) if the entity is an agency — the information is reasonably necessary for, or directly related to, one or more of the entity's functions or activities; or (ii) if the entity is an organisation — the information is reasonably necessary for one or more of the entity's functions or activities; or (b) subclause 3.4 applies in relation to the information.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-quick-reference",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Australia"],
+    note:
+      "S3-verified: APP 3.3 is the affirmative gate for biometric collection by non-agency organisations; the alternative subclause 3.4 permissions (e.g. permitted general/health situations) are narrow and must be substantiated, not assumed.",
+  },
+  {
+    id: "au_privacy_act.app_11_1_security",
+    jurisdiction_id: "au_privacy_act",
+    jurisdiction_display: "Australia",
+    statute_long:
+      "Privacy Act 1988 (Cth) — Australian Privacy Principle 11 (Security of personal information)",
+    statute_short: "APP 11",
+    pinpoint: "APP 11.1",
+    verbatim_quote:
+      "APP 11.1: If an APP entity holds personal information, the entity must take such steps as are reasonable in the circumstances to protect the information: (a) from misuse, interference and loss; and (b) from unauthorised access, modification or disclosure.",
+    topic: "security",
+    primary_source_url:
+      "https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-quick-reference",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Australia"],
+    note:
+      "S3-verified: OAIC Guide to Securing Personal Information treats biometric templates as high-sensitivity holdings; APP 11.1 'reasonable steps' scales with sensitivity, so template encryption + revocability are baseline expectations.",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// sg_pdpa — Singapore Personal Data Protection Act 2012. No standalone
+// biometric statute; core obligations are Consent (s. 13) and Protection
+// (s. 24). PDPC Advisory Guidelines on the PDPA apply biometric templates
+// as personal data subject to both obligations.
+// ─────────────────────────────────────────────────────────────────────────
+
+const SG_PDPA_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "sg_pdpa.s_13_consent_obligation",
+    jurisdiction_id: "sg_pdpa",
+    jurisdiction_display: "Singapore",
+    statute_long:
+      "Personal Data Protection Act 2012 (No. 26 of 2012) — Consent required",
+    statute_short: "PDPA",
+    pinpoint: "s. 13 PDPA",
+    verbatim_quote:
+      "s. 13 PDPA: An organisation must not, on or after the appointed day, collect, use or disclose personal data about an individual unless — (a) the individual gives, or is deemed to have given, his or her consent under this Act to the collection, use or disclosure, as the case may be; or (b) the collection, use or disclosure, as the case may be, without the consent of the individual is required or authorised under this Act or any other written law.",
+    topic: "consent_notice",
+    primary_source_url:
+      "https://sso.agc.gov.sg/Act/PDPA2012?ProvIds=P13-#pr13-",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Singapore"],
+    note:
+      "S3-verified against sso.agc.gov.sg consolidated Act (retrieved 2026-07-24). PDPA does not carve out a special-category regime — biometric data is regulated as ordinary personal data through the general Consent, Purpose Limitation, and Protection obligations.",
+  },
+  {
+    id: "sg_pdpa.s_24_protection_obligation",
+    jurisdiction_id: "sg_pdpa",
+    jurisdiction_display: "Singapore",
+    statute_long:
+      "Personal Data Protection Act 2012 — Protection of personal data",
+    statute_short: "PDPA",
+    pinpoint: "s. 24 PDPA",
+    verbatim_quote:
+      "s. 24 PDPA: An organisation must protect personal data in its possession or under its control by making reasonable security arrangements to prevent — (a) unauthorised access, collection, use, disclosure, copying, modification or disposal, or similar risks; and (b) the loss of any storage medium or device on which personal data is stored.",
+    topic: "security",
+    primary_source_url:
+      "https://sso.agc.gov.sg/Act/PDPA2012?ProvIds=P13-#pr24-",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Singapore"],
+    note:
+      "S3-verified: PDPC Advisory Guidelines on Key Concepts (Ch. 17) treat biometric templates as sensitive personal data for the purpose of s. 24 'reasonable security arrangements' — reports must state template-level encryption + access controls as baseline.",
+  },
+];
+
+
+// ─────────────────────────────────────────────────────────────────────────
 // Aggregate
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -711,6 +1016,11 @@ export const BIOMETRIC_STATUTE_REGISTRY: BiometricStatuteRow[] = [
   ...CA_CPRA_ROWS,
   ...NY_SHIELD_ROWS,
   ...AR_PIPA_ROWS,
+  ...EU_GDPR_ROWS,
+  ...UK_GDPR_ROWS,
+  ...CA_PIPEDA_ROWS,
+  ...AU_PRIVACY_ACT_ROWS,
+  ...SG_PDPA_ROWS,
 ];
 
 export const BIOMETRIC_REGISTRY_JURISDICTIONS: Record<
@@ -724,6 +1034,13 @@ export const BIOMETRIC_REGISTRY_JURISDICTIONS: Record<
   us_ca_cpra: { display: "California", state_names: ["California", "CA", "Calif."] },
   us_ny_shield: { display: "New York", state_names: ["New York", "NY", "N.Y."] },
   us_ar_pipa: { display: "Arkansas", state_names: ["Arkansas", "AR", "Ark."] },
+  // Wave 3 — non-US regimes are selected via the discrete JURS enum only;
+  // state_names is not exercised (kept as [] as a documentation stub).
+  eu_gdpr: { display: "EU/EEA", state_names: [] },
+  uk_gdpr: { display: "United Kingdom", state_names: [] },
+  ca_pipeda: { display: "Canada", state_names: [] },
+  au_privacy_act: { display: "Australia", state_names: [] },
+  sg_pdpa: { display: "Singapore", state_names: [] },
 };
 
 /**

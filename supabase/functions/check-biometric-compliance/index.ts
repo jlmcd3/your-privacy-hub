@@ -5,7 +5,7 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
 // not verify the deploy). Bump on every behavior edit. External-verification gate:
 // clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "bio-reg-w1-s2b-ny-co-enum-goldens@2026-07-24T05:30:00Z";
+export const BUILD_STAMP = "bio-reg-w1-s3-eu-uk-ca-au-sg@2026-07-24T06:30:00Z";
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";

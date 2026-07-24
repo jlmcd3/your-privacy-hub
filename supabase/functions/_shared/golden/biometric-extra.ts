@@ -307,4 +307,165 @@ export const BIOMETRIC_GOLDEN_EXTRA: GoldenCase[] = [
         label: "does NOT frame SHIELD as a consent regime (breach-notification + safeguards only)" },
     ],
   },
+
+  // ── S3 — EU / EEA (GDPR) discrete enum ─────────────────────────────
+  {
+    id: "bio-reg-w3-eu-gdpr-enum",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "Amsterdam Access Systems B.V.",
+      biometricTypes: ["Fingerprint / palm print"],
+      orgType: "Security / access control provider",
+      purpose: "Physical access control",
+      jurisdictions: ["EU / EEA (GDPR)"],
+    },
+    assertions: [
+      { kind: "jurisdiction_resolved", label: "resolves the discrete EU/EEA enum entry" },
+      { kind: "must_include", pattern: "Article\\s*4\\(14\\)\\s*GDPR", flags: "i",
+        label: "cites registry pinpoint Article 4(14) GDPR (biometric-data definition)" },
+      { kind: "must_include", pattern: "Article\\s*9\\(1\\)\\s*GDPR", flags: "i",
+        label: "cites registry pinpoint Article 9(1) GDPR (special-category prohibition)" },
+      { kind: "must_include", pattern: "Article\\s*9\\(2\\)\\(a\\)\\s*GDPR", flags: "i",
+        label: "cites registry pinpoint Article 9(2)(a) GDPR (explicit-consent exception)" },
+      { kind: "must_include", pattern: "uniquely\\s+identifying", flags: "i",
+        label: "surfaces the Art. 9(1) 'uniquely identifying' scoping (not blanket biometric capture)" },
+      { kind: "must_not_include", pattern: "BIPA|740 ILCS|CUBI|503\\.001", flags: "i",
+        label: "does NOT drag US biometric statutes into an EU-only analysis" },
+      { kind: "must_not_include", pattern: "UK\\s*GDPR", flags: "i",
+        label: "does NOT drag UK GDPR into an EU-only analysis" },
+    ],
+  },
+
+  // ── S3 — United Kingdom (UK GDPR) discrete enum ────────────────────
+  {
+    id: "bio-reg-w3-uk-gdpr-enum",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "London Consumer Auth Ltd.",
+      biometricTypes: ["Facial geometry / facial recognition"],
+      orgType: "Consumer app or platform",
+      purpose: "Customer authentication",
+      jurisdictions: ["United Kingdom (UK GDPR)"],
+    },
+    assertions: [
+      { kind: "jurisdiction_resolved", label: "resolves the discrete UK GDPR enum entry" },
+      { kind: "must_include", pattern: "Article\\s*4\\(14\\)\\s*UK\\s*GDPR", flags: "i",
+        label: "cites registry pinpoint Article 4(14) UK GDPR (styled as UK GDPR, not EU GDPR)" },
+      { kind: "must_include", pattern: "Article\\s*9\\(1\\)\\s*UK\\s*GDPR", flags: "i",
+        label: "cites registry pinpoint Article 9(1) UK GDPR" },
+      { kind: "must_include", pattern: "Article\\s*9\\(2\\)\\(a\\)\\s*UK\\s*GDPR", flags: "i",
+        label: "cites registry pinpoint Article 9(2)(a) UK GDPR" },
+      { kind: "must_not_include", pattern: "Union\\s+or\\s+Member\\s+State\\s+law", flags: "i",
+        label: "does NOT quote the EU-specific 'Union or Member State law' phrasing in a UK-only analysis" },
+      { kind: "must_not_include", pattern: "BIPA|CUBI|740 ILCS", flags: "i",
+        label: "does NOT drag US biometric statutes into a UK-only analysis" },
+    ],
+  },
+
+  // ── S3 — Canada (PIPEDA) discrete enum ─────────────────────────────
+  {
+    id: "bio-reg-w3-ca-pipeda-enum",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "Toronto Workforce Systems Inc.",
+      biometricTypes: ["Fingerprint / palm print"],
+      orgType: "Employer (employee biometrics)",
+      purpose: "Time & attendance / workforce management",
+      jurisdictions: ["Canada (PIPEDA / provincial)"],
+    },
+    assertions: [
+      { kind: "jurisdiction_resolved", label: "resolves the discrete Canada (PIPEDA) enum entry" },
+      { kind: "must_include", pattern: "PIPEDA\\s*s\\.\\s*5\\(3\\)", flags: "i",
+        label: "cites registry pinpoint PIPEDA s. 5(3) (appropriate-purposes)" },
+      { kind: "must_include", pattern: "PIPEDA,\\s*Sch\\.\\s*1,\\s*cl\\.\\s*4\\.3", flags: "i",
+        label: "cites registry pinpoint PIPEDA, Sch. 1, cl. 4.3 (Consent Principle)" },
+      { kind: "must_include", pattern: "PIPEDA,\\s*Sch\\.\\s*1,\\s*cl\\.\\s*4\\.7\\.1", flags: "i",
+        label: "cites registry pinpoint PIPEDA, Sch. 1, cl. 4.7.1 (Safeguards Principle)" },
+      { kind: "must_not_include", pattern: "GDPR|Article\\s*9", flags: "i",
+        label: "does NOT import GDPR framing into a PIPEDA-only analysis" },
+      { kind: "must_not_include", pattern: "BIPA|CUBI", flags: "i",
+        label: "does NOT drag US biometric statutes into a PIPEDA-only analysis" },
+    ],
+  },
+
+  // ── S3 — Australia (Privacy Act 1988) discrete enum ────────────────
+  {
+    id: "bio-reg-w3-au-privacy-act-enum",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "Sydney Access Co. Pty Ltd.",
+      biometricTypes: ["Fingerprint / palm print"],
+      orgType: "Security / access control provider",
+      purpose: "Physical access control",
+      jurisdictions: ["Australia (Privacy Act)"],
+    },
+    assertions: [
+      { kind: "jurisdiction_resolved", label: "resolves the discrete Australia enum entry" },
+      { kind: "must_include", pattern: "s\\.\\s*6\\(1\\)\\s*Privacy\\s*Act\\s*1988", flags: "i",
+        label: "cites registry pinpoint s. 6(1) Privacy Act 1988 (Cth) (biometric templates as sensitive info)" },
+      { kind: "must_include", pattern: "APP\\s*3\\.3", flags: "i",
+        label: "cites registry pinpoint APP 3.3 (collection of sensitive information)" },
+      { kind: "must_include", pattern: "APP\\s*11\\.1", flags: "i",
+        label: "cites registry pinpoint APP 11.1 (security of personal information)" },
+      { kind: "must_not_include", pattern: "GDPR|Article\\s*9", flags: "i",
+        label: "does NOT import GDPR framing into an Australia-only analysis" },
+      { kind: "must_not_include", pattern: "BIPA|CUBI|PIPEDA", flags: "i",
+        label: "does NOT drag other-regime statutes into an Australia-only analysis" },
+    ],
+  },
+
+  // ── S3 — Singapore (PDPA) discrete enum ────────────────────────────
+  {
+    id: "bio-reg-w3-sg-pdpa-enum",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "Marina Bay FinAuth Pte. Ltd.",
+      biometricTypes: ["Facial geometry / facial recognition"],
+      orgType: "Financial institution / fintech",
+      purpose: "Customer authentication",
+      jurisdictions: ["Singapore (PDPA)"],
+    },
+    assertions: [
+      { kind: "jurisdiction_resolved", label: "resolves the discrete Singapore (PDPA) enum entry" },
+      { kind: "must_include", pattern: "s\\.\\s*13\\s*PDPA", flags: "i",
+        label: "cites registry pinpoint s. 13 PDPA (Consent Obligation)" },
+      { kind: "must_include", pattern: "s\\.\\s*24\\s*PDPA", flags: "i",
+        label: "cites registry pinpoint s. 24 PDPA (Protection Obligation)" },
+      { kind: "must_not_include", pattern: "special\\s+category|Article\\s*9\\s*GDPR|sensitive\\s+personal\\s+data\\s+under\\s+the\\s+PDPA", flags: "i",
+        label: "does NOT invent a PDPA special-category regime (PDPA has none)" },
+      { kind: "must_not_include", pattern: "BIPA|CUBI|PIPEDA|Privacy\\s*Act\\s*1988", flags: "i",
+        label: "does NOT drag other-regime statutes into a Singapore-only analysis" },
+    ],
+  },
+
+  // ── S3 pass-through — Colorado § 6-1-1308(3) data-minimization
+  // assertion promised alongside S3 (commended deviation from S2b-fix).
+  // Discrete CO enum path, this time asserting minimization (3), not (7).
+  {
+    id: "bio-reg-w3-co-cpa-1308-3-data-minimization-enum",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "Denver Retail Ops LLC",
+      biometricTypes: ["Fingerprint / palm print"],
+      orgType: "Employer (employee biometrics)",
+      purpose: "Time & attendance / workforce management",
+      jurisdictions: ["Colorado, USA (CPA)"],
+      other_state_names: "",
+    },
+    assertions: [
+      { kind: "jurisdiction_resolved", label: "resolves the discrete Colorado enum entry" },
+      { kind: "must_include", pattern: "C\\.R\\.S\\.\\s*§\\s*6-1-1308\\(3\\)", flags: "i",
+        label: "cites registry pinpoint § 6-1-1308(3) as the DATA-MINIMIZATION duty (not consent)" },
+      { kind: "must_not_include", pattern: "§\\s*6-1-1308\\(3\\)[^.]{0,80}consent", flags: "i",
+        label: "does NOT mis-label § 6-1-1308(3) as a consent provision" },
+      { kind: "must_not_include", pattern: "BIPA|740 ILCS|CUBI", flags: "i",
+        label: "does NOT drag other US biometric statutes into a Colorado-only analysis" },
+    ],
+  },
 ];
