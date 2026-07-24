@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T16:56:21Z — WAVE-11 reconciliation recorded + WAVE-12 digest (batch `a289c96e`) extracted; CPPA fix turns C/D/E queued ahead of SAMPLES-CONTRACT-governance per CEO CPPA priority.
+**Last updated:** 2026-07-24T17:12:00Z — WAVE12-FIX TURN C (cppa-admt) shipped: fabricated `access_timeline` row removed from registry, `deadline_table` neutral placeholder path added, top-level `_`-prefixed telemetry moved to `_meta.internal`, per-entry `_va_stamp*` diagnostics stripped, `§ 7001 + § 7001` chain dedupe added, `run-admt-checker` restamped `w12-admt-turnc@2026-07-24T17:02:00Z` (fresh clock, deferred W9 restamp discharged).
 
 ---
 
