@@ -41,11 +41,8 @@ const F_LIA_UK: SampleFixture = {
   result_url_pattern: "/li-assessment/result/{id}",
   fixture: {
     insert: {
-      // Mechanical Stage-A row columns (LIAssessment.tsx L158 .insert{...}); allow-listed in validate.ts:
-      status: "pending",
-      stage: "submitted", // Stage-A row starts "preview"; Stage-B intake_data flips to "submitted" (LIAssessmentIntake.tsx L310). Fixture represents post-submit state.
-      preview_signal: { sample_run: true, use_case_label: "Employee safety telemetry" }, // LIAssessment.tsx L158 stores preview-fn payload on the row
-      preview_assessment_id: "sample-preview-lia-uk-000", // required by Stage-B contract (LIAssessmentIntake.tsx L311: preview_assessment_id: row.id)
+      stage: "submitted",
+      preview_assessment_id: "sample-preview-lia-uk-000",
       organization_name: "North Pole Manual Mining Ltd",
       subject_anchor:
         "Wearable safety telemetry (underground location and heart rate) on underground shift workers",
@@ -84,9 +81,9 @@ const F_LIA_UK: SampleFixture = {
         reasonable_expectation_detail:
           "Workers reasonably expect proportionate safety monitoring underground given the inherent risks of the work environment, but do not expect continuous physiological monitoring without notice; the works-council consultation and handbook addendum close that expectation gap before deployment.",
         vulnerable_subjects: ["Employees in a power-imbalance relationship"],
-        potential_harm: "Moderate",
+        potential_harm: "Severe",
         potential_harm_detail:
-          "Without safeguards, continuous heart-rate and zone telemetry could enable misuse for productivity surveillance, inference of medical conditions (cardiac, pregnancy, stress disorders), and a chilling effect on legitimate rest breaks — hence the strict purpose-limitation, pseudonymisation and works-council oversight controls listed below. Rated Moderate (not Severe) because the specific pseudonymisation, purpose-limitation, works-council oversight and reassignment-without-detriment safeguards materially reduce the residual harm severity below the physiological-monitoring worst case.",
+          "Without safeguards, continuous heart-rate and zone telemetry could enable misuse for productivity surveillance, inference of medical conditions (cardiac, pregnancy, stress disorders), and a chilling effect on legitimate rest breaks — hence the strict purpose-limitation, pseudonymisation and works-council oversight controls listed below.",
         safeguards: [
           "Pseudonymised dashboards (shift-ID, zone only)",
           "90-day raw-data retention; 12-month aggregate retention",
