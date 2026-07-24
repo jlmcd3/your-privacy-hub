@@ -20,11 +20,15 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 2. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a field-provenance + B1b claims guard) — deployed 12:39Z.
 3. **DONE PRIOR TURN** — `SAMPLES-CONTRACT-dpia` (4/8) — frontend/test only, no deploy.
 4. **DONE THIS TURN** — `SAMPLES-CONTRACT-lia` (5/8) — frontend/test only, no deploy.
-5. **NEXT** — `SAMPLES-CONTRACT-governance` (6/8). Frontend-only; not deploy-locked.
-6. Then — `-ir_playbook` → `-biometric` → `-dpa` (7/8, 8/8, then 9/8-out-of-8 dpa closes the series — note: series is 8 tools, dpa is #8).
-7. After 8/8 — `REGISTRATION-INTAKE-CONTRACT-RAIL-MAP` (pre-approved authoring turn per overnight standing order: shared contract + rail-map + corpus-cited rails + dummy data).
-8. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §6 sentinel gap).
-9. Deferred — W9 admt build restamp (bundled with next admt deploy).
+5. **NEXT** — `WAVE12-FIX TURN C` (cppa-admt, deploy turn): (C1) strip internal pipeline metadata objects (`_w6_admt_fix`, `_w9_admt_wire`, `_w9_admt_pre_emit`) from customer-facing report output — HIGH leak, wave-12 doc `a731c375`; (C2) fix `deadline_table` access-timeline citation wiring: report cites "11 CCR § 7222(c)" with a fabricated verbatim 45-day quote; registry: §7222(c)(1)=trade-secret carve-out, §7222(d)=submission methods — CRITICAL doc `a731c375` + HIGH doc `ea958ad9` (systemic, 2 docs); (C3) reduce "applicable ADMT-subchapter provision" fallback density (25 instances/doc) where registry sections resolve; (C4) fix h6 doubled `"§7001(e) + §7001(e)"` governing-anchor emission. Bundle the deferred W9 admt build restamp into this deploy (fresh clock). Requires five-lens TEAM-REVIEWED dispatch + deploy-lock checks (§3) before send.
+6. Then — `WAVE12-FIX TURN D` (cppa-risk, deploy turn): (D1) volume-prong threshold wired to wrong field — used `q2_consumers` ("100,000–249,999") instead of `i3_ca_consumer_band` ("100,000–1,000,000") for §7120(b)(2)(A) 250k test → wrong scope conclusion (HIGH doc `9ce32381`); (D2) profiling-claim guard hardening — TURN B fixed `sensitive_location` cross-attribution (not observed wave 12) but overclaim mutated: "profiling and inference generation" asserted from a purpose field that doesn't state it (HIGH `9ce32381`) and "no profiling inferences are recorded" contradicting `q5b_profiling_observation=Yes` (HIGH `864495a3`); (D3) third-party definition cite `§1798.140(ad)` → correct post-CPRA lettering `§1798.140(ai)` (HIGH `864495a3`).
+7. Then — `WAVE12-FIX TURN E` (cppa-cyber, deploy turn): framework-crosswalk sentence assembler emits garbled/truncated fragments — `"the ISO 27001 framework provides comparative guidance on;"` / dangling `")"` / duplicated operative-requirement sentences (HIGH ×3, docs `66187172` + `57bebb53`). TURN A placeholder fix VERIFIED effective: `"§7123(c)(N)"` and the 18-component mean-score hallucination were NOT observed in wave 12. Boilerplate remediation across 16/18 controls persists (MEDIUM, deferred to E or later).
+8. Then — `SAMPLES-CONTRACT-governance` (6/8). Frontend-only; not deploy-locked.
+9. Then — `-ir_playbook` → `-biometric` → `-dpa` (7/8, 8/8, then dpa closes the series).
+10. Then — DPIA wave-12 product fixes (HIGH ×4: OSS/main-establishment contradiction with Art. 4(16)(a); unsupported central-administration claims docs `093625f6`/`e3bb4a51`; inferred portal event data category) — QUEUED BEHIND CPPA turns per CEO priority; may be folded into dpia's next product turn.
+11. After samples 8/8 — `REGISTRATION-INTAKE-CONTRACT-RAIL-MAP` (pre-approved authoring turn per overnight standing order: shared contract + rail-map + corpus-cited rails + dummy data).
+12. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves; priority raised — second isolate death in one day, see §5-adjacent).
+13. Deferred — W9 admt build restamp (bundled into TURN C deploy above).
 
 _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope shipped as TURN A. Do not re-queue.
 
