@@ -1575,6 +1575,27 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W10-CYBER-AGG] non-fatal:", String(w10Err));
     }
 
+    // WAVE12-FIX TURN E — defensive crosswalk sanitizer. Runs LAST among
+    // scrubs so it sees the final assembled prose (post-W6, post-W9, post-W10).
+    // Drops truncated ";"/":" fragments, drops sentences with unbalanced
+    // parens, and dedupes exact-match operative sentences per surface.
+    // Telemetry lands under _meta.internal.crosswalk (NOT customer-visible).
+    // Fail-open.
+    try {
+      const e1 = applyW12CyberE1(report as any);
+      console.log(JSON.stringify({
+        evt: "w12_cyber_e1_applied",
+        build_stamp: BUILD_STAMP,
+        e1_stamp: W12_CYBER_E1_STAMP,
+        counters: e1.counters,
+      }));
+      const meta: any = (report as any)._meta ?? ((report as any)._meta = {});
+      meta.internal = meta.internal ?? {};
+      meta.internal.crosswalk = { stamp: W12_CYBER_E1_STAMP, ...e1.counters };
+    } catch (e1Err) {
+      console.error("[W12-CYBER-E1] non-fatal:", String(e1Err));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
