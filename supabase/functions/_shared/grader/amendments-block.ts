@@ -169,7 +169,7 @@ export function buildAmendmentsBlock(): string {
     "",
     OTHER_POST_2024_AMENDMENTS_BLOCK,
     "",
-    COLORADO_VERIFIED_PINPOINTS_BLOCK,
+    biometricRegistryWhitelistBlock(),
     "",
     STRUCTURED_UNRESOLVED_CALIBRATION_BLOCK,
   ].join("\n");
