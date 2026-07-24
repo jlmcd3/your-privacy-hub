@@ -8,9 +8,10 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
+export const BUILD_STAMP = "w6-admt-fix@2026-07-24T07:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
 import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-contract.ts";
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
@@ -1731,6 +1732,22 @@ Return this JSON structure exactly:
       }
     } catch (e) {
       console.warn("[run-admt-checker] CPPA-HF5 E usage_note strip failed (non-fatal):", e);
+    }
+
+    // ── W6-ADMT-FIX (2026-07-24) — wave-6 atomic post-generation scrub ──
+    // Runs AFTER every earlier scrub/fallback pass so it operates on the
+    // final assembled report. Fail-open, idempotent. See _w6_admt_fix.ts.
+    try {
+      const intakeForW6 = ((assessment as any)?.intake_data as Record<string, unknown>) ?? {};
+      const w6 = applyW6AdmtFix(report, intakeForW6);
+      console.log(JSON.stringify({
+        evt: "admt_w6_fix", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, w6_version: W6_ADMT_FIX_VERSION,
+        ...w6,
+      }));
+      (report as any)._w6_admt_fix = { version: W6_ADMT_FIX_VERSION, ...w6 };
+    } catch (e) {
+      console.warn("[run-admt-checker] W6-ADMT-FIX failed (non-fatal):", (e as Error)?.message);
     }
 
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
