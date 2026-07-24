@@ -199,7 +199,7 @@ Deno.test("A1 (2026-07-24) — literal (N) placeholder is stripped as a safety n
   const s = "See the operative requirement at 11 CCR § 7123(c)(N).";
   const { out } = rewriteComparativeAsOperative(s);
   assert(!/\(N\)/.test(out), out);
-  assert(/11 CCR § 7123\(c\)\b/.test(out), out);
+  assert(/11 CCR § 7123\(c\)/.test(out), out);
 });
 
 Deno.test("W6-CYBER v2 (2) — NIST CSF 'governs this assessment' rewritten", () => {
