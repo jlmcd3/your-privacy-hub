@@ -2119,6 +2119,24 @@ Return this JSON structure exactly:
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-turn2@2026-07-24"), build_stamp: BUILD_STAMP };
 
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+
+    // ── ADMT-FIX-W9 — PRE-EMIT DETERMINISTIC GATES (LAST PASS BEFORE EMIT).
+    // Runs after all prior scrubbers and slot enforcers so the gates observe
+    // the final report shape. Mutates in place; counters attach under
+    // _w9_admt_pre_emit and stream to logs for wave-level attribution.
+    try {
+      const preEmit = applyW9AdmtPreEmitGates(report);
+      (report as any)._w9_admt_pre_emit = preEmit;
+      console.log(JSON.stringify({
+        evt: "_w9_admt_pre_emit",
+        fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP,
+        ...preEmit,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W9-ADMT-PRE-EMIT failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,
