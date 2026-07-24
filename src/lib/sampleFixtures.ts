@@ -126,10 +126,7 @@ const F_DPIA_EU: SampleFixture = {
           "Fixed-wing and multirotor drones capture aerial magnetometry and high-resolution visual imagery over prospecting permits in Saxony and Brandenburg; transit corridors and survey-block edges incidentally capture residential property boundaries and occasionally identifiable individuals, feeding a blurring pipeline with 30-day raw-frame deletion.",
         purpose:
           "To produce ortho-rectified visual mosaics and magnetic-anomaly maps used by exploration geologists to identify drill-target prospects. Imagery is not used for any non-geological purpose.",
-        data_categories: [
-          "Image data (incidental — building edges, gardens, occasional individuals)",
-          "Location data (flight telemetry)",
-        ],
+        data_categories: ["Location data", "Other"],
         data_subjects:
           "Residents of properties along survey transit corridors. Estimated 600–1,200 individuals per campaign; no targeting, no tracking, no enrolment.",
         volume_frequency:
@@ -139,20 +136,23 @@ const F_DPIA_EU: SampleFixture = {
         third_party_processors: [
           "Glacier Peak Hosting GmbH (DE) cloud storage; OrthoMosaic Alpine SA (CH) photogrammetry processing",
         ],
-        automated_decisions:
-          "No. Geologists review mosaics manually. The blurring pipeline applies a YOLOv8-based detector for faces, license plates, and house numbers and is reviewed by a human before mosaic release.",
         existing_safeguards: [
-          "Flight planning excludes school and hospital airspace",
-          "Automated blur pipeline with human QA before any external release",
-          "30-day raw-frame deletion enforced via storage lifecycle policy",
+          "Data minimisation",
+          "Anonymisation",
+          "Access controls",
+          "DPA signed with processor",
         ],
         jurisdictions: ["EU (GDPR)"],
-        legal_basis_proposed:
-          "Article 6(1)(f) legitimate interests for the geological survey purpose; no special category data is processed (imagery does not reveal Article 9 data once blurred).",
+        legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
         article_9_condition: "",
         necessity_proportionality:
           "The blurring pipeline plus 30-day raw-frame deletion is the least-intrusive means of producing usable geological mosaics; alternatives (ground surveys, satellite imagery at lower resolution) were considered and rejected as insufficient for drill-target identification.",
-        sector: "Mining and resource extraction (exploration)",
+        controller_sector: "Mining and resource extraction (exploration)",
+        controller_country: "Germany",
+        nature_scope_context:
+          "Data categories in scope: (a) image data incidentally capturing building edges, gardens, and occasional individuals along transit corridors; (b) location data from flight telemetry. Imagery is blurred (faces, license plates, house numbers) before any external release; raw frames are deleted after 30 days.",
+        dp_by_design_measures:
+          "No automated decision-making with legal or significant effect: geologists review mosaics manually. A YOLOv8-based detector proposes blur regions for faces, license plates, and house numbers; a human QA reviewer approves every mosaic before release. Flight planning excludes school and hospital airspace. 30-day raw-frame deletion is enforced via a storage lifecycle policy with an attestation ledger.",
         source_assessment_id: null,
       },
     },
