@@ -12,8 +12,22 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // registry (cyber-va-w1) wired at emit time; deterministic post-generation
 // stamping of citation_bearing surfaces from proposition_key; § 7122(g)
 // retention re-anchor guard supersedes § 7123(e) mis-anchor (wave-15 HIGH).
-export const BUILD_STAMP = "w15-cyber-regwire@2026-07-24T23:05:14Z";
+export const BUILD_STAMP = "w15-cyber-factledger@2026-07-24T23:40:45Z";
 console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
+// S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 3/3 (CYBER).
+// Blocks wave-14/15 unsupported-positive, contradiction, and
+// negative-from-silence classes on client-fact surfaces. Runs AFTER
+// existing retro-audit scrubs (W6/W9/W10/W12-E1) and BEFORE the W15
+// cyber_va L1 stamp pass so citations attach to rewritten claim text.
+import {
+  buildFactLedger,
+  enforceLedger,
+  FACT_LEDGER_VERSION,
+} from "../_shared/intake/fact-ledger.ts";
+console.log(JSON.stringify({
+  evt: "fact_ledger_loaded", fn: "run-cppa-cybersecurity",
+  version: FACT_LEDGER_VERSION,
+}));
 import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
