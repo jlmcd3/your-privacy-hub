@@ -224,6 +224,9 @@ export default function ADMTChecker() {
   const [caConsumerCount, setCaConsumerCount] = useState("");
   const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
   const [admtSystemCount, setAdmtSystemCount] = useState("");
+  // TURN 2 — new intake fields
+  const [affectedPopulationBand, setAffectedPopulationBand] = useState("");
+  const [roleRoster, setRoleRoster] = useState<string[]>([]);
   // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
   // Step 2
