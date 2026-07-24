@@ -42,6 +42,8 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"established\"", flags: "", label: "determination_basis=established" },
       // Per-entry enforcement_exposure is now enum-only; free-form dollar text is banned.
       { kind: "must_not_include", pattern: "\"enforcement_exposure\"\\s*:\\s*\"[^\"]*\\$", flags: "", label: "no dollar figures in per-entry enforcement_exposure" },
+      // W9-ADMT-WIRE S5 — top_3_actions hard slot always present (post-gen normalizer pads to 3).
+      { kind: "must_include", pattern: "\"top_3_actions\"", flags: "", label: "S5 top_3_actions slot present" },
     ],
   },
   {
