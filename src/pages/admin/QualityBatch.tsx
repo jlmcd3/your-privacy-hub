@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { RefreshCw } from "lucide-react";
 import { LaunchGateScoreboard } from "@/components/admin/LaunchGateScoreboard";
+import { QualityFindingBacklogPanel } from "@/components/admin/QualityFindingBacklogPanel";
 
 // QB-P3 cleanup: SLUG_TO_TOOL_TYPE lives in src/lib/qualityBatchTools.ts so
 // QualityBatch and QualityBatch2 share one source of truth. Verified against
@@ -906,6 +907,9 @@ export default function QualityBatch() {
 
       {/* Launch-gate scoreboard (Option-A findings-based) */}
       <LaunchGateScoreboard tools={TOOLS} />
+
+      {/* CPPA-PRODUCT-1 L5 — Findings-to-Backlog surface */}
+      <QualityFindingBacklogPanel />
 
       {/* Panel B — Live log */}
       <Card>
