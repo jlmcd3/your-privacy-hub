@@ -142,5 +142,6 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 Rolling log for the CEO morning report. Append newest-first; each entry: real-clock stamp, turn slug, one-line result, and any HOLD/queue implication.
 
+- 2026-07-24T16:56:21Z — WAVE-11 reconciled (isolate death #2) + WAVE-12 digest extracted; no gate_v2 pass; CPPA fix turns C/D/E queued ahead of governance 6/8; TURN A/B fixes verified effective on wave-12 re-measure.
 - 2026-07-24T12:58:36Z — `SAMPLES-CONTRACT-lia (5/8)` REVISED per team-reviewed dispatch — DONE (frontend/test only, no deploy). Live-form audit resolved `stage`/`status`/`preview_signal` as mechanical row columns → allowlisted in `validate.ts` and restored in fixture; `potential_harm` corrected `"Severe"` → `"Moderate"` per counsel reading; ADVISORY drift 10 → 8; `li_assessment` now FATAL-tier. Regen queued (admin-UI, morning).
 - 2026-07-24T12:53:21Z — `SAMPLES-CONTRACT-lia (5/8)` initial pass — SUPERSEDED by 12:58:36Z revision (missed mechanical-row-key form audit and used Severe over Moderate).
