@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T17:12:11Z — WAVE12-FIX TURN C (cppa-admt) DEPLOYED with fresh-clock restamp `w12-admt-turnc@2026-07-24T17:10:43Z` (boot log confirmed 17:11:54Z). C1 metadata-leak strip live + guarded by `_w12_c1_leak_guard.test.ts` (2/2 green); C2 fabricated `access_timeline` row removed from `admt-verified-authorities.ts`, neutral placeholder path emits `information_needed:true` with no verbatim quote; C4 §7001-chain dedupe live in `walkAnchorGuard`. C3 fallback-density deferred to next dispatch (needs resolvable-proposition roster). W9 restamp deferral DISCHARGED.
+**Last updated:** 2026-07-24T17:25:03Z — WAVE12-FIX TURN D (cppa-risk) DEPLOYED with fresh-clock restamp `w12-risk-turnd@2026-07-24T17:23:28Z` (boot log confirmed 17:25:03Z). D1 T-1 volume-prong now reads `i3_ca_consumer_band` (CA_CONSUMER_BAND) instead of `q2_consumers`; straddle band `100,000–1,000,000` and `Unsure` fail definitive met/not-met claims either direction. D2 bidirectional profiling guard added to `_w10_risk_b1.ts` (stamp `w12-risk-d2@2026-07-24T17:20:00Z`): denials scrubbed only when `q5b_profiling_observation` asserts Yes; telemetry under `profiling_denials_scanned/downgraded`. D3 PRECISE DEFINITION CITES rule extended with `§ 1798.140(ai) ('third party')` and explicit never-cite-(ad)-for-third-party guard. Tests 17/17 green (`_w10_risk_b1.test.ts` 6/6 + `_w12_turnd.test.ts` 11/11).
 
 ---
 
