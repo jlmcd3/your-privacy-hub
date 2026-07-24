@@ -35,9 +35,10 @@ const KNOWN_PARAPHRASED_KEYS = new Set<string>([
   //   notice_timing, notice_purpose, notice_optout, notice_access,
   //   notice_antiretal, notice_howworks_inputs, notice_howworks_output,
   //   notice_altprocess.
+  // Corrected in ADMT-REGISTRY-CORPUS-5 (§ 7221 opt-out batch, 2026-07-24):
+  //   optout_offer, optout_exc_appeal, optout_exc_hire.
   "access_logic", "access_outcome", "access_provide",
   "ccpa_defs", "ccpa_rulemaking",
-  "optout_exc_appeal", "optout_exc_hire", "optout_offer",
 ]);
 
 function norm(s: string): string {
