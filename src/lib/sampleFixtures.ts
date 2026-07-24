@@ -370,7 +370,7 @@ const F_IR_US: SampleFixture = {
   variant: "us",
   title: "Credential stuffing on consumer shipment-tracking accounts",
   scenario_summary:
-    "Busted Sled Solutions, Inc. detected credential-stuffing against the consumer shipment-tracking portal, with successful logins on ~8,400 consumer accounts across California, Colorado, Virginia, and Illinois. Compromised accounts expose shipment history, delivery addresses, and last-4 of payment card (shipment-tracking account data). No direct access to the BIPA-scope fingerprint timeclock data (separate system); linked fingerprint time-clock records are surfaced as an adjacent-scope consideration. Organisation type: logistics-technology company (US multi-state). The playbook covers multi-state notification analysis and BIPA-adjacent considerations from the linked fingerprint timeclock data.",
+    "Busted Sled Solutions, Inc. detected credential-stuffing against the consumer shipment-tracking portal, with successful logins on ~8,400 consumer accounts across California, Colorado, Virginia, and Illinois. Compromised accounts expose shipment history, delivery addresses, and last-4 of payment card (shipment-tracking account data). No direct access to the BIPA-scope fingerprint timeclock data (separate system); linked fingerprint time-clock records are surfaced as an adjacent-scope consideration. Organisation type: logistics-technology company (US multi-state). The playbook covers multi-state notification analysis and BIPA-adjacent considerations from the linked fingerprint timeclock data. Containment: credential rotation was forced, MFA enrolment made mandatory, and attacking IPs blocked.",
   source_table: "ir_playbooks",
   result_url_pattern: "/ir-playbook/result/{id}",
   fixture: {
