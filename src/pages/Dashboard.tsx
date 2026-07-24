@@ -11,6 +11,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 
 
 import DigestPreferences from "@/components/DigestPreferences";
+import MondayReportWhatYouGet from "@/components/subscribe/MondayReportWhatYouGet";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
