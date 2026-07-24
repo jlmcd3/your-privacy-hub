@@ -167,6 +167,38 @@ export type V4Report = {
     compliance_deadline?: string;
     disclaimer?: string;
   };
+  // W9-RISK-SLOTS (TURN 1a) — three typed slots reprojected by the pipeline.
+  attestation_block?: {
+    certifying_executive_name?: string;
+    certifying_executive_title?: string;
+    certifying_contact_email?: string;
+    certification_statement?: string;
+    statutory_basis?: string;
+    submission_status?: "pending" | "submitted" | "not_required";
+    submission_deadline?: string;
+  };
+  submission_summary?: {
+    assessment_date?: string;
+    business_name?: string;
+    statutory_framework?: string;
+    triggered_subsections?: string[];
+    compliance_deadline?: string;
+    submission_deadline?: string;
+    submission_basis?: string;
+  };
+  risk_register?: {
+    entries?: Array<{
+      id?: string;
+      activity?: string;
+      harm_type?: string;
+      likelihood?: string;
+      severity?: string;
+      current_safeguards?: string;
+      gap_status?: "open" | "mitigated" | "accepted" | "unassessed";
+      residual_risk_level?: "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis";
+      statutory_basis?: string;
+    }>;
+  };
 };
 
 export function isV4Report(rd: any): boolean {
@@ -537,6 +569,76 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
               {enf.audit_division_priorities && <p><strong>Audit Division priorities:</strong> {enf.audit_division_priorities}</p>}
             </section>
           ))}
+
+      {/* W9-RISK-SLOTS: Submission Summary */}
+      {report.submission_summary && (
+        <section className="bg-card border rounded-lg p-6 text-sm space-y-2" data-slot="submission_summary">
+          <h2 className="font-body text-display-card font-semibold mb-2">Submission Summary (§ 7156)</h2>
+          <p><strong>Business:</strong> {report.submission_summary.business_name || "—"}</p>
+          <p><strong>Assessment date:</strong> {report.submission_summary.assessment_date || "—"}</p>
+          <p><strong>Statutory framework:</strong> {report.submission_summary.statutory_framework || "—"}</p>
+          {Array.isArray(report.submission_summary.triggered_subsections) && report.submission_summary.triggered_subsections.length > 0 && (
+            <p><strong>Triggered subsections:</strong> {report.submission_summary.triggered_subsections.join(", ")}</p>
+          )}
+          <p><strong>Compliance deadline:</strong> {report.submission_summary.compliance_deadline || "—"}</p>
+          <p><strong>Submission deadline:</strong> {report.submission_summary.submission_deadline || "—"}</p>
+          {report.submission_summary.submission_basis && (
+            <p><strong>Basis:</strong> {report.submission_summary.submission_basis}</p>
+          )}
+        </section>
+      )}
+
+      {/* W9-RISK-SLOTS: Risk Register */}
+      {report.risk_register?.entries && report.risk_register.entries.length > 0 && (
+        <section className="bg-card border rounded-lg p-6" data-slot="risk_register">
+          <h2 className="font-body text-display-card font-semibold mb-3">Risk Register</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead className="bg-slate-100">
+                <tr>
+                  <th className="text-left p-2 border">ID</th>
+                  <th className="text-left p-2 border">Activity</th>
+                  <th className="text-left p-2 border">Harm</th>
+                  <th className="text-left p-2 border">Likelihood</th>
+                  <th className="text-left p-2 border">Severity</th>
+                  <th className="text-left p-2 border">Gap</th>
+                  <th className="text-left p-2 border">Residual</th>
+                  <th className="text-left p-2 border">Basis</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.risk_register.entries.map((e, i) => (
+                  <tr key={e.id || i} className="align-top">
+                    <td className="p-2 border font-mono">{e.id || `RR-${String(i + 1).padStart(3, "0")}`}</td>
+                    <td className="p-2 border">{e.activity || "—"}</td>
+                    <td className="p-2 border">{e.harm_type || "—"}</td>
+                    <td className="p-2 border">{e.likelihood || "—"}</td>
+                    <td className="p-2 border">{e.severity || "—"}</td>
+                    <td className="p-2 border">{e.gap_status || "—"}</td>
+                    <td className="p-2 border"><span className={`inline-block px-2 py-0.5 rounded text-[11px] ${riskBadge(e.residual_risk_level)}`}>{e.residual_risk_level || "—"}</span></td>
+                    <td className="p-2 border">{e.statutory_basis || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* W9-RISK-SLOTS: Attestation Block (§ 7156) */}
+      {report.attestation_block && (
+        <section className="bg-slate-50 border-2 border-slate-300 rounded-lg p-6 text-sm space-y-3" data-slot="attestation_block">
+          <h2 className="font-body text-display-card font-semibold mb-2">Certification &amp; Attestation ({report.attestation_block.statutory_basis || "§ 7156"})</h2>
+          <p className="italic">{report.attestation_block.certification_statement || ""}</p>
+          <div className="pt-3 border-t border-slate-300 space-y-1">
+            <p><strong>Certifying executive:</strong> {report.attestation_block.certifying_executive_name || "[to be signed]"}</p>
+            <p><strong>Title:</strong> {report.attestation_block.certifying_executive_title || "—"}</p>
+            <p><strong>Contact:</strong> {report.attestation_block.certifying_contact_email || "—"}</p>
+            <p><strong>Submission status:</strong> {report.attestation_block.submission_status || "pending"}</p>
+            <p><strong>Submission deadline:</strong> {report.attestation_block.submission_deadline || "—"}</p>
+          </div>
+        </section>
+      )}
 
       {/* Disclaimer */}
       {report.document_metadata?.disclaimer && (

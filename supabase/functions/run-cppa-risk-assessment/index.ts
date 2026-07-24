@@ -4,9 +4,11 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
-export const BUILD_STAMP = "w6-risk-fix@2026-07-24T08:00:00Z";
+export const BUILD_STAMP = "w9-risk-slots@2026-07-24T10:00:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
+import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
+console.log(`[run-cppa-risk-assessment] boot slots_stamp=${W9_RISK_SLOTS_STAMP}`);
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
@@ -451,6 +453,9 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   includeEuTransfers: false,
   languageVariant: "american",
   extraRules: [
+    "R-A — ATTESTATION_BLOCK SLOT (W9-RISK-SLOTS): every output MUST include a top-level `attestation_block` object with these keys: certifying_executive_name, certifying_executive_title, certifying_contact_email (rendered from the intake's § 7157/§ 7156 certifying-executive fields — do NOT invent identity), certification_statement (the fixed § 7156 perjury statement provided by the pipeline — never paraphrased), statutory_basis (must contain '§ 7156'), submission_status ('pending' | 'submitted' | 'not_required'), submission_deadline. This is a hard slot: emitting the assessment without a rendered attestation_block is a pre-emit defect and the pipeline will reject the output. Never place the certification_statement, executive identity, or § 7156 basis anywhere else in the report — attestation lives only in this slot.",
+    "R-B — SUBMISSION_SUMMARY SLOT (W9-RISK-SLOTS): every output MUST include a top-level `submission_summary` object with: assessment_date, business_name, statutory_framework (must contain '§§ 7150–7157'), triggered_subsections (array of § 7150(b)(N) anchors derived from scope_and_triggers — never a paraphrase), compliance_deadline ('December 31, 2027'), submission_deadline, submission_basis. The § 7150(b)(N) list in this slot is the CANONICAL trigger inventory for the report — assessment_summary.triggered_activities remains a prose list but the submission_summary carries the anchored subsections used by downstream registers and the § 7156 filing summary.",
+    "R-C — RISK_REGISTER SLOT (W9-RISK-SLOTS): every output MUST include a top-level `risk_register` object with `entries[]`. Each entry has: id ('RR-NNN'), activity, harm_type, likelihood, severity, current_safeguards, gap_status ('open' | 'mitigated' | 'accepted' | 'unassessed'), residual_risk_level ('Low' | 'Moderate' | 'High' | 'Critical' | 'Insufficient basis'), statutory_basis. The register is a projection of risk_assessment_by_activity.adverse_effects — one row per (activity × adverse_effect). Do NOT invent entries not present in risk_assessment_by_activity; the pipeline reprojects the register deterministically after model output and the pre-emit validator will reject a manually authored register that drifts from the underlying risk_assessment_by_activity fan.",
     "W3-T5 (b) — INCONSISTENCY_FLAGS FIELD NAMING: entries in inconsistency_flags MUST use the exact intake field name (as emitted by the intake contract) for every referenced field — never a paraphrase, casual label, or derived slug. Each entry names both intake fields whose values conflict (source_field_a, source_field_b) using their canonical intake keys. Where the conflict involves a value derived from a specific intake row, name the parent intake field plus the array index or item id in parentheses. Human-readable prose in the entry's `explanation` field is unchanged; only field-identifier fields carry the canonical names.",
     "ADVOCATE-DRAFTER GOVERNING PHILOSOPHY (LEAD RULE — controls every other rule when they conflict): This tool is the client's advocate-drafter — it builds the strongest supportable record and shows what would strengthen it, the way outside counsel prepares a defensible assessment. Rational balance is mandatory: facts are never overstated ('you're in the clear' is banned) and never verdicted against ('insufficient basis' is banned). The house formulation for partially-supported positions is: 'These facts present a strong/colorable argument that [issue]', followed by the named facts that would strengthen or complete the position.",
     "PROSE BLACKLIST (ABSOLUTE — FF-2 T1): the phrases 'insufficient basis', 'not substantiated', 'cannot be confirmed', 'no basis to assess', and 'in the clear' NEVER appear in any user-facing field — not in exception analyses, conclusions, rationales, information_needed dimensions, priority_actions, executive_summary, chips, banners, or any other visible string. Where the record does not yet complete a determination, use the advocate-drafter voice: state what the recorded facts establish, then name the specific completing item and the provision it satisfies.",
@@ -610,9 +615,33 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   "record_sufficiency": { "complete": boolean, "statement": string, "strengthen_item_ids": string[] },
   "strengthen_items": [
     { "item_id": string, "citation": string, "field_ids": string[], "recorded_basis": string }
-  ]
+  ],
+  "attestation_block": {
+    "certifying_executive_name": string,
+    "certifying_executive_title": string,
+    "certifying_contact_email": string,
+    "certification_statement": string,
+    "statutory_basis": string,
+    "submission_status": "pending" | "submitted" | "not_required",
+    "submission_deadline": string
+  },
+  "submission_summary": {
+    "assessment_date": string,
+    "business_name": string,
+    "statutory_framework": string,
+    "triggered_subsections": string[],
+    "compliance_deadline": string,
+    "submission_deadline": string,
+    "submission_basis": string
+  },
+  "risk_register": {
+    "entries": [
+      { "id": string, "activity": string, "harm_type": string, "likelihood": string, "severity": string, "current_safeguards": string, "gap_status": "open" | "mitigated" | "accepted" | "unassessed", "residual_risk_level": "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis", "statutory_basis": string }
+    ]
+  }
 }
-Every indeterminate advocate-drafter finding elsewhere in this output (where a determination names a specific completing item under REBUILD-RISK C1) MUST have a corresponding information_needed entry anchored to that item; otherwise return an empty array.`,
+Every indeterminate advocate-drafter finding elsewhere in this output (where a determination names a specific completing item under REBUILD-RISK C1) MUST have a corresponding information_needed entry anchored to that item; otherwise return an empty array.
+NOTE ON THE THREE TYPED SLOTS (attestation_block / submission_summary / risk_register): the pipeline REPROJECTS these three slots deterministically after your output, from the intake and from your own risk_assessment_by_activity output. You should emit them per the schema above, but the deterministic reprojection is authoritative and will overwrite any drift; the pre-emit validator rejects an output where the reprojected slots fail their required-key or enum checks.`,
 };
 
 function buildUserPrompt(intake: FiveStageIntake, subjectAnchor = "", q1RevenueBand = "Not specified"): string {
@@ -2143,7 +2172,31 @@ async function runPipeline(assessment_id: string) {
       (report_data as any)._w6_risk_fix = _w6rc;
     } catch (e) { console.error("[RISK] W6-RISK-FIX errored (fail-open):", e); }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w6-risk-fix@2026-07-24"), build_stamp: BUILD_STAMP };
+    // W9-RISK-SLOTS (TURN 1a) — deterministic reprojection of the three typed
+    // slots (attestation_block, submission_summary, risk_register) + pre-emit
+    // validation. Any model-emitted values for these three keys are overwritten
+    // by the deterministic reprojection. Validation is non-blocking (counters
+    // are attached under _meta.w9_risk_slots) — deploy-time defects surface via
+    // the counter, not by aborting the write; the CI unit test enforces the
+    // structural contract at build time.
+    try {
+      const _intakeForSlots = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { attached, validation } = attachW9RiskSlots(report_data as any, _intakeForSlots);
+      (report_data as any)._w9_risk_slots = {
+        stamp: W9_RISK_SLOTS_STAMP,
+        attached,
+        ok: validation.ok,
+        errors: validation.errors,
+        warnings: validation.warnings,
+      };
+      if (!validation.ok) {
+        console.warn(`[RISK] W9-RISK-SLOTS validator flagged ${validation.errors.length} defect(s): ${validation.errors.join("; ")}`);
+      } else {
+        console.log(`[RISK] W9-RISK-SLOTS attached ${attached.join(",")} (clean)`);
+      }
+    } catch (e) { console.error("[RISK] W9-RISK-SLOTS errored (fail-open):", e); }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w9-risk-slots@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
