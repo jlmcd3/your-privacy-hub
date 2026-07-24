@@ -131,5 +131,5 @@ Shipped in this turn. Root cause of the Wave-4 DPIA stall (batch `a71df02d`): th
 
 - **Sections:** 19
 - **Created:** 2026-07-23
-- **Last reviewed:** 2026-07-23 (FIXTURE-LIA-3 + DPIA-STALL-1)
+- **Last reviewed:** 2026-07-24 (REGISTER-18-CLOSURE — standing rule shipped)
 
