@@ -143,6 +143,22 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **ADMT trajectory callout:** wave 11 read lost (orphaned run 100); wave 12 = 84.95, lowest CPPA score, citation dim 81 worst-in-batch; NEW regression — W9 pre-emit wiring leaks internal diagnostic objects into customer output (also exposes the future-dated w9 stamp). Trajectory NEGATIVE this wave; TURN C is the recovery path.
 - **TURN A/B verification (wave-12 re-measure):** cyber placeholder + mean-score hallucination FIXED (not observed); risk `sensitive_location` cross-attribution FIXED (not observed). New distinct defects logged in TURNs C/D/E scopes — ruthless attribution: these are new/mutated failure modes, not regressions of the shipped fixes.
 
+### Wave 13 (campaign `fd1be147`, batch `7a4923fe`)
+
+- **Batch `7a4923fe`** launched 2026-07-24T18:00:02Z (instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg`, frozen hash maintained; N=3/tool; CPPA trio only). **Orchestrator isolate death #3 today** — heartbeat stopped 18:10:46Z in `running_tool` phase. **UNLIKE waves 10/11, all three runs completed independently and per-run digests were written — NO reads lost.** Row reconciled at 18:34:27Z by the continuation-session controller via Lovable `query_database` (`status=cancelled`, `phase=done`, `last_error` populated per wave-10/11 precedent). Deploy locks released.
+- **Scores** (overall / GPT / dims acc-cit-hall-ana-int-fmt):
+  - `cppa-admt` run 102: **85.65** / 87 / 88-82-86-86-87-89
+  - `cppa-risk` run 126: **87.20** / 83 / 87-89-87-85-87-91
+  - `cppa-cyber` run 106: **84.60** / 90 / 85-88-86-78-78-87
+- **gate_v2:** no passes; certification counters remain 0 for all tools; admt "pooled docs 4 < 15" warning persists.
+- **FIRST READ OF FULLY-FIXED TRIO** (TURNs C/D/E all pre-batch). Attribution (ruthless):
+  - **(a) admt** survivors = `rubric_invented_admt_section` CRITICAL ×2 + `citation_misapplied` HIGH ×3 + `h6_admt_governing_anchor` deterministic HIGH + `internal_reasoning_leak` HIGH. Invented-section criticals **SURVIVE TURN C** — consistent with `REGISTRY-VERBATIM-AUDIT` finding that all 34 registry rows are paraphrases (correction turns are now admt's citation-dim critical path). `internal_reasoning_leak` surviving despite C1 strip needs doc-level analysis before any new fix is dispatched.
+  - **(b) risk** survivors = `unsupported_business_claim` HIGH ×3 (one grader-agreed) + `citation_misapplied` HIGH (grader-agreed) — the S-B intake-fact-ledger class exactly. +1.90 vs wave 12 is within batch-3 noise (σ ~2.3).
+  - **(c) cyber** analysis + intelligence dims fell to 78 (wave-12: 81/81); `generic_boilerplate` now grader-AGREED ×2 — the deferred MEDIUM boilerplate remediation (16/18 controls) rises in priority.
+- Wave-13 deltas vs wave-12 are same-instrument and valid for comparison.
+
+
+
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
