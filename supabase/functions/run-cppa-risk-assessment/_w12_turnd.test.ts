@@ -14,11 +14,12 @@
 //     against cppa_authorities Cal. Civ. Code § 1798.140 corpus text.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { BUILD_STAMP } from "./index.ts";
 import { applyW10RiskB1, W12_RISK_D2_STAMP } from "./_w10_risk_b1.ts";
 
-Deno.test("TURN D — BUILD_STAMP restamped to actual-time w12-risk-turnd", () => {
-  assert(BUILD_STAMP.startsWith("w12-risk-turnd@"), `unexpected stamp: ${BUILD_STAMP}`);
+Deno.test("TURN D — BUILD_STAMP restamped to actual-time w12-risk-turnd", async () => {
+  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
+  assert(m && m[1].startsWith("w12-risk-turnd@"), `unexpected stamp: ${m?.[1]}`);
 });
 
 Deno.test("TURN D — D2 stamp exported", () => {
