@@ -82,12 +82,20 @@ export const FIXTURE_CYBER_YIELD_K1: CyberContractFixture = {
       incidents_12mo: "1",
       framework: "SOC 2",
       last_audit: "Within 12 months",
+      // TURN 3 — scope framing (dummy data).
+      in_scope_frameworks: ["SOC 2", "HITRUST"],
+      audit_scope_rationale:
+        "Audit covers the multi-tenant SaaS production estate. Leverages the 2026 SOC 2 Type II under § 7123(f); supplemented for the segmentation, retention, and third-party components that SOC 2 does not directly test.",
     },
     controls: LIVE_CONTROLS.map(({ key, label }) => ({
       key,
       label,
       maturity: INSUFFICIENT_SLUGS.has(key) ? "" : "Implemented across organization",
       notes: NOTES[key] ?? "",
+      // TURN 3 — evidence types (dummy data). Empty for the insufficient trio.
+      evidence: INSUFFICIENT_SLUGS.has(key)
+        ? []
+        : ["Policy / procedure document", "SOC 2 or auditor letter"],
     })),
   },
   // Dotted ASK-vocabulary paths (revision prompt emits report-shape indexed
