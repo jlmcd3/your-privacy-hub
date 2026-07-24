@@ -2259,7 +2259,99 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (e) { console.error("[RISK] W10-RISK-B1 errored (fail-open):", e); }
 
-    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w10-risk-b1@2026-07-24"), build_stamp: BUILD_STAMP };
+    // ── W15 RISK-REGISTRY-WIRING — L1 REGISTRY-STAMPED CITATIONS pass ──
+    // Walks every finding/entry that emitted a proposition_key and stamps
+    // citation + subsection + verbatim_quote from RISK_VERIFIED_AUTHORITIES.
+    // Runs AFTER W6/W9/W10 so it sees the final registry-facing shape.
+    // Also flags any bare "§ 7150(b)" survivor (subsection-collapse guard).
+    // Fail-open: all telemetry lands under report_data._meta.internal.risk_va;
+    // never mutates a top-level customer key with an underscore prefix.
+    try {
+      const vaMetrics = {
+        va_version: RISK_VERIFIED_AUTHORITY_VERSION,
+        va_rows: vaRegistrySize(RISK_VERIFIED_AUTHORITIES),
+        va_stamps_applied: 0,
+        va_stamps_unresolved: 0,
+        va_subsection_collapse_flagged: 0,
+        va_information_needed_added: 0,
+        buckets_scanned: 0,
+      };
+      const stampEntry = (it: any): void => {
+        if (!it || typeof it !== "object") return;
+        const pk = typeof it.proposition_key === "string" ? it.proposition_key.trim() : "";
+        if (pk) {
+          const row = resolveByPropositionKey(RISK_VERIFIED_AUTHORITIES, pk);
+          if (row) {
+            it.citation = row.subsection;
+            it.verbatim_quote = row.verbatim_quote;
+            it.__va_stamp = {
+              proposition_key: pk,
+              subsection: row.subsection,
+              depth_class: row.depth_class,
+              verified_on: row.verified_on,
+            };
+            vaMetrics.va_stamps_applied++;
+          } else {
+            // Emit-time whitelist gate: covered surface, unresolved key ⇒
+            // empty citation + information_needed marker; never fabricate.
+            it.citation = "";
+            it.information_needed = true;
+            it.__va_stamp_unresolved = { proposition_key: pk };
+            vaMetrics.va_stamps_unresolved++;
+            vaMetrics.va_information_needed_added++;
+          }
+        }
+        // § 7150(b) subsection-collapse guard: any trigger surface whose
+        // citation is a bare "§ 7150(b)" (or a duplicated "§ 7150(b) … §
+        // 7150(b)" fragment) with no predicate pinpoint is flagged as
+        // information_needed rather than emitted as an undifferentiated repeat.
+        const cit = typeof it.citation === "string" ? it.citation : "";
+        if (cit && !it.__va_stamp) {
+          const bareCollapse = /(?:11\s*CCR\s*)?§\s*7150\(b\)(?![\)\s]*\()/i;
+          const doubledCollapse = /§\s*7150\(b\)[^§]{0,40}§\s*7150\(b\)(?![\)\s]*\()/i;
+          if (bareCollapse.test(cit) && !/\(b\)\s*\(\s*\d/.test(cit)) {
+            it.__va_collapse_flag = { citation: cit, kind: "bare_7150_b" };
+            it.information_needed = true;
+            vaMetrics.va_subsection_collapse_flagged++;
+            vaMetrics.va_information_needed_added++;
+          } else if (doubledCollapse.test(cit)) {
+            it.__va_collapse_flag = { citation: cit, kind: "doubled_7150_b" };
+            it.information_needed = true;
+            vaMetrics.va_subsection_collapse_flagged++;
+            vaMetrics.va_information_needed_added++;
+          }
+        }
+      };
+      const walkBucket = (arr: any): void => {
+        if (!Array.isArray(arr)) return;
+        vaMetrics.buckets_scanned++;
+        for (const it of arr) stampEntry(it);
+      };
+      const r: any = report_data;
+      walkBucket(r.information_needed);
+      walkBucket(r.strengthen_items);
+      walkBucket(r.inconsistency_flags);
+      walkBucket(r.top_3_actions);
+      walkBucket(r.top_actions);
+      if (r.risk_register && typeof r.risk_register === "object") {
+        walkBucket(r.risk_register.entries);
+      }
+      // scope_analysis / trigger surface (single object).
+      const sa: any = r.scope_analysis ?? r.trigger_analysis;
+      if (sa && typeof sa === "object") stampEntry(sa);
+      // Persist telemetry under _meta.internal (C1-strip compatible).
+      const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
+      const internal = (meta.internal = meta.internal && typeof meta.internal === "object" ? meta.internal : {});
+      internal.risk_va = { build_stamp: BUILD_STAMP, ...vaMetrics };
+      console.log(JSON.stringify({
+        evt: "_w15_risk_va_wire", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, ...vaMetrics,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W15 RISK-REGISTRY-WIRING failed (non-fatal):", (e as Error)?.message);
+    }
+
+    (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
