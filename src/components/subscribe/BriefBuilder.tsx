@@ -441,7 +441,7 @@ export default function BriefBuilder() {
               </span>
             </div>
             <p className="text-blue-200/70 text-[12px] leading-relaxed">
-              A representative sample showing the format and depth of your Monday brief — one article
+              A representative sample showing the format and depth of your Weekly Intelligence Brief — one article
               per selected track, written for{" "}
               {ROLES.find((r) => r.value === role)?.label ?? "your role"} in{" "}
               {JURISDICTIONS.find((j) => j.value === jurisdiction)?.label ?? "your jurisdiction"}.
