@@ -204,6 +204,14 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **Third orchestrator isolate death in one day.** Priority of queue item 18 (DS orchestrator → `delivery_contracts` wiring) raised again.
 - **DS-T2 sentinel would still not have caught this** — orchestrator runs are not yet registered as `delivery_contracts` (root of the wiring queue item).
 
+### 2026-07-24 — Duplicate Courier Dispatch on SAMPLES-CONTRACT-biometric
+- **Timeline:** A tick controller composed and pre-send-verified a `SAMPLES-CONTRACT-biometric (8/8)` dispatch against ledger stamp `18:15:19Z`, and sent it in the ~18:28–18:31Z window. A parallel controller's biometric (8/8) turn of record committed at `2026-07-24T18:28:25Z` (§8 entry same stamp) INSIDE the tick controller's compose/verify window — same window-race pattern as the SAMPLES-CONTRACT-lia duplicate above.
+- **Outcome (this session):** No edits started on `src/lib/sampleFixtures.ts` or `supabase/functions/_tests/contract-surface-audit.test.ts` in response to the duplicate dispatch — the executing controller had already committed the 18:28:25Z turn of record earlier, and no second biometric execution was launched. Nothing to revert. The `F_IR_US.scenario_summary` containment-append remedy (ir_playbook 7/8 ACK deviation 1) remains assigned to the `SAMPLES-CONTRACT-dpa` turn per §2 item 12 scope note — untouched by this notice.
+- **Supersede notice** received from the tick controller at ~18:42Z; acknowledged same tick.
+- **Root cause (reinforced):** identical to the lia 5/8 window-race — pre-send ledger check passed because the parallel turn had not yet committed at check time.
+- **Standing remediation (reasserted):** compose the courier → **final** fresh `docs/pipeline-state.md` ledger check (verify "Last updated" stamp AND that the target queue item is still open) → send within the same minute; any stamp movement between the final check and send aborts the send.
+
+
 
 ## 8. While-You-Slept (overnight standing-order run log)
 
