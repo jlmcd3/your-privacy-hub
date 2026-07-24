@@ -44,6 +44,10 @@ export interface DeadlineTableRow {
   proposition_key: string;
   subsection: string;
   verbatim_quote: string;
+  // WAVE12-FIX TURN C — set true when no verified registry row supports the
+  // obligation's citation/quote. Downstream renderers must display a neutral
+  // "information needed" cell rather than fabricate a §-pinpoint or quote.
+  information_needed: boolean;
 }
 
 export interface AdequacyFinding {
