@@ -66,7 +66,7 @@ const Footer = () => {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-6 border-t border-brand-slate-teal text-[12px]">
-          <div>© 2026 End User Privacy · enduserprivacy.com</div>
+          <div>© 2026 EUP, LLC. End User Privacy · enduserprivacy.com</div>
           <div className="flex gap-4 items-center flex-wrap justify-center">
             <Link to="/terms" className="text-brand-mist hover:text-silver no-underline">Terms</Link>
             <span className="hidden md:inline text-brand-slate-teal">·</span>
