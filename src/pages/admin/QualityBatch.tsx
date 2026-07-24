@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import JSZip from "jszip";
+import { RefreshCw } from "lucide-react";
 import { LaunchGateScoreboard } from "@/components/admin/LaunchGateScoreboard";
 
 // QB-P3 cleanup: SLUG_TO_TOOL_TYPE lives in src/lib/qualityBatchTools.ts so
@@ -309,6 +310,18 @@ export default function QualityBatch() {
       setLogRefreshing(false);
     }
   };
+
+  // Keyboard shortcut: Ctrl/Cmd+Shift+R refreshes the live log.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        refreshLog();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   // ─── Recent batches + baselines for the score matrix ─────────────────────
   useEffect(() => {
@@ -911,8 +924,9 @@ export default function QualityBatch() {
                 {new Date(logLastRefreshedAt).toLocaleTimeString()}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing}>
-              {logRefreshing ? "…" : "Refresh"}
+            <Button variant="outline" size="sm" onClick={refreshLog} disabled={logRefreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${logRefreshing ? "animate-spin" : ""}`} />
+              {logRefreshing ? "Refreshing…" : "Refresh log"}
             </Button>
           </div>
         </CardHeader>
