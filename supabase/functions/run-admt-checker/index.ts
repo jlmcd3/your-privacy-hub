@@ -2151,6 +2151,40 @@ Return this JSON structure exactly:
 
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
 
+    // ── WAVE12-FIX TURN C1 — customer-payload metadata strip ──
+    // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
+    // _w9_admt_wire, _w9_admt_slots, _w9_admt_regen, _w9_admt_pre_emit, and
+    // any future _*) off the customer-facing surface and into
+    // _meta.internal. Also strip per-entry underscore-prefixed diagnostics
+    // (_va_stamp, _va_stamp_unresolved, _w9_regen) from finding buckets.
+    // Non-fatal: on error, we still write the report (previous behaviour).
+    try {
+      const r: any = report as any;
+      const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
+      const internal: Record<string, unknown> = (meta.internal && typeof meta.internal === "object") ? meta.internal : {};
+      for (const k of Object.keys(r)) {
+        if (k === "_meta") continue;
+        if (k.startsWith("_")) { internal[k] = r[k]; delete r[k]; }
+      }
+      meta.internal = internal;
+      const BUCKETS = ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"];
+      const ENTRY_INTERNAL = ["_va_stamp", "_va_stamp_unresolved", "_w9_regen"];
+      for (const b of BUCKETS) {
+        const arr = r[b];
+        if (!Array.isArray(arr)) continue;
+        for (const it of arr) {
+          if (!it || typeof it !== "object") continue;
+          for (const k of ENTRY_INTERNAL) if (k in it) delete it[k];
+        }
+      }
+      const sa: any = r.scope_analysis;
+      if (sa && typeof sa === "object") {
+        for (const k of ENTRY_INTERNAL) if (k in sa) delete sa[k];
+      }
+    } catch (e) {
+      console.warn("[run-admt-checker] W12-C1 metadata strip failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
       report_data: report,
