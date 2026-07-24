@@ -8,9 +8,10 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "c2-2-fsor-echo-ban+risk-deadline-block@2026-07-24T01:07:05Z";
+export const BUILD_STAMP = "w6-admt-fix@2026-07-24T07:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
 import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-contract.ts";
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
