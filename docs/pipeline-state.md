@@ -33,28 +33,30 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T12:31:31Z):**
-- Batch `5e0558f3` reached terminal `complete` at 2026-07-24T12:16:46Z (`phase=done`, `last_error=null`, verified via query_database). §3 locks on `run-cppa-risk-assessment` and `run-cppa-cybersecurity` tied to that batch are **RELEASED**.
-- All functions **unlocked**. Customer-path in-flight: **none** at last check.
+**Current lock state (2026-07-24T12:39:11Z):**
+- All functions **unlocked**. Customer-path in-flight: none at last check.
+- TURN B deploy of `run-cppa-risk-assessment` completed at 12:39Z within window (closes 13:05Z).
 - Wave 11 (~13:15Z) will re-lock risk/cyber/admt when it launches.
 
 ## 4. Last Completed Turn
 
-- **Turn:** `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 + A2)
-- **Real-time:** 2026-07-24T12:25:18Z (sandbox `date -u`)
+- **Turn:** `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a + B1b)
+- **Real-time:** 2026-07-24T12:39:11Z (sandbox `date -u`)
 - **Scope:**
-  - **A1 (placeholder leak):** `_w6_cyber_fix.ts` — `rewriteComparativeAsOperative(s, opts?)` now takes `{ controlCitation }`. Per-control walker resolves the § 7123(c)(N) citation from a new `COMPONENT_CITATION_BY_LABEL` map (18 labels, mirrors index.ts `COMPONENT_CITATIONS`). Where citation resolves, the operative tail names the actual subsection (`; the operative requirement is 11 CCR § 7123(c)(N).`). Where the caller has no per-control context (executive_summary / top_risks / next_steps) or the label is unknown, the tail is **OMITTED entirely** — never `(N)`. Added `stripLiteralNPlaceholder` safety-net for `§ 7123(c)(N)` residue.
-  - **A2 (derived mean):** new `_w10_cyber_aggregates.ts` (`W10_CYBER_AGG_STAMP = w10-cyber-aggregates@2026-07-24`). `computeCyberAggregates(controls)` returns `{ total_components:18, scored_count, insufficient_count, mean_score, distribution, canonical_sentence }` per PF6 T2 (mean over SCORED status only; excludes "Insufficient information"). `scrubAuthoredAggregates` replaces any model-authored `mean/average/aggregate score of NN` phrasing across `executive_summary` / `top_risks` / `next_steps` with the deterministic canonical sentence. `attachCyberAggregates` injects `report.aggregates` slot. Telemetry counter `authored_aggregates_replaced` logged in `w10_cyber_aggregates_attached` evt.
-  - **Wiring:** `run-cppa-cybersecurity/index.ts` — new import + call after W9 slots, fail-open with `console.log` telemetry. `_meta._w10_cyber_aggregates` written to report.
-- **BUILD_STAMP:** bumped `w9-cyber-turn3@2026-07-24T10:51:31Z` → `w10-cyber-a1a2@2026-07-24T12:25:18Z` (fresh `date -u` read this turn).
-- **Tests (green):** 47 pass / 0 fail. Files: `run-cppa-cybersecurity/*.test.ts` + `_tests/cppa-cyber.test.ts`. New pins:
-  - `A1 — no unresolved (N) placeholder survives in any narrative field` (end-to-end, 3-control fixture spanning known-label / unknown-label / no-context surfaces).
-  - `A1 — without per-control citation, operative tail is OMITTED entirely`.
-  - `A1 — literal (N) placeholder is stripped as a safety net`.
-  - `A2 — computeCyberAggregates excludes Insufficient information from the mean`.
-  - `A2 — model-authored 'mean score of 81' is replaced with deterministic sentence`.
-  - `A2 — scrub catches 'average score' and 'aggregate score' variants`.
-- **Deploy:** `run-cppa-cybersecurity` deployed 2026-07-24T12:25Z. Boot log will emit `[qb9-rcb1] run-cppa-cybersecurity build active … build_stamp=w10-cyber-a1a2@2026-07-24T12:25:18Z` on first invocation (function is background-invoked; no boot log surfaces until wave 11 dispatch).
+  - **B1a (field cross-attribution):** new `_w10_risk_b1.ts` — `applyW10RiskB1(report, intake)` flattens the intake tree, extracts every quoted string from each `inconsistency_flags` entry's prose (`description` / `explanation` / `resolution_required` / `detail` / `narrative`), and validates the quoted value against the referenced intake keys (`intake_field_1` / `intake_field_2` / `source_field_a/b` / `source_fields` / `field_key`) using normalised equality-or-substring match. If a quoted value fails validation, the module locates the intake field that actually contains it and extends `source_fields` (with a `_w10_rekeyed` provenance breadcrumb) instead of silently overwriting the model's anchor; if no intake field contains the quote, the flag is **dropped**.
+  - **B1b (overclaiming from intake):** same module scans `risk_register`, `executive_summary`, and `risk_assessment_by_activity` narrative surfaces for sentences matching `X (confirmed | is/are performed | is/are conducted | is/are established)` that also name an intake field id (`[iq]\d+[a-z]?_…`, `sensitive_location_basis`, `public_privacy_policy_url`, `impact_intake`, `content_detail.*`). If the subject's ≥4-char tokens are absent from every named field's actual content, the assertion is **downgraded** to conditional phrasing ("is not confirmed by the record and requires verification"). Never weakens a check or rubric — repairs the generator.
+  - **Wiring:** `run-cppa-risk-assessment/index.ts` — new import + call immediately after W9 slots and before the `_meta` stamp. Fail-open; telemetry lands on `report._w10_risk_b1 = { stamp, flags_scanned, flags_rekeyed, flags_dropped, claims_scanned, claims_downgraded, claims_removed }`. `_meta.prompt_version` bumped to `w10-risk-b1@2026-07-24`.
+- **BUILD_STAMP:** bumped `w9-risk-slots-p1@2026-07-24T09:58:12Z` → `w10-risk-b1@2026-07-24T12:38:00Z` (fresh `date -u` read this turn). Boot log emits it on next invocation.
+- **Tests (green):** 35 pass / 0 fail across `_tests/cppa-risk.test.ts` + `run-cppa-risk-assessment/*.test.ts` (6 new B1 pins + 29 existing risk pins). Pins added:
+  - `B1a: fcbcc203 mirror — flag attributes q5b value to sensitive_location_basis → re-keyed` (extends `source_fields` with `q5b_profiling_observation`).
+  - `B1a: quoted value nowhere in intake → flag DROPPED` (zero survivors).
+  - `B1a: quoted value actually matches the referenced field → flag kept unchanged` (no false positives).
+  - `B1b: 1b32c6a9 mirror — "profiling/inference generation confirmed" unsupported by i1_processing_purpose → downgraded` (harm text loses the categorical "confirmed").
+  - `B1b: supported claim (subject token present in named field) → kept` (no false positives).
+  - `W10-RISK-B1 stamp present`.
+- **Preexisting failures (NOT introduced by this turn):** `_tests/rebuild-dpia-cpparisk.test.ts` — 2 failures on `REBUILD-DPIA T10a` "M6 cohort → audit-cohort" scrub; test targets a `postScrubCleanup` behaviour independent of B1 surfaces. Logged for a separate DPIA-scrub turn; does not gate TURN B.
+- **RETRO-AUDIT (rides this turn):** swept `run-cppa-risk-assessment` for narrative surfaces that quote/attribute intake fields without provenance validation. In-scope surfaces wired through B1a/B1b: `inconsistency_flags[*]`, `risk_register.entries[*]` (all string fields), `executive_summary`, `risk_assessment_by_activity`. Out-of-scope for this turn (no evidence of attribution-error class in batch 5e0558f3 samples; queued as follow-up if a later batch reads flag them): `safeguard_gaps[*]`, `priority_actions[*].rationale`, `exception_analysis[*]`, `benefits_outweigh_risks_rationale`. `strengthen_items` is mechanically derived from `intake_data.assertions` and already provenance-safe by construction.
+- **Deploy:** `run-cppa-risk-assessment` deployed 2026-07-24T12:39Z via `supabase--deploy_edge_functions` (single-function deploy; no other function affected). Wave 11 will measure B1 fixes on first re-read.
 
 ## 5. Sample-Report Register
 
