@@ -72,3 +72,24 @@ describe("biometric statute registry — self-consistency", () => {
     }
   });
 });
+
+// S2b-fix — enum-label → registry-row mapping CI. Guarantees each discrete
+// JURS enum entry the intake form now offers for CA / CO / NY resolves
+// into the expected registry jurisdiction via biometric-select.
+import { resolveJurisdictions } from "../../../supabase/functions/_shared/registry/biometric-select.ts";
+
+describe("biometric selector — discrete enum-label mapping (S2b)", () => {
+  const cases: Array<[string, string]> = [
+    ["California, USA (CCPA/CPRA)", "us_ca_cpra"],
+    ["Colorado, USA (CPA)", "us_co_hb24_1130"],
+    ["New York, USA (SHIELD)", "us_ny_shield"],
+  ];
+  for (const [label, expectedId] of cases) {
+    it(`maps "${label}" → ${expectedId} via direct_selection`, () => {
+      const r = resolveJurisdictions({ jurisdictions: [label], other_state_names: "" });
+      const hit = r.registered.find((x) => x.jurisdiction_id === expectedId);
+      expect(hit, `no registered row for ${label}`).toBeTruthy();
+      expect(hit!.source).toBe("direct_selection");
+    });
+  }
+});
