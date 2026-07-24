@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-24T20:49:22Z — ADMT-REGISTRY-CORPUS-7 (Civ. Code § 1798.140/§ 1798.185 FINAL batch) DONE — registry corpus-correction series COMPLETE (KNOWN_PARAPHRASED_KEYS empty); authoring+test only, no deploy.
+**Last updated:** 2026-07-24T20:56:08Z — WAVE-14 digest extracted (batch 834d8c17, clean orchestrator finish); no gate_v2 pass; certification counters remain 0; zero criticals batch-wide; docs-only.
 
 ---
 
