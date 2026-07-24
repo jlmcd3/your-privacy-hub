@@ -50,3 +50,19 @@ export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
 export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"];
 // Q15 options.
 export const Q15_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"];
+
+// TURN 1b — § 7150(b)(5) sensitive-location predicate. Discrete enum so the
+// generator can deterministically resolve the (b)(5) branch without free-text
+// interpretation. "Not applicable" is the safe default; any other value
+// engages the (b)(5) predicate in computeIntakeSelectedSubsections().
+export const SENSITIVE_LOCATION_BASIS_OPTS = [
+  "Not applicable — no sensitive-location processing",
+  "Healthcare facility or medical office",
+  "Domestic-violence shelter or family-justice services",
+  "Place of worship",
+  "School or educational facility",
+  "Reproductive- or sexual-health services",
+  "Substance-use or mental-health treatment facility",
+  "Immigration- or refugee-services facility",
+  "Other sensitive location (describe in the intake)",
+];
