@@ -17,11 +17,12 @@ Historical release: `ADMT-FIX-W9` released with wave-10 spec amendments and ship
 ## 2. Queue Order (as currently dispatched)
 
 1. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN A` (cppa-cyber A1 + A2) — deployed 12:25Z.
-2. **DONE THIS TURN** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a field-provenance + B1b claims guard) — deployed 12:39Z.
-3. **NEXT** — `SAMPLES-CONTRACT-dpia` (4/8). Frontend-only; not deploy-locked.
-4. Then — `-lia` → `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (5/8 … 8/8).
-5. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §6 sentinel gap).
-6. Deferred — W9 admt build restamp (bundled with next admt deploy).
+2. **DONE PRIOR TURN** — `RECOVERY-BATCH-FIXES / TURN B` (cppa-risk B1a field-provenance + B1b claims guard) — deployed 12:39Z.
+3. **DONE THIS TURN** — `SAMPLES-CONTRACT-dpia` (4/8) — frontend/test only, no deploy.
+4. **NEXT** — `SAMPLES-CONTRACT-lia` (5/8). Frontend-only; not deploy-locked.
+5. Then — `-governance` → `-ir_playbook` → `-biometric` → `-dpa` (6/8 … 8/8).
+6. Deferred — orchestrator → `delivery_contracts` wiring (queued between waves, see §6 sentinel gap).
+7. Deferred — W9 admt build restamp (bundled with next admt deploy).
 
 _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope shipped as TURN A. Do not re-queue.
 
