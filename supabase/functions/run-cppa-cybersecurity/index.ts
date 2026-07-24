@@ -1553,6 +1553,27 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W9-CYBER-TURN3] non-fatal:", String(w9Err));
     }
 
+    // A2 (2026-07-24) — deterministic aggregates injection + authored-aggregate
+    // scrub. Runs AFTER W9 slots so aggregates see the final controls array.
+    // Fail-open.
+    try {
+      const w10 = attachCyberAggregates(report as any);
+      console.log(JSON.stringify({
+        evt: "w10_cyber_aggregates_attached",
+        build_stamp: BUILD_STAMP,
+        w10_stamp: W10_CYBER_AGG_STAMP,
+        aggregates: w10.aggregates,
+        authored_aggregates_replaced: w10.authoredAggregatesReplaced,
+        slots_injected: w10.slotsInjected,
+      }));
+      (report as any)._w10_cyber_aggregates = {
+        stamp: W10_CYBER_AGG_STAMP,
+        authored_aggregates_replaced: w10.authoredAggregatesReplaced,
+      };
+    } catch (w10Err) {
+      console.error("[W10-CYBER-AGG] non-fatal:", String(w10Err));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
