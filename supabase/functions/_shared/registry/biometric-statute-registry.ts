@@ -690,7 +690,7 @@ const AR_PIPA_ROWS: BiometricStatuteRow[] = [
       "Ark. Code Ann. § 4-110-103(7): \"Personal information\" means an individual's first name or first initial and his or her last name in combination with any one (1) or more of the following data elements when either the name or the data element is not encrypted or redacted: (E) Biometric data.",
     topic: "definition",
     primary_source_url:
-      "https://advance.lexis.com/container?config=00JAA2ZjZiM2VhNS0wNTVlLTQ3NzUtYjQzYy0yYWZmODJiODRmMDYKAFBvZENhdGFsb2fXiYCnsel0plIgqpYkw9PK&crid=arkansas-code",
+      "https://arkleg.state.ar.us/Home/FTPDocument?path=%2FCode%2FA.C.A+Titles%2FTitle+4%2FSubtitle+7%2FChapter+110.pdf",
     verification_date: "2026-07-24",
     applicability_predicates: ["jurisdiction_named:Arkansas"],
     note:
