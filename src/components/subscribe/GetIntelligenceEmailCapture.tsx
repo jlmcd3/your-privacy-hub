@@ -7,7 +7,7 @@ import { fireEmailCaptured } from "@/lib/analyticsEvents";
  * Hybrid gate for /get-intelligence.
  * The truncated on-page preview (BriefBuilder) is ungated. This component
  * captures an email for full-preview delivery, saved preferences, and
- * future Monday briefs. Fires email_captured with source="get_intelligence".
+ * future editions of the Monday Privacy Intelligence Report. Fires email_captured with source="get_intelligence".
  */
 export default function GetIntelligenceEmailCapture() {
   const [email, setEmail] = useState("");
@@ -67,7 +67,7 @@ export default function GetIntelligenceEmailCapture() {
           id="get-intelligence-email-heading"
           className="font-display text-brand-navy mb-2"
         >
-          Get the full preview and future Monday briefs by email
+          Get the full preview and future editions of the Monday Privacy Intelligence Report by email
         </h2>
         <p className="text-sm text-slate mb-5 leading-relaxed">
           The on-page preview is truncated. Enter your email to receive the
