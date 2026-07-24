@@ -385,6 +385,9 @@ export default function ADMTChecker() {
       ca_consumer_count: caConsumerCount,
       third_party_admt: thirdPartyAdmt,
       admt_system_count: admtSystemCount,
+      // TURN 2 — new intake fields
+      affected_population_band: affectedPopulationBand,
+      role_roster: roleRoster,
       // prior_access_requests_12mo removed (RC-P6).
       opt_out_15_day_process: optOut15DayProcess,
       opt_out_service_provider_notice: optOutServiceProviderNotice,
