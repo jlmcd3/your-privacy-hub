@@ -193,6 +193,9 @@ export type V4Report = {
       harm_type?: string;
       likelihood?: string;
       severity?: string;
+      pre_safeguard_likelihood?: string;
+      pre_safeguard_severity?: string;
+      pre_safeguard_residual_risk_level?: "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis";
       current_safeguards?: string;
       gap_status?: "open" | "mitigated" | "accepted" | "unassessed";
       residual_risk_level?: "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis";
@@ -599,8 +602,11 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                   <th className="text-left p-2 border">ID</th>
                   <th className="text-left p-2 border">Activity</th>
                   <th className="text-left p-2 border">Harm</th>
-                  <th className="text-left p-2 border">Likelihood</th>
-                  <th className="text-left p-2 border">Severity</th>
+                  <th className="text-left p-2 border">Pre-safeguard L</th>
+                  <th className="text-left p-2 border">Pre-safeguard S</th>
+                  <th className="text-left p-2 border">Pre-safeguard risk</th>
+                  <th className="text-left p-2 border">Post L</th>
+                  <th className="text-left p-2 border">Post S</th>
                   <th className="text-left p-2 border">Gap</th>
                   <th className="text-left p-2 border">Residual</th>
                   <th className="text-left p-2 border">Basis</th>
@@ -612,6 +618,9 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                     <td className="p-2 border font-mono">{e.id || `RR-${String(i + 1).padStart(3, "0")}`}</td>
                     <td className="p-2 border">{e.activity || "—"}</td>
                     <td className="p-2 border">{e.harm_type || "—"}</td>
+                    <td className="p-2 border">{e.pre_safeguard_likelihood || "—"}</td>
+                    <td className="p-2 border">{e.pre_safeguard_severity || "—"}</td>
+                    <td className="p-2 border"><span className={`inline-block px-2 py-0.5 rounded text-[11px] ${riskBadge(e.pre_safeguard_residual_risk_level)}`}>{e.pre_safeguard_residual_risk_level || "—"}</span></td>
                     <td className="p-2 border">{e.likelihood || "—"}</td>
                     <td className="p-2 border">{e.severity || "—"}</td>
                     <td className="p-2 border">{e.gap_status || "—"}</td>

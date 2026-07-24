@@ -88,6 +88,7 @@ export {
   SHARE_REVENUE_50PCT_OPTS,
   Q5_SELL_SHARE_OPTS,
   Q15_SENSITIVE_PI_OPTS,
+  SENSITIVE_LOCATION_BASIS_OPTS,
 } from "@/pages/CPPARiskAssessment.enums";
 import {
   REVENUE_OPTS,
@@ -96,6 +97,7 @@ import {
   SHARE_REVENUE_50PCT_OPTS,
   Q5_SELL_SHARE_OPTS,
   Q15_SENSITIVE_PI_OPTS,
+  SENSITIVE_LOCATION_BASIS_OPTS,
 } from "@/pages/CPPARiskAssessment.enums";
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
 const PI_CATEGORIES = [
@@ -346,6 +348,15 @@ export default function CPPARiskAssessment() {
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
   const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
 
+  // TURN 1b — CPPA-STANDARD-SETTER intake additions:
+  //   • publicPrivacyPolicyUrl — optional URL rendered as a record anchor
+  //     in submission_summary and attestation_block. Not a source of facts.
+  //   • sensitiveLocationBasis — closed enum. Any non-"Not applicable"
+  //     value engages the § 7150(b)(5) trigger via
+  //     computeIntakeSelectedSubsections() (deterministic resolver).
+  const [publicPrivacyPolicyUrl, setPublicPrivacyPolicyUrl] = useState("");
+  const [sensitiveLocationBasis, setSensitiveLocationBasis] = useState("");
+
   // Improvement Kit (Doc N R1): parallel assertion map only — never
   // mutates existing field values. When flag off or designated list
   // empty, this stays empty and is omitted from intake_data.
@@ -514,6 +525,9 @@ export default function CPPARiskAssessment() {
     q18b_admt_training: q18bTraining,
     i1b_min_pi: i1bMinPi,
     i4b_sources: i4bSources,
+    // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
+    public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
+    sensitive_location_basis: sensitiveLocationBasis,
     // v3 additions (I-1 through I-9)
     i1_processing_purpose: i1Purpose,
     i2_retention_period: i2RetentionPeriod,
@@ -546,6 +560,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
@@ -561,6 +576,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    publicPrivacyPolicyUrl, sensitiveLocationBasis,
     exceptionClaims, impactData,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -569,6 +585,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    publicPrivacyPolicyUrl, sensitiveLocationBasis,
     exceptionClaims, impactData,
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -579,6 +596,7 @@ export default function CPPARiskAssessment() {
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
@@ -655,6 +673,8 @@ export default function CPPARiskAssessment() {
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
     if (typeof d.i1bMinPi === "string") setI1bMinPi(d.i1bMinPi);
     if (typeof d.i4bSources === "string") setI4bSources(d.i4bSources);
+    if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
+    if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
     if (d.exceptionClaims && typeof d.exceptionClaims === "object") setExceptionClaims(d.exceptionClaims);
     if (d.impactData && typeof d.impactData === "object") setImpactData((prev) => ({ ...prev, ...d.impactData }));
     if (typeof restoreStage === "number") setStep(restoreStage);
@@ -878,6 +898,37 @@ export default function CPPARiskAssessment() {
                 <Label>Q5b: Do you profile consumers based on systematic observation, or based on their presence in a sensitive location? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger from selling/sharing. It covers profiling of applicants, employees, students, or independent contractors through systematic observation (e.g. productivity or location tracking), or profiling based on presence in a sensitive location such as a health-care facility, shelter, place of worship, or domestic-violence services provider.</p>
                 <div className="mt-2"><Radio name="q5b" options={["Yes — systematic observation of workers/students/applicants", "Yes — based on sensitive-location presence", "Both", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
+              </div>
+
+              {/* TURN 1b — § 7150(b)(5) sensitive-location predicate (closed enum). */}
+              <div data-rail-key="sensitive_location_basis" onFocus={() => focusRail('sensitive_location_basis')}>
+                <Label htmlFor="sensitive_location_basis">Q5d: Do you process personal information of consumers while they are in a sensitive location? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Sensitive-location processing is a separate § 7150(b)(5) trigger. Select the location type that best describes the processing; any option other than "Not applicable" engages the trigger.</p>
+                <select
+                  id="sensitive_location_basis"
+                  value={sensitiveLocationBasis}
+                  onChange={(e) => setSensitiveLocationBasis(e.target.value)}
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                >
+                  <option value="">Select…</option>
+                  {SENSITIVE_LOCATION_BASIS_OPTS.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {/* TURN 1b — public privacy-policy URL (optional record anchor). */}
+              <div data-rail-key="public_privacy_policy_url">
+                <Label htmlFor="public_privacy_policy_url">Public privacy-policy URL <span className="text-xs text-muted-foreground">(optional — rendered as a record anchor in the submission summary and attestation block)</span></Label>
+                <input
+                  id="public_privacy_policy_url"
+                  type="url"
+                  value={publicPrivacyPolicyUrl}
+                  onChange={(e) => setPublicPrivacyPolicyUrl(e.target.value)}
+                  placeholder="https://example.com/privacy"
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                  inputMode="url"
+                  autoComplete="url"
+                />
+                <p className="text-xs text-muted-foreground mt-1">This is a locator only. The assessment does not treat the linked policy as a source of facts.</p>
               </div>
             </>
           )}

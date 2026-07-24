@@ -47,7 +47,7 @@ const baseReport = () => ({
 });
 
 Deno.test("W9-RISK-SLOTS stamp is present", () => {
-  assert(W9_RISK_SLOTS_STAMP.startsWith("w9-risk-slots@"));
+  assert(W9_RISK_SLOTS_STAMP.startsWith("w9-risk-slots"));
 });
 
 Deno.test("buildAttestationBlock renders i7/i8 identity + § 7156 basis", () => {
@@ -69,12 +69,16 @@ Deno.test("buildSubmissionSummary extracts § 7150(b)(N) triggered subsections",
   assert(/7150.*7157/.test(ss.statutory_framework));
 });
 
-Deno.test("buildRiskRegister fans adverse_effects and assigns gap_status", () => {
+Deno.test("buildRiskRegister fans adverse_effects and assigns gap_status + pre/post scoring", () => {
   const rr = buildRiskRegister(baseReport());
   assertEquals(rr.entries.length, 2);
   assertEquals(rr.entries[0].id, "RR-001");
   assertEquals(rr.entries[0].gap_status, "open"); // safeguard_gaps present
   assert(["High", "Critical", "Moderate"].includes(rr.entries[0].residual_risk_level));
+  // TURN 1b — pre_safeguard fields present on every row.
+  assert("pre_safeguard_likelihood" in rr.entries[0]);
+  assert("pre_safeguard_severity" in rr.entries[0]);
+  assert("pre_safeguard_residual_risk_level" in rr.entries[0]);
 });
 
 Deno.test("attachAndValidateSlots emits all three keys and validates clean", () => {
