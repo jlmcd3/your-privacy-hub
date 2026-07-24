@@ -561,6 +561,141 @@ const CO_HB24_1130_ROWS: BiometricStatuteRow[] = [
 
 
 // ─────────────────────────────────────────────────────────────────────────
+// us_ca_cpra — California Consumer Privacy Act (as amended by CPRA)
+// Cal. Civ. Code §§ 1798.100 et seq. Biometric surface: definition of
+// "biometric information", SPI classification when processed for unique
+// identification, and the SPI right-to-limit.
+// ─────────────────────────────────────────────────────────────────────────
+
+const CA_CPRA_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "us_ca_cpra.140_l_biometric_information_definition",
+    jurisdiction_id: "us_ca_cpra",
+    jurisdiction_display: "California",
+    statute_long:
+      "California Consumer Privacy Act, as amended by the California Privacy Rights Act (CPRA)",
+    statute_short: "CCPA/CPRA",
+    pinpoint: "Cal. Civ. Code § 1798.140(l)",
+    verbatim_quote:
+      "Cal. Civ. Code § 1798.140(l): \"Biometric information\" means an individual's physiological, biological, or behavioral characteristics, including information pertaining to an individual's deoxyribonucleic acid (DNA), that is used or is intended to be used singly or in combination with each other or with other identifying data, to establish individual identity. Biometric information includes, but is not limited to, imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, and voice recordings, from which an identifier template, such as a faceprint, a minutiae template, or a voiceprint, can be extracted, and keystroke patterns or rhythms, gait patterns or rhythms, and sleep, health, or exercise data that contain identifying information.",
+    topic: "definition",
+    primary_source_url:
+      "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:California"],
+  },
+  {
+    id: "us_ca_cpra.140_ae_2_c_spi_biometric",
+    jurisdiction_id: "us_ca_cpra",
+    jurisdiction_display: "California",
+    statute_long:
+      "California Consumer Privacy Act, as amended by CPRA — Sensitive Personal Information",
+    statute_short: "CCPA/CPRA",
+    pinpoint: "Cal. Civ. Code § 1798.140(ae)(2)(C)",
+    verbatim_quote:
+      "Cal. Civ. Code § 1798.140(ae)(2)(C): \"Sensitive personal information\" means: (2)(C) The processing of biometric information for the purpose of uniquely identifying a consumer.",
+    topic: "sensitive_data_classification",
+    primary_source_url:
+      "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:California"],
+    note:
+      "S2-verified: SPI carve-out is triggered only when biometric information is processed for the purpose of uniquely identifying a consumer. Enrolment for authentication/identification therefore engages § 1798.121 right-to-limit; incidental biometric capture that is not used for identification does not.",
+  },
+  {
+    id: "us_ca_cpra.121_a_right_to_limit_spi",
+    jurisdiction_id: "us_ca_cpra",
+    jurisdiction_display: "California",
+    statute_long:
+      "California Consumer Privacy Act, as amended by CPRA — Right to limit use and disclosure of sensitive personal information",
+    statute_short: "CCPA/CPRA",
+    pinpoint: "Cal. Civ. Code § 1798.121(a)",
+    verbatim_quote:
+      "Cal. Civ. Code § 1798.121(a): A consumer shall have the right, at any time, to direct a business that collects sensitive personal information about the consumer to limit its use of the consumer's sensitive personal information to that use which is necessary to perform the services or provide the goods reasonably expected by an average consumer who requests those goods or services.",
+    topic: "sensitive_data_opt_in",
+    primary_source_url:
+      "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.121.&lawCode=CIV",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:California"],
+    note:
+      "S2-verified: § 1798.121 is a right-to-limit, not an opt-in gate. Reports must state California SPI biometric processing is permitted absent a limit request, contrasted with true opt-in regimes (CO CPA § 6-1-1308(7); IL BIPA 15(b)).",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// us_ny_shield — New York Stop Hacks and Improve Electronic Data Security
+// (SHIELD) Act. Biometric surface: private-information definition
+// including biometric information; reasonable-safeguards duty.
+// ─────────────────────────────────────────────────────────────────────────
+
+const NY_SHIELD_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "us_ny_shield.899_aa_biometric_private_info",
+    jurisdiction_id: "us_ny_shield",
+    jurisdiction_display: "New York",
+    statute_long:
+      "New York Stop Hacks and Improve Electronic Data Security (SHIELD) Act — breach notification",
+    statute_short: "N.Y. Gen. Bus. Law § 899-aa",
+    pinpoint: "N.Y. Gen. Bus. Law § 899-aa(1)(b)(ii)",
+    verbatim_quote:
+      "N.Y. Gen. Bus. Law § 899-aa(1)(b)(ii): \"Private information\" shall mean either: (ii) biometric information, meaning data generated by electronic measurements of an individual's unique physical characteristics, such as a fingerprint, voice print, or retina or iris image, or other unique physical representation or digital representation of biometric data which are used to authenticate or ascertain the individual's identity.",
+    topic: "definition",
+    primary_source_url:
+      "https://www.nysenate.gov/legislation/laws/GBS/899-AA",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:New York"],
+    note:
+      "S2-verified: New York has no dedicated biometric privacy statute; biometric information is regulated through the SHIELD Act's breach-notification and safeguards regime.",
+  },
+  {
+    id: "us_ny_shield.899_bb_reasonable_safeguards",
+    jurisdiction_id: "us_ny_shield",
+    jurisdiction_display: "New York",
+    statute_long:
+      "New York SHIELD Act — data security safeguards",
+    statute_short: "N.Y. Gen. Bus. Law § 899-bb",
+    pinpoint: "N.Y. Gen. Bus. Law § 899-bb(2)(a)",
+    verbatim_quote:
+      "N.Y. Gen. Bus. Law § 899-bb(2)(a): Any person or business that owns or licenses computerized data which includes private information of a resident of New York shall develop, implement and maintain reasonable safeguards to protect the security, confidentiality and integrity of the private information including, but not limited to, disposal of data.",
+    topic: "security",
+    primary_source_url:
+      "https://www.nysenate.gov/legislation/laws/GBS/899-BB",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:New York"],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// us_ar_pipa — Arkansas Personal Information Protection Act.
+// Catalog jurisdiction: no dedicated biometric statute, biometric data
+// only surfaces inside the breach-notification "personal information"
+// definition. Representative of states such as AR, IA, WI, WY, NC, NE
+// that gate biometric obligations exclusively through breach law.
+// ─────────────────────────────────────────────────────────────────────────
+
+const AR_PIPA_ROWS: BiometricStatuteRow[] = [
+  {
+    id: "us_ar_pipa.4_110_103_biometric_in_pi",
+    jurisdiction_id: "us_ar_pipa",
+    jurisdiction_display: "Arkansas",
+    statute_long:
+      "Arkansas Personal Information Protection Act — definitions",
+    statute_short: "Ark. Code § 4-110-103",
+    pinpoint: "Ark. Code Ann. § 4-110-103(7)",
+    verbatim_quote:
+      "Ark. Code Ann. § 4-110-103(7): \"Personal information\" means an individual's first name or first initial and his or her last name in combination with any one (1) or more of the following data elements when either the name or the data element is not encrypted or redacted: (E) Biometric data.",
+    topic: "definition",
+    primary_source_url:
+      "https://advance.lexis.com/container?config=00JAA2ZjZiM2VhNS0wNTVlLTQ3NzUtYjQzYy0yYWZmODJiODRmMDYKAFBvZENhdGFsb2fXiYCnsel0plIgqpYkw9PK&crid=arkansas-code",
+    verification_date: "2026-07-24",
+    applicability_predicates: ["jurisdiction_named:Arkansas"],
+    note:
+      "S2-verified: Arkansas represents the catalog pattern — biometric data is regulated only via the breach-notification statute's personal-information definition. No standalone biometric consent, retention, or PRA regime exists. Reports must not import IL/TX/WA/CO substantive duties into an Arkansas-only analysis.",
+  },
+];
+
+
+// ─────────────────────────────────────────────────────────────────────────
 // Aggregate
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -569,6 +704,9 @@ export const BIOMETRIC_STATUTE_REGISTRY: BiometricStatuteRow[] = [
   ...TX_CUBI_ROWS,
   ...WA_HB1493_ROWS,
   ...CO_HB24_1130_ROWS,
+  ...CA_CPRA_ROWS,
+  ...NY_SHIELD_ROWS,
+  ...AR_PIPA_ROWS,
 ];
 
 export const BIOMETRIC_REGISTRY_JURISDICTIONS: Record<
@@ -579,6 +717,9 @@ export const BIOMETRIC_REGISTRY_JURISDICTIONS: Record<
   us_tx_cubi: { display: "Texas", state_names: ["Texas", "TX"] },
   us_wa_hb1493: { display: "Washington", state_names: ["Washington", "WA"] },
   us_co_hb24_1130: { display: "Colorado", state_names: ["Colorado", "CO"] },
+  us_ca_cpra: { display: "California", state_names: ["California", "CA", "Calif."] },
+  us_ny_shield: { display: "New York", state_names: ["New York", "NY", "N.Y."] },
+  us_ar_pipa: { display: "Arkansas", state_names: ["Arkansas", "AR", "Ark."] },
 };
 
 /**
