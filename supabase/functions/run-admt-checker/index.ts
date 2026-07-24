@@ -1734,6 +1734,22 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] CPPA-HF5 E usage_note strip failed (non-fatal):", e);
     }
 
+    // ── W6-ADMT-FIX (2026-07-24) — wave-6 atomic post-generation scrub ──
+    // Runs AFTER every earlier scrub/fallback pass so it operates on the
+    // final assembled report. Fail-open, idempotent. See _w6_admt_fix.ts.
+    try {
+      const intakeForW6 = ((assessment as any)?.intake_data as Record<string, unknown>) ?? {};
+      const w6 = applyW6AdmtFix(report, intakeForW6);
+      console.log(JSON.stringify({
+        evt: "admt_w6_fix", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, w6_version: W6_ADMT_FIX_VERSION,
+        ...w6,
+      }));
+      (report as any)._w6_admt_fix = { version: W6_ADMT_FIX_VERSION, ...w6 };
+    } catch (e) {
+      console.warn("[run-admt-checker] W6-ADMT-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
     // CPPA-HF5 I — prompt_version _meta stamp bumped to hf5.
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-admt", "admt-qbp25-a3@2026-07-23"), build_stamp: BUILD_STAMP };
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
