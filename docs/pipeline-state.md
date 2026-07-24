@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-24T23:33:39Z — ADMT-FACT-LEDGER-WIRING DONE (deploy, turn 2/3). `run-admt-checker` BUILD_STAMP `w15-admt-factledger@2026-07-24T23:31:41Z` (supersedes `w14-admt-corpuslive@2026-07-24T21:01:33Z`); shared intake fact-ledger (`sb-fl-w1-2026-07-24`) LIVE pre-VA-stamp; `admt_va_registry_loaded va_version=admt-va-w8-2026-07-24 va_rows=34` survived. §2 item 16 → ADMT WIRING DONE; CYBER fact-ledger wiring remains queued (turn 3/3).
+**Last updated:** 2026-07-24T23:43:20Z — CYBER-FACT-LEDGER-WIRING DONE (deploy, turn 3/3 — **S-B SERIES COMPLETE**). `run-cppa-cybersecurity` BUILD_STAMP `w15-cyber-factledger@2026-07-24T23:40:45Z` (supersedes `w15-cyber-regwire@2026-07-24T23:05:14Z`); shared intake fact-ledger (`sb-fl-w1-2026-07-24`) LIVE pre-VA-stamp; `cyber_va_registry_loaded va_version=cyber-va-w1-2026-07-24 va_rows=44` survived. §2 item 16 → CYBER WIRING DONE (S-B series 3/3 complete across risk/admt/cyber).
 
 ---
 
