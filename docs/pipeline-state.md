@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T18:32:36Z — Ledger-only turn. Recorded ir_playbook (7/8) ACK-with-deviations (see §8 newest entry). Renumbered §2 to fix duplicate-#12 collision (items 12–16 now sequential). Amended §2 item 11 (biometric 8/8) scope note with the deviation-1 preserve-verbatim remedy that must ship inside the biometric 8/8 turn (or a co-located remedy turn on `sampleFixtures.ts` if 8/8 already landed): append the containment narrative to `F_IR_US.scenario_summary`. No fixture edits, no deploys this turn.
+**Last updated:** 2026-07-24T18:38:51Z — Ledger-only turn (no code, no deploys, no fixture edits, no dpa dispatch). §5: wave-13 section added (batch `7a4923fe`, campaign `fd1be147`; first read of fully-fixed CPPA trio — admt 85.65 / risk 87.20 / cyber 84.60; gate_v2 no passes; orchestrator isolate death #3 today with NO reads lost). §7: wave-13 orchestrator-stall incident appended. §8: two new entries (18:37:20Z ledger-only extraction + REGISTRY-VERBATIM-AUDIT verified; 18:38:51Z restamp). §2: item 12 (dpa NEXT) scope-note amended to co-locate the ir_playbook 7/8 deviation-1 preserve-verbatim remedy for `F_IR_US.scenario_summary` and optional `cppa_cyber/us-supplemental` shape-test fold-in; new items 14 `RISK-REGISTRY-WIRING`, 15 `CYBER-REGISTRY-WIRING`, 16 `S-B INTAKE-FACT-LEDGER` inserted per CEO critical-path-to-≥90; tail renumbered 17/18/19; item 18 (DS wiring) priority raised again.
 
 ---
 
