@@ -4,7 +4,7 @@
 
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
-**Last updated:** 2026-07-24T17:12:00Z — WAVE12-FIX TURN C (cppa-admt) shipped: fabricated `access_timeline` row removed from registry, `deadline_table` neutral placeholder path added, top-level `_`-prefixed telemetry moved to `_meta.internal`, per-entry `_va_stamp*` diagnostics stripped, `§ 7001 + § 7001` chain dedupe added, `run-admt-checker` restamped `w12-admt-turnc@2026-07-24T17:02:00Z` (fresh clock, deferred W9 restamp discharged).
+**Last updated:** 2026-07-24T17:12:11Z — WAVE12-FIX TURN C (cppa-admt) DEPLOYED with fresh-clock restamp `w12-admt-turnc@2026-07-24T17:10:43Z` (boot log confirmed 17:11:54Z). C1 metadata-leak strip live + guarded by `_w12_c1_leak_guard.test.ts` (2/2 green); C2 fabricated `access_timeline` row removed from `admt-verified-authorities.ts`, neutral placeholder path emits `information_needed:true` with no verbatim quote; C4 §7001-chain dedupe live in `walkAnchorGuard`. C3 fallback-density deferred to next dispatch (needs resolvable-proposition roster). W9 restamp deferral DISCHARGED.
 
 ---
 
