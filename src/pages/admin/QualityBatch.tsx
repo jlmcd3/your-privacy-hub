@@ -924,8 +924,9 @@ export default function QualityBatch() {
                 {new Date(logLastRefreshedAt).toLocaleTimeString()}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={refreshLog} disabled={logRefreshing}>
-              {logRefreshing ? "…" : "Refresh"}
+            <Button variant="outline" size="sm" onClick={refreshLog} disabled={logRefreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${logRefreshing ? "animate-spin" : ""}`} />
+              {logRefreshing ? "Refreshing…" : "Refresh log"}
             </Button>
           </div>
         </CardHeader>
