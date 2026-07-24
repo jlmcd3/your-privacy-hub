@@ -203,7 +203,14 @@ export function rewriteComparativeAsOperative(
 ): { out: string; rewritten: number } {
   if (!s) return { out: s ?? "", rewritten: 0 };
   let rewritten = 0;
-  const sentences = s.split(/(?<=[.;])\s+/);
+  // WAVE12-FIX TURN E (E1a root cause): split on real sentence terminators
+  // (. ! ?) — NOT on `;`. Splitting on ";" caused fragments like
+  // "For comparative context, the ISO 27001 framework provides comparative
+  // guidance on;" because "X governs; the operative requirement is Y" was
+  // sliced into two clauses and only the head was rewritten, orphaning the
+  // preposition. Splitting on true terminators keeps operative-verb clauses
+  // whole with their objects.
+  const sentences = s.split(/(?<=[.!?])\s+/);
   const patched = sentences.map((sent) => {
     if (!OPERATIVE_VERBS_RE.test(sent)) return sent;
     const hit = COMPARATIVE_FRAMEWORKS.find((f) => f.re.test(sent));
@@ -220,6 +227,15 @@ export function rewriteComparativeAsOperative(
       .replace(/\bdictates?\b/gi, "addresses")
       .replace(/\bis\s+the\s+operative\s+standard\s+for\b/gi, "provides comparative context for")
       .replace(/\bis\s+the\s+governing\s+standard\s+for\b/gi, "provides comparative context for");
+    // TURN E E1a — orphan-preposition rollback: if the rewrite left a stub
+    // (verb-phrase ending in a bare preposition immediately before a
+    // terminator/semicolon) OMIT the transformed clause entirely rather
+    // than emit "…provides comparative guidance on;". Per dispatch: "where
+    // a comparative clause has no substantive content, omit the clause".
+    if (/\b(?:on|of|for|to|in|at|with|by|from|as)\s*[.;:!?]?\s*$/i.test(rewritten_sent)) {
+      rewritten--;
+      return "";
+    }
     if (!/for\s+comparative\s+context/i.test(rewritten_sent)) {
       rewritten_sent = `For comparative context, ${rewritten_sent.charAt(0).toLowerCase()}${rewritten_sent.slice(1)}`;
     }
@@ -233,7 +249,7 @@ export function rewriteComparativeAsOperative(
         `; the operative requirement is ${cite}.`;
     }
     return rewritten_sent;
-  });
+  }).filter((x) => x.length > 0);
   return { out: stripLiteralNPlaceholder(patched.join(" ").replace(/[ \t]{2,}/g, " ")), rewritten };
 }
 
