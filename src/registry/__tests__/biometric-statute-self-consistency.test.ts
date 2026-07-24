@@ -19,7 +19,7 @@ describe("biometric statute registry — self-consistency", () => {
     expect(BIOMETRIC_REGISTRY_VERSION).toMatch(/^bio-reg-w\d(?:-s\d+[a-z]?)?-\d{4}-\d{2}-\d{2}$/);
   });
 
-  it("declares the Wave-1 and Wave-2 (S2) jurisdictions", () => {
+  it("declares the Wave-1, Wave-2 (S2), and Wave-3 (S3) jurisdictions", () => {
     expect(listRegistryJurisdictions().sort()).toEqual(
       [
         // Wave 1
@@ -31,6 +31,12 @@ describe("biometric statute registry — self-consistency", () => {
         "us_ar_pipa",
         "us_ca_cpra",
         "us_ny_shield",
+        // Wave 3 (S3)
+        "au_privacy_act",
+        "ca_pipeda",
+        "eu_gdpr",
+        "sg_pdpa",
+        "uk_gdpr",
       ].sort(),
     );
   });
