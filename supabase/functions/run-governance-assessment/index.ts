@@ -1385,6 +1385,20 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] GOVERNANCE-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── GOVERNANCE-T6-FIX — Class A citation audit + Class B business-claim
+    // scrub (2026-07-25). Runs AFTER _w1_governance_wire and BEFORE the
+    // LEAK-PREV-P1 emit gate so the gate sees the neutralized surface.
+    // Telemetry writes to `_meta.internal.gov_t6fix`. Fail-open.
+    try {
+      const { applyGovT6Fix } = await import("./_gov_t6_fix.ts");
+      applyGovT6Fix(reportData, {
+        intake: ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
+        buildStamp: BUILD_STAMP,
+      });
+    } catch (e) {
+      console.warn("[run-governance-assessment] GOVERNANCE-T6-FIX post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
     // Runs AFTER the wire post-pass and BEFORE the P2 serializer so gate
     // telemetry rides `_meta.internal`. Fail-visible; never blocks.
