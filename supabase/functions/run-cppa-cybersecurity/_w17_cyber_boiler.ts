@@ -65,7 +65,8 @@ function jaccard(a: Set<string>, b: Set<string>): number {
 }
 
 function referencesIntake(s: string): boolean {
-  for (const rx of INTAKE_REF_HINTS) if (rx.test(s)) return true;
+  const stripped = stripCitations(s);
+  for (const rx of INTAKE_REF_HINTS) if (rx.test(stripped)) return true;
   return false;
 }
 
