@@ -44,11 +44,13 @@ import { applyW23AdmtTurnA, W23_ADMT_TURNA_STAMP } from "./_w23_admt_turna.ts";
 import { applyW24AdmtAttrFix, W24_ADMT_ATTR_STAMP } from "./_w24_admt_attr_fix.ts";
 import { applyW24AdmtAudit, W24_ADMT_AUDIT_STAMP } from "./_w24_admt_audit.ts";
 import { applyW24AdmtH6, W24_ADMT_H6_STAMP } from "./_w24_admt_h6.ts";
+import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_sanitizer_fix.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turna_w23_stamp=${W23_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_attr_w24_stamp=${W24_ADMT_ATTR_STAMP}`);
+console.log(`[run-admt-checker] boot admt_sanitizer_w25_stamp=${W25_ADMT_SANITIZER_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
