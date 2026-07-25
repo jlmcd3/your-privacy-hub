@@ -2171,9 +2171,11 @@ async function runBatch(runId: string): Promise<void> {
       // resumed isolate cannot re-trigger). Never targets a score; the
       // trigger is deterministic-check failure only.
       try {
-        const detChecksAttempt1: any[] = Array.isArray((reportData as any)?.deterministic_checks)
-          ? (reportData as any).deterministic_checks
-          : [];
+        const _rdA1 = reportData as any;
+        const detChecksAttempt1: any[] = Array.isArray(_rdA1?._meta?.internal?.deterministic_checks)
+          ? _rdA1._meta.internal.deterministic_checks
+          : (Array.isArray(_rdA1?.deterministic_checks) ? _rdA1.deterministic_checks : []);
+
         const alreadyRegenerated = Number((reportData as any)?.regen_round ?? 0) > 0;
         if (
           !alreadyRegenerated
