@@ -72,8 +72,6 @@ Deno.test("A3: unverified '11 CCR § 7150(b)(3)' pinpoint downgrades to section"
 Deno.test("A3: verified pinpoint left alone (no downgrade)", () => {
   const row = (ADMT_VERIFIED_AUTHORITIES as any)["scope_deadline"];
   assert(row, "scope_deadline row must exist");
-  const row = (ADMT_VERIFIED_AUTHORITIES as any)["scope_deadline"];
-  assert(row, "scope_deadline row must exist");
   const r = downgradeUnverifiedPinpointsInCitation(row.subsection);
   assertEquals(r.downgrades, 0);
   assertEquals(r.out, row.subsection);
