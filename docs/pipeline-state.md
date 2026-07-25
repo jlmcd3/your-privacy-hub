@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T20:58:41Z — T7-RISK-OPENING-PILOT DONE (deterministic opening_summary slot for cppa-risk shipped; emit-gate overwrite; hold released per ledger item 78; 12/12 Deno tests green; REGEN-NEEDED += cppa_risk report-shape).
+**Last updated:** 2026-07-25T21:02:21Z — SHIPPED T7-RISK-PILOT (deterministic `opening_summary` slot builder for `run-cppa-risk-assessment` shipped per authoritative spec `docs/design/OPENING-PARAGRAPH-DESIGN.md`; model NEVER writes the opening; emit-gate overwrite pre-serializer; corpus-pinned to `cppa_authorities` row `Cal. Civ. Code § 1798.140`; 12/12 Deno tests green; BUILD_STAMP `t7-risk-opening-pilot@2026-07-25T21:01:15Z` boot-confirmed 21:02:18Z).
 
 ---
 
@@ -649,3 +649,60 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **DEVIATION RULED:** controller local VM DISK-FULL persists (20:39Z tick); all reads + this dispatch routed via Lovable query_database/read_file/send_message per Backend-access law; John flagged (restart fixes). No other deviations. No spend beyond query+dispatch.
 
 82. **DONE — OPENING-PARAGRAPH-DESIGN-DOC-COMMIT** @ 2026-07-25T20:48:08Z (sandbox clock). Docs-only, five-lens TEAM-REVIEWED. CEO APPROVED (2026-07-25, ~21:0xZ): the deterministic "first paragraph" approach is now PART OF THE PROJECT for ALL products. Authoritative spec committed at `docs/design/OPENING-PARAGRAPH-DESIGN.md` (verbatim CEO-approved text; 7 design rules; per-product slot plans for cppa-risk, cppa-admt, cppa-cyber, dpia, lia, governance, dpa, ir_playbook, registration, biometric; rollout order). **All future opening-paragraph turns MUST cite this doc as the authoritative spec.** **Rollout order (CEO-approved):** cppa-risk pilot first (spec already in scheduled-task T7) → cppa-admt → cppa-cyber → dpia → lia → dpa → ir → governance → registration → biometric. Each rollout is its own deploy-guarded turn (contract/schema + fixtures + goldens + REGEN flag + five-lens + REPORT FLOW), gated on the prior wave-read and CEO checkpoints. **GATES:** registration gated on AI-Act registry verification; biometric gated on biometric statute corpus ingestion. **VERIFICATION NOTE:** sample intake field names in §2 of the design doc were verified against live DB rows on 2026-07-25; wiring turns MUST re-verify each field against the live contract at build time (field sets evolve), and the cppa-cyber `profile` subfields require a semantics pass at wiring (nested profile → § 7120 applicability). **GUARDRAILS:** docs/ + ledger only; no code/prompt/rubric/grader/golden/contract/fixture/sample/registry/corpus edits; no deploys; T6 measurement batches and wave harness untouched.
+
+83. **SHIPPED — T7-RISK-PILOT (opening-paragraph rollout step 1 of 10)** @ 2026-07-25T21:02:21Z (sandbox clock; deploy stamp = actual build time). Five-lens TEAM-REVIEWED. Deploy turn on `run-cppa-risk-assessment` only. Authoritative spec: `docs/design/OPENING-PARAGRAPH-DESIGN.md` (§1 rules 1–7 + §2 cppa-risk S0–S6 slot plan; committed ledger item 82). Gate released by name: W25-RISK-ATTRIBUTION (ledger item 78 DONE 20:17Z, no revert). **Deploy guards verified 20:58Z + re-checked immediately pre-deploy 21:01:15Z:** `quality_batch_runs` running/pending=0, in-flight customer-path gens (<15 min NULL `report_data`)=0, loop3/long-running/pdf-queue clear; wave 26 launch ~22:00Z, freeze ~21:45Z — landed with margin. **BUILD_STAMP:** `t7-risk-opening-pilot@2026-07-25T21:01:15Z` (fresh-clock re-read of `date -u` immediately pre-stamp). **Model policy:** no Fable 5 anywhere in prompts/generators (CEO hold observed).
+
+    **Determinism (Rule 1):** emitter is code-only. The model NEVER writes the opening paragraph — `report_data.opening_summary` is unconditionally OVERWRITTEN by `buildRiskOpening(intake)` after `runEmitGate` (LEAK-PREV-P1) and before `serializeCustomerReport` (LEAK-PREV-P2). Wire site: `supabase/functions/run-cppa-risk-assessment/index.ts` (T7 hook between P1 and P2). Telemetry lands at `_meta.internal.risk_t7_opening` (`version`, `stamp`, `sentences_emitted`, `omitted_slots`); survives P2 whitelist via the existing `_meta` top-level allowance.
+
+    **Pre-wiring contract re-verification (mandatory per dispatch rule 2):** all 12 intake field names cross-checked against the LIVE intake contract `supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts` (field sets evolve). All present. **Semantics defect FOUND AND FIXED before wiring:** the `q18b_admt_training` enum uses descriptive literals (`"Yes — training ADMT …"`, `"Yes — training facial-recognition …"`, `"No — not training"`, `"Not applicable — not using ADMT"`), NOT a bare `"Yes"`. Emitter now uses `/^Yes/` and unit-tests assert the full literal — otherwise every § 7150(b)(6) ADMT-training trigger would have silently dropped. No other field renames or mismatches.
+
+    **Corpus pins (Rule 5, in-corpus for CPPA per each-tool-against-its-own-corpus convention):** operative applicability text quoted VERBATIM from `cppa_authorities` row `Cal. Civ. Code § 1798.140` (backfilled/reconciled per ledger item 80). Byte-identity preserved (NBSP + curly quotes) — test `Corpus pins are byte-identical in emitted S0` locks this. § 7150(b) trigger text pinned from `provision_texts.cppa-7150`. **No hard-coded restatement drift:** the S0 clause quotes the corpus figure INCLUDING the `§ 1798.199.95(d)` "as adjusted" cross-reference, per item-80 operative-threshold rule; CPI-adjusted operative figures are never inlined as numerals.
+
+    **Semantic honesty + boundary-band (Rules 3, 4, 6):** (A) asserted ONLY on `q1_revenue = over_100m` (band unambiguously clears corpus figure); `25m_to_100m` STRADDLES and is omitted from opening per Rule 6 (handled in body). (B) requires BOTH `q2_consumers = 100k_or_more` AND affirmative `q5_sell_share`; rejected when record shows no sell/share activity (verbs are buys/sells/shares only, object is consumers-or-households). (C) omitted for now (revenue-share sub-question not yet in intake — silence-drops per Rule 3). Multi-criteria enumerate in statutory order A,B. § 7150(b) triggers enumerated all-that-apply in statutory (1)→(6) order. Every input absent → clause omitted via pre-written clause-subset variants (no string surgery, no inference). Silent safeguard fields never surface as "information needed" (RULE 2.7 S1 preserved).
+
+    **Files touched THIS turn (cppa-risk only):**
+    - `supabase/functions/_shared/openings/risk-opening.ts` (NEW — deterministic S0–S6 builder; `RISK_OPENING_VERSION = "risk-opening-v1-2026-07-25"`)
+    - `supabase/functions/_shared/openings/ccpa-1798-140-pin.ts` (NEW — verbatim § 1798.140(d)(1)(A/B/C) pin; NBSP + curly quotes preserved)
+    - `supabase/functions/_shared/openings/ccpa-7150-pin.ts` (NEW — verbatim § 7150(b)(1)–(6) pin)
+    - `supabase/functions/_shared/openings/risk-opening.test.ts` (NEW — 12 Deno tests)
+    - `supabase/functions/_shared/report-schemas/cppa-risk.ts` (`opening_summary` added to `topLevel` whitelist — additive; no other bucket touched)
+    - `supabase/functions/_shared/golden/cppa-risk.ts` (T7 assertions added to all 3 golden cases: § 7152 frame present, as-of date present, (B) corpus quote present only when both consumers ≥ 100k AND affirmative sell/share; boundary-adversarial case explicitly does NOT assert (B))
+    - `supabase/functions/run-cppa-risk-assessment/index.ts` (BUILD_STAMP bumped L17 to `t7-risk-opening-pilot@2026-07-25T21:01:15Z`; T7 boot-echo line added L19; overwrite hook between P1 and P2 at L2945-2947 area)
+    - `docs/pipeline-state.md` (this entry + header restamp)
+
+    **No other surfaces touched (verified):** intake contract unchanged (no field rename), so `StatuteRail` / form parity / dummy data / rail entries / sample fixtures required NO edits (opening_summary is a report-side emit, not an intake surface). No rubric/grader/instrument edits (s4 FROZEN). No sample regen (per program rule — no sample regen until program end). No other tools touched. No pricing/payment/design tokens/customer revision path/signup touched.
+
+    **PASTED GREEN TEST OUTPUT** (fresh run `deno test supabase/functions/_shared/openings/risk-opening.test.ts` at 21:00:56Z):
+
+    ```
+    running 12 tests from ./supabase/functions/_shared/openings/risk-opening.test.ts
+    S0 omitted when no criterion unambiguously resolves ($25M–$50M straddles; sell/share = No) ... ok (2ms)
+    S0 asserts (A) only when revenue band unambiguously clears the corpus figure ... ok (0ms)
+    (A) omitted on straddling band $25M–$50M even with affirmative sell/share ... ok (0ms)
+    (B) rejected when consumers band >= 100k but sell/share = No (semantic-honesty gate) ... ok (0ms)
+    (B) asserted with verbatim corpus quote when consumers >= 100k AND sell/share affirmative ... ok (0ms)
+    Multi-criteria enumerate in statutory order A,B ... ok (0ms)
+    S1 emits § 7150(b) triggers in statutory order ... ok (0ms)
+    S1 omitted when no trigger resolves ... ok (0ms)
+    S4 omitted when intake safeguards silent (never surfaces as customer question in opening) ... ok (0ms)
+    S3 preserves negation polarities for sell/share and ADMT ... ok (0ms)
+    S5/S6 frame and date; version stamp attached ... ok (0ms)
+    Corpus pins are byte-identical in emitted S0 ... ok (0ms)
+
+    ok | 12 passed | 0 failed (34ms)
+    ```
+
+    **Deploy proof:** `supabase--deploy_edge_functions` returned `Successfully deployed edge functions: run-cppa-risk-assessment` at 21:01:15Z build clock. **Post-deploy boot-log proof (fetched 21:02:21Z):**
+
+    ```
+    2026-07-25T21:02:18Z INFO [run-cppa-risk-assessment] boot build_stamp=t7-risk-opening-pilot@2026-07-25T21:01:15Z
+    2026-07-25T21:02:18Z INFO [run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md
+    2026-07-25T21:02:18Z INFO [run-cppa-risk-assessment] boot w23_stamp=… w24_stamp=… build_stamp=t7-risk-opening-pilot@2026-07-25T21:01:15Z
+    2026-07-25T21:02:18Z INFO {"evt":"risk_va_registry_loaded","fn":"run-cppa-risk-assessment","build_stamp":"t7-risk-opening-pilot@2026-07-25T21:01:15Z","va_version":"risk-va-w1-2026-07-24","va_rows":44}
+    ```
+
+    **REGEN flag:** `cppa_risk` report-shape additive (`opening_summary` top-level whitelisted). NO sample regeneration this turn (program rule — deferred until end of the 10-tool rollout program).
+
+    **Measurement expectation (per dispatch):** next wave (26, ~22:00Z) reads the pilot — primary classes: intake-contradiction, hallucination; secondary: headline conformance. This turn does NOT start any measurement batch.
+
+    **Out-of-scope / prohibited items untouched:** ledger-item-78 queued fix candidates (a)/(b); other products; sample regen; Fable 5; rubric/grader/instrument; wave-harness; T6 measurement pipeline. No rule deviations. **Rollout status:** step 1 of 10 SHIPPED; next step (cppa-admt) awaits post-wave-26 wave-read + CEO checkpoint per ledger item 82.
