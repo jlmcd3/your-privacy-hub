@@ -292,6 +292,8 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 8. While-You-Slept (overnight standing-order run log)
 
+- **2026-07-25T02:55:58Z — WAVE-17 DIGEST EXTRACTED (docs-only tick turn, batch `592e561d`)** — clean orchestrator finish #3 (02:52:23Z; first DS-T2b-contract-registered wave). admt 83.70 / GPT 85 (+1.45; citation 77 floor; dash-fusion doubling RECURS post-W16-FIX; W6 fallback string leaks pipeline meta-commentary; fact-ledger aggregated-negative gap). risk 80.35 / GPT 88 (NEW CAMPAIGN LOW; § 7150(b) collapse recurs on uncovered inconsistency_flags surface; sensitive-location contradiction recurs; raw field-ID leak). cyber 86.25 / GPT 90 (+5.65 beyond σ; first post-boilerplate-guard read, no boilerplate survivor, ana/int 81/81). Zero criticals batch-wide; no gate_v2 pass; counters 0. Queue items 22–25 inserted. Deploy locks released 02:52:23Z.
+
 - **2026-07-25T01:03:34Z — FACT-LEDGER-W16-HOTFIX DONE (deploy, all three CPPA generators + ADMT-W16-FIX RIDE-ALONG).**
 
   **Wave-16 digest (batch `abf26f19`, campaign `fd1be147`, instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg` frozen; clean orchestrator finish 00:47:39Z):** admt **82.25** / GPT 86 · risk **82.30** / GPT 81 · cyber **80.60** / GPT 82 — ALL regressed vs wave-15 (86.15 / 81.35 / 86.30). No gate_v2 pass; counters remain 0. Batch-wide surviving CRITICAL count: **1** (admt `the applicable ADMT-subchapter provision–7222` dash-fusion — remedied by the ADMT-W16-FIX committed at 00:09:27Z, riding along in this deploy).
