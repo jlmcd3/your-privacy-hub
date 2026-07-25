@@ -2445,6 +2445,24 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W24-ADMT-ATTRIBUTION-FIX failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── W24-ADMT-RESOLVER-AUDIT (2026-07-25) ──────────────────────────
+    // Runs AFTER W24 attr-fix and BEFORE the LEAK-PREV-P1 emit gate so
+    // the emit gate + serializer see the audited/dropped surface.
+    // Fail-open — availability never blocked.
+    try {
+      const w24audit = applyW24AdmtAudit(
+        report,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      console.log(JSON.stringify({
+        evt: "_w24_admt_audit", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W24_ADMT_AUDIT_STAMP, ...w24audit,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W24-ADMT-RESOLVER-AUDIT failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
