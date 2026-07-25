@@ -2300,6 +2300,21 @@ Return this JSON structure exactly:
 
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
 
+    // ── W19-ADMT-FALLBACK-JOIN-2 (2026-07-25) — terminal sanitizer.
+    // Runs AFTER every content-shaping pass and BEFORE the W12-C1 metadata
+    // strip so its diag counter rides `report._w19_admt_join2` and gets
+    // relocated to `_meta.internal` by the same strip block. Fail-open.
+    try {
+      const w19 = applyW19AdmtJoin2(report);
+      (report as any)._w19_admt_join2 = w19;
+      console.log(JSON.stringify({
+        evt: "_w19_admt_join2", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w19,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── WAVE12-FIX TURN C1 — customer-payload metadata strip ──
     // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
     // _w9_admt_wire, _w9_admt_slots, _w9_admt_regen, _w9_admt_pre_emit, and
