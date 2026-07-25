@@ -1,56 +1,76 @@
 // S-B INTAKE-FACT-LEDGER — shared enforcement service.
 //
-// v1 (sb-fl-w1-2026-07-24): initial authoring turn (§2 item 16). Wired
-// into run-cppa-{risk,admt,cyber} 2026-07-24 23:20–23:42Z.
+// v1 (sb-fl-w1-2026-07-24): initial authoring turn (§2 item 16).
+// v2 (sb-fl-w2-2026-07-25) — FACT-LEDGER-W16-HOTFIX: matcher SKIP on
+//   unresolvable field/silent-positive; nested intake flattening;
+//   answer-first rewrite; production-scale safety valve.
 //
-// v2 (sb-fl-w2-2026-07-25) — FACT-LEDGER-W16-HOTFIX:
-//   Wave-16 telemetry (cppa_assessments _meta.internal.fact_ledger)
-//   proved that v1 misfired identically in all three CPPA generators:
-//   `claims_downgraded == claims_scanned` on every run (3/3, 3/3, 7/7,
-//   27/27). Two root causes:
+// v3 (sb-fl-w3-2026-07-25) — FACT-LEDGER-W17-GAP (§2 item 25):
+//   Wave-17 evidence surfaced three escape classes that v2's per-item
+//   scan and matcher did not close:
 //
-//     (a) MATCHER treated any claim with an unresolvable `field`
-//         (missing OR not present in the ledger) as evidence AGAINST
-//         the claim. In practice, wiring layers extract `field` from
-//         `o.intake_field_1`/`o.source_fields` — which are almost
-//         never set — so `claim.field` is undefined. `checkAssertion`
-//         then returned `{ ok: false, reason: "unresolved" }` for
-//         positives and `{ ok: false, reason: "silence_supports_negative" }`
-//         for negatives, and `enforceLedger` rewrote the claim. This
-//         inverted the rule ("silence about a field is not evidence
-//         against a claim about that field") into a per-report
-//         demolition. v2 treats missing-field / missing-ledger-row as
-//         SKIP; only explicit ledger outcomes can downgrade.
+//     (a) AGGREGATED MULTI-FACT NEGATIVES (admt doc 2b071620): a single
+//         scope-prose sentence bundles several intake facts into one
+//         negative/aggregate assertion, e.g. "the intake reflects no
+//         MFA, encryption, or SSO controls". Per-item extraction sees
+//         ONE claim; individual constituent facts (some of which may
+//         be explicitly asserted in the intake) are never checked. v3
+//         adds `splitAggregatedClaim` which decomposes such claims
+//         into per-constituent Claim entries via list-boundary parsing
+//         (commas / "and" / "or" / semicolons after a negation head).
 //
-//     (b) LEDGER BUILD only iterated TOP-LEVEL intake keys. Cyber's
-//         `intake_data` shape (controls[], scoping[], etc.) produced
-//         `ledger_rows = 2` — starving the matcher of the very rows
-//         needed to prove support for controls like "MFA via Okta".
-//         v2 flattens nested objects/arrays to dotted paths.
+//     (b) FREE-PROSE inconsistency_flags CONTRADICTIONS (risk doc
+//         52dfb9a1): the wiring layers already `scan()` inconsistency
+//         flags at container level, but assertions embedded WITHIN
+//         the `description` prose (multi-sentence) are collapsed into
+//         one blob and only the aggregate is checked. v3 adds
+//         `extractProseClaims` — a sentence-level extractor that
+//         returns one Claim per sentence with direction inferred from
+//         negation heads, honours a caller-supplied anchor-key skip
+//         list (source_fields / field / intake_field_1 /
+//         intake_field_2 / provision subtrees stay untouched), and
+//         accepts an optional field-token map so callers can attribute
+//         subclaims to specific ledger rows.
 //
-//   Additional v2 hardening:
-//     - REWRITE TEXT: never prepends the caveat template onto the
-//       full original claim; produces a short answer-first sentence
-//       (REPORT FLOW rule) referencing the resolved intake field.
-//     - SAFETY VALVE: for real production runs (≥3 claims), if the
-//       ledger has fewer than 5 rows OR the would-be downgrade rate
-//       exceeds 50 %, enforcement is skipped entirely. Guarantees a
-//       matcher fault can never again rewrite an entire report.
-//       Telemetry records `enforcement_skipped_reason` and the raw
-//       counts under `_meta.internal.fact_ledger`.
-//     - Telemetry additions: `match_path` counters (`resolved`,
-//       `skipped_no_field`, `skipped_field_unknown`, `skipped_silent_positive`)
-//       stay under `_meta.internal.fact_ledger`. TURN C1 leak-guard
-//       compatible — no customer-surface keys are added.
+//     (c) PROFILE-FIELD NARRATIVE PROJECTION + COMPARATIVE-FRAMEWORK
+//         ASSERTIONS (cyber doc f22f2550): narrative that projects
+//         profile fields into claims the intake does not state
+//         ("the entity operates within a HITRUST-certified perimeter"
+//         when the intake profile records a different or absent
+//         framework), and comparative-framework claims ("exceeds NIST
+//         baseline", "surpasses ISO 27001 requirements") that have no
+//         ledger basis. v3 adds `extractComparativeClaims` (pattern-
+//         driven; binds each match to a caller-supplied profile field
+//         so the standard matcher can contradict or SKIP as
+//         appropriate).
 //
-//   FAIL-OPEN everywhere: any throw returns input unchanged.
+//   HARD GUARDRAILS (v3):
+//     - No loosening of v2 matcher semantics. `checkAssertion` still
+//       SKIPS on unresolvable field and silent-positive; only explicit
+//       ledger outcomes downgrade. The safety valve stays intact.
+//     - Extractors are pure helpers: they synthesise Claim entries
+//       from prose. They do NOT rewrite anything themselves.
+//     - `rewriteUnsupported` remains answer-first, plain-language,
+//       customer-safe (no meta-commentary, no internal field IDs, no
+//       pipeline references).
+//     - `ANCHOR_SKIP_KEYS` published as the canonical skip list so
+//       wiring layers can reuse it (matches RISK-INTERNAL-VOCAB-SCRUB).
+//     - FAIL-OPEN everywhere: any throw returns [] / input unchanged.
 
-export const FACT_LEDGER_VERSION = "sb-fl-w2-2026-07-25";
+export const FACT_LEDGER_VERSION = "sb-fl-w3-2026-07-25";
 
-// Safety-valve triggers only in production-scale runs. Single-claim
-// unit tests (isolated matcher semantics) are unaffected. The wave-16
-// misfires were all ≥3 claims; every wave-16 evidence class is caught
-// at this threshold.
+/** Canonical anchor-subtree skip list. Wiring layers walking report
+ *  surfaces MUST skip these keys so structured citation anchors are
+ *  not misread as prose claims. Mirrors RISK-INTERNAL-VOCAB-SCRUB. */
+export const ANCHOR_SKIP_KEYS: readonly string[] = [
+  "source_fields",
+  "field",
+  "intake_field_1",
+  "intake_field_2",
+  "provision",
+] as const;
+
+// Safety-valve triggers only in production-scale runs.
 const SAFETY_VALVE_MIN_CLAIMS = 3;
 const SAFETY_VALVE_MIN_LEDGER_ROWS = 5;
 const SAFETY_VALVE_MAX_DOWNGRADE_RATE = 0.5;
@@ -467,3 +487,196 @@ export function enforceLedger(
     return { counters, rewrites };
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// v3 (sb-fl-w3-2026-07-25) — FACT-LEDGER-W17-GAP claim extractors
+// ═══════════════════════════════════════════════════════════════════════
+//
+// These are PURE helpers. They synthesise additional Claim entries
+// that wiring layers can concatenate into their existing per-item
+// scan list, so `enforceLedger` can then apply the v2 matcher to each
+// constituent assertion individually. No matcher semantics are
+// touched. All helpers fail-open (return [] on any throw).
+
+/** Options common to all v3 extractors. */
+export interface ExtractOptions {
+  /** Surface path prefix applied to each synthesised Claim. */
+  surfacePath?: string;
+  /** Optional token→field-id map. Callers that know the intake
+   *  schema pass this to attribute subclaims to specific ledger
+   *  rows. Matching is case-insensitive word-boundary. */
+  fieldTokenMap?: Record<string, string>;
+}
+
+// Regex head for negation cues that flip a claim to `negative`.
+const NEG_HEAD_RE =
+  /\b(no|none|not|never|absence of|without|does not|do not|is not|are not|nor|neither)\b/i;
+
+/** Detect direction from a leading negation cue. */
+function directionOf(text: string): "positive" | "negative" {
+  return NEG_HEAD_RE.test(text) ? "negative" : "positive";
+}
+
+/** Case-insensitive first-hit token → field lookup. Returns undefined
+ *  when no token in the map appears in `text`. */
+function pickFieldFromTokens(
+  text: string,
+  fieldTokenMap?: Record<string, string>,
+): string | undefined {
+  if (!fieldTokenMap || !text) return undefined;
+  const lo = text.toLowerCase();
+  for (const [tok, field] of Object.entries(fieldTokenMap)) {
+    if (!tok) continue;
+    const t = tok.toLowerCase();
+    // Word-boundary-ish: require non-alnum on either side (or edge).
+    const idx = lo.indexOf(t);
+    if (idx < 0) continue;
+    const before = idx === 0 ? " " : lo[idx - 1];
+    const after = idx + t.length >= lo.length ? " " : lo[idx + t.length];
+    if (!/[a-z0-9_]/i.test(before) && !/[a-z0-9_]/i.test(after)) {
+      return field;
+    }
+  }
+  return undefined;
+}
+
+// ── Class (a) — aggregated multi-fact splitter ────────────────────────
+//
+// A single sentence like:
+//   "The intake reflects no MFA, encryption, or SSO controls"
+// bundles three facts under one negation head. `splitAggregatedClaim`
+// decomposes it into per-constituent Claim entries so the matcher
+// can check each fact individually against the ledger.
+//
+// Behaviour:
+//   - If the claim text contains a list of ≥2 items after a negation
+//     head, emit one Claim per item, each inheriting `direction`
+//     from the head. Each subclaim's `field` is attributed via
+//     `fieldTokenMap` when provided; otherwise left undefined
+//     (matcher will SKIP — v2 semantics preserved).
+//   - If the input is not aggregated, return `[claim]` unchanged.
+//   - Fail-open: any throw returns `[claim]`.
+
+const LIST_SPLIT_RE = /\s*,\s*|\s+(?:and|or|nor)\s+|\s*;\s*/i;
+
+export function splitAggregatedClaim(
+  claim: Claim,
+  opts: ExtractOptions = {},
+): Claim[] {
+  try {
+    if (!claim || typeof claim.text !== "string") return [claim];
+    const text = claim.text.trim();
+    if (!text) return [claim];
+    // Must lead with a negation cue AND contain a list separator.
+    if (!NEG_HEAD_RE.test(text)) return [claim];
+    // Slice the segment after the FIRST negation-head match so we
+    // don't chop the preamble ("The intake reflects").
+    const m = text.match(NEG_HEAD_RE);
+    if (!m || m.index === undefined) return [claim];
+    const tail = text.slice(m.index + m[0].length).trim();
+    if (!tail) return [claim];
+    const parts = tail.split(LIST_SPLIT_RE)
+      .map((s) => s.replace(/[.;:]+$/, "").trim())
+      .filter((s) => s.length >= 2);
+    if (parts.length < 2) return [claim];
+    return parts.map((p, i) => ({
+      text: `${m[0]} ${p}`,
+      direction: claim.direction ?? "negative",
+      field: pickFieldFromTokens(p, opts.fieldTokenMap) ?? claim.field,
+    }));
+  } catch { return [claim]; }
+}
+
+// ── Class (b) — free-prose sentence extractor ─────────────────────────
+//
+// Given a blob of prose (e.g. `inconsistency_flags[i].description`),
+// emit one Claim per sentence. Direction is inferred per-sentence
+// from its own negation head. Fields are attributed via
+// `fieldTokenMap` when possible; otherwise undefined (SKIPPED by
+// matcher — v2 semantics preserved so unsupported extraction never
+// downgrades supported prose).
+//
+// Callers walking report subtrees must skip `ANCHOR_SKIP_KEYS` so
+// structured citation anchors are not misread as prose claims.
+
+const SENTENCE_SPLIT_RE = /(?<=[.!?])\s+(?=[A-Z"“(])/;
+
+export function extractProseClaims(
+  prose: string,
+  opts: ExtractOptions = {},
+): Array<Claim & { surfacePath?: string }> {
+  try {
+    if (typeof prose !== "string") return [];
+    const t = prose.trim();
+    if (!t) return [];
+    const sentences = t.split(SENTENCE_SPLIT_RE)
+      .map((s) => s.trim())
+      .filter((s) => s.length >= 8);
+    if (sentences.length === 0) return [];
+    return sentences.map((s, i) => ({
+      text: s,
+      direction: directionOf(s),
+      field: pickFieldFromTokens(s, opts.fieldTokenMap),
+      surfacePath: opts.surfacePath
+        ? `${opts.surfacePath}.sentence[${i}]`
+        : undefined,
+    }));
+  } catch { return []; }
+}
+
+// ── Class (c) — comparative-framework extractor ───────────────────────
+//
+// Cyber wave-17 evidence: narrative asserts the entity's controls
+// "exceed the NIST baseline" or "surpass ISO 27001 requirements"
+// with no ledger basis. We synthesise a positive Claim bound to a
+// caller-supplied `profileField` (typically `profile.framework`) so
+// the standard matcher can contradict / SKIP as appropriate.
+//
+// Recognised comparators (case-insensitive):
+//   exceeds / exceed / exceeding
+//   surpasses / surpass / surpassing
+//   meets or exceeds
+//   goes beyond / beyond
+//   above (the) … baseline / standard / benchmark
+//
+// Recognised framework tokens: NIST (CSF), ISO 27001, SOC 2, HITRUST,
+// PCI (DSS). Match is case-insensitive and permissive on spacing.
+
+const COMPARATIVE_RE =
+  /\b(exceeds?|exceeding|surpass(?:es|ing)?|meets? or exceeds?|goes? beyond|beyond|above)\b[^.?!]{0,80}?\b(NIST(?:\s+CSF)?|ISO\s*27001|SOC\s*2|HITRUST|PCI(?:\s+DSS)?)\b/i;
+
+export interface ComparativeExtractOptions extends ExtractOptions {
+  /** Ledger field to bind synthesised claims to (e.g.
+   *  "profile.framework"). Required for the matcher to act; when
+   *  omitted, claims are still emitted but will SKIP per v2 rules. */
+  profileField?: string;
+}
+
+export function extractComparativeClaims(
+  text: string,
+  opts: ComparativeExtractOptions = {},
+): Array<Claim & { surfacePath?: string }> {
+  try {
+    if (typeof text !== "string" || !text.trim()) return [];
+    const out: Array<Claim & { surfacePath?: string }> = [];
+    // Scan every sentence so multiple assertions in one blob are
+    // all surfaced.
+    const sentences = text.split(SENTENCE_SPLIT_RE);
+    sentences.forEach((s, i) => {
+      const trimmed = s.trim();
+      if (!trimmed) return;
+      const m = trimmed.match(COMPARATIVE_RE);
+      if (!m) return;
+      out.push({
+        text: trimmed,
+        direction: "positive",
+        field: opts.profileField,
+        surfacePath: opts.surfacePath
+          ? `${opts.surfacePath}.comparative[${i}]`
+          : undefined,
+      });
+    });
+    return out;
+  } catch { return []; }
+}
+
