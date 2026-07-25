@@ -9,7 +9,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // claim classes (sensitive-location contradiction, worker/free-tier positive
 // projections). Runs after W6/W9/W10 retro-audits, before the w15 risk_va
 // L1 citation stamp so citations attach to final claim text. Fail-open.
-export const BUILD_STAMP = "w16-risk-flfix@2026-07-25T00:58:48Z";
+export const BUILD_STAMP = "w16-risk-collapsecov@2026-07-25T01:15:49Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
@@ -2366,6 +2366,9 @@ async function runPipeline(assessment_id: string) {
         va_stamps_unresolved: 0,
         va_subsection_collapse_flagged: 0,
         va_information_needed_added: 0,
+        va_prose_collapse_rewritten: 0,
+        va_prose_doubled_deduped: 0,
+        va_statutory_basis_flagged: 0,
         buckets_scanned: 0,
       };
       const stampEntry = (it: any): boolean => {
@@ -2380,18 +2383,12 @@ async function runPipeline(assessment_id: string) {
             vaMetrics.va_stamps_applied++;
             stamped = true;
           } else {
-            // Emit-time whitelist gate: covered surface, unresolved key ⇒
-            // empty citation + information_needed marker; never fabricate.
             it.citation = "";
             it.information_needed = true;
             vaMetrics.va_stamps_unresolved++;
             vaMetrics.va_information_needed_added++;
           }
         }
-        // § 7150(b) subsection-collapse guard: any trigger surface whose
-        // citation is a bare "§ 7150(b)" (or a duplicated "§ 7150(b) … §
-        // 7150(b)" fragment) with no predicate pinpoint is flagged as
-        // information_needed rather than emitted as an undifferentiated repeat.
         const cit = typeof it.citation === "string" ? it.citation : "";
         if (cit && !stamped) {
           const hasPredicate = /\(b\)\s*\(\s*\d/.test(cit);
@@ -2416,6 +2413,59 @@ async function runPipeline(assessment_id: string) {
         vaMetrics.buckets_scanned++;
         for (const it of arr) stampEntry(it);
       };
+
+      // W16 RISK-COLLAPSE-COVERAGE — prose-surface deterministic pass.
+      // Doubled bare "§ 7150(b) … § 7150(b)" repeats within one sentence
+      // (no intervening pinpoint) collapse to a single reference. Bare
+      // "§ 7150(b)" with no (b)(N) pinpoint is PERMITTED only when the same
+      // sentence carries a textual trigger description (W6-RISK-FIX(3)
+      // permitted form). Otherwise the token is rewritten to the plain-
+      // English element name "the § 7150(b) trigger analysis" (CPPA-HF2 B).
+      // Where the sentence asserts a specific trigger without a pinpoint,
+      // additionally route an information_needed entry naming the under-
+      // specified trigger. Pinpointed cites are untouched. Never fabricate.
+      const TRIGGER_KW = /\b(sell|shar(?:e|ing)|target(?:ed|ing)?\s+ad|sensitive|profil|admt|automated\s+decision|train(?:ing)?|biometric|infer|systematic\s+observation|location|worker|student|applicant|monitor)/i;
+      const DOUBLED_BARE = /(§\s*7150\(b\)(?!\s*\(\s*\d))([^§]{1,60}?)(§\s*7150\(b\)(?!\s*\(\s*\d))/g;
+      const BARE_B_TOKEN = /§\s*7150\(b\)(?!\s*\(\s*\d)/g;
+      const PINPOINT_ANY = /§\s*7150\(b\)\s*\(\s*\d/;
+      const infoNeededAdds: any[] = [];
+      const rewriteProse = (s: any, fieldAnchor: string): any => {
+        if (typeof s !== "string" || !s) return s;
+        let out = s;
+        let prev = "";
+        while (prev !== out) {
+          prev = out;
+          out = out.replace(DOUBLED_BARE, (_m, a, mid, _b) => {
+            vaMetrics.va_prose_doubled_deduped++;
+            return `${a}${mid}`;
+          });
+        }
+        out = out.replace(/[^.!?]+[.!?]?/g, (sent) => {
+          BARE_B_TOKEN.lastIndex = 0;
+          if (!BARE_B_TOKEN.test(sent)) return sent;
+          BARE_B_TOKEN.lastIndex = 0;
+          const hasTrigger = TRIGGER_KW.test(sent);
+          const hasPinpoint = PINPOINT_ANY.test(sent);
+          if (hasTrigger && !hasPinpoint) {
+            const kw = sent.match(TRIGGER_KW)?.[0] ?? "the § 7150(b) trigger";
+            infoNeededAdds.push({
+              field: fieldAnchor,
+              dimensions: `the specific § 7150(b) subsection (§ 7150(b)(1)–(6)) that applies to the "${kw}" trigger asserted in prose without a pinpoint`,
+              provision: "11 CCR § 7150(b)",
+              enables: "scope_and_triggers pinpoint identification",
+              source_fields: [fieldAnchor],
+            });
+            vaMetrics.va_information_needed_added++;
+          }
+          if (hasTrigger) return sent; // permitted W6-RISK-FIX(3) form
+          return sent.replace(BARE_B_TOKEN, () => {
+            vaMetrics.va_prose_collapse_rewritten++;
+            return "the § 7150(b) trigger analysis";
+          });
+        });
+        return out;
+      };
+
       const r: any = report_data;
       walkBucket(r.information_needed);
       walkBucket(r.strengthen_items);
@@ -2425,9 +2475,49 @@ async function runPipeline(assessment_id: string) {
       if (r.risk_register && typeof r.risk_register === "object") {
         walkBucket(r.risk_register.entries);
       }
-      // scope_analysis / trigger surface (single object).
-      const sa: any = r.scope_analysis ?? r.trigger_analysis;
-      if (sa && typeof sa === "object") stampEntry(sa);
+      // W16 KEY-MISMATCH FIX: schema key is `scope_and_triggers`; keep
+      // aliases for defensive coverage of legacy shapes.
+      const sat: any = r.scope_and_triggers ?? r.scope_analysis ?? r.trigger_analysis;
+      if (sat && typeof sat === "object") {
+        stampEntry(sat);
+        if (Array.isArray(sat.triggered_activities_detail)) {
+          vaMetrics.buckets_scanned++;
+          for (const activity of sat.triggered_activities_detail) {
+            if (!activity || typeof activity !== "object") continue;
+            stampEntry(activity);
+            // statutory_basis on activity: apply W15 bare/doubled collapse
+            // semantics — blank + information_needed on bare/doubled forms.
+            const sb = typeof activity.statutory_basis === "string" ? activity.statutory_basis : "";
+            if (sb) {
+              const hasPin = /\(b\)\s*\(\s*\d/.test(sb);
+              const bare = /(?:11\s*CCR\s*)?§\s*7150\(b\)/i;
+              const doubled = /§\s*7150\(b\)[^§]{0,60}§\s*7150\(b\)/i;
+              if (doubled.test(sb) || (bare.test(sb) && !hasPin)) {
+                activity.statutory_basis = "";
+                activity.information_needed = true;
+                vaMetrics.va_statutory_basis_flagged++;
+                vaMetrics.va_information_needed_added++;
+              }
+            }
+            if (typeof activity.assessment_required_rationale === "string") {
+              activity.assessment_required_rationale = rewriteProse(
+                activity.assessment_required_rationale,
+                "scope_and_triggers.triggered_activities_detail[].assessment_required_rationale",
+              );
+            }
+          }
+        }
+        if (typeof sat.scope_notes === "string") {
+          sat.scope_notes = rewriteProse(sat.scope_notes, "scope_and_triggers.scope_notes");
+        }
+      }
+
+      // Fold prose-detected info_needed adds into the report bucket.
+      if (infoNeededAdds.length > 0) {
+        const existing = Array.isArray(r.information_needed) ? r.information_needed : [];
+        r.information_needed = [...existing, ...infoNeededAdds];
+      }
+
       // Persist telemetry under _meta.internal (C1-strip compatible).
       const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
       const internal = (meta.internal = meta.internal && typeof meta.internal === "object" ? meta.internal : {});
@@ -2437,8 +2527,9 @@ async function runPipeline(assessment_id: string) {
         build_stamp: BUILD_STAMP, ...vaMetrics,
       }));
     } catch (e) {
-      console.warn("[RISK] W15 RISK-REGISTRY-WIRING failed (non-fatal):", (e as Error)?.message);
+      console.warn("[RISK] W15/W16 RISK-REGISTRY-WIRING failed (non-fatal):", (e as Error)?.message);
     }
+
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
