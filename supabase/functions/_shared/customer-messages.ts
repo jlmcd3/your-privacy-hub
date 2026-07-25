@@ -303,9 +303,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   cause: "suspected cause of the incident",
   dataTypes: "types of personal data involved",
   affectedCount: "number of affected data subjects",
-  jurisdictions: "affected jurisdictions",
   processorInvolved: "processor involvement",
-  processorName: "processor name",
+  contained: "containment status",
   contained: "containment status",
   organisationType: "organization type",
 });
