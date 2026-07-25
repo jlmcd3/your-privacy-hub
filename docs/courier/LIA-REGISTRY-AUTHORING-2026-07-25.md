@@ -89,33 +89,39 @@ deploy turn (write-around targets — DO NOT paraphrase, narrow-but-solid rule):
 - Balancing conclusion prose: pass, fail, conditional — structural, not
   quotable; write-around only.
 
-## 5. Pin-test output (pasted green)
+## 5. LIVE-corpus pin-test output (pasted green)
+
+Test source: `supabase/functions/_tests/lia-registry.test.ts`. Loads env from
+`.env` via `std/dotenv/load`, reads `VITE_SUPABASE_URL` +
+`VITE_SUPABASE_PUBLISHABLE_KEY`, and fetches the required rows from LIVE
+PostgREST in two calls — no snapshots, no fixtures. Multi-body handling: the
+EDPB `section_heading = "2.4 Necessity"` row set contains multiple paragraphs
+sharing the heading, so the test stores candidate bodies per key/section and
+passes if ANY body contains the registry's `verbatim_quote`.
 
 Command:
 
 ```
-cd supabase/functions && deno test --allow-all _tests/lia-registry.test.ts
+cd supabase/functions && deno test --allow-all --no-check _tests/lia-registry.test.ts
 ```
 
-Result:
+Result (2026-07-25T12:45:43Z):
 
 ```
 running 5 tests from ./_tests/lia-registry.test.ts
 lia-registry: version tag is w1 ... ok (0ms)
-lia-registry: no paraphrase on entry ... ok (0ms)
-lia-registry: every row is byte-exact substring of its approved corpus source ... ok (0ms)
-lia-registry: every row has non-empty required fields ... ok (0ms)
-lia-registry: registry keys match proposition_key on each row ... ok (2ms)
+lia-registry: no paraphrase on entry (KNOWN_PARAPHRASED_KEYS empty) ... ok (0ms)
+lia-registry: unanchorable list is non-empty (write-around targets registered) ... ok (0ms)
+lia-registry: every row is a byte-exact substring of its LIVE approved-corpus source ... ok (500ms)
+lia-registry: registry keys match proposition_key on each row and required fields are non-empty ... ok (0ms)
 
-ok | 5 passed | 0 failed (11ms)
+ok | 5 passed | 0 failed (532ms)
 ```
 
-The substring test iterates every row in `LIA_VERIFIED_AUTHORITIES`, looks up
-its corpus source excerpt in `SOURCE_FOR`, and asserts
-`src.includes(row.verbatim_quote)`. Corpus snapshots in the test are pasted
-verbatim from `provision_texts.verbatim_excerpt` and
-`edpb_guidelines.excerpt_text` read at 2026-07-25T12:37Z — no re-flow, no
-whitespace edits, no character substitutions.
+All 16 verbatim_quotes verified byte-exact against LIVE approved corpus at
+test time. Belt-and-braces: a pre-authoring `psql` bulk pull → python
+substring check also returned 16/16 OK against the same underlying rows.
+
 
 ## 6. Five-lens self-review
 
