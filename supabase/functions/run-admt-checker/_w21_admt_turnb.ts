@@ -67,7 +67,7 @@ import {
   resolveByPropositionKey,
 } from "../_shared/verified-authority-resolver.ts";
 
-export const W21_ADMT_TURNB_STAMP = "w21-admt-turnb@PLACEHOLDER_STAMP";
+export const W21_ADMT_TURNB_STAMP = "w21-admt-turnb@2026-07-25T12:20:33Z";
 
 // Fallback / neutral phrasing.
 const FALLBACK = "the applicable ADMT-subchapter provision";
