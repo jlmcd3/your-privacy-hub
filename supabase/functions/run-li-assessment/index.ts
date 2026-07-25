@@ -3,7 +3,8 @@ import { attachDeterministicChecks, extractProseFromReport } from '../_shared/ad
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
-export const BUILD_STAMP = "c1-d-engagement-map-v1@2026-07-23T23:55:00Z";
+// LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
+export const BUILD_STAMP = "lia-registry-wiring@2026-07-25T12:59:37Z";
 console.log(`[run-li-assessment] boot ${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
@@ -1546,7 +1547,7 @@ Return JSON:
     await liaHeartbeat(supabase, assessment_id, "assemble");
 
     // ── ASSEMBLE FINAL REPORT ──
-    const reportData: any = {
+    let reportData: any = {
       generated_at: new Date().toISOString(),
       assessment_id,
       classification,
@@ -1566,6 +1567,7 @@ Return JSON:
       disclaimer: "This report helps your organisation identify areas for further review. It does not constitute legal advice. Confirm the specific facts in the record (purpose, necessity, and balancing evidence) before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions; further clarification is advisable.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
       _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2.1-rcb"), chunked_generation: true },
+      build_stamp: BUILD_STAMP,
     };
 
     const liaIntakeObject: Record<string, unknown> = {
@@ -1620,6 +1622,46 @@ Return JSON:
     } catch (e) {
       console.warn("[run-li-assessment] engagement_map build skipped:", (e as Error)?.message);
     }
+
+    // ── LIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ──────
+    // Registry-first citation stamping + write-around for unanchorable
+    // propositions. Telemetry writes to `_meta.internal.lia_w1_wire`.
+    try {
+      const { applyW1LiaWire } = await import("./_w1_lia_wire.ts");
+      applyW1LiaWire(reportData);
+    } catch (e) {
+      console.warn("[run-li-assessment] LIA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
+    // Runs AFTER all content-shaping passes and BEFORE the P2 serializer so
+    // gate telemetry rides `_meta.internal`. Fail-visible; never blocks.
+    try {
+      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      runEmitGate(reportData as any, {
+        tool: "li_assessment",
+        intakeRoster: liaIntakeObject,
+      });
+    } catch (e) {
+      console.warn("[run-li-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
+    // Whitelist top-level keys; internal telemetry survives via
+    // `_meta.internal` reduction inside the serializer (stamp-echo key
+    // `_meta.internal.lia_w1_wire` — dispatch §3). On crash, we keep the
+    // pre-serialized reportData (previous behaviour).
+    try {
+      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+      const { LIA_REPORT_SCHEMA } = await import("../_shared/report-schemas/li-assessment.ts");
+      const { report: serialized, telemetry } = serializeCustomerReport(reportData as any, LIA_REPORT_SCHEMA);
+      if (!telemetry.crashed && serialized && typeof serialized === "object") {
+        reportData = serialized as any;
+      }
+    } catch (e) {
+      console.warn("[run-li-assessment] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
       report_data: reportData,
