@@ -377,10 +377,6 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 
 
-
-
-
-
 ## 6. Carry-Forward Registers
 
 - **Sample-Report Register** — see §5.
