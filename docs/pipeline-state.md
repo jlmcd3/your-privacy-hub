@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T18:31:10Z — W24-ADMT-ATTRIBUTION-FIX deployed (item 76; BUILD_STAMP `w24-admt-attr@2026-07-25T18:28:00Z`; T-Aa bracketed ALL-CAPS advisory scrub, T-Ab information-needed prose scrub, T-B unresolved template-variable guard on customer prose; attribution verdict: W23-turnA T3 detector too narrow + downstream fallback-phrase splice into narrative bodies)
+**Last updated:** 2026-07-25T18:41:51Z — W24-ADMT-RESOLVER-AUDIT deployed (item 77; BUILD_STAMP `w24-admt-audit@2026-07-25T18:39:43Z`; Class A resolver key-selection audit drops resolved stamp on same-section subdivision mismatch; Class B rubric_unsupported_business_claim scrub rewrites assertive negative business-fact sentences to attributed hedge unless intake supports ≥50% of content topics; Class C rubric_actionability audit appends pinpoint reference from _va_stamp and prepends "Confirm and document …" cue on pure-deferral action entries; h6 governing anchor + h7 blanket range remain QUEUED per dispatch)
 
 ---
 
