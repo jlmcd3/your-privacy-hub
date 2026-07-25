@@ -18,9 +18,9 @@ import {
 } from "./_w18_risk_vocab.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W18 BUILD_STAMP is w18-risk-vocabscrub@", () => {
+Deno.test("W18 BUILD_STAMP is w18-risk-vocabscrub@ (or w19 successor)", () => {
   assert(
-    BUILD_STAMP.startsWith("w18-risk-vocabscrub@"),
+    BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@"),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
