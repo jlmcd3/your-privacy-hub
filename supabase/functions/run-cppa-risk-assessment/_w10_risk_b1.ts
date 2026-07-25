@@ -288,16 +288,55 @@ function intakeAssertsProfiling(intakeFlat: Record<string, string>): boolean {
   return /^yes\b/.test(n);
 }
 
+function ledgerSupportsSentence(
+  sentence: string,
+  ledger: readonly FactRow[],
+): boolean {
+  try {
+    if (!ledger || ledger.length === 0) return false;
+    const nSent = normalise(sentence);
+    if (!nSent) return false;
+    // 1) Explicit intake field IDs named in the sentence — any non-silent
+    //    ledger row for such a field is a supporting entry.
+    const fieldIds = Array.from(new Set(
+      Array.from(sentence.matchAll(FIELD_ID_RE), (m) => m[1]),
+    ));
+    for (const f of fieldIds) {
+      const row = ledger.find((r) => r.key === f);
+      if (row && row.polarity !== "silent") return true;
+    }
+    // 2) Verbatim substring — any non-silent scalar ledger row whose
+    //    normalized value is contained in the sentence is a supporting
+    //    entry (covers the i6_vendors "AWS/Stripe/SendGrid" type case).
+    for (const r of ledger) {
+      if (r.polarity === "silent") continue;
+      if (r.value && typeof r.value === "object") continue;
+      const nV = normalise(r.verbatim || "");
+      if (nV.length >= 8 && nSent.includes(nV)) return true;
+    }
+    return false;
+  } catch { return false; }
+}
+
 function guardProfilingDenials(
   text: string,
   intakeFlat: Record<string, string>,
   counters: W10RiskB1Counters,
+  ledger: readonly FactRow[],
 ): string {
   if (typeof text !== "string" || text.length === 0) return text;
   if (!intakeAssertsProfiling(intakeFlat)) return text;
   return text.replace(PROFILING_DENIAL_RE, (m, sentence: string) => {
     counters.profiling_denials_scanned += 1;
     const trailing = m.slice(sentence.length);
+    // W19 TURN B — LEDGER CONSULT BEFORE EMIT.
+    // If the fact-ledger has any supporting entry for the fact being
+    // reconciled, this guard is a strict no-op: no template emitted,
+    // no reconciliation telemetry event.
+    if (ledgerSupportsSentence(sentence, ledger)) {
+      counters.d2b1_reconciliation_suppressed_by_ledger += 1;
+      return m;
+    }
     counters.profiling_denials_downgraded += 1;
     // LEAK-PREV-P0: reconciliation sentence rendered through the catalog
     // (humanized field label; no raw intake IDs in customer output).
@@ -312,12 +351,13 @@ function guardDenialsDeep(
   node: unknown,
   intakeFlat: Record<string, string>,
   counters: W10RiskB1Counters,
+  ledger: readonly FactRow[],
 ): unknown {
-  if (typeof node === "string") return guardProfilingDenials(node, intakeFlat, counters);
-  if (Array.isArray(node)) return node.map((v) => guardDenialsDeep(v, intakeFlat, counters));
+  if (typeof node === "string") return guardProfilingDenials(node, intakeFlat, counters, ledger);
+  if (Array.isArray(node)) return node.map((v) => guardDenialsDeep(v, intakeFlat, counters, ledger));
   if (node && typeof node === "object") {
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(node)) out[k] = guardDenialsDeep(v, intakeFlat, counters);
+    for (const [k, v] of Object.entries(node)) out[k] = guardDenialsDeep(v, intakeFlat, counters, ledger);
     return out;
   }
   return node;
