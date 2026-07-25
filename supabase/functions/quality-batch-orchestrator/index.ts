@@ -692,6 +692,7 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   const attribution = sentinel ? ` (attribution=${sentinel})` : "";
   await log(row.id, `Pinned rerun batch created: tool=${tool}, pins=${pins.length}${attribution}`);
+  await dcCreateBatchContract(CONTRACT_DEPS, row.id, { origin: "pinnedRerun", tool, pins: pins.length, sentinel });
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
   return { ok: true, runId: row.id, pins: pins.length };
