@@ -74,6 +74,32 @@ async function terminate(admin: any, id: string, state: string, note?: string) {
     .eq("id", id).is("terminal_state", null);
 }
 
+// DS-T2b: when a harness contract stalls out on a quality_batch_runs subject,
+// also reconcile the batch row itself the way the manual wave-10/13 recoveries
+// did — status=cancelled, phase=done, last_error set, completed_at set. Only
+// touches rows that are still non-terminal. Fail-open; contract termination
+// stands regardless.
+export async function reconcileQualityBatchRun(
+  admin: any, subjectId: string, note: string,
+): Promise<{ reconciled: boolean; reason?: string }> {
+  try {
+    const { data, error } = await admin.from("quality_batch_runs")
+      .update({
+        status: "cancelled",
+        phase: "done",
+        last_error: `[delivery-sentinel] ${note}`.slice(0, 500),
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", subjectId)
+      .not("status", "in", "(complete,failed,cancelled)")
+      .select("id");
+    if (error) return { reconciled: false, reason: error.message };
+    return { reconciled: (data?.length ?? 0) > 0 };
+  } catch (e) {
+    return { reconciled: false, reason: (e as Error).message };
+  }
+}
+
 async function enqueuePdfFallback(admin: any, row: ContractRow) {
   // Idempotent: skip if a pending/rendering row already exists for this subject.
   const { data: existing } = await admin
