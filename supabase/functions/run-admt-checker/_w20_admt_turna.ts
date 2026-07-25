@@ -96,8 +96,8 @@ export function rewriteKeylessFallbackOnEntry(entry: any): {
     if (k === "citation" || k === "proposition_key") continue;
     const v = entry[k];
     if (typeof v !== "string" || v.length === 0) continue;
-    if (!FALLBACK_INLINE.test(v)) continue;
-    const next = v.replace(FALLBACK_INLINE, NEUTRAL_PROSE);
+    if (v.indexOf(FALLBACK) === -1) continue;
+    const next = v.split(FALLBACK).join(NEUTRAL_PROSE);
     if (next !== v) { entry[k] = next; diag.prose_rewrites++; }
   }
   return diag;
