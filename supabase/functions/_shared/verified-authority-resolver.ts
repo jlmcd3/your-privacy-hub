@@ -175,3 +175,53 @@ export function rowsForCitation(
 export function registrySize(reg: VerifiedAuthorityRegistry): number {
   return Object.keys(reg).length;
 }
+
+// ---------------------------------------------------------------------------
+// Reverse lookup: citation string → row (deterministic)
+// ---------------------------------------------------------------------------
+//
+// ADMT-W16-FIX (2026-07-25) — Wave 15 recorded uncovered pinpoints
+// (11 CCR § 7150(b)(3), § 7155(a)(1)) even though the registry carries rows
+// with `subsection` equal to those strings. Diagnosis: the L1 stamp pass
+// resolves ONLY by `proposition_key` — an entry citing a covered pinpoint
+// without a key never resolves and falls to the neutral fallback path.
+//
+// This helper is the deterministic reverse lookup used ONLY when a
+// proposition_key is absent or unresolved. Contract:
+//   - Match strictly on `row.subsection` (normalized) equality.
+//   - Ambiguity (>1 registry row with the same subsection string) → null.
+//     We never guess between rows.
+//   - No proposition_key implied — the caller stamps citation +
+//     verbatim_quote from the matched row exactly as the key path does.
+//
+// Normalization is intentionally conservative: whitespace collapse plus
+// smart-quote / dash normalization. We DO NOT strip parenthetical chains
+// (subsection depth is meaningful — "§ 7150" and "§ 7150(b)(3)" are
+// different rows) and we DO NOT prefix "11 CCR " — every registry
+// `subsection` field already carries the "11 CCR " prefix for CCR rows.
+export function normalizeCitationString(s: string): string {
+  return String(s)
+    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-") // NB: caller decides whether to compare;
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function resolveByCitationString(
+  reg: VerifiedAuthorityRegistry,
+  citation: string,
+): VerifiedAuthorityRow | null {
+  if (typeof citation !== "string") return null;
+  const needle = normalizeCitationString(citation);
+  if (!needle) return null;
+  const matches: VerifiedAuthorityRow[] = [];
+  for (const row of Object.values(reg)) {
+    if (normalizeCitationString(row.subsection) === needle) matches.push(row);
+  }
+  // Ambiguous → never guess.
+  if (matches.length !== 1) return null;
+  return matches[0];
+}
+

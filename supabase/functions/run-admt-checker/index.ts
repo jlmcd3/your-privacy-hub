@@ -47,6 +47,8 @@ import {
 } from "../_shared/registry/admt-verified-authorities.ts";
 import {
   resolveByPropositionKey,
+  resolveByCitationString,
+  normalizeCitationString,
   registrySize as vaRegistrySize,
 } from "../_shared/verified-authority-resolver.ts";
 // R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
@@ -1965,6 +1967,10 @@ Return this JSON structure exactly:
       va_rows: vaRegistrySize(ADMT_VERIFIED_AUTHORITIES),
       va_stamps_applied: 0,
       va_stamps_unresolved: 0,
+      // ADMT-W16-FIX (2026-07-25) — reverse-lookup telemetry.
+      va_reverse_stamps_applied: 0,
+      va_reverse_ambiguous: 0,
+      va_reverse_uncovered: 0,
       top3_padded: 0,
       top3_final_len: 0,
       // W9-ADMT-WIRE-P1 telemetry
@@ -1978,14 +1984,56 @@ Return this JSON structure exactly:
         for (const it of arr) {
           if (!it || typeof it !== "object") continue;
           const pk = typeof it.proposition_key === "string" ? it.proposition_key : "";
-          if (!pk) continue;
-          const row = resolveByPropositionKey(ADMT_VERIFIED_AUTHORITIES, pk);
+          let row = pk ? resolveByPropositionKey(ADMT_VERIFIED_AUTHORITIES, pk) : null;
           if (row) {
             it.citation = row.subsection;
             it._va_stamp = { proposition_key: pk, subsection: row.subsection, depth_class: row.depth_class, verbatim_quote: row.verbatim_quote, verified_on: row.verified_on };
             w9Metrics.va_stamps_applied++;
-          } else {
+            continue;
+          }
+          // ADMT-W16-FIX — reverse citation→row lookup. Deterministic,
+          // used ONLY when proposition_key is absent OR unresolved and the
+          // entry ALREADY carries a citation string the model authored.
+          // Ambiguous or unmatched → treat as unresolved; never guess.
+          const citStr = typeof it.citation === "string" ? it.citation : "";
+          if (citStr) {
+            let revRow: ReturnType<typeof resolveByCitationString> = null;
+            try { revRow = resolveByCitationString(ADMT_VERIFIED_AUTHORITIES, citStr); }
+            catch (_) { revRow = null; }
+            if (revRow) {
+              it.citation = revRow.subsection;
+              it._va_stamp = {
+                proposition_key: revRow.proposition_key,
+                subsection: revRow.subsection,
+                depth_class: revRow.depth_class,
+                verbatim_quote: revRow.verbatim_quote,
+                verified_on: revRow.verified_on,
+                resolved_via: "citation_reverse_lookup",
+              };
+              w9Metrics.va_reverse_stamps_applied++;
+              continue;
+            }
+            // Ambiguous or unmatched → uncovered. Never fabricate.
+            let ambiguous = false;
+            try {
+              const needle = normalizeCitationString(citStr);
+              let hits = 0;
+              for (const r of Object.values(ADMT_VERIFIED_AUTHORITIES)) {
+                if (normalizeCitationString(r.subsection) === needle) hits++;
+              }
+              ambiguous = hits > 1;
+            } catch (_) { ambiguous = false; }
+            if (ambiguous) w9Metrics.va_reverse_ambiguous++;
+            else w9Metrics.va_reverse_uncovered++;
+          }
+          if (pk) {
             it._va_stamp_unresolved = { proposition_key: pk };
+            w9Metrics.va_stamps_unresolved++;
+          } else if (citStr) {
+            // ADMT-W16-FIX — no key AND no reverse match: route to information_needed.
+            it._va_stamp_unresolved = { proposition_key: "", citation_authored: citStr };
+            it.citation = "";
+            it.information_needed = true;
             w9Metrics.va_stamps_unresolved++;
           }
         }
