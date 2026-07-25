@@ -50,7 +50,7 @@
 //     `_w24_audit_ran = true`).
 // ─────────────────────────────────────────────────────────────────────────
 
-export const W24_ADMT_AUDIT_STAMP = "w24-admt-audit@__STAMP__";
+export const W24_ADMT_AUDIT_STAMP = "w24-admt-audit@2026-07-25T18:39:43Z";
 
 // ── Buckets we walk (customer-facing surface) ─────────────────────────
 const CUSTOMER_BUCKETS = [
