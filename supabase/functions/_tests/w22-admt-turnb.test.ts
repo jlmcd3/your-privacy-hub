@@ -186,7 +186,7 @@ Deno.test("Serializer preservation: _meta.internal.admt_w22b survives report-ser
   );
   const report: any = { notice_gaps: [] };
   applyW22AdmtTurnB(report, {});
-  const out = serializeCustomerReport(report, ADMT_REPORT_SCHEMA);
+  const { report: out } = serializeCustomerReport(report, ADMT_REPORT_SCHEMA);
   assertEquals(
     (out as any)?._meta?.internal?.admt_w22b?.version,
     W22_ADMT_TURNB_STAMP,
