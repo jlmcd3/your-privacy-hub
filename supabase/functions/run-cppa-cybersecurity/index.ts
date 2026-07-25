@@ -12,7 +12,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // registry (cyber-va-w1) wired at emit time; deterministic post-generation
 // stamping of citation_bearing surfaces from proposition_key; § 7122(g)
 // retention re-anchor guard supersedes § 7123(e) mis-anchor (wave-15 HIGH).
-export const BUILD_STAMP = "p012-cyber@2026-07-25T05:50:24Z";
+export const BUILD_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 3/3 (CYBER).
 // Blocks wave-14/15 unsupported-positive, contradiction, and

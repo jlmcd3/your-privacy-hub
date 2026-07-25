@@ -47,7 +47,7 @@ import {
   CYBER_VERIFIED_AUTHORITY_VERSION as _CYBER_VA_VERSION,
 } from "../_shared/registry/cyber-verified-authorities.ts";
 
-export const W21_CYBER_TURNC_STAMP = "__W21_CYBER_TURNC_STAMP__";
+export const W21_CYBER_TURNC_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 
 // ── Anchor keys never mutated by this pass ─────────────────────────────
 const ANCHOR_KEYS: ReadonlySet<string> = new Set<string>([
