@@ -2210,6 +2210,8 @@ async function runStitch(dpia_id: string): Promise<void> {
     try {
       const { applyW1DpiaWire } = await import("./_w1_dpia_wire.ts");
       applyW1DpiaWire(reportData);
+    } catch (e) {
+      console.warn("[run-dpia-framework] DPIA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── DPIA-T6-FIX-TURN — Class A citation audit + Class B claim scrub
