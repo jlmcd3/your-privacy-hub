@@ -56,6 +56,11 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     intake: { ...base, q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants" },
     assertions: [
       { kind: "must_include", pattern: "risk assessment|Article", flags: "i", label: "risk framing present" },
+      // T7-RISK-OPENING-PILOT (2026-07-25): deterministic opening_summary slot,
+      // built by supabase/functions/_shared/openings/risk-opening.ts and
+      // overwritten by the emit-gate hook (see run-cppa-risk-assessment/index.ts).
+      { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
+      { kind: "must_include", pattern: "As of \\d{4}-\\d{2}-\\d{2}\\.", flags: "", label: "S6 as-of date present" },
     ],
   },
   {
@@ -75,6 +80,11 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "sensitive", flags: "i", label: "SPI addressed" },
+      // T7-RISK-OPENING-PILOT: adtech fixture engages § 1798.140(d)(1)(B) (sell/share
+      // "Both" + q2_consumers "250,000–1 million") — deterministic S0 must render
+      // the (B) verbatim corpus quote fragment.
+      { kind: "must_include", pattern: "buys, sells, or shares", flags: "", label: "S0 (B) corpus quote present" },
+      { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
     ],
   },
   {
@@ -94,6 +104,10 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "100,000", flags: "i", label: "boundary threshold surfaced" },
+      // T7-RISK-OPENING-PILOT: q2_consumers "100,000–249,999" straddles from below
+      // on § 1798.140(d)(1)(B), q5_sell_share "No" — opening must NOT assert (B).
+      // Boundary-band handling stays in the body, not the opening (per spec rule 6).
+      { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
     ],
   },
 ];
