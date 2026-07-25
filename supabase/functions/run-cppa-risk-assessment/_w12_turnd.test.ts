@@ -19,7 +19,7 @@ import { applyW10RiskB1, W12_RISK_D2_STAMP } from "./_w10_risk_b1.ts";
 Deno.test("TURN D — BUILD_STAMP restamped (w15-risk-factledger/w15-risk-regwire supersedes w12-risk-turnd)", async () => {
   const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
-  assert(m && (m[1].startsWith("w15-risk-factledger@") || m[1].startsWith("w15-risk-regwire@") || m[1].startsWith("w12-risk-turnd@") || m[1].startsWith("w16-risk-flfix@") || m[1].startsWith("w16-risk-collapsecov@") || m[1].startsWith("w18-risk-collapsecov2@") || m[1].startsWith("w18-risk-vocabscrub@")), `unexpected stamp: ${m?.[1]}`);
+  assert(m && (m[1].startsWith("w15-risk-factledger@") || m[1].startsWith("w15-risk-regwire@") || m[1].startsWith("w12-risk-turnd@") || m[1].startsWith("w16-risk-flfix@") || m[1].startsWith("w16-risk-collapsecov@") || m[1].startsWith("w18-risk-collapsecov2@") || m[1].startsWith("w18-risk-vocabscrub@") || m[1].startsWith("w19-risk-turnb@")), `unexpected stamp: ${m?.[1]}`);
 });
 
 Deno.test("TURN D — D2 stamp exported", () => {
@@ -83,8 +83,10 @@ Deno.test("D2: intake asserts profiling → 'no profiling inferences are recorde
   assertEquals(counters.profiling_denials_scanned >= 1, true);
   assertEquals(counters.profiling_denials_downgraded >= 1, true);
   const es = report.executive_summary;
-  assert(es.includes("intake asserts systematic-observation profiling"), `got: ${es}`);
-  assert(es.includes("q5b_profiling_observation"), `should name the intake field`);
+  // LEAK-PREV-P0: D2 downgrades route through the customer-messages
+  // reconciliation.required template (humanized field label — no raw
+  // intake IDs in customer output).
+  assert(es.includes("does not support this statement") && es.includes("must be reconciled"), `got: ${es}`);
 });
 
 Deno.test("D2: intake DENIES profiling → denial sentence is left alone", () => {

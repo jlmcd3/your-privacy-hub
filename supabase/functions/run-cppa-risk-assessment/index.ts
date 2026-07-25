@@ -9,7 +9,12 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // claim classes (sensitive-location contradiction, worker/free-tier positive
 // projections). Runs after W6/W9/W10 retro-audits, before the w15 risk_va
 // L1 citation stamp so citations attach to final claim text. Fail-open.
-export const BUILD_STAMP = "p012-risk@2026-07-25T05:50:24Z";
+// WAVE19-FIX TURN B (2026-07-25) — D2/B1 reconciliation guard now consults
+// the fact-ledger BEFORE emitting the reconciliation.required template.
+// Suppression telemetry lands at _meta.internal.risk_b1
+// .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
+// _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
+export const BUILD_STAMP = "w19-risk-turnb@2026-07-25T08:26:51Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
@@ -2271,8 +2276,19 @@ async function runPipeline(assessment_id: string) {
       const _intakeForB1 = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const { counters: _b1c } = applyW10RiskB1(report_data as any, _intakeForB1);
       (report_data as any)._w10_risk_b1 = { stamp: W10_RISK_B1_STAMP, ...(_b1c as any) };
-      if (_b1c.flags_rekeyed + _b1c.flags_dropped + _b1c.claims_downgraded > 0) {
-        console.warn(`[RISK] W10-RISK-B1 rekey=${_b1c.flags_rekeyed} drop=${_b1c.flags_dropped} claims_downgraded=${_b1c.claims_downgraded}`);
+      // W19 TURN B — telemetry sequestered under _meta.internal.risk_b1
+      // (mirrors top-level _w10_risk_b1 which the _w<digits>_* strip
+      // already removes from customer output). The new counter
+      // `d2b1_reconciliation_suppressed_by_ledger` is the sole hook the
+      // future LEAK-PREV-P4 over-enforcement demotion loop will read.
+      try {
+        const _rd: any = report_data;
+        const _meta = (_rd._meta && typeof _rd._meta === "object") ? _rd._meta : (_rd._meta = {});
+        const _internal = (_meta.internal && typeof _meta.internal === "object") ? _meta.internal : (_meta.internal = {});
+        _internal.risk_b1 = { stamp: W10_RISK_B1_STAMP, ..._b1c };
+      } catch { /* fail-open */ }
+      if (_b1c.flags_rekeyed + _b1c.flags_dropped + _b1c.claims_downgraded + _b1c.d2b1_reconciliation_suppressed_by_ledger > 0) {
+        console.warn(`[RISK] W10-RISK-B1 rekey=${_b1c.flags_rekeyed} drop=${_b1c.flags_dropped} claims_downgraded=${_b1c.claims_downgraded} d2b1_suppressed_by_ledger=${_b1c.d2b1_reconciliation_suppressed_by_ledger}`);
       }
     } catch (e) { console.error("[RISK] W10-RISK-B1 errored (fail-open):", e); }
 

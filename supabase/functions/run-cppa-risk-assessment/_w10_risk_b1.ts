@@ -26,9 +26,22 @@ export const W10_RISK_B1_STAMP = "w10-risk-b1@2026-07-24T12:37:00Z";
 // never DENY profiling that q5b_profiling_observation asserts. Fail-open;
 // telemetry lands under _w10_risk_b1.counters.profiling_denials_*.
 export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-25T05:22:00Z";
+// WAVE19-FIX TURN B — D2/B1 reconciliation guard now consults the intake
+// fact-ledger BEFORE emitting the reconciliation.required template. When
+// the ledger has a supporting entry for the fact being reconciled the
+// guard is a strict no-op (no template, no other telemetry). Type case:
+// wave-19 doc 488b37c3 (i6_vendors AWS/Stripe/SendGrid was intake-
+// supported yet triggered the reconciliation template).
+//
+// NOTE (LEAK-PREV-P4-SELF-HEALING): the new suppression counter
+// `d2b1_reconciliation_suppressed_by_ledger` feeds future P4 over-
+// enforcement demotion logic. The P4 loop is NOT built in this turn —
+// this counter is the sole telemetry hook it will consume.
+export const W19_RISK_TURNB_STAMP = "w19-risk-turnb@2026-07-25T08:26:51Z";
 
 // LEAK-PREV-P0 — customer-message catalog for guard-authored prose.
 import { renderMessage, P } from "../_shared/customer-messages.ts";
+import { buildFactLedger, type FactRow } from "../_shared/intake/fact-ledger.ts";
 
 export interface W10RiskB1Counters {
   flags_scanned: number;
@@ -40,6 +53,10 @@ export interface W10RiskB1Counters {
   // D2 — profiling-denial guard (bidirectional).
   profiling_denials_scanned: number;
   profiling_denials_downgraded: number;
+  // W19 TURN B — ledger-suppressed reconciliation emits. Counted here so
+  // downstream P4 over-enforcement demotion can consume a single telemetry
+  // key; do NOT rename without updating the P4 charter (§2 item 33).
+  d2b1_reconciliation_suppressed_by_ledger: number;
 }
 
 const emptyCounters = (): W10RiskB1Counters => ({
@@ -51,6 +68,7 @@ const emptyCounters = (): W10RiskB1Counters => ({
   claims_removed: 0,
   profiling_denials_scanned: 0,
   profiling_denials_downgraded: 0,
+  d2b1_reconciliation_suppressed_by_ledger: 0,
 });
 
 // ---------- Intake flattening ----------
@@ -270,16 +288,55 @@ function intakeAssertsProfiling(intakeFlat: Record<string, string>): boolean {
   return /^yes\b/.test(n);
 }
 
+function ledgerSupportsSentence(
+  sentence: string,
+  ledger: readonly FactRow[],
+): boolean {
+  try {
+    if (!ledger || ledger.length === 0) return false;
+    const nSent = normalise(sentence);
+    if (!nSent) return false;
+    // 1) Explicit intake field IDs named in the sentence — any non-silent
+    //    ledger row for such a field is a supporting entry.
+    const fieldIds = Array.from(new Set(
+      Array.from(sentence.matchAll(FIELD_ID_RE), (m) => m[1]),
+    ));
+    for (const f of fieldIds) {
+      const row = ledger.find((r) => r.key === f);
+      if (row && row.polarity !== "silent") return true;
+    }
+    // 2) Verbatim substring — any non-silent scalar ledger row whose
+    //    normalized value is contained in the sentence is a supporting
+    //    entry (covers the i6_vendors "AWS/Stripe/SendGrid" type case).
+    for (const r of ledger) {
+      if (r.polarity === "silent") continue;
+      if (r.value && typeof r.value === "object") continue;
+      const nV = normalise(r.verbatim || "");
+      if (nV.length >= 8 && nSent.includes(nV)) return true;
+    }
+    return false;
+  } catch { return false; }
+}
+
 function guardProfilingDenials(
   text: string,
   intakeFlat: Record<string, string>,
   counters: W10RiskB1Counters,
+  ledger: readonly FactRow[],
 ): string {
   if (typeof text !== "string" || text.length === 0) return text;
   if (!intakeAssertsProfiling(intakeFlat)) return text;
   return text.replace(PROFILING_DENIAL_RE, (m, sentence: string) => {
     counters.profiling_denials_scanned += 1;
     const trailing = m.slice(sentence.length);
+    // W19 TURN B — LEDGER CONSULT BEFORE EMIT.
+    // If the fact-ledger has any supporting entry for the fact being
+    // reconciled, this guard is a strict no-op: no template emitted,
+    // no reconciliation telemetry event.
+    if (ledgerSupportsSentence(sentence, ledger)) {
+      counters.d2b1_reconciliation_suppressed_by_ledger += 1;
+      return m;
+    }
     counters.profiling_denials_downgraded += 1;
     // LEAK-PREV-P0: reconciliation sentence rendered through the catalog
     // (humanized field label; no raw intake IDs in customer output).
@@ -294,12 +351,13 @@ function guardDenialsDeep(
   node: unknown,
   intakeFlat: Record<string, string>,
   counters: W10RiskB1Counters,
+  ledger: readonly FactRow[],
 ): unknown {
-  if (typeof node === "string") return guardProfilingDenials(node, intakeFlat, counters);
-  if (Array.isArray(node)) return node.map((v) => guardDenialsDeep(v, intakeFlat, counters));
+  if (typeof node === "string") return guardProfilingDenials(node, intakeFlat, counters, ledger);
+  if (Array.isArray(node)) return node.map((v) => guardDenialsDeep(v, intakeFlat, counters, ledger));
   if (node && typeof node === "object") {
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(node)) out[k] = guardDenialsDeep(v, intakeFlat, counters);
+    for (const [k, v] of Object.entries(node)) out[k] = guardDenialsDeep(v, intakeFlat, counters, ledger);
     return out;
   }
   return node;
@@ -309,10 +367,16 @@ function guardDenialsDeep(
 export function applyW10RiskB1(
   report: Record<string, unknown>,
   intake: Record<string, unknown>,
+  opts?: { ledger?: readonly FactRow[] },
 ): { counters: W10RiskB1Counters } {
   const counters = emptyCounters();
   if (!report || typeof report !== "object") return { counters };
   const intakeFlat = flattenIntake(intake ?? {});
+  // W19 TURN B — ledger for the D2/B1 reconciliation guard. Callers may
+  // pass a prebuilt ledger; otherwise build one here (fail-open → []).
+  const ledger: readonly FactRow[] = opts?.ledger ?? (() => {
+    try { return buildFactLedger(intake ?? {}); } catch { return []; }
+  })();
 
   // B1a: inconsistency_flags provenance validation.
   const flagsRaw = (report as Record<string, unknown>).inconsistency_flags;
@@ -335,12 +399,13 @@ export function applyW10RiskB1(
     }
   }
 
-  // D2 — profiling-denial guard over the same narrative surfaces plus
-  // inconsistency_flags (denials sometimes surface inside a flag description).
+  // D2 — profiling-denial guard (ledger-aware). Same narrative surfaces
+  // plus inconsistency_flags (denials sometimes surface inside a flag
+  // description).
   for (const key of ["risk_register", "executive_summary", "risk_assessment_by_activity", "inconsistency_flags", "assessment_summary"] as const) {
     const v = (report as Record<string, unknown>)[key];
     if (v !== undefined) {
-      (report as Record<string, unknown>)[key] = guardDenialsDeep(v, intakeFlat, counters);
+      (report as Record<string, unknown>)[key] = guardDenialsDeep(v, intakeFlat, counters, ledger);
     }
   }
 

@@ -10,9 +10,9 @@ import {
 } from "../_shared/intake/fact-ledger.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W15-FL: BUILD_STAMP restamped (accepts w15 or w16-hotfix variants)", () => {
+Deno.test("W15-FL: BUILD_STAMP restamped (accepts w15 or later hotfix variants)", () => {
   assert(
-    /^(w15-risk-factledger|w16-risk-flfix|w16-risk-collapsecov|w18-risk-collapsecov2|w18-risk-vocabscrub)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-risk-factledger|w16-risk-flfix|w16-risk-collapsecov|w18-risk-collapsecov2|w18-risk-vocabscrub|w19-risk-turnb)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
