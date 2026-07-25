@@ -70,9 +70,8 @@ Deno.test("A3: unverified '11 CCR § 7150(b)(3)' pinpoint downgrades to section"
 });
 
 Deno.test("A3: verified pinpoint left alone (no downgrade)", () => {
-  // scope_deadline row's subsection is a registry-verified pinpoint; use its
-  // subsection string as-is and confirm no downgrade occurs.
-  const { ADMT_VERIFIED_AUTHORITIES } = await import("../_shared/registry/admt-verified-authorities.ts");
+  const row = (ADMT_VERIFIED_AUTHORITIES as any)["scope_deadline"];
+  assert(row, "scope_deadline row must exist");
   const row = (ADMT_VERIFIED_AUTHORITIES as any)["scope_deadline"];
   assert(row, "scope_deadline row must exist");
   const r = downgradeUnverifiedPinpointsInCitation(row.subsection);
