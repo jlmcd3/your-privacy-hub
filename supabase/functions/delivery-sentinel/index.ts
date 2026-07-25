@@ -20,7 +20,7 @@
 // Every action increments attempts + writes failure_class + last_error so
 // DS-T3's admin SLO surface has data.
 //
-// Build stamp: ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z
+// Build stamp: ds-t2d-sentinel@2026-07-25T15:03:25Z
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -146,6 +146,81 @@ export async function reconcileQualityBatchRun(
   }
 }
 
+// DS-T2d: "all-children-terminal" reap branch. When every child quality_run
+// for the subject batch is terminal, the parent batch heartbeat is stale
+// >5min, AND the contract stage_deadline_at is breached, reconcile the batch
+// AND the contract with an outcome that follows the children — WITHOUT
+// bumping attempts. Closes the DS-T2c gap where nothing heartbeats and the
+// overall deadline never fires (wave-18 isolate-death shape).
+const CHILD_INFLIGHT = ["pending", "building", "grading", "cross_review", "running"];
+const CHILD_BAD = ["error", "cancelled", "failed"];
+
+export async function reapAllChildrenTerminal(
+  admin: any, row: ContractRow, nowMs: number,
+): Promise<{ acted: boolean; outcome?: "complete" | "cancelled"; reason?: string; child_count?: number }> {
+  if (row.subject_table !== "quality_batch_runs") {
+    return { acted: false, reason: "not_batch_subject" };
+  }
+  try {
+    // (c) stage_deadline_at breached
+    const stageBreached = new Date(row.stage_deadline_at).getTime() < nowMs;
+    if (!stageBreached) return { acted: false, reason: "stage_not_breached" };
+    // (b) parent batch heartbeat stale > 5 min (LIVENESS_WINDOW_MS)
+    const { data: batch, error: bErr } = await admin.from("quality_batch_runs")
+      .select("last_heartbeat_at, status, phase").eq("id", row.subject_id).maybeSingle();
+    if (bErr) return { acted: false, reason: `batch_read_err:${bErr.message}` };
+    if (!batch) return { acted: false, reason: "batch_missing" };
+    const hbMs = batch.last_heartbeat_at ? new Date(batch.last_heartbeat_at).getTime() : 0;
+    if (hbMs && (nowMs - hbMs) <= LIVENESS_WINDOW_MS) {
+      return { acted: false, reason: `parent_hb_fresh:${Math.round((nowMs - hbMs) / 1000)}s` };
+    }
+    // (a) every child quality_run terminal
+    const { data: kids, error: kErr } = await admin.from("quality_runs")
+      .select("id, status").eq("batch_id", row.subject_id);
+    if (kErr) return { acted: false, reason: `kids_read_err:${kErr.message}` };
+    const list = (kids ?? []) as Array<{ id: string; status: string }>;
+    if (list.length === 0) return { acted: false, reason: "no_children" };
+    const stillRunning = list.filter((k) => CHILD_INFLIGHT.includes(k.status));
+    if (stillRunning.length > 0) {
+      return { acted: false, reason: `children_in_flight:${stillRunning.length}` };
+    }
+    const anyBad = list.some((k) => CHILD_BAD.includes(k.status));
+    const outcome: "complete" | "cancelled" = anyBad ? "cancelled" : "complete";
+    const note = `[ds-t2d-reap] all ${list.length} children terminal (bad=${anyBad}); parent hb stale; stage deadline breached`;
+
+    // Reconcile batch (only if not already terminal)
+    await admin.from("quality_batch_runs").update({
+      status: outcome,
+      phase: "done",
+      last_error: anyBad ? note.slice(0, 500) : null,
+      completed_at: new Date(nowMs).toISOString(),
+    }).eq("id", row.subject_id).not("status", "in", "(complete,failed,cancelled)");
+
+    // Terminate contract with matching terminal state — NO attempt bump.
+    const contractTerminal = anyBad ? "harness_stalled" : "harness_completed_reaped";
+    await admin.from("delivery_contracts").update({
+      terminal_state: contractTerminal,
+      heartbeat_at: new Date(nowMs).toISOString(),
+      last_error: note.slice(0, 4000),
+    }).eq("id", row.id).is("terminal_state", null);
+
+    console.log(JSON.stringify({
+      evt: "sentinel_reap_children_terminal",
+      contract_id: row.id, batch_id: row.subject_id,
+      child_count: list.length, any_bad: anyBad, outcome,
+    }));
+    return { acted: true, outcome, child_count: list.length };
+  } catch (e) {
+    console.log(JSON.stringify({
+      evt: "sentinel_reap_error",
+      contract_id: row.id, batch_id: row.subject_id, err: (e as Error).message,
+    }));
+    return { acted: false, reason: `exception:${(e as Error).message}` };
+  }
+}
+
+
+
 async function enqueuePdfFallback(admin: any, row: ContractRow) {
   // Idempotent: skip if a pending/rendering row already exists for this subject.
   const { data: existing } = await admin
@@ -265,6 +340,17 @@ async function handleHarness(admin: any, row: ContractRow) {
     }
   }
 
+  // DS-T2d: all-children-terminal reap — preempts the attempt-bumping
+  // terminate path when the batch is dead but silent (nothing to heartbeat
+  // against). Triple-gated: subject=batch, stage deadline breached, parent
+  // hb stale >5min, every child terminal. NO attempt bump on this branch.
+  if (row.subject_table === "quality_batch_runs") {
+    const reap = await reapAllChildrenTerminal(admin, row, now);
+    if (reap.acted) {
+      return { action: `reaped_children_terminal_${reap.outcome}`, child_count: reap.child_count };
+    }
+  }
+
   if (overallBreached || stageAttempts >= MAX_STAGE_ATTEMPTS) {
     const note = `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`;
     await bumpAttemptsAndFailure(admin, row, "harness_stall", note);
@@ -325,10 +411,38 @@ Deno.serve(async (req) => {
     duration_ms,
   }));
 
+  // DS-T2d SLO surface (log-only; no new tables).
+  try {
+    const { data: stateAgg } = await admin
+      .from("delivery_contracts")
+      .select("terminal_state")
+      .limit(5000);
+    const contracts_by_state: Record<string, number> = {};
+    for (const s of (stateAgg ?? []) as Array<{ terminal_state: string | null }>) {
+      const k = s.terminal_state ?? "live";
+      contracts_by_state[k] = (contracts_by_state[k] ?? 0) + 1;
+    }
+    const reaped = results.filter((r) => String((r as any).action ?? "").startsWith("reaped_children_terminal")).length;
+    const refreshed = results.filter((r) => (r as any).action === "liveness_guard_refresh").length;
+    const BUMP_ACTIONS = new Set([
+      "stage_stall_recorded", "resumed", "harness_stalled",
+      "html_fallback+pdf_queued", "admin_escalated",
+    ]);
+    const bumped = results.filter((r) => BUMP_ACTIONS.has(String((r as any).action ?? ""))).length;
+    console.log(JSON.stringify({
+      evt: "sentinel_sweep_slo",
+      contracts_by_state,
+      reaped, refreshed, bumped,
+      sweep_ms: duration_ms,
+    }));
+  } catch (e) {
+    console.log(JSON.stringify({ evt: "sentinel_slo_error", err: (e as Error).message }));
+  }
+
   return new Response(JSON.stringify({
     scanned: contracts?.length ?? 0,
     duration_ms,
     results,
-    build: "ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z",
+    build: "ds-t2d-sentinel@2026-07-25T15:03:25Z",
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 });
