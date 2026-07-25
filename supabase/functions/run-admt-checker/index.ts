@@ -2487,6 +2487,24 @@ Return this JSON structure exactly:
 
 
 
+    // ── W25-ADMT-SANITIZER-FIX (2026-07-25) ───────────────────────────
+    // Dispatch W25-ADMT-SANITIZER-FIX-2026-07-25 — ledger item 84
+    // queued candidates (a)+(b) with cross-tool whole-sentence-excision
+    // doctrine (item 84c). Runs AFTER W24-H6 and BEFORE the LEAK-PREV-P1
+    // emit gate so the gate + serializer see the sanitized surface.
+    // Supersedes W24 T-Ab partial excision and widens T-B coverage to
+    // ANY grammatical position via deep recursive walk. Fail-open.
+    try {
+      const w25 = applyW25AdmtSanitizerFix(report);
+      console.log(JSON.stringify({
+        evt: "_w25_admt_sanitizer_fix", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W25_ADMT_SANITIZER_STAMP, ...w25,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W25-ADMT-SANITIZER-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
 
 
