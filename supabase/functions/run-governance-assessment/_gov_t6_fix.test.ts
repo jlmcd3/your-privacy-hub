@@ -49,7 +49,7 @@ Deno.test("Class A: verified node (already substituted by W1) preserved", () => 
   // Use a real key from the governance registry so the audit registers it.
   const report: any = {
     section_1: {
-      proposition_key: "art_5_1_a_lawfulness",
+      proposition_key: "principle_lawfulness_fairness_transparency",
       citation: "GDPR Art. 5",
       subsection: "GDPR Art. 5(1)(a)",
       verbatim_quote: "Personal data shall be processed lawfully …",
@@ -142,7 +142,7 @@ Deno.test("Doctrine: whole-sentence excision, no splice residue", () => {
 Deno.test("Anchor keys (citation/verbatim_quote) never treated as prose", () => {
   const report: any = {
     node: {
-      proposition_key: "art_5_1_a_lawfulness",
+      proposition_key: "principle_lawfulness_fairness_transparency",
       citation_verified: true,
       citation: "GDPR Art. 5",
       subsection: "GDPR Art. 5(1)(a)",
