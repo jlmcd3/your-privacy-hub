@@ -2323,6 +2323,22 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── WAVE19-FIX TURN A (2026-07-25) — targeted A1/A2/A3/A4 sanitiser.
+    // A1: registry-first fallback resolution (per-entry re-stamp).
+    // A2: splice-debris scrub ("the enumerated the applicable ..." etc.).
+    // A3: unverified subsection downgrade (all sections, not just § 7150).
+    // A4: unsupported-timeline stripper routed to information-needed.
+    // Runs AFTER W19-JOIN2 so it operates on final citation strings.
+    try {
+      const w19a = applyW19AdmtTurnA(report, ((assessment as any)?.intake_data as Record<string, unknown>) ?? {});
+      console.log(JSON.stringify({
+        evt: "_w19_admt_turna", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w19a,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] WAVE19-FIX TURN A failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
     // Runs AFTER every content-shaping pass and IMMEDIATELY BEFORE the
     // W12-C1 metadata strip so gate telemetry rides `_meta.internal`.
