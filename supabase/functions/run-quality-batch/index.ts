@@ -2417,9 +2417,11 @@ async function runBatch(runId: string): Promise<void> {
       // so they count toward checks_total / checks_passed alongside grader
       // findings. Deterministic here means "computed in code" — no LLM.
       try {
-        const detChecks: any[] = Array.isArray((reportData as any)?.deterministic_checks)
-          ? (reportData as any).deterministic_checks
-          : [];
+        const _rdM = reportData as any;
+        const detChecks: any[] = Array.isArray(_rdM?._meta?.internal?.deterministic_checks)
+          ? _rdM._meta.internal.deterministic_checks
+          : (Array.isArray(_rdM?.deterministic_checks) ? _rdM.deterministic_checks : []);
+
         if (detChecks.length) {
           const detRows = detChecks.map((f: any) => ({
             run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
