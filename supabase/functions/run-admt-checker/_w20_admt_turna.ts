@@ -167,21 +167,9 @@ export function applyW20AdmtTurnA(report: any, _intake: any): W20TurnADiag {
   };
   if (!report || typeof report !== "object") return diag;
 
-  // B2: per-entry keyless fallback rewrite on customer buckets.
-  try {
-    for (const bucket of CUSTOMER_BUCKETS) {
-      const arr = (report as any)[bucket];
-      if (!Array.isArray(arr)) continue;
-      for (const entry of arr) {
-        if (!entry || typeof entry !== "object") continue;
-        const b2 = rewriteKeylessFallbackOnEntry(entry);
-        diag.b2_keyless_citation_rewrites += b2.citation_rewrites;
-        diag.b2_keyless_prose_rewrites += b2.prose_rewrites;
-      }
-    }
-  } catch { /* fail-open */ }
-
-  // B1 + B2-prose (generic walk on all customer-facing strings).
+  // B1 FIRST: generic walk to scrub splice variants on every customer-facing
+  // string (must precede B2 or the trailing fallback tail gets rewritten out
+  // from under B1's variant pattern).
   const visit = (node: any, inInternal: boolean) => {
     if (node == null) return;
     if (Array.isArray(node)) {
@@ -192,13 +180,6 @@ export function applyW20AdmtTurnA(report: any, _intake: any): W20TurnADiag {
           diag.strings_scanned++;
           const r = scrubSpliceVariants(v);
           if (r.hits > 0) { node[i] = r.out; diag.b1_variant_splice_scrubs += r.hits; }
-          // B2 prose sweep on standalone strings (arrays of strings).
-          if (FALLBACK_INLINE.test(node[i])) {
-            const rewritten = (node[i] as string).replace(FALLBACK_INLINE, NEUTRAL_PROSE);
-            if (rewritten !== node[i]) {
-              node[i] = rewritten; diag.b2_keyless_prose_rewrites++;
-            }
-          }
         } else if (v && typeof v === "object") visit(v, inInternal);
       }
       return;
@@ -218,6 +199,21 @@ export function applyW20AdmtTurnA(report: any, _intake: any): W20TurnADiag {
     }
   };
   try { visit(report, false); } catch { /* fail-open */ }
+
+  // B2: per-entry keyless fallback rewrite on customer buckets (citation +
+  // prose). Runs AFTER B1 so the variant pattern gets first crack at prose.
+  try {
+    for (const bucket of CUSTOMER_BUCKETS) {
+      const arr = (report as any)[bucket];
+      if (!Array.isArray(arr)) continue;
+      for (const entry of arr) {
+        if (!entry || typeof entry !== "object") continue;
+        const b2 = rewriteKeylessFallbackOnEntry(entry);
+        diag.b2_keyless_citation_rewrites += b2.citation_rewrites;
+        diag.b2_keyless_prose_rewrites += b2.prose_rewrites;
+      }
+    }
+  } catch { /* fail-open */ }
 
   // B4: filter empty information_needed shells.
   try {
