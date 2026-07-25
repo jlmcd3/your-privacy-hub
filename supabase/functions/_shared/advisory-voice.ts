@@ -143,9 +143,14 @@ export function hasCounselReferral(text: string): boolean {
 /**
  * Deterministic-checks emit helper. Given a report-data object and the
  * generated body text, computes the per-tool format checks and attaches
- * them under `_meta.deterministic_checks` (and mirrors to the legacy
- * `deterministic_checks` top-level key expected by run-quality-batch).
- * Returns the finding list so callers can decide on regen.
+ * them under `_meta.internal.deterministic_checks` ONLY.
+ *
+ * LEAK-PREV-P1 §3 (2026-07-25): the prior top-level `deterministic_checks`
+ * write was itself a customer-payload leak (developer-register bookkeeping
+ * on the customer surface). The single canonical location is now
+ * `_meta.internal.deterministic_checks`. `run-quality-batch` reads from
+ * that path (with legacy fallback for in-flight rows). The return value
+ * is unchanged so callers still receive the findings.
  */
 export type DeterministicFinding = {
   check_id: string;
@@ -162,12 +167,18 @@ export function attachDeterministicChecks(
 ): DeterministicFinding[] {
   if (!reportData || typeof reportData !== "object") return findings;
   const rd = reportData as Record<string, unknown>;
-  rd.deterministic_checks = findings;
-  const meta = (rd._meta as Record<string, unknown> | undefined) ?? {};
-  meta.deterministic_checks = findings;
+  const meta = (rd._meta && typeof rd._meta === "object")
+    ? rd._meta as Record<string, unknown>
+    : {};
+  const internal = (meta.internal && typeof meta.internal === "object")
+    ? meta.internal as Record<string, unknown>
+    : {};
+  internal.deterministic_checks = findings;
+  meta.internal = internal;
   rd._meta = meta;
   return findings;
 }
+
 
 /**
  * Extract concatenated body-text prose from a heterogenous report_data
