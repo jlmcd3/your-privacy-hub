@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "w19-risk-turnb@2026-07-25T08:26:51Z";
+export const BUILD_STAMP = "w20-risk-turnb@2026-07-25T09:48:30Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
@@ -25,6 +25,7 @@ console.log(`[run-cppa-risk-assessment] boot vocab_scrub_stamp=${W18_RISK_VOCABS
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
+import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
 import {
   buildFactLedger,
   enforceLedger,
@@ -2756,6 +2757,25 @@ async function runPipeline(assessment_id: string) {
       }));
     } catch (e) {
       console.warn("[RISK] W18-RISK-VOCABSCRUB failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // W20-RISK-TURNB — terminal deterministic sanitizers (B2/B3/B5/B6).
+    // Runs AFTER W18 vocab scrub and BEFORE freeze/emit-gate so scrubbed
+    // prose is what freezes. B1 (§ 7121(a) cohort) is a docs-ledger flag;
+    // B4 is the widened D2 regex in _w10_risk_b1.ts.
+    try {
+      const { counters: _w20c, report: _w20r } = applyW20RiskTurnB(report_data as any);
+      report_data = _w20r as any;
+      const rd: any = report_data;
+      const meta = (rd._meta = rd._meta && typeof rd._meta === "object" ? rd._meta : {});
+      const internal = (meta.internal = meta.internal && typeof meta.internal === "object" ? meta.internal : {});
+      internal.risk_w20b = { stamp: W20_RISK_TURNB_STAMP, ..._w20c };
+      console.log(JSON.stringify({
+        evt: "_w20_risk_turnb", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w20_stamp: W20_RISK_TURNB_STAMP, ..._w20c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W20-RISK-TURNB failed (non-fatal):", (e as Error)?.message);
     }
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
