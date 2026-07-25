@@ -20,6 +20,8 @@ import {
   enforceLedger,
   FACT_LEDGER_VERSION,
 } from "../_shared/intake/fact-ledger.ts";
+// LEAK-PREV-P0 — customer-message catalog for insufficient-basis fallback.
+import { renderMessage } from "../_shared/customer-messages.ts";
 console.log(JSON.stringify({
   evt: "fact_ledger_loaded", fn: "run-admt-checker",
   version: FACT_LEDGER_VERSION,
