@@ -298,34 +298,36 @@ export function detectCrossAttribution(
 
 // ── Rewrite phrasing (D2-consistent; v2 never prepends claimText) ────────
 
+// LEAK-PREV-P0: humanizeField retained only as an internal debug helper.
+// Customer-facing text goes through `labelForField` in customer-messages.ts.
 function humanizeField(f?: string): string {
-  if (!f) return "the underlying point";
-  return f.replace(/[_.]/g, " ")
-          .replace(/\[(\d+)\]/g, " $1")
-          .replace(/\s+/g, " ")
-          .trim() || "the underlying point";
+  return labelForField(f);
 }
 
 export function rewriteUnsupported(claimText: string, fact?: FactRow): string {
   try {
     if (fact) {
       if (fact.polarity === "denied" || fact.polarity === "not_applicable") {
-        return `The intake states "${fact.verbatim}" on ${fact.source_field}; the assertion is not supported by the intake and must be reconciled.`;
+        return renderMessage("unsupported.denied", {
+          field: P.field(fact.source_field),
+          verbatim: P.verbatim(fact.verbatim || ""),
+        });
       }
       if (fact.polarity === "asserted") {
-        // Short-form verbatim to avoid dumping large JSON blobs into a
-        // customer-facing sentence.
-        const v = (fact.verbatim || "").length > 160
-          ? fact.verbatim.slice(0, 157) + "…"
-          : fact.verbatim;
-        return `The intake records "${v}" on ${fact.source_field}, which does not support this assertion and must be reconciled.`;
+        return renderMessage("unsupported.asserted", {
+          field: P.field(fact.source_field),
+          verbatim: P.verbatim(fact.verbatim || ""),
+        });
       }
       // silent
-      return `The intake does not address ${humanizeField(fact.source_field)}; this must be confirmed rather than asserted.`;
+      return renderMessage("unsupported.silent", {
+        field: P.field(fact.source_field),
+      });
     }
     // No matched fact — generic caveat. Never re-emits `claimText`.
     void claimText;
-    return `The intake does not address the underlying point; this must be confirmed rather than asserted.`;
+    void humanizeField;
+    return renderMessage("unsupported.silent", { field: P.field("") });
   } catch {
     return claimText;
   }
