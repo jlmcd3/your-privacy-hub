@@ -5,8 +5,9 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
 // doc-y-7 build marker — R-TURN-3 Turn B: CAL_CIV regex case-fold, comparative-exemption ban in gap/basis fields, owner-roster consistency (prompt rule (d); deterministic post-check deferred).
 const DOC_Y_BUILD_MARKER = "doc-y-7";
-export const BUILD_STAMP = "c1-a-uk-art-6-11-verbatim+g1-comment@2026-07-23T14:20:00Z";
+export const BUILD_STAMP = "governance-registry-wiring@2026-07-25T14:03:54Z";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER} build_stamp=${BUILD_STAMP}`);
+console.log(`[run-governance-assessment] boot governance-registry-wiring@${BUILD_STAMP} registry_loaded=governance-va-w1-2026-07-25`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
