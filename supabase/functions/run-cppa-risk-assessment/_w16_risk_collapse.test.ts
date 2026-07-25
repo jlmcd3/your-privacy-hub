@@ -41,8 +41,8 @@ function newMetrics() {
   return { va_prose_doubled_deduped: 0, va_prose_collapse_rewritten: 0, va_information_needed_added: 0, va_statutory_basis_flagged: 0 };
 }
 
-Deno.test("W16 BUILD_STAMP advanced to w16-risk-collapsecov@", () => {
-  assert(BUILD_STAMP.startsWith("w16-risk-collapsecov@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
+Deno.test("W16 BUILD_STAMP advanced to w16-risk-collapsecov@ (or w18 successor)", () => {
+  assert(BUILD_STAMP.startsWith("w16-risk-collapsecov@") || BUILD_STAMP.startsWith("w18-risk-collapsecov2@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
 });
 
 Deno.test("W16 (i) walker key-mismatch regression — scope_and_triggers is the schema key", async () => {
