@@ -241,7 +241,7 @@ export function buildAdequacyFinding(intake: any, _report: any): AdequacyFinding
   const anyLdNull = elementInputs === null || elementOutput === null || elementUse === null;
   if (anyLdNull) {
     ldConclusion = "insufficient_basis";
-    ldReason = "The record does not resolve all three EDPB elements (input categories, output, and use of output) for the access-right logic disclosure under § 7222(b)(3). Supply the disclosure text or attest each element and re-run.";
+    ldReason = renderMessage("insufficient.basis.reason");
   } else if (elementInputs && elementOutput && elementUse) {
     ldConclusion = "adequate";
     ldReason = "Access-right logic disclosure names all three EDPB elements: (1) input categories, (2) output produced, and (3) how the output is used in the decision.";
