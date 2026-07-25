@@ -20,6 +20,9 @@ Deno.test("emit-gate: internal-vocab prose is degraded to catalog text", () => {
     top_3_actions: [
       { text: "Reconcile the record on i1b_min_pi against the intake, since the current position cannot be supported without further evidence collected." },
       { text: wellFormed },
+      { text: wellFormed2 },
+      { text: wellFormed },
+      { text: wellFormed2 },
     ],
   };
   runEmitGate(report, { tool: "cppa_admt", intakeRoster: {} });
@@ -33,11 +36,16 @@ Deno.test("emit-gate: internal-vocab prose is degraded to catalog text", () => {
 Deno.test("emit-gate: template-stub prose is degraded", () => {
   const report: any = {
     reason: "Insufficient information to score this system; please supply the missing intake dimensions and re-run the assessment for a complete result.",
+    exec_summary: wellFormed,
+    scope: wellFormed2,
+    notes: wellFormed,
+    tail: wellFormed2,
   };
   runEmitGate(report, { tool: "cppa_risk_assessment" });
   assertEquals(report.reason.includes("re-run"), false);
   assert(report.information_needed === true);
 });
+
 
 Deno.test("emit-gate: well-formed prose passes through untouched", () => {
   const report: any = {
