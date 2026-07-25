@@ -7,11 +7,11 @@
 // Recovery ≠ measurement: this module never touches grades. It only
 // records WHEN stages complete and provides checkpoints for resume.
 //
-// Build stamp: ds-t1@2026-07-24T11:02:40Z
+// Build stamp: ds-t2c@2026-07-25T04:53:00Z
 
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export const DELIVERY_CONTRACT_STAMP = "ds-t1@2026-07-24T11:02:40Z";
+export const DELIVERY_CONTRACT_STAMP = "ds-t2c@2026-07-25T04:53:00Z";
 
 export type RunClass = "customer" | "harness";
 export type ContractStage = "generate" | "assemble" | "validate" | "render" | "deliver";
