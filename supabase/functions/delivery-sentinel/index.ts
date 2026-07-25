@@ -192,11 +192,17 @@ async function handleHarness(admin: any, row: ContractRow) {
   const stageAttempts = row.attempts?.[row.stage] ?? 0;
 
   if (overallBreached || stageAttempts >= MAX_STAGE_ATTEMPTS) {
-    await bumpAttemptsAndFailure(admin, row, "harness_stall",
-      `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`);
+    const note = `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`;
+    await bumpAttemptsAndFailure(admin, row, "harness_stall", note);
     await terminate(admin, row.id, "harness_stalled",
       `attribution: stage=${row.stage} last_failure=${row.failure_class ?? "unknown"}`);
-    return { action: "harness_stalled" };
+    // DS-T2b: orchestrator-class subject → auto-reconcile the batch row so
+    // the UI clears and the wave doesn't sit on a zombie 'running' forever.
+    let reconciled: { reconciled: boolean; reason?: string } | undefined;
+    if (row.subject_table === "quality_batch_runs") {
+      reconciled = await reconcileQualityBatchRun(admin, row.subject_id, note);
+    }
+    return { action: "harness_stalled", reconciled };
   }
 
   if (stageStale) {
