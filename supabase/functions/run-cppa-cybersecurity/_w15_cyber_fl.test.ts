@@ -13,9 +13,9 @@ import {
 } from "../_shared/intake/fact-ledger.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W15-CYBER-FL: BUILD_STAMP restamped (accepts w15 or w16-hotfix variants)", () => {
+Deno.test("W15-CYBER-FL: BUILD_STAMP restamped (accepts w15/w16-hotfix/w17-boiler/w21-turnc variants)", () => {
   assert(
-    /^(w15-cyber-factledger|w16-cyber-flfix|w17-cyber-boiler)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-cyber-factledger|w16-cyber-flfix|w17-cyber-boiler|w21-cyber-turnc)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
@@ -27,8 +27,14 @@ Deno.test("W15-CYBER-FL: index.ts imports fact-ledger and inserts pre-cyber-VA p
   assert(src.includes("enforceLedger("), "enforceLedger call missing");
   assert(src.includes("fact_ledger_pass"), "fact_ledger_pass telemetry log missing");
   assert(src.includes("fact_ledger_loaded"), "fact_ledger_loaded boot log missing");
+  // Fact-ledger version stamp pin (item-31 per-tool deploy plan; W21C ledger update).
+  assert(
+    src.includes("S-B INTAKE-FACT-LEDGER (sb-fl-w4-2026-07-25)"),
+    "fact-ledger wiring anchor should be pinned to sb-fl-w4-2026-07-25",
+  );
+  assertEquals(FACT_LEDGER_VERSION, "sb-fl-w4-2026-07-25");
   // Ordering: fact-ledger pass runs BEFORE the W15 cyber_va L1 stamp pass.
-  const flIdx = src.indexOf("S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring");
+  const flIdx = src.indexOf("S-B INTAKE-FACT-LEDGER (sb-fl-w4-2026-07-25) wiring");
   const vaIdx = src.indexOf("W15 CYBER-REGISTRY-WIRING — L1 verified-authority STAMP PASS");
   assert(flIdx > 0 && vaIdx > 0 && flIdx < vaIdx, "fact-ledger must run before cyber_va L1 stamp pass");
 });
