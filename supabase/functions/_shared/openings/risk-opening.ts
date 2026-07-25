@@ -180,7 +180,7 @@ export function buildRiskOpening(
   ) {
     triggers.push(5);
   }
-  if (str(intake.q18b_admt_training) === "Yes") triggers.push(6);
+  if (/^Yes/.test(str(intake.q18b_admt_training))) triggers.push(6);
 
   let S1: string | null = null;
   if (triggers.length > 0) {
