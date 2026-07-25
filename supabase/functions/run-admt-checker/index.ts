@@ -2239,6 +2239,11 @@ Return this JSON structure exactly:
       const stillFailing = ((report as any)._w9_admt_wire?.pre_emit?.still_failing ?? 0) as number;
       if (stillFailing > 0) {
         const BUCKETS = ["notice_gaps", "opt_out_gaps", "access_gaps"];
+        const BUCKET_TOPIC_LABEL: Record<string, string> = {
+          notice_gaps: "the Pre-use Notice element",
+          opt_out_gaps: "the opt-out element",
+          access_gaps: "the access-response element",
+        };
         for (const bucket of BUCKETS) {
           const arr = (report as any)[bucket];
           if (!Array.isArray(arr)) continue;
