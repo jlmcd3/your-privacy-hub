@@ -279,6 +279,20 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
   - `cppa-cyber` run 111: **86.35** / 90 / 86-90-88-80-81-87
 - Deltas vs w17 (same-instrument valid): admt +0.05 (flat within σ); risk +2.90 (recovery from w17 campaign-low 80.35, still below w15 81.35); cyber +0.10 (flat, persistent ana/int 80/81 boilerplate class). All wave-18 evidence is pre-LEAK-PREV; first post-LEAK-PREV read arrives at wave 19 (~06:45Z if 120-min cadence holds).
 
+### Wave 19 (campaign `fd1be147`, batch `150d310b`)
+
+- Launched 06:45:02Z, clean orchestrator finish 07:02:51Z — NO reconciliation; contract `ec017b6e` registered at kickoff and closed `delivered` (first fully-clean DS-T2b wave end-to-end). Instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg` frozen. FIRST post-LEAK-PREV (P0+P1+P2, `p012-*@2026-07-25T05:50:24Z`) read on all three CPPA tools.
+- Scores (overall / GPT / dims acc-cit-hall-ana-int-fmt):
+  - `cppa-admt` run 108: **80.50** / 79 / 87-71-81-82-82-84 (checks 72/86)
+  - `cppa-risk` run 132: **82.20** / 84 / 82-83-82-82-81-90 (checks 39/53)
+  - `cppa-cyber` run 112: **88.25** / 89 / 88-89-91-84-85-93 (checks 22/31) — CAMPAIGN HIGH
+- gate_v2: no passes; certification counters remain 0 for all tools.
+- **LEAK-PREV first-read signal (supportive, not attribution):** ZERO internal_reasoning_leak / internal-vocab findings on any tool this wave — the admt `_w*` telemetry class and risk raw-field-ID class (w17 items) are both absent. One read is not attribution; wave 20 confirms.
+- **admt trajectory callout (ATTENTION):** 83.75 → 80.50 (−3.25, exceeds batch-3 σ ~2.3-2.5); citation 71 = NEW FLOOR. Drivers: (i) `rubric_invented_admt_section` CRITICAL RETURNS after 3 clean waves (doc `d5d60566`): ADMT deadline_table cites risk-assessment provisions § 7155(a)(1)/§ 7155(b)/§ 7157(a)(1) — cross-subchapter contamination, distinct from the pre-registry invented-section class; (ii) fallback-DENSITY class (deferred TURN C3) now grader-flagged on 3/3 docs incl. mid-sentence fusion corruption ("the enumerated the applicable ADMT-subchapter provision categories"); (iii) subsection-granularity gaps (§ 7150(b)(3) unverified path; § 7222(b)(2) element conflation). C3 + registry subsection-granularity map are now admt's citation critical path — fold into next admt turn alongside P3.
+- **risk (run 132):** −1.05 vs w18 (within σ). Survivors: sensitive-location contradiction RECURS (doc `1aa7f5cf`, third recurrence — free-prose inconsistency_flags still escape ledger extraction); "record confirms profiling/inference" where q5b=No ×2 (doc `ffccee33`); revenue-band logic error ($25M–$50M band claimed unresolved vs $100M threshold — categorically below); **NEW GUARD-INDUCED DEFECT** (doc `488b37c3`): D2/B1 reconciliation sentence fired on an intake-SUPPORTED fact (i6_vendors AWS/Stripe/SendGrid flagged "not supported by the intake") — guard must check the fact ledger before emitting the reconciliation template; queue for next risk turn.
+- **cyber (run 112):** +1.90 vs w18 (within σ) but campaign high; hall 91 first dim ≥90 outside fmt; ana/int recovered to 84/85 (second consecutive post-`w17-cyber-boiler` read with no boilerplate survivor). Survivors: 2 citation HIGHs (grammar corruption "they provides" in c5 remediation; "Cal. Code § 1798.82(f)" missing "Civ.") + 1 fact-ledger HIGH ("high volumes of consumer financial data" projected from bare industry field). Cyber is nearest gate: needs ana 84→90, int 85→90, acc 88→90, cit 89→90.
+- **Controller note:** tick executed degraded — workspace sandbox disk-full (ENOSPC, persistent); GitHub clone impossible; ledger read via Lovable read_file at repo head, backend reads via query_database per standing law; stamps use DB now() (deviation ruled: UNCORRECTABLE this tick, sandbox outage flagged to John).
+
 
 ## 6. Carry-Forward Registers
 
