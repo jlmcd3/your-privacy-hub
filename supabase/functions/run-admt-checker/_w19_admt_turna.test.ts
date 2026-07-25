@@ -63,8 +63,8 @@ Deno.test("A2: well-formed prose left untouched", () => {
 });
 
 // ── A3 ─────────────────────────────────────────────────────────────────
-Deno.test("A3: unverified '11 CCR § 7150(b)(3)' pinpoint downgrades to section", () => {
-  const r = downgradeUnverifiedPinpointsInCitation("11 CCR § 7150(b)(3)");
+Deno.test("A3: unverified '11 CCR § 7150(b)(99)' pinpoint downgrades to section", () => {
+  const r = downgradeUnverifiedPinpointsInCitation("11 CCR § 7150(b)(99)");
   assertEquals(r.downgrades, 1);
   assertEquals(r.out, "11 CCR § 7150");
 });
