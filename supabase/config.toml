@@ -237,5 +237,9 @@ verify_jwt = false
 [functions.classify-quality-findings]
 verify_jwt = false
 
+[functions.delivery-sentinel]
+verify_jwt = false
+
+
 
 

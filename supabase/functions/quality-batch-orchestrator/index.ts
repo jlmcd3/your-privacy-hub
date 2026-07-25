@@ -32,9 +32,42 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
+import {
+  createContract as _dcCreate,
+  heartbeatContract as _dcHb,
+  terminateContract as _dcTerm,
+} from "../_shared/delivery-contract.ts";
+import {
+  dcCreateBatchContract, dcHeartbeatBatchContract, dcTerminateBatchContract,
+  type ContractDeps,
+} from "./_contract_hooks.ts";
 
 
-export const BUILD_STAMP = "automation-enabler-internal-start@2026-07-23T18:00:00Z";
+export const BUILD_STAMP = "ds-t2b-orch-wiring@2026-07-25T01:47:25Z";
+
+// DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
+// Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
+const CONTRACT_DEPS: ContractDeps = {
+  create: (input) => _dcCreate({
+    runClass: input.runClass, tool: input.tool,
+    subjectTable: input.subjectTable, subjectId: input.subjectId,
+    userId: input.userId ?? null, checkpointRef: input.checkpointRef,
+  }),
+  heartbeatBySubject: async (subjectTable, subjectId) => {
+    const db = admin();
+    const { data } = await db.from("delivery_contracts")
+      .select("id").eq("subject_table", subjectTable)
+      .eq("subject_id", subjectId).is("terminal_state", null).maybeSingle();
+    if (data?.id) await _dcHb({ contractId: data.id });
+  },
+  terminateBySubject: async (subjectTable, subjectId, terminalState, lastError) => {
+    const db = admin();
+    const { data } = await db.from("delivery_contracts")
+      .select("id").eq("subject_table", subjectTable)
+      .eq("subject_id", subjectId).is("terminal_state", null).maybeSingle();
+    if (data?.id) await _dcTerm({ contractId: data.id, terminalState, lastError });
+  },
+};
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
@@ -158,6 +191,8 @@ async function heartbeat(runId: string) {
   await admin().from("quality_batch_runs")
     .update({ last_heartbeat_at: new Date().toISOString() })
     .eq("id", runId);
+  // DS-T2b: piggyback contract heartbeat (fail-open, no new cadence).
+  await dcHeartbeatBatchContract(CONTRACT_DEPS, runId);
 }
 
 function selfInvoke(runId: string) {
@@ -369,6 +404,11 @@ async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
     ...patch,
     completed_at: new Date().toISOString(),
   }).eq("id", runId);
+  // DS-T2b: terminate the paired contract (fail-open).
+  const status = String((patch as any).status ?? "error") as
+    "complete" | "failed" | "cancelled" | "error";
+  const lastError = (patch as any).last_error as string | undefined;
+  await dcTerminateBatchContract(CONTRACT_DEPS, runId, status, lastError);
 }
 
 async function runUnit(runId: string) {
@@ -623,6 +663,7 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}, concurrency=${concurrency}`);
+  await dcCreateBatchContract(CONTRACT_DEPS, row.id, { origin: "startRun", tools, batch_size: batchSize, concurrency });
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
   return { ok: true, runId: row.id };
@@ -651,6 +692,7 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   const attribution = sentinel ? ` (attribution=${sentinel})` : "";
   await log(row.id, `Pinned rerun batch created: tool=${tool}, pins=${pins.length}${attribution}`);
+  await dcCreateBatchContract(CONTRACT_DEPS, row.id, { origin: "pinnedRerun", tool, pins: pins.length, sentinel });
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
   return { ok: true, runId: row.id, pins: pins.length };
@@ -747,6 +789,10 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
   await log(row.id, `Campaign wave #${nextWave}: ${eligible.length} tool(s), concurrency=${concurrency}, batch_size=${batchSize}`);
   await logCampaign(campaign.id, `Wave #${nextWave} started → batch ${row.id} · tools=[${eligible.join(", ")}] · est +${(est / 100).toFixed(2)} USD (cumulative ${(nowSpend / 100).toFixed(2)}) · basis=${CAMPAIGN_TOKEN_BASIS}`);
   await logCampaign(campaign.id, `NOTE: cost basis corrected to Opus (~$0.51/doc, ${CAMPAIGN_EST_CENTS_PER_DOC}¢/doc). Historical estimated_spend_cents rows written before QB-P17 used Sonnet pricing (~$0.10/doc) and materially undercount actual burn (~5×).`, "warn");
+  await dcCreateBatchContract(CONTRACT_DEPS, row.id, {
+    origin: "campaignWave", campaign_id: campaign.id, wave_number: nextWave,
+    tools: eligible, batch_size: batchSize, concurrency,
+  });
 
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
@@ -978,6 +1024,7 @@ async function handler(req: Request) {
           last_error: (e as Error).message?.slice(0, 300),
           completed_at: new Date().toISOString(),
         }).eq("id", body.run_id);
+        await dcTerminateBatchContract(CONTRACT_DEPS, body.run_id, "failed", (e as Error).message);
       } catch { /* */ }
     }));
     return json({ ok: true, build_stamp: BUILD_STAMP }, 202);

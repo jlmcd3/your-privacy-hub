@@ -20,7 +20,7 @@
 // Every action increments attempts + writes failure_class + last_error so
 // DS-T3's admin SLO surface has data.
 //
-// Build stamp: ds-t2@2026-07-24T11:15:00Z
+// Build stamp: ds-t2b@2026-07-25T01:47:25Z
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -72,6 +72,32 @@ async function terminate(admin: any, id: string, state: string, note?: string) {
   if (note) patch.last_error = note.slice(0, 4000);
   await admin.from("delivery_contracts").update(patch)
     .eq("id", id).is("terminal_state", null);
+}
+
+// DS-T2b: when a harness contract stalls out on a quality_batch_runs subject,
+// also reconcile the batch row itself the way the manual wave-10/13 recoveries
+// did — status=cancelled, phase=done, last_error set, completed_at set. Only
+// touches rows that are still non-terminal. Fail-open; contract termination
+// stands regardless.
+export async function reconcileQualityBatchRun(
+  admin: any, subjectId: string, note: string,
+): Promise<{ reconciled: boolean; reason?: string }> {
+  try {
+    const { data, error } = await admin.from("quality_batch_runs")
+      .update({
+        status: "cancelled",
+        phase: "done",
+        last_error: `[delivery-sentinel] ${note}`.slice(0, 500),
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", subjectId)
+      .not("status", "in", "(complete,failed,cancelled)")
+      .select("id");
+    if (error) return { reconciled: false, reason: error.message };
+    return { reconciled: (data?.length ?? 0) > 0 };
+  } catch (e) {
+    return { reconciled: false, reason: (e as Error).message };
+  }
 }
 
 async function enqueuePdfFallback(admin: any, row: ContractRow) {
@@ -166,11 +192,17 @@ async function handleHarness(admin: any, row: ContractRow) {
   const stageAttempts = row.attempts?.[row.stage] ?? 0;
 
   if (overallBreached || stageAttempts >= MAX_STAGE_ATTEMPTS) {
-    await bumpAttemptsAndFailure(admin, row, "harness_stall",
-      `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`);
+    const note = `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`;
+    await bumpAttemptsAndFailure(admin, row, "harness_stall", note);
     await terminate(admin, row.id, "harness_stalled",
       `attribution: stage=${row.stage} last_failure=${row.failure_class ?? "unknown"}`);
-    return { action: "harness_stalled" };
+    // DS-T2b: orchestrator-class subject → auto-reconcile the batch row so
+    // the UI clears and the wave doesn't sit on a zombie 'running' forever.
+    let reconciled: { reconciled: boolean; reason?: string } | undefined;
+    if (row.subject_table === "quality_batch_runs") {
+      reconciled = await reconcileQualityBatchRun(admin, row.subject_id, note);
+    }
+    return { action: "harness_stalled", reconciled };
   }
 
   if (stageStale) {
@@ -225,6 +257,6 @@ Deno.serve(async (req) => {
     scanned: contracts?.length ?? 0,
     duration_ms,
     results,
-    build: "ds-t2@2026-07-24T11:15:00Z",
+    build: "ds-t2b@2026-07-25T01:47:25Z",
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 });
