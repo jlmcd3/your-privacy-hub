@@ -67,17 +67,17 @@ Deno.test("W23B B2 — bare § 7150(b) pinpoints per surrounding trigger (sale/s
 
 Deno.test("W23B B2 — pinpoints for all five trigger classes", () => {
   const cases: Array<[string, string]> = [
-    ["No sale or sharing of personal information; § 7150(b) is not engaged.", "(b)(1)"],
-    ["No sensitive personal information is processed, so § 7150(b) is not engaged.", "(b)(2)"],
-    ["No ADMT for a significant decision is used, so § 7150(b) is not engaged.", "(b)(3)"],
-    ["No systematic observation occurs, so § 7150(b) is not engaged.", "(b)(4)"],
-    ["No sensitive-location profiling, so § 7150(b) is not engaged.", "(b)(5)"],
-    ["No ADMT training, so § 7150(b) is not engaged.", "(b)(6)"],
+    ["No sale or sharing of personal information; § 7150(b) is not engaged.", "(1)"],
+    ["No sensitive personal information is processed, so § 7150(b) is not engaged.", "(2)"],
+    ["No ADMT for a significant decision is used, so § 7150(b) is not engaged.", "(3)"],
+    ["No systematic observation occurs, so § 7150(b) is not engaged.", "(4)"],
+    ["No sensitive-location profiling, so § 7150(b) is not engaged.", "(5)"],
+    ["No ADMT training, so § 7150(b) is not engaged.", "(6)"],
   ];
   for (const [input, expected] of cases) {
     const { report } = applyW23RiskTurnB({ scope_notes: input } as any);
     const out = (report as any).scope_notes as string;
-    assert(out.includes(`§ 7150(b)${expected}`), `expected ${expected} in: ${out}`);
+    assert(out.includes(`§ 7150(b)${expected}`), `expected (b)${expected} in: ${out}`);
   }
 });
 
