@@ -2379,6 +2379,23 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] WAVE21-FIX TURN B failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── WAVE22-FIX TURN B (cppa-admt) ────────────────────────────────
+    // P1 registry-first pinpoint substitution; P2 unresolved-authority
+    // phrase scrub from structured citation fields; P3 stamp echo;
+    // P4 broadened counsel-referral prose scrub; P5 § 7155(a)(1)
+    // submission-vs-timing broadened guard; P6 § 7001 sole
+    // governing_anchor duty guard. Runs AFTER W21 turnB and BEFORE
+    // the LEAK-PREV emit gate. Fail-open.
+    try {
+      const w22b = applyW22AdmtTurnB(report, ((assessment as any)?.intake_data as Record<string, unknown>) ?? {});
+      console.log(JSON.stringify({
+        evt: "_w22_admt_turnb", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W22_ADMT_TURNB_STAMP, ...w22b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] WAVE22-FIX TURN B failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
     // Runs AFTER every content-shaping pass and IMMEDIATELY BEFORE the
     // W12-C1 metadata strip so gate telemetry rides `_meta.internal`.
