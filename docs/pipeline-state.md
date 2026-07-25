@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T20:48:08Z — OPENING-PARAGRAPH-DESIGN-DOC-COMMIT DONE (CEO-approved deterministic first-paragraph spec added at docs/design/OPENING-PARAGRAPH-DESIGN.md; authoritative for all products; rollout starts with cppa-risk pilot).
+**Last updated:** 2026-07-25T20:58:41Z — T7-RISK-OPENING-PILOT DONE (deterministic opening_summary slot for cppa-risk shipped; emit-gate overwrite; hold released per ledger item 78; 12/12 Deno tests green; REGEN-NEEDED += cppa_risk report-shape).
 
 ---
 
@@ -399,6 +399,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 - **Sample-Report Register** — see §5.
 - **REGEN-NEEDED (samples-contract):** `cppa_risk` (1/9), `cppa_admt` (2/9), `cppa_cyber` (3/9), `dpia` (4/9), `li_assessment` (5/9), `governance` (6/9), `ir_playbook` (7/9), `biometric` (8/9), `dpa` (9/9), `registration` (10/10 — contract+fixtures authored 21:53:12Z). Regen click deferred to end-of-program walk-through (admin-UI click — queued for morning per overnight standing order §1).
+- **REGEN-NEEDED (report-shape, T7 opening pilot):** `cppa_risk` — deterministic `opening_summary` slot added to `CPPA_RISK_REPORT_SCHEMA.topLevel` and overwritten at emit-time by `supabase/functions/_shared/openings/risk-opening.ts` (2026-07-25T20:58:41Z). No customer-visible existing field changed shape; addition-only. Regen click follows the same end-of-program walk-through window.
 - **Build-stamp restamp deferral:**
   - W6 scrubbers (admt) — **DISCHARGED 2026-07-24T21:01:57Z** at ADMT-DEPLOY-CORPUS-LIVE (fresh-clock `w14-admt-corpuslive@2026-07-24T21:01:33Z`; old `w12-admt-turnc@2026-07-24T17:10:43Z`; boot log confirmed).
   - W6 scrubbers (risk) — **DISCHARGED 2026-07-24T22:52:12Z** at RISK-REGISTRY-WIRING deploy (fresh-clock `BUILD_STAMP=w15-risk-regwire@2026-07-24T22:49:09Z`; old `w12-risk-turnd@2026-07-24T17:23:28Z`; boot log confirmed).
