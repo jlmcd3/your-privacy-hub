@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "p012-admt@2026-07-25T05:50:24Z";
+export const BUILD_STAMP = "w19-admt-turna@2026-07-25T07:57:53Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -35,6 +35,8 @@ console.log(`[run-admt-checker] boot admt_slots_stamp=${W9_ADMT_SLOTS_STAMP}`);
 import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
 import { applyW19AdmtJoin2, W19_ADMT_JOIN2_STAMP } from "./_w19_admt_join2.ts";
 console.log(`[run-admt-checker] boot admt_join2_stamp=${W19_ADMT_JOIN2_STAMP}`);
+import { applyW19AdmtTurnA, W19_ADMT_TURNA_STAMP } from "./_w19_admt_turna.ts";
+console.log(`[run-admt-checker] boot admt_turna_stamp=${W19_ADMT_TURNA_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
@@ -2319,6 +2321,22 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── WAVE19-FIX TURN A (2026-07-25) — targeted A1/A2/A3/A4 sanitiser.
+    // A1: registry-first fallback resolution (per-entry re-stamp).
+    // A2: splice-debris scrub ("the enumerated the applicable ..." etc.).
+    // A3: unverified subsection downgrade (all sections, not just § 7150).
+    // A4: unsupported-timeline stripper routed to information-needed.
+    // Runs AFTER W19-JOIN2 so it operates on final citation strings.
+    try {
+      const w19a = applyW19AdmtTurnA(report, ((assessment as any)?.intake_data as Record<string, unknown>) ?? {});
+      console.log(JSON.stringify({
+        evt: "_w19_admt_turna", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w19a,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] WAVE19-FIX TURN A failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
