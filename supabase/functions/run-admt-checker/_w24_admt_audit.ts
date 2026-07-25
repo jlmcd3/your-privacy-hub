@@ -194,13 +194,16 @@ export function scrubUnsupportedBusinessClaim(
   let cur = text;
   for (const re of UNSUPPORTED_NEG_CLAIM_RES) {
     cur = cur.replace(re, (match) => {
-      // Do not scrub the neutral fallback sentence.
-      if (match.toLowerCase().includes(NEUTRAL_FALLBACK)) return match;
-      // If intake positively supports the referenced topic, keep the
-      // sentence (attribution not needed).
+      // Do not scrub the neutral fallback sentence (case-insensitive).
+      if (match.toLowerCase().includes(NEUTRAL_FALLBACK.toLowerCase())) return match;
+      // If intake positively supports the referenced topics, keep the
+      // sentence (attribution not needed). Support = intake contains at
+      // least half of the sentence's content-noun tokens (min 2).
       const topics = candidateTopics(match);
-      if (topics.length > 0 && intakeLower && topics.every((t) => intakeLower.includes(t))) {
-        return match;
+      if (intakeLower && topics.length > 0) {
+        const hitCount = topics.filter((t) => intakeLower.includes(t)).length;
+        const threshold = Math.max(2, Math.ceil(topics.length / 2));
+        if (hitCount >= threshold) return match;
       }
       hits++;
       return " " + ATTRIBUTED_HEDGE;
