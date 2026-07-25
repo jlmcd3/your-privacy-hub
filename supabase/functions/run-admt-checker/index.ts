@@ -2463,6 +2463,28 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W24-ADMT-RESOLVER-AUDIT failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── W24-ADMT-H6-GOVERNING-ANCHOR (2026-07-25) ─────────────────────
+    // Runs AFTER W24 resolver-audit and BEFORE the LEAK-PREV-P1 emit gate.
+    // Detects duty entries whose SOLE citation-bearing anchor resolves to
+    // 11 CCR § 7001 (definitional). Registry-first: promotes to a duty-
+    // imposing subchapter pinpoint when the proposition_key resolves;
+    // otherwise clears the miscast anchors and routes via the neutral
+    // customer-messages fallback. Never fabricates. Fail-open.
+    try {
+      const w24h6 = applyW24AdmtH6(
+        report,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      console.log(JSON.stringify({
+        evt: "_w24_admt_h6", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W24_ADMT_H6_STAMP, ...w24h6,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W24-ADMT-H6-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
 
 
 
