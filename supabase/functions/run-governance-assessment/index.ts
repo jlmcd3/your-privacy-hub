@@ -5,9 +5,10 @@ import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
 // doc-y-7 build marker — R-TURN-3 Turn B: CAL_CIV regex case-fold, comparative-exemption ban in gap/basis fields, owner-roster consistency (prompt rule (d); deterministic post-check deferred).
 const DOC_Y_BUILD_MARKER = "doc-y-7";
-export const BUILD_STAMP = "governance-registry-wiring@2026-07-25T14:03:54Z";
+export const BUILD_STAMP = "gov-t6fix@2026-07-25T23:48:00Z";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER} build_stamp=${BUILD_STAMP}`);
-console.log(`[run-governance-assessment] boot governance-registry-wiring@${BUILD_STAMP} registry_loaded=governance-va-w1-2026-07-25`);
+console.log(`[run-governance-assessment] boot governance-registry-wiring@2026-07-25T14:03:54Z registry_loaded=governance-va-w1-2026-07-25`);
+console.log(`[run-governance-assessment] boot gov-t6fix@2026-07-25T23:47:00Z stage=post-w1 pre-emitgate`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -1382,6 +1383,20 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       applyW1GovernanceWire(reportData);
     } catch (e) {
       console.warn("[run-governance-assessment] GOVERNANCE-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── GOVERNANCE-T6-FIX — Class A citation audit + Class B business-claim
+    // scrub (2026-07-25). Runs AFTER _w1_governance_wire and BEFORE the
+    // LEAK-PREV-P1 emit gate so the gate sees the neutralized surface.
+    // Telemetry writes to `_meta.internal.gov_t6fix`. Fail-open.
+    try {
+      const { applyGovT6Fix } = await import("./_gov_t6_fix.ts");
+      applyGovT6Fix(reportData, {
+        intake: ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
+        buildStamp: BUILD_STAMP,
+      });
+    } catch (e) {
+      console.warn("[run-governance-assessment] GOVERNANCE-T6-FIX post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
