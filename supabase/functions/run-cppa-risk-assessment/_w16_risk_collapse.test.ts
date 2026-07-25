@@ -42,7 +42,7 @@ function newMetrics() {
 }
 
 Deno.test("W16 BUILD_STAMP advanced to w16-risk-collapsecov@ (or w18 successor)", () => {
-  assert(BUILD_STAMP.startsWith("w16-risk-collapsecov@") || BUILD_STAMP.startsWith("w18-risk-collapsecov2@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
+  assert(BUILD_STAMP.startsWith("w16-risk-collapsecov@") || BUILD_STAMP.startsWith("w18-risk-collapsecov2@") || BUILD_STAMP.startsWith("w18-risk-vocabscrub@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
 });
 
 Deno.test("W16 (i) walker key-mismatch regression — scope_and_triggers is the schema key", async () => {

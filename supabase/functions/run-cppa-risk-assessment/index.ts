@@ -9,8 +9,14 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // claim classes (sensitive-location contradiction, worker/free-tier positive
 // projections). Runs after W6/W9/W10 retro-audits, before the w15 risk_va
 // L1 citation stamp so citations attach to final claim text. Fail-open.
-export const BUILD_STAMP = "w18-risk-collapsecov2@2026-07-25T03:03:01Z";
+export const BUILD_STAMP = "w18-risk-vocabscrub@2026-07-25T03:34:41Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+import {
+  newVocabScrubMetrics,
+  scrubReportVocab,
+  W18_RISK_VOCABSCRUB_STAMP,
+} from "./_w18_risk_vocab.ts";
+console.log(`[run-cppa-risk-assessment] boot vocab_scrub_stamp=${W18_RISK_VOCABSCRUB_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
@@ -2713,6 +2719,28 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] W15/W16 RISK-REGISTRY-WIRING failed (non-fatal):", (e as Error)?.message);
     }
 
+    // W18-RISK-VOCABSCRUB — deterministic post-emit scrub of raw intake
+    // field-id tokens leaking into customer-facing prose (wave-17 doc
+    // 17c0aa18: inconsistency_flags[].description). Runs AFTER the W15/W16
+    // VA-stamp / registry pass and BEFORE freezeOpenItemsOnFirstRun so
+    // information_needed prose is scrubbed before it is frozen. Anchor keys
+    // (source_fields, field, intake_field_1/2, provision) are skipped so
+    // structured technical anchors are preserved. Fail-open.
+    try {
+      const vocabMetrics = newVocabScrubMetrics();
+      scrubReportVocab(report_data, vocabMetrics);
+      const rd: any = report_data;
+      const meta = (rd._meta = rd._meta && typeof rd._meta === "object" ? rd._meta : {});
+      const internal = (meta.internal = meta.internal && typeof meta.internal === "object" ? meta.internal : {});
+      internal.risk_vocab_scrub = { build_stamp: W18_RISK_VOCABSCRUB_STAMP, ...vocabMetrics };
+      console.log(JSON.stringify({
+        evt: "_w18_risk_vocabscrub", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, vocab_scrub_stamp: W18_RISK_VOCABSCRUB_STAMP,
+        ...vocabMetrics,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W18-RISK-VOCABSCRUB failed (non-fatal):", (e as Error)?.message);
+    }
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
