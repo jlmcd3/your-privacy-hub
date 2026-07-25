@@ -220,7 +220,7 @@ export const CUSTOMER_MESSAGES: Record<string, CatalogEntry> = Object.freeze({
   "unsupported.asserted": {
     params: ["field", "verbatim"],
     render: (p) =>
-      `The intake records "${renderVerbatim(p.verbatim)}" for ${renderPlain(p.field, "this intake area")}, which does not support this assertion and must be reconciled.`,
+      `The intake records "${renderVerbatim(p.verbatim)}" for ${renderPlain(p.field, "this intake area")}, but the assertion is not supported by the intake and must be reconciled.`,
   },
   // Unsupported claim — the intake is silent on the field.
   "unsupported.silent": {
