@@ -27,12 +27,26 @@ const SIM_THRESHOLD = 0.90;
 const LEN_RATIO_TOL = 0.15; // only compare pairs whose lengths are within ±15%
 
 // Heuristic hints that the remediation text is anchored to intake facts
-// (a quoted phrase, a digit run, or a named framework/vendor/system).
+// (a quoted phrase, a digit run OUTSIDE citations, or a named
+// framework/vendor/system). Citations of the form "§ 7XXX(...)" are
+// stripped before the numeric check because statutory pinpoints are not
+// intake facts.
 const INTAKE_REF_HINTS: RegExp[] = [
   /"[^"]{3,}"/,                                    // quoted phrase from intake
-  /\b\d[\d,\.]*\b/,                                // any numeric figure
+  /\b\d[\d,\.]*\b/,                                // any numeric figure (post-citation-strip)
   /\b(HITRUST|SOC ?2|ISO ?27001|NIST CSF|CIS Controls|PCI DSS|HIPAA|GLBA|NERC CIP|CPNI|Okta|Duo|CrowdStrike|Splunk|Rapid7|Qualys|Tenable|SentinelOne|Microsoft (?:Defender|Sentinel|Entra)|Azure|AWS|GCP)\b/i,
 ];
+
+// Strip statutory citation tokens so their numeric parts don't false-
+// positive the "numeric figure" intake-fact heuristic. Covers § 7XXX(...)
+// and 11 CCR § 7XXX(...) forms, plus CFR/USC pinpoints.
+function stripCitations(s: string): string {
+  return s
+    .replace(/(?:11\s*CCR\s*)?§+\s*\d{3,4}(?:\s*\([^)]+\))*/gi, "")
+    .replace(/\b\d+\s*CFR\s*(?:Part\s*)?\d+(?:\.\d+)*/gi, "")
+    .replace(/\b\d+\s*U\.?S\.?C\.?\s*§+\s*\d+/gi, "");
+}
+
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").replace(/[^a-z0-9 ]/g, "").trim();
