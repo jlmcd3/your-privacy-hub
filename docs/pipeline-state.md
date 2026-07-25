@@ -233,7 +233,7 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
   - W6 cyber — SUPERSEDED by `w10-cyber-a1a2` (fresh-clock stamp).
   - W9 admt (`w9-admt-preemit` marker future-dated) — **DISCHARGED 2026-07-24T17:11:54Z** at TURN C deploy (fresh-clock stamp `w12-admt-turnc@2026-07-24T17:10:43Z`, boot log confirmed).
 - **L5 backlog:** 85 aggregate rows, 0 unclassified. Standard cron continues.
-- **Sentinel gap:** orchestrator runs not yet registered as `delivery_contracts` (DS-T2 sweep would not catch orchestrator isolate death). Wiring queued between waves.
+- **Sentinel gap:** **CLOSED 2026-07-25T01:48:37Z** at DS-T2b-ORCH-WIRING deploy — orchestrator batches now register as `delivery_contracts` (harness/quality-batch subject `quality_batch_runs`) at kickoff, piggyback heartbeats on `heartbeat(runId)`, and terminate on `markTerminalAll` / isolate-death catch. Sentinel harness branch auto-reconciles `quality_batch_runs` on `harness_stalled` (status=cancelled/phase=done/last_error/completed_at). pg_cron `delivery-sentinel-sweep` every 60s (job id 103). All contract calls fail-open — a contract-side failure cannot alter batch behavior.
 
 ## 7. Incident Log
 
