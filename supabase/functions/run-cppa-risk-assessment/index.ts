@@ -2759,6 +2759,25 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] W18-RISK-VOCABSCRUB failed (non-fatal):", (e as Error)?.message);
     }
 
+    // W20-RISK-TURNB — terminal deterministic sanitizers (B2/B3/B5/B6).
+    // Runs AFTER W18 vocab scrub and BEFORE freeze/emit-gate so scrubbed
+    // prose is what freezes. B1 (§ 7121(a) cohort) is a docs-ledger flag;
+    // B4 is the widened D2 regex in _w10_risk_b1.ts.
+    try {
+      const { counters: _w20c, report: _w20r } = applyW20RiskTurnB(report_data as any);
+      report_data = _w20r as any;
+      const rd: any = report_data;
+      const meta = (rd._meta = rd._meta && typeof rd._meta === "object" ? rd._meta : {});
+      const internal = (meta.internal = meta.internal && typeof meta.internal === "object" ? meta.internal : {});
+      internal.risk_w20b = { stamp: W20_RISK_TURNB_STAMP, ..._w20c };
+      console.log(JSON.stringify({
+        evt: "_w20_risk_turnb", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w20_stamp: W20_RISK_TURNB_STAMP, ..._w20c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W20-RISK-TURNB failed (non-fatal):", (e as Error)?.message);
+    }
+
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
