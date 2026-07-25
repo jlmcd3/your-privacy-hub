@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w23-admt-turna@2026-07-25T16:42:27Z";
+export const BUILD_STAMP = "w24-admt-attr@2026-07-25T18:28:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -41,10 +41,12 @@ import { applyW20AdmtTurnA, W20_ADMT_TURNA_STAMP } from "./_w20_admt_turna.ts";
 import { applyW21AdmtTurnB, W21_ADMT_TURNB_STAMP } from "./_w21_admt_turnb.ts";
 import { applyW22AdmtTurnB, W22_ADMT_TURNB_STAMP } from "./_w22_admt_turnb.ts";
 import { applyW23AdmtTurnA, W23_ADMT_TURNA_STAMP } from "./_w23_admt_turna.ts";
+import { applyW24AdmtAttrFix, W24_ADMT_ATTR_STAMP } from "./_w24_admt_attr_fix.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turna_w23_stamp=${W23_ADMT_TURNA_STAMP}`);
+console.log(`[run-admt-checker] boot admt_attr_w24_stamp=${W24_ADMT_ATTR_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
@@ -2416,6 +2418,33 @@ Return this JSON structure exactly:
     } catch (e) {
       console.warn("[run-admt-checker] WAVE23-FIX TURN A failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── W24-ADMT-ATTRIBUTION-FIX (2026-07-25) ─────────────────────────
+    // Attribution-driven fixes for wave-24 admt (-4.7 vs wave-23):
+    //   (a) bracketed ALL-CAPS advisory sentences (e6_counsel_referral
+    //       recurrence class not matched by W23-turnA T3);
+    //   (b) "More information is needed" prose leak (grader-visible
+    //       artefact — the structured `information_needed` bucket
+    //       carries the fact);
+    //   (c) unresolved template-variable phrasing on customer prose
+    //       ("the applicable ADMT-subchapter provision" spliced into
+    //       priority_actions bodies — rubric_internal_reasoning_leak).
+    // Runs AFTER W23 turnA and BEFORE the LEAK-PREV-P1 emit gate so
+    // gate + serializer see the cleaned surface. Fail-open.
+    try {
+      const w24a = applyW24AdmtAttrFix(
+        report,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      console.log(JSON.stringify({
+        evt: "_w24_admt_attr_fix", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W24_ADMT_ATTR_STAMP, ...w24a,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W24-ADMT-ATTRIBUTION-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
     // Runs AFTER every content-shaping pass and IMMEDIATELY BEFORE the
