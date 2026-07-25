@@ -119,7 +119,7 @@ const TRIGGER_PINPOINTS: readonly TriggerMap[] = [
   { re: /\bADMT\s+training\b|\btrain(?:ing)?\s+(?:an?\s+)?ADMT\b|\bbiometric\s+training\b/i, sub: "(6)" },
   { re: /\bADMT\s+(?:use|significant\s+decision|for\s+a?\s*significant\s+decision)\b|\bsignificant\s+decision\b/i, sub: "(3)" },
   { re: /\bsensitive\s+personal\s+information\b/i, sub: "(2)" },
-  { re: /\bsell(?:ing)?\s*(?:\/|or|and)?\s*shar(?:e|ing)\b/i, sub: "(1)" },
+  { re: /\b(?:sell(?:ing)?|sale)\s*(?:\/|or|and)?\s*shar(?:e|ing)\b/i, sub: "(1)" },
 ];
 
 // Match bare "§ 7150(b)" that is NOT already pinpointed. Excludes the
