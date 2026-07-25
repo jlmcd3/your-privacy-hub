@@ -240,9 +240,9 @@ export function guardDefinitionalOnlyCitation(entry: any): number {
   if (!entry || typeof entry !== "object") return 0;
   const c = typeof entry.citation === "string" ? entry.citation.trim() : "";
   if (!c) return 0;
-  const parts = c.split(/\s*\+\s*/).map((p) => p.trim()).filter(Boolean);
+  const parts = c.split(/\s*\+\s*/).map((p: string) => p.trim()).filter(Boolean);
   if (parts.length === 0) return 0;
-  const allS7001Def = parts.every((p) => DEFINITIONAL_S7001_RE.test(p));
+  const allS7001Def = parts.every((p: string) => DEFINITIONAL_S7001_RE.test(p));
   if (!allS7001Def) return 0;
   // Does the entry state an action duty? Look for duty verbs across prose.
   let duty = false;
@@ -306,8 +306,8 @@ export function guardS7150b3Misapplication(entry: any): number {
   }
   if (onTopic && !pk) return 0;
   // Downgrade: strip the 7150(b)(3) token from citation; keep any others.
-  const parts = c.split(/\s*\+\s*/).map((p) => p.trim()).filter(Boolean);
-  const kept = parts.filter((p) => !p.includes("7150(b)(3)"));
+  const parts = c.split(/\s*\+\s*/).map((p: string) => p.trim()).filter(Boolean);
+  const kept = parts.filter((p: string) => !p.includes("7150(b)(3)"));
   entry.citation = kept.length > 0 ? kept.join(" + ") : NEUTRAL_CITATION;
   return 1;
 }
