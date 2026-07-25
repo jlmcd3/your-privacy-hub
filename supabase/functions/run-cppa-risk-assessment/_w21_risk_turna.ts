@@ -130,6 +130,7 @@ export interface W21RiskTurnACounters {
   a1_field_attributions_added: number;
   a1_contradictions_blocked: number;
   a2_cohort_emitted: 0 | 1;
+  a2_cohort_info_needed_emitted: 0 | 1;
   a2_cohort_skipped_reason?: string;
   a4_info_needed_dropped: number;
 }
@@ -141,6 +142,7 @@ const emptyCounters = (): W21RiskTurnACounters => ({
   a1_field_attributions_added: 0,
   a1_contradictions_blocked: 0,
   a2_cohort_emitted: 0,
+  a2_cohort_info_needed_emitted: 0,
   a4_info_needed_dropped: 0,
 });
 
