@@ -20,7 +20,7 @@
 // Every action increments attempts + writes failure_class + last_error so
 // DS-T3's admin SLO surface has data.
 //
-// Build stamp: ds-t2@2026-07-24T11:15:00Z
+// Build stamp: ds-t2b@2026-07-25T01:44:00Z
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
