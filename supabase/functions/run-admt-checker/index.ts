@@ -2252,10 +2252,17 @@ Return this JSON structure exactly:
             const violatedRule = pk ? `unresolved proposition_key "${pk}" against VERIFIED-AUTHORITY REGISTRY` : "post-W6 residual defect (finding underspecified)";
             const rowNote = row ? ` (registry row: ${row.subsection})` : "";
             it.status = "insufficient_basis";
-            it.finding = `insufficient basis — ${violatedRule}${rowNote}. The generator did not resolve enough facts on this record to author a compliant finding; supply the missing intake dimensions and re-run.`;
+            // W19-ADMT-FALLBACK-JOIN-2 (2) — customer-safe reword.
+            // Answer-first, no pipeline/generator/re-run vocabulary; keeps
+            // information_needed semantics on the status field intact.
+            const topicRaw = (typeof it.element_id === "string" && it.element_id.trim())
+              || (pk ? pk.replace(/_/g, " ") : "")
+              || BUCKET_TOPIC_LABEL[bucket] || "this obligation";
+            const topic = String(topicRaw).replace(/_/g, " ");
+            it.finding = `More information is needed before this item can be assessed. The intake did not include enough detail on ${topic} to support a specific finding. Provide the missing details and refresh the assessment.`;
             it.remediation = "";
             it.enforcement_exposure = "na";
-            it._w9_regen = { pass: 1, action: "typed_insufficient_basis", violated_rule: violatedRule };
+            it._w9_regen = { pass: 1, action: "typed_insufficient_basis", violated_rule: violatedRule, row_note: rowNote };
             w9Regen.downgraded_insufficient_basis++;
           }
         }
