@@ -1,56 +1,76 @@
 // S-B INTAKE-FACT-LEDGER — shared enforcement service.
 //
-// v1 (sb-fl-w1-2026-07-24): initial authoring turn (§2 item 16). Wired
-// into run-cppa-{risk,admt,cyber} 2026-07-24 23:20–23:42Z.
+// v1 (sb-fl-w1-2026-07-24): initial authoring turn (§2 item 16).
+// v2 (sb-fl-w2-2026-07-25) — FACT-LEDGER-W16-HOTFIX: matcher SKIP on
+//   unresolvable field/silent-positive; nested intake flattening;
+//   answer-first rewrite; production-scale safety valve.
 //
-// v2 (sb-fl-w2-2026-07-25) — FACT-LEDGER-W16-HOTFIX:
-//   Wave-16 telemetry (cppa_assessments _meta.internal.fact_ledger)
-//   proved that v1 misfired identically in all three CPPA generators:
-//   `claims_downgraded == claims_scanned` on every run (3/3, 3/3, 7/7,
-//   27/27). Two root causes:
+// v3 (sb-fl-w3-2026-07-25) — FACT-LEDGER-W17-GAP (§2 item 25):
+//   Wave-17 evidence surfaced three escape classes that v2's per-item
+//   scan and matcher did not close:
 //
-//     (a) MATCHER treated any claim with an unresolvable `field`
-//         (missing OR not present in the ledger) as evidence AGAINST
-//         the claim. In practice, wiring layers extract `field` from
-//         `o.intake_field_1`/`o.source_fields` — which are almost
-//         never set — so `claim.field` is undefined. `checkAssertion`
-//         then returned `{ ok: false, reason: "unresolved" }` for
-//         positives and `{ ok: false, reason: "silence_supports_negative" }`
-//         for negatives, and `enforceLedger` rewrote the claim. This
-//         inverted the rule ("silence about a field is not evidence
-//         against a claim about that field") into a per-report
-//         demolition. v2 treats missing-field / missing-ledger-row as
-//         SKIP; only explicit ledger outcomes can downgrade.
+//     (a) AGGREGATED MULTI-FACT NEGATIVES (admt doc 2b071620): a single
+//         scope-prose sentence bundles several intake facts into one
+//         negative/aggregate assertion, e.g. "the intake reflects no
+//         MFA, encryption, or SSO controls". Per-item extraction sees
+//         ONE claim; individual constituent facts (some of which may
+//         be explicitly asserted in the intake) are never checked. v3
+//         adds `splitAggregatedClaim` which decomposes such claims
+//         into per-constituent Claim entries via list-boundary parsing
+//         (commas / "and" / "or" / semicolons after a negation head).
 //
-//     (b) LEDGER BUILD only iterated TOP-LEVEL intake keys. Cyber's
-//         `intake_data` shape (controls[], scoping[], etc.) produced
-//         `ledger_rows = 2` — starving the matcher of the very rows
-//         needed to prove support for controls like "MFA via Okta".
-//         v2 flattens nested objects/arrays to dotted paths.
+//     (b) FREE-PROSE inconsistency_flags CONTRADICTIONS (risk doc
+//         52dfb9a1): the wiring layers already `scan()` inconsistency
+//         flags at container level, but assertions embedded WITHIN
+//         the `description` prose (multi-sentence) are collapsed into
+//         one blob and only the aggregate is checked. v3 adds
+//         `extractProseClaims` — a sentence-level extractor that
+//         returns one Claim per sentence with direction inferred from
+//         negation heads, honours a caller-supplied anchor-key skip
+//         list (source_fields / field / intake_field_1 /
+//         intake_field_2 / provision subtrees stay untouched), and
+//         accepts an optional field-token map so callers can attribute
+//         subclaims to specific ledger rows.
 //
-//   Additional v2 hardening:
-//     - REWRITE TEXT: never prepends the caveat template onto the
-//       full original claim; produces a short answer-first sentence
-//       (REPORT FLOW rule) referencing the resolved intake field.
-//     - SAFETY VALVE: for real production runs (≥3 claims), if the
-//       ledger has fewer than 5 rows OR the would-be downgrade rate
-//       exceeds 50 %, enforcement is skipped entirely. Guarantees a
-//       matcher fault can never again rewrite an entire report.
-//       Telemetry records `enforcement_skipped_reason` and the raw
-//       counts under `_meta.internal.fact_ledger`.
-//     - Telemetry additions: `match_path` counters (`resolved`,
-//       `skipped_no_field`, `skipped_field_unknown`, `skipped_silent_positive`)
-//       stay under `_meta.internal.fact_ledger`. TURN C1 leak-guard
-//       compatible — no customer-surface keys are added.
+//     (c) PROFILE-FIELD NARRATIVE PROJECTION + COMPARATIVE-FRAMEWORK
+//         ASSERTIONS (cyber doc f22f2550): narrative that projects
+//         profile fields into claims the intake does not state
+//         ("the entity operates within a HITRUST-certified perimeter"
+//         when the intake profile records a different or absent
+//         framework), and comparative-framework claims ("exceeds NIST
+//         baseline", "surpasses ISO 27001 requirements") that have no
+//         ledger basis. v3 adds `extractComparativeClaims` (pattern-
+//         driven; binds each match to a caller-supplied profile field
+//         so the standard matcher can contradict or SKIP as
+//         appropriate).
 //
-//   FAIL-OPEN everywhere: any throw returns input unchanged.
+//   HARD GUARDRAILS (v3):
+//     - No loosening of v2 matcher semantics. `checkAssertion` still
+//       SKIPS on unresolvable field and silent-positive; only explicit
+//       ledger outcomes downgrade. The safety valve stays intact.
+//     - Extractors are pure helpers: they synthesise Claim entries
+//       from prose. They do NOT rewrite anything themselves.
+//     - `rewriteUnsupported` remains answer-first, plain-language,
+//       customer-safe (no meta-commentary, no internal field IDs, no
+//       pipeline references).
+//     - `ANCHOR_SKIP_KEYS` published as the canonical skip list so
+//       wiring layers can reuse it (matches RISK-INTERNAL-VOCAB-SCRUB).
+//     - FAIL-OPEN everywhere: any throw returns [] / input unchanged.
 
-export const FACT_LEDGER_VERSION = "sb-fl-w2-2026-07-25";
+export const FACT_LEDGER_VERSION = "sb-fl-w3-2026-07-25";
 
-// Safety-valve triggers only in production-scale runs. Single-claim
-// unit tests (isolated matcher semantics) are unaffected. The wave-16
-// misfires were all ≥3 claims; every wave-16 evidence class is caught
-// at this threshold.
+/** Canonical anchor-subtree skip list. Wiring layers walking report
+ *  surfaces MUST skip these keys so structured citation anchors are
+ *  not misread as prose claims. Mirrors RISK-INTERNAL-VOCAB-SCRUB. */
+export const ANCHOR_SKIP_KEYS: readonly string[] = [
+  "source_fields",
+  "field",
+  "intake_field_1",
+  "intake_field_2",
+  "provision",
+] as const;
+
+// Safety-valve triggers only in production-scale runs.
 const SAFETY_VALVE_MIN_CLAIMS = 3;
 const SAFETY_VALVE_MIN_LEDGER_ROWS = 5;
 const SAFETY_VALVE_MAX_DOWNGRADE_RATE = 0.5;
