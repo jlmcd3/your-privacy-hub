@@ -61,6 +61,9 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "schema_version",
     "overall_score",
     "risk_level",
+    // T7-RISK-OPENING-PARAGRAPH-PILOT — deterministic slot, emit-gate overwritten.
+    // See docs/design/OPENING-PARAGRAPH-DESIGN.md and openings/risk-opening.ts.
+    "opening_summary",
     "executive_summary",
     "assessment_summary",
     "submission_summary",
