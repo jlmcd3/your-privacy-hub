@@ -329,6 +329,6 @@ Deno.serve(async (req) => {
     scanned: contracts?.length ?? 0,
     duration_ms,
     results,
-    build: "ds-t2b@2026-07-25T01:47:25Z",
+    build: "ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z",
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 });
