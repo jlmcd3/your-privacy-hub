@@ -684,7 +684,7 @@ const STAMP = "r1b2.4-ws6v21";
 // DPIA-REGISTRY-WIRING (2026-07-25) — registry-first citations + LEAK-PREV
 // P0/P1/P2 wired end-to-end. Telemetry echoes on `_meta.internal.dpia_w1_wire`
 // and `_meta.internal.emit_gate` (P2 serializer preserves them).
-export const BUILD_STAMP = "dpia-registry-wiring@2026-07-25T12:36:00Z";
+export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP}`);
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
@@ -2213,6 +2213,19 @@ async function runStitch(dpia_id: string): Promise<void> {
     } catch (e) {
       console.warn("[run-dpia-framework] DPIA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── DPIA-T6-FIX-TURN — Class A citation audit + Class B claim scrub
+    // (2026-07-25) ─────────────────────────────────────────────────────
+    // Runs AFTER _w1_dpia_wire and BEFORE the LEAK-PREV-P1 emit gate so
+    // the gate sees the neutralized surface. Telemetry rides
+    // `_meta.internal.dpia_t6fix`. Fail-open.
+    try {
+      const { applyDpiaT6Fix } = await import("./_dpia_t6_fix.ts");
+      applyDpiaT6Fix(reportData, { intake: dpiaIntake ?? {}, buildStamp: BUILD_STAMP });
+    } catch (e) {
+      console.warn("[run-dpia-framework] DPIA-T6-FIX post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
     // Runs AFTER all content-shaping passes and BEFORE the P2 serializer so
