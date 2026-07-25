@@ -660,7 +660,12 @@ export default function ADMTCheckerResult() {
                 const action = typeof entry?.action === "string" ? entry.action : "";
                 const citation = typeof entry?.citation === "string" ? entry.citation : "";
                 const deadline = typeof entry?.deadline === "string" ? entry.deadline : "";
-                const insufficient = action === "insufficient basis to state a top action";
+                // LEAK-PREV-P0: prefer the additive structured flag over the
+                // literal-text match. The string check is retained ONLY as a
+                // legacy fallback for reports generated before the flag existed.
+                const insufficient =
+                  entry?.insufficient_basis === true ||
+                  action === "insufficient basis to state a top action"; // legacy
                 return (
                   <div key={i} className="flex gap-3 px-4 py-3">
                     <span className="text-[11px] font-bold text-brand-teal shrink-0 mt-0.5">{entry?.rank ?? i + 1}</span>

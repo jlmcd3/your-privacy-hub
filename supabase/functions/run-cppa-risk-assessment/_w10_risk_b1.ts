@@ -25,7 +25,10 @@ export const W10_RISK_B1_STAMP = "w10-risk-b1@2026-07-24T12:37:00Z";
 // guard: never assert profiling absent an intake basis (B1b, above) AND
 // never DENY profiling that q5b_profiling_observation asserts. Fail-open;
 // telemetry lands under _w10_risk_b1.counters.profiling_denials_*.
-export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-24T17:20:00Z";
+export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-25T05:22:00Z";
+
+// LEAK-PREV-P0 — customer-message catalog for guard-authored prose.
+import { renderMessage, P } from "../_shared/customer-messages.ts";
 
 export interface W10RiskB1Counters {
   flags_scanned: number;
@@ -278,15 +281,12 @@ function guardProfilingDenials(
     counters.profiling_denials_scanned += 1;
     const trailing = m.slice(sentence.length);
     counters.profiling_denials_downgraded += 1;
-    // Preserve leading context; append a corrective clause that flags the
-    // contradiction rather than restating the false negative.
-    return (
-      "The intake asserts systematic-observation profiling " +
-      "(q5b_profiling_observation = Yes); the earlier statement that " +
-      sentence.trim().replace(/^"|"$/g, "").toLowerCase() +
-      " is not supported by the intake and must be reconciled" +
-      trailing
-    );
+    // LEAK-PREV-P0: reconciliation sentence rendered through the catalog
+    // (humanized field label; no raw intake IDs in customer output).
+    void sentence;
+    return renderMessage("reconciliation.required", {
+      field: P.field("q5b_profiling_observation"),
+    }) + trailing;
   });
 }
 

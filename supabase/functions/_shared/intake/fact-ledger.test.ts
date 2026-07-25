@@ -25,8 +25,8 @@ import {
 } from "./fact-ledger.ts";
 
 // ── Version pin ─────────────────────────────────────────────────────────
-Deno.test("version stamp is v3 authoring turn tag", () => {
-  assertEquals(FACT_LEDGER_VERSION, "sb-fl-w3-2026-07-25");
+Deno.test("version stamp is v4 LEAK-PREV-P0 tag", () => {
+  assertEquals(FACT_LEDGER_VERSION, "sb-fl-w4-2026-07-25");
 });
 
 // ── Builder polarity classification ─────────────────────────────────────

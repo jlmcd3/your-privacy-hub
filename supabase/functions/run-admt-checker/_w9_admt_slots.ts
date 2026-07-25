@@ -13,8 +13,10 @@ import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
 } from "../_shared/registry/admt-verified-authorities.ts";
+// LEAK-PREV-P0 — machinery-authored fallbacks route through the catalog.
+import { renderMessage } from "../_shared/customer-messages.ts";
 
-export const W9_ADMT_SLOTS_STAMP = "w9-admt-turn2-slots@2026-07-24T10:12:00Z";
+export const W9_ADMT_SLOTS_STAMP = "w9-admt-turn2-slots@2026-07-25T05:22:00Z";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,7 +148,7 @@ export function buildApplicabilityVerdict(intake: any, report: any): Applicabili
     reason = "System is ADMT but no significant-decision trigger is established under § 7001(ddd); Article 11 duties do not attach on this record.";
   } else {
     label = "insufficient_basis";
-    reason = "The record does not resolve whether the system is ADMT and/or whether it triggers a significant decision; supply the missing intake dimensions and re-run.";
+    reason = renderMessage("insufficient.basis.reason");
   }
 
   return {
@@ -181,7 +183,7 @@ const DEADLINE_SPECS: Array<{ obligation: string; pk: string; deadline: string }
   // prior verbatim quote was fabricated against § 7222(c)). Row is preserved
   // for user-facing completeness but emits information_needed rather than a
   // §-pinpoint or quote.
-  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: "Governed by CCPA response-timeline provisions (Cal. Civ. Code § 1798.130 / § 1798.145); no ADMT-subchapter row currently verified" },
+  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: renderMessage("unresolved.authority") },
 ];
 
 export function buildDeadlineTable(_intake: any, _report: any): DeadlineTableRow[] {
@@ -239,7 +241,7 @@ export function buildAdequacyFinding(intake: any, _report: any): AdequacyFinding
   const anyLdNull = elementInputs === null || elementOutput === null || elementUse === null;
   if (anyLdNull) {
     ldConclusion = "insufficient_basis";
-    ldReason = "The record does not resolve all three EDPB elements (input categories, output, and use of output) for the access-right logic disclosure under § 7222(b)(3). Supply the disclosure text or attest each element and re-run.";
+    ldReason = renderMessage("insufficient.basis.reason");
   } else if (elementInputs && elementOutput && elementUse) {
     ldConclusion = "adequate";
     ldReason = "Access-right logic disclosure names all three EDPB elements: (1) input categories, (2) output produced, and (3) how the output is used in the decision.";
@@ -267,7 +269,7 @@ export function buildAdequacyFinding(intake: any, _report: any): AdequacyFinding
   let hiReason: string;
   if (elA === null || elB === null || elC === null) {
     hiConclusion = "insufficient_basis";
-    hiReason = "The record does not resolve all three elements of the § 7001(e)(1) human-involvement test (interpretation, review with other information, and override authority). Supply the missing intake dimensions and re-run.";
+    hiReason = renderMessage("insufficient.basis.reason");
   } else if (elA && elB && elC) {
     hiConclusion = "qualifies";
     hiReason = "Human reviewer satisfies all three § 7001(e)(1) elements: (A) knows how to interpret the output, (B) reviews the output alongside other information, and (C) has authority to override.";
