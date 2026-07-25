@@ -85,7 +85,7 @@ Deno.test("S1 emits § 7150(b) triggers in statutory order", () => {
       q15_sensitive_pi: "Yes",
       q18_admt_use: "Yes",
       q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
-      q18b_admt_training: "Yes",
+      q18b_admt_training: "Yes — training ADMT for significant decisions",
     },
     { asOfDate: AS_OF },
   );
