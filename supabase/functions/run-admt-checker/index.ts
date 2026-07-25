@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w19-admt-turna@2026-07-25T07:57:53Z";
+export const BUILD_STAMP = "w20-admt-turna@2026-07-25T09:36:35Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -37,6 +37,8 @@ import { applyW19AdmtJoin2, W19_ADMT_JOIN2_STAMP } from "./_w19_admt_join2.ts";
 console.log(`[run-admt-checker] boot admt_join2_stamp=${W19_ADMT_JOIN2_STAMP}`);
 import { applyW19AdmtTurnA, W19_ADMT_TURNA_STAMP } from "./_w19_admt_turna.ts";
 console.log(`[run-admt-checker] boot admt_turna_stamp=${W19_ADMT_TURNA_STAMP}`);
+import { applyW20AdmtTurnA, W20_ADMT_TURNA_STAMP } from "./_w20_admt_turna.ts";
+console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
@@ -2337,6 +2339,21 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] WAVE19-FIX TURN A failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── WAVE20-FIX TURN A (2026-07-25) — B1/B2/B4 sanitiser.
+    // B1: variant-tolerant splice scrub ("the <adj/num> the applicable ...").
+    // B2: keyless fallback rewrite (citation → §§ 7200–7222; prose → "the ADMT subchapter").
+    // B4: empty information_needed object filter.
+    // Runs AFTER w19 turnA so w19 A1 owns keyed entries; b2 covers only keyless.
+    try {
+      const w20a = applyW20AdmtTurnA(report, ((assessment as any)?.intake_data as Record<string, unknown>) ?? {});
+      console.log(JSON.stringify({
+        evt: "_w20_admt_turna", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w20a,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] WAVE20-FIX TURN A failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
