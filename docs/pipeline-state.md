@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T20:26:12Z — CPPA-CORPUS-1798-140-VERBATIM docs+corpus micro-turn DONE (provision_texts `cppa-1798-140-d` approved; source_document_cache updated; T6 batches 072eef66 + 6f90f7b8 undisturbed).
+**Last updated:** 2026-07-25T20:29:42Z — CPPA-CORPUS-1798-140-VERBATIM AMENDMENT DONE (reconciled to corpus-native source; provision_texts `ccpa-1798-140` approved from `cppa_authorities`; erroneous `cppa-1798-140-d` deleted; leginfo cache entry deleted; CEO catch + controller error ruled; T6 batches 072eef66 + 6f90f7b8 undisturbed).
 
 ---
 
