@@ -64,6 +64,8 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
+- **Turn:** `RISK-W17-COLLAPSE-COVERAGE-2` — team-reviewed (five-lens); deploy on `run-cppa-risk-assessment`. Full detail duplicated in §2 item 22 (root cause of wave-17 escape, full list of newly covered slots, pasted 81/81 green deno output, files touched, deploy discipline). Prior turn (`DS-T2b-ORCH-WIRING`) retained below.
+
 - **Turn:** `DS-T2b-ORCH-WIRING` — team-reviewed (five-lens); deploy on `quality-batch-orchestrator` + `delivery-sentinel`; cron migration applied.
 - **Real-time:** 2026-07-25T01:48:37Z (orchestrator boot log; sentinel deployed and sweeping every minute; sandbox `date -u` at lock re-check 01:47:25Z; BUILD_STAMP fresh-clock 01:47:25Z).
 - **Scope (three-front change, no customer-surface impact):** (1) wire `quality-batch-orchestrator` to the DS-T1 `delivery_contracts` helper — create at kickoff, heartbeat on existing cadence, terminate on terminal transitions, all fail-open; (2) schedule `delivery-sentinel` every 60s via pg_cron (idempotent unschedule-then-schedule); (3) extend the sentinel harness branch to auto-reconcile `quality_batch_runs` subjects on `harness_stalled`.
