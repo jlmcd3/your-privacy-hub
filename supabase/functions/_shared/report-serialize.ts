@@ -46,13 +46,19 @@ export interface SerializerTelemetry {
   crash_message?: string;
 }
 
+// Counter closure — tracks TOTAL drop attempts, keeps only first N paths.
+interface DropSink { paths: string[]; total: number }
+function makeSink(): DropSink { return { paths: [], total: 0 }; }
+
 function deepClone<T>(x: T): T {
   return JSON.parse(JSON.stringify(x));
 }
 
-function record(dropped: string[], path: string): void {
-  if (dropped.length < DROPPED_KEYS_CAP) dropped.push(path);
+function record(sink: DropSink, path: string): void {
+  sink.total += 1;
+  if (sink.paths.length < DROPPED_KEYS_CAP) sink.paths.push(path);
 }
+
 
 function pruneObject(
   obj: Record<string, unknown>,
