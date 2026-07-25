@@ -819,3 +819,42 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **QUEUED (not this turn):** `h6_admt_governing_anchor` (own turn); post-fix admt measurement (wave-27) to verify blanket-range hit count drops to 0 in `notice_gaps` / `opt_out_gaps` and remaining `rubric_invented_admt_section` / `rubric_citation_misapplied` counts on doc-2a8f5bda / doc-f140f3c6 shapes.
 
     **Sandbox:** controller VM disk-full posture persists (per items 84–90); backend access via Lovable tools per Backend-access law.
+
+92. **SHIPPED — DPIA-T6-FIX-TURN** @ 2026-07-25T23:33:00Z (sandbox clock; deploy 2026-07-25T23:31:49Z boot-log-confirmed carrying `build_stamp=dpia-t6fix@2026-07-25T23:31:00Z`). Deploy-guarded fix on `run-dpia-framework` ONLY. **Discharges** T6-NONCPPA-MEASUREMENT-BATCH-1 (item 81) DPIA per-tool backlog items (a) `citation_misapplied` (fail_count 2 HIGH) and (b) `unsupported_business_claim` (fail_count 1 HIGH). MIRRORS `LIA-T6-FIX-TURN` (item 89) exactly, adapted to DPIA — same doctrine, same helper set, same telemetry shape. Deterministic post-emitter — the model NEVER writes/edits customer prose; fixes are drop-only (Class A) or neutral-downgrade-only (Class B).
+
+    **Seam order:** AFTER `_w1_dpia_wire` (item 51; registry-first pinpoint stamping + write-around) and BEFORE the LEAK-PREV-P1 emit gate + P2 whitelist serializer — so the gate sees the neutralized surface and `_meta.internal.dpia_t6fix` telemetry survives via the `_meta.internal` verbatim rule (no schema change).
+
+    **Class A — key-selection-mismatch citation audit** (port of W24 admt Class A as adapted in item 89(A)):
+    - verified nodes (`proposition_key ∈ DPIA_VERIFIED_AUTHORITIES` AND `citation_verified=true`) → preserved untouched (already substituted by W1 wire);
+    - write-around nodes (`proposition_key ∈ DPIA_UNANCHORED_PROPOSITIONS` AND `write_around=true`) → left alone (W1 already nulled the pinpoints);
+    - unresolvable-key nodes (`proposition_key` set, but not in registry and not on unanchored list) → `citation` / `subsection` / `verbatim_quote` nulled; `citation_verified=false`; `pinpoint_omitted=true`;
+    - keyless nodes carrying syntactically-truncated `citation` strings (unbalanced parens, trailing `[,\-–—;:(]`, bare `Art.`/`Article`/`Section`/`§`) → same null-and-flag treatment.
+    - **Omission over invention** throughout; the module NEVER invents or completes a citation.
+
+    **Class B — unsupported-business-claim scrub** (port of item 89(B)): recursive walker with SKIP_SUBTREE_KEYS matching W1 wire (`_meta`, `_staging`, `_drafting_record`, `_normalized_intake`, `_revision`, `deterministic_checks`, `annotations`, `lint_warnings`, `engagement_map`, `enforcement_meta`, `enforcement_precedents`, `enforcement_context`, `citation_ledger`); ANCHOR_KEYS (`field`, `source_fields`, `citation`, `citations`, `regulatory_citation`, `verbatim_quote`, `provision`, `proposition_key`, `id`, `element_id`, `requirement_id`, `key`, `stamp`, `build_stamp`, `subsection`, `governing_anchor`, `citation_verified`, `write_around`) never treated as prose. Sentences containing `\b(confirms?|shows?|establishes?|demonstrates?|proves?|verifies)\b` downgraded to canonical `"The organisation should confirm whether the described position applies here."` UNLESS a content token (≥4 chars, minus DPIA-tuned stopwords: `data`, `processing`, `assessment`, `impact`, `dpia`, `gdpr`, `article`, `section`, plus generic corpus/verb noise) appears in the flattened DPIA intake blob. Neutral downgrade phrase NEVER contains "information needed" (RULE 2.7 S1 — intake gaps only; citation-resolution gaps stay in Class A). Idempotent via neutral-sentence guard.
+
+    **Doctrine:** whole-sentence excision (item 84c) via `splitSentences` + `rejoin` — no partial excision, no splice residue. Regression-pinned in `_dpia_t6_fix.test.ts` test "Doctrine: whole-sentence excision, no splice residue".
+
+    **Fail-open:** every helper wrapped in try/catch; module-level try/catch on the entry; guarded dynamic `import()` in `index.ts` — availability never blocked.
+
+    **Telemetry:** `_meta.internal.dpia_t6fix = {version, stamp, build_stamp, classA_pinpoint_substitutions, classA_pinpoint_omissions, classB_downgrades, classB_preserved, sentences_excised, strings_scanned, errors}` (schema `DpiaT6FixCounters`). Survives the DPIA P2 whitelist serializer via the `_meta.internal` verbatim rule.
+
+    **Tests:** `supabase/functions/run-dpia-framework/_dpia_t6_fix.test.ts` — 15/15 green (`deno test --allow-all _dpia_t6_fix.test.ts`, 13ms wall). Mirrors item 89 test list: Class A truncated / unresolved / verified / write-around; Class B downgrade / preserved / no-info-needed; whole-sentence-excision doctrine; anchor-key immunity; reserved-subtree immunity; idempotency; fail-open on `null`/circular input; telemetry write; `_meta.internal` preservation; truncated-citation detector unit.
+
+    **Deploy-guard snapshot (pre-deploy 2026-07-25T23:31:03Z):** `quality_batch_runs (running/in_progress/queued) = 0`; `quality_runs (running/in_progress/queued) = 0`; in-flight `cppa_assessments (running/in_progress/processing/queued) = 0`. Wave-27 (~00:15Z) not touched — this deploy is on `run-dpia-framework`, a non-CPPA function; landed with ~44-minute margin.
+
+    **Boot-log proof (live edge-function logs):**
+    - `2026-07-25T23:32:07Z INFO [qb9-rcb1] run-dpia-framework build active · core=3.10.3-w3-t4-inference-discipline · dpia=r1b2.4-ws6v21 · build_stamp=dpia-t6fix@2026-07-25T23:31:00Z`
+    - `2026-07-25T23:32:07Z INFO {"evt":"dpia_build_stamp","build_stamp":"dpia-t6fix@2026-07-25T23:31:00Z"}`
+    - `2026-07-25T23:32:07Z INFO [run-dpia-framework] boot dpia-t6fix@2026-07-25T23:31:00Z`
+    - All prior stage stamps (`W1_DPIA_WIRE_STAMP=w1-dpia-wire@2026-07-25T12:36:00Z`, emit-gate `eg-w1-2026-07-25`, serializer `rs-w1-2026-07-25`) echoed unchanged.
+
+    **Five-lens TEAM-REVIEWED + REPORT FLOW & PLAIN LANGUAGE:** no new customer prose introduced (Class A drops; Class B swaps for a single canonical neutral sentence); plain SVO preserved on surviving sentences; no "information needed" phrasing added anywhere; rejoin trims interstitial whitespace so no double-space or hanging-punctuation residue survives; anchor keys and reserved subtrees provably immune (regression-pinned).
+
+    **PROHIBITED SURFACES — CONFIRMED UNTOUCHED:** no rubric / grader / golden / contract / fixture / sample / registry / corpus edits (instrument `gc-2026-07-25-s4-eu-uk-ca-au-sg` FROZEN); no sample regeneration; no Fable 5 anywhere; no CPPA functions (`run-admt-checker`, `run-cppa-risk-assessment`, `run-cyber-checker`); no T7 opening surfaces; no `_w1_dpia_wire` modification (composed downstream only); no other edge functions; no wave harness; no T6 measurement pipeline; no pricing / payment / design-tokens / customer-revision-path / signup changes.
+
+    **Files touched (single atomic commit):** `supabase/functions/run-dpia-framework/_dpia_t6_fix.ts` (new, ~300 lines), `supabase/functions/run-dpia-framework/_dpia_t6_fix.test.ts` (new, 15 tests), `supabase/functions/run-dpia-framework/index.ts` (BUILD_STAMP bump `dpia-registry-wiring@2026-07-25T12:36:00Z → dpia-t6fix@2026-07-25T23:31:00Z` + guarded `applyDpiaT6Fix` import/wire block inserted between W1 wire and emit gate, ~9 lines added), `docs/courier/DPIA-T6-FIX-TURN-2026-07-25.md` (new), `docs/pipeline-state.md` (this item + header restamp).
+
+    **QUEUED (not this turn, own turns):** governance Class A citation-audit sibling (item 81(a) for governance); Class B business-claim scrub siblings for `generate-dpa`, `run-governance-assessment`, `generate-ir-playbook` (each item 81(b)). Post-fix DPIA measurement to verify `citation_misapplied` and `unsupported_business_claim` counts on the T6 batch-B doc shapes.
+
+    **Sandbox:** controller VM disk-full posture persists (per items 84–91); backend access via Lovable tools per Backend-access law.
