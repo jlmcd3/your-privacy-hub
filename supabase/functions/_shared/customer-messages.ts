@@ -289,6 +289,7 @@ export const KNOWN_INTAKE_KEYS: readonly string[] = Object.freeze([
   ...cppaCybersecurityContract.fields.map((f) => f.key),
   ...dpiaFrameworkContract.fields.map((f) => f.key),
   ...liAssessmentStageBContract.fields.map((f) => f.key),
+  ...governanceContract.fields.map((f) => f.key),
 ]);
 
 /** Returns the humanized label for an intake field or the neutral
