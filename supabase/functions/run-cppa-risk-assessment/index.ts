@@ -2760,6 +2760,20 @@ async function runPipeline(assessment_id: string) {
     });
 
     try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster((row as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
+    // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
+    // Runs AFTER every content-shaping pass (W6/W10/W12/fact-ledger/W18)
+    // and IMMEDIATELY BEFORE the terminal complete-write; gate telemetry
+    // lands on `_meta.internal.emit_gate`. Fail-visible; never blocks.
+    try {
+      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      runEmitGate(report_data as any, {
+        tool: "cppa_risk_assessment",
+        intakeRoster: (row as any).intake_data ?? {},
+      });
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
