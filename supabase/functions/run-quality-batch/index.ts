@@ -2171,9 +2171,11 @@ async function runBatch(runId: string): Promise<void> {
       // resumed isolate cannot re-trigger). Never targets a score; the
       // trigger is deterministic-check failure only.
       try {
-        const detChecksAttempt1: any[] = Array.isArray((reportData as any)?.deterministic_checks)
-          ? (reportData as any).deterministic_checks
-          : [];
+        const _rdA1 = reportData as any;
+        const detChecksAttempt1: any[] = Array.isArray(_rdA1?._meta?.internal?.deterministic_checks)
+          ? _rdA1._meta.internal.deterministic_checks
+          : (Array.isArray(_rdA1?.deterministic_checks) ? _rdA1.deterministic_checks : []);
+
         const alreadyRegenerated = Number((reportData as any)?.regen_round ?? 0) > 0;
         if (
           !alreadyRegenerated
@@ -2415,9 +2417,11 @@ async function runBatch(runId: string): Promise<void> {
       // so they count toward checks_total / checks_passed alongside grader
       // findings. Deterministic here means "computed in code" — no LLM.
       try {
-        const detChecks: any[] = Array.isArray((reportData as any)?.deterministic_checks)
-          ? (reportData as any).deterministic_checks
-          : [];
+        const _rdM = reportData as any;
+        const detChecks: any[] = Array.isArray(_rdM?._meta?.internal?.deterministic_checks)
+          ? _rdM._meta.internal.deterministic_checks
+          : (Array.isArray(_rdM?.deterministic_checks) ? _rdM.deterministic_checks : []);
+
         if (detChecks.length) {
           const detRows = detChecks.map((f: any) => ({
             run_id: runId, doc_id: docRowId, tool, run_number: runNumber,

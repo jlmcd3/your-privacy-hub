@@ -2321,6 +2321,21 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
+    // Runs AFTER every content-shaping pass and IMMEDIATELY BEFORE the
+    // W12-C1 metadata strip so gate telemetry rides `_meta.internal`.
+    // Fail-visible; never blocks emission.
+    try {
+      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      runEmitGate(report as any, {
+        tool: "cppa_admt",
+        intakeRoster: (assessment as any).intake_data ?? {},
+      });
+    } catch (e) {
+      console.warn("[run-admt-checker] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── WAVE12-FIX TURN C1 — customer-payload metadata strip ──
     // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
     // _w9_admt_wire, _w9_admt_slots, _w9_admt_regen, _w9_admt_pre_emit, and

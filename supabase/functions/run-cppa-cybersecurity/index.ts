@@ -1843,6 +1843,20 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
 
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((row as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+    // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
+    // Runs AFTER every content-shaping pass (W6/W12-E1/fact-ledger/W17
+    // boiler) and IMMEDIATELY BEFORE the terminal complete-write; gate
+    // telemetry lands on `_meta.internal.emit_gate`. Fail-visible.
+    try {
+      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      runEmitGate(report as any, {
+        tool: "cppa_cybersecurity",
+        intakeRoster: (row as any).intake_data ?? {},
+      });
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
