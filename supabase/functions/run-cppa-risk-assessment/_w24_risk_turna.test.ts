@@ -185,7 +185,7 @@ Deno.test("W24-B: reserved _meta subtree preserved verbatim", () => {
 
 Deno.test("W24-B: fail-open on malformed input", () => {
   const { counters, report } = applyW24RiskTurnA(null as any);
-  assertEquals(counters.version, "risk-w24-turna-v1-2026-07-25");
+  assertEquals(counters.version, "risk-w24-turna-v2-2026-07-25");
   assertEquals(report as any, null);
 });
 
@@ -259,7 +259,7 @@ Deno.test("W24-A bimodal: unresolved branch emits NO cohort claim and adds info-
 Deno.test("W24-A bimodal: idempotent — second pass does not double-emit info-needed ask", () => {
   const report: Record<string, unknown> = {
     cybersecurity_audit_required: true,
-    scope_and_triggers: { cybersecurity_audit: "Yes" },
+    scope_and_triggers: { cybersecurity_audit: "Yes — the business meets § 7120 thresholds" },
   };
   const intake = {};
   const once = applyW21RiskTurnA(report, { intake }).report;
