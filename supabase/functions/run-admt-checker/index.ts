@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w26-admt-citation-audit@2026-07-25T23:34:00Z";
+export const BUILD_STAMP = "h7-admt-blanket-range@2026-07-25T23:48:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -46,6 +46,7 @@ import { applyW24AdmtAudit, W24_ADMT_AUDIT_STAMP } from "./_w24_admt_audit.ts";
 import { applyW24AdmtH6, W24_ADMT_H6_STAMP } from "./_w24_admt_h6.ts";
 import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_sanitizer_fix.ts";
 import { applyW26AdmtCitationAudit, W26_ADMT_CITATION_AUDIT_STAMP } from "./_w26_admt_citation_audit.ts";
+import { applyH7AdmtBlanketRange, H7_ADMT_BLANKET_RANGE_STAMP } from "./_h7_admt_blanket_range.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
@@ -2521,6 +2522,27 @@ Return this JSON structure exactly:
     } catch (e) {
       console.warn("[run-admt-checker] W26-ADMT-CITATION-AUDIT failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── H7-ADMT-BLANKET-RANGE (2026-07-25) ────────────────────────────
+    // Dispatch H7-ADMT-BLANKET-RANGE-2026-07-25 — discharges queued
+    // h7_admt_blanket_range (WAVE-26 DIGEST driver (ii)). Relabels the
+    // blanket-range citation "11 CCR §§ 7200–7222" to SECTION-LEVEL
+    // pinpoints only (§ 7220 in notice_gaps context, § 7221 in
+    // opt_out_gaps context) — subdivision texts are unapproved corpus.
+    // Elsewhere: strip the citation parenthetical or excise the whole
+    // sentence (item 84c). Runs AFTER W25 sanitizer + W26 audit and
+    // BEFORE LEAK-PREV-P1 emit gate. Fail-open.
+    try {
+      const h7 = applyH7AdmtBlanketRange(report, BUILD_STAMP);
+      console.log(JSON.stringify({
+        evt: "h7_admt_blanket_range", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: H7_ADMT_BLANKET_RANGE_STAMP, ...h7,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] H7-ADMT-BLANKET-RANGE failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
 
 
