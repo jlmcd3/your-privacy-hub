@@ -24,7 +24,7 @@ edits. No deploy.
 | Kind | Path | Purpose |
 | --- | --- | --- |
 | new | `supabase/functions/_shared/registry/lia-verified-authorities.ts` | Registry data (16 rows + 22-item unanchorable list + empty paraphrase list) |
-| new | `supabase/functions/_tests/lia-registry.test.ts` | Deterministic substring pin-tests against pasted-verbatim corpus snapshots |
+| new | `supabase/functions/_tests/lia-registry.test.ts` | LIVE-corpus substring pin-test (fetches `provision_texts` + `edpb_guidelines` via PostgREST at test time) |
 | edit | `docs/pipeline-state.md` | Item 52 (DONE) + stamp-doctrine deviation ruling for item 51 + `Last updated` header |
 | new | `docs/courier/LIA-REGISTRY-AUTHORING-2026-07-25.md` | This report |
 
