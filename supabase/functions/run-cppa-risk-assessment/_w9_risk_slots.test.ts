@@ -86,9 +86,9 @@ Deno.test("attachAndValidateSlots emits all three keys and validates clean", () 
   const { attached, validation } = attachAndValidateSlots(r, baseIntake);
   assertEquals(attached.sort(), ["attestation_block", "risk_register", "submission_summary"]);
   assertEquals(validation.ok, true, JSON.stringify(validation.errors));
-  assert(r.attestation_block);
-  assert(r.submission_summary);
-  assert(r.risk_register);
+  assert((r as any).attestation_block);
+  assert((r as any).submission_summary);
+  assert((r as any).risk_register);
 });
 
 Deno.test("validateSlots flags missing statutory anchors", () => {

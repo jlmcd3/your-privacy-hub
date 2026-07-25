@@ -185,7 +185,7 @@ Deno.test("W24-B: reserved _meta subtree preserved verbatim", () => {
 
 Deno.test("W24-B: fail-open on malformed input", () => {
   const { counters, report } = applyW24RiskTurnA(null as any);
-  assertEquals(counters.version, "risk-w24-turna-v1-2026-07-25");
+  assertEquals(counters.version, "risk-w24-turna-v2-2026-07-25");
   assertEquals(report as any, null);
 });
 
@@ -214,4 +214,58 @@ Deno.test("W24-A regression pin (doc 93a8313b input shape): resolved cohort emit
   assert(!/on\s+or\s+around|approximately|roughly|circa|~\s*April/i.test(a1), a1);
   // Deterministic date preserved.
   assert(a1.includes("April 1, 2030"), a1);
+});
+
+// ── Bimodal emitter tests (W24-RISK-TURNA §1) ──────────────────────────
+import { applyW21RiskTurnA } from "./_w21_risk_turna.ts";
+
+Deno.test("W24-A bimodal: resolved branch emits unhedged claim with § 7121(a)(3) pinpoint", () => {
+  const report: Record<string, unknown> = {
+    cybersecurity_audit_required: true,
+    scope_and_triggers: { cybersecurity_audit: "Yes — the business meets § 7120 thresholds" },
+  };
+  const intake = { annual_gross_revenue_2028: "$25 million" };
+  const { report: out, counters } = applyW21RiskTurnA(report, { intake });
+  assertEquals(counters.a2_cohort_emitted, 1);
+  const arr = (out as any).cross_tool_recommendations;
+  assert(Array.isArray(arr) && arr.length >= 1);
+  const entry = arr.find((e: any) => e?.id === "ctr_cyber_audit_7121a3");
+  assert(entry, "cohort entry present");
+  assertEquals(entry.citation, "11 CCR § 7121(a)(3)");
+  assertEquals(entry.deadline, "2030-04-01");
+  // Unhedged: no hedge token near the resolved anchor.
+  assert(!/(approximately|roughly|about|around|circa|~|on\s+or\s+(?:around|about))\s+April\s+1,?\s+2030/i.test(entry.action), entry.action);
+});
+
+Deno.test("W24-A bimodal: unresolved branch emits NO cohort claim and adds info-needed with EMPTY citation/quote", () => {
+  const report: Record<string, unknown> = {
+    cybersecurity_audit_required: true,
+    scope_and_triggers: { cybersecurity_audit: "Yes — the business meets § 7120 thresholds" },
+  };
+  const intake = {}; // no revenue signal → cannot resolve cohort
+  const { report: out, counters } = applyW21RiskTurnA(report, { intake });
+  assertEquals(counters.a2_cohort_emitted, 0);
+  assertEquals(counters.a2_cohort_info_needed_emitted, 1);
+  const ctr = (out as any).cross_tool_recommendations ?? [];
+  assert(!ctr.some((e: any) => e?.id === "ctr_cyber_audit_7121a3"), "no cohort emitted when unresolved");
+  const info = (out as any).information_needed ?? [];
+  const ask = info.find((e: any) => e?.id === "info_cyber_audit_7121a3_revenue");
+  assert(ask, "info-needed ask emitted");
+  assertEquals(ask.citation, "");
+  assertEquals(ask.verbatim_quote, "");
+  assertEquals(ask.field, "annual_gross_revenue_2028");
+});
+
+Deno.test("W24-A bimodal: idempotent — second pass does not double-emit info-needed ask", () => {
+  const report: Record<string, unknown> = {
+    cybersecurity_audit_required: true,
+    scope_and_triggers: { cybersecurity_audit: "Yes — the business meets § 7120 thresholds" },
+  };
+  const intake = {};
+  const once = applyW21RiskTurnA(report, { intake }).report;
+  const { counters, report: twice } = applyW21RiskTurnA(once as any, { intake });
+  const info = (twice as any).information_needed ?? [];
+  const asks = info.filter((e: any) => e?.id === "info_cyber_audit_7121a3_revenue");
+  assertEquals(asks.length, 1);
+  assertEquals(counters.a2_cohort_info_needed_emitted, 0);
 });

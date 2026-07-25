@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "w24-risk-turna@2026-07-25T18:08:00Z";
+export const BUILD_STAMP = "w24-risk-turna@2026-07-25T18:14:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
@@ -135,7 +135,7 @@ console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-ris
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
 // instance). Non-blocking; warns on drift; no behavior change.
-verifyRegistryAgainstCorpus(supabase).catch(() => { /* already warns internally */ });
+verifyRegistryAgainstCorpus(supabase as any).catch(() => { /* already warns internally */ });
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1292,7 +1292,8 @@ async function runPipeline(assessment_id: string) {
         // Historical (already-frozen) docs are unaffected.
         if (Array.isArray(parsed?.information_needed)) {
           const before = parsed.information_needed;
-          const after = rewriteI3CompositionAsks(before, intake);
+          const _intakeForI3 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+          const after = rewriteI3CompositionAsks(before, _intakeForI3);
           if (after !== before) {
             parsed.information_needed = after;
             console.warn(JSON.stringify({

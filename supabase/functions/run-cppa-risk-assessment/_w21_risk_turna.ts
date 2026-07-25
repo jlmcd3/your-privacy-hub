@@ -130,6 +130,7 @@ export interface W21RiskTurnACounters {
   a1_field_attributions_added: number;
   a1_contradictions_blocked: number;
   a2_cohort_emitted: 0 | 1;
+  a2_cohort_info_needed_emitted: 0 | 1;
   a2_cohort_skipped_reason?: string;
   a4_info_needed_dropped: number;
 }
@@ -141,6 +142,7 @@ const emptyCounters = (): W21RiskTurnACounters => ({
   a1_field_attributions_added: 0,
   a1_contradictions_blocked: 0,
   a2_cohort_emitted: 0,
+  a2_cohort_info_needed_emitted: 0,
   a4_info_needed_dropped: 0,
 });
 
@@ -256,8 +258,35 @@ function maybeEmitCohortRow(
       c.a2_cohort_skipped_reason = "already_present";
       return;
     }
+    // W24-RISK-TURNA (bimodal hardening): if the cohort does NOT resolve
+    // deterministically from intake, emit NO cohort claim. Route through
+    // the existing information_needed path with empty citation/quote so
+    // the customer surface never receives a hedged "resolved" claim. Item
+    // 74 / dispatch W24-RISK-TURNA-2026-07-25 §1(b).
     if (!revenueUnder50M(intake ?? null)) {
       c.a2_cohort_skipped_reason = "no_revenue_signal_under_50m";
+      try {
+        const infoArr = Array.isArray(report.information_needed)
+          ? report.information_needed as unknown[]
+          : [];
+        const alreadyAsked = infoArr.some((e: any) =>
+          e && typeof e === "object" && (e.field === "annual_gross_revenue_2028" ||
+            (Array.isArray(e.source_fields) && e.source_fields.includes("annual_gross_revenue_2028")))
+        );
+        if (!alreadyAsked) {
+          (report as any).information_needed = [...infoArr, {
+            id: "info_cyber_audit_7121a3_revenue",
+            topic: "cybersecurity_audit_deadline_cohort",
+            field: "annual_gross_revenue_2028",
+            source_fields: ["annual_gross_revenue_2028"],
+            prompt:
+              "Confirm the business's annual gross revenue for 2028 so the § 7121 cybersecurity-audit cohort can be determined.",
+            citation: "",
+            verbatim_quote: "",
+          }];
+          c.a2_cohort_info_needed_emitted = 1;
+        }
+      } catch { /* fail-open */ }
       return;
     }
     const arr = Array.isArray(report.cross_tool_recommendations)
