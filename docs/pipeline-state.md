@@ -66,6 +66,8 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
+- **Turn:** `RISK-INTERNAL-VOCAB-SCRUB` — team-reviewed (five-lens); deploy on `run-cppa-risk-assessment`. Full detail duplicated in §2 item 23 (root cause: prompt-only ban with no deterministic enforcement; contract-derived label map from `cppaRiskContract.fields[].key`; walker skips `source_fields`/`field`/`intake_field_1`/`intake_field_2`/`provision` anchor subtrees; fail-open; pass runs after VA-stamp / W18-collapse2 and before `freezeOpenItemsOnFirstRun`; pasted 88/88 green deno output; BUILD_STAMP `w18-risk-vocabscrub@2026-07-25T03:34:41Z`; deploy 03:34:41Z after 03:33:46Z green lock re-check; boot-log capture pending first invocation). Prior turn (`ADMT-W17-FALLBACK-JOIN-2`) retained below.
+
 - **Turn:** `ADMT-W17-FALLBACK-JOIN-2` — team-reviewed (five-lens); deploy on `run-admt-checker`. Full detail duplicated in §2 item 24 (root cause of fallback-join/self-fusion + insufficient-basis meta-commentary leak, sanitizer + reword implementation, boot-log proof at 03:22:31Z, pasted 17/17 green W19 test output + 92/1 full-suite note with pre-existing failure disclosed, files touched, deploy discipline). Prior turn (`RISK-W17-COLLAPSE-COVERAGE-2`) retained below.
 
 - **Turn:** `RISK-W17-COLLAPSE-COVERAGE-2` — team-reviewed (five-lens); deploy on `run-cppa-risk-assessment`. Full detail duplicated in §2 item 22 (root cause of wave-17 escape, full list of newly covered slots, pasted 81/81 green deno output, files touched, deploy discipline). Prior turn (`DS-T2b-ORCH-WIRING`) retained below.
