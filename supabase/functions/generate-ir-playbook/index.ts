@@ -382,7 +382,7 @@ W3-T4 — THRESHOLD-GATE DISCIPLINE (transfer from ADMT/CYBER): every regime-spe
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
 const IR_VERSION = "v3.9.1-cv1-ff-2026-07-19";
-export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T23:10:00Z-b";
+export const BUILD_STAMP = "ir-playbook-registry-wiring@2026-07-25T14:50:00Z";
 console.log(`[generate-ir-playbook] boot build_stamp=${BUILD_STAMP}`);
 
 const corsHeaders = {
@@ -1768,7 +1768,7 @@ let playbook_text = lint.clean;
           console.warn("[generate-ir-playbook] format-checks non-fatal:", (e as Error).message);
         }
 
-        const report_data: Record<string, any> = {
+        let report_data: Record<string, any> = {
           portals,
           enforcement_precedents: enforcement_context.slice(0, 5),
           enforcement_meta: enforcementMeta,
@@ -1779,6 +1779,7 @@ let playbook_text = lint.clean;
             : [],
           deterministic_checks: ir_deterministic_checks,
           generated_at: new Date().toISOString(),
+          build_stamp: BUILD_STAMP,
           _meta: { prompt_version: stampPromptVersion("ir-playbook", IR_VERSION) },
         };
         try {
@@ -1789,6 +1790,38 @@ let playbook_text = lint.clean;
         } catch (e) {
           console.warn("[generate-ir-playbook] insufficient-info guard error:", e);
         }
+
+        // ── IR-PLAYBOOK-REGISTRY-WIRING (2026-07-25) — deterministic post-pass ──
+        // Registry-first citation stamping + write-around; telemetry under
+        // `_meta.internal.ir_w1`. Fail-open; never blocks emission.
+        try {
+          const { applyW1IrWire } = await import("./_w1_ir_wire.ts");
+          applyW1IrWire(report_data);
+        } catch (e) {
+          console.warn("[generate-ir-playbook] IR-PLAYBOOK-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
+        }
+        // ── LEAK-PREV-P1 — EMIT GATE ─────────────────────────────────────
+        try {
+          const { runEmitGate } = await import("../_shared/emit-gate.ts");
+          runEmitGate(report_data as any, {
+            tool: "ir_playbook",
+            intakeRoster: (body as unknown) as Record<string, unknown>,
+          });
+        } catch (e) {
+          console.warn("[generate-ir-playbook] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+        }
+        // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER ──────────────────────
+        try {
+          const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+          const { IR_PLAYBOOK_REPORT_SCHEMA } = await import("../_shared/report-schemas/ir-playbook.ts");
+          const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, IR_PLAYBOOK_REPORT_SCHEMA);
+          if (!telemetry.crashed && serialized && typeof serialized === "object") {
+            report_data = serialized as any;
+          }
+        } catch (e) {
+          console.warn("[generate-ir-playbook] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
+        }
+
 
         // Stage 1: metering + version retention (written BEFORE status:complete).
         await recordRunMeterAndVersion(supabase, {
