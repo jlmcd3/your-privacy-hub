@@ -789,6 +789,10 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
   await log(row.id, `Campaign wave #${nextWave}: ${eligible.length} tool(s), concurrency=${concurrency}, batch_size=${batchSize}`);
   await logCampaign(campaign.id, `Wave #${nextWave} started → batch ${row.id} · tools=[${eligible.join(", ")}] · est +${(est / 100).toFixed(2)} USD (cumulative ${(nowSpend / 100).toFixed(2)}) · basis=${CAMPAIGN_TOKEN_BASIS}`);
   await logCampaign(campaign.id, `NOTE: cost basis corrected to Opus (~$0.51/doc, ${CAMPAIGN_EST_CENTS_PER_DOC}¢/doc). Historical estimated_spend_cents rows written before QB-P17 used Sonnet pricing (~$0.10/doc) and materially undercount actual burn (~5×).`, "warn");
+  await dcCreateBatchContract(CONTRACT_DEPS, row.id, {
+    origin: "campaignWave", campaign_id: campaign.id, wave_number: nextWave,
+    tools: eligible, batch_size: batchSize, concurrency,
+  });
 
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
