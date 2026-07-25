@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-25T03:52:00Z — FACT-LEDGER-W17-GAP DONE-AUTHORING (`_shared/intake/fact-ledger.ts` `sb-fl-w3-2026-07-25`); wiring/deploy deferred to next between-waves window.
+**Last updated:** 2026-07-25T04:57:00Z — DS-T2c-SENTINEL-FALSEKILL-HOTFIX DEPLOYED (`delivery-sentinel` `ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z` + `quality-batch-orchestrator` `ds-t2c-orch-hbfix@2026-07-25T04:54:00Z`); wave-18 batch `cf953d1c` reconciled and re-adopted under fresh 900/5400 harness SLA (fresh contract `d3836dd5`; historic terminal `366a6028` preserved).
 
 ---
 
