@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T21:02:21Z — SHIPPED T7-RISK-PILOT (deterministic `opening_summary` slot builder for `run-cppa-risk-assessment` shipped per authoritative spec `docs/design/OPENING-PARAGRAPH-DESIGN.md`; model NEVER writes the opening; emit-gate overwrite pre-serializer; corpus-pinned to `cppa_authorities` row `Cal. Civ. Code § 1798.140`; 12/12 Deno tests green; BUILD_STAMP `t7-risk-opening-pilot@2026-07-25T21:01:15Z` boot-confirmed 21:02:18Z).
+**Last updated:** 2026-07-25T21:05:00Z — W25-ADMT-SPLICE-ATTRIBUTION (docs-only; wave-25 admt `rubric_internal_reasoning_leak` 1→2 SPLIT — one turn-caused T-Ab partial-excision residue on doc `04e7393b`, one pre-existing W6-era fallback-phrase coverage gap on doc `2235d1f6`; NO revert; queued (a) T-Ab full-sentence excision, (b) T-B coverage widening; cross-tool doctrine note added; no admt deploy before wave-26 freeze).
 
 ---
 
