@@ -4,7 +4,7 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 // LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
-export const BUILD_STAMP = "lia-registry-wiring@2026-07-25T12:59:37Z";
+export const BUILD_STAMP = "lia-registry-wiring@2026-07-25T13:06:13Z";
 console.log(`[run-li-assessment] boot ${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";

@@ -150,7 +150,7 @@ Deno.test("P2-LIA: schema preserves _meta.internal.lia_w1 stamp", () => {
     assessment_id: "test-1",
     generated_at: "2026-07-25T13:00:00Z",
     three_part_test: { purpose: { proposition_key: REG_KEY } },
-    build_stamp: "lia-registry-wiring@2026-07-25T12:59:37Z",
+    build_stamp: "lia-registry-wiring@2026-07-25T13:06:13Z",
     _meta: { prompt_version: "li-assessment/r1b2.1-rcb" },
     unknown_top_level_key: "should be dropped",
   };
@@ -159,7 +159,7 @@ Deno.test("P2-LIA: schema preserves _meta.internal.lia_w1 stamp", () => {
   const out = report as any;
   // Whitelisted top-level survives
   assertEquals(out.assessment_id, "test-1");
-  assertEquals(out.build_stamp, "lia-registry-wiring@2026-07-25T12:59:37Z");
+  assertEquals(out.build_stamp, "lia-registry-wiring@2026-07-25T13:06:13Z");
   // Unknown key dropped
   assertEquals(out.unknown_top_level_key, undefined);
   // _meta reduced to internal only (prompt_version was under _meta)
