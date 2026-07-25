@@ -1360,6 +1360,7 @@ export type Database = {
           embedding: string | null
           embedding_model: string
           excerpt_text: string
+          excerpt_text_norm: string | null
           guideline_ref: string
           id: string
           related_articles: string[]
@@ -1377,6 +1378,7 @@ export type Database = {
           embedding?: string | null
           embedding_model?: string
           excerpt_text: string
+          excerpt_text_norm?: string | null
           guideline_ref: string
           id?: string
           related_articles?: string[]
@@ -1394,6 +1396,7 @@ export type Database = {
           embedding?: string | null
           embedding_model?: string
           excerpt_text?: string
+          excerpt_text_norm?: string | null
           guideline_ref?: string
           id?: string
           related_articles?: string[]
