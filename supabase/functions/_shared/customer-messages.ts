@@ -252,6 +252,33 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "balancing_details.additional_context": "additional balancing context",
   stage: "intake stage",
   preview_assessment_id: "preview assessment id",
+
+  // ── Governance Assessment (LEAK-PREV-P0 extension — GOVERNANCE-REGISTRY-WIRING) ──
+  sector: "industry sector",
+  org_size: "organisation size",
+  eu_uk_data: "processing of EU/UK personal data",
+  tools: "AI or productivity tools in use",
+  special_category: "processing of special-category data",
+  special_categories_list: "special-category data types processed",
+  privacy_policy: "privacy policy status",
+  privacy_notice_coverage: "privacy notice coverage",
+  dpo_status: "data protection officer status",
+  dpia_status: "DPIA programme status",
+  dpia_ai_coverage: "DPIA coverage of AI tools",
+  incident_response: "incident-response plan status",
+  training_status: "privacy training programme",
+  training_ai_coverage: "AI-specific training coverage",
+  tool_instruction: "tool-usage instructions to staff",
+  dpa_status: "vendor data-processing agreement status",
+  dpa_art28_verified: "Article 28 verification status",
+  transfer_status: "international-transfer status",
+  transfer_mechanism: "international-transfer safeguard mechanism",
+  technical_controls: "technical controls in place",
+  technical_controls_list: "specific technical controls in place",
+  dsr_capability: "data-subject request handling capability",
+  dsr_rights_tested: "data-subject rights tested",
+  inventory_audit: "tool inventory and audit status",
+  additional_context: "additional context provided by the customer",
 });
 
 /** Contract-derived allowlist of every intake key we know about. Used
