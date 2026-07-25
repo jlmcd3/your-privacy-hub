@@ -32,9 +32,42 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
+import {
+  createContract as _dcCreate,
+  heartbeatContract as _dcHb,
+  terminateContract as _dcTerm,
+} from "../_shared/delivery-contract.ts";
+import {
+  dcCreateBatchContract, dcHeartbeatBatchContract, dcTerminateBatchContract,
+  type ContractDeps,
+} from "./_contract_hooks.ts";
 
 
-export const BUILD_STAMP = "automation-enabler-internal-start@2026-07-23T18:00:00Z";
+export const BUILD_STAMP = "ds-t2b-orch-wiring@2026-07-25T01:44:00Z";
+
+// DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
+// Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
+const CONTRACT_DEPS: ContractDeps = {
+  create: (input) => _dcCreate({
+    runClass: input.runClass, tool: input.tool,
+    subjectTable: input.subjectTable, subjectId: input.subjectId,
+    userId: input.userId ?? null, checkpointRef: input.checkpointRef,
+  }),
+  heartbeatBySubject: async (subjectTable, subjectId) => {
+    const db = admin();
+    const { data } = await db.from("delivery_contracts")
+      .select("id").eq("subject_table", subjectTable)
+      .eq("subject_id", subjectId).is("terminal_state", null).maybeSingle();
+    if (data?.id) await _dcHb({ contractId: data.id });
+  },
+  terminateBySubject: async (subjectTable, subjectId, terminalState, lastError) => {
+    const db = admin();
+    const { data } = await db.from("delivery_contracts")
+      .select("id").eq("subject_table", subjectTable)
+      .eq("subject_id", subjectId).is("terminal_state", null).maybeSingle();
+    if (data?.id) await _dcTerm({ contractId: data.id, terminalState, lastError });
+  },
+};
 
 // QB-P9 — Campaign mode constants.
 // QB-P17 item 7 — cost basis corrected to the Claude grader model actually
