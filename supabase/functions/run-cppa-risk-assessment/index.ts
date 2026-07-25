@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "w20-risk-turnb@2026-07-25T09:48:30Z";
+export const BUILD_STAMP = "w22-risk-turna@2026-07-25T13:49:15Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
@@ -27,6 +27,7 @@ import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
 import { applyW21RiskTurnA, W21_RISK_TURNA_STAMP, attributeFieldByToken } from "./_w21_risk_turna.ts";
+import { applyW22RiskTurnA, W22_RISK_TURNA_STAMP } from "./_w22_risk_turna.ts";
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
@@ -2809,6 +2810,34 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[RISK] W21-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
     }
+
+    // W22-RISK-TURNA — wave-22 closers (P1 info-needed placeholder scrub,
+    // P2 § 7150(b) subsection pinpoint discipline, P3 scope_notes fact-
+    // ledger contradiction downgrade, P4 risk_register safeguards dedup).
+    // Runs LAST in the deterministic scrub chain so all upstream prose
+    // rewrites are what freeze into the terminal payload. Counters at
+    // _meta.internal.risk_w22a; the LEAK-PREV-P2 serializer preserves
+    // _meta.internal unmodified so no whitelist change is needed.
+    try {
+      const _intakeW22 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const _ledgerW22 = buildFactLedger(_intakeW22);
+      const { counters: _w22c, report: _w22r } = applyW22RiskTurnA(
+        report_data as any,
+        { intake: _intakeW22, ledger: _ledgerW22 },
+      );
+      report_data = _w22r as any;
+      const rd22: any = report_data;
+      const meta22 = (rd22._meta = rd22._meta && typeof rd22._meta === "object" ? rd22._meta : {});
+      const internal22 = (meta22.internal = meta22.internal && typeof meta22.internal === "object" ? meta22.internal : {});
+      internal22.risk_w22a = { stamp: W22_RISK_TURNA_STAMP, ..._w22c };
+      console.log(JSON.stringify({
+        evt: "_w22_risk_turna", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w22_stamp: W22_RISK_TURNA_STAMP, ..._w22c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W22-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
