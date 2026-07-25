@@ -2317,11 +2317,14 @@ async function runPipeline(assessment_id: string) {
             o.title ?? o.note ?? o.rationale ?? o.detail ?? "",
         );
       };
-      const pickField = (o: any): string | undefined => {
+      const pickField = (o: any, text?: string): string | undefined => {
         if (!o || typeof o !== "object") return undefined;
         const f = o.field ?? o.intake_field_1 ??
           (Array.isArray(o.source_fields) && o.source_fields[0]);
-        return typeof f === "string" && f.trim() ? f.trim() : undefined;
+        if (typeof f === "string" && f.trim()) return f.trim();
+        // W21-RISK-TURNA A1 — infer field from prose tokens so
+        // contradictions on anchor-less claims are still blockable.
+        return typeof text === "string" ? attributeFieldByToken(text) : undefined;
       };
       const setText = (o: any, next: string): void => {
         if (!o || typeof o !== "object") return;
