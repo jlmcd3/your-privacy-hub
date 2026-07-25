@@ -16,6 +16,7 @@
 //     would-be downgrade rate exceeds 50 %.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import type { Claim } from "./fact-ledger.ts";
 import {
   buildFactLedger,
   checkAssertion,
@@ -321,6 +322,7 @@ Deno.test("rewriteUnsupported produces D2-consistent phrasing", () => {
 // v3 (sb-fl-w3-2026-07-25) FACT-LEDGER-W17-GAP extractor tests
 // ═══════════════════════════════════════════════════════════════════════
 
+import type { Claim } from "./fact-ledger.ts";
 import {
   ANCHOR_SKIP_KEYS,
   extractComparativeClaims,
