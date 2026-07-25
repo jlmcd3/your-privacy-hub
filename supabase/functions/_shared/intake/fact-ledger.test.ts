@@ -130,11 +130,9 @@ Deno.test("eefadb3f — silence never supports a negative assertion (field IS in
 
 // ── v2 NEW: unresolvable-field ⇒ SKIP ───────────────────────────────────
 Deno.test("W16-HOTFIX: positive claim with UNRESOLVABLE field is SKIPPED, not downgraded", () => {
-  // This is the exact wave-16 regression class. Cyber wiring emitted a
-  // positive claim about MFA. `field` was set from `o.intake_field_1`
-  // — which was absent — so `claim.field` was undefined. v1 downgraded
-  // it. v2 must SKIP.
-  const ledger = buildFactLedger({ some_other_field: "x" });
+  // Pad the ledger past the SAFETY_VALVE_MIN_LEDGER_ROWS floor so this
+  // test exercises ONLY the matcher's skip-on-unresolved semantics.
+  const ledger = buildFactLedger({ a: "x", b: "y", c: "z", d: "w", e: "v" });
   const res = enforceLedger({}, ledger, {
     claims: [
       { text: "multi-factor authentication via Okta is documented", direction: "positive" },
@@ -142,15 +140,14 @@ Deno.test("W16-HOTFIX: positive claim with UNRESOLVABLE field is SKIPPED, not do
       { text: "SSO covers all administrative accounts", direction: "positive" },
     ],
   });
+  assertEquals(res.enforcement_skipped_reason, undefined);
   assertEquals(res.counters.claims_downgraded, 0);
   assertEquals(res.counters.skipped_no_field, 3);
   assertEquals(res.rewrites.length, 0);
 });
 
 Deno.test("W16-HOTFIX: negative claim with UNKNOWN field is SKIPPED, not blocked", () => {
-  // Field is named but not present in the ledger at all. v1 treated
-  // this as silence_supports_negative and downgraded. v2 must SKIP.
-  const ledger = buildFactLedger({ some_other_field: "x" });
+  const ledger = buildFactLedger({ a: "x", b: "y", c: "z", d: "w", e: "v" });
   const res = enforceLedger({}, ledger, {
     claims: [
       { text: "no MFA policy", field: "mfa_policy", direction: "negative" },
@@ -158,13 +155,14 @@ Deno.test("W16-HOTFIX: negative claim with UNKNOWN field is SKIPPED, not blocked
       { text: "no encryption", field: "encryption_policy", direction: "negative" },
     ],
   });
+  assertEquals(res.enforcement_skipped_reason, undefined);
   assertEquals(res.counters.claims_downgraded, 0);
   assertEquals(res.counters.skipped_field_unknown, 3);
 });
 
 Deno.test("W16-HOTFIX: positive claim on a SILENT field is SKIPPED (cannot affirm nor deny)", () => {
   const ledger = buildFactLedger({
-    a: "x", b: "y", c: "z", d: "w", e: "", // e is silent
+    a: "x", b: "y", c: "z", d: "w", e: "", f: "asserted",
   });
   const res = enforceLedger({}, ledger, {
     claims: [
@@ -173,6 +171,7 @@ Deno.test("W16-HOTFIX: positive claim on a SILENT field is SKIPPED (cannot affir
       { text: "e is enforced", field: "e", direction: "positive" },
     ],
   });
+  assertEquals(res.enforcement_skipped_reason, undefined);
   assertEquals(res.counters.claims_downgraded, 0);
   assertEquals(res.counters.skipped_silent_positive, 3);
 });
