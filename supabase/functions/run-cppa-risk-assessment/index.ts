@@ -28,6 +28,8 @@ import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
 import { applyW21RiskTurnA, W21_RISK_TURNA_STAMP, attributeFieldByToken } from "./_w21_risk_turna.ts";
 import { applyW22RiskTurnA, W22_RISK_TURNA_STAMP } from "./_w22_risk_turna.ts";
+import { applyW23RiskTurnB, W23_RISK_TURNB_STAMP } from "./_w23_risk_turnb.ts";
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
