@@ -22,6 +22,7 @@ import { cppaAdmtContract } from "./intake-contracts/cppa-admt.ts";
 import { cppaRiskContract } from "./intake-contracts/cppa-risk-assessment.ts";
 import { cppaCybersecurityContract } from "./intake-contracts/cppa-cybersecurity.ts";
 import { dpiaFrameworkContract } from "./intake-contracts/dpia-framework.ts";
+import { liAssessmentStageBContract } from "./intake-contracts/li-assessment.ts";
 
 export const CUSTOMER_MESSAGES_VERSION = "cm-w1-2026-07-25";
 
@@ -217,6 +218,39 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   transfer_flows: "international transfer flows",
   retention_record_type: "retention-record type",
   source_assessment_id: "source assessment id",
+
+  // ── LI Assessment (LEAK-PREV-P0 extension — LIA-REGISTRY-WIRING) ──
+  relationship_type: "relationship with the data subjects",
+  processing_description: "processing description",
+  stated_purpose: "stated purpose of the processing",
+  alternatives_considered: "alternatives considered before processing",
+  purpose_details: "purpose details",
+  "purpose_details.interest_holder": "interest holder",
+  "purpose_details.interest_type": "type of legitimate interest",
+  "purpose_details.interest_statement": "statement of the legitimate interest",
+  "purpose_details.interest_holder_other": "other interest holder (free text)",
+  "purpose_details.interest_type_other": "other interest type (free text)",
+  necessity_details: "necessity details",
+  "necessity_details.alternatives": "less-intrusive alternatives considered",
+  "necessity_details.why_consent_not_used": "reason consent was not used",
+  "necessity_details.data_minimised": "data-minimisation measures",
+  "necessity_details.pseudonymisation_options": "pseudonymisation options for analytics",
+  balancing_details: "balancing-test details",
+  "balancing_details.reasonable_expectation": "data-subject reasonable expectation",
+  "balancing_details.reasonable_expectation_detail": "reasonable-expectation detail",
+  "balancing_details.vulnerable_subjects": "vulnerable-subject categories",
+  "balancing_details.vulnerable_subjects_other": "other vulnerable-subject categories",
+  "balancing_details.potential_harm": "potential-harm severity",
+  "balancing_details.potential_harm_detail": "potential-harm detail",
+  "balancing_details.safeguards": "safeguards in place",
+  "balancing_details.safeguards_other": "other safeguards (free text)",
+  "balancing_details.opt_out_mechanism": "opt-out mechanism",
+  "balancing_details.special_category_data": "special-category data flag",
+  "balancing_details.statutory_restrictions": "statutory restrictions (marketing branch)",
+  "balancing_details.employment_safeguards": "employment-context safeguards",
+  "balancing_details.additional_context": "additional balancing context",
+  stage: "intake stage",
+  preview_assessment_id: "preview assessment id",
 });
 
 /** Contract-derived allowlist of every intake key we know about. Used
@@ -226,6 +260,7 @@ export const KNOWN_INTAKE_KEYS: readonly string[] = Object.freeze([
   ...cppaRiskContract.fields.map((f) => f.key),
   ...cppaCybersecurityContract.fields.map((f) => f.key),
   ...dpiaFrameworkContract.fields.map((f) => f.key),
+  ...liAssessmentStageBContract.fields.map((f) => f.key),
 ]);
 
 /** Returns the humanized label for an intake field or the neutral
