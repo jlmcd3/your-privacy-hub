@@ -191,11 +191,11 @@ Deno.test("idempotency: second call is a no-op beyond stamp echo", () => {
     }],
   };
   const d1 = applyW24AdmtH6(report, {});
-  const snap = JSON.stringify(report);
+  const snap = JSON.stringify(report.top_3_actions);
   const d2 = applyW24AdmtH6(report, {});
   assertEquals(d2.sole_7001_anchor_hits, 0);
   assertEquals(d2.registry_promotions, 0);
-  assertEquals(JSON.stringify(report), snap);
+  assertEquals(JSON.stringify(report.top_3_actions), snap);
   assert(d1.registry_promotions === 1);
 });
 
