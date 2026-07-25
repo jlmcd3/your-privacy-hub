@@ -35,7 +35,8 @@ export type EmitGateTool =
   | "cppa_risk_assessment"
   | "cppa_cybersecurity"
   | "dpia_framework"
-  | "li_assessment";
+  | "li_assessment"
+  | "governance_assessment";
 
 export interface EmitGateFinding {
   /** Stable id for aggregation (e.g. "e4_instruction_leak",
