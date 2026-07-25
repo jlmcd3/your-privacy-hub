@@ -51,9 +51,10 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-25T01:34:15Z):**
-- `run-cppa-cybersecurity` deployed 2026-07-25T01:34:15Z (CYBER-BOILERPLATE-REMEDIATION); pre-deploy lock re-check at 01:33:52Z green (running/pending `quality_batch_runs` = 0; cppa_assessments <15 min NULL report = 0 all modules). No running/pending batches; all edge functions unlocked. Deploys still subject to the standing <15-min in-flight customer-path check at deploy time.
+**Current lock state (2026-07-25T01:48:37Z):**
+- `quality-batch-orchestrator` deployed 2026-07-25T01:48:02Z (DS-T2b-ORCH-WIRING) with `ds-t2b-orch-wiring@2026-07-25T01:47:25Z`; boot log 01:48:37Z confirms stamp. `delivery-sentinel` deployed same window with `ds-t2b@2026-07-25T01:47:25Z`; pg_cron `delivery-sentinel-sweep` scheduled every 60s (job id 103, sweeps 01:44:01Z→01:48:02Z scanned:0). Pre-deploy lock re-check at 01:47:25Z green (running/pending `quality_batch_runs` = 0; cppa_assessments <15 min NULL report_data = 0 all modules). Deploys still subject to the standing <15-min in-flight customer-path check at deploy time.
 - **DISCHARGED (2026-07-25T01:34:15Z):** MEDIUM cyber boilerplate-remediation across 16/18 controls — shipped as CYBER-BOILERPLATE-REMEDIATION via `_w17_cyber_boiler.ts` guard + prompt-side `W17-CYBER-BOILERPLATE BAN` rule.
+- **DISCHARGED (2026-07-25T01:48:37Z):** wave-13 sentinel-gap register item (orchestrator → `delivery_contracts` wiring + delivery-sentinel cron) — shipped as DS-T2b-ORCH-WIRING; sentinel harness branch now auto-reconciles `quality_batch_runs` on `harness_stalled`, so future isolate deaths self-recover the wave-10/13 way.
 
 ## 4. Last Completed Turn
 
