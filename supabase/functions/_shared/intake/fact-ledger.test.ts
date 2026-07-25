@@ -16,7 +16,6 @@
 //     would-be downgrade rate exceeds 50 %.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import type { Claim } from "./fact-ledger.ts";
 import {
   buildFactLedger,
   checkAssertion,
