@@ -1831,6 +1831,26 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W17-CYBER-BOILER] non-fatal:", String(boilerErr));
     }
 
+    // W21-CYBER-TURNC — deterministic wave-21 fix pass (items 47/49/50 pattern).
+    // Runs AFTER W17 boiler and IMMEDIATELY BEFORE LEAK-PREV-P1 runEmitGate so
+    // the emit-gate sees the fully-scrubbed customer prose. Fail-open; per-guard
+    // counters + stamp sequestered under _meta.internal.cyber_w21c (never a
+    // customer-surface key). See supabase/functions/run-cppa-cybersecurity/
+    // _w21_cyber_turnc.ts for the C1-C6 charter.
+    try {
+      const w21c = applyW21CyberTurnC(report as any, {
+        intake: ((row as any).intake_data as Record<string, unknown>) ?? null,
+      });
+      report = w21c.report as any;
+      console.log(JSON.stringify({
+        evt: "cyber_w21c_pass", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, stamp: W21_CYBER_TURNC_STAMP,
+        ...w21c.counters,
+      }));
+    } catch (w21Err) {
+      console.error("[W21-CYBER-TURNC] non-fatal:", String(w21Err));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
