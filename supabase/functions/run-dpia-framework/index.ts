@@ -681,7 +681,10 @@ export function renderDpiaTestStatesBlock(states: Record<string, DpiaTestStateEn
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STAMP = "r1b2.4-ws6v21";
-export const BUILD_STAMP = "post-c1-fix-1b-ccpa-lettering@2026-07-23T16:21:00Z";
+// DPIA-REGISTRY-WIRING (2026-07-25) — registry-first citations + LEAK-PREV
+// P0/P1/P2 wired end-to-end. Telemetry echoes on `_meta.internal.dpia_w1_wire`
+// and `_meta.internal.emit_gate` (P2 serializer preserves them).
+export const BUILD_STAMP = "dpia-registry-wiring@2026-07-25T12:36:00Z";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP}`);
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
@@ -2200,6 +2203,45 @@ async function runStitch(dpia_id: string): Promise<void> {
     } catch (e) {
       console.warn("[run-dpia-framework] engagement_map build skipped:", (e as Error)?.message);
     }
+
+    // ── DPIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ─────
+    // Registry-first citation stamping + write-around for unanchorable
+    // propositions. Telemetry writes to `_meta.internal.dpia_w1_wire`.
+    try {
+      const { applyW1DpiaWire } = await import("./_w1_dpia_wire.ts");
+      applyW1DpiaWire(reportData);
+    } catch (e) {
+      console.warn("[run-dpia-framework] DPIA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
+    // Runs AFTER all content-shaping passes and BEFORE the P2 serializer so
+    // gate telemetry rides `_meta.internal`. Fail-visible; never blocks.
+    try {
+      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      runEmitGate(reportData as any, {
+        tool: "dpia_framework",
+        intakeRoster: dpiaIntake ?? {},
+      });
+    } catch (e) {
+      console.warn("[run-dpia-framework] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
+    // Whitelist top-level keys; internal telemetry survives via
+    // `_meta.internal` reduction inside the serializer. On crash, we keep
+    // the pre-serialized reportData (previous behaviour).
+    try {
+      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+      const { DPIA_REPORT_SCHEMA } = await import("../_shared/report-schemas/dpia.ts");
+      const { report: serialized, telemetry } = serializeCustomerReport(reportData as any, DPIA_REPORT_SCHEMA);
+      if (!telemetry.crashed && serialized && typeof serialized === "object") {
+        reportData = serialized as any;
+      }
+    } catch (e) {
+      console.warn("[run-dpia-framework] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,

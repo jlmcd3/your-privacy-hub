@@ -33,7 +33,8 @@ export const EMIT_GATE_VERSION = "eg-w1-2026-07-25";
 export type EmitGateTool =
   | "cppa_admt"
   | "cppa_risk_assessment"
-  | "cppa_cybersecurity";
+  | "cppa_cybersecurity"
+  | "dpia_framework";
 
 export interface EmitGateFinding {
   /** Stable id for aggregation (e.g. "e4_instruction_leak",
