@@ -126,7 +126,7 @@ Deno.test("orchestrator: full integration — A1+A2+A3+A4 fire and diag stamped 
       },
       {
         rank: 2,
-        citation: "11 CCR § 7150(b)(3)",
+        citation: "11 CCR § 7150(b)(99)",
         action: `Assess systems within the enumerated the applicable ADMT-subchapter provision categories.`,
       },
     ],
