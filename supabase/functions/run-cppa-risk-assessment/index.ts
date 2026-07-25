@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "w20-risk-turnb@2026-07-25T09:48:30Z";
+export const BUILD_STAMP = "w22-risk-turna@2026-07-25T13:49:15Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
