@@ -198,7 +198,7 @@ function downgradeString(
   for (const raw of sentences) {
     const sent = raw.trim();
     if (!sent) continue;
-    if (!ASSERTIVE_VERB_RE.test(sent)) {
+    if (!ASSERTIVE_VERB_RE.test(sent) || sent === NEUTRAL_DOWNGRADE) {
       out.push(sent);
       continue;
     }
