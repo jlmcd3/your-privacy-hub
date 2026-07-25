@@ -154,7 +154,7 @@ function walk(node: unknown, c: W20RiskTurnBCounters, keyCtx?: string): unknown 
 // Drops sentences that reference ADMT payload the risk report did not
 // populate. Runs on prose leaves; conservative pattern.
 const ADMT_XREF_SENTENCE_RE =
-  /[^.!?\n]*\b(?:'n\/a'|"n\/a"|n\/a|no|zero)\s+ADMT\s+content\s+entries[^.!?\n]*[.!?]/gi;
+  /[^.!?\n]*(?:['"\u2018\u2019\u201c\u201d]?n\/a['"\u2018\u2019\u201c\u201d]?|\bno\b|\bzero\b)\s+ADMT\s+content\s+entries[^.!?\n]*[.!?]/gi;
 
 function reportHasAdmtPayload(report: Record<string, unknown>): boolean {
   const admt = (report as any).admt_summary ?? (report as any).admt_content_entries;
