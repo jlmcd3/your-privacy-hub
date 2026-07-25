@@ -217,6 +217,9 @@ export async function reapAllChildrenTerminal(
     }));
     return { acted: false, reason: `exception:${(e as Error).message}` };
   }
+}
+
+
 
 async function enqueuePdfFallback(admin: any, row: ContractRow) {
   // Idempotent: skip if a pending/rendering row already exists for this subject.
