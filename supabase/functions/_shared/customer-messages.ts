@@ -24,6 +24,7 @@ import { cppaCybersecurityContract } from "./intake-contracts/cppa-cybersecurity
 import { dpiaFrameworkContract } from "./intake-contracts/dpia-framework.ts";
 import { liAssessmentStageBContract } from "./intake-contracts/li-assessment.ts";
 import { governanceContract } from "./intake-contracts/governance-assessment.ts";
+import { dpaGeneratorContract } from "./intake-contracts/dpa-generator.ts";
 
 export const CUSTOMER_MESSAGES_VERSION = "cm-w1-2026-07-25";
 
@@ -279,6 +280,22 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   dsr_rights_tested: "data-subject rights tested",
   inventory_audit: "tool inventory and audit status",
   additional_context: "additional context provided by the customer",
+  // ── DPA (generate-dpa) ──
+  entityName: "entity name",
+  controllerName: "controller name",
+  controllerJurisdiction: "controller jurisdiction",
+  processorName: "processor name",
+  processorJurisdiction: "processor jurisdiction",
+  services: "services provided by the processor",
+  dataCategories: "categories of personal data processed",
+  retention: "retention period",
+  hasSubProcessors: "use of sub-processors",
+  subProcessorList: "list of sub-processors",
+  auditRights: "audit rights arrangement",
+  includeTransferClause: "inclusion of an international-transfer clause",
+  legalFramework: "governing legal framework",
+  transferMechanism: "international-transfer safeguard mechanism",
+  documentType: "document type",
 });
 
 /** Contract-derived allowlist of every intake key we know about. Used
@@ -290,6 +307,7 @@ export const KNOWN_INTAKE_KEYS: readonly string[] = Object.freeze([
   ...dpiaFrameworkContract.fields.map((f) => f.key),
   ...liAssessmentStageBContract.fields.map((f) => f.key),
   ...governanceContract.fields.map((f) => f.key),
+  ...dpaGeneratorContract.fields.map((f) => f.key),
 ]);
 
 /** Returns the humanized label for an intake field or the neutral
