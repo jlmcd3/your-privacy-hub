@@ -116,15 +116,19 @@ Deno.test("lia-registry: every row is a byte-exact substring of its LIVE approve
       failures.push(`UNMAPPED: ${row.proposition_key} has no ROW_TO_SOURCE entry`);
       continue;
     }
-    const body = src.table === "provision_texts"
-      ? corpus.provision.get(src.key)
-      : corpus.edpb.get(src.section);
-    if (!body) {
+    const bodies: string[] = src.table === "provision_texts"
+      ? (corpus.provision.get(src.key) ? [corpus.provision.get(src.key)!] : [])
+      : (corpus.edpb.get(src.section) ?? []);
+    if (bodies.length === 0) {
       failures.push(`NO CORPUS ROW: ${row.proposition_key} -> ${JSON.stringify(src)}`);
       continue;
     }
-    if (!body.includes(row.verbatim_quote)) {
-      failures.push(`NO PIN: ${row.proposition_key} -> ${JSON.stringify(src)} — verbatim_quote is not a substring of live corpus body (len=${body.length})`);
+    // Pass if ANY row with the same key/section carries the substring — the
+    // corpus may hold multiple rows sharing a heading (e.g. paragraph split).
+    const hit = bodies.some((b) => b.includes(row.verbatim_quote));
+    if (!hit) {
+      const maxLen = Math.max(...bodies.map((b) => b.length));
+      failures.push(`NO PIN: ${row.proposition_key} -> ${JSON.stringify(src)} — verbatim_quote not found across ${bodies.length} candidate row(s) (max len=${maxLen})`);
     }
   }
   if (failures.length) console.error(failures.join("\n"));
