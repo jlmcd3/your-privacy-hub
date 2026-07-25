@@ -15,7 +15,7 @@ import { BUILD_STAMP } from "./index.ts";
 
 Deno.test("W15-CYBER-FL: BUILD_STAMP restamped (accepts w15 or w16-hotfix variants)", () => {
   assert(
-    /^(w15-cyber-factledger|w16-cyber-flfix)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-cyber-factledger|w16-cyber-flfix|w17-cyber-boiler)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
