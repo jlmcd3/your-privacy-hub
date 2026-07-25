@@ -177,8 +177,8 @@ Deno.test("Reserved subtrees (_meta, engagement_map, annotations) untouched", ()
   assertStringIncludes(report.body.text, "The organisation should confirm whether");
 });
 
-// ── Idempotency ──
-Deno.test("Idempotent: second pass makes no additional changes", () => {
+// ── Idempotency (content-level; _meta telemetry updates each pass) ──
+Deno.test("Idempotent: second pass makes no additional content changes", () => {
   const report: any = {
     body: { text: "The record demonstrates something totally unrelated to intake." },
     node: {
@@ -187,9 +187,9 @@ Deno.test("Idempotent: second pass makes no additional changes", () => {
     },
   };
   applyLiaT6Fix(report, { intake: {} });
-  const snap = JSON.stringify(report);
+  const contentSnap = JSON.stringify({ body: report.body, node: report.node });
   const c2 = applyLiaT6Fix(report, { intake: {} });
-  assertEquals(JSON.stringify(report), snap);
+  assertEquals(JSON.stringify({ body: report.body, node: report.node }), contentSnap);
   assertEquals(c2.classB_downgrades, 0);
   assertEquals(c2.classA_pinpoint_omissions, 0);
 });
