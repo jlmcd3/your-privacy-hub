@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T19:55Z — W24-ADMT-REGRESSION-ATTRIBUTION DONE (docs-only tick turn; discharges T1a). Wave-24 admt 79.10 vs wave-23 83.80, −4.7 ≈2σ, s4 frozen; VERDICT: W23-ADMT-TURNA did NOT regress; no revert. GitHub mirror staleness #2 flagged.
+**Last updated:** 2026-07-25T20:05Z — WAVE-25 DIGEST landed (docs-only). s4 frozen. admt 79.10 (flat), risk 73.50 (new low, −4.15), cyber 86.75 (noise). Risk cohort-emitter v2 CLEARED; risk drop rubric-driven. W25-RISK-ATTRIBUTION queued FIRST. Controller VM disk-full 20:03Z, routed via Lovable; John flagged.
 
 ---
 
