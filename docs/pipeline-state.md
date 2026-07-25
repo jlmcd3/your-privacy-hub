@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T22:34:00Z — T7-RISK-PILOT-FIX SHIPPED (see item 87). Queue posture: T7 pilot fix SHIPPED; step-2 admt recommendation remains HELD pending CEO checkpoint + wave-27 pilot verification.
+**Last updated:** 2026-07-25T22:45:45Z — W25-ADMT-SANITIZER-FIX SHIPPED (see item 88). Queue posture: T7 pilot fix SHIPPED (item 87); W25 admt sanitizer fix SHIPPED (item 88, ledger item 84 candidates (a)+(b)); step-2 admt T7 opening wiring remains HELD pending CEO checkpoint + wave-27 pilot verification; h6_admt_governing_anchor / h7_admt_blanket_range / item-78 admt citation key-selection audit remain queued for own turns.
 
 ---
 
