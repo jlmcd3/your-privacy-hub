@@ -234,16 +234,39 @@ async function handleCustomer(admin: any, row: ContractRow) {
 async function handleHarness(admin: any, row: ContractRow) {
   const now = Date.now();
   const overallBreached = new Date(row.overall_deadline_at).getTime() < now;
-  const stageStale = new Date(row.heartbeat_at).getTime() < new Date(row.stage_deadline_at).getTime();
+  // DS-T2c: stageStale = deadline in the past AND heartbeat older than deadline.
+  // (Old logic `heartbeat_at < stage_deadline_at` was inverted — a fresh
+  // contract with a future deadline was always "stale", guaranteeing the
+  // sentinel bumped attempts on every sweep. That was the wave-18 false-kill.)
+  const stageDeadlineMs = new Date(row.stage_deadline_at).getTime();
+  const heartbeatMs = new Date(row.heartbeat_at).getTime();
+  const stageStale = stageDeadlineMs < now && heartbeatMs < stageDeadlineMs;
   const stageAttempts = row.attempts?.[row.stage] ?? 0;
+
+  // DS-T2c LIVENESS GUARD — for harness/quality_batch_runs, never bump or
+  // terminate a contract whose subject is genuinely alive. Only a subject
+  // silent for >5 min falls through to the resume/terminate path.
+  if (row.subject_table === "quality_batch_runs" && (overallBreached || stageStale || stageAttempts >= MAX_STAGE_ATTEMPTS)) {
+    const { latestMs, anySignal } = await latestHarnessBatchActivity(admin, row.subject_id);
+    const freshMs = anySignal ? now - latestMs : Number.POSITIVE_INFINITY;
+    if (anySignal && freshMs < LIVENESS_WINDOW_MS) {
+      await refreshHarnessContract(admin, row.id,
+        `subject alive: fresh=${Math.round(freshMs / 1000)}s < ${Math.round(LIVENESS_WINDOW_MS / 1000)}s`);
+      console.log(JSON.stringify({
+        evt: "sentinel_liveness_guard_hit",
+        contract_id: row.id, batch_id: row.subject_id, stage: row.stage,
+        stageStale, overallBreached, stageAttempts,
+        subject_last_heartbeat_ms_ago: Math.round(freshMs),
+      }));
+      return { action: "liveness_guard_refresh", freshMs: Math.round(freshMs) };
+    }
+  }
 
   if (overallBreached || stageAttempts >= MAX_STAGE_ATTEMPTS) {
     const note = `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`;
     await bumpAttemptsAndFailure(admin, row, "harness_stall", note);
     await terminate(admin, row.id, "harness_stalled",
       `attribution: stage=${row.stage} last_failure=${row.failure_class ?? "unknown"}`);
-    // DS-T2b: orchestrator-class subject → auto-reconcile the batch row so
-    // the UI clears and the wave doesn't sit on a zombie 'running' forever.
     let reconciled: { reconciled: boolean; reason?: string } | undefined;
     if (row.subject_table === "quality_batch_runs") {
       reconciled = await reconcileQualityBatchRun(admin, row.subject_id, note);
