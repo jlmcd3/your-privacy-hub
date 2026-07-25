@@ -42,6 +42,7 @@ import { applyW21AdmtTurnB, W21_ADMT_TURNB_STAMP } from "./_w21_admt_turnb.ts";
 import { applyW22AdmtTurnB, W22_ADMT_TURNB_STAMP } from "./_w22_admt_turnb.ts";
 import { applyW23AdmtTurnA, W23_ADMT_TURNA_STAMP } from "./_w23_admt_turna.ts";
 import { applyW24AdmtAttrFix, W24_ADMT_ATTR_STAMP } from "./_w24_admt_attr_fix.ts";
+import { applyW24AdmtAudit, W24_ADMT_AUDIT_STAMP } from "./_w24_admt_audit.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
