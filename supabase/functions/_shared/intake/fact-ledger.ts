@@ -57,7 +57,14 @@
 //       wiring layers can reuse it (matches RISK-INTERNAL-VOCAB-SCRUB).
 //     - FAIL-OPEN everywhere: any throw returns [] / input unchanged.
 
-export const FACT_LEDGER_VERSION = "sb-fl-w3-2026-07-25";
+// v4 (sb-fl-w4-2026-07-25) — LEAK-PREV-P0: rewriteUnsupported branches
+//   now route through the customer-messages catalog and humanize
+//   `fact.source_field` via `labelForField`. NO raw intake IDs may
+//   appear in customer-visible strings. Matcher / safety-valve /
+//   builder untouched.
+export const FACT_LEDGER_VERSION = "sb-fl-w4-2026-07-25";
+
+import { renderMessage, P, labelForField } from "../customer-messages.ts";
 
 /** Canonical anchor-subtree skip list. Wiring layers walking report
  *  surfaces MUST skip these keys so structured citation anchors are
