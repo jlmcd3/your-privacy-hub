@@ -113,10 +113,11 @@ const CUSTOMER_SLA_BY_TOOL: Record<string, StageSla> = {
 };
 const CUSTOMER_SLA_DEFAULT: StageSla = { stageSeconds: 240, overallSeconds: 900 };
 
-// Harness runs get tighter windows — the sentinel takes over the role
-// of ql2-watchdog / QB-P21 / QB-P13 for the harness class. This is the
-// scope extension: single sweep, two contract classes.
-const HARNESS_SLA: StageSla = { stageSeconds: 180, overallSeconds: 900 };
+// Harness runs get a wide window sized to a real campaign wave: 3 tools ×
+// batch 3 at ~6–8 min/doc-unit ≈ 35–45 min. Under-sized SLAs guarantee
+// false kills (DS-T2c hotfix). stage=900s (15 min per generate/grade
+// stage), overall=5400s (90 min ceiling). Customer SLAs untouched.
+const HARNESS_SLA: StageSla = { stageSeconds: 900, overallSeconds: 5400 };
 
 export function slaFor(runClass: RunClass, tool: string): StageSla {
   if (runClass === "harness") return HARNESS_SLA;
