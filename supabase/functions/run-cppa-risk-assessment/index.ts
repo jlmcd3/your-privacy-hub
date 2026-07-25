@@ -2514,6 +2514,187 @@ async function runPipeline(assessment_id: string) {
         }
       }
 
+      // W18 RISK-COLLAPSE-COVERAGE-2 — extended prose/cite coverage across the
+      // remaining narrative and citation-shaped surfaces of the terminal report.
+      // Wave-17 escape: bare "§ 7150(b) … § 7150(b)" collapsed on
+      // inconsistency_flags prose (doc 52dfb9a1). This pass closes the class by
+      // walking every prose / citation-shaped slot in the report shape and
+      // applying identical semantics to the scope_notes pass (W16 above):
+      //   - prose strings: doubled bare → deduped; bare-without-pinpoint routed
+      //     to information_needed when a trigger keyword is present, otherwise
+      //     rewritten to plain-English form (CPPA-HF2 B); pinpointed cites pass
+      //     through untouched.
+      //   - citation-shaped strings (statutory_basis, regulatory_citation,
+      //     provision): bare/doubled → blanked + information_needed=true on the
+      //     entry (identical to the W15 activity-level statutory_basis gate).
+      // Fail-open, per-entry try/catch, no customer-surface underscore keys.
+      const rewriteProseFields = (
+        arr: any,
+        fields: string[],
+        anchorPrefix: string,
+      ): void => {
+        if (!Array.isArray(arr)) return;
+        for (let i = 0; i < arr.length; i++) {
+          const it = arr[i];
+          if (!it || typeof it !== "object") continue;
+          for (const f of fields) {
+            try {
+              if (typeof it[f] === "string" && it[f]) {
+                vaMetrics.va_prose_fields_scanned++;
+                it[f] = rewriteProse(it[f], `${anchorPrefix}[${i}].${f}`);
+              }
+            } catch { /* per-field fail-open */ }
+          }
+        }
+      };
+      const flagCiteField = (entry: any, field: string): void => {
+        try {
+          if (!entry || typeof entry !== "object") return;
+          const raw = typeof entry[field] === "string" ? entry[field] : "";
+          if (!raw) return;
+          const hasPin = /\(b\)\s*\(\s*\d/.test(raw);
+          const bare = /(?:11\s*CCR\s*)?§\s*7150\(b\)/i;
+          const doubled = /§\s*7150\(b\)[^§]{0,60}§\s*7150\(b\)/i;
+          if (doubled.test(raw) || (bare.test(raw) && !hasPin)) {
+            entry[field] = "";
+            entry.information_needed = true;
+            vaMetrics.va_cite_fields_flagged++;
+            vaMetrics.va_information_needed_added++;
+          }
+        } catch { /* per-field fail-open */ }
+      };
+      const walkCiteFields = (arr: any, fields: string[]): void => {
+        if (!Array.isArray(arr)) return;
+        for (const it of arr) {
+          for (const f of fields) flagCiteField(it, f);
+        }
+      };
+
+      // inconsistency_flags — WAVE-17 ESCAPE (doc 52dfb9a1). Prose slots:
+      // description, resolution_required. Citation-shaped: regulatory_citation.
+      rewriteProseFields(
+        r.inconsistency_flags,
+        ["description", "resolution_required"],
+        "inconsistency_flags",
+      );
+      walkCiteFields(r.inconsistency_flags, ["regulatory_citation"]);
+
+      // exception_analysis — prose: facts_supporting, argument_strength_rationale;
+      // cite-shaped: statutory_basis.
+      rewriteProseFields(
+        r.exception_analysis,
+        ["facts_supporting", "argument_strength_rationale"],
+        "exception_analysis",
+      );
+      walkCiteFields(r.exception_analysis, ["statutory_basis"]);
+
+      // risk_assessment_by_activity — prose: purpose, benefits_to_business,
+      // benefits_to_consumers, current_safeguards, safeguard_gaps,
+      // benefits_outweigh_risks_rationale, section_7152_mapping;
+      // cite-shaped: statutory_basis; nested adverse_effects[].description.
+      rewriteProseFields(
+        r.risk_assessment_by_activity,
+        [
+          "purpose",
+          "benefits_to_business",
+          "benefits_to_consumers",
+          "current_safeguards",
+          "safeguard_gaps",
+          "benefits_outweigh_risks_rationale",
+          "section_7152_mapping",
+        ],
+        "risk_assessment_by_activity",
+      );
+      walkCiteFields(r.risk_assessment_by_activity, ["statutory_basis"]);
+      if (Array.isArray(r.risk_assessment_by_activity)) {
+        for (let i = 0; i < r.risk_assessment_by_activity.length; i++) {
+          const ra = r.risk_assessment_by_activity[i];
+          if (!ra || typeof ra !== "object") continue;
+          rewriteProseFields(
+            ra.adverse_effects,
+            ["description"],
+            `risk_assessment_by_activity[${i}].adverse_effects`,
+          );
+        }
+      }
+
+      // priority_actions — prose: action, deadline_basis; cite-shaped: statutory_basis.
+      rewriteProseFields(
+        r.priority_actions,
+        ["action", "deadline_basis"],
+        "priority_actions",
+      );
+      walkCiteFields(r.priority_actions, ["statutory_basis"]);
+
+      // information_needed — prose: dimensions, enables; cite-shaped: provision.
+      rewriteProseFields(
+        r.information_needed,
+        ["dimensions", "enables"],
+        "information_needed",
+      );
+      walkCiteFields(r.information_needed, ["provision"]);
+
+      // record_sufficiency — prose: statement.
+      if (r.record_sufficiency && typeof r.record_sufficiency === "object" && typeof r.record_sufficiency.statement === "string") {
+        try {
+          vaMetrics.va_prose_fields_scanned++;
+          r.record_sufficiency.statement = rewriteProse(
+            r.record_sufficiency.statement,
+            "record_sufficiency.statement",
+          );
+        } catch { /* fail-open */ }
+      }
+
+      // strengthen_items — prose: recorded_basis; cite-shaped: citation.
+      rewriteProseFields(
+        r.strengthen_items,
+        ["recorded_basis"],
+        "strengthen_items",
+      );
+      walkCiteFields(r.strengthen_items, ["citation"]);
+
+      // risk_register.entries — cite-shaped: statutory_basis (activity/harm_type
+      // are enum-like and out-of-scope for prose collapse).
+      if (r.risk_register && typeof r.risk_register === "object") {
+        walkCiteFields(r.risk_register.entries, ["statutory_basis"]);
+      }
+
+      // assessment_summary — prose: corpus_enforcement_note; also flatten a
+      // top-level triggered_activities string array.
+      if (r.assessment_summary && typeof r.assessment_summary === "object") {
+        try {
+          if (typeof r.assessment_summary.corpus_enforcement_note === "string") {
+            vaMetrics.va_prose_fields_scanned++;
+            r.assessment_summary.corpus_enforcement_note = rewriteProse(
+              r.assessment_summary.corpus_enforcement_note,
+              "assessment_summary.corpus_enforcement_note",
+            );
+          }
+          if (Array.isArray(r.assessment_summary.triggered_activities)) {
+            r.assessment_summary.triggered_activities = r.assessment_summary.triggered_activities.map(
+              (s: any, i: number) => (typeof s === "string" && s
+                ? (vaMetrics.va_prose_fields_scanned++, rewriteProse(s, `assessment_summary.triggered_activities[${i}]`))
+                : s),
+            );
+          }
+        } catch { /* fail-open */ }
+      }
+
+      // enforcement_context — prose slots.
+      if (r.enforcement_context && typeof r.enforcement_context === "object") {
+        for (const f of ["relevant_precedents", "sector_specific_patterns", "audit_division_priorities"]) {
+          try {
+            if (typeof r.enforcement_context[f] === "string" && r.enforcement_context[f]) {
+              vaMetrics.va_prose_fields_scanned++;
+              r.enforcement_context[f] = rewriteProse(
+                r.enforcement_context[f],
+                `enforcement_context.${f}`,
+              );
+            }
+          } catch { /* fail-open */ }
+        }
+      }
+
       // Fold prose-detected info_needed adds into the report bucket.
       if (infoNeededAdds.length > 0) {
         const existing = Array.isArray(r.information_needed) ? r.information_needed : [];
