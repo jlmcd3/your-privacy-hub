@@ -111,8 +111,7 @@ function scrubString(s: string, c: W20RiskTurnBCounters): string {
 
   // B3a
   const beforeDet = out;
-  out = out.replace(DOUBLED_DETERMINER_RE, (_m, filler: string, sec: string) =>
-    `${filler ?? ""}the ${sec}`.replace(/\s+/g, " "));
+  out = out.replace(DOUBLED_DETERMINER_RE, (_m, sec: string) => `the ${sec}`);
   if (out !== beforeDet) c.doubled_determiner_scrubbed += 1;
 
   // B3b
