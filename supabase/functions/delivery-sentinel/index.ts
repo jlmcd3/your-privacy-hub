@@ -20,7 +20,7 @@
 // Every action increments attempts + writes failure_class + last_error so
 // DS-T3's admin SLO surface has data.
 //
-// Build stamp: ds-t2b@2026-07-25T01:44:00Z
+// Build stamp: ds-t2b@2026-07-25T01:47:25Z
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -257,6 +257,6 @@ Deno.serve(async (req) => {
     scanned: contracts?.length ?? 0,
     duration_ms,
     results,
-    build: "ds-t2b@2026-07-25T01:44:00Z",
+    build: "ds-t2b@2026-07-25T01:47:25Z",
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 });
