@@ -191,6 +191,8 @@ async function heartbeat(runId: string) {
   await admin().from("quality_batch_runs")
     .update({ last_heartbeat_at: new Date().toISOString() })
     .eq("id", runId);
+  // DS-T2b: piggyback contract heartbeat (fail-open, no new cadence).
+  await dcHeartbeatBatchContract(CONTRACT_DEPS, runId);
 }
 
 function selfInvoke(runId: string) {
