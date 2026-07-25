@@ -2014,11 +2014,8 @@ Return this JSON structure exactly:
               continue;
             }
             // Ambiguous or unmatched → uncovered. Never fabricate.
-            // Distinguish "matched but ambiguous" (>1 row shared subsection)
-            // from "no row matches" via a second normalized pass.
             let ambiguous = false;
             try {
-              const { normalizeCitationString } = await import("../_shared/verified-authority-resolver.ts");
               const needle = normalizeCitationString(citStr);
               let hits = 0;
               for (const r of Object.values(ADMT_VERIFIED_AUTHORITIES)) {
