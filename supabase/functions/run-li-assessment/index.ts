@@ -4,7 +4,8 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 // LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
-export const BUILD_STAMP = "lia-registry-wiring@2026-07-25T13:06:13Z";
+// LIA-T6-FIX-TURN (2026-07-25): Class A citation audit + Class B business-claim scrub.
+export const BUILD_STAMP = "lia-t6fix@2026-07-25T23:15:00Z";
 console.log(`[run-li-assessment] boot ${BUILD_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
@@ -1631,6 +1632,18 @@ Return JSON:
       applyW1LiaWire(reportData);
     } catch (e) {
       console.warn("[run-li-assessment] LIA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── LIA-T6-FIX-TURN (2026-07-25) ────────────────────────────────────
+    // Class A citation audit (registry-first with omission-over-invention)
+    // and Class B unsupported-business-claim downgrade using whole-sentence
+    // excision doctrine (ledger item 84c). Telemetry to
+    // `_meta.internal.lia_t6fix`. Fail-open.
+    try {
+      const { applyLiaT6Fix } = await import("./_lia_t6_fix.ts");
+      applyLiaT6Fix(reportData, { intake: liaIntakeObject, buildStamp: BUILD_STAMP });
+    } catch (e) {
+      console.warn("[run-li-assessment] LIA-T6-FIX-TURN post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
