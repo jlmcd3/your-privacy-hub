@@ -388,7 +388,7 @@ export const GOVERNANCE_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     subsection: "GDPR Art. 44",
     verbatim_quote:
       "Any transfer of personal data which are undergoing processing or are intended for processing after transfer to a third country or to an international organisation shall take place only if, subject to the other provisions of this Regulation, the conditions laid down in this Chapter are complied with by the controller and processor",
-    depth_class: "article",
+    depth_class: "section",
     governing_anchor: GDPR,
     verified_on: VOD,
     primary_source_url: GDPR_URL,
