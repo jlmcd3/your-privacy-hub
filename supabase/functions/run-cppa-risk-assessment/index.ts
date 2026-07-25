@@ -2964,6 +2964,36 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] T7 opening builder failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── T7-RISK-PILOT-FIX (2026-07-25) ───────────────────────────────
+    // Deterministic post-emitter repair for the 7 emitter-mechanical
+    // defect classes flagged by wave-26 first read (quality_run
+    // 17fe2863, run 139). Runs AFTER the T7 opening builder (needs
+    // s1_triggers provenance for F4/F6) and BEFORE the LEAK-PREV-P2
+    // serializer. Fail-open. Telemetry lands at
+    // `_meta.internal.risk_t7fix`; the LEAK-PREV-P2 serializer
+    // preserves `_meta.internal` unmodified (item-32 gate).
+    try {
+      const { runT7RiskPilotFix, T7_RISK_PILOTFIX_VERSION, T7_RISK_PILOTFIX_STAMP } =
+        await import("../_shared/openings/_t7_risk_pilotfix.ts");
+      const _fix = runT7RiskPilotFix(report_data as any);
+      const _rd: any = report_data as any;
+      const _meta = _rd._meta ?? (_rd._meta = {});
+      const _internal = _meta.internal ?? (_meta.internal = {});
+      _internal.risk_t7fix = {
+        version: T7_RISK_PILOTFIX_VERSION,
+        stamp: T7_RISK_PILOTFIX_STAMP,
+        build_stamp: BUILD_STAMP,
+        resolved_triggers: _fix.resolved_triggers,
+        ..._fix.counters,
+      };
+      console.log(`[run-cppa-risk-assessment] evt=t7_risk_pilotfix ${JSON.stringify({
+        stamp: T7_RISK_PILOTFIX_STAMP, build_stamp: BUILD_STAMP, ..._fix.counters,
+      })}`);
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] T7 pilot fix failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
     // Whitelist emit: only schema-declared keys reach the customer. On
     // serializer crash, ship the report unchanged (previous behaviour)
