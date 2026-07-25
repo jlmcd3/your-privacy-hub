@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-25T03:23:00Z — ADMT-W17-FALLBACK-JOIN-2 DEPLOYED (`run-admt-checker` `w19-admt-fallbackjoin2@2026-07-25T03:18:37Z`).
+**Last updated:** 2026-07-25T03:34:41Z — RISK-INTERNAL-VOCAB-SCRUB DEPLOYED (`run-cppa-risk-assessment` `w18-risk-vocabscrub@2026-07-25T03:34:41Z`).
 
 ---
 
