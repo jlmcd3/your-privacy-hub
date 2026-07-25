@@ -51,9 +51,9 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 If either check returns a row, the deploy WAITS until the run reaches a terminal state (`complete`, `error`, `cancelled`).
 
-**Current lock state (2026-07-24T22:52:40Z):**
-- `run-cppa-risk-assessment` deployed 2026-07-24T22:52:12Z (RISK-REGISTRY-WIRING); pre-deploy lock re-check at 22:52:07Z green (running/pending `quality_batch_runs` = 0; cppa_assessments module='risk' <15 min NULL report = 0). No running/pending batches; all edge functions unlocked. Deploys still subject to the standing <15-min in-flight customer-path check at deploy time (per §3 rule above). Next orchestrator wave ~00:15Z if 120-min cadence holds.
-- Deferred: MEDIUM cyber boilerplate-remediation across 16/18 controls (own future turn — not co-located in the crosswalk assembler).
+**Current lock state (2026-07-25T01:34:15Z):**
+- `run-cppa-cybersecurity` deployed 2026-07-25T01:34:15Z (CYBER-BOILERPLATE-REMEDIATION); pre-deploy lock re-check at 01:33:52Z green (running/pending `quality_batch_runs` = 0; cppa_assessments <15 min NULL report = 0 all modules). No running/pending batches; all edge functions unlocked. Deploys still subject to the standing <15-min in-flight customer-path check at deploy time.
+- **DISCHARGED (2026-07-25T01:34:15Z):** MEDIUM cyber boilerplate-remediation across 16/18 controls — shipped as CYBER-BOILERPLATE-REMEDIATION via `_w17_cyber_boiler.ts` guard + prompt-side `W17-CYBER-BOILERPLATE BAN` rule.
 
 ## 4. Last Completed Turn
 
