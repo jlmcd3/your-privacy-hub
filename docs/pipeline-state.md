@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T21:05:00Z — W25-ADMT-SPLICE-ATTRIBUTION (docs-only; wave-25 admt `rubric_internal_reasoning_leak` 1→2 SPLIT — one turn-caused T-Ab partial-excision residue on doc `04e7393b`, one pre-existing W6-era fallback-phrase coverage gap on doc `2235d1f6`; NO revert; queued (a) T-Ab full-sentence excision, (b) T-B coverage widening; cross-tool doctrine note added; no admt deploy before wave-26 freeze).
+**Last updated:** 2026-07-25T21:34:50Z — T6-DUPLICATE-LAUNCH-INCIDENT (docs-only; T6 measurement of record = 20:12 pair `072eef66`+`6f90f7b8` both complete with digest extracted at 20:39Z per item 81; three 21:16/21:17/21:18Z duplicate 5-tool inserts all cancelled/terminal; surviving duplicate `f2ac3a26` cancelled 21:33:17Z; root cause = launcher retry without idempotency guard; prevention recommendation queued; wave-26 path clear — no non-terminal batches).
 
 ---
 
