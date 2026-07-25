@@ -26,9 +26,22 @@ export const W10_RISK_B1_STAMP = "w10-risk-b1@2026-07-24T12:37:00Z";
 // never DENY profiling that q5b_profiling_observation asserts. Fail-open;
 // telemetry lands under _w10_risk_b1.counters.profiling_denials_*.
 export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-25T05:22:00Z";
+// WAVE19-FIX TURN B — D2/B1 reconciliation guard now consults the intake
+// fact-ledger BEFORE emitting the reconciliation.required template. When
+// the ledger has a supporting entry for the fact being reconciled the
+// guard is a strict no-op (no template, no other telemetry). Type case:
+// wave-19 doc 488b37c3 (i6_vendors AWS/Stripe/SendGrid was intake-
+// supported yet triggered the reconciliation template).
+//
+// NOTE (LEAK-PREV-P4-SELF-HEALING): the new suppression counter
+// `d2b1_reconciliation_suppressed_by_ledger` feeds future P4 over-
+// enforcement demotion logic. The P4 loop is NOT built in this turn —
+// this counter is the sole telemetry hook it will consume.
+export const W19_RISK_TURNB_STAMP = "w19-risk-turnb@2026-07-25T08:26:51Z";
 
 // LEAK-PREV-P0 — customer-message catalog for guard-authored prose.
 import { renderMessage, P } from "../_shared/customer-messages.ts";
+import { buildFactLedger, type FactRow } from "../_shared/intake/fact-ledger.ts";
 
 export interface W10RiskB1Counters {
   flags_scanned: number;
@@ -40,6 +53,10 @@ export interface W10RiskB1Counters {
   // D2 — profiling-denial guard (bidirectional).
   profiling_denials_scanned: number;
   profiling_denials_downgraded: number;
+  // W19 TURN B — ledger-suppressed reconciliation emits. Counted here so
+  // downstream P4 over-enforcement demotion can consume a single telemetry
+  // key; do NOT rename without updating the P4 charter (§2 item 33).
+  d2b1_reconciliation_suppressed_by_ledger: number;
 }
 
 const emptyCounters = (): W10RiskB1Counters => ({
@@ -51,6 +68,7 @@ const emptyCounters = (): W10RiskB1Counters => ({
   claims_removed: 0,
   profiling_denials_scanned: 0,
   profiling_denials_downgraded: 0,
+  d2b1_reconciliation_suppressed_by_ledger: 0,
 });
 
 // ---------- Intake flattening ----------
