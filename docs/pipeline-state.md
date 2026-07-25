@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T18:49:06Z — NONCPPA-P2-BATCH2 done (EDPB Guidelines 3/2018, 72/72 pin, 71 headings + 1 front-matter; transit blocker RESOLVED)
+**Last updated:** 2026-07-25T19:02:39Z — W24-ADMT-H6-GOVERNING-ANCHOR deployed (`run-admt-checker` `w24-admt-h6@2026-07-25T19:01:28Z`; sole-§7001 detector + registry-first promoter, never-fabricate info-needed fallback; 20/20 tests green; pre-deploy locks 0/0)
 
 ---
 
