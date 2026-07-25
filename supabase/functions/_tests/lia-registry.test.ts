@@ -1,132 +1,147 @@
-// LIA-REGISTRY-AUTHORING (2026-07-25) — deterministic pin-tests.
+// LIA-REGISTRY-AUTHORING (2026-07-25) — LIVE-CORPUS pin-tests.
 //
 // Every row in `LIA_VERIFIED_AUTHORITIES` must have a `verbatim_quote` that is
-// a byte-exact substring of the corresponding APPROVED corpus source excerpt.
-// The source snapshots below are pasted verbatim from
-// `public.provision_texts.verbatim_excerpt` (status='approved', jurisdiction='EU')
-// and `public.edpb_guidelines.excerpt_text` (guideline_ref='EDPB Guidelines
-// 2/2019', status='final'). No paraphrase, no re-flow, no whitespace edits.
+// a byte-exact substring of its APPROVED corpus source pulled LIVE from
+// PostgREST at test time. No pasted snapshots — the corpus itself is queried.
 //
-// If any assert fails, DO NOT rewrite the quote — either (a) fix the corpus row
-// (approved-only), or (b) move the proposition_key onto
-// `LIA_UNANCHORED_PROPOSITIONS`.
+// Sources:
+//   - public.provision_texts   (status='approved', jurisdiction='EU', key like gdpr-*)
+//   - public.edpb_guidelines   (guideline_ref='EDPB Guidelines 2/2019', status='final')
+//
+// If any assert fails, do NOT rewrite the quote — either (a) confirm the row
+// against the corpus and fix the paraphrase, or (b) move the proposition_key
+// onto `LIA_UNANCHORED_PROPOSITIONS`.
+//
+// Env: reads VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY (project .env)
+// via std/dotenv/load.
 
+import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_VERIFIED_AUTHORITY_VERSION,
+  LIA_UNANCHORED_PROPOSITIONS,
   KNOWN_PARAPHRASED_KEYS,
 } from "../_shared/registry/lia-verified-authorities.ts";
 
-// ── Corpus snapshots (verbatim from approved rows read 2026-07-25T12:37Z) ────
+const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
 
-const GDPR_ART_6_1_F =
-  "processing is necessary for the purposes of the legitimate interests pursued by the controller or by a third party, except where such interests are overridden by the interests or fundamental rights and freedoms of the data subject which require protection of personal data, in particular where the data subject is a child.\n\nPoint (f) of the first subparagraph shall not apply to processing carried out by public authorities in the performance of their tasks.";
-
-const GDPR_ART_5_1_A =
-  "processed lawfully, fairly and in a transparent manner in relation to the data subject ('lawfulness, fairness and transparency');";
-
-const GDPR_ART_5_1_B =
-  "collected for specified, explicit and legitimate purposes and not further processed in a manner that is incompatible with those purposes; further processing for archiving purposes in the public interest, scientific or historical research purposes or statistical purposes shall, in accordance with Article 89(1), not be considered to be incompatible with the initial purposes ('purpose limitation');";
-
-const GDPR_ART_5_1_C =
-  "adequate, relevant and limited to what is necessary in relation to the purposes for which they are processed ('data minimisation');";
-
-const GDPR_ART_9_1 =
-  "Processing of personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, and the processing of genetic data, biometric data for the purpose of uniquely identifying a natural person, data concerning health or data concerning a natural person's sex life or sexual orientation shall be prohibited.";
-
-// From gdpr-art-13 (full excerpt held in provision_texts). We only pin the
-// specific subparagraphs used as verbatim_quote strings.
-const GDPR_ART_13_1_D =
-  "where the processing is based on point (f) of Article 6(1), the legitimate interests pursued by the controller or by a third party;";
-const GDPR_ART_13_2_B =
-  "the existence of the right to request from the controller access to and rectification or erasure of personal data or restriction of processing concerning the data subject or to object to processing as well as the right to data portability;";
-
-// From gdpr-art-14. Note Art 14(2)(c) uses "and to object" (vs Art 13(2)(b)
-// "or to object"). Both are held verbatim in the corpus row.
-const GDPR_ART_14_2_B = GDPR_ART_13_1_D; // identical text at Art 14(2)(b)
-const GDPR_ART_14_2_C =
-  "the existence of the right to request from the controller access to and rectification or erasure of personal data or restriction of processing concerning the data subject and to object to processing as well as the right to data portability;";
-
-const GDPR_ART_22_1 =
-  "The data subject shall have the right not to be subject to a decision based solely on automated processing, including profiling, which produces legal effects concerning him or her or similarly significantly affects him or her.";
-
-const GDPR_ART_25_1 =
-  "Taking into account the state of the art, the cost of implementation and the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for rights and freedoms of natural persons posed by the processing, the controller shall, both at the time of the determination of the means for processing and at the time of the processing itself, implement appropriate technical and organisational measures, such as pseudonymisation, which are designed to implement data-protection principles, such as data minimisation, in an effective manner and to integrate the necessary safeguards into the processing in order to meet the requirements of this Regulation and protect the rights of data subjects.";
-
-const GDPR_ART_30_1 =
-  "Each controller and, where applicable, the controller's representative, shall maintain a record of processing activities under its responsibility.";
-
-const GDPR_ART_35_1 =
-  "Where a type of processing in particular using new technologies, and taking into account the nature, scope, context and purposes of the processing, is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall, prior to the processing, carry out an assessment of the impact of the envisaged processing operations on the protection of personal data. A single assessment may address a set of similar processing operations that present similar high risks.";
-
-// EDPB Guidelines 2/2019, § 2.4 (Necessity) — carried through DPIA-va-w1 tests.
-const EDPB_2_2019_S_2_4_A =
-  "If there are realistic, less intrusive alternatives, the processing is not \u2018necessary\u2019.";
-const EDPB_2_2019_S_2_4_B =
-  "Article 6(1)(b) will not cover processing which is useful but not objectively necessary for performing the contractual service or for taking relevant pre-contractual steps at the request of the data subject, even if it is necessary for the controller\u2019s other business purposes.";
-
-// Row → source-excerpt map. If a row is added to the registry, add its entry
-// here or the tests will fail (unmapped row).
-const SOURCE_FOR: Record<string, string> = {
-  li_lawful_basis_legitimate_interests: GDPR_ART_6_1_F,
-  li_public_authorities_exclusion: GDPR_ART_6_1_F,
-  principle_lawfulness_fairness_transparency: GDPR_ART_5_1_A,
-  principle_purpose_limitation: GDPR_ART_5_1_B,
-  principle_data_minimisation: GDPR_ART_5_1_C,
-  special_categories_prohibition: GDPR_ART_9_1,
-  art_13_legitimate_interests_disclosure: GDPR_ART_13_1_D,
-  art_13_object_right_information: GDPR_ART_13_2_B,
-  art_14_legitimate_interests_disclosure: GDPR_ART_14_2_B,
-  art_14_object_right_information: GDPR_ART_14_2_C,
-  art_22_admt_right: GDPR_ART_22_1,
-  data_protection_by_design: GDPR_ART_25_1,
-  ropa_controller_record: GDPR_ART_30_1,
-  dpia_when_required: GDPR_ART_35_1,
-  necessity_less_intrusive_alternatives: EDPB_2_2019_S_2_4_A,
-  necessity_useful_not_necessary: EDPB_2_2019_S_2_4_B,
+/** proposition_key -> corpus source key that must contain the verbatim_quote. */
+const ROW_TO_SOURCE: Record<string, { table: "provision_texts"; key: string } | { table: "edpb_guidelines"; section: string }> = {
+  li_lawful_basis_legitimate_interests:        { table: "provision_texts", key: "gdpr-art-6-1-f" },
+  li_public_authorities_exclusion:             { table: "provision_texts", key: "gdpr-art-6-1-f" },
+  principle_lawfulness_fairness_transparency:  { table: "provision_texts", key: "gdpr-art-5-1-a" },
+  principle_purpose_limitation:                { table: "provision_texts", key: "gdpr-art-5-1-b" },
+  principle_data_minimisation:                 { table: "provision_texts", key: "gdpr-art-5-1-c" },
+  special_categories_prohibition:              { table: "provision_texts", key: "gdpr-art-9-1"   },
+  art_13_legitimate_interests_disclosure:      { table: "provision_texts", key: "gdpr-art-13"    },
+  art_13_object_right_information:             { table: "provision_texts", key: "gdpr-art-13"    },
+  art_14_legitimate_interests_disclosure:      { table: "provision_texts", key: "gdpr-art-14"    },
+  art_14_object_right_information:             { table: "provision_texts", key: "gdpr-art-14"    },
+  art_22_admt_right:                           { table: "provision_texts", key: "gdpr-art-22"    },
+  data_protection_by_design:                   { table: "provision_texts", key: "gdpr-art-25"    },
+  ropa_controller_record:                      { table: "provision_texts", key: "gdpr-art-30"    },
+  dpia_when_required:                          { table: "provision_texts", key: "gdpr-art-35"    },
+  necessity_less_intrusive_alternatives:       { table: "edpb_guidelines", section: "2.4 Necessity" },
+  necessity_useful_not_necessary:              { table: "edpb_guidelines", section: "2.4 Necessity" },
 };
+
+async function pgrest(path: string): Promise<unknown[]> {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Accept: "application/json",
+    },
+  });
+  const body = await r.text();
+  if (!r.ok) throw new Error(`PostgREST ${r.status}: ${body}`);
+  return JSON.parse(body);
+}
+
+interface CorpusBundle {
+  provision: Map<string, string>;
+  /** section_heading -> list of excerpt bodies (multiple rows may share a heading). */
+  edpb: Map<string, string[]>;
+}
+
+async function loadCorpus(): Promise<CorpusBundle> {
+  const keys = new Set<string>();
+  const sections = new Set<string>();
+  for (const src of Object.values(ROW_TO_SOURCE)) {
+    if (src.table === "provision_texts") keys.add(src.key);
+    else sections.add(src.section);
+  }
+  const keyList = [...keys].map((k) => `"${k}"`).join(",");
+  const provisions = await pgrest(
+    `provision_texts?select=key,verbatim_excerpt&jurisdiction=eq.EU&status=eq.approved&key=in.(${keyList})`,
+  ) as Array<{ key: string; verbatim_excerpt: string }>;
+  const provision = new Map(provisions.map((r) => [r.key, r.verbatim_excerpt]));
+
+  const edpbRows = await pgrest(
+    `edpb_guidelines?select=section_heading,excerpt_text&guideline_ref=eq.EDPB%20Guidelines%202%2F2019&status=eq.final`,
+  ) as Array<{ section_heading: string | null; excerpt_text: string | null }>;
+  const edpb = new Map<string, string[]>();
+  for (const r of edpbRows) {
+    if (!r.section_heading || !r.excerpt_text) continue;
+    const list = edpb.get(r.section_heading) ?? [];
+    list.push(r.excerpt_text);
+    edpb.set(r.section_heading, list);
+  }
+  return { provision, edpb };
+}
 
 Deno.test("lia-registry: version tag is w1", () => {
   assert(LIA_VERIFIED_AUTHORITY_VERSION === "lia-va-w1-2026-07-25");
 });
 
-Deno.test("lia-registry: no paraphrase on entry", () => {
+Deno.test("lia-registry: no paraphrase on entry (KNOWN_PARAPHRASED_KEYS empty)", () => {
   assert(KNOWN_PARAPHRASED_KEYS.length === 0);
 });
 
-Deno.test("lia-registry: every row is byte-exact substring of its approved corpus source", () => {
+Deno.test("lia-registry: unanchorable list is non-empty (write-around targets registered)", () => {
+  assert(LIA_UNANCHORED_PROPOSITIONS.length > 0);
+});
+
+Deno.test("lia-registry: every row is a byte-exact substring of its LIVE approved-corpus source", async () => {
+  const corpus = await loadCorpus();
   const rows = Object.values(LIA_VERIFIED_AUTHORITIES);
   assert(rows.length > 0, "registry must have at least one row");
+
   const failures: string[] = [];
   for (const row of rows) {
-    const src = SOURCE_FOR[row.proposition_key];
+    const src = ROW_TO_SOURCE[row.proposition_key];
     if (!src) {
-      failures.push(`UNMAPPED: ${row.proposition_key} has no SOURCE_FOR entry`);
+      failures.push(`UNMAPPED: ${row.proposition_key} has no ROW_TO_SOURCE entry`);
       continue;
     }
-    if (!src.includes(row.verbatim_quote)) {
-      failures.push(`NO PIN: ${row.proposition_key} — verbatim_quote is not a substring of its source excerpt`);
+    const bodies: string[] = src.table === "provision_texts"
+      ? (corpus.provision.get(src.key) ? [corpus.provision.get(src.key)!] : [])
+      : (corpus.edpb.get(src.section) ?? []);
+    if (bodies.length === 0) {
+      failures.push(`NO CORPUS ROW: ${row.proposition_key} -> ${JSON.stringify(src)}`);
+      continue;
+    }
+    // Pass if ANY row with the same key/section carries the substring — the
+    // corpus may hold multiple rows sharing a heading (e.g. paragraph split).
+    const hit = bodies.some((b) => b.includes(row.verbatim_quote));
+    if (!hit) {
+      const maxLen = Math.max(...bodies.map((b) => b.length));
+      failures.push(`NO PIN: ${row.proposition_key} -> ${JSON.stringify(src)} — verbatim_quote not found across ${bodies.length} candidate row(s) (max len=${maxLen})`);
     }
   }
   if (failures.length) console.error(failures.join("\n"));
-  assert(failures.length === 0, `${failures.length} pin-test failures`);
+  assert(failures.length === 0, `${failures.length} live-corpus pin failures`);
 });
 
-Deno.test("lia-registry: every row has non-empty required fields", () => {
-  const rows = Object.values(LIA_VERIFIED_AUTHORITIES);
-  for (const row of rows) {
-    assert(row.proposition_key.length > 0, "proposition_key empty");
-    assert(row.citation.length > 0, `citation empty on ${row.proposition_key}`);
-    assert(row.subsection.length > 0, `subsection empty on ${row.proposition_key}`);
-    assert(row.verbatim_quote.length > 0, `verbatim_quote empty on ${row.proposition_key}`);
-    assert(row.governing_anchor.length > 0, `governing_anchor empty on ${row.proposition_key}`);
-    assert(row.verified_on === "2026-07-25", `verified_on wrong on ${row.proposition_key}`);
-  }
-});
-
-Deno.test("lia-registry: registry keys match proposition_key on each row", () => {
+Deno.test("lia-registry: registry keys match proposition_key on each row and required fields are non-empty", () => {
   for (const [k, row] of Object.entries(LIA_VERIFIED_AUTHORITIES)) {
     assert(k === row.proposition_key, `key/proposition_key mismatch: ${k} vs ${row.proposition_key}`);
+    assert(row.citation.length > 0, `citation empty on ${k}`);
+    assert(row.subsection.length > 0, `subsection empty on ${k}`);
+    assert(row.verbatim_quote.length > 0, `verbatim_quote empty on ${k}`);
+    assert(row.governing_anchor.length > 0, `governing_anchor empty on ${k}`);
+    assert(row.verified_on === "2026-07-25", `verified_on wrong on ${k}`);
   }
 });
