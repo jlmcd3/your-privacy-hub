@@ -39,6 +39,7 @@ import { applyW19AdmtTurnA, W19_ADMT_TURNA_STAMP } from "./_w19_admt_turna.ts";
 console.log(`[run-admt-checker] boot admt_turna_stamp=${W19_ADMT_TURNA_STAMP}`);
 import { applyW20AdmtTurnA, W20_ADMT_TURNA_STAMP } from "./_w20_admt_turna.ts";
 import { applyW21AdmtTurnB, W21_ADMT_TURNB_STAMP } from "./_w21_admt_turnb.ts";
+import { applyW22AdmtTurnB, W22_ADMT_TURNB_STAMP } from "./_w22_admt_turnb.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
