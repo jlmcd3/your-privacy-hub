@@ -47,6 +47,7 @@ import {
 } from "../_shared/registry/admt-verified-authorities.ts";
 import {
   resolveByPropositionKey,
+  resolveByCitationString,
   registrySize as vaRegistrySize,
 } from "../_shared/verified-authority-resolver.ts";
 // R-TURN-1 item 3 — regenerated from CITATION_REGISTRY at module load so
