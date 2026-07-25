@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T16:23:04Z — WAVE23-DIGEST (batch 4bf2fd2b)
+**Last updated:** 2026-07-25T16:46:57Z — WAVE23-ADMT-TURNA landed (item 70 DONE, BUILD_STAMP w23-admt-turna@2026-07-25T16:42:27Z)
 
 ---
 
