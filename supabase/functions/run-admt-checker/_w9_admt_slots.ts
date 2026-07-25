@@ -183,7 +183,7 @@ const DEADLINE_SPECS: Array<{ obligation: string; pk: string; deadline: string }
   // prior verbatim quote was fabricated against § 7222(c)). Row is preserved
   // for user-facing completeness but emits information_needed rather than a
   // §-pinpoint or quote.
-  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: "Governed by CCPA response-timeline provisions (Cal. Civ. Code § 1798.130 / § 1798.145); no ADMT-subchapter row currently verified" },
+  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: renderMessage("unresolved.authority") },
 ];
 
 export function buildDeadlineTable(_intake: any, _report: any): DeadlineTableRow[] {
