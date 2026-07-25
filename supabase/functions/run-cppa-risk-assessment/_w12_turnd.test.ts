@@ -83,8 +83,10 @@ Deno.test("D2: intake asserts profiling → 'no profiling inferences are recorde
   assertEquals(counters.profiling_denials_scanned >= 1, true);
   assertEquals(counters.profiling_denials_downgraded >= 1, true);
   const es = report.executive_summary;
-  assert(es.includes("intake asserts systematic-observation profiling"), `got: ${es}`);
-  assert(es.includes("q5b_profiling_observation"), `should name the intake field`);
+  // LEAK-PREV-P0: D2 downgrades route through the customer-messages
+  // reconciliation.required template (humanized field label — no raw
+  // intake IDs in customer output).
+  assert(es.includes("does not support this statement") && es.includes("must be reconciled"), `got: ${es}`);
 });
 
 Deno.test("D2: intake DENIES profiling → denial sentence is left alone", () => {
