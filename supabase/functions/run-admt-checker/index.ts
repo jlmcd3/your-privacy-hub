@@ -2419,6 +2419,33 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] WAVE23-FIX TURN A failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── W24-ADMT-ATTRIBUTION-FIX (2026-07-25) ─────────────────────────
+    // Attribution-driven fixes for wave-24 admt (-4.7 vs wave-23):
+    //   (a) bracketed ALL-CAPS advisory sentences (e6_counsel_referral
+    //       recurrence class not matched by W23-turnA T3);
+    //   (b) "More information is needed" prose leak (grader-visible
+    //       artefact — the structured `information_needed` bucket
+    //       carries the fact);
+    //   (c) unresolved template-variable phrasing on customer prose
+    //       ("the applicable ADMT-subchapter provision" spliced into
+    //       priority_actions bodies — rubric_internal_reasoning_leak).
+    // Runs AFTER W23 turnA and BEFORE the LEAK-PREV-P1 emit gate so
+    // gate + serializer see the cleaned surface. Fail-open.
+    try {
+      const w24a = applyW24AdmtAttrFix(
+        report,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      console.log(JSON.stringify({
+        evt: "_w24_admt_attr_fix", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W24_ADMT_ATTR_STAMP, ...w24a,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W24-ADMT-ATTRIBUTION-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
     // Runs AFTER every content-shaping pass and IMMEDIATELY BEFORE the
     // W12-C1 metadata strip so gate telemetry rides `_meta.internal`.
