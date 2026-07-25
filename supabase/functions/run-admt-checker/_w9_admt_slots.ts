@@ -148,7 +148,7 @@ export function buildApplicabilityVerdict(intake: any, report: any): Applicabili
     reason = "System is ADMT but no significant-decision trigger is established under § 7001(ddd); Article 11 duties do not attach on this record.";
   } else {
     label = "insufficient_basis";
-    reason = "The record does not resolve whether the system is ADMT and/or whether it triggers a significant decision; supply the missing intake dimensions and re-run.";
+    reason = renderMessage("insufficient.basis.reason");
   }
 
   return {
