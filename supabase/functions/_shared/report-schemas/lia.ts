@@ -6,7 +6,7 @@
 // src/components/LIAssessmentResult surfaces.
 //
 // `_meta.internal` is preserved verbatim by the serializer so build-stamp
-// echo keys (`_meta.internal.lia_w1_wire`, `_meta.internal.emit_gate`,
+// echo keys (`_meta.internal.lia_w1`, `_meta.internal.emit_gate`,
 // `_meta.internal.serializer`) survive P2 whitelist serialization — this is
 // the wave-21 admt telemetry-gap lesson (items 47/49) applied at LIA wiring
 // time. `build_stamp` is additionally declared top-level so digests can

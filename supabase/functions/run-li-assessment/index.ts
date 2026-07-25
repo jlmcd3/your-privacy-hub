@@ -1625,7 +1625,7 @@ Return JSON:
 
     // ── LIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ──────
     // Registry-first citation stamping + write-around for unanchorable
-    // propositions. Telemetry writes to `_meta.internal.lia_w1_wire`.
+    // propositions. Telemetry writes to `_meta.internal.lia_w1`.
     try {
       const { applyW1LiaWire } = await import("./_w1_lia_wire.ts");
       applyW1LiaWire(reportData);
@@ -1649,11 +1649,11 @@ Return JSON:
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
     // Whitelist top-level keys; internal telemetry survives via
     // `_meta.internal` reduction inside the serializer (stamp-echo key
-    // `_meta.internal.lia_w1_wire` — dispatch §3). On crash, we keep the
+    // `_meta.internal.lia_w1` — dispatch §3). On crash, we keep the
     // pre-serialized reportData (previous behaviour).
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { LIA_REPORT_SCHEMA } = await import("../_shared/report-schemas/li-assessment.ts");
+      const { LIA_REPORT_SCHEMA } = await import("../_shared/report-schemas/lia.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(reportData as any, LIA_REPORT_SCHEMA);
       if (!telemetry.crashed && serialized && typeof serialized === "object") {
         reportData = serialized as any;

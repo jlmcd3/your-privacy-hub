@@ -17,7 +17,7 @@
 //       fabricated pinpoint for the item-52 unanchorable list. `information
 //       _needed` is NEVER surfaced for citation-resolution gaps (per dispatch
 //       and per RULE 2.7 S1 — intake gaps only).
-//   (3) TELEMETRY: writes `report._meta.internal.lia_w1_wire = { version,
+//   (3) TELEMETRY: writes `report._meta.internal.lia_w1 = { version,
 //       stamp, registry_hits, write_around_hits, unresolved_keys[],
 //       nodes_scanned }`. Never surfaces to the customer — P2 serializer
 //       preserves `_meta.internal` verbatim; digests can confirm build-of-
@@ -25,7 +25,7 @@
 //       ledger items 47/49).
 //
 // Fail-visible: on internal error the report is returned unchanged with
-// `_meta.internal.lia_w1_wire.crashed = true`; availability is never blocked.
+// `_meta.internal.lia_w1.crashed = true`; availability is never blocked.
 
 import {
   LIA_VERIFIED_AUTHORITIES,
@@ -141,7 +141,7 @@ export function applyW1LiaWire(report: unknown): W1LiaWireCounters {
       const internal = (meta.internal = (meta.internal && typeof meta.internal === "object")
         ? meta.internal as Record<string, unknown>
         : {});
-      internal.lia_w1_wire = { ...c };
+      internal.lia_w1 = { ...c };
     } catch { /* never block emission */ }
   } catch (e) {
     c.crashed = true;
