@@ -203,7 +203,10 @@ async function tryResume(row: ContractRow): Promise<{ ok: boolean; via: string }
 async function handleCustomer(admin: any, row: ContractRow) {
   const now = Date.now();
   const overallBreached = new Date(row.overall_deadline_at).getTime() < now;
-  const stageStale = new Date(row.heartbeat_at).getTime() < new Date(row.stage_deadline_at).getTime();
+  // DS-T2c: same inversion fix as harness branch — see handleHarness.
+  const stageDeadlineMs = new Date(row.stage_deadline_at).getTime();
+  const stageStale = stageDeadlineMs < now
+    && new Date(row.heartbeat_at).getTime() < stageDeadlineMs;
 
   if (overallBreached) {
     if (row.stage === "render" || row.stage === "deliver") {
