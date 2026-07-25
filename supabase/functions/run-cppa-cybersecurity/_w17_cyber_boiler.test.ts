@@ -37,7 +37,7 @@ Deno.test("W17-CYBER-BOILER: near-duplicate (>0.9 Jaccard) is rewritten", () => 
   const report: any = { controls: makeControls() };
   applyCyberBoilerplateGuard(report);
   const c3 = report.controls[2];
-  assert(c3.remediation.startsWith("Remediation guidance for Authentication"));
+  assert(c3.remediation.startsWith("Remediation guidance for Account management and access controls"));
   assertEquals(c3.information_needed, true);
 });
 
