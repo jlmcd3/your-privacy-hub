@@ -13,9 +13,9 @@ import {
 } from "../_shared/intake/fact-ledger.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W15-CYBER-FL: BUILD_STAMP restamped to w15-cyber-factledger@<iso>", () => {
+Deno.test("W15-CYBER-FL: BUILD_STAMP restamped (accepts w15 or w16-hotfix variants)", () => {
   assert(
-    /^w15-cyber-factledger@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-cyber-factledger|w16-cyber-flfix)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
@@ -33,8 +33,13 @@ Deno.test("W15-CYBER-FL: index.ts imports fact-ledger and inserts pre-cyber-VA p
   assert(flIdx > 0 && vaIdx > 0 && flIdx < vaIdx, "fact-ledger must run before cyber_va L1 stamp pass");
 });
 
-Deno.test("W15-CYBER-FL: silence never supports a negative assertion", () => {
-  const ledger = buildFactLedger({ some_other_field: "x" });
+// W16-HOTFIX: field must be present in the ledger (as silent) for the
+// negative-from-silence rule to fire. v2 rule: unresolvable field ⇒ SKIP.
+Deno.test("W15-CYBER-FL: silence never supports a negative assertion (field in ledger as silent)", () => {
+  const ledger = buildFactLedger({
+    some_other_field: "x",
+    trade_secret_carveout_policy: "",
+  });
   const res = enforceLedger({}, ledger, {
     claims: [{
       text: "no trade-secret or security carve-out policy is documented",
@@ -46,7 +51,9 @@ Deno.test("W15-CYBER-FL: silence never supports a negative assertion", () => {
   assert(res.rewrites[0].to.includes("must be confirmed"));
 });
 
-Deno.test("W15-CYBER-FL: unsupported-positive claim downgraded with 'must be confirmed'", () => {
+// W16-HOTFIX (WAVE-16 REGRESSION GUARD): v1 wrongly downgraded positive
+// claims with an unresolvable field. v2 must SKIP — never downgrade.
+Deno.test("W15-CYBER-FL: unsupported-positive with UNRESOLVABLE field is SKIPPED (wave-16 guard)", () => {
   const ledger = buildFactLedger({ some_other_field: "x" });
   const res = enforceLedger({}, ledger, {
     claims: [{
@@ -55,8 +62,9 @@ Deno.test("W15-CYBER-FL: unsupported-positive claim downgraded with 'must be con
       direction: "positive",
     }],
   });
-  assertEquals(res.counters.claims_downgraded, 1);
-  assert(res.rewrites[0].to.includes("must be confirmed"));
+  assertEquals(res.counters.claims_downgraded, 0);
+  assertEquals(res.counters.skipped_field_unknown, 1);
+  assertEquals(res.rewrites.length, 0);
 });
 
 Deno.test("W15-CYBER-FL: contradiction of denied fact is blocked with reconciliation rewrite", () => {
