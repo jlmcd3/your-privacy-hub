@@ -235,7 +235,8 @@ function auditNode(node: Record<string, unknown>, c: LiaT6FixCounters): void {
     return;
   }
   if (pk && pk.length > 0) {
-    // Unresolved key — never invent. Null pinpoints.
+    // Unresolved key — never invent. Null pinpoints (idempotent).
+    if (node.pinpoint_omitted === true) return;
     if (nullPinpoints(node)) c.classA_pinpoint_omissions += 1;
     return;
   }
