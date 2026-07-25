@@ -9,8 +9,14 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // claim classes (sensitive-location contradiction, worker/free-tier positive
 // projections). Runs after W6/W9/W10 retro-audits, before the w15 risk_va
 // L1 citation stamp so citations attach to final claim text. Fail-open.
-export const BUILD_STAMP = "w18-risk-collapsecov2@2026-07-25T03:03:01Z";
+export const BUILD_STAMP = "w18-risk-vocabscrub@2026-07-25T03:34:41Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+import {
+  newVocabScrubMetrics,
+  scrubReportVocab,
+  W18_RISK_VOCABSCRUB_STAMP,
+} from "./_w18_risk_vocab.ts";
+console.log(`[run-cppa-risk-assessment] boot vocab_scrub_stamp=${W18_RISK_VOCABSCRUB_STAMP}`);
 import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
