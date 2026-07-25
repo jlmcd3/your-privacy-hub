@@ -2159,15 +2159,19 @@ Return this JSON structure exactly:
       }
 
       // ── S5 top_3_actions normalizer — exact-3 shape, no fabricated deadlines/citations
-      const insufficientEntry = { rank: 0, action: "insufficient basis to state a top action", citation: "", deadline: "", proposition_key: "" };
+      // LEAK-PREV-P0: fallback text rendered through the customer-messages
+      // catalog AND flagged additively with `insufficient_basis: true` so the
+      // frontend can key styling on the flag (not the literal string).
+      const insufficientAction = renderMessage("insufficient.basis.top_action");
+      const insufficientEntry = { rank: 0, action: insufficientAction, citation: "", deadline: "", proposition_key: "", insufficient_basis: true };
       let t3 = Array.isArray((report as any).top_3_actions) ? [...(report as any).top_3_actions] : [];
       // Filter out non-objects / empty entries
       t3 = t3.filter((e: any) => e && typeof e === "object" && typeof e.action === "string" && e.action.trim().length > 0);
       // Pad to 3 with insufficient-basis entries; never fabricate
       while (t3.length < 3) { t3.push({ ...insufficientEntry }); w9Metrics.top3_padded++; }
       if (t3.length > 3) t3 = t3.slice(0, 3);
-      // Re-rank 1..3
-      t3 = t3.map((e: any, i: number) => ({ rank: i + 1, action: String(e.action), citation: typeof e.citation === "string" ? e.citation : "", deadline: typeof e.deadline === "string" ? e.deadline : "", proposition_key: typeof e.proposition_key === "string" ? e.proposition_key : "" }));
+      // Re-rank 1..3; preserve `insufficient_basis` when present.
+      t3 = t3.map((e: any, i: number) => ({ rank: i + 1, action: String(e.action), citation: typeof e.citation === "string" ? e.citation : "", deadline: typeof e.deadline === "string" ? e.deadline : "", proposition_key: typeof e.proposition_key === "string" ? e.proposition_key : "", insufficient_basis: e.insufficient_basis === true }));
       (report as any).top_3_actions = t3;
       w9Metrics.top3_final_len = t3.length;
     } catch (e) {
