@@ -21,6 +21,7 @@
 import { cppaAdmtContract } from "./intake-contracts/cppa-admt.ts";
 import { cppaRiskContract } from "./intake-contracts/cppa-risk-assessment.ts";
 import { cppaCybersecurityContract } from "./intake-contracts/cppa-cybersecurity.ts";
+import { dpiaFrameworkContract } from "./intake-contracts/dpia-framework.ts";
 
 export const CUSTOMER_MESSAGES_VERSION = "cm-w1-2026-07-25";
 
@@ -169,6 +170,53 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "controls[].maturity": "control maturity level",
   "controls[].notes": "control notes",
   "controls[].evidence": "evidence available for the control",
+
+  // ── DPIA Framework (LEAK-PREV-P0 extension — DPIA-REGISTRY-WIRING) ──
+  organization_name: "organisation name",
+  processing_activity_name: "processing activity name",
+  description: "processing description",
+  purpose: "purpose of the processing",
+  data_categories: "categories of personal data",
+  data_subjects: "categories of data subjects",
+  volume_frequency: "volume and frequency of processing",
+  third_party_processors: "third-party processors",
+  existing_safeguards: "existing safeguards",
+  jurisdictions: "applicable jurisdictions",
+  legal_basis_proposed: "proposed lawful basis",
+  article_9_condition: "Article 9 special-category condition",
+  necessity_proportionality: "necessity and proportionality analysis",
+  retention_period: "retention period",
+  controller_contact: "controller contact",
+  dpo_info: "data protection officer information",
+  processor_obligations: "processor obligations",
+  processing_version: "processing version",
+  estimated_launch_date: "estimated launch date",
+  estimated_end_date: "estimated end date",
+  dpia_team: "DPIA team roster",
+  reference_materials: "reference materials",
+  reasons_to_conduct: "reasons for conducting the DPIA",
+  dpia_scope_note: "DPIA scope note",
+  publication_intent: "publication intent",
+  secondary_uses: "secondary uses of the data",
+  nature_scope_context: "nature, scope and context of the processing",
+  functional_description: "functional description",
+  supporting_assets: "supporting assets",
+  codes_of_conduct: "applicable codes of conduct",
+  data_minimisation_justification: "data-minimisation justification",
+  data_quality_measures: "data-quality measures",
+  data_subject_rights_mechanisms: "data-subject rights mechanisms",
+  dp_by_design_measures: "data-protection-by-design measures",
+  dpo_advice: "DPO advice on the processing",
+  data_subjects_views_sought: "whether data-subject views were sought",
+  data_subjects_views: "data-subject views received",
+  controller_country: "controller country",
+  controller_land: "controller Land (Germany)",
+  controller_sector: "controller sector",
+  central_administration_country: "central administration country",
+  eu_decision_establishment_country: "EU decision establishment country",
+  transfer_flows: "international transfer flows",
+  retention_record_type: "retention-record type",
+  source_assessment_id: "source assessment id",
 });
 
 /** Contract-derived allowlist of every intake key we know about. Used
@@ -177,6 +225,7 @@ export const KNOWN_INTAKE_KEYS: readonly string[] = Object.freeze([
   ...cppaAdmtContract.fields.map((f) => f.key),
   ...cppaRiskContract.fields.map((f) => f.key),
   ...cppaCybersecurityContract.fields.map((f) => f.key),
+  ...dpiaFrameworkContract.fields.map((f) => f.key),
 ]);
 
 /** Returns the humanized label for an intake field or the neutral
