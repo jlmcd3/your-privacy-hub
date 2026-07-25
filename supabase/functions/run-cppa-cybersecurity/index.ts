@@ -1809,6 +1809,27 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W15-CYBER-VA] non-fatal:", String(vaErr));
     }
 
+    // W17 CYBER-BOILERPLATE-GUARD — deterministic post-generation pass that
+    // detects near-duplicate per-control remediation strings across the 18
+    // § 7123(c) components and rewrites duplicates to an answer-first
+    // information_needed advisory. Runs AFTER the full scrub chain
+    // (W6 → W9 → W10 → W12-E1 → fact-ledger → cyber_va) so it sees final
+    // text, and BEFORE the terminal metadata write. Fail-open; telemetry
+    // sequestered under _meta.internal.cyber_boiler (never a customer-
+    // surface underscore-prefixed key).
+    try {
+      const boiler = applyCyberBoilerplateGuard(report as any);
+      console.log(JSON.stringify({
+        evt: "cyber_boiler_pass", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, version: CYBER_BOILER_VERSION,
+        boiler_scanned: boiler.boiler_scanned,
+        boiler_duplicates_rewritten: boiler.boiler_duplicates_rewritten,
+        boiler_skipped_intake_anchored: boiler.boiler_skipped_intake_anchored,
+      }));
+    } catch (boilerErr) {
+      console.error("[W17-CYBER-BOILER] non-fatal:", String(boilerErr));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
