@@ -77,8 +77,6 @@ _Note:_ `CPPA-CYBER-FIX-CN-PLACEHOLDER` is **SUPERSEDED** — identical scope sh
 
 39. **DONE (2026-07-25T09:46:38Z, NONCPPA-P3-UK-RECONCILIATION)** — Phase 3 UK gdpr_articles reconciliation. **0 rows written. No DB writes, no deploys.** Finding: all three "missing" article slots (22, 44, 45) were repealed by the Data (Use and Access) Act 2025 (c.18, effective 5 Feb 2026, S.I. 2026/82) and are correctly absent: Art. 22 substituted by Section 4A (22A-22D already in DB); Art. 44 omitted and replaced by 44A/45A/45B/45C (all in DB); Art. 45 replaced by 45A (in DB). UK set is complete and current. Residual: all 81 UK rows have null article_title — lightweight backfill recommended as a follow-on, not a P3 requirement. Sonnet cost: ~$0. Next: P2 (EDPB cleanup, 893 rows, no gate).
 
-
-
 ## 3. Deploy Locks
 
 **Standing rule:** Deploying any edge function requires:
