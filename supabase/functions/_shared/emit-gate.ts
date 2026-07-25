@@ -37,7 +37,8 @@ export type EmitGateTool =
   | "dpia_framework"
   | "li_assessment"
   | "governance_assessment"
-  | "dpa";
+  | "dpa"
+  | "ir_playbook";
 
 export interface EmitGateFinding {
   /** Stable id for aggregation (e.g. "e4_instruction_leak",

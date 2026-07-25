@@ -25,6 +25,7 @@ import { dpiaFrameworkContract } from "./intake-contracts/dpia-framework.ts";
 import { liAssessmentStageBContract } from "./intake-contracts/li-assessment.ts";
 import { governanceContract } from "./intake-contracts/governance-assessment.ts";
 import { dpaGeneratorContract } from "./intake-contracts/dpa-generator.ts";
+import { irPlaybookContract } from "./intake-contracts/ir-playbook.ts";
 
 export const CUSTOMER_MESSAGES_VERSION = "cm-w1-2026-07-25";
 
@@ -296,6 +297,15 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   legalFramework: "governing legal framework",
   transferMechanism: "international-transfer safeguard mechanism",
   documentType: "document type",
+  // ── IR Playbook ──
+  organizationName: "organization name",
+  discoveryDateTime: "incident discovery date and time",
+  cause: "suspected cause of the incident",
+  dataTypes: "types of personal data involved",
+  affectedCount: "number of affected data subjects",
+  processorInvolved: "processor involvement",
+  contained: "containment status",
+  organisationType: "organization type",
 });
 
 /** Contract-derived allowlist of every intake key we know about. Used
@@ -308,6 +318,7 @@ export const KNOWN_INTAKE_KEYS: readonly string[] = Object.freeze([
   ...liAssessmentStageBContract.fields.map((f) => f.key),
   ...governanceContract.fields.map((f) => f.key),
   ...dpaGeneratorContract.fields.map((f) => f.key),
+  ...irPlaybookContract.fields.map((f) => f.key),
 ]);
 
 /** Returns the humanized label for an intake field or the neutral
