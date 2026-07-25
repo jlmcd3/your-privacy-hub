@@ -1653,7 +1653,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W12-CYBER-E1] non-fatal:", String(e1Err));
     }
 
-    // ── S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring — pre-VA-stamp ──
+    // ── S-B INTAKE-FACT-LEDGER (sb-fl-w4-2026-07-25) wiring — pre-VA-stamp ──
     // Blocks wave-14/15 unsupported-positive / contradiction /
     // negative-from-silence classes on the same client-fact surfaces the
     // cyber_va stamp pass walks. Runs AFTER the retro-audit scrub chain
