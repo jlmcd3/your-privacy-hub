@@ -1,8 +1,9 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "r-turn-3-eu-product-fixes@2026-07-23T11:20:00Z-a";
+export const BUILD_STAMP = "dpa-registry-wiring@2026-07-25T14:18:00Z";
 console.log(`[generate-dpa] boot build_stamp=${BUILD_STAMP}`);
+console.log(`[generate-dpa] boot dpa-registry-wiring registry_loaded=dpa-va-w1-2026-07-25 dpa_va_registry_loaded=true`);
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1583,6 +1584,37 @@ ${ADVISORY_VOICE_RULES}`;
       console.warn("[generate-dpa] insufficient-info guard error:", e);
     }
 
+    // ── DPA-REGISTRY-WIRING (2026-07-25) — deterministic post-pass ──
+    // Registry-first citation stamping + write-around; telemetry under
+    // `_meta.internal.dpa_w1`. Fail-open; never blocks emission.
+    try {
+      const { applyW1DpaWire } = await import("./_w1_dpa_wire.ts");
+      applyW1DpaWire(report_data);
+    } catch (e) {
+      console.warn("[generate-dpa] DPA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+    // ── LEAK-PREV-P1 — EMIT GATE ─────────────────────────────────────
+    try {
+      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      runEmitGate(report_data as any, {
+        tool: "dpa",
+        intakeRoster: (body as unknown) as Record<string, unknown>,
+      });
+    } catch (e) {
+      console.warn("[generate-dpa] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+    // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER ──────────────────────
+    try {
+      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+      const { DPA_REPORT_SCHEMA } = await import("../_shared/report-schemas/dpa.ts");
+      const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, DPA_REPORT_SCHEMA);
+      if (!telemetry.crashed && serialized && typeof serialized === "object") {
+        report_data = serialized as any;
+      }
+    } catch (e) {
+      console.warn("[generate-dpa] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
+    }
+
     // PRIMARY PERSISTENCE — persist-first, BEFORE the lint-repair regeneration.
     // The generated document must never be lost to a downstream repair failure
     // or a wall-time kill during repair. If repair later succeeds, we update
@@ -1670,6 +1702,32 @@ ${ADVISORY_VOICE_RULES}`;
             (report_data as any).information_needed = (guarded as any).information_needed ?? report_data.information_needed;
           } catch (e) {
             console.warn("[generate-dpa] insufficient-info guard error (post-repair):", e);
+          }
+          // DPA-REGISTRY-WIRING (post-repair) — mirror terminal pipeline.
+          try {
+            const { applyW1DpaWire } = await import("./_w1_dpa_wire.ts");
+            applyW1DpaWire(report_data);
+          } catch (e) {
+            console.warn("[generate-dpa] DPA-REGISTRY-WIRING post-pass (post-repair) failed (non-fatal):", (e as Error)?.message);
+          }
+          try {
+            const { runEmitGate } = await import("../_shared/emit-gate.ts");
+            runEmitGate(report_data as any, {
+              tool: "dpa",
+              intakeRoster: (body as unknown) as Record<string, unknown>,
+            });
+          } catch (e) {
+            console.warn("[generate-dpa] LEAK-PREV-P1 emit-gate (post-repair) failed (non-fatal):", (e as Error)?.message);
+          }
+          try {
+            const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+            const { DPA_REPORT_SCHEMA } = await import("../_shared/report-schemas/dpa.ts");
+            const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, DPA_REPORT_SCHEMA);
+            if (!telemetry.crashed && serialized && typeof serialized === "object") {
+              report_data = serialized as any;
+            }
+          } catch (e) {
+            console.warn("[generate-dpa] LEAK-PREV-P2 serializer (post-repair) failed (non-fatal):", (e as Error)?.message);
           }
           console.log(`[generate-dpa] persisting repaired rowId=${rowId} chars=${dpa_text.length}`);
           const { error: repairUpdateErr } = await supabase
