@@ -160,17 +160,11 @@ const SPLICE_BARE_RE = new RegExp(
 function scrubSpliceCyber(s: string, c: W21CyberTurnCCounters): string {
   if (!s) return s;
   let out = s;
-  const before1 = out;
-  out = out.replace(SPLICE_SENTENCE_RE, () => "");
-  if (out !== before1) c.c5_splice_sentences_dropped += 1;
-  const before2 = out;
-  out = out.replace(SPLICE_BARE_RE, () => "");
-  if (out !== before2 && before1 === before1 /* separate hit */) {
-    // count only if not already counted for this string
-    if (before1 === s || (before2 !== out && before2 === before1)) {
-      c.c5_splice_sentences_dropped += 1;
-    }
-  }
+  let hits = 0;
+  out = out.replace(SPLICE_SENTENCE_RE, () => { hits += 1; return ""; });
+  // Any residual bare stub (defensive; SPLICE_SENTENCE_RE usually swallows it).
+  out = out.replace(SPLICE_BARE_RE, () => { hits += 1; return ""; });
+  c.c5_splice_sentences_dropped += hits;
   return out;
 }
 
