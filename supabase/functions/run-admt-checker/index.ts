@@ -2336,39 +2336,60 @@ Return this JSON structure exactly:
     }
 
 
-    // ── WAVE12-FIX TURN C1 — customer-payload metadata strip ──
-    // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
-    // _w9_admt_wire, _w9_admt_slots, _w9_admt_regen, _w9_admt_pre_emit, and
-    // any future _*) off the customer-facing surface and into
-    // _meta.internal. Also strip per-entry underscore-prefixed diagnostics
-    // (_va_stamp, _va_stamp_unresolved, _w9_regen) from finding buckets.
-    // Non-fatal: on error, we still write the report (previous behaviour).
+    // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
+    // Replaces the C1 blacklist strip with a WHITELIST: only schema-
+    // declared keys ship. Runs AFTER emit-gate; C1 strip below is kept
+    // as the serializer's crash fallback so behaviour degrades to the
+    // pre-P2 strip, never to raw internal telemetry.
+    let __p2_ok = false;
     try {
-      const r: any = report as any;
-      const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
-      const internal: Record<string, unknown> = (meta.internal && typeof meta.internal === "object") ? meta.internal : {};
-      for (const k of Object.keys(r)) {
-        if (k === "_meta") continue;
-        if (k.startsWith("_")) { internal[k] = r[k]; delete r[k]; }
-      }
-      meta.internal = internal;
-      const BUCKETS = ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"];
-      const ENTRY_INTERNAL = ["_va_stamp", "_va_stamp_unresolved", "_w9_regen"];
-      for (const b of BUCKETS) {
-        const arr = r[b];
-        if (!Array.isArray(arr)) continue;
-        for (const it of arr) {
-          if (!it || typeof it !== "object") continue;
-          for (const k of ENTRY_INTERNAL) if (k in it) delete it[k];
-        }
-      }
-      const sa: any = r.scope_analysis;
-      if (sa && typeof sa === "object") {
-        for (const k of ENTRY_INTERNAL) if (k in sa) delete sa[k];
+      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+      const { ADMT_REPORT_SCHEMA } = await import("../_shared/report-schemas/admt.ts");
+      const { report: serialized, telemetry } = serializeCustomerReport(report as any, ADMT_REPORT_SCHEMA);
+      if (!telemetry.crashed) {
+        report = serialized as any;
+        __p2_ok = true;
       }
     } catch (e) {
-      console.warn("[run-admt-checker] W12-C1 metadata strip failed (non-fatal):", (e as Error)?.message);
+      console.warn("[run-admt-checker] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
+
+    if (!__p2_ok) {
+      // ── WAVE12-FIX TURN C1 — customer-payload metadata strip (fallback) ──
+      // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
+      // _w9_admt_wire, _w9_admt_slots, _w9_admt_regen, _w9_admt_pre_emit, and
+      // any future _*) off the customer-facing surface and into
+      // _meta.internal. Also strip per-entry underscore-prefixed diagnostics
+      // (_va_stamp, _va_stamp_unresolved, _w9_regen) from finding buckets.
+      // Non-fatal: on error, we still write the report (previous behaviour).
+      try {
+        const r: any = report as any;
+        const meta = (r._meta = r._meta && typeof r._meta === "object" ? r._meta : {});
+        const internal: Record<string, unknown> = (meta.internal && typeof meta.internal === "object") ? meta.internal : {};
+        for (const k of Object.keys(r)) {
+          if (k === "_meta") continue;
+          if (k.startsWith("_")) { internal[k] = r[k]; delete r[k]; }
+        }
+        meta.internal = internal;
+        const BUCKETS = ["notice_gaps", "opt_out_gaps", "access_gaps", "documentation_to_maintain", "top_3_actions"];
+        const ENTRY_INTERNAL = ["_va_stamp", "_va_stamp_unresolved", "_w9_regen"];
+        for (const b of BUCKETS) {
+          const arr = r[b];
+          if (!Array.isArray(arr)) continue;
+          for (const it of arr) {
+            if (!it || typeof it !== "object") continue;
+            for (const k of ENTRY_INTERNAL) if (k in it) delete it[k];
+          }
+        }
+        const sa: any = r.scope_analysis;
+        if (sa && typeof sa === "object") {
+          for (const k of ENTRY_INTERNAL) if (k in sa) delete sa[k];
+        }
+      } catch (e) {
+        console.warn("[run-admt-checker] W12-C1 metadata strip failed (non-fatal):", (e as Error)?.message);
+      }
+    }
+
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
