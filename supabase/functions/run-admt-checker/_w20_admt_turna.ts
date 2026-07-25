@@ -34,7 +34,7 @@
 // that will feed the LEAK-PREV-P4-SELF-HEALING over-enforcement demotion
 // loop in a subsequent turn (P4 not built here).
 
-export const W20_ADMT_TURNA_STAMP = "w20-admt-turna@__STAMP__";
+export const W20_ADMT_TURNA_STAMP = "w20-admt-turna@2026-07-25T09:36:35Z";
 
 const FALLBACK = "the applicable ADMT-subchapter provision";
 const FALLBACK_ESC = FALLBACK.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
