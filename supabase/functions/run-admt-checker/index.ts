@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w16-admt-flfix@2026-07-25T00:58:48Z";
+export const BUILD_STAMP = "w19-admt-fallbackjoin2@2026-07-25T03:18:37Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -31,6 +31,8 @@ import {
 } from "./_w9_admt_slots.ts";
 console.log(`[run-admt-checker] boot admt_slots_stamp=${W9_ADMT_SLOTS_STAMP}`);
 import { applyW6AdmtFix, W6_ADMT_FIX_VERSION } from "./_w6_admt_fix.ts";
+import { applyW19AdmtJoin2, W19_ADMT_JOIN2_STAMP } from "./_w19_admt_join2.ts";
+console.log(`[run-admt-checker] boot admt_join2_stamp=${W19_ADMT_JOIN2_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
@@ -2237,6 +2239,11 @@ Return this JSON structure exactly:
       const stillFailing = ((report as any)._w9_admt_wire?.pre_emit?.still_failing ?? 0) as number;
       if (stillFailing > 0) {
         const BUCKETS = ["notice_gaps", "opt_out_gaps", "access_gaps"];
+        const BUCKET_TOPIC_LABEL: Record<string, string> = {
+          notice_gaps: "the Pre-use Notice element",
+          opt_out_gaps: "the opt-out element",
+          access_gaps: "the access-response element",
+        };
         for (const bucket of BUCKETS) {
           const arr = (report as any)[bucket];
           if (!Array.isArray(arr)) continue;
@@ -2250,10 +2257,17 @@ Return this JSON structure exactly:
             const violatedRule = pk ? `unresolved proposition_key "${pk}" against VERIFIED-AUTHORITY REGISTRY` : "post-W6 residual defect (finding underspecified)";
             const rowNote = row ? ` (registry row: ${row.subsection})` : "";
             it.status = "insufficient_basis";
-            it.finding = `insufficient basis — ${violatedRule}${rowNote}. The generator did not resolve enough facts on this record to author a compliant finding; supply the missing intake dimensions and re-run.`;
+            // W19-ADMT-FALLBACK-JOIN-2 (2) — customer-safe reword.
+            // Answer-first, no pipeline/generator/re-run vocabulary; keeps
+            // information_needed semantics on the status field intact.
+            const topicRaw = (typeof it.element_id === "string" && it.element_id.trim())
+              || (pk ? pk.replace(/_/g, " ") : "")
+              || BUCKET_TOPIC_LABEL[bucket] || "this obligation";
+            const topic = String(topicRaw).replace(/_/g, " ");
+            it.finding = `More information is needed before this item can be assessed. The intake did not include enough detail on ${topic} to support a specific finding. Provide the missing details and refresh the assessment.`;
             it.remediation = "";
             it.enforcement_exposure = "na";
-            it._w9_regen = { pass: 1, action: "typed_insufficient_basis", violated_rule: violatedRule };
+            it._w9_regen = { pass: 1, action: "typed_insufficient_basis", violated_rule: violatedRule, row_note: rowNote };
             w9Regen.downgraded_insufficient_basis++;
           }
         }
@@ -2285,6 +2299,21 @@ Return this JSON structure exactly:
     }
 
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
+
+    // ── W19-ADMT-FALLBACK-JOIN-2 (2026-07-25) — terminal sanitizer.
+    // Runs AFTER every content-shaping pass and BEFORE the W12-C1 metadata
+    // strip so its diag counter rides `report._w19_admt_join2` and gets
+    // relocated to `_meta.internal` by the same strip block. Fail-open.
+    try {
+      const w19 = applyW19AdmtJoin2(report);
+      (report as any)._w19_admt_join2 = w19;
+      console.log(JSON.stringify({
+        evt: "_w19_admt_join2", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w19,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
+    }
 
     // ── WAVE12-FIX TURN C1 — customer-payload metadata strip ──
     // Move top-level underscore-prefixed internal telemetry (_w6_admt_fix,
