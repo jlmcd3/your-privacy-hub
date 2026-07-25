@@ -269,7 +269,7 @@ export function buildAdequacyFinding(intake: any, _report: any): AdequacyFinding
   let hiReason: string;
   if (elA === null || elB === null || elC === null) {
     hiConclusion = "insufficient_basis";
-    hiReason = "The record does not resolve all three elements of the § 7001(e)(1) human-involvement test (interpretation, review with other information, and override authority). Supply the missing intake dimensions and re-run.";
+    hiReason = renderMessage("insufficient.basis.reason");
   } else if (elA && elB && elC) {
     hiConclusion = "qualifies";
     hiReason = "Human reviewer satisfies all three § 7001(e)(1) elements: (A) knows how to interpret the output, (B) reviews the output alongside other information, and (C) has authority to override.";
