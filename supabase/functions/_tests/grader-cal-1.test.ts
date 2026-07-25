@@ -375,7 +375,7 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 });
 
 Deno.test("GRADER-CAL-5R: instrument version bumped to grader-cal-5r", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-21-grader-cal-5r");
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-25-s4-eu-uk-ca-au-sg");
 });
 
 // ---------------------------------------------------------------------------
