@@ -2774,6 +2774,21 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
+    // Whitelist emit: only schema-declared keys reach the customer. On
+    // serializer crash, ship the report unchanged (previous behaviour)
+    // so availability is never blocked. Telemetry lands on
+    // `_meta.internal.serializer`.
+    try {
+      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+      const { CPPA_RISK_REPORT_SCHEMA } = await import("../_shared/report-schemas/cppa-risk.ts");
+      const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, CPPA_RISK_REPORT_SCHEMA);
+      if (!telemetry.crashed) report_data = serialized as any;
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
