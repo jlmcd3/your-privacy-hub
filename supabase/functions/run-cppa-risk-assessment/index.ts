@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "w23-risk-turnb@2026-07-25T17:02:08Z";
+export const BUILD_STAMP = "w24-risk-turna@2026-07-25T18:08:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
@@ -29,7 +29,8 @@ import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
 import { applyW21RiskTurnA, W21_RISK_TURNA_STAMP, attributeFieldByToken } from "./_w21_risk_turna.ts";
 import { applyW22RiskTurnA, W22_RISK_TURNA_STAMP } from "./_w22_risk_turna.ts";
 import { applyW23RiskTurnB, W23_RISK_TURNB_STAMP } from "./_w23_risk_turnb.ts";
-console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP}`);
+import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
@@ -2869,7 +2870,38 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] W23-RISK-TURNB failed (non-fatal):", (e as Error)?.message);
     }
 
-
+    // ── WAVE24-FIX TURN A (cppa-risk) ────────────────────────────────
+    // Item 74 / FINDING A (CRITICAL): qc_r1_4_cohort_determinism. Scrub
+    // hedge phrases adjacent to the resolved § 7121(a)(3) cohort date
+    // ("April 1, 2030" / "2030-04-01") so the customer surface carries
+    // one deterministic date, no hedge, near the cite window. Also runs
+    // a defensive B1 field-coverage extension pass (current_safeguards,
+    // risk_assessment_by_activity, safeguards/mitigations/assessment
+    // narrative slots) alongside the extended isTargetField set now
+    // live in _w23_risk_turnb.ts. Fact-ledger consulted so intake-
+    // supported claims are preserved. Runs AFTER W23 turnB and BEFORE
+    // the LEAK-PREV P1 emit gate. Stamp echoes at
+    // _meta.internal.risk_w24a; the LEAK-PREV-P2 serializer preserves
+    // _meta.internal unmodified (item-32 gate).
+    try {
+      const _intakeW24 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const _ledgerW24 = buildFactLedger(_intakeW24);
+      const { counters: _w24c, report: _w24r } = applyW24RiskTurnA(
+        report_data as any,
+        { intake: _intakeW24, ledger: _ledgerW24 },
+      );
+      report_data = _w24r as any;
+      const rd24: any = report_data;
+      const meta24 = (rd24._meta = rd24._meta && typeof rd24._meta === "object" ? rd24._meta : {});
+      const internal24 = (meta24.internal = meta24.internal && typeof meta24.internal === "object" ? meta24.internal : {});
+      internal24.risk_w24a = { stamp: W24_RISK_TURNA_STAMP, ..._w24c };
+      console.log(JSON.stringify({
+        evt: "_w24_risk_turna", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w24_stamp: W24_RISK_TURNA_STAMP, ..._w24c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W24-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
+    }
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 

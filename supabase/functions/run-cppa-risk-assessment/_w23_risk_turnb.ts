@@ -48,9 +48,17 @@ const ANCHOR_KEYS = new Set<string>([
 ]);
 
 // Target fields for T1/T2 scrubs — enumerated seams plus *_gaps / *_notes.
+// W24-RISK-TURNA extension (B1 field-coverage): customer-prose safeguard /
+// mitigation / assessment narrative slots plus the array-container
+// `risk_assessment_by_activity` (walker descends into element prose).
 const TARGET_FIELD_KEYS = new Set<string>([
   "safeguard_gaps", "mitigation_gaps", "open_items",
   "scope_notes", "notes", "note", "gaps",
+  // W24-RISK-TURNA extension:
+  "current_safeguards", "safeguards", "safeguards_summary",
+  "mitigations", "mitigation_summary", "mitigation",
+  "assessment", "assessment_narrative", "narrative",
+  "description", "risk_assessment_by_activity",
 ]);
 function isTargetField(k: string | undefined): boolean {
   if (!k) return false;
