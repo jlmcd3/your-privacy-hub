@@ -1024,6 +1024,7 @@ async function handler(req: Request) {
           last_error: (e as Error).message?.slice(0, 300),
           completed_at: new Date().toISOString(),
         }).eq("id", body.run_id);
+        await dcTerminateBatchContract(CONTRACT_DEPS, body.run_id, "failed", (e as Error).message);
       } catch { /* */ }
     }));
     return json({ ok: true, build_stamp: BUILD_STAMP }, 202);
