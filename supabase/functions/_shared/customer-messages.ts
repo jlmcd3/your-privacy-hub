@@ -23,6 +23,7 @@ import { cppaRiskContract } from "./intake-contracts/cppa-risk-assessment.ts";
 import { cppaCybersecurityContract } from "./intake-contracts/cppa-cybersecurity.ts";
 import { dpiaFrameworkContract } from "./intake-contracts/dpia-framework.ts";
 import { liAssessmentStageBContract } from "./intake-contracts/li-assessment.ts";
+import { governanceContract } from "./intake-contracts/governance-assessment.ts";
 
 export const CUSTOMER_MESSAGES_VERSION = "cm-w1-2026-07-25";
 
