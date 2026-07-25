@@ -281,15 +281,12 @@ function guardProfilingDenials(
     counters.profiling_denials_scanned += 1;
     const trailing = m.slice(sentence.length);
     counters.profiling_denials_downgraded += 1;
-    // Preserve leading context; append a corrective clause that flags the
-    // contradiction rather than restating the false negative.
-    return (
-      "The intake asserts systematic-observation profiling " +
-      "(q5b_profiling_observation = Yes); the earlier statement that " +
-      sentence.trim().replace(/^"|"$/g, "").toLowerCase() +
-      " is not supported by the intake and must be reconciled" +
-      trailing
-    );
+    // LEAK-PREV-P0: reconciliation sentence rendered through the catalog
+    // (humanized field label; no raw intake IDs in customer output).
+    void sentence;
+    return renderMessage("reconciliation.required", {
+      field: P.field("q5b_profiling_observation"),
+    }) + trailing;
   });
 }
 
