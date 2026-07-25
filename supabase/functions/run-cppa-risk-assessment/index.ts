@@ -2936,6 +2936,33 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── T7-RISK-OPENING-PARAGRAPH-PILOT (2026-07-25) ─────────────────
+    // Deterministic opening_summary slot per docs/design/OPENING-PARAGRAPH-DESIGN.md.
+    // The model NEVER writes this slot; we OVERWRITE it here (post emit-gate,
+    // pre serializer) so the schema whitelist emits the deterministic build.
+    // Telemetry lands on `_meta.internal.risk_t7_opening`. Fail-visible; never blocks.
+    try {
+      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("../_shared/openings/risk-opening.ts");
+      const intake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const built = buildRiskOpening(intake as any);
+      (report_data as any).opening_summary = built.text;
+      const _rd: any = report_data as any;
+      const _meta = _rd._meta ?? (_rd._meta = {});
+      const _internal = _meta.internal ?? (_meta.internal = {});
+      _internal.risk_t7_opening = {
+        version: RISK_OPENING_VERSION,
+        overwrote_model_output: true,
+        s0_criteria: built.provenance.s0_criteria,
+        s1_triggers: built.provenance.s1_triggers,
+        omitted: built.provenance.omitted,
+        sources: built.provenance.sources,
+        length: built.text.length,
+        pilot: "T7-RISK-OPENING-PARAGRAPH-PILOT-2026-07-25",
+      };
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] T7 opening builder failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
     // Whitelist emit: only schema-declared keys reach the customer. On
     // serializer crash, ship the report unchanged (previous behaviour)
