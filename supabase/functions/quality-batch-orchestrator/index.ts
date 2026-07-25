@@ -43,7 +43,7 @@ import {
 } from "./_contract_hooks.ts";
 
 
-export const BUILD_STAMP = "ds-t2b-orch-wiring@2026-07-25T01:47:25Z";
+export const BUILD_STAMP = "ds-t2c-orch-hbfix@2026-07-25T04:54:00Z";
 
 // DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
 // Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
@@ -55,10 +55,31 @@ const CONTRACT_DEPS: ContractDeps = {
   }),
   heartbeatBySubject: async (subjectTable, subjectId) => {
     const db = admin();
-    const { data } = await db.from("delivery_contracts")
+    const { data, error } = await db.from("delivery_contracts")
       .select("id").eq("subject_table", subjectTable)
       .eq("subject_id", subjectId).is("terminal_state", null).maybeSingle();
-    if (data?.id) await _dcHb({ contractId: data.id });
+    if (error) {
+      console.log(JSON.stringify({
+        evt: "dc_heartbeat_lookup_failed",
+        subject_table: subjectTable, subject_id: subjectId, err: error.message,
+      }));
+      return;
+    }
+    if (!data?.id) {
+      console.log(JSON.stringify({
+        evt: "dc_heartbeat_no_live_contract",
+        subject_table: subjectTable, subject_id: subjectId,
+      }));
+      return;
+    }
+    try {
+      await _dcHb({ contractId: data.id });
+    } catch (e) {
+      console.log(JSON.stringify({
+        evt: "dc_heartbeat_write_failed",
+        contract_id: data.id, subject_id: subjectId, err: (e as Error).message,
+      }));
+    }
   },
   terminateBySubject: async (subjectTable, subjectId, terminalState, lastError) => {
     const db = admin();

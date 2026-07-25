@@ -5,7 +5,7 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import { slaFor, DELIVERY_CONTRACT_STAMP, _testables } from "./delivery-contract.ts";
 
 Deno.test("build stamp is stable", () => {
-  assertEquals(DELIVERY_CONTRACT_STAMP, "ds-t1@2026-07-24T11:02:40Z");
+  assertEquals(DELIVERY_CONTRACT_STAMP, "ds-t2c@2026-07-25T04:53:00Z");
 });
 
 Deno.test("customer SLA — DPIA multi-unit gets 300/1200", () => {
@@ -26,21 +26,22 @@ Deno.test("customer SLA — unknown tool falls back to default 240/900", () => {
   assertEquals(sla.overallSeconds, 900);
 });
 
-Deno.test("harness SLA overrides any tool — 180/900 for all", () => {
+Deno.test("harness SLA (ds-t2c) is sized to real campaign wave — 900/5400", () => {
   const dpia = slaFor("harness", "dpia");
   const cyber = slaFor("harness", "cppa-cyber");
   const unknown = slaFor("harness", "made-up");
-  assertEquals(dpia.stageSeconds, 180);
-  assertEquals(dpia.overallSeconds, 900);
-  assertEquals(cyber.stageSeconds, 180);
-  assertEquals(unknown.stageSeconds, 180);
+  assertEquals(dpia.stageSeconds, 900);
+  assertEquals(dpia.overallSeconds, 5400);
+  assertEquals(cyber.stageSeconds, 900);
+  assertEquals(unknown.stageSeconds, 900);
 });
 
-Deno.test("harness stage SLA is tighter than customer default", () => {
+Deno.test("harness stage SLA now covers a full wave (>= 15 min) and overall >= 1h floor", () => {
   const harness = slaFor("harness", "governance");
-  const customerDefault = _testables().CUSTOMER_SLA_DEFAULT;
-  assert(harness.stageSeconds <= customerDefault.stageSeconds,
-    `harness stage (${harness.stageSeconds}) must be <= customer default (${customerDefault.stageSeconds})`);
+  assert(harness.stageSeconds >= 15 * 60,
+    `harness stage (${harness.stageSeconds}) must be >= 900s (15 min)`);
+  assert(harness.overallSeconds >= 3600,
+    `harness overall (${harness.overallSeconds}) must be >= 3600s floor`);
 });
 
 Deno.test("isoInSeconds returns a future ISO string", () => {

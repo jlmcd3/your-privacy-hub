@@ -20,7 +20,7 @@
 // Every action increments attempts + writes failure_class + last_error so
 // DS-T3's admin SLO surface has data.
 //
-// Build stamp: ds-t2b@2026-07-25T01:47:25Z
+// Build stamp: ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -33,6 +33,52 @@ const cors = {
 };
 
 const MAX_STAGE_ATTEMPTS = 3;
+const LIVENESS_WINDOW_MS = 5 * 60 * 1000; // DS-T2c: subject fresher than this ⇒ contract is LIVE
+const HARNESS_STAGE_REFRESH_S = 900;      // must match HARNESS_SLA.stageSeconds
+
+// DS-T2c: cross-check a harness/quality_batch_runs contract against the
+// subject row AND its in-flight quality_runs before any bump/terminate.
+// Returns the most recent heartbeat across (batch row, in-flight runs).
+export async function latestHarnessBatchActivity(
+  admin: any, batchId: string,
+): Promise<{ latestMs: number; anySignal: boolean }> {
+  let latestMs = 0;
+  let anySignal = false;
+  try {
+    const { data: batch } = await admin.from("quality_batch_runs")
+      .select("last_heartbeat_at, status").eq("id", batchId).maybeSingle();
+    if (batch?.last_heartbeat_at) {
+      anySignal = true;
+      latestMs = Math.max(latestMs, new Date(batch.last_heartbeat_at).getTime());
+    }
+    const { data: kids } = await admin.from("quality_runs")
+      .select("last_heartbeat_at, status")
+      .eq("batch_id", batchId)
+      .in("status", ["pending", "building", "grading", "cross_review", "running"]);
+    for (const k of (kids ?? [])) {
+      const hb = (k as any)?.last_heartbeat_at;
+      if (hb) {
+        anySignal = true;
+        latestMs = Math.max(latestMs, new Date(hb).getTime());
+      }
+    }
+  } catch (e) {
+    console.log(JSON.stringify({
+      evt: "sentinel_liveness_probe_error",
+      batch_id: batchId, err: (e as Error).message,
+    }));
+  }
+  return { latestMs, anySignal };
+}
+
+async function refreshHarnessContract(admin: any, id: string, note: string) {
+  const now = new Date();
+  await admin.from("delivery_contracts").update({
+    heartbeat_at: now.toISOString(),
+    stage_deadline_at: new Date(now.getTime() + HARNESS_STAGE_REFRESH_S * 1000).toISOString(),
+    last_error: `[liveness_guard] ${note}`.slice(0, 4000),
+  }).eq("id", id).is("terminal_state", null);
+}
 
 interface ContractRow {
   id: string;
@@ -157,7 +203,10 @@ async function tryResume(row: ContractRow): Promise<{ ok: boolean; via: string }
 async function handleCustomer(admin: any, row: ContractRow) {
   const now = Date.now();
   const overallBreached = new Date(row.overall_deadline_at).getTime() < now;
-  const stageStale = new Date(row.heartbeat_at).getTime() < new Date(row.stage_deadline_at).getTime();
+  // DS-T2c: same inversion fix as harness branch — see handleHarness.
+  const stageDeadlineMs = new Date(row.stage_deadline_at).getTime();
+  const stageStale = stageDeadlineMs < now
+    && new Date(row.heartbeat_at).getTime() < stageDeadlineMs;
 
   if (overallBreached) {
     if (row.stage === "render" || row.stage === "deliver") {
@@ -188,16 +237,39 @@ async function handleCustomer(admin: any, row: ContractRow) {
 async function handleHarness(admin: any, row: ContractRow) {
   const now = Date.now();
   const overallBreached = new Date(row.overall_deadline_at).getTime() < now;
-  const stageStale = new Date(row.heartbeat_at).getTime() < new Date(row.stage_deadline_at).getTime();
+  // DS-T2c: stageStale = deadline in the past AND heartbeat older than deadline.
+  // (Old logic `heartbeat_at < stage_deadline_at` was inverted — a fresh
+  // contract with a future deadline was always "stale", guaranteeing the
+  // sentinel bumped attempts on every sweep. That was the wave-18 false-kill.)
+  const stageDeadlineMs = new Date(row.stage_deadline_at).getTime();
+  const heartbeatMs = new Date(row.heartbeat_at).getTime();
+  const stageStale = stageDeadlineMs < now && heartbeatMs < stageDeadlineMs;
   const stageAttempts = row.attempts?.[row.stage] ?? 0;
+
+  // DS-T2c LIVENESS GUARD — for harness/quality_batch_runs, never bump or
+  // terminate a contract whose subject is genuinely alive. Only a subject
+  // silent for >5 min falls through to the resume/terminate path.
+  if (row.subject_table === "quality_batch_runs" && (overallBreached || stageStale || stageAttempts >= MAX_STAGE_ATTEMPTS)) {
+    const { latestMs, anySignal } = await latestHarnessBatchActivity(admin, row.subject_id);
+    const freshMs = anySignal ? now - latestMs : Number.POSITIVE_INFINITY;
+    if (anySignal && freshMs < LIVENESS_WINDOW_MS) {
+      await refreshHarnessContract(admin, row.id,
+        `subject alive: fresh=${Math.round(freshMs / 1000)}s < ${Math.round(LIVENESS_WINDOW_MS / 1000)}s`);
+      console.log(JSON.stringify({
+        evt: "sentinel_liveness_guard_hit",
+        contract_id: row.id, batch_id: row.subject_id, stage: row.stage,
+        stageStale, overallBreached, stageAttempts,
+        subject_last_heartbeat_ms_ago: Math.round(freshMs),
+      }));
+      return { action: "liveness_guard_refresh", freshMs: Math.round(freshMs) };
+    }
+  }
 
   if (overallBreached || stageAttempts >= MAX_STAGE_ATTEMPTS) {
     const note = `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`;
     await bumpAttemptsAndFailure(admin, row, "harness_stall", note);
     await terminate(admin, row.id, "harness_stalled",
       `attribution: stage=${row.stage} last_failure=${row.failure_class ?? "unknown"}`);
-    // DS-T2b: orchestrator-class subject → auto-reconcile the batch row so
-    // the UI clears and the wave doesn't sit on a zombie 'running' forever.
     let reconciled: { reconciled: boolean; reason?: string } | undefined;
     if (row.subject_table === "quality_batch_runs") {
       reconciled = await reconcileQualityBatchRun(admin, row.subject_id, note);
@@ -257,6 +329,6 @@ Deno.serve(async (req) => {
     scanned: contracts?.length ?? 0,
     duration_ms,
     results,
-    build: "ds-t2b@2026-07-25T01:47:25Z",
+    build: "ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z",
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 });
