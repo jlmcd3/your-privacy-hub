@@ -2338,7 +2338,7 @@ async function runPipeline(assessment_id: string) {
         arr.forEach((it, i) => {
           const text = pickText(it);
           if (!text) return;
-          const field = pickField(it);
+          const field = pickField(it, text);
           const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
           // Needle for cross-attribution: first quoted phrase, if any.
           const q = text.match(/["“]([^"”]{6,120})["”]/);
@@ -2359,7 +2359,7 @@ async function runPipeline(assessment_id: string) {
       if (sa && typeof sa === "object") {
         const text = pickText(sa);
         if (text) {
-          const field = pickField(sa);
+          const field = pickField(sa, text);
           const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
           claims.push({ text, field, direction, surfacePath: "scope_analysis", __ref: sa });
         }
