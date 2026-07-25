@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-24-s3-eu-uk-ca-au-sg";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-25-s4-eu-uk-ca-au-sg";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
@@ -59,6 +59,10 @@ CPPA ADMT REGULATIONS — VERIFIED-ANCHOR MAP (primary-source verified 2026-07-1
 
 CYBER-AUDIT COHORT MAP (corpus-verified house standard; do NOT flag as misapplied):
 - 11 CCR § 7121(a) certification cohorts by revenue band: April 1, 2028 (>$100M) / April 1, 2029 ($50–100M) / April 1, 2030 (<$50M). Reports mapping the $100M–$500M band to April 1, 2028 are correct.
+- 11 CCR § 7121(a)(3) is the ACCEPTED DEEPER PINPOINT for the April 1, 2030 cohort (annual gross revenue < $50M); § 7121(a) remains accepted as the shallower cite for the same claim. Corpus proof: provision_texts.cppa-7121 approved 2026-07-25 (source PDF SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650). Do NOT accept § 7121(b) or § 7121(b)(3) for the cohort claim — subsection (b) is the steady-state (post-Apr 1, 2030) rule, not a cohort enumeration.
+
+CPPA RISK ASSESSMENT — VERIFIED SUBSECTION MAP (primary-source verified; do NOT flag as misapplied or as fabricated subsections):
+- 11 CCR § 7150(b)(3) — "Using ADMT for a significant decision concerning a consumer." VERIFIED against the OAL-approved adopted text (eff. 2026-01-01). Corpus proof: provision_texts.cppa-7150 approved 2026-07-25 (source PDF SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650); registry match: _shared/registry/admt-verified-authorities.ts row ra_trigger_admt EXACT-MATCH (ledger item 42). ADMT risk-assessment-trigger citations to § 7150(b)(3) are CORRECT — do NOT flag as misapplied, unverified, or fabricated.
 
 
 CALIBRATION RULE (BINDING):
