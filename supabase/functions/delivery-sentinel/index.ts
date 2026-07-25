@@ -146,6 +146,78 @@ export async function reconcileQualityBatchRun(
   }
 }
 
+// DS-T2d: "all-children-terminal" reap branch. When every child quality_run
+// for the subject batch is terminal, the parent batch heartbeat is stale
+// >5min, AND the contract stage_deadline_at is breached, reconcile the batch
+// AND the contract with an outcome that follows the children — WITHOUT
+// bumping attempts. Closes the DS-T2c gap where nothing heartbeats and the
+// overall deadline never fires (wave-18 isolate-death shape).
+const CHILD_INFLIGHT = ["pending", "building", "grading", "cross_review", "running"];
+const CHILD_BAD = ["error", "cancelled", "failed"];
+
+export async function reapAllChildrenTerminal(
+  admin: any, row: ContractRow, nowMs: number,
+): Promise<{ acted: boolean; outcome?: "complete" | "cancelled"; reason?: string; child_count?: number }> {
+  if (row.subject_table !== "quality_batch_runs") {
+    return { acted: false, reason: "not_batch_subject" };
+  }
+  try {
+    // (c) stage_deadline_at breached
+    const stageBreached = new Date(row.stage_deadline_at).getTime() < nowMs;
+    if (!stageBreached) return { acted: false, reason: "stage_not_breached" };
+    // (b) parent batch heartbeat stale > 5 min (LIVENESS_WINDOW_MS)
+    const { data: batch, error: bErr } = await admin.from("quality_batch_runs")
+      .select("last_heartbeat_at, status, phase").eq("id", row.subject_id).maybeSingle();
+    if (bErr) return { acted: false, reason: `batch_read_err:${bErr.message}` };
+    if (!batch) return { acted: false, reason: "batch_missing" };
+    const hbMs = batch.last_heartbeat_at ? new Date(batch.last_heartbeat_at).getTime() : 0;
+    if (hbMs && (nowMs - hbMs) <= LIVENESS_WINDOW_MS) {
+      return { acted: false, reason: `parent_hb_fresh:${Math.round((nowMs - hbMs) / 1000)}s` };
+    }
+    // (a) every child quality_run terminal
+    const { data: kids, error: kErr } = await admin.from("quality_runs")
+      .select("id, status").eq("batch_id", row.subject_id);
+    if (kErr) return { acted: false, reason: `kids_read_err:${kErr.message}` };
+    const list = (kids ?? []) as Array<{ id: string; status: string }>;
+    if (list.length === 0) return { acted: false, reason: "no_children" };
+    const stillRunning = list.filter((k) => CHILD_INFLIGHT.includes(k.status));
+    if (stillRunning.length > 0) {
+      return { acted: false, reason: `children_in_flight:${stillRunning.length}` };
+    }
+    const anyBad = list.some((k) => CHILD_BAD.includes(k.status));
+    const outcome: "complete" | "cancelled" = anyBad ? "cancelled" : "complete";
+    const note = `[ds-t2d-reap] all ${list.length} children terminal (bad=${anyBad}); parent hb stale; stage deadline breached`;
+
+    // Reconcile batch (only if not already terminal)
+    await admin.from("quality_batch_runs").update({
+      status: outcome,
+      phase: "done",
+      last_error: anyBad ? note.slice(0, 500) : null,
+      completed_at: new Date(nowMs).toISOString(),
+    }).eq("id", row.subject_id).not("status", "in", "(complete,failed,cancelled)");
+
+    // Terminate contract with matching terminal state — NO attempt bump.
+    const contractTerminal = anyBad ? "harness_stalled" : "harness_completed_reaped";
+    await admin.from("delivery_contracts").update({
+      terminal_state: contractTerminal,
+      heartbeat_at: new Date(nowMs).toISOString(),
+      last_error: note.slice(0, 4000),
+    }).eq("id", row.id).is("terminal_state", null);
+
+    console.log(JSON.stringify({
+      evt: "sentinel_reap_children_terminal",
+      contract_id: row.id, batch_id: row.subject_id,
+      child_count: list.length, any_bad: anyBad, outcome,
+    }));
+    return { acted: true, outcome, child_count: list.length };
+  } catch (e) {
+    console.log(JSON.stringify({
+      evt: "sentinel_reap_error",
+      contract_id: row.id, batch_id: row.subject_id, err: (e as Error).message,
+    }));
+    return { acted: false, reason: `exception:${(e as Error).message}` };
+  }
+
 async function enqueuePdfFallback(admin: any, row: ContractRow) {
   // Idempotent: skip if a pending/rendering row already exists for this subject.
   const { data: existing } = await admin
