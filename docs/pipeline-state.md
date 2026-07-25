@@ -56,9 +56,44 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
+- **Turn:** `RISK-W16-COLLAPSE-COVERAGE` — team-reviewed (five-lens); deploy on `run-cppa-risk-assessment` only.
+- **Real-time:** 2026-07-25T01:19:12Z (boot log; sandbox `date -u` at lock re-check 01:18:41Z; BUILD_STAMP fresh-clock 01:15:49Z).
+- **Scope (single edge function, deploy):** extend wave-15 SUBSECTION-COLLAPSE guard to the surfaces the queued follow-up named (`scope_notes`, `assessment_required_rationale`, `triggered_activities_detail[].statutory_basis`) and fix the walker key mismatch that had left the entire trigger surface unscanned.
+- **Root causes (verified against HEAD `run-cppa-risk-assessment/index.ts`):**
+  - **(a) KEY MISMATCH.** The W15 walker read `r.scope_analysis ?? r.trigger_analysis`. The schema's actual key is `scope_and_triggers`. The trigger surface was never walked at all.
+  - **(b) PROSE GAP.** `stampEntry` only inspected the `citation` field. `scope_and_triggers.scope_notes` (free string), `triggered_activities_detail[].assessment_required_rationale` (free string), and `triggered_activities_detail[].statutory_basis` (citation-like string) were never scanned.
+- **Fixes shipped this turn (all in `run-cppa-risk-assessment/index.ts`):**
+  1. Walker now covers `scope_and_triggers` first; `scope_analysis` and `trigger_analysis` retained as aliases for safety. `triggered_activities_detail[]` walked as a bucket.
+  2. `statutory_basis` on each triggered-activity entry runs through the existing W15 bare/doubled collapse — bare `§ 7150(b)` without a `(b)(N)` pinpoint OR doubled `§ 7150(b) … § 7150(b)` collapses to blank + `information_needed: true` + counter increment. Never fabricates a pinpoint.
+  3. New deterministic `rewriteProse` pass over `scope_notes` and `assessment_required_rationale`:
+     - Doubled `§ 7150(b)` repeats within one sentence (≤60 chars apart, no intervening pinpoint) deduped to a single reference (`va_prose_doubled_deduped`).
+     - Bare `§ 7150(b)` with no `(b)(N)` pinpoint is PERMITTED when the same sentence carries a textual trigger keyword (sell / share / targeted advertising / train / observe / systematic observation / sensitive location / …) — this is the W6-RISK-FIX(3) permitted form and is preserved verbatim.
+     - Bare `§ 7150(b)` without a same-sentence trigger keyword is rewritten to the plain-English element name "the § 7150(b) trigger analysis" (CPPA-HF2 B compliant; `va_prose_collapse_rewritten`), and an `information_needed` entry is routed naming the under-specified sentence.
+     - References carrying pinpoints (`§ 7150(b)(3)` etc.) are untouched.
+     - Never invents, upgrades, or guesses a subsection anywhere.
+  4. Fail-open outer try/catch preserves report on any throw.
+  5. Telemetry lives ONLY under `report._meta.internal.risk_va` (new counters `va_prose_collapse_rewritten`, `va_prose_doubled_deduped`, `va_statutory_basis_flagged`). No `_w<digits>_*` or underscore-prefixed customer-surface keys (C1-strip compatible).
+- **Deploy discipline:**
+  - Pre-deploy lock re-check at 01:18:41Z (sandbox `date -u`): `quality_batch_runs` running/pending = 0; `cppa_assessments` <15 min NULL report_data = 0 (all modules). Both green.
+  - Deploy landed 01:19:07Z, ~46 min ahead of the 02:05Z freeze / 02:15Z wave-17 launch.
+  - BUILD_STAMP fresh-clock: `w16-risk-collapsecov@2026-07-25T01:15:49Z` (supersedes `w16-risk-flfix@2026-07-25T00:58:48Z`). Stamp-pin regexes in `_w12_turnd.test.ts` and `_w15_risk_fl.test.ts` widened to accept the new stamp alongside prior stamps.
+  - Post-deploy boot log (01:19:12Z) confirms: `w16-risk-collapsecov@2026-07-25T01:15:49Z` + `risk_va_registry_loaded va_version=risk-va-w1-2026-07-24 va_rows=44` + `fact_ledger_loaded version=sb-fl-w2-2026-07-25` — all three signals present.
+- **Tests (pasted green, deno colocated risk suite):** `_w16_risk_collapse.test.ts` **11/11** (walker reaches `scope_and_triggers`; doubled-in-prose dedup; bare-without-description rewrite; bare-WITH-description preserved verbatim; pinpointed cite untouched; statutory_basis bare → blank + information_needed; fail-open on malformed report; telemetry-placement leak guard; W6 permitted-form and negative-pass cases) + `_w15_risk_va.test.ts` **12/12** + `_w15_risk_fl.test.ts` **15/15** + `_w12_turnd.test.ts` **11/11** + `_w10_risk_b1.test.ts` **6/6** + `_w9_risk_slots.test.ts` **14/14** = **69/69 PASS**.
+- **Files touched:**
+  - `supabase/functions/run-cppa-risk-assessment/index.ts` — BUILD_STAMP (L12); expanded RISK-REGISTRY-WIRING pass (L2362-2441) with `rewriteProse`, `scope_and_triggers` walker, `triggered_activities_detail[]` bucket, `statutory_basis` collapse, extended telemetry.
+  - `supabase/functions/run-cppa-risk-assessment/_w16_risk_collapse.test.ts` — new (11 cases).
+  - `supabase/functions/run-cppa-risk-assessment/_w15_risk_va.test.ts` — stamp prefix guard widened.
+  - `supabase/functions/run-cppa-risk-assessment/_w15_risk_fl.test.ts` — stamp regex widened.
+  - `supabase/functions/run-cppa-risk-assessment/_w12_turnd.test.ts` — stamp prefix guard widened.
+  - `docs/pipeline-state.md` — this update (header, §2 item 18, §4).
+- **Out of scope (unchanged, verified):** no rubric / golden / validator changes; no prompt-rule weakening; no sample-report regeneration; no other functions touched. Retro-audit — TURN B (`_w10_risk_b1.ts` B1a field-provenance + B1b claims guard, W10_RISK_B1_STAMP), TURN D (D1 `i3_ca_consumer_band` gate, D2 profiling-denial guard W12_RISK_D2_STAMP, D3 § 1798.140(ai) prompt cite), and W15 fact-ledger wiring (sb-fl-w2 enforcement pass) all unchanged and green.
+
+---
+
+**Previous turn (superseded):** `FACT-LEDGER-W16-HOTFIX` (2026-07-25T01:03:34Z) — see historical §8 entries.
+
 - **Turn:** `SAMPLES-CONTRACT-governance` (6/8) — team-reviewed dispatch (five-lens).
 - **Real-time:** 2026-07-24T17:55:49Z (sandbox `date -u`).
-- **Scope (frontend/test only, no edge deploy):**
   - **Audited surface:** `insert.intake_data` per SAMPLE_MAP in `_tests/contract-surface-audit.test.ts`. Only intake keys are validated — row-level `status: "pending"` at `insert` root is not walked; no `ALLOWED_TOPLEVEL_EXTRAS` change needed for governance (contrast with LIA 5/8, whose `insert` root itself was the audited surface).
   - **Contract source of truth:** `governanceContract` in `_shared/intake-contracts/governance-assessment.ts`; option lists inline (`GOV_SECTORS`, `GOV_SIZES`, `GOV_JURISDICTIONS`, `GOV_TOOLS`, `GOV_DATA_CATS`, `GOV_SPECIAL_CATS`, `PRIVACY_POLICY`, `PRIVACY_NOTICE_COVERAGE`, `DPO_STATUS`, `DPIA_STATUS`, `DPIA_AI_COVERAGE`, `INCIDENT_RESPONSE`, `TRAINING_STATUS`, `TRAINING_AI_COVERAGE`, `TOOL_INSTRUCTION`, `DPA_STATUS`, `DPA_ART28`, `TRANSFER_STATUS`, `TRANSFER_MECHANISM`, `TECHNICAL_CONTROLS`, `TECHNICAL_CONTROLS_LIST`, `DSR_CAPABILITY`, `DSR_RIGHTS_TESTED`, `INVENTORY_AUDIT`).
   - **Form source of truth:** `src/pages/GovernanceAssessment.tsx` `buildIntake()` L200-224; `.insert({...})` at L237-247. `sample_run` verified NOT present in either.
