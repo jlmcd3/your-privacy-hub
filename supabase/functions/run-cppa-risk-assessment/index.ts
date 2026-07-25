@@ -2783,6 +2783,33 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] W20-RISK-TURNB failed (non-fatal):", (e as Error)?.message);
     }
 
+    // W21-RISK-TURNA — A1 contradiction-attribution rewrite via fact-
+    // ledger token-inference (wired into scanner above), A2 § 7121(a)(3)
+    // cohort emitter, A3 internal-fragment leak scrub, A4 info_needed
+    // self-contradiction filter. Runs AFTER W20 so prose scrubs and the
+    // cohort emission both freeze into the terminal payload. A5
+    // build-stamp echo attaches under _meta.internal.risk_w21a; the
+    // LEAK-PREV-P2 serializer preserves _meta.internal unmodified.
+    try {
+      const _intakeW21 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const _ledgerW21 = buildFactLedger(_intakeW21);
+      const { counters: _w21c, report: _w21r } = applyW21RiskTurnA(
+        report_data as any,
+        { intake: _intakeW21, ledger: _ledgerW21 },
+      );
+      report_data = _w21r as any;
+      const rd21: any = report_data;
+      const meta21 = (rd21._meta = rd21._meta && typeof rd21._meta === "object" ? rd21._meta : {});
+      const internal21 = (meta21.internal = meta21.internal && typeof meta21.internal === "object" ? meta21.internal : {});
+      internal21.risk_w21a = { stamp: W21_RISK_TURNA_STAMP, ..._w21c };
+      console.log(JSON.stringify({
+        evt: "_w21_risk_turna", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w21_stamp: W21_RISK_TURNA_STAMP, ..._w21c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W21-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
+    }
+
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
