@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T23:38:53Z — T5-SUBDIVISION-RESIDUAL-INVESTIGATED + CPPA CORPUS INGESTION HOLD named ACTIVE HOLD (see item 92). Queue posture unchanged: h6_admt_governing_anchor QUEUED (own turn, post-wave-27); governance Class A citation-audit sibling remains QUEUED; DPA-generator, governance, and IR-playbook Class B business-claim scrub siblings remain QUEUED (each own turn); T7 step-2 admt opening wiring HELD.
+**Last updated:** 2026-07-25T23:40:51Z — LEDGER REPAIR: item 92 **DPIA-T6-FIX-TURN SHIPPED** restored verbatim from parent commit of 0df4512e (a concurrency error had displaced it); T5-SUBDIVISION-RESIDUAL-INVESTIGATED + CPPA CORPUS INGESTION HOLD renumbered to item 93 (ACTIVE HOLD, release: wave-27 digest complete). Queue posture unchanged: governance Class A citation-audit sibling QUEUED (own turn); DPA-generator, governance, and IR-playbook Class B business-claim scrub siblings QUEUED (each own turn); h6_admt_governing_anchor QUEUED (own turn, post-wave-27); T7 step-2 admt opening wiring HELD.
 
 ---
 
