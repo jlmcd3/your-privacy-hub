@@ -114,12 +114,12 @@ function normalizeConcatArtifacts(s: string): string {
 // "profiling".
 type TriggerMap = { re: RegExp; sub: string };
 const TRIGGER_PINPOINTS: readonly TriggerMap[] = [
-  { re: /\bsensitive[- ]location\s+profiling\b/i, sub: "(b)(5)" },
-  { re: /\bsystematic\s+observation\b/i, sub: "(b)(4)" },
-  { re: /\bADMT\s+training\b|\btrain(?:ing)?\s+(?:an?\s+)?ADMT\b|\bbiometric\s+training\b/i, sub: "(b)(6)" },
-  { re: /\bADMT\s+(?:use|significant\s+decision|for\s+a?\s*significant\s+decision)\b|\bsignificant\s+decision\b/i, sub: "(b)(3)" },
-  { re: /\bsensitive\s+personal\s+information\b/i, sub: "(b)(2)" },
-  { re: /\bsell(?:ing)?\s*(?:\/|or|and)?\s*shar(?:e|ing)\b/i, sub: "(b)(1)" },
+  { re: /\bsensitive[- ]location\s+profiling\b/i, sub: "(5)" },
+  { re: /\bsystematic\s+observation\b/i, sub: "(4)" },
+  { re: /\bADMT\s+training\b|\btrain(?:ing)?\s+(?:an?\s+)?ADMT\b|\bbiometric\s+training\b/i, sub: "(6)" },
+  { re: /\bADMT\s+(?:use|significant\s+decision|for\s+a?\s*significant\s+decision)\b|\bsignificant\s+decision\b/i, sub: "(3)" },
+  { re: /\bsensitive\s+personal\s+information\b/i, sub: "(2)" },
+  { re: /\bsell(?:ing)?\s*(?:\/|or|and)?\s*shar(?:e|ing)\b/i, sub: "(1)" },
 ];
 
 // Match bare "§ 7150(b)" that is NOT already pinpointed. Excludes the
@@ -376,6 +376,7 @@ const B3_FIELD_KEYS = new Set<string>([
   "benefits_outweigh_risks_rationale", "argument_strength_rationale",
   "content_detail", "detail", "text", "rationale", "summary",
   "adverse_effects", "description",
+  "scope_notes", "scope_and_triggers", "scope_confirmation",
 ]);
 function isB3Field(k: string | undefined): boolean {
   if (!k) return false;
