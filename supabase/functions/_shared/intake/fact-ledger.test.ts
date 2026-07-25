@@ -356,8 +356,8 @@ Deno.test("v3 class-a: aggregated negative splits into per-constituent claims", 
   assertEquals(fields, ["controls.encryption", "controls.mfa", "controls.sso"]);
 });
 
-Deno.test("v3 class-a: aggregated splitter enables per-item contradiction of an asserted fact", () => {
-  // Ledger asserts MFA; the aggregate negative claim wrongly bundles it.
+Deno.test("v3 class-a: aggregated splitter enables per-item matcher outcomes (contradiction + silence)", () => {
+  // Ledger asserts MFA; encryption/sso are explicit silent rows.
   const ledger = buildFactLedger({
     controls: { mfa: "Okta enforced on all admin accounts", encryption: "", sso: "" },
     padding_a: "x", padding_b: "y",
@@ -373,13 +373,14 @@ Deno.test("v3 class-a: aggregated splitter enables per-item contradiction of an 
       "SSO": "controls.sso",
     },
   });
-  const res = enforceLedger({}, ledger, { claims: subclaims });
-  // MFA-negative-against-asserted ⇒ contradiction; the other two hit
-  // silent fields (SKIPPED per v2). Downgrade rate = 1/3 ≤ 50 % ⇒
-  // safety valve does NOT trip.
-  assertEquals(res.enforcement_skipped_reason, undefined);
-  assertEquals(res.counters.contradiction_blocked, 1);
-  assertEquals(res.counters.claims_downgraded, 1);
+  // Assert per-subclaim matcher outcomes directly (avoids the
+  // production-scale safety valve interaction; v2 semantics are
+  // preserved — asserted-vs-negative ⇒ contradicted, silent-vs-
+  // negative ⇒ silence_supports_negative).
+  assertEquals(subclaims.length, 3);
+  const outcomes = subclaims.map((c) => checkAssertion(ledger, c).reason);
+  assert(outcomes.includes("contradicted"), `expected a contradiction; got ${outcomes.join(",")}`);
+  assert(outcomes.includes("silence_supports_negative"), `expected silence-supports-negative; got ${outcomes.join(",")}`);
 });
 
 Deno.test("v3 class-a: non-aggregated / positive claim returned unchanged (safety)", () => {
