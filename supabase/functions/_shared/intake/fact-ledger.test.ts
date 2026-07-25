@@ -1,9 +1,19 @@
 // S-B INTAKE-FACT-LEDGER — tests (Deno, colocated with _shared module).
 //
-// Mirrors sibling _shared test conventions (see _w12_c1_leak_guard.test.ts).
-// Covers d73f4d44 (cross-attribution), 7bfb69fc (contradiction / inverse
-// D2), and eefadb3f (fabricated-negative from silence), plus positive-path
-// preservation, fail-open behavior, and telemetry placement.
+// v2 (sb-fl-w2-2026-07-25 FACT-LEDGER-W16-HOTFIX) tests:
+//   - Version stamp is w2 (guards accidental v1 revert).
+//   - v1 semantics preserved for: cross-attribution, contradiction of
+//     denied fact, silence-supports-negative when the field IS in the
+//     ledger, and telemetry placement.
+//   - v2 semantics NEW: unresolvable field ⇒ SKIP (never downgrade);
+//     positive claim on a silent field ⇒ SKIP; nested intake shapes
+//     flatten to dotted-path rows.
+//   - v2 REWRITE guard: `rewriteUnsupported` NEVER prepends the
+//     caveat onto the full claim text (fixes wave-16 "The intake does
+//     not address The intake records …" concatenation bug).
+//   - v2 SAFETY VALVE: production-scale scans (≥3 claims) skip
+//     enforcement entirely when the ledger is too small OR the
+//     would-be downgrade rate exceeds 50 %.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
@@ -14,10 +24,12 @@ import {
   rewriteUnsupported,
 } from "./fact-ledger.ts";
 
-Deno.test("version stamp is authoring turn tag", () => {
-  assertEquals(FACT_LEDGER_VERSION, "sb-fl-w1-2026-07-24");
+// ── Version pin ─────────────────────────────────────────────────────────
+Deno.test("version stamp is w2 authoring turn tag", () => {
+  assertEquals(FACT_LEDGER_VERSION, "sb-fl-w2-2026-07-25");
 });
 
+// ── Builder polarity classification ─────────────────────────────────────
 Deno.test("buildFactLedger classifies polarity and emits explicit silent rows", () => {
   const raw = {
     q5b_profiling_observation: "No",
@@ -31,11 +43,36 @@ Deno.test("buildFactLedger classifies polarity and emits explicit silent rows", 
   assertEquals(byKey.sensitive_location_basis.polarity, "not_applicable");
   assertEquals(byKey.systematic_observation_basis.polarity, "asserted");
   assertEquals(byKey.trade_secret_carveout_policy.polarity, "silent");
-  // Verbatim preserved on every row (including empty for silent).
   assertEquals(byKey.sensitive_location_basis.verbatim, raw.sensitive_location_basis);
   assertEquals(byKey.trade_secret_carveout_policy.verbatim, "");
 });
 
+// ── W16-HOTFIX #3: buildFactLedger flattens nested shapes ───────────────
+Deno.test("W16-HOTFIX: buildFactLedger flattens nested intake to dotted-path rows", () => {
+  const raw = {
+    scoping: { annual_revenue_usd_min: 26_000_000, threshold_met: "Yes" },
+    controls: [
+      { key: "c1_auth", status: "In place" },
+      { key: "c2_encryption", status: "Not implemented" },
+    ],
+  };
+  const ledger = buildFactLedger(raw);
+  const keys = new Set(ledger.map((r) => r.key));
+  // Container rows AND every leaf child are present with dotted paths.
+  assert(keys.has("scoping"), "container row for scoping is present");
+  assert(keys.has("scoping.annual_revenue_usd_min"));
+  assert(keys.has("scoping.threshold_met"));
+  assert(keys.has("controls"));
+  assert(keys.has("controls[0]"));
+  assert(keys.has("controls[0].key"));
+  assert(keys.has("controls[0].status"));
+  assert(keys.has("controls[1].status"));
+  // Wave-16 cyber regression: ledger_rows=2 from a rich intake ⇒
+  // matcher starved. v2 flatten must produce ≥5 rows here.
+  assert(ledger.length >= 5, `expected ≥5 flattened rows; got ${ledger.length}`);
+});
+
+// ── v1 cross-attribution / contradiction (fields present in ledger) ─────
 Deno.test("d73f4d44 — cross-attribution is blocked with reconciliation rewrite", () => {
   const ledger = buildFactLedger({
     systematic_observation_basis: "Continuous video analytics of storefront",
@@ -72,8 +109,13 @@ Deno.test("7bfb69fc — contradiction of denied fact is blocked (inverse of D2)"
   assert(res.rewrites[0].to.includes("not supported by the intake"));
 });
 
-Deno.test("eefadb3f — silence never supports a negative assertion", () => {
-  const ledger = buildFactLedger({ some_other_field: "x" });
+// eefadb3f now uses a field that IS in the ledger (explicit silent
+// row) — v2 rule: only explicit ledger outcomes can downgrade.
+Deno.test("eefadb3f — silence never supports a negative assertion (field IS in ledger as silent)", () => {
+  const ledger = buildFactLedger({
+    some_other_field: "x",
+    trade_secret_carveout_policy: "", // explicit silent row
+  });
   const res = enforceLedger({}, ledger, {
     claims: [{
       text: "no trade-secret or security carve-out policy is documented",
@@ -86,6 +128,75 @@ Deno.test("eefadb3f — silence never supports a negative assertion", () => {
   assert(res.rewrites[0].to.includes("must be confirmed"));
 });
 
+// ── v2 NEW: unresolvable-field ⇒ SKIP ───────────────────────────────────
+Deno.test("W16-HOTFIX: positive claim with UNRESOLVABLE field is SKIPPED, not downgraded", () => {
+  // This is the exact wave-16 regression class. Cyber wiring emitted a
+  // positive claim about MFA. `field` was set from `o.intake_field_1`
+  // — which was absent — so `claim.field` was undefined. v1 downgraded
+  // it. v2 must SKIP.
+  const ledger = buildFactLedger({ some_other_field: "x" });
+  const res = enforceLedger({}, ledger, {
+    claims: [
+      { text: "multi-factor authentication via Okta is documented", direction: "positive" },
+      { text: "encryption at rest is enforced", direction: "positive" },
+      { text: "SSO covers all administrative accounts", direction: "positive" },
+    ],
+  });
+  assertEquals(res.counters.claims_downgraded, 0);
+  assertEquals(res.counters.skipped_no_field, 3);
+  assertEquals(res.rewrites.length, 0);
+});
+
+Deno.test("W16-HOTFIX: negative claim with UNKNOWN field is SKIPPED, not blocked", () => {
+  // Field is named but not present in the ledger at all. v1 treated
+  // this as silence_supports_negative and downgraded. v2 must SKIP.
+  const ledger = buildFactLedger({ some_other_field: "x" });
+  const res = enforceLedger({}, ledger, {
+    claims: [
+      { text: "no MFA policy", field: "mfa_policy", direction: "negative" },
+      { text: "no SSO", field: "sso_policy", direction: "negative" },
+      { text: "no encryption", field: "encryption_policy", direction: "negative" },
+    ],
+  });
+  assertEquals(res.counters.claims_downgraded, 0);
+  assertEquals(res.counters.skipped_field_unknown, 3);
+});
+
+Deno.test("W16-HOTFIX: positive claim on a SILENT field is SKIPPED (cannot affirm nor deny)", () => {
+  const ledger = buildFactLedger({
+    a: "x", b: "y", c: "z", d: "w", e: "", // e is silent
+  });
+  const res = enforceLedger({}, ledger, {
+    claims: [
+      { text: "e is documented", field: "e", direction: "positive" },
+      { text: "e covers all accounts", field: "e", direction: "positive" },
+      { text: "e is enforced", field: "e", direction: "positive" },
+    ],
+  });
+  assertEquals(res.counters.claims_downgraded, 0);
+  assertEquals(res.counters.skipped_silent_positive, 3);
+});
+
+// ── v2 REWRITE: never prepends caveat onto full claim text ──────────────
+Deno.test("W16-HOTFIX: rewriteUnsupported NEVER concatenates the caveat onto the full claim", () => {
+  const claim = "The intake records multi-factor authentication via Okta and encryption at rest";
+  // No fact — generic caveat.
+  const s1 = rewriteUnsupported(claim);
+  assert(!s1.includes(claim), `wave-16 concatenation regressed: ${s1}`);
+  assert(!/does not address The intake records/.test(s1), `template-onto-claim bug: ${s1}`);
+  assert(s1.includes("does not address"));
+  assert(s1.includes("must be confirmed"));
+  // With a matched fact — verbatim of the FACT (not the claim) is used.
+  const s2 = rewriteUnsupported(claim, {
+    key: "mfa_policy", source_field: "mfa_policy",
+    verbatim: "No", value: "No", polarity: "denied",
+  });
+  assert(!s2.includes(claim), `wave-16 concatenation regressed with fact: ${s2}`);
+  assert(s2.includes(`"No"`));
+  assert(s2.includes("must be reconciled"));
+});
+
+// ── Positive support / negative-by-denial pass unchanged ────────────────
 Deno.test("positive path — claim matching an asserted fact passes unchanged", () => {
   const ledger = buildFactLedger({
     systematic_observation_basis: "Continuous video analytics of storefront",
@@ -110,19 +221,69 @@ Deno.test("negative supported by explicit denial passes", () => {
   assertEquals(res.reason, "supported");
 });
 
+// ── v2 SAFETY VALVES ────────────────────────────────────────────────────
+Deno.test("W16-HOTFIX: safety valve #1 — ledger_too_small in ≥3-claim run skips enforcement", () => {
+  const ledger = buildFactLedger({ a: "x", b: "y" }); // 2 rows
+  const report: Record<string, unknown> = {};
+  const res = enforceLedger(report, ledger, {
+    claims: [
+      { text: "claim 1", field: "a", direction: "positive" },
+      { text: "claim 2", field: "b", direction: "positive" },
+      { text: "claim 3", field: "a", direction: "negative" },
+    ],
+  });
+  assertEquals(res.enforcement_skipped_reason, "ledger_too_small");
+  assertEquals(res.rewrites.length, 0);
+  const internal = (report._meta as any).internal.fact_ledger;
+  assertEquals(internal.enforcement_skipped_reason, "ledger_too_small");
+});
+
+Deno.test("W16-HOTFIX: safety valve #2 — downgrade_rate>50 % rolls back all rewrites", () => {
+  // Ledger has ≥5 rows (skips valve #1). Four of the five claims target
+  // denied fields ⇒ 4/5 = 80 % downgrade rate ⇒ valve trips.
+  const ledger = buildFactLedger({
+    a: "No", b: "No", c: "No", d: "No", e: "asserted-value",
+  });
+  const report: Record<string, unknown> = {};
+  const res = enforceLedger(report, ledger, {
+    claims: [
+      { text: "a is done", field: "a", direction: "positive" },
+      { text: "b is done", field: "b", direction: "positive" },
+      { text: "c is done", field: "c", direction: "positive" },
+      { text: "d is done", field: "d", direction: "positive" },
+      { text: "e is asserted", field: "e", direction: "positive" },
+    ],
+  });
+  assertEquals(res.enforcement_skipped_reason, "downgrade_rate_exceeded");
+  assertEquals(res.rewrites.length, 0);
+  const internal = (report._meta as any).internal.fact_ledger;
+  assertEquals(internal.enforcement_skipped_reason, "downgrade_rate_exceeded");
+});
+
+Deno.test("W16-HOTFIX: safety valve does NOT trip in single-claim unit-test scans", () => {
+  // ledger_rows=1 but claims=1 (<3) ⇒ valve stays off.
+  const ledger = buildFactLedger({ q5b_profiling_observation: "No" });
+  const res = enforceLedger({}, ledger, {
+    claims: [{
+      text: "profiling is generated",
+      field: "q5b_profiling_observation",
+      direction: "positive",
+    }],
+  });
+  assertEquals(res.enforcement_skipped_reason, undefined);
+  assertEquals(res.counters.contradiction_blocked, 1);
+});
+
+// ── Fail-open, telemetry placement ──────────────────────────────────────
 Deno.test("fail-open — malformed/null inputs never throw and return input unchanged", () => {
-  // Null intake → empty ledger, no throw.
   const l1 = buildFactLedger(null as unknown as Record<string, unknown>);
   assertEquals(l1.length, 0);
-  // Null report → early return with zeroed counters, no throw.
   const r1 = enforceLedger(null, [], { claims: [{ text: "x", direction: "positive" }] });
   assertEquals(r1.counters.claims_scanned, 0);
-  // Malformed claim entry — inner try/catch swallows and does not throw.
   const report: Record<string, unknown> = {};
   const r2 = enforceLedger(report, [], {
     claims: [null as unknown as { text: string; direction: "positive" }],
   });
-  // No throw; report is unmutated aside from the _meta.internal telemetry.
   assert(typeof r2.counters.claims_scanned === "number");
   assert(!("fact_ledger" in report));
 });
@@ -137,12 +298,10 @@ Deno.test("telemetry — counters land only under _meta.internal.fact_ledger, no
       direction: "positive",
     }],
   });
-  // No top-level _w* or fact_ledger key on customer surface.
   const topKeys = Object.keys(report);
   const leaked = topKeys.filter((k) => k !== "_meta" && k.startsWith("_"));
   assertEquals(leaked, []);
   assert(!("fact_ledger" in report));
-  // Present under _meta.internal.fact_ledger with the version stamp.
   const meta = report._meta as Record<string, unknown>;
   const internal = meta.internal as Record<string, unknown>;
   const fl = internal.fact_ledger as Record<string, unknown>;
