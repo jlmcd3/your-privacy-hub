@@ -178,7 +178,7 @@ Deno.test("Fail-open on null / non-object / missing buckets", () => {
 
 // LEAK-PREV P2 whitelist survival: _meta.internal preserved by serializer.
 Deno.test("Serializer preservation: _meta.internal.admt_w22b survives report-serialize", async () => {
-  const { serializeReportForCustomer } = await import(
+  const { serializeCustomerReport } = await import(
     "../_shared/report-serialize.ts"
   );
   const { ADMT_REPORT_SCHEMA } = await import(
