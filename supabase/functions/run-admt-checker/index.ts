@@ -2498,7 +2498,7 @@ Return this JSON structure exactly:
       const w25 = applyW25AdmtSanitizerFix(report);
       console.log(JSON.stringify({
         evt: "_w25_admt_sanitizer_fix", fn: "run-admt-checker",
-        build_stamp: BUILD_STAMP, stamp: W25_ADMT_SANITIZER_STAMP, ...w25,
+        build_stamp: BUILD_STAMP, ...w25,
       }));
     } catch (e) {
       console.warn("[run-admt-checker] W25-ADMT-SANITIZER-FIX failed (non-fatal):", (e as Error)?.message);
