@@ -411,10 +411,38 @@ Deno.serve(async (req) => {
     duration_ms,
   }));
 
+  // DS-T2d SLO surface (log-only; no new tables).
+  try {
+    const { data: stateAgg } = await admin
+      .from("delivery_contracts")
+      .select("terminal_state")
+      .limit(5000);
+    const contracts_by_state: Record<string, number> = {};
+    for (const s of (stateAgg ?? []) as Array<{ terminal_state: string | null }>) {
+      const k = s.terminal_state ?? "live";
+      contracts_by_state[k] = (contracts_by_state[k] ?? 0) + 1;
+    }
+    const reaped = results.filter((r) => String((r as any).action ?? "").startsWith("reaped_children_terminal")).length;
+    const refreshed = results.filter((r) => (r as any).action === "liveness_guard_refresh").length;
+    const BUMP_ACTIONS = new Set([
+      "stage_stall_recorded", "resumed", "harness_stalled",
+      "html_fallback+pdf_queued", "admin_escalated",
+    ]);
+    const bumped = results.filter((r) => BUMP_ACTIONS.has(String((r as any).action ?? ""))).length;
+    console.log(JSON.stringify({
+      evt: "sentinel_sweep_slo",
+      contracts_by_state,
+      reaped, refreshed, bumped,
+      sweep_ms: duration_ms,
+    }));
+  } catch (e) {
+    console.log(JSON.stringify({ evt: "sentinel_slo_error", err: (e as Error).message }));
+  }
+
   return new Response(JSON.stringify({
     scanned: contracts?.length ?? 0,
     duration_ms,
     results,
-    build: "ds-t2c-sentinel-livenessguard@2026-07-25T04:53:30Z",
+    build: "ds-t2d-sentinel@2026-07-25T15:03:25Z",
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 });
