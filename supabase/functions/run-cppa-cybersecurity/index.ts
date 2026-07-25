@@ -1857,6 +1857,20 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-cppa-cybersecurity] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
+    // Whitelist emit: only schema-declared keys reach the customer. On
+    // serializer crash, ship the report unchanged so availability is
+    // never blocked. Telemetry lands on `_meta.internal.serializer`.
+    try {
+      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
+      const { CPPA_CYBER_REPORT_SCHEMA } = await import("../_shared/report-schemas/cppa-cyber.ts");
+      const { report: serialized, telemetry } = serializeCustomerReport(report as any, CPPA_CYBER_REPORT_SCHEMA);
+      if (!telemetry.crashed) report = serialized as any;
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
