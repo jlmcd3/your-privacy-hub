@@ -2369,6 +2369,8 @@ async function runPipeline(assessment_id: string) {
         va_prose_collapse_rewritten: 0,
         va_prose_doubled_deduped: 0,
         va_statutory_basis_flagged: 0,
+        va_prose_fields_scanned: 0,
+        va_cite_fields_flagged: 0,
         buckets_scanned: 0,
       };
       const stampEntry = (it: any): boolean => {
