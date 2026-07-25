@@ -78,8 +78,11 @@ const EMPTY_PAREN_RE = /\s?\(\s*[\-\u2013\u2014,;:.\s]*\)/g;
 // → "the record carries the § …". Also collapses "the X the §" when X is a
 // short filler word (up to 4 tokens) — same shape as the W20-ADMT-TURNA
 // pattern, restricted to a § anchor on the right to avoid false positives.
+// Restricted to the "two the §" splice — the exact debris shape observed
+// on the wave-20 e6c808b4 recurrence ("carries two the § 7150(b)"). We do
+// NOT match "the … the §" because that is legitimate English.
 const DOUBLED_DETERMINER_RE =
-  /\b(?:two|the)\s+((?:\w+\s+){0,4})the\s+(§)/gi;
+  /\btwo\s+the\s+(§)/gi;
 
 // ----- B3b: doubled trailing noun-pair (closed set) -----------------------
 // Observed on risk: "trigger analysis trigger indicators" → "trigger
