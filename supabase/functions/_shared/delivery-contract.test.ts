@@ -5,7 +5,7 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import { slaFor, DELIVERY_CONTRACT_STAMP, _testables } from "./delivery-contract.ts";
 
 Deno.test("build stamp is stable", () => {
-  assertEquals(DELIVERY_CONTRACT_STAMP, "ds-t1@2026-07-24T11:02:40Z");
+  assertEquals(DELIVERY_CONTRACT_STAMP, "ds-t2c@2026-07-25T04:53:00Z");
 });
 
 Deno.test("customer SLA — DPIA multi-unit gets 300/1200", () => {
