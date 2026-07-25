@@ -43,7 +43,7 @@ import {
 } from "./_contract_hooks.ts";
 
 
-export const BUILD_STAMP = "ds-t2b-orch-wiring@2026-07-25T01:47:25Z";
+export const BUILD_STAMP = "ds-t2c-orch-hbfix@2026-07-25T04:54:00Z";
 
 // DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
 // Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
