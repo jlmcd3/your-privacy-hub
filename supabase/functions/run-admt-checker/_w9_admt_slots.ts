@@ -13,8 +13,10 @@ import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
 } from "../_shared/registry/admt-verified-authorities.ts";
+// LEAK-PREV-P0 — machinery-authored fallbacks route through the catalog.
+import { renderMessage } from "../_shared/customer-messages.ts";
 
-export const W9_ADMT_SLOTS_STAMP = "w9-admt-turn2-slots@2026-07-24T10:12:00Z";
+export const W9_ADMT_SLOTS_STAMP = "w9-admt-turn2-slots@2026-07-25T05:22:00Z";
 
 // ---------------------------------------------------------------------------
 // Types
