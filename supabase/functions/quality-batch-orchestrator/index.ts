@@ -404,6 +404,11 @@ async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
     ...patch,
     completed_at: new Date().toISOString(),
   }).eq("id", runId);
+  // DS-T2b: terminate the paired contract (fail-open).
+  const status = String((patch as any).status ?? "error") as
+    "complete" | "failed" | "cancelled" | "error";
+  const lastError = (patch as any).last_error as string | undefined;
+  await dcTerminateBatchContract(CONTRACT_DEPS, runId, status, lastError);
 }
 
 async function runUnit(runId: string) {
