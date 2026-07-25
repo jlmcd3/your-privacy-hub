@@ -78,11 +78,11 @@ Deno.test("A3: verified pinpoint left alone (no downgrade)", () => {
 });
 
 Deno.test("A3: mixed citations — downgrade only unverified parts, preserve verified", () => {
-  const cit = "11 CCR § 7150(b)(3) + 11 CCR § 7150";
+  const cit = "11 CCR § 7150(b)(99) + 11 CCR § 7150";
   const r = downgradeUnverifiedPinpointsInCitation(cit);
   assert(r.downgrades >= 1);
   assert(r.out.includes("11 CCR § 7150"));
-  assert(!r.out.includes("(b)(3)"));
+  assert(!r.out.includes("(b)(99)"));
 });
 
 // ── A4 ─────────────────────────────────────────────────────────────────
