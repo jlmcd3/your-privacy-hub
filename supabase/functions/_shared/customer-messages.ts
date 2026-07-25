@@ -305,7 +305,6 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   affectedCount: "number of affected data subjects",
   processorInvolved: "processor involvement",
   contained: "containment status",
-  contained: "containment status",
   organisationType: "organization type",
 });
 
