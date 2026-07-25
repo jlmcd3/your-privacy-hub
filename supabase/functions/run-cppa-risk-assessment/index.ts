@@ -26,6 +26,8 @@ import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
+import { applyW21RiskTurnA, W21_RISK_TURNA_STAMP, attributeFieldByToken } from "./_w21_risk_turna.ts";
+console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
   enforceLedger,
@@ -2315,11 +2317,14 @@ async function runPipeline(assessment_id: string) {
             o.title ?? o.note ?? o.rationale ?? o.detail ?? "",
         );
       };
-      const pickField = (o: any): string | undefined => {
+      const pickField = (o: any, text?: string): string | undefined => {
         if (!o || typeof o !== "object") return undefined;
         const f = o.field ?? o.intake_field_1 ??
           (Array.isArray(o.source_fields) && o.source_fields[0]);
-        return typeof f === "string" && f.trim() ? f.trim() : undefined;
+        if (typeof f === "string" && f.trim()) return f.trim();
+        // W21-RISK-TURNA A1 — infer field from prose tokens so
+        // contradictions on anchor-less claims are still blockable.
+        return typeof text === "string" ? attributeFieldByToken(text) : undefined;
       };
       const setText = (o: any, next: string): void => {
         if (!o || typeof o !== "object") return;
@@ -2333,7 +2338,7 @@ async function runPipeline(assessment_id: string) {
         arr.forEach((it, i) => {
           const text = pickText(it);
           if (!text) return;
-          const field = pickField(it);
+          const field = pickField(it, text);
           const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
           // Needle for cross-attribution: first quoted phrase, if any.
           const q = text.match(/["“]([^"”]{6,120})["”]/);
@@ -2354,7 +2359,7 @@ async function runPipeline(assessment_id: string) {
       if (sa && typeof sa === "object") {
         const text = pickText(sa);
         if (text) {
-          const field = pickField(sa);
+          const field = pickField(sa, text);
           const direction: "positive" | "negative" = NEG_RE.test(text) ? "negative" : "positive";
           claims.push({ text, field, direction, surfacePath: "scope_analysis", __ref: sa });
         }
@@ -2776,6 +2781,33 @@ async function runPipeline(assessment_id: string) {
       }));
     } catch (e) {
       console.warn("[RISK] W20-RISK-TURNB failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // W21-RISK-TURNA — A1 contradiction-attribution rewrite via fact-
+    // ledger token-inference (wired into scanner above), A2 § 7121(a)(3)
+    // cohort emitter, A3 internal-fragment leak scrub, A4 info_needed
+    // self-contradiction filter. Runs AFTER W20 so prose scrubs and the
+    // cohort emission both freeze into the terminal payload. A5
+    // build-stamp echo attaches under _meta.internal.risk_w21a; the
+    // LEAK-PREV-P2 serializer preserves _meta.internal unmodified.
+    try {
+      const _intakeW21 = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const _ledgerW21 = buildFactLedger(_intakeW21);
+      const { counters: _w21c, report: _w21r } = applyW21RiskTurnA(
+        report_data as any,
+        { intake: _intakeW21, ledger: _ledgerW21 },
+      );
+      report_data = _w21r as any;
+      const rd21: any = report_data;
+      const meta21 = (rd21._meta = rd21._meta && typeof rd21._meta === "object" ? rd21._meta : {});
+      const internal21 = (meta21.internal = meta21.internal && typeof meta21.internal === "object" ? meta21.internal : {});
+      internal21.risk_w21a = { stamp: W21_RISK_TURNA_STAMP, ..._w21c };
+      console.log(JSON.stringify({
+        evt: "_w21_risk_turna", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w21_stamp: W21_RISK_TURNA_STAMP, ..._w21c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W21-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
     }
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
