@@ -13,7 +13,7 @@ import { BUILD_STAMP } from "./index.ts";
 
 Deno.test("W15-ADMT-FL: BUILD_STAMP restamped (accepts w15, w16-hotfix, or w19 fallback-join variants)", () => {
   assert(
-    /^(w15-admt-factledger|w16-admt-flfix|w19-admt-fallbackjoin2)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-admt-factledger|w19-admt-turna|w16-admt-flfix|w19-admt-fallbackjoin2)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });

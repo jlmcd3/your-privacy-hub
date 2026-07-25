@@ -25,7 +25,7 @@ const FALLBACK = "the applicable ADMT-subchapter provision";
 Deno.test("W19: BUILD_STAMP accepts the fallback-join2 variant (fresh clock)", () => {
   assertMatch(
     BUILD_STAMP,
-    /^(w15-admt-factledger|w16-admt-flfix|w19-admt-fallbackjoin2)@\d{4}-\d{2}-\d{2}T/,
+    /^(w15-admt-factledger|w19-admt-turna|w16-admt-flfix|w19-admt-fallbackjoin2)@\d{4}-\d{2}-\d{2}T/,
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
