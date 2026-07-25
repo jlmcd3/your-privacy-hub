@@ -265,6 +265,14 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 - **cyber (run 110):** 86.25 / GPT 90 (acc 86, cit 90, hall 87, ana 81, int 81, fmt 89; checks 50/58). +5.65 vs w16 — EXCEEDS batch-3 σ. FIRST post-`w17-cyber-boiler` read: NO boilerplate survivor, ana/int recovered to 81/81 (from wave-15's 79/78 class) — supportive but one read is not attribution. 2 high, both `rubric_unsupported_business_claim` on doc `f22f2550`: incident-response-program narrative projected from bare "2–5 incidents" profile field; HIPAA "consistent with" comparative assertions without intake HIPAA facts — fact-ledger class.
 - Deploy locks RELEASED 02:52:23Z; between-waves window OPEN; next wave ~04:30Z if 120-min cadence holds from 02:30 launch (freeze ~04:05Z).
 
+### Wave 18 (campaign `fd1be147`, batch `cf953d1c`)
+
+- **Batch `cf953d1c`** launched 04:45:02Z; false-terminated to `cancelled` at 04:48:01Z by DS-T2b sentinel misfire (see §7 WAVE-18 SENTINEL FALSE-KILL); reconciled and re-adopted under fresh contract `d3836dd5` at ~04:56:22Z. All three tool runs (`cppa-admt` 107, `cppa-risk` 131, `cppa-cyber` 111) COMPLETED independently — NO reads lost. Instrument `gc-2026-07-24-s3-eu-uk-ca-au-sg` frozen. Pre-P0/P1/P2 builds (all three still on wave-17-era stamps: `w19-admt-fallbackjoin2` / `w18-risk-vocabscrub` / `w17-cyber-boiler`). No gate_v2 pass; certification counters remain 0 for all tools.
+- **Scores** (overall / GPT / dims acc-cit-hall-ana-int-fmt):
+  - `cppa-admt` run 107: **83.75** / 82 / 87-78-84-86-85-87
+  - `cppa-risk` run 131: **83.25** / 82 / 82-86-84-80-83-90
+  - `cppa-cyber` run 111: **86.35** / 90 / 86-90-88-80-81-87
+- Deltas vs w17 (same-instrument valid): admt +0.05 (flat within σ); risk +2.90 (recovery from w17 campaign-low 80.35, still below w15 81.35); cyber +0.10 (flat, persistent ana/int 80/81 boilerplate class). All wave-18 evidence is pre-LEAK-PREV; first post-LEAK-PREV read arrives at wave 19 (~06:45Z if 120-min cadence holds).
 
 
 ## 6. Carry-Forward Registers
