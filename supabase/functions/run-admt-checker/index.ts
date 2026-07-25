@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w21-admt-turnb@2026-07-25T12:20:33Z";
+export const BUILD_STAMP = "w22-admt-turnb@2026-07-25T14:10:47Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -39,6 +39,7 @@ import { applyW19AdmtTurnA, W19_ADMT_TURNA_STAMP } from "./_w19_admt_turna.ts";
 console.log(`[run-admt-checker] boot admt_turna_stamp=${W19_ADMT_TURNA_STAMP}`);
 import { applyW20AdmtTurnA, W20_ADMT_TURNA_STAMP } from "./_w20_admt_turna.ts";
 import { applyW21AdmtTurnB, W21_ADMT_TURNB_STAMP } from "./_w21_admt_turnb.ts";
+import { applyW22AdmtTurnB, W22_ADMT_TURNB_STAMP } from "./_w22_admt_turnb.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
@@ -2376,6 +2377,23 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] WAVE21-FIX TURN B failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── WAVE22-FIX TURN B (cppa-admt) ────────────────────────────────
+    // P1 registry-first pinpoint substitution; P2 unresolved-authority
+    // phrase scrub from structured citation fields; P3 stamp echo;
+    // P4 broadened counsel-referral prose scrub; P5 § 7155(a)(1)
+    // submission-vs-timing broadened guard; P6 § 7001 sole
+    // governing_anchor duty guard. Runs AFTER W21 turnB and BEFORE
+    // the LEAK-PREV emit gate. Fail-open.
+    try {
+      const w22b = applyW22AdmtTurnB(report, ((assessment as any)?.intake_data as Record<string, unknown>) ?? {});
+      console.log(JSON.stringify({
+        evt: "_w22_admt_turnb", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W22_ADMT_TURNB_STAMP, ...w22b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] WAVE22-FIX TURN B failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
