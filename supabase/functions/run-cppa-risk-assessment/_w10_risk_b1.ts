@@ -367,10 +367,16 @@ function guardDenialsDeep(
 export function applyW10RiskB1(
   report: Record<string, unknown>,
   intake: Record<string, unknown>,
+  opts?: { ledger?: readonly FactRow[] },
 ): { counters: W10RiskB1Counters } {
   const counters = emptyCounters();
   if (!report || typeof report !== "object") return { counters };
   const intakeFlat = flattenIntake(intake ?? {});
+  // W19 TURN B — ledger for the D2/B1 reconciliation guard. Callers may
+  // pass a prebuilt ledger; otherwise build one here (fail-open → []).
+  const ledger: readonly FactRow[] = opts?.ledger ?? (() => {
+    try { return buildFactLedger(intake ?? {}); } catch { return []; }
+  })();
 
   // B1a: inconsistency_flags provenance validation.
   const flagsRaw = (report as Record<string, unknown>).inconsistency_flags;
@@ -393,12 +399,13 @@ export function applyW10RiskB1(
     }
   }
 
-  // D2 — profiling-denial guard over the same narrative surfaces plus
-  // inconsistency_flags (denials sometimes surface inside a flag description).
+  // D2 — profiling-denial guard (ledger-aware). Same narrative surfaces
+  // plus inconsistency_flags (denials sometimes surface inside a flag
+  // description).
   for (const key of ["risk_register", "executive_summary", "risk_assessment_by_activity", "inconsistency_flags", "assessment_summary"] as const) {
     const v = (report as Record<string, unknown>)[key];
     if (v !== undefined) {
-      (report as Record<string, unknown>)[key] = guardDenialsDeep(v, intakeFlat, counters);
+      (report as Record<string, unknown>)[key] = guardDenialsDeep(v, intakeFlat, counters, ledger);
     }
   }
 
