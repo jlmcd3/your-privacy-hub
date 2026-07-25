@@ -1634,6 +1634,18 @@ Return JSON:
       console.warn("[run-li-assessment] LIA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── LIA-T6-FIX-TURN (2026-07-25) ────────────────────────────────────
+    // Class A citation audit (registry-first with omission-over-invention)
+    // and Class B unsupported-business-claim downgrade using whole-sentence
+    // excision doctrine (ledger item 84c). Telemetry to
+    // `_meta.internal.lia_t6fix`. Fail-open.
+    try {
+      const { applyLiaT6Fix } = await import("./_lia_t6_fix.ts");
+      applyLiaT6Fix(reportData, { intake: liaIntakeObject, buildStamp: BUILD_STAMP });
+    } catch (e) {
+      console.warn("[run-li-assessment] LIA-T6-FIX-TURN post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
     // Runs AFTER all content-shaping passes and BEFORE the P2 serializer so
     // gate telemetry rides `_meta.internal`. Fail-visible; never blocks.
