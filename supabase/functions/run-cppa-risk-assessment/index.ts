@@ -2282,8 +2282,13 @@ async function runPipeline(assessment_id: string) {
       const NEG_RE = /\b(no|none|not|never|absence of|does not|is not|are not|without)\b/i;
       const pickText = (o: any): string => {
         if (!o || typeof o !== "object") return "";
+        // W16-HOTFIX: `harm_type` REMOVED from the pickText/setText
+        // surface. It is an enum-like structured field (risk_register
+        // entries) — template caveats must never overwrite its
+        // controlled vocabulary. Any rewrite lands on the entry's
+        // narrative field instead.
         return String(
-          o.description ?? o.text ?? o.harm_type ?? o.action ?? o.statement ??
+          o.description ?? o.text ?? o.action ?? o.statement ??
             o.title ?? o.note ?? o.rationale ?? o.detail ?? "",
         );
       };
@@ -2295,7 +2300,7 @@ async function runPipeline(assessment_id: string) {
       };
       const setText = (o: any, next: string): void => {
         if (!o || typeof o !== "object") return;
-        for (const k of ["description", "text", "harm_type", "action", "statement", "title", "note", "rationale", "detail"]) {
+        for (const k of ["description", "text", "action", "statement", "title", "note", "rationale", "detail"]) {
           if (typeof o[k] === "string" && o[k]) { o[k] = next; return; }
         }
       };
