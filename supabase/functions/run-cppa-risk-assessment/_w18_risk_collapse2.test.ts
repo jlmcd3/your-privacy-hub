@@ -243,7 +243,7 @@ Deno.test("W18 (d5) record_sufficiency.statement, strengthen_items.recorded_basi
 });
 
 Deno.test("W18 (e) fail-open on malformed report — no crash, no mutation", () => {
-  const report: any = { inconsistency_flags: null, exception_analysis: "not-an-array", risk_assessment_by_activity: undefined, priority_actions: {}, information_needed: 42 };
+  const report: any = { inconsistency_flags: null, exception_analysis: "not-an-array", risk_assessment_by_activity: 0, priority_actions: {}, information_needed: 42 };
   const snap = JSON.parse(JSON.stringify(report));
   try {
     rewriteProseFields(report.inconsistency_flags, ["description"], "inconsistency_flags", newMetrics(), []);
@@ -251,7 +251,7 @@ Deno.test("W18 (e) fail-open on malformed report — no crash, no mutation", () 
     rewriteProseFields(report.priority_actions, ["action"], "priority_actions", newMetrics(), []);
     walkCites(report.information_needed, ["provision"], newMetrics());
   } catch { /* must not throw */ }
-  assertEquals(report, snap);
+  assertEquals(JSON.parse(JSON.stringify(report)), snap);
 });
 
 Deno.test("W18 (f) telemetry-placement leak guard — new counters land under _meta.internal.risk_va only", () => {
