@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w24-admt-attr@2026-07-25T18:28:00Z";
+export const BUILD_STAMP = "w24-admt-audit@2026-07-25T18:39:43Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -42,6 +42,7 @@ import { applyW21AdmtTurnB, W21_ADMT_TURNB_STAMP } from "./_w21_admt_turnb.ts";
 import { applyW22AdmtTurnB, W22_ADMT_TURNB_STAMP } from "./_w22_admt_turnb.ts";
 import { applyW23AdmtTurnA, W23_ADMT_TURNA_STAMP } from "./_w23_admt_turna.ts";
 import { applyW24AdmtAttrFix, W24_ADMT_ATTR_STAMP } from "./_w24_admt_attr_fix.ts";
+import { applyW24AdmtAudit, W24_ADMT_AUDIT_STAMP } from "./_w24_admt_audit.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
@@ -2443,6 +2444,24 @@ Return this JSON structure exactly:
     } catch (e) {
       console.warn("[run-admt-checker] W24-ADMT-ATTRIBUTION-FIX failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── W24-ADMT-RESOLVER-AUDIT (2026-07-25) ──────────────────────────
+    // Runs AFTER W24 attr-fix and BEFORE the LEAK-PREV-P1 emit gate so
+    // the emit gate + serializer see the audited/dropped surface.
+    // Fail-open — availability never blocked.
+    try {
+      const w24audit = applyW24AdmtAudit(
+        report,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      console.log(JSON.stringify({
+        evt: "_w24_admt_audit", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W24_ADMT_AUDIT_STAMP, ...w24audit,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W24-ADMT-RESOLVER-AUDIT failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
 
