@@ -32,6 +32,7 @@ import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 import { applyCyberBoilerplateGuard, CYBER_BOILER_VERSION } from "./_w17_cyber_boiler.ts";
+import { applyW21CyberTurnC, W21_CYBER_TURNC_STAMP } from "./_w21_cyber_turnc.ts";
 import { attachCyberAggregates, W10_CYBER_AGG_STAMP } from "./_w10_cyber_aggregates.ts";
 import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
 // W15 CYBER-REGISTRY-WIRING — L1 verified-authority resolver + cyber registry
