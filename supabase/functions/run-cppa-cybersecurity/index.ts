@@ -12,7 +12,7 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // registry (cyber-va-w1) wired at emit time; deterministic post-generation
 // stamping of citation_bearing surfaces from proposition_key; § 7122(g)
 // retention re-anchor guard supersedes § 7123(e) mis-anchor (wave-15 HIGH).
-export const BUILD_STAMP = "p012-cyber@2026-07-25T05:50:24Z";
+export const BUILD_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 3/3 (CYBER).
 // Blocks wave-14/15 unsupported-positive, contradiction, and
@@ -32,6 +32,7 @@ import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 import { applyCyberBoilerplateGuard, CYBER_BOILER_VERSION } from "./_w17_cyber_boiler.ts";
+import { applyW21CyberTurnC, W21_CYBER_TURNC_STAMP } from "./_w21_cyber_turnc.ts";
 import { attachCyberAggregates, W10_CYBER_AGG_STAMP } from "./_w10_cyber_aggregates.ts";
 import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
 // W15 CYBER-REGISTRY-WIRING — L1 verified-authority resolver + cyber registry
@@ -1652,7 +1653,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W12-CYBER-E1] non-fatal:", String(e1Err));
     }
 
-    // ── S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring — pre-VA-stamp ──
+    // ── S-B INTAKE-FACT-LEDGER (sb-fl-w4-2026-07-25) wiring — pre-VA-stamp ──
     // Blocks wave-14/15 unsupported-positive / contradiction /
     // negative-from-silence classes on the same client-fact surfaces the
     // cyber_va stamp pass walks. Runs AFTER the retro-audit scrub chain
@@ -1828,6 +1829,26 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }));
     } catch (boilerErr) {
       console.error("[W17-CYBER-BOILER] non-fatal:", String(boilerErr));
+    }
+
+    // W21-CYBER-TURNC — deterministic wave-21 fix pass (items 47/49/50 pattern).
+    // Runs AFTER W17 boiler and IMMEDIATELY BEFORE LEAK-PREV-P1 runEmitGate so
+    // the emit-gate sees the fully-scrubbed customer prose. Fail-open; per-guard
+    // counters + stamp sequestered under _meta.internal.cyber_w21c (never a
+    // customer-surface key). See supabase/functions/run-cppa-cybersecurity/
+    // _w21_cyber_turnc.ts for the C1-C6 charter.
+    try {
+      const w21c = applyW21CyberTurnC(report as any, {
+        intake: ((row as any).intake_data as Record<string, unknown>) ?? null,
+      });
+      report = w21c.report as any;
+      console.log(JSON.stringify({
+        evt: "cyber_w21c_pass", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, stamp: W21_CYBER_TURNC_STAMP,
+        ...w21c.counters,
+      }));
+    } catch (w21Err) {
+      console.error("[W21-CYBER-TURNC] non-fatal:", String(w21Err));
     }
 
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
