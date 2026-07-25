@@ -38,6 +38,7 @@ console.log(`[run-admt-checker] boot admt_join2_stamp=${W19_ADMT_JOIN2_STAMP}`);
 import { applyW19AdmtTurnA, W19_ADMT_TURNA_STAMP } from "./_w19_admt_turna.ts";
 console.log(`[run-admt-checker] boot admt_turna_stamp=${W19_ADMT_TURNA_STAMP}`);
 import { applyW20AdmtTurnA, W20_ADMT_TURNA_STAMP } from "./_w20_admt_turna.ts";
+import { applyW21AdmtTurnB, W21_ADMT_TURNB_STAMP } from "./_w21_admt_turnb.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
@@ -2354,6 +2355,26 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] WAVE20-FIX TURN A failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── WAVE21-FIX TURN B (2026-07-25) — B1-B8 sanitiser + telemetry.
+    // B1: keyless registry resolution from in-prose anchor.
+    // B2: no empty citation on *_gaps entries.
+    // B3: body-text counsel-referral scrub (defence-in-depth over w9 G2).
+    // B4: § 7001 sole-anchor duty guard on citation fields.
+    // B5: § 7155(a)(1) submission-vs-timing guard in deadline_table.
+    // B6: § 7150(b)(3) proposition guard.
+    // B7: intake-supported timeline restoration.
+    // B8: attach _meta.internal.admt_w21b (+ mirror w19a/w20a).
+    // Runs AFTER W20 turnA and BEFORE the LEAK-PREV emit gate.
+    try {
+      const w21b = applyW21AdmtTurnB(report, ((assessment as any)?.intake_data as Record<string, unknown>) ?? {});
+      console.log(JSON.stringify({
+        evt: "_w21_admt_turnb", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w21b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] WAVE21-FIX TURN B failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
