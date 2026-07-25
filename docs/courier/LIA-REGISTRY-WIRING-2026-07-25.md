@@ -122,3 +122,56 @@ No historical `li_assessments` re-scan performed this turn — retro coverage la
 ## 10. Next Per T2
 
 **GOVERNANCE-REGISTRY-AUTHORING** — authoring-only turn, mirrors LIA-REGISTRY-AUTHORING (item 52) shape. Item 53 flipped QUEUED → DONE by this entry.
+
+---
+
+## 11. Addendum — Spec-alignment redeploy (2026-07-25T13:07:10Z)
+
+Controller re-dispatched item 53 verbatim, surfacing two naming deltas vs. the item-55 landing:
+
+| Spec (item 53) | Item 55 initial | Aligned |
+|---|---|---|
+| `_shared/report-schemas/lia.ts` | `_shared/report-schemas/li-assessment.ts` | Renamed → `lia.ts` |
+| `_meta.internal.lia_w1` | `_meta.internal.lia_w1_wire` | Renamed → `lia_w1` |
+
+Both renames executed. Import path in `run-li-assessment/index.ts` updated to `report-schemas/lia.ts`. Telemetry key updated in `_w1_lia_wire.ts`, `index.ts` comments, and `_tests/w1-lia-wire.test.ts`.
+
+**Fresh-clock BUILD_STAMP:** `lia-registry-wiring@2026-07-25T13:06:13Z` (`date -u` re-read at 13:06:13Z immediately before writing the stamp — item 52 doctrine observed, no forward-projection). `W1_LIA_WIRE_STAMP` bumped in lock-step to `w1-lia-wire@2026-07-25T13:06:13Z`.
+
+**Deploy locks (immediately pre-deploy at db_now 2026-07-25T13:06:58.471163Z):**
+
+```
+qb_rp             = 0
+lia_null          = 0
+fn_running        = 0
+```
+
+All GREEN. 8+ min headroom to spec's wave-22 launch cutoff (~13:15Z).
+
+**Tests (post-rename, pasted-green):**
+
+```
+$ cd supabase/functions && deno test --no-check --allow-all _tests/w1-lia-wire.test.ts
+running 11 tests from ./_tests/w1-lia-wire.test.ts
+W1-LIA: stamps registry citation on matching proposition_key ... ok (1ms)
+W1-LIA: scrubs citation on unanchored proposition (write-around) ... ok (0ms)
+W1-LIA: unknown proposition_key is recorded, not mutated ... ok (0ms)
+W1-LIA: writes telemetry under _meta.internal.lia_w1 ... ok (0ms)
+W1-LIA: preserves pre-existing _meta.internal keys ... ok (1ms)
+W1-LIA: skips subtrees under RESERVED containers (_meta, annotations) ... ok (0ms)
+W1-LIA: idempotent — second pass adds no new registry_hits net-of-existing ... ok (0ms)
+W1-LIA: never throws on non-object input ... ok (0ms)
+W1-LIA: walks nested arrays ... ok (0ms)
+P2-LIA: schema preserves _meta.internal.lia_w1 stamp ... ok (1ms)
+P1-LIA: emit-gate accepts li_assessment tool tag and emits telemetry ...
+------- output -------
+{"evt":"emit_gate","version":"eg-w1-2026-07-25","tool":"li_assessment","prose_nodes":1,"degraded_count":0,"findings_count":0,"skipped":null}
+----- output end -----
+P1-LIA: emit-gate accepts li_assessment tool tag and emits telemetry ... ok (5ms)
+
+ok | 11 passed | 0 failed (21ms)
+```
+
+**Deploy tape:** `deploy_edge_functions(["run-li-assessment"]) → "Successfully deployed edge functions: run-li-assessment"`.
+
+**Item 53 → DONE.** Ledger entries: item 55 (initial deploy) + item 56 (this alignment). Next per T2: `GOVERNANCE-REGISTRY-AUTHORING`.

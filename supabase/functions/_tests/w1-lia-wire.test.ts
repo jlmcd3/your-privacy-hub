@@ -8,7 +8,7 @@ import {
   LIA_UNANCHORED_PROPOSITIONS,
   LIA_VERIFIED_AUTHORITY_VERSION,
 } from "../_shared/registry/lia-verified-authorities.ts";
-import { LIA_REPORT_SCHEMA } from "../_shared/report-schemas/li-assessment.ts";
+import { LIA_REPORT_SCHEMA } from "../_shared/report-schemas/lia.ts";
 import { serializeCustomerReport } from "../_shared/report-serialize.ts";
 import { runEmitGate } from "../_shared/emit-gate.ts";
 
@@ -72,12 +72,12 @@ Deno.test("W1-LIA: unknown proposition_key is recorded, not mutated", () => {
   assert(c.unresolved_keys.includes("not_a_real_key_xyz"));
 });
 
-Deno.test("W1-LIA: writes telemetry under _meta.internal.lia_w1_wire", () => {
+Deno.test("W1-LIA: writes telemetry under _meta.internal.lia_w1", () => {
   const report: Record<string, unknown> = {
     three_part_test: { purpose: { proposition_key: REG_KEY } },
   };
   applyW1LiaWire(report);
-  const t = (report as any)._meta?.internal?.lia_w1_wire;
+  const t = (report as any)._meta?.internal?.lia_w1;
   assert(t, "telemetry present");
   assertEquals(t.stamp, W1_LIA_WIRE_STAMP);
   assertEquals(t.version, LIA_VERIFIED_AUTHORITY_VERSION);
@@ -93,7 +93,7 @@ Deno.test("W1-LIA: preserves pre-existing _meta.internal keys", () => {
   applyW1LiaWire(report);
   const internal: any = (report as any)._meta.internal;
   assertEquals(internal.emit_gate.version, "eg-w1-2026-07-25");
-  assert(internal.lia_w1_wire, "wire telemetry present");
+  assert(internal.lia_w1, "wire telemetry present");
 });
 
 Deno.test("W1-LIA: skips subtrees under RESERVED containers (_meta, annotations)", () => {
@@ -145,12 +145,12 @@ Deno.test("W1-LIA: walks nested arrays", () => {
 
 // ── LEAK-PREV-P2 serializer coverage (stamp-echo survival) ──────────────
 
-Deno.test("P2-LIA: schema preserves _meta.internal.lia_w1_wire stamp", () => {
+Deno.test("P2-LIA: schema preserves _meta.internal.lia_w1 stamp", () => {
   const reportData: Record<string, unknown> = {
     assessment_id: "test-1",
     generated_at: "2026-07-25T13:00:00Z",
     three_part_test: { purpose: { proposition_key: REG_KEY } },
-    build_stamp: "lia-registry-wiring@2026-07-25T12:59:37Z",
+    build_stamp: "lia-registry-wiring@2026-07-25T13:06:13Z",
     _meta: { prompt_version: "li-assessment/r1b2.1-rcb" },
     unknown_top_level_key: "should be dropped",
   };
@@ -159,14 +159,14 @@ Deno.test("P2-LIA: schema preserves _meta.internal.lia_w1_wire stamp", () => {
   const out = report as any;
   // Whitelisted top-level survives
   assertEquals(out.assessment_id, "test-1");
-  assertEquals(out.build_stamp, "lia-registry-wiring@2026-07-25T12:59:37Z");
+  assertEquals(out.build_stamp, "lia-registry-wiring@2026-07-25T13:06:13Z");
   // Unknown key dropped
   assertEquals(out.unknown_top_level_key, undefined);
   // _meta reduced to internal only (prompt_version was under _meta)
   assertEquals(out._meta.prompt_version, undefined);
   // STAMP-ECHO: wire telemetry stamp survives P2 serialization
-  assertEquals(out._meta.internal.lia_w1_wire.stamp, W1_LIA_WIRE_STAMP);
-  assertEquals(out._meta.internal.lia_w1_wire.version, LIA_VERIFIED_AUTHORITY_VERSION);
+  assertEquals(out._meta.internal.lia_w1.stamp, W1_LIA_WIRE_STAMP);
+  assertEquals(out._meta.internal.lia_w1.version, LIA_VERIFIED_AUTHORITY_VERSION);
   // Serializer telemetry attached
   assert(out._meta.internal.serializer);
 });
