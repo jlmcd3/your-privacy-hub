@@ -26,6 +26,8 @@ import { applyW6RiskFix } from "./_w6_risk_fix.ts";
 import { attachAndValidateSlots as attachW9RiskSlots, W9_RISK_SLOTS_STAMP } from "./_w9_risk_slots.ts";
 import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
 import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
+import { applyW21RiskTurnA, W21_RISK_TURNA_STAMP, attributeFieldByToken } from "./_w21_risk_turna.ts";
+console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
   enforceLedger,
