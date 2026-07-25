@@ -33,7 +33,7 @@ import {
   LIA_VERIFIED_AUTHORITY_VERSION,
 } from "../_shared/registry/lia-verified-authorities.ts";
 
-export const W1_LIA_WIRE_STAMP = "w1-lia-wire@2026-07-25T12:59:37Z";
+export const W1_LIA_WIRE_STAMP = "w1-lia-wire@2026-07-25T13:06:13Z";
 
 export interface W1LiaWireCounters {
   version: string;
