@@ -277,8 +277,15 @@ function guardObjectDeep(
 // is a false negative that must never be emitted when the intake basis is
 // present. We only fire when the intake ACTUALLY asserts profiling; if the
 // intake denies profiling, the sentence stands.
+// W20 TURN B (B4) — pattern widened. The Wave-20 run 020f376e recurrence
+// (doc e6c808b4) surfaced denial phrasings the original set missed:
+//   • "the record does not (separately )?establish/substantiate ... profiling/observation"
+//   • "does not independently trigger ... profiling/§ 7150(b)(4|5)"
+//   • "directly contradict any inference that ... (are|is) (independently )?triggered"
+// The guard remains ledger-consulted (never fabricates a positive) and
+// only fires when intake q5b_profiling_observation itself asserts profiling.
 const PROFILING_DENIAL_RE =
-  /([^.!?\n]*?\b(?:no\s+profiling\b|no\s+[a-z0-9\s,-]{0,80}?inferences?\b|profiling\s+(?:is|are)\s+not\b|does\s+not\s+(?:perform|conduct|engage\s+in)\s+profiling|not\s+performing\s+profiling|no\s+systematic\s+observation)[^.!?\n]*)[.!?]/gi;
+  /([^.!?\n]*?\b(?:no\s+profiling\b|no\s+[a-z0-9\s,-]{0,80}?inferences?\b|profiling\s+(?:is|are)\s+not\b|does\s+not\s+(?:perform|conduct|engage\s+in)\s+profiling|not\s+performing\s+profiling|no\s+systematic\s+observation|(?:the\s+)?record\s+does\s+not\s+(?:separately\s+)?(?:establish|substantiate|record|trigger)[^.!?\n]{0,120}?(?:profiling|systematic\s+observation|sensitive[-\s]location)|does\s+not\s+independently\s+trigger[^.!?\n]{0,80}?(?:profiling|§\s*7150\(b\))|contradict[s]?\s+any\s+inference[^.!?\n]{0,120}?(?:profiling|systematic\s+observation|independently\s+triggered))[^.!?\n]*)[.!?]/gi;
 
 function intakeAssertsProfiling(intakeFlat: Record<string, string>): boolean {
   const q5b = intakeFlat["q5b_profiling_observation"];
