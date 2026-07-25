@@ -433,15 +433,29 @@ export function stripModelCitations(text: unknown): string {
   if (typeof text !== "string") return "";
   let out = text;
   // W9-ADMT-WIRE-P1 defect #1 — swallow the ENTIRE citation token, including
-  // every trailing "(x)" / "(x)(y)" / "(x)(y)(z)" subsection chain. The
-  // prior lazy match stopped at the first ")" and left "(3)", ")(4)" or a
-  // dangling ")" behind.
+  // every trailing "(x)" / "(x)(y)" / "(x)(y)(z)" subsection chain.
+  //
+  // ADMT-W16-FIX (2026-07-25) — DASH-FUSION GUARD: prior swallow matched
+  // only "§+ 7XXX" with subsection chain. When the model authored a section
+  // RANGE like "11 CCR §§ 7220–7222", the leading "§§ 7220" was consumed
+  // but the trailing "–7222" survived and later fused with the neutral
+  // fallback phrase downstream ("the applicable ADMT-subchapter provision–7222").
+  // Extend the swallow to include an OPTIONAL "–7XXX" range tail so the
+  // entire range collapses to a single "the cited provision" token — no
+  // dangling numeric tail can survive to fuse with the fallback consumer.
   const SUBS = String.raw`(?:\s*\([A-Za-z0-9]+\))*`;
-  out = out.replace(new RegExp(String.raw`\b11\s*CCR\s*§+\s*7\d{3}` + SUBS, "g"), "the cited provision");
-  out = out.replace(new RegExp(String.raw`§+\s*7\d{3}` + SUBS, "g"), "the cited provision");
+  const RANGE_TAIL = String.raw`(?:\s*[\u2013\u2014-]\s*7\d{3}` + SUBS + String.raw`)?`;
+  out = out.replace(new RegExp(String.raw`\b11\s*CCR\s*§+\s*7\d{3}` + SUBS + RANGE_TAIL, "g"), "the cited provision");
+  out = out.replace(new RegExp(String.raw`§+\s*7\d{3}` + SUBS + RANGE_TAIL, "g"), "the cited provision");
   out = out.replace(/§+\s*3426\.1\([a-z]\)/gi, "Cal. Civ. Code § 3426.1(d)"); // preserve legit trade-secret reference
   // Clean up any orphan ")(x)" fragments left by upstream mangling before this fix shipped.
   out = out.replace(/\bthe\s+cited\s+provision\s*\)?(?:\s*\([A-Za-z0-9]+\))+/g, "the cited provision");
+  // ADMT-W16-FIX (2026-07-25) — defense-in-depth: strip any bare "–7XXX"
+  // tail that survived upstream and now sits adjacent to the neutral
+  // fallback phrase or the "cited provision" token, rather than allowing
+  // it to render as a fused pseudo-citation.
+  out = out.replace(/\bthe\s+cited\s+provision\s*[\u2013\u2014-]\s*7\d{3}(?:\s*\([A-Za-z0-9]+\))*/g, "the cited provision");
+  out = out.replace(/\bthe\s+applicable\s+ADMT-subchapter\s+provision\s*[\u2013\u2014-]\s*7\d{3}(?:\s*\([A-Za-z0-9]+\))*/g, "the applicable ADMT-subchapter provision");
   // Collapse double spaces.
   out = out.replace(/\s{2,}/g, " ").trim();
   return out;
