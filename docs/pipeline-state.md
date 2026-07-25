@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T18:10:52Z — W24-FIX-TURNA-RISK deployed (item 74; cohort-determinism CRITICAL scrub + B1 field-coverage extension into current_safeguards/risk_assessment_by_activity; BUILD_STAMP w24-risk-turna@2026-07-25T18:08:00Z)
+**Last updated:** 2026-07-25T18:17:15Z — W24-FIX-TURNA-RISK v2 deployed (item 75; bimodal cohort emitter — deterministic claim OR information-needed ask with empty citation/quote, never a hedged claim; BUILD_STAMP w24-risk-turna@2026-07-25T18:14:00Z)
 
 ---
 
