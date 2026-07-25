@@ -64,7 +64,7 @@ function pruneObject(
   obj: Record<string, unknown>,
   allowed: Set<string>,
   pathPrefix: string,
-  dropped: string[],
+  dropped: DropSink,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(obj)) {
@@ -79,7 +79,7 @@ function pruneEntry(
   allowed: Set<string>,
   entryEntries: Record<string, readonly string[]> | undefined,
   pathPrefix: string,
-  dropped: string[],
+  dropped: DropSink,
 ): unknown {
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) return entry;
   const src = entry as Record<string, unknown>;
@@ -125,7 +125,7 @@ export function serializeCustomerReport(
   try {
     const src = deepClone(report as Record<string, unknown>);
     const allowedTop = new Set(schema.topLevel);
-    const dropped: string[] = [];
+    const dropped: DropSink = makeSink();
 
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(src)) {
@@ -182,15 +182,15 @@ export function serializeCustomerReport(
     const internal = (meta.internal = (meta.internal && typeof meta.internal === "object")
       ? meta.internal as Record<string, unknown>
       : {});
-    const totalDropped = dropped.length;
-    const truncated = dropped.length >= DROPPED_KEYS_CAP;
-    telemetry.dropped_keys = dropped;
+    const totalDropped = dropped.total;
+    const truncated = dropped.total > DROPPED_KEYS_CAP;
+    telemetry.dropped_keys = dropped.paths;
     telemetry.dropped_count = totalDropped;
     if (truncated) telemetry.truncated_at = DROPPED_KEYS_CAP;
     internal.serializer = {
       version: SERIALIZER_VERSION,
       tool: schema.tool,
-      dropped_keys: dropped,
+      dropped_keys: dropped.paths,
       dropped_count: totalDropped,
       ...(truncated ? { truncated_at: DROPPED_KEYS_CAP } : {}),
     };
