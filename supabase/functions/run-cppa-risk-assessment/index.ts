@@ -9,7 +9,12 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // claim classes (sensitive-location contradiction, worker/free-tier positive
 // projections). Runs after W6/W9/W10 retro-audits, before the w15 risk_va
 // L1 citation stamp so citations attach to final claim text. Fail-open.
-export const BUILD_STAMP = "p012-risk@2026-07-25T05:50:24Z";
+// WAVE19-FIX TURN B (2026-07-25) — D2/B1 reconciliation guard now consults
+// the fact-ledger BEFORE emitting the reconciliation.required template.
+// Suppression telemetry lands at _meta.internal.risk_b1
+// .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
+// _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
+export const BUILD_STAMP = "w19-risk-turnb@2026-07-25T08:26:51Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 import {
   newVocabScrubMetrics,
