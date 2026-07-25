@@ -33,6 +33,52 @@ const cors = {
 };
 
 const MAX_STAGE_ATTEMPTS = 3;
+const LIVENESS_WINDOW_MS = 5 * 60 * 1000; // DS-T2c: subject fresher than this ⇒ contract is LIVE
+const HARNESS_STAGE_REFRESH_S = 900;      // must match HARNESS_SLA.stageSeconds
+
+// DS-T2c: cross-check a harness/quality_batch_runs contract against the
+// subject row AND its in-flight quality_runs before any bump/terminate.
+// Returns the most recent heartbeat across (batch row, in-flight runs).
+export async function latestHarnessBatchActivity(
+  admin: any, batchId: string,
+): Promise<{ latestMs: number; anySignal: boolean }> {
+  let latestMs = 0;
+  let anySignal = false;
+  try {
+    const { data: batch } = await admin.from("quality_batch_runs")
+      .select("last_heartbeat_at, status").eq("id", batchId).maybeSingle();
+    if (batch?.last_heartbeat_at) {
+      anySignal = true;
+      latestMs = Math.max(latestMs, new Date(batch.last_heartbeat_at).getTime());
+    }
+    const { data: kids } = await admin.from("quality_runs")
+      .select("last_heartbeat_at, status")
+      .eq("batch_id", batchId)
+      .in("status", ["pending", "building", "grading", "cross_review", "running"]);
+    for (const k of (kids ?? [])) {
+      const hb = (k as any)?.last_heartbeat_at;
+      if (hb) {
+        anySignal = true;
+        latestMs = Math.max(latestMs, new Date(hb).getTime());
+      }
+    }
+  } catch (e) {
+    console.log(JSON.stringify({
+      evt: "sentinel_liveness_probe_error",
+      batch_id: batchId, err: (e as Error).message,
+    }));
+  }
+  return { latestMs, anySignal };
+}
+
+async function refreshHarnessContract(admin: any, id: string, note: string) {
+  const now = new Date();
+  await admin.from("delivery_contracts").update({
+    heartbeat_at: now.toISOString(),
+    stage_deadline_at: new Date(now.getTime() + HARNESS_STAGE_REFRESH_S * 1000).toISOString(),
+    last_error: `[liveness_guard] ${note}`.slice(0, 4000),
+  }).eq("id", id).is("terminal_state", null);
+}
 
 interface ContractRow {
   id: string;
