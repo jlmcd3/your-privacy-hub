@@ -340,6 +340,17 @@ async function handleHarness(admin: any, row: ContractRow) {
     }
   }
 
+  // DS-T2d: all-children-terminal reap — preempts the attempt-bumping
+  // terminate path when the batch is dead but silent (nothing to heartbeat
+  // against). Triple-gated: subject=batch, stage deadline breached, parent
+  // hb stale >5min, every child terminal. NO attempt bump on this branch.
+  if (row.subject_table === "quality_batch_runs") {
+    const reap = await reapAllChildrenTerminal(admin, row, now);
+    if (reap.acted) {
+      return { action: `reaped_children_terminal_${reap.outcome}`, child_count: reap.child_count };
+    }
+  }
+
   if (overallBreached || stageAttempts >= MAX_STAGE_ATTEMPTS) {
     const note = `harness_stalled: stage=${row.stage} attempts=${stageAttempts} overall=${overallBreached}`;
     await bumpAttemptsAndFailure(admin, row, "harness_stall", note);
