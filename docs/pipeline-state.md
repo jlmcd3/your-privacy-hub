@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-25T23:33:00Z — DPIA-T6-FIX-TURN SHIPPED (see item 92). Discharges T6-NONCPPA-MEASUREMENT-BATCH-1 (item 81) DPIA per-tool backlog items (a) `citation_misapplied` and (b) `unsupported_business_claim`. Queue posture: governance Class A citation-audit sibling remains QUEUED (own turn); DPA-generator, governance, and IR-playbook Class B business-claim scrub siblings remain QUEUED (each own turn). All prior queue posture from item 91 unchanged (`h6_admt_governing_anchor` QUEUED; T5 residual for § 7220 / § 7221 subdivision approval OPEN; T7 step-2 admt opening wiring HELD).
+**Last updated:** 2026-07-25T23:38:53Z — T5-SUBDIVISION-RESIDUAL-INVESTIGATED + CPPA CORPUS INGESTION HOLD named ACTIVE HOLD (see item 92). Queue posture unchanged: h6_admt_governing_anchor QUEUED (own turn, post-wave-27); governance Class A citation-audit sibling remains QUEUED; DPA-generator, governance, and IR-playbook Class B business-claim scrub siblings remain QUEUED (each own turn); T7 step-2 admt opening wiring HELD.
 
 ---
 
