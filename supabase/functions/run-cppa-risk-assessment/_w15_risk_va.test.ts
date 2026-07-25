@@ -19,7 +19,7 @@ Deno.test("W15 (a) registry loads + version stamp exported + BUILD_STAMP w15-ris
   assert(registrySize(RISK_VERIFIED_AUTHORITIES) >= 40, "registry too small");
   assert(RISK_VERIFIED_AUTHORITY_ROWS.length === registrySize(RISK_VERIFIED_AUTHORITIES));
   assert(
-    BUILD_STAMP.startsWith("w15-risk-regwire@") || BUILD_STAMP.startsWith("w15-risk-factledger@"),
+    BUILD_STAMP.startsWith("w15-risk-regwire@") || BUILD_STAMP.startsWith("w15-risk-factledger@") || BUILD_STAMP.startsWith("w16-risk-flfix@"),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
