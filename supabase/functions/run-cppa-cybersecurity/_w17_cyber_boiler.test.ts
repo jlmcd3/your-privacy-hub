@@ -28,8 +28,8 @@ Deno.test("W17-CYBER-BOILER: exact duplicate is rewritten (second occurrence)", 
   assert(res.boiler_duplicates_rewritten >= 1);
   // First control preserved verbatim
   assertEquals(report.controls[0].remediation, GENERIC_A);
-  // Second control (exact dup) rewritten
-  assert(report.controls[1].remediation.startsWith("Remediation guidance for Authentication"));
+  // Second control (exact dup) rewritten — label is the duplicate's own name.
+  assert(report.controls[1].remediation.startsWith("Remediation guidance for Encryption of personal information"));
   assertEquals(report.controls[1].information_needed, true);
 });
 
