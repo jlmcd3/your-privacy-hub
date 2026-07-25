@@ -57,41 +57,35 @@ If either check returns a row, the deploy WAITS until the run reaches a terminal
 
 ## 4. Last Completed Turn
 
-- **Turn:** `RISK-W16-COLLAPSE-COVERAGE` — team-reviewed (five-lens); deploy on `run-cppa-risk-assessment` only.
-- **Real-time:** 2026-07-25T01:19:12Z (boot log; sandbox `date -u` at lock re-check 01:18:41Z; BUILD_STAMP fresh-clock 01:15:49Z).
-- **Scope (single edge function, deploy):** extend wave-15 SUBSECTION-COLLAPSE guard to the surfaces the queued follow-up named (`scope_notes`, `assessment_required_rationale`, `triggered_activities_detail[].statutory_basis`) and fix the walker key mismatch that had left the entire trigger surface unscanned.
-- **Root causes (verified against HEAD `run-cppa-risk-assessment/index.ts`):**
-  - **(a) KEY MISMATCH.** The W15 walker read `r.scope_analysis ?? r.trigger_analysis`. The schema's actual key is `scope_and_triggers`. The trigger surface was never walked at all.
-  - **(b) PROSE GAP.** `stampEntry` only inspected the `citation` field. `scope_and_triggers.scope_notes` (free string), `triggered_activities_detail[].assessment_required_rationale` (free string), and `triggered_activities_detail[].statutory_basis` (citation-like string) were never scanned.
-- **Fixes shipped this turn (all in `run-cppa-risk-assessment/index.ts`):**
-  1. Walker now covers `scope_and_triggers` first; `scope_analysis` and `trigger_analysis` retained as aliases for safety. `triggered_activities_detail[]` walked as a bucket.
-  2. `statutory_basis` on each triggered-activity entry runs through the existing W15 bare/doubled collapse — bare `§ 7150(b)` without a `(b)(N)` pinpoint OR doubled `§ 7150(b) … § 7150(b)` collapses to blank + `information_needed: true` + counter increment. Never fabricates a pinpoint.
-  3. New deterministic `rewriteProse` pass over `scope_notes` and `assessment_required_rationale`:
-     - Doubled `§ 7150(b)` repeats within one sentence (≤60 chars apart, no intervening pinpoint) deduped to a single reference (`va_prose_doubled_deduped`).
-     - Bare `§ 7150(b)` with no `(b)(N)` pinpoint is PERMITTED when the same sentence carries a textual trigger keyword (sell / share / targeted advertising / train / observe / systematic observation / sensitive location / …) — this is the W6-RISK-FIX(3) permitted form and is preserved verbatim.
-     - Bare `§ 7150(b)` without a same-sentence trigger keyword is rewritten to the plain-English element name "the § 7150(b) trigger analysis" (CPPA-HF2 B compliant; `va_prose_collapse_rewritten`), and an `information_needed` entry is routed naming the under-specified sentence.
-     - References carrying pinpoints (`§ 7150(b)(3)` etc.) are untouched.
-     - Never invents, upgrades, or guesses a subsection anywhere.
-  4. Fail-open outer try/catch preserves report on any throw.
-  5. Telemetry lives ONLY under `report._meta.internal.risk_va` (new counters `va_prose_collapse_rewritten`, `va_prose_doubled_deduped`, `va_statutory_basis_flagged`). No `_w<digits>_*` or underscore-prefixed customer-surface keys (C1-strip compatible).
+- **Turn:** `CYBER-BOILERPLATE-REMEDIATION` — team-reviewed (five-lens); deploy on `run-cppa-cybersecurity` only.
+- **Real-time:** 2026-07-25T01:34:15Z (boot log; sandbox `date -u` at lock re-check 01:33:52Z; BUILD_STAMP fresh-clock 01:31:06Z).
+- **Scope (single edge function, deploy):** discharge the long-deferred MEDIUM `generic_boilerplate` grader finding on per-control cyber remediation (16/18 controls emitting near-identical text across waves 13–15; oscillating-persistent through waves 13, 14, 15). Two-front fix: strengthen the prompt to demand answer-first + intake-anchored + inter-control-distinct remediation, and add a deterministic post-generation guard that catches survivors.
+- **Root cause diagnosis (from wave-13/14/15 grader digests in §5):** the model repeatedly templated a generic "implement documented policies and procedures for this control aligned with the intake-elected framework … retain per § 7122(g) five-year audit-record retention rule … assign an accountable owner … establish review cadence … escalate through incident management" pattern across most of the 18 § 7123(c) components. The § 7122(g) retention clause — legitimate as a tail — was migrating to the LEAD sentence, crowding out control-specific action. Prior scrubs (W6/W9/W10/W12-E1/fact-ledger/cyber_va) target citation and hallucination classes and are the wrong instrument for template drift.
+- **Fixes shipped this turn:**
+  1. **Prompt (`supabase/functions/run-cppa-cybersecurity/index.ts` `CPPA_CYBER_TOOL_MODULE.extraRules`, appended after W6-CYBER-FIX-v2 rules):** new `W17-CYBER-BOILERPLATE BAN` rule requires per-control remediation to (a) OPEN ANSWER-FIRST with the concrete next action for THIS customer (imperative verb + specific object drawn from the intake), (b) reference at least one CONCRETE INTAKE FACT (named field/value/framework election/dated audit/incident count OR an explicit intake-silence acknowledgment), (c) be DISTINCT from every other control's remediation. Enumerates prohibited generic openings and pins the § 7122(g) retention clause as a permitted TAIL only. Notes the deterministic post-gen guard so the model understands the correct fix is control-specific up-front prose, not rewording a template.
+  2. **New deterministic guard `supabase/functions/run-cppa-cybersecurity/_w17_cyber_boiler.ts`** (`applyCyberBoilerplateGuard`, version `cyber-boiler-w1-2026-07-25`): (i) normalizes each control's `remediation` (lowercase, whitespace-collapse); (ii) tokenizes and computes pairwise Jaccard similarity between control remediations; (iii) for any pair with similarity > 0.9 AND both texts > 120 chars, keeps the FIRST occurrence and rewrites subsequent duplicates to an answer-first `information_needed: true` advisory naming the control component; (iv) `referencesIntake` heuristic exempts strings that carry a quoted phrase, a numeric figure OUTSIDE citations, OR a named framework/vendor (HITRUST/SOC 2/ISO 27001/NIST CSF/HIPAA/PCI DSS/CIS Controls/Okta/Duo/CrowdStrike/Splunk/Rapid7/Qualys/Tenable/SentinelOne/Microsoft Defender/Sentinel/Entra/Azure/AWS/GCP); (v) `stripCitations` removes `§ 7XXX(...)` / `11 CCR § 7XXX(...)` / CFR / USC pinpoints before the numeric-figure check so statutory numbers do not false-positive as intake anchors; (vi) fail-open outer try/catch.
+  3. **Wiring (`run-cppa-cybersecurity/index.ts`):** guard runs AFTER the full scrub chain (W6 → W9 → W10 → W12-E1 → fact-ledger → cyber_va) and BEFORE the terminal `_meta` write. Per-run `cyber_boiler_pass` telemetry log. Counters land under `report._meta.internal.cyber_boiler` ONLY (`boiler_scanned`, `boiler_duplicates_rewritten`, `boiler_skipped_intake_anchored`) — no `_w<digits>_*` or underscore-prefixed customer-surface keys (C1-strip compatible).
 - **Deploy discipline:**
-  - Pre-deploy lock re-check at 01:18:41Z (sandbox `date -u`): `quality_batch_runs` running/pending = 0; `cppa_assessments` <15 min NULL report_data = 0 (all modules). Both green.
-  - Deploy landed 01:19:07Z, ~46 min ahead of the 02:05Z freeze / 02:15Z wave-17 launch.
-  - BUILD_STAMP fresh-clock: `w16-risk-collapsecov@2026-07-25T01:15:49Z` (supersedes `w16-risk-flfix@2026-07-25T00:58:48Z`). Stamp-pin regexes in `_w12_turnd.test.ts` and `_w15_risk_fl.test.ts` widened to accept the new stamp alongside prior stamps.
-  - Post-deploy boot log (01:19:12Z) confirms: `w16-risk-collapsecov@2026-07-25T01:15:49Z` + `risk_va_registry_loaded va_version=risk-va-w1-2026-07-24 va_rows=44` + `fact_ledger_loaded version=sb-fl-w2-2026-07-25` — all three signals present.
-- **Tests (pasted green, deno colocated risk suite):** `_w16_risk_collapse.test.ts` **11/11** (walker reaches `scope_and_triggers`; doubled-in-prose dedup; bare-without-description rewrite; bare-WITH-description preserved verbatim; pinpointed cite untouched; statutory_basis bare → blank + information_needed; fail-open on malformed report; telemetry-placement leak guard; W6 permitted-form and negative-pass cases) + `_w15_risk_va.test.ts` **12/12** + `_w15_risk_fl.test.ts` **15/15** + `_w12_turnd.test.ts` **11/11** + `_w10_risk_b1.test.ts` **6/6** + `_w9_risk_slots.test.ts` **14/14** = **69/69 PASS**.
+  - Pre-deploy lock re-check at 01:33:52Z (sandbox `date -u`): `quality_batch_runs` running/pending = 0; `cppa_assessments` <15 min NULL report_data = 0 (all modules). Both green.
+  - Deploy landed 01:34:15Z, ~31 min ahead of the 02:05Z freeze / 02:15Z wave-17 launch.
+  - BUILD_STAMP fresh-clock: `w17-cyber-boiler@2026-07-25T01:31:06Z` (supersedes `w16-cyber-flfix@2026-07-25T00:58:48Z`). Stamp-pin regexes in `_w12_turne.test.ts`, `_w15_cyber_fl.test.ts`, and `_w15_cyber_va.test.ts` widened to accept the new stamp alongside prior stamps.
+  - Post-deploy boot log (01:34:15Z) confirms: `w17-cyber-boiler@2026-07-25T01:31:06Z` + `cyber_va_registry_loaded va_version=cyber-va-w1-2026-07-24 va_rows=44` + `fact_ledger_loaded version=sb-fl-w2-2026-07-25` — all three signals present.
+- **Tests (pasted green, deno colocated cyber suite):** `_w17_cyber_boiler.test.ts` **8/8** (exact-duplicate rewrite; near-duplicate Jaccard >0.9 rewrite; intake-anchored control preserved from rewrite; statutory citation numerics do NOT count as intake facts via `stripCitations`; short-text below 120-char threshold preserved; framework name counts as intake anchor; telemetry lands under `_meta.internal.cyber_boiler` only with no customer-surface leak; fail-open on malformed report) + full pre-existing colocated cyber suite = **71/71 PASS**. Deno command: `deno test --allow-all --no-check run-cppa-cybersecurity/` (all green).
 - **Files touched:**
-  - `supabase/functions/run-cppa-risk-assessment/index.ts` — BUILD_STAMP (L12); expanded RISK-REGISTRY-WIRING pass (L2362-2441) with `rewriteProse`, `scope_and_triggers` walker, `triggered_activities_detail[]` bucket, `statutory_basis` collapse, extended telemetry.
-  - `supabase/functions/run-cppa-risk-assessment/_w16_risk_collapse.test.ts` — new (11 cases).
-  - `supabase/functions/run-cppa-risk-assessment/_w15_risk_va.test.ts` — stamp prefix guard widened.
-  - `supabase/functions/run-cppa-risk-assessment/_w15_risk_fl.test.ts` — stamp regex widened.
-  - `supabase/functions/run-cppa-risk-assessment/_w12_turnd.test.ts` — stamp prefix guard widened.
-  - `docs/pipeline-state.md` — this update (header, §2 item 18, §4).
-- **Out of scope (unchanged, verified):** no rubric / golden / validator changes; no prompt-rule weakening; no sample-report regeneration; no other functions touched. Retro-audit — TURN B (`_w10_risk_b1.ts` B1a field-provenance + B1b claims guard, W10_RISK_B1_STAMP), TURN D (D1 `i3_ca_consumer_band` gate, D2 profiling-denial guard W12_RISK_D2_STAMP, D3 § 1798.140(ai) prompt cite), and W15 fact-ledger wiring (sb-fl-w2 enforcement pass) all unchanged and green.
+  - `supabase/functions/run-cppa-cybersecurity/_w17_cyber_boiler.ts` — new (guard module).
+  - `supabase/functions/run-cppa-cybersecurity/_w17_cyber_boiler.test.ts` — new (8 cases).
+  - `supabase/functions/run-cppa-cybersecurity/index.ts` — BUILD_STAMP (L15); guard import; `W17-CYBER-BOILERPLATE BAN` rule appended to `extraRules`; guard invocation between `cyber_va` pass and terminal `_meta` write.
+  - `supabase/functions/run-cppa-cybersecurity/_w12_turne.test.ts` — stamp prefix guard widened.
+  - `supabase/functions/run-cppa-cybersecurity/_w15_cyber_fl.test.ts` — stamp regex widened.
+  - `supabase/functions/run-cppa-cybersecurity/_w15_cyber_va.test.ts` — stamp regex widened.
+  - `docs/pipeline-state.md` — this update (header, §2 item 19, §3 lock discharge, §4).
+- **Out of scope (unchanged, verified):** no rubric / golden / validator changes; no prompt-rule weakening (the W17 rule is additive and stricter); no sample-report regeneration; no other functions touched. Retro-audit — TURN A (`stripLiteralNPlaceholder`, `attachCyberAggregates`), TURN E (`_w12_cyber_e1.ts` sanitization + telemetry), W15 registry wiring (cyber-va-w1-2026-07-24 L1 stamp pass), and W16 fact-ledger wiring (sb-fl-w2 enforcement pass, ordering: fact-ledger BEFORE cyber_va — untouched) all unchanged and green.
 
 ---
 
-**Previous turn (superseded):** `FACT-LEDGER-W16-HOTFIX` (2026-07-25T01:03:34Z) — see historical §8 entries.
+**Previous turn (superseded):** `RISK-W16-COLLAPSE-COVERAGE` (2026-07-25T01:19:12Z) — deploy on `run-cppa-risk-assessment`; wave-15 § 7150(b) subsection-collapse guard extended to `scope_notes` / `assessment_required_rationale` / `triggered_activities_detail[].statutory_basis`; walker key mismatch fixed to `scope_and_triggers`; BUILD_STAMP `w16-risk-collapsecov@2026-07-25T01:15:49Z`; 69/69 deno risk suite green.
+
+
 
 - **Turn:** `SAMPLES-CONTRACT-governance` (6/8) — team-reviewed dispatch (five-lens).
 - **Real-time:** 2026-07-24T17:55:49Z (sandbox `date -u`).
