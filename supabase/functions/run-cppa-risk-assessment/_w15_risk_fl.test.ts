@@ -10,9 +10,9 @@ import {
 } from "../_shared/intake/fact-ledger.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W15-FL: BUILD_STAMP restamped to w15-risk-factledger@<iso>", () => {
+Deno.test("W15-FL: BUILD_STAMP restamped (accepts w15 or w16-hotfix variants)", () => {
   assert(
-    /^w15-risk-factledger@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-risk-factledger|w16-risk-flfix)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
@@ -24,7 +24,6 @@ Deno.test("W15-FL: index.ts imports fact-ledger and inserts pre-VA-stamp pass", 
   assert(src.includes("enforceLedger("), "enforceLedger call missing");
   assert(src.includes("fact_ledger_pass"), "fact_ledger_pass telemetry log missing");
   assert(src.includes("fact_ledger_loaded"), "fact_ledger_loaded boot log missing");
-  // Ordering: fact-ledger pass runs BEFORE the w15 risk_va L1 stamp pass.
   const flIdx = src.indexOf("S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring");
   const vaIdx = src.indexOf("W15 RISK-REGISTRY-WIRING — L1 REGISTRY-STAMPED CITATIONS pass");
   assert(flIdx > 0 && vaIdx > 0 && flIdx < vaIdx, "fact-ledger must run before risk_va stamp pass");
@@ -47,8 +46,8 @@ Deno.test("W15-FL class-1: contradiction of denied fact is blocked with reconcil
   assert(res.rewrites[0].to.length > 0);
 });
 
-// ── Class-2 + Class-3 (unsupported-positive projections) ───────────────────
-Deno.test("W15-FL class-2/3: unsupported-positive claim downgraded with 'must be confirmed'", () => {
+// W16-HOTFIX (WAVE-16 REGRESSION GUARD): unresolvable field ⇒ SKIP.
+Deno.test("W15-FL class-2/3: unsupported-positive with UNRESOLVABLE field is SKIPPED (wave-16 guard)", () => {
   const ledger = buildFactLedger({ some_other_field: "x" });
   const res = enforceLedger({}, ledger, {
     claims: [{
@@ -57,12 +56,16 @@ Deno.test("W15-FL class-2/3: unsupported-positive claim downgraded with 'must be
       direction: "positive",
     }],
   });
-  assertEquals(res.counters.claims_downgraded, 1);
-  assert(res.rewrites[0].to.includes("must be confirmed"));
+  assertEquals(res.counters.claims_downgraded, 0);
+  assertEquals(res.counters.skipped_field_unknown, 1);
 });
 
-Deno.test("W15-FL: silence never supports a negative assertion", () => {
-  const ledger = buildFactLedger({ some_other_field: "x" });
+// W16-HOTFIX: field must be present in the ledger as silent.
+Deno.test("W15-FL: silence never supports a negative assertion (field in ledger as silent)", () => {
+  const ledger = buildFactLedger({
+    some_other_field: "x",
+    free_tier_projection: "",
+  });
   const res = enforceLedger({}, ledger, {
     claims: [{
       text: "no tier-assignment or feature-availability projection is documented",

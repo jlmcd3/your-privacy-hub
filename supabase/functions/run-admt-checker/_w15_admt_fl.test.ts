@@ -11,9 +11,9 @@ import {
 } from "../_shared/intake/fact-ledger.ts";
 import { BUILD_STAMP } from "./index.ts";
 
-Deno.test("W15-ADMT-FL: BUILD_STAMP restamped to w15-admt-factledger@<iso>", () => {
+Deno.test("W15-ADMT-FL: BUILD_STAMP restamped (accepts w15 or w16-hotfix variants)", () => {
   assert(
-    /^w15-admt-factledger@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-admt-factledger|w16-admt-flfix)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
@@ -25,15 +25,18 @@ Deno.test("W15-ADMT-FL: index.ts imports fact-ledger and inserts pre-VA-stamp pa
   assert(src.includes("enforceLedger("), "enforceLedger call missing");
   assert(src.includes("fact_ledger_pass"), "fact_ledger_pass telemetry log missing");
   assert(src.includes("fact_ledger_loaded"), "fact_ledger_loaded boot log missing");
-  // Ordering: fact-ledger pass runs BEFORE the W9-ADMT-WIRE L1 VA stamp pass.
   const flIdx = src.indexOf("S-B INTAKE-FACT-LEDGER (sb-fl-w1) wiring");
   const vaIdx = src.indexOf("W9-ADMT-WIRE — L1 REGISTRY-STAMPED CITATIONS");
   assert(flIdx > 0 && vaIdx > 0 && flIdx < vaIdx, "fact-ledger must run before VA L1 stamp pass");
 });
 
-// ── Wave-14 doc eefadb3f: negative-from-silence ────────────────────────────
-Deno.test("W15-ADMT-FL: silence never supports a negative assertion", () => {
-  const ledger = buildFactLedger({ some_other_field: "x" });
+// W16-HOTFIX: field must be present in the ledger (as silent) for the
+// negative-from-silence rule to fire. v2 rule: unresolvable field ⇒ SKIP.
+Deno.test("W15-ADMT-FL: silence never supports a negative assertion (field in ledger as silent)", () => {
+  const ledger = buildFactLedger({
+    some_other_field: "x",
+    trade_secret_carveout_policy: "",
+  });
   const res = enforceLedger({}, ledger, {
     claims: [{
       text: "no trade-secret or security carve-out policy is documented",
@@ -45,8 +48,8 @@ Deno.test("W15-ADMT-FL: silence never supports a negative assertion", () => {
   assert(res.rewrites[0].to.includes("must be confirmed"));
 });
 
-// ── Unsupported-positive ────────────────────────────────────────────────────
-Deno.test("W15-ADMT-FL: unsupported-positive claim downgraded with 'must be confirmed'", () => {
+// W16-HOTFIX (WAVE-16 REGRESSION GUARD).
+Deno.test("W15-ADMT-FL: unsupported-positive with UNRESOLVABLE field is SKIPPED (wave-16 guard)", () => {
   const ledger = buildFactLedger({ some_other_field: "x" });
   const res = enforceLedger({}, ledger, {
     claims: [{
@@ -55,8 +58,8 @@ Deno.test("W15-ADMT-FL: unsupported-positive claim downgraded with 'must be conf
       direction: "positive",
     }],
   });
-  assertEquals(res.counters.claims_downgraded, 1);
-  assert(res.rewrites[0].to.includes("must be confirmed"));
+  assertEquals(res.counters.claims_downgraded, 0);
+  assertEquals(res.counters.skipped_field_unknown, 1);
 });
 
 // ── Contradiction ──────────────────────────────────────────────────────────
