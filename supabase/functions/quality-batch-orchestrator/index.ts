@@ -663,6 +663,7 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}, concurrency=${concurrency}`);
+  await dcCreateBatchContract(CONTRACT_DEPS, row.id, { origin: "startRun", tools, batch_size: batchSize, concurrency });
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
   return { ok: true, runId: row.id };
