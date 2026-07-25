@@ -174,7 +174,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "controls[].evidence": "evidence available for the control",
 
   // ── DPIA Framework (LEAK-PREV-P0 extension — DPIA-REGISTRY-WIRING) ──
-  organization_name: "organisation name",
+  // (organization_name label lives higher up — do not redeclare here.)
   processing_activity_name: "processing activity name",
   description: "processing description",
   purpose: "purpose of the processing",
