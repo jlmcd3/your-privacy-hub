@@ -62,7 +62,8 @@ async function pgrest(path: string): Promise<unknown[]> {
 
 interface CorpusBundle {
   provision: Map<string, string>;
-  edpb: Map<string, string>;
+  /** section_heading -> list of excerpt bodies (multiple rows may share a heading). */
+  edpb: Map<string, string[]>;
 }
 
 async function loadCorpus(): Promise<CorpusBundle> {
@@ -81,9 +82,12 @@ async function loadCorpus(): Promise<CorpusBundle> {
   const edpbRows = await pgrest(
     `edpb_guidelines?select=section_heading,excerpt_text&guideline_ref=eq.EDPB%20Guidelines%202%2F2019&status=eq.final`,
   ) as Array<{ section_heading: string | null; excerpt_text: string | null }>;
-  const edpb = new Map<string, string>();
+  const edpb = new Map<string, string[]>();
   for (const r of edpbRows) {
-    if (r.section_heading && r.excerpt_text) edpb.set(r.section_heading, r.excerpt_text);
+    if (!r.section_heading || !r.excerpt_text) continue;
+    const list = edpb.get(r.section_heading) ?? [];
+    list.push(r.excerpt_text);
+    edpb.set(r.section_heading, list);
   }
   return { provision, edpb };
 }
