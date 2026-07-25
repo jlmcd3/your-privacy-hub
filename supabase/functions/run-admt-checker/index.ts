@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w25-admt-sanitizer@2026-07-25T22:44:15Z";
+export const BUILD_STAMP = "w26-admt-citation-audit@2026-07-25T23:34:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -45,6 +45,7 @@ import { applyW24AdmtAttrFix, W24_ADMT_ATTR_STAMP } from "./_w24_admt_attr_fix.t
 import { applyW24AdmtAudit, W24_ADMT_AUDIT_STAMP } from "./_w24_admt_audit.ts";
 import { applyW24AdmtH6, W24_ADMT_H6_STAMP } from "./_w24_admt_h6.ts";
 import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_sanitizer_fix.ts";
+import { applyW26AdmtCitationAudit, W26_ADMT_CITATION_AUDIT_STAMP } from "./_w26_admt_citation_audit.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
@@ -2502,6 +2503,23 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] W25-ADMT-SANITIZER-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── W26-ADMT-CITATION-AUDIT (2026-07-25) ──────────────────────────
+    // Dispatch W26-ADMT-CITATION-AUDIT-2026-07-25 — ledger item-78
+    // queued (a) / wave-26 driver (i). Registry-first substitution of
+    // the neutral fallback when a verified pinpoint exists; whole-
+    // sentence excision (item 84c) for garbled mid-noun-phrase
+    // interpolations. Runs AFTER W25 sanitizer, BEFORE emit gate so
+    // the gate + serializer see the final surface. Fail-open.
+    try {
+      const w26 = applyW26AdmtCitationAudit(report);
+      console.log(JSON.stringify({
+        evt: "_w26_admt_citation_audit", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: W26_ADMT_CITATION_AUDIT_STAMP, ...w26,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W26-ADMT-CITATION-AUDIT failed (non-fatal):", (e as Error)?.message);
     }
 
 
