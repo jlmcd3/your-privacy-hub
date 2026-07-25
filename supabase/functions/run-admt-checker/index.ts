@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w24-admt-h6@2026-07-25T19:01:28Z";
+export const BUILD_STAMP = "w25-admt-sanitizer@2026-07-25T22:44:15Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -44,11 +44,13 @@ import { applyW23AdmtTurnA, W23_ADMT_TURNA_STAMP } from "./_w23_admt_turna.ts";
 import { applyW24AdmtAttrFix, W24_ADMT_ATTR_STAMP } from "./_w24_admt_attr_fix.ts";
 import { applyW24AdmtAudit, W24_ADMT_AUDIT_STAMP } from "./_w24_admt_audit.ts";
 import { applyW24AdmtH6, W24_ADMT_H6_STAMP } from "./_w24_admt_h6.ts";
+import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_sanitizer_fix.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turna_w23_stamp=${W23_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_attr_w24_stamp=${W24_ADMT_ATTR_STAMP}`);
+console.log(`[run-admt-checker] boot admt_sanitizer_w25_stamp=${W25_ADMT_SANITIZER_STAMP}`);
 // ADMT-FIX-W9 — pre-emit deterministic gates (h6, e6, reasoning-leak, invented-section).
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
@@ -2483,6 +2485,24 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W24-ADMT-H6-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
     }
 
+
+
+    // ── W25-ADMT-SANITIZER-FIX (2026-07-25) ───────────────────────────
+    // Dispatch W25-ADMT-SANITIZER-FIX-2026-07-25 — ledger item 84
+    // queued candidates (a)+(b) with cross-tool whole-sentence-excision
+    // doctrine (item 84c). Runs AFTER W24-H6 and BEFORE the LEAK-PREV-P1
+    // emit gate so the gate + serializer see the sanitized surface.
+    // Supersedes W24 T-Ab partial excision and widens T-B coverage to
+    // ANY grammatical position via deep recursive walk. Fail-open.
+    try {
+      const w25 = applyW25AdmtSanitizerFix(report);
+      console.log(JSON.stringify({
+        evt: "_w25_admt_sanitizer_fix", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...w25,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] W25-ADMT-SANITIZER-FIX failed (non-fatal):", (e as Error)?.message);
+    }
 
 
 
