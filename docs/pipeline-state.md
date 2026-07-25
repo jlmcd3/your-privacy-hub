@@ -6,7 +6,7 @@
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
 
-**Last updated:** 2026-07-25T05:36:45Z — LEAK-PREV-P1 DONE-AUTHORING (`_shared/emit-gate.ts` `eg-w1-2026-07-25` NEW + `_shared/advisory-voice.ts` `attachDeterministicChecks` writes ONLY `_meta.internal.deterministic_checks` + `run-quality-batch/index.ts` reader fallback + wiring in all three CPPA generators after final content-shaping pass, before terminal write / C1 strip). Authoring + tests only; NO edge deploys this turn (per-tool deploys ride each tool's next lock-gated turn and will carry P0+P1 together). P2 next.
+**Last updated:** 2026-07-25T05:44:47Z — LEAK-PREV-P2 DONE-AUTHORING (`_shared/report-serialize.ts` `rs-w1-2026-07-25` NEW + `_shared/report-schemas/{admt,cppa-risk,cppa-cyber}.ts` NEW + wiring in all three CPPA generators after emit-gate, before terminal write; ADMT keeps the C1 blacklist strip as the serializer's crash fallback). Authoring + tests only; NO edge deploys this turn (per-tool deploys ride each tool's next lock-gated turn and will carry P0+P1+P2 together). P3 program-paced, folded into each tool's next major turn.
 
 ---
 
