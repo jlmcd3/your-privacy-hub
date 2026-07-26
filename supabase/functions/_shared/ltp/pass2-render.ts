@@ -113,11 +113,14 @@ export function renderTemplate(
   }
   const errors: string[] = [];
   let text = tpl.text;
+  // Forbidden-token check runs on the RAW template (pre-substitution).
+  // Citation substitution legitimately introduces § glyphs from pinpoints;
+  // the check exists to catch model-authored injections in template bodies.
+  checkForbiddenTokens(text, errors);
   text = substituteCitations(text, plan, tpl.citation_slots, errors);
   text = substituteIntake(text, plan, tpl.intake_slots, errors);
   const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, errors);
   text = planSub.text;
-  checkForbiddenTokens(text, errors);
   if (text.length > tpl.max_chars) errors.push(`over_max_chars:${text.length}/${tpl.max_chars}`);
   // Any un-substituted {{...}} indicates a leaked slot.
   if (/\{\{[a-z]+:[A-Z0-9_]+\}\}/i.test(text)) errors.push("leaked_slot_marker");
