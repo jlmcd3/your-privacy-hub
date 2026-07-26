@@ -3,7 +3,7 @@
  * -----------------------------------------------------------------------------
  * Pre-indexed candidate slices keyed by weighing-test id. Pass G at runtime
  * selects entries from these slices only (candidate-set closure per
- * TWO-PASS-ARCHITECTURE §2.6/§2.7/§2.8/§2.9). Every current entry is CPPA-domain
+ * LEGAL-TEST-PIPELINE §2.6/§2.7/§2.8/§2.9). Every current entry is CPPA-domain
  * (Q4(e)). v2.3 (CEO 2026-07-26): U.S.-forum candidates may additionally carry
  * `us-federal` at BINDING tier (e.g., FTC rulings); sister-state candidates
  * are admissible only at persuasive tier. GDPR/UK candidate sets remain
