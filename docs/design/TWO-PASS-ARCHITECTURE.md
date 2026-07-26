@@ -9,14 +9,20 @@
 
 ---
 
-## 0. OPEN QUESTIONS FOR CEO (answer before build)
+## 0. OPEN QUESTIONS FOR CEO — **ANSWERED 2026-07-26 (item 132)**
 
-1. **Rollout order.** Risk-first (aligned with pilot doctrine, most instrumented, has PERFECT-INTAKE baseline) vs. DPIA-first (simplest citation surface, unit-pipeline `api_usage` already provides cost/latency analog). Design assumes **Risk-first**.
-2. **Retry budget for Pass-1.** Recommend N=2 model retries → then conservative write-around report (never a blocked customer). Confirm N.
-3. **Model routing.** Pass-1 (structured JSON) and Pass-2 (prose rendering) may run on the same or different models. Default recommendation: **same model, two calls** (attribution stays clean; no cross-model drift). Confirm.
-4. **Interim guard retirement.** Retire `_risk_citation_dup_fix.ts` at what evidence threshold? Proposal: **two consecutive s5 waves with zero (A)/(B) findings in Pass-2 output** → guard becomes assertion-only, then removed one wave later.
-5. **Registry-cut recommendations.** Surface audit (§6) will identify `scope_notes` / `inconsistency_flags` / `cross_tool_recommendations` template blocks with poor finding-class histories. CEO to confirm the **keep / template-cut** default is "cut unless a finding-class defends it," or the inverse.
-6. **Failure-mode disclosure.** When Pass-1 falls through to conservative write-around, do we surface a customer-visible banner ("some sections rendered in reduced-detail mode") or keep it silent + telemetry-only? Recommend **silent + telemetry** for pilot; revisit at rollout.
+CEO agreed with controller recommendations across the board. Answers below stand as CEO rulings.
+
+1. **Rollout order — Risk-first.** (Aligned with pilot doctrine; PERFECT-INTAKE baseline exists.)
+2. **Pass-1 retry budget — N=2**, then conservative write-around. (Never a blocked customer.)
+3. **Model routing — same model, two calls, for pilot.** Cheaper Pass-1 routing (structured-output model) is revisited post-pilot-success, not before.
+4. **Interim guard retirement — two consecutive clean s5 waves → assertion-only → removed one wave later.** `_risk_citation_dup_fix` is the first candidate.
+5. **Surface-audit default — CUT unless a finding-class history or CEO-required disclosure defends the template.** (Inverse of the pre-answer proposal; CEO tightened.)
+6. **Write-around disclosure — silent + telemetry for pilot.** Customer-visible banner decision is DEFERRED to pre-launch review.
+
+Build is now **UNBLOCKED** subject to the v1 + v2 + v2.1 amendment set (see §§2.5, 2.6, 2.7). No architecture questions remain open for CEO on the pilot path.
+
+
 
 ---
 
@@ -119,7 +125,34 @@ Factor-registry rows (`_shared/factors/<product>-factors.ts`) MUST carry `guidan
 6. **Pass V (Verification) stub** — optional, flag-gated; pilot yield-measured over 2 waves; zero yield = drop.
 7. **Extended success criteria** — 100% frame-entry anchoring, zero eligibility-bar violations, zero authority improvisation on empty frames.
 
-No product's two-pass migration begins until v1 (LEGAL-TEST §4) AND v2 (this §2.6) amendments are implemented — including factor-registry guidance mapping for that product.
+No product's two-pass migration begins until v1 (LEGAL-TEST §4) AND v2 (this §2.6) AND v2.1 (§2.7 below) amendments are implemented — including factor-registry guidance mapping AND jurisdiction-domain scoping for that product.
+
+---
+
+## 2.7 Legal Test v2.1 — Authority-Domain Matching (Question 4(e)) — MANDATORY, CEO-ordered 2026-07-26
+
+This section is **build-blocking** and additive to §§2.5-2.6. Full methodology: `docs/design/LEGAL-TEST.md` Q4(e). Every test / analysis-unit / proposition carries a **JURISDICTION TAG**; all corpus candidates (statutory anchors, `guidance_refs`, Pass-G candidate sets, analogies) are FILTERED to the matching domain. **Cross-domain authority in customer-facing analysis = HARD REJECT** at BOTH authoring review AND Pass-G candidate-set construction.
+
+**Domain definitions.**
+
+- **`cppa-ca`** — `cppa_authorities`; `provision_texts` CA/ccpa rows; `cppa_fsor_commentary` and `cppa_fsor_callouts`; `cppa_deadlines`; California statutes (Civ. Code); AND analogies the FSOR itself discusses (the FSOR is CPPA-domain corpus — its internal references are legitimate CPPA authority because the FSOR's reference is itself the CPPA anchor).
+- **`gdpr-eu`** / **`gdpr-uk`** — `gdpr_articles` for the matching sub-jurisdiction (UK falls back to EU per existing `getGdprContext` behaviour, which is a within-domain fallback); `edpb_guidelines`; `provision_texts` EU / UK rows; `enforcement_actions` tagged GDPR (eligibility bar applies).
+- **`us-state-<code>`** (e.g. `us-state-il-bipa`, breach-notification states) — the respective state statutes when present in corpus.
+
+**Hybrid products** (ir-playbook, governance, registration, biometric): scoping is **per analysis unit**. A GDPR section uses GDPR corpus only; a California section uses CA corpus only; **never blended within a unit.** The product's conclusion inventory (`_shared/legal-test/<product>-conclusions.ts`) tags each unit with its `jurisdiction_tag`.
+
+**Schema deltas (v2.1, build-blocking).** Add `jurisdiction_tag: string` to every proposition (see §3.1 propositions[]), every factor-registry row, every `weighing_frame[].entries[]`, and every candidate-set entry. Analysis-unit boundaries carry the tag; renderers assemble per-unit output without cross-domain seams.
+
+**New / extended validators.**
+
+- **Pass-1 guidance-closure (extended):** every `factor.registry_pinpoint_ref` and every `factor.guidance_refs[].ref_id` MUST match the factor's `jurisdiction_tag`. Cross-domain ref = hard reject.
+- **Pass-G candidate-set closure (extended):** the pre-indexed candidate set for a test is **domain-filtered at construction time**; a candidate whose source-row jurisdiction does not match the test's `jurisdiction_tag` is absent from the set. Hard reject if any `weighing_frame[].entries[].ref_id` fails the domain check at Pass-G output.
+- **Pass-2 post-render (extended):** any `{{cite:…}}` substitution whose resolved authority belongs to a different domain than the enclosing analysis unit = hard reject.
+- **Authoring review:** factor-registry lint (CI) rejects a row whose `guidance_refs[]` include a ref from a foreign domain; conclusion-inventory lint rejects a unit missing `jurisdiction_tag`.
+
+**Comparative cross-domain commentary is BANNED** from customer-facing output ("GDPR practice suggests…", "California has taken a similar view…"). Any future comparative feature is a **separate CEO decision**, not a runtime capability. `forbidden_tokens` for every Type W template include cross-domain framing phrases; violation = hard reject.
+
+**Future-proofing.** `enforcement_actions.jurisdiction` tags mean future CPPA enforcement rows automatically flow into the `cppa-ca` candidate sets once they exist and pass the eligibility bar — **no architecture change** required.
 
 ---
 
@@ -151,6 +184,7 @@ Pass-1 is a **structured-output-only** call. The model receives the intake + reg
     // Each claim the render will assert. NEVER free prose.
     {
       "id": "P.risk.7150b1",
+      "jurisdiction_tag": "cppa-ca",                 // v2.1: authority-domain scope for this proposition
       "kind": "trigger" | "gate" | "obligation" | "recommendation" | "scope_note",
       "engaged": true | false | "conditional",
       "pinpoint_ref": "REG.risk.7150b.1",           // key into verified-authority-resolver
