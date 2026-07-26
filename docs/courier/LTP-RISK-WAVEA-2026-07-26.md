@@ -69,4 +69,8 @@ Verdict: subsumption case is empirically supported for citation-duplication and 
 
 Scaffold is **healthy**. Shadow overhead negligible, no write-arounds, validators fire only on real defects that graders independently confirm, no false positives, and no empty-by-finding gaps. Recommend **PROCEED TO WAVE B** on controller dispatch: enable LLM-driven Pass-1, template-driven Pass-2 rendering, and Pass-V model-read per the Phase-2 deferral table. No blocking fixes required first.
 
-Wave B awaits controller dispatch either way.
+Wave B awaits controller dispatch (controller ruling: batch_size ≥ 4 required so the tuning/holdout overfitting diagnostic is ACTIVE for the go/no-go wave; disabled at n=3 in this pilot).
+
+## Controller addendum — Wave-B sizing
+
+Per controller ruling: Wave B must run **batch_size ≥ 4** so the tuning/holdout overfitting diagnostic is ACTIVE for the go/no-go wave. It was disabled at n=3 in this pilot — acceptable for scaffold-health purposes only. This Wave-A verdict ("scaffold healthy, proceed to Wave B") therefore covers scaffold health only; Wave B's go/no-go determination requires the ≥4 diagnostic to fire.

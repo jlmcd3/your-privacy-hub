@@ -2090,7 +2090,7 @@ Standalone s5 pilot measurement per LTP-RISK-PHASE2 courier §6. Batch `16ee0dcf
 
 **(4) Fit.** No V1/V3-V6/V8 false positives on real intake. Registry sizing (15/12/11) fits without truncation. empty_by_finding=[] on all docs → no additions to T5 feed.
 
-**(5) Verdict.** Scaffold healthy. **PROCEED TO WAVE B** (LLM Pass-1 + template rendering + Pass-V model read per Phase-2 deferral table) on controller dispatch. No blocking fixes required first. Wave B awaits controller dispatch.
+**(5) Verdict.** Scaffold healthy. **PROCEED TO WAVE B** (LLM Pass-1 + template rendering + Pass-V model read per Phase-2 deferral table) on controller dispatch. No blocking fixes required first. Wave B awaits controller dispatch — controller ruling: **Wave B batch_size ≥ 4** so the tuning/holdout overfitting diagnostic is ACTIVE for the go/no-go wave (disabled at n=3 this pilot; acceptable for scaffold-health purposes only).
 
 **Courier.** `docs/courier/LTP-RISK-WAVEA-2026-07-26.md`.
 
