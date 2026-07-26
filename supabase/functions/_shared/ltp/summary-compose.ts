@@ -34,10 +34,16 @@ import {
   SUMMARY_REMAINING_OUTCOMES_CLAUSES,
   SUMMARY_DOCS_COMPLETION_CLAUSES,
   SUMMARY_EACH_OR_THIS_CLAUSES,
+  SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES,
   SUMMARY_NARRATIVE_MAX_CHARS,
   FIRM_VARIANT_CLOSENESS_MAX,
 } from "./content/pass2-templates.ts";
 import { renderTemplate } from "./pass2-render.ts";
+import {
+  mapOverallRiskLevel,
+  type ActivityRecordSignals,
+  type OverallRiskLevel,
+} from "./risk-level-map.ts";
 import type { RenderPlan, Proposition } from "../render-plan/schema.ts";
 
 export const SUMMARY_COMPOSE_VERSION = "ltp-summary-compose-2026-07-26";
@@ -72,7 +78,13 @@ export interface ComposeInput {
     readonly exception_labels?: readonly string[]; // [] = no exceptions claimed
   };
   readonly corpus_enforcement_note?: string;
-  /** Caller-supplied 5-tier value (see HELD note above); passed through as-is. */
+  /**
+   * Per-activity record signals for the 5-tier precedence law
+   * (`risk-level-map.ts`). Optional for back-compat: when absent, the
+   * composer falls back to passing through `overall_risk_level_from_caller`.
+   */
+  readonly activity_signals?: readonly ActivityRecordSignals[];
+  /** Caller-supplied fallback value (used only when activity_signals absent). */
   readonly overall_risk_level_from_caller?: string;
 }
 
@@ -98,7 +110,10 @@ export interface ComposeResult {
     readonly narrative_chars: number;
     readonly capped: boolean;
     readonly errors: readonly string[];
-    readonly overall_risk_level_held: true; // permanent flag until item 147 released
+    /** false once activity_signals are supplied and the 5-tier map runs. */
+    readonly overall_risk_level_held: boolean;
+    readonly overall_risk_level_rule?: 1 | 2 | 3 | 4;
+    readonly overall_risk_level_rule_note?: string;
   };
 }
 
@@ -184,8 +199,23 @@ function composeExceptionsStatus(
  * Deterministic opening-template selection. Aggregation rule = most
  * cautious outcome present (never averaged, never majority-ruled).
  * Same rule governs the firm/hedged calibration assert.
+ *
+ * When an already-resolved overall_risk_level is provided (from
+ * `mapOverallRiskLevel`), it takes precedence over outcome-only heuristics
+ * so the opening variant is consistent with the 5-tier enum:
+ *   "Insufficient basis" → insufficient
+ *   "High" | "Critical"  → any_negative
+ *   "Moderate"           → mixed_hedged
+ *   "Low"                → all_firm
  */
-export function selectOpeningTemplateId(outcomes: readonly ActivityOutcome[]): string {
+export function selectOpeningTemplateId(
+  outcomes: readonly ActivityOutcome[],
+  overall?: OverallRiskLevel,
+): string {
+  if (overall === "Insufficient basis") return "T.risk.summary.opening.insufficient";
+  if (overall === "High" || overall === "Critical") return "T.risk.summary.opening.any_negative";
+  if (overall === "Moderate") return "T.risk.summary.opening.mixed_hedged";
+  if (overall === "Low") return "T.risk.summary.opening.all_firm";
   if (outcomes.length === 0) return "T.risk.summary.opening.all_firm";
   const kinds = new Set(outcomes.map((o) => o.outcome));
   if (kinds.has("impacts_outweigh")) return "T.risk.summary.opening.any_negative";
@@ -212,8 +242,14 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
     !!input.gate_signals.documentation_gate_failed,
   );
 
+  // ── Precedence-law 5-tier mapping (only when signals supplied) ────
+  const riskResult = input.activity_signals
+    ? mapOverallRiskLevel({ outcomes, signals: input.activity_signals })
+    : null;
+  const overallResolved: OverallRiskLevel | undefined = riskResult?.overall_risk_level;
+
   // ── Narrative composition ─────────────────────────────────────────
-  const openingId = selectOpeningTemplateId(outcomes);
+  const openingId = selectOpeningTemplateId(outcomes, overallResolved);
   const activity_count_phrase = pluralActivityPhrase(outcomes.length);
   const firmList = outcomes.filter((o) => o.outcome === "firm_benefits_outweigh").map((o) => o.activity_label);
   const closeList = outcomes
@@ -228,6 +264,9 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
   const openingRender = renderTemplate(openingId, input.plan, {
     activity_count_phrase,
     each_or_this_clause: outcomes.length === 1 ? SUMMARY_EACH_OR_THIS_CLAUSES[0] : SUMMARY_EACH_OR_THIS_CLAUSES[1],
+    activity_singplural_clause: outcomes.length === 1
+      ? SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[0]
+      : SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[1],
     firm_positive_list: joinList(firmList),
     close_list: joinList(closeList),
     negative_list: joinList(negativeList),
@@ -274,6 +313,8 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
     errors.push(`narrative_capped_at_${SUMMARY_NARRATIVE_MAX_CHARS}`);
   }
 
+  const overallOut = overallResolved ?? (input.overall_risk_level_from_caller ?? "");
+
   return {
     structured: {
       company_name: input.intake.company_name ?? "",
@@ -282,9 +323,10 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
       triggered_activities,
       exceptions_claimed: exception_labels,
       exceptions_status,
-      // HELD-carried through: caller-supplied value is passed verbatim; the
-      // composer does NOT synthesize a tier while item 147 remains open.
-      overall_risk_level: input.overall_risk_level_from_caller ?? "",
+      // When activity_signals are supplied, the 5-tier precedence law from
+      // risk-level-map.ts resolves the value. Otherwise the caller-supplied
+      // value is passed through verbatim (back-compat path).
+      overall_risk_level: overallOut,
       cybersecurity_audit_required: !!input.gate_signals.cybersecurity_audit_required,
       admt_disclosure_required: !!input.gate_signals.admt_disclosure_required,
       corpus_enforcement_note: input.corpus_enforcement_note ?? "",
@@ -298,7 +340,9 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
       narrative_chars: narrative.length,
       capped,
       errors,
-      overall_risk_level_held: true,
+      overall_risk_level_held: riskResult === null,
+      overall_risk_level_rule: riskResult?.rule_fired,
+      overall_risk_level_rule_note: riskResult?.rule_note,
     },
   };
 }
