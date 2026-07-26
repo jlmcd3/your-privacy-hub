@@ -66,6 +66,63 @@ The seven §4 amendments in `docs/design/LEGAL-TEST.md` are incorporated here by
 
 ---
 
+## 2.6 Legal Test v2 — Corpus Engagement (Question 4) — MANDATORY, CEO-ordered 2026-07-26
+
+This section is **build-blocking** and additive to §2.5. Full methodology: `docs/design/LEGAL-TEST.md` Q4 (CEO-adopted standing law). The corpus is a GUIDE wherever a test or balancing of interests is required — a role in BOTH passes and, when Type W tests engage, a DEDICATED ADDITIONAL PASS (Pass G).
+
+**Revised pass structure (three passes + one optional).** The pass structure defined in §§3-4 is revised as follows; §§3-4 remain accurate for Pass 1 and Pass 2 mechanics with the deltas below layered on.
+
+- **Pass 1 — Derivation.** As specified in §3, extended: `factor_table` guidance columns are filled deterministically from the factor-registry `guidance_refs[]` binding (no model choice; authored refs resolve to pinpointed corpus text at Pass-1 build time).
+- **Pass G — Guidance & Analogy (NEW; conditional).** Runs ONLY when at least one Type W proposition is engaged in the RenderPlan. Inputs: the validated Pass-1 RenderPlan + a PRE-INDEXED candidate set of interpretive authorities keyed by test id (FSOR rows for CPPA tests; EDPB guideline rows for GDPR tests; enforcement_actions rows tiered per the eligibility bar). Model job: SELECT from the candidate set only — candidate-set closure is a hard validator (model may not introduce authority outside the candidates); attach analogy entries from eligible tiers (quote-safe or row-grounded) with tier labels; emit a `weighing_frame[]` structure with per-entry corpus anchors + pin-tests + tier labels + closeness contributions. Empty-by-finding path: if the candidate set is empty for a test, Pass G emits an `empty_by_finding` record for that test, the Pass-2 Type W template renders on statutory factors alone with the required disclosure ("guidance on this balance is limited"), and the event auto-emits telemetry feeding the T5 ingestion backlog as a ranked work item (rank = product weight × Type W frequency × recency).
+- **Pass 2 — Rendering.** As specified in §4, extended: Type W sections render from BOTH the `factor_table` (Pass 1) AND the `weighing_frame[]` (Pass G); guidance and enforcement citations flow through `{{cite:…}}` tokens exactly like statutory pinpoints; the closeness heuristic (Pass-2 template variant selection: firm vs hedged) consumes BOTH the Pass-1 factor tally and the Pass-G guidance-weighted closeness contribution, combined deterministically into a single `closeness` value on the rendered proposition.
+- **Pass V — Verification (NEW; OPTIONAL; behind a flag).** Bounded model counsel-read over close-call Type W sections only. Pilot measures yield across 2 waves. **Zero yield = drop.** Default off; pilot decides whether it ships.
+
+**RenderPlan schema deltas (v2, build-blocking).** Add `weighing_frame: WeighingFrameEntry[]` at the plan root:
+
+```jsonc
+"weighing_frame": [
+  {
+    "test_id": "T.risk.7152a5.benefit_harm",           // matches a Type W proposition's factor_table
+    "candidate_set_hash": "…",                          // hash of the pre-indexed candidate set for closure validation
+    "entries": [
+      {
+        "kind": "guidance" | "analogy",
+        "source": "fsor" | "fsor_callout" | "edpb" | "enforcement_action",
+        "ref_id": "…",                                  // registry pinpoint / row id
+        "pinpoint": "…",
+        "quote_hash": "…",                              // pin-test key
+        "tier": "quote_safe" | "row_grounded" | null,   // analogies only; null for guidance
+        "closeness_contribution": "supports" | "opposes" | "neutral",
+        "rendering_ref": "{{cite:CORPUS.…}}"
+      }
+    ],
+    "empty_by_finding": false                           // true → statutory-only render + disclosure + T5 feed
+  }
+]
+```
+
+Factor-registry rows (`_shared/factors/<product>-factors.ts`) MUST carry `guidance_refs[]` per LEGAL-TEST §Q4(a). Per-product enforcement-eligibility index `_shared/analogy/<product>-eligibility.ts` is authored alongside the factor registry.
+
+**New validators (Pass G).** (a) Candidate-set closure: every `weighing_frame[].entries[].ref_id` MUST appear in the candidate set for `test_id`; unknown ref = hard reject. (b) Eligibility-bar closure: analogy entries MUST carry a `tier`; INELIGIBLE-tier rows are absent from the candidate set by construction; a Pass 2 render referencing an entry not in the frame is a hard reject. (c) Pin-test: every `quote_hash` MUST match the current corpus row (freshness). (d) Empty-by-finding integrity: when `empty_by_finding=true`, `entries` MUST be empty AND Pass-2 template MUST render the "guidance on this balance is limited" disclosure slot AND the telemetry sink MUST record the T5-feed event.
+
+**§5 success criteria (v2 addendum).** Add: **100% weighing_frame-entry anchoring** (every rendered guidance/analogy citation resolves to a frame entry with pin-test pass); **zero eligibility-bar violations** across pilot waves; **zero authority improvisation on empty frames** (empty-by-finding disclosure present whenever guidance is absent). The interim `_risk_citation_dup_fix` guard is extended to also reject any `§`/citation form referencing an authority not present in the frame for a Type W section.
+
+**Cost/latency note.** Pass G is **conditional** on Type W engagement. Expected wall-clock impact: ~1.2-1.4× single-pass baseline for **W-heavy products** (cppa-risk, lia, dpia); **unchanged** for R-dominant products (registration, biometric, most of dpa). Pass V, if piloted, adds ~1.1× on close-call sections only (bounded scope, small fraction of documents).
+
+**Build-blocking amendment list (v1 + v2).** The seven v1 amendments from `docs/design/LEGAL-TEST.md` remain in force. Added v2 deltas (all build-blocking, additive):
+
+1. **guidance_refs[] authoring** in factor registries — includes NEW FSOR mapping work for CPPA products where Type W engages (cppa-risk, cppa-cyber § 7122, admt human-involvement adequacy, governance adequacy characterizations).
+2. **weighing_frame[] schema** added to RenderPlan (as above).
+3. **Pass G (Guidance & Analogy)** added — with candidate-set closure, eligibility-bar closure, and pin-test validators.
+4. **Combined closeness heuristic** — Pass-1 factor tally + Pass-G guidance-weighted closeness contribution → deterministic combined `closeness` consumed by Pass-2 variant selection.
+5. **Empty-by-finding → T5 feed** — telemetry sink + rank formula + standing input to T5 sequencing when the program resumes.
+6. **Pass V (Verification) stub** — optional, flag-gated; pilot yield-measured over 2 waves; zero yield = drop.
+7. **Extended success criteria** — 100% frame-entry anchoring, zero eligibility-bar violations, zero authority improvisation on empty frames.
+
+No product's two-pass migration begins until v1 (LEGAL-TEST §4) AND v2 (this §2.6) amendments are implemented — including factor-registry guidance mapping for that product.
+
+---
+
 ## 3. Pass-1: Derivation
 
 Pass-1 is a **structured-output-only** call. The model receives the intake + registry-projected law surface and returns a JSON `RenderPlan` — no prose, no citations-as-strings, no free text outside enumerated `note` fields with strict length caps.
