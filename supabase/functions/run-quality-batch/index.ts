@@ -2532,10 +2532,14 @@ async function runBatch(runId: string): Promise<void> {
       byCheck.get(f.check_id)!.push(f);
     }
 
-    // Cap exists because Claude fix-generation is the long pole. Running batches of
-    // FIX_CONCURRENCY in parallel lets us raise MAX_AI_FIXES well above the sequential ceiling
-    // while staying inside the edge runtime budget.
-    const MAX_AI_FIXES = 50;
+    // HARNESS-FIXGEN-RETIREMENT (CEO 2026-07-26): AI-fix-suggestion generation is
+    // retired for measurement batches. Default OFF via HARNESS_FIXGEN_ENABLED flag;
+    // fix decisions flow exclusively through the controller's attribution → five-lens
+    // → Legal Test turn process. Backlog aggregation (occurrence counts, classes,
+    // first/last-seen waves) stays via classify-quality-findings — that is telemetry.
+    // Cap retained ONLY as a defensive ceiling if the flag is ever re-enabled.
+    const FIXGEN_ENABLED  = (Deno.env.get("HARNESS_FIXGEN_ENABLED") ?? "false").toLowerCase() === "true";
+    const MAX_AI_FIXES    = 50;
     const FIX_CONCURRENCY = 5;
     type CheckAgg = {
       checkId: string; findings: any[]; first: any;
