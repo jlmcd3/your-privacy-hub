@@ -1217,3 +1217,32 @@ Controller notes: mailbox flush attempted, list_messages timed out 180s (connect
 **GATES:** T7 step-2 (admt) still HELD on CEO checkpoint (wave-28 admt read positive per item 106). W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (item 103) unchanged. Next wave ~04:45Z.
 
 **Out of scope this turn:** everything except this ledger item + courier. No rule deviations.
+
+---
+
+### 108. **SHIPPED — RISK-COHORT-DATE-DETERMINISM** @ controller tick 2026-07-26T03:07Z (deploy-guarded; run-cppa-risk-assessment ONLY). Discharges item 107 QUEUED (Driver 1 recurrence: qc_r1_4_cohort_determinism failing on w27 doc 7f0de458 and w28 docs e5a04cf7 + 1036f12c when resolved revenue band = $25M–$50M — cohort date "April 1, 2030" absent). Risk-deploy gate from item 106 was RELEASED at item 107 (named release: wave-28 risk attribution hold); this turn ships the queued fix.
+
+**BUILD:** new module `supabase/functions/run-cppa-risk-assessment/_risk_cohort_date.ts` — deterministic post-pass; runs AFTER `applyW24aV3` and BEFORE the LEAK-PREV P1 emit gate. Model NEVER writes/edits the date; emitter-only. Corpus-pinned literal `"April 1, 2030"` and audit-period window `"January 1, 2029 through January 1, 2030"` sourced VERBATIM from `provision_texts.cppa-7121` (status=approved, § 7121(a)(3); citation "11 CCR § 7121 (OAL-approved text, eff. 2026-01-01)", verbatim_excerpt length 1718). Deterministic sentence: `Per 11 CCR § 7121(a)(3), the first cybersecurity audit report is due April 1, 2030 (audit period January 1, 2029 through January 1, 2030) for a business whose 2028 annual gross revenue was less than $50,000,000.` Doctrine: omission-over-invention (no-op on every band other than `$25M–$50M`); whole-sentence excision for wrong-cohort sentences (April 1, 2028 / April 1, 2029 tied to § 7121 or cohort context) in targeted timeline surfaces (`cybersecurity_audit_rationale`, `audit_timing`, `compliance_timeline`, `scope_notes`); anchor keys (`citation`, `verbatim_quote`, `deadline`, `deadline_basis`, `source_fields`, …) never rewritten; reserved subtrees (`_meta`, `_internal`, `engagement_map`, `annotations`) pass through verbatim; fail-open at every seam; idempotent.
+
+**TESTS (pasted-green):** `_risk_cohort_date.test.ts` — 16 passed | 0 failed (20ms). Coverage: corpus pin (date + audit-period literals + § 7121(a)(3) anchor); stamp+version shape; band-not-resolved no-op; other-band no-op ×5 (Under $25M, $50M–$100M, $100M–$500M, Over $500M, legacy $25M–$100M); regression pin reconstructing the omission shape — applies `applyW24aV3` to verbatim fixtures from w27 doc 7f0de458 (scope_notes + cross_tool_recommendations.cybersecurity_audit_rationale) reproducing the post-V3 cohort-date-absent state that also matches the w28 e5a04cf7 + 1036f12c shape, then confirms RCD restores `April 1, 2030` in the timeline surface (`date_emitted=1`, `band_resolved="25_50m"`, `errors=0`); already-stated no-emit; idempotence (second pass no-op); wrong-date excision + replacement (April 1, 2029 sentence excised, deterministic sentence emitted, adjacent sentences retained); anchor safety (citation / verbatim_quote / deadline preserved despite carrying "April 1, 2029" literals); reserved-subtree preservation (`_meta.internal.risk_w24a` / `risk_t7_opening` untouched); fail-open on null intake + primitive report; telemetry shape (version, stamp, build_stamp, band_resolved, date_emitted, date_corrected, sentences_excised, errors).
+
+**WIRE:** `index.ts` — new import `applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION` alongside `applyW24aV3`; RCD invocation inserted immediately after the W24A-V3 try/catch block and before the LEAK-PREV-P1 emit gate; telemetry lands at `_meta.internal.risk_cohort_date` with preexisting `_meta.internal` siblings (`risk_w24a`, `risk_t7_opening`, …) preserved via merge. BUILD_STAMP bumped `t7-risk-pilotfix2@2026-07-26T01:10:00Z` → `risk-cohort-date@2026-07-26T03:09:53Z` (fresh `date -u` immediately pre-stamp).
+
+**DEPLOY GUARDS (re-verified 03:13Z, pasted):**
+```
+ active_batches | active_qruns | inflight_risk
+----------------+--------------+---------------
+              0 |            0 |             0
+```
+
+**BOOT LOG (live post-deploy 2026-07-26T03:12:55Z — prior stamps echo unchanged):**
+```
+[run-cppa-risk-assessment] boot build_stamp=risk-cohort-date@2026-07-26T03:09:53Z
+[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md
+[run-cppa-risk-assessment] boot vocab_scrub_stamp=w18-risk-vocabscrub@2026-07-25T03:34:41Z
+[run-cppa-risk-assessment] boot w23_stamp=w23-risk-turnb@2026-07-25T17:02:08Z w24_stamp=w24-risk-turna@2026-07-25T18:14:00Z w24a_v3_stamp=w24a-v3@2026-07-26T01:00:00Z t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=risk-cohort-date@2026-07-26T03:09:53Z build_stamp=risk-cohort-date@2026-07-26T03:09:53Z
+```
+
+**GATE:** must read clean on next risk wave (~04:45Z) before the cohort class is called fixed. If Driver-1 recurrences persist on $25M–$50M docs post-deploy, RCD emitter regressed and must be re-attributed same-turn; other-band cohort-omission would be a separate class and out of scope for this fix.
+
+**Out of scope this turn:** every other edge function (admt/cyber/dpa/dpia/lia/governance/ir); wave harness; instrument gc-2026-07-25-s4-eu-uk-ca-au-sg (FROZEN); rubrics/graders/goldens/contracts/fixtures/samples/registries; corpus DDL or corpus row edits; the T7 opening builder (pilot clean; `_risk_t7_opening` untouched); pricing/payment/design tokens/customer revision path/signup; the doc3 body-contradiction class (risk_intake_contradiction_body) remains a separate QUEUED item on the risk fix backlog per item 107.
