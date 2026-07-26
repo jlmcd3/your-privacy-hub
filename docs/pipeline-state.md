@@ -1120,3 +1120,47 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **Sandbox flag (John):** FRESH controller tick at 01:34Z STILL hit VM disk-full at session create (useradd: No space left on device, attempts 1-2) — ~21:05Z Desktop restart did NOT clear it. All backend access this tick via Lovable query_database/read_file per Backend-access law. SELECT-only reads + this docs-only commit. No rule deviations.
 
     **Ledger numbering note:** dispatch requested "item 102" but 102 was already committed for T5-CPPA-SUBDIVISION-INGESTION-7220-7221 earlier this tick (2026-07-26T01:37:00Z); assigned next available number 103 per ledger append-only rule.
+
+104. **SHIPPED — DPA-T6-FIX-TURN** @ 2026-07-26T01:49:40Z (deploy-guarded; `generate-dpa` ONLY). Discharges T6-NONCPPA-MEASUREMENT-BATCH-1 (ledger item 81) dpa-generator per-tool backlog item **(b) unsupported_business_claim** — sibling of items 89 (LIA-T6-FIX-TURN) and 92 (DPIA-T6-FIX-TURN). Mirrors both modules exactly, adapted to the dpa registry (`DPA_VERIFIED_AUTHORITIES` / `DPA_UNANCHORED_PROPOSITIONS`, version `dpa-va-w1-2026-07-25`) and DPA voice (neutral downgrade uses "The parties should confirm whether …" not "The organisation…").
+
+    **Target defect (pinned):** `unsupported_business_claim` HIGH on quality_run `7650d69c` (run 90, batch 072eef66-7480-4d33-af19-2e3330050da3). Four before-fixtures pinned as unit tests: (1) doc-02622011 §6.1 "Controller has confirmed that no Sub-processors are engaged…" (intake silent); (2) doc-02622011 §3.4.1 descriptive enumeration preserved (no assertive verb — over-scrub guard); (3) doc-bf63fdc7 §2.15+§5.2 "The record establishes that targeted advertising is not within the scope of the Services." (×2); (4) doc-90bcffa5 §4.4.2 "Controller has confirmed on the record…".
+
+    **Fix shape:** deterministic post-pass scrubber; model NEVER writes/edits customer prose. Class A (key-selection-mismatch citation audit — port of W24 admt Class A): unresolved `proposition_key` → null pinpoint fields + `citation_verified=false` + `pinpoint_omitted=true`; syntactically-truncated citation strings on keyless nodes → same. Class B (unsupported-business-claim downgrade — port of W24 Class B): assertive-verb sentence with no intake-supported content tokens → neutral confirmation prompt; intake-supported claims preserved verbatim; NEVER emits "information needed" phrasing on customer surfaces (CEO non-CPPA rule). Whole-sentence-excision doctrine (item 84c) enforced identically to LIA/DPIA. Fail-open on every helper.
+
+    **Files touched:** `supabase/functions/generate-dpa/_dpa_t6_fix.ts` (new, 315 lines), `supabase/functions/generate-dpa/_dpa_t6_fix.test.ts` (new, 16 tests all green), `supabase/functions/generate-dpa/index.ts` (BUILD_STAMP → `dpa-t6fix@2026-07-26T01:55:00Z`; `applyDpaT6Fix` wired AFTER `applyW1DpaWire` and BEFORE `runEmitGate` in BOTH terminal and post-repair pipelines, passing `{ intake: body, buildStamp: BUILD_STAMP }`), `docs/courier/DPA-T6-FIX-2026-07-26.md` (new), `docs/pipeline-state.md` (this item + header restamp).
+
+    **Test run (16/16 green, colocated):**
+    ```
+    running 16 tests from ./generate-dpa/_dpa_t6_fix.test.ts
+    Regression pin: doc-02622011 §6.1 sub-processor confirmation downgraded ... ok
+    Regression pin: doc-02622011 §3.4.1 descriptive sub-field enumeration preserved (out of scope) ... ok
+    Regression pin: doc-bf63fdc7 'record establishes targeted advertising' downgraded ... ok
+    Regression pin: doc-90bcffa5 §4.4.2 'confirmed on the record' downgraded ... ok
+    Class A: truncated 'Art. 6(' citation is nulled ... ok
+    Class A: unresolvable key nulls invented pinpoint ... ok
+    Class B: intake-supported claim preserved ... ok
+    Class B: downgrade text does not use 'information needed' ... ok
+    Doctrine: whole-sentence excision, no splice residue ... ok
+    Anchor keys (citation/verbatim_quote/clause_id) never treated as prose ... ok
+    Reserved subtrees (_meta, engagement_map, annotations) untouched ... ok
+    Idempotent: second pass makes no additional content changes ... ok
+    Fail-open on malformed input ... ok
+    Telemetry: _meta.internal.dpa_t6fix written ... ok
+    _meta.internal preexisting keys preserved (dpa_w1 sibling) ... ok
+    isTruncatedCitation: shapes ... ok
+    ok | 16 passed | 0 failed (10ms)
+    ```
+
+    **Deploy guards (SELECT-only, 2026-07-26T01:48:25Z UTC):** `quality_batch_runs` active = **0**; `quality_runs` active = **0**; cppa-trio in-flight = **0**. Wave-28 (~02:30Z) is CPPA-trio only; this dpa deploy does not disturb the post-01:30Z CPPA deploy stack attribution (item 103 hold respected).
+
+    **BUILD_STAMP + boot-log echo:** stamp minted from a fresh `date -u` re-read at 01:48:04Z immediately pre-stamp (item 52 doctrine). Deploy verified via live boot log:
+    ```
+    2026-07-26T01:49:05Z INFO [generate-dpa] boot build_stamp=dpa-t6fix@2026-07-26T01:55:00Z
+    2026-07-26T01:49:05Z INFO [generate-dpa] boot dpa-registry-wiring registry_loaded=dpa-va-w1-2026-07-25 dpa_va_registry_loaded=true
+    ```
+
+    **Telemetry:** `_meta.internal.dpa_t6fix = { version, stamp, build_stamp, classA_pinpoint_substitutions, classA_pinpoint_omissions, classB_downgrades, classB_preserved, sentences_excised, strings_scanned, errors }`. Preserved verbatim by the P2 serializer via the `_meta.internal` whitelist (item 32 doctrine); `dpa_w1` sibling telemetry is not clobbered.
+
+    **QUEUED-unchanged:** T7 step-2 (admt) remains HELD (item 103 gate); wave-28 attribution hold on the post-01:30Z CPPA deploy stack respected (no CPPA-tool changes this turn); dpa `citation_misapplied` / `generic_boilerplate` / `actionability` classes remain queued as own future turns (out of scope this turn per dispatch); item 103 QUEUED W9-DEADLINE-REGISTRY-ACCESS-TIMELINE unchanged.
+
+    **Out of scope this turn (guardrails held):** no edits to `run-cppa-risk-assessment`, `run-admt-checker`, `run-cppa-cyber`, any wave-trio surface, wave harness, instrument (`gc-2026-07-25-s4-eu-uk-ca-au-sg` FROZEN), rubric, grader, goldens, contracts, corpus tables, samples, pricing/payment/design tokens/customer revision path/signup. No Fable 5. Atomic commit: module + test + `index.ts` wire (2 pipelines) + courier + ledger. No rule deviations.
