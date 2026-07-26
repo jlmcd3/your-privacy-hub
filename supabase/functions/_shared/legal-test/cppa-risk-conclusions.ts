@@ -34,6 +34,7 @@ export type JurisdictionTag =
   | "cppa-ca"
   | "gdpr-eu"
   | "gdpr-uk"
+  | "us-federal"          // v2.3 — U.S. Federal law + federal agency rulings; binding-tier for any U.S.-forum plan
   | `us-state-${string}`;
 
 export interface StatutoryAnchor {
