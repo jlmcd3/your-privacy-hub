@@ -1074,3 +1074,35 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **GATE:** H6 must read clean on the next admt wave — `_meta.internal.admt_h6b` telemetry present; zero duty-bucket entries whose sole citation is a `§ 7001` definitional anchor; zero `§ 7150(b)(3)` citations on sell/share-documentation prose — before the `h6_admt_governing_anchor` class is called fixed.
 
     **Sandbox flag (John):** controller VM disk-full persists. All backend access this turn via Lovable tools per Backend-access law: SELECT-only DB reads for corpus pin-test + wave-27 regression fixture retrieval + deploy guards; edge-function code edits + deploy via Lovable `deploy_edge_functions`; live boot-log verification via Lovable `edge_function_logs`. No rule deviations.
+
+102. **DONE — T5-CPPA-SUBDIVISION-INGESTION-7220-7221 @ 2026-07-26T01:37:00Z** (corpus-only turn; discharges the ingestion obligation released by item 95). NO edge-function edits, NO deploys, NO instrument/rubric/grader/registry/golden/contract/fixture/sample changes. Instrument `gc-2026-07-25-s4-eu-uk-ca-au-sg` remains FROZEN.
+
+    **Scope executed:** populated and approved `provision_texts` rows `cppa-7220` (Pre-use Notice Requirements) and `cppa-7221` (Requests to Opt-Out of ADMT) — previously `status='pending'` with `verbatim_excerpt=''` (created 2026-07-13). Mirrors the item 42/43 pattern for cppa-7150 / cppa-7121.
+
+    **Primary source:** https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf. SHA-256 `7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650` — MATCHES the SHA-256 recorded in items 42/43 for the same OAL-approved PDF (no re-stamp; text of record unchanged).
+
+    **Extraction:** `pdftotext -layout` → programmatic section slicing on the `§ 7220. Pre-use Notice Requirements.` and `§ 7221. Requests to Opt-Out of ADMT.` headings, cut at the next section heading. Page-header/footer artifacts stripped: `CA PRIVACY PROTECTION AGENCY – TEXT OF REGULATIONS`, `(CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations)`, `Page N of 127`. De-hyphenation applied only to PDF hard-wrap artifacts; no paraphrase; subdivision structure preserved verbatim.
+
+    **Cross-check vs `cppa_authorities` (whitespace-normalized):** substantive regulatory prose MATCHES both `45ff3c31-2534-42eb-86db-b383103debf0` (§ 7220, full_text 6774 chars, verified 2026-06-07) and `4db8ee47-658c-471f-b730-f3f87a861138` (§ 7221, full_text 8329 chars, verified 2026-06-07). The only divergences are the page-header/footer strings above, which the June-07 `cppa_authorities` ingestion left interleaved mid-sentence and which THIS extraction correctly strips per doctrine. The new `provision_texts` rows are therefore CLEANER than the `cppa_authorities` full_text. This does NOT block approval per fallback contract (regulation text is verbatim identical); flagged as a candidate for a future `cppa_authorities` re-verification turn (own turn, not this one).
+
+    **Writes (single atomic commit via query_database, SELECT+UPDATE only):**
+    - `cppa-7220`: verbatim_excerpt = 7,655 chars; citation = `11 CCR § 7220 (OAL-approved text, eff. 2026-01-01)`; plain_requirements = 9-entry jsonb array (one per subdivision (a)–(e), with nested (c)(1)–(c)(5), (d), and consolidated-notice (e)(1)–(e)(4) rules); status='approved'; last_verified_at=now(); jurisdiction unchanged (`US-CA`).
+    - `cppa-7221`: verbatim_excerpt = 8,989 chars; citation = `11 CCR § 7221 (OAL-approved text, eff. 2026-01-01)`; plain_requirements = 16-entry jsonb array (one per subdivision (a)–(n), with the three (b) exceptions and the four (c) submission-method rules broken out); status='approved'; last_verified_at=now(); jurisdiction unchanged (`US-CA`).
+
+    **Post-check (SELECT-only, 01:36:02Z):**
+    ```
+    key         | status   | verbatim_len | plain_requirements_count | citation
+    cppa-7220   | approved | 7655         | 9                        | 11 CCR § 7220 (OAL-approved text, eff. 2026-01-01)
+    cppa-7221   | approved | 8989         | 16                       | 11 CCR § 7221 (OAL-approved text, eff. 2026-01-01)
+    ```
+    No other rows written or touched (WHERE key IN ('cppa-7220','cppa-7221') on both statements).
+
+    **Rollout implication (recorded, NOT actioned this turn):** this UNBLOCKS a future H7-subdivision-pinpoint upgrade turn on `run-admt-checker` (per item 91 T5 RESIDUAL / item 100 GATE) — enables the ADMT generator to lift `notice_gaps` / `opt_out_gaps` requirements from subdivision-level pinpoints (§ 7220(c)(x), § 7221(b)(x), (c)(x), (n)(x)) rather than section-level H7 anchors. This turn changes NO runtime behavior.
+
+    **Ledger numbering note:** dispatch requested "item 101" but item 101 was already committed for H6-ADMT-GOVERNING-ANCHOR earlier this tick (2026-07-26T01:31:00Z); assigned next available number 102 per ledger append-only rule.
+
+    **Timing/guards:** no deploys this turn (no wave-28 collision risk); no writes to `quality_batch_runs`, `harness_artifacts`, or any function-runtime table. Sandbox clock re-read via `date -u` at 01:36:13Z bracketing the writes. Controller VM disk-full persists; all DB access via Lovable `query_database` per Backend-access law.
+
+    **Files touched (single atomic commit):** `docs/courier/T5-CPPA-SUBDIVISION-INGESTION-7220-7221-2026-07-26.md` (new courier mirroring this item), `docs/pipeline-state.md` (this item + header restamp).
+
+    **Out of scope this turn (guardrails held):** no code, deploy, rubric, grader, golden, contract, fixture, sample, registry, other-corpus, or `cppa_authorities` writes; no other `provision_texts` rows; no `cppa_authorities` re-verification; no runtime behavior change; instrument frozen; no Fable 5; no pricing/design/customer-revision-path/signup changes.
