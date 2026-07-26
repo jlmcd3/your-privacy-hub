@@ -2944,7 +2944,40 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] W24A-V3 failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── RISK-COHORT-DATE-DETERMINISM (2026-07-26) ─────────────────────
+    // Deploy-guarded fix per dispatch RISK-COHORT-DATE-DETERMINISM-2026-07-26.
+    // Discharges pipeline-state item 107 Driver 1 (qc_r1_4_cohort_
+    // determinism recurrence on w27 doc 7f0de458 + w28 docs e5a04cf7
+    // and 1036f12c). When resolved revenue band = $25M–$50M, guarantee
+    // the § 7121(a)(3) cohort date "April 1, 2030" is stated in the
+    // deadline/compliance-timeline surface. Model NEVER writes/edits
+    // the date; deterministic emitter only. Corpus-pinned literal.
+    // Whole-sentence excision for wrong-cohort sentences. Omission-
+    // over-invention for every other band. Runs AFTER applyW24aV3 and
+    // BEFORE the LEAK-PREV P1 emit gate. Fail-open at every seam.
+    // Telemetry lands at `_meta.internal.risk_cohort_date`; preexisting
+    // `_meta.internal` siblings (risk_w24a, risk_t7_opening, …) are
+    // preserved.
+    try {
+      const _rcdIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _rcdC, report: _rcdR } = applyRiskCohortDate(
+        _rcdIntake, report_data as any, { buildStamp: BUILD_STAMP },
+      );
+      report_data = _rcdR as any;
+      const rdRcd: any = report_data;
+      const metaRcd = (rdRcd._meta = rdRcd._meta && typeof rdRcd._meta === "object" ? rdRcd._meta : {});
+      const internalRcd = (metaRcd.internal = metaRcd.internal && typeof metaRcd.internal === "object" ? metaRcd.internal : {});
+      internalRcd.risk_cohort_date = _rcdC;
+      console.log(JSON.stringify({
+        evt: "_risk_cohort_date", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, risk_cohort_date_stamp: RISK_COHORT_DATE_STAMP, ..._rcdC,
+      }));
+    } catch (e) {
+      console.warn("[RISK] RISK-COHORT-DATE-DETERMINISM failed (non-fatal):", (e as Error)?.message);
+    }
+
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
+
 
 
     // RC-B B1 — freeze open_items on first completed generation (idempotent).
