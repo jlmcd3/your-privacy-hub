@@ -2562,8 +2562,25 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] H7B-ADMT-CITATION-RELABEL failed (non-fatal):", (e as Error)?.message);
     }
 
-
-
+    // ── H6-ADMT-GOVERNING-ANCHOR (2026-07-26) ────────────────────────
+    // Discharges the long-queued h6_admt_governing_anchor class
+    // (ledger 80/91/95). Post-emitter sanitizer:
+    //   (a) duty entries whose sole citation is a § 7001 definitional
+    //       anchor;
+    //   (b) duty entries citing § 7150(b)(3) on sell/share-documentation
+    //       prose (misapplication — (b)(3) verifies the ADMT trigger).
+    // Registry-first relabel; else whole-entry excision (item-84c
+    // structural analog). Runs AFTER _w24_admt_h6 / _w25_sanitizer /
+    // _h7 / _h7b and BEFORE the LEAK-PREV-P1 emit gate. Fail-open.
+    try {
+      const h6b = applyH6AdmtAnchor(report);
+      console.log(JSON.stringify({
+        evt: "h6_admt_governing_anchor", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: H6_ADMT_ANCHOR_STAMP, ...h6b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] H6-ADMT-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
+    }
 
 
 
