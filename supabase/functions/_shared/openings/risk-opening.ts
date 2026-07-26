@@ -37,7 +37,7 @@ import {
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
 
-export const RISK_OPENING_VERSION = "risk-opening-t7@2026-07-25";
+export const RISK_OPENING_VERSION = "risk-opening-t7-pilotfix2@2026-07-26";
 
 // Revenue bands that UNAMBIGUOUSLY clear the § 1798.140(d)(1)(A) threshold.
 // The corpus figure is "twenty-five million dollars ($25,000,000), as adjusted
@@ -51,9 +51,17 @@ const REVENUE_BANDS_CLEAR_A = new Set<string>([
   "Over $500M",
 ]);
 
-// Consumer-volume bands whose FLOOR is >= 100,000 (necessary but not
-// sufficient for (B); still requires affirmative buy/sell/share activity).
-const CONSUMER_BANDS_100K_OR_MORE = new Set<string>([
+// T7-PILOT-FIX-2 (2026-07-26) — bands whose FLOOR is >= 100,000 for the
+// § 1798.140(d)(1)(B) BOUGHT/SOLD/SHARED count. Design rule 6: the operand
+// for (B) MUST be a count field whose legal meaning is "bought, sold, or
+// shared consumers or households". q2_consumers is a PROCESSED-consumers
+// band (all-purpose data-subject volume) and is EXPLICITLY EXCLUDED here —
+// it may never source (B). The live risk intake contract does not yet
+// carry a compliant count field; when one is added (canonical key
+// `bought_sold_shared_count`, same band vocabulary) the builder will
+// consume it. Until then, (B) is dropped even when sell/share is
+// affirmative, and the omission is telemetered as `s0_b_rejected_reason`.
+const BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE = new Set<string>([
   "100,000–249,999",
   "250,000–1 million",
   "1–10 million",
