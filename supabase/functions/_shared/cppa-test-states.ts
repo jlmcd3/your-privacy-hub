@@ -39,8 +39,11 @@ export type FiveStageIntake = {
 };
 
 // Revenue-band classifier — single source of truth (copied verbatim).
+// BAND-REALIGNMENT-T2A (2026-07-26): V2 cases added; V1 cases retained for
+// stored-row back-compat. Legacy-ambiguous band "$25M–$100M" continues to
+// map to key='legacy_25_100m' with audit_cohort='indeterminate'.
 export type RevenueBand = {
-  key: "under_25m" | "25_50m" | "50_100m" | "legacy_25_100m" | "100_500m" | "over_500m" | "unspecified";
+  key: "under_25m" | "25_50m" | "50_100m" | "over_100m" | "legacy_25_100m" | "100_500m" | "over_500m" | "unspecified";
   label: string;
   audit_cohort: "2028-04-01" | "2029-04-01" | "2030-04-01" | "indeterminate";
   over_25m: boolean | "indeterminate";
@@ -49,7 +52,12 @@ export type RevenueBand = {
 export function classifyRevenueBand(q1: unknown): RevenueBand {
   const v = String(q1 ?? "").trim();
   switch (v) {
-    case "Under $25M":  return { key: "under_25m",      label: v, audit_cohort: "2030-04-01",     over_25m: false,           over_100m: false };
+    // V2 labels (BAND-REALIGNMENT-T2A)
+    case "Under $25M":                return { key: "under_25m",      label: v, audit_cohort: "2030-04-01",     over_25m: false,           over_100m: false };
+    case "$25M to under $50M":        return { key: "25_50m",         label: v, audit_cohort: "2030-04-01",     over_25m: true,            over_100m: false };
+    case "$50M to $100M":             return { key: "50_100m",        label: v, audit_cohort: "2029-04-01",     over_25m: true,            over_100m: false };
+    case "Over $100M":                return { key: "over_100m",      label: v, audit_cohort: "2028-04-01",     over_25m: true,            over_100m: true  };
+    // Legacy V1 labels (retained for stored-row back-compat)
     case "$25M–$50M":   return { key: "25_50m",         label: v, audit_cohort: "2030-04-01",     over_25m: true,            over_100m: false };
     case "$50M–$100M":  return { key: "50_100m",        label: v, audit_cohort: "2029-04-01",     over_25m: true,            over_100m: false };
     case "$25M–$100M":  return { key: "legacy_25_100m", label: v, audit_cohort: "indeterminate",  over_25m: true,            over_100m: false };
