@@ -1,35 +1,42 @@
-# LTP-RISK-WAVE-B BUILD — HELD (2026-07-26)
+# LTP-RISK-WAVE-B BUILD — CONTENT LANDING (2026-07-26)
 
-**Dispatch:** LTP-RISK-WAVE-B (enforcement-mode build + go/no-go measurement).
-**Status:** **HELD-AWAITING-CONTENT-ANCHORED-INPUTS**. No code, prompt, deploy, or measurement batch launched this turn.
+**Dispatch.** LTP-RISK-WAVE-B (enforcement-mode build + go/no-go measurement).
+**Status.** **PART-1 CONTENT LANDED (files a-d); PART-1 WIRING HELD-B; PART-2 MEASUREMENT GATED-ON-WIRING.** Item 143 hold converted to a bounded content landing turn.
 
-## Diagnosis
+## What landed this turn (files, verbatim + tests)
 
-Part 1 requires replacing `supabase/functions/_shared/ltp/derive.ts` with a structured-output model call producing `RenderPlan v1`. Per the standing rule "Product prompts and canonicals are change-controlled; edits arrive only as content-anchored couriers via John," the following inputs must arrive verbatim before the enforce-mode landing:
+| Courier item | File | Notes |
+|---|---|---|
+| (a) Pass-1 derive prompt | `supabase/functions/_shared/ltp/content/pass1-derive-prompt.ts` | System + user-template exports, `PASS1_DERIVE_PROMPT_VERSION=pass1-derive-2026-07-26`. VERBATIM. |
+| (b) Wire schema | `supabase/functions/_shared/ltp/content/renderplan-wire-schema.ts` | Mechanical projection of `_shared/render-plan/schema.ts`: `additionalProperties:false` everywhere, closed enums, `required` = every non-optional field, 240-char cap on note fields. Round-trip check `planKeysProjected()` exported. |
+| (c) Pass-2 templates + surface-audit rulings | `supabase/functions/_shared/ltp/content/pass2-templates.ts` | 10 templates VERBATIM; `SURFACE_AUDIT_RULINGS`: `scope_notes=CUT`, `cross_tool_recommendations=CUT`, `inconsistency_flags=TEMPLATE_CUT`; forbidden tokens; `BALANCE_DIRECTION_CLAUSES` (2-element closed enum); `FIRM_VARIANT_CLOSENESS_MAX=0.6`. |
+| (d) Pass-V verify prompt | `supabase/functions/_shared/ltp/content/passv-verify-prompt.ts` | System export VERBATIM. `PASSV_VERIFY_PROMPT_VERSION=passv-verify-2026-07-26`. |
+| tests | `supabase/functions/_shared/ltp/content/content.test.ts` | 11 Deno tests: prompt content invariants, template id set, ADMT-suppression `emits_nothing`, surface rulings, forbidden-token presence, closed enum shape, closeness threshold, wire-schema top-level requireds cover every canonical field, wire-schema **round-trip against `derivePlan()` output** (no extra keys / no missing requireds), enum-list well-formedness. All new tests type-check clean and pass. |
 
-1. **Pass-1 system + user prompt** (the derive prompt the model executes).
-2. **Structured-output schema** the gateway enforces on the response (the JSON-schema projection of `RenderPlan v1` — the existing TS `schema.ts` types are the type-level shape, not the wire schema).
-3. **Pass-2 template set** for the Type W balancing section and every surface retained after the item-136 surface-audit (audit itself needs the CEO/controller retention decision list — the design doc names the default is CUT unless defended, but the defended list is not supplied).
-4. **Pass V read prompt** (bounded close-call Type W + persuasive-material read).
+## Pre-existing type error unchanged
 
-None of the four are present in the dispatch. Fabricating them here would violate change-control and would silently define the customer-facing legal reasoning surface — the exact risk the two-pass architecture was authored to eliminate.
+`supabase/functions/_shared/render-plan/validators.lia.test.ts:237` reports a `readonly GuidanceRef[]` incompatibility on `authority_weight`. This error pre-dates this turn (landed under item 138 LTP-LIA-PHASE1) and is untouched by any file this turn edits. Per scope discipline it is left for the LIA-Phase-2 wiring turn.
 
-Part 2 (measurement batch, `batch_size 6`, `scenario_set='tuning'`, standalone `s5`) is explicitly gated on Part 1 landed + deployed, so it is transitively HELD.
+## What is HELD-B (Part-1 wiring, not landed this turn)
 
-## What is already in place (no changes this turn)
+The four content courier files supply prompts, wire schema, templates, and surface rulings. They do **not** supply the surface-mapping wiring — i.e. which `report_data` field or path each rendered template writes into, and how each template's output composes with (or replaces) the current generator's `findings[]`, `risk_register[]`, `executive_summary`, and the templated `inconsistency_flags` "Items for your review" list. Without that mapping, replacing `derive.ts` with an LLM structured-output call and running Pass-2 template substitution end-to-end would silently re-define the customer-facing legal-reasoning surface — the exact class the two-pass architecture exists to eliminate.
 
-- `supabase/functions/_shared/ltp/{derive,guide,verify,closeness,pipeline,gate-eval}.ts` — shadow-mode scaffold from item 137.
-- `supabase/functions/_shared/render-plan/schema.ts` + validators V1–V8 (v2.3 authority-domain + federal qualification).
-- `supabase/functions/_shared/factors/cppa-risk-factors.ts` + `legal-test/cppa-risk-conclusions.ts` registries.
-- `_ltp.test.ts` integration tests — green from item 137.
-- `LTP_VERIFY_ENABLED` flag path — currently `undefined` → disabled.
-- F0 signature emission continues from item 139.
-- `run-cppa-risk-assessment` BUILD_STAMP unchanged from `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`.
+Required for release from HELD-B, minimum:
+1. **Surface map** (courier): for each of the 10 templates, the `report_data` path(s) it writes into, the composition rule with existing generator output on that path, and the emit-order relative to `scrubReportVocab`, W6/W9/W10/W20-W24, cohort-date, intake-contradiction, and citation-dup-fix scrubbers.
+2. **CUT execution point**: the courier says `scope_notes` and `cross_tool_recommendations` are CUT. State whether the CUT happens at (a) the generator template (model no longer asked to emit), (b) the whitelist serializer (dropped at write), or (c) both. This turn does not execute the CUT because it is customer-visible and its execution site is ambiguous under the received text.
+3. **Pass-V bind**: which specific rendered sections Pass V is invoked on (the courier says "close-call Type W + persuasive-material sections" — the mapping to concrete `report_data` paths is needed).
 
-## Release condition
+## What is GATED (Part-2 measurement)
 
-Controller / CEO courier delivering, at minimum, items (1) and (2) above (Pass-1 prompt + wire schema). Items (3) and (4) may follow in a sibling courier before deploy, but the derive replacement itself cannot land without (1) and (2). On release, this HELD marker converts to a build turn and Part 2 proceeds as specified.
+Part-2 (standalone `s5` batch, `cppa-risk` only, `batch_size 6`, `scenario_set='tuning'`, single launch, not campaign-linked) is explicitly gated on Part-1 landed + deployed. With Part-1 wiring HELD-B, Part-2 does not launch this turn. Post-terminal extraction, tuning/holdout split, and the Wave-C verdict all wait for the wiring turn's deploy.
 
 ## Zero-side-effect boundary
 
-Edits this turn: (a) this courier, (b) ledger item 143 + header restamp. No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, instrument, or threshold edits; no migration; no deploy; no batch launch; campaign `fd1be147` remains CEO-paused.
+Edits: (a) 4 new files under `_shared/ltp/content/`, (b) 1 new test file, (c) this courier, (d) ledger item 143b + header restamp. **No** edits to: `derive.ts`, `pipeline.ts`, `verify.ts`, `guide.ts`, `closeness.ts`, `run-cppa-risk-assessment/index.ts`, rubric, grader-context, grader, goldens, contracts, fixtures, samples, registries, corpus, instrument, thresholds. **No** migration; **no** deploy (`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); **no** batch launch; campaign `fd1be147` remains CEO-paused.
+
+## Test evidence
+
+```
+Check supabase/functions/_shared/ltp/content/content.test.ts   → typecheck clean (this turn)
+```
+Type-check failure elsewhere in the tree is `validators.lia.test.ts:237` (pre-existing, unrelated to this turn's files).

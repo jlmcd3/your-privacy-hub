@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T21:32:00Z — **LTP-RISK-WAVE-B BUILD HELD (item 143)** — enforcement-mode build + measurement batch HELD-AWAITING-CONTENT-ANCHORED-INPUTS: dispatch does not supply the Pass-1 prompt or wire-level structured-output schema for `RenderPlan v1` (nor the Pass-2 template set + item-136 surface-audit retention list, nor the Pass V read prompt). Authoring them here would violate the change-control rule that prompts arrive only as content-anchored couriers via John, and would silently define the customer-facing legal-reasoning surface the two-pass architecture exists to eliminate. Fail-closed per LEGAL-TEST-PIPELINE §5. Shadow-mode overlay from item 137 remains live; `run-cppa-risk-assessment` BUILD_STAMP unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); no deploy; Part 2 (measurement batch, batch_size 6, scenario_set='tuning', standalone s5) transitively HELD on Part 1. Campaign `fd1be147` remains CEO-paused. Courier `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
+**Last updated:** 2026-07-26T21:55:00Z — **LTP-RISK-WAVE-B CONTENT LANDED (item 143b)** — four content-anchored courier files (Pass-1 derive prompt, RenderPlan v1 wire-schema projection, Pass-2 templates + surface-audit rulings, Pass-V verify prompt) landed VERBATIM under `supabase/functions/_shared/ltp/content/` with 11 typecheck-clean Deno tests including a wire-schema round-trip against `derivePlan()` output. Part-1 WIRING **HELD-B**: courier does not supply the template→`report_data`-path surface map, the CUT execution-site ruling, or the Pass-V section-invocation map — replacing `derive.ts` and running Pass-2 substitution without that mapping would silently redefine the customer-facing legal-reasoning surface. Part-2 measurement batch (standalone s5, batch_size 6, scenario_set='tuning') GATED on Part-1 landed+deployed → does not launch. `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); no deploy; no batch launch; campaign `fd1be147` remains CEO-paused. Pre-existing `validators.lia.test.ts:237` type error (item 138) left untouched per scope discipline. Courier `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
 
 ---
 
@@ -2135,3 +2135,27 @@ Standalone s5 pilot measurement per LTP-RISK-PHASE2 courier §6. Batch `16ee0dcf
 **Courier.** `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
 
 **Zero-side-effect boundary.** Edits: (a) new courier, (b) this ledger item + header restamp. No code / prompt / rubric / grader-context / grader / golden / contract / fixture / sample / registry / corpus / instrument / threshold edits; no migration; no deploy; no batch launch; campaign `fd1be147` remains CEO-paused.
+
+---
+
+### Item 143b — LTP-RISK-WAVE-B CONTENT LANDED (files a-d); WIRING HELD-B; MEASUREMENT GATED (2026-07-26T21:55:00Z)
+
+**Dispatch.** Content-anchored courier release for LTP-RISK-WAVE-B (converts item 143 HELD → bounded content landing).
+
+**Landed.** Four VERBATIM courier files under `supabase/functions/_shared/ltp/content/`:
+- `pass1-derive-prompt.ts` (a) — Pass-1 derive system + user template, `PASS1_DERIVE_PROMPT_VERSION=pass1-derive-2026-07-26`.
+- `renderplan-wire-schema.ts` (b) — mechanical projection of `_shared/render-plan/schema.ts` (`additionalProperties:false` everywhere, closed enums, note-string 240-char cap), plus `planKeysProjected()` round-trip helper.
+- `pass2-templates.ts` (c) — 10 templates verbatim; `SURFACE_AUDIT_RULINGS` (`scope_notes=CUT`, `cross_tool_recommendations=CUT`, `inconsistency_flags=TEMPLATE_CUT`); `PASS2_FORBIDDEN_TOKENS`; `BALANCE_DIRECTION_CLAUSES` (2-element closed enum); `FIRM_VARIANT_CLOSENESS_MAX=0.6`.
+- `passv-verify-prompt.ts` (d) — Pass-V system prompt, `PASSV_VERIFY_PROMPT_VERSION=passv-verify-2026-07-26`.
+
+Plus `content.test.ts` — 11 Deno tests covering prompt invariants, template id set, ADMT-suppression `emits_nothing`, surface rulings, forbidden tokens, closed enum shape, closeness threshold, and the wire-schema round-trip against `derivePlan()` output. New files typecheck clean.
+
+**HELD-B (Part-1 wiring).** Courier supplies prompts + schema + templates + surface rulings but does NOT supply the surface-mapping — i.e. which `report_data` path each template writes into, the composition rule with existing generator output on that path, the emit-order vs the existing scrubbers, or the execution site for the CUT/TEMPLATE-CUT rulings (generator template vs whitelist serializer). Replacing `derive.ts` with an LLM structured-output call and running Pass-2 template substitution without that mapping would silently re-define the customer-facing legal-reasoning surface — the exact class the two-pass architecture exists to eliminate. Release requires a courier delivering (1) template→`report_data`-path map + composition rules, (2) CUT execution-site ruling, (3) Pass-V section-invocation map.
+
+**GATED (Part-2 measurement).** Standalone `s5` batch (`cppa-risk` only, `batch_size 6`, `scenario_set='tuning'`, single launch, not campaign-linked) explicitly gated on Part-1 landed + deployed. Does not launch this turn.
+
+**Pre-existing typecheck error left untouched.** `supabase/functions/_shared/render-plan/validators.lia.test.ts:237` reports a `readonly GuidanceRef[]` `authority_weight` incompatibility that pre-dates this turn (from item 138 LTP-LIA-PHASE1). Per scope discipline (no fixes without a new instruction), it is left for the LIA-Phase-2 wiring turn.
+
+**Courier.** `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
+
+**Zero-side-effect boundary.** Edits: (a) 4 new files under `_shared/ltp/content/`, (b) 1 new test file, (c) courier, (d) this ledger item + header restamp. NO edits to: `derive.ts`, `pipeline.ts`, `verify.ts`, `guide.ts`, `closeness.ts`, `run-cppa-risk-assessment/index.ts`, rubric, grader-context, grader, goldens, contracts, fixtures, samples, registries, corpus, instrument, thresholds. NO migration; NO deploy (`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); NO batch launch; campaign `fd1be147` remains CEO-paused.
