@@ -184,6 +184,19 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 280,
   },
+  // Insufficient-record opening variant added by CONTENT COURIER 2026-07-26
+  // (HELD-F release). Pairs with the existing outcome_clause
+  // "assessment incomplete — see Items for your review" for activity lines,
+  // and with overall_risk_level="Insufficient basis" per the precedence law
+  // in _shared/ltp/risk-level-map.ts.
+  "T.risk.summary.opening.insufficient": {
+    id: "T.risk.summary.opening.insufficient",
+    text: "This Risk Assessment covers {{plan:activity_count_phrase}}. On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis for the {{plan:activity_singplural_clause}} assessed. The specific items needed to complete this assessment are set out under Items for your review.",
+    citation_slots: [],
+    plan_slots: ["activity_count_phrase", "activity_singplural_clause"],
+    intake_slots: [],
+    max_chars: 420,
+  },
 };
 
 /**
