@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T21:15:00Z — **HARNESS-FIXGEN-RETIREMENT LANDED (item 142)** — `run-quality-batch` AI-fix-suggestion generation retired behind `HARNESS_FIXGEN_ENABLED` env flag (default OFF); `BUILD_STAMP` `harness-fixgen-retirement@2026-07-26T21:15:00Z` deployed and boot-confirmed. Tracked-findings path audited: `quality_check_results` never truncated (one upsert per unique check id); `quality_finding_backlog` populated separately by `classify-quality-findings` without cap — "no batch result goes unread" holds. Legacy "cap 50 / top 6" was AI-fix-candidate copy only. Cron jobs 90 (`improvement-cycle-watchdog-5m`) and 91 (`ql2-watchdog-5min`) **UNSCHEDULED** (`cron.unschedule` returned true; `cron.job` no longer contains either jobid) — both served retired loops (job 90 force-fails stale `tool_improvement_cycles`; job 91 re-POSTs stale `quality_loop2_runs` to `ql2-orchestrator`). Auto-apply audit: **no harness function or cron path reaches `auto-apply-fixes` / `apply-quality-fix`** — only reachable via three admin-UI buttons (`QualityLoopAugmentation.tsx` ×2, `QualityLoop2.tsx` ×1). Grading path bit-identical (change touches only `proposed_fix` / `fix_location` metadata + info log line). Courier `docs/courier/HARNESS-FIXGEN-RETIREMENT-2026-07-26.md`. Campaign `fd1be147` remains CEO-paused; Wave-A extraction (item 141) already terminal — no concurrency with in-flight ledger writers.
+**Last updated:** 2026-07-26T21:32:00Z — **LTP-RISK-WAVE-B BUILD HELD (item 143)** — enforcement-mode build + measurement batch HELD-AWAITING-CONTENT-ANCHORED-INPUTS: dispatch does not supply the Pass-1 prompt or wire-level structured-output schema for `RenderPlan v1` (nor the Pass-2 template set + item-136 surface-audit retention list, nor the Pass V read prompt). Authoring them here would violate the change-control rule that prompts arrive only as content-anchored couriers via John, and would silently define the customer-facing legal-reasoning surface the two-pass architecture exists to eliminate. Fail-closed per LEGAL-TEST-PIPELINE §5. Shadow-mode overlay from item 137 remains live; `run-cppa-risk-assessment` BUILD_STAMP unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); no deploy; Part 2 (measurement batch, batch_size 6, scenario_set='tuning', standalone s5) transitively HELD on Part 1. Campaign `fd1be147` remains CEO-paused. Courier `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
 
 ---
 
@@ -2119,3 +2119,19 @@ Standalone s5 pilot measurement per LTP-RISK-PHASE2 courier §6. Batch `16ee0dcf
 **Sequencing satisfied.** Item 141 (Wave-A extraction) already terminal; ran AFTER, not concurrent. Campaign paused. Safe.
 
 **Zero-side-effect boundary.** Edits: (a) new courier, (b) this ledger item + header restamp, (c) `run-quality-batch/index.ts` (BUILD_STAMP + FIXGEN gate + log line), (d) `cron.unschedule(90)` + `cron.unschedule(91)`, (e) `run-quality-batch` redeploy. NO rubric / grader-context / grader / golden / contract / fixture / sample / registry / corpus / instrument / threshold edits; NO migration; NO campaign resume.
+
+---
+
+### Item 143 — LTP-RISK-WAVE-B BUILD — HELD-AWAITING-CONTENT-ANCHORED-INPUTS (2026-07-26T21:32:00Z)
+
+**Dispatch.** LTP-RISK-WAVE-B enforcement-mode build (Part 1) + go/no-go measurement (Part 2, gated on Part 1).
+
+**Status.** HELD. No code, prompt, deploy, or batch this turn. Shadow-mode overlay from item 137 remains the live posture; `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`).
+
+**Reason.** Part 1 (1) requires replacing `derive.ts` with a structured-output model call. Standing rule: "Product prompts and canonicals are change-controlled; edits arrive only as content-anchored couriers via John." The dispatch does not supply verbatim (a) the Pass-1 system + user prompt, (b) the wire-level structured-output JSON schema for `RenderPlan v1`, (c) the Pass-2 template set + item-136 surface-audit retention list, or (d) the Pass V read prompt. Authoring any of these here would silently define the customer-facing legal-reasoning surface — the exact risk the two-pass architecture exists to eliminate. Fail-closed per LEGAL-TEST-PIPELINE §5. Part 2 gated on Part 1 → transitively HELD.
+
+**Release condition.** Controller/CEO courier supplying at minimum (a) + (b); (c) and (d) may follow before deploy but derive replacement cannot land without (a) + (b). On release, HELD converts to build turn; Part 2 proceeds as specified (standalone s5, cppa-risk only, batch_size 6, scenario_set='tuning', not campaign-linked, single launch).
+
+**Courier.** `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
+
+**Zero-side-effect boundary.** Edits: (a) new courier, (b) this ledger item + header restamp. No code / prompt / rubric / grader-context / grader / golden / contract / fixture / sample / registry / corpus / instrument / threshold edits; no migration; no deploy; no batch launch; campaign `fd1be147` remains CEO-paused.
