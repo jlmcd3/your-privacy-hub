@@ -14,7 +14,14 @@
 import type { IntakeContract } from "./types.ts";
 
 // ── Verbatim option copies ──────────────────────────────────────────────
-export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"] as const;
+// BAND-REALIGNMENT-T2A (2026-07-26) — REVENUE_OPTS retargeted to V2 label
+// set from `_shared/bands/revenue-consumer.ts`. V2 edges align with the
+// statutory lines (§ 1798.140(d)(1)(A) $25M, § 7121(a) $50M / $100M cohort
+// breakpoints) so every band answer resolves to exactly ONE cohort and ONE
+// applicability answer. Legacy V1 labels remain resolvable via
+// `resolveRevenueBand` in the normaliser; the classifier retains V1 switch
+// cases for stored-row back-compat.
+export const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"] as const;
 // Verbatim copy of SENSITIVE_LOCATION_BASIS_OPTS from
 // src/pages/CPPARiskAssessment.enums.ts. Parity asserted by the risk
 // option-drift test (single source of truth = the .enums.ts export).
