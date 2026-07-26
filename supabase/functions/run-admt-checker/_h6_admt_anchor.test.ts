@@ -160,7 +160,7 @@ Deno.test("idempotent: second pass is a no-op", () => {
   const before = JSON.parse(JSON.stringify(report));
   const d2 = applyH6AdmtAnchor(report);
   assertEquals(d1.entries_excised, 1);
-  assertEquals(d2.entries_scanned, 1); // remaining entry only; already-stamped is skipped
+  assertEquals(d2.entries_scanned, 0); // all remaining entries stamped _h6v2_ran
   assertEquals(d2.entries_excised, 0);
   assertEquals(report.top_3_actions, before.top_3_actions);
 });
