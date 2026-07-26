@@ -51,7 +51,7 @@ function fillUserTemplate(input: DeriveInput): string {
     .replace("{intake_json}", JSON.stringify(input.intake ?? {}))
     .replace("{conclusion_inventory}", JSON.stringify(CPPA_RISK_CONCLUSIONS))
     .replace("{factor_registry}", JSON.stringify(CPPA_RISK_FACTORS))
-    .replace("{gate_registry}", JSON.stringify(RISK_GATE_REGISTRY))
+    .replace("{gate_registry}", JSON.stringify(CPPA_RISK_GATES))
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
 }
 
