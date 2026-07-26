@@ -24,6 +24,18 @@
  * persuasive material (FSOR-mediated non-CA) is confined to Pass G's
  * weighing_frame with `fsor_mediation_ref` and template-enforced marking.
  *
+ * v2.3 FEDERAL-QUALIFICATION (CEO-CORRECTED 2026-07-26; generalized forum
+ * rule): for any U.S.-forum analysis unit (cppa-ca, us-state-*), BINDING
+ * tier = the forum state's own law + U.S. FEDERAL law (statutes, regs,
+ * FTC/agency rulings — `jurisdiction_tag: "us-federal"`). SISTER-STATE
+ * law (another U.S. state) is persuasive/analogy tier only, expressly
+ * marked. FOREIGN law follows the existing per-domain rules (CPPA:
+ * FSOR-mediated persuasive only). GDPR/UK products remain untouched —
+ * NO U.S. material (state or federal) in any role. This file's existing
+ * anchors are all CPPA/CA and require no data change; future us-federal
+ * anchors (e.g., FTC rulings) are admissible at binding tier without an
+ * architecture change.
+ *
  * NO WIRING: this file is data only. Phase 2 wires it into the Pass-1
  * derivation and the Type-W checks feed Pass G candidate-set closure.
  */
