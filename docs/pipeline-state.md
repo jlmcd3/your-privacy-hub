@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T05:08:30Z — ORPHAN FINALIZED + T2 SUB-SPLIT PROPOSED (item 119). Controller BAND-REALIGNMENT-T2 dispatch received; blocker-1 orphan row `function_runs.37a242fa-8161-4883-87c5-92097810a698` finalized via migration (direct exec-role UPDATE denied by grants) — status='error', finished_at='2026-07-26T05:07:51Z', metadata.outcome='orphaned_harness_child', metadata.parent_batch='5332771a-...'; before/after pasted in `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §1. Standing deploy locks re-verified 04:59:57Z: 0 running batches, 0 in-flight fns, 0 dpa null-report rows, campaign paused. T2 EXECUTION HELD with formal T2A/T2B/T2C sub-split proposed in `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4 — T2A (core semantic change, ~10 files, one deploy, s5 instrument re-key with recorded SHA-256), T2B (~15 non-generator UI/harness surfaces, no deploy), T2C (~10 test surfaces, no deploy). Grounds for the split: (a) cross-tool grading-epoch change (s4→s5 stamps all tools' `quality_batch_runs`), (b) V2-form-only + classifier-legacy-tolerant + normalise-legacy-resolver + `_meta.internal.band_legacy_ambiguous` MUST land atomically or drafted rows break on submit, (c) T7 opening S0 mapping tied to band vocabulary, (d) SHARED_GRADER_CONTEXT prose names band strings that must sync in the same edit as the version bump. Under standing "no partial-surface abandonment" for contract turns, one-response execution of the full ~50-file T2 surface set + s5 SHA pin + green tests + deploy + courier + ledger + HELD (iii)+(iv)+(v) is not defensible; item 113's T1/T2 split logic applies recursively to T2 itself. Item 116 downstream steps (iii)+(iv)+(v) remain HELD per item 118. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits this turn; zero edge-function deploys; one migration (orphan finalize only, no schema change).
+**Last updated:** 2026-07-26T05:22:00Z — BAND-REALIGNMENT-T2A HELD PER GATE (item 120). Controller BAND-REALIGNMENT-T2A dispatch received; team-reviewed T2A/T2B/T2C sub-split approved. GATE fired before any code edit: fixture-drift guard `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` (lines 30–31) validates every `q1_revenue`/`q2_consumers` value in `CPPA_RISK_VARIANTS` (14 rows in `src/lib/stress/fixtures.ts`, T2B scope) against `REVENUE_OPTS`/`CONSUMER_OPTS` with legacyAccepted = `["$25M–$100M"]` / `["100,000–1 million"]` only. Retargeting the two intake enums to V2 while stress fixtures remain V1 turns this vitest RED, and NEITHER the drift-test file NOR `src/lib/stress/fixtures.ts` is on the T2A scope list in `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4 (T2A tests listed there are ONLY the three `_tests/counsel-voice-1.test.ts` / `_tests/grader-map-correction-7150b3.test.ts` / `_tests/grader-cal-1.test.ts` version-literal updates plus the new `_tests/band-realignment-t2a.test.ts`). Per GATE (`if any T2A test cannot be made green without exceeding the §4 T2A scope, STOP, record HELD with the specific failure pasted, do not partially deploy`): stopped before any file edit. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits this turn; zero edge-function deploys; zero migrations. Item 113 remains DEPLOY-HELD; item 118 step (ii) remains HELD; items 114 + 115 remain HELD. Full failure classes and recommended micro-scope adjustment pasted in `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §T2A-HELD.
 
 ---
 
@@ -1610,3 +1610,65 @@ Total across sub-splits: ~35 unique files (item 118's ~50 double-counted grep hi
 **Recommended next controller action:** dispatch **BAND-REALIGNMENT-T2A** as its own atomic contract turn per courier §4. On T2A completion: dispatch T2B, then T2C, then proceed with item 116 step (iii) per the original PERFECT-INTAKE-EXPERIMENT dispatch.
 
 **Deviation ruled:** partial execution of the BAND-REALIGNMENT-T2 dispatch — blocker-1 orphan finalized (dispatch's explicit deliverable), T2 scope changes held. Ground: single-response execution of a contract-turn program of this size, spanning cross-tool grader-epoch changes and a live semantic-behavior swap, cannot be safely delivered without material risk of partial-surface abandonment on production edge functions. All rulings recorded here durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
+
+---
+
+### 120. **HELD — BAND-REALIGNMENT-T2A per GATE (fixture-drift guard outside §4 T2A scope)** @ controller tick 2026-07-26T05:22:00Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations)
+
+**Dispatch:** BAND-REALIGNMENT-T2A (team-reviewed, five-lens), controller-approved sub-split per `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4. Scope: ~10 deploy-critical files (V2 enums in cppa-risk intake contract + page enums; `classifyRevenueBand` V2 cases with legacy retention + `legacy_ambiguous` → indeterminate cohort + `_meta.internal` stamps; `resolveRevenueBand`/`resolveConsumerBand` wire-in at `cppa-risk-normalise.ts` with `band_v1_to_v2_resolved` / `band_legacy_ambiguous` stamps; golden fixture retarget incl. consumer-boundary adversarial to "100,000 to under 250,000"; `risk-opening.ts` `REVENUE_BANDS_CLEAR_A` + `BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE` retarget + `RISK_OPENING_VERSION` bump; `GRADER_CONTEXT_VERSION` → `gc-2026-07-26-s5-eu-uk-ca-au-sg` with targeted V2-label prose sync + SHA-256 recorded; three version-assertion tests s4→s5; new `band-realignment-t2a.test.ts` (i)–(iv) green; deploy `run-cppa-risk-assessment` with fresh-clock `BUILD_STAMP band-realignment-t2a@<actual>` + boot-log proof). Standing item 116 step (ii) deploy locks re-inspected pre-flight: all clear per §2 of the courier (0 running batches, 0 in-flight fns, 0 dpa null-report rows, campaign paused; blocker-1 discharged in item 119).
+
+**GATE fired before any file edit — specific failure class pasted verbatim:**
+
+`src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` lines 25–36:
+
+```ts
+const CHECKS: {
+  field: keyof (typeof CPPA_RISK_VARIANTS)[number];
+  options: readonly string[];
+  legacyAccepted?: readonly string[];
+}[] = [
+  { field: "q1_revenue", options: REVENUE_OPTS, legacyAccepted: ["$25M–$100M"] },
+  { field: "q2_consumers", options: CONSUMER_OPTS, legacyAccepted: ["100,000–1 million"] },
+  { field: "q5_sell_share", options: Q5_SELL_SHARE_OPTS },
+  { field: "q15_sensitive_pi", options: Q15_SENSITIVE_PI_OPTS },
+  { field: "q15c_spi_volume", options: SPI_VOLUME_OPTS },
+  { field: "q5c_share_revenue_50pct", options: SHARE_REVENUE_50PCT_OPTS },
+];
+```
+
+Reads `REVENUE_OPTS` / `CONSUMER_OPTS` from `@/pages/CPPARiskAssessment` (which re-exports from `src/pages/CPPARiskAssessment.enums.ts`, on the T2A scope list) and iterates over `CPPA_RISK_VARIANTS` from `src/lib/stress/fixtures.ts` (on the T2B scope list, NOT T2A). Verified inventory of V1 values that would go RED post-T2A:
+
+| File | Line | Value | Field |
+| --- | ---: | --- | --- |
+| src/lib/stress/fixtures.ts | 967, 1032 | "Over $500M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 1099 | "$25M–$100M" (legacyAccepted ✓) | q1_revenue |
+| src/lib/stress/fixtures.ts | 1148, 1309, 1367 | "$100M–$500M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 1205 | "$25M–$50M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 1254 | "$50M–$100M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 968, 1033 | "1–10 million" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1100 | "Over 10 million" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1149 | "Fewer than 100,000" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1206 | "100,000–1 million" (legacyAccepted ✓) | q2_consumers |
+| src/lib/stress/fixtures.ts | 1255 | "Unsure" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1310 | "100,000–249,999" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1368 | "250,000–1 million" | q2_consumers |
+
+Retargeting `REVENUE_OPTS` / `CONSUMER_OPTS` to V2 (`Under $25M` / `$25M to under $50M` / `$50M to $100M` / `Over $100M` and `Under 100,000` / `100,000 to under 250,000` / `250,000 to under 1,000,000` / `1,000,000 or more`) with existing `legacyAccepted` unchanged sets `bad.length > 0` on both `q1_revenue` and `q2_consumers` per-field assertions. The coverage assertions (lines 57–69) require `["$25M–$50M", "$50M–$100M", "$25M–$100M"]` and `["100,000–1 million", "Fewer than 100,000", "Unsure"]` to remain present in `CPPA_RISK_VARIANTS`; those pass unchanged, so touching the drift-test coverage lines is not the issue — the enum-membership assertion is.
+
+**Why this cannot be made green inside §4 T2A scope:**
+
+Two — and only two — repair paths exist:
+- **(P1)** Retarget `CPPA_RISK_VARIANTS` in `src/lib/stress/fixtures.ts` to V2 labels. That file is explicitly assigned to **T2B** in §4 ("scenario generators emit V2 labels only; legacy generation dropped"). Pulling it into T2A merges T2A ∪ T2B in one turn — the exact partial-surface risk item 119 sub-split was designed to avoid.
+- **(P2)** Widen `legacyAccepted` on the drift test to enumerate every V1 label. That file (`src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts`) is not listed among the T2A test surfaces in §4 (which enumerate ONLY `_tests/counsel-voice-1.test.ts`, `_tests/grader-map-correction-7150b3.test.ts`, `_tests/grader-cal-1.test.ts` for s4→s5 literal bumps, plus the new `_tests/band-realignment-t2a.test.ts`). Widening the legacy-accepted set also structurally defangs the guard's whole point (catching fixture drift when contracts move) during the T2A→T2B interregnum.
+
+Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any T2A test cannot be made green without exceeding the §4 T2A scope, STOP, record HELD with the specific failure pasted, do not partially deploy.**" Stopped before any file edit.
+
+**Recommended micro-scope adjustment (for controller/CEO):** the cleanest resolution is a one-line §4 amendment ADDING `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` (widen `legacyAccepted` for `q1_revenue` to `["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M", "$25M–$100M"]` and for `q2_consumers` to `["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure", "100,000–1 million"]`) to the T2A test-surface list. Rationale: the drift guard's job is to catch fixtures drifting FROM the current contract; during T2A→T2B, all V1 values ARE legacy by design and belong in `legacyAccepted` by construction. This adds ONE test-file edit to T2A (from four tests to five), preserves the guard's substantive protection (catches values that are neither V2-current NOR V1-legacy), and leaves `src/lib/stress/fixtures.ts` untouched for T2B where §4 assigns it. No other T2A behaviour changes; the deploy, the s5 SHA pin, the new `band-realignment-t2a.test.ts`, and the CEO ruling log entry all remain as dispatched.
+
+**Alternative (also in scope for controller):** approve inclusion of `src/lib/stress/fixtures.ts` in T2A — but this collapses the T2A/T2B boundary and re-introduces the surface-count concern that motivated the sub-split in item 119.
+
+**Item 113 remains DEPLOY-HELD.** Item 118 step (ii) remains HELD. Items 114 + 115 remain HELD. Item 116 sequencing intact.
+
+**Zero-side-effect confirmation:** no source files, no fixtures, no goldens, no contracts, no prompts, no registry rows, no corpus rows, no migrations, no edge-function deploys were made this turn. `git status --short` would show ONLY edits to `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2A-HELD section append).
+
+**Deviation ruled:** partial execution of the BAND-REALIGNMENT-T2A dispatch — zero execution, docs-only HELD. Ground: GATE clause. All rulings recorded here durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
