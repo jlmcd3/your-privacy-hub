@@ -33,7 +33,12 @@ export const HARM_TYPES = [
 // value "$25M–$100M" is intentionally NOT in this list; stored rows keep it
 // and the generator treats it as straddling the $50M line (indeterminate
 // per BAND-VS-THRESHOLD). Restore of a legacy draft renders q1 unselected.
-export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"];
+// BAND-REALIGNMENT-T2A (2026-07-26) — REVENUE_OPTS retargeted to V2 label
+// set (statutorily aligned edges per src/lib/bands/revenueConsumer.ts +
+// supabase/functions/_shared/bands/revenue-consumer.ts). Legacy V1 labels
+// (kept in stored intakes) resolve via resolveRevenueBand in the edge-side
+// normaliser; the classifier retains V1 switch cases for back-compat.
+export const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"];
 // Consumer-volume bands aligned to statutory breakpoints:
 //   100,000 — § 1798.140(d)(1)(B) covered-business threshold
 //   250,000 — § 7120(b)(2)(A) cyber-audit volume prong
