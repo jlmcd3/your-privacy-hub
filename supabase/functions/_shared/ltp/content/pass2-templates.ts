@@ -226,6 +226,15 @@ export const SUMMARY_EACH_OR_THIS_CLAUSES: readonly string[] = [
 ];
 
 /**
+ * Singular/plural clause used by the insufficient-record opening variant
+ * (added by CONTENT COURIER 2026-07-26 alongside T.risk.summary.opening.insufficient).
+ */
+export const SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES: readonly string[] = [
+  "activity",
+  "activities",
+];
+
+/**
  * Narrative composition order (fixed). Total narrative cap = 2400 chars.
  * Order: opening variant (one of three) → activity lines (aggregation order)
  * → docs sentence → T.risk.closing.reserved (as the narrative's final
