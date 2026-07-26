@@ -1526,3 +1526,45 @@ Ruling: adopt statutorily-aligned revenue/consumer band enums project-wide acros
 - Campaign-pause invariant: no queue item may resume `fd1be147-...` — CEO-reserved.
 
 **Deviation:** none. Docs-only ledger append. Header restamped `2026-07-26T04:31:49Z`.
+
+---
+
+### 117. **DONE — T6-NONCPPA-MEASUREMENT-BATCH-1 WAVE-2 DIGEST + T6 CLOSURE** @ controller tick 2026-07-26T05:02:15Z (docs-only; discharges item 116 step (i))
+
+**Batch:** `5332771a-522b-4a1c-be3e-a1373512ac68` (launched item 85). Terminal: `status=complete`, `phase=done`, `started=2026-07-26T04:00:40.523Z`, `completed=2026-07-26T04:55:24.686Z` (~54.7 min), `error_count=0`. Instrument header: `gc-2026-07-25-s4-eu-uk-ca-au-sg`. All 5 tools complete.
+
+**Per-tool overall (Claude / GPT):** ir-playbook 91.55 / 90; dpa-generator 87.50 / 86; lia 84.50 / 75; governance 79.15 / 83; dpia 74.50 / 82. Full six-dim table and run ids in `docs/courier/T6-NONCPPA-MEASUREMENT-BATCH-1-2026-07-25.md` § 9.1.
+
+**Score-delta reconciliation (REQUIRED per item 116 step (i)):** dpia 74.50 (this wave) vs 85.05 (20:12 split-pair item 81) → −10.55; governance 79.15 vs 83.65 → −4.50. Both runs sit on identical `scenario_set='tuning'` register with `batch_size=3` on the same frozen instrument. Zero deploys between the two runs on either edge function (dpia stamp `dpia-t6fix@2026-07-25T23:31:00Z` cut BEFORE 20:12; governance stamp `gov-t6fix@2026-07-25T23:48:00Z` cut BEFORE 20:12 per items 89/92/94 — no post-20:12 deploy). Per-doc score composition (verified in `quality_run_documents`) shows a different fixture draw in the 04:00 run (dpia 72.3/83.3/68.0 vs 87.2/87.5/80.7; governance 81.5/78.9/77.05 vs 88.85/75.5/86.25). **VERDICT:** deltas are scenario-difficulty artifacts (tuning-pool sampling variance) NOT product signal. Neither wave is a certification input.
+
+**LIA grader divergence:** Claude 84.5 vs GPT 75.0 (+9.50) — widest cross-grader gap in the wave. Consistent with wave-1 emit-gate list-fragment observation (Claude scores list items generously; GPT harshly). Recorded as standing measurement-instrument observation — not a defect, no dispatch.
+
+**T6 CLOSURE:** T6-style non-CPPA measurement batches CLOSED per item 116 step (i). Future non-CPPA quality measurement moves to campaign-wave-embedded reads under CEO-resumed campaigns.
+
+**Guardrails:** measurement-only; zero deploys; CPPA tools untouched; stamps re-read from sandbox clock immediately before write; Backend-access law observed (all reads via managed `psql`).
+
+**Deviation:** none. Docs-only extraction + ledger append.
+
+---
+
+### 118. **HELD — item 116 steps (ii), (iii), (iv), (v)** @ controller tick 2026-07-26T05:02:15Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero deploys)
+
+**Scope of hold:** step (ii) BAND-REALIGNMENT T2 deploy (item 113 DEPLOY-HELD release), step (iii) PERFECT-INTAKE-EXPERIMENT-RISK, step (iv) IR-BAND-REALIGNMENT (item 114), step (v) TWO-PASS-ARCHITECTURE-DESIGN (item 115) — the entire remainder of item 116 execution order v2.
+
+**Blocker-1 for step (ii) — in-flight customer-path generation (verified 2026-07-26T04:59:57Z via managed `psql` on `function_runs`):**
+- `function_runs.id = 37a242fa-8161-4883-87c5-92097810a698`
+- `function_name = generate-dpa`
+- `status = running`
+- `started_at = 2026-07-26T04:50:15.249Z`
+- `invoked_by = internal`
+- `finished_at IS NULL`
+
+Item 116 step (ii) explicitly gates T2 deploy on: **"(b) no in-flight customer-path generations at deploy time"**. Deploying `generate-dpa` (implicated in T2's dpa-generator fixture/contract surfaces) or any tool whose runtime shares band-enum modules while a customer job is mid-execution would violate the standing customer-preservation invariant. HELD until poll of `function_runs.id=37a242fa-...` returns `finished_at IS NOT NULL`.
+
+**Blocker-2 for step (ii) — atomic contract-turn scope exceeds single-turn safe execution:** inventory grep `rg 'q1_revenue|q2_consumers|\$25M|Under \$25M|Fewer than 100,000|100,000–249|250,000–1 million' src/ supabase/` returned ~50 files spanning intake-contracts, page-level enums, forms (`CPPARiskAssessment.tsx`, `CPPAScopeChecker.tsx`), goldens (`_shared/golden/cppa-risk.ts`), fixtures (`_shared/cppa-risk-contract-fixtures.ts`, `_shared/cppa-test-states.ts`, `sampleFixtures.ts`, `sampleFixtureShapes.ts`, `stress/fixtures.ts`), rail (`CPPARiskRailEntries.ts`), refine (`refine/fieldEnums.ts`), PDF (`generate-report-pdf`), stress (`generate-stress-fixtures`), review (`review-test-output`), assertion runner/tests, harnesses (`CPPAEvalHarness.tsx`), quality-batch, and grader context — plus instrument re-key s4 → `gc-2026-07-26-s5-eu-uk-ca-au-sg` with recorded hash. This is a contract-turn surface set. Under the standing "no partial-surface abandonment" rule for contract turns (same rationale that split BAND-REALIGNMENT into T1 dormant scaffold + T2 wiring per item 113), T2 requires its own dedicated turn with the full ~50-file surface in scope.
+
+**Consequence:** steps (iii)+(iv)+(v) remain queued behind (ii) per item 116 sequencing. No changes to hold-release conditions on items 114 or 115.
+
+**Recommended next controller action:** dispatch BAND-REALIGNMENT T2 as its own atomic contract turn once `function_runs.id=37a242fa-...` reaches terminal (`finished_at IS NOT NULL`). Then proceed to steps (iii)-(v) in order.
+
+**Deviation ruled:** partial execution of item 116 chain within a single turn (steps (ii)+ deferred). Ground: HOLD discipline requires the release note to name item 113; standing "no partial-surface abandonment" for contract turns; verified in-flight customer-path generation violates dispatch-stated release condition (b). All rulings recorded here durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
