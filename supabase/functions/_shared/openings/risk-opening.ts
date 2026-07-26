@@ -37,31 +37,36 @@ import {
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
 
-export const RISK_OPENING_VERSION = "risk-opening-t7-pilotfix2@2026-07-26";
+export const RISK_OPENING_VERSION = "risk-opening-t7-pilotfix3@2026-07-26";
 
-// Revenue bands that UNAMBIGUOUSLY clear the § 1798.140(d)(1)(A) threshold.
-// The corpus figure is "twenty-five million dollars ($25,000,000), as adjusted
-// pursuant to subdivision (d) of Section 1798.199.95" — CPI-adjusted. Only
-// bands whose FLOOR strictly exceeds $25M pre-adjustment qualify. The
-// "$25M–$50M" band straddles the base figure at its low edge (and any CPI
-// adjustment moves the operative figure upward, so straddling is definitive).
+// BAND-REALIGNMENT-T2A (2026-07-26) — retargeted to V2 revenue vocabulary.
+// V2 bands whose FLOOR strictly exceeds $25M pre-adjustment qualify to
+// unambiguously assert § 1798.140(d)(1)(A). "$25M to under $50M" straddles
+// the base figure at its low edge (CPI adjustment moves the operative
+// figure UP, so a straddling band remains inconclusive by design).
+// Legacy V1 labels are retained here so pre-realignment stored intakes
+// continue to render deterministically until the T2C data migration.
 const REVENUE_BANDS_CLEAR_A = new Set<string>([
+  // V2
+  "$50M to $100M",
+  "Over $100M",
+  // Legacy V1 (retained for stored-row back-compat)
   "$50M–$100M",
   "$100M–$500M",
   "Over $500M",
 ]);
 
-// T7-PILOT-FIX-2 (2026-07-26) — bands whose FLOOR is >= 100,000 for the
-// § 1798.140(d)(1)(B) BOUGHT/SOLD/SHARED count. Design rule 6: the operand
-// for (B) MUST be a count field whose legal meaning is "bought, sold, or
-// shared consumers or households". q2_consumers is a PROCESSED-consumers
-// band (all-purpose data-subject volume) and is EXPLICITLY EXCLUDED here —
-// it may never source (B). The live risk intake contract does not yet
-// carry a compliant count field; when one is added (canonical key
-// `bought_sold_shared_count`, same band vocabulary) the builder will
-// consume it. Until then, (B) is dropped even when sell/share is
-// affirmative, and the omission is telemetered as `s0_b_rejected_reason`.
+// BAND-REALIGNMENT-T2A (2026-07-26) — bands whose FLOOR is >= 100,000 for
+// the § 1798.140(d)(1)(B) BOUGHT/SOLD/SHARED count. Design rule 6: the
+// operand for (B) MUST be a count field whose legal meaning is "bought,
+// sold, or shared consumers or households"; q2_consumers remains EXPLICITLY
+// EXCLUDED. Retargeted to V2 vocabulary; V1 labels retained for back-compat.
 const BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE = new Set<string>([
+  // V2
+  "100,000 to under 250,000",
+  "250,000 to under 1,000,000",
+  "1,000,000 or more",
+  // Legacy V1
   "100,000–249,999",
   "250,000–1 million",
   "1–10 million",
