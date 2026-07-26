@@ -1076,8 +1076,8 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         /adtech|marketing|media/i.test(industry) ? "Behavioural audience segmentation of California consumers" :
         /health|clinical|pharma|biotech/i.test(industry) ? "Care-management risk scoring of California patients" :
         `Automated risk scoring of California customers in ${industry}`,
-      q1_revenue: slot === 1 ? "Over $25 million" : "$20M-$100M",
-      q2_consumers: slot === 1 ? "Over 100,000" : "50,000-100,000",
+      q1_revenue: slot === 1 ? "Over $100M" : "$25M to under $50M",
+      q2_consumers: slot === 1 ? "1,000,000 or more" : "Under 100,000",
       q3_sector: industry,
       q4_pi_categories: ["identifiers", "internet activity", "commercial information"],
       q5_sell_share: "Yes",

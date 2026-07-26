@@ -73,7 +73,7 @@ const REQUIRED_ALWAYS_FILLERS = {
   i1b_min_pi: "Identifiers and processing-related fields; no ancillary categories.",
   i2_retention_period: "24 months",
   i2_retention_criteria: "Until purpose is fulfilled, then deletion",
-  i3_ca_consumer_band: "100,000–1,000,000",
+  i3_ca_consumer_band: "100,000 to under 250,000",
   i4_disclosure_mechanisms: ["Privacy policy"],
   i4b_sources: "Directly from consumers via the product",
   i6_vendors: "None",
@@ -89,8 +89,8 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
   intake: {
     entity_name: "Meridian Health, Inc.",
     subject_anchor: "Mental-health triage service",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "1–10 million",
+    q1_revenue: "Over $100M",
+    q2_consumers: "1,000,000 or more",
     q3_sector: "Healthcare/Life Sciences",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -135,8 +135,8 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
   intake: {
     entity_name: "Solstice FinPay, Inc.",
     subject_anchor: "Consumer credit-scoring product",
-    q1_revenue: "$50M–$100M",
-    q2_consumers: "250,000–1 million",
+    q1_revenue: "$50M to $100M",
+    q2_consumers: "250,000 to under 1,000,000",
     q3_sector: "Financial services",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -175,8 +175,8 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
   intake: {
     entity_name: "Aurora RetailWorks, LLC",
     subject_anchor: "Loyalty-program personalization engine",
-    q1_revenue: "$25M–$50M",
-    q2_consumers: "100,000–249,999",
+    q1_revenue: "$25M to under $50M",
+    q2_consumers: "100,000 to under 250,000",
     q3_sector: "Retail/ecommerce",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",

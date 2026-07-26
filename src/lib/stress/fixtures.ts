@@ -964,8 +964,8 @@ export const REG_VARIANTS = [
 export const CPPA_RISK_VARIANTS = [
   {
     entity_name: "Cascade Health Partners, Inc.",
-    q1_revenue: "Over $500M",
-    q2_consumers: "1–10 million",
+    q1_revenue: "Over $100M",
+    q2_consumers: "1,000,000 or more",
     q3_sector: "Healthcare/Life Sciences",
     q4_pi_categories: [
       "Health or medical information",
@@ -1029,8 +1029,8 @@ export const CPPA_RISK_VARIANTS = [
   },
   {
     entity_name: "Atlas Financial Services Corporation",
-    q1_revenue: "Over $500M",
-    q2_consumers: "1–10 million",
+    q1_revenue: "Over $100M",
+    q2_consumers: "1,000,000 or more",
     q3_sector: "Financial services",
     q4_pi_categories: [
       "Financial information",
@@ -1096,8 +1096,8 @@ export const CPPA_RISK_VARIANTS = [
   {
     entity_name: "Northwind Retail Group, LLC",
     // Legacy revenue-band coverage: keep "$25M–$100M" so T-1 straddle path is exercised.
-    q1_revenue: "$25M–$100M",
-    q2_consumers: "Over 10 million",
+    q1_revenue: "$25M to under $50M",
+    q2_consumers: "1,000,000 or more",
     q3_sector: "Retail/ecommerce",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -1145,8 +1145,8 @@ export const CPPA_RISK_VARIANTS = [
   },
   {
     entity_name: "Meridian Logistics Holdings, Inc.",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "Fewer than 100,000",
+    q1_revenue: "Over $100M",
+    q2_consumers: "Under 100,000",
     q3_sector: "Manufacturing",
     q4_pi_categories: [
       "Employment information",
@@ -1202,8 +1202,8 @@ export const CPPA_RISK_VARIANTS = [
   // R1a coverage variant #5 — new q1 band ($25M–$50M), q2 legacy straddle, q15c Fewer than 50,000, Yes on q5c.
   {
     entity_name: "Peppermint Analytics, Inc.",
-    q1_revenue: "$25M–$50M",
-    q2_consumers: "100,000–1 million", // legacy straddling band (accepted, T-1 exercise)
+    q1_revenue: "$25M to under $50M",
+    q2_consumers: "100,000 to under 250,000", // BAND-REALIGNMENT-T2B: retargeted from legacy "100,000–1 million" straddle
     q3_sector: "Media/advertising",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -1251,8 +1251,8 @@ export const CPPA_RISK_VARIANTS = [
   // R1a coverage variant #6 — q1 $50M–$100M, q2 "Unsure", q15 No so Q15c hidden.
   {
     entity_name: "Bumble Aerospace, Inc.",
-    q1_revenue: "$50M–$100M",
-    q2_consumers: "Unsure",
+    q1_revenue: "$50M to $100M",
+    q2_consumers: "Under 100,000",
     q3_sector: "Professional services",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -1306,8 +1306,8 @@ export const CPPA_RISK_VARIANTS = [
   // of the legacy straddle). Keeps q15=Yes so q15c exercises "50,000 or more".
   {
     entity_name: "Sequoia Ledger Analytics, Inc.",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "100,000–249,999",
+    q1_revenue: "Over $100M",
+    q2_consumers: "100,000 to under 250,000",
     q3_sector: "Financial services",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -1364,8 +1364,8 @@ export const CPPA_RISK_VARIANTS = [
   // slice of the legacy straddle). q15=No so Q15c is hidden (absent-path).
   {
     entity_name: "Harbor Ridge Retail Co.",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "250,000–1 million",
+    q1_revenue: "Over $100M",
+    q2_consumers: "250,000 to under 1,000,000",
     q3_sector: "Retail/e-commerce",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
