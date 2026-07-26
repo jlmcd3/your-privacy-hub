@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "band-realignment-t2a@2026-07-26T05:29:06Z";
+export const BUILD_STAMP = "risk-citation-dup-fix@2026-07-26T06:24:30Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
@@ -35,8 +35,9 @@ import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
 import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
 import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION } from "./_risk_cohort_date.ts";
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
+import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
-console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} build_stamp=${BUILD_STAMP}`);
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
 
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
@@ -3004,6 +3005,38 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[RISK] RISK-INTAKE-CONTRADICTION-BODY failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── RISK-CITATION-DUP-FIX (2026-07-26) ────────────────────────────
+    // Deterministic post-pass discharging the two generator-owned
+    // classes from PERFECT-INTAKE-EXPERIMENT run f3674428:
+    //   (A) two-trigger comparison sentences that carry the SAME
+    //       § 7150(b) pinpoint on both sides — restructured to
+    //       single-trigger phrasing by whole-sentence excision.
+    //   (B) ADMT-consequence assertions (§ 7001(ddd) / decision-
+    //       effects prose) when q18_admt_use resolves NEGATIVE —
+    //       the § 7150(b)(4) profiling trigger itself is preserved.
+    // Anchor + reserved-subtree safe. Runs AFTER intake-contradiction
+    // and BEFORE the LEAK-PREV P1 emit gate. Telemetry lands on
+    // _meta.internal.risk_citation_dup_fix; preexisting _meta.internal
+    // siblings preserved.
+    try {
+      const _cdfIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _cdfC, report: _cdfR } = applyRiskCitationDupFix(
+        _cdfIntake, report_data as any, { buildStamp: BUILD_STAMP },
+      );
+      report_data = _cdfR as any;
+      const rdCdf: any = report_data;
+      const metaCdf = (rdCdf._meta = rdCdf._meta && typeof rdCdf._meta === "object" ? rdCdf._meta : {});
+      const internalCdf = (metaCdf.internal = metaCdf.internal && typeof metaCdf.internal === "object" ? metaCdf.internal : {});
+      internalCdf.risk_citation_dup_fix = _cdfC;
+      console.log(JSON.stringify({
+        evt: "_risk_citation_dup_fix", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, risk_citation_dup_fix_stamp: RISK_CITATION_DUP_FIX_STAMP, ..._cdfC,
+      }));
+    } catch (e) {
+      console.warn("[RISK] RISK-CITATION-DUP-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     // BAND-REALIGNMENT-T2A (2026-07-26): stamp band-resolution telemetry on
     // _meta.internal so downstream QC / graders can distinguish V1→V2
