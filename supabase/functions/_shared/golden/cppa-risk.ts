@@ -81,7 +81,7 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "sensitive", flags: "i", label: "SPI addressed" },
       // T7-RISK-OPENING-PILOT: adtech fixture engages § 1798.140(d)(1)(B) (sell/share
-      // "Both" + q2_consumers "250,000–1 million") — deterministic S0 must render
+      // "Both" + q2_consumers "250,000 to under 1,000,000") — deterministic S0 must render
       // the (B) verbatim corpus quote fragment.
       { kind: "must_include", pattern: "buys, sells, or shares", flags: "", label: "S0 (B) corpus quote present" },
       { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
