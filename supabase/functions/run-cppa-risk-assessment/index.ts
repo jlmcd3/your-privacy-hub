@@ -2991,10 +2991,15 @@ async function runPipeline(assessment_id: string) {
         overwrote_model_output: true,
         s0_criteria: built.provenance.s0_criteria,
         s1_triggers: built.provenance.s1_triggers,
+        // T7-PILOT-FIX-2 (ledger item 97): telemetry-only counter for the
+        // (B) rejection reason when sell/share is affirmative but the
+        // intake carries no compliant bought/sold/shared count field.
+        s0_b_rejected_reason: built.provenance.s0_b_rejected_reason,
         omitted: built.provenance.omitted,
         sources: built.provenance.sources,
         length: built.text.length,
         pilot: "T7-RISK-OPENING-PARAGRAPH-PILOT-2026-07-25",
+        pilotfix2_stamp: "t7-risk-pilotfix2@2026-07-26T01:10:00Z",
       };
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] T7 opening builder failed (non-fatal):", (e as Error)?.message);
