@@ -313,6 +313,8 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
     errors.push(`narrative_capped_at_${SUMMARY_NARRATIVE_MAX_CHARS}`);
   }
 
+  const overallOut = overallResolved ?? (input.overall_risk_level_from_caller ?? "");
+
   return {
     structured: {
       company_name: input.intake.company_name ?? "",
@@ -321,9 +323,10 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
       triggered_activities,
       exceptions_claimed: exception_labels,
       exceptions_status,
-      // HELD-carried through: caller-supplied value is passed verbatim; the
-      // composer does NOT synthesize a tier while item 147 remains open.
-      overall_risk_level: input.overall_risk_level_from_caller ?? "",
+      // When activity_signals are supplied, the 5-tier precedence law from
+      // risk-level-map.ts resolves the value. Otherwise the caller-supplied
+      // value is passed through verbatim (back-compat path).
+      overall_risk_level: overallOut,
       cybersecurity_audit_required: !!input.gate_signals.cybersecurity_audit_required,
       admt_disclosure_required: !!input.gate_signals.admt_disclosure_required,
       corpus_enforcement_note: input.corpus_enforcement_note ?? "",
@@ -337,7 +340,9 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
       narrative_chars: narrative.length,
       capped,
       errors,
-      overall_risk_level_held: true,
+      overall_risk_level_held: riskResult === null,
+      overall_risk_level_rule: riskResult?.rule_fired,
+      overall_risk_level_rule_note: riskResult?.rule_note,
     },
   };
 }
