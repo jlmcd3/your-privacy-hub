@@ -6,8 +6,8 @@ import type { GoldenCase } from "./types.ts";
 const base = {
   entity_name: "Meridian SaaS Inc.",
   subject_anchor: "California consumers using the free tier",
-  q1_revenue: "$25M–$50M",
-  q2_consumers: "250,000–1 million",
+  q1_revenue: "$25M to under $50M",
+  q2_consumers: "250,000 to under 1,000,000",
   q3_sector: "Technology/SaaS",
   q4_pi_categories: ["Contact identifiers (name, email, phone)", "Device identifiers (IP, cookies, device IDs)"],
   q5_sell_share: "No",
