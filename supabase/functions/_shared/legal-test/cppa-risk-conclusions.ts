@@ -17,6 +17,13 @@
  * conclusion the regulation phrases as a weighing test ("outweigh"); every
  * other conclusion is a Type R rule or a Type J reserved judgment.
  *
+ * v2.2 AUTHORITY-WEIGHT CONSTRAINT (CEO-CORRECTED 2026-07-26): all Type R
+ * `anchor` and `supporting_anchors` in this file are BINDING-tier CPPA/CA
+ * authority (California statutes and 11 CCR regulations). Type R may never
+ * anchor on persuasive material; Type W factor anchors are binding-only;
+ * persuasive material (FSOR-mediated non-CA) is confined to Pass G's
+ * weighing_frame with `fsor_mediation_ref` and template-enforced marking.
+ *
  * NO WIRING: this file is data only. Phase 2 wires it into the Pass-1
  * derivation and the Type-W checks feed Pass G candidate-set closure.
  */
