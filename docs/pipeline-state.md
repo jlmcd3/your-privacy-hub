@@ -1408,3 +1408,50 @@ Prior stamps echoed unchanged: w23, w24, w24a_v3, t7_pilotfix, t7_pilotfix2, ris
 **Courier:** `docs/courier/RISK-INTAKE-CONTRADICTION-BODY-2026-07-26.md`.
 
 **Out of scope:** every other edge function; wave harness; instrument gc-2026-07-25-s4-eu-uk-ca-au-sg (FROZEN); rubrics/graders/goldens/contracts/fixtures/samples/registries; corpus DDL or corpus row edits; the T7 opening builder; the RCD module; pricing/payment/design tokens/customer revision path/signup; no Fable 5; no sample regen.
+
+---
+
+### 113. **SHIPPED-T1 / DEPLOY-HELD — BAND-REALIGNMENT (docs + design + dormant central module)** @ controller tick 2026-07-26T03:52:55Z. CEO-ordered 2026-07-26 ~02:40Z; five-lens TEAM-REVIEWED (privacy-counsel: 1:1 statutory-line mapping verified against corpus quotes; CS: labels remain plain-language).
+
+**Root cause fixed (design turn):** QL2-vs-quality-batch dummy-data investigation traced the recurring CRITICAL `qc_r1_4_cohort_determinism` to a band-edge defect. The current `q1_revenue` label `"$25M–$50M"` straddles the § 7121(a)(2)/(a)(3) $50M cohort line — emitter (correctly) refuses to assert; grader (correctly) demands. QL2-era `"$20M–$100M"` was the same defect, doubled. Same shape in `q2_consumers` (`"100,000–1 million"` straddles § 7120(b)(2)(A) 250k) and in the parallel `i3_ca_consumer_band` scale.
+
+**Fix shape:** realign every band edge to a statutory line so every V2 band maps to exactly ONE cohort and ONE applicability answer. Legacy stored values keep working via an EXPLICIT mapping; unambiguous legacy values resolve to a V2 band; ambiguous legacy values resolve to `null` and callers mark `_meta.internal.band_legacy_ambiguous=true` and preserve conservative no-assert behavior. NO stored-data rewrites.
+
+**This turn (T1) — docs + design + dormant scaffold ONLY. NO code deploy. NO wiring.**
+
+**Files landed:**
+- `supabase/functions/_shared/bands/revenue-consumer.ts` — NEW canonical module (dormant; no import site yet). Exports `REVENUE_BANDS_V2`, `CONSUMER_BANDS_V2`, `REVENUE_BAND_APPLICABILITY_A`, `REVENUE_BAND_AUDIT_COHORT`, `CONSUMER_BAND_APPLICABILITY`, `REVENUE_LEGACY_MAP`, `CONSUMER_LEGACY_MAP`, `resolveRevenueBand`, `resolveConsumerBand`, `isBandLegacyAmbiguous`, `INSTRUMENT_VERSION_V2`, `INSTRUMENT_PRIOR`, `QC_R1_4_EXPECTED_COHORT`.
+- `src/lib/bands/revenueConsumer.ts` — NEW frontend mirror (dormant). Byte-identical enum arrays + mapping tables. Both files carry a header pointer to the other.
+- `docs/courier/BAND-REALIGNMENT-2026-07-26.md` — NEW courier with §1 root cause, §2 corpus verbatim (every edge quoted from `provision_texts` this turn), §3 enum tables, §4 legacy map, §5 instrument re-key detail, §6 T2 surfaces enumerated, §7 what changed T1, §8 T2 deploy protocol, §9 guardrails.
+
+**Corpus edges (verbatim, read this turn):**
+- `provision_texts.ccpa-1798-140` § 1798.140(d)(1)(A) — "in excess of twenty-five million dollars ($25,000,000)"
+- `provision_texts.ccpa-1798-140` § 1798.140(d)(1)(B) — "100,000 or more consumers or households"
+- `provision_texts.cppa-7121` § 7121(a)(1) — "more than one hundred million dollars ($100,000,000)"
+- `provision_texts.cppa-7121` § 7121(a)(2) — "between fifty million dollars ($50,000,000) and one hundred million dollars ($100,000,000)"
+- `provision_texts.cppa-7121` § 7121(a)(3) — "less than fifty million dollars ($50,000,000)"
+
+**V2 enums (published T1, wired T2):**
+- Revenue: `["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"]` — cohorts `null / 2030-04-01 / 2029-04-01 / 2028-04-01` respectively; applicability (A) `false / true / true / true`.
+- Consumers: `["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"]` — every edge on 100k or 250k or 1M line.
+- `i3_ca_consumer_band` UNIFIED onto the same enum (T2 removes the parallel scale).
+
+**Legacy → V2 map (accept-only, no stored rewrites):**
+- Revenue: `"Under $25M"→"Under $25M"`; `"$50M–$100M"→"$50M to $100M"`; `"$100M–$500M"→"Over $100M"`; `"Over $500M"→"Over $100M"`. AMBIGUOUS (`→null`): `"$25M–$50M"`, `"$25M–$100M"`, `"$20M–$100M"`.
+- Consumers: `"Fewer than 100,000"→"Under 100,000"`; `"100,000–249,999"→"100,000 to under 250,000"`; `"250,000–1 million"→"250,000 to under 1,000,000"`; `"1–10 million"→"1,000,000 or more"`; `"Over 10 million"→"1,000,000 or more"`. AMBIGUOUS (`→null`): `"100,000–1 million"`, `"Unsure"`.
+
+**Instrument re-key (documented; applied T2):** `gc-2026-07-25-s4-eu-uk-ca-au-sg` → **`gc-2026-07-26-s5-eu-uk-ca-au-sg`**. `qc_r1_4_cohort_determinism` (and any other band-keyed check) re-keyed off `QC_R1_4_EXPECTED_COHORT`; **ambiguous-legacy bands EXEMPT** from the check (primary-source proof: § 7121(a) subdivision text — cannot demand what the input cannot determine). Rubric text + thresholds otherwise untouched. Hash + counter reset land with T2 wiring (counter 0/3 → no practical cost).
+
+**RULED DEVIATION (per dispatch "atomic; rule deviations"):** contract turn split into T1 (this turn — docs + dormant scaffold, zero code-deploy risk) and T2 (deploy-guarded wiring turn, own dispatch). Ground: dispatch itself provides the split path ("split deploy after the wave with DEPLOY-HELD marker"), the wave at ~04:30Z sits inside the T2 execution window on a full wiring turn, and the T1 module ships with zero import sites so cannot regress the frozen s4 instrument. §7 CEO ruling log entry appended below.
+
+**T2 scope (enumerated in courier §6):** contract enum swap, both enum modules re-export V2, cyber profile revenue field, `classifyRevenueBand`/`classifyConsumerBand` accept-legacy, `_risk_cohort_date.ts` trigger swap, T7 opening builder S0 applicability (A) mapping, rail entries rewrite, dummy-data / scenario generators emit V2 only, fixture + golden regen, sample fixtures REGEN flag, tests (contract round-trip, band→cohort exhaustive, legacy mapping, form parity, emitter+check property). T2 courier will paste boot logs + guards + instrument hash line.
+
+**Out of scope this turn:** every edge function; every intake form JSX; every contract validate.ts; every rubric/grader/golden/contract/fixture/sample/registry/corpus row; wave harness; T7 opening builder module; RCD module; RCD's classifyRevenueBand consumer; pricing/design/customer-path/signup; no Fable 5; no sample regen; no `cppa_authorities` writes.
+
+**Courier:** `docs/courier/BAND-REALIGNMENT-2026-07-26.md`.
+
+---
+
+### CEO RULING LOG — band-realignment ordered (2026-07-26 ~02:40Z)
+
+Ruling: adopt statutorily-aligned revenue/consumer band enums project-wide across all CPPA/CCPA-facing tools; existing band scales that straddle statutory lines are retired. Every new-band answer must map to exactly one applicability answer and (where cohort-relevant) exactly one cohort date. Legacy stored values continue to be accepted by generators via an explicit mapping and marked ambiguous where they straddle a statutory line; emitters preserve conservative no-assert behavior for ambiguous inputs; no stored-data rewrites. Deterministic checks keyed on band labels are re-keyed onto the new enum; ambiguous-legacy bands are exempt (removes a check-vs-emitter contradiction, with primary-source proof from the corpus). Rubric text and thresholds are otherwise untouched. Ruling status: STANDING; supersedes any prior band-scale in fixtures, forms, contracts, generators, rails, and instrument keys once T2 wiring lands.
