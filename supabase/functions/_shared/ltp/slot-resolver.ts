@@ -97,7 +97,19 @@ export function resolveSlot(
     case "customer_question":
       // Bound to a per-gate context; caller substitutes from gate_outcomes.
       return "";
+    // ── Summary-composition slots (context-provided, verbatim pass-through) ──
+    case "activity_count_phrase":       return ctx.activity_count_phrase ?? "";
+    case "each_or_this_clause":         return ctx.each_or_this_clause ?? "";
+    case "firm_positive_list":          return ctx.firm_positive_list ?? "";
+    case "close_list":                  return ctx.close_list ?? "";
+    case "negative_list":               return ctx.negative_list ?? "";
+    case "remaining_outcomes_clause":   return ctx.remaining_outcomes_clause ?? "";
+    case "activity_label":              return ctx.activity_label ?? "";
+    case "outcome_clause":              return ctx.outcome_clause ?? "";
+    case "key_factor_token":            return ctx.key_factor_token ?? "";
+    case "docs_completion_clause":      return ctx.docs_completion_clause ?? "";
     default:
       return "";
   }
 }
+
