@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T03:01:28Z — DONE — WAVE-28 RISK ATTRIBUTION (item 107, docs-only; controller tick 02:57Z). Closes risk 72.75 (−6.10 vs w27) attribution: drivers are recurring intermittent cohort-date omission (worst draw to date), doc3 body contradictions, doc1 citation defects. T7 pilot clean; deploy gate RELEASED. T7 step-2 admt still HELD on CEO checkpoint; W9-ACCESS-TIMELINE unchanged.
+**Last updated:** 2026-07-26T03:13:07Z — SHIPPED — RISK-COHORT-DATE-DETERMINISM (item 108, deploy-guarded, run-cppa-risk-assessment ONLY). Discharges item 107 QUEUED — deterministic post-pass guarantees § 7121(a)(3) cohort date "April 1, 2030" for resolved band $25M–$50M; corpus-pinned literal from provision_texts.cppa-7121 (approved); whole-sentence excision for wrong-cohort sentences; omission-over-invention for every other band; idempotent; fail-open. 16/16 green tests. Deploy guards 0/0/0 at 03:13Z. Boot log echoes prior stamps unchanged (w24a_v3, t7_pilotfix, t7_pilotfix2). BUILD_STAMP risk-cohort-date@2026-07-26T03:09:53Z. GATE: must read clean on next risk wave before the cohort class is called fixed.
 
 ---
 
