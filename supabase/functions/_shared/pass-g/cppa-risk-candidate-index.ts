@@ -23,6 +23,10 @@ export interface CandidateEntry {
   /** Corpus row surrogate — a query key downstream Pass G will resolve. */
   readonly corpus_ref: string;
   readonly tier_label: "primary" | "supporting" | "analogy_fsor_internal";
+  /** v2.2 — every candidate carries an authority-weight tier. primary/supporting = "binding" (CA interpretive material); analogy_fsor_internal = "persuasive" (FSOR-mediated non-CA). */
+  readonly authority_weight: "binding" | "persuasive";
+  /** v2.2 — REQUIRED when authority_weight="persuasive": CPPA-domain FSOR row that discusses this non-CA source. */
+  readonly fsor_mediation_ref?: string;
 }
 
 export interface CandidateSlice {
