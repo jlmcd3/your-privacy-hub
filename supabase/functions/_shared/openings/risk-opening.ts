@@ -90,6 +90,11 @@ export interface RiskOpeningInput {
   i1_processing_purpose?: unknown;
   i1b_min_pi?: unknown;
   i4_disclosure_mechanisms?: unknown;
+  /** T7-PILOT-FIX-2: canonical compliant count field for § 1798.140(d)(1)(B).
+   *  Legal meaning: consumers or households whose PI was BOUGHT, SOLD, or
+   *  SHARED (not "processed"). Same band vocabulary as q2_consumers. If the
+   *  intake contract adds this key, the builder will consume it. */
+  bought_sold_shared_count?: unknown;
   [k: string]: unknown;
 }
 
