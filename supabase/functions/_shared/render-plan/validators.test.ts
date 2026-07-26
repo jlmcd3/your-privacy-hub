@@ -263,3 +263,42 @@ Deno.test("V8: persuasive marker required when rendering persuasive entries", ()
   const good = lintPersuasiveMarking("By way of analogy, similar reasoning applies.", [entry]);
   assertEquals(good.length, 0);
 });
+
+// ---------------------------------------------------------------------------
+// v2.3 — federal-qualification / generalized forum rule
+// ---------------------------------------------------------------------------
+
+Deno.test("V3 v2.3: us-federal binding citation on cppa-ca plan is accepted", () => {
+  const plan = basePlan({
+    citation_bindings: [
+      { pinpoint_ref: "C.7152a", corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)", jurisdiction_tag: "cppa-ca", authority_weight: "binding" },
+      { pinpoint_ref: "C.ftc", corpus_key: "ftc-act-5", pinpoint: "15 U.S.C. § 45", jurisdiction_tag: "us-federal", authority_weight: "binding" },
+    ],
+  });
+  const issues = [...validateAuthorityDomain(plan), ...validateAuthorityWeight(plan)];
+  assertEquals(issues.filter((i) => i.severity === "error"), []);
+});
+
+Deno.test("V8 v2.3: sister-state binding entry on cppa-ca plan is rejected", () => {
+  const plan = basePlan({
+    citation_bindings: [
+      { pinpoint_ref: "C.7152a", corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)", jurisdiction_tag: "cppa-ca", authority_weight: "binding" },
+      { pinpoint_ref: "C.bipa", corpus_key: "bipa-15", pinpoint: "740 ILCS 14/15", jurisdiction_tag: "us-state-il", authority_weight: "binding" },
+    ],
+  });
+  const issues = validateAuthorityWeight(plan);
+  assert(issues.some((i) => i.code === "V8_SISTER_STATE_BINDING"));
+});
+
+Deno.test("V8 v2.3: GDPR plan rejects any U.S.-tagged citation (federal or state)", () => {
+  const plan = basePlan({
+    jurisdiction_tag: "gdpr-eu",
+    citation_bindings: [
+      { pinpoint_ref: "C.ftc", corpus_key: "ftc-act-5", pinpoint: "15 U.S.C. § 45", jurisdiction_tag: "us-federal", authority_weight: "binding" },
+    ],
+    propositions: [],
+    factor_table: [],
+  });
+  const issues = validateAuthorityWeight(plan);
+  assert(issues.some((i) => i.code === "V8_GDPR_US_BRIDGE"));
+});

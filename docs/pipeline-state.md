@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T08:32:47Z — **LEGAL-TEST-V2.2-AUTHORITY-WEIGHT CORRECTION (item 134)** — docs+corrective-labels turn per CEO correction 2026-07-26; supersedes v2.1 phrasing that treated FSOR-discussed non-CA analogies as CPPA authority; adds binding/persuasive tiering across LEGAL-TEST.md, TWO-PASS-ARCHITECTURE.md, and Phase-1 code labels (schema/factors/pass-g/validators + V8 tests green 18/18); zero deploys; zero prompt/rubric/grader/golden/contract/fixture/sample edits; no BUILD_STAMP touched; campaign `fd1be147` remains CEO-paused.
+**Last updated:** 2026-07-26T08:39:56Z — **LEGAL-TEST-V2.3-FEDERAL-QUALIFICATION (item 135)** — docs+labels turn per CEO ruling 2026-07-26 qualifying v2.2: U.S. Federal law (incl. FTC/agency rulings) is binding-tier for U.S.-forum plans; sister-state law is persuasive-only; GDPR/UK unchanged (no U.S. material, any tier). Amends LEGAL-TEST.md Q4(e) v2.3, TWO-PASS-ARCHITECTURE.md new §2.9, JurisdictionTag gains "us-federal", V3 relaxed + V8 gains V8_SISTER_STATE_BINDING and V8_GDPR_US_BRIDGE (validators green 21/21). Zero deploys; zero prompt/rubric/grader/golden/contract/fixture/sample/registry/corpus edits; no BUILD_STAMP touched; campaign `fd1be147` remains CEO-paused.
 
 ---
 
@@ -1909,3 +1909,40 @@ This turn does NOT begin building — per dispatch, phased build turns arrive as
 **Zero-side-effect confirmation:** only edits: two design docs (Q4(e) v2.2 append + §2.8 insert); six `_shared/*` code files (label/type additions + V8 validator + tests); `docs/courier/TWO-PASS-BUILD-PHASE1-2026-07-26.md` (§8 appended); `docs/pipeline-state.md` (this item + header restamp). No prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus edits; no edge-function deploy; no migration; no `quality_batch` launch; no BUILD_STAMP bumped.
 
 **Deviations ruled:** none — turn executed exactly per dispatch (CEO correction + amendment + Phase-1 corrective sub-turn, no code beyond label additions in already-landed authoring artifacts).
+
+### 135. **DONE (2026-07-26T08:39:56Z, LEGAL-TEST-V2.3-FEDERAL-QUALIFICATION + TWO-PASS-DESIGN-AMENDMENT + PHASE-1 CORRECTIVE SUB-TURN)** — CEO ruling 2026-07-26 (team-reviewed). Zero edge-function deploys; zero migrations; zero prompt / rubric / grader / golden / contract / fixture / sample / registry data-row / corpus edits; no BUILD_STAMP touched; campaign `fd1be147` remains CEO-paused. Code touches are label-only additions (one enum member + validator refinement + header comments) to Phase-1 authoring artifacts already landed under items 133 and 134; no wiring, no deploy.
+
+**CEO-CORRECTED PRINCIPLE (verbatim):** "Non-California law can never be binding authority for a California product UNLESS it is U.S. Federal law, including U.S. agency rulings." Rationale: federal law applies of its own force within California under the Supremacy Clause; FTC and other U.S. federal agency rulings are U.S. law applicable in California.
+
+**GENERALIZED FORUM RULE (applies to any U.S.-state analysis unit — CPPA/California, Illinois/BIPA, Texas, etc.):** BINDING tier = the forum state's own law + U.S. FEDERAL law (`jurisdiction_tag: "us-federal"`; statutes, regulations, FTC and other federal agency rulings). SISTER-STATE law (another U.S. state's statutes/rulings) = PERSUASIVE/ANALOGY tier only, expressly marked in output. FOREIGN law follows the existing per-domain rules (CPPA: FSOR-mediated persuasive only per v2.2). GDPR/UK products UNCHANGED — no U.S. material (state OR federal) in any role; the bridge is ONE-WAY.
+
+**Deliverables:**
+
+1. **AMENDED `docs/design/LEGAL-TEST.md`** — new **Q4(e) v2.3** paragraph appended (qualifies v2.2) with the CEO-verbatim sentence, the generalized forum rule, corpus implication for `enforcement_actions` `us-federal` rows, and validator updates.
+
+2. **AMENDED `docs/design/TWO-PASS-ARCHITECTURE.md`** — new **§2.9 Legal Test v2.3 — Federal-Qualification / Generalized Forum Rule** appended after §2.8 covering: schema delta (`JurisdictionTag` gains `"us-federal"`; no new fields required); V3 relaxation (us-federal binding admissible on any U.S.-forum plan without cross-domain error; persuasive entries skipped and governed by V8); V8 extensions (`V8_SISTER_STATE_BINDING` and `V8_GDPR_US_BRIDGE`); Pass-2 persuasive-marking + sole-support ban continuity; Phase-1 build correction; corpus implication.
+
+3. **PHASE-1 CORRECTIVE SUB-TURN (labels + types only; no data loss, no wiring; all pre-existing cppa-ca rows unchanged):**
+   - `_shared/legal-test/cppa-risk-conclusions.ts` — `JurisdictionTag` union extended with `"us-federal"`; v2.3 header note added.
+   - `_shared/render-plan/schema.ts` — `AuthorityWeight` comment restated for v2.3 (us-federal admissibility on U.S.-forum plans; sister-state rejection at binding).
+   - `_shared/factors/cppa-risk-factors.ts` — v2.3 header note added; no row edits.
+   - `_shared/pass-g/cppa-risk-candidate-index.ts` — v2.3 header note added; no row edits.
+   - `_shared/render-plan/validators.ts` — **V3 relaxed**: added `isUsForumTag` + `isBindingDomainMatch` helpers; skip cross-domain error when ref is `us-federal` binding on a U.S.-forum plan; skip persuasive entries (governed by V8). **V8 extended**: added `V8_SISTER_STATE_BINDING` (U.S.-forum plan with sister-state binding tag on citation_bindings or weighing_frame = hard reject; must be persuasive-tier instead) and `V8_GDPR_US_BRIDGE` (any `us-federal`, `cppa-ca`, or `us-state-*` tag on a GDPR/UK plan at any tier = hard reject).
+   - `_shared/render-plan/validators.test.ts` — 3 new v2.3 tests. **All 21 tests green** — `deno test render-plan/validators.test.ts` → `ok | 21 passed | 0 failed (22ms)`.
+
+4. **COURIER LAND:** `docs/courier/TWO-PASS-BUILD-PHASE1-2026-07-26.md` **§9 "CORRECTIVE SUB-TURN — LEGAL-TEST-V2.3-FEDERAL-QUALIFICATION (2026-07-26)"** appended enumerating the six code files corrected plus the two design docs; pasted-green test output cited.
+
+**CEO RULINGS LOG:** "Non-California law can never be binding authority for a California product UNLESS it is U.S. Federal law, including U.S. agency rulings." Generalized forum rule adopted: forum state + U.S. federal = binding for U.S.-forum plans; sister-state = persuasive only; GDPR/UK unchanged (no U.S. material any tier); one-way bridge preserved.
+
+**Standing state:**
+- Item 114 (IR-BAND-REALIGNMENT) remains QUEUED per item 116.
+- Item 128 (`_risk_citation_dup_fix`) unchanged.
+- Item 129 status: **DESIGN-COMPLETE-v2.3** (supersedes v2.2 as of this item, which itself qualifies v2.2's California-only wording); v1 + v2 + v2.1 + v2.2 + v2.3 all recorded.
+- Item 133 status: **DONE-AUTHORING (v2.3-labeled)** — the seven Phase-1 files stand corrected under the CEO-corrected generalized forum rule. Phase 2 dispatch may proceed.
+- Item 134 remains DONE; v2.3 qualifies (does not supersede) the v2.2 tiering, which remains fully in force for the CPPA-vs-non-CA-non-federal boundary.
+- Campaign `fd1be147` remains CEO-paused.
+- T5 ingestion program: unchanged; adding a note that future `enforcement_actions.jurisdiction = "us-federal"` ingestion (FTC and other federal agency actions) becomes a binding-tier corpus source for U.S.-forum products with no architecture change.
+
+**Zero-side-effect confirmation:** only edits: two design docs (Q4(e) v2.3 append + §2.9 insert); six `_shared/*` code files (one enum member, validator refinement + header comments; no data row edits); `docs/courier/TWO-PASS-BUILD-PHASE1-2026-07-26.md` (§9 appended); `docs/pipeline-state.md` (this item + header restamp). No prompt / rubric / grader / golden / contract / fixture / sample / registry data / corpus edits; no edge-function deploy; no migration; no `quality_batch` launch; no BUILD_STAMP bumped.
+
+**Deviations ruled:** none — turn executed exactly per dispatch (CEO qualification + amendment + Phase-1 corrective sub-turn, code changes limited to a single enum member + validator additions in already-landed authoring artifacts).

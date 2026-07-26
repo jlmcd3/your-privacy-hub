@@ -6,6 +6,9 @@
  * VERBATIM from the OAL-approved regulation text and each row bound
  * to a corpus pinpoint plus a guidance_refs[] set drawn from
  * cppa_fsor_commentary. Domain: cppa-ca ONLY (Q4(e) authority-domain).
+ * v2.3 (CEO 2026-07-26): factor rows may also carry `us-federal` (binding)
+ * on any U.S.-forum plan; sister-state tags are rejected at binding tier
+ * by V8. All existing rows here remain cppa-ca; no data change.
  *
  * Verbatim text was sourced from provision_texts.cppa-7152 (approved
  * this turn, mirror of cppa_authorities '11 CCR § 7152' full_text).

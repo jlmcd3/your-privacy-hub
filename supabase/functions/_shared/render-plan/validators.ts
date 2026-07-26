@@ -84,15 +84,39 @@ export function validateCitationBindingClosure(plan: RenderPlan): Issue[] {
 }
 
 // ---------------------------------------------------------------------------
-// V3 — Authority-domain filter (Q4(e))
+// V3 — Authority-domain filter (Q4(e); v2.3 generalized forum rule)
 // ---------------------------------------------------------------------------
+//
+// v2.3 (CEO-CORRECTED 2026-07-26): for any U.S.-forum plan (cppa-ca or
+// us-state-*), U.S. FEDERAL law (`jurisdiction_tag: "us-federal"`, incl.
+// FTC and other federal agency rulings) is BINDING-tier eligible and does
+// NOT trigger a cross-domain error at V3. Sister-state law crossing into a
+// U.S.-forum plan at BINDING tier is caught by V8 (must be persuasive-tier
+// instead). Persuasive weighing_frame entries carry cross-domain tags by
+// design and are governed by V8, so V3 does not error on them either.
+// GDPR/UK plans remain untouched: no U.S. tag (state OR federal) is
+// admissible in any tier — the bridge is one-way.
+
+export function isUsForumTag(tag: JurisdictionTag): boolean {
+  return tag === "cppa-ca" || (typeof tag === "string" && tag.startsWith("us-state-"));
+}
+
+function isBindingDomainMatch(
+  planDomain: JurisdictionTag,
+  refDomain: JurisdictionTag,
+): boolean {
+  if (refDomain === planDomain) return true;
+  // v2.3 — U.S. Federal is binding-tier for any U.S.-forum plan.
+  if (refDomain === "us-federal" && isUsForumTag(planDomain)) return true;
+  return false;
+}
 
 export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
   const issues: Issue[] = [];
   const domain = plan.jurisdiction_tag;
 
   for (const p of plan.propositions) {
-    if (p.jurisdiction_tag !== domain) {
+    if (!isBindingDomainMatch(domain, p.jurisdiction_tag)) {
       issues.push({
         code: "V3_PROP_DOMAIN_MISMATCH",
         severity: "error",
@@ -102,7 +126,10 @@ export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
     }
   }
   for (const b of plan.citation_bindings) {
-    if (b.jurisdiction_tag !== domain) {
+    const w = b.authority_weight ?? "binding";
+    // Persuasive citation bindings (rare; author-controlled) are governed by V8.
+    if (w === "persuasive") continue;
+    if (!isBindingDomainMatch(domain, b.jurisdiction_tag)) {
       issues.push({
         code: "V3_CITE_DOMAIN_MISMATCH",
         severity: "error",
@@ -112,7 +139,9 @@ export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
     }
   }
   for (const e of plan.factor_table) {
-    if (e.jurisdiction_tag !== domain) {
+    // Factor guidance is binding-tier only (V8b); factor rows must match plan domain
+    // OR carry us-federal on a U.S.-forum plan.
+    if (!isBindingDomainMatch(domain, e.jurisdiction_tag)) {
       issues.push({
         code: "V3_FACTOR_DOMAIN_MISMATCH",
         severity: "error",
@@ -122,7 +151,10 @@ export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
     }
   }
   for (const f of plan.weighing_frame) {
-    if (f.jurisdiction_tag !== domain) {
+    const w = f.authority_weight ?? "binding";
+    // Persuasive frame entries are governed by V8 (allowed for CPPA plans with mediation).
+    if (w === "persuasive") continue;
+    if (!isBindingDomainMatch(domain, f.jurisdiction_tag)) {
       issues.push({
         code: "V3_FRAME_DOMAIN_MISMATCH",
         severity: "error",
@@ -366,6 +398,75 @@ export function validateAuthorityWeight(plan: RenderPlan): Issue[] {
       }
     }
   }
+
+  // (e) v2.3 — U.S.-forum plan: sister-state binding-tier entries are a
+  // hard reject (must be persuasive-tier with proper marking instead).
+  // A "sister-state" entry is a us-state-* tag that is not the plan's own
+  // domain. us-federal is BINDING-eligible per v2.3 and passes here.
+  if (isUsForumTag(domain)) {
+    const check = (
+      tag: JurisdictionTag,
+      w: string,
+      code: string,
+      message: string,
+      path: string,
+    ) => {
+      if (w !== "binding") return;
+      if (typeof tag !== "string") return;
+      if (tag === domain) return;
+      if (tag === "us-federal") return; // v2.3 admissible
+      if (tag.startsWith("us-state-") || tag === "cppa-ca") {
+        issues.push({ code, severity: "error", message, path });
+      }
+    };
+    for (const b of plan.citation_bindings) {
+      check(
+        b.jurisdiction_tag,
+        b.authority_weight ?? "binding",
+        "V8_SISTER_STATE_BINDING",
+        `Citation binding ${b.pinpoint_ref} (${b.pinpoint}) carries sister-state tag "${b.jurisdiction_tag}" at binding tier on plan "${domain}"; sister-state authority is persuasive-tier only.`,
+        `citation_bindings.${b.pinpoint_ref}.authority_weight`,
+      );
+    }
+    for (const f of plan.weighing_frame) {
+      check(
+        f.jurisdiction_tag,
+        f.authority_weight ?? "binding",
+        "V8_SISTER_STATE_BINDING",
+        `Weighing frame ${f.frame_id} carries sister-state tag "${f.jurisdiction_tag}" at binding tier on plan "${domain}"; sister-state authority is persuasive-tier only.`,
+        `weighing_frame.${f.frame_id}.authority_weight`,
+      );
+    }
+  }
+
+  // (f) v2.3 — GDPR/UK plans: no U.S. tag (us-federal, us-state-*, cppa-ca)
+  // in any tier. Bridge is one-way; U.S. material never enters EU/UK reasoning.
+  if (domain === "gdpr-eu" || domain === "gdpr-uk") {
+    const isUsTag = (t: JurisdictionTag) =>
+      t === "us-federal" || t === "cppa-ca" ||
+      (typeof t === "string" && t.startsWith("us-state-"));
+    for (const b of plan.citation_bindings) {
+      if (isUsTag(b.jurisdiction_tag)) {
+        issues.push({
+          code: "V8_GDPR_US_BRIDGE",
+          severity: "error",
+          message: `Citation binding ${b.pinpoint_ref} carries U.S. tag "${b.jurisdiction_tag}" on GDPR plan; the bridge is one-way and U.S. material is inadmissible.`,
+          path: `citation_bindings.${b.pinpoint_ref}.jurisdiction_tag`,
+        });
+      }
+    }
+    for (const f of plan.weighing_frame) {
+      if (isUsTag(f.jurisdiction_tag)) {
+        issues.push({
+          code: "V8_GDPR_US_BRIDGE",
+          severity: "error",
+          message: `Weighing frame ${f.frame_id} carries U.S. tag "${f.jurisdiction_tag}" on GDPR plan; the bridge is one-way and U.S. material is inadmissible.`,
+          path: `weighing_frame.${f.frame_id}.jurisdiction_tag`,
+        });
+      }
+    }
+  }
+
   return issues;
 }
 
