@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
-export const BUILD_STAMP = "dpa-registry-wiring@2026-07-25T14:18:00Z";
+export const BUILD_STAMP = "dpa-t6fix@2026-07-26T01:55:00Z";
 console.log(`[generate-dpa] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[generate-dpa] boot dpa-registry-wiring registry_loaded=dpa-va-w1-2026-07-25 dpa_va_registry_loaded=true`);
 
@@ -1593,7 +1593,15 @@ ${ADVISORY_VOICE_RULES}`;
     } catch (e) {
       console.warn("[generate-dpa] DPA-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
     }
-    // ── LEAK-PREV-P1 — EMIT GATE ─────────────────────────────────────
+    // ── DPA-T6-FIX (2026-07-26) — Class A citation audit + Class B ──
+    // unsupported-business-claim scrub (whole-sentence-excision doctrine).
+    // Mirrors _lia_t6_fix / _dpia_t6_fix. Fail-open; never blocks emission.
+    try {
+      const { applyDpaT6Fix } = await import("./_dpa_t6_fix.ts");
+      applyDpaT6Fix(report_data, { intake: body as unknown, buildStamp: BUILD_STAMP });
+    } catch (e) {
+      console.warn("[generate-dpa] DPA-T6-FIX post-pass failed (non-fatal):", (e as Error)?.message);
+    }
     try {
       const { runEmitGate } = await import("../_shared/emit-gate.ts");
       runEmitGate(report_data as any, {
@@ -1709,6 +1717,12 @@ ${ADVISORY_VOICE_RULES}`;
             applyW1DpaWire(report_data);
           } catch (e) {
             console.warn("[generate-dpa] DPA-REGISTRY-WIRING post-pass (post-repair) failed (non-fatal):", (e as Error)?.message);
+          }
+          try {
+            const { applyDpaT6Fix } = await import("./_dpa_t6_fix.ts");
+            applyDpaT6Fix(report_data, { intake: body as unknown, buildStamp: BUILD_STAMP });
+          } catch (e) {
+            console.warn("[generate-dpa] DPA-T6-FIX (post-repair) failed (non-fatal):", (e as Error)?.message);
           }
           try {
             const { runEmitGate } = await import("../_shared/emit-gate.ts");
