@@ -146,7 +146,7 @@ export const CPPA_RISK_FRONTEND_READ_PATHS: readonly string[] = [
   "top_risks",
   "priority_actions",
   "next_steps",
-  "cross_tool_recommendations",
+  // "cross_tool_recommendations" — LTP Wave-B item-136 CUT.
   "strengthen_items",
   "inconsistency_flags",
   "exception_analysis",
