@@ -27,6 +27,8 @@ export interface GuidanceRef {
   readonly page_ref: string | null;
   /** Short human anchor to the row's agency_position_summary. */
   readonly anchor_hint: string;
+  /** v2.2 — factor-registry guidance_refs are BINDING-tier only (CA interpretive material). Registry lint rejects any other value. */
+  readonly authority_weight: "binding";
 }
 
 export interface FactorRow {
