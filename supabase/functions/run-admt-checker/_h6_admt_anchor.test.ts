@@ -224,5 +224,11 @@ Deno.test("unrelated fields untouched; non-DUTY_BUCKETS not scanned", () => {
   assertEquals(report.system_name, before.system_name);
   assertEquals(report.enforcement_context, before.enforcement_context);
   assertEquals(report.applicability_verdict, before.applicability_verdict);
-  assertEquals(report.top_3_actions, before.top_3_actions);
+  // top_3_actions entries gain a `_h6v2_ran` idempotency stamp; strip it
+  // before deep-equal.
+  const stripped = report.top_3_actions.map((e: any) => {
+    const { _h6v2_ran, ...rest } = e;
+    return rest;
+  });
+  assertEquals(stripped, before.top_3_actions);
 });
