@@ -135,7 +135,7 @@ This section is **build-blocking** and additive to §§2.5-2.6. Full methodology
 
 **Domain definitions.**
 
-- **`cppa-ca`** — `cppa_authorities`; `provision_texts` CA/ccpa rows; `cppa_fsor_commentary` and `cppa_fsor_callouts`; `cppa_deadlines`; California statutes (Civ. Code); AND analogies the FSOR itself discusses (the FSOR is CPPA-domain corpus — its internal references are legitimate CPPA authority because the FSOR's reference is itself the CPPA anchor).
+- **`cppa-ca`** — `cppa_authorities`; `provision_texts` CA/ccpa rows; `cppa_fsor_commentary` and `cppa_fsor_callouts`; `cppa_deadlines`; California statutes (Civ. Code) (CPPA-domain corpus is BINDING-tier CA interpretive material; FSOR-mediated non-CA discussion is PERSUASIVE tier only per §2.8 v2.2 — never authority).
 - **`gdpr-eu`** / **`gdpr-uk`** — `gdpr_articles` for the matching sub-jurisdiction (UK falls back to EU per existing `getGdprContext` behaviour, which is a within-domain fallback); `edpb_guidelines`; `provision_texts` EU / UK rows; `enforcement_actions` tagged GDPR (eligibility bar applies).
 - **`us-state-<code>`** (e.g. `us-state-il-bipa`, breach-notification states) — the respective state statutes when present in corpus.
 
