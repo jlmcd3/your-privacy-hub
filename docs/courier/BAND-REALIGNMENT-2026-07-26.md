@@ -158,3 +158,36 @@ Dispatch **BAND-REALIGNMENT-T2A** as an atomic contract turn per §4 above. On T
 3. Proceed with item 116 step (iii) PERFECT-INTAKE-EXPERIMENT-RISK per original dispatch.
 
 All rulings recorded durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
+
+---
+
+## T2A-HELD — GATE fired (2026-07-26T05:22:00Z)
+
+**Dispatch:** BAND-REALIGNMENT-T2A (team-reviewed, five-lens), controller-approved sub-split per §4 above.
+
+**Outcome:** HELD before any file edit under the dispatch's own GATE clause:
+
+> "GATE: if any T2A test cannot be made green without exceeding the §4 T2A scope, STOP, record HELD with the specific failure pasted, do not partially deploy."
+
+**Specific failure class:** `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` lines 25–36. The guard iterates `CPPA_RISK_VARIANTS` from `src/lib/stress/fixtures.ts` (assigned to **T2B** in §4, not T2A) and validates every `q1_revenue`/`q2_consumers` against `REVENUE_OPTS`/`CONSUMER_OPTS` with `legacyAccepted = ["$25M–$100M"]` / `["100,000–1 million"]` only. Retargeting the two intake enums to the V2 label set while stress fixtures remain V1 turns the guard RED on the following verified V1 values:
+
+| File | Line | Value | Field |
+| --- | ---: | --- | --- |
+| src/lib/stress/fixtures.ts | 967, 1032 | "Over $500M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 1148, 1309, 1367 | "$100M–$500M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 1205 | "$25M–$50M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 1254 | "$50M–$100M" | q1_revenue |
+| src/lib/stress/fixtures.ts | 968, 1033 | "1–10 million" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1100 | "Over 10 million" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1149 | "Fewer than 100,000" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1255 | "Unsure" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1310 | "100,000–249,999" | q2_consumers |
+| src/lib/stress/fixtures.ts | 1368 | "250,000–1 million" | q2_consumers |
+
+(`$25M–$100M` on line 1099 and `100,000–1 million` on line 1206 remain within the existing `legacyAccepted` allow-list.)
+
+**Why in-scope repair is impossible:** the two repair paths — (P1) retarget `src/lib/stress/fixtures.ts` (T2B-assigned) or (P2) widen `legacyAccepted` in a test file not listed among the four T2A test surfaces in §4 — both exceed §4 T2A scope. §4 T2A tests are exhaustively: `_tests/counsel-voice-1.test.ts`, `_tests/grader-map-correction-7150b3.test.ts`, `_tests/grader-cal-1.test.ts` (all three s4→s5 literal), plus the new `_tests/band-realignment-t2a.test.ts`.
+
+**Recommended micro-scope amendment (single-line §4 add):** add `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` to the T2A test-surface list with the widening described in ledger item 120. This is the minimal edit that preserves the guard's substantive protection (still catches values that are neither V2-current NOR V1-legacy), leaves `src/lib/stress/fixtures.ts` untouched for T2B where §4 assigns it, and lets the four §4 T2A tests (three version bumps + new t2a) plus the widened drift guard all pass green under a V2-only enum contract.
+
+**Standing state:** item 113 remains DEPLOY-HELD; item 118 step (ii) remains HELD; items 114 + 115 remain HELD; item 116 sequencing intact. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits this turn; zero edge-function deploys; zero migrations. See ledger item 120 for the full pasted failure classes and the CEO ruling log carry-forward for the s5 instrument commitment (deferred until T2A actually deploys).
