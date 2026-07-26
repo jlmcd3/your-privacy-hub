@@ -2354,3 +2354,33 @@ Extrapolation to 5-tier ("Critical" and "Insufficient basis") is a legal-reasoni
 - Content set for WAVE-B is COMPLETE — no further courier content required for the risk pilot.
 
 **Courier:** `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-BINDING-2026-07-26.md`.
+
+## Ledger item 150 — WAVE-B LIVE: enforce-preview wired + deployed + Part-2 batch launched (2026-07-26T21:50:00Z)
+
+Executed the CEO-ordered engineering follow-on in a single turn. All prior HELDs (143 / 143b / 143c / 144 / 145 / 147 / 148 / 149) are RELEASED at both content and engineering layers.
+
+**Part-1 wired.** `runPass1Llm()` (N=2 retry, write-around fallback) invoked immediately after the existing LTP shadow-mode block in `supabase/functions/run-cppa-risk-assessment/index.ts`. Output attached under `_meta.internal.legal_test_pipeline.enforce_preview = { manifest, telemetry, plan_summary }`. Customer-visible `report_data` is NOT mutated in this wave (per Wave-B design — `enforce_preview` is telemetry-only until the assessment_summary composition rule lands into the customer path); the whitelist serializer continues to strip `_meta.internal`.
+
+**Tests green (pasted).** `deno test --no-check --allow-net --allow-env _shared/ltp/` → **42 passed / 0 failed**. Two test corrections landed this turn: (a) added `T.risk.summary.opening.insufficient` to `content.test.ts` template enumeration (16 total); (b) `pass2-render.ts` forbidden-token check moved pre-substitution — legitimate `§` glyphs from citation pinpoints are no longer flagged, while model-authored injections in template bodies remain caught (`waveb.test.ts` `pass2-render: forbidden-token check catches § injection via slot` still green).
+
+**Deploy.**
+- `BUILD_STAMP = ltp-risk-waveb-enforce@2026-07-26T21:45:00Z` (fresh sandbox clock).
+- Secret `LTP_ENFORCE_ENABLED=1` set.
+- Boot-log proof (edge_function_logs):
+  ```
+  boot build_stamp=ltp-risk-waveb-enforce@2026-07-26T21:45:00Z
+  boot ltp_phase2=enforce_preview ltp_enforce_enabled=1 design=docs/design/LEGAL-TEST-PIPELINE.md subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va
+  ```
+- Locks: prior `w23-risk-turnb / w24-risk-turna / w24a-v3 / t7-risk-pilotfix / t7-risk-pilotfix2 / risk-cohort-date / risk-intake-contradiction-body / risk-citation-dup-fix` guards all present in boot log — none unwired.
+
+**Part-2 measurement batch launched.**
+- Table row: `quality_runs.id = d8d42997-8601-4984-9a37-34c3230cba17`
+- Tool: `cppa-risk`; `batch_size = 6`; `scenario_set = 'tuning'`; standalone (no `campaign_id`).
+- Instrument: `grader_context_version = gc-2026-07-26-s5-eu-uk-ca-au-sg` (s5 continuity).
+- `run_number = 144`; `status = pending` (resume chain picks up).
+- Single launch; not campaign-linked; CEO pause on `fd1be147` unaffected.
+- Wave-B batch_size ≥ 4 → tuning/holdout overfitting diagnostic ACTIVE per controller ruling.
+
+**Post-terminal extraction (deferred to monitor).** Will decompose: pooled Claude/GPT delta vs Wave-A (78.80 baseline); enforce-preview telemetry — `pass1_ok` rate, `write_around` rate, `attempts` distribution, `latency_ms`; subsumption cross-check against `_risk_citation_dup_fix`, `_w18_risk_vocab`, `_w15_risk_va`; tuning-vs-holdout diagnostic.
+
+**Courier:** `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
