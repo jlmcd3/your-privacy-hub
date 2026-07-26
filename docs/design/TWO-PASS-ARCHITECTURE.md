@@ -9,14 +9,20 @@
 
 ---
 
-## 0. OPEN QUESTIONS FOR CEO (answer before build)
+## 0. OPEN QUESTIONS FOR CEO — **ANSWERED 2026-07-26 (item 132)**
 
-1. **Rollout order.** Risk-first (aligned with pilot doctrine, most instrumented, has PERFECT-INTAKE baseline) vs. DPIA-first (simplest citation surface, unit-pipeline `api_usage` already provides cost/latency analog). Design assumes **Risk-first**.
-2. **Retry budget for Pass-1.** Recommend N=2 model retries → then conservative write-around report (never a blocked customer). Confirm N.
-3. **Model routing.** Pass-1 (structured JSON) and Pass-2 (prose rendering) may run on the same or different models. Default recommendation: **same model, two calls** (attribution stays clean; no cross-model drift). Confirm.
-4. **Interim guard retirement.** Retire `_risk_citation_dup_fix.ts` at what evidence threshold? Proposal: **two consecutive s5 waves with zero (A)/(B) findings in Pass-2 output** → guard becomes assertion-only, then removed one wave later.
-5. **Registry-cut recommendations.** Surface audit (§6) will identify `scope_notes` / `inconsistency_flags` / `cross_tool_recommendations` template blocks with poor finding-class histories. CEO to confirm the **keep / template-cut** default is "cut unless a finding-class defends it," or the inverse.
-6. **Failure-mode disclosure.** When Pass-1 falls through to conservative write-around, do we surface a customer-visible banner ("some sections rendered in reduced-detail mode") or keep it silent + telemetry-only? Recommend **silent + telemetry** for pilot; revisit at rollout.
+CEO agreed with controller recommendations across the board. Answers below stand as CEO rulings.
+
+1. **Rollout order — Risk-first.** (Aligned with pilot doctrine; PERFECT-INTAKE baseline exists.)
+2. **Pass-1 retry budget — N=2**, then conservative write-around. (Never a blocked customer.)
+3. **Model routing — same model, two calls, for pilot.** Cheaper Pass-1 routing (structured-output model) is revisited post-pilot-success, not before.
+4. **Interim guard retirement — two consecutive clean s5 waves → assertion-only → removed one wave later.** `_risk_citation_dup_fix` is the first candidate.
+5. **Surface-audit default — CUT unless a finding-class history or CEO-required disclosure defends the template.** (Inverse of the pre-answer proposal; CEO tightened.)
+6. **Write-around disclosure — silent + telemetry for pilot.** Customer-visible banner decision is DEFERRED to pre-launch review.
+
+Build is now **UNBLOCKED** subject to the v1 + v2 + v2.1 amendment set (see §§2.5, 2.6, 2.7). No architecture questions remain open for CEO on the pilot path.
+
+
 
 ---
 
