@@ -2,7 +2,7 @@
  * RENDERPLAN VALIDATORS (Two-Pass Architecture, Phase-1 authoring)
  * -----------------------------------------------------------------
  * Pure functions that enforce the Pass-1 → Pass 2 contract. All 7
- * validators from TWO-PASS-ARCHITECTURE.md §3.2 are implemented:
+ * validators from LEGAL-TEST-PIPELINE.md §3.2 are implemented:
  *
  *   V1  intake-ledger closure         (every ledger_ref in propositions resolves)
  *   V2  citation-binding closure      (every pinpoint_ref resolves)
