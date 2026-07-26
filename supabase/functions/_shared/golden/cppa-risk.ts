@@ -104,7 +104,7 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "100,000", flags: "i", label: "boundary threshold surfaced" },
-      // T7-RISK-OPENING-PILOT: q2_consumers "100,000–249,999" straddles from below
+      // T7-RISK-OPENING-PILOT: q2_consumers "100,000 to under 250,000" straddles from below
       // on § 1798.140(d)(1)(B), q5_sell_share "No" — opening must NOT assert (B).
       // Boundary-band handling stays in the body, not the opening (per spec rule 6).
       { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
