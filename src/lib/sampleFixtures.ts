@@ -458,8 +458,8 @@ const F_CPPA_RISK_US: SampleFixture = {
         entity_name: "Tomorrow4Cariboo, Inc.",
         subject_anchor:
           "Consumer shipment-tracking profiles — cross-context behavioural advertising and sale/share of tracking data",
-        q1_revenue: "$100M–$500M",
-        q2_consumers: "Over 10 million",
+        q1_revenue: "Over $100M",
+        q2_consumers: "1,000,000 or more",
         q3_sector: "Media/advertising",
         q4_pi_categories: [
           "Contact identifiers (name, email, phone)",
