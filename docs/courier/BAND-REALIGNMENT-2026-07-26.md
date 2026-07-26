@@ -291,3 +291,42 @@ All rulings recorded durably per CEO instruction "Write every step durably (ledg
 - Item 123 — PERFECT-INTAKE-EXPERIMENT-RISK HELD-AWAITING-T2C.
 
 **Deviation:** none — GATE clause held (no new reds introduced within amended scope).
+
+---
+
+## T2B-LANDED (2026-07-26T05:42:45Z)
+
+**Dispatch:** BAND-REALIGNMENT-T2B (atomic; execute-only-if-T2A-released; no deploy per §4 T2B).
+
+**Preflight:** PASS. Item 124 records T2A LANDED; items 113 + 118-(ii) + 120 released BY NAME in item 124's tail. T2B GATE cleared.
+
+**Files landed (10):**
+1. `src/lib/sampleFixtures.ts` L461-462 → V2 (`"Over $100M"` / `"1,000,000 or more"`).
+2. `src/pages/admin/CPPAEvalHarness.tsx` L20-21 → V2.
+3. `supabase/functions/_shared/cppa-risk-contract-fixtures.ts` — `i3_ca_consumer_band` → `"100,000 to under 250,000"`; three FIXTURE_* q1/q2 pairs → V2 (yield_k3, partial_j_lt_k, full_close).
+4. `supabase/functions/generate-stress-fixtures/index.ts` L1079-1080 → V2; legacy generation dropped.
+5. `src/lib/stress/fixtures.ts` — all 7 CPPA_RISK_VARIANTS q1/q2 pairs retargeted to V2; ambiguous `"$25M–$100M"` and `"100,000–1 million"` straddles removed; `"Unsure"` on q2 replaced (V2 CONSUMER_OPTS has no `"Unsure"`).
+6. `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` — per T2B hygiene ruling, `legacyAccepted` re-narrowed to `[]` for both q1_revenue / q2_consumers; coverage assertions retargeted to V2 vocabulary. Pasted green:
+   ```
+   $ bunx vitest run src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts
+    ✓ src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts (11 tests) 6ms
+    Test Files  1 passed (1)
+         Tests  11 passed (11)
+   ```
+7. `src/components/cppa/CPPARiskRailEntries.ts` q2_consumers — citation `§ 1798.140(ag)(2)(A)` → `§ 1798.140(d)(1)(B)`; `regulationText` set to the corpus-verified verbatim excerpt from `provision_texts.ccpa-1798-140` ("Alone or in combination, annually buys, sells, or shares the personal information of 100,000 or more consumers or households."); `plainSummary` references V2 vocabulary and § 7120(b)(2)(A) 250k audit line; `relatedCitations` extended with 11 CCR § 7120(b)(2)(A). q1_revenue rail (already corpus-anchored to `provision_texts.cppa-7121` § 7121(a)(1)/(2)/(3)) audited — no change needed.
+
+**AUDIT ONLY (no logic change):**
+- `supabase/functions/generate-report-pdf/index.ts` — renderer echoes intake band string; zero band vocabulary embedded.
+- `supabase/functions/review-test-output/index.ts` — `§ 1798.140(d)(1)(A)` reference sits inside the "do not declare non-existent" system-prompt guardrail (legal-scholarship anchor), not a band selector.
+
+**PARTIAL (deferred to T2C):** `src/pages/CPPAScopeChecker.tsx` retarget. Rationale: `Q2_OPTS` carries CPI-adjusted `"Under $26.625 million"` / `"$26.625M–$50M"` / `"$50M–$100M"` / `"$100M–$500M"` / `"Over $500M"`; `evaluateRevenueProng` / `cyberDeadline` / `CCPA_REVENUE_THRESHOLD_USD` encode legally load-bearing splits (Cal. Civ. Code § 1798.140(d)(1)(A) CPI adjustment; 11 CCR § 7121 phased deadlines at $50M and $100M). A straight relabel to the four-value V2 set collapses the $100M-$500M / Over-$500M distinction (both map to `"Over $100M"` → 2028-04-01 cohort, fine for deadline label but drops enforcement-pattern precision) and drops the $26.625M CPI-adjusted precision (V2 collapses to `"Under $25M"`). This is a legal-logic rework, not a label swap, and must not be inlined into T2B without a separate ruling. `src/lib/tests/assertionTests.ts` (CPPA_SCOPE_INPUT) + `src/lib/tests/assertionRunner.ts` (`cppa-scope-deterministic` evaluator, L80/82/88) reference the same scope-checker vocabulary and are gated on the same deferral.
+
+**Hygiene ruling honored:** legacyAccepted narrowed from the 12-value V1 transition allowance (item 120 failure table) to `[]` for both fields. Documented in the drift-test file header.
+
+**Deploy:** NONE (per §4 T2B: "No edge-function deploy — T2A already shipped the semantic change").
+
+**Released BY NAME:** item 121 (T2B HELD-AWAITING-T2A).
+
+**Chain state:** T2C (item 122) unblocked; PERFECT-INTAKE (item 123) still gated on T2C per item 116; IR-BAND (item 114) and TWO-PASS (item 115) queued behind PERFECT-INTAKE.
+
+**Pre-existing reds outside T2B scope (inspected, unchanged):** `src/test/font-size.test.tsx` × 4 (CSS typography drift); `src/lib/__tests__/sampleFixtures.shape.test.ts` × 2 (`cppa_cyber` shape drift — missing `company_name` / `profile_industry` / `profile_audit` / `industry_sector`). Zero band-vocabulary coupling in either class.
