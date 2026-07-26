@@ -67,7 +67,7 @@ const COHORT_CITE_HINT = /§\s*7121\s*\(a\)|7121\(a\)/i;
 //      2027 … if … April 1, 2029; if under $50M, … April 1, 2030."
 //   • "should be confirmed when 2027 revenue is final"
 const COHORT_HEDGE_TRIGGERS_RE =
-  /confirm(?:ed)?\s+cohort\s+when|cannot\s+be\s+determined\s+until|applicable\s+if\s+2027|if\s+2027\s+(?:annual\s+gross\s+)?revenue|should\s+be\s+confirmed\s+when|when\s+2027\s+revenue\s+is\s+final|the\s+cohort\s+determination\s+should\s+be\s+confirmed/i;
+  /confirm(?:ed)?\s+cohort\s+when|cannot\s+be\s+determined\s+until|applicable\s+if\s+2027|if\s+2027\s+(?:annual\s+gross\s+)?revenue|should\s+be\s+confirmed\s+when|when\s+2027\s+revenue\s+is\s+final|the\s+cohort\s+determination\s+should\s+be\s+confirmed|\bif\s+triggered\b|\bwould\s+fall\s+in\s+the\b/i;
 
 // Sentence splitter. Splits on end-of-sentence punctuation followed by
 // whitespace. Preserves the terminal punctuation on each sentence.
