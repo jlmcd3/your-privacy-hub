@@ -110,7 +110,10 @@ export interface ComposeResult {
     readonly narrative_chars: number;
     readonly capped: boolean;
     readonly errors: readonly string[];
-    readonly overall_risk_level_held: true; // permanent flag until item 147 released
+    /** false once activity_signals are supplied and the 5-tier map runs. */
+    readonly overall_risk_level_held: boolean;
+    readonly overall_risk_level_rule?: 1 | 2 | 3 | 4;
+    readonly overall_risk_level_rule_note?: string;
   };
 }
 
