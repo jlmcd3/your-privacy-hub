@@ -47,6 +47,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "balance privacy risks against broader benefits to various stakeholders and document specific safeguards",
         corpus_ref: "cppa_fsor_commentary#7152.appendix-p134.balance",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -56,6 +57,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7152(a) less-prescriptive-language proposal rejected — reg retains prescriptive purpose/categories/safeguards discipline",
         corpus_ref: "cppa_fsor_commentary#7152.appendix-p131.less-prescriptive",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -65,6 +67,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "GDPR-alignment argument rejected — CPPA retained the CA-specific content requirements",
         corpus_ref: "cppa_fsor_commentary#7152.appendix-p131.gdpr-alignment",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -74,6 +77,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7152(a)(5)-(6) First Amendment challenge rejected — negative-impact and safeguard disclosures retained",
         corpus_ref: "cppa_fsor_commentary#7152.appendix-p132.first-amendment",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -83,6 +87,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7152(a) requirements apply regardless of business size/complexity — reg refused a small-business modification",
         corpus_ref: "cppa_fsor_commentary#7152.appendix-p134.size-neutral",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -92,6 +97,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7152 applies only to processing that presents significant risk — not all processing",
         corpus_ref: "cppa_fsor_commentary#7152.appendix-p135.significant-risk-only",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -101,6 +107,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7152 amendments clarify and strengthen risk-assessment requirements",
         corpus_ref: "cppa_fsor_commentary#7152.p33.amendment-rationale",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -110,6 +117,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "ADMT-using businesses must identify specific evaluations, policies, procedures, and training in the risk assessment",
         corpus_ref: "cppa_fsor_commentary#7152.p37.admt-specificity",
         tier_label: "primary",
+        authority_weight: "binding",
       },
       // ---------- SUPPORTING (§ 7150 rows that scope § 7152 applicability) ----------
       {
@@ -120,6 +128,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7150 threshold rationale — when a business must conduct a risk assessment under the CCPA",
         corpus_ref: "cppa_fsor_commentary#7150.p30.when-required",
         tier_label: "supporting",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -129,6 +138,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7150 refusal to limit risk assessments to sensitive-PI-only processing",
         corpus_ref: "cppa_fsor_commentary#7150.appendix-p117.not-limited-to-sensitive",
         tier_label: "supporting",
+        authority_weight: "binding",
       },
       {
         source: "fsor_commentary",
@@ -138,6 +148,7 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
           "§ 7150 refusal to reduce burdens on smaller businesses — same content requirements apply",
         corpus_ref: "cppa_fsor_commentary#7150.appendix-p119.size-neutral",
         tier_label: "supporting",
+        authority_weight: "binding",
       },
       // ---------- ANALOGY_FSOR_INTERNAL (per CEO exception) ----------
       // TIER EMPTY: no FSOR-internal enforcement analogies indexed to § 7152 in
