@@ -47,7 +47,10 @@ export const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M"
 // and resolves it as indeterminate per the BAND-VS-THRESHOLD rule / T-1
 // deterministic check. Restore of a legacy draft clears q2 so the user
 // re-answers with a clean band (see applyRestore).
-export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
+// BAND-REALIGNMENT-T2A (2026-07-26) — CONSUMER_OPTS retargeted to V2.
+// Aligned to statutory breakpoints (100,000 and 250,000). Legacy V1 labels
+// resolve via resolveConsumerBand in the edge-side normaliser.
+export const CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"];
 // R1a additions.
 export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"];
 export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
