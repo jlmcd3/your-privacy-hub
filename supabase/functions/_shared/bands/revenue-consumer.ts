@@ -53,6 +53,22 @@ export const REVENUE_BAND_AUDIT_COHORT: Record<RevenueBandV2, string | null> = {
   "Over $100M":         "2028-04-01", // (a)(1): > $100M
 };
 
+// BAND-REALIGNMENT-T2C (2026-07-26): canonical map consumed conceptually by
+// run-quality-batch QC-R1-4 (cohort determinism). The check itself resolves
+// via `classifyRevenueBand` in `_shared/cppa-test-states.ts` which already
+// carries V2 labels (T2A), so this export is the SINGLE DOCUMENTED SOURCE
+// OF TRUTH for the V2 → § 7121(a) cohort key expected by QC-R1-4.
+//
+// Ambiguous-legacy bands ($25M–$100M, $20M–$100M, "Unsure" and the like)
+// are EXEMPT from this map — QC-R1-4 requires them to render BOTH 2029 and
+// 2030 cohort dates with conditional framing (see index.ts L627-637).
+export const QC_R1_4_EXPECTED_COHORT: Record<RevenueBandV2, "2028-04-01" | "2029-04-01" | "2030-04-01" | null> = {
+  "Under $25M":         "2030-04-01", // § 7121(a)(3): < $50M cohort; audit obligation itself may be N/A when (d)(1)(A) not met
+  "$25M to under $50M": "2030-04-01", // § 7121(a)(3): < $50M
+  "$50M to $100M":      "2029-04-01", // § 7121(a)(2): $50M–$100M
+  "Over $100M":         "2028-04-01", // § 7121(a)(1): > $100M
+};
+
 // ── Consumer bands ──────────────────────────────────────────────────────
 export const CONSUMER_BANDS_V2 = [
   "Under 100,000",
