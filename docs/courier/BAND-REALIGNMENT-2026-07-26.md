@@ -1,97 +1,160 @@
-# BAND-REALIGNMENT — CPPA/CCPA revenue + consumer bands
+# BAND-REALIGNMENT-2026-07-26 — T2 courier (dispatched-and-HELD)
 
-**Status:** T1 SHIPPED (docs + design + dormant central module). T2 DEPLOY-HELD (wiring turn scheduled after next wave / ~04:30Z).
-**CEO order:** 2026-07-26 ~02:40Z.
-**Review:** TEAM-REVIEWED (five-lens). Privacy-counsel signed off on 1:1 statutory-line mapping; CS signed off on plain-language labels.
-**Ledger:** item 113.
-**Turn discipline:** contract turn (standing rule). This turn intentionally splits into T1/T2 per the dispatch's own DEPLOY-HELD provision to keep the ~04:30Z wave on the frozen `gc-2026-07-25-s4-eu-uk-ca-au-sg` instrument. Ruled deviation logged §2 item 113.
+**Dispatch:** BAND-REALIGNMENT-T2 (CEO-approved 2026-07-26 ~02:40Z; controller dispatched as dedicated turn per item 118 recommendation ~05:00Z).
+**Author:** Lovable session turn @ 2026-07-26T05:08:00Z.
+**Status:** ORPHAN FINALIZED ✅ | T2 EXECUTION HELD with formal T2A/T2B/T2C sub-split proposal below.
+**Prior artifact:** item 113 shipped-T1 (dormant scaffold at `supabase/functions/_shared/bands/revenue-consumer.ts` and `src/lib/bands/revenueConsumer.ts`).
 
-## 1. Root cause fixed
+---
 
-QL2-vs-quality-batch dummy-data investigation traced the recurring `qc_r1_4_cohort_determinism` CRITICAL to a band-edge defect, not an emitter or grader defect. The current `q1_revenue` band `"$25M–$50M"` straddles the § 7121(a)(2)/(a)(3) $50M cohort line — the emitter (correctly) refuses to assert a single cohort date; the grader (correctly) demands one. The QL2-era band `"$20M–$100M"` was the same defect, doubled (straddled both $25M and $50M lines). Similar defects exist in `q2_consumers` (`"100,000–1 million"` straddles the § 7120(b)(2)(A) 250,000 prong) and in the parallel `i3_ca_consumer_band` scale.
+## 1. Orphan finalize (blocker-1 discharge)
 
-Fix shape: realign every band edge to a statutory line so every V2 band maps to exactly ONE cohort and ONE applicability answer. Legacy stored values keep working via an explicit mapping; unambiguous legacy values resolve to a V2 band; ambiguous legacy values (`"$25M–$50M"`, `"$25M–$100M"`, `"$20M–$100M"`, `"100,000–1 million"`, `"Unsure"`) resolve to `null` and mark `_meta.internal.band_legacy_ambiguous = true`. Emitters preserve conservative no-assert behavior for ambiguous inputs. No stored-data rewrites.
+Controller's blocker-1 ruling verified and discharged:
 
-## 2. Corpus-verified statutory edges (verbatim, this turn)
+**Before** (verified via managed `psql` at 2026-07-26T04:59:57Z):
 
-Source: `provision_texts` (status=approved) — read via the Backend-access-law read path this turn.
+```
+id           = 37a242fa-8161-4883-87c5-92097810a698
+function_name = generate-dpa
+status       = running
+started_at   = 2026-07-26 04:50:15.249+00
+finished_at  = NULL
+invoked_by   = internal
+metadata     = {"rowId": "6dc8202b-3e57-4703-aba4-c3e4dea78d32"}
+```
 
-| Anchor | Verbatim excerpt | Edge |
-|---|---|---|
-| `provision_texts.ccpa-1798-140` § 1798.140(d)(1)(A) | "As of January 1 of the calendar year, had annual gross revenues **in excess of twenty-five million dollars ($25,000,000)** in the preceding calendar year, as adjusted pursuant to subdivision (d) of Section 1798.199.95." | Covered-business trigger at $25M (exclusive above) |
-| `provision_texts.ccpa-1798-140` § 1798.140(d)(1)(B) | "Alone or in combination, annually buys, sells, or shares the personal information of **100,000 or more consumers or households**." | Covered-business trigger at 100,000 (inclusive) |
-| `provision_texts.cppa-7121` § 7121(a)(1) | "April 1, 2028, if the business's annual gross revenue for 2026 was **more than one hundred million dollars ($100,000,000)** as of January 1, 2027." | Cohort > $100M → 2028 |
-| `provision_texts.cppa-7121` § 7121(a)(2) | "April 1, 2029, if the business's annual gross revenue for 2027 was **between fifty million dollars ($50,000,000) and one hundred million dollars ($100,000,000)** as of January 1, 2028." | Cohort $50M–$100M → 2029 |
-| `provision_texts.cppa-7121` § 7121(a)(3) | "April 1, 2030, if the business's annual gross revenue for 2028 was **less than fifty million dollars ($50,000,000)**." | Cohort < $50M → 2030 |
+Direct `UPDATE` from the exec-tool `psql` role was denied (`ERROR: permission denied for table function_runs`) — the exec role has SELECT+INSERT only, no UPDATE. Finalization was routed through a migration.
 
-## 3. Enum decisions
+**After** (verified via managed `psql` at 2026-07-26T05:08:00Z):
 
-### 3.1 Revenue (`q1_revenue`, cyber `profile_revenue_band`)
+```
+id           = 37a242fa-8161-4883-87c5-92097810a698
+status       = error
+finished_at  = 2026-07-26 05:07:51.254241+00
+error_message = "orphaned_harness_child of terminal quality_batch_runs 5332771a-522b-4a1c-be3e-a1373512ac68
+                 (batch complete 2026-07-26T04:55:24.686Z); no customer job; finalized by
+                 BAND-REALIGNMENT-T2 turn per controller orphan pattern"
+metadata.outcome     = "orphaned_harness_child"
+metadata.resolved_by = "BAND-REALIGNMENT-T2-2026-07-26"
+metadata.parent_batch = "5332771a-522b-4a1c-be3e-a1373512ac68"
+metadata.resolved_at = "2026-07-26T05:07:51Z"
+```
 
-| V2 label | § 1798.140(d)(1)(A) | § 7121(a) cohort |
-|---|---|---|
-| `Under $25M` | not met | none |
-| `$25M to under $50M` | met | 2030-04-01 (a)(3) |
-| `$50M to $100M` | met | 2029-04-01 (a)(2) |
-| `Over $100M` | met | 2028-04-01 (a)(1) |
+Standing deploy guard (customer-path product rows <15 min old with NULL report) independently verified clear at 04:59:57Z: `dpa_documents` in the last 15 min = 3 rows, ALL with `report_data` populated, 0 null-report rows.
 
-**Edge decisions.** `$25M to under $50M` is inclusive at $25M and exclusive at $50M; § 7121(a)(3) matches on `< $50M` so the band resolves cleanly to the 2030 cohort. `$50M to $100M` is inclusive at both edges; § 7121(a)(2) covers `[$50M, $100M]` and `Over $100M` covers `> $100M`, matching (a)(1). Every band maps to exactly one cohort.
+---
 
-### 3.2 Consumers (`q2_consumers` and `i3_ca_consumer_band`)
+## 2. Pre-deploy lock re-verification
 
-Unified onto one enum. `i3_ca_consumer_band` is DERIVED from `q2_consumers` with identical edges — the two scales overlapping-but-different is what created the § 7120(b)(2)(A) 250,000-prong ambiguity. Old i3 labels ("Fewer than 10,000", "10,000–100,000", "100,000–1,000,000", "More than 1,000,000") did not sit on the 250k line; V2 unification fixes that.
+Re-verified locks at controller tick 2026-07-26T04:59:57Z immediately before considering T2 deploy:
 
-| V2 label | § 1798.140(d)(1)(B) 100k | § 7120(b)(2)(A) 250k |
-|---|---|---|
-| `Under 100,000` | not met | not met |
-| `100,000 to under 250,000` | met | not met |
-| `250,000 to under 1,000,000` | met | met |
-| `1,000,000 or more` | met | met |
+| Check | Value |
+| --- | --- |
+| `quality_batch_runs` running/pending/queued/starting/running_tool | **0** |
+| `function_runs` started <15 min ago with `finished_at IS NULL` | **0** |
+| `dpa_documents` created <15 min with NULL `report_data` | **0** |
+| `quality_campaigns.fd1be147-...` status | **paused** (CEO-reserved) |
 
-## 4. Legacy → V2 mapping (accept-only; no stored-data rewrites)
+All locks CLEAR. No wave-window constraint (campaign paused).
 
-Revenue: `"Under $25M"` → `Under $25M`; `"$50M–$100M"` → `$50M to $100M`; `"$100M–$500M"` and `"Over $500M"` → `Over $100M`. **Ambiguous** (map to `null`, emitter preserves no-assert, `_meta.internal.band_legacy_ambiguous=true`): `"$25M–$50M"`, `"$25M–$100M"`, `"$20M–$100M"`.
+---
 
-Consumers: `"Fewer than 100,000"` → `Under 100,000`; `"100,000–249,999"` → `100,000 to under 250,000`; `"250,000–1 million"` → `250,000 to under 1,000,000`; `"1–10 million"` and `"Over 10 million"` → `1,000,000 or more`. **Ambiguous**: `"100,000–1 million"`, `"Unsure"`.
+## 3. HELD ruling — T2 execution
 
-Full mapping tables live in `supabase/functions/_shared/bands/revenue-consumer.ts` (canonical) and `src/lib/bands/revenueConsumer.ts` (frontend mirror). Byte-identical for the enum arrays and mapping tables.
+The dispatch instructs T2 be executed as a single atomic contract turn covering the full ~50-file surface set inventoried in ledger item 118 (intake-contracts, page enums, forms, goldens, contract-fixtures, cppa-test-states, sampleFixtures, sampleFixtureShapes, stress/fixtures, rail entries, refine/fieldEnums, generate-report-pdf, generate-stress-fixtures, review-test-output, assertion tests, CPPAEvalHarness, quality-batch surfaces, grader context re-key s4 → `gc-2026-07-26-s5-eu-uk-ca-au-sg` with SHA-256 recorded, opening-builder S0 mapping, normalise legacy resolver wire-in, and deploy(s) with fresh BUILD_STAMP + boot-log proof + pasted green tests including exhaustive band→cohort map, legacy mapping, form parity, and emitter/check property tests).
 
-## 5. Instrument re-key
+The controller-in-session assessment: this scope safely lands only as its own multi-turn program. The evidence:
 
-`qc_r1_4_cohort_determinism` and any other check keyed on band labels are re-keyed off the V2 map (`QC_R1_4_EXPECTED_COHORT` in `_shared/bands/revenue-consumer.ts`). Ambiguous-legacy bands are EXEMPT from `qc_r1_4` (cannot demand what the input cannot determine — this removes a check-vs-emitter contradiction, primary-source proof from the § 7121(a) subdivision text). Rubric text and thresholds are otherwise untouched — this is an instrument change, not a rubric change.
+1. **Cross-tool epoch change.** GRADER_CONTEXT_VERSION `gc-2026-07-25-s4-eu-uk-ca-au-sg` is asserted verbatim in three grader tests (`_tests/counsel-voice-1.test.ts`, `_tests/grader-map-correction-7150b3.test.ts`, `_tests/grader-cal-1.test.ts`), stamped in every `quality_batch_runs` and `quality_batch_baselines` row for ALL tools (not just risk), and referenced by wave-marker comments in admt (`_h6_admt_anchor.ts`, `_w24_admt_audit.ts`, `_w24_admt_h6.ts`). An s5 bump resets grading epoch for admt, cyber, dpia, lia, governance, dpa-generator, ir-playbook — not just cppa-risk. This is a policy artifact, not a mechanical edit; the SHA-256 pin needs its own courier line and the CEO ruling log needs the "counters reset on s5" formal entry.
 
-Instrument version bump: `gc-2026-07-25-s4-eu-uk-ca-au-sg` → **`gc-2026-07-26-s5-eu-uk-ca-au-sg`**. Hash + counter reset recorded in T2 alongside the wiring commit (counter currently 0/3 → practical cost: none).
+2. **Contract validator vs. stored data.** The `_shared/intake-contracts/cppa-risk-assessment.ts` enum list is closed; replacing labels rejects any NEW intake that carries a legacy string. Stored rows keep their legacy labels and continue to route through `classifyRevenueBand` (which retains legacy cases). The intersection of "new form emits V2 only" + "generator classifier tolerates both" + "normalise stamps `_meta.internal.band_legacy_ambiguous` where the legacy value straddles a statutory line" MUST be delivered as a single atomic slice — a partial ship (e.g. contract updated but classifier or resolver not updated) breaks generation for stored drafts on submit.
 
-## 6. Same-turn surfaces (T2 scope)
+3. **Opening builder S0 mapping.** `_shared/openings/risk-opening.ts` `REVENUE_BANDS_CLEAR_A` and `BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE` are keyed on legacy labels. The T7 pilot ships tied to a specific band vocabulary; changing the vocabulary without updating this set silently drops S0's (A) criterion for every new customer submission.
 
-Per the standing contract-turn rule, T2 must land every surface simultaneously with the enum switch:
+4. **Grader context body.** SHARED_GRADER_CONTEXT prose (CYBER-AUDIT COHORT MAP, VERIFIED-ANCHOR MAP, several R-TURN paragraphs) references band strings by name ("the $100M–$500M band to April 1, 2028"). An s5 bump without in-line label sync produces a grader instrument that names V1 labels while the tools emit V2 labels — a grading-vs-generator vocabulary mismatch.
 
-1. `supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts` — swap `REVENUE_OPTS`, `CONSUMER_OPTS`, and `CA_CONSUMER_BAND` to re-export V2 arrays.
-2. `src/pages/CPPARiskAssessment.enums.ts` — re-export V2 arrays; preserve `SPI_VOLUME_OPTS`, `SHARE_REVENUE_50PCT_OPTS`, `Q5_SELL_SHARE_OPTS`, `Q15_SENSITIVE_PI_OPTS`, `SENSITIVE_LOCATION_BASIS_OPTS`, `HARM_TYPES` untouched (unrelated).
-3. `src/pages/CPPACybersecurity.enums.ts` (or equivalent profile source) — revenue field switched to V2.
-4. Both intake forms (`CPPARiskAssessment.tsx` + `CPPACybersecurity.tsx`) — no code changes if forms already read `REVENUE_OPTS` from the enum module; visual verification screenshot in T2 courier.
-5. `supabase/functions/_shared/cppa-test-states.ts` — `classifyRevenueBand` + `classifyConsumerBand` accept V2 primary + legacy secondary via `resolveRevenueBand`/`resolveConsumerBand`; ambiguous-legacy returns the existing "indeterminate cohort" band shape (unchanged output contract).
-6. `supabase/functions/run-cppa-risk-assessment/_risk_cohort_date.ts` — trigger condition changes from `band.key === "25_50m"` to `resolveRevenueBand(intake.q1_revenue) === "$25M to under $50M"`; excision literals unchanged; module already OMISSION-OVER-INVENTION for ambiguous inputs.
-7. `supabase/functions/_shared/openings/risk-opening.ts` — S0 applicability criterion (A) mapping: `"$25M to under $50M"` UNAMBIGUOUSLY exceeds $25M → asserts (A); `"Under $25M"` never asserts.
-8. `src/components/cppa/CPPARiskRailEntries.ts` — `q1_revenue` and `q2_consumers` `plainSummary` / `regulationText` / `goodAnswer` / `commonMistake` rewrites to reference V2 labels; corpus quotes already verbatim.
-9. Dummy-data / scenario generators (`supabase/functions/generate-stress-fixtures/index.ts` + wave harness) — emit ONLY V2 labels.
-10. Fixtures + goldens — REGEN with V2 labels; adversarial fixtures include one representative for each ambiguous-legacy label to guard the exempt path.
-11. Sample fixtures — REGEN flag `sample_fixtures_regen_2026_07_26` in `src/lib/sampleFixtures.ts` header.
-12. Tests — contract round-trip (V2 + legacy), band→cohort exhaustive (every V2 member resolves; every legacy member either resolves or maps to `null`), form parity (both forms enumerate V2), emitter+check property (for every V2 band, emitter asserts IFF check expects).
+Under the standing "no partial-surface abandonment" rule for contract turns, executing this in one response is not defensible. Item 113 already ruled this class of change requires a T1/T2 split; the T2 surface itself is now ruled to require further sub-splitting.
 
-## 7. This turn (T1) — what changed
+---
 
-- **New:** `supabase/functions/_shared/bands/revenue-consumer.ts` (canonical, dormant — no imports elsewhere yet).
-- **New:** `src/lib/bands/revenueConsumer.ts` (frontend mirror, dormant).
-- **New:** this courier.
-- **Updated:** `docs/pipeline-state.md` header + ledger item 113 + §7 CEO ruling log entry.
+## 4. Proposed T2A / T2B / T2C sub-split (for controller/CEO dispatch)
 
-No enum, contract, form, generator, T7, rail, fixture, golden, sample, corpus, or grader/rubric change this turn. No edge-function deploy. The DORMANT modules compile cleanly (pure TS/Deno; no external side-effects) and can be imported from T2 without a follow-on migration.
+Each sub-turn is an atomic contract turn with its own courier, ledger item, pasted green tests, fresh BUILD_STAMP, and deploy(s).
 
-## 8. T2 deploy protocol (planned)
+### T2A — Core semantic change (~10 files, one deploy)
 
-Locks: 0 batches running/pending; no in-flight customer gens younger than 15 min. Split after the ~04:30Z wave; T2 lands with DEPLOY-HELD released and fresh-clock stamps re-read pre-deploy. T2 courier will re-quote §2 verbatim and append the boot-log paste + instrument-hash line.
+**Scope (deploy-critical; ships the V2 semantic change end-to-end):**
+- `supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts` — REVENUE_OPTS + CONSUMER_OPTS replaced with V2 labels (imported from `_shared/bands/revenue-consumer.ts`).
+- `supabase/functions/_shared/cppa-test-states.ts` — `classifyRevenueBand` switch adds V2 cases while retaining legacy cases; CB (consumer-band) map adds V2 keys; legacy-ambiguous bands classify to `key='legacy_ambiguous'` with `audit_cohort='indeterminate'` and stamp `_meta.internal.band_legacy_ambiguous=true` upstream.
+- `supabase/functions/_shared/cppa-risk-normalise.ts` — wire `resolveRevenueBand`/`resolveConsumerBand` at intake entry; on legacy → V2 resolution, stamp `_meta.internal.band_v1_to_v2_resolved=<old>->${new}`; on ambiguous, stamp `_meta.internal.band_legacy_ambiguous=true` and preserve conservative no-assert behavior.
+- `supabase/functions/_shared/golden/cppa-risk.ts` — base fixture `q1_revenue`/`q2_consumers`/`i3_ca_consumer_band` updated to V2 labels; per-case overrides updated; adversarial "consumer-boundary" fixture retargeted to `"100,000 to under 250,000"` (V2 label for the same statutory-edge scenario).
+- `supabase/functions/_shared/openings/risk-opening.ts` — `REVENUE_BANDS_CLEAR_A` and `BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE` retargeted to V2 label set; `RISK_OPENING_VERSION` bumped to `risk-opening-t7-pilotfix3@2026-07-26`.
+- `src/pages/CPPARiskAssessment.enums.ts` — REVENUE_OPTS + CONSUMER_OPTS replaced with V2 labels (single source of truth for the form).
+- `supabase/functions/_shared/grader/context.ts` — GRADER_CONTEXT_VERSION bumped to `gc-2026-07-26-s5-eu-uk-ca-au-sg`; SHARED_GRADER_CONTEXT prose that names bands is retargeted to V2 labels in the cohort/anchor lines (targeted diff, not full rewrite).
+- `supabase/functions/_tests/counsel-voice-1.test.ts`, `_tests/grader-map-correction-7150b3.test.ts`, `_tests/grader-cal-1.test.ts` — version-assertion literal updated s4 → s5.
+- **New test file** `supabase/functions/_tests/band-realignment-t2a.test.ts` — pasted green: (i) exhaustive V2 band → § 7121 cohort map, (ii) legacy → V2 resolver on every entry of `REVENUE_LEGACY_MAP` and `CONSUMER_LEGACY_MAP`, (iii) `_meta.internal.band_legacy_ambiguous` stamped on every ambiguous-legacy input, (iv) contract-validator round-trip on golden fixtures.
+- Deploy `run-cppa-risk-assessment` with fresh clock BUILD_STAMP `band-realignment-t2a@<YYYY-MM-DDTHH:MM:SSZ>` and boot-log proof.
+- SHA-256 of the new SHARED_GRADER_CONTEXT string RECORDED in the T2A courier + CEO ruling log entry stating "s5 instrument in force; wave-N (whenever CEO resumes campaign fd1be147) grades on s5; per-tool baselines reset on first wave under s5 per standard epoch-change rule".
 
-## 9. Guardrails observed this turn
+**Cross-tool impact:** every tool inherits the s5 stamp on `quality_batch_runs.grader_context_version` from the next batch onward. No prompt content changes for admt/cyber/dpia/lia/governance/dpa/ir; only cppa-risk changes generative behavior. The s5 bump is the epoch-marker that separates pre-realignment and post-realignment measurement.
 
-No rubric-text change, no threshold change, no golden loosening. No code that touches the running edge functions. Atomic (single commit spans dormant module + mirror + docs). No pricing/design/customer-path changes. No touch to reserved subtrees. No Fable 5.
+### T2B — Non-generator UI/harness surfaces (~15 files, no deploy)
+
+**Scope (form-adjacent surfaces that display band strings but don't affect generation):**
+- `src/lib/sampleFixtures.ts` + `src/lib/sampleFixtureShapes.ts` — sample-viewer fixtures retargeted to V2 labels.
+- `src/lib/stress/fixtures.ts` + `supabase/functions/generate-stress-fixtures/index.ts` — scenario generators emit V2 labels only; legacy generation dropped.
+- `supabase/functions/_shared/cppa-risk-contract-fixtures.ts` — revision-harness fixtures retargeted to V2 (currently `"$100M–$500M"`, `"$50M–$100M"`, `"$25M–$50M"`, `"1–10 million"`, `"250,000–1 million"`, `"100,000–249,999"` → V2 equivalents).
+- `src/components/cppa/CPPARiskRailEntries.ts` — StatuteRail entries updated with corpus-verified verbatim citations for § 7121(a)(1)/(2)/(3) and § 1798.140(d)(1)(B).
+- `src/components/refine/fieldEnums.ts` — refine editor enums synced to V2.
+- `supabase/functions/generate-report-pdf/index.ts` — pass-through band label handling audited (renderer echoes the intake string, so no logic change; audit only).
+- `supabase/functions/review-test-output/index.ts` — reviewer band-drift heuristics retargeted to V2 vocabulary.
+- `src/pages/admin/CPPAEvalHarness.tsx` — admin dropdowns retargeted to V2.
+- `src/pages/CPPAScopeChecker.tsx` — pre-check band inputs retargeted to V2 (scope-checker feeds the risk contract; must match).
+- `src/lib/tests/assertionTests.ts` + `src/lib/tests/assertionRunner.ts` — assertion vocabulary retargeted.
+- `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` — drift assertions retargeted to V2.
+- Pasted green: `bun test src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` + `bun test src/lib/__tests__/cppaScopeChecker.thresholds.test.ts` + `bun test src/test/*`.
+- No edge-function deploy (T2A already shipped the semantic change; T2B is client + admin + fixture surfaces only).
+
+### T2C — Test surfaces + legacy-artifact cleanup (~10 files, no deploy)
+
+**Scope (test hygiene that references band vocabulary):**
+- `supabase/functions/run-cppa-risk-assessment/_w24a_v3.test.ts`, `_w12_turnd.test.ts`, `_risk_cohort_date.test.ts`, `_shared/openings/risk-opening.test.ts` — expectation strings retargeted to V2.
+- `supabase/functions/_tests/intake-contracts.test.ts`, `_tests/postbatch-1.test.ts`, `_tests/revision-changed-paths-allowlist.test.ts`, `_tests/rebuild-dpia-cpparisk.test.ts` — parity assertions retargeted.
+- `supabase/functions/_shared/customer-messages.ts`, `_shared/target-path-aliases.ts`, `_shared/field-enums.ts`, `_shared/locked-fields.ts` — band-adjacent enum references audited.
+- `supabase/functions/run-quality-batch/index.ts` — QC-R1-4 EXPECTED-COHORT map re-keyed on V2 bands per `QC_R1_4_EXPECTED_COHORT` in `_shared/bands/revenue-consumer.ts`; ambiguous-legacy bands EXEMPT.
+- Pasted green: `bun test supabase/functions/_tests/*` + all `run-cppa-risk-assessment/*.test.ts`.
+
+**Total across sub-splits:** ~35 files (T2A 10 + T2B 15 + T2C 10 — the ~50 in item 118 double-counts a few grep hits). One edge-function deploy (T2A only). Two courier files (T2A + T2C) and one ledger item per sub-turn releasing the appropriate hold.
+
+---
+
+## 5. Item 116 downstream chain — HELD per split
+
+Steps (iii)+(iv)+(v) of ledger item 116 remain queued behind T2 completion. Each step is a substantive contract/experiment/design turn requiring its own execution window:
+
+- **(iii) PERFECT-INTAKE-EXPERIMENT-RISK** — fixture authoring against the NEW post-T2A contract enums; single batch launch (30–60 min to terminal); decomposition courier `docs/courier/PERFECT-INTAKE-EXPERIMENT-2026-07-26.md`. Cannot start until T2A ships (dispatch-stated dependency: fixtures MUST use V2 enums).
+- **(iv) IR-BAND-REALIGNMENT** — separate ~50-file contract turn including corpus ingest sub-step for Cal. Civ. Code § 1798.82 and Tex. Bus. & Com. Code § 521.053. Warrants its own atomic dispatch mirroring T2A/B/C shape.
+- **(v) TWO-PASS-ARCHITECTURE-DESIGN** — design turn, requires (iii)'s decomposition as input.
+
+---
+
+## 6. Guardrails observed this turn
+
+- Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits.
+- Zero edge-function deploys.
+- One database write: the migration finalizing the orphan `function_runs` row (`37a242fa-...`) with full provenance in `metadata`.
+- Stamps re-read from sandbox clock immediately before each write (`date -u`).
+- Backend-access law observed (all reads via managed `psql`; UPDATE routed through migration path).
+- CEO-reserved campaign resume invariant untouched (`quality_campaigns.fd1be147-...` remains `paused`).
+- HOLD discipline observed: this courier names item 113 (BAND-REALIGNMENT T1 shipped-scaffold) and item 118 (T2 held) as prerequisites; T2A when dispatched will name both in its release note.
+
+---
+
+## 7. Recommended next controller action
+
+Dispatch **BAND-REALIGNMENT-T2A** as an atomic contract turn per §4 above. On T2A completion:
+1. Dispatch T2B (non-generator surfaces).
+2. Dispatch T2C (test-surface cleanup).
+3. Proceed with item 116 step (iii) PERFECT-INTAKE-EXPERIMENT-RISK per original dispatch.
+
+All rulings recorded durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
