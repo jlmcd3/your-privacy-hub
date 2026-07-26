@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T08:32:47Z — **LEGAL-TEST-V2.2-AUTHORITY-WEIGHT CORRECTION (item 134)** — docs+corrective-labels turn per CEO correction 2026-07-26; supersedes v2.1 phrasing that treated FSOR-discussed non-CA analogies as CPPA authority; adds binding/persuasive tiering across LEGAL-TEST.md, TWO-PASS-ARCHITECTURE.md, and Phase-1 code labels (schema/factors/pass-g/validators + V8 tests green 18/18); zero deploys; zero prompt/rubric/grader/golden/contract/fixture/sample edits; no BUILD_STAMP touched; campaign  remains CEO-paused.
+**Last updated:** 2026-07-26T08:32:47Z — **LEGAL-TEST-V2.2-AUTHORITY-WEIGHT CORRECTION (item 134)** — docs+corrective-labels turn per CEO correction 2026-07-26; supersedes v2.1 phrasing that treated FSOR-discussed non-CA analogies as CPPA authority; adds binding/persuasive tiering across LEGAL-TEST.md, TWO-PASS-ARCHITECTURE.md, and Phase-1 code labels (schema/factors/pass-g/validators + V8 tests green 18/18); zero deploys; zero prompt/rubric/grader/golden/contract/fixture/sample edits; no BUILD_STAMP touched; campaign `fd1be147` remains CEO-paused.
 
 ---
 
