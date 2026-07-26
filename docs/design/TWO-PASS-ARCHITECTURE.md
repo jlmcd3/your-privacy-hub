@@ -157,6 +157,7 @@ Pass-1 is a **structured-output-only** call. The model receives the intake + reg
     // Each claim the render will assert. NEVER free prose.
     {
       "id": "P.risk.7150b1",
+      "jurisdiction_tag": "cppa-ca",                 // v2.1: authority-domain scope for this proposition
       "kind": "trigger" | "gate" | "obligation" | "recommendation" | "scope_note",
       "engaged": true | false | "conditional",
       "pinpoint_ref": "REG.risk.7150b.1",           // key into verified-authority-resolver
