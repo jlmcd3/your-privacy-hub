@@ -1164,3 +1164,20 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **QUEUED-unchanged:** T7 step-2 (admt) remains HELD (item 103 gate); wave-28 attribution hold on the post-01:30Z CPPA deploy stack respected (no CPPA-tool changes this turn); dpa `citation_misapplied` / `generic_boilerplate` / `actionability` classes remain queued as own future turns (out of scope this turn per dispatch); item 103 QUEUED W9-DEADLINE-REGISTRY-ACCESS-TIMELINE unchanged.
 
     **Out of scope this turn (guardrails held):** no edits to `run-cppa-risk-assessment`, `run-admt-checker`, `run-cppa-cyber`, any wave-trio surface, wave harness, instrument (`gc-2026-07-25-s4-eu-uk-ca-au-sg` FROZEN), rubric, grader, goldens, contracts, corpus tables, samples, pricing/payment/design tokens/customer revision path/signup. No Fable 5. Atomic commit: module + test + `index.ts` wire (2 pipelines) + courier + ledger. No rule deviations.
+
+---
+
+### 105. **SHIPPED — T5-P2-EDPB-CLEANUP-BATCH-4** (2026-07-26T02:17:30Z)
+    Corpus-only turn per controller dispatch (tick 2026-07-26T02:10Z). Batch 4 of 10 in the P2 EDPB-guidelines cleanup train, following the exact pattern of batches 1 (item ref: courier NONCPPA-P2-BATCH1), 2 (batch 2), and 3 (batch 3). Family: **EDPB Guidelines 01/2022** (Guidelines on data subject rights — Right of access, Version 2.1, adopted 28 March 2023), **157 rows**.
+
+    **Source & pin-test:** Official EDPB PDF fetched from edpb.europa.eu (follow-redirect required); pypdf 63 pages / 227,012 chars; sha256 `b399b25634b379576378d725284d5ed2b1a81c93c34ade9ee8eb48ef5eb75032`. Deterministic pin-test method carried forward from batches 1–3 (whitespace-stripped substring anchoring; U+F0B7 and U+0002 rules preloaded but not triggered this family). **First-pass result: 157/157 exact match** — zero new divergence classes.
+
+    **Writes (edpb_guidelines only, two migration payloads committed ~02:15Z + ~02:17Z):** (1) one additional front-matter flag on cover+version-history chunk `497f9628-70ca-4b34-b6a6-63b50886bec9` (batch-1/2 cover precedent); (2) `section_heading` backfill on 151 content rows across 20 heading groups (Executive summary + L1/L2 anchors 1 through 6.4), all position-checked against body offsets; (3) `excerpt_text_norm` null-sweep unnecessary — 157/157 already backfilled by the 14:29Z global sub-steps turn. **Post-write census: final=151 (heading 151/151, norm 151/151); front_matter=6 (heading NULL, norm 6/6).**
+
+    **Ruled deviation:** two migration payloads (not the single-transaction preference of batches 2–3) — the initial payload silently truncated at ~90/152 UPDATEs in transit; a second migration completed the remaining 78 UPDATEs. Both committed cleanly; combined write set identical to single-transaction shape; zero drift. Soft process note only.
+
+    **Guardrails held:** no code, no edge deploys, no prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus-DDL edits, no CPPA-table touches (`cppa_authorities` / CPPA-scoped `provision_texts` untouched — item 102 preserved). Instrument s4 `gc-2026-07-25-s4-eu-uk-ca-au-sg` FROZEN. Wave-28 CPPA-trio window (~02:30Z) undisturbed; item 103 hold on post-01:30Z CPPA deploy stack respected. WP248 rev.01 (46 rows, ec.europa.eu-hosted) remains blocked on the `sorry.ec.europa.eu` route — deferred per batch 3's ruling.
+
+    **P2 progress:** **4/10 families (337/893 rows fully pinned + headed).** Remaining 6 by row count: EDPB Guidelines 07/2020 (126), EDPB Guidelines 1/2024 (109), EDPB Recommendations 01/2020 (107), WP260 rev.01 (88), EDPB Guidelines 05/2020 (80), WP248 rev.01 (46, blocked). Next batch candidate by size + edpb.europa.eu reachability: EDPB Guidelines 07/2020 (126 rows).
+
+    **Files touched:** `docs/courier/T5-P2-EDPB-BATCH-4-2026-07-26.md` (new), `docs/pipeline-state.md` (this item + header restamp). Two `edpb_guidelines` migration payloads (152 UPDATEs across 151 heading-backfill rows + 1 front-matter status flip). Controller sandbox note: fresh controller VM disk-full persists; all DB access this turn via Lovable `query_database` + `supabase--migration` per Backend-access law.
