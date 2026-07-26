@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T03:25:53Z — NO-OP — W9-DEADLINE-REGISTRY-ACCESS-TIMELINE dispatch (controller tick 03:23Z) is a DUPLICATE of item 110 already SHIPPED at 03:23:59Z (BUILD_STAMP `w9-deadline-registry-access-timeline@2026-07-26T03:23:00Z`, boot log verified, 19/19 tests green, registry `admt-va-w8` → `admt-va-w9-2026-07-26`, `va_rows` 34 → 35). Append-only rule → recorded as item 111 pointing at item 110 evidence. NEW this turn: H6 gate (item 100) CLOSED-VERIFIED — controller confirms `admt_h6b` telemetry read clean on all 4 wave-28 admt docs (zero class A/B hits, zero errors). Guards re-verified 0/0 at 03:25:53Z. Instrument gc-2026-07-25-s4-eu-uk-ca-au-sg FROZEN. GATE unchanged: verification read = next admt wave (~04:45Z).
+**Last updated:** 2026-07-26T03:35:07Z — SHIPPED — RISK-INTAKE-CONTRADICTION-BODY (item 112, deploy-guarded, run-cppa-risk-assessment ONLY). Discharges item-107 QUEUED backlog (Driver 2, w28 doc 1036f12c hallucination HIGH ×2). New deterministic post-pass module wired AFTER applyRiskCohortDate and BEFORE LEAK-PREV P1 emit gate; Class A whole-sentence excision + Class B fixed-template downgrade; anchor + reserved-subtree safe; fail-open, idempotent; telemetry `_meta.internal.risk_intake_contradiction`. 12/12 tests green. Deploy guards 0/0/0 at 03:33:42Z. BUILD_STAMP `risk-intake-contradiction-body@2026-07-26T03:33:00Z`; boot log echoes all prior stamps unchanged (w23, w24, w24a_v3, t7_pilotfix, t7_pilotfix2, risk_cohort_date). T7 opening builder NOT touched. GATE: verification read = next risk wave (~04:45Z) alongside RCD gate.
 
 ---
 
@@ -1354,3 +1354,57 @@ No state change from item 110's 03:22Z snapshot; wave-29 (~04:45Z) margin unchan
 **Courier:** existing `docs/courier/W9-DEADLINE-REGISTRY-ACCESS-TIMELINE-2026-07-26.md` (item 110) covers this dispatch verbatim; no separate courier this turn.
 
 **Out of scope:** unchanged from item 110.
+
+---
+
+### 112. **SHIPPED — RISK-INTAKE-CONTRADICTION-BODY** @ controller tick 2026-07-26T03:29Z (deploy-guarded; run-cppa-risk-assessment ONLY). Discharges item-107 QUEUED backlog entry (`risk_intake_contradiction_body`, Driver 2 of wave-28 risk attribution — doc 1036f12c / quality_run 38cfb5d6 hallucination HIGH ×2). Deterministic post-pass mirroring the LIA/DPIA/DPA T6 scrubber pattern (items 89 / 92 / 94 / 104). T7 opening builder NOT touched (opening_summary was intake-consistent per item 107 controller check).
+
+**BUILD:**
+- New module `supabase/functions/run-cppa-risk-assessment/_risk_intake_contradiction.ts`.
+- Intake fields verified live this turn against `cppa_assessments.intake_data`: `q5b_profiling_observation`, `q18_admt_use`, `q5_sell_share`. Polarity resolver: "Yes"/"No"/"Both" definite; "In evaluation" / "TBD" / "Unknown" / "N/A" indefinite → no-op.
+- Class A (whole-sentence excision) for direct polarity contradiction of a definite intake answer: profiling-established sentences when q5b=No; ADMT-use-negation sentences when q18=Yes; sell/share-affirmative sentences when q5_sell_share=No.
+- Class B (fixed-template deterministic downgrade → drop) for hedged "reconcile the negated ADMT-use field" (q18=Yes) and "may/might/could/appears to profile" (q5b=No). No free text generation.
+- Anchor + reserved-subtree safety: never touches citation / verbatim_quote / deadline / deadline_basis / source_fields / primary_source_url / subsection / governing_anchor / depth_class / proposition_key, nor subtrees `_meta` / `_internal` / `engagement_map` / `annotations` / `opening_summary`.
+- Fail-open everywhere; idempotent; no-op when intake missing/indefinite.
+- Telemetry `_meta.internal.risk_intake_contradiction = { version, stamp, build_stamp, classA_excisions, classB_downgrades, criteria_checked, errors }`, merged so `risk_w24a` / `risk_t7_opening` / `risk_cohort_date` siblings are preserved.
+- Wire: `index.ts` — called AFTER `applyRiskCohortDate` and BEFORE the LEAK-PREV P1 emit gate (single pipeline path). Import + stamp export added to boot log line.
+
+**TESTS (pasted-green, `deno test --no-check`):** 12 tests, 0 failed (28ms). Covers all required cases: before-fixtures reconstructing w28 doc-1036f12c shapes A + B and the sell/share shape (all excised); already-clean no-op; idempotence; anchor + reserved-subtree safety; fail-open on null intake + primitive report + indefinite polarity; telemetry shape; opening_summary explicitly untouched even when it contains a contradiction shape.
+```
+running 12 tests from ./run-cppa-risk-assessment/_risk_intake_contradiction.test.ts
+BEFORE-FIXTURE: profiling-established claim excised when q5b=No (doc 1036f12c shape A) ... ok (3ms)
+BEFORE-FIXTURE: 'negated ADMT-use field' / 'reconcile' framing excised when q18=Yes (doc 1036f12c shape B) ... ok (0ms)
+BEFORE-FIXTURE: sell/share affirmative claim excised when q5_sell_share=No ... ok (0ms)
+already-clean report is a no-op ... ok (0ms)
+idempotent: second pass is a no-op ... ok (16ms)
+anchor fields (citation, verbatim_quote, deadline, source_fields) never scrubbed ... ok (0ms)
+reserved subtrees (_meta, _internal, engagement_map, annotations, opening_summary) untouched ... ok (0ms)
+fail-open: null intake → no-op, no throw ... ok (0ms)
+fail-open: primitive report → returned untouched ... ok (0ms)
+fail-open: indefinite intake polarity is a no-op ... ok (0ms)
+telemetry shape: version, stamp, build_stamp, counters, criteria, errors ... ok (0ms)
+opening_summary never scrubbed even when it contains a contradiction shape ... ok (0ms)
+
+ok | 12 passed | 0 failed (28ms)
+```
+
+**DEPLOY GUARDS (03:33:42Z, pasted, immediately pre-deploy):**
+```
+ active_batches | active_qruns | inflight_admt
+----------------+--------------+---------------
+              0 |            0 |             0
+```
+Controller-verified 0/0 at 03:29Z; re-verified 0/0/0 at 03:33:42Z. Wave-29 (~04:45Z) margin preserved (deployed 03:34:03Z).
+
+**BOOT LOG (live post-deploy 2026-07-26T03:34:03Z — ALL prior stamps unchanged):**
+```
+2026-07-26T03:34:03Z INFO [run-cppa-risk-assessment] boot w23_stamp=w23-risk-turnb@2026-07-25T17:02:08Z w24_stamp=w24-risk-turna@2026-07-25T18:14:00Z w24a_v3_stamp=w24a-v3@2026-07-26T01:00:00Z t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=risk-cohort-date@2026-07-26T03:09:53Z risk_intake_contradiction_stamp=risk-intake-contradiction-body@2026-07-26T03:31:00Z build_stamp=risk-intake-contradiction-body@2026-07-26T03:33:00Z
+2026-07-26T03:34:03Z INFO [run-cppa-risk-assessment] boot build_stamp=risk-intake-contradiction-body@2026-07-26T03:33:00Z
+```
+Prior stamps echoed unchanged: w23, w24, w24a_v3, t7_pilotfix, t7_pilotfix2, risk_cohort_date. New: `risk_intake_contradiction_stamp=risk-intake-contradiction-body@2026-07-26T03:31:00Z`. BUILD_STAMP = `risk-intake-contradiction-body@2026-07-26T03:33:00Z`.
+
+**GATE:** verification read = next risk wave (~04:45Z) alongside the RCD gate; distinct telemetry keeps attribution separable. Class called fixed only after wave-29 risk read shows no `risk_intake_contradiction_body` recurrence on w28-doc-1036f12c-shape prose.
+
+**Courier:** `docs/courier/RISK-INTAKE-CONTRADICTION-BODY-2026-07-26.md`.
+
+**Out of scope:** every other edge function; wave harness; instrument gc-2026-07-25-s4-eu-uk-ca-au-sg (FROZEN); rubrics/graders/goldens/contracts/fixtures/samples/registries; corpus DDL or corpus row edits; the T7 opening builder; the RCD module; pricing/payment/design tokens/customer revision path/signup; no Fable 5; no sample regen.

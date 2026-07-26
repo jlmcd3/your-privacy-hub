@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "risk-cohort-date@2026-07-26T03:09:53Z";
+export const BUILD_STAMP = "risk-intake-contradiction-body@2026-07-26T03:33:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 import {
@@ -33,8 +33,9 @@ import { applyW23RiskTurnB, W23_RISK_TURNB_STAMP } from "./_w23_risk_turnb.ts";
 import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
 import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
 import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION } from "./_risk_cohort_date.ts";
+import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
-console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} build_stamp=${BUILD_STAMP}`);
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} build_stamp=${BUILD_STAMP}`);
 
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
@@ -2974,6 +2975,33 @@ async function runPipeline(assessment_id: string) {
       }));
     } catch (e) {
       console.warn("[RISK] RISK-COHORT-DATE-DETERMINISM failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── RISK-INTAKE-CONTRADICTION-BODY (2026-07-26) ──────────────────
+    // Discharges item-107 QUEUED backlog (w28 doc 1036f12c hallucination
+    // HIGH ×2, Driver 2). Whole-sentence excision of model-written body
+    // prose that contradicts a definite intake polarity (q5b/q18/q5), plus
+    // deterministic downgrade of hedged "reconcile" framing (Class B).
+    // Model NEVER writes replacements. Runs AFTER applyRiskCohortDate and
+    // BEFORE the LEAK-PREV P1 emit gate. Anchor + reserved-subtree safe.
+    // Telemetry at _meta.internal.risk_intake_contradiction; preexisting
+    // _meta.internal siblings preserved.
+    try {
+      const _ricIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _ricC, report: _ricR } = applyRiskIntakeContradiction(
+        _ricIntake, report_data as any, { buildStamp: BUILD_STAMP },
+      );
+      report_data = _ricR as any;
+      const rdRic: any = report_data;
+      const metaRic = (rdRic._meta = rdRic._meta && typeof rdRic._meta === "object" ? rdRic._meta : {});
+      const internalRic = (metaRic.internal = metaRic.internal && typeof metaRic.internal === "object" ? metaRic.internal : {});
+      internalRic.risk_intake_contradiction = _ricC;
+      console.log(JSON.stringify({
+        evt: "_risk_intake_contradiction", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, risk_intake_contradiction_stamp: RISK_INTAKE_CONTRADICTION_STAMP, ..._ricC,
+      }));
+    } catch (e) {
+      console.warn("[RISK] RISK-INTAKE-CONTRADICTION-BODY failed (non-fatal):", (e as Error)?.message);
     }
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
