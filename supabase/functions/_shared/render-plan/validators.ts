@@ -29,7 +29,7 @@ import type {
   WeighingFrameEntry,
   JurisdictionTag,
 } from "./schema.ts";
-import { FORBIDDEN_COMPARATIVE_TOKENS } from "./schema.ts";
+import { FORBIDDEN_COMPARATIVE_TOKENS, PERSUASIVE_MARKERS } from "./schema.ts";
 import type { WeighingTest } from "../factors/cppa-risk-factors.ts";
 
 export interface Issue {
