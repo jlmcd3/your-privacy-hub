@@ -889,7 +889,7 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
-    const { intake: fiveStage, wasLegacyShimmed } = normaliseIntake(row.intake_data ?? {});
+    const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
 
     const validation = validateFiveStage(fiveStage, /* lenient */ wasLegacyShimmed);
     if (!validation.ok) {
