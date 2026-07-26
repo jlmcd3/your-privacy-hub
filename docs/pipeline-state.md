@@ -1327,3 +1327,30 @@ Prior stamps echoed unchanged: h6, h7b, h7, w26, w25. Registry loader reports `v
 **Courier:** `docs/courier/W9-DEADLINE-REGISTRY-ACCESS-TIMELINE-2026-07-26.md`.
 
 **Out of scope:** every other edge function; wave harness; instrument gc-2026-07-25-s4-eu-uk-ca-au-sg (FROZEN); rubrics/graders/goldens/contracts/fixtures/samples; corpus DDL or corpus row edits; other registry entries; pricing/payment/design tokens/customer revision path/signup; no Fable 5; no sample regen.
+
+---
+
+### 111. **NO-OP — W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (duplicate dispatch)** @ controller tick 2026-07-26T03:23Z. Dispatch is byte-for-byte the same fix already SHIPPED as item 110 at 03:23:59Z (BUILD_STAMP `w9-deadline-registry-access-timeline@2026-07-26T03:23:00Z`, live boot-log verified with prior stamps h6/h7b/h7/w26/w25 unchanged, 19/19 colocated tests green, `va_rows` 34 → 35, registry version `admt-va-w8-2026-07-24` → `admt-va-w9-2026-07-26`). Per append-only rule, recorded here — no second module edit, no second deploy this turn.
+
+**Dispatch → shipped map:**
+- (a) access_timeline registry entry → item 110 (§ 7021(b) subsection pinpoint; verbatim byte-identical to cppa_authorities row b97c21f6-74fc-4390-aa7d-be81f732850c per colocated corpus-pin test).
+- (b) § 1798.130 co-anchor → NOT shipped: `VerifiedAuthorityRow` schema does not support co-anchors; dispatch forbids schema change; single anchor § 7021(b) shipped.
+- (c) section-level only → complied (no subdivision pinpoints introduced; admt subdivision corpus for § 7021 remains unapproved).
+- (d) doc-d98f46e3 before-fixture + red slots test flip → item 110 tests include both, GREEN via registry data alone (no test file edits).
+- (e) deploy guards + boot-log echo → item 110.
+
+**H6 gate closure (NEW, per controller):** controller pre-verified this tick that H6 (item 100) `admt_h6b` telemetry read clean on all 4 wave-28 admt docs — zero class-A and class-B hits, zero errors. H6 class is CLOSED-VERIFIED. (H6 remained deployed unchanged through wave-28; item 110 does not touch H6.)
+
+**Guard re-verification (03:25:53Z, pasted):**
+```
+ active_batches | active_qruns
+----------------+--------------
+              0 |            0
+```
+No state change from item 110's 03:22Z snapshot; wave-29 (~04:45Z) margin unchanged.
+
+**GATE (unchanged from item 110):** verification read = next admt wave (~04:45Z); access_timeline row must carry subsection + verbatim quote with zero `information_needed` before the class is called fixed. T7 step-2 (admt) still HELD on CEO checkpoint.
+
+**Courier:** existing `docs/courier/W9-DEADLINE-REGISTRY-ACCESS-TIMELINE-2026-07-26.md` (item 110) covers this dispatch verbatim; no separate courier this turn.
+
+**Out of scope:** unchanged from item 110.
