@@ -405,13 +405,33 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
-  // ── access_timeline REMOVED (WAVE12-FIX TURN C, 2026-07-24T16:59Z) ──
-  // The prior row cited "11 CCR § 7222(c)" with a fabricated verbatim quote
-  // (§ 7222(c) is the trade-secret carve-out, not the 45-day timeline).
-  // Consumer-access response timing is governed by CCPA-side timelines under
-  // Cal. Civ. Code § 1798.130 / § 1798.145, not by an ADMT-subchapter row —
-  // no verified 11 CCR ADMT-subchapter row supports a 45-day quote today.
-  // Downstream slots must emit information_needed rather than fabricate.
+  // ---- Consumer-request response timeline (§ 7021) --------------------------
+  // W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (2026-07-26): section-level pinpoint
+  // to 11 CCR § 7021 ("Timelines for Responding to Requests to Delete, Requests
+  // to Correct, and Requests to Know, Requests to Access ADMT, and Requests
+  // to Appeal ADMT"). The verbatim_quote below is a byte-identical substring
+  // (post-norm) of the cppa_authorities § 7021 row (id
+  // b97c21f6-74fc-4390-aa7d-be81f732850c) — pinned by the colocated corpus
+  // test _w9_admt_access_timeline_corpus.test.ts. Restores the pre-existing
+  // red slots test ("deadline_table sources from registry (>=3 rows, each
+  // stamped)") to green.
+  //
+  // Doctrine: single anchor § 7021(b). Cal. Civ. Code § 1798.130 is the
+  // statutory analogue but the VerifiedAuthorityRow schema does NOT support
+  // co-anchors — schema unchanged this turn per dispatch guardrail — so we
+  // land the regulatory anchor only. NO subdivision-level pinpoints (7021(b)
+  // is a subsection, not sub_subsection; depth_class stays at "subsection").
+  access_timeline: R({
+    proposition_key: "access_timeline",
+    citation: "11 CCR § 7021",
+    subsection: "11 CCR § 7021(b)",
+    verbatim_quote:
+      "Businesses shall respond to a request to delete, request to correct, and request to know, request to access ADMT, and request to appeal ADMT no later than 45 calendar days after receipt of the request.",
+    depth_class: "subsection",
+    governing_anchor: ART3,
+    verified_on: "2026-07-26",
+    primary_source_url: CCR_URL,
+  }),
 
   // ---- Statutory anchors ----------------------------------------------------
   ccpa_defs: R({
