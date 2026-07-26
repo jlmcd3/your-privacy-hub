@@ -2906,6 +2906,41 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] W24-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── W24A-V3 (2026-07-26) ─────────────────────────────────────────
+    // Item 96 discharge — recurrence of qc_r1_4_cohort_determinism on
+    // wave-27 doc 7f0de458. Extends v2 with (a) walker-coverage
+    // guarantee (strings_scanned counts every non-anchor string),
+    // (b) sentence-level excision for conditional-parenthetical hedge
+    // variants "(applicable if 2027 … — confirm cohort when 2027
+    // revenue is final)" and the comparator "cannot be determined
+    // until … if …; if …" shape adjacent to a cohort reference, and
+    // (c) resolved-cohort anchor firing on any resolved cohort date
+    // (April 1, 2029/2030 variants). Runs AFTER v2 turnA and BEFORE
+    // the LEAK-PREV P1 emit gate. Whole-sentence excision only; no
+    // partial-clause splicing. Fail-open. Telemetry bumps
+    // _meta.internal.risk_w24a.version to risk-w24-turna-v3-2026-07-26.
+    try {
+      const { counters: _v3c, report: _v3r } = applyW24aV3(report_data as any);
+      report_data = _v3r as any;
+      const rdV3: any = report_data;
+      const metaV3 = (rdV3._meta = rdV3._meta && typeof rdV3._meta === "object" ? rdV3._meta : {});
+      const internalV3 = (metaV3.internal = metaV3.internal && typeof metaV3.internal === "object" ? metaV3.internal : {});
+      // Merge v3 counters on top of v2 telemetry; version bumped to v3.
+      internalV3.risk_w24a = {
+        ...(internalV3.risk_w24a && typeof internalV3.risk_w24a === "object" ? internalV3.risk_w24a : {}),
+        version: W24A_V3_VERSION,
+        stamp: W24A_V3_STAMP,
+        v2_stamp: W24_RISK_TURNA_STAMP,
+        ..._v3c,
+      };
+      console.log(JSON.stringify({
+        evt: "_w24a_v3", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w24a_v3_stamp: W24A_V3_STAMP, ..._v3c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W24A-V3 failed (non-fatal):", (e as Error)?.message);
+    }
+
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
