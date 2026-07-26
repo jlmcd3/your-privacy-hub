@@ -51,6 +51,7 @@ const VOD = "2026-07-24";
 /** Governing anchor labels. */
 const ART10 = "11 CCR Art. 10 (Risk Assessments)";
 const ART11 = "11 CCR Art. 11 (Automated Decisionmaking Technology)";
+const ART3 = "11 CCR Art. 3 (Business Practices for Handling Consumer Requests)";
 const CCPA_STATUTE = "Cal. Civ. Code § 1798.100 et seq. (CCPA/CPRA)";
 
 // ---------------------------------------------------------------------------
