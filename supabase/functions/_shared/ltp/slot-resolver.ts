@@ -27,7 +27,23 @@ export interface SlotContext {
   readonly closeness?: number;
   readonly cohort_date?: string;
   readonly review_items?: readonly string[];
+  // ── Summary-composition context (CONTENT COURIER 2026-07-26) ──
+  // Populated by summary-compose.ts before invoking renderTemplate on any
+  // T.risk.summary.* or T.risk.summary.opening.* template. Values are
+  // deterministically pre-rendered by the composer from partitioned
+  // activity outcomes; the resolver returns them verbatim.
+  readonly activity_count_phrase?: string;
+  readonly each_or_this_clause?: string;
+  readonly firm_positive_list?: string;
+  readonly close_list?: string;
+  readonly negative_list?: string;
+  readonly remaining_outcomes_clause?: string;
+  readonly activity_label?: string;
+  readonly outcome_clause?: string;
+  readonly key_factor_token?: string;
+  readonly docs_completion_clause?: string;
 }
+
 
 const joinTokens = (labels: readonly string[]): string => {
   const clean = labels.filter((s) => typeof s === "string" && s.trim().length > 0);
