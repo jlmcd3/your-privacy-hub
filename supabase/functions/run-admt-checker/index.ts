@@ -48,6 +48,7 @@ import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_
 import { applyW26AdmtCitationAudit, W26_ADMT_CITATION_AUDIT_STAMP } from "./_w26_admt_citation_audit.ts";
 import { applyH7AdmtBlanketRange, H7_ADMT_BLANKET_RANGE_STAMP } from "./_h7_admt_blanket_range.ts";
 import { applyH7bAdmtCitationRelabel, H7B_ADMT_CITATION_RELABEL_STAMP } from "./_h7b_citation_relabel.ts";
+import { applyH6AdmtAnchor, H6_ADMT_ANCHOR_STAMP } from "./_h6_admt_anchor.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
