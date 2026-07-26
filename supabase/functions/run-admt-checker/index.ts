@@ -8,9 +8,9 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "h7-admt-blanket-range@2026-07-25T23:48:00Z";
+export const BUILD_STAMP = "h7b-admt-citation-relabel@2026-07-26T01:20:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
-console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP }));
+console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP, prior_stamps: { h7: "h7-admt-blanket-range@2026-07-25T23:48:00Z", w26: "w26-admt-citation-audit@2026-07-25T23:34:00Z", w25: "w25-admt-sanitizer@2026-07-25T22:44:15Z" } }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
 // Blocks wave-14/15 unsupported-positive, contradiction, and
 // negative-from-silence classes on client-fact surfaces. Runs BEFORE the
@@ -47,6 +47,7 @@ import { applyW24AdmtH6, W24_ADMT_H6_STAMP } from "./_w24_admt_h6.ts";
 import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_sanitizer_fix.ts";
 import { applyW26AdmtCitationAudit, W26_ADMT_CITATION_AUDIT_STAMP } from "./_w26_admt_citation_audit.ts";
 import { applyH7AdmtBlanketRange, H7_ADMT_BLANKET_RANGE_STAMP } from "./_h7_admt_blanket_range.ts";
+import { applyH7bAdmtCitationRelabel, H7B_ADMT_CITATION_RELABEL_STAMP } from "./_h7b_citation_relabel.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
@@ -2540,6 +2541,24 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] H7-ADMT-BLANKET-RANGE failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── H7B-ADMT-CITATION-ANCHOR-RELABEL (2026-07-26) ────────────────
+    // Closes the wave-27 residual class from ledger item 95: H7's
+    // prose walker skips ANCHOR_KEYS by design, so the blanket range
+    // "11 CCR §§ 7200–7222" survives in the `citation` anchor field of
+    // notice_gaps and opt_out_gaps entries. H7b targets that anchor
+    // field ONLY, relabeling to the section-level pinpoint that is
+    // verified corpus (cppa_authorities pin-verified 2026-07-26T01:17Z).
+    // Runs AFTER H7 and BEFORE the LEAK-PREV-P1 emit gate. Fail-open.
+    try {
+      const h7b = applyH7bAdmtCitationRelabel(report, BUILD_STAMP);
+      console.log(JSON.stringify({
+        evt: "h7b_admt_citation_relabel", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: H7B_ADMT_CITATION_RELABEL_STAMP, ...h7b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] H7B-ADMT-CITATION-RELABEL failed (non-fatal):", (e as Error)?.message);
     }
 
 
