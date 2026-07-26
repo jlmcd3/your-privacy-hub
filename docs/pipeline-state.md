@@ -905,3 +905,34 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **Queued siblings (own turns):** `generate-dpa` Class B business-claim scrub (item 81(b) DPA analog); `generate-ir-playbook` Class B business-claim scrub (item 81(b) IR analog); `qc_r1_8_governance_additional_context` fix (item 81(c)); governance Class A sibling audit for W1-verified nodes; `h6_admt_governing_anchor` post-wave-27; T7 step-2 admt HELD; CPPA CORPUS INGESTION HOLD (item 93) remains ACTIVE.
 
     **Files (single atomic commit):** `supabase/functions/run-governance-assessment/_gov_t6_fix.ts` (new), `_gov_t6_fix.test.ts` (new, 15 tests), `index.ts` (BUILD_STAMP bump + boot line + ~13-line guarded import/wire block after the W1 post-pass), `docs/courier/GOVERNANCE-T6-FIX-TURN-2026-07-25.md`, `docs/pipeline-state.md` (this item + header restamp).
+
+95. **DONE — WAVE-27 DIGEST** @ controller tick 2026-07-26T00:39Z (docs-only; no code, deploy, corpus, or instrument changes). Batch `afeeb26b-f2d0-48ac-bc8d-0d96aeeed212` (campaign `fd1be147`), window 00:15:01Z → 00:36:38Z, instrument `gc-2026-07-25-s4-eu-uk-ca-au-sg` UNCHANGED (s4 continuity holds). `conflict_count` 0 on all three runs.
+
+    **SCORES (s4):**
+    - admt 82.55 (run 116, quality_run `3d439ac8`; dims acc 86 / cit 78 / hall 84 / ana 82 / int 79 / fmt 81) — **REBOUND +4.40** from w26 78.15; citation dimension recovered 69 → 78 (w26 drivers addressed by items 88/90/91, partial).
+    - risk 78.85 (run 140, quality_run `0e744761`; dims acc 72 / cit 85 / hall 81 / ana 78 / int 81 / fmt 88) — first post-T7-risk-pilot-fix read (item 87); −3.85 vs w26 82.70 ≈ 1.6σ, within batch-3 noise.
+    - cyber 88.15 (run 120, quality_run `a130f674`) — stable, new co-high with w19.
+
+    s4 trajectories through w27:
+    - admt: 84.05 / 83.45 / 83.80 / 79.10 / 79.10 / 78.15 / **82.55**
+    - risk: 79.35 / 77.75 / 79.25 / 77.65 / 73.50 / 82.70 / **78.85**
+    - cyber: 87.15 / 86.50 / 88.15 / 87.10 / 86.75 / 88.70 / **88.15**
+
+    **CRITICALS:** TWO wave-wide (zero-critical streak from w26 NOT sustained; certification zero-critical requirement not met this wave):
+    1. admt `rubric_invented_admt_section` (doc `dc2e77cc`): `deadline_table` cites "11 CCR § 7155(a)(1)" — not in the verified subsection map (§ 7155(b) is). Omission-over-invention violation upstream of the audits; **queue candidate:** extend item-90 Class-1/2 coverage to `deadline_table` subsection fields for unverified § 7155 subdivisions.
+    2. risk `qc_r1_4_cohort_determinism` (doc `7f0de458`): "resolved cohort April 1, 2030 is hedged near the cite window" — **RECURRENCE** of the W24-TURNA/v2 target gate (cleared 3/3 at w25, item 78). **Queue W27-RISK-COHORT-ATTRIBUTION** before any new risk deploy (per-doc spread + telemetry read of `_meta.internal.risk_w24a`).
+
+    **H7 ATTRIBUTION (item 91 verification — controller-verified from live telemetry, 00:4xZ):** `_meta.internal.admt_h7_blanket_range` present on wave-27 admt docs `233b0a2f` (strings_scanned 173) and `523107f3` (strings_scanned 169), correct build_stamp `h7-admt-blanket-range@2026-07-25T23:48:00Z`, errors 0 — but **ALL counters 0** (no relabels/strips), while blanket "11 CCR §§ 7200–7222" **SURVIVES** in customer-visible `opt_out`/`access` gap entries (HIGH `rubric_citation_misapplied` on both docs). **ROOT CAUSE** (design-scoped, not a wiring failure): the surviving ranges sit in `citation`-keyed fields, which H7 skips via ANCHOR_KEYS immunity — the module only scans prose strings. **QUEUED** (deploy-guarded, own turn): **H7b** — registry-anchored relabel of `citation` anchor fields **WITHIN** `notice_gaps` → "11 CCR § 7220" and `opt_out_gaps` → "11 CCR § 7221" only; still section-level ONLY (subdivision texts remain unverified corpus); elsewhere leave anchors untouched; same seam/telemetry/fail-open doctrine.
+
+    **T7 RISK-PILOT READ** (primary = intake-contradiction + hallucination classes, headline secondary per items 82/87): opening surface NOT clean — doc `1da388c6` `opening_summary` flagged HIGH `rubric_citation_misapplied`: asserts § 1798.140(d)(1) coverage citing criterion (B) (buys/sells/shares ≥100k) — the semantic-honesty rule ((B) only on verified buys/sells/shares record) is the exact T7 design rule 6 target; verify slot-builder S0 semantics gate + `_meta` telemetry on this doc before any T7 step-2 (admt) green-light. Body-side intake-contradiction persists (doc `c74ee422`: "record confirms profiling and inference activity" vs intake `q5b_profiling_observation` "No" — HIGH). Also risk doc `7f0de458`: truncated citation "Cal. Civ. 105(d)"; doc `c74ee422` `e6_counsel_referral` leak. **VERDICT:** T7 pilot **INCONCLUSIVE-LEANING-DEFECTIVE** on the primary read; **QUEUE T7-PILOT-OPENING-ATTRIBUTION** (telemetry read, docs-only) **BEFORE** T7 step-2 admt wiring; step-2 remains **HELD** (CEO checkpoint + this attribution).
+
+    **OTHER HIGHS** (for per-tool backlogs):
+    - admt — `internal_reasoning_leak` ×2 (docs `49662e84`, `dc2e77cc`), malformed "Civ. Code § 1798. 155" `priority_actions` entry (`49662e84`), `unsupported_business_claim` ×2 (`523107f3`, `dc2e77cc` incl. empty "5." structural anomaly), `e6_counsel_referral` (`523107f3`), `risk_assessment_obligation` required:true vs `applicability_verdict` out_of_scope contradiction (`dc2e77cc`).
+    - cyber — ONE high: truncated/garbled account-access-control finding text (doc `ce0bf674`).
+    - `h6_admt_governing_anchor` remains **QUEUED** (own turn, now post-wave-27 = unblocked).
+
+    **ACTIVE HOLD RELEASE (named):** CPPA CORPUS INGESTION HOLD (item 93) release condition "wave-27 digest complete" is MET by this item — **RELEASED**. T5 subdivision ingestion turn (§§ 7220/7221 section-extraction, item 93 queue) is now unblocked for the first free slot.
+
+    **SANDBOX:** controller VM disk-full persists on FRESH tick sessions (00:39Z tick, `useradd: No space left on device` at session create — ~21:05Z Desktop restart did NOT clear it; John flagged again). All backend access this tick via Lovable `query_database`/`read_file` per Backend-access law. No rule deviations; SELECT-only DB reads this tick.
+
+    **GUARDRAILS CONFIRMED:** zero edits to code, edge functions, rubrics, graders, goldens, contracts, fixtures, samples, registries, or corpus surfaces; no deploys; no sample regen; no Fable 5; no pricing/payment/design-token/customer-revision-path/signup changes. Single atomic commit: `docs/pipeline-state.md` only.
