@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "t7-risk-pilotfix@2026-07-25T22:32:00Z";
+export const BUILD_STAMP = "w24a-v3@2026-07-26T01:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 import {
@@ -31,7 +31,8 @@ import { applyW21RiskTurnA, W21_RISK_TURNA_STAMP, attributeFieldByToken } from "
 import { applyW22RiskTurnA, W22_RISK_TURNA_STAMP } from "./_w22_risk_turna.ts";
 import { applyW23RiskTurnB, W23_RISK_TURNB_STAMP } from "./_w23_risk_turnb.ts";
 import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
-console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} build_stamp=${BUILD_STAMP}`);
+import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
@@ -2903,6 +2904,41 @@ async function runPipeline(assessment_id: string) {
       }));
     } catch (e) {
       console.warn("[RISK] W24-RISK-TURNA failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── W24A-V3 (2026-07-26) ─────────────────────────────────────────
+    // Item 96 discharge — recurrence of qc_r1_4_cohort_determinism on
+    // wave-27 doc 7f0de458. Extends v2 with (a) walker-coverage
+    // guarantee (strings_scanned counts every non-anchor string),
+    // (b) sentence-level excision for conditional-parenthetical hedge
+    // variants "(applicable if 2027 … — confirm cohort when 2027
+    // revenue is final)" and the comparator "cannot be determined
+    // until … if …; if …" shape adjacent to a cohort reference, and
+    // (c) resolved-cohort anchor firing on any resolved cohort date
+    // (April 1, 2029/2030 variants). Runs AFTER v2 turnA and BEFORE
+    // the LEAK-PREV P1 emit gate. Whole-sentence excision only; no
+    // partial-clause splicing. Fail-open. Telemetry bumps
+    // _meta.internal.risk_w24a.version to risk-w24-turna-v3-2026-07-26.
+    try {
+      const { counters: _v3c, report: _v3r } = applyW24aV3(report_data as any);
+      report_data = _v3r as any;
+      const rdV3: any = report_data;
+      const metaV3 = (rdV3._meta = rdV3._meta && typeof rdV3._meta === "object" ? rdV3._meta : {});
+      const internalV3 = (metaV3.internal = metaV3.internal && typeof metaV3.internal === "object" ? metaV3.internal : {});
+      // Merge v3 counters on top of v2 telemetry; version bumped to v3.
+      internalV3.risk_w24a = {
+        ...(internalV3.risk_w24a && typeof internalV3.risk_w24a === "object" ? internalV3.risk_w24a : {}),
+        version: W24A_V3_VERSION,
+        stamp: W24A_V3_STAMP,
+        v2_stamp: W24_RISK_TURNA_STAMP,
+        ..._v3c,
+      };
+      console.log(JSON.stringify({
+        evt: "_w24a_v3", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, w24a_v3_stamp: W24A_V3_STAMP, ..._v3c,
+      }));
+    } catch (e) {
+      console.warn("[RISK] W24A-V3 failed (non-fatal):", (e as Error)?.message);
     }
 
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
