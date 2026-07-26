@@ -179,11 +179,11 @@ const DEADLINE_SPECS: Array<{ obligation: string; pk: string; deadline: string }
   { obligation: "Risk assessment — new significant-decision uses", pk: "ra_timing_new", deadline: "Before initiating the new processing" },
   { obligation: "Risk assessment — existing significant-decision uses", pk: "ra_timing_existing", deadline: "By December 31, 2027" },
   { obligation: "Risk assessment — submission to CPPA", pk: "ra_submit", deadline: "By April 1, 2028 (first submission cycle)" },
-  // WAVE12-FIX TURN C — access_timeline was REMOVED from the registry (its
-  // prior verbatim quote was fabricated against § 7222(c)). Row is preserved
-  // for user-facing completeness but emits information_needed rather than a
-  // §-pinpoint or quote.
-  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: renderMessage("unresolved.authority") },
+  // W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (2026-07-26) — access_timeline was
+  // re-added to the registry pinned to 11 CCR § 7021(b) (byte-identical to
+  // the cppa_authorities § 7021 row, id b97c21f6-…-be81f732850c). The row
+  // now emits subsection + verbatim quote from the registry; no fabrication.
+  { obligation: "Consumer access-right response timeline", pk: "access_timeline", deadline: "Within 45 calendar days of receipt of the request" },
 ];
 
 export function buildDeadlineTable(_intake: any, _report: any): DeadlineTableRow[] {
