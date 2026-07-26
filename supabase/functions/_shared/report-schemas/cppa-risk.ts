@@ -108,9 +108,26 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
   ],
   // LTP Wave-B item-136 CUT: scope_and_triggers.scope_notes pruned via
   // object allow-list (triggered_activities_detail retained).
+  // CONTENT COURIER 2026-07-26: assessment_summary object allow-list added
+  // — 10 keys verified live via query_database + additive `narrative` field
+  // (LEAK-PREV-P2 positive-control coverage; renderers tolerate absent).
   objects: {
     scope_and_triggers: ["triggered_activities_detail"],
+    assessment_summary: [
+      "company_name",
+      "sector",
+      "assessment_date",
+      "triggered_activities",
+      "exceptions_claimed",
+      "exceptions_status",
+      "overall_risk_level",
+      "cybersecurity_audit_required",
+      "admt_disclosure_required",
+      "corpus_enforcement_note",
+      "narrative",
+    ],
   },
+
   entries: {
     risk_assessment_by_activity: RISK_ENTRY_KEYS,
     top_risks: RISK_ENTRY_KEYS,
