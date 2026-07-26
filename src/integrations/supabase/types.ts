@@ -3519,6 +3519,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pattern_observations: {
+        Row: {
+          created_at: string
+          id: string
+          instrument_version: string
+          plan_version: string
+          product: string
+          registry_versions: Json
+          run_ref: string | null
+          scenario_set: string | null
+          signature: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instrument_version: string
+          plan_version: string
+          product: string
+          registry_versions?: Json
+          run_ref?: string | null
+          scenario_set?: string | null
+          signature: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instrument_version?: string
+          plan_version?: string
+          product?: string
+          registry_versions?: Json
+          run_ref?: string | null
+          scenario_set?: string | null
+          signature?: string
+        }
+        Relationships: []
+      }
       pdf_render_queue: {
         Row: {
           attempts: number
