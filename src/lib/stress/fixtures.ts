@@ -1202,8 +1202,8 @@ export const CPPA_RISK_VARIANTS = [
   // R1a coverage variant #5 — new q1 band ($25M–$50M), q2 legacy straddle, q15c Fewer than 50,000, Yes on q5c.
   {
     entity_name: "Peppermint Analytics, Inc.",
-    q1_revenue: "$25M–$50M",
-    q2_consumers: "100,000–1 million", // legacy straddling band (accepted, T-1 exercise)
+    q1_revenue: "$25M to under $50M",
+    q2_consumers: "100,000 to under 250,000", // BAND-REALIGNMENT-T2B: retargeted from legacy "100,000–1 million" straddle
     q3_sector: "Media/advertising",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
