@@ -2318,3 +2318,39 @@ Extrapolation to 5-tier ("Critical" and "Insufficient basis") is a legal-reasoni
 - Campaign `fd1be147` remains CEO-paused.
 
 **Courier:** `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-HELD-F-2026-07-26.md`.
+
+## Ledger item 149 — HELD-F RELEASED at content layer: overall_risk_level 5-tier precedence law LANDED (2026-07-26T20:55:38Z)
+
+**Dispatch:** CONTENT COURIER — overall_risk_level binding for the VERBATIM enum `["Low","Moderate","High","Critical","Insufficient basis"]` (supersedes HELD-E courier on-subject).
+
+**Outcome:** **HELD-F item 148 RELEASED at the content layer. Items 143 / 143b / 143c / 145 / 147 / 148 released BY NAME.** No engineering HELD opened (per CEO standing ruling, engineering artifacts are not courier-gated).
+
+**Files landed:**
+- `supabase/functions/_shared/ltp/risk-level-map.ts` (new) — 4-rule precedence law, verified severity/likelihood literals surfaced as named constants, `assertOpeningRiskLevelConsistency` for opening ⇔ overall enforcement.
+- `supabase/functions/_shared/ltp/risk-level-map.test.ts` (new) — 15 tests: rule 1 (Severe → Critical; Highly-likely → Critical; no trigger → High; determined-negative beats insufficiency); rule 2 (write-around; all-doc-incomplete; all-no-evidence); rule 3 (hedged; high closeness; partial doc; safeguard gaps); rule 4 (all-firm clean); enum-surjectivity fixture; consistency asserter across all 5 members; `selectOpeningTemplateId` overall-honoring path.
+- `supabase/functions/_shared/ltp/content/pass2-templates.ts` — added `T.risk.summary.opening.insufficient` (max_chars 420) verbatim per courier + `SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES`.
+- `supabase/functions/_shared/ltp/summary-compose.ts` — `activity_signals` input threads the 5-tier map into `structured.overall_risk_level`; `selectOpeningTemplateId(outcomes, overall?)` honors resolved tier (insufficient/any_negative/mixed_hedged/all_firm); telemetry adds `overall_risk_level_rule` (1–4) + `overall_risk_level_rule_note`; `overall_risk_level_held` now `false` when signals supplied. Back-compat path preserved when signals absent.
+
+**Tests (green — pasted):** `deno test --no-check --allow-env _shared/ltp/risk-level-map.test.ts _shared/ltp/summary-compose.test.ts` → **21 passed / 0 failed (88ms)**. Full run block in `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-BINDING-2026-07-26.md`.
+
+**Precedence law (verbatim from courier, evaluated in order):**
+1. Any `impacts_outweigh` → `Critical` iff that activity has a negative-impact row with `severity==="Severe"` OR `likelihood==="Highly likely"`; else `High`. Absolute; a determined harm finding is never masked by another activity's insufficiency.
+2. `write_around_engaged` on any activity, OR ALL activities have `documentation_incomplete`, OR every mandatory balance factor has `no record evidence` → `Insufficient basis`. Absolute.
+3. Any hedged/close (`closeness ≥ 0.6`), OR partial doc-incompleteness (some but not all), OR open safeguard gaps → `Moderate`.
+4. Else (all-firm, no gaps) → `Low`.
+
+**Verified literals:** `T_CRITICAL_SEVERITY_LITERAL="Severe"` and `T_CRITICAL_LIKELIHOOD_LITERAL="Highly likely"` verified at `src/pages/CPPARiskAssessment.enums.ts:13-14` (`IMPACT_SEVERITY_OPTS`, `IMPACT_LIKELIHOOD_OPTS`). Verbatim enum re-verified at `run-cppa-risk-assessment/index.ts:654` and mirror at `RiskAssessmentReportV4.tsx:48`.
+
+**Opening consistency (asserter enforces):** `Insufficient basis` ⇔ `T.risk.summary.opening.insufficient`; `High`|`Critical` ⇒ `any_negative`; `Moderate` ⇒ `mixed_hedged`; `Low` ⇒ `all_firm`.
+
+**Not landed this turn (engineering follow-on, NOT courier-gated per item 144):**
+- Part-1 integration in `run-cppa-risk-assessment/index.ts`: derive `activity_signals` from terminal factor tables and thread into `composeAssessmentSummary`; replace the caller's direct `overall_risk_level` assignment with the composer's resolved value; enable `LTP_ENFORCE_ENABLED`.
+- Deploy `run-cppa-risk-assessment` (fresh-clock BUILD_STAMP + boot log + locks pasted).
+- Part-2 measurement batch: standalone s5, `cppa-risk`, `batch_size 6`, `scenario_set='tuning'`, campaign-detached, single launch.
+
+**Downstream status:**
+- `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); no deploy this turn.
+- Campaign `fd1be147` remains CEO-paused; no batch launch.
+- Content set for WAVE-B is COMPLETE — no further courier content required for the risk pilot.
+
+**Courier:** `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-BINDING-2026-07-26.md`.
