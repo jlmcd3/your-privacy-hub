@@ -2286,3 +2286,35 @@ Extrapolation to 5-tier ("Critical" and "Insufficient basis") is a legal-reasoni
 **DOES NOT BLOCK:** additional isolated module work; ingestion; unrelated deploys; other tools' pipeline waves.
 
 **Awaiting:** a follow-on content courier defining deterministic assignment of all 5 tiers from the aggregation classes, including the "Critical" and "Insufficient basis" trigger conditions.
+
+## Ledger item 148 — HELD-F OPENED: overall_risk_level 5-value enum unmatched by courier shapes (2026-07-26T20:06:45Z)
+
+**Dispatch:** CONTENT COURIER — overall_risk_level five-tier mapping (attempted release of HELD-E item 147).
+
+**Outcome:** **HELD-F opened per the release courier's own name-binding escape clause. No wiring. No deploy. No batch launch. HELD-E NOT released — superseded on-subject by HELD-F (verbatim enum now on record).**
+
+**Verbatim enum, from defining source files:**
+- `supabase/functions/run-cppa-risk-assessment/index.ts:654` → `"overall_risk_level": "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis",`
+- `src/components/cppa/RiskAssessmentReportV4.tsx:48` (mirror) → `overall_risk_level?: "Low" | "Moderate" | "High" | "Critical" | string;`
+- `src/components/cppa/RiskAssessmentReportV4.tsx:86` (alias handling) → `"Insufficient basis to assess"` is displayed as `"Insufficient basis"`.
+
+**Match tests (from the courier's rule):**
+- Shape A `[Low, Moderate, High, Critical, Severe]` → FAIL (5th member is `"Insufficient basis"`, not `"Severe"`).
+- Shape B `[Minimal, Low, Moderate, High, Critical]` → FAIL (1st member is `"Low"`, not `"Minimal"`).
+- Courier ruling on the FAIL branch (verbatim): *"If the enum matches NEITHER shape exactly, HELD naming the verbatim enum — do not improvise a binding."*
+
+**Semantic contradiction if `"Insufficient basis"` were bound to a severity tier:** the generator's own prompt (`index.ts:566`) states `OVERALL_RISK_LEVEL MEASURES SUBSTANTIVE PRIVACY RISK ONLY` and expressly excludes record-completeness from this axis; the `Colorable argument` doctrine (`index.ts:609`) reserves `Insufficient basis` for record-completeness failures on the `benefits_outweigh_risks_conclusion` axis. That leaves 4 effective severity tiers and no surjective destination for the T5 aggregation class.
+
+**Sanity check (also fails):** courier requires `Critical` reachable as T5-or-T4 AND aggregation classes map surjectively; the latter is not satisfiable without improvising the T5 slot.
+
+**To release HELD-F (specific missing content items enumerated in courier):** (i) rename enum's 5th member to `"Severe"` (adopt Shape A verbatim) — noting removal of the `"Insufficient basis"` sentinel requires a serializer/PDF-migration ruling because `"Insufficient basis"` is a documented public value; (ii) prepend `"Minimal"` and drop `"Insufficient basis"` (adopt Shape B verbatim); or (iii) author a courier explicitly binding the 5-value enum `["Low","Moderate","High","Critical","Insufficient basis"]`, stating the semantic role of `"Insufficient basis"` in aggregation and which of the 4 severity tiers absorbs the T5 aggregation class.
+
+**Downstream status:**
+- `_shared/ltp/summary-compose.ts` — unchanged; caller `overall_risk_level` passes through verbatim; `telemetry.overall_risk_level_held=true`.
+- Part-1 index integration (LTP_ENFORCE_ENABLED on, adapter wiring per surface map): **HELD-F**.
+- Part-2 measurement batch (cppa-risk, batch_size 6, standalone s5, `scenario_set='tuning'`): **GATED on Part-1 → HELD-F**.
+- Items 143 / 143b / 143c / 145 / 147 NOT released.
+- `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`).
+- Campaign `fd1be147` remains CEO-paused.
+
+**Courier:** `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-HELD-F-2026-07-26.md`.
