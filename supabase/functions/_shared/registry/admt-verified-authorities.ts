@@ -33,7 +33,7 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w8-2026-07-24";
+export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w9-2026-07-26";
 
 /** Canonical published text for §§ 7000-series (OAL-approved package). */
 const CCR_URL =
