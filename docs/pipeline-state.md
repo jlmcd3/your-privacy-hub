@@ -2159,3 +2159,32 @@ Plus `content.test.ts` — 11 Deno tests covering prompt invariants, template id
 **Courier.** `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md`.
 
 **Zero-side-effect boundary.** Edits: (a) 4 new files under `_shared/ltp/content/`, (b) 1 new test file, (c) courier, (d) this ledger item + header restamp. NO edits to: `derive.ts`, `pipeline.ts`, `verify.ts`, `guide.ts`, `closeness.ts`, `run-cppa-risk-assessment/index.ts`, rubric, grader-context, grader, goldens, contracts, fixtures, samples, registries, corpus, instrument, thresholds. NO migration; NO deploy (`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); NO batch launch; campaign `fd1be147` remains CEO-paused.
+
+---
+
+### Item 143c — LTP-RISK-WAVE-B SURFACE MAP LANDED + SERIALIZER CUTS APPLIED; WIRING HELD-C; MEASUREMENT GATED (2026-07-26T18:00:30Z)
+
+**Dispatch.** Content-anchored SURFACE-MAP COURIER releases item 143b HELD-B by supplying the template→`report_data`-path bindings, CUT execution sites, and Pass-V invocation map — verified against the live report_data top-level and per-activity keys.
+
+**Landed (verbatim).**
+- `supabase/functions/_shared/ltp/content/risk-surface-map.ts` — `RISK_SURFACE_BINDINGS` covering `opening_summary` (deterministic/T7), `scope_and_triggers.triggered_activities_detail` (T.risk.applicability.*), per-activity `benefits_outweigh_risks_rationale` (T.risk.balance.firm/.hedged with per-activity closeness), token-list surfaces (`benefits_to_business`, `benefits_to_consumers`, `adverse_effects`, `current_safeguards`), citation-only (`statutory_basis`, `section_7152_mapping`), intake-verbatim (`purpose`), gap-question surfaces (`information_needed` top + per-activity), `priority_actions` (Type R only), `assessment_summary` with `T.risk.closing.reserved` final paragraph, `exception_analysis`, `submission_summary` (§ 7157 / § 7121 registry), `record_sufficiency`, `strengthen_items`, `enforcement_context` (deterministic only — no model prose), and unchanged deterministic surfaces (`attestation_block`, `document_metadata`, `risk_register`, `schema_version`, `_meta`).
+- `RISK_CUT_RULINGS` — `scope_and_triggers.scope_notes` (OBJECT_PRUNE), `cross_tool_recommendations` (REMOVE), `inconsistency_flags` (EMPTY_ARRAY, NAME retained).
+- `RISK_PASSV_INVOCATION_MAP` — bounded to (1) per-activity hedged-or-close balance, (2) `assessment_summary` when any activity hedged, (3) persuasive-marked content (currently impossible; wired).
+
+**Serializer cuts applied.** `supabase/functions/_shared/report-schemas/cppa-risk.ts` bumped to `rs-w1-2026-07-26-ltp-waveb`: `cross_tool_recommendations` removed from `topLevel`; new `objects` allow-list for `scope_and_triggers` retains only `triggered_activities_detail` (`scope_notes` pruned via LEAK-PREV-P2 object pruning); `inconsistency_flags` key NAME retained in `topLevel` + `entries` per TEMPLATE_CUT ruling. Frontend read-paths list drops `cross_tool_recommendations`.
+
+**Renderer-tolerance audit (same turn, per courier same-turn requirement).**
+- `src/components/cppa/RiskAssessmentReportV4.tsx` — `inconsistencies = report.inconsistency_flags || []`; `xtool = report.cross_tool_recommendations || {}`; `scope_notes` guarded by `&&` conditional. All three tolerate absence/empty.
+- `supabase/functions/generate-report-pdf/index.ts` — `Array.isArray(report.inconsistency_flags)` guard; `report.cross_tool_recommendations || {}`; `scope.scope_notes` conditional. All three tolerate absence/empty.
+- `src/components/refine/RefinePanel.tsx` — comment-only reference; no runtime read.
+Conclusion: cuts execute cleanly at the serializer layer via allow-list removal + object pruning; no `_meta.internal` deprecation fallback required.
+
+**Typecheck.** `deno check` clean on `_shared/report-schemas/cppa-risk.ts` and `_shared/ltp/content/risk-surface-map.ts`. Pre-existing `validators.lia.test.ts:237` type error (item 138) left untouched per scope discipline.
+
+**HELD-C (Part-1 wiring).** Surface map delivers template→path bindings, but courier does NOT supply: (i) the LLM Pass-1 adapter wiring inside `pipeline.ts` replacing `derive.ts`'s deterministic body (model routing, retry-N=2 loop implementation, structured-output schema binding, `conservative_write_around` invocation contract), (ii) the per-activity balance rendering integration test corpus proving `factor_table` `activity_ref` propagation + per-activity closeness evaluation, (iii) the assessment_summary variant-calibration post-render assert (firm summary forbidden when any activity hedged) test cases, (iv) the Pass-V bounded-read invocation implementation inside `verify.ts`, (v) the deploy-turn locks + boot-log target. Landing enforcement-mode without these would violate the two-pass invariant that Wave-B exists to enforce. Release requires a courier delivering (i)-(v).
+
+**GATED (Part-2 measurement).** Standalone `s5` batch (`cppa-risk` only, `batch_size 6`, `scenario_set='tuning'`, single launch, not campaign-linked) remains gated on Part-1 landed + deployed. Does not launch this turn.
+
+**Courier.** `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md` (appended).
+
+**Zero-side-effect boundary.** Edits: (a) new `_shared/ltp/content/risk-surface-map.ts`, (b) `_shared/report-schemas/cppa-risk.ts` schema update (LEAK-PREV-P2 whitelist), (c) courier append, (d) this ledger item + header restamp. NO edits to: `derive.ts`, `pipeline.ts`, `verify.ts`, `guide.ts`, `closeness.ts`, `run-cppa-risk-assessment/index.ts`, rubric, grader-context, grader, goldens, contracts, fixtures, samples, registries, corpus, instrument, thresholds. NO migration; NO deploy (`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); NO batch launch; campaign `fd1be147` remains CEO-paused.
