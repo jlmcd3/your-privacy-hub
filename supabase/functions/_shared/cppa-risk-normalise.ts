@@ -229,9 +229,14 @@ export function shimLegacyIntake(intake: any): FiveStageIntake {
   };
 }
 
-export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean } {
+export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean; bandResolution: BandResolution } {
+  const bandResolution = computeBandResolution(intake ?? {});
   if (intake?.triggers === undefined) {
-    return { intake: shimLegacyIntake(intake ?? {}), wasLegacyShimmed: true };
+    const shimmed = shimLegacyIntake(intake ?? {});
+    // BAND-REALIGNMENT-T2A: stash band-resolution on content_detail for
+    // downstream pickup by the generator's _meta.internal writer.
+    (shimmed.content_detail as any)._band_resolution = bandResolution;
+    return { intake: shimmed, wasLegacyShimmed: true, bandResolution };
   }
   const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
   if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
@@ -240,6 +245,7 @@ export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLega
   cd.revenue_band = band.label;
   cd.revenue_band_key = band.key;
   cd.revenue_audit_cohort = band.audit_cohort;
+  cd._band_resolution = bandResolution;
   const triggers = { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) } as Record<string, any>;
   triggers.revenue_over_100m = band.over_100m;
   return {
@@ -253,6 +259,7 @@ export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLega
       content_detail: cd,
     },
     wasLegacyShimmed: false,
+    bandResolution,
   };
 }
 
