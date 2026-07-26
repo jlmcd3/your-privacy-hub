@@ -2977,6 +2977,33 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] RISK-COHORT-DATE-DETERMINISM failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── RISK-INTAKE-CONTRADICTION-BODY (2026-07-26) ──────────────────
+    // Discharges item-107 QUEUED backlog (w28 doc 1036f12c hallucination
+    // HIGH ×2, Driver 2). Whole-sentence excision of model-written body
+    // prose that contradicts a definite intake polarity (q5b/q18/q5), plus
+    // deterministic downgrade of hedged "reconcile" framing (Class B).
+    // Model NEVER writes replacements. Runs AFTER applyRiskCohortDate and
+    // BEFORE the LEAK-PREV P1 emit gate. Anchor + reserved-subtree safe.
+    // Telemetry at _meta.internal.risk_intake_contradiction; preexisting
+    // _meta.internal siblings preserved.
+    try {
+      const _ricIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _ricC, report: _ricR } = applyRiskIntakeContradiction(
+        _ricIntake, report_data as any, { buildStamp: BUILD_STAMP },
+      );
+      report_data = _ricR as any;
+      const rdRic: any = report_data;
+      const metaRic = (rdRic._meta = rdRic._meta && typeof rdRic._meta === "object" ? rdRic._meta : {});
+      const internalRic = (metaRic.internal = metaRic.internal && typeof metaRic.internal === "object" ? metaRic.internal : {});
+      internalRic.risk_intake_contradiction = _ricC;
+      console.log(JSON.stringify({
+        evt: "_risk_intake_contradiction", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, risk_intake_contradiction_stamp: RISK_INTAKE_CONTRADICTION_STAMP, ..._ricC,
+      }));
+    } catch (e) {
+      console.warn("[RISK] RISK-INTAKE-CONTRADICTION-BODY failed (non-fatal):", (e as Error)?.message);
+    }
+
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
 
 
