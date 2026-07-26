@@ -19,7 +19,7 @@ Deno.test("W15 (a) registry loads + version stamp exported + BUILD_STAMP w15-ris
   assert(registrySize(RISK_VERIFIED_AUTHORITIES) >= 40, "registry too small");
   assert(RISK_VERIFIED_AUTHORITY_ROWS.length === registrySize(RISK_VERIFIED_AUTHORITIES));
   assert(
-    BUILD_STAMP.startsWith("w15-risk-regwire@") || BUILD_STAMP.startsWith("w15-risk-factledger@") || BUILD_STAMP.startsWith("w16-risk-flfix@") || BUILD_STAMP.startsWith("w16-risk-collapsecov@") || BUILD_STAMP.startsWith("w18-risk-collapsecov2@") || BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@") || BUILD_STAMP.startsWith("w20-risk-turnb@") || BUILD_STAMP.startsWith("w21-risk-turna@") || BUILD_STAMP.startsWith("w22-risk-turna@") || BUILD_STAMP.startsWith("w23-risk-turnb@") || BUILD_STAMP.startsWith("w24-risk-turna@") || BUILD_STAMP.startsWith("w24a-v3@") || BUILD_STAMP.startsWith("t7-risk-pilotfix@") || BUILD_STAMP.startsWith("t7-risk-pilotfix2@"),
+    BUILD_STAMP.startsWith("w15-risk-regwire@") || BUILD_STAMP.startsWith("w15-risk-factledger@") || BUILD_STAMP.startsWith("w16-risk-flfix@") || BUILD_STAMP.startsWith("w16-risk-collapsecov@") || BUILD_STAMP.startsWith("w18-risk-collapsecov2@") || BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@") || BUILD_STAMP.startsWith("w20-risk-turnb@") || BUILD_STAMP.startsWith("w21-risk-turna@") || BUILD_STAMP.startsWith("w22-risk-turna@") || BUILD_STAMP.startsWith("w23-risk-turnb@") || BUILD_STAMP.startsWith("w24-risk-turna@") || BUILD_STAMP.startsWith("w24a-v3@") || BUILD_STAMP.startsWith("t7-risk-pilotfix@") || BUILD_STAMP.startsWith("t7-risk-pilotfix2@") || BUILD_STAMP.startsWith("band-realignment-t2a@"),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });

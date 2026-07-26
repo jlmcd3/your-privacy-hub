@@ -84,7 +84,7 @@ function flagCiteField(entry: any, field: string, m: any): void {
 }
 
 Deno.test("W18 BUILD_STAMP restamped to w18-risk-collapsecov2@", () => {
-  assert(BUILD_STAMP.startsWith("w18-risk-collapsecov2@") || BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@") || BUILD_STAMP.startsWith("w20-risk-turnb@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
+  assert(BUILD_STAMP.startsWith("w18-risk-collapsecov2@") || BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@") || BUILD_STAMP.startsWith("w20-risk-turnb@") || BUILD_STAMP.startsWith("band-realignment-t2a@"), `unexpected BUILD_STAMP: ${BUILD_STAMP}`);
 });
 
 Deno.test("W18 (a) inconsistency_flags bare-collapse in description flagged — WAVE-17 ESCAPE (doc 52dfb9a1)", () => {

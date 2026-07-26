@@ -39,8 +39,10 @@ const HARM_TYPES = [
   "Reputational harm",
   "Psychological harm",
 ];
-const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"];
-const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
+// BAND-REALIGNMENT-T2C (2026-07-26): V2 statutorily-aligned bands mirror the
+// intake contract at supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts.
+const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"];
+const CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"];
 const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"];
 const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
 const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"];

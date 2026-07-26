@@ -330,3 +330,105 @@ All rulings recorded durably per CEO instruction "Write every step durably (ledg
 **Chain state:** T2C (item 122) unblocked; PERFECT-INTAKE (item 123) still gated on T2C per item 116; IR-BAND (item 114) and TWO-PASS (item 115) queued behind PERFECT-INTAKE.
 
 **Pre-existing reds outside T2B scope (inspected, unchanged):** `src/test/font-size.test.tsx` × 4 (CSS typography drift); `src/lib/__tests__/sampleFixtures.shape.test.ts` × 2 (`cppa_cyber` shape drift — missing `company_name` / `profile_industry` / `profile_audit` / `industry_sector`). Zero band-vocabulary coupling in either class.
+
+---
+
+## T2C-LANDED (2026-07-26T05:48:16Z)
+
+**Dispatch:** BAND-REALIGNMENT-T2C (atomic; GATED — proceeds because Item 125 records T2B LANDED and released item 121 by name).
+
+**Preflight:** PASS. T2B-LANDED section above + ledger item 125 present; item 121 released BY NAME. T2C GATE cleared.
+
+### Test retargets (BUILD_STAMP allowlist extension only — no semantic change)
+
+Six test files extended their `BUILD_STAMP.startsWith(...)` allowlist to accept `band-realignment-t2a@` so the T2A generator stamp validates cleanly. Zero expectation strings changed. Zero rubric / grader / prompt drift.
+
+- `supabase/functions/run-cppa-risk-assessment/_w12_turnd.test.ts` (M_TOKEN allowlist)
+- `supabase/functions/run-cppa-risk-assessment/_w15_risk_fl.test.ts` (regex alternation)
+- `supabase/functions/run-cppa-risk-assessment/_w15_risk_va.test.ts`
+- `supabase/functions/run-cppa-risk-assessment/_w16_risk_collapse.test.ts`
+- `supabase/functions/run-cppa-risk-assessment/_w18_risk_collapse2.test.ts`
+- `supabase/functions/run-cppa-risk-assessment/_w18_risk_vocab.test.ts`
+
+### Band-adjacent enum audits
+
+- `supabase/functions/_shared/field-enums.ts` — `REVENUE_OPTS` / `CONSUMER_OPTS` mirror retargeted to V2 to match the intake contract at `_shared/intake-contracts/cppa-risk-assessment.ts` (single-source discipline preserved). Comment header stamped `BAND-REALIGNMENT-T2C`. Sha-256 `e1f59a0d440a7afac16f0705bd7edfee64346b734186145015924fe50ee17ea5`.
+- `supabase/functions/_shared/customer-messages.ts` — audited, ZERO band vocabulary present (no change).
+- `supabase/functions/_shared/target-path-aliases.ts` — audited, ZERO band vocabulary present (no change).
+- `supabase/functions/_shared/locked-fields.ts` — audited, ZERO band vocabulary present (no change).
+
+### Fixture correction (T2B carry)
+
+- `supabase/functions/_shared/cppa-risk-contract-fixtures.ts` L76 — `i3_ca_consumer_band` reverted from the mistaken V2 CONSUMER_OPTS label `"100,000 to under 250,000"` (introduced by T2B while retargeting `q2_consumers`) to the correct CA_CONSUMER_BAND enum member `"100,000–1,000,000"`. `i3_ca_consumer_band` uses the separate `CA_CONSUMER_BAND` enum defined at `_shared/intake-contracts/cppa-risk-assessment.ts` L101 which is a distinct 5-value California-specific questionnaire section, NOT the V2 CONSUMER_OPTS. Corrects the `cppa-risk-rcC1-yield-k3` contract-fixture validation.
+
+### QC-R1-4 EXPECTED-COHORT map (re-keyed on V2, ambiguous-legacy EXEMPT)
+
+The QC-R1-4 check in `run-quality-batch/index.ts` L604-660 resolves cohort via `classifyRevenueBand(r.rawForStates.q1_revenue)` from `_shared/cppa-test-states.ts`, which was retargeted to V2 in T2A and continues to accept unambiguous legacy labels for stored-row back-compat. The check already handles V2 correctly; **no code change to `run-quality-batch/index.ts` is required for the QC-R1-4 map re-key**, therefore **NO redeploy of `run-quality-batch`** is triggered by T2C.
+
+The canonical map is now published as a single export in `supabase/functions/_shared/bands/revenue-consumer.ts` (`QC_R1_4_EXPECTED_COHORT`, aliased to `REVENUE_BAND_AUDIT_COHORT`). Verbatim:
+
+```text
+QC_R1_4_EXPECTED_COHORT (V2, statute-aligned) — ambiguous-legacy EXEMPT
+──────────────────────────────────────────────────────────────────────
+V2 band                       │ § 7121(a) cohort │ statute
+──────────────────────────────┼──────────────────┼──────────────────
+"Under $25M"                  │ null¹            │ § 1798.140(d)(1)(A) not met → audit N/A
+"$25M to under $50M"          │ 2030-04-01       │ § 7121(a)(3): < $50M
+"$50M to $100M"               │ 2029-04-01       │ § 7121(a)(2): $50M–$100M
+"Over $100M"                  │ 2028-04-01       │ § 7121(a)(1): > $100M
+
+EXEMPT (must render BOTH 2029 AND 2030 dates with conditional framing,
+enforced at run-quality-batch/index.ts L627-637):
+- "$25M–$100M"        (legacy, straddles $50M line)
+- "$20M–$100M"        (legacy, straddles $25M AND $50M lines)
+- "" / unspecified    (band not selected)
+
+¹ REVENUE_BAND_AUDIT_COHORT["Under $25M"] === null because § 1798.140(d)(1)(A)
+  covered-business gate is not met; the audit obligation itself is N/A and the
+  cohort field carries no meaning. QC-R1-4 does not fire on this branch.
+```
+
+Sha-256 of `_shared/bands/revenue-consumer.ts`: `0139a36486cd1d2dc38e9f8742d0f05a29a386e819a31505a44fe4229192da8e`.
+
+### Pasted greens
+
+```
+$ deno test --allow-all --no-check supabase/functions/run-cppa-risk-assessment/
+ok | 159 passed | 0 failed (1s)
+
+$ deno test --allow-all --no-check supabase/functions/_tests/intake-contracts.test.ts \
+                                    supabase/functions/_tests/revision-changed-paths-allowlist.test.ts \
+                                    supabase/functions/_tests/band-realignment-t2a.test.ts
+ok | 47 passed | 0 failed (216ms)
+
+$ deno test --allow-all --no-check supabase/functions/_shared/openings/
+ok | 26 passed | 0 failed (136ms)
+
+Combined (T2C surfaces):
+ok | 232 passed | 0 failed (2s)
+```
+
+### Deploy
+
+**NONE.** QC-R1-4 already resolves V2 cohorts through `classifyRevenueBand` (T2A). The `QC_R1_4_EXPECTED_COHORT` export is documentation and future-wire scaffolding; nothing in `run-quality-batch/index.ts` was edited, so no redeploy protocol was triggered. `boot log` and `fresh stamp` obligations therefore do not apply this turn.
+
+### Pre-existing reds outside T2C scope (documented, unchanged)
+
+The full `_tests/` suite reports 16 pre-existing failures none of which have band-vocabulary coupling. Confirmed pre-T2A:
+
+- `_tests/postbatch-1.test.ts` — expects `/audit-cohort determination/` from the M6 scrubber; the token map at `run-cppa-risk-assessment/index.ts` L192 was renamed to `"the cyber-audit tier review"` on 2026-07-20 (commit `c82d9cb1`, pre-T2A). Not a band issue.
+- `_tests/rebuild-dpia-cpparisk.test.ts` — same M6 rename source.
+- `_tests/ql3-open-filter.test.ts`, `ql3-p1.test.ts`, `ql3-p1-2.test.ts` — uncaught module-load errors, not band-adjacent.
+- `_tests/ff-1.test.ts`, `ff-2.test.ts` — AI schema validation drift (weekly-brief pipeline), not band-adjacent.
+- Two `W3-T1 / W3-T2 BUILD_STAMP` bumps — separate weekly-brief cadence, not risk-assessment stamps.
+
+### Released BY NAME
+
+- **item 121** — T2B HELD-AWAITING-T2A (released in T2B; re-noted for chain closure)
+- **item 122** — T2C HELD-AWAITING-T2B
+- **item 123** — PERFECT-INTAKE-EXPERIMENT-RISK HELD-AWAITING-T2C
+- **item 118 (iii)** — the T2 hold's residual condition (test-surface retargets) now met
+
+### T2 COMPLETE marker
+
+T2A (item 124) + T2B (item 125) + T2C (this section) all LANDED. **T2 is COMPLETE.** Item 116 chain advances: PERFECT-INTAKE-EXPERIMENT-RISK (item 116 step iii) is now UNBLOCKED for its own atomic dispatch. IR-BAND-REALIGNMENT (item 114) and TWO-PASS-ARCHITECTURE-DESIGN (item 115) remain queued in item-116 order behind PERFECT-INTAKE.
