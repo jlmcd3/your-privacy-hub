@@ -27,18 +27,14 @@ const CHECKS: {
   options: readonly string[];
   legacyAccepted?: readonly string[];
 }[] = [
-  // BAND-REALIGNMENT-T2A (2026-07-26): temporarily widen legacyAccepted to
-  // the V1 label set enumerated in item 120's failure table so the guard
-  // stays green while T2B retargets stress fixtures to V2. T2B MUST
-  // re-narrow legacyAccepted to the minimal set still present in stored
-  // data — this transition allowance is NOT permanent.
-  { field: "q1_revenue", options: REVENUE_OPTS, legacyAccepted: [
-    "Over $500M", "$100M–$500M", "$25M–$50M", "$50M–$100M", "$25M–$100M",
-  ] },
-  { field: "q2_consumers", options: CONSUMER_OPTS, legacyAccepted: [
-    "1–10 million", "Over 10 million", "Fewer than 100,000", "Unsure",
-    "100,000–249,999", "250,000–1 million", "100,000–1 million",
-  ] },
+  // BAND-REALIGNMENT-T2B (2026-07-26): legacyAccepted re-narrowed to the
+  // minimal set still present in stress fixtures after V2 retargeting. Stress
+  // fixtures now emit V2 labels exclusively; no V1/legacy strings remain in
+  // CPPA_RISK_VARIANTS, so legacyAccepted is empty. Coverage assertions below
+  // retargeted to V2 vocabulary. See docs/courier/BAND-REALIGNMENT-2026-07-26.md
+  // §T2B-LANDED for the hygiene note.
+  { field: "q1_revenue", options: REVENUE_OPTS, legacyAccepted: [] },
+  { field: "q2_consumers", options: CONSUMER_OPTS, legacyAccepted: [] },
   { field: "q5_sell_share", options: Q5_SELL_SHARE_OPTS },
   { field: "q15_sensitive_pi", options: Q15_SENSITIVE_PI_OPTS },
   { field: "q15c_spi_volume", options: SPI_VOLUME_OPTS },
@@ -64,16 +60,16 @@ describe("CPPA Risk fixture drift guard (R1a)", () => {
     });
   }
 
-  it("coverage: q1 includes both new bands and the legacy straddle", () => {
+  it("coverage: q1 exercises multiple V2 bands", () => {
     const vals = new Set(CPPA_RISK_VARIANTS.map((v) => v.q1_revenue));
-    for (const req of ["$25M–$50M", "$50M–$100M", "$25M–$100M"]) {
+    for (const req of ["$25M to under $50M", "$50M to $100M", "Over $100M"]) {
       expect(vals.has(req), `q1 missing ${req}`).toBe(true);
     }
   });
 
-  it("coverage: q2 includes new bands, legacy straddle, Fewer than 100,000, and Unsure", () => {
+  it("coverage: q2 exercises multiple V2 bands including Under 100,000", () => {
     const vals = new Set(CPPA_RISK_VARIANTS.map((v) => v.q2_consumers));
-    for (const req of ["100,000–1 million", "Fewer than 100,000", "Unsure"]) {
+    for (const req of ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"]) {
       expect(vals.has(req), `q2 missing ${req}`).toBe(true);
     }
   });
