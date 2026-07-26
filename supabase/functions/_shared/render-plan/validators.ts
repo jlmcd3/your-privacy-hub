@@ -84,15 +84,39 @@ export function validateCitationBindingClosure(plan: RenderPlan): Issue[] {
 }
 
 // ---------------------------------------------------------------------------
-// V3 — Authority-domain filter (Q4(e))
+// V3 — Authority-domain filter (Q4(e); v2.3 generalized forum rule)
 // ---------------------------------------------------------------------------
+//
+// v2.3 (CEO-CORRECTED 2026-07-26): for any U.S.-forum plan (cppa-ca or
+// us-state-*), U.S. FEDERAL law (`jurisdiction_tag: "us-federal"`, incl.
+// FTC and other federal agency rulings) is BINDING-tier eligible and does
+// NOT trigger a cross-domain error at V3. Sister-state law crossing into a
+// U.S.-forum plan at BINDING tier is caught by V8 (must be persuasive-tier
+// instead). Persuasive weighing_frame entries carry cross-domain tags by
+// design and are governed by V8, so V3 does not error on them either.
+// GDPR/UK plans remain untouched: no U.S. tag (state OR federal) is
+// admissible in any tier — the bridge is one-way.
+
+export function isUsForumTag(tag: JurisdictionTag): boolean {
+  return tag === "cppa-ca" || (typeof tag === "string" && tag.startsWith("us-state-"));
+}
+
+function isBindingDomainMatch(
+  planDomain: JurisdictionTag,
+  refDomain: JurisdictionTag,
+): boolean {
+  if (refDomain === planDomain) return true;
+  // v2.3 — U.S. Federal is binding-tier for any U.S.-forum plan.
+  if (refDomain === "us-federal" && isUsForumTag(planDomain)) return true;
+  return false;
+}
 
 export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
   const issues: Issue[] = [];
   const domain = plan.jurisdiction_tag;
 
   for (const p of plan.propositions) {
-    if (p.jurisdiction_tag !== domain) {
+    if (!isBindingDomainMatch(domain, p.jurisdiction_tag)) {
       issues.push({
         code: "V3_PROP_DOMAIN_MISMATCH",
         severity: "error",
@@ -102,7 +126,10 @@ export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
     }
   }
   for (const b of plan.citation_bindings) {
-    if (b.jurisdiction_tag !== domain) {
+    const w = b.authority_weight ?? "binding";
+    // Persuasive citation bindings (rare; author-controlled) are governed by V8.
+    if (w === "persuasive") continue;
+    if (!isBindingDomainMatch(domain, b.jurisdiction_tag)) {
       issues.push({
         code: "V3_CITE_DOMAIN_MISMATCH",
         severity: "error",
@@ -112,7 +139,9 @@ export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
     }
   }
   for (const e of plan.factor_table) {
-    if (e.jurisdiction_tag !== domain) {
+    // Factor guidance is binding-tier only (V8b); factor rows must match plan domain
+    // OR carry us-federal on a U.S.-forum plan.
+    if (!isBindingDomainMatch(domain, e.jurisdiction_tag)) {
       issues.push({
         code: "V3_FACTOR_DOMAIN_MISMATCH",
         severity: "error",
@@ -122,7 +151,10 @@ export function validateAuthorityDomain(plan: RenderPlan): Issue[] {
     }
   }
   for (const f of plan.weighing_frame) {
-    if (f.jurisdiction_tag !== domain) {
+    const w = f.authority_weight ?? "binding";
+    // Persuasive frame entries are governed by V8 (allowed for CPPA plans with mediation).
+    if (w === "persuasive") continue;
+    if (!isBindingDomainMatch(domain, f.jurisdiction_tag)) {
       issues.push({
         code: "V3_FRAME_DOMAIN_MISMATCH",
         severity: "error",
