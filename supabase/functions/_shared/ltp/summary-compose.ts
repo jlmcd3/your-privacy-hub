@@ -78,7 +78,13 @@ export interface ComposeInput {
     readonly exception_labels?: readonly string[]; // [] = no exceptions claimed
   };
   readonly corpus_enforcement_note?: string;
-  /** Caller-supplied 5-tier value (see HELD note above); passed through as-is. */
+  /**
+   * Per-activity record signals for the 5-tier precedence law
+   * (`risk-level-map.ts`). Optional for back-compat: when absent, the
+   * composer falls back to passing through `overall_risk_level_from_caller`.
+   */
+  readonly activity_signals?: readonly ActivityRecordSignals[];
+  /** Caller-supplied fallback value (used only when activity_signals absent). */
   readonly overall_risk_level_from_caller?: string;
 }
 
