@@ -3,15 +3,19 @@
  * -----------------------------------------------------------------------------
  * Pre-indexed candidate slices keyed by weighing-test id. Pass G at runtime
  * selects entries from these slices only (candidate-set closure per
- * TWO-PASS-ARCHITECTURE §2.6/§2.7). Every entry is CPPA-domain (Q4(e)).
+ * TWO-PASS-ARCHITECTURE §2.6/§2.7/§2.8). Every entry is CPPA-domain (Q4(e)).
  *
- * PER CEO EXCEPTION: FSOR-internal analogies (i.e., enforcement or comparative
- * discussion the FSOR itself references) are legitimate CPPA-domain corpus.
- * The current corpus has no FSOR-internal enforcement analogies indexed to
- * § 7152; that tier is empty and logged to the T5 feed via the courier.
+ * v2.2 AUTHORITY-WEIGHT (CEO-CORRECTED 2026-07-26): primary/supporting rows
+ * (FSOR commentary on CPPA regs) are BINDING-tier CA interpretive material.
+ * FSOR-mediated non-CA analogies (analogy_fsor_internal) are PERSUASIVE-tier
+ * ONLY and each such entry MUST carry `fsor_mediation_ref`. The v2.1 phrasing
+ * that treated FSOR-discussed non-CA analogies as CPPA authority is
+ * SUPERSEDED. Current corpus has no FSOR-mediated non-CA analogies indexed
+ * to § 7152; that tier is empty and logged to the T5 feed via the courier.
  *
  * NO WIRING. Data only.
  */
+
 
 import type { JurisdictionTag } from "../legal-test/cppa-risk-conclusions.ts";
 
