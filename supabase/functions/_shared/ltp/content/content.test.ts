@@ -42,9 +42,15 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.documentation.gap",
     "T.risk.documentation.present",
     "T.risk.review_items",
+    "T.risk.summary.activity_line",
+    "T.risk.summary.docs",
+    "T.risk.summary.opening.all_firm",
+    "T.risk.summary.opening.any_negative",
+    "T.risk.summary.opening.mixed_hedged",
   ];
   assertEquals(ids, expected);
 });
+
 
 Deno.test("content: ADMT consequence template emits nothing when engaged", () => {
   const t = PASS2_TEMPLATES["T.risk.admt.consequence_suppressed"];

@@ -54,7 +54,7 @@ const RISK_ENTRY_KEYS = [
 ] as const;
 
 export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-w1-2026-07-26-ltp-waveb",
+  version: "rs-w1-2026-07-26-ltp-waveb-summary",
   tool: "cppa_risk_assessment",
   topLevel: [
     // core presentation (from Result page + V4)
