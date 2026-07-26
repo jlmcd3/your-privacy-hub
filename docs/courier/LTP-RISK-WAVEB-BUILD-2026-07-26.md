@@ -40,3 +40,29 @@ Edits: (a) 4 new files under `_shared/ltp/content/`, (b) 1 new test file, (c) th
 Check supabase/functions/_shared/ltp/content/content.test.ts   → typecheck clean (this turn)
 ```
 Type-check failure elsewhere in the tree is `validators.lia.test.ts:237` (pre-existing, unrelated to this turn's files).
+
+---
+
+## APPEND 2026-07-26T18:00:30Z — SURFACE MAP LANDED + SERIALIZER CUTS APPLIED (item 143c)
+
+Content-anchored SURFACE-MAP COURIER released item 143b HELD-B for surface bindings and CUT execution.
+
+Landed VERBATIM:
+- `supabase/functions/_shared/ltp/content/risk-surface-map.ts` — `RISK_SURFACE_BINDINGS`, `RISK_CUT_RULINGS`, `RISK_PASSV_INVOCATION_MAP`. Template→path bindings for every top-level and per-activity surface listed in the courier; Pass-V invocation bounded to hedged-or-close balance, hedged-summary, and persuasive-marked (impossible today).
+
+Serializer cuts applied at LEAK-PREV-P2 whitelist (`_shared/report-schemas/cppa-risk.ts`, bumped `rs-w1-2026-07-26-ltp-waveb`):
+- `cross_tool_recommendations` removed from `topLevel` (CUT).
+- `scope_and_triggers` given `objects` allow-list = `["triggered_activities_detail"]`; `scope_notes` pruned (CUT).
+- `inconsistency_flags` NAME retained in `topLevel` + `entries` per TEMPLATE_CUT (content restricted to T.risk.review_items).
+
+Renderer-tolerance audit (same-turn requirement):
+- `RiskAssessmentReportV4.tsx` — all three keys guarded (`|| []`, `|| {}`, `&&`).
+- `generate-report-pdf/index.ts` — `Array.isArray()` / `|| {}` / conditional guards.
+- `RefinePanel.tsx` — comment-only reference.
+Conclusion: cuts safe at serializer; no `_meta.internal` deprecation fallback used.
+
+Typecheck: `deno check` clean on both edited files.
+
+Still HELD-C (Part-1 wiring) and GATED (Part-2 measurement) pending a courier delivering: LLM Pass-1 adapter site inside `pipeline.ts` (model routing, N=2 retry, structured-output binding, `conservative_write_around` contract); per-activity balance integration test corpus proving `activity_ref` propagation; assessment_summary variant-calibration post-render assert cases; Pass-V bounded-read implementation inside `verify.ts`; deploy-turn locks + boot-log target.
+
+`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`. No deploy; no batch launch; campaign `fd1be147` remains CEO-paused.
