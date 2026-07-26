@@ -1995,3 +1995,83 @@ Full `_shared/render-plan/` suite re-run this turn: **30/30 passed** (0 regressi
 **Phase 2 (wiring + deploy + pilot):** awaits controller dispatch after CEO-visible Phase-1 courier review AND after the risk trial's Wave A digest is read (dispatch closing).
 
 **Deviations ruled:** none — turn executed exactly per dispatch. Initial `provision_texts` INSERT failed once on `plain_requirements` (jsonb column) receiving a string literal; corrected in the same turn via `jsonb_build_object` — corpus row landed on retry.
+
+---
+
+## Item 140 — ICO-INGESTION-PROGRAM CHARTERED + I1-BATCH-1 LANDED (2026-07-26T09:13:09Z)
+
+**Dispatch:** ICO-INGESTION-PROGRAM (CEO-APPROVED 2026-07-26) — charter + first batch. Docs + one bounded ingestion. Gated on codification → LTP-RISK-PHASE-2 + Wave A → LTP-LIA-PHASE-1 → FUTURE-BUILDING-F0; all four gates satisfied by items 132-139.
+
+### A. Charter committed
+
+`docs/design/ICO-INGESTION-PROGRAM.md` — full text; sections:
+1. Phases I1 (guidance backbone), I2 (DPA 2018 sliver — narrow revival of P4-cancelled scope), I3 (76-row UK enforcement cleanup; FOI notices explicitly out of scope), I4 (statutory codes as distinct family within guidance tier with `statutory_code=true` marker).
+2. Authority tiering table for UK units — binding = UK GDPR + DPA 2018; guidance = ICO ordinary guidance + ICO statutory codes ("must take into account" language, never "binding"); analogy = ICO enforcement under eligibility bar; persuasive = EDPB but ICO-MEDIATED ONLY (FSOR-mediation pattern, cited only where ICO itself refers to it); forbidden = U.S. law any tier, non-UK EU authorities direct, sister-state analogies. Explicit note: U.S.-federal analog from Legal Test v2.3 does NOT extend to UK units (that bridge is a U.S.-forum rule).
+3. Automation protocol — extraction (structure-aware HTML + cached raw source + SHA-256 + sectioned rows with normalized shadow text + position-checked heading pin-tests + page review/update dates → `effective_date`); automated QA report per batch with hard thresholds (pin-pass ≥0.85 per doc, coverage ≥0.85, dup=0, TOC drift ±1, SHA + source URL required); quarantine protocol (2 bounded retries → `verification_status='ingest_failed'`; batch continues; CEO flagged only on >10% batch quarantine rate / P1 item quarantine / same doc failing across 2 batch attempts).
+4. Budget: $30-60 whole program; flag CEO at 2×.
+
+### B. CEO Rulings Log (recorded verbatim intent)
+
+- **Automation:** "ingestion must be FULLY AUTOMATED — no human-in-the-loop steps. Verification of ingestion correctness must itself be automated via deterministic acceptance checks. Human (CEO) involvement ONLY when automated verification flags failures that cannot be automatically resolved."
+- **UK tiering:** binding tier = UK GDPR + DPA 2018 (no U.S.-federal analog for UK units); ICO ordinary guidance = guidance tier; statutory codes carry `statutory_code=true` flag within guidance tier and render with "must take into account" language, never "binding"; ICO enforcement = analogy layer under eligibility bar; EDPB-for-UK = ICO-mediated only.
+- **P4 revival exception:** DPA 2018 targeted-provisions ingestion (I2) is a narrow exception to the P4 cancellation — only sections that materially qualify UK GDPR reliance, not the whole Act.
+- **FOI scope:** FOI decision notices are OUT of scope for I3 enforcement cleanup.
+
+### C. I1-BATCH-1 execution — Legitimate Interests family
+
+**Sources (5, all HTTP 200):**
+
+| # | URL | SHA-256 |
+|---|---|---|
+| 1 | ico.org.uk/…/lawful-basis/legitimate-interests/what-is-the-legitimate-interests-basis/ | `da190d58…18fe13` |
+| 2 | ico.org.uk/…/lawful-basis/legitimate-interests/when-can-we-rely-on-legitimate-interests/ | `f4f58332…2687cb` |
+| 3 | ico.org.uk/…/lawful-basis/legitimate-interests/how-do-we-apply-legitimate-interests-in-practice/ | `039c7afe…eb40a1` |
+| 4 | ico.org.uk/…/lawful-basis/legitimate-interests/what-else-do-we-need-to-consider/ | `02578d98…0618c2` |
+| 5 | ico.org.uk/…/lawful-basis/a-guide-to-lawful-basis/legitimate-interests/ | `76931430…37d3e9` |
+
+**Automated QA (per document):**
+
+| Slug | Sections | Pin-pass | Coverage | Dup | Review date |
+|---|---:|---:|---:|---:|---|
+| what-is-the-LI-basis | 10 | 1.000 | 0.976 | 0 | — |
+| when-can-we-rely-on-LI | 18 | 1.000 | 0.963 | 0 | — |
+| how-do-we-apply-LI-in-practice | 7 | 1.000 | 0.989 | 0 | — |
+| what-else-do-we-need-to-consider | 4 | 1.000 | 0.968 | 0 | — |
+| a-guide-to-lawful-basis / LI | 8 | 0.875 | 1.060* | 0 | 23 March 2026 |
+
+Batch totals: 47 sectioned rows evaluated, 46/47 pin-passes (98.0%), 0 duplicates, 0 TOC drift, 0 retries, **0 quarantines**. All 5 documents cleared thresholds and were promoted.
+
+*Coverage >1.0 on the guide page is a normalization artefact (extracted spans include inter-block whitespace stripped from the whole-page baseline) — not a defect.
+
+**Landing:** 5 rows inserted into `public.regulatory_guidance`:
+- `regulator='ICO'`, `jurisdiction='UK'`, `regulatory_family={legitimate_interests,lawful_basis,lia}`, `document_type='guideline'`, `verification_status='verified'`, `source_document_hash`, `source_url`, `full_text` (≤40 000 chars), `summary` (~600 chars), `last_source_fetch_at=now()`, `effective_date='2026-03-23'` on the landing page (remaining 4 subpages carry no explicit per-page review date in the current ICO template — SHA drift will detect changes on re-fetch).
+
+**In-band correction:** initial H1 selector picked the "Take our website user survey" banner present on every ICO page; resolved same turn by extracting from the `<title>` tag with " | ICO" suffix stripped. Titles corrected via `supabase--insert` UPDATE before finalization.
+
+**CEO flags fired:** none (quarantine rate 0% ≤ 10% threshold; no P1 items impacted; no repeat failures).
+
+### D. Downstream release note
+
+`lia-gates.ts` `G.uk_unit.limited_guidance_disclosure` is now anchor-ready — UK LI units can cite these 5 ICO rows. The gate is **eligible to be lifted at LIA Phase-2 wiring**. Per FUTURE-BUILDING invariance rule, landed Phase-1 authoring artifacts are NOT retroactively edited in this turn.
+
+### E. Program-tail (queued, awaiting controller dispatch)
+
+- I1-Batch-2 — DPIA family (feeds `dpia` product)
+- I1-Batch-3 — Breach notification family
+- I2 — DPA 2018 targeted provisions (legislation.gov.uk)
+- I3 — UK enforcement cleanup (76 rows)
+- I4 — Statutory codes (Data Sharing, AADC, Employment Practices)
+
+### F. Courier
+
+`docs/courier/ICO-I1-BATCH1-2026-07-26.md`.
+
+### G. Zero-side-effect confirmation
+
+Only edits: (a) `docs/design/ICO-INGESTION-PROGRAM.md` (new charter), (b) `docs/courier/ICO-I1-BATCH1-2026-07-26.md` (new courier), (c) 5 INSERT rows in `public.regulatory_guidance` + 5 corrective UPDATEs (titles), (d) this ledger item + header restamp. NO code / prompt / rubric / grader / golden / contract / fixture / sample / registry data edits; NO edge-function deploy; NO migration; NO `quality_batch` launch; NO BUILD_STAMP bumped; no other product touched.
+
+### H. Deviations ruled
+
+One in-band correction (H1 selector → `<title>` fallback) — resolved by automated verification before promotion, per §3.3 quarantine-protocol scope of "automatically resolvable" failures. No CEO flag required. Otherwise executed exactly per dispatch.
+
+Campaign `fd1be147` remains CEO-paused.
