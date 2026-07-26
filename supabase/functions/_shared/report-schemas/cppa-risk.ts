@@ -54,7 +54,7 @@ const RISK_ENTRY_KEYS = [
 ] as const;
 
 export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-w1-2026-07-25",
+  version: "rs-w1-2026-07-26-ltp-waveb",
   tool: "cppa_risk_assessment",
   topLevel: [
     // core presentation (from Result page + V4)
@@ -76,8 +76,11 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "top_risks",
     "priority_actions",
     "next_steps",
-    "cross_tool_recommendations",
+    // LTP Wave-B item-136 CUT: cross_tool_recommendations REMOVED from
+    // topLevel (renderers guarded; see risk-surface-map.ts).
     "strengthen_items",
+    // LTP Wave-B item-136 TEMPLATE_CUT: inconsistency_flags retained by
+    // NAME; content restricted to T.risk.review_items output.
     "inconsistency_flags",
     "exception_analysis",
     "record_sufficiency",
@@ -103,6 +106,11 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "framework_disclaimer",
     "_meta",
   ],
+  // LTP Wave-B item-136 CUT: scope_and_triggers.scope_notes pruned via
+  // object allow-list (triggered_activities_detail retained).
+  objects: {
+    scope_and_triggers: ["triggered_activities_detail"],
+  },
   entries: {
     risk_assessment_by_activity: RISK_ENTRY_KEYS,
     top_risks: RISK_ENTRY_KEYS,
@@ -117,10 +125,10 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     debug_review_notes: RISK_ENTRY_KEYS,
     fsor_commentary: RISK_ENTRY_KEYS,
     citation_ledger: RISK_ENTRY_KEYS,
-    cross_tool_recommendations: RISK_ENTRY_KEYS,
     enforcement_precedents: RISK_ENTRY_KEYS,
   },
 };
+
 
 export const CPPA_RISK_FRONTEND_READ_PATHS: readonly string[] = [
   "schema_version",
@@ -138,7 +146,7 @@ export const CPPA_RISK_FRONTEND_READ_PATHS: readonly string[] = [
   "top_risks",
   "priority_actions",
   "next_steps",
-  "cross_tool_recommendations",
+  // "cross_tool_recommendations" — LTP Wave-B item-136 CUT.
   "strengthen_items",
   "inconsistency_flags",
   "exception_analysis",
