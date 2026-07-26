@@ -2543,6 +2543,24 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] H7-ADMT-BLANKET-RANGE failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── H7B-ADMT-CITATION-ANCHOR-RELABEL (2026-07-26) ────────────────
+    // Closes the wave-27 residual class from ledger item 95: H7's
+    // prose walker skips ANCHOR_KEYS by design, so the blanket range
+    // "11 CCR §§ 7200–7222" survives in the `citation` anchor field of
+    // notice_gaps and opt_out_gaps entries. H7b targets that anchor
+    // field ONLY, relabeling to the section-level pinpoint that is
+    // verified corpus (cppa_authorities pin-verified 2026-07-26T01:17Z).
+    // Runs AFTER H7 and BEFORE the LEAK-PREV-P1 emit gate. Fail-open.
+    try {
+      const h7b = applyH7bAdmtCitationRelabel(report, BUILD_STAMP);
+      console.log(JSON.stringify({
+        evt: "h7b_admt_citation_relabel", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: H7B_ADMT_CITATION_RELABEL_STAMP, ...h7b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] H7B-ADMT-CITATION-RELABEL failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
 
