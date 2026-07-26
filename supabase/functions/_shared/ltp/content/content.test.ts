@@ -46,6 +46,7 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.summary.docs",
     "T.risk.summary.opening.all_firm",
     "T.risk.summary.opening.any_negative",
+    "T.risk.summary.opening.insufficient",
     "T.risk.summary.opening.mixed_hedged",
   ];
   assertEquals(ids, expected);
