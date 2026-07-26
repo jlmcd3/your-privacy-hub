@@ -74,7 +74,7 @@ Deno.test("content: firm-variant closeness threshold present", () => {
 });
 
 Deno.test("wire-schema: top-level requireds cover every schema.ts field", () => {
-  const req = new Set(RENDERPLAN_WIRE_SCHEMA.required);
+  const req = new Set<string>(RENDERPLAN_WIRE_SCHEMA.required as unknown as string[]);
   for (const k of ["plan_version", "product", "build_stamp", "jurisdiction_tag", "intake_ledger",
     "citation_bindings", "propositions", "factor_table", "weighing_frame", "gate_outcomes",
     "conservative_write_around"]) {
