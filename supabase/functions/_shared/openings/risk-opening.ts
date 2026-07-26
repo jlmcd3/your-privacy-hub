@@ -327,6 +327,7 @@ export function buildRiskOpening(
       s1_triggers: provTriggers,
       omitted,
       sources,
+      s0_b_rejected_reason: s0BRejectedReason,
     },
   };
 }
