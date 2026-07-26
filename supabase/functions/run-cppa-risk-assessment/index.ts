@@ -3171,6 +3171,39 @@ async function runPipeline(assessment_id: string) {
         variant: _ltpTelemetry.closeness.variant,
         validator_issues: _ltpTelemetry.validators.total_issues,
       }));
+
+      // ── LTP WAVE-B PART-1 ENFORCE PREVIEW ────────────────────────────
+      // When LTP_ENFORCE_ENABLED=1, run the LLM Pass-1 adapter (N=2 retry,
+      // write-around fallback) and attach its telemetry + slim plan preview
+      // under _meta.internal.legal_test_pipeline.enforce_preview. This does
+      // NOT mutate customer-visible report_data; the whitelist serializer
+      // strips _meta.internal. Fail-open in all paths.
+      try {
+        const _pass1 = await runPass1Llm({
+          intake: _ltpIntake,
+          report_data: report_data as any,
+          buildStamp: BUILD_STAMP,
+        });
+        const _rd2: any = report_data as any;
+        _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+          manifest: PASS1_MANIFEST,
+          telemetry: _pass1.telemetry,
+          plan_summary: {
+            plan_version: _pass1.plan.plan_version,
+            propositions: _pass1.plan.propositions?.length ?? 0,
+            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
+            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
+          },
+        };
+        console.log(JSON.stringify({
+          evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
+          build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
+          attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
+          latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
+        }));
+      } catch (e) {
+        console.warn("[run-cppa-risk-assessment] LTP enforce-preview failed (non-fatal):", (e as Error)?.message);
+      }
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
     }
