@@ -398,6 +398,75 @@ export function validateAuthorityWeight(plan: RenderPlan): Issue[] {
       }
     }
   }
+
+  // (e) v2.3 — U.S.-forum plan: sister-state binding-tier entries are a
+  // hard reject (must be persuasive-tier with proper marking instead).
+  // A "sister-state" entry is a us-state-* tag that is not the plan's own
+  // domain. us-federal is BINDING-eligible per v2.3 and passes here.
+  if (isUsForumTag(domain)) {
+    const check = (
+      tag: JurisdictionTag,
+      w: string,
+      code: string,
+      message: string,
+      path: string,
+    ) => {
+      if (w !== "binding") return;
+      if (typeof tag !== "string") return;
+      if (tag === domain) return;
+      if (tag === "us-federal") return; // v2.3 admissible
+      if (tag.startsWith("us-state-") || tag === "cppa-ca") {
+        issues.push({ code, severity: "error", message, path });
+      }
+    };
+    for (const b of plan.citation_bindings) {
+      check(
+        b.jurisdiction_tag,
+        b.authority_weight ?? "binding",
+        "V8_SISTER_STATE_BINDING",
+        `Citation binding ${b.pinpoint_ref} (${b.pinpoint}) carries sister-state tag "${b.jurisdiction_tag}" at binding tier on plan "${domain}"; sister-state authority is persuasive-tier only.`,
+        `citation_bindings.${b.pinpoint_ref}.authority_weight`,
+      );
+    }
+    for (const f of plan.weighing_frame) {
+      check(
+        f.jurisdiction_tag,
+        f.authority_weight ?? "binding",
+        "V8_SISTER_STATE_BINDING",
+        `Weighing frame ${f.frame_id} carries sister-state tag "${f.jurisdiction_tag}" at binding tier on plan "${domain}"; sister-state authority is persuasive-tier only.`,
+        `weighing_frame.${f.frame_id}.authority_weight`,
+      );
+    }
+  }
+
+  // (f) v2.3 — GDPR/UK plans: no U.S. tag (us-federal, us-state-*, cppa-ca)
+  // in any tier. Bridge is one-way; U.S. material never enters EU/UK reasoning.
+  if (domain === "gdpr-eu" || domain === "gdpr-uk") {
+    const isUsTag = (t: JurisdictionTag) =>
+      t === "us-federal" || t === "cppa-ca" ||
+      (typeof t === "string" && t.startsWith("us-state-"));
+    for (const b of plan.citation_bindings) {
+      if (isUsTag(b.jurisdiction_tag)) {
+        issues.push({
+          code: "V8_GDPR_US_BRIDGE",
+          severity: "error",
+          message: `Citation binding ${b.pinpoint_ref} carries U.S. tag "${b.jurisdiction_tag}" on GDPR plan; the bridge is one-way and U.S. material is inadmissible.`,
+          path: `citation_bindings.${b.pinpoint_ref}.jurisdiction_tag`,
+        });
+      }
+    }
+    for (const f of plan.weighing_frame) {
+      if (isUsTag(f.jurisdiction_tag)) {
+        issues.push({
+          code: "V8_GDPR_US_BRIDGE",
+          severity: "error",
+          message: `Weighing frame ${f.frame_id} carries U.S. tag "${f.jurisdiction_tag}" on GDPR plan; the bridge is one-way and U.S. material is inadmissible.`,
+          path: `weighing_frame.${f.frame_id}.jurisdiction_tag`,
+        });
+      }
+    }
+  }
+
   return issues;
 }
 
