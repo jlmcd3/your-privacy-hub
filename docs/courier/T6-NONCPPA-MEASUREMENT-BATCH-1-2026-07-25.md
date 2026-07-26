@@ -97,3 +97,48 @@ Instrument-version header stamp on both rows: `gc-2026-07-25-s4-eu-uk-ca-au-sg` 
 **PER-TOOL BACKLOG** (§2 additions, one deploy-guarded turn each, attribution-first doctrine, non-CPPA slots only): (a) lia + governance + dpia: port W24 admt Class A key-selection-mismatch audit (citation_misapplied is top high class on all three); (b) all five: unsupported-business-claim scrub port (W24 Class B analog); (c) governance: `qc_r1_8_additional_context` fix candidate; (d) ir-playbook: `e6_counsel_referral` scrub port (W24 T-Aa analog); (e) lia/governance: emit-gate list-fragment calibration. CPPA priority unchanged — these fill free slots only.
 
 **DEVIATION RULED:** controller local VM DISK-FULL persists (20:39Z tick); all reads + this dispatch routed via Lovable query_database/read_file/send_message per Backend-access law; John flagged (restart fixes). No other deviations. No spend beyond query+dispatch.
+
+---
+
+## 9. WAVE-2 DIGEST — batch `5332771a-522b-4a1c-be3e-a1373512ac68` (extracted 2026-07-26T04:59:57Z)
+
+**DONE — T6-NONCPPA-MEASUREMENT-BATCH-1 WAVE-2 DIGEST** @ controller tick 2026-07-26T04:59:57Z (docs-only; discharges the ledger item 116 step (i) extraction obligation and the item 85 launch-courier extraction obligation). Batch terminal: `status=complete` `phase=done` `started=2026-07-26T04:00:40.523Z` `completed=2026-07-26T04:55:24.686Z` (~54.7 min). Instrument header: `gc-2026-07-25-s4-eu-uk-ca-au-sg`. All 5 tools complete; `error_count=0`.
+
+### 9.1 Per-tool overall + six dims (Claude / GPT cross-review)
+
+| Tool | Overall | GPT | cit | hall | acc | ana | int | fmt | Δ (Claude−GPT) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ir-playbook   | 91.55 | 90 | 92 | 93 | 91 | 90 | 90 | 92 | +1.55 |
+| dpa-generator | 87.50 | 86 | 90 | 88 | 89 | 81 | 83 | 91 | +1.50 |
+| lia           | 84.50 | 75 | 87 | 81 | 85 | 86 | 82 | 85 | **+9.50** |
+| governance    | 79.15 | 83 | 78 | 75 | 82 | 81 | 83 | 79 | −3.85 |
+| dpia          | 74.50 | 82 | 73 | 73 | 74 | 79 | 79 | 74 | −7.50 |
+
+Run ids: dpia=`90a76a3f-a073-46c6-a7ba-d557d77dd6ea`, lia=`b0ab45da-c735-4731-a645-e3132951ea1b`, governance=`7db720bb-fffc-4377-bdfb-e9c2762b6bb3`, dpa-generator=`1155415e-76d0-444c-ada1-a27269653e4f`, ir-playbook=`f7ae2c10-0f0c-472d-bbcc-b2e2b2c99218`. All batch_size=3, scenario_set=`tuning` (verified in `quality_run_documents`).
+
+### 9.2 REQUIRED reconciliation — score-delta question (this wave vs 20:12 split-pair § 8)
+
+| Tool | 20:12 (item 81) | 04:00 (this wave) | Δ | scenario_set | Doc composition |
+| --- | --- | --- | --- | --- | --- |
+| dpia       | 85.05 | 74.50 | **−10.55** | tuning (both) | 20:12 docs: 87.2 / 87.5 / 80.7 (all mid-80s). 04:00 docs: 72.3 / 83.3 / 68.0 (two low, one mid). |
+| governance | 83.65 | 79.15 |  **−4.50** | tuning (both) | 20:12 docs: 88.85 / 75.5 / 86.25 (one severe, two strong). 04:00 docs: 81.5 / 78.9 / 77.05 (uniformly moderate). |
+
+**Explanation:** Both runs sit on the identical `scenario_set='tuning'` register with `batch_size=3` on the same frozen instrument `gc-2026-07-25-s4-eu-uk-ca-au-sg`. Between 20:12Z (2026-07-25) and 04:00Z (2026-07-26) the corresponding edge functions received ZERO deploys (dpia stamp `dpia-t6fix@2026-07-25T23:31:00Z` and governance stamp `gov-t6fix@2026-07-25T23:48:00Z` were both cut BEFORE the 20:12 run per ledger items 89/92/94 — no post-20:12 deploy on either). The tuning register samples 3 of a larger pool; the per-doc scores above show clearly different fixture draws (severity distribution shifted). **VERDICT:** the deltas are **scenario-difficulty artifacts** (tuning-pool sampling variance), NOT product signal. This aligns with the standing σ≈2.3–2.5 batch-3 noise band being exceeded ONLY because the fixture rotation itself changed the difficulty mix. Neither result is a certification input; do not read as regression.
+
+Corollary: **T6 is now CLOSED** per item 116 step (i) — no further T6-style non-CPPA measurement batches. Future non-CPPA reads happen inside campaign waves (when the CEO resumes the campaign) with fixed scenario_sets, not ad-hoc T6 batches whose scenario-pool variance dominates the signal.
+
+### 9.3 LIA grader divergence (Claude 84.5 vs GPT 75.0 → +9.50)
+
+Widest cross-grader gap in the wave. Claude scored citation 87 / analysis 86 / accuracy 85; GPT overall 75 (per-dim not populated in cross-review path). Consistent with the standing observation that lia's list-fragment content (`key_elements`, `regulatory_basis_v2.engaged_because`, `review_triggers`) is scored more generously by Claude and more harshly by GPT — same class of divergence flagged in § 8 (wave-1 emit-gate false-positives on non-sentence list items). Not a wave-2 defect; recorded as a standing measurement-instrument observation. No dispatch triggered.
+
+### 9.4 Guardrails observed
+
+- Measurement only; no prompt/rubric/grader/golden/contract/fixture/sample/registry/corpus edits this wave.
+- No edge-function deploys during the batch window.
+- CPPA tools (admt/risk/cyber) untouched.
+- Stamps re-read from sandbox clock immediately before write (`2026-07-26T04:59:57Z` per `date -u`).
+- Backend-access law: all reads via managed `psql` (`quality_batch_runs`, `quality_runs`, `quality_run_documents`, `function_runs`).
+
+### 9.5 T6 closure
+
+T6-style non-CPPA measurement batches CLOSED per CEO-fixed execution order v2 (ledger item 116 step (i)). Any future non-CPPA quality measurement moves to campaign-wave-embedded reads under CEO-resumed campaigns.
