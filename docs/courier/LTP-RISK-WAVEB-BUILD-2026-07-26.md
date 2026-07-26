@@ -66,3 +66,42 @@ Typecheck: `deno check` clean on both edited files.
 Still HELD-C (Part-1 wiring) and GATED (Part-2 measurement) pending a courier delivering: LLM Pass-1 adapter site inside `pipeline.ts` (model routing, N=2 retry, structured-output binding, `conservative_write_around` contract); per-activity balance integration test corpus proving `activity_ref` propagation; assessment_summary variant-calibration post-render assert cases; Pass-V bounded-read implementation inside `verify.ts`; deploy-turn locks + boot-log target.
 
 `BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`. No deploy; no batch launch; campaign `fd1be147` remains CEO-paused.
+
+---
+
+## APPEND 2026-07-26T18:51:41Z — PART-1 MAX-BUILDABLE-SUBSET LANDED; VALID CONTENT HELD-D on assessment_summary (items 144 + 145)
+
+Under the controller ruling closing the content set and clarifying the build mandate, the maximum buildable engineering subset has landed as ISOLATED modules (no import edge from `run-cppa-risk-assessment/index.ts` or `pipeline.ts`). Enforcement-mode activation and the Part-2 measurement batch are HELD-D on a specific missing CONTENT item.
+
+### Files landed (item 144)
+
+| File | Purpose |
+|---|---|
+| `supabase/functions/_shared/ltp/pass1-llm.ts` | LLM Pass-1 adapter, N=2 retry, `LTP_ENFORCE_ENABLED` guard, write-around fallback, `google/gemini-3.6-flash`, prompt `pass1-derive-2026-07-26`. |
+| `supabase/functions/_shared/ltp/slot-resolver.ts` | Deterministic plan_slot resolution (benefit/negative/safeguard tokens, balance-direction clause, tipping factors, open questions). |
+| `supabase/functions/_shared/ltp/pass2-render.ts` | Token substitution for `{{cite:...}}` / `{{plan:...}}` / `{{intake:...}}`; forbidden-token guard; `max_chars`; leaked-slot regex; `assertCalibrationMatch` at `FIRM_VARIANT_CLOSENESS_MAX`; `emits_nothing` honored. |
+| `supabase/functions/_shared/ltp/waveb.test.ts` | 10 Deno tests covering write-around (both paths), forbidden-token, `emits_nothing`, unknown-template, calibration violation, slot-resolver fallthrough, manifest exposure, template-count enumeration. |
+
+### Test evidence
+
+`deno check _shared/ltp/pass1-llm.ts _shared/ltp/pass2-render.ts _shared/ltp/slot-resolver.ts _shared/ltp/waveb.test.ts` → clean.
+
+### Isolation
+
+No edits to `derive.ts`, `pipeline.ts`, `verify.ts`, `guide.ts`, `closeness.ts`, `run-cppa-risk-assessment/index.ts`, `_shared/report-schemas/cppa-risk.ts` (already at `rs-w1-2026-07-26-ltp-waveb`), rubric, grader-context, grader, goldens, contracts, fixtures, samples, registries, corpus, instrument, thresholds. No migration; no deploy; `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`).
+
+### VALID CONTENT HELD-D (item 145): `assessment_summary` composition prose
+
+Per the controller ruling — HELDs are valid only when naming missing customer-facing legal-reasoning content — the following prevents Part-1 index-wiring + Part-2 batch launch:
+
+1. **Opening sentence template.** `assessment_summary` needs an answer-first opening sentence that summarizes the assessment as a whole. Neither `T.risk.balance.*` nor `T.risk.closing.reserved` opens the paragraph — both are body-only.
+2. **Connective tissue.** The composition rule joining the chosen balance template to `T.risk.closing.reserved` (paragraph split vs. inline connector) is undefined.
+3. **Multi-activity aggregation rule.** When `risk_assessment_by_activity[]` has N>1 activities, the aggregation from per-activity balance renderings into the single `assessment_summary` slot is undefined.
+
+Authoring any of (1)–(3) would author customer-visible legal-reasoning prose. The wired modules are ready to activate on receipt of an `assessment_summary` composition courier in a single deploy+batch-launch turn.
+
+### Standing rule recorded
+
+A HELD on any future LTP build turn is valid ONLY if it names a specific missing content item (prompt / template / rendering rule / legal classification). Engineering questions must be resolved conservatively within the delivered content and documented in the courier; if two engineering options both respect the content, pick the one that changes less and note the alternative.
+
+Campaign `fd1be147` remains CEO-paused. No deploy. No batch launch.
