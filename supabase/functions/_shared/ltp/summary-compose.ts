@@ -34,10 +34,16 @@ import {
   SUMMARY_REMAINING_OUTCOMES_CLAUSES,
   SUMMARY_DOCS_COMPLETION_CLAUSES,
   SUMMARY_EACH_OR_THIS_CLAUSES,
+  SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES,
   SUMMARY_NARRATIVE_MAX_CHARS,
   FIRM_VARIANT_CLOSENESS_MAX,
 } from "./content/pass2-templates.ts";
 import { renderTemplate } from "./pass2-render.ts";
+import {
+  mapOverallRiskLevel,
+  type ActivityRecordSignals,
+  type OverallRiskLevel,
+} from "./risk-level-map.ts";
 import type { RenderPlan, Proposition } from "../render-plan/schema.ts";
 
 export const SUMMARY_COMPOSE_VERSION = "ltp-summary-compose-2026-07-26";
