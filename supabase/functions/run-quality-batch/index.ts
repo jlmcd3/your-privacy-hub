@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "post-c1-fix-1b-ccpa-lettering@2026-07-23T16:21:00Z";
+export const BUILD_STAMP = "harness-fixgen-retirement@2026-07-26T21:15:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -2532,10 +2532,14 @@ async function runBatch(runId: string): Promise<void> {
       byCheck.get(f.check_id)!.push(f);
     }
 
-    // Cap exists because Claude fix-generation is the long pole. Running batches of
-    // FIX_CONCURRENCY in parallel lets us raise MAX_AI_FIXES well above the sequential ceiling
-    // while staying inside the edge runtime budget.
-    const MAX_AI_FIXES = 50;
+    // HARNESS-FIXGEN-RETIREMENT (CEO 2026-07-26): AI-fix-suggestion generation is
+    // retired for measurement batches. Default OFF via HARNESS_FIXGEN_ENABLED flag;
+    // fix decisions flow exclusively through the controller's attribution → five-lens
+    // → Legal Test turn process. Backlog aggregation (occurrence counts, classes,
+    // first/last-seen waves) stays via classify-quality-findings — that is telemetry.
+    // Cap retained ONLY as a defensive ceiling if the flag is ever re-enabled.
+    const FIXGEN_ENABLED  = (Deno.env.get("HARNESS_FIXGEN_ENABLED") ?? "false").toLowerCase() === "true";
+    const MAX_AI_FIXES    = 50;
     const FIX_CONCURRENCY = 5;
     type CheckAgg = {
       checkId: string; findings: any[]; first: any;
@@ -2605,22 +2609,29 @@ async function runBatch(runId: string): Promise<void> {
     }
     const alreadyFixedIds = new Set((recentlyApplied ?? []).map((r: any) => r.check_id));
 
-    // P-A: candidates are generated ONLY from TUNING failures. A check that fails only
-    // on holdout intakes is a true generalization gap and is surfaced for reporting,
-    // but no fix is proposed for it (the loop must never see the holdout to "fix" it).
-    // Fallback: if no tuning data exists yet (older runs / empty split), keep the legacy
-    // overall failRate gate so behavior is non-regressive.
+    // P-A: candidates are generated ONLY from TUNING failures (see original rationale).
+    // Under FIXGEN retirement, this list is computed but not consumed unless the flag
+    // is explicitly re-enabled. Tracked findings themselves are never truncated —
+    // every unique failing check is upserted into quality_check_results below and
+    // separately aggregated into quality_finding_backlog by classify-quality-findings.
     const hasTuningData = state.tuningBuilt > 0;
-    const aiCandidates = aggregates
-      .filter(a => a.evidence.length > 0)
-      .filter(a => hasTuningData ? a.tuningFailRate > 0.2 : a.failRate > 0.2)
-      .filter(a => !alreadyFixedIds.has(a.checkId))
-      .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
-      .slice(0, MAX_AI_FIXES);
+    const aiCandidates = FIXGEN_ENABLED
+      ? aggregates
+          .filter(a => a.evidence.length > 0)
+          .filter(a => hasTuningData ? a.tuningFailRate > 0.2 : a.failRate > 0.2)
+          .filter(a => !alreadyFixedIds.has(a.checkId))
+          .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
+          .slice(0, MAX_AI_FIXES)
+      : [];
 
-    await log("info", `Aggregating ${byCheck.size} unique checks; generating AI fixes for top ${aiCandidates.length} (cap ${MAX_AI_FIXES}, concurrency ${FIX_CONCURRENCY})…`);
+    if (FIXGEN_ENABLED) {
+      await log("info", `Aggregating ${byCheck.size} unique checks; generating AI fixes for top ${aiCandidates.length} (cap ${MAX_AI_FIXES}, concurrency ${FIX_CONCURRENCY})…`);
+    } else {
+      await log("info", `Aggregating ${byCheck.size} unique checks; AI fix-suggestion generation DISABLED (HARNESS_FIXGEN_ENABLED=false; no batch result goes unread — every check is upserted and backlogged).`);
+    }
 
     // Run fix-generation in parallel batches so we can raise the cap without exceeding runtime.
+    // When FIXGEN_ENABLED=false, aiCandidates is empty so this loop is a no-op.
     const fixResults = new Map<string, { fix: string; location: string } | null>();
     for (let i = 0; i < aiCandidates.length; i += FIX_CONCURRENCY) {
       const batch = aiCandidates.slice(i, i + FIX_CONCURRENCY);
