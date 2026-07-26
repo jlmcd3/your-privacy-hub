@@ -175,8 +175,8 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
   intake: {
     entity_name: "Aurora RetailWorks, LLC",
     subject_anchor: "Loyalty-program personalization engine",
-    q1_revenue: "$25M–$50M",
-    q2_consumers: "100,000–249,999",
+    q1_revenue: "$25M to under $50M",
+    q2_consumers: "100,000 to under 250,000",
     q3_sector: "Retail/ecommerce",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
