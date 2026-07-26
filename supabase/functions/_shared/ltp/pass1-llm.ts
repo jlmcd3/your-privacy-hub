@@ -19,7 +19,7 @@ import { validateRenderPlan } from "../render-plan/validators.ts";
 import { WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 import { CPPA_RISK_FACTORS } from "../factors/cppa-risk-factors.ts";
-import { RISK_GATE_REGISTRY } from "./gate-eval.ts";
+import { CPPA_RISK_GATES } from "../gates/cppa-risk-gates.ts";
 import { RENDERPLAN_WIRE_SCHEMA } from "./content/renderplan-wire-schema.ts";
 import {
   PASS1_DERIVE_SYSTEM,
