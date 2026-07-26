@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T05:36:00Z — BAND-REALIGNMENT-T2C HELD-AWAITING-T2B per dispatch GATE (item 122). Dispatch GATE: "execute ONLY if T2B's ledger item exists; otherwise HELD-awaiting-T2B and stop." Item 121 records T2B as HELD-AWAITING-T2A (no execution ledger item exists); T2A itself HELD per item 120; items 113 + 118-(ii) still unreleased. GATE precondition fails. Recorded HELD, no file edits beyond this ledger + courier note. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations.
+**Last updated:** 2026-07-26T05:41:00Z — PERFECT-INTAKE-EXPERIMENT-RISK HELD-AWAITING-T2C per dispatch GATE (item 123). Dispatch GATE: "execute ONLY if T2 COMPLETE is recorded (T2A+T2B+T2C ledger items present); otherwise HELD-awaiting-T2C and stop." Preflight: item 120 = T2A HELD, item 121 = T2B HELD-AWAITING-T2A, item 122 = T2C HELD-AWAITING-T2B; no T2 COMPLETE marker anywhere in ledger; items 113 + 118-(ii) still unreleased. GATE precondition fails. Recorded HELD, no launch, no fixture authoring. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations; zero quality_batch launches.
 
 ---
 
@@ -1729,5 +1729,41 @@ Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any
 - Campaign remains CEO-paused.
 
 **Zero-side-effect confirmation:** only edits: `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2C-HELD-AWAITING-T2B note appended).
+
+**Deviation ruled:** none — turn executed exactly per dispatch GATE (record HELD, stop).
+
+
+---
+
+### 123. **HELD-AWAITING-T2C — PERFECT-INTAKE-EXPERIMENT-RISK per dispatch GATE** @ controller tick 2026-07-26T05:41:00Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations; zero quality_batch launches)
+
+**Dispatch:** PERFECT-INTAKE-EXPERIMENT-RISK (item 116 step (iii); team-reviewed five-lens). Scope per original umsg_01kye973 with V2-band update: two perfect fixtures × two replicates authored against NEW V2 band enums (unambiguous by construction, cleanly resolving cohort + applicability); complete/consistent/statutorily-unambiguous/facts-only (no analytical conclusions, QL2 line uncrossed); `scenario_set='perfect-intake'`; single launch; locks verified pre-launch; grading on the now-current s5 instrument; primary result is the class DECOMPOSITION (headline score secondary and NOT comparable to s4 wave baselines dimension-for-dimension); perfect-intake runs never enter campaign trajectories or certification counters. On completion the dispatch releases item 115 (TWO-PASS design) and item 114 (IR-BAND) proceeds next per item 116.
+
+**Dispatch GATE (verbatim):** "execute ONLY if T2 COMPLETE is recorded (T2A+T2B+T2C ledger items present); otherwise HELD-awaiting-T2C and stop."
+
+**Preflight — GATE precondition check:**
+- **T2 COMPLETE marker** — DOES NOT EXIST. Ledger scan of items 113–122 finds:
+  - Item 113: BAND-REALIGNMENT SHIPPED-T1 / DEPLOY-HELD (unreleased).
+  - Item 118: BAND-REALIGNMENT T2 EXECUTION HELD; step (ii) unreleased.
+  - Item 119: orphan finalize only; discharged Blocker-1, no T2 execution.
+  - Item 120: T2A HELD before any file edit (GATE stop).
+  - Item 121: T2B HELD-AWAITING-T2A (no T2B execution).
+  - Item 122: T2C HELD-AWAITING-T2B (no T2C execution).
+- No ledger item states "T2 COMPLETE" or "T2A+T2B+T2C landed." The s5 instrument has not been sealed by any deploy; V2 enums remain dormant scaffold per items 113/119.
+
+**V2-band unambiguous-fixture feasibility (informational only, no fixture authored):** the scaffold in `supabase/functions/_shared/bands/revenue-consumer.ts` (items 113/119) does expose the enums the dispatch requires — e.g. `"Over $100M"` maps unambiguously to the 2028-04-01 cohort per `REVENUE_BAND_AUDIT_COHORT`, and `"1,000,000 or more"` maps unambiguously to `{over_100k: true, over_250k: true}` per `CONSUMER_BAND_APPLICABILITY`, so V2-anchored perfect fixtures are constructible in principle. Recorded for the future execution turn; does NOT unblock the GATE.
+
+**Ruling:** per GATE clause, record HELD-awaiting-T2C and stop. No fixtures authored. No `scenario_set='perfect-intake'` rows written. No quality_batch launched. No locks re-verified (unnecessary absent GATE pass).
+
+**Standing state:**
+- Item 113 remains DEPLOY-HELD.
+- Item 118 step (ii) remains HELD.
+- Items 120 / 121 / 122 unchanged — T2A/T2B/T2C all HELD in chain.
+- Item 116 sequencing intact — step (iii) blocked behind step (ii), which is behind T2A landing.
+- Item 115 (TWO-PASS design) remains HELD — release condition (this experiment's decomposition) not met.
+- Item 114 (IR-BAND) remains QUEUED-HELD behind step (iii).
+- Campaign remains CEO-paused.
+
+**Zero-side-effect confirmation:** only edits: `docs/pipeline-state.md` (this item + header restamp). Courier `PERFECT-INTAKE-EXPERIMENT-2026-07-26.md` NOT created (would presuppose experiment results); a HELD note is appended to `docs/courier/BAND-REALIGNMENT-2026-07-26.md` instead so the block reason is discoverable from the T2 courier.
 
 **Deviation ruled:** none — turn executed exactly per dispatch GATE (record HELD, stop).

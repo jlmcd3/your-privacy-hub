@@ -223,3 +223,19 @@ All rulings recorded durably per CEO instruction "Write every step durably (ledg
 **Unblock chain:** T2A must land (unblocks items 113 + 118-(ii)) → T2B must land → T2C may execute. Blocker at head of chain: controller/CEO ruling on the recommended §4 T2A micro-scope amendment in the T2A-HELD section above.
 
 **T2 completion status:** T2A + T2B + T2C all HELD; T2 NOT complete; no holds released.
+
+---
+
+## PERFECT-INTAKE-EXPERIMENT-RISK — HELD-AWAITING-T2C (2026-07-26T05:41:00Z)
+
+**Dispatch:** PERFECT-INTAKE-EXPERIMENT-RISK (item 116 step (iii)), team-reviewed five-lens.
+
+**Dispatch GATE (verbatim):** "execute ONLY if T2 COMPLETE is recorded (T2A+T2B+T2C ledger items present); otherwise HELD-awaiting-T2C and stop."
+
+**Preflight result:** FAIL — no T2 COMPLETE ledger marker exists. T2A/T2B/T2C are all HELD (items 120/121/122); items 113 + 118-(ii) still unreleased.
+
+**Ruling:** HELD-AWAITING-T2C. No fixtures authored, no `scenario_set='perfect-intake'` rows written, no batch launched. Courier `PERFECT-INTAKE-EXPERIMENT-2026-07-26.md` intentionally NOT created (its content presupposes experiment results); this note in the T2 courier is the discoverable HELD record.
+
+**Feasibility note (informational, not a partial-execution):** the V2 band scaffold in `supabase/functions/_shared/bands/revenue-consumer.ts` already exposes unambiguous edges (`"Over $100M"` → 2028-04-01 cohort per `REVENUE_BAND_AUDIT_COHORT`; `"1,000,000 or more"` → both over_100k and over_250k prongs per `CONSUMER_BAND_APPLICABILITY`) that a future execution turn can anchor perfect fixtures against.
+
+**Unblock chain (head-first):** §4 T2A micro-scope ruling → T2A executes and lands (releases items 113 + 118-(ii)) → T2B executes → T2C executes → T2 COMPLETE marker written → this experiment may launch → item 115 (TWO-PASS design) releases → item 114 (IR-BAND) proceeds.
