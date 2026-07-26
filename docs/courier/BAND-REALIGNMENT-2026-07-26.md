@@ -207,3 +207,19 @@ All rulings recorded durably per CEO instruction "Write every step durably (ledg
 **Unblock condition:** T2A lands (items 113 and 118-(ii) both released via T2A execution turn). T2A landing is itself blocked pending controller/CEO ruling on the one-line §4 micro-scope amendment recommended in the T2A-HELD section above.
 
 **Standing state carry-forward:** items 113, 118-(ii), 114, 115 all HELD; item 116 sequencing intact; campaign remains CEO-paused.
+
+---
+
+## T2C-HELD-AWAITING-T2B (2026-07-26T05:36:00Z)
+
+**Dispatch:** BAND-REALIGNMENT-T2C, team-reviewed five-lens.
+
+**Dispatch GATE (verbatim):** "execute ONLY if T2B's ledger item exists; otherwise HELD-awaiting-T2B and stop."
+
+**Preflight result:** FAIL — T2B has no execution ledger item; only item 121 exists and it records HELD-AWAITING-T2A. Upstream: T2A HELD (item 120), items 113 and 118-(ii) unreleased.
+
+**Ruling:** HELD-AWAITING-T2B. No edits attempted on §4 T2C surfaces (test retargets, band-adjacent enum audits, `run-quality-batch` QC-R1-4 EXPECTED-COHORT re-key). No `run-quality-batch` redeploy attempted.
+
+**Unblock chain:** T2A must land (unblocks items 113 + 118-(ii)) → T2B must land → T2C may execute. Blocker at head of chain: controller/CEO ruling on the recommended §4 T2A micro-scope amendment in the T2A-HELD section above.
+
+**T2 completion status:** T2A + T2B + T2C all HELD; T2 NOT complete; no holds released.

@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T05:31:00Z — BAND-REALIGNMENT-T2B HELD-AWAITING-T2A per dispatch GATE (item 121). Controller BAND-REALIGNMENT-T2B dispatch received with explicit GATE: "execute ONLY if the T2A ledger release (items 113/118-(ii) released) and T2A courier section exist; otherwise record HELD-awaiting-T2A and stop." Preflight check: item 113 is still DEPLOY-HELD (unreleased); item 118 step (ii) is still HELD (unreleased); item 120 records T2A itself HELD before any file edit under its own GATE. GATE precondition fails on both released-items requirements. Recorded HELD, no file edits beyond this ledger + courier note. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations. T2B remains queued behind T2A landing (which itself is blocked pending the §4 micro-scope amendment recommended in item 120).
+**Last updated:** 2026-07-26T05:36:00Z — BAND-REALIGNMENT-T2C HELD-AWAITING-T2B per dispatch GATE (item 122). Dispatch GATE: "execute ONLY if T2B's ledger item exists; otherwise HELD-awaiting-T2B and stop." Item 121 records T2B as HELD-AWAITING-T2A (no execution ledger item exists); T2A itself HELD per item 120; items 113 + 118-(ii) still unreleased. GATE precondition fails. Recorded HELD, no file edits beyond this ledger + courier note. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations.
 
 ---
 
@@ -1700,5 +1700,34 @@ Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any
 - No campaign state changes (paused; CEO-reserved resume).
 
 **Zero-side-effect confirmation:** no source files, fixtures, goldens, contracts, prompts, registry rows, corpus rows, migrations, or edge-function deploys were made this turn. Only edits: `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2B-HELD-AWAITING-T2A note appended).
+
+**Deviation ruled:** none — turn executed exactly per dispatch GATE (record HELD, stop).
+
+
+---
+
+### 122. **HELD-AWAITING-T2B — BAND-REALIGNMENT-T2C per dispatch GATE** @ controller tick 2026-07-26T05:36:00Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations)
+
+**Dispatch:** BAND-REALIGNMENT-T2C (team-reviewed, five-lens). Scope per `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4 T2C: test-surface retargets (`_w24a_v3`, `_w12_turnd`, `_risk_cohort_date`, `risk-opening.test`, `intake-contracts.test`, `postbatch-1`, `revision-changed-paths-allowlist`, `rebuild-dpia-cpparisk`); band-adjacent enum audits (`customer-messages`, `target-path-aliases`, `field-enums`, `locked-fields`); and `run-quality-batch` QC-R1-4 EXPECTED-COHORT re-key on V2 bands with ambiguous-legacy EXEMPT (instrument-side completion of the s5 re-key).
+
+**Dispatch GATE (verbatim):** "execute ONLY if T2B's ledger item exists; otherwise HELD-awaiting-T2B and stop."
+
+**Preflight — GATE precondition check:**
+- **T2B execution ledger item** — DOES NOT EXIST. Item 121 is the only T2B ledger entry and it records HELD-AWAITING-T2A, not execution. Under a strict read of "T2B's ledger item" as evidence T2B has landed (dispatch chain is T2A → T2B → T2C, each unblocking the next), the intended precondition is a T2B-LANDED execution record, not a T2B-HELD marker.
+- Upstream chain also unresolved: item 120 (T2A HELD), item 113 (DEPLOY-HELD, unreleased), item 118 step (ii) (HELD, unreleased).
+
+**Ruling:** per GATE clause, record HELD-awaiting-T2B and stop. No T2C file edits attempted. No `run-quality-batch` inspection or redeploy attempted (both prohibited absent GATE pass).
+
+**Standing state:**
+- Item 113 remains DEPLOY-HELD.
+- Item 118 step (ii) remains HELD.
+- Item 120 (T2A HELD) unchanged — awaits controller/CEO ruling on the recommended §4 micro-scope amendment.
+- Item 121 (T2B HELD-AWAITING-T2A) unchanged.
+- Items 114 + 115 remain HELD.
+- Item 116 sequencing intact.
+- T2 (T2A+T2B+T2C) NOT complete; no holds released this turn.
+- Campaign remains CEO-paused.
+
+**Zero-side-effect confirmation:** only edits: `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2C-HELD-AWAITING-T2B note appended).
 
 **Deviation ruled:** none — turn executed exactly per dispatch GATE (record HELD, stop).
