@@ -94,8 +94,8 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     intake: {
       ...base,
       entity_name: "Cascade Data Ltd",
-      // Right on the trigger boundary:
-      q2_consumers: "100,000–249,999",
+      // Right on the trigger boundary (V2 label for § 1798.140(d)(1)(B) edge):
+      q2_consumers: "100,000 to under 250,000",
       i3_ca_consumer_band: "100,000–1,000,000",
       // QB-P25 boundary-batch fix: enable ADMT trigger so the fixture
       // clears the § 7150(b) pre-generation validator; the boundary
