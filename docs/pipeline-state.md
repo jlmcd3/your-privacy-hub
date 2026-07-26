@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T00:51:27Z — W27-RISK-COHORT-ATTRIBUTION appended (item 96): controller tick 2026-07-26T00:47Z, docs-only SELECT-only DB reads via Lovable query_database. `qc_r1_4_cohort_determinism` recurrence localized to doc 7f0de458; w25/w26 passes show the scenario shape is intermittent, not systemic. `_meta.internal.risk_w24a` present on all three w27 risk docs but counters 0 on 7f0de458 — detector/walker/coverage gap in W24A-v2. Offending surfaces: `scope_and_triggers.scope_notes` and `cross_tool_recommendations.cybersecurity_audit_rationale`. W24A-v3 queued (own deploy-guarded turn). T7 step-2 admt remains HELD. Sandbox disk-full persists at 00:47Z.
+**Last updated:** 2026-07-26T00:56:22Z — T7-PILOT-OPENING-ATTRIBUTION appended (item 97): controller tick 2026-07-26T00:5xZ, docs-only SELECT-only DB reads via Lovable query_database. `_meta.internal.risk_t7_opening` present on all three w27 risk docs; `overwrote_model_output=true` everywhere — deterministic builder wrote every opening. Defect localized to S0 count-operand semantics gap: doc 1da388c6 used `q2_consumers` as the (d)(1)(B) bought/sold/shared operand, but design rule 6 forbids "consumers processed" from supporting (B). T7-PILOT-FIX-2 queued; T7 step-2 admt remains HELD pending that fix + clean wave read + CEO checkpoint. W24A-v3 remains queued separately. Sandbox disk-full persists on fresh tick.
 
 ---
 
@@ -954,3 +954,22 @@ DEVIATION RULED: controller local VM DISK-FULL persists (20:17Z tick); all reads
     **RISK DEPLOY GATE:** attribution complete; W24A-v3 is the named fix turn and must land + read clean on the following wave before the cohort class is called fixed. T7 step-2 (admt) remains HELD pending T7-PILOT-OPENING-ATTRIBUTION (item 95 queue, separate turn) + CEO checkpoint.
 
     **Sandbox flag (John):** FRESH controller tick at 00:47Z STILL hit VM disk-full at session create (`useradd: No space left on device`) — the ~21:05Z Desktop restart did NOT clear the sandbox. All backend access this tick via Lovable tools per Backend-access law. No rule deviations; SELECT-only reads + this docs-only commit.
+
+97. **DONE — T7-PILOT-OPENING-ATTRIBUTION** @ controller tick 2026-07-26T00:5xZ (docs-only; SELECT-only DB reads via Lovable query_database per Backend-access law; controller VM disk-full persists on fresh tick sessions, John re-flagged).
+
+    **Scope:** telemetry + intake read of `_meta.internal.risk_t7_opening` on all three wave-27 risk docs (run 140, quality_run `0e744761`), per items 82/87/95. Authoritative spec cited: `docs/design/OPENING-PARAGRAPH-DESIGN.md`.
+
+    **FINDINGS (controller-verified from quality_run_documents):**
+    (1) **WIRING PASS** on all 3 docs: `risk_t7_opening` present, version `risk-opening-t7@2026-07-25`, build_stamp `t7-risk-pilotfix@2026-07-25T22:32:00Z`, `overwrote_model_output=true` on every doc — the deterministic builder wrote every opening; the model never did. **NOT** an emit-gate/wiring failure.
+    (2) **Verb-presence gate WORKS:** docs `7f0de458` and `c74ee422` (intake `q5_sell_share="No"`) emitted `s0_criteria=[]` — (B) correctly rejected on no-sell/share records.
+    (3) **DEFECT LOCALIZED** — S0 count-operand semantics gap (design rule 6, second half): doc `1da388c6` (`q5_sell_share="Both"`, `q2_consumers="250,000–1 million"`, `q1_revenue="$25M–$50M"`) emitted `s0_criteria=["B"]`, sourcing S0 from cppa_authorities `'Cal. Civ. Code § 1798.140 (d)(1)'`. The builder used `q2_consumers` — a consumers-PROCESSED count — as the (d)(1)(B) bought/sold/shared count operand. Design rule 6 states verbatim that "consumers processed" cannot support the (B) count. The verb check (`q5_sell_share`) is implemented; the object-semantics check on the count operand is **NOT**. Boundary-band handling of (A) was correct on all docs ($25M–$50M straddles the CPI-adjusted threshold; (A) never asserted).
+
+    **VERDICT:** wave-27 HIGH `rubric_citation_misapplied` on `1da388c6` `opening_summary` is fully attributed to the slot-builder S0 semantics gate, design-scoped (mirrors items 95-H7 and 96 pattern: modules ship with correct wiring but incomplete semantic coverage). Model exonerated for the opening surface.
+
+    **QUEUED (own deploy-guarded turn):** **T7-PILOT-FIX-2** — (a) S0 (B) assertion requires a count field whose legal meaning is bought/sold/shared consumers-or-households; `q2_consumers` explicitly excluded as (B) operand; (b) when sell/share activity is affirmed but no compliant count field exists, DROP the criteria clause via pre-written clause-subset variant (neutral applicability frame; omission over invention; body handles applicability as all-that-apply/unresolved without implying unmet); (c) pin doc-1da388c6 opening + intake as regression fixture; (d) add `s0_b_rejected_reason` telemetry counter; (e) same seam/fail-open doctrine; must read clean on the wave following deploy.
+
+    **GATES RESTATED:** T7 step-2 (admt) remains **HELD** pending (i) T7-PILOT-FIX-2 landed + clean wave read on the opening surface, and (ii) CEO checkpoint. This attribution discharges the item-95 "T7-PILOT-OPENING-ATTRIBUTION BEFORE step-2" prerequisite only.
+
+    **Body-side items NOT in scope here** (already queued elsewhere): `c74ee422` intake-contradiction (fact-ledger gate read separate), `7f0de458` cohort recurrence (item 96 / W24A-v3).
+
+    **GUARDRAILS:** `docs/pipeline-state.md` only; no code/prompt/rubric/grader/golden/contract/fixture/sample/registry/corpus edits; no deploys; T6 and wave harness untouched; stamps from re-read sandbox clock; no rule deviations.
