@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T03:18:52Z — NO-OP — RISK-COHORT-DATE-FIX dispatch (controller tick 2026-07-26T03:14:32Z) DUPLICATE of item 108 already SHIPPED at 03:13:07Z (BUILD_STAMP risk-cohort-date@2026-07-26T03:09:53Z, live boot-log verified). Append-only rule invoked — recorded as item 109 pointing at item 108 evidence (module `_risk_cohort_date.ts` + tests 16/16 green + wired between W24A-V3 and LEAK-PREV P1 emit gate in `run-cppa-risk-assessment` + telemetry `_meta.internal.risk_cohort_date`). Courier `docs/courier/RISK-COHORT-DATE-FIX-2026-07-26.md` mirrors item 108. No new code, no new deploy this turn — instrument gc-2026-07-25-s4-eu-uk-ca-au-sg FROZEN, deploy guards preserved (0/0/0 controller-reported at 03:14:32Z; wave-29 ~04:45Z margin intact). GATE unchanged: must read clean on next risk wave.
+**Last updated:** 2026-07-26T03:25:11Z — SHIPPED — W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (item 110, deploy-guarded, run-admt-checker ONLY). Discharges item 103 QUEUED — access_timeline registry entry added pinned to 11 CCR § 7021(b) (byte-identical to cppa_authorities row b97c21f6-…-be81f732850c, status=current); section-level only; no schema change (no co-anchor); registry version bumped admt-va-w8 → admt-va-w9-2026-07-26. Pre-existing red slots test flipped GREEN via data (no test edits). 19/19 tests green. Deploy guards 0/0 at 03:22Z. BUILD_STAMP w9-deadline-registry-access-timeline@2026-07-26T03:23:00Z; boot log echoes prior stamps unchanged (h6, h7b, h7, w26, w25); va_rows=35 (was 34). T7 step-2 (admt) remains HELD on CEO checkpoint — data fix, not T7 rollout. GATE: verification read = next risk wave (~04:45Z).
 
 ---
 
@@ -1265,3 +1265,65 @@ Controller notes: mailbox flush attempted, list_messages timed out 180s (connect
 **No new code, no new deploy this turn.** Instrument `gc-2026-07-25-s4-eu-uk-ca-au-sg` remains FROZEN. Wave-29 (~04:45Z) launch margin preserved. GATE unchanged from item 108: **must read clean on next risk wave before the cohort class is called fixed**; if Driver-1 recurs on $25M–$50M docs post-04:45Z, RCD emitter regressed and re-attribution opens same-turn.
 
 **Out of scope this turn:** every edge function; wave harness; instrument/rubric/grader/goldens/contracts/fixtures/samples/registries; corpus DDL or corpus rows; the T7 opening builder; pricing/payment/design tokens/customer revision path/signup; the doc3 body-contradiction class (`risk_intake_contradiction_body`) remains a separate QUEUED item per item 107.
+
+---
+
+### 110. **SHIPPED — W9-DEADLINE-REGISTRY-ACCESS-TIMELINE** @ controller tick 2026-07-26T03:20Z (deploy-guarded; run-admt-checker ONLY). Discharges item 103 QUEUED — root cause of the doc-d98f46e3 "45-day timeline written around" HIGH finding and the pre-existing red test in `_w9_admt_slots.test.ts`. Registry data fix — **T7 step-2 (admt) remains HELD on CEO checkpoint**; this is NOT T7 rollout.
+
+**BUILD:**
+- New registry entry `access_timeline` in `supabase/functions/_shared/registry/admt-verified-authorities.ts`: citation `11 CCR § 7021`, subsection `11 CCR § 7021(b)`, depth_class `subsection`, governing_anchor `11 CCR Art. 3 (Business Practices for Handling Consumer Requests)`, verified_on `2026-07-26`. Verbatim quote: `"Businesses shall respond to a request to delete, request to correct, and request to know, request to access ADMT, and request to appeal ADMT no later than 45 calendar days after receipt of the request."` — byte-identical (post-norm) to a substring of `cppa_authorities` row `b97c21f6-74fc-4390-aa7d-be81f732850c` (`11 CCR § 7021`, status=current; controller-verified 03:15Z, re-verified this turn by colocated Deno test).
+- Section-level pinpoint only — NO subdivision pinpoints introduced (admt subdivision corpus unapproved).
+- Cal. Civ. Code § 1798.130 co-anchor NOT added — `VerifiedAuthorityRow` schema does not support co-anchors and dispatch forbids schema changes this turn. Single anchor § 7021(b) shipped per spec.
+- `ADMT_VERIFIED_AUTHORITY_VERSION` bumped `admt-va-w8-2026-07-24` → `admt-va-w9-2026-07-26`.
+- `run-admt-checker/_w9_admt_slots.ts` DEADLINE_SPECS row for `access_timeline` deadline field changed from `renderMessage("unresolved.authority")` placeholder to concrete `"Within 45 calendar days of receipt of the request"`. Emitter unchanged — the same `auth(pk)` lookup now succeeds and populates subsection/verbatim/information_needed=false without any code path change.
+- Omission-over-invention preserved: every other key still absent from the registry continues to emit the neutral `information_needed=true` shape.
+
+**TESTS (pasted-green, `deno test --no-check`):** 7 new + 12 existing = 19 passed | 0 failed (133ms).
+```
+running 7 tests from ./run-admt-checker/_w9_admt_access_timeline_corpus.test.ts
+access_timeline: registry version bumped to w9-2026-07-26 ... ok
+access_timeline: registry row shape (section-level § 7021, no subdivision-deeper pinpoint) ... ok
+access_timeline: corpus-pin — verbatim_quote is byte-identical substring of cppa_authorities § 7021 full_text (post-norm) ... ok
+BEFORE-FIXTURE (doc-d98f46e3 / quality_run 991b2fda): access_timeline row now emits subsection + verbatim quote, information_needed=false ... ok
+BEFORE-FIXTURE: no deadline_table row carries information_needed=true (red slots test flips green) ... ok
+BEFORE-FIXTURE: all deadline_table rows carry subsection + verbatim (mirrors _w9_admt_slots.test.ts red assertion) ... ok
+omission-over-invention: unknown proposition_key still emits information_needed placeholder (unchanged) ... ok
+running 12 tests from ./run-admt-checker/_w9_admt_slots.test.ts
+stamp exists ... ok
+applicability: in_scope when is_admt=true & trigger=true & established ... ok
+applicability: conservative_assumption honored ... ok
+applicability: out_of_scope when is_admt=false ... ok
+applicability: insufficient_basis on null drivers ... ok
+deadline_table sources from registry (>=3 rows, each stamped) ... ok
+adequacy: A-B qualifies with all three Yes ... ok
+adequacy: A-B does_not_qualify on missing element ... ok
+adequacy: A-B insufficient_basis on silence ... ok
+adequacy: A-A adequate when how_it_works=Yes (all three inferred) ... ok
+attachAndValidate stamps all three slots + validates ok ... ok
+validator flags missing slots ... ok
+
+ok | 19 passed | 0 failed (133ms)
+```
+The pre-existing red slots test `deadline_table sources from registry (>=3 rows, each stamped)` in `_w9_admt_slots.test.ts` is **GREEN without any edit to that test file** — flip is driven entirely by the registry data addition (per dispatch requirement).
+
+**DEPLOY GUARDS (re-verified 03:22Z, pasted):**
+```
+ active_batches | active_qruns
+----------------+--------------
+              0 |            0
+```
+Controller-verified 0/0 at 03:20Z. Re-verified 0/0 at 03:22Z immediately pre-deploy. Wave-29 (~04:45Z) launch margin preserved (deployed 03:23:59Z).
+
+**BOOT LOG (live post-deploy 2026-07-26T03:23:59Z — prior stamps echo unchanged):**
+```
+2026-07-26T03:23:59Z INFO {"evt":"admt_va_registry_loaded","fn":"run-admt-checker","build_stamp":"w9-deadline-registry-access-timeline@2026-07-26T03:23:00Z","va_version":"admt-va-w9-2026-07-26","va_rows":35}
+2026-07-26T03:23:59Z INFO [run-admt-checker] boot build_stamp=w9-deadline-registry-access-timeline@2026-07-26T03:23:00Z
+2026-07-26T03:23:59Z INFO {"evt":"admt_build_stamp","fn":"run-admt-checker","build_stamp":"w9-deadline-registry-access-timeline@2026-07-26T03:23:00Z","prior_stamps":{"h6":"h6-admt-governing-anchor@2026-07-26T01:30:00Z","h7b":"h7b-admt-citation-relabel@2026-07-26T01:20:00Z","h7":"h7-admt-blanket-range@2026-07-25T23:48:00Z","w26":"w26-admt-citation-audit@2026-07-25T23:34:00Z","w25":"w25-admt-sanitizer@2026-07-25T22:44:15Z"}}
+```
+Prior stamps echoed unchanged: h6, h7b, h7, w26, w25. Registry loader reports `va_rows=35` (34 pre-turn + 1 new access_timeline) and `va_version=admt-va-w9-2026-07-26`.
+
+**GATE:** Verification read = next risk wave (~04:45Z), specifically the admt read; the qc deterministic behind the doc-d98f46e3 HIGH should read clean on any post-deploy admt document with a populated deadline_table access_timeline row. **T7 step-2 (admt) remains HELD on CEO checkpoint** — this turn does NOT release that hold.
+
+**Courier:** `docs/courier/W9-DEADLINE-REGISTRY-ACCESS-TIMELINE-2026-07-26.md`.
+
+**Out of scope:** every other edge function; wave harness; instrument gc-2026-07-25-s4-eu-uk-ca-au-sg (FROZEN); rubrics/graders/goldens/contracts/fixtures/samples; corpus DDL or corpus row edits; other registry entries; pricing/payment/design tokens/customer revision path/signup; no Fable 5; no sample regen.
