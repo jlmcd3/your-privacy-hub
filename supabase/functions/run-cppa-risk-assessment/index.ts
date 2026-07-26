@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "w24a-v3@2026-07-26T01:15:00Z";
+export const BUILD_STAMP = "t7-risk-pilotfix2@2026-07-26T01:10:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 import {
@@ -32,7 +32,7 @@ import { applyW22RiskTurnA, W22_RISK_TURNA_STAMP } from "./_w22_risk_turna.ts";
 import { applyW23RiskTurnB, W23_RISK_TURNB_STAMP } from "./_w23_risk_turnb.ts";
 import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
 import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
-console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z build_stamp=${BUILD_STAMP}`);
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
   buildFactLedger,
@@ -2991,10 +2991,15 @@ async function runPipeline(assessment_id: string) {
         overwrote_model_output: true,
         s0_criteria: built.provenance.s0_criteria,
         s1_triggers: built.provenance.s1_triggers,
+        // T7-PILOT-FIX-2 (ledger item 97): telemetry-only counter for the
+        // (B) rejection reason when sell/share is affirmative but the
+        // intake carries no compliant bought/sold/shared count field.
+        s0_b_rejected_reason: built.provenance.s0_b_rejected_reason,
         omitted: built.provenance.omitted,
         sources: built.provenance.sources,
         length: built.text.length,
         pilot: "T7-RISK-OPENING-PARAGRAPH-PILOT-2026-07-25",
+        pilotfix2_stamp: "t7-risk-pilotfix2@2026-07-26T01:10:00Z",
       };
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] T7 opening builder failed (non-fatal):", (e as Error)?.message);

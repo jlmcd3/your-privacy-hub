@@ -37,7 +37,7 @@ import {
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
 
-export const RISK_OPENING_VERSION = "risk-opening-t7@2026-07-25";
+export const RISK_OPENING_VERSION = "risk-opening-t7-pilotfix2@2026-07-26";
 
 // Revenue bands that UNAMBIGUOUSLY clear the § 1798.140(d)(1)(A) threshold.
 // The corpus figure is "twenty-five million dollars ($25,000,000), as adjusted
@@ -51,9 +51,17 @@ const REVENUE_BANDS_CLEAR_A = new Set<string>([
   "Over $500M",
 ]);
 
-// Consumer-volume bands whose FLOOR is >= 100,000 (necessary but not
-// sufficient for (B); still requires affirmative buy/sell/share activity).
-const CONSUMER_BANDS_100K_OR_MORE = new Set<string>([
+// T7-PILOT-FIX-2 (2026-07-26) — bands whose FLOOR is >= 100,000 for the
+// § 1798.140(d)(1)(B) BOUGHT/SOLD/SHARED count. Design rule 6: the operand
+// for (B) MUST be a count field whose legal meaning is "bought, sold, or
+// shared consumers or households". q2_consumers is a PROCESSED-consumers
+// band (all-purpose data-subject volume) and is EXPLICITLY EXCLUDED here —
+// it may never source (B). The live risk intake contract does not yet
+// carry a compliant count field; when one is added (canonical key
+// `bought_sold_shared_count`, same band vocabulary) the builder will
+// consume it. Until then, (B) is dropped even when sell/share is
+// affirmative, and the omission is telemetered as `s0_b_rejected_reason`.
+const BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE = new Set<string>([
   "100,000–249,999",
   "250,000–1 million",
   "1–10 million",
@@ -82,6 +90,11 @@ export interface RiskOpeningInput {
   i1_processing_purpose?: unknown;
   i1b_min_pi?: unknown;
   i4_disclosure_mechanisms?: unknown;
+  /** T7-PILOT-FIX-2: canonical compliant count field for § 1798.140(d)(1)(B).
+   *  Legal meaning: consumers or households whose PI was BOUGHT, SOLD, or
+   *  SHARED (not "processed"). Same band vocabulary as q2_consumers. If the
+   *  intake contract adds this key, the builder will consume it. */
+  bought_sold_shared_count?: unknown;
   [k: string]: unknown;
 }
 
@@ -102,6 +115,11 @@ export interface RiskOpeningOutput {
     s1_triggers: number[]; // e.g. [1,3,4]
     omitted: string[]; // slot labels omitted with reason codes
     sources: Record<string, string>; // slot -> intake field or registry pin
+    /** T7-PILOT-FIX-2: reason (B) was NOT rendered, when applicable.
+     *  null when (B) was rendered, or when (B) was not evaluated because
+     *  intake did not affirm sell/share activity. Populated with a stable
+     *  reason code otherwise. Telemetry-only; never on customer surfaces. */
+    s0_b_rejected_reason: string | null;
   };
 }
 
@@ -135,13 +153,24 @@ export function buildRiskOpening(
 
   // ── S0 — CCPA applicability (all-that-apply, statutory order A,B) ──
   const revenue = str(intake.q1_revenue);
-  const consumers = str(intake.q2_consumers);
   const sellShare = str(intake.q5_sell_share);
+  // T7-PILOT-FIX-2: (B) count operand comes ONLY from the compliant
+  // bought/sold/shared count field. q2_consumers (consumers PROCESSED) is
+  // explicitly excluded — design rule 6 forbids it as a (B) operand.
+  const bssCount = str(intake.bought_sold_shared_count);
 
   const clearsA = REVENUE_BANDS_CLEAR_A.has(revenue);
-  const clearsBVolume = CONSUMER_BANDS_100K_OR_MORE.has(consumers);
   const affirmativeBuySellShare = SELL_SHARE_AFFIRMATIVE.has(sellShare);
-  const satisfiesB = clearsBVolume && affirmativeBuySellShare;
+  const hasCompliantBssBand = BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE.has(bssCount);
+  const satisfiesB = affirmativeBuySellShare && hasCompliantBssBand;
+
+  // (B)-rejection reason for telemetry (never customer prose). Only meaningful
+  // when the intake affirms sell/share activity — silent intake is a plain
+  // omission, not a rejection.
+  let s0BRejectedReason: string | null = null;
+  if (!satisfiesB && affirmativeBuySellShare) {
+    s0BRejectedReason = "no_compliant_count_field";
+  }
 
   const criteria: Array<{ letter: "A" | "B"; quote: string }> = [];
   if (clearsA) criteria.push({ letter: "A", quote: CCPA_1798_140_D_1_A });
@@ -157,11 +186,16 @@ export function buildRiskOpening(
     provCriteria.push(...criteria.map((c) => c.letter));
     sources.S0 = "cppa_authorities:Cal. Civ. Code § 1798.140 (d)(1)";
   } else {
+    // Neutral applicability frame — omission over invention. Body-side
+    // applicability logic remains untouched (all-that-apply/unresolved).
     omitted.push(
       entity
         ? "S0:no_criteria_unambiguously_resolved"
         : "S0:missing_entity_name",
     );
+    if (s0BRejectedReason) {
+      omitted.push(`S0:B_rejected:${s0BRejectedReason}`);
+    }
   }
 
   // ── S1 — 11 CCR § 7150(b) triggers (all-that-apply, statutory order) ──
@@ -293,6 +327,7 @@ export function buildRiskOpening(
       s1_triggers: provTriggers,
       omitted,
       sources,
+      s0_b_rejected_reason: s0BRejectedReason,
     },
   };
 }

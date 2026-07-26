@@ -54,22 +54,78 @@ Deno.test("(B) rejected when consumers band >= 100k but sell/share = No (semanti
   );
   assert(!r.provenance.s0_criteria.includes("B"));
   assertEquals(r.slots.S0, null);
+  // Silent sell/share is a plain omission, not a rejection.
+  assertEquals(r.provenance.s0_b_rejected_reason, null);
 });
 
-Deno.test("(B) asserted with verbatim corpus quote when consumers >= 100k AND sell/share affirmative", () => {
+// T7-PILOT-FIX-2 (ledger item 97): q2_consumers is "consumers PROCESSED",
+// not "bought, sold, or shared" — design rule 6 forbids it as the (B)
+// operand. When sell/share is affirmative but the intake carries no
+// compliant `bought_sold_shared_count` field, (B) must be DROPPED (not
+// rendered from q2_consumers) and telemetered as no_compliant_count_field.
+Deno.test("T7-PILOT-FIX-2: (B) rejected when only q2_consumers present (no compliant count field), sell/share affirmative", () => {
   const r = buildRiskOpening(
     { ...base, q2_consumers: "250,000–1 million", q5_sell_share: "Both" },
     { asOfDate: AS_OF },
   );
+  assertEquals(r.provenance.s0_criteria, []);
+  assertEquals(r.slots.S0, null);
+  assertEquals(r.provenance.s0_b_rejected_reason, "no_compliant_count_field");
+  assert(r.provenance.omitted.some((o) => o.startsWith("S0:B_rejected:")));
+  // Never rendered from q2_consumers.
+  assert(!/buys, sells, or shares/.test(r.text));
+});
+
+// T7-PILOT-FIX-2 regression fixture: doc-1da388c6 intake shape from
+// wave-27 (quality_run 0e744761, run 140). Builder MUST emit s0_criteria=[]
+// — (A) blocked by $25M–$50M straddle, (B) blocked by absent compliant
+// count field — and MUST NOT source (B) from q2_consumers.
+Deno.test("T7-PILOT-FIX-2 regression fixture — doc-1da388c6 (wave-27 run 140)", () => {
+  const r = buildRiskOpening(
+    {
+      ...base,
+      entity_name: "Acme Health Analytics",
+      q1_revenue: "$25M–$50M",
+      q2_consumers: "250,000–1 million",
+      q5_sell_share: "Both",
+    },
+    { asOfDate: AS_OF },
+  );
+  assertEquals(r.provenance.s0_criteria, []);
+  assertEquals(r.slots.S0, null);
+  assertEquals(r.provenance.s0_b_rejected_reason, "no_compliant_count_field");
+  assert(!/§\s*1798\.140\(d\)\(1\)\(B\)/.test(r.text));
+  assert(!/subject to the CCPA/.test(r.text));
+});
+
+// (B) IS asserted when the compliant `bought_sold_shared_count` field is
+// present and affirmative sell/share activity is affirmed.
+Deno.test("(B) asserted with verbatim corpus quote when bought_sold_shared_count >= 100k AND sell/share affirmative", () => {
+  const r = buildRiskOpening(
+    {
+      ...base,
+      q2_consumers: "250,000–1 million",
+      q5_sell_share: "Both",
+      bought_sold_shared_count: "250,000–1 million",
+    },
+    { asOfDate: AS_OF },
+  );
   assert(r.provenance.s0_criteria.includes("B"));
+  assertEquals(r.provenance.s0_b_rejected_reason, null);
   assertStringIncludes(r.slots.S0 ?? "", CCPA_1798_140_D_1_B);
   assertStringIncludes(r.slots.S0 ?? "", "buys, sells, or shares");
   assertStringIncludes(r.slots.S0 ?? "", "100,000 or more consumers or households");
 });
 
-Deno.test("Multi-criteria enumerate in statutory order A,B", () => {
+Deno.test("Multi-criteria enumerate in statutory order A,B (compliant count field present)", () => {
   const r = buildRiskOpening(
-    { ...base, q1_revenue: "Over $500M", q2_consumers: "Over 10 million", q5_sell_share: "Both" },
+    {
+      ...base,
+      q1_revenue: "Over $500M",
+      q2_consumers: "Over 10 million",
+      q5_sell_share: "Both",
+      bought_sold_shared_count: "Over 10 million",
+    },
     { asOfDate: AS_OF },
   );
   assertEquals(r.provenance.s0_criteria, ["A", "B"]);
@@ -127,7 +183,12 @@ Deno.test("Corpus pins are byte-identical in emitted S0", () => {
   const rA = buildRiskOpening({ ...base, q1_revenue: "Over $500M" }, { asOfDate: AS_OF });
   assertStringIncludes(rA.slots.S0 ?? "", CCPA_1798_140_D_1_A);
   const rB = buildRiskOpening(
-    { ...base, q2_consumers: "Over 10 million", q5_sell_share: "Both" },
+    {
+      ...base,
+      q2_consumers: "Over 10 million",
+      q5_sell_share: "Both",
+      bought_sold_shared_count: "Over 10 million",
+    },
     { asOfDate: AS_OF },
   );
   assertStringIncludes(rB.slots.S0 ?? "", CCPA_1798_140_D_1_B);
