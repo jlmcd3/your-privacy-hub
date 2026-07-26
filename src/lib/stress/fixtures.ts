@@ -1145,8 +1145,8 @@ export const CPPA_RISK_VARIANTS = [
   },
   {
     entity_name: "Meridian Logistics Holdings, Inc.",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "Fewer than 100,000",
+    q1_revenue: "Over $100M",
+    q2_consumers: "Under 100,000",
     q3_sector: "Manufacturing",
     q4_pi_categories: [
       "Employment information",
