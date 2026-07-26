@@ -1455,3 +1455,32 @@ Prior stamps echoed unchanged: w23, w24, w24a_v3, t7_pilotfix, t7_pilotfix2, ris
 ### CEO RULING LOG — band-realignment ordered (2026-07-26 ~02:40Z)
 
 Ruling: adopt statutorily-aligned revenue/consumer band enums project-wide across all CPPA/CCPA-facing tools; existing band scales that straddle statutory lines are retired. Every new-band answer must map to exactly one applicability answer and (where cohort-relevant) exactly one cohort date. Legacy stored values continue to be accepted by generators via an explicit mapping and marked ambiguous where they straddle a statutory line; emitters preserve conservative no-assert behavior for ambiguous inputs; no stored-data rewrites. Deterministic checks keyed on band labels are re-keyed onto the new enum; ambiguous-legacy bands are exempt (removes a check-vs-emitter contradiction, with primary-source proof from the corpus). Rubric text and thresholds are otherwise untouched. Ruling status: STANDING; supersedes any prior band-scale in fixtures, forms, contracts, generators, rails, and instrument keys once T2 wiring lands.
+
+---
+
+### 114. **QUEUED-HELD — IR-BAND-REALIGNMENT (CEO resequencing)** @ controller tick 2026-07-26T04:25:30Z (docs-only; no code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero deploys)
+
+**Dispatch:** IR-BAND-REALIGNMENT (umsg_01kye969, CEO-ordered 2026-07-26 ~02:55Z; five-lens TEAM-REVIEWED). Contract turn on `generate-ir-playbook` to retire arbitrary `affectedCount` band edges and replace with edges that sit on verified statutory breach-notification trigger counts (Cal. Civ. Code § 1798.82, Tex. Bus. & Com. Code § 521.053), with corpus verification / ingest as sub-step, plus all downstream surfaces (contract, validator, form, fixtures, goldens, dummy-data, StatuteRail, sample REGEN flag) and deterministic band→trigger playbook logic + property tests. GDPR Art 33 explicitly has no count threshold (bands never imply a GDPR trigger).
+
+**CEO resequencing order (2026-07-26 ~03:10Z, umsg following the two contract dispatches):** PERFECT-INTAKE-EXPERIMENT-RISK (umsg_01kye973) runs BEFORE IR-BAND-REALIGNMENT (umsg_01kye969). Because IR-BAND-REALIGNMENT had NOT started when the resequencing arrived, the "hold if not started" branch applies (not the "complete atomically if mid-turn" branch). CPPA BAND-REALIGNMENT (umsg_01kye8qz, item 113) retains its first position.
+
+**Final CEO-fixed execution order:**
+1. **BAND-REALIGNMENT T2** — deploy-guarded wiring turn (item 113 T2; surfaces enumerated in item 113 courier §6). Own dispatch, own window guard.
+2. **PERFECT-INTAKE-EXPERIMENT-RISK** — author 2 perfect-intake fixtures for `run-cppa-risk-assessment` against the live contract (re-read enums at build time — if BAND-REALIGNMENT T2 has landed, use V2 bands; else current unambiguous values), register `scenario_set='perfect-intake'`, run one cppa-risk-only quality batch (2 docs × 2 replicates = 4) on the current frozen instrument under the single-launch rule and wave-window guard, courier `docs/courier/PERFECT-INTAKE-EXPERIMENT-2026-07-26.md` with per-doc + pooled scores, finding-class decomposition (vanish-with-perfect-intake vs persist), side-by-side vs wave-28 baseline. Runs are scored into `quality_runs` but NEVER pooled into campaign-wave trajectories or certification counters (scenario_set discriminates).
+3. **IR-BAND-REALIGNMENT** — release this hold and execute atomically as dispatched.
+
+**Hold-release condition (must ALL be true before IR-BAND-REALIGNMENT begins):**
+- (a) PERFECT-INTAKE-EXPERIMENT-RISK batch launched under single-launch rule (no duplicate insert; 2026-07-25 ~21:16Z incident standing).
+- (b) That batch reached a terminal state (`completed`, or the equivalent finalization).
+- (c) Courier `docs/courier/PERFECT-INTAKE-EXPERIMENT-2026-07-26.md` has landed with per-doc + pooled scores and finding-class decomposition.
+- (d) Ledger item for the experiment marked DONE with `scenario_set='perfect-intake'` noted (non-pooling into campaign trajectories reaffirmed).
+
+**Standing constraints preserved through the hold:**
+- Single-launch rule (no retry inserts on kickoff row; let `batch-kickoff-pickup` handle any non-advance).
+- No wave-window collision (next campaign wave ~04:30Z; the perfect-intake batch launches only ≥40 min before the next wave, or waits until just after that wave completes).
+- IR-BAND-REALIGNMENT, when released, is an atomic contract turn (contract + intake-contracts + validator + form + fixtures + goldens + dummy-data + StatuteRail + sample REGEN flag + playbook trigger logic + property tests all land in one turn); no partial-surface abandonment; if mid-turn resequencing ever arrives after IR-BAND-REALIGNMENT begins, complete atomically per the CEO branch already ruled.
+- Corpus sub-step of IR-BAND-REALIGNMENT (verbatim § 1798.82 + § 521.053 ingest into `provision_texts` with pin-tests + cache) runs as part of that turn, not this one.
+
+**Deviation:** none. This turn is docs-only and records the CEO resequencing order verbatim into the ledger as instructed.
+
+**Header restamped:** `2026-07-26T04:25:30Z`.
