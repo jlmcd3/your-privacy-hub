@@ -42,6 +42,30 @@ Everything else in this document exists to make the three primary targets achiev
 
 ---
 
+## 2.5 Legal Test compliance (MANDATORY, CEO-ordered 2026-07-26)
+
+This section is **build-blocking** and governs every subsequent §. Full methodology: `docs/design/LEGAL-TEST.md` (CEO-adopted standing program law). The joint privacy-law + CS review (2026-07-26) established that outcomes the cited laws commit to weighing (11 CCR § 7152(a)(5) benefit/harm; GDPR Art 6(1)(f) balancing; Art 35(7)(b) necessity/proportionality; Art 33 risk-to-rights) MUST NOT be forced into false polarity determinism.
+
+**Conclusion classification (R/W/J).** Before any product's two-pass migration begins, its `_shared/legal-test/<product>-conclusions.ts` inventory MUST exist, tagging every assertable conclusion:
+
+- **Type R (Rule).** Bright-line rule → ascertainable fact. Deterministic. Polarity-determinism validation applies.
+- **Type W (Weighing).** Statutory factors → weighed judgment. Factor-table validated for completeness + anchoring; conclusion NOT polarity-validated.
+- **Type J (Reserved Judgment).** Present analysis, pose the decision — never assert it.
+
+**RenderPlan schema deltas (build-blocking).** Every proposition MUST carry `epistemic_type: "R" | "W" | "J"`. Type W propositions MUST carry a `factor_table` structure: `{ factors: [{ id, statutory_anchor, supporting_ledger_ids[], registry_pinpoint_ref, weight: "supports" | "opposes" | "neutral", note?: string }], closeness: "lopsided" | "close", proposed_conclusion?: string, reasoning_ref: string }`. Type J propositions carry `posed_question: string` and no `engaged` field. Factor registries live at `_shared/factors/<product>-factors.ts` (corpus-quoted, pin-tested like verified-authority registries).
+
+**Validator scope corrections (see §3.2).** Validator #6 (polarity determinism) is **scoped to Type R propositions only**. New Type W validators are added: (a) factor completeness (every statutorily required factor in the registry appears in the factor_table), (b) factor anchoring (every factor resolves to a ledger row or registry pinpoint), (c) conclusion consistency (proposed_conclusion cites only validated factors), (d) closeness heuristic recorded (Pass-1 evaluates lopsided-vs-close by deterministic weight tally; recorded, not rejected).
+
+**Pass-2 Type W templates (see §4).** Type W templates ship in firm+hedged variants; variant selection is deterministic on `factor_table.closeness`. Every Type W template carries a `what_would_tip_it` slot required on `closeness: "close"`. **Flat certainty on a close balance = post-render hard reject.** Type J propositions render via counsel-voice analysis-then-question templates (analysis body + posed question, no assertion).
+
+**Success criteria addendum (see §5).** Type W tools add: **factor completeness = 100%** across pilot waves; **zero flat-certainty renders on close-balance factor tables**. Deterministic expected-answer checks in the grader are valid ONLY for Type R conclusions.
+
+**Grader audit (CEO-gated future work).** A grader-audit turn — for each product, cross-check every deterministic expected-answer check against the R/W/J inventory; any check enforcing a Type W outcome as Type R is flagged for CEO ruling — is queued as CEO-gated future work (measurement correction, not loosening). No product's two-pass migration begins until its conclusion inventory + factor registries exist.
+
+The seven §4 amendments in `docs/design/LEGAL-TEST.md` are incorporated here by reference and are build-blocking for the risk build turn and every subsequent product turn.
+
+---
+
 ## 3. Pass-1: Derivation
 
 Pass-1 is a **structured-output-only** call. The model receives the intake + registry-projected law surface and returns a JSON `RenderPlan` — no prose, no citations-as-strings, no free text outside enumerated `note` fields with strict length caps.
