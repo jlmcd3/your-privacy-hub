@@ -2219,3 +2219,70 @@ Authoring any of (1)–(3) would author customer-facing legal-reasoning prose. P
 **Maximum buildable subset already delivered** (item 144) — the LLM adapter, slot resolver, renderer, calibration assert, and integration tests are authored and green. On receipt of an `assessment_summary` composition courier (opening-sentence template + connective-tissue rule + multi-activity aggregation rule) these modules wire into `index.ts` in one deploy turn plus the Part-2 batch launch in the same turn, per the original Wave-B dispatch.
 
 `BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`. No deploy. No batch launch. Campaign `fd1be147` remains CEO-paused.
+
+---
+
+## Ledger item 146 — LTP-RISK-WAVE-B SUMMARY-COMPOSE MAX-BUILDABLE-SUBSET LANDED (2026-07-26T19:40:58Z)
+
+**Dispatch:** CONTENT COURIER — assessment_summary composition (releases HELD-D; controller-authored AFTER codebase/data verification; five-lens + double-checked per CEO rules).
+
+**Landed (isolated authoring — no wiring into `run-cppa-risk-assessment/index.ts`):**
+
+1. **`supabase/functions/_shared/ltp/content/pass2-templates.ts`** — added 5 templates (total 10 → 15): `T.risk.summary.opening.all_firm` (400c), `T.risk.summary.opening.mixed_hedged` (560c), `T.risk.summary.opening.any_negative` (560c), `T.risk.summary.activity_line` (360c), `T.risk.summary.docs` (280c). Exported closed enums: `SUMMARY_OUTCOME_CLAUSES` (4), `SUMMARY_REMAINING_OUTCOMES_CLAUSES` (2), `SUMMARY_DOCS_COMPLETION_CLAUSES` (2), `SUMMARY_EACH_OR_THIS_CLAUSES` (2), `SUMMARY_NARRATIVE_MAX_CHARS = 2400`. All slot syntax + `Pass2Template` interface verified against the stored file.
+2. **`supabase/functions/_shared/ltp/slot-resolver.ts`** — extended `SlotContext` with the 10 pre-rendered summary slots (`activity_count_phrase`, `each_or_this_clause`, `firm_positive_list`, `close_list`, `negative_list`, `remaining_outcomes_clause`, `activity_label`, `outcome_clause`, `key_factor_token`, `docs_completion_clause`). Composer pre-renders; resolver passes through verbatim.
+3. **`supabase/functions/_shared/ltp/summary-compose.ts`** (new) — deterministic composer:
+   - `populateTriggeredActivities(plan)` — filters to engaged Type R applicability propositions ONLY; rejects question-shaped strings (`endsWith("?")`, question-head keywords, `> 240 chars`). **Fixes the observed leak** where customer-question strings had entered the array on the latest live doc.
+   - `selectOpeningTemplateId(outcomes)` — deterministic most-cautious-first selection; NEVER averaged, NEVER majority-ruled.
+   - `composeAssessmentSummary(input)` — end-to-end. Structured keys populated per courier (assessment_date/company_name/sector verbatim from intake; exceptions_claimed/status via templated sentinels with doc-gate-incomplete suffix; admt/cyber_audit from gate outputs; corpus_enforcement_note from enforcement empty-by-finding line). Narrative composed in fixed order (opening → activity lines → docs → closing) capped at 2400 chars. `overall_risk_level` passed through verbatim — composer NEVER synthesizes a tier while HELD-E is open.
+4. **`supabase/functions/_shared/report-schemas/cppa-risk.ts`** — schema version `rs-w1-2026-07-26-ltp-waveb` → `rs-w1-2026-07-26-ltp-waveb-summary`. `assessment_summary` added to `objects` allow-list with the 10 live-verified keys + additive `narrative`.
+5. **`supabase/functions/_shared/ltp/summary-compose.test.ts`** (new, 6 tests): forbidden-token lint on every new template (CCPA permitted per stored file's convention); calibration-match matrix; triggered_activities customer-question exclusion; end-to-end compose + HELD-flag propagation; exceptions-status sentinels; docs-completion clause selection.
+6. **`supabase/functions/_shared/ltp/waveb.test.ts`** — template-count assertion bumped `10 → 15`.
+7. **`supabase/functions/_shared/ltp/content/content.test.ts`** — expected template id list updated to include the 5 new ids.
+
+**Double-check evidence (CEO rule 2, pasted):**
+
+- (a) **Forbidden-token lint:** `summary templates: no forbidden tokens (CCPA is template-authored, permitted)` — PASS.
+- (b) **Calibration-match matrix:** `aggregation matrix: opening variant = most-cautious outcome present` — PASS across all 8 activity-outcome combos, incl. "3 firm + 1 negative → any_negative" (never majority-ruled). `calibration assert: firm variant forbidden when any activity ≥ FIRM_VARIANT_CLOSENESS_MAX` — PASS.
+- (c) **Triggered-activities population test:** `triggered_activities: customer-question strings can never enter the array` — PASS. Question-shaped inputs (`?`-terminated, "Please describe…", `> 240 chars`) verified rejected end-to-end.
+- (d) **Re-verified `assessment_summary` keys against live doc** via `query_database` before wiring the allow-list: sector, company_name, assessment_date, exceptions_status, exceptions_claimed, overall_risk_level, triggered_activities, corpus_enforcement_note, admt_disclosure_required, cybersecurity_audit_required — all 10 present. `narrative` is additive.
+
+**Renderer/PDF tolerance audit for additive `narrative` field:**
+- `src/components/cppa/RiskAssessmentReportV4.tsx` — `Summary` type is structural + optional-only; unknown keys ignored silently. Safe.
+- `supabase/functions/generate-report-pdf/index.ts` (L1163, L2225) — accessors read specific keys only; no exhaustive discriminator; unknown keys neither read nor asserted. Safe.
+- No renderer currently DISPLAYS `narrative`. Customer-visible rendering is a separate downstream turn (schema-safe now).
+
+**Tests (paste):** `deno test --no-check` on the three LTP test files → **26 passed | 1 failed (246ms).** Single failure is pre-existing and out-of-scope (`pass2-render: forbidden-token check catches § injection via slot` at `waveb.test.ts:37` — touches only `T.risk.applicability.engaged`, unrelated to summary composition). Harness test-runner blocked by 114 pre-existing typecheck errors in unrelated modules (payments-webhook, quality-batch-orchestrator); direct `deno test --no-check` used to confirm authored code green.
+
+**RELEASES BY NAME:** items 143 / 143b / 143c / 145 (HELD-D). HELD-D content gap (`assessment_summary` composition prose) is resolved by the composition rules landed above.
+
+**No side effects this turn.** `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`). No deploy. No batch launch. Campaign `fd1be147` remains CEO-paused.
+
+**Courier:** `docs/courier/LTP-RISK-WAVEB-SUMMARY-COMPOSE-2026-07-26.md`.
+
+---
+
+## Ledger item 147 — HELD-E OPENED: overall_risk_level tier mapping (2026-07-26T19:40:58Z)
+
+**Genuine content HELD** invoked per the courier's own escape clause: *"If the codebase enum differs materially from a three-tier shape, record a HELD naming the enum (that would be a genuine content question)."*
+
+**Named enum:** `overall_risk_level` in `supabase/functions/run-cppa-risk-assessment/index.ts` (used across `RiskAssessmentReportV4.tsx` and PDF renderer) is **5-tier**:
+
+    "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis"
+
+**Courier mapping was defined for a 3-tier shape:**
+- any impacts-outweigh → highest tier
+- any hedged/close or incomplete-documentation → middle tier
+- all firm benefits-outweigh with no open safeguard_gaps → lowest tier
+- all-firm WITH open safeguard_gaps → middle tier
+
+Extrapolation to 5-tier ("Critical" and "Insufficient basis") is a legal-reasoning question — reserved for content couriers under the standing rule.
+
+**Composer behavior during HELD-E:** `overall_risk_level` is NEVER synthesized. Any caller-supplied value passes through verbatim. `telemetry.overall_risk_level_held = true` flag is exposed on the composer output.
+
+**BLOCKS:**
+- (a) Wiring `composeAssessmentSummary` into `run-cppa-risk-assessment/index.ts`.
+- (b) Part-2 LTP Wave-B measurement batch launch (batch_size 6, scenario_set='tuning', standalone s5) — no meaningful measurement is possible while the tier remains passthrough.
+
+**DOES NOT BLOCK:** additional isolated module work; ingestion; unrelated deploys; other tools' pipeline waves.
+
+**Awaiting:** a follow-on content courier defining deterministic assignment of all 5 tiers from the aggregation classes, including the "Critical" and "Insufficient basis" trigger conditions.
