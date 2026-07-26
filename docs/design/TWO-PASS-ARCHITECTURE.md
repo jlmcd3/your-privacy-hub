@@ -377,3 +377,32 @@ Baseline is Perfect-Intake run `f3674428-…` on s5 (Item 127).
 ---
 
 **End of design. Build awaits CEO review of §0 Open Questions.**
+
+
+---
+
+## 2.9 Legal Test v2.3 — Federal-Qualification / Generalized Forum Rule (Q4(e) v2.3) — MANDATORY, CEO-CORRECTED 2026-07-26
+
+**Qualifies** §2.8 (v2.2). Full methodology: `docs/design/LEGAL-TEST.md` Q4(e) v2.3.
+
+**Corrected principle (CEO verbatim).** "Non-California law can never be binding authority for a California product UNLESS it is U.S. Federal law, including U.S. agency rulings." Federal law applies of its own force within California (supremacy); FTC and other federal agency rulings are U.S. law applicable in California.
+
+**Generalized forum rule (all U.S.-state analysis units — CPPA/California, Illinois/BIPA, Texas, etc.).**
+- **BINDING tier** = forum state's own law + U.S. FEDERAL law (`jurisdiction_tag: "us-federal"`; statutes, regulations, FTC and other federal agency rulings).
+- **PERSUASIVE tier** = sister-state law (another U.S. state's statutes/rulings), expressly marked in output; foreign law per existing per-domain rules (CPPA: FSOR-mediated persuasive only).
+- **GDPR/UK products** = UNCHANGED. No U.S. material (state OR federal) in any role. Bridge is ONE-WAY.
+
+**Schema deltas (v2.3, build-blocking).**
+- `JurisdictionTag` union gains `"us-federal"`.
+- No new fields on `CitationBinding` / `WeighingFrameEntry` / `FactorTableEntry` — the existing `jurisdiction_tag` + `authority_weight` slots carry the rule.
+
+**Validator updates.**
+- **V3 authority-domain filter (relaxed):** an entry with `jurisdiction_tag: "us-federal"` and `authority_weight: "binding"` is admissible on any U.S.-forum plan (`cppa-ca` or `us-state-*`) without a cross-domain error. Persuasive entries continue to be governed by V8 (V3 skips them).
+- **V8 authority-weight tiering (extended):**
+  - `V8_SISTER_STATE_BINDING` — on any U.S.-forum plan, a binding-tier entry whose tag is a sister-state (`us-state-*` or `cppa-ca` different from the plan) is a hard reject; the entry must be persuasive-tier with proper marking instead.
+  - `V8_GDPR_US_BRIDGE` — on any GDPR/UK plan, any entry whose tag is `us-federal`, `cppa-ca`, or `us-state-*` — at any tier — is a hard reject. The bridge is one-way.
+- Pass-2 persuasive-marking (`lintPersuasiveMarking`) and sole-support ban continue to apply to sister-state persuasive entries just as to FSOR-mediated non-CA entries.
+
+**Phase-1 build correction (v2.3).** Conclusion inventory (`_shared/legal-test/cppa-risk-conclusions.ts`), factor registry (`_shared/factors/cppa-risk-factors.ts`), and Pass-G candidate index (`_shared/pass-g/cppa-risk-candidate-index.ts`) gain header notes stating the v2.3 rule. All existing Phase-1 rows are cppa-ca and require no data change; future us-federal (e.g., FTC) rows flow in at binding tier without architecture change.
+
+**Corpus implication.** `enforcement_actions.jurisdiction = "us-federal"` rows (once tagged) are binding-tier eligible for U.S.-forum products (subject to the CEO-adopted eligibility bar: quote-safe / row-grounded / ineligible). No architecture change required.

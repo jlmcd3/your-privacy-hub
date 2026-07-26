@@ -171,3 +171,29 @@ CEO CORRECTION (2026-07-26): the v2.1 phrasing "analogies the FSOR itself discus
 **Untouched this sub-turn:** any prompt, rubric, grader, golden, contract, fixture, sample, edge-function deploy, migration, or `quality_batch`. `run-cppa-risk-assessment` untouched; no BUILD_STAMP bumped.
 
 **Status:** Phase 1 remains DONE-AUTHORING under corrected labels. Phase 2 dispatch may proceed.
+
+---
+
+## 9. CORRECTIVE SUB-TURN — LEGAL-TEST-V2.3-FEDERAL-QUALIFICATION (2026-07-26)
+
+CEO CORRECTION (2026-07-26): the v2.2 sentence "Non-California law can never be binding authority for a California product" is QUALIFIED. Corrected sentence verbatim: **"Non-California law can never be binding authority for a California product UNLESS it is U.S. Federal law, including U.S. agency rulings."** Rationale: federal law applies of its own force within California (supremacy); FTC and other federal agency rulings are U.S. law applicable in California.
+
+**Generalized forum rule adopted:** for any U.S.-state analysis unit, BINDING tier = forum state's own law + U.S. FEDERAL law (`us-federal` tag, incl. FTC and other federal agency rulings). SISTER-STATE law = persuasive/analogy tier only, expressly marked. GDPR/UK products UNCHANGED — no U.S. material in any tier; bridge is one-way.
+
+**Phase-1 artifacts corrected this sub-turn (labels + types only; no data changes; existing cppa-ca rows unchanged):**
+1. **`_shared/legal-test/cppa-risk-conclusions.ts`** — `JurisdictionTag` union extended with `"us-federal"`; header v2.3 note added.
+2. **`_shared/render-plan/schema.ts`** — `AuthorityWeight` comment updated with v2.3 admissibility rules.
+3. **`_shared/factors/cppa-risk-factors.ts`** — header v2.3 note added; no row edits (all remain cppa-ca binding).
+4. **`_shared/pass-g/cppa-risk-candidate-index.ts`** — header v2.3 note added; no row edits.
+5. **`_shared/render-plan/validators.ts`**:
+   - **V3 relaxed** — accepts `us-federal` binding-tier entries on any U.S.-forum plan without cross-domain error; skips persuasive entries (governed by V8). Added `isUsForumTag` and `isBindingDomainMatch` helpers.
+   - **V8 extended** — added `V8_SISTER_STATE_BINDING` (U.S.-forum plan + sister-state binding entry = hard reject) and `V8_GDPR_US_BRIDGE` (any GDPR/UK plan + any U.S. tag at any tier = hard reject).
+6. **`_shared/render-plan/validators.test.ts`** — 3 new tests: us-federal binding on cppa-ca plan accepted; sister-state binding on cppa-ca plan rejected; GDPR plan rejects us-federal citation. **All 21 tests green** — `deno test render-plan/validators.test.ts` → `ok | 21 passed | 0 failed (22ms)`.
+
+**Docs corrected:**
+- `docs/design/LEGAL-TEST.md` — **Q4(e) v2.3** appended with CEO-verbatim sentence, generalized forum rule, validator updates, and phase-1 carry-through.
+- `docs/design/TWO-PASS-ARCHITECTURE.md` — new **§2.9 Legal Test v2.3 — Federal-Qualification / Generalized Forum Rule** appended with schema deltas, validator updates, phase-1 correction, and corpus implication.
+
+**Untouched:** every prompt, rubric, grader, golden, contract, fixture, sample, registry data row, corpus row; edge-function deploys; migrations; BUILD_STAMPs; `quality_batch`. `run-cppa-risk-assessment` untouched.
+
+**Status:** Phase 1 remains DONE-AUTHORING under v2.3-corrected labels. Phase 2 dispatch may proceed.
