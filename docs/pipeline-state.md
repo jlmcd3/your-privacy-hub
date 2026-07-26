@@ -1839,3 +1839,39 @@ Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any
 
 **Deviations ruled:** none — turn executed exactly per dispatch (docs-only; no code, no deploys).
 
+---
+
+### 132. **DONE (2026-07-26T08:13:29Z, LEGAL-TEST-V2.1-AUTHORITY-DOMAIN + SIX-ANSWERS-RULED)** — docs-only turn per CEO rulings 2026-07-26 (team-reviewed). Zero code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus edits; zero deploys; zero migrations; zero quality_batch launches; no BUILD_STAMP touched; campaign `fd1be147` remains CEO-paused.
+
+**Deliverables:**
+
+1. **AMENDED `docs/design/LEGAL-TEST.md`** — Q4 extended with new **(e) AUTHORITY-DOMAIN MATCHING** requirement (v2.1). Every test / analysis-unit carries a **jurisdiction tag**; all corpus candidates (statutory anchors, `guidance_refs`, Pass-G candidate sets, analogies) are FILTERED to the matching domain; cross-domain authority in customer-facing analysis = HARD REJECT at both authoring review AND Pass-G candidate-set construction. **Domain definitions:** `cppa-ca` = `cppa_authorities` + `provision_texts` CA/ccpa + `cppa_fsor_commentary`/`cppa_fsor_callouts` + `cppa_deadlines` + California statutes (Civ. Code) + **analogies the FSOR itself discusses** (per CEO — the FSOR is CPPA-domain corpus; its internal discussions are legitimate CPPA authority because the FSOR's reference is itself the CPPA anchor); `gdpr-eu`/`gdpr-uk` = `gdpr_articles` (sub-jurisdiction UK→EU fallback per existing `getGdprContext`) + `edpb_guidelines` + `provision_texts` EU/UK + GDPR-tagged `enforcement_actions` (eligibility bar applies); `us-state-<code>` = respective state statutes when in corpus. **Hybrid products (ir, governance, registration, biometric):** scoping is PER ANALYSIS UNIT — GDPR section uses GDPR corpus only, California section uses CA corpus only, never blended within a unit. **Future-proofing:** `enforcement_actions.jurisdiction` tags mean future CPPA enforcement rows flow into `cppa-ca` candidate sets automatically once they exist + pass eligibility bar — no architecture change. **Comparative cross-domain commentary** ("GDPR practice suggests…", "California has taken a similar view…") is BANNED from customer-facing output; any future comparative feature is a separate CEO decision, not a runtime capability.
+
+2. **AMENDED `docs/design/TWO-PASS-ARCHITECTURE.md`:** (i) §0 Open Questions marked **ANSWERED 2026-07-26 (item 132)** with CEO rulings recorded inline (see (3) below); (ii) new **§2.7 "Legal Test v2.1 — Authority-Domain Matching"** inserted after §2.6 codifying the domain filter, schema deltas (`jurisdiction_tag` added to every proposition + factor-registry row + `weighing_frame[].entries[]` + candidate-set entry), extended validators (Pass-1 guidance-closure domain check, Pass-G candidate-set domain filter at construction time, Pass-2 post-render domain check on `{{cite:…}}` substitutions, authoring-review CI lint on factor-registry + conclusion-inventory), and comparative-commentary ban via `forbidden_tokens`; (iii) §3.1 RenderPlan `propositions[]` schema now shows `jurisdiction_tag: string`; (iv) §2.6 closing sentence updated: build is unblocked once **v1 + v2 + v2.1** amendments are implemented for the target product.
+
+3. **CEO RULINGS LOG — six answers recorded (agreed with controller recommendations):**
+   - **Q1 rollout order — Risk-first.**
+   - **Q2 Pass-1 retry budget — N=2**, then conservative write-around.
+   - **Q3 model routing — same model, two calls, for pilot;** cheaper Pass-1 routing revisited post-pilot-success only.
+   - **Q4 interim guard retirement — two consecutive clean s5 waves → assertion-only → removed one wave later** (`_risk_citation_dup_fix` is the first candidate).
+   - **Q5 surface-audit default — CUT unless a finding-class history or CEO-required disclosure defends the template** (inverse of the pre-answer proposal; CEO tightened).
+   - **Q6 write-around disclosure — silent + telemetry for pilot;** customer-visible banner decision DEFERRED to pre-launch review.
+
+**Status: TWO-PASS BUILD READY** — awaiting the controller's phased build dispatches:
+- **Phase 1 (authoring-only, no deploy)** — schemas / validators wiring / conclusion-inventory `_shared/legal-test/<product>-conclusions.ts` / factor-registry `_shared/factors/<product>-factors.ts` incl. FSOR guidance mapping / enforcement-eligibility index `_shared/analogy/<product>-eligibility.ts` / jurisdiction-domain scoping. Risk-first per Q1.
+- **Phase 2 (deploy turn)** — Pass G + Pass-2 templates + Pass-2 wiring + deploy `run-cppa-risk-assessment`.
+- **Phase 3 (measurement)** — pilot measurement batches (2 consecutive s5 waves batch_size ≥ 3 Risk-only + 1 canary on PROD intake shapes; §5 success criteria under v1+v2+v2.1).
+
+This turn does NOT begin building — per dispatch, phased build turns arrive as separate controller dispatches.
+
+**Standing state:**
+- Item 114 (IR-BAND-REALIGNMENT) remains QUEUED per item 116.
+- Item 128 (`_risk_citation_dup_fix`) unchanged — interim guard remains wired; will retire per Q4 ruling once two consecutive clean s5 waves are observed under Pass-2.
+- Item 129 status: **DESIGN-COMPLETE-v2.1 (build-ready)** — supersedes DESIGN-AMENDED-v2 as of this item; §0 questions answered, all v1 + v2 + v2.1 amendments recorded in the design doc.
+- Campaign `fd1be147` remains CEO-paused.
+- T5 ingestion program: product-driven priority feed (empty-by-finding telemetry from item 131) remains a standing input.
+
+**Zero-side-effect confirmation:** only edits: `docs/design/LEGAL-TEST.md` (Q4(e) appended), `docs/design/TWO-PASS-ARCHITECTURE.md` (§0 answers + §2.7 inserted + §3.1 `jurisdiction_tag` slot), `docs/pipeline-state.md` (this item + item 129 status marker updated + header restamp).
+
+**Deviations ruled:** none — turn executed exactly per dispatch (docs-only; no code, no deploys; build NOT begun).
+
