@@ -1946,3 +1946,52 @@ This turn does NOT begin building — per dispatch, phased build turns arrive as
 **Zero-side-effect confirmation:** only edits: two design docs (Q4(e) v2.3 append + §2.9 insert); six `_shared/*` code files (one enum member, validator refinement + header comments; no data row edits); `docs/courier/TWO-PASS-BUILD-PHASE1-2026-07-26.md` (§9 appended); `docs/pipeline-state.md` (this item + header restamp). No prompt / rubric / grader / golden / contract / fixture / sample / registry data / corpus edits; no edge-function deploy; no migration; no `quality_batch` launch; no BUILD_STAMP bumped.
 
 **Deviations ruled:** none — turn executed exactly per dispatch (CEO qualification + amendment + Phase-1 corrective sub-turn, code changes limited to a single enum member + validator additions in already-landed authoring artifacts).
+
+---
+
+## Item 138 — LTP-LIA-PHASE-1 DONE-AUTHORING (2026-07-26T09:01:46Z)
+
+**Dispatch:** LEGAL-TEST-PIPELINE-LIA-PHASE-1 (GDPR trial; authoring-only; `run-li-assessment` untouched; gated on rename/ruling turn — gate satisfied by item 136).
+
+**Domain discipline:** Legal Test v2.3. All artifacts `jurisdiction_tag = "gdpr-eu"` (UK sub-tag reserved for render-time via `G.uk_unit.limited_guidance_disclosure`). GDPR products admit NO U.S./CA material in ANY tier — verified in test suite (V3 rejects `cppa-ca` and `us-federal`; V8 rejects persuasive tier on GDPR plans).
+
+**Corpus prep:**
+- `provision_texts.gdpr-art-6-1-f` — pre-existing (P1), `status='approved'`, verified this turn.
+- `provision_texts.gdpr-recital-47` — **INGESTED VERBATIM this turn** from EUR-Lex OJ L 119, 4.5.2016 (`status='approved'`, `jurisdiction='EU'`). Classified as REGULATION TEXT (part of the regulation, not regulator guidance) — within the CEO's EDPB-only guidance ruling; classification recorded on the row's `plain_requirements` jsonb payload and in the courier §1.
+- `edpb_guidelines` — EDPB Guidelines 1/2024 (106 rows, `status='final'`); adjacent families 2/2019, 05/2020, WP248, WP260 also present. **KNOWN GAP:** rows lack `section_heading` (coarse indexing); anchor-hints substitute for pinpoints until re-ingestion. Ranked #1 in T5 feed.
+- `enforcement_actions` — Art 6(1)(f)-tagged rows exist but NONE `verification_status='verified'`. Binding-tier enforcement-analogy bucket **empty by finding**; T5-ranked #2.
+
+**Artifacts created:**
+1. `supabase/functions/_shared/legal-test/lia-conclusions.ts` — 12 conclusions: 6 R (availability, public-authority exclusion, special-category exclusion, necessity-precedes-balancing, purpose-presence, right-to-object disclosure), 3 W (purpose_legitimacy, necessity, balance), 3 J (validity_determination, purpose_adequacy, safeguard_sufficiency — all `reserved_to: legal_counsel` per item 136).
+2. `supabase/functions/_shared/factors/lia-factors.ts` — 17 factors across the three weighing tests. Verbatim excerpts from Art 6(1)(f) + Recital 47; every guidance_ref is binding EU (EDPB 1/2024). 8 rows carry `empty_by_finding` metadata.
+3. `supabase/functions/_shared/gates/lia-gates.ts` — 8 gates including Art 9 exclusion, public-authority carve-out, necessity ordering, children heightened weight, and the UK limited-guidance disclosure gate.
+4. `supabase/functions/_shared/pass-g/lia-candidate-index.ts` — three EU-only slices (purpose_legitimacy: 3; necessity: 2; balance: 7). Enforcement-analogy tier empty by construction.
+5. `supabase/functions/_shared/render-plan/validators.lia.test.ts` — 9 tests, all green.
+
+**Shared-schema widenings (data-only, no logic change):**
+- `RenderPlan.product` widened from literal `"cppa-risk-assessment"` to `"cppa-risk-assessment" | "li-assessment" | string`.
+- `WeighingFrameEntry.source` widened to include `"edpb_guideline"` and `"enforcement_action_edpb_analogy"`.
+
+**Tests (PASTED GREEN):**
+```
+running 9 tests from ./_shared/render-plan/validators.lia.test.ts
+LIA V3: gdpr-eu plan rejects a cppa-ca citation binding ... ok
+LIA V3: gdpr-eu plan rejects us-federal anchor (no U.S. bridge for GDPR) ... ok
+LIA V8: authority-weight — persuasive tier is unavailable on GDPR plans (no bridge) ... ok
+LIA V5: candidate closure — weighing_frame entry must belong to a known LIA test id ... ok
+LIA V4: guidance-closure passes with same-domain EDPB guidance ... ok
+LIA V6: Type-R propositions carry polarity ... ok
+LIA V7: Type-W factor completeness — three-kind coverage is checked ... ok
+LIA E2E: validateRenderPlan is clean on well-formed gdpr-eu plan ... ok
+LIA index: all three weighing tests have candidate slices ... ok
+ok | 9 passed | 0 failed
+```
+Full `_shared/render-plan/` suite re-run this turn: **30/30 passed** (0 regressions from the schema widenings).
+
+**Courier:** `docs/courier/LTP-LIA-PHASE1-2026-07-26.md` (inventory, factor registry with anchors, EDPB mapping decisions, Recital-47 sourcing record, empty-by-finding feed, test output).
+
+**Zero-side-effect confirmation:** only edits — 5 new `_shared/*` files; 2 single-line schema widenings; 1 `provision_texts` INSERT (Recital 47 verbatim); 1 new courier; this ledger item + header restamp. NO prompt / rubric / grader / golden / contract / fixture / sample / registry data / corpus edits beyond the Recital-47 ingest and the two-line schema widening; NO edge-function deploy; NO migration; NO `quality_batch` launch; NO BUILD_STAMP bumped; `run-li-assessment` untouched.
+
+**Phase 2 (wiring + deploy + pilot):** awaits controller dispatch after CEO-visible Phase-1 courier review AND after the risk trial's Wave A digest is read (dispatch closing).
+
+**Deviations ruled:** none — turn executed exactly per dispatch. Initial `provision_texts` INSERT failed once on `plain_requirements` (jsonb column) receiving a string literal; corrected in the same turn via `jsonb_build_object` — corpus row landed on retry.
