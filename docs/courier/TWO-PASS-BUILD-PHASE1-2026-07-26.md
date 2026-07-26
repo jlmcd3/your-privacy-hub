@@ -148,3 +148,26 @@ Every entry carries `corpus_ref` (a query key downstream Pass G resolves), `regu
 **Migration (1):** in-corpus-first sync of `provision_texts.cppa-7152` to approved status with verbatim § 7152 text mirrored from `cppa_authorities`.
 
 **Untouched this turn:** `run-cppa-risk-assessment/*` (no BUILD_STAMP bump), any prompt/rubric/grader/golden/contract/fixture/sample. No deploy. No `quality_batch`. Phase 2 (Pass G + templates + wiring + deploy) awaits controller dispatch after CEO-visible Phase-1 courier review.
+
+---
+
+## 8. CORRECTIVE SUB-TURN — LEGAL-TEST-V2.2-AUTHORITY-WEIGHT (2026-07-26)
+
+CEO CORRECTION (2026-07-26): the v2.1 phrasing "analogies the FSOR itself discusses are legitimate CPPA authority" is WRONG and formally superseded. Correct principle: **binding vs persuasive is load-bearing; non-CA law is NEVER binding for a CPPA/CA product; U.S./CA material is NEVER used in GDPR products in any role; the FSOR-mediated bridge is one-way and persuasive-tier only.**
+
+**Phase-1 artifacts corrected this sub-turn (labels + types added; no data lost):**
+
+1. **`_shared/render-plan/schema.ts`** — added `AuthorityWeight = "binding" | "persuasive"`; added optional `authority_weight` on `CitationBinding` (defaults to "binding") and on `WeighingFrameEntry` with required `fsor_mediation_ref` when persuasive; exported `PERSUASIVE_MARKERS`.
+2. **`_shared/factors/cppa-risk-factors.ts`** — `GuidanceRef.authority_weight` now REQUIRED and constrained to `"binding"` (registry lint enforces). All 5 non-empty guidance_refs tagged `"binding"`.
+3. **`_shared/pass-g/cppa-risk-candidate-index.ts`** — `CandidateEntry.authority_weight` added (required); all 11 existing primary/supporting entries tagged `"binding"`. Header rewritten to state the v2.2 rule; analogy_fsor_internal comment updated to persuasive + `fsor_mediation_ref` requirement (tier remains empty; T5 candidate note preserved).
+4. **`_shared/render-plan/validators.ts`** — added **V8 authority-weight tiering**: Type R non-binding = hard reject; factor guidance non-binding = hard reject; persuasive frame entry without `fsor_mediation_ref` = hard reject; persuasive entry on non-CPPA plan = hard reject. Added `lintPersuasiveMarking` (Pass-2 rendering discipline). Aggregator now includes V8.
+5. **`_shared/render-plan/validators.test.ts`** — three V8 tests added; all 18 tests green (`deno test render-plan/validators.test.ts` → `ok | 18 passed | 0 failed`).
+6. **`_shared/legal-test/cppa-risk-conclusions.ts`** — header note added: all Type R and Type W factor anchors are binding-tier CPPA/CA authority; no data changes required (every existing anchor already resolves to a California statute or 11 CCR regulation).
+
+**Docs corrected:**
+- `docs/design/LEGAL-TEST.md` — Q4(e) v2.1 parenthetical stripped of the "FSOR analogies = CPPA authority" wording; **Q4(e) v2.2** appended defining the binding/persuasive tiering, one-way GDPR bridge, `fsor_mediation_ref`, rendering discipline, and validator rules.
+- `docs/design/TWO-PASS-ARCHITECTURE.md` — §2.7 parenthetical replaced; new **§2.8 Legal Test v2.2 — Authority-Weight Tiering** inserted before §3 covering schema deltas, V8 validator, Pass-2 persuasive marker + sole-support ban, and Phase-1 build correction.
+
+**Untouched this sub-turn:** any prompt, rubric, grader, golden, contract, fixture, sample, edge-function deploy, migration, or `quality_batch`. `run-cppa-risk-assessment` untouched; no BUILD_STAMP bumped.
+
+**Status:** Phase 1 remains DONE-AUTHORING under corrected labels. Phase 2 dispatch may proceed.
