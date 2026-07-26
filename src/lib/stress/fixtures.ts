@@ -1096,8 +1096,8 @@ export const CPPA_RISK_VARIANTS = [
   {
     entity_name: "Northwind Retail Group, LLC",
     // Legacy revenue-band coverage: keep "$25M–$100M" so T-1 straddle path is exercised.
-    q1_revenue: "$25M–$100M",
-    q2_consumers: "Over 10 million",
+    q1_revenue: "$25M to under $50M",
+    q2_consumers: "1,000,000 or more",
     q3_sector: "Retail/ecommerce",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
