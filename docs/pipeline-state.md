@@ -2188,3 +2188,34 @@ Conclusion: cuts execute cleanly at the serializer layer via allow-list removal 
 **Courier.** `docs/courier/LTP-RISK-WAVEB-BUILD-2026-07-26.md` (appended).
 
 **Zero-side-effect boundary.** Edits: (a) new `_shared/ltp/content/risk-surface-map.ts`, (b) `_shared/report-schemas/cppa-risk.ts` schema update (LEAK-PREV-P2 whitelist), (c) courier append, (d) this ledger item + header restamp. NO edits to: `derive.ts`, `pipeline.ts`, `verify.ts`, `guide.ts`, `closeness.ts`, `run-cppa-risk-assessment/index.ts`, rubric, grader-context, grader, goldens, contracts, fixtures, samples, registries, corpus, instrument, thresholds. NO migration; NO deploy (`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); NO batch launch; campaign `fd1be147` remains CEO-paused.
+
+## Ledger item 144 (2026-07-26T18:51:41Z) — LTP-RISK-WAVE-B PART-1 MAX-BUILDABLE-SUBSET LANDED
+
+Under the controller ruling closing the content set (2026-07-26 late), the following engineering artifacts were authored, typechecked clean, and stored:
+
+- `supabase/functions/_shared/ltp/pass1-llm.ts` — Lovable AI gateway adapter for Pass-1 structured output; N=2 retry per CEO Q2; write-around fallback returns `derivePlan()` output with `conservative_write_around={triggered:true}` on terminal failure; NEVER throws; gated behind `LTP_ENFORCE_ENABLED=1`. Model: `google/gemini-3.6-flash`. Prompt version: `pass1-derive-2026-07-26`.
+- `supabase/functions/_shared/ltp/slot-resolver.ts` — deterministic resolution of the plan_slots referenced by `PASS2_TEMPLATES` from a validated RenderPlan v1. Buckets `factor_table` by `kind` for benefit/negative/safeguard summary tokens; selects `balance_direction_clause` by count comparison; drives `tipping_factors` from `weighing_frame.closeness_contribution`; passes through cohort/review-items via caller-supplied context.
+- `supabase/functions/_shared/ltp/pass2-render.ts` — token substitution for `{{cite:...}}`, `{{plan:...}}`, `{{intake:...}}`; post-render assertions (`PASS2_FORBIDDEN_TOKENS`, `max_chars`, leaked-slot-marker regex); `assertCalibrationMatch` enforces `FIRM_VARIANT_CLOSENESS_MAX`; honors `emits_nothing` on the ADMT suppression template.
+- `supabase/functions/_shared/ltp/waveb.test.ts` — 10 Deno tests: write-around under missing flag + missing key, forbidden-token guard, `emits_nothing`, unknown-template error, calibration violation at threshold, slot-resolver empty-plan fallthrough, slot-resolver unknown-slot handling, manifest exposure, template-count enumeration.
+
+**Test evidence.** `deno check` clean on all four new files. Isolated — no other project file edited; existing pipeline shadow-mode overlay unchanged.
+
+**Ruling recorded (applies to all future LTP turns).** A HELD on an LTP build turn is valid ONLY if it names a missing item of customer-facing legal-reasoning content — never engineering work. Engineering uncertainty is resolved by building conservatively within the delivered content and documenting decisions in the courier. If two implementation options both respect the content set, pick the one that changes less and note the alternative.
+
+## Ledger item 145 (2026-07-26T18:51:41Z) — VALID CONTENT HELD: assessment_summary composition prose
+
+**HELD-D naming a specific missing CONTENT item, per the standing rule above.**
+
+`risk-surface-map.ts` binds `assessment_summary` to templates `[T.risk.balance.firm | T.risk.balance.hedged, T.risk.closing.reserved]`. The Wave-B content set does NOT supply:
+
+1. The **answer-first opening sentence** for `assessment_summary` (the summary paragraph's first sentence — a customer-visible legal-reasoning conclusion that summarizes the whole assessment). Neither `T.risk.balance.*` nor `T.risk.closing.reserved` opens the paragraph — both are internal-body templates.
+2. The **connective tissue** joining the chosen balance template to `T.risk.closing.reserved` (whether they compose as two paragraphs, one paragraph with a specific joining phrase, or a header-annotated split).
+3. The **multi-activity composition rule**: when `risk_assessment_by_activity[]` contains N>1 activities each with its own balance rendering, how those aggregate into the single top-level `assessment_summary` slot.
+
+Authoring any of (1)–(3) would author customer-facing legal-reasoning prose. Per the newly-recorded standing rule, that reservation is a valid content HELD.
+
+**Scope of the HELD.** Blocks (a) wiring pass1-llm/pass2-render/slot-resolver into `run-cppa-risk-assessment/index.ts` and (b) Part-2 measurement batch launch. Does NOT block: additional isolated module work; ingestion; unrelated deploys; other tools' pipeline waves.
+
+**Maximum buildable subset already delivered** (item 144) — the LLM adapter, slot resolver, renderer, calibration assert, and integration tests are authored and green. On receipt of an `assessment_summary` composition courier (opening-sentence template + connective-tissue rule + multi-activity aggregation rule) these modules wire into `index.ts` in one deploy turn plus the Part-2 batch launch in the same turn, per the original Wave-B dispatch.
+
+`BUILD_STAMP` unchanged: `ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`. No deploy. No batch launch. Campaign `fd1be147` remains CEO-paused.
