@@ -2384,3 +2384,35 @@ Executed the CEO-ordered engineering follow-on in a single turn. All prior HELDs
 **Post-terminal extraction (deferred to monitor).** Will decompose: pooled Claude/GPT delta vs Wave-A (78.80 baseline); enforce-preview telemetry — `pass1_ok` rate, `write_around` rate, `attempts` distribution, `latency_ms`; subsumption cross-check against `_risk_citation_dup_fix`, `_w18_risk_vocab`, `_w15_risk_va`; tuning-vs-holdout diagnostic.
 
 **Courier:** `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
+
+## Ledger item 151 — WAVE-B RUN UNWEDGED via SERVICE_ROLE kick (2026-07-26T22:11:00Z)
+
+**Symptom.** At 22:07Z, run `d8d42997-8601-4984-9a37-34c3230cba17` (launched 21:49:03Z) was still `status='pending'`, `next_doc_index=0`, `last_heartbeat_at=2026-07-26 21:49:02.733898+00` — unchanged since launch.
+
+**Root cause.** Bare `quality_runs` row without a paired `quality_batch_runs` entry. `batch-kickoff-pickup` scans `quality_batch_runs` only, so standalone runs launched directly against `quality_runs` are never picked up. Same gap the Perfect-Intake experiment worked around with `kick-perfect-intake`.
+
+**Action.** Single SERVICE_ROLE internal-resume kick via existing `kick-perfect-intake` (already `run_id`-parameterized — no redeploy needed). Upstream returned `202 {"resumed":"d8d42997-8601-4984-9a37-34c3230cba17"}`. Kicker holds no secrets in its response body.
+
+**Verification (row before → after).**
+
+- Before (22:07Z): `status=pending | next_doc_index=0 | last_heartbeat_at=2026-07-26 21:49:02.733898+00`
+- After (22:08:56Z → 22:10:36Z, six 20s polls):
+  - `generating|0|hb=2026-07-26 22:08:56.962+00`
+  - `generating|0|hb=2026-07-26 22:09:16.964+00`
+  - `generating|0|hb=2026-07-26 22:09:36.966+00`
+  - `generating|0|hb=2026-07-26 22:09:56.968+00`
+  - `generating|0|hb=2026-07-26 22:10:16.97+00`
+  - `generating|0|hb=2026-07-26 22:10:36.972+00`
+
+Transition confirmed `pending → generating`; heartbeat advancing every ~20s. Doc-1 generation in progress (index not yet incremented — expected, cppa-risk docs take several minutes). **No re-kick.**
+
+**Prevention (recommendation, Wave-C onward).** Two options:
+
+1. **[Recommended, smaller change]** Wrap standalone measurement runs in a `quality_batch_runs` row at launch time so `batch-kickoff-pickup` and `delivery-sentinel` serve them exactly like campaign-linked runs. No new kicker to maintain.
+2. Land a permanent parameterized kicker (generalize `kick-perfect-intake` under a neutral name like `harness-run-kick`) invoked as a launch step for standalone runs.
+
+Recommend option 1 for Wave C and all future standalone tuning/holdout launches. `kick-perfect-intake` remains as a one-shot rescue tool.
+
+**Scope constraints honoured.** No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, or corpus edits. No deploys. Ledger + courier addendum only.
+
+**Courier:** appended addendum to `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
