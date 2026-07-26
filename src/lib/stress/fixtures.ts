@@ -1306,8 +1306,8 @@ export const CPPA_RISK_VARIANTS = [
   // of the legacy straddle). Keeps q15=Yes so q15c exercises "50,000 or more".
   {
     entity_name: "Sequoia Ledger Analytics, Inc.",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "100,000–249,999",
+    q1_revenue: "Over $100M",
+    q2_consumers: "100,000 to under 250,000",
     q3_sector: "Financial services",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
