@@ -73,7 +73,7 @@ const REQUIRED_ALWAYS_FILLERS = {
   i1b_min_pi: "Identifiers and processing-related fields; no ancillary categories.",
   i2_retention_period: "24 months",
   i2_retention_criteria: "Until purpose is fulfilled, then deletion",
-  i3_ca_consumer_band: "100,000 to under 250,000",
+  i3_ca_consumer_band: "100,000–1,000,000",
   i4_disclosure_mechanisms: ["Privacy policy"],
   i4b_sources: "Directly from consumers via the product",
   i6_vendors: "None",
