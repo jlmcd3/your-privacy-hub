@@ -115,6 +115,11 @@ export interface RiskOpeningOutput {
     s1_triggers: number[]; // e.g. [1,3,4]
     omitted: string[]; // slot labels omitted with reason codes
     sources: Record<string, string>; // slot -> intake field or registry pin
+    /** T7-PILOT-FIX-2: reason (B) was NOT rendered, when applicable.
+     *  null when (B) was rendered, or when (B) was not evaluated because
+     *  intake did not affirm sell/share activity. Populated with a stable
+     *  reason code otherwise. Telemetry-only; never on customer surfaces. */
+    s0_b_rejected_reason: string | null;
   };
 }
 
