@@ -119,3 +119,11 @@ export const FORBIDDEN_COMPARATIVE_TOKENS: readonly string[] = [
   "EDPB guidance",
   "as under the GDPR",
 ];
+
+/** v2.2 — persuasive-marking phrases required in Pass-2 sentences that render a persuasive frame entry. */
+export const PERSUASIVE_MARKERS: readonly string[] = [
+  "by way of analogy",
+  "persuasive but not binding",
+  "as persuasive authority",
+  "for persuasive comparison",
+];
