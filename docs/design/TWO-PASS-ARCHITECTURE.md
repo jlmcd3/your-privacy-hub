@@ -154,6 +154,27 @@ This section is **build-blocking** and additive to §§2.5-2.6. Full methodology
 
 **Future-proofing.** `enforcement_actions.jurisdiction` tags mean future CPPA enforcement rows automatically flow into the `cppa-ca` candidate sets once they exist and pass the eligibility bar — **no architecture change** required.
 
+
+---
+
+## 2.8 Legal Test v2.2 — Authority-Weight Tiering (Q4(e) v2.2) — MANDATORY, CEO-CORRECTED 2026-07-26
+
+**Supersedes** the v2.1 phrasing that treated FSOR-discussed non-CA analogies as CPPA authority — that phrasing is WRONG and must not appear in any product. Full methodology: `docs/design/LEGAL-TEST.md` Q4(e) v2.2.
+
+**Principle.** Every corpus reference carries `authority_weight ∈ {binding, persuasive}`. Non-California law can NEVER be binding authority for a CPPA/California product. GDPR/UK products use ZERO U.S./California material in any role. The bridge — for CPPA products only — is FSOR-mediated at persuasive tier; it is ONE-WAY.
+
+**Schema deltas (v2.2, build-blocking).**
+- `citation_bindings[].authority_weight: "binding" | "persuasive"` — Type R proposition anchors resolve only to `binding` bindings.
+- Factor-registry rows: `guidance_refs[].authority_weight: "binding"` (registry lint rejects any other value).
+- `weighing_frame[].entries[].authority_weight: "binding" | "persuasive"`; when `persuasive`, entry MUST carry `fsor_mediation_ref: string` (a CPPA-domain FSOR row id that discusses the persuasive source). Persuasive entries are permitted only where domain rules allow (CPPA products only; GDPR products never).
+
+**New / extended validators.**
+- **V8 authority-weight tiering:** (a) every Type R proposition's citation bindings are `binding`; (b) every `factor_table.guidance_refs[]` is `binding`; (c) every `weighing_frame[].entries[]` with `authority_weight="persuasive"` has non-empty `fsor_mediation_ref`; (d) any GDPR-domain plan containing a `persuasive` entry, or any entry whose source-domain is US/CA, is a hard reject. Violations are hard rejects.
+- **Pass-2 persuasive-marking template rule:** Type W templates rendering a persuasive frame entry MUST include one of the persuasive-marking phrases from `PERSUASIVE_MARKERS` in the same sentence/clause; post-render assertion rejects unmarked persuasive references.
+- **Pass-2 sole-support ban:** no proposition (Type R, W, or J) may be supported solely by persuasive frame entries; post-render check enforces at least one binding anchor per rendered conclusion.
+
+**Phase-1 build correction (applies immediately).** Item (5) Pass-G candidate index — non-CA analogies indexed with `authority_weight='persuasive'` and `fsor_mediation_ref`; item (2) factor-registry `guidance_refs[]` are binding-tier CA sources only (FSOR commentary on CPPA regs = CA interpretive material = binding); item (1) conclusion inventory gains the authority-weight constraint (Type R anchors + Type W factor anchors binding-only).
+
 ---
 
 ## 3. Pass-1: Derivation
