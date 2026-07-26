@@ -27,7 +27,14 @@ export interface IntakeLedgerEntry {
   readonly display: string;        // exact rendering token used in Pass 2
 }
 
-/** v2.2: every corpus reference carries an authority-weight tier. */
+/**
+ * v2.2: every corpus reference carries an authority-weight tier.
+ * v2.3 (CEO-CORRECTED 2026-07-26): `JurisdictionTag` gains `"us-federal"` —
+ * U.S. Federal law + federal agency rulings (e.g., FTC). For any U.S.-forum
+ * plan (cppa-ca, us-state-*), us-federal binding-tier entries are admissible.
+ * Sister-state binding-tier crossings are rejected by V8 (persuasive-only).
+ * GDPR/UK plans remain untouched: no U.S. material in any tier.
+ */
 export type AuthorityWeight = "binding" | "persuasive";
 
 /** Pinpoint the model is allowed to cite via {{cite:PINPOINT_REF}} tokens. */
