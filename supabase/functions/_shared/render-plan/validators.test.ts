@@ -8,6 +8,8 @@ import {
 import type { RenderPlan } from "./schema.ts";
 import {
   lintPass2Output,
+  lintPersuasiveMarking,
+  validateAuthorityWeight,
   validateAuthorityDomain,
   validateCitationBindingClosure,
   validateGuidanceClosure,
@@ -99,7 +101,7 @@ Deno.test("V4: non-CPPA guidance source on CPPA plan is rejected", () => {
         ...basePlan().factor_table[0],
         guidance_refs: [
           // deliberate cross-domain smuggle
-          { source_table: "cppa_fsor_commentary" as any, regulation_citation: "GDPR Art. 35", page_ref: null, anchor_hint: "x" },
+          { source_table: "cppa_fsor_commentary" as any, regulation_citation: "GDPR Art. 35", page_ref: null, anchor_hint: "x", authority_weight: "binding" },
         ],
       },
       ...basePlan().factor_table.slice(1),
@@ -119,7 +121,7 @@ Deno.test("V4: foreign source_table is rejected", () => {
       {
         ...basePlan().factor_table[0],
         guidance_refs: [
-          { source_table: "edpb_guidelines" as any, regulation_citation: "GDPR", page_ref: null, anchor_hint: "x" },
+          { source_table: "edpb_guidelines" as any, regulation_citation: "GDPR", page_ref: null, anchor_hint: "x", authority_weight: "binding" },
         ],
       },
       ...basePlan().factor_table.slice(1),
@@ -223,4 +225,41 @@ Deno.test("lintPass2Output: banned comparative token is caught", () => {
 Deno.test("lintPass2Output: clean CPPA prose passes", () => {
   const issues = lintPass2Output("The business must conduct a risk assessment.", basePlan());
   assertEquals(issues.length, 0);
+});
+
+Deno.test("V8: Type-R proposition anchoring on persuasive citation is rejected", () => {
+  const bp = basePlan();
+  const plan = basePlan({
+    citation_bindings: [{ ...bp.citation_bindings[0], authority_weight: "persuasive" }],
+  });
+  const issues = validateAuthorityWeight(plan);
+  assert(issues.some((i) => i.code === "V8_TYPE_R_NON_BINDING"));
+});
+
+Deno.test("V8: persuasive weighing_frame without fsor_mediation_ref is rejected", () => {
+  const plan = basePlan({
+    weighing_frame: [
+      {
+        frame_id: "F.p", test_id: "test.cppa-7152.balance", jurisdiction_tag: "cppa-ca",
+        source: "enforcement_action_fsor_analogy", corpus_ref: "x", anchor_hint: "y",
+        pinpoint: "GDPR ref via FSOR", closeness_contribution: 0.2, tier_label: "analogy_fsor_internal",
+        authority_weight: "persuasive",
+      },
+    ],
+  });
+  const issues = validateAuthorityWeight(plan);
+  assert(issues.some((i) => i.code === "V8_PERSUASIVE_NO_MEDIATION"));
+});
+
+Deno.test("V8: persuasive marker required when rendering persuasive entries", () => {
+  const entry = {
+    frame_id: "F.p", test_id: "test.cppa-7152.balance", jurisdiction_tag: "cppa-ca" as const,
+    source: "enforcement_action_fsor_analogy" as const, corpus_ref: "x", anchor_hint: "y",
+    pinpoint: "GDPR ref via FSOR", closeness_contribution: 0.2, tier_label: "analogy_fsor_internal" as const,
+    authority_weight: "persuasive" as const, fsor_mediation_ref: "cppa_fsor_commentary#x",
+  };
+  const bad = lintPersuasiveMarking("The business should consider this factor.", [entry]);
+  assert(bad.some((i) => i.code === "V8_PERSUASIVE_UNMARKED"));
+  const good = lintPersuasiveMarking("By way of analogy, similar reasoning applies.", [entry]);
+  assertEquals(good.length, 0);
 });
