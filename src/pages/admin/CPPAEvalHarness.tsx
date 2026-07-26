@@ -17,8 +17,8 @@ const REQUIRED_INTAKE_KEYS = [
 
 // Sample intake mirroring the audited Technology/SaaS + behavioural ad profile
 const SAMPLE_INTAKE = {
-  q1_revenue: "$100M–$500M",
-  q2_consumers: "1–10 million",
+  q1_revenue: "Over $100M",
+  q2_consumers: "1,000,000 or more",
   q3_sector: "Technology / SaaS",
   q4_pi_categories: [
     "Contact identifiers (name, email, phone)",
