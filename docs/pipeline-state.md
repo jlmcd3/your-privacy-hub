@@ -1484,3 +1484,45 @@ Ruling: adopt statutorily-aligned revenue/consumer band enums project-wide acros
 **Deviation:** none. This turn is docs-only and records the CEO resequencing order verbatim into the ledger as instructed.
 
 **Header restamped:** `2026-07-26T04:25:30Z`.
+
+---
+
+### 115. **QUEUED-HELD — TWO-PASS-ARCHITECTURE-DESIGN** @ controller tick 2026-07-26T04:31:49Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero deploys)
+
+**Dispatch:** TWO-PASS-ARCHITECTURE-DESIGN (CEO-approved 2026-07-26 ~03:20Z; five-lens TEAM-REVIEWED, all five substantive). Design turn only — no code, no deploys. Charter: design the derive-then-render two-pass generation architecture piloted on `run-cppa-risk-assessment`. Deliverable: `docs/design/TWO-PASS-ARCHITECTURE.md` covering Pass-1 intermediate schema (machine-checkable JSON: resolved facts + polarity, triggered obligations, every claim bound to registry `proposition_key` or explicit write-around marker, materiality ordering, cohort/deadline resolutions, intake gaps as customer-question entries; no prose in Pass-1); Pass-1 validators (fail-closed to regeneration or write-around, never to fabrication — anchor coverage, polarity-vs-ledger, band→cohort agreement post-BAND-REALIGNMENT enums, keyless call site = build error, materiality ordering present); Pass-2 rendering contract (model never types a citation; resolver injects citation strings from registry rows; per-section constraint to plan's claims; T7 opening slot + LEAK-PREV P0-P2 emit-gate/serializer + terminal scrubs preserved as belt-and-suspenders); surface audit for risk (inventory free-prose surfaces with campaign finding-class history; keep/template-ize/cut recommendations); measurement plan against T8 decomposition (generator-driven classes are primary targets, 2-wave post-deploy read on same instrument, explicit non-goal = headline score at batch-3 noise); cost/latency estimate using dpia unit-pipeline `api_usage` as empirical analog + failure-mode handling (Pass-1 invalid after N retries → conservative write-around, never a blocked customer); rollout criteria to admt/cyber/non-CPPA if risk pilot clears. Deliverable also includes five-lens sign-off notes + open questions for CEO + ledger DONE-DESIGN item + CEO rulings-log entry ("two-pass approved for design; build awaits CEO review of this doc").
+
+**Ruling (controller, 2026-07-26 ~04:35Z, per CEO focus order):** option (A) — QUEUE the design turn. Do NOT draft against hypothetical generator-driven-class lists. Ground: dispatch itself states "execute AFTER the PERFECT-INTAKE-EXPERIMENT courier ... has landed — its generator-driven-class decomposition is a required input"; §5 (measurement plan) and §7 (rollout criteria) both key off that decomposition; drafting now would either fabricate the class list or force a rewrite once the courier lands, both of which violate the design-turn charter.
+
+**Hold-release condition (must ALL be true before TWO-PASS-ARCHITECTURE-DESIGN begins):**
+- (a) PERFECT-INTAKE-EXPERIMENT-RISK batch reached terminal state and its courier `docs/courier/PERFECT-INTAKE-EXPERIMENT-2026-07-26.md` has landed with per-doc + pooled scores AND explicit generator-driven-vs-intake-driven finding-class decomposition.
+- (b) The PERFECT-INTAKE-EXPERIMENT ledger item is marked DONE (scenario_set='perfect-intake' non-pooling into campaign trajectories reaffirmed there).
+
+**Position in CEO-fixed execution order v2 (see item 116):** step (v) — final item in the current queue.
+
+**Deviation:** none. Docs-only ledger append recording the queue placement and hold-release condition verbatim.
+
+---
+
+### 116. **CEO-FIXED EXECUTION ORDER v2 (campaign paused; wave-window constraint lifted)** @ controller tick 2026-07-26T04:31:49Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero deploys)
+
+**Verified fact (query_database, Backend-access law):** `quality_campaigns.id = fd1be147-2cee-4402-acfd-a63114b9a651` `status = 'paused'`, `updated_at = 2026-07-26T04:27:34.957121Z`. CEO stopped the campaign ~03:25Z. NO wave windows apply until CEO resumes. **Campaign resume is CEO-reserved: no queue item, controller tick, or session may flip `fd1be147-2cee-4402-acfd-a63114b9a651` back to `active`.** Any dispatch attempting that must name CEO authorization inline or be refused.
+
+**Sequencing consequence:** any DEPLOY-HELD state whose sole gate was wave-window clearance (item 113 BAND-REALIGNMENT T2 is the only current one) is releasable once standard deploy locks pass — namely, no running/pending batches (T6 batch `5332771a-522b-4a1c-be3e-a1373512ac68` must reach terminal) and no in-flight customer-path generations at deploy time.
+
+**New execution order v2 (supersedes item 114 execution order for steps (i)-(iii); item 114 hold itself remains, now at step (iv)):**
+
+1. **(i) Finalize T6 batch `5332771a-522b-4a1c-be3e-a1373512ac68`.** Ruling: POLL-TO-FINALIZE. Batch is healthy (heartbeat 04:30:50Z, 2/5 tools complete, lia in flight). Let it reach terminal; extract digest into the T6 courier. **Digest must reconcile the scenario-set delta before anyone reads it as regression:** in THIS batch dpia=74.5 and governance=79.15; in the 20:12 split-pair (T6-NONCPPA-MEASUREMENT-BATCH-1 / ledger item 81) the same tools scored 85.05 and 83.65 — same tools, materially different scores. Identify whether the scenario sets differ (near-certain cause) and label the digest with the scenario_set of each so readers do not mistake the delta for a generator regression. After the digest lands, **T6 is CLOSED**: no further T6-style batches. Single-launch rule remains standing.
+2. **(ii) BAND-REALIGNMENT T2 deploy** (item 113 DEPLOY-HELD released). Release note MUST name item 113 per HOLD discipline. Release conditions: (a) T6 batch terminal (step (i) complete), (b) no in-flight customer-path generations at deploy time, (c) fresh-clock stamps + boot log per stamp doctrine. Wave-window constraint DOES NOT APPLY (campaign paused). Scope per item 113 courier §6.
+3. **(iii) PERFECT-INTAKE-EXPERIMENT-RISK** (fixture authoring + single batch launch + courier). Launch immediately when locks clear — NO wave-window constraint under pause. Single-launch rule stands (no duplicate insert; kickoff-pickup handles any non-advance). Fixtures re-read live contract at build time; if BAND-REALIGNMENT T2 has landed (it will have, per step (ii)) use V2 bands.
+4. **(iv) IR-BAND-REALIGNMENT** (item 114 hold released upon (iii)'s courier landing + item DONE; execute atomically as dispatched — corpus verify/ingest § 1798.82 + § 521.053 + affectedCount V2 enum + all surfaces + deterministic playbook triggers + property tests).
+5. **(v) TWO-PASS-ARCHITECTURE-DESIGN** (item 115 hold released upon (iii)'s courier landing + item DONE; step (iv) does NOT gate step (v) — both (iv) and (v) are unlocked by the same courier and may be sequenced by controller judgment when they arrive).
+
+**Standing constraints preserved through the queue:**
+- Single-launch rule (kickoff row non-advance handed to `batch-kickoff-pickup`, no retry inserts).
+- HOLD discipline: any green-light released must name the held item in the release note.
+- Stamp doctrine: `date -u` immediately before every timestamp write.
+- Backend-access law: all DB access through `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2).
+- Leak-prevention phases (P0-P2) apply to all product turns absent explicit UNCORRECTABLE ruling.
+- Campaign-pause invariant: no queue item may resume `fd1be147-...` — CEO-reserved.
+
+**Deviation:** none. Docs-only ledger append. Header restamped `2026-07-26T04:31:49Z`.
