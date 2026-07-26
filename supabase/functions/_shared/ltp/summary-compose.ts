@@ -199,8 +199,23 @@ function composeExceptionsStatus(
  * Deterministic opening-template selection. Aggregation rule = most
  * cautious outcome present (never averaged, never majority-ruled).
  * Same rule governs the firm/hedged calibration assert.
+ *
+ * When an already-resolved overall_risk_level is provided (from
+ * `mapOverallRiskLevel`), it takes precedence over outcome-only heuristics
+ * so the opening variant is consistent with the 5-tier enum:
+ *   "Insufficient basis" → insufficient
+ *   "High" | "Critical"  → any_negative
+ *   "Moderate"           → mixed_hedged
+ *   "Low"                → all_firm
  */
-export function selectOpeningTemplateId(outcomes: readonly ActivityOutcome[]): string {
+export function selectOpeningTemplateId(
+  outcomes: readonly ActivityOutcome[],
+  overall?: OverallRiskLevel,
+): string {
+  if (overall === "Insufficient basis") return "T.risk.summary.opening.insufficient";
+  if (overall === "High" || overall === "Critical") return "T.risk.summary.opening.any_negative";
+  if (overall === "Moderate") return "T.risk.summary.opening.mixed_hedged";
+  if (overall === "Low") return "T.risk.summary.opening.all_firm";
   if (outcomes.length === 0) return "T.risk.summary.opening.all_firm";
   const kinds = new Set(outcomes.map((o) => o.outcome));
   if (kinds.has("impacts_outweigh")) return "T.risk.summary.opening.any_negative";
