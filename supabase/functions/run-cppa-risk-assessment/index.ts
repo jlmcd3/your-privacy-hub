@@ -35,8 +35,9 @@ import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
 import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
 import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION } from "./_risk_cohort_date.ts";
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
+import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
-console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} build_stamp=${BUILD_STAMP}`);
+console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
 
 console.log(`[run-cppa-risk-assessment] boot w21_stamp=${W21_RISK_TURNA_STAMP}`);
 import {
