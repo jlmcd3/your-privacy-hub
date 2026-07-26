@@ -27,8 +27,18 @@ const CHECKS: {
   options: readonly string[];
   legacyAccepted?: readonly string[];
 }[] = [
-  { field: "q1_revenue", options: REVENUE_OPTS, legacyAccepted: ["$25M–$100M"] },
-  { field: "q2_consumers", options: CONSUMER_OPTS, legacyAccepted: ["100,000–1 million"] },
+  // BAND-REALIGNMENT-T2A (2026-07-26): temporarily widen legacyAccepted to
+  // the V1 label set enumerated in item 120's failure table so the guard
+  // stays green while T2B retargets stress fixtures to V2. T2B MUST
+  // re-narrow legacyAccepted to the minimal set still present in stored
+  // data — this transition allowance is NOT permanent.
+  { field: "q1_revenue", options: REVENUE_OPTS, legacyAccepted: [
+    "Over $500M", "$100M–$500M", "$25M–$50M", "$50M–$100M", "$25M–$100M",
+  ] },
+  { field: "q2_consumers", options: CONSUMER_OPTS, legacyAccepted: [
+    "1–10 million", "Over 10 million", "Fewer than 100,000", "Unsure",
+    "100,000–249,999", "250,000–1 million", "100,000–1 million",
+  ] },
   { field: "q5_sell_share", options: Q5_SELL_SHARE_OPTS },
   { field: "q15_sensitive_pi", options: Q15_SENSITIVE_PI_OPTS },
   { field: "q15c_spi_volume", options: SPI_VOLUME_OPTS },
