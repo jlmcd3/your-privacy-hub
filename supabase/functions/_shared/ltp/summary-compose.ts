@@ -242,8 +242,14 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
     !!input.gate_signals.documentation_gate_failed,
   );
 
+  // ── Precedence-law 5-tier mapping (only when signals supplied) ────
+  const riskResult = input.activity_signals
+    ? mapOverallRiskLevel({ outcomes, signals: input.activity_signals })
+    : null;
+  const overallResolved: OverallRiskLevel | undefined = riskResult?.overall_risk_level;
+
   // ── Narrative composition ─────────────────────────────────────────
-  const openingId = selectOpeningTemplateId(outcomes);
+  const openingId = selectOpeningTemplateId(outcomes, overallResolved);
   const activity_count_phrase = pluralActivityPhrase(outcomes.length);
   const firmList = outcomes.filter((o) => o.outcome === "firm_benefits_outweigh").map((o) => o.activity_label);
   const closeList = outcomes
@@ -258,6 +264,9 @@ export function composeAssessmentSummary(input: ComposeInput): ComposeResult {
   const openingRender = renderTemplate(openingId, input.plan, {
     activity_count_phrase,
     each_or_this_clause: outcomes.length === 1 ? SUMMARY_EACH_OR_THIS_CLAUSES[0] : SUMMARY_EACH_OR_THIS_CLAUSES[1],
+    activity_singplural_clause: outcomes.length === 1
+      ? SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[0]
+      : SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[1],
     firm_positive_list: joinList(firmList),
     close_list: joinList(closeList),
     negative_list: joinList(negativeList),
