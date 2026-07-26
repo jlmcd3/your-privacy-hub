@@ -107,12 +107,22 @@ const emptyCounters = (): W24aV3Counters => ({
 });
 
 // ── Per-string cohort scrub ─────────────────────────────────────────────
+// Contextual mention of a cohort reference — matches the § 7121 cite,
+// a resolved cohort date variant, or the standalone word "cohort".
+// Broadened past v2's date-only anchor so sentences like
+// "the cohort determination should be confirmed when 2027 revenue is
+// final" (no date, no cite in-sentence) still qualify for excision.
+const COHORT_REF_RE = /\bcohort\b/i;
+
 function scrubString(s: string, c: W24aV3Counters): string {
   try {
     if (typeof s !== "string" || !s) return s;
     c.strings_scanned += 1;
-    // Cheap gate — cohort logic only bites strings mentioning a cohort year.
-    if (!/20(?:29|30)/.test(s)) return s;
+    // Cheap gate — cohort logic only bites strings that at minimum
+    // mention "cohort", a § 7121 cite, or a resolved cohort year.
+    if (!COHORT_REF_RE.test(s) && !COHORT_CITE_HINT.test(s) && !/20(?:29|30)/.test(s)) {
+      return s;
+    }
 
     // Anchor detection (resolved cohort date present).
     const hasResolvedDate = COHORT_DATE_RE.test(s);
@@ -124,7 +134,7 @@ function scrubString(s: string, c: W24aV3Counters): string {
     }
 
     // Whole-sentence excision for hedge triggers adjacent to a cohort
-    // reference (either resolved date or § 7121 cite).
+    // reference (resolved date, § 7121 cite, or the word "cohort").
     if (!COHORT_HEDGE_TRIGGERS_RE.test(s)) return s;
     COHORT_HEDGE_TRIGGERS_RE.lastIndex = 0;
 
@@ -136,7 +146,9 @@ function scrubString(s: string, c: W24aV3Counters): string {
       const hasHedge = COHORT_HEDGE_TRIGGERS_RE.test(sent);
       COHORT_HEDGE_TRIGGERS_RE.lastIndex = 0;
       const hasCohortRef =
-        COHORT_DATE_RE.test(sent) || COHORT_CITE_HINT.test(sent);
+        COHORT_DATE_RE.test(sent) ||
+        COHORT_CITE_HINT.test(sent) ||
+        COHORT_REF_RE.test(sent);
       COHORT_DATE_RE.lastIndex = 0;
       if (hasHedge && hasCohortRef) {
         excised += 1;
