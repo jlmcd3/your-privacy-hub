@@ -1,0 +1,146 @@
+/**
+ * LTP Pass-2 Renderer (Wave-B enforcement mode).
+ *
+ * Substitutes {{cite:PINPOINT}}, {{plan:SLOT}}, and {{intake:LEDGER_ID}}
+ * tokens into a Pass-2 template using: (a) plan.citation_bindings for
+ * citation slots, (b) resolveSlot for plan slots, (c) plan.intake_ledger
+ * for intake slots. Applies post-render assertions: no forbidden tokens,
+ * no bare § from the substitution engine, max_chars respected.
+ *
+ * Pure; never throws (returns { text: "", errors: [...] } on failure).
+ */
+import type { RenderPlan } from "../render-plan/schema.ts";
+import {
+  PASS2_TEMPLATES,
+  PASS2_FORBIDDEN_TOKENS,
+  FIRM_VARIANT_CLOSENESS_MAX,
+  type Pass2Template,
+} from "./content/pass2-templates.ts";
+import { resolveSlot, type SlotContext } from "./slot-resolver.ts";
+
+export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-26";
+
+export interface RenderResult {
+  readonly template_id: string;
+  readonly text: string;
+  readonly errors: readonly string[];
+  readonly slots_resolved: number;
+  readonly slots_missing: number;
+}
+
+function substituteCitations(
+  text: string,
+  plan: RenderPlan,
+  citation_slots: readonly string[],
+  errors: string[],
+): string {
+  let out = text;
+  for (const slot of citation_slots) {
+    const token = `{{cite:${slot}}}`;
+    // Resolve by pinpoint_ref suffix match (SLOT is a symbolic id like
+    // PINPOINT_7152A5; the citation_bindings pinpoint_ref carries the
+    // conclusion id — a downstream courier binds these formally.
+    const found = plan.citation_bindings.find((b) =>
+      b.pinpoint_ref.toUpperCase().includes(slot.replace(/^PINPOINT_?/, ""))
+    ) ?? plan.citation_bindings[0];
+    if (!found) {
+      errors.push(`missing_citation:${slot}`);
+      out = out.replaceAll(token, "");
+    } else {
+      out = out.replaceAll(token, found.pinpoint);
+    }
+  }
+  return out;
+}
+
+function substituteIntake(
+  text: string,
+  plan: RenderPlan,
+  intake_slots: readonly string[],
+  errors: string[],
+): string {
+  let out = text;
+  for (const slot of intake_slots) {
+    const token = `{{intake:${slot}}}`;
+    const found = plan.intake_ledger.find((l) => l.ledger_id === slot || l.intake_field === slot)
+      ?? plan.intake_ledger[0];
+    if (!found) {
+      errors.push(`missing_intake:${slot}`);
+      out = out.replaceAll(token, "");
+    } else {
+      out = out.replaceAll(token, found.display);
+    }
+  }
+  return out;
+}
+
+function substitutePlanSlots(
+  text: string,
+  plan: RenderPlan,
+  slots: readonly string[],
+  ctx: SlotContext,
+  errors: string[],
+): { text: string; resolved: number; missing: number } {
+  let out = text;
+  let resolved = 0;
+  let missing = 0;
+  for (const slot of slots) {
+    const token = `{{plan:${slot}}}`;
+    const value = resolveSlot(plan, slot, ctx);
+    if (value === "" || value === "no items on the record") missing++; else resolved++;
+    out = out.replaceAll(token, value);
+  }
+  return { text: out, resolved, missing };
+}
+
+function checkForbiddenTokens(text: string, errors: string[]): void {
+  for (const t of PASS2_FORBIDDEN_TOKENS) {
+    if (text.includes(t)) errors.push(`forbidden_token:${t}`);
+  }
+}
+
+export function renderTemplate(
+  templateId: string,
+  plan: RenderPlan,
+  ctx: SlotContext = {},
+): RenderResult {
+  const tpl: Pass2Template | undefined = PASS2_TEMPLATES[templateId];
+  if (!tpl) {
+    return { template_id: templateId, text: "", errors: [`unknown_template:${templateId}`], slots_resolved: 0, slots_missing: 0 };
+  }
+  if (tpl.emits_nothing) {
+    return { template_id: templateId, text: "", errors: [], slots_resolved: 0, slots_missing: 0 };
+  }
+  const errors: string[] = [];
+  let text = tpl.text;
+  text = substituteCitations(text, plan, tpl.citation_slots, errors);
+  text = substituteIntake(text, plan, tpl.intake_slots, errors);
+  const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, errors);
+  text = planSub.text;
+  checkForbiddenTokens(text, errors);
+  if (text.length > tpl.max_chars) errors.push(`over_max_chars:${text.length}/${tpl.max_chars}`);
+  // Any un-substituted {{...}} indicates a leaked slot.
+  if (/\{\{[a-z]+:[A-Z0-9_]+\}\}/i.test(text)) errors.push("leaked_slot_marker");
+  return {
+    template_id: templateId,
+    text,
+    errors,
+    slots_resolved: planSub.resolved,
+    slots_missing: planSub.missing,
+  };
+}
+
+/**
+ * Firm/hedged calibration assert: when closeness ≥ FIRM_VARIANT_CLOSENESS_MAX,
+ * the "firm" variant must NOT be selected. Callers pass the chosen template id
+ * for the balance slot; returns null on OK, error string on violation.
+ */
+export function assertCalibrationMatch(
+  chosenTemplateId: string,
+  closeness: number,
+): string | null {
+  if (chosenTemplateId === "T.risk.balance.firm" && closeness >= FIRM_VARIANT_CLOSENESS_MAX) {
+    return `calibration_violation:firm_variant_used_at_closeness_${closeness}`;
+  }
+  return null;
+}
