@@ -153,13 +153,24 @@ export function buildRiskOpening(
 
   // ── S0 — CCPA applicability (all-that-apply, statutory order A,B) ──
   const revenue = str(intake.q1_revenue);
-  const consumers = str(intake.q2_consumers);
   const sellShare = str(intake.q5_sell_share);
+  // T7-PILOT-FIX-2: (B) count operand comes ONLY from the compliant
+  // bought/sold/shared count field. q2_consumers (consumers PROCESSED) is
+  // explicitly excluded — design rule 6 forbids it as a (B) operand.
+  const bssCount = str(intake.bought_sold_shared_count);
 
   const clearsA = REVENUE_BANDS_CLEAR_A.has(revenue);
-  const clearsBVolume = CONSUMER_BANDS_100K_OR_MORE.has(consumers);
   const affirmativeBuySellShare = SELL_SHARE_AFFIRMATIVE.has(sellShare);
-  const satisfiesB = clearsBVolume && affirmativeBuySellShare;
+  const hasCompliantBssBand = BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE.has(bssCount);
+  const satisfiesB = affirmativeBuySellShare && hasCompliantBssBand;
+
+  // (B)-rejection reason for telemetry (never customer prose). Only meaningful
+  // when the intake affirms sell/share activity — silent intake is a plain
+  // omission, not a rejection.
+  let s0BRejectedReason: string | null = null;
+  if (!satisfiesB && affirmativeBuySellShare) {
+    s0BRejectedReason = "no_compliant_count_field";
+  }
 
   const criteria: Array<{ letter: "A" | "B"; quote: string }> = [];
   if (clearsA) criteria.push({ letter: "A", quote: CCPA_1798_140_D_1_A });
@@ -175,11 +186,16 @@ export function buildRiskOpening(
     provCriteria.push(...criteria.map((c) => c.letter));
     sources.S0 = "cppa_authorities:Cal. Civ. Code § 1798.140 (d)(1)";
   } else {
+    // Neutral applicability frame — omission over invention. Body-side
+    // applicability logic remains untouched (all-that-apply/unresolved).
     omitted.push(
       entity
         ? "S0:no_criteria_unambiguously_resolved"
         : "S0:missing_entity_name",
     );
+    if (s0BRejectedReason) {
+      omitted.push(`S0:B_rejected:${s0BRejectedReason}`);
+    }
   }
 
   // ── S1 — 11 CCR § 7150(b) triggers (all-that-apply, statutory order) ──
