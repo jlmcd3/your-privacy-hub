@@ -3006,6 +3006,38 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] RISK-INTAKE-CONTRADICTION-BODY failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── RISK-CITATION-DUP-FIX (2026-07-26) ────────────────────────────
+    // Deterministic post-pass discharging the two generator-owned
+    // classes from PERFECT-INTAKE-EXPERIMENT run f3674428:
+    //   (A) two-trigger comparison sentences that carry the SAME
+    //       § 7150(b) pinpoint on both sides — restructured to
+    //       single-trigger phrasing by whole-sentence excision.
+    //   (B) ADMT-consequence assertions (§ 7001(ddd) / decision-
+    //       effects prose) when q18_admt_use resolves NEGATIVE —
+    //       the § 7150(b)(4) profiling trigger itself is preserved.
+    // Anchor + reserved-subtree safe. Runs AFTER intake-contradiction
+    // and BEFORE the LEAK-PREV P1 emit gate. Telemetry lands on
+    // _meta.internal.risk_citation_dup_fix; preexisting _meta.internal
+    // siblings preserved.
+    try {
+      const _cdfIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const { counters: _cdfC, report: _cdfR } = applyRiskCitationDupFix(
+        _cdfIntake, report_data as any, { buildStamp: BUILD_STAMP },
+      );
+      report_data = _cdfR as any;
+      const rdCdf: any = report_data;
+      const metaCdf = (rdCdf._meta = rdCdf._meta && typeof rdCdf._meta === "object" ? rdCdf._meta : {});
+      const internalCdf = (metaCdf.internal = metaCdf.internal && typeof metaCdf.internal === "object" ? metaCdf.internal : {});
+      internalCdf.risk_citation_dup_fix = _cdfC;
+      console.log(JSON.stringify({
+        evt: "_risk_citation_dup_fix", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, risk_citation_dup_fix_stamp: RISK_CITATION_DUP_FIX_STAMP, ..._cdfC,
+      }));
+    } catch (e) {
+      console.warn("[RISK] RISK-CITATION-DUP-FIX failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // BAND-REALIGNMENT-T2A (2026-07-26): stamp band-resolution telemetry on
     // _meta.internal so downstream QC / graders can distinguish V1→V2
     // resolved intakes from legacy-ambiguous inputs.
