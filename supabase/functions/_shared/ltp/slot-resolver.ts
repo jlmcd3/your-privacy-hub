@@ -27,7 +27,23 @@ export interface SlotContext {
   readonly closeness?: number;
   readonly cohort_date?: string;
   readonly review_items?: readonly string[];
+  // ── Summary-composition context (CONTENT COURIER 2026-07-26) ──
+  // Populated by summary-compose.ts before invoking renderTemplate on any
+  // T.risk.summary.* or T.risk.summary.opening.* template. Values are
+  // deterministically pre-rendered by the composer from partitioned
+  // activity outcomes; the resolver returns them verbatim.
+  readonly activity_count_phrase?: string;
+  readonly each_or_this_clause?: string;
+  readonly firm_positive_list?: string;
+  readonly close_list?: string;
+  readonly negative_list?: string;
+  readonly remaining_outcomes_clause?: string;
+  readonly activity_label?: string;
+  readonly outcome_clause?: string;
+  readonly key_factor_token?: string;
+  readonly docs_completion_clause?: string;
 }
+
 
 const joinTokens = (labels: readonly string[]): string => {
   const clean = labels.filter((s) => typeof s === "string" && s.trim().length > 0);
@@ -81,7 +97,19 @@ export function resolveSlot(
     case "customer_question":
       // Bound to a per-gate context; caller substitutes from gate_outcomes.
       return "";
+    // ── Summary-composition slots (context-provided, verbatim pass-through) ──
+    case "activity_count_phrase":       return ctx.activity_count_phrase ?? "";
+    case "each_or_this_clause":         return ctx.each_or_this_clause ?? "";
+    case "firm_positive_list":          return ctx.firm_positive_list ?? "";
+    case "close_list":                  return ctx.close_list ?? "";
+    case "negative_list":               return ctx.negative_list ?? "";
+    case "remaining_outcomes_clause":   return ctx.remaining_outcomes_clause ?? "";
+    case "activity_label":              return ctx.activity_label ?? "";
+    case "outcome_clause":              return ctx.outcome_clause ?? "";
+    case "key_factor_token":            return ctx.key_factor_token ?? "";
+    case "docs_completion_clause":      return ctx.docs_completion_clause ?? "";
     default:
       return "";
   }
 }
+

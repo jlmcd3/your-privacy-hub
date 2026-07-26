@@ -140,7 +140,86 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 600,
   },
+  // ── assessment_summary composition templates (CONTENT COURIER 2026-07-26) ──
+  // Deterministic aggregation drives which opening variant is selected; the
+  // firm/hedged calibration assert extends to the summary via the same
+  // FIRM_VARIANT_CLOSENESS_MAX threshold that governs T.risk.balance.firm.
+  "T.risk.summary.opening.all_firm": {
+    id: "T.risk.summary.opening.all_firm",
+    text: "This Risk Assessment covers {{plan:activity_count_phrase}} requiring assessment under the CCPA. For {{plan:each_or_this_clause}}, the record as documented supports the conclusion that the benefits outweigh the identified negative impacts.",
+    citation_slots: [],
+    plan_slots: ["activity_count_phrase", "each_or_this_clause"],
+    intake_slots: [],
+    max_chars: 400,
+  },
+  "T.risk.summary.opening.mixed_hedged": {
+    id: "T.risk.summary.opening.mixed_hedged",
+    text: "This Risk Assessment covers {{plan:activity_count_phrase}}. For {{plan:firm_positive_list}}, the record supports the conclusion that benefits outweigh the identified negative impacts. For {{plan:close_list}}, the balance is close on the present record, and the considerations most likely to tip it are set out in the activity analysis below.",
+    citation_slots: [],
+    plan_slots: ["activity_count_phrase", "firm_positive_list", "close_list"],
+    intake_slots: [],
+    max_chars: 560,
+  },
+  "T.risk.summary.opening.any_negative": {
+    id: "T.risk.summary.opening.any_negative",
+    text: "This Risk Assessment covers {{plan:activity_count_phrase}}. For {{plan:negative_list}}, the record as documented does not support the conclusion that the benefits outweigh the identified negative impacts; the safeguard gaps bearing on this outcome are set out below. {{plan:remaining_outcomes_clause}}",
+    citation_slots: [],
+    plan_slots: ["activity_count_phrase", "negative_list", "remaining_outcomes_clause"],
+    intake_slots: [],
+    max_chars: 560,
+  },
+  "T.risk.summary.activity_line": {
+    id: "T.risk.summary.activity_line",
+    text: "{{plan:activity_label}}: {{plan:outcome_clause}} ({{plan:key_factor_token}}).",
+    citation_slots: [],
+    plan_slots: ["activity_label", "outcome_clause", "key_factor_token"],
+    intake_slots: [],
+    max_chars: 360,
+  },
+  "T.risk.summary.docs": {
+    id: "T.risk.summary.docs",
+    text: "The assessment record {{plan:docs_completion_clause}} the documentation elements of {{cite:PINPOINT_7152A}}.",
+    citation_slots: ["PINPOINT_7152A"],
+    plan_slots: ["docs_completion_clause"],
+    intake_slots: [],
+    max_chars: 280,
+  },
 };
+
+/**
+ * Closed enums for the assessment_summary composition templates.
+ * Each list is exhaustive; the composer selects deterministically.
+ */
+export const SUMMARY_OUTCOME_CLAUSES: readonly string[] = [
+  "benefits outweigh the identified impacts as documented",
+  "close balance — see the activity analysis",
+  "the identified impacts outweigh the stated benefits as documented",
+  "assessment incomplete — see Items for your review",
+];
+
+export const SUMMARY_REMAINING_OUTCOMES_CLAUSES: readonly string[] = [
+  "The remaining activities are addressed in the analysis below.",
+  "",
+];
+
+export const SUMMARY_DOCS_COMPLETION_CLAUSES: readonly string[] = [
+  "is complete against",
+  "has outstanding documentation items — see Items for your review; the record does not yet complete",
+];
+
+export const SUMMARY_EACH_OR_THIS_CLAUSES: readonly string[] = [
+  "this activity",
+  "each of them",
+];
+
+/**
+ * Narrative composition order (fixed). Total narrative cap = 2400 chars.
+ * Order: opening variant (one of three) → activity lines (aggregation order)
+ * → docs sentence → T.risk.closing.reserved (as the narrative's final
+ * sentences; the closing is NOT a separate paragraph slot).
+ */
+export const SUMMARY_NARRATIVE_MAX_CHARS = 2400;
+
 
 /**
  * Slot vocabularies. `balance_direction_clause` is the ONLY closed enum
