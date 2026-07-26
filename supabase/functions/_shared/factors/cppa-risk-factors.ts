@@ -1,0 +1,343 @@
+/**
+ * CPPA-RISK FACTOR REGISTRY (Legal Test v2.1, Phase-1 authoring)
+ * ---------------------------------------------------------------
+ * The § 7152(a)(4)-(6) weighing factor list — benefit stakeholders,
+ * negative-impact categories, and safeguard considerations — authored
+ * VERBATIM from the OAL-approved regulation text and each row bound
+ * to a corpus pinpoint plus a guidance_refs[] set drawn from
+ * cppa_fsor_commentary. Domain: cppa-ca ONLY (Q4(e) authority-domain).
+ *
+ * Verbatim text was sourced from provision_texts.cppa-7152 (approved
+ * this turn, mirror of cppa_authorities '11 CCR § 7152' full_text).
+ *
+ * NO WIRING: this file is data. Phase 2 imports it into Pass-1
+ * derivation and feeds Pass G candidate-set construction.
+ */
+
+import type { JurisdictionTag, StatutoryAnchor } from "../legal-test/cppa-risk-conclusions.ts";
+
+export type FactorKind = "benefit" | "negative_impact" | "safeguard";
+
+export interface GuidanceRef {
+  /** Corpus table the guidance row lives in. */
+  readonly source_table: "cppa_fsor_commentary" | "cppa_fsor_callouts";
+  /** Statutory citation the guidance row is filed under. */
+  readonly regulation_citation: string;
+  /** Page reference (nullable for rows without a page_ref). */
+  readonly page_ref: string | null;
+  /** Short human anchor to the row's agency_position_summary. */
+  readonly anchor_hint: string;
+}
+
+export interface FactorRow {
+  readonly id: string;
+  readonly kind: FactorKind;
+  readonly jurisdiction_tag: JurisdictionTag;
+  /** Verbatim label (mirrors reg text as closely as a label allows). */
+  readonly label: string;
+  /** Verbatim excerpt from the regulation for pin-test binding. */
+  readonly verbatim_excerpt: string;
+  readonly anchor: StatutoryAnchor;
+  /** FSOR commentary rows discussing this factor (may be empty → T5 feed). */
+  readonly guidance_refs: readonly GuidanceRef[];
+  /** Non-empty = author flagged an ingestion gap for T5 (see courier). */
+  readonly empty_by_finding?: string;
+}
+
+export interface WeighingTest {
+  readonly test_id: string;
+  readonly jurisdiction_tag: JurisdictionTag;
+  readonly anchor: StatutoryAnchor;
+  readonly framing_excerpt: string;
+  readonly factor_ids: readonly string[];
+}
+
+const CPPA: JurisdictionTag = "cppa-ca";
+
+// ---------------------------------------------------------------------------
+// § 7152(a)(4) — BENEFITS (stakeholder categories, no enumerated sub-list)
+// ---------------------------------------------------------------------------
+
+const BENEFIT_FRAMING =
+  "Identify the benefits to the business, the consumer, other stakeholders, "
+  + "and the public from the processing of the personal information, as applicable.";
+
+const BENEFITS: readonly FactorRow[] = [
+  {
+    id: "benefit.business",
+    kind: "benefit",
+    jurisdiction_tag: CPPA,
+    label: "Benefits to the business",
+    verbatim_excerpt: BENEFIT_FRAMING,
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
+    guidance_refs: [],
+    empty_by_finding:
+      "§ 7152(a)(4) enumerates no sub-categories; FSOR discussion of benefit specificity is filed under § 7152 generally "
+      + "(non-generic requirement mirrors (a)(1) purpose discipline). No dedicated guidance row for business-benefit "
+      + "articulation — logged to T5 as ranked ingestion candidate.",
+  },
+  {
+    id: "benefit.consumer",
+    kind: "benefit",
+    jurisdiction_tag: CPPA,
+    label: "Benefits to the consumer",
+    verbatim_excerpt: BENEFIT_FRAMING,
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
+    guidance_refs: [],
+    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+  },
+  {
+    id: "benefit.other_stakeholders",
+    kind: "benefit",
+    jurisdiction_tag: CPPA,
+    label: "Benefits to other stakeholders",
+    verbatim_excerpt: BENEFIT_FRAMING,
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
+    guidance_refs: [],
+    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+  },
+  {
+    id: "benefit.public",
+    kind: "benefit",
+    jurisdiction_tag: CPPA,
+    label: "Benefits to the public",
+    verbatim_excerpt: BENEFIT_FRAMING,
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
+    guidance_refs: [],
+    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
+// § 7152(a)(5)(A)-(H) — NEGATIVE IMPACT CATEGORIES (verbatim)
+// ---------------------------------------------------------------------------
+
+const NEGATIVE_IMPACTS: readonly FactorRow[] = [
+  {
+    id: "neg.a.unauthorized_access",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Unauthorized access, destruction, use, modification, or disclosure",
+    verbatim_excerpt:
+      "Unauthorized access, destruction, use, modification, or disclosure of personal information; and unauthorized "
+      + "activity resulting in the loss of availability of personal information.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(A)" },
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152",
+        page_ref: "Appendix, p. 134",
+        anchor_hint: "balance privacy risks against broader benefits to various stakeholders",
+      },
+    ],
+  },
+  {
+    id: "neg.b.discrimination",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Discrimination on protected characteristics",
+    verbatim_excerpt:
+      "Discrimination upon the basis of protected characteristics that would violate federal or state law.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(B)" },
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152",
+        page_ref: "Appendix, p. 130",
+        anchor_hint: "transparency, accountability, and harm mitigation measures for ADMT",
+      },
+    ],
+  },
+  {
+    id: "neg.c.impaired_control",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Impairing consumers' control over their personal information",
+    verbatim_excerpt:
+      "Impairing consumers' control over their personal information, such as by providing insufficient information for "
+      + "consumers to make an informed decision regarding the processing of their personal information, or by interfering "
+      + "with consumers' ability to make choices consistent with their reasonable expectations.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(C)" },
+    guidance_refs: [],
+    empty_by_finding:
+      "No § 7152-tagged FSOR row isolates the (a)(5)(C) 'impaired control' harm. Adjacent commentary under § 7002 "
+      + "purpose-limitation exists but is a cross-provision reach; logged to T5 as ranked ingestion candidate.",
+  },
+  {
+    id: "neg.d.coercion_dark_patterns",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Coercion or compulsion (including dark patterns)",
+    verbatim_excerpt:
+      "Coercing or compelling consumers into allowing the processing of their personal information, such as by "
+      + "conditioning consumers' acquisition or use of an online service upon their disclosure of personal information "
+      + "that is unnecessary to the expected functionality of the service, or requiring consumers to consent to "
+      + "processing when such consent cannot be freely given (e.g., because it was obtained through the use of a dark pattern).",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(D)" },
+    guidance_refs: [],
+    empty_by_finding:
+      "Dark-pattern discussion lives under § 7004 (design requirements) not § 7152(a)(5)(D); cross-provision analogies "
+      + "banned by Q4(e). Logged to T5 as ranked ingestion candidate for a § 7152-tagged dark-pattern row.",
+  },
+  {
+    id: "neg.e.economic_harms",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Economic harms",
+    verbatim_excerpt:
+      "Economic harms, including limiting or depriving consumers of economic opportunities, charging consumers higher "
+      + "prices, or compensating consumers at lower rates based upon profiling; or imposing additional costs upon "
+      + "consumers, including costs associated with the unauthorized access to consumers' personal information.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(E)" },
+    guidance_refs: [],
+    empty_by_finding: "No dedicated § 7152 FSOR row on economic-harm framing. T5 candidate.",
+  },
+  {
+    id: "neg.f.physical_harms",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Physical harms",
+    verbatim_excerpt:
+      "Physical harms to consumers or to property, including processing that creates the opportunity for physical or "
+      + "sexual violence.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(F)" },
+    guidance_refs: [],
+    empty_by_finding: "No dedicated § 7152 FSOR row. T5 candidate.",
+  },
+  {
+    id: "neg.g.reputational_harms",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Reputational harms",
+    verbatim_excerpt:
+      "Reputational harms, including stigmatization, that could negatively impact an average consumer, such as "
+      + "stigmatization of a consumer as a result of a mobile dating application's disclosure of the consumer's sexual or "
+      + "other preferences in a partner outside of the dating application.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(G)" },
+    guidance_refs: [],
+    empty_by_finding: "No dedicated § 7152 FSOR row. T5 candidate.",
+  },
+  {
+    id: "neg.h.psychological_harms",
+    kind: "negative_impact",
+    jurisdiction_tag: CPPA,
+    label: "Psychological harms",
+    verbatim_excerpt:
+      "Psychological harms, including emotional distress, stress, anxiety, embarrassment, fear, frustration, shame, and "
+      + "feelings of violation, that could negatively impact an average consumer. Examples of such harms include emotional "
+      + "distress resulting from disclosure of nonconsensual intimate imagery or disclosure of a consumer's purchase of "
+      + "pregnancy tests or emergency contraception for non-medical purposes.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(H)" },
+    guidance_refs: [],
+    empty_by_finding: "No dedicated § 7152 FSOR row. T5 candidate.",
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
+// § 7152(a)(6)(A)(i)-(iv) — SAFEGUARD CATEGORIES (verbatim)
+// ---------------------------------------------------------------------------
+
+const SAFEGUARDS: readonly FactorRow[] = [
+  {
+    id: "safe.i.technical_controls",
+    kind: "safeguard",
+    jurisdiction_tag: CPPA,
+    label: "Technical / architectural controls",
+    verbatim_excerpt:
+      "Encryption, segmentation of information systems, physical and logical access controls, change management, "
+      + "network monitoring and defenses, and data and integrity monitoring.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)(A)(i)" },
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152",
+        page_ref: null,
+        anchor_hint: "clarified risk assessment documentation requirements under 11 CCR § 7152(a) to streamline safeguards",
+      },
+    ],
+  },
+  {
+    id: "safe.ii.privacy_enhancing_technologies",
+    kind: "safeguard",
+    jurisdiction_tag: CPPA,
+    label: "Privacy-enhancing technologies",
+    verbatim_excerpt:
+      "Use of privacy-enhancing technologies, such as trusted execution environments, federated learning, homomorphic "
+      + "encryption, and differential privacy.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)(A)(ii)" },
+    guidance_refs: [],
+    empty_by_finding: "No § 7152-tagged FSOR row specifically on PETs. T5 candidate.",
+  },
+  {
+    id: "safe.iii.external_consultation",
+    kind: "safeguard",
+    jurisdiction_tag: CPPA,
+    label: "External consultation / knowledge of emergent risks",
+    verbatim_excerpt:
+      "Consulting external parties, such as those described in section 7151, subsection (b), to ensure that the business "
+      + "maintains current knowledge of emergent privacy risks and countermeasures; and using that knowledge to identify, "
+      + "assess, and mitigate risks to consumers' privacy.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)(A)(iii)" },
+    guidance_refs: [],
+  },
+  {
+    id: "safe.iv.admt_governance",
+    kind: "safeguard",
+    jurisdiction_tag: CPPA,
+    label: "ADMT governance policies and training",
+    verbatim_excerpt:
+      "Implementing policies, procedures, and training to ensure that the business's ADMT works for the business's "
+      + "purpose and does not unlawfully discriminate based upon protected characteristics.",
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)(A)(iv)" },
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152",
+        page_ref: "p. 37",
+        anchor_hint: "businesses using ADMT in risk assessments must identify specific evaluations, policies, procedures, and training",
+      },
+    ],
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
+// The one Type-W weighing test
+// ---------------------------------------------------------------------------
+
+export const WEIGHING_TESTS: readonly WeighingTest[] = [
+  {
+    test_id: "test.cppa-7152.balance",
+    jurisdiction_tag: CPPA,
+    anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)" },
+    framing_excerpt:
+      "A business must conduct a risk assessment to determine whether the risks to consumers' privacy from the "
+      + "processing of personal information outweigh the benefits to the consumer, the business, other stakeholders, and "
+      + "the public from that same processing.",
+    factor_ids: [
+      ...BENEFITS.map((f) => f.id),
+      ...NEGATIVE_IMPACTS.map((f) => f.id),
+      ...SAFEGUARDS.map((f) => f.id),
+    ],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Public registry
+// ---------------------------------------------------------------------------
+
+export const CPPA_RISK_FACTORS: readonly FactorRow[] = [
+  ...BENEFITS,
+  ...NEGATIVE_IMPACTS,
+  ...SAFEGUARDS,
+];
+
+export const CPPA_RISK_FACTOR_INDEX: Readonly<Record<string, FactorRow>> =
+  Object.freeze(Object.fromEntries(CPPA_RISK_FACTORS.map((f) => [f.id, f])));
+
+export function factorsByKind(kind: FactorKind): readonly FactorRow[] {
+  return CPPA_RISK_FACTORS.filter((f) => f.kind === kind);
+}
+
+export function emptyByFindingGaps(): readonly FactorRow[] {
+  return CPPA_RISK_FACTORS.filter((f) => Boolean(f.empty_by_finding));
+}
