@@ -191,3 +191,19 @@ All rulings recorded durably per CEO instruction "Write every step durably (ledg
 **Recommended micro-scope amendment (single-line §4 add):** add `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` to the T2A test-surface list with the widening described in ledger item 120. This is the minimal edit that preserves the guard's substantive protection (still catches values that are neither V2-current NOR V1-legacy), leaves `src/lib/stress/fixtures.ts` untouched for T2B where §4 assigns it, and lets the four §4 T2A tests (three version bumps + new t2a) plus the widened drift guard all pass green under a V2-only enum contract.
 
 **Standing state:** item 113 remains DEPLOY-HELD; item 118 step (ii) remains HELD; items 114 + 115 remain HELD; item 116 sequencing intact. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits this turn; zero edge-function deploys; zero migrations. See ledger item 120 for the full pasted failure classes and the CEO ruling log carry-forward for the s5 instrument commitment (deferred until T2A actually deploys).
+
+---
+
+## T2B-HELD-AWAITING-T2A (2026-07-26T05:31:00Z)
+
+**Dispatch:** BAND-REALIGNMENT-T2B, team-reviewed five-lens.
+
+**Dispatch GATE (verbatim):** "execute ONLY if the T2A ledger release (items 113/118-(ii) released) and T2A courier section exist; otherwise record HELD-awaiting-T2A and stop."
+
+**Preflight result:** FAIL — item 113 still DEPLOY-HELD (unreleased), item 118 step (ii) still HELD (unreleased), T2A itself HELD before any file edit under its own GATE per ledger item 120. The `T2A-HELD` section above is a HELD marker, not the T2A-LANDED execution record the dispatch GATE requires.
+
+**Ruling:** HELD-AWAITING-T2A. No file edits attempted on any of the ~15 §4 T2B surfaces (sampleFixtures + shapes, stress fixtures + generate-stress-fixtures, cppa-risk-contract-fixtures, CPPARiskRailEntries, refine/fieldEnums, generate-report-pdf audit, review-test-output heuristics, CPPAEvalHarness dropdowns, CPPAScopeChecker inputs, assertionTests/assertionRunner, option-drift test). No deploy attempted (T2B dispatch already prohibits deploy).
+
+**Unblock condition:** T2A lands (items 113 and 118-(ii) both released via T2A execution turn). T2A landing is itself blocked pending controller/CEO ruling on the one-line §4 micro-scope amendment recommended in the T2A-HELD section above.
+
+**Standing state carry-forward:** items 113, 118-(ii), 114, 115 all HELD; item 116 sequencing intact; campaign remains CEO-paused.

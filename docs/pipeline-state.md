@@ -1672,3 +1672,33 @@ Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any
 **Zero-side-effect confirmation:** no source files, no fixtures, no goldens, no contracts, no prompts, no registry rows, no corpus rows, no migrations, no edge-function deploys were made this turn. `git status --short` would show ONLY edits to `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2A-HELD section append).
 
 **Deviation ruled:** partial execution of the BAND-REALIGNMENT-T2A dispatch — zero execution, docs-only HELD. Ground: GATE clause. All rulings recorded here durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
+
+
+---
+
+### 121. **HELD-AWAITING-T2A — BAND-REALIGNMENT-T2B per dispatch GATE** @ controller tick 2026-07-26T05:31:00Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations)
+
+**Dispatch:** BAND-REALIGNMENT-T2B (team-reviewed, five-lens). Scope per `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4 T2B: ~15 non-generator surfaces — `sampleFixtures` + `sampleFixtureShapes`, stress fixtures + `generate-stress-fixtures` (V2 only, legacy generation dropped), `cppa-risk-contract-fixtures`, `CPPARiskRailEntries` with corpus-verified verbatim § 7121(a)(1)–(3) + § 1798.140(d)(1)(B) citations, `refine/fieldEnums`, `generate-report-pdf` audit, `review-test-output` heuristics, `CPPAEvalHarness` dropdowns, `CPPAScopeChecker` inputs, `assertionTests`/`assertionRunner`, option-drift test. No deploy.
+
+**Dispatch GATE (verbatim):** "execute ONLY if the T2A ledger release (items 113/118-(ii) released) and T2A courier section exist; otherwise record HELD-awaiting-T2A and stop."
+
+**Preflight — GATE precondition check:**
+- **Item 113** — DEPLOY-HELD, UNRELEASED. Confirmed at §2 item 113 (BAND-REALIGNMENT SHIPPED-T1 / DEPLOY-HELD); no release entry in items 114–120; explicitly re-asserted UNRELEASED in item 120 tail ("Item 113 remains DEPLOY-HELD").
+- **Item 118 step (ii)** — HELD, UNRELEASED. Confirmed at item 118 (BAND-REALIGNMENT T2 EXECUTION HELD); item 119 orphan-finalize discharged Blocker-1 only, not step (ii); item 120 re-asserted UNRELEASED ("Item 118 step (ii) remains HELD").
+- **T2A courier section** — the courier now carries a `T2A-HELD` section appended in item 120's turn, but this is a HELD record, not the T2A execution/completion section the dispatch GATE requires as evidence that T2A has landed. Under a strict read of "the T2A ... courier section exist" AND the coupled "T2A ledger release" clause, the intended precondition is a T2A-LANDED artefact, not a T2A-HELD marker.
+
+**Precondition result:** FAIL on items 113/118-(ii) (both still HELD, neither released). T2A itself is HELD before any file edit per item 120; T2A cannot release items 113/118-(ii) until the §4 micro-scope amendment recommended in item 120 is ruled on and T2A actually executes.
+
+**Ruling:** per GATE clause, record HELD-awaiting-T2A and stop. No T2B file edits attempted. No inventory pass beyond confirming §4 T2B scope list is unchanged.
+
+**Standing state:**
+- Item 113 remains DEPLOY-HELD.
+- Item 118 step (ii) remains HELD.
+- Item 120 (T2A HELD) unchanged — awaits controller/CEO ruling on the recommended one-line §4 micro-scope amendment (add `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` to the T2A test-surface list with the widened `legacyAccepted` allow-lists) OR an alternative that keeps T2A within §4 as-written.
+- Items 114 + 115 remain HELD.
+- Item 116 sequencing intact.
+- No campaign state changes (paused; CEO-reserved resume).
+
+**Zero-side-effect confirmation:** no source files, fixtures, goldens, contracts, prompts, registry rows, corpus rows, migrations, or edge-function deploys were made this turn. Only edits: `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2B-HELD-AWAITING-T2A note appended).
+
+**Deviation ruled:** none — turn executed exactly per dispatch GATE (record HELD, stop).
