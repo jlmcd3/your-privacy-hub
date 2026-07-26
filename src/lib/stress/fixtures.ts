@@ -1251,8 +1251,8 @@ export const CPPA_RISK_VARIANTS = [
   // R1a coverage variant #6 — q1 $50M–$100M, q2 "Unsure", q15 No so Q15c hidden.
   {
     entity_name: "Bumble Aerospace, Inc.",
-    q1_revenue: "$50M–$100M",
-    q2_consumers: "Unsure",
+    q1_revenue: "$50M to $100M",
+    q2_consumers: "Under 100,000",
     q3_sector: "Professional services",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
