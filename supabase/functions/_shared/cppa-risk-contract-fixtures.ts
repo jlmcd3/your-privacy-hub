@@ -89,8 +89,8 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
   intake: {
     entity_name: "Meridian Health, Inc.",
     subject_anchor: "Mental-health triage service",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "1–10 million",
+    q1_revenue: "Over $100M",
+    q2_consumers: "1,000,000 or more",
     q3_sector: "Healthcare/Life Sciences",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
