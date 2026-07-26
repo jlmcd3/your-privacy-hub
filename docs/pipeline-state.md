@@ -1809,3 +1809,33 @@ Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any
 **Zero-side-effect confirmation:** only edits: `docs/design/LEGAL-TEST.md` (new), `docs/design/TWO-PASS-ARCHITECTURE.md` (§2.5 inserted), `docs/pipeline-state.md` (this item + item 129 status marker + header restamp).
 
 **Deviations ruled:** none — turn executed exactly per dispatch (docs-only; no code, no deploys).
+
+---
+
+### 131. **DONE (2026-07-26T08:09:21Z, LEGAL-TEST-V2-CORPUS-ENGAGEMENT)** — docs-only turn per CEO order 2026-07-26 (joint privacy-law + CS panel review; five-lens satisfied). Zero code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus edits; zero edge-function deploys; zero migrations; zero quality_batch launches; no BUILD_STAMP touched; campaign `fd1be147` remains CEO-paused.
+
+**Trigger:** CEO re-think — the corpus must serve as a GUIDE wherever a test or balancing of interests is required, a role in both passes and possibly additional passes; this becomes an additional aspect of the Legal Test (Question 4).
+
+**Deliverables:**
+
+1. **AMENDED `docs/design/LEGAL-TEST.md`** — appended **Question 4 — CORPUS ENGAGEMENT** as standing law: (a) **guidance mapping authored at registry time** — factor-registry rows carry `guidance_refs[]` binding FSOR commentary (`cppa_fsor_commentary` / `cppa_fsor_callouts`) for CPPA tests and EDPB guideline rows for GDPR tests; corpus-quoted, pin-tested, status=final only; deterministic at runtime. (b) **analogy layer governed** — `enforcement_actions` usage obeys the CEO-adopted eligibility bar: quote-safe (verbatim), row-grounded (characterizations), ineligible (never surfaces). (c) **gaps are ingestion work, not improvisation** — empty guidance renders on statutory factors alone with express disclosure ("guidance on this balance is limited") and auto-feeds the T5 ingestion backlog as a ranked work item (product weight × Type W frequency × recency). (d) **freshness** — superseded guidance excluded; bindings re-validated on T5 batch-land in the referenced family. Q4 also records the seven v2 deltas to the seven mandatory amendments (guidance_refs[] authoring incl. NEW FSOR mapping work for CPPA; weighing_frame[] schema; Pass G + validators; combined closeness heuristic; empty-by-finding → T5 feed; Pass V stub; extended success criteria).
+
+2. **AMENDED `docs/design/TWO-PASS-ARCHITECTURE.md`** — new **§2.6 "Legal Test v2 — Corpus Engagement (Question 4) — MANDATORY, CEO-ordered 2026-07-26"** inserted after §2.5. Revises the pass structure to **THREE passes plus one optional**: **Pass 1 (Derivation)** as amended by v1 with factor-table guidance columns filled deterministically from `guidance_refs`; **NEW Pass G (Guidance & Analogy)** — runs ONLY when Type W tests engage; selects from a PRE-INDEXED candidate set keyed by test id (candidate-set closure validated; model may not introduce authority outside candidates); selects analogous enforcement actions from eligible tiers only; emits `weighing_frame[]` with per-entry corpus anchors + pin-tests + tier labels + closeness contributions; empty-by-finding path wires the T5 telemetry feed. **Pass 2 (Rendering)** — Type W sections render from factor table + weighing frame; guidance/enforcement citations flow through `{{cite:…}}` tokens; closeness heuristic combines factor tally + guidance-weighted contribution deterministically. **NEW Pass V (Verification)** — optional, flag-gated; bounded model counsel-read over close-call Type W sections only; pilot measures yield across 2 waves; **zero yield = drop**. RenderPlan schema extended with `weighing_frame: WeighingFrameEntry[]` (test_id, candidate_set_hash, entries[{kind, source, ref_id, pinpoint, quote_hash, tier, closeness_contribution, rendering_ref}], empty_by_finding). New validators added: candidate-set closure, eligibility-bar closure, pin-test, empty-by-finding integrity. §5 success criteria addendum: **100% weighing_frame-entry anchoring; zero eligibility-bar violations; zero authority improvisation on empty frames**. Cost note: Pass G conditional (~1.2-1.4× for W-heavy products, unchanged for R-dominant); Pass V ~1.1× on close-call sections only. Build-blocking amendment list now spans v1 (seven items) + v2 (seven deltas).
+
+3. **Ledger housekeeping.** Item 129 status marker extended: DESIGN-AMENDED (v1 via item 130) → **DESIGN-AMENDED-v2 (via item 131)**. This item (131) added as DONE.
+
+**CEO RULINGS LOG:** "LEGAL TEST v2 adopted — corpus engagement is Question 4; two-pass architecture revised to conditional three-pass (+optional verification); risk build blocked on v1+v2 amendments including factor-registry guidance mapping."
+
+**Standing state:**
+- Item 114 (IR-BAND-REALIGNMENT) remains QUEUED per item 116.
+- Item 115 remains RELEASED (via item 127 / item 129).
+- Item 128 (`_risk_citation_dup_fix`) unchanged — interim guard remains wired.
+- Item 129 status: **DESIGN-AMENDED-v2** (v1 via item 130, v2 via item 131).
+- Campaign `fd1be147` remains CEO-paused.
+- No product's two-pass migration may begin until per-product R/W/J conclusion inventory + factor registries (v1) AND factor-registry `guidance_refs[]` + per-product enforcement-eligibility index (v2) exist for that product.
+- **T5 ingestion program** now has a **product-driven priority feed** (empty-by-finding telemetry) — recorded as a standing input to T5 sequencing when the program resumes.
+
+**Zero-side-effect confirmation:** only edits: `docs/design/LEGAL-TEST.md` (Q4 appended), `docs/design/TWO-PASS-ARCHITECTURE.md` (§2.6 inserted), `docs/pipeline-state.md` (this item + item 129 status marker updated + header restamp).
+
+**Deviations ruled:** none — turn executed exactly per dispatch (docs-only; no code, no deploys).
+
