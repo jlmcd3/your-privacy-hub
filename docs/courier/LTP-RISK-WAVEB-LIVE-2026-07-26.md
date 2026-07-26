@@ -68,3 +68,21 @@ Deferred to monitor; will decompose:
 **Prevention (Wave-C onward).** Recommend wrapping standalone measurement runs in a `quality_batch_runs` row at launch time so existing pickup/sentinel infrastructure serves them — smaller change than a permanent kicker. `kick-perfect-intake` remains available as a one-shot rescue tool.
 
 Ledger item: 151.
+
+---
+
+## Addendum — WAVE-B RELAUNCH, BATCH-WRAPPED (2026-07-26T23:20:10Z)
+
+**Supersession.** Bare run `quality_runs.id=d8d42997-8601-4984-9a37-34c3230cba17` (item 151 unwedge) failed with `Orphaned by runtime shutdown — rerun to continue.`, 0 docs, 0 scores. Marked SUPERSEDED. Not a duplicate-launch violation — the relaunch replaces a 0-yield failure.
+
+**Relaunch.** Inserted `quality_batch_runs.id=fc6a8394-a265-4297-b086-805e183d2ee5`:
+- tools `{cppa-risk}`, batch_size `6`, instrument `gc-2026-07-26-s5-eu-uk-ca-au-sg`
+- `campaign_id=NULL` (standalone), `status='running'`, `phase='kickoff'`
+- Standard admin insert path; `batch-kickoff-pickup` serves the row; orchestrator self-chains per doc; delivery sentinel reaps.
+- Visible on `/admin/quality-batch`.
+
+**Root cause (bare-run failure mode).** Bare `quality_runs` rows run inside a single Deno isolate with no self-chain and no sentinel coverage. Enforce-mode adds per-doc Pass-1 LLM calls (with N=2 retry budget), extending isolate wall-time past runtime-shutdown horizons. The isolate dies mid-run; orphan-reaper flips status to `failed` with `Orphaned by runtime shutdown`. Yield: zero docs.
+
+**Standing rule (promoted NOW).** All measurement runs — tuning, holdout, pilot, one-off — MUST be launched wrapped in a `quality_batch_runs` row. `kick-perfect-intake` is retired for multi-doc runs; it remains a single-doc rescue tool only. Item-151's Wave-C-onward guidance is superseded by this immediate standing rule.
+
+**Post-terminal.** Monitor extracts per existing Wave-B extraction spec.

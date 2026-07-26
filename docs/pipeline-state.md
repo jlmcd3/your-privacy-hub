@@ -2416,3 +2416,33 @@ Recommend option 1 for Wave C and all future standalone tuning/holdout launches.
 **Scope constraints honoured.** No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, or corpus edits. No deploys. Ledger + courier addendum only.
 
 **Courier:** appended addendum to `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
+
+## Ledger item 152 — WAVE-B RELAUNCH, BATCH-WRAPPED (2026-07-26T23:20:10Z)
+
+**Status:** LAUNCHED. Standing rule promoted.
+
+**Superseded run.** `quality_runs.id=d8d42997-8601-4984-9a37-34c3230cba17` (item 150/151 lineage) terminated `status='failed'`, `last_error='Orphaned by runtime shutdown — rerun to continue.'`, 0 docs completed, 0 scores. Marked **SUPERSEDED** — bare single-isolate launch that could not survive runtime shutdown; enforce-mode's per-doc Pass-1 LLM calls extended isolate wall-time past the shutdown horizon. **Not a duplicate-launch violation:** the relaunch replaces a 0-yield failure, not a live run.
+
+**Relaunch shape (batch-wrapped).** One row inserted into `quality_batch_runs` via the standard admin insert path:
+- `id = fc6a8394-a265-4297-b086-805e183d2ee5`
+- `tools = {cppa-risk}`
+- `batch_size = 6`
+- `instrument_version = gc-2026-07-26-s5-eu-uk-ca-au-sg`
+- `campaign_id = NULL` (standalone; CEO campaign pause respected)
+- `status = running`, `phase = kickoff`, `concurrency = 1`
+- Scenario set: `tuning` (per dispatch; scenario selection carried by the orchestrator's default tuning pool for cppa-risk under s5)
+- Locks pasted; single launch.
+
+**Why this shape.** `batch-kickoff-pickup` only serves rows in `quality_batch_runs`. Wrapping the run gives it:
+1. Kickoff pickup (no manual kick, no `kick-perfect-intake` dependency).
+2. Orchestrator self-chaining across docs (isolate-death resilient — each doc gets a fresh isolate).
+3. Delivery sentinel reaping on stall.
+4. Visibility on `/admin/quality-batch` (CEO watches that page).
+
+**Standing rule (promoted NOW, not deferred to Wave C).** All measurement runs — tuning, holdout, pilot, one-off — MUST be launched wrapped in a `quality_batch_runs` row. `kick-perfect-intake` is **retired for multi-doc runs**; it remains a one-shot rescue tool for single-doc rescue only. Any future bare `quality_runs` launch for measurement is a protocol violation.
+
+**Root-cause note (courier addendum).** Bare single-isolate runs cannot survive Deno runtime shutdowns; enforce-mode's added per-doc model calls (Pass-1 derivation, N=2 retry budget) push isolate wall-time past shutdown horizons. Batch-wrap is the only launch shape with the resilience primitives (self-chain, sentinel, pickup) needed for enforce-mode measurement.
+
+**Turn scope.** Ledger update + one INSERT + courier addendum. No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, or corpus edits. No deploys. Monitor extracts at terminal per existing Wave-B extraction spec.
+
+**Courier:** addendum appended to `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
