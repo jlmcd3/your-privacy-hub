@@ -1364,8 +1364,8 @@ export const CPPA_RISK_VARIANTS = [
   // slice of the legacy straddle). q15=No so Q15c is hidden (absent-path).
   {
     entity_name: "Harbor Ridge Retail Co.",
-    q1_revenue: "$100M–$500M",
-    q2_consumers: "250,000–1 million",
+    q1_revenue: "Over $100M",
+    q2_consumers: "250,000 to under 1,000,000",
     q3_sector: "Retail/e-commerce",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
