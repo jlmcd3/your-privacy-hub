@@ -302,6 +302,97 @@ export function lintPass2Output(
 }
 
 // ---------------------------------------------------------------------------
+// V8 — Authority-weight tiering (Q4(e) v2.2)
+// ---------------------------------------------------------------------------
+
+export function validateAuthorityWeight(plan: RenderPlan): Issue[] {
+  const issues: Issue[] = [];
+  const bindingIndex = new Map(plan.citation_bindings.map((b) => [b.pinpoint_ref, b]));
+  const domain = plan.jurisdiction_tag;
+
+  // (a) Type-R proposition citation bindings must be binding-tier.
+  for (const p of plan.propositions) {
+    if (p.epistemic_type !== "R") continue;
+    for (const ref of p.citation_binding_refs) {
+      const b = bindingIndex.get(ref);
+      if (!b) continue; // caught by V2
+      const w = b.authority_weight ?? "binding";
+      if (w !== "binding") {
+        issues.push({
+          code: "V8_TYPE_R_NON_BINDING",
+          severity: "error",
+          message: `Type-R proposition ${p.id} anchors on citation ${ref} with authority_weight="${w}"; Type-R requires binding-tier.`,
+          path: `citation_bindings.${ref}.authority_weight`,
+        });
+      }
+    }
+  }
+
+  // (b) Factor-registry guidance_refs must be binding-tier.
+  for (const e of plan.factor_table) {
+    for (const g of e.guidance_refs) {
+      const w = (g as { authority_weight?: string }).authority_weight ?? "binding";
+      if (w !== "binding") {
+        issues.push({
+          code: "V8_FACTOR_GUIDANCE_NON_BINDING",
+          severity: "error",
+          message: `Factor ${e.factor_id} guidance_ref carries authority_weight="${w}"; factor guidance must be binding-tier.`,
+          path: `factor_table.${e.factor_id}.guidance_refs`,
+        });
+      }
+    }
+  }
+
+  // (c) Persuasive weighing_frame entries require fsor_mediation_ref.
+  // (d) GDPR plans reject any persuasive entry (US/CA bridge banned one-way).
+  for (const f of plan.weighing_frame) {
+    const w = f.authority_weight ?? "binding";
+    if (w === "persuasive") {
+      if (!f.fsor_mediation_ref || f.fsor_mediation_ref.length === 0) {
+        issues.push({
+          code: "V8_PERSUASIVE_NO_MEDIATION",
+          severity: "error",
+          message: `Weighing frame ${f.frame_id} is authority_weight="persuasive" but has no fsor_mediation_ref.`,
+          path: `weighing_frame.${f.frame_id}.fsor_mediation_ref`,
+        });
+      }
+      if (domain !== "cppa-ca") {
+        issues.push({
+          code: "V8_PERSUASIVE_NON_CPPA_PLAN",
+          severity: "error",
+          message: `Weighing frame ${f.frame_id} carries persuasive tier on non-CPPA plan (${domain}); the US/CA→other bridge is banned one-way.`,
+          path: `weighing_frame.${f.frame_id}.authority_weight`,
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+// ---------------------------------------------------------------------------
+// Pass-2 persuasive-marking lint (Q4(e) v2.2 rendering discipline)
+// ---------------------------------------------------------------------------
+
+export function lintPersuasiveMarking(
+  rendered: string,
+  persuasiveEntriesRendered: readonly WeighingFrameEntry[],
+): Issue[] {
+  const issues: Issue[] = [];
+  if (persuasiveEntriesRendered.length === 0) return issues;
+  const lower = rendered.toLowerCase();
+  const hasMarker = PERSUASIVE_MARKERS.some((m) => lower.includes(m.toLowerCase()));
+  if (!hasMarker) {
+    issues.push({
+      code: "V8_PERSUASIVE_UNMARKED",
+      severity: "error",
+      message:
+        `Pass-2 output renders ${persuasiveEntriesRendered.length} persuasive frame entr(y|ies) without any persuasive marker phrase; template must include one of: ${PERSUASIVE_MARKERS.join(" | ")}.`,
+    });
+  }
+  return issues;
+}
+
+// ---------------------------------------------------------------------------
 // Aggregator
 // ---------------------------------------------------------------------------
 
@@ -317,5 +408,6 @@ export function validateRenderPlan(
     ...validatePassGCandidateClosure(plan, weighingTests),
     ...validateTypeRPolarity(plan),
     ...validateTypeWFactorCompleteness(plan),
+    ...validateAuthorityWeight(plan),
   ];
 }
