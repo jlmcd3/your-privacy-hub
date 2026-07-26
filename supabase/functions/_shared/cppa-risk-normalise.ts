@@ -21,6 +21,40 @@ import {
   type FiveStageIntake,
   type ExceptionEntry,
 } from "./cppa-test-states.ts";
+// BAND-REALIGNMENT-T2A (2026-07-26) — wire the V1→V2 resolvers so intake
+// entry stamps `_meta.internal.band_v1_to_v2_resolved` on unambiguous
+// legacy → V2 mapping, and `_meta.internal.band_legacy_ambiguous` on
+// straddling legacy labels. Conservative no-assert behavior is preserved
+// on ambiguous inputs (classifier already returns audit_cohort='indeterminate').
+import {
+  resolveRevenueBand,
+  resolveConsumerBand,
+  isBandLegacyAmbiguous,
+  REVENUE_BANDS_V2,
+  CONSUMER_BANDS_V2,
+} from "./bands/revenue-consumer.ts";
+
+export interface BandResolution {
+  q1_v1_to_v2_resolved: string | null; // e.g. "$50M–$100M -> $50M to $100M"
+  q2_v1_to_v2_resolved: string | null;
+  q1_legacy_ambiguous: boolean;
+  q2_legacy_ambiguous: boolean;
+}
+
+function computeBandResolution(raw: any): BandResolution {
+  const rawQ1 = typeof raw?.q1_revenue === "string" ? raw.q1_revenue.trim() : "";
+  const rawQ2 = typeof raw?.q2_consumers === "string" ? raw.q2_consumers.trim() : "";
+  const isV2Rev = (REVENUE_BANDS_V2 as readonly string[]).includes(rawQ1);
+  const isV2Con = (CONSUMER_BANDS_V2 as readonly string[]).includes(rawQ2);
+  const q1Resolved = !isV2Rev ? resolveRevenueBand(rawQ1) : null;
+  const q2Resolved = !isV2Con ? resolveConsumerBand(rawQ2) : null;
+  return {
+    q1_v1_to_v2_resolved: (!isV2Rev && q1Resolved) ? `${rawQ1} -> ${q1Resolved}` : null,
+    q2_v1_to_v2_resolved: (!isV2Con && q2Resolved) ? `${rawQ2} -> ${q2Resolved}` : null,
+    q1_legacy_ambiguous: !isV2Rev && isBandLegacyAmbiguous(rawQ1),
+    q2_legacy_ambiguous: !isV2Con && isBandLegacyAmbiguous(rawQ2),
+  };
+}
 
 export const EMPTY_TRIGGERS = {
   sells_or_shares_pi: false,
@@ -195,9 +229,14 @@ export function shimLegacyIntake(intake: any): FiveStageIntake {
   };
 }
 
-export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean } {
+export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean; bandResolution: BandResolution } {
+  const bandResolution = computeBandResolution(intake ?? {});
   if (intake?.triggers === undefined) {
-    return { intake: shimLegacyIntake(intake ?? {}), wasLegacyShimmed: true };
+    const shimmed = shimLegacyIntake(intake ?? {});
+    // BAND-REALIGNMENT-T2A: stash band-resolution on content_detail for
+    // downstream pickup by the generator's _meta.internal writer.
+    (shimmed.content_detail as any)._band_resolution = bandResolution;
+    return { intake: shimmed, wasLegacyShimmed: true, bandResolution };
   }
   const cd = { ...(intake.content_detail ?? {}) } as Record<string, any>;
   if (intake.q15c_spi_volume !== undefined) cd.q15c_spi_volume = String(intake.q15c_spi_volume ?? "");
@@ -206,6 +245,7 @@ export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLega
   cd.revenue_band = band.label;
   cd.revenue_band_key = band.key;
   cd.revenue_audit_cohort = band.audit_cohort;
+  cd._band_resolution = bandResolution;
   const triggers = { ...EMPTY_TRIGGERS, ...(intake.triggers ?? {}) } as Record<string, any>;
   triggers.revenue_over_100m = band.over_100m;
   return {
@@ -219,6 +259,7 @@ export function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLega
       content_detail: cd,
     },
     wasLegacyShimmed: false,
+    bandResolution,
   };
 }
 

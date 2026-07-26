@@ -14,7 +14,7 @@ import {
 } from "../_shared/grader/context.ts";
 
 Deno.test("instrument id bumped to s4", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-25-s4-eu-uk-ca-au-sg");
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-26-s5-eu-uk-ca-au-sg");
 });
 
 Deno.test("§ 7150(b)(3) is present in the CPPA Risk verified subsection map", () => {

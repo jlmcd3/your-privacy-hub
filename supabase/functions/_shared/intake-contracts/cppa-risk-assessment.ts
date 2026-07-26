@@ -14,7 +14,14 @@
 import type { IntakeContract } from "./types.ts";
 
 // ── Verbatim option copies ──────────────────────────────────────────────
-export const REVENUE_OPTS = ["Under $25M", "$25M–$50M", "$50M–$100M", "$100M–$500M", "Over $500M"] as const;
+// BAND-REALIGNMENT-T2A (2026-07-26) — REVENUE_OPTS retargeted to V2 label
+// set from `_shared/bands/revenue-consumer.ts`. V2 edges align with the
+// statutory lines (§ 1798.140(d)(1)(A) $25M, § 7121(a) $50M / $100M cohort
+// breakpoints) so every band answer resolves to exactly ONE cohort and ONE
+// applicability answer. Legacy V1 labels remain resolvable via
+// `resolveRevenueBand` in the normaliser; the classifier retains V1 switch
+// cases for stored-row back-compat.
+export const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"] as const;
 // Verbatim copy of SENSITIVE_LOCATION_BASIS_OPTS from
 // src/pages/CPPARiskAssessment.enums.ts. Parity asserted by the risk
 // option-drift test (single source of truth = the .enums.ts export).
@@ -29,7 +36,10 @@ export const SENSITIVE_LOCATION_BASIS_OPTS = [
   "Immigration- or refugee-services facility",
   "Other sensitive location (describe in the intake)",
 ] as const;
-export const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–249,999", "250,000–1 million", "1–10 million", "Over 10 million", "Unsure"] as const;
+// BAND-REALIGNMENT-T2A (2026-07-26) — CONSUMER_OPTS retargeted to V2. V2
+// edges align with § 1798.140(d)(1)(B) 100,000 trigger and § 7120(b)(2)(A)
+// 250,000 prong. Legacy V1 labels remain resolvable via resolveConsumerBand.
+export const CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"] as const;
 export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
 export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
 export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"] as const;

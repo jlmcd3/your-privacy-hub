@@ -239,3 +239,55 @@ All rulings recorded durably per CEO instruction "Write every step durably (ledg
 **Feasibility note (informational, not a partial-execution):** the V2 band scaffold in `supabase/functions/_shared/bands/revenue-consumer.ts` already exposes unambiguous edges (`"Over $100M"` → 2028-04-01 cohort per `REVENUE_BAND_AUDIT_COHORT`; `"1,000,000 or more"` → both over_100k and over_250k prongs per `CONSUMER_BAND_APPLICABILITY`) that a future execution turn can anchor perfect fixtures against.
 
 **Unblock chain (head-first):** §4 T2A micro-scope ruling → T2A executes and lands (releases items 113 + 118-(ii)) → T2B executes → T2C executes → T2 COMPLETE marker written → this experiment may launch → item 115 (TWO-PASS design) releases → item 114 (IR-BAND) proceeds.
+
+---
+
+## BAND-REALIGNMENT-T2A — LANDED (2026-07-26T05:35:00Z)
+
+**Dispatch:** BAND-REALIGNMENT-T2A (atomic contract turn; controller ruling ~05:50Z approved §4 T2A micro-scope amendment adding `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` with widened `legacyAccepted` set enumerated verbatim in item 120's failure table).
+
+**Files landed (14 total):**
+1. `supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts` — REVENUE_OPTS / CONSUMER_OPTS retargeted to V2.
+2. `src/pages/CPPARiskAssessment.enums.ts` — REVENUE_OPTS / CONSUMER_OPTS retargeted to V2.
+3. `supabase/functions/_shared/cppa-test-states.ts` — `classifyRevenueBand` V2 cases added (legacy retained); `over_100m` key added; CB map extended with V2 keys (legacy retained).
+4. `supabase/functions/_shared/cppa-risk-normalise.ts` — `resolveRevenueBand`/`resolveConsumerBand` wired at intake entry; `normaliseIntake` return extended with `bandResolution`; `_band_resolution` stashed on `content_detail` for both shim and 5-stage paths.
+5. `supabase/functions/_shared/golden/cppa-risk.ts` — base fixture q1/q2 retargeted to V2; adtech comment updated; consumer-boundary adversarial fixture retargeted to `"100,000 to under 250,000"` (V2 statutory-edge label).
+6. `supabase/functions/_shared/openings/risk-opening.ts` — `RISK_OPENING_VERSION` bumped to `risk-opening-t7-pilotfix3@2026-07-26`; `REVENUE_BANDS_CLEAR_A` and `BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE` retargeted to V2 vocabulary (legacy V1 retained for stored-row back-compat).
+7. `supabase/functions/_shared/grader/context.ts` — `GRADER_CONTEXT_VERSION` bumped to `gc-2026-07-26-s5-eu-uk-ca-au-sg`; § 7121 cohort prose (L61) synced to name both V2 and legacy V1 band labels for all three cohorts.
+8. `supabase/functions/run-cppa-risk-assessment/index.ts` — `BUILD_STAMP` set to `band-realignment-t2a@2026-07-26T05:29:06Z`; boot log added; `bandResolution` destructured from `normaliseIntake` (L891); `_meta.internal.band_v1_to_v2_resolved` + `_meta.internal.band_legacy_ambiguous` stamped at report-write time.
+9-11. `supabase/functions/_tests/counsel-voice-1.test.ts` (L120), `_tests/grader-map-correction-7150b3.test.ts` (L17), `_tests/grader-cal-1.test.ts` (L378) — s4→s5 literal.
+12. **NEW** `supabase/functions/_tests/band-realignment-t2a.test.ts` — 7 tests / 0 failures, pasted green: (i) exhaustive V2 revenue-band cohort map, (ii) legacy → V2 resolver for every entry of both maps, (iii) `band_legacy_ambiguous` stamp on every ambiguous input + `band_v1_to_v2_resolved` stamp on every unambiguous legacy input + no-stamp behavior for V2 inputs, (iv) golden-fixture round-trip on V2 labels.
+13. `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` — `legacyAccepted` widened to the exact 12-value V1 set per controller ruling; hygiene condition RECORDED: T2B must re-narrow after retargeting stress fixtures.
+
+**Pasted-green evidence:**
+- Deno: `_tests/band-realignment-t2a.test.ts` → **7 passed | 0 failed**.
+- Deno: `_tests/grader-map-correction-7150b3.test.ts` → **3 passed | 0 failed** (incl. `instrument id bumped to s4` asserting s5 literal).
+- Deno: `_tests/counsel-voice-1.test.ts` filter=`GRADER_CONTEXT_VERSION` → **1 passed | 0 failed**.
+- Deno: `_tests/grader-cal-1.test.ts` filter=`version` → **2 passed | 0 failed** (`pickup-stamp guard tracks current gc-* version`, `instrument version bumped to grader-cal-5r`).
+- Vitest: `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` → **11 passed | 0 failed**.
+- 3 pre-existing counsel-voice-1 reds (`legacy NOTE FOR LEGAL REVIEW is still whitelisted`, `E1 (IR): PART A..PART F presence`, `CV1-R: run-governance-assessment disclaimer constants have no counsel-referral directive`) inspected and confirmed to be **outside the amended T2A scope** — assert against counsel-referral text patterns and IR PART-structure prose only; zero coupling to band vocabulary. GATE clause "any NEW red outside amended scope" therefore does not trip (these are not new reds).
+
+**Deploy proof:**
+- Deployed `run-cppa-risk-assessment` (Supabase deploy tool, 05:34Z).
+- Boot log captured: `2026-07-26T05:34:51Z INFO [run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`.
+- Fresh-clock BUILD_STAMP `band-realignment-t2a@2026-07-26T05:29:06Z`.
+
+**SHARED_GRADER_CONTEXT SHA-256 (RECORDED):**
+- `GRADER_CONTEXT_VERSION` = `gc-2026-07-26-s5-eu-uk-ca-au-sg`
+- SHA-256 = `2ff89366ce6f6add320866ea21078f0f5fb03048269633ed70622cfe60928ceb`
+
+**Pre-deploy locks re-verified:** campaign fd1be147 is CEO-paused (item 116); no in-flight risk wave; orphan harness child `37a242fa-…` already finalized (item 119); no queued perfect-intake or IR-BAND runs (both HELD behind T2C per items 121/122/123).
+
+**CEO ruling log entry:** "s5 instrument in force; waves grade on s5 from CEO resume; per-tool baselines reset on first s5 wave per standard epoch-change rule."
+
+**Released holds (BY NAME):**
+- **Item 113** — BAND-REALIGNMENT (SHIPPED-T1 / DEPLOY-HELD) → RELEASED (T2A completes the deploy path for cppa-risk).
+- **Item 118 step (ii)** — BAND-REALIGNMENT T2 DEPLOY-HELD → RELEASED (T2A is the deploy).
+- **Item 120** — T2A HELD (pre-existing drift-guard blocker) → RESOLVED by micro-scope amendment.
+
+**Holds still pending (T2 not COMPLETE):**
+- Item 121 — T2B still HELD-AWAITING-T2A; now unblocked, awaits its own dispatch.
+- Item 122 — T2C HELD-AWAITING-T2B.
+- Item 123 — PERFECT-INTAKE-EXPERIMENT-RISK HELD-AWAITING-T2C.
+
+**Deviation:** none — GATE clause held (no new reds introduced within amended scope).

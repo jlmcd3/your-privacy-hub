@@ -6,8 +6,8 @@ import type { GoldenCase } from "./types.ts";
 const base = {
   entity_name: "Meridian SaaS Inc.",
   subject_anchor: "California consumers using the free tier",
-  q1_revenue: "$25M–$50M",
-  q2_consumers: "250,000–1 million",
+  q1_revenue: "$25M to under $50M",
+  q2_consumers: "250,000 to under 1,000,000",
   q3_sector: "Technology/SaaS",
   q4_pi_categories: ["Contact identifiers (name, email, phone)", "Device identifiers (IP, cookies, device IDs)"],
   q5_sell_share: "No",
@@ -81,7 +81,7 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "sensitive", flags: "i", label: "SPI addressed" },
       // T7-RISK-OPENING-PILOT: adtech fixture engages § 1798.140(d)(1)(B) (sell/share
-      // "Both" + q2_consumers "250,000–1 million") — deterministic S0 must render
+      // "Both" + q2_consumers "250,000 to under 1,000,000") — deterministic S0 must render
       // the (B) verbatim corpus quote fragment.
       { kind: "must_include", pattern: "buys, sells, or shares", flags: "", label: "S0 (B) corpus quote present" },
       { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
@@ -94,8 +94,8 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     intake: {
       ...base,
       entity_name: "Cascade Data Ltd",
-      // Right on the trigger boundary:
-      q2_consumers: "100,000–249,999",
+      // Right on the trigger boundary (V2 label for § 1798.140(d)(1)(B) edge):
+      q2_consumers: "100,000 to under 250,000",
       i3_ca_consumer_band: "100,000–1,000,000",
       // QB-P25 boundary-batch fix: enable ADMT trigger so the fixture
       // clears the § 7150(b) pre-generation validator; the boundary
@@ -104,7 +104,7 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
     },
     assertions: [
       { kind: "must_include", pattern: "100,000", flags: "i", label: "boundary threshold surfaced" },
-      // T7-RISK-OPENING-PILOT: q2_consumers "100,000–249,999" straddles from below
+      // T7-RISK-OPENING-PILOT: q2_consumers "100,000 to under 250,000" straddles from below
       // on § 1798.140(d)(1)(B), q5_sell_share "No" — opening must NOT assert (B).
       // Boundary-band handling stays in the body, not the opening (per spec rule 6).
       { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },

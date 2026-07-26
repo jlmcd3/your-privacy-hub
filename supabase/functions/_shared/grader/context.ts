@@ -13,7 +13,7 @@
 // quality_batch_baselines rows so /admin/quality-batch can render "EPOCH
 // CHANGE" dividers between batches that ran under different instruments.
 // Do NOT bump for whitespace or comment-only edits. Format: gc-YYYY-MM-DD-tag.
-export const GRADER_CONTEXT_VERSION = "gc-2026-07-25-s4-eu-uk-ca-au-sg";
+export const GRADER_CONTEXT_VERSION = "gc-2026-07-26-s5-eu-uk-ca-au-sg";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
@@ -58,7 +58,7 @@ CPPA ADMT REGULATIONS — VERIFIED-ANCHOR MAP (primary-source verified 2026-07-1
 - COMPLIANCE DATE: businesses using ADMT for significant decisions before 2027-01-01 must comply by 2027-01-01; ADMT deployed on/after that date must comply at deployment. Reports citing § 7220 pre-use notice with the January 1, 2027 date are CORRECT.
 
 CYBER-AUDIT COHORT MAP (corpus-verified house standard; do NOT flag as misapplied):
-- 11 CCR § 7121(a) certification cohorts by revenue band: April 1, 2028 (>$100M) / April 1, 2029 ($50–100M) / April 1, 2030 (<$50M). Reports mapping the $100M–$500M band to April 1, 2028 are correct.
+- 11 CCR § 7121(a) certification cohorts by revenue band: April 1, 2028 (>$100M) / April 1, 2029 ($50–100M) / April 1, 2030 (<$50M). Reports mapping the "Over $100M" band (V2) or "$100M–$500M" band (legacy V1) to April 1, 2028, and mapping the "$50M to $100M" band (V2) or "$50M–$100M" (legacy) to April 1, 2029, and mapping "Under $25M" / "$25M to under $50M" (V2) or "$25M–$50M" / "Under $25M" (legacy) to April 1, 2030, are all correct.
 - 11 CCR § 7121(a)(3) is the ACCEPTED DEEPER PINPOINT for the April 1, 2030 cohort (annual gross revenue < $50M); § 7121(a) remains accepted as the shallower cite for the same claim. Corpus proof: provision_texts.cppa-7121 approved 2026-07-25 (source PDF SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650). Do NOT accept § 7121(b) or § 7121(b)(3) for the cohort claim — subsection (b) is the steady-state (post-Apr 1, 2030) rule, not a cohort enumeration.
 
 CPPA RISK ASSESSMENT — VERIFIED SUBSECTION MAP (primary-source verified; do NOT flag as misapplied or as fabricated subsections):

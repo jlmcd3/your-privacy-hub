@@ -14,9 +14,10 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "risk-intake-contradiction-body@2026-07-26T03:33:00Z";
+export const BUILD_STAMP = "band-realignment-t2a@2026-07-26T05:29:06Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
+console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
 import {
   newVocabScrubMetrics,
   scrubReportVocab,
@@ -888,7 +889,7 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
-    const { intake: fiveStage, wasLegacyShimmed } = normaliseIntake(row.intake_data ?? {});
+    const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
 
     const validation = validateFiveStage(fiveStage, /* lenient */ wasLegacyShimmed);
     if (!validation.ok) {
@@ -3004,7 +3005,11 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] RISK-INTAKE-CONTRADICTION-BODY failed (non-fatal):", (e as Error)?.message);
     }
 
+    // BAND-REALIGNMENT-T2A (2026-07-26): stamp band-resolution telemetry on
+    // _meta.internal so downstream QC / graders can distinguish V1→V2
+    // resolved intakes from legacy-ambiguous inputs.
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
+    (report_data as any)._meta.internal = { ...((report_data as any)._meta?.internal ?? {}), band_v1_to_v2_resolved: { q1_revenue: bandResolution?.q1_v1_to_v2_resolved ?? null, q2_consumers: bandResolution?.q2_v1_to_v2_resolved ?? null }, band_legacy_ambiguous: { q1_revenue: !!bandResolution?.q1_legacy_ambiguous, q2_consumers: !!bandResolution?.q2_legacy_ambiguous } };
 
 
 
