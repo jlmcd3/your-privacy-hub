@@ -27,6 +27,8 @@ export interface GuidanceRef {
   readonly page_ref: string | null;
   /** Short human anchor to the row's agency_position_summary. */
   readonly anchor_hint: string;
+  /** v2.2 — factor-registry guidance_refs are BINDING-tier only (CA interpretive material). Registry lint rejects any other value. */
+  readonly authority_weight: "binding";
 }
 
 export interface FactorRow {
@@ -128,6 +130,7 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
         regulation_citation: "11 CCR § 7152",
         page_ref: "Appendix, p. 134",
         anchor_hint: "balance privacy risks against broader benefits to various stakeholders",
+        authority_weight: "binding",
       },
     ],
   },
@@ -145,6 +148,7 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
         regulation_citation: "11 CCR § 7152",
         page_ref: "Appendix, p. 130",
         anchor_hint: "transparency, accountability, and harm mitigation measures for ADMT",
+        authority_weight: "binding",
       },
     ],
   },
@@ -253,6 +257,7 @@ const SAFEGUARDS: readonly FactorRow[] = [
         regulation_citation: "11 CCR § 7152",
         page_ref: null,
         anchor_hint: "clarified risk assessment documentation requirements under 11 CCR § 7152(a) to streamline safeguards",
+        authority_weight: "binding",
       },
     ],
   },
@@ -295,6 +300,7 @@ const SAFEGUARDS: readonly FactorRow[] = [
         regulation_citation: "11 CCR § 7152",
         page_ref: "p. 37",
         anchor_hint: "businesses using ADMT in risk assessments must identify specific evaluations, policies, procedures, and training",
+        authority_weight: "binding",
       },
     ],
   },

@@ -27,12 +27,17 @@ export interface IntakeLedgerEntry {
   readonly display: string;        // exact rendering token used in Pass 2
 }
 
+/** v2.2: every corpus reference carries an authority-weight tier. */
+export type AuthorityWeight = "binding" | "persuasive";
+
 /** Pinpoint the model is allowed to cite via {{cite:PINPOINT_REF}} tokens. */
 export interface CitationBinding {
   readonly pinpoint_ref: string;   // token id used in template
   readonly corpus_key: string;     // matches provision_texts.key / cppa_authorities citation
   readonly pinpoint: string;       // "11 CCR § 7152(a)(5)(A)"
   readonly jurisdiction_tag: JurisdictionTag;
+  /** v2.2 — Type R proposition anchors resolve only to binding bindings. Defaults to "binding" if omitted. */
+  readonly authority_weight?: AuthorityWeight;
 }
 
 /** One proposition Pass 2 must render (Type R = deterministic, Type W = weighed). */
@@ -73,6 +78,10 @@ export interface WeighingFrameEntry {
   readonly pinpoint: string;                   // regulation citation
   readonly closeness_contribution: number;     // 0..1
   readonly tier_label: "primary" | "supporting" | "analogy_fsor_internal";
+  /** v2.2 — binding = CA interpretive material; persuasive = FSOR-mediated non-CA (CPPA products only, requires fsor_mediation_ref). Defaults to "binding" if omitted. */
+  readonly authority_weight?: AuthorityWeight;
+  /** v2.2 — REQUIRED when authority_weight="persuasive": id of the CPPA-domain FSOR row that discusses this non-CA source. */
+  readonly fsor_mediation_ref?: string;
 }
 
 /** Gate outcomes captured in Pass 1 for downstream layers to key on. */
@@ -109,4 +118,12 @@ export const FORBIDDEN_COMPARATIVE_TOKENS: readonly string[] = [
   "under the GDPR",
   "EDPB guidance",
   "as under the GDPR",
+];
+
+/** v2.2 — persuasive-marking phrases required in Pass-2 sentences that render a persuasive frame entry. */
+export const PERSUASIVE_MARKERS: readonly string[] = [
+  "by way of analogy",
+  "persuasive but not binding",
+  "as persuasive authority",
+  "for persuasive comparison",
 ];
