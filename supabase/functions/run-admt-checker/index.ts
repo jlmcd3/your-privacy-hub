@@ -8,9 +8,9 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "h7b-admt-citation-relabel@2026-07-26T01:20:00Z";
+export const BUILD_STAMP = "h6-admt-governing-anchor@2026-07-26T01:30:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
-console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP, prior_stamps: { h7: "h7-admt-blanket-range@2026-07-25T23:48:00Z", w26: "w26-admt-citation-audit@2026-07-25T23:34:00Z", w25: "w25-admt-sanitizer@2026-07-25T22:44:15Z" } }));
+console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP, prior_stamps: { h7b: "h7b-admt-citation-relabel@2026-07-26T01:20:00Z", h7: "h7-admt-blanket-range@2026-07-25T23:48:00Z", w26: "w26-admt-citation-audit@2026-07-25T23:34:00Z", w25: "w25-admt-sanitizer@2026-07-25T22:44:15Z" } }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
 // Blocks wave-14/15 unsupported-positive, contradiction, and
 // negative-from-silence classes on client-fact surfaces. Runs BEFORE the
@@ -48,6 +48,7 @@ import { applyW25AdmtSanitizerFix, W25_ADMT_SANITIZER_STAMP } from "./_w25_admt_
 import { applyW26AdmtCitationAudit, W26_ADMT_CITATION_AUDIT_STAMP } from "./_w26_admt_citation_audit.ts";
 import { applyH7AdmtBlanketRange, H7_ADMT_BLANKET_RANGE_STAMP } from "./_h7_admt_blanket_range.ts";
 import { applyH7bAdmtCitationRelabel, H7B_ADMT_CITATION_RELABEL_STAMP } from "./_h7b_citation_relabel.ts";
+import { applyH6AdmtAnchor, H6_ADMT_ANCHOR_STAMP } from "./_h6_admt_anchor.ts";
 console.log(`[run-admt-checker] boot admt_turna_w20_stamp=${W20_ADMT_TURNA_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w21_stamp=${W21_ADMT_TURNB_STAMP}`);
 console.log(`[run-admt-checker] boot admt_turnb_w22_stamp=${W22_ADMT_TURNB_STAMP}`);
@@ -2561,8 +2562,25 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] H7B-ADMT-CITATION-RELABEL failed (non-fatal):", (e as Error)?.message);
     }
 
-
-
+    // ── H6-ADMT-GOVERNING-ANCHOR (2026-07-26) ────────────────────────
+    // Discharges the long-queued h6_admt_governing_anchor class
+    // (ledger 80/91/95). Post-emitter sanitizer:
+    //   (a) duty entries whose sole citation is a § 7001 definitional
+    //       anchor;
+    //   (b) duty entries citing § 7150(b)(3) on sell/share-documentation
+    //       prose (misapplication — (b)(3) verifies the ADMT trigger).
+    // Registry-first relabel; else whole-entry excision (item-84c
+    // structural analog). Runs AFTER _w24_admt_h6 / _w25_sanitizer /
+    // _h7 / _h7b and BEFORE the LEAK-PREV-P1 emit gate. Fail-open.
+    try {
+      const h6b = applyH6AdmtAnchor(report);
+      console.log(JSON.stringify({
+        evt: "h6_admt_governing_anchor", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, stamp: H6_ADMT_ANCHOR_STAMP, ...h6b,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] H6-ADMT-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
+    }
 
 
 
