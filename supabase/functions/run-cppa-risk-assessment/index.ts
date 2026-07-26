@@ -3005,7 +3005,11 @@ async function runPipeline(assessment_id: string) {
       console.warn("[RISK] RISK-INTAKE-CONTRADICTION-BODY failed (non-fatal):", (e as Error)?.message);
     }
 
+    // BAND-REALIGNMENT-T2A (2026-07-26): stamp band-resolution telemetry on
+    // _meta.internal so downstream QC / graders can distinguish V1→V2
+    // resolved intakes from legacy-ambiguous inputs.
     (report_data as any)._meta = { ...((report_data as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-risk-assessment", "w15-risk-regwire@2026-07-24"), build_stamp: BUILD_STAMP };
+    (report_data as any)._meta.internal = { ...((report_data as any)._meta?.internal ?? {}), band_v1_to_v2_resolved: { q1_revenue: bandResolution?.q1_v1_to_v2_resolved ?? null, q2_consumers: bandResolution?.q2_v1_to_v2_resolved ?? null }, band_legacy_ambiguous: { q1_revenue: !!bandResolution?.q1_legacy_ambiguous, q2_consumers: !!bandResolution?.q2_legacy_ambiguous } };
 
 
 
