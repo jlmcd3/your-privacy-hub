@@ -52,3 +52,19 @@ Deferred to monitor; will decompose:
 * Subsumption cross-check against `_risk_citation_dup_fix`,
   `_w18_risk_vocab`, `_w15_risk_va`.
 * Tuning-vs-holdout diagnostic (Wave-B batch_size ≥ 4 → active).
+
+---
+
+## Addendum — 2026-07-26T22:11:00Z: run unwedged via SERVICE_ROLE kick
+
+**Symptom.** Wave-B measurement run `d8d42997-8601-4984-9a37-34c3230cba17` sat at `status='pending'`, `next_doc_index=0`, heartbeat unchanged since 21:49:03Z.
+
+**Root cause.** Bare `quality_runs` row without a paired `quality_batch_runs`. `batch-kickoff-pickup` reads `quality_batch_runs` only, so standalone runs are never picked up.
+
+**Action.** One SERVICE_ROLE internal-resume kick via existing `kick-perfect-intake` (already `run_id`-parameterized — no redeploy). Upstream `202 {"resumed":"d8d42997..."}`.
+
+**Verification.** Row transitioned `pending → generating`; heartbeat advanced across six 20s polls (22:08:56 → 22:10:36). No re-kick.
+
+**Prevention (Wave-C onward).** Recommend wrapping standalone measurement runs in a `quality_batch_runs` row at launch time so existing pickup/sentinel infrastructure serves them — smaller change than a permanent kicker. `kick-perfect-intake` remains available as a one-shot rescue tool.
+
+Ledger item: 151.

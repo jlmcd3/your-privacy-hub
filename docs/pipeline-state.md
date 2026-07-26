@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T21:50:00Z — **WAVE-B LIVE (item 150).** LTP Wave-B Part-1 (LLM Pass-1 enforce-preview, N=2 retry, write-around fallback) wired into `run-cppa-risk-assessment` after the existing shadow-mode block; output attached under `_meta.internal.legal_test_pipeline.enforce_preview` (telemetry-only in this wave; whitelist serializer continues to strip `_meta.internal`). Tests: **42 passed / 0 failed** (`deno test --no-check _shared/ltp/`) — added `T.risk.summary.opening.insufficient` to content enumeration (16 templates), moved forbidden-token check pre-substitution so legitimate `§` glyphs from citation pinpoints are not flagged. Deployed with fresh-clock `BUILD_STAMP = ltp-risk-waveb-enforce@2026-07-26T21:45:00Z`; secret `LTP_ENFORCE_ENABLED=1` set; boot log confirmed `ltp_phase2=enforce_preview ltp_enforce_enabled=1`; all prior locks (`w23`/`w24`/`w24a-v3`/`t7-pilotfix`/`t7-pilotfix2`/`risk-cohort-date`/`risk-intake-contradiction-body`/`risk-citation-dup-fix`) present. Part-2 measurement batch **LAUNCHED**: `quality_runs.id=d8d42997-8601-4984-9a37-34c3230cba17`, cppa-risk, batch_size 6, scenario_set=`tuning`, standalone (no campaign), `gc-2026-07-26-s5-eu-uk-ca-au-sg`, `run_number=144`, status `pending` for resume-chain pickup. Wave-B batch_size ≥ 4 → tuning/holdout diagnostic ACTIVE. HELDs 143 / 143b / 143c / 144 / 145 / 147 / 148 / 149 RELEASED at both content and engineering layers. Campaign `fd1be147` remains CEO-paused (unaffected). Post-terminal extraction deferred to monitor. Courier `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
+**Last updated:** 2026-07-26T22:11:00Z — **WAVE-B RUN UNWEDGED (item 151).** Standalone `quality_runs.id=d8d42997-8601-4984-9a37-34c3230cba17` was wedged at `status='pending'` with `next_doc_index=0` and heartbeat unchanged since 21:49:03Z — root cause: bare `quality_runs` row without a corresponding `quality_batch_runs`, which `batch-kickoff-pickup` does not serve. Single SERVICE_ROLE internal-resume kick issued via existing `kick-perfect-intake` (already `run_id`-parameterized; upstream `202 {"resumed":"d8d42997..."}`). Row transitioned `pending → generating` within one poll interval; heartbeat now advancing (22:08:56 → 22:10:36 across 6 × 20s polls). No re-kick. **Prevention (Wave-C onward):** wrap standalone measurement runs in a `quality_batch_runs` row so existing pickup/sentinel infrastructure serves them (smaller change than a permanent kicker). Courier: `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md` (addendum). Prior WAVE-B LIVE state (item 150) unchanged: enforce-preview wired + deployed as `ltp-risk-waveb-enforce@2026-07-26T21:45:00Z`, `LTP_ENFORCE_ENABLED=1`, tests 42/42; post-terminal extraction still deferred to monitor.
 
 ---
 
@@ -2384,3 +2384,35 @@ Executed the CEO-ordered engineering follow-on in a single turn. All prior HELDs
 **Post-terminal extraction (deferred to monitor).** Will decompose: pooled Claude/GPT delta vs Wave-A (78.80 baseline); enforce-preview telemetry — `pass1_ok` rate, `write_around` rate, `attempts` distribution, `latency_ms`; subsumption cross-check against `_risk_citation_dup_fix`, `_w18_risk_vocab`, `_w15_risk_va`; tuning-vs-holdout diagnostic.
 
 **Courier:** `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
+
+## Ledger item 151 — WAVE-B RUN UNWEDGED via SERVICE_ROLE kick (2026-07-26T22:11:00Z)
+
+**Symptom.** At 22:07Z, run `d8d42997-8601-4984-9a37-34c3230cba17` (launched 21:49:03Z) was still `status='pending'`, `next_doc_index=0`, `last_heartbeat_at=2026-07-26 21:49:02.733898+00` — unchanged since launch.
+
+**Root cause.** Bare `quality_runs` row without a paired `quality_batch_runs` entry. `batch-kickoff-pickup` scans `quality_batch_runs` only, so standalone runs launched directly against `quality_runs` are never picked up. Same gap the Perfect-Intake experiment worked around with `kick-perfect-intake`.
+
+**Action.** Single SERVICE_ROLE internal-resume kick via existing `kick-perfect-intake` (already `run_id`-parameterized — no redeploy needed). Upstream returned `202 {"resumed":"d8d42997-8601-4984-9a37-34c3230cba17"}`. Kicker holds no secrets in its response body.
+
+**Verification (row before → after).**
+
+- Before (22:07Z): `status=pending | next_doc_index=0 | last_heartbeat_at=2026-07-26 21:49:02.733898+00`
+- After (22:08:56Z → 22:10:36Z, six 20s polls):
+  - `generating|0|hb=2026-07-26 22:08:56.962+00`
+  - `generating|0|hb=2026-07-26 22:09:16.964+00`
+  - `generating|0|hb=2026-07-26 22:09:36.966+00`
+  - `generating|0|hb=2026-07-26 22:09:56.968+00`
+  - `generating|0|hb=2026-07-26 22:10:16.97+00`
+  - `generating|0|hb=2026-07-26 22:10:36.972+00`
+
+Transition confirmed `pending → generating`; heartbeat advancing every ~20s. Doc-1 generation in progress (index not yet incremented — expected, cppa-risk docs take several minutes). **No re-kick.**
+
+**Prevention (recommendation, Wave-C onward).** Two options:
+
+1. **[Recommended, smaller change]** Wrap standalone measurement runs in a `quality_batch_runs` row at launch time so `batch-kickoff-pickup` and `delivery-sentinel` serve them exactly like campaign-linked runs. No new kicker to maintain.
+2. Land a permanent parameterized kicker (generalize `kick-perfect-intake` under a neutral name like `harness-run-kick`) invoked as a launch step for standalone runs.
+
+Recommend option 1 for Wave C and all future standalone tuning/holdout launches. `kick-perfect-intake` remains as a one-shot rescue tool.
+
+**Scope constraints honoured.** No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, or corpus edits. No deploys. Ledger + courier addendum only.
+
+**Courier:** appended addendum to `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
