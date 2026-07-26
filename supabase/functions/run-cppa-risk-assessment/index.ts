@@ -3174,6 +3174,99 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── FUTURE-BUILDING F0 — observation-only signature emit ─────────
+    // Non-blocking, post-validation, PI-free. Writes a scenario signature
+    // + pinned version block to public.pattern_observations when the LTP
+    // validators emitted zero error-severity issues. Telemetry lands on
+    // _meta.internal.future_building (stripped by LEAK-PREV-P2). Failure
+    // of any step here NEVER affects the run — the report always ships.
+    // NO pattern serving. NO compile-path changes. Observation only.
+    try {
+      const _rd: any = report_data as any;
+      _rd._meta = _rd._meta ?? {};
+      _rd._meta.internal = _rd._meta.internal ?? {};
+      const _ltp = _rd._meta.internal.legal_test_pipeline;
+      const _validatorErrors = Number(_ltp?.validators?.total_issues ?? 0);
+      if (!_ltp || _validatorErrors > 0) {
+        _rd._meta.internal.future_building = {
+          observed: false,
+          reason: !_ltp ? "ltp_missing" : "validator_errors_present",
+          version: "f0",
+        };
+      } else {
+        const _fbIntake = (row as any).intake_data ?? {};
+        // Canonical enum/band bucket — booleans, numbers, and short strings only.
+        // Anything longer than 64 chars is treated as free-text (presence only).
+        const _fbEnums: Record<string, string | number | boolean | null> = {};
+        const _fbFreeText: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(_fbIntake)) {
+          if (v === null || v === undefined) { _fbEnums[k] = null; continue; }
+          if (typeof v === "boolean" || typeof v === "number") { _fbEnums[k] = v; continue; }
+          if (typeof v === "string") {
+            if (v.length <= 64) _fbEnums[k] = v; else _fbFreeText[k] = v;
+            continue;
+          }
+          _fbFreeText[k] = v;
+        }
+        const _fbGates: Record<string, "pass" | "block" | "not_applicable"> = {};
+        for (const g of (_ltp?.derive?.gate_outcomes ?? []) as Array<{gate_id: string; outcome: string}>) {
+          if (g?.gate_id && (g.outcome === "pass" || g.outcome === "block" || g.outcome === "not_applicable")) {
+            _fbGates[g.gate_id] = g.outcome;
+          }
+        }
+        const _sig = await computeScenarioSignature({
+          product: "cppa-risk-assessment",
+          jurisdictionTags: ["cppa-ca"],
+          enums: _fbEnums,
+          freeText: _fbFreeText,
+          gateOutcomes: _fbGates,
+        });
+        const _fbRegistryVersions = {
+          ltp_stamp: LTP_STAMP,
+          legal_test_rev: "v2.3",
+          factors: "cppa-risk-factors@phase-1",
+          templates: "cppa-risk-templates@ltp-p2",
+          corpus_batch: BUILD_STAMP,
+        };
+        // Async (non-awaited) write — never blocks the run. Errors are
+        // swallowed inside the promise.
+        supabase.from("pattern_observations").insert({
+          product: "cppa-risk-assessment",
+          signature: _sig.hash,
+          plan_version: "v1",
+          instrument_version: "gc-2026-07-26-s5",
+          registry_versions: _fbRegistryVersions,
+          scenario_set: (row as any)?.scenario_set ?? null,
+          run_ref: assessment_id ?? null,
+        }).then(({ error }) => {
+          if (error) {
+            console.warn("[run-cppa-risk-assessment] future-building insert failed (non-fatal):", error.message);
+          }
+        }).catch((err: unknown) => {
+          console.warn("[run-cppa-risk-assessment] future-building insert threw (non-fatal):", (err as Error)?.message);
+        });
+        _rd._meta.internal.future_building = {
+          observed: true,
+          signature: _sig.hash,
+          version: "f0",
+        };
+        console.log(JSON.stringify({
+          evt: "future_building_observed", fn: "run-cppa-risk-assessment",
+          product: "cppa-risk-assessment", signature: _sig.hash,
+          build_stamp: BUILD_STAMP,
+        }));
+      }
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] future-building emit failed (non-fatal):", (e as Error)?.message);
+      try {
+        const _rd: any = report_data as any;
+        _rd._meta = _rd._meta ?? {};
+        _rd._meta.internal = _rd._meta.internal ?? {};
+        _rd._meta.internal.future_building = { observed: false, reason: "emit_error", version: "f0" };
+      } catch { /* best-effort */ }
+    }
+
+
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
     // Whitelist emit: only schema-declared keys reach the customer. On
     // serializer crash, ship the report unchanged (previous behaviour)
