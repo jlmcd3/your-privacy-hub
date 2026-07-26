@@ -2,7 +2,7 @@
  * RENDERPLAN SCHEMA v1 (Two-Pass Architecture, Phase-1 authoring)
  * ----------------------------------------------------------------
  * Types for the Pass-1 derivation artifact consumed by Pass G, Pass 2,
- * and Pass V, per docs/design/TWO-PASS-ARCHITECTURE.md §3 + §2.7 (Q4(e)
+ * and Pass V, per docs/design/LEGAL-TEST-PIPELINE.md §3 + §2.7 (Q4(e)
  * jurisdiction-tag scoping) and LEGAL-TEST.md v2.1.
  *
  * All fields are pure data — no runtime behavior. Validators live in

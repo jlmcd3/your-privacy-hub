@@ -1,11 +1,13 @@
-# Two-Pass Architecture — Design (Risk Assessment first, product-agnostic)
+# LEGAL TEST PIPELINE — Design (Risk Assessment first, product-agnostic)
 
-**Status:** DESIGN COMPLETE — build awaits CEO review
+> **Renamed 2026-07-26 (ledger item 136).** Formerly `TWO-PASS-ARCHITECTURE.md`. The pipeline is formally **Derive → Guide → Render → Verify**; the LEGAL-TEST conclusion inventory CONFIGURES which stages engage per product. R-dominant products (registration, biometric, dpa, governance) run the two-stage subset (Derive → Render); W-engaged products run three or four stages (adding Guide, and Verify where warranted). Section-sharded rendering (dpia unit-pipeline precedent) is the recommended Render implementation for larger reports. The old path holds a tombstone; do not re-open it.
+
+**Status:** DESIGN COMPLETE-v2.3 — build authorized per CEO rulings (see §0 and §2.10)
 **Owner:** platform / risk product
-**Authored:** 2026-07-26T07:15:00Z
-**Ledger:** item 129 (DONE-DESIGN)
+**Authored:** 2026-07-26T07:15:00Z (last amended 2026-07-26T08:43:21Z, item 136)
+**Ledger:** item 129 (DONE-DESIGN) → carried through items 132, 134, 135, 136
 **Predecessor evidence:** `docs/courier/PERFECT-INTAKE-EXPERIMENT-2026-07-26.md` (item 127, run `f3674428-f546-4973-b2a4-ba2b8125f904`) — decomposition of failing findings into intake-driven (VANISH) vs generator-driven (PERSIST) classes.
-**Companion / interim guard:** item 128 `RISK-CITATION-DUP-FIX` — a deterministic post-pass for a subset of §2 primary target #2 (citation duplication template + q18 ADMT-consequence gate). The two-pass architecture eventually **subsumes** that guard; we do not double-count it as unsolved.
+**Companion / interim guard:** item 128 `RISK-CITATION-DUP-FIX` — a deterministic post-pass for a subset of §2 primary target #2 (citation duplication template + q18 ADMT-consequence gate). The Legal Test Pipeline eventually **subsumes** that guard; we do not double-count it as unsolved.
 
 ---
 
@@ -406,3 +408,38 @@ Baseline is Perfect-Intake run `f3674428-…` on s5 (Item 127).
 **Phase-1 build correction (v2.3).** Conclusion inventory (`_shared/legal-test/cppa-risk-conclusions.ts`), factor registry (`_shared/factors/cppa-risk-factors.ts`), and Pass-G candidate index (`_shared/pass-g/cppa-risk-candidate-index.ts`) gain header notes stating the v2.3 rule. All existing Phase-1 rows are cppa-ca and require no data change; future us-federal (e.g., FTC) rows flow in at binding tier without architecture change.
 
 **Corpus implication.** `enforcement_actions.jurisdiction = "us-federal"` rows (once tagged) are binding-tier eligible for U.S.-forum products (subject to the CEO-adopted eligibility bar: quote-safe / row-grounded / ineligible). No architecture change required.
+
+---
+
+## 2.10 Pipeline Rename + No-Human-Review + Trial Plan (CEO-ORDERED 2026-07-26; ledger item 136)
+
+**Rename.** This document is the **LEGAL TEST PIPELINE**. Prior filename `TWO-PASS-ARCHITECTURE.md` is a tombstone-only link at the old path. Do not re-open. All prose in earlier sections that refers to "two-pass" should be read as "Legal Test Pipeline"; the two-call implementation (Derive then Render) survives as the R-dominant subset of the pipeline; W-engaged products add Guide, and Verify where warranted.
+
+**Pipeline stage table (which stages engage per product).**
+
+| Product | Dominant type | Stages engaged |
+|---|---|---|
+| registration, biometric, dpa, governance (R-dominant) | R | Derive → Render |
+| cppa-risk, admt, cyber, dpia, ir | R + W | Derive → Guide → Render (+ Verify during trials) |
+| lia | W (Art 6(1)(f) balancing) | Derive → Guide → Render (+ Verify during trials) |
+
+**NO HUMAN LEGAL REVIEW (CEO ruling, VERBATIM).** "Counsel checks are NOT part of any product pipeline; no human legal review is injected at any stage; the product provides the document and the analysis, and the final decision is always up to the end user and his or her counsel."
+
+Consequences (build-blocking):
+- (a) Any earlier program-level human spot-review recommendation is **ANNULLED**. Do not add human-in-the-loop review to any product pipeline.
+- (b) **Pass V ("Verify") is MODEL-ONLY.** During trials, Pass V is a bounded model verification read over close-call Type W sections and persuasive-material sections. Evidence-gated: two consecutive waves of zero yield beyond deterministic assertions → retire Pass V for that product.
+- (c) **Type J rendering language** must consistently frame final decisions as reserved to the customer and their counsel — never to any human reviewer within the product surface. Template lint: any Type J template naming an internal reviewer role is a hard reject.
+
+**Section-sharded rendering (Render stage).** For larger reports, Render is implemented as unit-pipelined section shards (dpia precedent). Each section shard: constructs its RenderPlan slice from the Derive/Guide outputs scoped to that section's analysis unit, calls the model with per-section constraints, and runs post-render assertions in-shard. Cross-shard aggregation is deterministic (assembly, not model-written).
+
+**TRIAL PLAN (program of record).**
+- **Stage 1 trials** — `cppa-risk` (CPPA pilot) + `lia` (GDPR trial; purest Art 6(1)(f) balancing product).
+- **Stage 2** — `admt`, `cyber` (CPPA priority), then `dpia`, `ir` (**ir gated on IR-BAND-REALIGNMENT item 114 landing first**).
+- **Stage 3** — `governance`, `dpa`, `registration`, `biometric` (R-dominant, two-stage subset).
+
+**Cross-cutting.**
+- Corpus completion continues per the empty-by-finding feed + remaining P2 families + P5 drain.
+- **ICO ingestion for UK users is DEFERRED** (CEO ruling) to a later stage; UK analysis units render with the standing limited-guidance disclosure meanwhile.
+- Trial measurement runs on standalone s5 batches. The campaign remains CEO-paused; resume authority is CEO-reserved.
+
+**v2.3 carry-through (verified this turn).** The federal-law qualification (binding tier for U.S. analysis units = forum state + U.S. federal, including federal agency rulings) is reflected in `docs/design/LEGAL-TEST.md` Q4(e) v2.3, in §2.9 of this pipeline document, and in the Phase-1 artifacts (`_shared/render-plan/schema.ts` comments, `_shared/render-plan/validators.ts` V3 relaxation + V8 additions, and header notes on `cppa-risk-conclusions.ts` / `cppa-risk-factors.ts` / `cppa-risk-candidate-index.ts`). No additional corrective edits required this turn.

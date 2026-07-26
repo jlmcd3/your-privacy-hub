@@ -1,7 +1,7 @@
 /**
  * CPPA-RISK GATE REGISTRY (Two-Pass Architecture, Phase-1 authoring)
  * -------------------------------------------------------------------
- * Deterministic gates restructured per docs/design/TWO-PASS-ARCHITECTURE.md
+ * Deterministic gates restructured per docs/design/LEGAL-TEST-PIPELINE.md
  * §3.3 so Pass 1 emits GateRuleOutcome rows the renderer keys on rather than
  * post-hoc scrubbers rebuilding intake state.
  *
