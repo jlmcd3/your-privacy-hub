@@ -79,7 +79,7 @@ export interface WeighingFrameEntry {
   readonly frame_id: string;
   readonly test_id: string;                    // ref to WeighingTest.test_id
   readonly jurisdiction_tag: JurisdictionTag;  // must equal test's jurisdiction_tag
-  readonly source: "fsor_commentary" | "fsor_callout" | "enforcement_action_fsor_analogy";
+  readonly source: "fsor_commentary" | "fsor_callout" | "enforcement_action_fsor_analogy" | "edpb_guideline" | "enforcement_action_edpb_analogy";
   readonly corpus_ref: string;                 // e.g. "cppa_fsor_commentary#<hash>"
   readonly anchor_hint: string;                // short quote / summary
   readonly pinpoint: string;                   // regulation citation
