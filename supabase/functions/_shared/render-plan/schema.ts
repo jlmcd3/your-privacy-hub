@@ -107,7 +107,8 @@ export interface ConservativeWriteAround {
 
 export interface RenderPlan {
   readonly plan_version: "v1";
-  readonly product: "cppa-risk-assessment";
+  /** Widened Phase-1 LTP-LIA (item 138) so GDPR + future products can carry render plans without changing shared validators. */
+  readonly product: "cppa-risk-assessment" | "li-assessment" | string;
   readonly build_stamp: string;
   readonly jurisdiction_tag: JurisdictionTag;
   readonly intake_ledger: readonly IntakeLedgerEntry[];
