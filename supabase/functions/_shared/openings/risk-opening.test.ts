@@ -183,7 +183,12 @@ Deno.test("Corpus pins are byte-identical in emitted S0", () => {
   const rA = buildRiskOpening({ ...base, q1_revenue: "Over $500M" }, { asOfDate: AS_OF });
   assertStringIncludes(rA.slots.S0 ?? "", CCPA_1798_140_D_1_A);
   const rB = buildRiskOpening(
-    { ...base, q2_consumers: "Over 10 million", q5_sell_share: "Both" },
+    {
+      ...base,
+      q2_consumers: "Over 10 million",
+      q5_sell_share: "Both",
+      bought_sold_shared_count: "Over 10 million",
+    },
     { asOfDate: AS_OF },
   );
   assertStringIncludes(rB.slots.S0 ?? "", CCPA_1798_140_D_1_B);
