@@ -14,9 +14,9 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z";
+export const BUILD_STAMP = "ltp-risk-waveb-enforce@2026-07-26T21:45:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
-console.log(`[run-cppa-risk-assessment] boot ltp_phase2=shadow_mode design=docs/design/LEGAL-TEST-PIPELINE.md subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
+console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} design=docs/design/LEGAL-TEST-PIPELINE.md subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
 import {
@@ -38,6 +38,7 @@ import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION }
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
+import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
 import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
@@ -3170,6 +3171,39 @@ async function runPipeline(assessment_id: string) {
         variant: _ltpTelemetry.closeness.variant,
         validator_issues: _ltpTelemetry.validators.total_issues,
       }));
+
+      // ── LTP WAVE-B PART-1 ENFORCE PREVIEW ────────────────────────────
+      // When LTP_ENFORCE_ENABLED=1, run the LLM Pass-1 adapter (N=2 retry,
+      // write-around fallback) and attach its telemetry + slim plan preview
+      // under _meta.internal.legal_test_pipeline.enforce_preview. This does
+      // NOT mutate customer-visible report_data; the whitelist serializer
+      // strips _meta.internal. Fail-open in all paths.
+      try {
+        const _pass1 = await runPass1Llm({
+          intake: _ltpIntake,
+          report_data: report_data as any,
+          buildStamp: BUILD_STAMP,
+        });
+        const _rd2: any = report_data as any;
+        _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+          manifest: PASS1_MANIFEST,
+          telemetry: _pass1.telemetry,
+          plan_summary: {
+            plan_version: _pass1.plan.plan_version,
+            propositions: _pass1.plan.propositions?.length ?? 0,
+            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
+            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
+          },
+        };
+        console.log(JSON.stringify({
+          evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
+          build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
+          attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
+          latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
+        }));
+      } catch (e) {
+        console.warn("[run-cppa-risk-assessment] LTP enforce-preview failed (non-fatal):", (e as Error)?.message);
+      }
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
     }

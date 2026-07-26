@@ -81,7 +81,7 @@ Deno.test("pass1 manifest exposes model + prompt version", () => {
   assert(PASS1_MANIFEST.prompt_version.startsWith("pass1-derive-"));
 });
 
-Deno.test("all 15 templates enumerated (per courier + summary composition courier 2026-07-26)", () => {
-  assertEquals(Object.keys(PASS2_TEMPLATES).length, 15);
+Deno.test("all 16 templates enumerated (per courier + summary composition + insufficient-opening 2026-07-26)", () => {
+  assertEquals(Object.keys(PASS2_TEMPLATES).length, 16);
 });
 
