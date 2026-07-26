@@ -135,8 +135,8 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
   intake: {
     entity_name: "Solstice FinPay, Inc.",
     subject_anchor: "Consumer credit-scoring product",
-    q1_revenue: "$50M–$100M",
-    q2_consumers: "250,000–1 million",
+    q1_revenue: "$50M to $100M",
+    q2_consumers: "250,000 to under 1,000,000",
     q3_sector: "Financial services",
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
