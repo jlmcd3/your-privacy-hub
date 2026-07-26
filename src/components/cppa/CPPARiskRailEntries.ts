@@ -91,12 +91,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
 
   q2_consumers: {
     fieldLabel: "Q2: Number of California consumers processed annually",
-    citation: "Cal. Civ. Code § 1798.140(ag)(2)(A)",
+    citation: "Cal. Civ. Code § 1798.140(d)(1)(B)",
     citationUrl: CPPA_URL,
-    plainSummary: "A business that annually buys, sells, receives, or shares the personal information of 100,000 or more California consumers or households is subject to CCPA/CPRA, regardless of revenue.",
-    regulationText: "Alone or in combination, annually buys, sells, receives for the business's commercial purposes, or shares for commercial purposes, alone or in combination, the personal information of 100,000 or more consumers or households.",
+    plainSummary: "A business that annually buys, sells, or shares the personal information of 100,000 or more California consumers or households satisfies the § 1798.140(d)(1)(B) covered-business prong, independent of the (d)(1)(A) revenue prong. BAND-REALIGNMENT (2026-07-26): the V2 band vocabulary aligns each option to the statutory 100,000 / 250,000 / 1,000,000 lines so the count prong and the § 7120(b)(2)(A) 250,000-consumer audit prong can be evaluated verbatim.",
+    regulationText: "Cal. Civ. Code § 1798.140(d)(1)(B) — Covered-business definition: \"Alone or in combination, annually buys, sells, or shares the personal information of 100,000 or more consumers or households.\"",
     relatedCitations: [
-      { citation: "Cal. Civ. Code § 1798.140(ag)(1)", label: "Revenue threshold ($25M+)" },
+      { citation: "Cal. Civ. Code § 1798.140(d)(1)(A)", label: "Revenue threshold ($25M+)" },
+      { citation: "11 CCR § 7120(b)(2)(A)", label: "250,000-consumer cybersecurity-audit prong" },
     ],
     coachLead: "Count every unique California consumer or household you process, per year.",
     coachBody: "The count is not your customer list. It includes anyone whose personal information you buy, sell, share, or process — site visitors with logged identifiers included.",
