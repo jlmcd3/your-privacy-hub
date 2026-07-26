@@ -158,11 +158,12 @@ export const CPPA_RISK_PASSG_INDEX: readonly CandidateSlice[] = [
         tier_label: "supporting",
         authority_weight: "binding",
       },
-      // ---------- ANALOGY_FSOR_INTERNAL (per CEO exception) ----------
-      // TIER EMPTY: no FSOR-internal enforcement analogies indexed to § 7152 in
-      // the current corpus. Logged to T5 as a ranked ingestion candidate in the
-      // courier so future FSOR revisions or CPPA enforcement discussions flow in
-      // automatically once ingested (Q4(e) future-proofing).
+      // ---------- ANALOGY_FSOR_INTERNAL (v2.2: PERSUASIVE-tier only, requires fsor_mediation_ref) ----------
+      // TIER EMPTY: no FSOR-mediated non-CA analogies indexed to § 7152 in the
+      // current corpus. Any future entry MUST carry authority_weight="persuasive"
+      // and fsor_mediation_ref (id of the CPPA-domain FSOR row that discusses
+      // the non-CA source). Empty state logged to T5 as a ranked ingestion
+      // candidate in the courier (Q4(e) future-proofing).
     ],
   },
 ];
