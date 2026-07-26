@@ -91,7 +91,15 @@ export function computeTestStates(
   }
 
   // M2/M3 — consumer-band determinations
+  // BAND-REALIGNMENT-T2A (2026-07-26): V2 keys added; V1 keys retained
+  // for stored-row back-compat.
   const CB: Record<string, { over_100k: boolean; over_250k: boolean }> = {
+    // V2 labels
+    "Under 100,000":                { over_100k: false, over_250k: false },
+    "100,000 to under 250,000":     { over_100k: true,  over_250k: false },
+    "250,000 to under 1,000,000":   { over_100k: true,  over_250k: true },
+    "1,000,000 or more":            { over_100k: true,  over_250k: true },
+    // Legacy V1 labels
     "Fewer than 100,000":    { over_100k: false, over_250k: false },
     "100,000–249,999":       { over_100k: true,  over_250k: false },
     "250,000–1 million":     { over_100k: true,  over_250k: true },
