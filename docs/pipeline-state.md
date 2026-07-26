@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T05:22:00Z — BAND-REALIGNMENT-T2A HELD PER GATE (item 120). Controller BAND-REALIGNMENT-T2A dispatch received; team-reviewed T2A/T2B/T2C sub-split approved. GATE fired before any code edit: fixture-drift guard `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` (lines 30–31) validates every `q1_revenue`/`q2_consumers` value in `CPPA_RISK_VARIANTS` (14 rows in `src/lib/stress/fixtures.ts`, T2B scope) against `REVENUE_OPTS`/`CONSUMER_OPTS` with legacyAccepted = `["$25M–$100M"]` / `["100,000–1 million"]` only. Retargeting the two intake enums to V2 while stress fixtures remain V1 turns this vitest RED, and NEITHER the drift-test file NOR `src/lib/stress/fixtures.ts` is on the T2A scope list in `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4 (T2A tests listed there are ONLY the three `_tests/counsel-voice-1.test.ts` / `_tests/grader-map-correction-7150b3.test.ts` / `_tests/grader-cal-1.test.ts` version-literal updates plus the new `_tests/band-realignment-t2a.test.ts`). Per GATE (`if any T2A test cannot be made green without exceeding the §4 T2A scope, STOP, record HELD with the specific failure pasted, do not partially deploy`): stopped before any file edit. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits this turn; zero edge-function deploys; zero migrations. Item 113 remains DEPLOY-HELD; item 118 step (ii) remains HELD; items 114 + 115 remain HELD. Full failure classes and recommended micro-scope adjustment pasted in `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §T2A-HELD.
+**Last updated:** 2026-07-26T05:31:00Z — BAND-REALIGNMENT-T2B HELD-AWAITING-T2A per dispatch GATE (item 121). Controller BAND-REALIGNMENT-T2B dispatch received with explicit GATE: "execute ONLY if the T2A ledger release (items 113/118-(ii) released) and T2A courier section exist; otherwise record HELD-awaiting-T2A and stop." Preflight check: item 113 is still DEPLOY-HELD (unreleased); item 118 step (ii) is still HELD (unreleased); item 120 records T2A itself HELD before any file edit under its own GATE. GATE precondition fails on both released-items requirements. Recorded HELD, no file edits beyond this ledger + courier note. Zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations. T2B remains queued behind T2A landing (which itself is blocked pending the §4 micro-scope amendment recommended in item 120).
 
 ---
 
@@ -1672,3 +1672,33 @@ Both repair paths exceed the §4 T2A scope as dispatched. GATE clause: "**if any
 **Zero-side-effect confirmation:** no source files, no fixtures, no goldens, no contracts, no prompts, no registry rows, no corpus rows, no migrations, no edge-function deploys were made this turn. `git status --short` would show ONLY edits to `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2A-HELD section append).
 
 **Deviation ruled:** partial execution of the BAND-REALIGNMENT-T2A dispatch — zero execution, docs-only HELD. Ground: GATE clause. All rulings recorded here durably per CEO instruction "Write every step durably (ledger + courier) — no tick monitoring is active".
+
+
+---
+
+### 121. **HELD-AWAITING-T2A — BAND-REALIGNMENT-T2B per dispatch GATE** @ controller tick 2026-07-26T05:31:00Z (docs-only; zero code / prompt / rubric / grader / golden / registry / corpus / contract / fixture / sample edits; zero edge-function deploys; zero migrations)
+
+**Dispatch:** BAND-REALIGNMENT-T2B (team-reviewed, five-lens). Scope per `docs/courier/BAND-REALIGNMENT-2026-07-26.md` §4 T2B: ~15 non-generator surfaces — `sampleFixtures` + `sampleFixtureShapes`, stress fixtures + `generate-stress-fixtures` (V2 only, legacy generation dropped), `cppa-risk-contract-fixtures`, `CPPARiskRailEntries` with corpus-verified verbatim § 7121(a)(1)–(3) + § 1798.140(d)(1)(B) citations, `refine/fieldEnums`, `generate-report-pdf` audit, `review-test-output` heuristics, `CPPAEvalHarness` dropdowns, `CPPAScopeChecker` inputs, `assertionTests`/`assertionRunner`, option-drift test. No deploy.
+
+**Dispatch GATE (verbatim):** "execute ONLY if the T2A ledger release (items 113/118-(ii) released) and T2A courier section exist; otherwise record HELD-awaiting-T2A and stop."
+
+**Preflight — GATE precondition check:**
+- **Item 113** — DEPLOY-HELD, UNRELEASED. Confirmed at §2 item 113 (BAND-REALIGNMENT SHIPPED-T1 / DEPLOY-HELD); no release entry in items 114–120; explicitly re-asserted UNRELEASED in item 120 tail ("Item 113 remains DEPLOY-HELD").
+- **Item 118 step (ii)** — HELD, UNRELEASED. Confirmed at item 118 (BAND-REALIGNMENT T2 EXECUTION HELD); item 119 orphan-finalize discharged Blocker-1 only, not step (ii); item 120 re-asserted UNRELEASED ("Item 118 step (ii) remains HELD").
+- **T2A courier section** — the courier now carries a `T2A-HELD` section appended in item 120's turn, but this is a HELD record, not the T2A execution/completion section the dispatch GATE requires as evidence that T2A has landed. Under a strict read of "the T2A ... courier section exist" AND the coupled "T2A ledger release" clause, the intended precondition is a T2A-LANDED artefact, not a T2A-HELD marker.
+
+**Precondition result:** FAIL on items 113/118-(ii) (both still HELD, neither released). T2A itself is HELD before any file edit per item 120; T2A cannot release items 113/118-(ii) until the §4 micro-scope amendment recommended in item 120 is ruled on and T2A actually executes.
+
+**Ruling:** per GATE clause, record HELD-awaiting-T2A and stop. No T2B file edits attempted. No inventory pass beyond confirming §4 T2B scope list is unchanged.
+
+**Standing state:**
+- Item 113 remains DEPLOY-HELD.
+- Item 118 step (ii) remains HELD.
+- Item 120 (T2A HELD) unchanged — awaits controller/CEO ruling on the recommended one-line §4 micro-scope amendment (add `src/lib/__tests__/cppaRiskFixturesOptionDrift.test.ts` to the T2A test-surface list with the widened `legacyAccepted` allow-lists) OR an alternative that keeps T2A within §4 as-written.
+- Items 114 + 115 remain HELD.
+- Item 116 sequencing intact.
+- No campaign state changes (paused; CEO-reserved resume).
+
+**Zero-side-effect confirmation:** no source files, fixtures, goldens, contracts, prompts, registry rows, corpus rows, migrations, or edge-function deploys were made this turn. Only edits: `docs/pipeline-state.md` (this item + header restamp) and `docs/courier/BAND-REALIGNMENT-2026-07-26.md` (T2B-HELD-AWAITING-T2A note appended).
+
+**Deviation ruled:** none — turn executed exactly per dispatch GATE (record HELD, stop).
