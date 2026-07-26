@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T19:40:58Z — **LTP-RISK-WAVE-B SUMMARY-COMPOSE MAX-BUILDABLE-SUBSET LANDED (item 146); HELD-D released; NEW HELD-E on overall_risk_level tier mapping (item 147).** Content courier landed 5 new Pass-2 summary templates + closed enums (`SUMMARY_OUTCOME_CLAUSES`, `SUMMARY_REMAINING_OUTCOMES_CLAUSES`, `SUMMARY_DOCS_COMPLETION_CLAUSES`, `SUMMARY_EACH_OR_THIS_CLAUSES`, `SUMMARY_NARRATIVE_MAX_CHARS=2400`), extended `SlotContext` with the 10 summary slots, added deterministic composer `_shared/ltp/summary-compose.ts` (fixed-order narrative, most-cautious aggregation — never averaged / never majority-ruled), bumped LEAK-PREV-P2 serializer to `rs-w1-2026-07-26-ltp-waveb-summary` with explicit `assessment_summary` object allow-list (10 verified live keys + additive `narrative`). 6 new tests + 15-template count assertion GREEN via `deno test --no-check` (26 passed | 1 pre-existing failure in `pass2-render: forbidden-token catches § injection via slot` — out of scope; applicability-template only). Renderer/PDF tolerance audit for additive `narrative` confirmed graceful ignore in `RiskAssessmentReportV4.tsx` and `generate-report-pdf/index.ts`. **VALID CONTENT HELD (item 147, HELD-E): `overall_risk_level` tier mapping.** Codebase enum is 5-tier (`Low|Moderate|High|Critical|Insufficient basis`); courier's mapping is defined only for a 3-tier shape. Per the courier's own escape clause ("If the codebase enum differs materially from a three-tier shape, record a HELD naming the enum"), tier assignment is deferred. Composer passes any caller-supplied `overall_risk_level` value through verbatim; `telemetry.overall_risk_level_held=true` flag exposed. Part-1 wiring into `index.ts` and Part-2 measurement batch remain HELD on HELD-E. `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); no deploy this turn (isolated modules; no customer path change); no batch launch; campaign `fd1be147` remains CEO-paused. Items 143 / 143b / 143c / 145 (HELD-D) RELEASED BY NAME. Courier `docs/courier/LTP-RISK-WAVEB-SUMMARY-COMPOSE-2026-07-26.md`.
+**Last updated:** 2026-07-26T20:06:45Z — **HELD-E RELEASE ATTEMPTED; NEW HELD-F opened per the release courier's own name-binding escape clause (item 148).** Verbatim enum at `supabase/functions/run-cppa-risk-assessment/index.ts:654` is `"Low" | "Moderate" | "High" | "Critical" | "Insufficient basis"` (mirror at `RiskAssessmentReportV4.tsx:48`, alias `"Insufficient basis to assess"` at `:86`). This matches NEITHER of the courier's two named shapes (`[Low,Moderate,High,Critical,Severe]` or `[Minimal,Low,Moderate,High,Critical]`) exactly; `"Insufficient basis"` is a **non-severity sentinel** per the generator's own prompt (`OVERALL_RISK_LEVEL MEASURES SUBSTANTIVE PRIVACY RISK ONLY`, index.ts:566) and the `Colorable argument` doctrine (:609), leaving 4 effective severity tiers and no surjective target for the T5 aggregation class. Per courier rule: *"If the enum matches NEITHER shape exactly, HELD naming the verbatim enum — do not improvise a binding."* HELD-F recorded; composer continues passing `overall_risk_level` verbatim with `telemetry.overall_risk_level_held=true`. Part-1 index wiring (LTP_ENFORCE_ENABLED on), full-suite green + deploy, and Part-2 measurement batch (cppa-risk, batch_size 6, standalone s5, `tuning`) all remain HELD-F. `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`); no deploy this turn; no batch launch; campaign `fd1be147` remains CEO-paused. Items 143 / 143b / 143c / 145 / 147 NOT released — HELD-E is superseded on-subject by HELD-F (verbatim enum now on record). Courier `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-HELD-F-2026-07-26.md`.
 
 ---
 
@@ -2286,3 +2286,35 @@ Extrapolation to 5-tier ("Critical" and "Insufficient basis") is a legal-reasoni
 **DOES NOT BLOCK:** additional isolated module work; ingestion; unrelated deploys; other tools' pipeline waves.
 
 **Awaiting:** a follow-on content courier defining deterministic assignment of all 5 tiers from the aggregation classes, including the "Critical" and "Insufficient basis" trigger conditions.
+
+## Ledger item 148 — HELD-F OPENED: overall_risk_level 5-value enum unmatched by courier shapes (2026-07-26T20:06:45Z)
+
+**Dispatch:** CONTENT COURIER — overall_risk_level five-tier mapping (attempted release of HELD-E item 147).
+
+**Outcome:** **HELD-F opened per the release courier's own name-binding escape clause. No wiring. No deploy. No batch launch. HELD-E NOT released — superseded on-subject by HELD-F (verbatim enum now on record).**
+
+**Verbatim enum, from defining source files:**
+- `supabase/functions/run-cppa-risk-assessment/index.ts:654` → `"overall_risk_level": "Low" | "Moderate" | "High" | "Critical" | "Insufficient basis",`
+- `src/components/cppa/RiskAssessmentReportV4.tsx:48` (mirror) → `overall_risk_level?: "Low" | "Moderate" | "High" | "Critical" | string;`
+- `src/components/cppa/RiskAssessmentReportV4.tsx:86` (alias handling) → `"Insufficient basis to assess"` is displayed as `"Insufficient basis"`.
+
+**Match tests (from the courier's rule):**
+- Shape A `[Low, Moderate, High, Critical, Severe]` → FAIL (5th member is `"Insufficient basis"`, not `"Severe"`).
+- Shape B `[Minimal, Low, Moderate, High, Critical]` → FAIL (1st member is `"Low"`, not `"Minimal"`).
+- Courier ruling on the FAIL branch (verbatim): *"If the enum matches NEITHER shape exactly, HELD naming the verbatim enum — do not improvise a binding."*
+
+**Semantic contradiction if `"Insufficient basis"` were bound to a severity tier:** the generator's own prompt (`index.ts:566`) states `OVERALL_RISK_LEVEL MEASURES SUBSTANTIVE PRIVACY RISK ONLY` and expressly excludes record-completeness from this axis; the `Colorable argument` doctrine (`index.ts:609`) reserves `Insufficient basis` for record-completeness failures on the `benefits_outweigh_risks_conclusion` axis. That leaves 4 effective severity tiers and no surjective destination for the T5 aggregation class.
+
+**Sanity check (also fails):** courier requires `Critical` reachable as T5-or-T4 AND aggregation classes map surjectively; the latter is not satisfiable without improvising the T5 slot.
+
+**To release HELD-F (specific missing content items enumerated in courier):** (i) rename enum's 5th member to `"Severe"` (adopt Shape A verbatim) — noting removal of the `"Insufficient basis"` sentinel requires a serializer/PDF-migration ruling because `"Insufficient basis"` is a documented public value; (ii) prepend `"Minimal"` and drop `"Insufficient basis"` (adopt Shape B verbatim); or (iii) author a courier explicitly binding the 5-value enum `["Low","Moderate","High","Critical","Insufficient basis"]`, stating the semantic role of `"Insufficient basis"` in aggregation and which of the 4 severity tiers absorbs the T5 aggregation class.
+
+**Downstream status:**
+- `_shared/ltp/summary-compose.ts` — unchanged; caller `overall_risk_level` passes through verbatim; `telemetry.overall_risk_level_held=true`.
+- Part-1 index integration (LTP_ENFORCE_ENABLED on, adapter wiring per surface map): **HELD-F**.
+- Part-2 measurement batch (cppa-risk, batch_size 6, standalone s5, `scenario_set='tuning'`): **GATED on Part-1 → HELD-F**.
+- Items 143 / 143b / 143c / 145 / 147 NOT released.
+- `BUILD_STAMP` unchanged (`ltp-risk-p2+fb-f0@2026-07-26T09:08:39Z`).
+- Campaign `fd1be147` remains CEO-paused.
+
+**Courier:** `docs/courier/LTP-RISK-OVERALL-RISK-LEVEL-HELD-F-2026-07-26.md`.
