@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "h7b-admt-citation-relabel@2026-07-26T01:20:00Z";
+export const BUILD_STAMP = "h6-admt-governing-anchor@2026-07-26T01:30:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP, prior_stamps: { h7: "h7-admt-blanket-range@2026-07-25T23:48:00Z", w26: "w26-admt-citation-audit@2026-07-25T23:34:00Z", w25: "w25-admt-sanitizer@2026-07-25T22:44:15Z" } }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
