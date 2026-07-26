@@ -2075,3 +2075,23 @@ Only edits: (a) `docs/design/ICO-INGESTION-PROGRAM.md` (new charter), (b) `docs/
 One in-band correction (H1 selector → `<title>` fallback) — resolved by automated verification before promotion, per §3.3 quarantine-protocol scope of "automatically resolvable" failures. No CEO flag required. Otherwise executed exactly per dispatch.
 
 Campaign `fd1be147` remains CEO-paused.
+
+---
+
+### Item 141 — LTP-RISK-WAVE-A LANDED (2026-07-26T10:38:21Z)
+
+Standalone s5 pilot measurement per LTP-RISK-PHASE2 courier §6. Batch `16ee0dcf-810a-4af5-a9eb-9b88b2aef1cf` / quality_run `d743a474-ee39-4d19-ba6e-8eb2efb70bb7` / instrument `gc-2026-07-26-s5-eu-uk-ca-au-sg` / cppa-risk only / batch_size=3 / scenario_set=`tuning` / NOT campaign-linked. Campaign `fd1be147` remained `paused`; 0 active batches at launch. Duration 15m 44s; terminal `complete/done`; no errors.
+
+**(1) Standard digest.** Pooled Claude 78.80 / GPT 76.00 (accuracy 72, citation 83, hallucination 82, analysis 79, intelligence 82, formatting 88). Checks 66/79 passed. Per-doc overall 68.75 / 83.55 / 84.00. Findings (N=73) — critical: accuracy 6; high: accuracy 12, hallucination 6, citation 4, formatting 3; medium: hallucination 18, formatting 9, analysis 6, citation_accuracy 3, intelligence 3; low: hallucination 3. Vs item-106 s5 low (72.75): **+6.05** on Claude pooled; within batch noise for N=3 but directionally positive; no regressions.
+
+**(2) Shadow telemetry.** `_meta.internal.legal_test_pipeline` present on all 3 docs, version `ltp-risk-p2`. Derive: 15 propositions (11 R / 1 W / 3 J), 12 gates, gates_blocking 4/4/0 across docs 1-3, 0 write-arounds. Guide: 11 binding / 0 persuasive frame entries, empty_by_finding=[]. Closeness 0.4 → `hedged` variant (all docs). Validators: `V2_CITE_MISS`:1 + `V7_W_PROP_NO_FRAME`:1 per doc; V1/V3-V6/V8 silent. Verify: enabled=false, ran=false (Phase-2 deferral respected). elapsed_ms ≤ 2 per doc (shadow overhead negligible).
+
+**(3) Cross-check / subsumption.** Grader-raised citation findings (4 high + 3 medium) overlap V2_CITE_MISS on every doc → `_risk_citation_dup_fix` retirement supportable at Wave B. Analysis findings matching Type-W-without-frame signature overlap V7 → `_w15_risk_va` / `_w18_risk_vocab` retirement supportable. Guards/graders raised — shadow missed: accuracy findings (12 high + 6 critical) tied to mid-prose intake-value drift, which deterministic shadow-derive does not yet cover; this is the expected residue Pass-1 LLM in Wave B is designed to close. Shadow flagged — graders missed: none in-sample beyond overlapping classes.
+
+**(4) Fit.** No V1/V3-V6/V8 false positives on real intake. Registry sizing (15/12/11) fits without truncation. empty_by_finding=[] on all docs → no additions to T5 feed.
+
+**(5) Verdict.** Scaffold healthy. **PROCEED TO WAVE B** (LLM Pass-1 + template rendering + Pass-V model read per Phase-2 deferral table) on controller dispatch. No blocking fixes required first. Wave B awaits controller dispatch.
+
+**Courier.** `docs/courier/LTP-RISK-WAVEA-2026-07-26.md`.
+
+**Zero-side-effect confirmation.** Only edits: (a) new courier, (b) this ledger item + header restamp, (c) one INSERT to `public.quality_batch_runs` (the pilot batch itself, per dispatch). NO code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus edits; NO migration; NO BUILD_STAMP bumped; NO deploy. Campaign `fd1be147` remains CEO-paused.
