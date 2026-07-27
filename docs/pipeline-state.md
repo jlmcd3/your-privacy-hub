@@ -3614,3 +3614,19 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Courier:** `docs/courier/ITEM204-RULINGS-EXECUTED-2026-07-27.md`.
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; smokes #153–#155 and #4 non-evidential.
 - **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller relaunches smoke #5; if clean, standing chain rolls 9b–12 to STAGE-B COMPLETE.
+
+## Item 206 — SMOKE #5 BRANCH FAIL: enforce-mode ValueScreenError on `truncated-slot-value:We` (2026-07-27 ~17:42Z)
+
+- **Batch:** `9d00f044-516c-4065-89c4-92f8ade816d8` (inserted 17:33:41Z, §18 shape, `batch_size=1`, `declared_count=1`).
+- **Build on the wire:** `ltp-risk-item204-rulings-executed@2026-07-27T17:20:00Z`.
+- **Run:** `quality_runs.id=0da70146-2451-4318-b19c-adf20864d24c`, `status=complete`, `error=NULL`, `started=17:36:02.380Z`, `completed=17:42:18.294Z`, `score_overall=78`, `gpt_score_overall=82`, `checks_total=25 passed=20 failed=5`.
+- **Doc:** `quality_run_documents.id=87e5e111-2725-4bcb-91e6-0e93256b5c37`, `source_row_id=0e741ae0-a488-4d73-ab2b-a67bbac8c938`, `status=complete`, `has_report=true`, `overall_score=78`, `gpt_overall_score=78`.
+- **Assessment:** `cppa_assessments.id=0e741ae0-…`, `status=complete`, `retry_count=0`, `last_error=NULL`, E2E `updated_at−created_at=00:05:25.19` (« 15-min clock contract).
+- **BRANCH-PASS §(2) FAILED — composition_finalize (`_meta.internal.composition_finalize`):** `mode=enforce`, `elapsed_ms=3`, `budget_exceeded=false`, `errored=true`, `error_kind=ValueScreenError`, `error_message="[value-screen] 1 hit(s): truncated-slot-value:We"`, `enforce_violation=true`, `safe_version=safe-finalize@2026-07-27-hangfix`, `version=composition-finalize@2026-07-27`. The new Item-204 structural guard `TRUNCATED_SLOT_VALUES` fired on a slot whose entire trimmed value equals `"We"` — the exact A.i #178 class it was designed to catch — but the composer is still emitting such a slot. Per-hit `path`/`context` fields are not persisted on `_meta.internal.composition_finalize` in this build; only the summary line is available.
+- **BRANCH-PASS §(3) HELD — Defect-B fix proven on the wire:** `submission_summary.cybersecurity_audit_schedule` contains the full three-tier § 7121(a) phase-in text closing with reserved-to-customer framing; `_meta.internal.cyber_audit_schedule={emitted:true, reason:emitted, stamp:cyber-audit-schedule@2026-07-27T-item204}`; no cohort-membership assertion; no `annual_gross_revenue_2028` ask anywhere; `_meta.internal.cohort_append={appended:false, reason:band_resolved}`.
+- **BRANCH-PASS §(4) HELD — info-needed normalizer proven:** all 3 `information_needed` rows carry `id` and `topic` (`info_scope_and_triggers_scope_notes_0`, `info_inconsistency_flags_0_description_1`, `info_priority_actions_4_action_2`).
+- **BRANCH-PASS §(1) HELD — clock + invocation semantics:** E2E 5m25s, `quality_runs.status=complete`, `error=NULL` (Item-203 semantics fix holds).
+- **Non-evidential residuals (`_meta.internal.emit_gate`):** 1 degraded — `unterminated_sentence` at `$.risk_assessment_by_activity[0].benefits_outweigh_risks_conclusion` (Stage-C candidate per Item 204).
+- **Courier:** `docs/courier/SMOKE-5-BRANCH-FAIL-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`** (Stage-C accounting only; smoke #5 non-evidential).
+- **Disposition:** **HARD STOP for controller review.** No fix invented this turn.
