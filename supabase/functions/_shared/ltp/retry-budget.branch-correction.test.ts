@@ -7,6 +7,8 @@ import {
   MAX_ELAPSED_FOR_RETRY_MS,
   POST_RETRY_RESERVE_MS,
   POST_LINT_LLM_BUDGET_MS,
+  POST_LINT_LLM_MAX_CALL_MS,
+  POST_LINT_PASS1_MAX_CALL_MS,
 } from "./retry-budget.ts";
 
 // SMOKE-HANG BRANCH-CORRECTION regression suite (item 202).
@@ -63,4 +65,9 @@ Deno.test("branch-correction: retry + reserve fit inside E2E budget by construct
   assertEquals(b.allowed, true);
   // Even at the worst-permitted moment, retryCap + elapsed + reserve <= E2E budget
   assert(b.retryCapMs + b.elapsedMs + POST_RETRY_RESERVE_MS <= MAX_END_TO_END_MS);
+});
+
+Deno.test("branch-correction: post-lint LLM call caps fit inside 15-min E2E budget", () => {
+  assert(POST_LINT_LLM_BUDGET_MS + POST_LINT_LLM_MAX_CALL_MS + POST_RETRY_RESERVE_MS <= MAX_END_TO_END_MS);
+  assert(POST_LINT_LLM_BUDGET_MS + POST_LINT_PASS1_MAX_CALL_MS + POST_RETRY_RESERVE_MS <= MAX_END_TO_END_MS);
 });

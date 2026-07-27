@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-smokehang-branch-correction@2026-07-27T16:20:00Z";
+export const BUILD_STAMP = "ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
@@ -141,7 +141,14 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
-import { computeRetryBudget, withRetryPersistFirst, hasBudgetForPostLintLLM, POST_LINT_LLM_BUDGET_MS } from "../_shared/ltp/retry-budget.ts";
+import {
+  computeRetryBudget,
+  withRetryPersistFirst,
+  hasBudgetForPostLintLLM,
+  POST_LINT_LLM_BUDGET_MS,
+  POST_LINT_LLM_CALL_TIMEOUT_MS,
+  POST_LINT_PASS1_TIMEOUT_MS,
+} from "../_shared/ltp/retry-budget.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -157,6 +164,7 @@ const CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS = 150_000;
 // Courier 2026-07-12 item 4: first-call ceiling for risk. Continuation
 // (see callAnthropicWithContinuation) is the safety net if exceeded.
 const CPPA_RISK_MAX_TOKENS = 32_000;
+const REPORT_COMPLETION_GATE = "final-status-and-report-data@2026-07-27-smoke-latency-rootcause";
 console.log(`[cppa-risk] build active · core=${PROMPT_CORE_VERSION} · cppa-risk=r1b1.4-rca`);
 
 // L3 stage 1: fire-and-forget corpus-consistency check (once per warm
@@ -879,10 +887,11 @@ async function callModel(
   user: string,
   label = "generate-v4",
   maxTokens: number = CPPA_RISK_MAX_TOKENS,
+  timeoutMs?: number,
 ): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
     model: "claude-sonnet-4-6",
-    system, user, maxTokens, label,
+    system, user, maxTokens, label, timeoutMs,
   });
   return { text: r.text, stopReason: r.stopReason };
 }
@@ -995,42 +1004,12 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
-    // ── PERSIST-EARLY SNAPSHOT (SMOKE-HANG BRANCH-CORRECTION, 2026-07-27 item 202) ──
-    // Invariant: as soon as we have a shippable `parsed` document with
-    // an `assessment_summary`, write it to report_data BEFORE any
-    // downstream operation that can hang or blow the isolate wall-clock
-    // (post-gen-lint LLM retry, forward-path retry, CoT retry, LTP Pass-1
-    // enforce preview, LTP finalize, serializer). Downstream passes either
-    // enhance the doc (the terminal_complete write is an idempotent
-    // overwrite) or die — but the shippable snapshot is already on disk.
-    // Moved from post-lint (item 201) to pre-lint (item 202) per the
-    // BRANCH CORRECTION diagnosis: the 18-minute silence between lint and
-    // persist proves the retry itself, not the finalize pass, is what
-    // consumes the wall-clock. Persist before we spend it.
-    if (assessment_id && parsed && (parsed as any).assessment_summary) {
-      try {
-        const snapshotWrite = await lifecycleUpdate(
-          supabase,
-          "cppa_assessments",
-          assessment_id,
-          { report_data: parsed as any },
-          { fn: "run-cppa-risk-assessment", phase: "persist_early_snapshot" },
-        );
-        console.log(JSON.stringify({
-          evt: "persist_early_snapshot",
-          fn: "run-cppa-risk-assessment",
-          ok: snapshotWrite?.ok !== false,
-          elapsed_ms: Date.now() - t0,
-          build_stamp: BUILD_STAMP,
-        }));
-      } catch (e) {
-        console.warn(JSON.stringify({
-          evt: "persist_early_snapshot_failed",
-          fn: "run-cppa-risk-assessment",
-          error: (e as Error)?.message,
-        }));
-      }
-    }
+    // MEASUREMENT-VALIDITY FIX (SMOKE-LATENCY-ROOTCAUSE, 2026-07-27):
+    // report_data is a completion surface for the harness. Therefore no
+    // pre-final snapshot may write report_data here. The only successful
+    // report_data write is terminal_complete after composition-finalize and
+    // the serializer have run; the harness gate is status='complete' plus
+    // report_data present.
 
 
 
@@ -1300,7 +1279,7 @@ async function runPipeline(assessment_id: string) {
             null,
             budget.retryCapMs,
             async (_signal) => {
-              const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry");
+              const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry", CPPA_RISK_MAX_TOKENS, POST_LINT_LLM_CALL_TIMEOUT_MS);
               const retryParsed = tryParseJson(retry.text);
               if (retryParsed && retryParsed.assessment_summary) {
                 return { parsed: retryParsed, stopReason: retry.stopReason, text: retry.text };
@@ -1443,11 +1422,10 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
 
-    // Item-201 persist-early snapshot was moved UP to right after parsed
-    // validation (line ~999) per item 202 BRANCH CORRECTION. The 18-minute
-    // silence on smoke #155 proved the LLM retries themselves, not the
-    // finalize pass, consume the wall-clock — so the snapshot must land
-    // before ANY post-gen work, not after it. This spot is now a no-op.
+    // Item-201/202 persist-early snapshot removed. It made report_data
+    // observable before composition-finalize/serializer and allowed a later
+    // overwrite after the harness could complete the doc. That is a §16
+    // measurement-validity violation. This spot remains a no-op.
 
 
 
@@ -1471,7 +1449,7 @@ async function runPipeline(assessment_id: string) {
         } else {
           console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow }));
           const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
-          const retry = await callModel(system, appended, "generate-v4-fwdpath-retry");
+          const retry = await callModel(system, appended, "generate-v4-fwdpath-retry", CPPA_RISK_MAX_TOKENS, POST_LINT_LLM_CALL_TIMEOUT_MS);
           const retryParsed = tryParseJson(retry.text);
           if (retryParsed && retryParsed.assessment_summary) {
             parsed = retryParsed;
@@ -1522,7 +1500,7 @@ async function runPipeline(assessment_id: string) {
           elapsed_ms: elapsedNow,
         }));
         const cotInstruction = "\n\nYour previous output contained visible self-correction or chain-of-thought markers (e.g. \"— wait,\", \"Correcting:\", \"let me reconsider\", \"actually,\", \"on second thought\"). CUSTOMER PROSE IS FINAL TEXT ONLY — corrections must be applied SILENTLY before emission. Re-emit the JSON with clean, final prose in every string leaf, including scope_notes.";
-        const retry = await callModel(system, userPrompt + cotInstruction, "generate-v4-cot-leak-retry");
+        const retry = await callModel(system, userPrompt + cotInstruction, "generate-v4-cot-leak-retry", CPPA_RISK_MAX_TOKENS, POST_LINT_LLM_CALL_TIMEOUT_MS);
 
         const retryParsed = tryParseJson(retry.text);
         if (retryParsed && retryParsed.assessment_summary) {
@@ -3404,28 +3382,50 @@ async function runPipeline(assessment_id: string) {
       // NOT mutate customer-visible report_data; the whitelist serializer
       // strips _meta.internal. Fail-open in all paths.
       try {
-        const _pass1 = await runPass1Llm({
-          intake: _ltpIntake,
-          report_data: report_data as any,
-          buildStamp: BUILD_STAMP,
-        });
         const _rd2: any = report_data as any;
-        _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
-          manifest: PASS1_MANIFEST,
-          telemetry: _pass1.telemetry,
-          plan_summary: {
-            plan_version: _pass1.plan.plan_version,
-            propositions: _pass1.plan.propositions?.length ?? 0,
-            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
-            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
-          },
-        };
-        console.log(JSON.stringify({
-          evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
-          build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
-          attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
-          latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
-        }));
+        const _elapsedBeforePass1 = Date.now() - t0;
+        if (!hasBudgetForPostLintLLM(_elapsedBeforePass1)) {
+          _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+            manifest: PASS1_MANIFEST,
+            telemetry: {
+              ran: false,
+              attempts: 0,
+              ok: false,
+              latency_ms: 0,
+              write_around: false,
+              validator_issues: 0,
+              error: "skipped_budget",
+            },
+            skipped_budget: true,
+            elapsed_ms: _elapsedBeforePass1,
+            budget_ms: POST_LINT_LLM_BUDGET_MS,
+          };
+          console.warn(JSON.stringify({ evt: "ltp_enforce_preview_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
+        } else {
+          const _pass1 = await runPass1Llm({
+            intake: _ltpIntake,
+            report_data: report_data as any,
+            buildStamp: BUILD_STAMP,
+          }, { maxAttempts: 1, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+            manifest: PASS1_MANIFEST,
+            telemetry: _pass1.telemetry,
+            plan_summary: {
+              plan_version: _pass1.plan.plan_version,
+              propositions: _pass1.plan.propositions?.length ?? 0,
+              gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
+              write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
+            },
+            timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+            max_attempts: 1,
+          };
+          console.log(JSON.stringify({
+            evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
+            build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
+            attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
+            latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
+          }));
+        }
       } catch (e) {
         console.warn("[run-cppa-risk-assessment] LTP enforce-preview failed (non-fatal):", (e as Error)?.message);
       }
@@ -3617,6 +3617,8 @@ async function runPipeline(assessment_id: string) {
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
+    } else {
+      console.log(JSON.stringify({ evt: "report_data_final_persisted", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP, completion_gate: REPORT_COMPLETION_GATE, elapsed_ms: Date.now() - t0 }));
     }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
@@ -3674,8 +3676,10 @@ Deno.serve(async (req) => {
       // is a §16 abort, not a silent drift.
       composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
       persist_first_retry: "retry-budget@2026-07-27-persistfirst",
-      persist_early_snapshot: "persist-early-pre-lint@2026-07-27-branch-correction",
+      report_completion_gate: REPORT_COMPLETION_GATE,
       post_lint_llm_budget_ms: POST_LINT_LLM_BUDGET_MS,
+      post_lint_llm_call_timeout_ms: POST_LINT_LLM_CALL_TIMEOUT_MS,
+      post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
 
       safe_finalize: "safe-finalize@2026-07-27-hangfix",
 
@@ -3755,7 +3759,21 @@ Deno.serve(async (req) => {
       await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id! });
     } catch (e) {
       console.error("pipeline error:", e);
-      await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+      const { data: maybeCompleted } = await supabase
+        .from("cppa_assessments")
+        .select("status, report_data")
+        .eq("id", assessment_id!)
+        .maybeSingle();
+      if ((maybeCompleted as any)?.status === "complete" && (maybeCompleted as any)?.report_data) {
+        await finishFunctionRun(supabase, fnRun, {
+          status: "success",
+          sourceTable: "cppa_assessments",
+          sourceRowId: assessment_id!,
+          metadata: { assessment_id, recovered_after_error: true, original_error: (e as Error)?.message ?? String(e) },
+        });
+      } else {
+        await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+      }
     }
   })();
   // @ts-ignore Deno Edge Runtime API

@@ -734,18 +734,20 @@ with `MARGIN_MS ≥ 300_000` (5 minutes). For the current harness reap of 20 min
 The generator's E2E budget is decomposed and enforced by named constants (see e.g. `_shared/ltp/retry-budget.ts`):
 
 ```text
-ISOLATE_CEILING_MS       = 900_000   // 15 min hard E2E budget
-MAX_ELAPSED_FOR_RETRY_MS = 240_000   //  4 min hard elapsed cap on any retry decision
-POST_LINT_LLM_BUDGET_MS  = 300_000   //  5 min ceiling on all post-lint LLM calls (retry, guards)
-POST_RETRY_RESERVE_MS    = 180_000   //  3 min reserve for finalize + serializer + persist
-MIN_RETRY_WINDOW_MS      =  30_000
+ISOLATE_CEILING_MS             = 900_000   // 15 min hard E2E budget
+MAX_ELAPSED_FOR_RETRY_MS       = 240_000   //  4 min hard elapsed cap on any retry decision
+POST_LINT_LLM_BUDGET_MS        = 300_000   //  5 min latest-start ceiling on post-lint LLM calls
+POST_LINT_LLM_CALL_TIMEOUT_MS  = 120_000   //  2 min per Anthropic leg; continuation max 4 min
+POST_LINT_PASS1_TIMEOUT_MS     =  75_000   // 75s per Anthropic leg; pass-1 max 2.5 min
+POST_RETRY_RESERVE_MS          = 180_000   //  3 min reserve for finalize + serializer + persist
+MIN_RETRY_WINDOW_MS            =  30_000
 ```
 
-A retry that cannot fit inside the reserve-adjusted remaining wall-clock is SKIPPED. A guard-driven post-lint LLM call at elapsed ≥ `POST_LINT_LLM_BUDGET_MS` is SKIPPED. Both cases emit `*_skipped_budget` telemetry.
+A retry that cannot fit inside the reserve-adjusted remaining wall-clock is SKIPPED. A guard-driven post-lint LLM call at elapsed ≥ `POST_LINT_LLM_BUDGET_MS` is SKIPPED. Any allowed post-lint LLM call MUST also use a bounded per-call timeout such that `elapsed_start + max_call_ms + POST_RETRY_RESERVE_MS ≤ ISOLATE_CEILING_MS`. Both skipped cases emit `*_skipped_budget` telemetry.
 
-### 30.3 PERSIST-BEFORE-CLOCK-SPEND
+### 30.3 MEASUREMENT-VALID PERSISTENCE
 
-A generator MUST persist its first shippable document snapshot BEFORE spending clock on any downstream operation that could hang the isolate or push past the E2E budget — including retries, guard-driven LLM calls, deterministic passes with unbounded LLM calls inside them, or serializer/finalize passes with non-trivial runtimes. This is the persist-early invariant, elevated from a product hotfix into product-agnostic law.
+A generator MUST NOT expose a pre-final document on the same completion surface the harness reads. If a product persists an early snapshot, that snapshot MUST either be the fully finalized composition or be stored behind an explicit non-completion flag that the harness ignores until finalization. For current CPPA risk runs, `report_data` is final-only: it is written only with terminal `status='complete'`, after composition-finalize and serializer. Downstream writes after a harness-visible completion are prohibited.
 
 ### 30.4 REGRESSION BAR
 

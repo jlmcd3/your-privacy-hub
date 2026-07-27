@@ -60,7 +60,7 @@ function fillUserTemplate(input: DeriveInput): string {
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
 }
 
-async function callPass1Model(system: string, user: string): Promise<string> {
+async function callPass1Model(system: string, user: string, timeoutMs?: number): Promise<string> {
   // PRE-WAVED-EMITTER-FIXES-2026-07-27 (CEO Q3): direct Anthropic client;
   // gateway path retired for Pass-1 because the Lovable AI gateway does
   // not serve Anthropic models and the CEO same-model ruling requires
@@ -75,6 +75,7 @@ async function callPass1Model(system: string, user: string): Promise<string> {
     label: "ltp-pass1-derive",
     callerName: "run-cppa-risk-assessment",
     product: "cppa-risk-assessment",
+    timeoutMs,
   });
   return res.text;
 }
@@ -92,7 +93,10 @@ function writeAroundPlan(input: DeriveInput, reason: string): RenderPlan {
  * derive plan with conservative_write_around triggered — customer path is
  * preserved.
  */
-export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
+export async function runPass1Llm(
+  input: DeriveInput,
+  opts: { maxAttempts?: number; timeoutMs?: number } = {},
+): Promise<Pass1Result> {
   const t0 = Date.now();
   const enforceEnabled = Deno.env.get("LTP_ENFORCE_ENABLED") === "1";
   if (!enforceEnabled) {
@@ -117,11 +121,13 @@ export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
   }
 
   let lastErr = "";
-  for (let attempt = 1; attempt <= PASS1_MAX_ATTEMPTS; attempt++) {
+  const maxAttempts = Math.max(1, Math.min(opts.maxAttempts ?? PASS1_MAX_ATTEMPTS, PASS1_MAX_ATTEMPTS));
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const raw = await callPass1Model(
         typeof PASS1_DERIVE_SYSTEM === "string" ? PASS1_DERIVE_SYSTEM : JSON.stringify(PASS1_DERIVE_SYSTEM),
         fillUserTemplate(input),
+        opts.timeoutMs,
       );
       if (!raw) { lastErr = "empty_content"; continue; }
       // Anthropic returns text; extract the first JSON object.
@@ -161,7 +167,7 @@ export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
     plan: writeAroundPlan(input, lastErr || "unknown"),
     telemetry: {
       ran: true,
-      attempts: PASS1_MAX_ATTEMPTS,
+        attempts: maxAttempts,
       ok: false,
       latency_ms: Date.now() - t0,
       write_around: true,

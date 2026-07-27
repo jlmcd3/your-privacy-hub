@@ -222,7 +222,7 @@ async function reapFunctionRuns(): Promise<{ table: string; reaped: number; erro
   const cutoff = new Date(Date.now() - FUNCTION_RUN_STUCK_MINUTES * 60_000).toISOString();
   const { data: candidates, error: selErr } = await supabase
     .from("function_runs")
-    .select("id, started_at")
+    .select("id, started_at, metadata")
     .eq("status", "running")
     .lt("started_at", cutoff);
 
@@ -240,6 +240,36 @@ async function reapFunctionRuns(): Promise<{ table: string; reaped: number; erro
   for (const row of candidates as any[]) {
     const started = new Date(row.started_at);
     const durationMs = now.getTime() - started.getTime();
+    const assessmentId = typeof row?.metadata?.assessment_id === "string" ? row.metadata.assessment_id : null;
+    if (assessmentId) {
+      const { data: assessment } = await supabase
+        .from("cppa_assessments")
+        .select("status, report_data")
+        .eq("id", assessmentId)
+        .maybeSingle();
+      if ((assessment as any)?.status === "complete" && (assessment as any)?.report_data) {
+        const { error: recoveredErr } = await supabase
+          .from("function_runs")
+          .update({
+            status: "success",
+            finished_at: now.toISOString(),
+            duration_ms: durationMs,
+            source_table: "cppa_assessments",
+            source_row_id: assessmentId,
+            error_message: null,
+            metadata: { ...(row.metadata ?? {}), recovered_by_reaper: true, recovered_reason: "source_row_already_complete" },
+          })
+          .eq("id", row.id)
+          .eq("status", "running");
+        if (recoveredErr) {
+          console.error(`[reap-stuck] function_runs ${row.id}: recovered-success update failed`, recoveredErr);
+          continue;
+        }
+        reaped += 1;
+        console.log(`[reap-stuck] function_runs ${row.id}: recovered as success because cppa_assessments/${assessmentId} is complete`);
+        continue;
+      }
+    }
     const { error: updErr } = await supabase
       .from("function_runs")
       .update({
