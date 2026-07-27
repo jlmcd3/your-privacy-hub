@@ -67,6 +67,29 @@ const BENEFIT_FRAMING =
   "Identify the benefits to the business, the consumer, other stakeholders, "
   + "and the public from the processing of the personal information, as applicable.";
 
+// FSOR-INGESTION 2026-07-27: (a)(4) benefit rows filled from existing § 7152(a)(4)-tagged
+// FSOR commentary (ac2d3934 = agency's "non-generic terms + as-applicable" ruling p. 35;
+// 9c6cb558 = agency's "benefits may apply to different categories of stakeholders" ruling
+// Appendix p. 139). Both are BINDING (CPPA FSOR). Shared across all four stakeholder rows
+// because the agency's ruling is that benefit specificity + differential applicability
+// apply to every stakeholder category uniformly.
+const BENEFIT_GUIDANCE: readonly GuidanceRef[] = [
+  {
+    source_table: "cppa_fsor_commentary",
+    regulation_citation: "11 CCR § 7152(a)(4)",
+    page_ref: "p. 35",
+    anchor_hint: "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+    authority_weight: "binding",
+  },
+  {
+    source_table: "cppa_fsor_commentary",
+    regulation_citation: "11 CCR § 7152(a)(4)",
+    page_ref: "Appendix, p. 139",
+    anchor_hint: "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+    authority_weight: "binding",
+  },
+] as const;
+
 const BENEFITS: readonly FactorRow[] = [
   {
     id: "benefit.business",
@@ -75,11 +98,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to the business",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding:
-      "§ 7152(a)(4) enumerates no sub-categories; FSOR discussion of benefit specificity is filed under § 7152 generally "
-      + "(non-generic requirement mirrors (a)(1) purpose discipline). No dedicated guidance row for business-benefit "
-      + "articulation — logged to T5 as ranked ingestion candidate.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
   {
     id: "benefit.consumer",
@@ -88,8 +107,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to the consumer",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
   {
     id: "benefit.other_stakeholders",
@@ -98,8 +116,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to other stakeholders",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
   {
     id: "benefit.public",
@@ -108,8 +125,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to the public",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
 ] as const;
 
