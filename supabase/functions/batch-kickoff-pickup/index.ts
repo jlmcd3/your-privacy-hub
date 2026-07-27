@@ -31,8 +31,9 @@ import {
   assertStateMachineConformance,
   verifyStateMachine,
 } from "../_shared/harness/state-machine.ts";
+import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
 
-export const BUILD_STAMP = "qbp27-state-machine-conformance@2026-07-27T04:15:00Z";
+export const BUILD_STAMP = "qbp28-corrections-bundle-mode-assert@2026-07-27T06:10:00Z";
 
 // PROCESS-RETRO-WRITEBACK (2026-07-27, ledger item 165):
 // Fail-loud state-machine conformance at boot. If a future edit removes a
