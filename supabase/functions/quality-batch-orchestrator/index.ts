@@ -728,6 +728,7 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     current_tool_index: 0, tool_results: [], created_by: userId,
     instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
     concurrency, // QB-P7
+    declared_count: tools.length * batchSize, // §16.n born-state
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
