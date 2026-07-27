@@ -44,23 +44,49 @@
 
 import { classifyRevenueBand } from "../_shared/cppa-test-states.ts";
 
-export const RISK_COHORT_DATE_STAMP = "risk-cohort-date@2026-07-26T03:09:53Z";
-export const RISK_COHORT_DATE_VERSION = "risk-cohort-date-v1-2026-07-26";
+// PRE-WAVED-EMITTER-FIXES-2026-07-27: extend from 25_50m-only to a full
+// V2 truth-table over ALL revenue bands. The § 7121(a) tier→deadline map
+// is corpus-pinned; the emitter guarantees the correct literal per band
+// and excises any wrong-cohort sentence regardless of band.
+export const RISK_COHORT_DATE_STAMP = "risk-cohort-date@2026-07-27T06:40:00Z";
+export const RISK_COHORT_DATE_VERSION = "risk-cohort-date-v2-truth-table-2026-07-27";
 
-// Corpus-pinned literal — verbatim from provision_texts row cppa-7121
-// (status=approved), § 7121(a)(3): the < $50M cohort due date.
-// Tests pin BOTH the date literal and the audit-period window; changing
-// either without a corpus write breaks the pinned assertion.
+// Corpus-pinned literals — verbatim from provision_texts row cppa-7121
+// (status=approved). Tests pin the literals so registry drift trips CI.
 export const COHORT_DATE_LITERAL_25_50M = "April 1, 2030";
 export const AUDIT_PERIOD_LITERAL_25_50M =
   "January 1, 2029 through January 1, 2030";
+export const COHORT_DATE_LITERAL_50_100M = "April 1, 2029";
+export const AUDIT_PERIOD_LITERAL_50_100M =
+  "January 1, 2028 through January 1, 2029";
+export const COHORT_DATE_LITERAL_OVER_100M = "April 1, 2028";
+export const AUDIT_PERIOD_LITERAL_OVER_100M =
+  "January 1, 2027 through January 1, 2028";
 
-// The deterministic sentence emitted into the cybersecurity-audit
-// rationale surface. Advocate-drafter voice; no hedges.
+// V2 truth-table: revenue-band key → { subdivision, date, audit period }.
+// "unspecified"/"legacy_25_100m" resolve to "not determinable" — the
+// emitter refuses to invent a date when the band is indeterminate.
+export const COHORT_TRUTH_TABLE = {
+  under_25m:      { subdivision: "(a)(3)", date: COHORT_DATE_LITERAL_25_50M,     period: AUDIT_PERIOD_LITERAL_25_50M },
+  "25_50m":       { subdivision: "(a)(3)", date: COHORT_DATE_LITERAL_25_50M,     period: AUDIT_PERIOD_LITERAL_25_50M },
+  "50_100m":      { subdivision: "(a)(2)", date: COHORT_DATE_LITERAL_50_100M,    period: AUDIT_PERIOD_LITERAL_50_100M },
+  over_100m:      { subdivision: "(a)(1)", date: COHORT_DATE_LITERAL_OVER_100M,  period: AUDIT_PERIOD_LITERAL_OVER_100M },
+  "100_500m":     { subdivision: "(a)(1)", date: COHORT_DATE_LITERAL_OVER_100M,  period: AUDIT_PERIOD_LITERAL_OVER_100M },
+  over_500m:      { subdivision: "(a)(1)", date: COHORT_DATE_LITERAL_OVER_100M,  period: AUDIT_PERIOD_LITERAL_OVER_100M },
+  legacy_25_100m: { subdivision: null,     date: null,                            period: null },
+  unspecified:    { subdivision: null,     date: null,                            period: null },
+} as const;
+
 export const DETERMINISTIC_COHORT_SENTENCE_25_50M =
   `Per 11 CCR § 7121(a)(3), the first cybersecurity audit report is due ` +
   `${COHORT_DATE_LITERAL_25_50M} (audit period ${AUDIT_PERIOD_LITERAL_25_50M}) ` +
   `for a business whose 2028 annual gross revenue was less than $50,000,000.`;
+
+function deterministicSentenceFor(bandKey: string): string | null {
+  const row = (COHORT_TRUTH_TABLE as Record<string, { subdivision: string | null; date: string | null; period: string | null }>)[bandKey];
+  if (!row || !row.date || !row.subdivision) return null;
+  return `Per 11 CCR § 7121${row.subdivision}, the first cybersecurity audit report is due ${row.date} (audit period ${row.period}).`;
+}
 
 // Anchor keys — mirrors W24A_V3 ANCHOR_KEYS. Never rewritten.
 const ANCHOR_KEYS = new Set<string>([
@@ -71,8 +97,6 @@ const ANCHOR_KEYS = new Set<string>([
   "deadline", "deadline_basis",
 ]);
 
-// Surfaces walked for wrong-date excision. Deadline/compliance-timeline
-// prose lives here.
 const TIMELINE_STRING_KEYS = new Set<string>([
   "cybersecurity_audit_rationale",
   "audit_timing",
@@ -80,11 +104,16 @@ const TIMELINE_STRING_KEYS = new Set<string>([
   "compliance_timeline",
   "timeline",
   "scope_notes",
+  "opening_summary",
+  "executive_summary",
+  "summary",
+  "narrative",
+  "rationale",
 ]);
 
-const COHORT_CITE_HINT = /§\s*7121|7121\(a\)|cohort/i;
-const WRONG_DATE_RE_25_50M =
-  /\b(?:April\s+1,?\s+2028|Apr\.?\s+1,?\s+2028|2028-04-01|April\s+1,?\s+2029|Apr\.?\s+1,?\s+2029|2029-04-01)\b/i;
+const COHORT_CITE_HINT = /§\s*7121|7121\(a\)|cohort|cybersecurity\s+audit/i;
+const ALL_COHORT_DATE_RE =
+  /\b(?:April\s+1,?\s+(?:2028|2029|2030)|Apr\.?\s+1,?\s+(?:2028|2029|2030)|(?:2028|2029|2030)-04-01)\b/i;
 
 function splitSentences(s: string): string[] {
   const parts: string[] = [];
