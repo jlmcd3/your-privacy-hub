@@ -3316,13 +3316,13 @@ async function runPipeline(assessment_id: string) {
     }
 
     // ── STAGE-B BLOCK-A COMPOSITION FINALIZER (2026-07-27, item 194) ──
-    // Single composition-exit choke-point that composes the four Stage-B
-    // guards: value-screen (LEAK-PREV-P2), surface-write-guard walk,
-    // and composition-hook-audit. Mode from env LTP_COMPOSITION_ENFORCE:
-    // "observe" (default) records telemetry; "enforce" throws. Hook audit
-    // is always fail-loud (silent-bypass is a config defect, not content).
-    // Telemetry lands under _meta.internal.composition_finalize, stripped
-    // by LEAK-PREV-P2. Fail-open at the outer boundary — reports still ship.
+    // SMOKE-HANG ROOT FIX (2026-07-27, this turn): call goes through
+    // safeFinalizeComposition() which is guaranteed non-throwing and
+    // wall-clock-telemetered. HARD INVARIANT: any failure here — including
+    // an enforce-mode value-screen/surface-guard throw, a hook-audit throw,
+    // or an outright bug in the finalize path — MUST NOT prevent persist.
+    // Enforce-mode strictness applies to MEASUREMENT verdicts (recorded on
+    // telemetry.enforce_violation), never to whether the document ships.
     try {
       const _rdF: any = report_data as any;
       _rdF._meta = _rdF._meta ?? {};
@@ -3331,48 +3331,59 @@ async function runPipeline(assessment_id: string) {
       const _ltpPreview = _rdF._meta.internal.legal_test_pipeline?.enforce_preview;
       const _writeAroundEntered = !!_ltpPreview?.plan_summary?.write_around;
       const _mode = currentEnforceMode(Deno.env);
-      const _final = finalizeComposition({
+      const _safe = safeFinalizeComposition({
         reportData: report_data,
         hookValue: _hookValue,
         writeAroundEntered: _writeAroundEntered,
         mode: _mode,
       });
-      report_data = _final.reportData as any;
+      report_data = _safe.reportData as any;
       const _rdF2: any = report_data as any;
       _rdF2._meta = _rdF2._meta ?? {};
       _rdF2._meta.internal = _rdF2._meta.internal ?? {};
       _rdF2._meta.internal.composition_finalize = {
         build_stamp: BUILD_STAMP,
         version: COMPOSITION_FINALIZE_VERSION,
-        ..._final.telemetry,
+        safe_version: SAFE_FINALIZE_VERSION,
+        ..._safe.telemetry,
       };
       console.log(JSON.stringify({
         evt: "composition_finalize_ran", fn: "run-cppa-risk-assessment",
-        build_stamp: BUILD_STAMP, mode: _final.telemetry.mode,
-        value_screen_hits: _final.telemetry.value_screen_hits,
-        value_screen_final_hits: _final.telemetry.value_screen_final_hits,
-        value_screen_recomposed: _final.telemetry.value_screen_recomposed,
-        surface_unowned_count: _final.telemetry.surface_unowned_paths.length,
-        surface_cut_violations: _final.telemetry.surface_cut_violations.length,
-        hook_present: _final.telemetry.hook_value_present,
-        write_around_entered: _final.telemetry.write_around_entered,
+        build_stamp: BUILD_STAMP, safe_version: SAFE_FINALIZE_VERSION,
+        mode: _safe.telemetry.mode,
+        errored: _safe.telemetry.errored,
+        error_kind: _safe.telemetry.error_kind ?? null,
+        enforce_violation: _safe.telemetry.enforce_violation,
+        elapsed_ms: _safe.telemetry.elapsed_ms,
+        budget_exceeded: _safe.telemetry.budget_exceeded,
+        value_screen_hits: _safe.telemetry.inner?.value_screen_hits ?? null,
+        value_screen_final_hits: _safe.telemetry.inner?.value_screen_final_hits ?? null,
+        surface_unowned_count: _safe.telemetry.inner?.surface_unowned_paths.length ?? null,
+        surface_cut_violations: _safe.telemetry.inner?.surface_cut_violations.length ?? null,
+        hook_present: _safe.telemetry.inner?.hook_value_present ?? null,
+        write_around_entered: _safe.telemetry.inner?.write_around_entered ?? null,
       }));
     } catch (e) {
-      // Fail-loud errors (hook audit; enforce-mode surface/value-screen) are
-      // recorded under _meta.internal so operators can see them, but the run
-      // still ships. Enforce mode is opt-in via env; observe mode never trips.
-      const _rdE: any = report_data as any;
-      _rdE._meta = _rdE._meta ?? {};
-      _rdE._meta.internal = _rdE._meta.internal ?? {};
-      _rdE._meta.internal.composition_finalize_error = {
-        build_stamp: BUILD_STAMP,
-        error: (e as Error)?.message ?? String(e),
-      };
+      // Belt-and-suspenders: safeFinalizeComposition is designed never to
+      // throw, but if it somehow does (e.g. env access blocked), swallow
+      // and telemeter — persist must not be blocked.
+      try {
+        const _rdE: any = report_data as any;
+        _rdE._meta = _rdE._meta ?? {};
+        _rdE._meta.internal = _rdE._meta.internal ?? {};
+        _rdE._meta.internal.composition_finalize_error = {
+          build_stamp: BUILD_STAMP,
+          error: (e as Error)?.message ?? String(e),
+          kind: (e as Error)?.name ?? "Error",
+          escaped_safe_wrapper: true,
+        };
+      } catch { /* best-effort */ }
       console.warn(
-        "[run-cppa-risk-assessment] composition-finalize error (non-fatal at outer boundary):",
+        "[run-cppa-risk-assessment] composition-finalize escaped safe wrapper (non-fatal):",
         (e as Error)?.message,
       );
     }
+
 
     // ── FUTURE-BUILDING F0 — observation-only signature emit ─────────
     // Non-blocking, post-validation, PI-free. Writes a scenario signature
