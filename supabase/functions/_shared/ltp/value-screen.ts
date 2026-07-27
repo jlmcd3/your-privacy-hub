@@ -67,7 +67,7 @@ export const TRUNCATED_SLOT_VALUES: readonly string[] = [
   "We", "The", "A", "An", "Our", "Their", "It", "This", "That",
   "TODO", "TBD",
 ] as const;
-const TRUNCATED_SLOT_VALUE_SET: ReadonlySet<string> = new Set(TRUNCATED_SLOT_VALUES);
+export const TRUNCATED_SLOT_VALUE_SET: ReadonlySet<string> = new Set(TRUNCATED_SLOT_VALUES);
 
 const CITE_SPAN_RE = /\{\{cite:[^}]+\}\}/g;
 const INTAKE_SPAN_RE = /\{\{intake:[^}]+\}\}/g;
@@ -103,7 +103,7 @@ function normalize(s: string): string {
 }
 
 /** Anchor / metadata paths whose values are structured tokens, not customer prose. */
-function isAnchorPath(path: string): boolean {
+export function isAnchorPath(path: string): boolean {
   const lastKey = path.split(".").pop() ?? "";
   const bare = lastKey.replace(/\[\d+\]$/, "");
   if (bare.startsWith("_")) return true;

@@ -24,6 +24,8 @@
 import {
   runValueScreen,
   ValueScreenError,
+  TRUNCATED_SLOT_VALUE_SET,
+  isAnchorPath,
   type ValueScreenHit,
 } from "./value-screen.ts";
 import {
@@ -36,6 +38,7 @@ import {
 } from "./composition-hook-audit.ts";
 
 export const COMPOSITION_FINALIZE_VERSION = "composition-finalize@2026-07-27";
+export const FRAGMENT_OMIT_VERSION = "fragment-omit@2026-07-27-item206";
 export const ENFORCE_ENV = "LTP_COMPOSITION_ENFORCE";
 
 export type FinalizeMode = "observe" | "enforce";
@@ -61,6 +64,10 @@ export interface FinalizeTelemetry {
   readonly value_screen_hits: number;
   readonly value_screen_recomposed: boolean;
   readonly value_screen_final_hits: number;
+  readonly value_screen_hit_details: readonly ValueScreenHit[];
+  readonly fragment_omit_version: string;
+  readonly fragment_omit_count: number;
+  readonly fragment_omit_paths: readonly string[];
   readonly surface_unowned_paths: readonly string[];
   readonly surface_cut_violations: readonly string[];
   readonly hook_audit_ok: boolean;
@@ -134,6 +141,57 @@ function driveValueScreen(
   };
 }
 
+// ── Fragment-omit pre-pass (Item 206) ─────────────────────────────────
+// ROOT-ADJACENT FIX: any string slot whose entire trimmed value is a
+// closed-set truncation token (see TRUNCATED_SLOT_VALUES) cannot be a
+// legitimate value of a customer-facing slot. Rather than shipping the
+// fragment, we OMIT the key entirely (object) or elide the entry (array).
+// This satisfies the CEO ruling: "the slot must be filled with the full
+// intended value or omitted entirely (never a fragment)." Anchor paths
+// (id/citation/…) are exempt. Underscore subtrees (_meta) are not walked.
+export interface FragmentOmitResult {
+  readonly reportData: unknown;
+  readonly omittedPaths: readonly string[];
+}
+
+export function omitFragmentSlots(node: unknown, path = ""): FragmentOmitResult {
+  const omitted: string[] = [];
+  function walk(n: unknown, p: string): unknown {
+    if (typeof n === "string") return n;
+    if (Array.isArray(n)) {
+      const out: unknown[] = [];
+      for (let i = 0; i < n.length; i++) {
+        const childPath = `${p}[${i}]`;
+        const v = n[i];
+        if (typeof v === "string" && !isAnchorPath(childPath)
+            && TRUNCATED_SLOT_VALUE_SET.has(v.trim())) {
+          omitted.push(childPath);
+          continue; // elide fragment array entry
+        }
+        out.push(walk(v, childPath));
+      }
+      return out;
+    }
+    if (n && typeof n === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(n as Record<string, unknown>)) {
+        if (k.startsWith("_")) { out[k] = v; continue; } // preserve _meta untouched
+        const childPath = p ? `${p}.${k}` : k;
+        if (typeof v === "string" && !isAnchorPath(childPath)
+            && TRUNCATED_SLOT_VALUE_SET.has(v.trim())) {
+          omitted.push(childPath);
+          continue; // omit fragment slot entirely
+        }
+        out[k] = walk(v, childPath);
+      }
+      return out;
+    }
+    return n;
+  }
+  const scrubbed = walk(node, path);
+  return { reportData: scrubbed, omittedPaths: omitted };
+}
+
 // ── Public API ───────────────────────────────────────────────────────
 
 export function finalizeComposition(input: FinalizeInput): FinalizeResult {
@@ -141,8 +199,12 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
   const mode: FinalizeMode =
     input.mode ?? (env.get(ENFORCE_ENV) === "1" ? "enforce" : "observe");
 
+  // (0) Fragment-omit pre-pass — remove whole-value truncation slots at root.
+  const omit = omitFragmentSlots(input.reportData);
+  const rescreenInput: FinalizeInput = { ...input, reportData: omit.reportData };
+
   // (1) value-screen with one bounded recompose
-  const screen = driveValueScreen(input);
+  const screen = driveValueScreen(rescreenInput);
   if (mode === "enforce" && screen.finalHits > 0) {
     throw new ValueScreenError(screen.finalHitDetails);
   }
@@ -191,6 +253,10 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       value_screen_hits: screen.firstHits,
       value_screen_recomposed: screen.recomposed,
       value_screen_final_hits: screen.finalHits,
+      value_screen_hit_details: screen.finalHitDetails,
+      fragment_omit_version: FRAGMENT_OMIT_VERSION,
+      fragment_omit_count: omit.omittedPaths.length,
+      fragment_omit_paths: omit.omittedPaths,
       surface_unowned_paths,
       surface_cut_violations,
       hook_audit_ok: true,
@@ -216,7 +282,7 @@ export { readForceWriteAroundOnce };
 // they can safely persist. Enforce-mode strictness is preserved via
 // `telemetry.enforce_violation` for measurement verdicts — the
 // document still ships; the verdict is what enforce mode governs.
-export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-hangfix";
+export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-item206-hits";
 export const SAFE_FINALIZE_BUDGET_MS_DEFAULT = 15_000;
 
 export interface SafeFinalizeTelemetry {
@@ -230,6 +296,12 @@ export interface SafeFinalizeTelemetry {
   readonly budget_ms: number;
   readonly elapsed_ms: number;
   readonly budget_exceeded: boolean;
+  /**
+   * ITEM 206 — per-hit ValueScreenError details preserved on the catch
+   * path so the wire-site can persist path/context under
+   * `_meta.internal.composition_finalize.hits`. Never blind again.
+   */
+  readonly hits: readonly ValueScreenHit[];
   readonly inner?: FinalizeTelemetry;
 }
 
@@ -244,17 +316,6 @@ function nowMs(): number {
     : Date.now();
 }
 
-/**
- * Call finalizeComposition() with belt-and-suspenders safety:
- *   - ANY exception → caught, telemetered, original reportData returned unchanged
- *   - Soft wall-clock budget → elapsed_ms + budget_exceeded flag (sync work
- *     cannot be preempted, but overshoot is telemetered)
- *   - NEVER throws — persist always runs
- *
- * Enforce-mode value-screen / surface-guard throws are recorded as
- * `enforce_violation: true` on telemetry so measurement can act on them;
- * the document itself is never blocked.
- */
 export function safeFinalizeComposition(
   input: FinalizeInput & { budgetMs?: number },
 ): SafeFinalizeResult {
@@ -279,6 +340,7 @@ export function safeFinalizeComposition(
         budget_ms: budgetMs,
         elapsed_ms: elapsed,
         budget_exceeded: elapsed > budgetMs,
+        hits: res.telemetry.value_screen_hit_details,
         inner: res.telemetry,
       },
     };
@@ -287,6 +349,8 @@ export function safeFinalizeComposition(
     const err = e as Error;
     const kind = err?.name ?? "Error";
     const message = err?.message ?? String(e);
+    const hits: readonly ValueScreenHit[] =
+      e instanceof ValueScreenError ? e.hits : [];
     return {
       reportData: originalReport,
       telemetry: {
@@ -301,6 +365,7 @@ export function safeFinalizeComposition(
         budget_ms: budgetMs,
         elapsed_ms: elapsed,
         budget_exceeded: elapsed > budgetMs,
+        hits,
       },
     };
   }

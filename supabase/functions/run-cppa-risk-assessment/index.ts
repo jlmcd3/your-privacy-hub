@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item204-rulings-executed@2026-07-27T17:20:00Z";
+export const BUILD_STAMP = "ltp-risk-item206-fragment-omit-hits@2026-07-27T18:40:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
@@ -3503,6 +3503,12 @@ async function runPipeline(assessment_id: string) {
         version: COMPOSITION_FINALIZE_VERSION,
         safe_version: SAFE_FINALIZE_VERSION,
         ..._safe.telemetry,
+        // ITEM 206 — per-hit path/context surfaced from ValueScreenError.
+        hits: (_safe.telemetry.hits ?? []).map((h: any) => ({
+          kind: h.kind, match: h.match, path: h.path, context: h.context,
+        })),
+        fragment_omit_count: _safe.telemetry.inner?.fragment_omit_count ?? 0,
+        fragment_omit_paths: _safe.telemetry.inner?.fragment_omit_paths ?? [],
       };
       console.log(JSON.stringify({
         evt: "composition_finalize_ran", fn: "run-cppa-risk-assessment",
@@ -3515,6 +3521,9 @@ async function runPipeline(assessment_id: string) {
         budget_exceeded: _safe.telemetry.budget_exceeded,
         value_screen_hits: _safe.telemetry.inner?.value_screen_hits ?? null,
         value_screen_final_hits: _safe.telemetry.inner?.value_screen_final_hits ?? null,
+        fragment_omit_count: _safe.telemetry.inner?.fragment_omit_count ?? 0,
+        fragment_omit_paths: _safe.telemetry.inner?.fragment_omit_paths ?? [],
+        hits: (_safe.telemetry.hits ?? []).map((h: any) => ({ kind: h.kind, match: h.match, path: h.path })),
         surface_unowned_count: _safe.telemetry.inner?.surface_unowned_paths.length ?? null,
         surface_cut_violations: _safe.telemetry.inner?.surface_cut_violations.length ?? null,
         hook_present: _safe.telemetry.inner?.hook_value_present ?? null,
@@ -3720,7 +3729,7 @@ Deno.serve(async (req) => {
       post_lint_llm_call_timeout_ms: POST_LINT_LLM_CALL_TIMEOUT_MS,
       post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
 
-      safe_finalize: "safe-finalize@2026-07-27-hangfix",
+      safe_finalize: SAFE_FINALIZE_VERSION,
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
