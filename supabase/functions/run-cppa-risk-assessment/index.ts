@@ -3729,7 +3729,7 @@ Deno.serve(async (req) => {
       post_lint_llm_call_timeout_ms: POST_LINT_LLM_CALL_TIMEOUT_MS,
       post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
 
-      safe_finalize: "safe-finalize@2026-07-27-hangfix",
+      safe_finalize: SAFE_FINALIZE_VERSION,
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
