@@ -675,6 +675,15 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   const batchSize = Math.max(1, Math.min(50, Math.floor(Number(batchSizeRaw) || 0) || 5));
   const concurrency = concurrencyRaw == null ? DEFAULT_CONCURRENCY : clampConcurrency(concurrencyRaw);
 
+  // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
+  const modeCheck = await assertLtpModeForTools(tools);
+  if (!modeCheck.ok) {
+    return {
+      ok: false, status: 409,
+      err: `ltp_mode_mismatch: tool=${modeCheck.aborted_tool} checks=${JSON.stringify(modeCheck.checks)}`,
+    };
+  }
+
   const db = admin();
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools, batch_size: batchSize, status: "running", phase: "kickoff",
