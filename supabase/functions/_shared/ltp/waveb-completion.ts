@@ -263,14 +263,23 @@ export function computeProngOutcomes(intake: Record<string, any>): Record<"b1" |
     }
   };
   // b1 = M5; b2B = M4; b2A derived from consumer-band + revenue band.
+  // WAVEB2-CLOSURE (2026-07-27, item 157): § 7120(b)(2) requires BOTH the
+  // § 1798.140(d)(1)(A) revenue threshold (CPI-adjusted) AND 250K+ consumers.
+  // The "$25M to under $50M" band straddles the CPI-adjusted figure and MUST
+  // resolve as indeterminate; only bands that cleanly clear the threshold
+  // ($50M–$100M, Over $100M) can render "met".
   const q2 = String(intake?.q2_consumers ?? "").trim();
+  const q1 = String(intake?.q1_revenue ?? "").trim();
   const band = classifyRevenueBand(intake?.q1_revenue);
   const over250k = /^(250,000\s+to\s+under\s+1,000,000|1,000,000\s+or\s+more|250,000–1\s+million|1–10\s+million|Over\s+10\s+million)$/i.test(q2);
-  const under100k = /^(Under\s+100,000|Fewer\s+than\s+100,000)$/i.test(q2);
+  const under250k = /^(Under\s+100,000|Fewer\s+than\s+100,000|100,000\s+to\s+under\s+250,000|100,000–249,999)$/i.test(q2);
+  const revenueCleanlyClearsA = /^(\$50M to \$100M|Over \$100M|\$50M–\$100M|\$100M–\$500M|Over \$500M)$/.test(q1);
+  const revenueStraddlesA = /^\$25M to under \$50M$/.test(q1) || /^\$25M–\$50M$/.test(q1);
   let b2A: ProngOutcome;
   if (!q2 || band.over_25m === "indeterminate") b2A = "indeterminate";
-  else if (under100k || band.over_25m === false) b2A = "not met";
-  else if (over250k && band.over_25m === true) b2A = "met";
+  else if (under250k || band.over_25m === false) b2A = "not met";
+  else if (revenueStraddlesA) b2A = "indeterminate";
+  else if (over250k && revenueCleanlyClearsA) b2A = "met";
   else b2A = "indeterminate";
   return {
     b1: mapM(states.M5),
