@@ -119,23 +119,15 @@ export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
   let lastErr = "";
   for (let attempt = 1; attempt <= PASS1_MAX_ATTEMPTS; attempt++) {
     try {
-      const res = await callGateway({
-        model: PASS1_MODEL,
-        messages: [
-          { role: "system", content: PASS1_DERIVE_SYSTEM },
-          { role: "user", content: fillUserTemplate(input) },
-        ],
-        response_format: { type: "json_object" },
-      });
-      if (!res.ok) {
-        lastErr = `gateway_${res.status}`;
-        await res.text().catch(() => "");
-        continue;
-      }
-      const payload = await res.json();
-      const raw = payload?.choices?.[0]?.message?.content;
+      const raw = await callPass1Model(
+        typeof PASS1_DERIVE_SYSTEM === "string" ? PASS1_DERIVE_SYSTEM : JSON.stringify(PASS1_DERIVE_SYSTEM),
+        fillUserTemplate(input),
+      );
       if (!raw) { lastErr = "empty_content"; continue; }
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      // Anthropic returns text; extract the first JSON object.
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? jsonMatch[0] : raw;
+      const parsed = JSON.parse(jsonText);
       // Force product + build_stamp to the caller-known values.
       const candidate: RenderPlan = {
         ...parsed,
