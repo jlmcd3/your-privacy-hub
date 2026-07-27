@@ -3051,3 +3051,24 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **No work this turn:** no code edits, no deploys, no measurement activity. Campaign `fd1be147` PAUSED. Run #147 SEALED (item 166). Run #149 NON-EVIDENTIAL (item 169). Item 168 smoke-pass verdict remains RETRACTED.
 
 **Next progress artifact:** either (a) Content Courier for Link C, or (b) CEO direction changing the resumption chain — whichever arrives first.
+
+## Ledger item 173 — CORRECTIONS-BUNDLE LANDED + DEPLOYED (2026-07-27T06:12:00Z)
+
+**Scope (as reconciled against STATE-AUDIT item 171):** (a) PASS1_MODEL HOLD, (b) §16 wiring into every unwired launch path, (c) test-only forced-degradation hook. Single deploy. NO enforcement-state change, NO Engine-A/switch removal, NO batch launch.
+
+**(a) PASS1_MODEL — HELD.** Gateway probe (`https://ai.gateway.lovable.dev/v1/chat/completions`, `model="anthropic/claude-sonnet-4-6"`) returned HTTP 400 unknown model; allowlist contains `google/gemini-*` and `openai/gpt-*` only, no Anthropic. Per dispatch, HOLD naming the constraint; no substitution made. `PASS1_MODEL` remains `google/gemini-3.6-flash` pending Anthropic addition to the gateway or explicit CEO substitution ruling.
+
+**(b) §16 measurement-validity wired.** New shared helper `supabase/functions/_shared/ltp/mode-assert.ts` (`LTP_MANAGED_TOOL_TO_FN`, `ltpExpectedMode()`, `assertLtpModeForTools()`) is the SINGLE source of truth. Wired into three launch paths (three deploys this turn):
+  - `batch-kickoff-pickup` @ `qbp28-corrections-bundle-mode-assert@2026-07-27T06:10:00Z` — kick branch adds `tools` to the pickup SELECT, asserts pre-invoke, on mismatch marks batch failed with `[kickoff-pickup: §16 mode-assert abort tool=… checks=…]` in `last_error` and returns HTTP 409.
+  - `quality-batch-orchestrator` @ `qbo-corrections-bundle-mode-assert@2026-07-27T06:10:00Z` — `startRun`, `startPinnedRerunBatch`, and `startCampaignWave` all assert pre-insert; mismatch returns `{ ok:false, status:409, err:'ltp_mode_mismatch:…' }` (or the campaign-log analog).
+  - `kick-perfect-intake` @ `kick-perfect-intake-mode-assert@2026-07-27T06:10:00Z` — resolves `quality_runs.tool` and asserts pre-invoke; mismatch returns HTTP 409 with `mode_check`.
+
+**(c) Forced-degradation hook.** `_shared/ltp/pass1-llm.ts` short-circuits to `writeAroundPlan(input, "test_only_forced_degradation")` iff `LTP_TEST_FORCE_WRITE_AROUND === "unit-test-only-2026-07-27"` (magic token, unreachable in production). New test `_shared/ltp/pass1-llm.test.ts` asserts both trip-behavior and non-leak on `["1","true","yes",""]`.
+
+**Full test suite paste:** `deno test --allow-env --allow-net _shared/ltp/pass1-llm.test.ts _shared/ltp/waveb.test.ts run-cppa-risk-assessment/_ltp.test.ts` → **ok | 20 passed | 0 failed (212ms)**. Includes the pre-existing 8-test `_ltp.test.ts`, 10-test `waveb.test.ts`, and the 2 new `pass1-llm.test.ts` tests.
+
+**Deploy protocol.** Three fresh-clock BUILD_STAMPs (all `2026-07-27T06:10:00Z`). `supabase--deploy_edge_functions` reported "Successfully deployed edge functions: batch-kickoff-pickup, quality-batch-orchestrator, kick-perfect-intake".
+
+**Standing.** Campaign `fd1be147` PAUSED. Run #147 SEALED (item 166). Run #149 NON-EVIDENTIAL (item 169). Item 168 verdict RETRACTED. `LTP_ENFORCE_ENABLED` unchanged. No batch launched this turn.
+
+**Courier:** `docs/courier/CORRECTIONS-BUNDLE-2026-07-27.md`.
