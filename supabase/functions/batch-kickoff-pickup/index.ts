@@ -28,7 +28,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "qbp24-addendum-registration-pdf-map@2026-07-23T03:00:00Z";
+export const BUILD_STAMP = "qbp25-cancel-any-pre-execution@2026-07-27T03:15:00Z";
 export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
@@ -60,17 +60,28 @@ export type KickoffRow = {
   phase: string;
   last_heartbeat_at: string | null;
   started_at: string | null;
+  cancel_requested?: boolean | null;
 };
 
 export type PickupDecision =
   | { kind: "single_flight_skip"; live_run_id: string }
+  | { kind: "cancel_finalize"; run_id: string; phase: string; status: string }
   | { kind: "reap"; run_id: string; age_ms: number }
   | { kind: "kick"; run_id: string; age_ms: number }
   | { kind: "noop"; reason: string };
 
+// Terminal statuses — cancel_requested on a terminal row is a no-op.
+const TERMINAL_STATUSES = new Set(["complete", "failed", "cancelled"]);
+
 /**
  * Pure decision function — chosen so unit tests can exercise the guard matrix
- * without a database. Rules:
+ * without a database. Rules (in priority order):
+ *   - CANCEL-ANY-PRE-EXECUTION (LTP §17): any non-terminal row with
+ *     cancel_requested=true whose phase has NOT reached 'running_tool' is
+ *     finalized to cancelled/done on sight. Cancel requests are honored in
+ *     EVERY pre-execution state (queued/starting, running/kickoff, etc.),
+ *     not only mid-loop. Zombies (rows that never enter the orchestrator
+ *     loop) would otherwise never observe their cancel flag.
  *   - If any row is running with phase != 'kickoff' → single_flight_skip
  *     (never kick when a live batch is already advancing).
  *   - Else pick the oldest running+kickoff row whose heartbeat is stale > 2min.
@@ -79,6 +90,21 @@ export type PickupDecision =
  *   - Otherwise noop.
  */
 export function decidePickup(rows: KickoffRow[], nowMs: number): PickupDecision {
+  // Highest priority: honor cancel_requested on any pre-execution row.
+  const zombieCancel = rows.find((r) =>
+    r.cancel_requested === true &&
+    !TERMINAL_STATUSES.has(r.status) &&
+    r.phase !== "running_tool"
+  );
+  if (zombieCancel) {
+    return {
+      kind: "cancel_finalize",
+      run_id: zombieCancel.id,
+      phase: zombieCancel.phase,
+      status: zombieCancel.status,
+    };
+  }
+
   const live = rows.find((r) => r.status === "running" && r.phase !== "kickoff");
   if (live) return { kind: "single_flight_skip", live_run_id: live.id };
 
@@ -576,10 +602,12 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
+  // Widen fetch so cancel_requested on non-'running' rows (e.g. status='queued'
+  // zombies that never entered the orchestrator loop) is observable.
   const { data: rows, error } = await admin
     .from("quality_batch_runs")
-    .select("id, status, phase, last_heartbeat_at, started_at")
-    .eq("status", "running");
+    .select("id, status, phase, last_heartbeat_at, started_at, cancel_requested")
+    .not("status", "in", "(complete,failed,cancelled)");
 
   if (error) {
     await logRun({ error: error.message }, "error");
@@ -597,6 +625,16 @@ Deno.serve(async (req) => {
     await logRun({ decision: "single_flight_skip", live_run_id: decision.live_run_id });
   } else if (decision.kind === "noop") {
     await logRun({ decision: "noop", reason: decision.reason });
+  } else if (decision.kind === "cancel_finalize") {
+    const note = `[kickoff-pickup: cancel_requested honored in pre-execution phase='${decision.phase}' status='${decision.status}' (LTP §17)]`;
+    await admin.from("quality_batch_runs").update({
+      status: "cancelled",
+      phase: "done",
+      last_error: note,
+      completed_at: new Date().toISOString(),
+    }).eq("id", decision.run_id).eq("cancel_requested", true)
+      .not("status", "in", "(complete,failed,cancelled)");
+    await logRun({ decision: "cancel_finalize", run_id: decision.run_id, phase: decision.phase, status: decision.status });
   } else if (decision.kind === "reap") {
     const note = `[kickoff-pickup: never picked up within ${Math.round(decision.age_ms / 60000)}min; reaped]`;
     await admin.from("quality_batch_runs").update({
