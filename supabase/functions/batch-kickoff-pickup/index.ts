@@ -27,8 +27,27 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
+import {
+  assertStateMachineConformance,
+  verifyStateMachine,
+} from "../_shared/harness/state-machine.ts";
 
-export const BUILD_STAMP = "qbp26-launch-state-equivalence@2026-07-27T03:30:00Z";
+export const BUILD_STAMP = "qbp27-state-machine-conformance@2026-07-27T04:15:00Z";
+
+// PROCESS-RETRO-WRITEBACK (2026-07-27, ledger item 165):
+// Fail-loud state-machine conformance at boot. If a future edit removes a
+// state's owner or cancel path, the module raises at import time and the
+// deploy fails — no "silent unserved state" regression possible. Spec:
+// docs/design/HARNESS-STATE-MACHINE.md §8; laws: LEGAL-TEST-PIPELINE.md §17/§18.
+{
+  const _report = verifyStateMachine();
+  console.log(
+    `[batch-kickoff-pickup] state-machine conformance: ok=${_report.ok} ` +
+    `legal=${_report.summary.legal_states} owned=${_report.summary.owned_states} ` +
+    `unowned=${_report.summary.unowned_non_terminal.length} missing_cancel=${_report.summary.missing_cancel_paths.length}`,
+  );
+  assertStateMachineConformance();
+}
 
 // LTP §18 — Launch-state equivalence law.
 // Two canonical pre-execution states are treated identically by the picker:
