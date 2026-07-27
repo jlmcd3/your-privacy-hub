@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-stage-b-blockb-cohort-r181-ceassert@2026-07-27T13:35:00Z";
+export const BUILD_STAMP = "ltp-risk-smokehang-safefinalize@2026-07-27T14:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
@@ -45,6 +45,8 @@ import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.t
 import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
 import {
   finalizeComposition,
+  safeFinalizeComposition,
+  SAFE_FINALIZE_VERSION,
   readForceWriteAroundOnce,
   currentEnforceMode,
   COMPOSITION_FINALIZE_VERSION,
