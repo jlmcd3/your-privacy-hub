@@ -45,7 +45,7 @@ import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
 import { assertCreatedByIsRealUser, CreatedByGuardError } from "../_shared/harness/created-by-guard.ts";
 
 
-export const BUILD_STAMP = "qbo-stage-b-cont-createdby-guard@2026-07-27T10:15:00Z";
+export const BUILD_STAMP = "qbo-stage-b-blockb-declared-actual-count@2026-07-27T13:35:00Z";
 
 // created-by lookup bound to auth.admin.getUserById; returns true iff the
 // UUID resolves to an existing auth user. Injected into assertCreatedByIsRealUser
@@ -434,13 +434,33 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
 
 
 async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
-  await admin().from("quality_batch_runs").update({
-    ...patch,
-    completed_at: new Date().toISOString(),
-  }).eq("id", runId);
-  // DS-T2b: terminate the paired contract (fail-open).
   const status = String((patch as any).status ?? "error") as
     "complete" | "failed" | "cancelled" | "error";
+  const finalPatch: Record<string, unknown> = { ...patch, completed_at: new Date().toISOString() };
+  // STAGE-B CONTINUATION-4 (item 195) §16.n — DECLARED/ACTUAL COUNT.
+  // At terminal, write actual_count from observed tool_results. Conformance
+  // (declared_count === actual_count when status='complete') is asserted
+  // here in-line; historical rows with NULL declared_count are exempt.
+  try {
+    const { data: run } = await admin().from("quality_batch_runs")
+      .select("declared_count, batch_size, tool_results").eq("id", runId).maybeSingle();
+    const tr = Array.isArray((run as any)?.tool_results) ? (run as any).tool_results : [];
+    const completeCount = tr.filter((r: any) => r?.final_status === "complete" || r?.status === "complete").length;
+    const batchSize = Number((run as any)?.batch_size ?? 0);
+    // actual_count = per-tool complete count × batch_size (docs delivered).
+    const actualCount = completeCount * (batchSize || 1);
+    finalPatch.actual_count = actualCount;
+    const declared = (run as any)?.declared_count;
+    if (status === "complete" && declared != null && declared !== actualCount) {
+      console.warn(JSON.stringify({
+        evt: "count_conformance_violation", runId,
+        declared_count: declared, actual_count: actualCount, build_stamp: BUILD_STAMP,
+      }));
+    }
+  } catch (e) {
+    console.warn("[markTerminalAll] actual_count compute failed (non-fatal):", (e as Error)?.message);
+  }
+  await admin().from("quality_batch_runs").update(finalPatch).eq("id", runId);
   const lastError = (patch as any).last_error as string | undefined;
   await dcTerminateBatchContract(CONTRACT_DEPS, runId, status, lastError);
 }
@@ -708,6 +728,7 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     current_tool_index: 0, tool_results: [], created_by: userId,
     instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
     concurrency, // QB-P7
+    declared_count: tools.length * batchSize, // §16.n born-state
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -751,6 +772,7 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
     current_tool_index: 0, tool_results: [], created_by: createdBy,
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency: 1,
+    declared_count: pins.length, // §16.n born-state (single tool)
   }).select("id").single();
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   const attribution = sentinel ? ` (attribution=${sentinel})` : "";
@@ -851,6 +873,7 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency,
     campaign_id: campaign.id,
+    declared_count: eligible.length * batchSize, // §16.n born-state
   }).select("id").single();
   if (error || !row) {
     await logCampaign(campaign.id, `Wave insert failed: ${error?.message}`, "error");

@@ -1905,6 +1905,18 @@ async function runBatch(runId: string): Promise<void> {
         }
       }
     }
+    // STAGE-B CONTINUATION-4 (2026-07-27, item 195) — OVERSHOOT FIX:
+    // if the persisted intakes exceed batchSize (a legacy pin-stage that
+    // shipped 16 goldens for a size-1 batch, before the seed-row cap
+    // landed), slice down at run start and log the truncation so the
+    // overshoot is auditable. Runs only on the first invocation
+    // (nextIdxSafe === 0); mid-run resumes preserve their intake array.
+    if (nextIdxSafe === 0 && intakes.length > batchSize) {
+      const dropped = intakes.length - batchSize;
+      await log("warn", `Overshoot fix: sliced intakes from ${intakes.length} → ${batchSize} (${dropped} dropped) — batch_size=${batchSize}`);
+      intakes = intakes.slice(0, batchSize);
+      await admin.from("quality_runs").update({ intakes }).eq("id", runId);
+    }
     if (intakes.length < batchSize && nextIdxSafe === 0) {
       const needed = batchSize - pinnedCount;
       await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents${pinnedCount > 0 ? `, ${pinnedCount} pinned + ${needed} generated` : ""})`);

@@ -4119,6 +4119,7 @@ export type Database = {
       }
       quality_batch_runs: {
         Row: {
+          actual_count: number | null
           batch_size: number
           campaign_id: string | null
           cancel_requested: boolean
@@ -4127,6 +4128,7 @@ export type Database = {
           created_by: string
           current_quality_run_id: string | null
           current_tool_index: number
+          declared_count: number | null
           id: string
           instrument_version: string | null
           last_error: string | null
@@ -4138,6 +4140,7 @@ export type Database = {
           tools: string[]
         }
         Insert: {
+          actual_count?: number | null
           batch_size: number
           campaign_id?: string | null
           cancel_requested?: boolean
@@ -4146,6 +4149,7 @@ export type Database = {
           created_by: string
           current_quality_run_id?: string | null
           current_tool_index?: number
+          declared_count?: number | null
           id?: string
           instrument_version?: string | null
           last_error?: string | null
@@ -4157,6 +4161,7 @@ export type Database = {
           tools: string[]
         }
         Update: {
+          actual_count?: number | null
           batch_size?: number
           campaign_id?: string | null
           cancel_requested?: boolean
@@ -4165,6 +4170,7 @@ export type Database = {
           created_by?: string
           current_quality_run_id?: string | null
           current_tool_index?: number
+          declared_count?: number | null
           id?: string
           instrument_version?: string | null
           last_error?: string | null

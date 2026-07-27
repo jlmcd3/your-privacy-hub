@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-stage-b-blocka-finalizer@2026-07-27T12:15:00Z";
+export const BUILD_STAMP = "ltp-risk-stage-b-blockb-cohort-r181-ceassert@2026-07-27T13:35:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
@@ -3217,6 +3217,33 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LTP WAVE-B.2 CLOSURE failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── STAGE-B CONTINUATION-4 COHORT APPEND-IF-ABSENT (item 195) ─────
+    // Post-generation append of the § 7121(a) two-cohort conditional
+    // clause into submission_summary.submission_basis when the revenue
+    // band is indeterminate and the clause is absent. Idempotent.
+    try {
+      const { applyCohortAppendIfAbsent } = await import("../_shared/ltp/cohort-append.ts");
+      const _cohortIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const _cohortRes = applyCohortAppendIfAbsent(report_data, _cohortIntake);
+      const _rdC: any = report_data as any;
+      _rdC._meta = _rdC._meta ?? {};
+      _rdC._meta.internal = _rdC._meta.internal ?? {};
+      _rdC._meta.internal.cohort_append = {
+        build_stamp: BUILD_STAMP,
+        stamp: _cohortRes.stamp,
+        version: _cohortRes.version,
+        appended: _cohortRes.appended,
+        reason: _cohortRes.reason,
+      };
+      console.log(JSON.stringify({
+        evt: "cohort_append_ran", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, appended: _cohortRes.appended, reason: _cohortRes.reason,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] cohort-append failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
 
     // ── LTP PHASE-2 SHADOW-MODE (2026-07-26, item 137) ──────────────
@@ -3511,6 +3538,10 @@ Deno.serve(async (req) => {
       build_stamp: BUILD_STAMP,
       ltp_mode: LTP_MODE_BOOT,
       ltp_version: "ltp-risk-p2",
+      // STAGE-B CONTINUATION-4 (item 195) — §16 composition-enforce surface.
+      // Fleet asserts this at kickoff via mode-assert; observe-mode reversion
+      // is a §16 abort, not a silent drift.
+      composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
