@@ -2513,3 +2513,35 @@ Recommend option 1 for Wave C and all future standalone tuning/holdout launches.
 **(d) Tests + deploy.** 10/10 unit tests green (`waveb-completion.test.ts`): purpose-verbatim property; per-activity precedence; TEMPLATE_CUT drop-vs-keep; meta-string ban; dup-connective regression; PII narrative ban (attestation preserved; post-render assert clean); crosswalk 3-prong append; crosswalk emitter matrix (met/not met/not applicable/indeterminate); crosswalk idempotence; stamp exposed. Fresh BUILD_STAMP `ltp-risk-waveb-completion@2026-07-27T02:20:00Z`; boot log echoes `waveb_completion=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b`. Deployed via edge-function deploy (`run-cppa-risk-assessment`). Locks pasted; campaign fd1be147 remains CEO-paused; NO measurement launch this turn — Wave B.2 launches after the instrument-epoch audit dispatch so it measures on the corrected instrument.
 
 **Courier:** `docs/courier/LTP-RISK-WAVEB-COMPLETION-2026-07-27.md`.
+
+## Ledger item 155 — INSTRUMENT-EPOCH-AUDIT s5 → s6 LANDED + DEPLOYED + WAVE-B.2 LAUNCHED (2026-07-27T00:32:33Z)
+
+**Status:** DONE (instrument turn). Gated on WAVE-B COMPLETION deploy (item 154) — prerequisite satisfied.
+
+**Version bump.** `GRADER_CONTEXT_VERSION` `gc-2026-07-26-s5-eu-uk-ca-au-sg` → `gc-2026-07-27-s6-eu-uk-ca-au-sg` at `supabase/functions/_shared/grader/context.ts:16`. SHA-256: `_shared/grader/context.ts` = `e296d44c5cf56f3a1e8496c8295e0f0723465c409f93e79374885ca894a4bf8d`; `_shared/grader/amendments-block.ts` = `3d8198cc6d3989265a173a73dc788b6030117ceaf2c178c31546b07f8acc99c2`. Rubric text, dimensions, severity weights, thresholds: UNTOUCHED. Certification counters reset noted (0/3, campaign `fd1be147` CEO-paused → zero practical cost).
+
+**Per-family audit (per-doc evidence in courier §1).**
+- `qc_r1_4_cohort_determinism` (4 fails, run 145): all four docs (1/2/5/6) rendered `submission_deadline="April 1, 2028"` for resolved 2029/2030 cohorts. Correct cohort ABSENT — WIRING DEFECT in `run-cppa-risk-assessment/_w9_risk_slots.ts`. Recorded for a future deploy-guarded generator turn; NOT re-keyed around. Scan window re-keyed full-report → `report.submission_summary` (canonical surface). ISO/long-form parsing + indeterminate two-cohort framing UNCHANGED.
+- `qc_r1_2_spi_prong_utilization` (5 fails): § 7120(b)(2)(B) absent under s5 because item-154 crosswalk emitter had not landed. Now live. Scan re-keyed full-report → `report.submission_summary`. M4 resolution matcher UNCHANGED.
+- `qc_r1_3_50pct_prong_utilization` (5 fails): identical root cause. Scan re-keyed full-report → `report.submission_summary`. Insufficient-basis phrasing lane gains `indeterminate` (SAME lane) to recognize the crosswalk emitter's canonical phrasing — phrasing-recognition tweak, not a new lane.
+- `e6_counsel_referral`: NO CHANGE. VALIDATED — caught the Wave-B PII leak.
+- CUT-surface sweep: `scope_notes` / `cross_tool_recommendations` / legacy `assessment_summary` — zero orphaned scans in `run-quality-batch/index.ts`. No retirements this turn.
+
+**Integrity directive honored.** Every re-key is a surface-anchoring move under the approved surface map (`_shared/ltp/content/risk-surface-map.ts`) + item-154 render sites — not a threshold change, not a phrasing widen, not a substance narrow. Full-report scans would trivially pass on incidental string mentions; surface-anchored scans enforce canonical placement. **Not weakened.**
+
+**Deploy.** `run-quality-batch` deployed with the re-keyed checks + s6 constant.
+
+**WAVE-B.2 LAUNCH (single execution chain, batch-WRAPPED per item 152).**
+- `quality_batch_runs.id = 127a6714-1062-427e-8f94-484ca9241006`
+- `tools={cppa-risk}`, `batch_size=6`, `concurrency=1`, `campaign_id=NULL` (standalone)
+- `instrument_version = gc-2026-07-27-s6-eu-uk-ca-au-sg`
+- `created_by = 02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122`
+- `started_at = 2026-07-27T00:32:17.251Z`
+- scenario_set at check emission: `tuning` (4) / `holdout` (2) split ACTIVE (n=6 ≥ 4).
+- Locks pasted: all controllers idle; campaign `fd1be147` remains CEO-paused; batch `fc6a8394…` terminal (item 153); item 154 deployed (`ltp-risk-waveb-completion@2026-07-27T02:20:00Z`).
+- **Launch mechanism.** New helper `supabase/functions/kick-wrapped-batch/index.ts` (deployed this turn) invokes `quality-batch-orchestrator` with `x-internal-resume:1` + SERVICE_ROLE + `run_id`; orchestrator returned `202`; batch is `phase=running_tool` with `last_heartbeat_at=2026-07-27T00:32:33.235Z` at t+16s post-insert. `kick-wrapped-batch` replaces bare `kick-perfect-intake` for multi-doc measurement runs (per item-152 addendum: batch-wrap is standing rule).
+- Single launch. No further launches this turn. Monitor extracts at terminal against §5 success criteria: intake-drift 0 / citation-binding 0 / gate violations 0; per-doc enforce-mode confirmation across all mapped surfaces.
+
+**CEO rulings log:** instrument epoch audit ordered by CEO after Wave-B decomposition; checks re-keyed with per-doc evidence, none weakened; e6 validated unchanged; wiring defect on `submission_deadline` recorded (not re-keyed around).
+
+**Courier:** `docs/courier/INSTRUMENT-EPOCH-AUDIT-S6-2026-07-27.md`.
