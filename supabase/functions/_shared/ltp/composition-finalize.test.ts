@@ -112,16 +112,20 @@ Deno.test("composition-finalize: CUT-ruled path present pre-serializer records t
   assert(res.telemetry.pre_serializer_cut_pending.includes("scope_and_triggers.scope_notes"));
 });
 
-Deno.test("composition-finalize: unowned top-level in enforce mode throws", () => {
-  const rd = { assessment_summary: { narrative: "clean." }, made_up_key: { z: 1 } };
-  assertThrows(
-    () =>
-      finalizeComposition({
-        reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
-      }),
-    Error,
-    "unowned top-level",
-  );
+Deno.test("composition-finalize: unowned top-level in enforce records telemetry, does NOT throw (Item 213)", () => {
+  const rd = {
+    assessment_summary: { narrative: "clean." },
+    made_up_key: { z: 1 },
+    generated_at: "2026-07-27T00:00:00Z",
+    retrieval_meta: { source: "x" },
+  };
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.surface_unowned_paths, []);
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("made_up_key"));
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("generated_at"));
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("retrieval_meta"));
 });
 
 
@@ -130,8 +134,10 @@ Deno.test("composition-finalize: unowned top-level in observe records but does n
   const res = finalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, env: nullEnv,
   });
-  assert(res.telemetry.surface_unowned_paths.includes("made_up_key"));
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("made_up_key"));
+  assertEquals(res.telemetry.surface_unowned_paths, []);
 });
+
 
 Deno.test("composition-finalize: hook-audit ALWAYS fires (silent-bypass throws even in observe)", () => {
   const rd = { assessment_summary: { narrative: "clean." } };
