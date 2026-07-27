@@ -714,3 +714,49 @@ Every product migration onto the Legal-Test Pipeline MUST consume the CEO-review
 
 `lia` Phase 2 is the first §A/§B/§C consumer. Section D of the checklist (risk-specific fixes) is do-not-port; its generalized laws already live in this document (§§12–14, §16). Item 7's count-field intake contract turn is CEO-gated and covers `risk` + `cyber` together when authorized — it is **not** authorized by the checklist writeback itself.
 
+
+## 30. CLOCK-BUDGET LAW — HARNESS CEILING vs GENERATOR WORST-CASE (CEO-approved 2026-07-27; standing, product-agnostic)
+
+**Motivating incident:** cppa-risk smoke #155 (2026-07-27) — the generator's persist-early snapshot landed a valid document at T+22:00, two minutes AFTER the harness watchdog reaped the run at T+20:00. Document existed; run was dead; §22.1 counter untouched. The prior clock model treated the platform isolate ceiling (≈330s) as the ONLY budget worth reasoning about; the harness reap ceiling (1200s) was implicit.
+
+### 30.1 CONTRACT
+
+For every product on the pipeline, the following inequality holds by construction:
+
+```text
+generator_worst_case_e2e_ms  +  MARGIN_MS  ≤  harness_reap_ceiling_ms
+```
+
+with `MARGIN_MS ≥ 300_000` (5 minutes). For the current harness reap of 20 min, this fixes `generator_worst_case_e2e_ms ≤ 900_000` (15 min). The generator MUST refuse work — retries, guard-driven LLM calls, secondary passes — that could cause it to exceed its share of the budget, and MUST persist a shippable document BEFORE any such refusal decision is taken.
+
+### 30.2 DECOMPOSITION
+
+The generator's E2E budget is decomposed and enforced by named constants (see e.g. `_shared/ltp/retry-budget.ts`):
+
+```text
+ISOLATE_CEILING_MS       = 900_000   // 15 min hard E2E budget
+MAX_ELAPSED_FOR_RETRY_MS = 240_000   //  4 min hard elapsed cap on any retry decision
+POST_LINT_LLM_BUDGET_MS  = 300_000   //  5 min ceiling on all post-lint LLM calls (retry, guards)
+POST_RETRY_RESERVE_MS    = 180_000   //  3 min reserve for finalize + serializer + persist
+MIN_RETRY_WINDOW_MS      =  30_000
+```
+
+A retry that cannot fit inside the reserve-adjusted remaining wall-clock is SKIPPED. A guard-driven post-lint LLM call at elapsed ≥ `POST_LINT_LLM_BUDGET_MS` is SKIPPED. Both cases emit `*_skipped_budget` telemetry.
+
+### 30.3 PERSIST-BEFORE-CLOCK-SPEND
+
+A generator MUST persist its first shippable document snapshot BEFORE spending clock on any downstream operation that could hang the isolate or push past the E2E budget — including retries, guard-driven LLM calls, deterministic passes with unbounded LLM calls inside them, or serializer/finalize passes with non-trivial runtimes. This is the persist-early invariant, elevated from a product hotfix into product-agnostic law.
+
+### 30.4 REGRESSION BAR
+
+Every migrated product MUST land unit tests that prove, by construction:
+
+1. `retryCap + elapsed + reserve ≤ ISOLATE_CEILING_MS` at every permitted retry moment;
+2. Retries refuse past `MAX_ELAPSED_FOR_RETRY_MS` even when wall-clock remains;
+3. Post-lint LLM guards refuse past `POST_LINT_LLM_BUDGET_MS`.
+
+These tests live next to `retry-budget.ts` (or the product's equivalent) and are exercised on every deploy.
+
+### 30.5 CROSS-REFERENCES
+
+§30 governs where §12 (retry semantics), §16 (measurement validity), §22 (smoke), and §29 (product migration) touch the clock. Where an earlier section conflicts with §30, §30 controls and the earlier section is amended at the next docs-only turn.
