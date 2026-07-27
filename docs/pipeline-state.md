@@ -3714,3 +3714,31 @@ Batch `94ce0449-2910-48e8-ba7c-224b6f0c1d16` → run #160 `70b6c882-2040-4d28-88
 - §22.1 clean-arm counter (cppa-risk): **0/3** (smokes #153–#155, #4–#8 non-evidential).
 
 **HARD STOP for controller review.**
+
+## Item 211 (fix) — SMOKE-#8 CUT-ENFORCEMENT-SITE (2026-07-27)
+
+Pre-serializer CUT enforcement was a false-positive class (all
+`RISK_CUT_RULINGS` execute at the LEAK-PREV-P2 serializer per
+`risk-surface-map.ts`). Fixed:
+
+- `_shared/ltp/composition-finalize.ts`: retired CUT throw at finalize;
+  presence recorded as `pre_serializer_cut_pending` telemetry (any
+  grain). Unowned-top-level check retained. `surface_cut_violations`
+  kept for schema stability, always `[]`.
+- `_shared/ltp/content/risk-surface-map.ts`: `CutRuling` doc comment
+  names post-serializer `evaluateShippedSurfaceGuard` as the sole
+  enforcement site.
+- Regression: composed object with CTR + `scope_and_triggers.scope_notes`
+  passes finalize with both paths recorded in
+  `pre_serializer_cut_pending`; shipped-guard tests unchanged. 24/24 green.
+- Deploy: `BUILD_STAMP=ltp-risk-item211-cut-enforcement-site@2026-07-27T22:45:00Z`. §16 ping proven.
+
+Stage-C candidates recorded (no code change):
+- C/G grader divergence on run #160 = 15 (73.0 vs 88); log for Stage-C
+  divergence check.
+- Error-envelope-in-report_data (Item 210 flag stands): outer catch
+  writes `{"error":"Anthropic 529: ..."}` into `report_data`.
+
+Courier: `docs/courier/SMOKE8-CUT-ENFORCEMENT-SITE-2026-07-27.md`.
+
+**READY-FOR-RELAUNCH. HARD STOP.**
