@@ -9,6 +9,7 @@ import {
   PASS2_FORBIDDEN_TOKENS,
   BALANCE_DIRECTION_CLAUSES,
   FIRM_VARIANT_CLOSENESS_MAX,
+  shouldEmitBCriterionCountQuestion,
 } from "./pass2-templates.ts";
 import { RENDERPLAN_WIRE_SCHEMA, planKeysProjected } from "./renderplan-wire-schema.ts";
 import { derivePlan } from "../derive.ts";
