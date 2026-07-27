@@ -161,7 +161,7 @@ Deno.test("safeFinalizeComposition: clean report — mirrors inner telemetry, er
 });
 
 Deno.test("safeFinalizeComposition: enforce-mode value-screen throw is CAUGHT (persist not blocked)", () => {
-  const rd = { assessment_summary: { narrative: "We recommend safeguards." } };
+  const rd = { assessment_summary: { narrative: "Per Engine-B composition, safeguards recommended." } };
   // Would throw ValueScreenError in bare finalizeComposition
   const res = safeFinalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
