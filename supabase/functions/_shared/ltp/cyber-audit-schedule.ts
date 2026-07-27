@@ -103,15 +103,15 @@ export function applyCyberAuditSchedule(
     const schedule = renderCyberAuditSchedule();
     summary.cybersecurity_audit_schedule = schedule;
 
-    // Legacy renderer mirror — retained for backwards compatibility only.
-    const ctr = (report.cross_tool_recommendations ??= {});
-    if (ctr && typeof ctr === "object" && !Array.isArray(ctr)) {
-      const legacy = String((ctr as any).cybersecurity_audit_rationale ?? "");
-      if (!legacy.includes(SCHEDULE_MARKER)) {
-        (ctr as any).cybersecurity_audit_rationale = schedule;
-      }
-    }
+    // ITEM 208 (SMOKE-#6 controller review): the previous "legacy
+    // renderer mirror" wrote the schedule into cross_tool_recommendations
+    // — a surface the LEAK-PREV-P2 serializer removes (item-136 REMOVE).
+    // That was a dead write to a CUT-REMOVE surface AND the trigger for
+    // the smoke-#6 surface-guard false positive. Removed. The renderer-
+    // tolerance audit in risk-surface-map.ts confirms all renderers
+    // tolerate absence of cross_tool_recommendations.
     return { emitted: true, reason: "emitted", ...base };
+
   } catch {
     return { emitted: false, reason: "error", ...base };
   }
