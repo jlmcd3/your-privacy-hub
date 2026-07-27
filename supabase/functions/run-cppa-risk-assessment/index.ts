@@ -2941,10 +2941,10 @@ async function runPipeline(assessment_id: string) {
       // Merge v3 counters on top of v2 telemetry; version bumped to v3.
       internalV3.risk_w24a = {
         ...(internalV3.risk_w24a && typeof internalV3.risk_w24a === "object" ? internalV3.risk_w24a : {}),
+        ..._v3c,
         version: W24A_V3_VERSION,
         stamp: W24A_V3_STAMP,
         v2_stamp: W24_RISK_TURNA_STAMP,
-        ..._v3c,
       };
       console.log(JSON.stringify({
         evt: "_w24a_v3", fn: "run-cppa-risk-assessment",
