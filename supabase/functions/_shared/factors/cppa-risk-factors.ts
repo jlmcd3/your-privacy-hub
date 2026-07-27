@@ -67,6 +67,29 @@ const BENEFIT_FRAMING =
   "Identify the benefits to the business, the consumer, other stakeholders, "
   + "and the public from the processing of the personal information, as applicable.";
 
+// FSOR-INGESTION 2026-07-27: (a)(4) benefit rows filled from existing § 7152(a)(4)-tagged
+// FSOR commentary (ac2d3934 = agency's "non-generic terms + as-applicable" ruling p. 35;
+// 9c6cb558 = agency's "benefits may apply to different categories of stakeholders" ruling
+// Appendix p. 139). Both are BINDING (CPPA FSOR). Shared across all four stakeholder rows
+// because the agency's ruling is that benefit specificity + differential applicability
+// apply to every stakeholder category uniformly.
+const BENEFIT_GUIDANCE: readonly GuidanceRef[] = [
+  {
+    source_table: "cppa_fsor_commentary",
+    regulation_citation: "11 CCR § 7152(a)(4)",
+    page_ref: "p. 35",
+    anchor_hint: "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+    authority_weight: "binding",
+  },
+  {
+    source_table: "cppa_fsor_commentary",
+    regulation_citation: "11 CCR § 7152(a)(4)",
+    page_ref: "Appendix, p. 139",
+    anchor_hint: "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+    authority_weight: "binding",
+  },
+] as const;
+
 const BENEFITS: readonly FactorRow[] = [
   {
     id: "benefit.business",
@@ -75,11 +98,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to the business",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding:
-      "§ 7152(a)(4) enumerates no sub-categories; FSOR discussion of benefit specificity is filed under § 7152 generally "
-      + "(non-generic requirement mirrors (a)(1) purpose discipline). No dedicated guidance row for business-benefit "
-      + "articulation — logged to T5 as ranked ingestion candidate.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
   {
     id: "benefit.consumer",
@@ -88,8 +107,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to the consumer",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
   {
     id: "benefit.other_stakeholders",
@@ -98,8 +116,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to other stakeholders",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
   {
     id: "benefit.public",
@@ -108,8 +125,7 @@ const BENEFITS: readonly FactorRow[] = [
     label: "Benefits to the public",
     verbatim_excerpt: BENEFIT_FRAMING,
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)" },
-    guidance_refs: [],
-    empty_by_finding: "Same as benefit.business — no dedicated FSOR row.",
+    guidance_refs: BENEFIT_GUIDANCE,
   },
 ] as const;
 
@@ -165,10 +181,19 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "consumers to make an informed decision regarding the processing of their personal information, or by interfering "
       + "with consumers' ability to make choices consistent with their reasonable expectations.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(C)" },
-    guidance_refs: [],
-    empty_by_finding:
-      "No § 7152-tagged FSOR row isolates the (a)(5)(C) 'impaired control' harm. Adjacent commentary under § 7002 "
-      + "purpose-limitation exists but is a cross-provision reach; logged to T5 as ranked ingestion candidate.",
+    // FSOR-INGESTION 2026-07-27: b759265d (§ 7152(a)(5), p. 36) — Agency's own ruling that
+    // failing to provide sufficient information for informed decision-making is "already
+    // covered under subsection (a)(5)(C)'s prohibition on impairing consumers' control".
+    // Directly on-point for neg.c; no cross-provision reach required.
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152(a)(5)",
+        page_ref: "p. 36",
+        anchor_hint: "insufficient disclosure for informed decision-making is covered under (a)(5)(C)'s impairing-control prohibition",
+        authority_weight: "binding",
+      },
+    ],
   },
   {
     id: "neg.d.coercion_dark_patterns",
@@ -181,10 +206,26 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "that is unnecessary to the expected functionality of the service, or requiring consumers to consent to "
       + "processing when such consent cannot be freely given (e.g., because it was obtained through the use of a dark pattern).",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(D)" },
-    guidance_refs: [],
-    empty_by_finding:
-      "Dark-pattern discussion lives under § 7004 (design requirements) not § 7152(a)(5)(D); cross-provision analogies "
-      + "banned by Q4(e). Logged to T5 as ranked ingestion candidate for a § 7152-tagged dark-pattern row.",
+    // FSOR-INGESTION 2026-07-27: a434b098 (§ 7152(a)(5)(D), p. 36) — Agency's own ruling
+    // that (a)(5)(D) was modified to add the dark-pattern example clarifying "freely given"
+    // consent. Directly on-point § 7152-tagged row; cross-provision reach to § 7004 no
+    // longer needed. 8838a330 (§ 7152(a)(5), p. 141) retains the coercion example.
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152(a)(5)(D)",
+        page_ref: "p. 36",
+        anchor_hint: "(a)(5)(D) modified to add dark-pattern example demonstrating consent that fails the 'freely given' standard",
+        authority_weight: "binding",
+      },
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152(a)(5)",
+        page_ref: "Appendix, p. 141",
+        anchor_hint: "coercion example retained as helpful guidance for identifying compelled-processing harms",
+        authority_weight: "binding",
+      },
+    ],
   },
   {
     id: "neg.e.economic_harms",
@@ -196,8 +237,19 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "prices, or compensating consumers at lower rates based upon profiling; or imposing additional costs upon "
       + "consumers, including costs associated with the unauthorized access to consumers' personal information.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(E)" },
-    guidance_refs: [],
-    empty_by_finding: "No dedicated § 7152 FSOR row on economic-harm framing. T5 candidate.",
+    // FSOR-INGESTION 2026-07-27: adeb9b63 (p. 36) is filed under the FSOR's pre-modification
+    // (a)(5)(F) label but the Agency's ruling addresses economic-harm framing verbatim
+    // ("based upon profiling" clarification for economic harms). Substance controls over
+    // pre-mod pinpoint labeling; no re-tag performed (row's own citation preserved).
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152(a)(5)(F)",
+        page_ref: "p. 36",
+        anchor_hint: "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers",
+        authority_weight: "binding",
+      },
+    ],
   },
   {
     id: "neg.f.physical_harms",
@@ -209,7 +261,14 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "sexual violence.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(F)" },
     guidance_refs: [],
-    empty_by_finding: "No dedicated § 7152 FSOR row. T5 candidate.",
+    // FSOR-SILENT 2026-07-27: exhaustive sweep of cppa_fsor_commentary (1,318 rows) for
+    // "physical harm", "physical or sexual", "violence" surfaces no § 7152-tagged row that
+    // isolates the physical-harm category. Adjacent § 7150(b) commentary discusses threshold
+    // scope, not the (a)(5)(F) factor. Cross-provision analogy banned by Q4(e) v2.2 — silence
+    // documented, never filled. Permanent empty-by-finding until agency issues future FSOR.
+    empty_by_finding:
+      "FSOR-SILENT (2026-07-27 sweep): no § 7152-tagged FSOR row addresses physical-harm framing. Silence documented; "
+      + "cross-provision analogy prohibited by Q4(e). Registry lint accepts this row as permanently empty.",
   },
   {
     id: "neg.g.reputational_harms",
@@ -221,8 +280,26 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "stigmatization of a consumer as a result of a mobile dating application's disclosure of the consumer's sexual or "
       + "other preferences in a partner outside of the dating application.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(G)" },
-    guidance_refs: [],
-    empty_by_finding: "No dedicated § 7152 FSOR row. T5 candidate.",
+    // FSOR-INGESTION 2026-07-27: ce5259bc (§ 7152(a)(5)(G), p. 141) directly retains the
+    // reputational-harm examples as necessary business guidance; 93e75412 (§ 7152(a)(5)(H),
+    // p. 36) records the "would→could" softening + expanded dating-app stigmatization example
+    // — also on-point for (a)(5)(G) stigmatization framing per agency's own linkage.
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152(a)(5)(G)",
+        page_ref: "Appendix, p. 141",
+        anchor_hint: "reputational-harm examples retained as necessary business guidance for identifying stigmatization risks",
+        authority_weight: "binding",
+      },
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152",
+        page_ref: null,
+        anchor_hint: "'would' changed to 'could' in (G)/(H); stigmatization example expanded to show disclosure outside expected context",
+        authority_weight: "binding",
+      },
+    ],
   },
   {
     id: "neg.h.psychological_harms",
@@ -235,8 +312,27 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "distress resulting from disclosure of nonconsensual intimate imagery or disclosure of a consumer's purchase of "
       + "pregnancy tests or emergency contraception for non-medical purposes.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(H)" },
-    guidance_refs: [],
-    empty_by_finding: "No dedicated § 7152 FSOR row. T5 candidate.",
+    // FSOR-INGESTION 2026-07-27: 805bb0ff (§ 7152(a)(5), p. 142) — agency retains the
+    // psychological-harm examples but clarifies the list is nonexhaustive and does not
+    // require expert-level mental-health assessments. 9f93100b (§ 7152) records the
+    // "would→could" softening + emotional-distress "disclosure" clarification for sensitive
+    // health information. Both binding, directly on-point.
+    guidance_refs: [
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152(a)(5)",
+        page_ref: "Appendix, p. 142",
+        anchor_hint: "psychological-harm list is nonexhaustive; businesses need not perform expert-level mental-health assessments",
+        authority_weight: "binding",
+      },
+      {
+        source_table: "cppa_fsor_commentary",
+        regulation_citation: "11 CCR § 7152",
+        page_ref: null,
+        anchor_hint: "'would' changed to 'could' in (G)/(H); 'disclosure' added to emotional-distress example for sensitive health information",
+        authority_weight: "binding",
+      },
+    ],
   },
 ] as const;
 
@@ -274,7 +370,14 @@ const SAFEGUARDS: readonly FactorRow[] = [
       + "encryption, and differential privacy.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)(A)(ii)" },
     guidance_refs: [],
-    empty_by_finding: "No § 7152-tagged FSOR row specifically on PETs. T5 candidate.",
+    // FSOR-SILENT 2026-07-27: exhaustive sweep of cppa_fsor_commentary (1,318 rows) for
+    // "privacy-enhancing", "homomorphic", "federated learning", "differential privacy",
+    // "trusted execution" surfaces no § 7152-tagged FSOR row on PETs. The one PET-adjacent
+    // row (b736679e) is filed under § 7154 (data minimization) — cross-provision reach
+    // banned by Q4(e) v2.2. Silence documented; permanent empty-by-finding.
+    empty_by_finding:
+      "FSOR-SILENT (2026-07-27 sweep): no § 7152-tagged FSOR row addresses PETs directly. Sole PET-adjacent commentary "
+      + "sits under § 7154 (data minimization); cross-provision analogy prohibited by Q4(e). Registry lint accepts.",
   },
   {
     id: "safe.iii.external_consultation",

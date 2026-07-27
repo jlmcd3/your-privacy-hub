@@ -3239,3 +3239,37 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Tests:** 17/17 green including template-lint, factor_line with & without guidance, aggregation_note framing, (B)-question 8-row emission matrix, (B)-question negative-implication screen, id-list conformance.
 - **Courier:** `docs/courier/CONTENT-COURIER-WEIGHING-DEPTH-2026-07-27.md`.
 - **Stage-B carry-forward:** renderer wiring for these templates joins the Stage-B code turn together with the Item-180 addenda (statutory-text leak class in value screen; surface-ownership write-guard at composition time). Stage-C gate = Stage-B courier + Item-180 addenda + this courier (already produced).
+
+## Item 182 — FSOR-GAP-INGESTION (2026-07-27) — DONE-CORPUS
+
+**Dispatch:** FSOR-GAP-INGESTION (CEO-approved; corpus+data-only micro-turn, parallel to active chain; no code, no deploys). Runs alongside Stage-B/C queue without interference.
+
+**Scope:** 8 empty-by-finding factor-registry gaps from LTP Phase-1 (courier TWO-PASS-BUILD-PHASE1 §3).
+
+**Result — 6 of 8 FILLED, 2 of 8 FSOR-SILENT (permanent):**
+- **FILLED (10 wired binding rows across 6 slots):** benefit.business / benefit.consumer / benefit.other_stakeholders / benefit.public (all share `ac2d3934` p. 35 + `9c6cb558` App. p. 139); neg.c.impaired_control (`b759265d` p. 36); neg.d.coercion_dark_patterns (`a434b098` p. 36 + `8838a330` App. p. 141); neg.e.economic_harms (`adeb9b63` p. 36); neg.g.reputational_harms (`ce5259bc` App. p. 141 + `9f93100b`); neg.h.psychological_harms (`805bb0ff` App. p. 142 + `9f93100b`).
+- **FSOR-SILENT (permanent empty-by-finding, evidence documented):** neg.f.physical_harms — sweep for `physical harm|physical or sexual|violence` returned 0 § 7152-tagged rows across 1,318 corpus rows; safe.ii.privacy_enhancing_technologies — sweep for PET terms returned 0 § 7152-tagged rows (sole hit sits under § 7154, cross-provision reach banned by Q4(e) v2.2).
+
+**Discipline confirmations:**
+- Corpus-check first: sweep before ingest; **no ingest needed** — corpus already contained on-point rows for 6 of 8 gaps.
+- **No re-tags performed:** every substantively on-point row already carries a § 7152 `regulation_citation`; the § 7004 dark-pattern rows and § 7154 PET row remain correctly filed under their own provisions per Q4(e) v2.2.
+- No external fetch; `source_document_cache` untouched; zero corpus rows created/updated/deleted.
+- 10/10 wired FSOR row IDs pin-tested present in `cppa_fsor_commentary` (query returned 10).
+- All wired `GuidanceRef` entries `authority_weight: "binding"` (registry lint requirement); every entry preserves the source row's own `regulation_citation` and `page_ref`.
+
+**Registry edits (data-only, file `supabase/functions/_shared/factors/cppa-risk-factors.ts`):**
+- Introduced shared `BENEFIT_GUIDANCE` const for the 4 (a)(4) benefit rows.
+- `neg.c`, `neg.d`, `neg.e`, `neg.g`, `neg.h`: `guidance_refs[]` populated; `empty_by_finding` deleted.
+- `neg.f`, `safe.ii`: `guidance_refs[]` remains empty; `empty_by_finding` rewritten to explicit **FSOR-SILENT (2026-07-27 sweep)** wording with search-term evidence, marked permanent (T5-candidate framing removed).
+- Zero changes to `verbatim_excerpt`, `anchor`, `kind`, `label`, or FactorRow schema; zero changes to runtime code paths.
+
+**Pass-G candidate-index counts (post-ingestion):**
+- Total factor rows: 16 (unchanged).
+- Rows with ≥1 binding guidance ref: **4 → 14** (Δ +10).
+- Rows FSOR-SILENT (permanent empty-by-finding): **2** (neg.f, safe.ii).
+
+**Priority note (CEO-elevated, recorded per dispatch):** Type-W weighing depth is bounded by this corpus completeness. **Wave-D's weighing-quality read must be interpreted against the post-ingestion state** (14/16 factor rows now guidance-backed, up from 4/16). Any Wave-D depth signal read against the pre-ingestion state is stale.
+
+**Chain-interference check:** none. This turn touched only `supabase/functions/_shared/factors/cppa-risk-factors.ts` (data-only) and produced docs. Stage-B/C queue order unaffected; renderer wiring for the newly-populated `guidance_refs[]` occurs naturally under the existing pass2-templates path (`T.risk.balance.factor_line` already renders `factor_basis` + optional `guidance_clause` from any populated ref).
+
+**Courier:** `docs/courier/FSOR-GAP-INGESTION-2026-07-27.md`.
