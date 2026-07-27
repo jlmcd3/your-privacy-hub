@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z";
+export const BUILD_STAMP = "ltp-risk-smokehang-persistearly@2026-07-27T13:05:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
@@ -1403,6 +1403,40 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
+
+    // ── PERSIST-EARLY SNAPSHOT (SMOKE-HANG ROOT FIX, 2026-07-27) ────────
+    // Invariant: as soon as we have a shippable `parsed` document, write it
+    // to report_data BEFORE any downstream operation that can hang the
+    // isolate (forward-path retry LLM, CoT retry LLM, LTP Pass-1 LLM, LTP
+    // finalize, serializer). If the isolate dies later the doc still lives;
+    // the terminal_complete write at the tail is an idempotent overwrite
+    // with the enhanced version. Fire-and-forget: never throws, never
+    // blocks the pipeline on write failure.
+    if (assessment_id && parsed && (parsed as any).assessment_summary) {
+      try {
+        const snapshotWrite = await lifecycleUpdate(
+          supabase,
+          "cppa_assessments",
+          assessment_id,
+          { report_data: parsed as any },
+          { fn: "run-cppa-risk-assessment", phase: "persist_early_snapshot" },
+        );
+        console.log(JSON.stringify({
+          evt: "persist_early_snapshot",
+          fn: "run-cppa-risk-assessment",
+          ok: snapshotWrite?.ok !== false,
+          build_stamp: BUILD_STAMP,
+        }));
+      } catch (e) {
+        console.warn(JSON.stringify({
+          evt: "persist_early_snapshot_failed",
+          fn: "run-cppa-risk-assessment",
+          error: (e as Error)?.message,
+        }));
+      }
+    }
+
+
 
     // 2.2.a — FORWARD PATH retry trigger: if the guard detects a dead-end
     // insufficient-basis passage without a paired information_needed entry,
@@ -3612,7 +3646,9 @@ Deno.serve(async (req) => {
       // is a §16 abort, not a silent drift.
       composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
       persist_first_retry: "retry-budget@2026-07-27-persistfirst",
+      persist_early_snapshot: "persist-early@2026-07-27-hangfix",
       safe_finalize: "safe-finalize@2026-07-27-hangfix",
+
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
