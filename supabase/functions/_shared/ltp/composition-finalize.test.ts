@@ -113,8 +113,8 @@ Deno.test("composition-finalize: hook set + branch entered = OK", () => {
 
 import { safeFinalizeComposition, SAFE_FINALIZE_VERSION } from "./composition-finalize.ts";
 
-Deno.test("safeFinalizeComposition: version stamp", () => {
-  assertEquals(SAFE_FINALIZE_VERSION, "safe-finalize@2026-07-27-hangfix");
+Deno.test("safeFinalizeComposition: version stamp (Item 206)", () => {
+  assertEquals(SAFE_FINALIZE_VERSION, "safe-finalize@2026-07-27-item206-hits");
 });
 
 Deno.test("safeFinalizeComposition: clean report — mirrors inner telemetry, errored=false", () => {
