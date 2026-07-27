@@ -837,6 +837,13 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
     return { started: false, reason: `ltp_mode_mismatch:${modeCheck.aborted_tool}` };
   }
 
+  // §19/§25 AUTHOR-CHECKPOINT — reject nil/malformed/unknown created_by.
+  try { await assertCreatedByIsRealUser(createdBy!, userExistsInAuth); }
+  catch (e) {
+    const msg = e instanceof CreatedByGuardError ? e.message : (e as Error).message;
+    await logCampaign(campaign.id, `Wave aborted (§19/§25): ${msg}`, "error");
+    return { started: false, reason: `created_by_guard:${msg}` };
+  }
 
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
