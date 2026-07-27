@@ -445,3 +445,48 @@ Consequences (build-blocking):
 - Trial measurement runs on standalone s5 batches. The campaign remains CEO-paused; resume authority is CEO-reserved.
 
 **v2.3 carry-through (verified this turn).** The federal-law qualification (binding tier for U.S. analysis units = forum state + U.S. federal, including federal agency rulings) is reflected in `docs/design/LEGAL-TEST.md` Q4(e) v2.3, in §2.9 of this pipeline document, and in the Phase-1 artifacts (`_shared/render-plan/schema.ts` comments, `_shared/render-plan/validators.ts` V3 relaxation + V8 additions, and header notes on `cppa-risk-conclusions.ts` / `cppa-risk-factors.ts` / `cppa-risk-candidate-index.ts`). No additional corrective edits required this turn.
+
+---
+
+## 12. Emitter law (SPEC-WRITEBACK-WAVE-B2, 2026-07-27; standing, product-agnostic)
+
+Any deterministic emitter that evaluates statutory thresholds or enumerations (band→cohort, band→prong, trigger→prong, threshold→outcome, count→cohort, and every future analogue) MUST:
+
+1. **Ship in the same turn** as an exhaustive **input-domain matrix test** derived from the corpus verbatim text (all authoritative band × band, trigger × prong, threshold × count combinations enumerated; no domain-subset "smoke" coverage). Corpus source must be pinpointed in the test's header — the test is a corpus witness, not a hand-written expectation.
+2. **Emit an `indeterminate` (or equivalent honest) output class** whenever the input straddles a statutory edge that the corpus text does not cleanly resolve (CPI-adjusted revenue bands, "or more" open bounds, unspecified subcategories, ambiguous enumeration matches). Silent `met` / `not met` / any-collapsed-decisive output on an indeterminate input is a **DEFECT**.
+3. **Render indeterminate outputs honestly** in customer-facing surfaces ("not determinable from the information provided", "the band provided straddles the statutory threshold", or the product's registry-approved analogue). Never elide the indeterminate case, never collapse it to the more favorable side, never suppress the clause.
+
+(Motivating defect: run-146 `§ 7120(b)(2)(A) met` asserted on `$25M to under $50M` × `250,000 to under 1,000,000` — the revenue band straddles § 1798.140(d)(1)(A) CPI-adjusted; the corpus-honest outcome is `indeterminate`.)
+
+## 13. Surface-map ownership law (SPEC-WRITEBACK-WAVE-B2, 2026-07-27; amends §6 surface-map contract)
+
+Every surface in every product surface-map (e.g. `_shared/ltp/content/<product>-surface-map.ts`) carries an **owner** drawn from a **closed vocabulary of three**:
+
+- `pipeline-template` — rendered by the LTP Pass-2 template registry under §4 discipline.
+- `deterministic-emitter` — owner-emitted by a registry-anchored deterministic function under §12 emitter law.
+- `legacy-frozen` — a pre-pipeline surface that has not yet migrated to one of the above.
+
+The prior states `unchanged` / `unmapped` / omission are **NO LONGER PERMITTED**. Every `legacy-frozen` surface REQUIRES, in the same turn it is marked legacy-frozen:
+
+1. A **citation-token audit** of every citation the surface may emit against the current `provision_texts` registry (status=approved only). Any unverified anchor (e.g. `§ 7156(a)` on the risk `attestation_block` — the MOTIVATING CASE) is a hard reject; the surface's citations MUST be re-anchored to registry-verified pinpoints or rendered without a statutory cite.
+2. A **recorded retirement/migration target** — the owner class the surface will migrate to (`pipeline-template` or `deterministic-emitter`) and a ledger back-reference. A `legacy-frozen` surface without an audit + migration target is a spec defect.
+
+## 14. Fix-shape law (SPEC-WRITEBACK-WAVE-B2, 2026-07-27; standing, product-agnostic)
+
+Pipeline-product fixes are specified at the **most upstream layer the defect permits**. The ordered preference is:
+
+1. **Authoring-time law** — registry correction, corpus re-extraction, factor/conclusion inventory amendment, surface-map ownership re-classification, template contract tightening. Preferred whenever the defect is expressible as an authoring rule.
+2. **Structural invariant** — a product-agnostic invariant added to §4 render contract, §12 emitter law, or §13 surface-map law that catches the defect class by compilation across every current and future product.
+3. **NEVER a new downstream string-surgery scrubber.** New string-surgery scrubbers (regex sentence-drop passes, meta-string bans, per-surface prose surgeons) are a **FORBIDDEN FIX SHAPE** for pipeline products. Existing scrubbers are grandfathered as belt-and-braces per §7 and are on a retirement path; no new ones may be added to pipeline products, and any defect proposed to be fixed by a new scrubber MUST be re-specified at layer (1) or (2).
+
+Exception (bounded): a **transitional scrubber** may be shipped as part of the same turn that (a) writes the corresponding authoring-time or invariant law under §4/§12/§13 and (b) records the scrubber's retirement wave in the ledger. The transitional scrubber MUST carry the retirement wave in its module header.
+
+## 15. Standing improvement-loop law (SPEC-WRITEBACK-WAVE-B2, 2026-07-27; process law)
+
+Every defect-class closure follows the standing loop:
+
+> **defect → root fix → generalized clause in design law → inherited by all future dispatches.**
+
+The generalized clause MUST be written into this document (or `docs/design/LEGAL-TEST.md` when the amendment is authoring-time) in the **same turn as the root fix, or the immediately following docs-only turn** — never later. Dispatches compile from the law, so the law is where learning lives. A root fix that is not followed by its design-law writeback within one turn is a **process defect** and is called out in the ledger.
+
+The writeback turn's courier MUST include a **defect → clause traceability table** (see `docs/courier/SPEC-WRITEBACK-2026-07-27.md` for the canonical form).
