@@ -213,15 +213,16 @@ Deno.test("safeFinalizeComposition: throwing recompose is CAUGHT (persist not bl
   assertEquals(res.reportData, rd);
 });
 
-Deno.test("safeFinalizeComposition: unowned top-level in enforce is caught, doc still ships", () => {
+Deno.test("safeFinalizeComposition: unowned top-level in enforce is telemetered, no throw (Item 213)", () => {
   const rd = { assessment_summary: { narrative: "clean." }, weird_key: { z: 1 } };
   const res = safeFinalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
   });
-  assertEquals(res.telemetry.errored, true);
-  assertEquals(res.telemetry.enforce_violation, true);
-  assertEquals(res.reportData, rd);
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.enforce_violation, false);
+  assert(res.telemetry.inner?.pre_serializer_unowned_pending.includes("weird_key"));
 });
+
 
 Deno.test("safeFinalizeComposition: budget telemetry present and honored", () => {
   const rd = { assessment_summary: { narrative: "clean." } };
