@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T07:23:39Z
+**Last updated:** 2026-07-27T08:11:52Z
 
 ---
 
@@ -3176,3 +3176,31 @@ None this turn (docs-only writeback per dispatch; the design amendment and this 
 ### E. Zero-side-effect confirmation
 
 Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this ledger item + header restamp, (c) the CEO Rulings Log addition in §B. NO code, prompts, rubrics, graders, goldens, contracts, fixtures, samples, registries, corpus rows, edge-function deploys, migrations, or `quality_batch` launches. Enforcement state, s6 instrument, campaign pause, and all HELDs are unchanged.
+
+## Ledger item 178 — DUAL-SMOKE-POSTFIX STAGE A.i LANDED; A.ii DEFERRED (2026-07-27T08:11:52Z)
+
+**Status:** DONE-COURIER (A.i clean-arm diagnosis) + DEFERRED (A.ii forced-degradation arm to next contiguous turn). Full CEO-authorized chain A→B→C→D remains active; controller checkpoints after each courier per Option-2 authorization.
+
+**Authorization (recorded verbatim, standing):** "go on courier. And go on Engine B-led batch of 6 after smoke test fixes are applied." (CEO, 2026-07-27). Controller Option-2 execution acknowledged: gates enforced fail-closed at each stage; the only permitted non-completion stop is a gate FAIL, which halts with evidence.
+
+**Delivered this turn:**
+- Courier `docs/courier/DUAL-SMOKE-POSTFIX-2026-07-27.md` with the CEO configuration statement, run-#151 clean-arm scoreboard, and FOUR root-cause traces with live code-path citations:
+  - **(1) declared-vs-actual count 1→3** — `quality-batch-orchestrator/index.ts:381-382` pins full `goldenIntakes(tool)` (3 fixtures) without slicing to `batchSize`; `run-quality-batch/index.ts:1908-1910` generation gate is one-sided (only generates when short, never trims when long); `runUnit` iterates `intakes.length`. Fix proposal: abort-with-diagnostic when `pinned.length > batchSize`; record `declared_count`/`actual_doc_count` on `quality_runs`.
+  - **(2) cohort "not stated"** — **SURFACE MISMATCH**: `applyRiskCohortDate` (`_risk_cohort_date.ts:279-291`) writes correct sentence to `report.cross_tool_recommendations.cybersecurity_audit_rationale`; grader `qc_r1_4_cohort_determinism` (`run-quality-batch/index.ts:645-679`) inspects `report.submission_summary` only. Truth-table itself (`_risk_cohort_date.ts:70-71`) correctly maps `25_50m → "April 1, 2030"`. Fix: extend emitter to also write plan-bound sentence to `submission_summary` (append-if-absent, idempotent) with exhaustive band×surface tests using the failing docs' exact intake labels.
+  - **(3) filter-annotation leak** — `_risk_intake_contradiction.ts` Class-B downgrade vocabulary ("does not support this statement") is mimicked by the model in its own output; filter cannot recognise self-authored mimicry; `"; it."` suffix indicates downstream Class-A excision leaving stub tokens; no value-level default-deny screen exists for filter-annotation phrasings. Fix: leak-lexicon (Stage B) + value-level fail-loud screen at LEAK-PREV-P2 serializer boundary.
+  - **(4) contributor-list substitution** — `waveb-completion.ts:148-155` splits roster on `[;,\n]+` including trailing period ("Data Platform Lead."), escapes to `/Data Platform Lead\./g`, but model output writes "Data Platform Lead)" (paren, no period) → no substitution for that name while the other two names each produce identical replacement phrases → double-render + escaped name. Two defects: (a) trailing-punctuation-in-token; (b) architecturally per-name substitution should be **list-level** (single phrase or titles-only enumeration per PII rule).
+- Clause candidate **§16.n DECLARED-COUNT CONFORMANCE** proposed for adoption in Stage B courier.
+- CEO configuration statement documented: `LTP_ENFORCE_ENABLED=true`, current live deploy `ltp-risk-pre-waved-emitter-fixes@2026-07-27T06:55:00Z`, Engine-B-led composition confirmed, no switches proposed.
+
+**Clean-arm scoreboard (run #151, batch fa554c22-4b57-4d3f-91f0-11ee60bf97b0):** terminal 2026-07-27T08:07:27Z; declared batch_size=1, actual 3 docs (§16.n candidate); checks 39/52 pass; score_overall=69.7 (baseline #150=73, pre-fix); |Δ Claude-GPT| on hallucination = 5 (<12, no §26 tripwire); §27 narrative-present PASS at kickoff. Evidence disposition: all 3 docs count as clean-arm evidence per size-strengthens-not-weakens rule.
+
+**Fix-verdict matrix (nine Item-176 adjudicated classes):** PASS = Pass-1 rewire, ADMT gate, q5b×i1 filter (filter itself running), info-needed coherence; PARTIAL = cohort mapping (right table wrong surface), owner-slot/placeholder ("We" fragment still shipped 1×), risk-register differentiation (systematic-observation trigger not interrogated); FAIL = truncation residue, adverse-effects conditioning (both driven by trace #3).
+
+**A.ii forced-degradation arm — DEFERRED to next contiguous turn.** Two full edge-redeploy cycles + ~20-min batch wait exceed a single turn's physical cap. Not a scope reduction. Executes at top of next turn, then Stage B fires per its dispatch on A.ii completion. Chain remains checkpointed, not paused.
+
+**Files edited this turn:**
+- New: `docs/courier/DUAL-SMOKE-POSTFIX-2026-07-27.md`.
+- Edited: `docs/pipeline-state.md` (header restamp to `2026-07-27T08:11:52Z`; this Item 178).
+- Zero code, prompts, rubrics, graders, goldens, contracts, fixtures, registries, corpus rows, migrations, edge-function deploys, or `quality_batch` launches. Enforcement state, s6 instrument, campaign pause, and all HELDs unchanged. §16 not yet amended (candidate only, adoption in Stage B).
+
+**Next actions (in order, next turn):** (A.ii) forced-degradation arm — set `LTP_TEST_FORCE_WRITE_AROUND=1`, redeploy, wrapped smoke, unset, redeploy, verify write-around telemetry + value-screen hold + Items-for-your-review disclosure, append A.ii evidence to this courier; then **(B) SMOKE-FIX-ROUND** per its standing dispatch (traced fixes + choke-point value screen + count conformance); then **(C) RE-SMOKE**; then **(D) WAVE-D** Engine-B-led batch of 6. Gate FAIL at any stage halts the chain with a HELD ledger item.
