@@ -689,3 +689,7 @@ Step (3) — the switch-and-delete — remains **CEO-reserved** and is gated by 
 ### 28.6 CROSS-REFERENCE
 
 §28 sits atop the standing decision gates recorded elsewhere in this document (composition-authority §, surface-ownership §, gate-authority §, measurement-validity §16, grader-divergence §26, narrative-present §27, deploy proof / harness state-machine §§20-25). Where an earlier section is silent on Engine-A/Engine-B ordering, §28 governs. Where an earlier section conflicts with §28, §28 controls and the earlier section is amended at the next docs-only turn.
+
+## 29. PRODUCT-MIGRATION-CHECKLIST — MANDATORY (CEO-approved 2026-07-27; standing, product-agnostic)
+
+Every product migration onto the Legal-Test Pipeline MUST consume the CEO-reviewed cross-product applicability matrix recorded at `docs/design/PRODUCT-MIGRATION-CHECKLIST.md`. The checklist is **mandatory**, not advisory: the migration turn's courier walks the checklist item-by-item (A universal 1–4, B conditional 5–7 with trait-based N/A where applicable, C family-analog 8), records the outcome for each, and never marks any surface `unmapped`. `lia` Phase 2 is the first consumer. Section D of the checklist (risk-specific fixes) is do-not-port; its generalized laws already live in this document (§§12–14, §16). Item 7's count-field intake contract turn is CEO-gated and covers `risk` + `cyber` together when authorized — it is **not** authorized by the checklist writeback itself.
