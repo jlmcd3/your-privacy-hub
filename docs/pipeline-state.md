@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T05:10:09Z
+**Last updated:** 2026-07-27T07:23:39Z
 
 ---
 
@@ -3132,3 +3132,47 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **Dual-smoke:** Queued smoke (`b091113d…`) still in flight at deploy time. Per CEO dispatch, if the queued smoke already executed pre-fix, its results are PRE-FIX BASELINE and non-gating; if it has not yet run, the queued smoke executes against the deployed fix set and counts. Forced-degradation smoke gated on clean-smoke terminal. HARD STOP after smoke courier: no Wave D, no enforcement-state change, no Engine-A removal — CEO-reserved.
 
 **Courier:** `docs/courier/PRE-WAVED-EMITTER-FIXES-2026-07-27.md`.
+
+---
+
+## Item 177 — ENGINE-B PRIMACY WITH SUBORDINATED ARTIFACTS (docs-only writeback, 2026-07-27T07:23:39Z)
+
+**Dispatch:** CEO RULING — ENGINE-B PRIMACY WITH SUBORDINATED ARTIFACTS (2026-07-27; docs-only writeback). TEAM-REVIEWED. Zero code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus edits; zero edge-function deploys; zero migrations; zero `quality_batch` launches; no BUILD_STAMP touched; enforcement state unchanged (`LTP_ENFORCE_ENABLED=1`); s6 instrument frozen; campaign `fd1be147` remains CEO-paused.
+
+**VERIFIED-FACTS preamble (per §24):** (i) `code--view` confirmed `docs/design/LEGAL-TEST-PIPELINE.md` at 636 lines pre-edit ending at §27 (NARRATIVE-PRESENT KICKOFF ASSERTION); (ii) `code--view` confirmed the ledger's CEO Rulings Log at line 2013 (Item 140 §B) as the standing rulings-log anchor; (iii) turn clock captured via `date -u` at 2026-07-27T07:23:39Z immediately before this write; (iv) prior CEO-reserved language on Engine-A removal is preserved verbatim from Item 176 ("no Engine-A removal — CEO-reserved") and prior gates.
+
+### A. Design amendment landed
+
+`docs/design/LEGAL-TEST-PIPELINE.md` — new **§28. ENGINE-B PRIMACY WITH SUBORDINATED ARTIFACTS**, six subsections:
+
+- **§28.1 AUTHORITY** — the validated RenderPlan is the single composition authority; no component writes customer surfaces except through the pipeline render path bound to plan entries; surface-map `owner=engine-a-composer` is not a legal value.
+- **§28.2 ARTIFACT HARVEST** — Engine-A-era deterministic emitters (T7 opening, cohort/deadline, cyber crosswalk, citation-dup scrubber, intake-contradiction filter, and peers) are formally ADOPTED into Engine B as plan-bound deterministic emitters — inventoried, bound to plan/gate outputs, listed with `owner=deterministic-emitter`, and manifest-stamped in `_meta.internal.legal_test_pipeline.deterministic_emitters[]`. Un-adopted emitters are excised, not tolerated.
+- **§28.3 SUBORDINATION MECHANICS** — four enforcement rules: **(a)** conflict rule — artifact output contradicting the plan is rejected; plan is NEVER mutated; **(b)** legacy guards are SUBTRACTIVE-ONLY (excise or fail-loud; never author/rewrite/reorder; whitespace + pure deletion only); **(c)** NO SILENT SUPPRESSION — only pipeline gates decide omissions; **(d)** every artifact intervention recorded in `_meta.internal.legal_test_pipeline.artifact_interventions[]` with typed fields.
+- **§28.4 NO FALLBACK SEAT FOR ENGINE A'S COMPOSER** — pipeline failure degrades via the B-native conservative write-around ONLY; Engine-A composition is never a fallback path; "if pipeline fails → invoke Engine-A composer → return its output" is a §28 defect and is deleted.
+- **§28.5 GATE-3 REDEFINITION** — Gate-3 ("Engine A removal") = HARVEST (§28.2) + SUBORDINATE (§28.3) + RETIRE THE COMPOSER (delete Engine-A composition path + switch runtime). Step (3) remains **CEO-reserved** under existing evidence gates: post-fix dual smoke green, Wave D success against §5, confirmation wave success, B-native conservative write-around production-proven. No controller advancement.
+- **§28.6 CROSS-REFERENCE** — §28 sits atop the standing decision gates (composition-authority, surface-ownership, gate-authority, §16 measurement-validity, §26 grader-divergence, §27 narrative-present, §§20-25 harness state-machine); where earlier sections are silent on Engine-A/B ordering, §28 governs; where they conflict, §28 controls and the conflicting section is amended at the next docs-only turn.
+
+### B. CEO Rulings Log entry (recorded verbatim)
+
+Appended to §B rulings log (originally established at Item 140):
+
+- **Engine-B primacy (2026-07-27):** "Engine B should always control. However, where there are any useful artifacts of Engine A, we should use them SO LONG AS THEY CANNOT OVERRIDE OR DIMINISH ENGINE B." Codified as `docs/design/LEGAL-TEST-PIPELINE.md` §28.
+
+### C. Cross-reference to standing decision gates
+
+- **Composition authority** — §28.1 (RenderPlan is single authority; no non-render-path writes).
+- **Surface ownership** — §28.1–§28.2 (surface map `owner=` values enumerated; `engine-a-composer` prohibited).
+- **Gate authority** — §28.3(c) (omissions gate-only).
+- **Measurement validity §16** — subordination violations render affected classes non-evidential (extraction §26 pattern extended).
+- **Grader-divergence §26** — §28.3(d) telemetry provides the artifact-side evidence needed to adjudicate config-artifact vs genuine-defect.
+- **Narrative-present §27** — narrative absence is a §27 defect at kickoff; Engine-A composer running to "fill" a missing narrative is a §28.4 defect (both fire, both abort).
+- **Harness state-machine §§20-25** — §28 status transitions (harvest → subordinate → retire) are ledger-visible; step (3) is CEO-reserved per §5.
+- **Item 176 HARD STOP language preserved** — "no Engine-A removal — CEO-reserved" now cross-references §28.5.
+
+### D. Courier
+
+None this turn (docs-only writeback per dispatch; the design amendment and this ledger item are the delivery vehicles). Any downstream product turn that adopts a new Engine-A emitter into the pipeline authors an inventory courier per §28.2.
+
+### E. Zero-side-effect confirmation
+
+Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this ledger item + header restamp, (c) the CEO Rulings Log addition in §B. NO code, prompts, rubrics, graders, goldens, contracts, fixtures, samples, registries, corpus rows, edge-function deploys, migrations, or `quality_batch` launches. Enforcement state, s6 instrument, campaign pause, and all HELDs are unchanged.

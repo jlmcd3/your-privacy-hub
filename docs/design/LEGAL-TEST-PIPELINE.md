@@ -634,3 +634,58 @@ Any failed assertion aborts the batch pre-launch with HTTP 409 `narrative_missin
 **Motivating case.** Item 169: WAVE-D READINESS STEP 1 verified §16 (ping enforce, boot enforce, hash frozen) and passed all-green. STEP 2 smoke then produced 3 docs with narrative absent. §16 alone cannot catch composition-wiring gaps; §27 closes the gap by asserting on a real payload.
 
 **Sequencing law.** §27 wiring is itself launch infrastructure. Its deployment turn is preceded by NO measurement; the next measurement turn after §27 lands uses the newly-asserted path from the first smoke.
+
+## 28. ENGINE-B PRIMACY WITH SUBORDINATED ARTIFACTS (CEO ruling; item 177, 2026-07-27; standing, product-agnostic)
+
+**CEO ruling, verbatim (2026-07-27):** "Engine B should always control. However, where there are any useful artifacts of Engine A, we should use them SO LONG AS THEY CANNOT OVERRIDE OR DIMINISH ENGINE B."
+
+Engine B = the LEGAL TEST PIPELINE (derive → guide → render → verify) codified in this document. Engine A = the pre-pipeline composition path (LLM-authored assessment prose plus its Engine-A-era deterministic emitters: T7 opening, cohort/deadline, cyber crosswalk, citation-dup scrubber, intake-contradiction filter, and peers). This section is the constitutional statement of how the two engines relate for as long as any Engine-A artifact remains alive in the codebase.
+
+### 28.1 AUTHORITY
+
+The validated `RenderPlan` is the **single composition authority** for every customer-facing surface owned by a pipeline-adopted product. No component — deterministic emitter, LLM composer, template, post-hook, or scrubber — writes to a customer surface except **through the pipeline's render path**, bound to plan entries. A component that writes outside the render path is a §28 defect and is excised.
+
+Corollary: surface ownership is declared in the surface map (§ per LEGAL-TEST-PIPELINE authoring conventions) with `owner=` set to `pipeline-render`, `deterministic-emitter`, or `gate-suppression`. `owner=engine-a-composer` is not a legal value.
+
+### 28.2 ARTIFACT HARVEST
+
+Engine-A-era deterministic emitters are **formally ADOPTED into Engine B** as plan-bound deterministic emitters. Each adopted artifact:
+
+1. is **inventoried** in the surface map with its slot bindings and the plan/gate inputs it consumes;
+2. is **bound to plan/gate outputs** (never to raw intake or raw generator prose) — its inputs are typed against `RenderPlan` entries and gate results;
+3. is listed with `owner=deterministic-emitter` and a reference to the plan entry class it serves;
+4. carries a manifest stamp so its version is echoed in `_meta.internal.legal_test_pipeline.deterministic_emitters[]`.
+
+Adoption is not optional and not aspirational: an Engine-A emitter that has not been inventoried and bound is not a legal participant in the render path. Un-adopted emitters are excised, not tolerated in a "still runs but not on the surface" state.
+
+### 28.3 SUBORDINATION MECHANICS (enforced, not aspirational)
+
+The following four mechanics are **enforcement rules**, not guidance. Each maps to a concrete check the pipeline runs at render time or at deploy time.
+
+**(a) Conflict rule.** Any artifact output that contradicts the plan is **rejected**. The plan is **NEVER mutated** to fit an artifact. Contradiction is defined as: the artifact would cause a slot value, citation, gate outcome, or omission decision to differ from what the validated plan entry specifies. On rejection, the pipeline records the rejection in telemetry (see (d)) and falls back to the plan's own value for that slot.
+
+**(b) Legacy guards are SUBTRACTIVE-ONLY.** A guard, scrubber, filter, or excision utility inherited from Engine A may **excise** content or **fail loud**; it MUST NOT author new content, rewrite existing content into a different form, or reorder plan-produced content. "Rewrite" includes substitution of one phrase for another, insertion of connective prose, and normalization that changes semantic content. Whitespace normalization and pure deletion are the only permitted transforms.
+
+**(c) NO SILENT SUPPRESSION.** Only **pipeline gates** decide omissions. An artifact MUST NOT drop a slot, section, sentence, citation, or plan entry on its own authority. If an artifact believes an item should be omitted, it raises the concern to the gate layer; the gate decides. Silent suppression by an artifact is a §28 defect and the item is restored from the plan.
+
+**(d) Telemetry.** **Every artifact intervention is recorded** in `_meta.internal.legal_test_pipeline.artifact_interventions[]` with fields: `{artifact_id, artifact_version, intervention_type ∈ {excise, fail_loud, rejected_conflict}, slot, plan_entry_ref, evidence}`. A render pass that invoked an artifact without recording a telemetry entry is a §28 defect at extraction time (extraction retracts the run's affected classes to non-evidential, cf. §26).
+
+### 28.4 NO FALLBACK SEAT FOR ENGINE A'S COMPOSER
+
+Pipeline failure degrades via the **B-native conservative write-around ONLY**. Engine-A composition is **never a fallback path**. The rationale is constitutional: allowing Engine-A composition to run when Engine B fails would place Engine A in charge precisely at the moment oversight is weakest — the exact inversion of this section's authority statement.
+
+Concretely: any code path of the shape "if pipeline fails → invoke Engine-A composer → return its output" is a §28 defect and is deleted. The permitted failure paths are (i) B-native conservative write-around (documented elsewhere in this file) and (ii) HTTP 5xx / hard abort with `_meta` diagnostics.
+
+### 28.5 GATE-3 REDEFINITION
+
+The Gate-3 milestone ("Engine A removal") is redefined as the conjunction of:
+
+1. **HARVEST** — every Engine-A-era deterministic emitter still in service has been adopted per §28.2 (inventoried, bound, manifest-stamped);
+2. **SUBORDINATE** — every adopted artifact satisfies §28.3 (a)-(d) with tests demonstrating conflict rejection, subtractive-only behavior, gate-mediated omission, and telemetry presence;
+3. **RETIRE THE COMPOSER** — the Engine-A composition path is **deleted from the codebase** and the runtime is **switched** to Engine B as the sole composition authority.
+
+Step (3) — the switch-and-delete — remains **CEO-reserved** and is gated by the existing evidence conditions already in force: (i) post-fix dual smoke green, (ii) Wave D success against §5 criteria, (iii) confirmation wave success, (iv) B-native conservative write-around **production-proven** (fires cleanly on real degradation with no customer-visible defect). No sub-step of (3) may be advanced by controller action; the ledger records readiness and waits.
+
+### 28.6 CROSS-REFERENCE
+
+§28 sits atop the standing decision gates recorded elsewhere in this document (composition-authority §, surface-ownership §, gate-authority §, measurement-validity §16, grader-divergence §26, narrative-present §27, deploy proof / harness state-machine §§20-25). Where an earlier section is silent on Engine-A/Engine-B ordering, §28 governs. Where an earlier section conflicts with §28, §28 controls and the earlier section is amended at the next docs-only turn.
