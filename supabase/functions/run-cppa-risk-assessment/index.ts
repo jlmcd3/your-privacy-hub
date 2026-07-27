@@ -3611,6 +3611,8 @@ Deno.serve(async (req) => {
       // Fleet asserts this at kickoff via mode-assert; observe-mode reversion
       // is a §16 abort, not a silent drift.
       composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
+      persist_first_retry: "retry-budget@2026-07-27-persistfirst",
+      safe_finalize: "safe-finalize@2026-07-27-hangfix",
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
