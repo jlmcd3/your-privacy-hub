@@ -3273,3 +3273,24 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 **Chain-interference check:** none. This turn touched only `supabase/functions/_shared/factors/cppa-risk-factors.ts` (data-only) and produced docs. Stage-B/C queue order unaffected; renderer wiring for the newly-populated `guidance_refs[]` occurs naturally under the existing pass2-templates path (`T.risk.balance.factor_line` already renders `factor_basis` + optional `guidance_clause` from any populated ref).
 
 **Courier:** `docs/courier/FSOR-GAP-INGESTION-2026-07-27.md`.
+
+## Item 183 — PRODUCT-MIGRATION-CHECKLIST WRITEBACK (2026-07-27) — DONE-DOCS
+
+**Dispatch:** PRODUCT-MIGRATION-CHECKLIST WRITEBACK (CEO-approved 2026-07-27; docs-only; no code, no deploys; team-reviewed).
+
+**Landed:**
+- `docs/design/PRODUCT-MIGRATION-CHECKLIST.md` created — CEO-reviewed cross-product applicability matrix, mandatory for every product's pipeline migration; `lia` Phase 2 is the first consumer.
+- `docs/design/LEGAL-TEST-PIPELINE.md` §29 appended — references the checklist as MANDATORY and pins the do-not-port scope for §D.
+
+**Matrix summary (as recorded in the checklist):**
+- **A. UNIVERSAL (1–4)** — mechanically inherited every migration: (1) value-level leak screen at LEAK-PREV-P2 (shared lexicon + per-product corpus-text detector; statutory-text-outside-cite-spans included as a screen-hit class); (2) surface-ownership write-guard co-shipped with a complete surface map (owner vocabulary: `pipeline-template` | `deterministic-emitter` | `legacy-frozen` w/ citation audit + retirement date; `unmapped` forbidden); (3) code-vs-contract intake-field audit (bidirectional, tested); (4) §16 configuration assertions, declared-count conformance, canonical state machine, §26 divergence tripwire, §27 kickoff assertion, smoke-before-measure, PII field-class rendering (per-product contact-field list), opening-paragraph program spec, verified-facts courier discipline.
+- **B. CONDITIONAL (5–7):** (5) Type-W ONLY (lia, dpia, ir, cyber, governance, risk) — factor registries + Pass-G candidate index + enriched balance-rationale templates; N/A for dpa/registration/biometric (R-dominant). (6) Multi-unit ONLY (risk activities, dpia activities, governance domains, ir jurisdictions) — most-cautious-wins precedence + aggregation-rationale sentence; N/A single-determination. (7) CPPA-family ONLY (risk, cyber, admt) — CCPA applicability incl. § 1798.140(d)(1)(B) count-field dependency; **count-field intake contract turn is SEPARATE CEO-gated and covers `risk` + `cyber` together — NOT authorized by this writeback.**
+- **C. FAMILY ANALOGS (8):** guidance-corpus completeness law — FSOR (CPPA family); EDPB families 4–10 (EU products); ICO (CEO-deferred) for UK units. Type-W weighing depth bounded by corpus completeness; *-SILENT entries documented with sweep evidence per Q4(e) v2.3.
+- **D. RISK-SPECIFIC — DO NOT PORT:** cohort-surface fix, § 7121(a) truth table, contributor-substitution repairs. Generalized laws already in this document (§§12–14, §16).
+
+**Discipline:** docs-only. Zero code paths touched. Zero deploys. Zero corpus writes. Change control per §F of the checklist: edits arrive only as content-anchored couriers via CEO order; trait vocabulary is closed.
+
+**CEO Rulings Log entry (recorded verbatim per dispatch):**
+> "Cross-product applicability matrix adopted as the mandatory product-migration checklist" — CEO, 2026-07-27. First consumer: `lia` Phase 2. Count-field intake addition (risk + cyber, joint contract turn) remains a **separate CEO-gated turn** — not authorized by this writeback.
+
+**Files:** `docs/design/PRODUCT-MIGRATION-CHECKLIST.md` (new), `docs/design/LEGAL-TEST-PIPELINE.md` (§29 appended).
