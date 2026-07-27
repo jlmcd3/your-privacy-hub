@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T12:52:47Z
+**Last updated:** 2026-07-27T16:20Z (Item 202 — SMOKE-HANG BRANCH-CORRECTION: clock contract + persist-early moved up; build ltp-risk-smokehang-branch-correction@2026-07-27T16:20:00Z; READY-FOR-RELAUNCH)
 
 ---
 
@@ -3550,3 +3550,25 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Courier:** `docs/courier/SMOKE-HANG-PERSISTFIRST-2026-07-27.md` (existing courier updated as addendum note).
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; smoke #155 is a third non-evidential death.
 - **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Awaiting controller re-insertion of the wrapped §18 smoke row to verify the persist-early invariant on the wire, then CONTINUATION-5 steps 9/9b/10/11/12 as dispatched.
+
+## Item 202 — SMOKE-HANG BRANCH-CORRECTION: CLOCK CONTRACT + PERSIST-EARLY MOVED UP (2026-07-27 ~16:20Z)
+
+- **Trigger:** CEO BRANCH CORRECTION (2026-07-27 ~15:53Z). Smoke #155 (assessment `6992d6e0-f481-4ec4-8c92-a9c9aaa43034`) is a FOURTH outcome the prior conditional chain did not enumerate: PERSIST-EARLY WORKED (`report_data` written at 11:50:03, `residual_leaks` 1→0), invocation row finalized `status=error` at 22:00, but `quality_runs` #155 was watchdog-reaped at 11:48Z ("No documents completed") — the document landed 2 minutes AFTER the 20-min harness ceiling. Orphan doc, non-evidential.
+- **Log pull:** `supabase.edge_function_logs('run-cppa-risk-assessment')` for 11:28-11:50Z returned no rows for that isolate window (flush/death race, consistent with prior turn). The 22-minute "lifetime" is a reaper-write artifact; empirical isolate ceiling under this workload is ≤ ~330-400s. The 18-minute silence between `post_gen_lint` (11:32:03) and persist (11:50:03) is best explained by (a) `AbortController` in Item 198's `withRetryPersistFirst` resolving the Promise.race for the deadline but NOT cancelling the underlying `callModel` fetch (path is not `signal`-aware), or (b) sequential post-lint guards (FORWARD PATH retry L1470, CoT-leak retry L1514, LTP Pass-1 enforce preview) each drawing fresh LLM budget the runtime did not have.
+- **Root fix — HARD CLOCK CONTRACT (invariant):** total post-lint work (retry + finalize + persist) MUST complete inside a 15-min E2E budget, comfortably inside the 20-min harness reap. A retry that cannot fit is SKIPPED; the first doc is persisted immediately (persist-first guarantees the doc; this guarantees the CLOCK).
+- **Code:**
+  - `_shared/ltp/retry-budget.ts` — constants realigned to empirical reality. `ISOLATE_CEILING_MS = MAX_END_TO_END_MS = 900_000` (15 min E2E), `POST_RETRY_RESERVE_MS = 180_000` (3 min for finalize+serializer+persist), `MAX_ELAPSED_FOR_RETRY_MS = 240_000` (4 min hard elapsed cap on any retry, regardless of caller threshold). New `POST_LINT_LLM_BUDGET_MS = 300_000` + `hasBudgetForPostLintLLM(elapsedMs)` helper for non-retry post-lint LLM sites. `computeRetryBudget` clamps caller's `elapsedThresholdMs` to `MAX_ELAPSED_FOR_RETRY_MS`.
+  - `run-cppa-risk-assessment/index.ts` — **PERSIST-EARLY MOVED UP** from post-lint (Item 201 site) to immediately after `parsed` validation (line ~999), BEFORE post-gen-lint / retries / forward-path guard / CoT-leak guard / LTP Pass-1 / finalize / serializer. Prior snapshot site is a documented no-op.
+  - Forward-path retry (formerly L1470) now gated by `hasBudgetForPostLintLLM(elapsedNow)`; skip emits `forward_path_retry_skipped_budget` with `elapsed_ms` and `budget_ms`.
+  - CoT-leak retry (formerly L1514) gated identically; skip emits `cot_leak_retry_skipped_budget`.
+  - Post-gen retry decision continues through `computeRetryBudget` (unchanged wiring), now sees tighter constants automatically.
+  - Ping surface adds `persist_early_snapshot: "persist-early-pre-lint@2026-07-27-branch-correction"` and `post_lint_llm_budget_ms: 300000`.
+- **Build stamp:** `ltp-risk-smokehang-branch-correction@2026-07-27T16:20:00Z`.
+- **Regression tests:** `_shared/ltp/retry-budget.branch-correction.test.ts` — **6/6 green** (verified in-sandbox via `deno test`). Covers: (1) constants pinned to 15-min; (2) retries refused past 4-min elapsed even when wall-clock remains; (3) caller's stricter threshold still honored when tighter than 4 min; (4) `retryCap` accounts for 3-min reserve; (5) `hasBudgetForPostLintLLM` enforces 5-min ceiling; (6) **contract-by-construction:** `retryCap + elapsed + reserve ≤ MAX_END_TO_END_MS` at every permitted retry moment.
+- **Deploy + §16 ping-prove:** `supabase.deploy_edge_functions(["run-cppa-risk-assessment"])` → success. GET `?ping=1`: `{build_stamp:"ltp-risk-smokehang-branch-correction@2026-07-27T16:20:00Z", composition_enforce:"1", ltp_mode:"enforce", persist_early_snapshot:"persist-early-pre-lint@2026-07-27-branch-correction", persist_first_retry:"retry-budget@2026-07-27-persistfirst", post_lint_llm_budget_ms:300000, safe_finalize:"safe-finalize@2026-07-27-hangfix"}`. §16 surface intact.
+- **Spec-writeback:** `docs/design/LEGAL-TEST-PIPELINE.md §30. CLOCK-BUDGET LAW` — appended. Product-agnostic: `generator_worst_case_e2e_ms + MARGIN_MS ≤ harness_reap_ceiling_ms` with `MARGIN_MS ≥ 300_000`. Codifies persist-before-clock-spend, decomposition constants, and the regression bar future migrations must satisfy.
+- **Owed follow-up (recorded, NOT this turn):** `function_runs` finalizing `status=error` for a run that persisted a valid `report_data` is a semantics defect. Fix requires cross-cutting changes to the shared lifecycle helper and the reaper (they own the terminal status write, not the generator). Deferred to a shared-infra turn.
+- **Stage-C content candidates (recorded, unchanged):** same upstream composer defects as prior turns — `resolved_source_ask_dropped` on `i1_processing_purpose`, `sensitive_location_basis`, `i2_retention_period`.
+- **Courier:** `docs/courier/SMOKE-HANG-BRANCH-CORRECTION-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; smokes #153, #154, #155 all non-evidential.
+- **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller re-inserts the wrapped §18 smoke row (`created_by 02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122`, `LTP_COMPOSITION_ENFORCE=1`) to exercise the clock contract on the wire; CONTINUATION-5 steps 9/9b/10/11/12 remain owed.

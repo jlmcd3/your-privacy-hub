@@ -13,14 +13,35 @@
 // Supabase context. Product code owns the parsed-doc reassignment; this
 // module only decides IF the retry may run and BOUNDS how long it may run.
 
-export const ISOLATE_CEILING_MS = 330_000;
-// Reserve for post-retry work: T-5 residue detection, deterministic
-// fallback, i3 rewriter, guardInformationNeeded, W6..W24, LTP finalize,
-// serializer, persist. Measured >60s in cold paths; 90s is the floor.
-export const POST_RETRY_RESERVE_MS = 90_000;
-// Minimum time we're willing to give the retry LLM call itself.
-// Below this we skip: a truncated retry is worse than no retry.
+// SMOKE-HANG BRANCH-CORRECTION (2026-07-27, item 202):
+// Empirical evidence from smoke #155 (assessment 6992d6e0…): the isolate
+// lived well past the assumed 330s ceiling — a downstream LLM retry or
+// finalize pass kept it busy long enough that the HARNESS reaper (20-min
+// ceiling) fired first, orphaning the run. The CEO invariant is now:
+// total post-lint work (retry + finalize + persist) MUST complete inside
+// a hard E2E budget that keeps the whole pipeline under 15 minutes worst-
+// case — comfortably inside the 20-min harness reap.
+//
+// Concretely: we treat the effective ceiling for retry-decision purposes
+// as MAX_END_TO_END_MS. If elapsed exceeds MAX_ELAPSED_FOR_RETRY_MS the
+// retry is refused even if wall-clock still exists — a late retry is a
+// downstream time bomb. The post-retry reserve is grown to reflect the
+// real cost of finalize + serializer + persist observed on cold paths.
+export const ISOLATE_CEILING_MS = 900_000;             // 15 min hard E2E budget
+export const MAX_END_TO_END_MS = 900_000;              // alias — used for retry-decision math
+export const MAX_ELAPSED_FOR_RETRY_MS = 240_000;       // 4 min: past this, no retries
+export const POST_RETRY_RESERVE_MS = 180_000;          // 3 min: finalize + serializer + persist
 export const MIN_RETRY_WINDOW_MS = 30_000;
+
+// Post-lint work guard — used by non-retry LLM sites (forward-path guard,
+// CoT-leak guard). Callers pass elapsedMs and skip the downstream LLM
+// call if elapsed exceeds this threshold. Persist-early already covers
+// document safety; this covers pipeline-clock safety.
+export const POST_LINT_LLM_BUDGET_MS = 300_000;        // 5 min: no more LLM calls past this
+export function hasBudgetForPostLintLLM(elapsedMs: number): boolean {
+  return elapsedMs < POST_LINT_LLM_BUDGET_MS;
+}
+
 
 export type RetryBudget = {
   allowed: boolean;
@@ -36,14 +57,17 @@ export function computeRetryBudget(params: {
   isolateCeilingMs?: number;
   postRetryReserveMs?: number;
   minRetryWindowMs?: number;
+  maxElapsedForRetryMs?: number;
 }): RetryBudget {
   const ceiling = params.isolateCeilingMs ?? ISOLATE_CEILING_MS;
   const reserve = params.postRetryReserveMs ?? POST_RETRY_RESERVE_MS;
   const minWindow = params.minRetryWindowMs ?? MIN_RETRY_WINDOW_MS;
+  const maxForRetry = params.maxElapsedForRetryMs ?? MAX_ELAPSED_FOR_RETRY_MS;
+  const effectiveThreshold = Math.min(params.elapsedThresholdMs, maxForRetry);
   const remainingWallClockMs = Math.max(0, ceiling - params.elapsedMs);
   const retryCapMs = Math.max(0, remainingWallClockMs - reserve);
 
-  if (params.elapsedMs >= params.elapsedThresholdMs) {
+  if (params.elapsedMs >= effectiveThreshold) {
     return {
       allowed: false,
       reason: "elapsed_budget_exceeded",
@@ -69,6 +93,7 @@ export function computeRetryBudget(params: {
     retryCapMs,
   };
 }
+
 
 export type PersistFirstOutcome<T> =
   | { kind: "used_retry"; value: T; elapsedMs: number }
