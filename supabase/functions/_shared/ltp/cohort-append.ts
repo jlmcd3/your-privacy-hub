@@ -31,29 +31,21 @@ export interface CohortAppendResult {
 }
 
 export function applyCohortAppendIfAbsent(
-  report: any,
-  intake: Record<string, unknown>,
+  _report: any,
+  _intake: Record<string, unknown>,
 ): CohortAppendResult {
-  const base = { stamp: COHORT_APPEND_STAMP, version: COHORT_APPEND_VERSION };
-  if (!report || typeof report !== "object") {
-    return { appended: false, reason: "no_summary", ...base };
-  }
-  const summary = report.submission_summary;
-  if (!summary || typeof summary !== "object") {
-    return { appended: false, reason: "no_summary", ...base };
-  }
-  const band = classifyRevenueBand((intake as any)?.q1_revenue);
-  // Only act when the cohort is INDETERMINATE — unspecified revenue or the
-  // legacy $25M–$100M band. A resolved cohort has its own single-date
-  // treatment elsewhere and MUST NOT get the conditional clause.
-  if (band?.audit_cohort !== "indeterminate") {
-    return { appended: false, reason: "band_resolved", ...base };
-  }
-  const existing = String(summary.submission_basis ?? "");
-  if (COHORT_MARKER_RE.test(existing)) {
-    return { appended: false, reason: "already_present", ...base };
-  }
-  const glue = existing && !/;\s*$/.test(existing) ? "; " : "";
-  summary.submission_basis = `${existing}${glue}${COHORT_CONDITIONAL}`;
-  return { appended: true, reason: "indeterminate_band_appended", ...base };
+  // ITEM-204 CEO RULING (Defect B), 2026-07-27:
+  // RETIRED. The § 7121(a) cybersecurity-audit surface no longer
+  // computes or asserts cohort membership. The full phase-in schedule
+  // is rendered whole from corpus literals by
+  // `_shared/ltp/cyber-audit-schedule.ts`. The indeterminate-band
+  // conditional clause is retired for this surface. This function is
+  // kept as a permanent no-op so existing call sites and telemetry
+  // keys continue to compile without disturbing the call-graph audit.
+  return {
+    appended: false,
+    reason: "band_resolved",
+    stamp: COHORT_APPEND_STAMP,
+    version: COHORT_APPEND_VERSION,
+  };
 }

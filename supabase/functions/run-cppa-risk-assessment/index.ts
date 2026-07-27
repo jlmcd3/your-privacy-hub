@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z";
+export const BUILD_STAMP = "ltp-risk-item204-rulings-executed@2026-07-27T17:20:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
@@ -3315,10 +3315,37 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LTP WAVE-B.2 CLOSURE failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM-204 (Defect B) — CYBER-AUDIT PHASE-IN SCHEDULE ───────────
+    // CEO ruling 2026-07-27: no cohort computation; render full § 7121(a)
+    // schedule from corpus, close with reserved-to-customer-and-counsel
+    // framing. Supersedes the RISK-COHORT-DATE resolved-band truth-table
+    // directive and retires the cohort-append conditional clause.
+    // Item 195 cohort-append is now a permanent no-op (retained call
+    // preserves telemetry key stability for controller audits).
+    try {
+      const { applyCyberAuditSchedule } = await import("../_shared/ltp/cyber-audit-schedule.ts");
+      const _schedRes = applyCyberAuditSchedule(report_data);
+      const _rdS: any = report_data as any;
+      _rdS._meta = _rdS._meta ?? {};
+      _rdS._meta.internal = _rdS._meta.internal ?? {};
+      _rdS._meta.internal.cyber_audit_schedule = {
+        build_stamp: BUILD_STAMP,
+        stamp: _schedRes.stamp,
+        version: _schedRes.version,
+        emitted: _schedRes.emitted,
+        reason: _schedRes.reason,
+      };
+      console.log(JSON.stringify({
+        evt: "cyber_audit_schedule_ran", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, emitted: _schedRes.emitted, reason: _schedRes.reason,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] cyber-audit-schedule failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── STAGE-B CONTINUATION-4 COHORT APPEND-IF-ABSENT (item 195) ─────
-    // Post-generation append of the § 7121(a) two-cohort conditional
-    // clause into submission_summary.submission_basis when the revenue
-    // band is indeterminate and the clause is absent. Idempotent.
+    // RETIRED per ITEM-204 (Defect B). Call retained as no-op for
+    // telemetry-key stability; see cohort-append.ts header.
     try {
       const { applyCohortAppendIfAbsent } = await import("../_shared/ltp/cohort-append.ts");
       const _cohortIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
@@ -3333,12 +3360,24 @@ async function runPipeline(assessment_id: string) {
         appended: _cohortRes.appended,
         reason: _cohortRes.reason,
       };
-      console.log(JSON.stringify({
-        evt: "cohort_append_ran", fn: "run-cppa-risk-assessment",
-        build_stamp: BUILD_STAMP, appended: _cohortRes.appended, reason: _cohortRes.reason,
-      }));
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] cohort-append failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM-204 RESIDUAL — INFO-NEEDED NORMALIZE (id/topic) ──────────
+    // Schema-conformance: every information_needed row carries id + topic.
+    try {
+      const { normalizeInformationNeeded } = await import("../_shared/ltp/info-needed-normalize.ts");
+      const _inRes = normalizeInformationNeeded(report_data);
+      const _rdI: any = report_data as any;
+      _rdI._meta = _rdI._meta ?? {};
+      _rdI._meta.internal = _rdI._meta.internal ?? {};
+      _rdI._meta.internal.info_needed_normalize = {
+        build_stamp: BUILD_STAMP, stamp: _inRes.stamp,
+        normalized: _inRes.normalized, total: _inRes.total,
+      };
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] info-needed-normalize failed (non-fatal):", (e as Error)?.message);
     }
 
 
