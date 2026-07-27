@@ -14,13 +14,14 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z";
+export const BUILD_STAMP = "ltp-risk-waved-readiness@2026-07-27T04:28:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
-console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
+import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=${GRADER_CONTEXT_VERSION} risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
 console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED waveb2_closure=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b+atomic_tokens+info_needed_contradiction`);
 import {
   newVocabScrubMetrics,
@@ -2941,10 +2942,10 @@ async function runPipeline(assessment_id: string) {
       // Merge v3 counters on top of v2 telemetry; version bumped to v3.
       internalV3.risk_w24a = {
         ...(internalV3.risk_w24a && typeof internalV3.risk_w24a === "object" ? internalV3.risk_w24a : {}),
+        ..._v3c,
         version: W24A_V3_VERSION,
         stamp: W24A_V3_STAMP,
         v2_stamp: W24_RISK_TURNA_STAMP,
-        ..._v3c,
       };
       console.log(JSON.stringify({
         evt: "_w24a_v3", fn: "run-cppa-risk-assessment",
@@ -2980,7 +2981,7 @@ async function runPipeline(assessment_id: string) {
       internalRcd.risk_cohort_date = _rcdC;
       console.log(JSON.stringify({
         evt: "_risk_cohort_date", fn: "run-cppa-risk-assessment",
-        build_stamp: BUILD_STAMP, risk_cohort_date_stamp: RISK_COHORT_DATE_STAMP, ..._rcdC,
+        ..._rcdC, build_stamp: BUILD_STAMP, risk_cohort_date_stamp: RISK_COHORT_DATE_STAMP,
       }));
     } catch (e) {
       console.warn("[RISK] RISK-COHORT-DATE-DETERMINISM failed (non-fatal):", (e as Error)?.message);
@@ -3339,17 +3340,20 @@ async function runPipeline(assessment_id: string) {
           product: "cppa-risk-assessment",
           signature: _sig.hash,
           plan_version: "v1",
-          instrument_version: "gc-2026-07-26-s5",
+          instrument_version: GRADER_CONTEXT_VERSION,
           registry_versions: _fbRegistryVersions,
           scenario_set: (row as any)?.scenario_set ?? null,
           run_ref: assessment_id ?? null,
-        }).then(({ error }) => {
-          if (error) {
-            console.warn("[run-cppa-risk-assessment] future-building insert failed (non-fatal):", error.message);
-          }
-        }).catch((err: unknown) => {
-          console.warn("[run-cppa-risk-assessment] future-building insert threw (non-fatal):", (err as Error)?.message);
-        });
+        }).then(
+          ({ error }) => {
+            if (error) {
+              console.warn("[run-cppa-risk-assessment] future-building insert failed (non-fatal):", error.message);
+            }
+          },
+          (err: unknown) => {
+            console.warn("[run-cppa-risk-assessment] future-building insert threw (non-fatal):", (err as Error)?.message);
+          },
+        );
         _rd._meta.internal.future_building = {
           observed: true,
           signature: _sig.hash,
