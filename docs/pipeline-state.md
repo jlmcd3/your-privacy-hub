@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T02:12:39Z
+**Last updated:** 2026-07-27T02:43:24Z
 
 ---
 
@@ -2721,3 +2721,25 @@ Ping response (this turn): `{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-
 - `docs/pipeline-state.md` (this item)
 
 **Status:** LANDED + DEPLOYED. Wave C relaunched batch-wrapped on the enforce-verified generator; monitor extracts at terminal. Campaign fd1be147 remains CEO-paused. s6 instrument frozen.
+
+---
+
+### Item 160 — Run 146 evidential status refinement (docs-only, fingerprint verification)
+
+**Dispatch:** controller fingerprint verification, 2026-07-27 ~02:43Z. Docs-only, no code/deploys.
+
+**Findings (behavioral fingerprints on run 146 docs, 3/3 checked):**
+- `assessment_summary.narrative` ABSENT on 3/3 → enforce-gated composition genuinely did not execute. The hardcoded `mode:"shadow"` label in run 146's telemetry happened to match actual behavior; the mislabel was cosmetic on this run. Item 159's structural fix still stands — the label was blind to `LTP_ENFORCE_ENABLED` and would have silently mislabeled the opposite mismatch on any later deploy.
+- `purpose === intake.i1_processing_purpose` byte-verbatim on 3/3 → Wave-B COMPLETION turn's ALWAYS-ON deterministic fixes (purpose-verbatim wiring, and by extension the sibling always-on surfaces in `waveb-completion.ts`) were live in shadow and behaved as specified.
+
+**Refined ledger status for run 146 (batch `127a6714-1062-427e-8f94-484ca9241006`):**
+- **NON-EVIDENTIAL** for pipeline rendering / enforce-gated composition — Wave C did not happen on this batch; no digest may cite run 146 as a read on the citation-closure fixes' enforce-mode behavior.
+- **EVIDENTIAL (positive)** for the always-on deterministic fix subset — purpose-verbatim wiring holds under shadow, consistent with the completion-turn contract.
+
+**No other changes.** Wave C proper (`2a3c07a2-7bd3-4250-a73e-ce19ea725633`, enforce/enforce pre-checked per item 159) proceeds undisturbed. Campaign fd1be147 remains CEO-paused. s6 instrument frozen.
+
+**Files touched this turn:**
+- `docs/courier/ENFORCE-MODE-REGRESSION-2026-07-27.md` (addendum)
+- `docs/pipeline-state.md` (this item + header restamp)
+
+**Status:** DONE.

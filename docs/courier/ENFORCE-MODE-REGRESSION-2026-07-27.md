@@ -50,3 +50,16 @@ Boot-log assertion is now part of the deploy protocol: post-deploy turns MUST pa
 - New batch `2a3c07a2-7bd3-4250-a73e-ce19ea725633` (tools=`{cppa-risk}`, batch_size=6, standalone `gc-2026-07-27-s6-eu-uk-ca-au-sg`, concurrency=1).
 - Kicked via `kick-wrapped-batch` with `mode_expected="enforce"`. Pre-assertion: `expected=enforce, actual=enforce, build_stamp=ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z`. Orchestrator returned `202 {ok:true}`.
 - Monitor extracts at terminal against §5 success criteria (intake-drift 0 / gate violations 0 / citation-binding 0) AND confirms per-doc `_meta.internal.legal_test_pipeline.mode="enforce"` on all 6 documents.
+
+## Addendum — Run 146 fingerprint refinement (2026-07-27 ~02:43Z)
+
+Controller fingerprint verification against run 146 documents refines the evidential status of the mislabel:
+
+- **assessment_summary.narrative ABSENT on 3/3 docs checked** → enforce-gated composition genuinely did not execute at generation time. The hardcoded `mode:"shadow"` label matched actual behavior; the mislabel was cosmetic on run 146 (behavior was in fact shadow). The structural fix in this courier still stands — the label was blind to the flag and could have masked the opposite mismatch on any later deploy.
+- **purpose === intake.i1_processing_purpose byte-verbatim on 3/3 docs** → the Wave-B COMPLETION turn's ALWAYS-ON deterministic fixes (purpose-verbatim wiring, and by extension the sibling always-on surfaces from `waveb-completion.ts`) were live in shadow and behaved as specified.
+
+**Refined ledger status for run 146:**
+- **NON-EVIDENTIAL** for pipeline rendering / enforce-gated composition (Wave C did not happen on this batch).
+- **EVIDENTIAL (positive)** for the always-on deterministic fix subset — purpose-verbatim wiring holds under shadow, consistent with the completion-turn contract.
+
+Wave C proper (`2a3c07a2-7bd3-4250-a73e-ce19ea725633`, enforce/enforce pre-checked) proceeds undisturbed.
