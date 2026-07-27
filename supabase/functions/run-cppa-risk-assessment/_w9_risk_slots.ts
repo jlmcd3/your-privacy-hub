@@ -186,7 +186,7 @@ export function buildSubmissionSummary(intake: Intake, report: Report): Submissi
     triggered_subsections: triggered,
     compliance_deadline: COMPLIANCE_DEADLINE,
     submission_deadline: SUBMISSION_DEADLINE_DEFAULT,
-    submission_basis: basisBits.length ? basisBits.join("; ") : "§ 7156 attestation cycle (no triggered activity captured)",
+    submission_basis: basisBits.length ? basisBits.join("; ") : "§ 7157 attestation cycle (no triggered activity captured)",
     ...(slb && slb !== NOT_APPLICABLE_SENSITIVE_LOCATION ? { sensitive_location_basis: slb } : {}),
     ...(url ? { public_privacy_policy_url: url } : {}),
   };
