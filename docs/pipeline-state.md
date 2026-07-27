@@ -3643,3 +3643,19 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Courier:** `docs/courier/SMOKE5-RECOMPOSE-ROOTCAUSE-2026-07-27.md`.
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`** (Stage-C accounting only).
 - **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller relaunches smoke #6.
+
+## Item 208 — SMOKE #6 BRANCH FAIL: surface-guard CUT-list violation (2026-07-27)
+
+- **Ledger correction applied first (per controller Item-207 ACK):** amended courier `docs/courier/SMOKE5-RECOMPOSE-ROOTCAUSE-2026-07-27.md` §2(a) and Item 207 Fix (a) to attribute the fill-or-omit language as **controller directive (Item 206 review)**, NOT a CEO ruling. CEO rulings log untouched.
+- **Smoke #6:** batch `721952c5-1582-4f2e-82f2-f043e4633d98` (§18 shape, batch_size=1, declared_count=1), inserted 18:55:14Z; batch `status=complete`, `phase=done`, `completed_at=2026-07-27 19:04:51.383Z`. Assessment `096d2d92-c254-48de-a2e0-d94dc873d012`, `status=complete`, `report_data` present.
+- **Clock:** created 18:58:03.489Z → updated 19:03:41.319Z → E2E **337.8s (5m 37s)** — clock-contract HELD (<15 min).
+- **`_meta.internal.composition_finalize` verbatim:**
+  - `version="composition-finalize@2026-07-27"`, `build_stamp="ltp-risk-item206-fragment-omit-hits@2026-07-27T18:40:00Z"`, `safe_version="safe-finalize@2026-07-27-item206-hits"`, `mode="enforce"`, `budget_ms=15000`, `budget_exceeded=false`, `elapsed_ms=2`.
+  - **`errored=true`**, **`enforce_violation=true`**, `error_kind="Error"`.
+  - **`error_message="[composition-finalize] surface-guard: 2 CUT-list violation(s): scope_and_triggers, cross_tool_recommendations"`**.
+  - `fragment_omit_count=0`, `fragment_omit_paths=[]`, `hits=[]` — Item-204/Item-206 guards clean on this run; failure class is **surface-guard CUT-list**, upstream of value-screen.
+- **Defect-B evidence:** `submission_summary.cybersecurity_audit_schedule` renders the full three-tier § 7121(a) schedule with the reserved-to-customer close; no cohort assertion; no `annual_gross_revenue_2028` ask. Item-204 (b) fix PROVEN on the wire.
+- **Info-needed:** length 2; id+topic presence not independently re-inspected this turn (deferred pending controller review of the CUT-list failure).
+- **Class analysis (evidence-only, no fix invented per instructions):** composer emitted CUT-listed surfaces `scope_and_triggers` and `cross_tool_recommendations` that §28 Engine-B primacy prohibits on the graded surface; surface-guard walk correctly caught it in enforce mode.
+- **§22.1 clean-arm counter (cppa-risk):** unchanged **0/3** (Stage-C accounting only).
+- **Disposition:** **HARD STOP for controller review.** No relaunch, no fix invented, no chain roll to 9b-12.
