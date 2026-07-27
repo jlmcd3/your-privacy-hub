@@ -3041,3 +3041,13 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **Evidentiality:** Run #149 is NON-EVIDENTIAL for §5 per R4 (smoke never advances/retreats trial verdict); scores (score_overall=67.15, gpt=85) reported for completeness only.
 
 **Not launched this turn:** STEP 3 (Wave D comprehensive, batch_size=6) — launches under its own turn per single-launch discipline. Standing: campaign `fd1be147` PAUSED; run #147 SEALED per item 166; no other measurement activity.
+
+## Ledger item 172 — CORRECTIONS-BUNDLE HELD (monitor nudge, 2026-07-27T05:52:00Z)
+
+**Status:** HELD — no progress artifact landed for the gated CORRECTIONS-BUNDLE turn since STATE-AUDIT (item 171, 05:36Z).
+
+**Blocker:** awaiting Content Courier for Link C wiring (`composeAssessmentSummary` invocation inside `run-cppa-risk-assessment/index.ts`) — this is a content-anchored change per change-control rules and must arrive via John. Harness-side §16/§27 kickoff assertion turn and READINESS v2 remain queued behind Link C landing.
+
+**No work this turn:** no code edits, no deploys, no measurement activity. Campaign `fd1be147` PAUSED. Run #147 SEALED (item 166). Run #149 NON-EVIDENTIAL (item 169). Item 168 smoke-pass verdict remains RETRACTED.
+
+**Next progress artifact:** either (a) Content Courier for Link C, or (b) CEO direction changing the resumption chain — whichever arrives first.
