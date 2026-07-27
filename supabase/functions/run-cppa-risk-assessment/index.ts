@@ -1404,6 +1404,40 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
 
+    // ── PERSIST-EARLY SNAPSHOT (SMOKE-HANG ROOT FIX, 2026-07-27) ────────
+    // Invariant: as soon as we have a shippable `parsed` document, write it
+    // to report_data BEFORE any downstream operation that can hang the
+    // isolate (forward-path retry LLM, CoT retry LLM, LTP Pass-1 LLM, LTP
+    // finalize, serializer). If the isolate dies later the doc still lives;
+    // the terminal_complete write at the tail is an idempotent overwrite
+    // with the enhanced version. Fire-and-forget: never throws, never
+    // blocks the pipeline on write failure.
+    if (assessment_id && parsed && (parsed as any).assessment_summary) {
+      try {
+        const snapshotWrite = await lifecycleUpdate(
+          supabase,
+          "cppa_assessments",
+          assessment_id,
+          { report_data: parsed as any },
+          { fn: "run-cppa-risk-assessment", phase: "persist_early_snapshot" },
+        );
+        console.log(JSON.stringify({
+          evt: "persist_early_snapshot",
+          fn: "run-cppa-risk-assessment",
+          ok: snapshotWrite?.ok !== false,
+          build_stamp: BUILD_STAMP,
+        }));
+      } catch (e) {
+        console.warn(JSON.stringify({
+          evt: "persist_early_snapshot_failed",
+          fn: "run-cppa-risk-assessment",
+          error: (e as Error)?.message,
+        }));
+      }
+    }
+
+
+
     // 2.2.a — FORWARD PATH retry trigger: if the guard detects a dead-end
     // insufficient-basis passage without a paired information_needed entry,
     // one regeneration with the appended instruction.
