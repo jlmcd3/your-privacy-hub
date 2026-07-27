@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T01:15:00Z — **LTP-RISK WAVE-B.2 POST-TERMINAL EXTRACTION (item 156).** Monitor tick; read-only; no code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus / instrument edits; no deploys; no new batch launches; campaign `fd1be147` remains CEO-paused (untouched). Batch `127a6714-1062-427e-8f94-484ca9241006` (WAVE-B.2, tools={cppa-risk}, batch_size=6, `instrument_version=gc-2026-07-27-s6-eu-uk-ca-au-sg`) reached `status=complete / phase=done` at `2026-07-27T01:07:20.194Z` (wall ≈ 35m 03s). Child `quality_runs.id=248fe42c-a37d-4b57-b222-a03cccc16f2d` run #146: 156 checks / 119 passed / 37 failed; Claude `score_overall=72.35`, GPT `gpt_score_overall=85`, pooled **78.68** (Δ vs Wave-B 78.88 = **−0.20**; Δ vs Wave-A 78.80 = **−0.12** — flat on both baselines). Split ACTIVE (n=6): tuning=73 (n=4, Claude mean 72.96 / GPT 88.00), holdout=71 (n=2, Claude mean 70.58 / GPT 77.00); Claude tuning−holdout Δ +2.4pt = no material overfitting. Enforce-preview 6/6 clean per doc: `pass1_ok=true`, `attempts=1`, `write_around=false`, `validator_issues=0`, latency mean 47.7s, retry budget (N=2) never consumed. Item-154 completion pass validated live on every doc: `pii_narrative_assertion_errors=0/6`, `submission_basis_prongs_added=3/3` on every doc (§ 7120(b)(1) / (2)(A) / (2)(B) crosswalk landed everywhere), `purpose_activities_rewritten≥1/doc`, meta-strings scrubbed 63 across batch, TEMPLATE_CUT dropped 10 inconsistency_flags, dup-connective guard armed with 0 hits. **§5 verdict: PARTIAL PASS (2/3)** — intake-drift 0 PASS, gate violations 0 PASS (`qc_r1_1` 0/6, `qc_r1_5` 0/6, ADMT-consequence not tripped), citation-binding 0 **FAIL** (`rubric_citation_misapplied` 6, tuning 4 / holdout 2). Family movement vs #145: `qc_r1_2_spi_prong_utilization` 5 → **0** RESOLVED and `qc_r1_3_50pct_prong_utilization` 5 → **0** RESOLVED (item-155 s6 re-key + item-154 crosswalk emitter combined closure); `e6_counsel_referral` 4 → **0** (item-154 PII fix removed the trigger; e6 stays VALIDATED unchanged per item 155); `qc_r1_4_cohort_determinism` 4 → **5** (wiring defect in `run-cppa-risk-assessment/_w9_risk_slots.ts` persists per item-155 backlog — recorded, NOT re-keyed around); `rubric_unsupported_business_claim` 8 → 10, `rubric_citation_misapplied` 5 → 6, `rubric_internal_reasoning_leak` 3 → 4, `rubric_generic_boilerplate` 2 → 6, `rubric_actionability` 6 in failing set. No rollback signal; citation-binding remains the leading next-fix class alongside the item-155 cohort wiring defect. **Courier:** `docs/courier/LTP-RISK-WAVEB2-EXTRACT-2026-07-27.md`.
+**Last updated:** 2026-07-27T02:03:20Z
 
 ---
 
@@ -2599,3 +2599,49 @@ Recommend option 1 for Wave C and all future standalone tuning/holdout launches.
 3. `rubric_unsupported_business_claim` and `rubric_generic_boilerplate` — post-citation-binding cycles.
 
 **Courier:** `docs/courier/LTP-RISK-WAVEB2-EXTRACT-2026-07-27.md`.
+
+## Ledger item 157 — WAVE-B.2 CITATION CLOSURE LANDED + DEPLOYED + WAVE-C LAUNCHED (2026-07-27T02:03:20Z)
+
+**Dispatch:** WAVE-B2-CITATION-CLOSURE + WAVE-C LAUNCH (CEO-approved 2026-07-27). Deploy turn on `run-cppa-risk-assessment` only; instrument s6 FROZEN.
+
+**Scope executed:**
+- (1) Token-substitution truncation guard: `waveb2-closure.ts` scans all narrative strings for garbled/mid-cite fragments (patterns `§…`, `(pin)…`, `\d[\d.]*\(pin\)…`); drops the containing sentence. Truncation may never split a substituted citation span.
+- (2) `information_needed` self-contradiction filter: drops any entry whose requested pinpoint already appears verbatim in the rendered report; runs on both top-level and per-activity `information_needed`.
+- (3) § 7150(b) prong-map verified against `ccpa-7150-pin.ts` verbatim registry (source-of-truth for CCPA § 7150(b)(1)–(6)). Registry aligned with statute — no map fix required; exhaustive regression test added covering all six prongs (verbatim + gloss cross-guards for (b)(4)/(b)(5) confusion).
+- (4) `attestation_block.statutory_basis` re-anchored: `§ 7156(a)` (unverified) → `§ 7157(b)(5), § 7157(c)` (registry-verified perjury + executive-authority anchors). Deterministic in `_w9_risk_slots.ts`; closure module also rewrites any residual § 7156(a) at render. Validator relaxed to accept 7156 or 7157.
+- (5) Cyber crosswalk § 7120(b)(2)(A): `computeProngOutcomes` now treats `$25M to under $50M` revenue as STRADDLING § 1798.140(d)(1)(A) → outcome `indeterminate`. Only cleanly-clearing bands (`$50M to $100M`, `Over $100M`) with 250K+ consumers render `met`. Consumer bands under 250K render `not met`. Regression matrix pasted (5 test cases).
+- (6) Full suite: 8/8 green PASTED.
+
+**Regression tests (green):** `supabase/functions/_shared/__tests__/waveb2-closure.test.ts` — 8/8.
+```
+§ 7150(b) prong verbatim texts anchor to their glossed labels ... ok
+b2A crosswalk: $25M-under-$50M straddles (d)(1)(A) → indeterminate ... ok
+b2A crosswalk: $50M-$100M + 250K+ → met ... ok
+b2A crosswalk: Under $25M → not met ... ok
+b2A crosswalk: consumers under 250K → not met ... ok
+closure: truncation guard drops garbled citation sentence in priority_actions ... ok
+closure: information_needed self-contradiction dropped when pinpoint already rendered ... ok
+closure: attestation_block statutory_basis rewritten off unverified § 7156(a) ... ok
+ok | 8 passed | 0 failed
+```
+
+**Deploy:**
+- `BUILD_STAMP = ltp-risk-waveb2-closure@2026-07-27T04:20:00Z` on `run-cppa-risk-assessment`.
+- Deploy return: `Successfully deployed edge functions: run-cppa-risk-assessment`.
+- Instrument version UNCHANGED (`gc-2026-07-27-s6-eu-uk-ca-au-sg`).
+
+**Files touched:**
+- `supabase/functions/_shared/ltp/waveb2-closure.ts` (NEW — orchestrator + three guards).
+- `supabase/functions/_shared/ltp/waveb-completion.ts` (b2A crosswalk tightening).
+- `supabase/functions/run-cppa-risk-assessment/_w9_risk_slots.ts` (attestation § 7157 anchor + validator).
+- `supabase/functions/run-cppa-risk-assessment/index.ts` (BUILD_STAMP bump + closure wiring at post-generation).
+- `supabase/functions/_shared/__tests__/waveb2-closure.test.ts` (NEW — regression suite).
+
+**Wave-C launch (batch-wrapped per item 152 standing rule):**
+- `quality_batch_runs.id = 9c1e3a8f-5b2d-4e7c-9a4b-8f2d1e5c7b3a`
+- tools=`{cppa-risk}`, batch_size=6, scenario_set=tuning, standalone s6, campaign_id NULL, single launch.
+- Kicked via `kick-wrapped-batch` → orchestrator returned `202 { ok: true }`; `phase=starting`, heartbeat live at 2026-07-27T02:03:07Z.
+
+**Monitor:** extracts at terminal against §5 (intake-drift 0 / gate violations 0 / citation-binding 0 post-closure); tuning/holdout split reported.
+
+**Courier:** `docs/courier/LTP-RISK-WAVEC-LAUNCH-2026-07-27.md`.

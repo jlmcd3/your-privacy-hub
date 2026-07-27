@@ -154,7 +154,10 @@ export function buildAttestationBlock(intake: Intake, report: Report): Attestati
     certifying_executive_title: clampStr(cd.certifying_exec_title || (flat as any).i8_certifying_exec_title),
     certifying_contact_email: clampStr(cd.certifying_contact_email || (flat as any).i8_contact_email),
     certification_statement: CERTIFICATION_STATEMENT,
-    statutory_basis: "§ 7156(a)",
+    // WAVEB2-CLOSURE (2026-07-27, item 157): re-anchored to § 7157(b)(5) — the
+    // verbatim perjury/attestation clause — and § 7157(c) — the executive-
+    // authority clause. § 7156(a) removed as unverified in provision_texts.
+    statutory_basis: "§ 7157(b)(5), § 7157(c)",
     submission_status: "pending",
     submission_deadline: requiresSubmission ? SUBMISSION_DEADLINE_DEFAULT : "not required",
     ...(url ? { public_privacy_policy_url: url } : {}),
@@ -183,7 +186,7 @@ export function buildSubmissionSummary(intake: Intake, report: Report): Submissi
     triggered_subsections: triggered,
     compliance_deadline: COMPLIANCE_DEADLINE,
     submission_deadline: SUBMISSION_DEADLINE_DEFAULT,
-    submission_basis: basisBits.length ? basisBits.join("; ") : "§ 7156 attestation cycle (no triggered activity captured)",
+    submission_basis: basisBits.length ? basisBits.join("; ") : "§ 7157 attestation cycle (no triggered activity captured)",
     ...(slb && slb !== NOT_APPLICABLE_SENSITIVE_LOCATION ? { sensitive_location_basis: slb } : {}),
     ...(url ? { public_privacy_policy_url: url } : {}),
   };
@@ -268,8 +271,8 @@ export function validateSlots(report: Report): SlotValidation {
     for (const k of ["certifying_executive_name", "certifying_executive_title", "certifying_contact_email", "certification_statement", "statutory_basis", "submission_status", "submission_deadline"]) {
       if (!(k in ab)) errors.push(`attestation_block.${k} missing`);
     }
-    if (typeof ab.statutory_basis === "string" && !/7156/.test(ab.statutory_basis)) {
-      errors.push("attestation_block.statutory_basis does not cite § 7156");
+    if (typeof ab.statutory_basis === "string" && !/715[67]/.test(ab.statutory_basis)) {
+      errors.push("attestation_block.statutory_basis does not cite § 7156 or § 7157");
     }
     if (typeof ab.certification_statement === "string" && ab.certification_statement.length < 40) {
       warnings.push("attestation_block.certification_statement is unusually short");

@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-waveb-completion@2026-07-27T02:20:00Z";
+export const BUILD_STAMP = "ltp-risk-waveb2-closure@2026-07-27T04:20:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} design=docs/design/LEGAL-TEST-PIPELINE.md subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
@@ -3177,6 +3177,35 @@ async function runPipeline(assessment_id: string) {
       }));
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LTP WAVE-B COMPLETION failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── LTP WAVE-B.2 CLOSURE (2026-07-27, item 157) ─────────────────
+    // Deterministic post-render closure for the six run-146 citation-class
+    // findings: token-truncation guard, information_needed self-
+    // contradiction filter, attestation § 7157 anchor discipline.
+    // Runs AFTER applyWaveBCompletion and BEFORE the LTP shadow-mode
+    // telemetry block. Fail-open.
+    try {
+      const { applyWaveB2Closure, WAVEB2_CLOSURE_STAMP, WAVEB2_CLOSURE_VERSION } =
+        await import("../_shared/ltp/waveb2-closure.ts");
+      const _wb2 = applyWaveB2Closure(report_data as any);
+      report_data = _wb2.report as any;
+      const _rd: any = report_data as any;
+      const _meta = _rd._meta ?? (_rd._meta = {});
+      const _internal = _meta.internal ?? (_meta.internal = {});
+      _internal.waveb2_closure = {
+        version: WAVEB2_CLOSURE_VERSION,
+        stamp: WAVEB2_CLOSURE_STAMP,
+        build_stamp: BUILD_STAMP,
+        counters: _wb2.counters,
+      };
+      console.log(JSON.stringify({
+        evt: "waveb2_closure_applied", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, stamp: WAVEB2_CLOSURE_STAMP,
+        ..._wb2.counters,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] LTP WAVE-B.2 CLOSURE failed (non-fatal):", (e as Error)?.message);
     }
 
 
