@@ -536,6 +536,17 @@ const CHECKS: Check[] = [
 
 
       // QC-R1-2 -- SPI prong (M4) utilization in cyber-audit section
+      // s6 re-key (INSTRUMENT-EPOCH-AUDIT-S6, 2026-07-27, ledger item 155):
+      // scan restricted from full-report JSON to `submission_summary` (the
+      // approved surface-map render site for cyber-audit crosswalk clauses
+      // landed by the WAVE-B COMPLETION emitter, ledger item 154). The
+      // check's SUBSTANCE is preserved — a resolved M4 prong must still be
+      // cited on the record and its resolution must still match M4 — only
+      // the scan window moves to where the content now legitimately
+      // renders. NOT WEAKENED: full-report scan would trivially pass if the
+      // string appeared anywhere; the surface-map-anchored scan enforces
+      // that the citation lands in its canonical surface (submission_basis
+      // is Type R, registry-anchored, zero LLM).
       {
         id: "qc_r1_2_spi_prong_utilization", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
@@ -548,15 +559,16 @@ const CHECKS: Check[] = [
 
           const m4 = states.M4;
           if (!m4 || !isResolved(m4.state)) return { passed: true };
-          const s = JSON.stringify(report ?? "").toLowerCase();
+          const ss = (report as any)?.submission_summary ?? {};
+          const s = JSON.stringify(ss ?? "").toLowerCase();
           if (!/7120\s*\(b\)\s*\(2\)\s*\(b\)/.test(s)) {
-            return { passed: false, evidence: `§ 7120(b)(2)(B) not referenced despite resolved M4 (${m4.state})` };
+            return { passed: false, evidence: `§ 7120(b)(2)(B) not referenced in submission_summary despite resolved M4 (${m4.state})` };
           }
           const expected =
             m4.state === "resolved_met" ? /(met|threshold\s+met|exceeds|50,?000\s+or\s+more)/
             : m4.state === "resolved_not_met" ? /(not\s+met|below|fewer than 50,?000)/
             : /(not\s+applicable|inapplicable|n\/?a|no\s+spi)/;
-          if (!expected.test(s)) return { passed: false, evidence: `§ 7120(b)(2)(B) resolution does not match computed M4=${m4.state}` };
+          if (!expected.test(s)) return { passed: false, evidence: `§ 7120(b)(2)(B) resolution in submission_summary does not match computed M4=${m4.state}` };
           return { passed: true };
         },
       },
@@ -566,6 +578,10 @@ const CHECKS: Check[] = [
       // may resolve a state via met/not-met literal OR via a semantically
       // equivalent insufficient-basis / cannot-confirm phrasing. Detector
       // must recognise both to avoid marking correct output as a defect.
+      // s6 re-key (INSTRUMENT-EPOCH-AUDIT-S6, 2026-07-27, ledger item 155):
+      // scan restricted from full-report JSON to `submission_summary` (per
+      // approved surface map — crosswalk render site landed by WAVE-B
+      // COMPLETION, ledger item 154). SUBSTANCE preserved; NOT weakened.
       {
         id: "qc_r1_3_50pct_prong_utilization", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
@@ -578,9 +594,10 @@ const CHECKS: Check[] = [
 
           const m5 = states.M5;
           if (!m5 || !isResolved(m5.state)) return { passed: true };
-          const s = JSON.stringify(report ?? "").toLowerCase();
+          const ss = (report as any)?.submission_summary ?? {};
+          const s = JSON.stringify(ss ?? "").toLowerCase();
           if (!/7120\s*\(b\)\s*\(1\)/.test(s)) {
-            return { passed: false, evidence: `§ 7120(b)(1) not referenced despite resolved M5 (${m5.state})` };
+            return { passed: false, evidence: `§ 7120(b)(1) not referenced in submission_summary despite resolved M5 (${m5.state})` };
           }
           // Insufficient-basis / cannot-confirm synonyms — accepted for any
           // resolved M5 whose input signal was absent or ambiguous. When the
@@ -588,15 +605,15 @@ const CHECKS: Check[] = [
           // more..." it is semantically resolving the prong via the
           // insufficient-basis lane, which the prior literal-only matcher
           // rejected.
-          const insufficientBasis = /(does not confirm|not\s+confirmed|insufficient\s+(?:basis|information|evidence)|cannot\s+(?:be\s+)?(?:confirmed|determined|resolved|verified)|no\s+basis\s+to\s+(?:confirm|assess|determine)|pending\s+confirmation|to\s+be\s+confirmed|record\s+does\s+not\s+(?:establish|indicate|state))/i;
-          const met = /(threshold\s+met|is\s+met|meets\s+the\s+threshold|derives\s+50%|50%\s+or\s+more|fifty\s+percent\s+or\s+more|exceeds\s+50%)/i;
+          const insufficientBasis = /(does not confirm|not\s+confirmed|insufficient\s+(?:basis|information|evidence)|cannot\s+(?:be\s+)?(?:confirmed|determined|resolved|verified)|no\s+basis\s+to\s+(?:confirm|assess|determine)|pending\s+confirmation|to\s+be\s+confirmed|record\s+does\s+not\s+(?:establish|indicate|state)|indeterminate)/i;
+          const met = /(threshold\s+met|is\s+met|meets\s+the\s+threshold|derives\s+50%|50%\s+or\s+more|fifty\s+percent\s+or\s+more|exceeds\s+50%|\bmet\b)/i;
           const notMet = /(not\s+met|does\s+not\s+meet|below\s+(?:the\s+)?(?:50%|threshold)|no\s+sale|does\s+not\s+sell|inapplicable|less\s+than\s+50%|under\s+50%)/i;
           const na = /(not\s+applicable|inapplicable|n\/?a\b|does\s+not\s+apply)/i;
           const ok =
             m5.state === "resolved_met" ? (met.test(s) || insufficientBasis.test(s))
             : m5.state === "resolved_not_met" ? (notMet.test(s) || insufficientBasis.test(s))
             : (na.test(s) || insufficientBasis.test(s));
-          if (!ok) return { passed: false, evidence: `§ 7120(b)(1) resolution does not match computed M5=${m5.state} (no met/not-met/insufficient-basis phrasing found)` };
+          if (!ok) return { passed: false, evidence: `§ 7120(b)(1) resolution in submission_summary does not match computed M5=${m5.state} (no met/not-met/insufficient-basis phrasing found)` };
           return { passed: true };
         },
       },
@@ -609,6 +626,21 @@ const CHECKS: Check[] = [
       // correct cohort date, unhedged. Prior detector required ISO only
       // and only matched "two-cohort" literal phrasing, false-failing on
       // reports that used long-form dates in a conditional table.
+      //
+      // s6 re-key (INSTRUMENT-EPOCH-AUDIT-S6, 2026-07-27, ledger item 155):
+      // scan restricted from full-report JSON to `submission_summary` — the
+      // approved surface-map render site for the compliance cohort date
+      // (submission_deadline, submission_basis, deadline_basis). The
+      // check's SUBSTANCE is preserved: a resolved band must carry the
+      // single correct cohort date on the record; an indeterminate/legacy
+      // band must carry both cohort dates with conditional framing. NOT
+      // WEAKENED: full-report scan would pass if the year appeared anywhere
+      // (e.g. incidental "2029" in an unrelated field); the surface-map
+      // anchored scan enforces that the cohort date lands in its canonical
+      // surface. Wave-B evidence (run 145) showed 4 wiring defects (docs
+      // 1/2/5/6) where submission_deadline rendered "April 1, 2028" for
+      // bands that resolve to 2029 or 2030 — those are legitimate failures
+      // preserved by this re-key. Not re-keyed around them.
       {
         id: "qc_r1_4_cohort_determinism", dimension: "accuracy", severity: "critical",
         tools: CPPA_RISK_ONLY,
@@ -616,7 +648,8 @@ const CHECKS: Check[] = [
           const r = resolveForChecks(intake);
           const band = classifyRevenueBand(r.rawForStates.q1_revenue);
 
-          const s = JSON.stringify(report ?? "").toLowerCase();
+          const ss = (report as any)?.submission_summary ?? {};
+          const s = JSON.stringify(ss ?? "").toLowerCase();
           // ISO or long form ("april 1, YYYY" / "april 1 YYYY").
           const cohortDateRegex = (year: string) =>
             new RegExp(`(?:${year}-04-01|april\\s+1,?\\s+${year})`, "i");
@@ -626,13 +659,13 @@ const CHECKS: Check[] = [
 
           if (band.audit_cohort === "indeterminate") {
             if (!(has2029 && has2030)) {
-              return { passed: false, evidence: `legacy/absent revenue band requires both April 1, 2029 and April 1, 2030 cohort dates (ISO or long form); found 2029=${has2029} 2030=${has2030}` };
+              return { passed: false, evidence: `legacy/absent revenue band requires both April 1, 2029 and April 1, 2030 cohort dates (ISO or long form) in submission_summary; found 2029=${has2029} 2030=${has2030}` };
             }
             // Conditional framing must be present so the two dates are
             // presented as a period-dependent choice, not a contradiction.
             const conditional = /(if\s+\d{4}\s+(?:annual\s+)?(?:gross\s+)?revenue|depend(?:s|ing)\s+on|conditional|straddles|cannot\s+resolve|indeterminate|two[- ]cohort|either\s+2029|2029\s+or\s+2030|cohort\s+table)/i;
             if (!conditional.test(s)) {
-              return { passed: false, evidence: `both cohort dates present but no conditional/period-dependent framing found` };
+              return { passed: false, evidence: `both cohort dates present in submission_summary but no conditional/period-dependent framing found` };
             }
             return { passed: true };
           }
@@ -643,7 +676,7 @@ const CHECKS: Check[] = [
             year === "2029" ? has2029 :
             year === "2030" ? has2030 : s.includes(band.audit_cohort);
           if (!present) {
-            return { passed: false, evidence: `resolved band ${band.label} requires § 7121(a) cohort April 1, ${year} (ISO or long form); not stated` };
+            return { passed: false, evidence: `resolved band ${band.label} requires § 7121(a) cohort April 1, ${year} (ISO or long form) in submission_summary; not stated` };
           }
           // must NOT hedge the resolved cohort near the cite window.
           const longForm = `april 1, ${year}`;
@@ -652,12 +685,13 @@ const CHECKS: Check[] = [
           if (idx >= 0) {
             const window = s.slice(Math.max(0, idx - 200), idx + 200);
             if (/(cannot be determined|indeterminate|unable to (?:confirm|resolve))/i.test(window)) {
-              return { passed: false, evidence: `resolved cohort April 1, ${year} is hedged near the cite window` };
+              return { passed: false, evidence: `resolved cohort April 1, ${year} is hedged near the cite window in submission_summary` };
             }
           }
           return { passed: true };
         },
       },
+
 
       // QC-R1-5 -- claimed-exception fields consumed (authority_basis / retention_period)
       {
