@@ -88,6 +88,20 @@ export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
     };
   }
 
+  // TEST-ONLY forced-degradation hook (CORRECTIONS-BUNDLE 2026-07-27,
+  // ledger item 173 sub-item (c)). Production requests NEVER set this env
+  // var; the smoke path in _shared/ltp/pass1-llm.test.ts asserts the
+  // property. Gated by a magic token so a stray "1" cannot trip it.
+  if (Deno.env.get("LTP_TEST_FORCE_WRITE_AROUND") === "unit-test-only-2026-07-27") {
+    return {
+      plan: writeAroundPlan(input, "test_only_forced_degradation"),
+      telemetry: {
+        ran: true, attempts: 0, ok: false, latency_ms: Date.now() - t0,
+        write_around: true, validator_issues: 0, error: "test_only_forced_degradation",
+      },
+    };
+  }
+
   let lastErr = "";
   for (let attempt = 1; attempt <= PASS1_MAX_ATTEMPTS; attempt++) {
     try {

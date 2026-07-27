@@ -41,9 +41,10 @@ import {
   dcCreateBatchContract, dcHeartbeatBatchContract, dcTerminateBatchContract,
   type ContractDeps,
 } from "./_contract_hooks.ts";
+import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
 
 
-export const BUILD_STAMP = "ds-t2c-orch-hbfix@2026-07-25T04:54:00Z";
+export const BUILD_STAMP = "qbo-corrections-bundle-mode-assert@2026-07-27T06:10:00Z";
 
 // DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
 // Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
@@ -674,6 +675,15 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   const batchSize = Math.max(1, Math.min(50, Math.floor(Number(batchSizeRaw) || 0) || 5));
   const concurrency = concurrencyRaw == null ? DEFAULT_CONCURRENCY : clampConcurrency(concurrencyRaw);
 
+  // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
+  const modeCheck = await assertLtpModeForTools(tools);
+  if (!modeCheck.ok) {
+    return {
+      ok: false, status: 409,
+      err: `ltp_mode_mismatch: tool=${modeCheck.aborted_tool} checks=${JSON.stringify(modeCheck.checks)}`,
+    };
+  }
+
   const db = admin();
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools, batch_size: batchSize, status: "running", phase: "kickoff",
@@ -703,6 +713,14 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
   if (!RUN_QUALITY_BATCH_SLUGS.has(tool)) return { ok: false, status: 400, err: `unknown tool slug: ${tool}` };
   const pins = goldenIntakes(tool);
   if (!pins.length) return { ok: false, status: 400, err: `no goldens for tool ${tool}` };
+  // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
+  const modeCheck = await assertLtpModeForTools([tool]);
+  if (!modeCheck.ok) {
+    return {
+      ok: false, status: 409,
+      err: `ltp_mode_mismatch: tool=${modeCheck.aborted_tool} checks=${JSON.stringify(modeCheck.checks)}`,
+    };
+  }
   const db = admin();
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: [tool], batch_size: pins.length, status: "running", phase: "kickoff",
@@ -786,6 +804,16 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
       return { started: false, reason: "no_admin_owner" };
     }
   }
+  // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
+  const modeCheck = await assertLtpModeForTools(eligible);
+  if (!modeCheck.ok) {
+    await logCampaign(campaign.id,
+      `Wave aborted (§16): ltp_mode_mismatch tool=${modeCheck.aborted_tool} checks=${JSON.stringify(modeCheck.checks)}`,
+      "error");
+    return { started: false, reason: `ltp_mode_mismatch:${modeCheck.aborted_tool}` };
+  }
+
+
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: createdBy,
