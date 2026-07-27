@@ -873,6 +873,7 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency,
     campaign_id: campaign.id,
+    declared_count: eligible.length * batchSize, // §16.n born-state
   }).select("id").single();
   if (error || !row) {
     await logCampaign(campaign.id, `Wave insert failed: ${error?.message}`, "error");
