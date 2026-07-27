@@ -82,36 +82,31 @@ export interface FinalizeResult {
 
 // ── Surface-map top-level path normalization ──────────────────────────
 //
-// ITEM 208 FIX (SMOKE-#6 review): the surface-guard walk previously
-// collapsed EVERY CutRuling to its top-level key. That wrongly
-// condemned bound surfaces like `scope_and_triggers` whose sole cut
-// ruling is a NESTED OBJECT_PRUNE (`scope_and_triggers.scope_notes`).
+// ITEM 211 FIX (SMOKE-#8 review): all current RISK_CUT_RULINGS execute
+// at the LEAK-PREV-P2 serializer (see risk-surface-map.ts). Pre-serializer
+// finalize therefore MUST NOT throw on CUT-path presence — the composed
+// object legitimately contains those paths and the serializer strips
+// them. Enforcement authority for CUT rulings lives solely in
+// `evaluateShippedSurfaceGuard` on the shipped projection.
 //
-// The rulings in risk-surface-map.ts state that CUTs execute at the
-// LEAK-PREV-P2 serializer layer. At finalize (pre-serializer) we only
-// enforce the two rulings whose grain IS the top level:
-//   REMOVE       → the top-level key must be absent
-//   EMPTY_ARRAY  → the array may exist but must be empty
-// OBJECT_PRUNE rulings are enforced by the post-serializer guard at
-// the wire-site (see `evaluateShippedSurfaceGuard`).
+// Pre-serializer, we now only RECORD presence of CUT paths (top-level or
+// nested) under telemetry.pre_serializer_cut_pending. The unowned-top-
+// level check remains enforced here — that class is not a serializer
+// concern.
+//
+// The former CUT_TOP_LEVEL_REMOVE / _EMPTY_ARRAY throw paths (Item 208)
+// are retired; presence is telemetered, not thrown on.
 
-const CUT_TOP_LEVEL_REMOVE: ReadonlySet<string> = new Set(
-  RISK_CUT_RULINGS
-    .filter((c) => c.mode === "REMOVE" && !c.path.includes("."))
-    .map((c) => c.path.replace(/\[\]$/, "")),
-);
-const CUT_TOP_LEVEL_EMPTY_ARRAY: ReadonlySet<string> = new Set(
-  RISK_CUT_RULINGS
-    .filter((c) => c.mode === "EMPTY_ARRAY" && !c.path.includes("."))
-    .map((c) => c.path.replace(/\[\]$/, "")),
-);
 const ALLOWED_TOP_LEVEL: ReadonlySet<string> = new Set(
   RISK_SURFACE_BINDINGS.map((b) => b.path.split(".")[0].split("[")[0]),
 );
-// Preserve broader CUT set for unowned-vs-cut disambiguation.
+// Preserve broader CUT set for unowned-vs-cut disambiguation (top-level
+// keys covered by a CUT ruling are NOT "unowned" — they are pending
+// serializer removal).
 const CUT_TOP_LEVEL_ALL: ReadonlySet<string> = new Set(
   RISK_CUT_RULINGS.map((c) => c.path.split(".")[0].split("[")[0]),
 );
+
 
 function topKeys(obj: unknown): string[] {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) return [];
