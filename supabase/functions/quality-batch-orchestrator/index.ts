@@ -804,6 +804,15 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
       return { started: false, reason: "no_admin_owner" };
     }
   }
+  // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
+  const modeCheck = await assertLtpModeForTools(eligible);
+  if (!modeCheck.ok) {
+    await logCampaign(campaign.id,
+      `Wave aborted (§16): ltp_mode_mismatch tool=${modeCheck.aborted_tool} checks=${JSON.stringify(modeCheck.checks)}`,
+      "error");
+    return { started: false, reason: `ltp_mode_mismatch:${modeCheck.aborted_tool}` };
+  }
+  {
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: createdBy,
