@@ -182,8 +182,36 @@ function exciseWrongCohortSentences(
   }
 }
 
+// Excise sentences that mention a WRONG cohort date for the resolved
+// band and sit in a § 7121/cohort context. For indeterminate bands
+// (unspecified / legacy_25_100m) every cohort-date literal is wrong.
+function exciseAnyWrongCohortSentences(
+  s: string,
+  correctDate: string | null,
+  c: RiskCohortDateCounters,
+): string {
+  try {
+    if (typeof s !== "string" || !s) return s;
+    if (!ALL_COHORT_DATE_RE.test(s)) return s;
+    const sentences = splitSentences(s);
+    const kept: string[] = [];
+    let excised = 0;
+    for (const raw of sentences) {
+      const dateMatch = raw.match(ALL_COHORT_DATE_RE);
+      const hasWrong = !!dateMatch && (correctDate == null || !raw.includes(correctDate));
+      const hasCohortCtx = COHORT_CITE_HINT.test(raw);
+      if (hasWrong && hasCohortCtx) { excised += 1; continue; }
+      kept.push(raw);
+    }
+    if (excised === 0) return s;
+    c.sentences_excised += excised;
+    return normalizeSpacing(kept.join(" "));
+  } catch { c.errors += 1; return s; }
+}
+
 function walkExcise(
   node: unknown,
+  correctDate: string | null,
   c: RiskCohortDateCounters,
   keyCtx?: string,
 ): unknown {
@@ -192,25 +220,22 @@ function walkExcise(
     if (typeof node === "string") {
       if (keyCtx && ANCHOR_KEYS.has(keyCtx)) return node;
       if (keyCtx && TIMELINE_STRING_KEYS.has(keyCtx)) {
-        return exciseWrongCohortSentences(node, c);
+        return exciseAnyWrongCohortSentences(node, correctDate, c);
       }
       return node;
     }
-    if (Array.isArray(node)) return node.map((v) => walkExcise(v, c, keyCtx));
+    if (Array.isArray(node)) return node.map((v) => walkExcise(v, correctDate, c, keyCtx));
     if (typeof node === "object") {
       const src = node as Record<string, unknown>;
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(src)) {
-        if (k.startsWith("_")) { out[k] = v; continue; } // reserved subtrees
-        out[k] = walkExcise(v, c, k);
+        if (k.startsWith("_")) { out[k] = v; continue; }
+        out[k] = walkExcise(v, correctDate, c, k);
       }
       return out;
     }
     return node;
-  } catch {
-    c.errors += 1;
-    return node;
-  }
+  } catch { c.errors += 1; return node; }
 }
 
 // Check whether the entire report already contains the corpus-pinned
