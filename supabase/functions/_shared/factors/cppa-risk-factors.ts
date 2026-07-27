@@ -370,7 +370,14 @@ const SAFEGUARDS: readonly FactorRow[] = [
       + "encryption, and differential privacy.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)(A)(ii)" },
     guidance_refs: [],
-    empty_by_finding: "No § 7152-tagged FSOR row specifically on PETs. T5 candidate.",
+    // FSOR-SILENT 2026-07-27: exhaustive sweep of cppa_fsor_commentary (1,318 rows) for
+    // "privacy-enhancing", "homomorphic", "federated learning", "differential privacy",
+    // "trusted execution" surfaces no § 7152-tagged FSOR row on PETs. The one PET-adjacent
+    // row (b736679e) is filed under § 7154 (data minimization) — cross-provision reach
+    // banned by Q4(e) v2.2. Silence documented; permanent empty-by-finding.
+    empty_by_finding:
+      "FSOR-SILENT (2026-07-27 sweep): no § 7152-tagged FSOR row addresses PETs directly. Sole PET-adjacent commentary "
+      + "sits under § 7154 (data minimization); cross-provision analogy prohibited by Q4(e). Registry lint accepts.",
   },
   {
     id: "safe.iii.external_consultation",
