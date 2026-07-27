@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T03:17:08Z
+**Last updated:** 2026-07-27T03:23:20Z
 
 ---
 
@@ -2829,3 +2829,41 @@ Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success
 **Monitor:** Wave C extraction owned by monitor on batch `a1b2c3d4-e5f6-4890-abcd-ef0123456789` terminal.
 
 **Status:** DONE.
+
+---
+
+163. **DONE (2026-07-27T03:23:20Z, WAVE-C-STALL-WRITEBACK-SCOPE-ADDITION — harness + docs; folded into item 162 writeback per controller ~03:15Z dispatch)** —
+
+**Root cause (fully identified this turn).** Launch inserts for measurement batches were being born in `status='queued' / phase='starting'` (the controller/`query_database` external-insert form, used because the sandbox holds no SR key), but `batch-kickoff-pickup.decidePickup` selected only `status='running' AND phase='kickoff'`. That single shape mismatch is what stalled Wave-C batch `2a3c07a2` (0 documents created despite advancing heartbeat) and is the same defect that zombied `9c1e3a8f`. Cancel-any-pre-execution (§17, item 162) was necessary but not sufficient — it prevented indefinite mutex-holding on cancel, but it did not make live launches in Shape B pickup-able.
+
+**Controller unblock (evidential paste, ~03:15Z).** Controller flipped `2a3c07a2` to `status='running'` / `phase='kickoff'` via `query_database`. The 03:16Z pickup tick picked it up (decision log row `event='kickoff_pickup', decision='kick', run_id='2a3c07a2…'`). The batch transitioned `queued/starting → running/kickoff → running/running_tool` at **03:16:34Z**, with `quality_run_id = 110ce03a…` (run #147) generating.
+
+**Standing rule chosen (§18 launch-state equivalence law).** Rather than force every future external launcher to insert Shape A, the picker is amended to **serve both canonical pre-execution shapes equivalently** — Shape A (`running/kickoff`, born-served) AND Shape B (`queued/starting`, controller-external) — and to normalize Shape B → Shape A on kick before invoking `quality-batch-orchestrator` (which continues to expect the canonical shape). The `single_flight_skip` guard is tightened to treat only `status='running' AND phase NOT IN ('kickoff','starting')` as "live"; two peers in a pre-execution shape do not block each other beyond the oldest-first ordering. The cancel-honoring clause from §17 already covers all pre-execution states (queued/starting inclusive).
+
+**Structural fix (deployed this turn, `batch-kickoff-pickup` BUILD_STAMP `qbp26-launch-state-equivalence@2026-07-27T03:30:00Z`):**
+- New exported constant `KICKOFF_ELIGIBLE` and helper `isKickoffEligible(status, phase)` enumerating the two canonical shapes.
+- `decidePickup(...)` — `live` predicate widened to exclude `phase='starting'` (not just `phase='kickoff'`); kickoff-eligibility filter switched from a hardcoded pair to `isKickoffEligible(...)`.
+- Kick server-side action extended to first UPDATE the row to `status='running', phase='kickoff'` (WHERE status IN ('running','queued') AND phase IN ('kickoff','starting')) before invoking the orchestrator — orchestrator's contract is unchanged.
+- Reap update filter widened to `.in('status', ['running','queued']).in('phase', ['kickoff','starting'])` — parity for Shape B stale rows.
+- Unit tests: `supabase/functions/batch-kickoff-pickup/launch-state-equivalence.test.ts` — **5/5 pass** covering (a) both shapes kickoff-eligible; (b) Shape B past PICKUP_STALE_MS → `kick`; (c) Shape B does NOT trigger `single_flight_skip` against Shape A peer; (d) `running_tool` peer DOES block Shape B via `single_flight_skip`; (e) Shape B past REAP_STALE_MS → `reap`. Combined with the prior cancel-any-pre-execution suite: **11/11 tests green**.
+
+Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success.
+
+**Design law — LEGAL-TEST-PIPELINE.md §18 appended** (harness section; generalized clause): *"Batch measurement dispatches enter the harness in one of two canonical pre-execution row shapes (running/kickoff, queued/starting); the pickup automation MUST serve them equivalently."* Full text in `docs/design/LEGAL-TEST-PIPELINE.md`. Every harness component with an external-insertable pre-execution queue MUST publish its canonical launch shape(s) and MUST serve every published shape from the same tick — either by picking every shape natively or by declaring one canonical shape and normalizing others at pickup.
+
+**Wave C actual start (recorded per dispatch):**
+- Batch: `2a3c07a2-7bd3-4250-a73e-ce19ea725633` (tools={cppa-risk}, batch_size=6, instrument=gc-2026-07-27-s6-eu-uk-ca-au-sg, mode=enforce).
+- Transition: `queued/starting → running/kickoff` at ~03:15Z (controller `query_database`) → `running/running_tool` at **03:16:34Z** (03:16 pickup tick).
+- Active `quality_run_id`: `110ce03a…` (run #147), generating.
+- Enforce-mode pre-assertion re-verified at kick.
+- **Monitor owns extraction** upon terminal.
+
+**Files touched this turn:**
+- `supabase/functions/batch-kickoff-pickup/index.ts` — BUILD_STAMP + §18 constant/helper + decidePickup + kick normalize + reap parity.
+- `supabase/functions/batch-kickoff-pickup/launch-state-equivalence.test.ts` — NEW (5 tests).
+- `docs/design/LEGAL-TEST-PIPELINE.md` — §18 appended.
+- `docs/pipeline-state.md` — this item + header restamp.
+
+**Prior-item back-references:** item 161 (stall diagnosis, HELD), item 162 (unblock + §17 cancel-any-pre-execution). Together items 162+163 close the Wave-C-stall defect class end-to-end.
+
+**Status:** DONE. §15 improvement-loop satisfied: defect → root fix (§18 launch-state equivalence + normalize-on-kick) → generalized clause in design law (LEGAL-TEST-PIPELINE §18) → inherited by all future harness components.

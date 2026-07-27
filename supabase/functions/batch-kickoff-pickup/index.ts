@@ -28,7 +28,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "qbp25-cancel-any-pre-execution@2026-07-27T03:15:00Z";
+export const BUILD_STAMP = "qbp26-launch-state-equivalence@2026-07-27T03:30:00Z";
+
+// LTP §18 — Launch-state equivalence law.
+// Two canonical pre-execution states are treated identically by the picker:
+//   (A) status='running',  phase='kickoff'   — the "born-served" canonical form
+//   (B) status='queued',   phase='starting'  — the controller/query_database
+//                                              external-insert form
+// Either shape is valid and MUST be picked up equivalently. The prior stall
+// (Wave-C batch 2a3c07a2, zombie 9c1e3a8f) was caused by inserts landing in
+// shape (B) while the picker only served shape (A). Cancel handling already
+// covers every non-terminal phase via §17.
+export const KICKOFF_ELIGIBLE: Array<{ status: string; phase: string }> = [
+  { status: "running", phase: "kickoff" },
+  { status: "queued", phase: "starting" },
+];
+export function isKickoffEligible(status: string, phase: string): boolean {
+  return KICKOFF_ELIGIBLE.some((s) => s.status === status && s.phase === phase);
+}
 export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
@@ -105,11 +122,17 @@ export function decidePickup(rows: KickoffRow[], nowMs: number): PickupDecision 
     };
   }
 
-  const live = rows.find((r) => r.status === "running" && r.phase !== "kickoff");
+  // §18 launch-state equivalence: 'live' = anything running with an advanced
+  // phase (i.e. past kickoff). queued/starting is NOT live — it is pre-execution.
+  const live = rows.find((r) =>
+    r.status === "running" &&
+    r.phase !== "kickoff" &&
+    r.phase !== "starting"
+  );
   if (live) return { kind: "single_flight_skip", live_run_id: live.id };
 
   const kickoffs = rows
-    .filter((r) => r.status === "running" && r.phase === "kickoff")
+    .filter((r) => isKickoffEligible(r.status, r.phase))
     .map((r) => {
       const t = r.last_heartbeat_at
         ? new Date(r.last_heartbeat_at).getTime()
@@ -637,14 +660,25 @@ Deno.serve(async (req) => {
     await logRun({ decision: "cancel_finalize", run_id: decision.run_id, phase: decision.phase, status: decision.status });
   } else if (decision.kind === "reap") {
     const note = `[kickoff-pickup: never picked up within ${Math.round(decision.age_ms / 60000)}min; reaped]`;
+    // §18 launch-state equivalence: reap either canonical pre-execution shape.
     await admin.from("quality_batch_runs").update({
       status: "failed",
       phase: "done",
       last_error: note,
       completed_at: new Date().toISOString(),
-    }).eq("id", decision.run_id).eq("status", "running").eq("phase", "kickoff");
+    }).eq("id", decision.run_id)
+      .in("status", ["running", "queued"])
+      .in("phase", ["kickoff", "starting"]);
     await logRun({ decision: "reap", run_id: decision.run_id, age_ms: decision.age_ms });
   } else {
+    // decision.kind === "kick" — §18: normalize queued/starting → running/kickoff
+    // before invoking the orchestrator, which expects the canonical shape.
+    await admin.from("quality_batch_runs").update({
+      status: "running",
+      phase: "kickoff",
+    }).eq("id", decision.run_id)
+      .in("status", ["running", "queued"])
+      .in("phase", ["kickoff", "starting"]);
     // decision.kind === "kick"
     const result = await invokeGated("quality-batch-orchestrator", { run_id: decision.run_id }, { timeoutMs: 15_000 });
     const kickRes = await fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {

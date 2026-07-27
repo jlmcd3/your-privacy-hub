@@ -516,3 +516,18 @@ Cancel requests are honored in **EVERY pre-execution state**, not only mid-loop.
 **Ownership.** Every harness component that maintains its own pre-execution queue (kickoff pickup, delivery sentinel, translation sweep, brief chain, and any successor) MUST implement the equivalent cancel-any-pre-execution branch. New harness components ship with the branch and its unit test in the same turn; a component that fails to honor a stale cancel is a **harness defect** and is ledgered per LTP §15 (writeback due within one turn).
 
 **Unit test contract.** The pure decision function MUST have tests covering: (a) `queued` + cancel → finalize, (b) `kickoff` + cancel → finalize, (c) `running_tool` + cancel → deferred to loop (not finalized by pickup), (d) terminal + cancel → no-op (never double-finalize), (e) cancel-finalize priority over kick eligibility when both are present, (f) regression: no cancel_requested anywhere → prior behavior unchanged.
+
+## 18. Launch-state equivalence law (harness; QBP26 / item 163, 2026-07-27; standing, product-agnostic)
+
+Batch measurement dispatches enter the harness in one of two canonical pre-execution row shapes; the pickup automation MUST serve them **equivalently**:
+
+- **Shape A — born-served:** `status='running'`, `phase='kickoff'`. The form a harness-native launcher produces.
+- **Shape B — controller-external:** `status='queued'`, `phase='starting'`. The form external tooling (e.g. controller `query_database` inserts under Backend-access law when the sandbox lacks direct dispatch capability) produces.
+
+The prior invariant — pickup selects `status='running' AND phase='kickoff'` only — was a **defect** that produced silent stalls whenever an external insert used Shape B. `batch-kickoff-pickup.decidePickup` now returns `kick` (or `reap`, past REAP_STALE_MS) for either shape, and the kick branch **normalizes Shape B to Shape A** (updates `status='running', phase='kickoff'`) before invoking `quality-batch-orchestrator`, which expects the canonical shape. The `single_flight_skip` guard treats **anything past kickoff/starting** as live; two peers still in a pre-execution shape do not block each other beyond the oldest-first ordering.
+
+**Motivating incidents.** Wave-C batch `2a3c07a2` sat in `queued/starting` for >30 minutes with 0 documents created; zombie `9c1e3a8f` had the same shape and additionally held the single-launch mutex. Both were unblocked by controller `query_database` flipping to `running/kickoff` at ~03:15Z; the very next 03:16Z pickup tick served the row and Wave C entered `running_tool` at 03:16:34Z (quality_run `110ce03a`, run #147).
+
+**Ownership.** Every harness component with an external-insertable pre-execution queue MUST publish its canonical launch shape(s) and MUST serve every published shape from the same tick — either by picking every shape natively or by declaring one canonical shape and normalizing others at pickup. Cancel handling (§17) covers all pre-execution shapes automatically. A component that publishes one shape and serves another is a **harness defect** and is ledgered per §15 within one turn.
+
+**Unit test contract.** The pure decision function MUST have tests covering: (a) both canonical shapes are kickoff-eligible; (b) Shape B past PICKUP_STALE_MS → `kick`; (c) Shape B does NOT trigger `single_flight_skip` against a Shape A peer; (d) a `running_tool` peer DOES block a Shape B pickup via `single_flight_skip`; (e) Shape B past REAP_STALE_MS → `reap` with parity to Shape A. See `supabase/functions/batch-kickoff-pickup/launch-state-equivalence.test.ts`.
