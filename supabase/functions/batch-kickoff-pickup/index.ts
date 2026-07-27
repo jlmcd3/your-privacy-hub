@@ -660,14 +660,25 @@ Deno.serve(async (req) => {
     await logRun({ decision: "cancel_finalize", run_id: decision.run_id, phase: decision.phase, status: decision.status });
   } else if (decision.kind === "reap") {
     const note = `[kickoff-pickup: never picked up within ${Math.round(decision.age_ms / 60000)}min; reaped]`;
+    // §18 launch-state equivalence: reap either canonical pre-execution shape.
     await admin.from("quality_batch_runs").update({
       status: "failed",
       phase: "done",
       last_error: note,
       completed_at: new Date().toISOString(),
-    }).eq("id", decision.run_id).eq("status", "running").eq("phase", "kickoff");
+    }).eq("id", decision.run_id)
+      .in("status", ["running", "queued"])
+      .in("phase", ["kickoff", "starting"]);
     await logRun({ decision: "reap", run_id: decision.run_id, age_ms: decision.age_ms });
   } else {
+    // decision.kind === "kick" — §18: normalize queued/starting → running/kickoff
+    // before invoking the orchestrator, which expects the canonical shape.
+    await admin.from("quality_batch_runs").update({
+      status: "running",
+      phase: "kickoff",
+    }).eq("id", decision.run_id)
+      .in("status", ["running", "queued"])
+      .in("phase", ["kickoff", "starting"]);
     // decision.kind === "kick"
     const result = await invokeGated("quality-batch-orchestrator", { run_id: decision.run_id }, { timeoutMs: 15_000 });
     const kickRes = await fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
