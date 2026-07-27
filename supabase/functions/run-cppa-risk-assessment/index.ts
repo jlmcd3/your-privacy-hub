@@ -14,11 +14,11 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-smokehang-safefinalize@2026-07-27T14:15:00Z";
+export const BUILD_STAMP = "ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
-console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
+console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
@@ -141,6 +141,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
+import { computeRetryBudget, withRetryPersistFirst } from "../_shared/ltp/retry-budget.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -1214,13 +1215,27 @@ async function runPipeline(assessment_id: string) {
         // otherwise log post_gen_violation_retry_skipped, merge findings into
         // the existing lint/observation surface, and proceed with the document.
         const elapsedAtViolationMs = Date.now() - t0;
-        const retryWithinBudget = elapsedAtViolationMs < CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS;
+        // SMOKE-HANG ADDENDUM 2026-07-27 — retry_within_budget MUST include
+        // remaining wall-clock against the isolate ceiling with a safety
+        // margin for post-retry work (T-5 detect, deterministic fallback,
+        // i3 rewriter, guard, W6..W24, LTP finalize, serializer, persist).
+        // See _shared/ltp/retry-budget.ts. Persist-first: the first composed
+        // doc is snapshotted; a retry that hangs, throws, or produces
+        // garbage restores the snapshot instead of losing the document.
+        const budget = computeRetryBudget({
+          elapsedMs: elapsedAtViolationMs,
+          elapsedThresholdMs: CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS,
+        });
+        const retryWithinBudget = budget.allowed;
         console.warn(JSON.stringify({
           evt: "post_gen_violation",
           fn: "run-cppa-risk-assessment",
           elapsed_ms: elapsedAtViolationMs,
           retry_threshold_ms: CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS,
           retry_within_budget: retryWithinBudget,
+          retry_budget_reason: budget.reason,
+          remaining_wall_clock_ms: budget.remainingWallClockMs,
+          retry_cap_ms: budget.retryCapMs,
           banned,
           violations: lint.violations?.slice(0, 20) ?? [],
           t1: t1Violation,
@@ -1235,23 +1250,63 @@ async function runPipeline(assessment_id: string) {
             ? `\n\nPREVIOUS ATTEMPT REJECTED for TEST-STATES vocabulary leakage: internal tokens surfaced in user-facing prose (${t5Hits.slice(0, 6).map((h) => `${h.path}: "${h.match}"`).join("; ")}). Re-emit the assessment removing every reference to TEST-STATES, test ids (M1, M2, …), and state tokens (resolved_met / resolved_not_met / RESOLVED_* / INDETERMINATE / CANDIDATE) from all user-facing fields. State the conclusion with its factual basis instead. Do not mention this instruction in the output.`
             : "";
           const blInstructionSuffix = blViolation ? formatBlacklistRetrySuffix(blHits) : "";
-          const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry");
-          const retryParsed = tryParseJson(retry.text);
-          if (retryParsed && retryParsed.assessment_summary) {
-            parsed = retryParsed;
-            lastStopReason = retry.stopReason;
-            debugRaw = retry.text;
+          // PERSIST-FIRST: `parsed` is the first composed doc; if the retry
+          // hangs, throws, or returns garbage, keep it. The wall-clock cap
+          // in `budget.retryCapMs` prevents the retry from consuming the
+          // reserve budget needed for post-retry work + persist.
+          const parsedPreRetry = parsed;
+          const stopReasonPreRetry = lastStopReason;
+          const debugRawPreRetry = debugRaw;
+          const outcome = await withRetryPersistFirst<{ parsed: any; stopReason: any; text: string } | null>(
+            null,
+            budget.retryCapMs,
+            async (_signal) => {
+              const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry");
+              const retryParsed = tryParseJson(retry.text);
+              if (retryParsed && retryParsed.assessment_summary) {
+                return { parsed: retryParsed, stopReason: retry.stopReason, text: retry.text };
+              }
+              return null;
+            },
+            (c) => c !== null,
+          );
+          if (outcome.kind === "used_retry" && outcome.value) {
+            parsed = outcome.value.parsed;
+            lastStopReason = outcome.value.stopReason;
+            debugRaw = outcome.value.text;
+            console.log(JSON.stringify({
+              evt: "post_gen_retry_used",
+              fn: "run-cppa-risk-assessment",
+              retry_elapsed_ms: outcome.elapsedMs,
+            }));
+          } else {
+            // Preserve first document (already in `parsed`) explicitly.
+            parsed = parsedPreRetry;
+            lastStopReason = stopReasonPreRetry;
+            debugRaw = debugRawPreRetry;
+            console.warn(JSON.stringify({
+              evt: "post_gen_retry_failed_preserve_first_doc",
+              fn: "run-cppa-risk-assessment",
+              reason: outcome.kind === "kept_first" ? outcome.reason : "unknown",
+              error: outcome.kind === "kept_first" ? outcome.error : undefined,
+              retry_elapsed_ms: outcome.elapsedMs,
+            }));
           }
         } else {
           console.warn(JSON.stringify({
-            evt: "post_gen_violation_retry_skipped",
+            evt: budget.reason === "wall_clock_insufficient"
+              ? "post_gen_violation_retry_skipped_wall_clock"
+              : "post_gen_violation_retry_skipped",
             fn: "run-cppa-risk-assessment",
-            reason: "elapsed_budget_exceeded",
+            reason: budget.reason,
             elapsed_ms: elapsedAtViolationMs,
             retry_threshold_ms: CPPA_RISK_RETRY_ELAPSED_THRESHOLD_MS,
+            remaining_wall_clock_ms: budget.remainingWallClockMs,
+            retry_cap_ms: budget.retryCapMs,
             rules: { t1: t1Violation, t2: t2Violation, t3: t3Violation, t4: t4Violation, t5: t5Violation, blacklist: blViolation },
           }));
         }
+
 
         // FF-2 T1 — after any retry attempt, if blacklist hits still surface
         // in the final parsed doc, ship with per-hit lint entries. NO
@@ -3556,6 +3611,8 @@ Deno.serve(async (req) => {
       // Fleet asserts this at kickoff via mode-assert; observe-mode reversion
       // is a §16 abort, not a silent drift.
       composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
+      persist_first_retry: "retry-budget@2026-07-27-persistfirst",
+      safe_finalize: "safe-finalize@2026-07-27-hangfix",
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
