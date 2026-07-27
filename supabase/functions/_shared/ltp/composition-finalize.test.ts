@@ -271,6 +271,16 @@ Deno.test("shipped-surface-guard: EMPTY_ARRAY — non-empty inconsistency_flags 
   assert(e.cut_violations.some((v) => v.path === "inconsistency_flags"));
 });
 
+Deno.test("shipped-surface-guard: unowned top-level key FAILS on shipped projection (Item 213)", () => {
+  const shipped = {
+    assessment_summary: { narrative: "clean." },
+    made_up_key: { z: 1 },
+    inconsistency_flags: [],
+  };
+  const e = evaluateShippedSurfaceGuard(shipped);
+  assert(e.unowned_paths.includes("made_up_key"));
+});
+
 Deno.test("finalize: scope_and_triggers bound top-level with only allowed children does NOT throw in enforce (Item 208 regression)", () => {
   const rd = {
     scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] },
@@ -282,4 +292,27 @@ Deno.test("finalize: scope_and_triggers bound top-level with only allowed childr
   });
   assertEquals(res.telemetry.surface_cut_violations, []);
 });
+
+Deno.test("finalize: smoke-#9 exact composed shape (5 unowned + clean surface) passes with telemetry (Item 213)", () => {
+  const rd = {
+    assessment_summary: { narrative: "The record supports the assessment." },
+    scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] },
+    inconsistency_flags: [],
+    // The five smoke-#9 unowned keys the serializer strips:
+    generated_at: "2026-07-27T23:04:00Z",
+    legacy_shim_applied: true,
+    normalised_intake: { q1: "y" },
+    retrieval_meta: { source: "reg" },
+    open_items: [],
+  };
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.surface_unowned_paths, []);
+  assertEquals(res.telemetry.surface_cut_violations, []);
+  for (const k of ["generated_at", "legacy_shim_applied", "normalised_intake", "retrieval_meta", "open_items"]) {
+    assert(res.telemetry.pre_serializer_unowned_pending.includes(k), `missing ${k}`);
+  }
+});
+
 
