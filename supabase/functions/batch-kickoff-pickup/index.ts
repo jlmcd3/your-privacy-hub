@@ -122,11 +122,17 @@ export function decidePickup(rows: KickoffRow[], nowMs: number): PickupDecision 
     };
   }
 
-  const live = rows.find((r) => r.status === "running" && r.phase !== "kickoff");
+  // §18 launch-state equivalence: 'live' = anything running with an advanced
+  // phase (i.e. past kickoff). queued/starting is NOT live — it is pre-execution.
+  const live = rows.find((r) =>
+    r.status === "running" &&
+    r.phase !== "kickoff" &&
+    r.phase !== "starting"
+  );
   if (live) return { kind: "single_flight_skip", live_run_id: live.id };
 
   const kickoffs = rows
-    .filter((r) => r.status === "running" && r.phase === "kickoff")
+    .filter((r) => isKickoffEligible(r.status, r.phase))
     .map((r) => {
       const t = r.last_heartbeat_at
         ? new Date(r.last_heartbeat_at).getTime()
