@@ -3179,6 +3179,35 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LTP WAVE-B COMPLETION failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── LTP WAVE-B.2 CLOSURE (2026-07-27, item 157) ─────────────────
+    // Deterministic post-render closure for the six run-146 citation-class
+    // findings: token-truncation guard, information_needed self-
+    // contradiction filter, attestation § 7157 anchor discipline.
+    // Runs AFTER applyWaveBCompletion and BEFORE the LTP shadow-mode
+    // telemetry block. Fail-open.
+    try {
+      const { applyWaveB2Closure, WAVEB2_CLOSURE_STAMP, WAVEB2_CLOSURE_VERSION } =
+        await import("../_shared/ltp/waveb2-closure.ts");
+      const _wb2 = applyWaveB2Closure(report_data as any);
+      report_data = _wb2.report as any;
+      const _rd: any = report_data as any;
+      const _meta = _rd._meta ?? (_rd._meta = {});
+      const _internal = _meta.internal ?? (_meta.internal = {});
+      _internal.waveb2_closure = {
+        version: WAVEB2_CLOSURE_VERSION,
+        stamp: WAVEB2_CLOSURE_STAMP,
+        build_stamp: BUILD_STAMP,
+        counters: _wb2.counters,
+      };
+      console.log(JSON.stringify({
+        evt: "waveb2_closure_applied", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, stamp: WAVEB2_CLOSURE_STAMP,
+        ..._wb2.counters,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] LTP WAVE-B.2 CLOSURE failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
     // ── LTP PHASE-2 SHADOW-MODE (2026-07-26, item 137) ──────────────
