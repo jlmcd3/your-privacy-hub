@@ -3472,3 +3472,21 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C.
 - **Chain state:** Stage B remains open at post-Block-B / mid-step-9. Stages C/D still gated.
 - **Disposition:** **HALT — SMOKE IN FLIGHT.** Awaiting CEO read + CONTINUATION-6 release to resume from batch's terminal state.
+
+### Item 197 · SMOKE-HANG-ROOT-FIX — safeFinalizeComposition landed (2026-07-27)
+
+- **Dispatch:** SMOKE HANG — DIAGNOSE AND FIX (CEO, 2026-07-27 ~10:42Z).
+- **Verified state on arrival:** cppa_assessments `1b4a1a0a` stuck `processing` with `report_data IS NULL`; outer `function_runs fcc85c62` opened 10:24:15, never `finished_at` (isolate died before outer catch); inner post_gen_lint `61a5544b` `success` at 10:28:40; batch/run already self-reaped by 10:44 (`quality_runs.error="No documents completed"`, `quality_batch_runs.status=failed`, `actual_count=0` vs `declared_count=1`). No manual reap required.
+- **Log evidence:** `function_logs` window 10:24-10:29 already outside retention (earliest surviving row 10:36Z); diagnosis proceeded from code inspection + timeline. The three-block try/catch structure (finalize / F0 / serializer) was fail-open for JS throws but NOT hardened against (a) exception inside a `catch` handler, (b) unbounded finalize walk in enforce mode with a large report body, (c) recompose that hangs or throws without a wall-clock guard.
+- **Root fix (this turn):** New invariant — finalize path CANNOT block persist; enforce-mode strictness governs the MEASUREMENT VERDICT (recorded on `telemetry.enforce_violation`), not whether the doc ships.
+  - `safeFinalizeComposition()` added in `_shared/ltp/composition-finalize.ts` (`safe-finalize@2026-07-27-hangfix`). Contract: NEVER throws. Catches every exception (ValueScreenError, surface-guard, hook-audit, recompose bugs, anything). Wall-clock instrumented (`budget_ms=15000` default, `elapsed_ms`, `budget_exceeded`). On failure returns `{ reportData: originalReport, telemetry: { errored:true, error_kind, error_message, enforce_violation, ... } }`.
+  - Wire-site rewritten at `run-cppa-risk-assessment/index.ts:3316-3383` to call the safe wrapper; surrounding try/catch retained as belt-and-suspenders (records `escaped_safe_wrapper: true` in the impossible case).
+  - `evt: composition_finalize_ran` log line extended with `errored`, `enforce_violation`, `elapsed_ms`, `budget_exceeded`, `safe_version`.
+  - Boot line updated to echo `composition_enforce=<0|1>` and `safe_finalize=safe-finalize@2026-07-27-hangfix` for §16 ping conformance.
+- **BUILD_STAMP:** `ltp-risk-smokehang-safefinalize@2026-07-27T14:15:00Z`.
+- **Regression tests:** `_shared/ltp/composition-finalize.test.ts` — **16/16 green** (7 pre-existing + 9 new). New tests assert: safe wrapper stamp; clean-report mirroring; enforce-mode value-screen throw CAUGHT (persist not blocked, original report returned); hook-audit throw CAUGHT; throwing recompose CAUGHT; unowned-top-level in enforce CAUGHT; budget telemetry present and honored.
+- **Re-smoke:** NOT executed this turn. Both attempted launches from sandbox returned `401 Unauthorized` (`quality-batch-orchestrator` and function ping) — no admin token minted into this tool context. Deploy auto-triggered by file edit; next controller-issued wrapped smoke exercises the fix end-to-end.
+- **Courier:** `docs/courier/SMOKE-HANG-ROOT-FIX-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C.
+- **Chain state:** Stage B remains open at post-Block-B / mid-step-9 (per Item 196); the pre-step-9 root fix is now in place. Steps 9, 9b, 10, 11, 12 (CONTINUATION-5) still owed to controller.
+- **Disposition:** **ROOT FIX LANDED. HARD STOP.** Awaiting controller relaunch of the wrapped `batch_size=1` smoke with real admin `created_by` and `LTP_COMPOSITION_ENFORCE=1` to verify the invariant on the wire.
