@@ -3442,35 +3442,41 @@ Deno.serve(async (req) => {
   console.log("[run-cppa-risk-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  // ── MEASUREMENT-VALIDITY LAW (LEGAL-TEST-PIPELINE.md §16) ─────────
-  // GET /?ping=1 returns the reported ltp_mode + build_stamp so a batch
-  // harness can pre-assert the generator's configuration matches its
-  // declared expectation before spending model credits. No side effects.
+  // ── MEASUREMENT-VALIDITY LAW (LEGAL-TEST-PIPELINE.md §16, simplified) ─
+  // GET /?ping=1 returns pipeline_version + content_versions + build_stamp
+  // so a batch harness can pre-assert version equality (no modes exist).
+  // Engine B is always on; there is nothing to toggle.
   const _url = new URL(req.url);
   if (req.method === "GET" && _url.searchParams.get("ping") === "1") {
     return new Response(JSON.stringify({
       fn: "run-cppa-risk-assessment",
       build_stamp: BUILD_STAMP,
-      ltp_mode: LTP_MODE_BOOT,
-      ltp_version: "ltp-risk-p2",
+      ltp_engine: "B-always-on",
+      pipeline_version: LTP_PIPELINE_VERSION,
+      content_versions: LTP_CONTENT_VERSIONS,
+      // Back-compat echo (retiring): legacy callers still read `ltp_version`.
+      ltp_version: LTP_PIPELINE_VERSION,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-  // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
-  // a mismatch aborts before any generation work runs.
-  const _modeExpected = req.headers.get("x-ltp-mode-expected");
-  if (_modeExpected && _modeExpected !== LTP_MODE_BOOT) {
+  // POST-time header assertion — caller may declare
+  // `x-ltp-pipeline-version-expected`; a mismatch aborts before any
+  // generation work runs. Mode-mismatch is retired (no modes exist).
+  const _versionExpected = req.headers.get("x-ltp-pipeline-version-expected");
+  if (_versionExpected && _versionExpected !== LTP_PIPELINE_VERSION) {
     console.log(JSON.stringify({
-      evt: "ltp_mode_mismatch_abort", fn: "run-cppa-risk-assessment",
-      expected: _modeExpected, actual: LTP_MODE_BOOT, build_stamp: BUILD_STAMP,
+      evt: "ltp_version_mismatch_abort", fn: "run-cppa-risk-assessment",
+      expected: _versionExpected, actual: LTP_PIPELINE_VERSION, build_stamp: BUILD_STAMP,
     }));
     return new Response(JSON.stringify({
-      error: "ltp_mode_mismatch",
-      expected: _modeExpected,
-      actual: LTP_MODE_BOOT,
+      error: "ltp_pipeline_version_mismatch",
+      expected: _versionExpected,
+      actual: LTP_PIPELINE_VERSION,
       build_stamp: BUILD_STAMP,
-      law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
+      law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity (simplified, item 170)",
     }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+
+
 
   const caller = await verifyCaller(req, "user");
   if (!caller.ok) {
