@@ -89,3 +89,32 @@ back on the wire.
 ## Chain state
 Precedes and gates CONTINUATION-6. Stage-B CONTINUATION-5 steps 9/9b/10/11/12
 remain owed to controller once the wrapped smoke `cd1cb716` reaches terminal.
+
+---
+
+## ADDENDUM — stale-blob claim investigation (post-controller escalation)
+
+Controller reported smoke #154 reproduced the pre-fix fingerprint and concluded a stale blob was on the wire. Verified NOT stale:
+
+**Ping BEFORE this turn's redeploy** (raw):
+```
+{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z","ltp_mode":"enforce","ltp_version":"ltp-risk-p2","composition_enforce":"1","persist_first_retry":"retry-budget@2026-07-27-persistfirst","safe_finalize":"safe-finalize@2026-07-27-hangfix"}
+```
+
+Wire-site source in the current tree confirmed BEFORE redeploy:
+- `supabase/functions/run-cppa-risk-assessment/index.ts:144` — `import { computeRetryBudget, withRetryPersistFirst } from "../_shared/ltp/retry-budget.ts";`
+- `:1260` — `const outcome = await withRetryPersistFirst<...>(null, budget.retryCapMs, async (_signal) => { ... }, (c) => c !== null);`
+- `:1273-1294` — emits `post_gen_retry_used` OR `post_gen_retry_failed_preserve_first_doc`.
+
+Ping AFTER the belt-and-suspenders redeploy this turn — identical:
+```
+{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z","ltp_mode":"enforce","ltp_version":"ltp-risk-p2","composition_enforce":"1","persist_first_retry":"retry-budget@2026-07-27-persistfirst","safe_finalize":"safe-finalize@2026-07-27-hangfix"}
+```
+
+The deployed blob IS the persist-first tree. The stale-blob hypothesis is refuted by both the ping surface AND the tree-side source, and remains refuted after a fresh redeploy.
+
+**Alternative explanation for the #154 fingerprint** (offered, not proven from sandbox — logs from 11:06–11:10Z were not pulled this turn): the retry path can complete without either `post_gen_retry_used` / `post_gen_retry_failed_preserve_first_doc` reaching `edge_function_logs` if the isolate died AFTER the retry callback returned but BEFORE the surrounding block flushed its console lines, or if log retention/rotation dropped the window between fetch and inspection. `post_gen_fallback_applied` at 11:10:05 sits AFTER the retry block (index.ts:1358) — its presence proves the retry block RETURNED; only the two log lines between them would be missing, which is consistent with a log-flush gap, not a stale blob. The `report_data NULL` symptom, if real, points DOWNSTREAM of `post_gen_fallback_applied` (LTP finalize / F0 emit / serializer / persist) — the exact region the `safeFinalizeComposition` wrapper was landed to backstop. That backstop is on the wire (`safe_finalize=safe-finalize@2026-07-27-hangfix` in the ping).
+
+**Ruling on the "35-function redeploy pushed an older tree" theory**: not supported. The redeploy tool ships the current repo tree; the ping stamp equals the source `BUILD_STAMP` constant at `index.ts:17`, which was written this session and not touched by the outage recovery. If an older tree had been pushed, the stamp would not match.
+
+Redeploy executed this turn regardless (belt-and-suspenders); ping re-verified; no source change.
