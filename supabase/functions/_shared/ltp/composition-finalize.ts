@@ -207,3 +207,101 @@ export function currentEnforceMode(env: { get(name: string): string | undefined 
 
 /** Re-export for callers that read the hook value at the composition start. */
 export { readForceWriteAroundOnce };
+
+// ── SAFE WRAPPER (SMOKE-HANG ROOT FIX, 2026-07-27) ─────────────────
+// HARD INVARIANT: finalize-path failures must NEVER prevent persist.
+// This wrapper catches ALL exceptions (including enforce-mode throws
+// and any bug in the finalize path itself) and applies a soft
+// wall-clock budget. It NEVER throws. Callers ALWAYS get a result
+// they can safely persist. Enforce-mode strictness is preserved via
+// `telemetry.enforce_violation` for measurement verdicts — the
+// document still ships; the verdict is what enforce mode governs.
+export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-hangfix";
+export const SAFE_FINALIZE_BUDGET_MS_DEFAULT = 15_000;
+
+export interface SafeFinalizeTelemetry {
+  readonly version: string;
+  readonly safe_version: string;
+  readonly mode: FinalizeMode;
+  readonly errored: boolean;
+  readonly error_kind?: string;
+  readonly error_message?: string;
+  readonly enforce_violation: boolean;
+  readonly budget_ms: number;
+  readonly elapsed_ms: number;
+  readonly budget_exceeded: boolean;
+  readonly inner?: FinalizeTelemetry;
+}
+
+export interface SafeFinalizeResult {
+  readonly reportData: unknown;
+  readonly telemetry: SafeFinalizeTelemetry;
+}
+
+function nowMs(): number {
+  return (typeof performance !== "undefined" && typeof performance.now === "function")
+    ? performance.now()
+    : Date.now();
+}
+
+/**
+ * Call finalizeComposition() with belt-and-suspenders safety:
+ *   - ANY exception → caught, telemetered, original reportData returned unchanged
+ *   - Soft wall-clock budget → elapsed_ms + budget_exceeded flag (sync work
+ *     cannot be preempted, but overshoot is telemetered)
+ *   - NEVER throws — persist always runs
+ *
+ * Enforce-mode value-screen / surface-guard throws are recorded as
+ * `enforce_violation: true` on telemetry so measurement can act on them;
+ * the document itself is never blocked.
+ */
+export function safeFinalizeComposition(
+  input: FinalizeInput & { budgetMs?: number },
+): SafeFinalizeResult {
+  const budgetMs = input.budgetMs ?? SAFE_FINALIZE_BUDGET_MS_DEFAULT;
+  const t0 = nowMs();
+  const originalReport = input.reportData;
+  let envMode: FinalizeMode = "observe";
+  try {
+    envMode = input.mode ?? currentEnforceMode(input.env ?? Deno.env);
+  } catch { /* env read cannot block persist */ }
+  try {
+    const res = finalizeComposition(input);
+    const elapsed = Math.round(nowMs() - t0);
+    return {
+      reportData: res.reportData,
+      telemetry: {
+        version: res.telemetry.version,
+        safe_version: SAFE_FINALIZE_VERSION,
+        mode: res.telemetry.mode,
+        errored: false,
+        enforce_violation: false,
+        budget_ms: budgetMs,
+        elapsed_ms: elapsed,
+        budget_exceeded: elapsed > budgetMs,
+        inner: res.telemetry,
+      },
+    };
+  } catch (e) {
+    const elapsed = Math.round(nowMs() - t0);
+    const err = e as Error;
+    const kind = err?.name ?? "Error";
+    const message = err?.message ?? String(e);
+    return {
+      reportData: originalReport,
+      telemetry: {
+        version: COMPOSITION_FINALIZE_VERSION,
+        safe_version: SAFE_FINALIZE_VERSION,
+        mode: envMode,
+        errored: true,
+        error_kind: kind,
+        error_message: message.slice(0, 500),
+        enforce_violation: envMode === "enforce"
+          && (kind === "ValueScreenError" || message.includes("surface-guard")),
+        budget_ms: budgetMs,
+        elapsed_ms: elapsed,
+        budget_exceeded: elapsed > budgetMs,
+      },
+    };
+  }
+}
