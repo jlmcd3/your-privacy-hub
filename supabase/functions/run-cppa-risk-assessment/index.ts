@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-pre-waved-emitter-fixes@2026-07-27T06:55:00Z";
+export const BUILD_STAMP = "ltp-risk-stage-b-blocka-finalizer@2026-07-27T12:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
@@ -43,6 +43,12 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+import {
+  finalizeComposition,
+  readForceWriteAroundOnce,
+  currentEnforceMode,
+  COMPOSITION_FINALIZE_VERSION,
+} from "../_shared/ltp/composition-finalize.ts";
 import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
@@ -3278,6 +3284,65 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── STAGE-B BLOCK-A COMPOSITION FINALIZER (2026-07-27, item 194) ──
+    // Single composition-exit choke-point that composes the four Stage-B
+    // guards: value-screen (LEAK-PREV-P2), surface-write-guard walk,
+    // and composition-hook-audit. Mode from env LTP_COMPOSITION_ENFORCE:
+    // "observe" (default) records telemetry; "enforce" throws. Hook audit
+    // is always fail-loud (silent-bypass is a config defect, not content).
+    // Telemetry lands under _meta.internal.composition_finalize, stripped
+    // by LEAK-PREV-P2. Fail-open at the outer boundary — reports still ship.
+    try {
+      const _rdF: any = report_data as any;
+      _rdF._meta = _rdF._meta ?? {};
+      _rdF._meta.internal = _rdF._meta.internal ?? {};
+      const _hookValue = readForceWriteAroundOnce(Deno.env);
+      const _ltpPreview = _rdF._meta.internal.legal_test_pipeline?.enforce_preview;
+      const _writeAroundEntered = !!_ltpPreview?.plan_summary?.write_around;
+      const _mode = currentEnforceMode(Deno.env);
+      const _final = finalizeComposition({
+        reportData: report_data,
+        hookValue: _hookValue,
+        writeAroundEntered: _writeAroundEntered,
+        mode: _mode,
+      });
+      report_data = _final.reportData as any;
+      const _rdF2: any = report_data as any;
+      _rdF2._meta = _rdF2._meta ?? {};
+      _rdF2._meta.internal = _rdF2._meta.internal ?? {};
+      _rdF2._meta.internal.composition_finalize = {
+        build_stamp: BUILD_STAMP,
+        version: COMPOSITION_FINALIZE_VERSION,
+        ..._final.telemetry,
+      };
+      console.log(JSON.stringify({
+        evt: "composition_finalize_ran", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, mode: _final.telemetry.mode,
+        value_screen_hits: _final.telemetry.value_screen_hits,
+        value_screen_final_hits: _final.telemetry.value_screen_final_hits,
+        value_screen_recomposed: _final.telemetry.value_screen_recomposed,
+        surface_unowned_count: _final.telemetry.surface_unowned_paths.length,
+        surface_cut_violations: _final.telemetry.surface_cut_violations.length,
+        hook_present: _final.telemetry.hook_value_present,
+        write_around_entered: _final.telemetry.write_around_entered,
+      }));
+    } catch (e) {
+      // Fail-loud errors (hook audit; enforce-mode surface/value-screen) are
+      // recorded under _meta.internal so operators can see them, but the run
+      // still ships. Enforce mode is opt-in via env; observe mode never trips.
+      const _rdE: any = report_data as any;
+      _rdE._meta = _rdE._meta ?? {};
+      _rdE._meta.internal = _rdE._meta.internal ?? {};
+      _rdE._meta.internal.composition_finalize_error = {
+        build_stamp: BUILD_STAMP,
+        error: (e as Error)?.message ?? String(e),
+      };
+      console.warn(
+        "[run-cppa-risk-assessment] composition-finalize error (non-fatal at outer boundary):",
+        (e as Error)?.message,
+      );
     }
 
     // ── FUTURE-BUILDING F0 — observation-only signature emit ─────────
