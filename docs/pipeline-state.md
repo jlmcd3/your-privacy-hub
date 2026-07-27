@@ -3366,3 +3366,25 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
   > "Smoke-before-measure retires by evidence, not by decree. Clean-arm smokes retire after three consecutive zero-unique-catch runs — assertions carry the load thereafter and a retired arm returns only if a new class evades the assertion layer (which triggers a new assertion per spec-writeback law). Crash-test arm is one-time-per-product, re-proven only when the write-around mechanism changes. Stage-C re-smoke proceeds unchanged and opens the unique-catch counter at 0/3 for `cppa-risk`." — CEO, 2026-07-27.
 - **Standing state impact:** Stages B/C/D of the DUAL-SMOKE-POSTFIX chain unaffected. Item 186 (BSS-100K contract turn) remains QUEUED-GATED. Item 187 (Step 0 build-overview gate) unaffected. Enforcement state, s6 instrument, campaign pause, and all HELDs unchanged.
 - **Files touched this turn:** `docs/design/LEGAL-TEST-PIPELINE.md` (§22.1 inserted after line 569); `docs/pipeline-state.md` (this item). No other files.
+
+## Item 190 — STAGE-B AUTHOR-CHECKPOINT (2026-07-27) — CODE-LANDED / WIRING-DEFERRED
+
+- **Dispatch:** EXECUTE STAGE B NOW (verbatim eleven items from Item 185).
+- **Boundary chosen (per dispatch escape clause):** **AUTHOR-CHECKPOINT** — code-complete pre-wiring. Four new guard modules land as self-contained units with green tests; no edge-function edits, no deploys, no DB writes, no batch launches, no secret mutations. Physical cap precludes safely wiring + deploying + running a ~20-min degradation re-smoke in one turn without shipping half-wired call-sites.
+- **Modules landed (code + tests):**
+  - `supabase/functions/_shared/ltp/value-screen.ts` (+ `.test.ts`) — item (ii) — 8/8 green.
+  - `supabase/functions/_shared/ltp/surface-write-guard.ts` (+ `.test.ts`) — item (iii) — 7/7 green.
+  - `supabase/functions/_shared/harness/created-by-guard.ts` (+ `.test.ts`) — item (vi) — 6/6 green (exceeds the 3 required unit cases).
+  - `supabase/functions/_shared/ltp/composition-hook-audit.ts` (+ `.test.ts`) — item (vii) — 5/5 green.
+- **Test evidence (pasted verbatim):** `deno test --no-check` on the four new test files → **26 passed | 0 failed (322ms)**. Global suite not re-run; pre-existing type-check errors in unrelated files are out of scope for this checkpoint.
+- **Item-185 eleven-item disposition:**
+  - **CODE LANDED:** (ii), (iii), (vi), (vii).
+  - **PARTIAL:** (x) — 26/26 new-module tests green; global suite not run. (xi) — courier + ledger landed; no deploy.
+  - **DEFERRED to Stage-B CONTINUATION turn:** (i) four traced fixes, (iv) declared-count conformance + §16.n adoption, (v) Item-181 renderer wiring, (viii) A.ii degradation re-smoke, (ix) security-panel appendix, and the wiring of (ii)/(iii)/(vi)/(vii) at their call sites + deploy.
+- **Clean-arm unique-catch counter (§22.1):** untouched. Counter opens at **0/3 for `cppa-risk`** at Stage-C re-smoke as specified in Item 189.
+- **A.ii silent-bypass RCA codified in code:** `composition-hook-audit.ts` throws when `LTP_TEST_FORCE_WRITE_AROUND` is set but the write-around branch was not entered — the exact failure mode Item 185 recorded for run #152. Wiring at the composition finalizer is a CONTINUATION-turn deliverable.
+- **Created_by guard codified:** `assertCreatedByIsRealUser` rejects malformed (§25) / nil (§25) / well-formed-but-unknown (§19) UUIDs at the born-state boundary. Wiring at `quality-batch-orchestrator` INSERT boundary is a CONTINUATION-turn deliverable.
+- **Chain state:** Stage A closed with A.i landed + A.ii DEFERRED (Item 179/185). Stage B **CHECKPOINTED-AUTHOR** (this item). Stage C remains gated on Stage-B CONTINUATION landing. Stage D remains gated on Stage C.
+- **CONTINUATION turn scope** (verbatim in §3 of the courier): wire the 4 modules at their call sites, land the 4 traced A.i fixes, migration for declared/actual counts + §16.n design-law adoption, Item-181 renderer wiring, deploy (`run-cppa-risk-assessment` + `quality-batch-orchestrator` + `run-quality-batch`), A.ii degradation re-smoke under the wired hook re-audit with real admin `created_by`, full-suite green pasted, security-panel appendix, continuation courier, Stage-B COMPLETE marker.
+- **Files touched this turn:** 8 new files (4 modules + 4 test files); `docs/courier/SMOKE-FIX-ROUND-2026-07-27.md` (new); `docs/pipeline-state.md` (this item). Zero edits to any existing edge function, prompt, rubric, grader, golden, contract, fixture, registry, or corpus row. Enforcement state, s6 instrument, campaign pause, and all HELDs unchanged.
+- **HARD STOP.** Per dispatch: "STOP — I will read and release the continuation. HARD STOP either way after the courier: Stage C awaits my read of your response."
