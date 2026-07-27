@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T08:11:52Z
+**Last updated:** 2026-07-27T08:39:54Z
 
 ---
 
@@ -3204,3 +3204,15 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - Zero code, prompts, rubrics, graders, goldens, contracts, fixtures, registries, corpus rows, migrations, edge-function deploys, or `quality_batch` launches. Enforcement state, s6 instrument, campaign pause, and all HELDs unchanged. §16 not yet amended (candidate only, adoption in Stage B).
 
 **Next actions (in order, next turn):** (A.ii) forced-degradation arm — set `LTP_TEST_FORCE_WRITE_AROUND=1`, redeploy, wrapped smoke, unset, redeploy, verify write-around telemetry + value-screen hold + Items-for-your-review disclosure, append A.ii evidence to this courier; then **(B) SMOKE-FIX-ROUND** per its standing dispatch (traced fixes + choke-point value screen + count conformance); then **(C) RE-SMOKE**; then **(D) WAVE-D** Engine-B-led batch of 6. Gate FAIL at any stage halts the chain with a HELD ledger item.
+
+---
+
+### Item 179 — A.ii DUAL-SMOKE-POSTFIX forced-degradation arm HELD (dispatch failure) — 2026-07-27T08:39:54Z
+- **Stage A.ii status:** HELD — controller-owned dispatch defect (created_by FK violation), not an emitter or Engine-B defect.
+- **Actions this turn:** SET `LTP_TEST_FORCE_WRITE_AROUND=unit-test-only-2026-07-27` → inserted canonical born-state batch `6003880f-ba15-4a11-856e-94ab4dc5f4ce` → kicked wrapped batch (§16 pre-ping PASSED both attempts, expected=enforce actual=enforce, target build_stamp `ltp-risk-pre-waved-emitter-fixes@2026-07-27T06:55:00Z`, orchestrator `qbo-corrections-bundle-mode-assert@2026-07-27T06:10:00Z`) → batch terminated `failed/done` with `tool_results[0].error="seed insert: insert or update on table \"quality_runs\" violates foreign key constraint \"quality_runs_created_by_fkey\""` → DELETED `LTP_TEST_FORCE_WRITE_AROUND` to restore pre-arm state.
+- **Evidence collected:** NONE from the forced-degradation arm (no quality_runs row, no composition, write-around path never exercised). A.i clean-arm evidence and the four root-cause traces in `docs/courier/DUAL-SMOKE-POSTFIX-2026-07-27.md` remain valid.
+- **Courier append:** `docs/courier/DUAL-SMOKE-POSTFIX-2026-07-27.md` extended with A.ii section + DECLARED-COUNT CONFORMANCE clause candidate restatement.
+- **Chain state:** Stage A INCOMPLETE — A.ii must be re-run with a real admin `created_by` UUID (controller fix, not pipeline). Stage B (SMOKE-FIX-ROUND) NOT executed this turn per Option-2 discipline (gate: A courier complete with both arms). Stages C/D remain gated on B.
+- **CEO order recall (verbatim, 2026-07-27):** "go on courier. And go on Engine B-led batch of 6 after smoke test fixes are applied."
+- **Next controller turn requirements:** (i) obtain an admin auth.users.id for canonical born-state inserts; (ii) re-execute A.ii forced-degradation arm (SET secret → kick → verify write-around composition → DELETE secret); (iii) then Stage B per its standing dispatch — cohort fix must write to `submission_summary` (the surface grader/customers see), NOT `cross_tool_recommendations` (CUT); count-expansion fix at `quality-batch-orchestrator/index.ts:381` + `run-quality-batch/index.ts:1908`; leak-lexicon at LEAK-PREV-P2 serializer boundary; (iv) include Lovable security panel's 4 issues in Stage-B courier appendix (titles + severity only, no in-chain fixes unless they touch chain code paths).
+- **Restoration verified:** `LTP_TEST_FORCE_WRITE_AROUND` no longer present in project secrets; edge functions returned to pre-arm behavior on the implicit delete redeploy.
