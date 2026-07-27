@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T09:47:53Z
+**Last updated:** 2026-07-27T12:52:47Z
 
 ---
 
@@ -3535,3 +3535,4 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Ready surface:** `run-cppa-risk-assessment` ping stamp `ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z`; `persist_first_retry=retry-budget@2026-07-27-persistfirst`; `safe_finalize=safe-finalize@2026-07-27-hangfix`; `composition_enforce=1`; `ltp_mode=enforce`. Belt-and-suspenders redeploy performed prior turn; ping re-verified identical post-redeploy. Wire-site source confirmed to contain `withRetryPersistFirst`.
 - **Owed on relaunch:** CONTINUATION-5 steps 9, 9b, 10, 11, 12. Both dead smokes (#153, #154) remain non-evidential; §22.1 clean-arm counter unchanged at **0/3 for `cppa-risk`**.
 - **Nudge outcome:** No in-flight work on agent side; no code, no redeploy, no smoke kick. HELD note recorded per §R6 controller-courier discipline.
+- **2026-07-27T12:52:47Z nudge:** State remains HELD. No controller re-insertion received yet. No new deploy, no new smoke, no code changes. Awaiting CEO/controller relaunch of the wrapped §18 smoke to resume Stage-B CONTINUATION-5.
