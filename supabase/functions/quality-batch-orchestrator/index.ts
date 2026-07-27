@@ -434,13 +434,33 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
 
 
 async function markTerminalAll(runId: string, patch: Record<string, unknown>) {
-  await admin().from("quality_batch_runs").update({
-    ...patch,
-    completed_at: new Date().toISOString(),
-  }).eq("id", runId);
-  // DS-T2b: terminate the paired contract (fail-open).
   const status = String((patch as any).status ?? "error") as
     "complete" | "failed" | "cancelled" | "error";
+  const finalPatch: Record<string, unknown> = { ...patch, completed_at: new Date().toISOString() };
+  // STAGE-B CONTINUATION-4 (item 195) §16.n — DECLARED/ACTUAL COUNT.
+  // At terminal, write actual_count from observed tool_results. Conformance
+  // (declared_count === actual_count when status='complete') is asserted
+  // here in-line; historical rows with NULL declared_count are exempt.
+  try {
+    const { data: run } = await admin().from("quality_batch_runs")
+      .select("declared_count, batch_size, tool_results").eq("id", runId).maybeSingle();
+    const tr = Array.isArray((run as any)?.tool_results) ? (run as any).tool_results : [];
+    const completeCount = tr.filter((r: any) => r?.final_status === "complete" || r?.status === "complete").length;
+    const batchSize = Number((run as any)?.batch_size ?? 0);
+    // actual_count = per-tool complete count × batch_size (docs delivered).
+    const actualCount = completeCount * (batchSize || 1);
+    finalPatch.actual_count = actualCount;
+    const declared = (run as any)?.declared_count;
+    if (status === "complete" && declared != null && declared !== actualCount) {
+      console.warn(JSON.stringify({
+        evt: "count_conformance_violation", runId,
+        declared_count: declared, actual_count: actualCount, build_stamp: BUILD_STAMP,
+      }));
+    }
+  } catch (e) {
+    console.warn("[markTerminalAll] actual_count compute failed (non-fatal):", (e as Error)?.message);
+  }
+  await admin().from("quality_batch_runs").update(finalPatch).eq("id", runId);
   const lastError = (patch as any).last_error as string | undefined;
   await dcTerminateBatchContract(CONTRACT_DEPS, runId, status, lastError);
 }
