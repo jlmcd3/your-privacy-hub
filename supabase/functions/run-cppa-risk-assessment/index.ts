@@ -14,12 +14,14 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-waveb2-closure@2026-07-27T04:20:00Z";
+export const BUILD_STAMP = "ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
-console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} design=docs/design/LEGAL-TEST-PIPELINE.md subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
+const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
+console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
+console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
-console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b`);
+console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED waveb2_closure=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b+atomic_tokens+info_needed_contradiction`);
 import {
   newVocabScrubMetrics,
   scrubReportVocab,
@@ -3428,6 +3430,36 @@ Deno.serve(async (req) => {
   console.log(`[qb9-rcb1] run-cppa-risk-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-cppa-risk-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // ── MEASUREMENT-VALIDITY LAW (LEGAL-TEST-PIPELINE.md §16) ─────────
+  // GET /?ping=1 returns the reported ltp_mode + build_stamp so a batch
+  // harness can pre-assert the generator's configuration matches its
+  // declared expectation before spending model credits. No side effects.
+  const _url = new URL(req.url);
+  if (req.method === "GET" && _url.searchParams.get("ping") === "1") {
+    return new Response(JSON.stringify({
+      fn: "run-cppa-risk-assessment",
+      build_stamp: BUILD_STAMP,
+      ltp_mode: LTP_MODE_BOOT,
+      ltp_version: "ltp-risk-p2",
+    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
+  // a mismatch aborts before any generation work runs.
+  const _modeExpected = req.headers.get("x-ltp-mode-expected");
+  if (_modeExpected && _modeExpected !== LTP_MODE_BOOT) {
+    console.log(JSON.stringify({
+      evt: "ltp_mode_mismatch_abort", fn: "run-cppa-risk-assessment",
+      expected: _modeExpected, actual: LTP_MODE_BOOT, build_stamp: BUILD_STAMP,
+    }));
+    return new Response(JSON.stringify({
+      error: "ltp_mode_mismatch",
+      expected: _modeExpected,
+      actual: LTP_MODE_BOOT,
+      build_stamp: BUILD_STAMP,
+      law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
+    }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 
   const caller = await verifyCaller(req, "user");
   if (!caller.ok) {

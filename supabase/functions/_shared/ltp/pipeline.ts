@@ -70,8 +70,13 @@ export interface RunLtpInput {
 
 const SUBSUMED_GUARDS = ["_risk_citation_dup_fix", "_w18_risk_vocab", "_w15_risk_va"];
 
+export function ltpMode(): "shadow" | "enforce" {
+  return Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
+}
+
 export function runLegalTestPipelineShadow(input: RunLtpInput): LtpTelemetry {
   const t0 = Date.now();
+  const _mode = ltpMode();
   try {
     const plan = derivePlan(input);
     const guide = runGuideStage(plan);
@@ -86,7 +91,7 @@ export function runLegalTestPipelineShadow(input: RunLtpInput): LtpTelemetry {
 
     return {
       version: LTP_STAMP,
-      mode: "shadow",
+      mode: _mode,
       ran: true,
       elapsed_ms: Date.now() - t0,
       derive: {
@@ -117,7 +122,7 @@ export function runLegalTestPipelineShadow(input: RunLtpInput): LtpTelemetry {
   } catch (e) {
     return {
       version: LTP_STAMP,
-      mode: "shadow",
+      mode: _mode,
       ran: false,
       elapsed_ms: Date.now() - t0,
       derive: { propositions: 0, type_r: 0, type_w: 0, type_j: 0, gates_total: 0, gates_blocking: 0, write_around: true },
