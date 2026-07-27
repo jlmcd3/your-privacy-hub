@@ -50,8 +50,32 @@ A function invocation that has already persisted a completed document must not b
 
 ## 6. REGRESSION TESTS
 
-`_shared/ltp/retry-budget.branch-correction.test.ts` covers the clock contract, including the new construction check that latest-start budget + max post-lint LLM call + reserve fits under the 15-minute E2E ceiling.
+`_shared/ltp/retry-budget.branch-correction.test.ts` covers the clock contract, including the new construction check that latest-start budget + max post-lint LLM call + reserve fits under the 15-minute E2E ceiling. Verified in sandbox: **7/7 green**.
 
-## 7. DISPOSITION
+## 7. DEPLOY + §16 PING-PROVE
+
+Deployed `run-cppa-risk-assessment`, `run-quality-batch`, and `reap-stuck-generations`.
+
+GET `run-cppa-risk-assessment?ping=1` returns:
+
+```json
+{
+  "build_stamp": "ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z",
+  "composition_enforce": "1",
+  "fn": "run-cppa-risk-assessment",
+  "ltp_mode": "enforce",
+  "ltp_version": "ltp-risk-p2",
+  "persist_first_retry": "retry-budget@2026-07-27-persistfirst",
+  "post_lint_llm_budget_ms": 300000,
+  "post_lint_llm_call_timeout_ms": 120000,
+  "post_lint_pass1_timeout_ms": 75000,
+  "report_completion_gate": "final-status-and-report-data@2026-07-27-smoke-latency-rootcause",
+  "safe_finalize": "safe-finalize@2026-07-27-hangfix"
+}
+```
+
+No `persist_early_snapshot` key remains.
+
+## 8. DISPOSITION
 
 **READY-FOR-RELAUNCH. HARD STOP.** Smokes #153, #154, and #155 remain non-evidential; §22.1 clean-arm counter remains **0/3 for `cppa-risk`**.

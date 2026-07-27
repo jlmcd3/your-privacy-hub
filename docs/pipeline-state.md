@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T16:25Z (Item 203 — SMOKE-LATENCY ROOTCAUSE: invalid persist-early removed; final-only report_data gate; clock contract bounded; build ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z; READY-FOR-RELAUNCH)
+**Last updated:** 2026-07-27T16:31Z (Item 203 — SMOKE-LATENCY ROOTCAUSE: invalid persist-early removed; final-only report_data gate; clock contract bounded; deployed/ping-proved; READY-FOR-RELAUNCH)
 
 ---
 
@@ -3582,8 +3582,9 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Clock contract:** `_shared/ltp/retry-budget.ts` keeps 15-min E2E / 5-min margin, refuses retries after 4 minutes, reserves 3 minutes for finalize/serializer/persist, and now exports bounded post-lint LLM call caps (`POST_LINT_LLM_CALL_TIMEOUT_MS=120000`, `POST_LINT_PASS1_TIMEOUT_MS=75000`). Post-gen retry, forward-path retry, CoT-leak retry, and Pass-1 enforce preview all use these caps; Pass-1 runs max one attempt in clock mode.
 - **Invocation-status semantics:** `run-cppa-risk-assessment` now converts a caught post-completion error into `function_runs.status='success'` if the source assessment is already `status='complete'` with `report_data`. `reap-stuck-generations` now recovers stuck `function_runs` to success when the referenced assessment has already completed, instead of writing `status='error'`.
 - **Spec-writeback:** `docs/design/LEGAL-TEST-PIPELINE.md §30` amended from unsafe persist-before-clock-spend to **measurement-valid persistence**: no pre-final document may appear on the harness completion surface unless fully finalized or explicitly non-completing.
-- **Regression tests:** `_shared/ltp/retry-budget.branch-correction.test.ts` adds the post-lint LLM cap construction check: latest-start budget + max call + reserve must fit under the 15-min E2E ceiling.
+- **Regression tests:** `_shared/ltp/retry-budget.branch-correction.test.ts` adds the post-lint LLM cap construction check: latest-start budget + max call + reserve must fit under the 15-min E2E ceiling. Verified `deno test` **7/7 green**.
 - **Build stamp:** `ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z`.
+- **Deploy + §16 ping-prove:** deployed `run-cppa-risk-assessment`, `run-quality-batch`, and `reap-stuck-generations`. GET `run-cppa-risk-assessment?ping=1` returns `build_stamp="ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z"`, `composition_enforce="1"`, `ltp_mode="enforce"`, `report_completion_gate="final-status-and-report-data@2026-07-27-smoke-latency-rootcause"`, `post_lint_llm_budget_ms=300000`, `post_lint_llm_call_timeout_ms=120000`, `post_lint_pass1_timeout_ms=75000`; no `persist_early_snapshot` key remains.
 - **Courier:** `docs/courier/SMOKE-LATENCY-ROOTCAUSE-2026-07-27.md`.
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; smokes #153, #154, #155 remain non-evidential.
 - **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller re-inserts the smoke row only after verifying the ping surface and deployed gates.
