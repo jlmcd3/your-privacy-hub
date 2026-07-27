@@ -3701,3 +3701,16 @@ CEO direction 2026-07-27: "these smoke test fixes may be particular to cppa-risk
 - (a) The silent-document-loss retry class and completion-on-presence race plausibly exist in the other nine `run-*` functions today — **pre-migration defect-class audit added to the Step-0 checklist** of `docs/design/PRODUCT-MIGRATION-CHECKLIST.md` scope (courier note; file edit deferred until a port is authorized).
 - (b) `cppa-cyber` shares § 7121 directly, making the §31 phase-in schedule surface (Item 204 Defect-B) its fastest port.
 - **No port work authorized.**
+
+## Item 211 — Smoke #8 BRANCH FAIL (2026-07-27)
+
+Batch `94ce0449-2910-48e8-ba7c-224b6f0c1d16` → run #160 `70b6c882-2040-4d28-889a-1bbf7e610cca` → assessment `fd485f92-d60b-44ae-83b3-9d488aa64717`.
+
+- Run: `status=complete`, E2E 22:10:03.044Z → 22:16:13.692Z (6m10s, inside 15-min clock), `score_overall=73`, `error=NULL`.
+- `composition_finalize`: `build_stamp=ltp-risk-item208-shipped-surface-guard@2026-07-27T19:30:00Z`, `mode=enforce`, `errored=true`, `enforce_violation=true`, `error_message="[composition-finalize] surface-guard: 1 CUT-list violation(s): cross_tool_recommendations"`, `hits=[]`, `fragment_omit_paths=[]`, `elapsed_ms=4`, `budget_exceeded=false`, `safe_version=safe-finalize@2026-07-27-item206-hits`.
+- `shipped_surface_guard`: `cut_violations=[]`, `unowned_paths=[]`, `enforce_violation=false`. Shipped artifact conforms to all cut rulings; `cross_tool_recommendations` absent (serializer stripped); `submission_summary.cybersecurity_audit_schedule` present; `inconsistency_flags=[]`.
+- BRANCH FAIL: composer wrote to CUT-REMOVE `cross_tool_recommendations`; pre-serializer finalize guard raised (safe-finalize absorbed per persist invariant). Item-209 shipped-guard proven clean on the wire.
+- Stage-C candidate (no code change this turn): outer catch writes raw error envelopes (`{"error":"Anthropic 529: ..."}`) into `report_data` — belongs in a status/error column, not the report surface.
+- §22.1 clean-arm counter (cppa-risk): **0/3** (smokes #153–#155, #4–#8 non-evidential).
+
+**HARD STOP for controller review.**
