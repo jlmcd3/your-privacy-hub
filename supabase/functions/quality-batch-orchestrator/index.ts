@@ -45,7 +45,7 @@ import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
 import { assertCreatedByIsRealUser, CreatedByGuardError } from "../_shared/harness/created-by-guard.ts";
 
 
-export const BUILD_STAMP = "qbo-stage-b-cont-createdby-guard@2026-07-27T10:15:00Z";
+export const BUILD_STAMP = "qbo-stage-b-blockb-declared-actual-count@2026-07-27T13:35:00Z";
 
 // created-by lookup bound to auth.admin.getUserById; returns true iff the
 // UUID resolves to an existing auth user. Injected into assertCreatedByIsRealUser
