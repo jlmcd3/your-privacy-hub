@@ -2773,3 +2773,59 @@ Batch `9c1e3a8f` was marked `cancel_requested=t` at 02:03:07Z but was never pick
 **No files changed** except this ledger and the header restamp.
 
 **Status:** HELD-awaiting-9c1e3a8f-termination. Monitor to re-observe next tick.
+
+---
+
+### Item 162 — DONE: Wave C unblocked + fresh relaunch (a1b2c3d4…) + harness cancel-any-pre-execution law (LTP §17)
+
+**Dispatch:** controller unblock + writeback, 2026-07-27 ~03:15Z (CEO-approved via item 161 candidate resolutions #1 + #2 executed together in a single bounded turn). Single-launch discipline preserved: old Wave C row cancelled in the same migration that inserted the fresh one.
+
+**(1) Zombie 9c1e3a8f finalized (controller, via query_database, per item 161 addendum):** row now shows `status='cancelled', phase='done', cancel_requested=t, last_error='[…]'`. Mutex free.
+
+**(2) Prior Wave C row 2a3c07a2 relaunched fresh (stale pre-launch state per item 161):** finalized to `cancelled/done` in the same migration as the new insert with diagnostic `[wave-c-relaunch 2026-07-27T03:20Z: never entered orchestrator loop (queued/starting >60min, current_quality_run_id NULL, 0 quality_batch_log rows); superseded by fresh Wave C launch under same spec per LTP §17 cancel-any-pre-execution rule]`. Nursing rejected.
+
+**(3) Fresh Wave C batch launched (single launch, same spec):**
+
+- `quality_batch_runs.id = a1b2c3d4-e5f6-4890-abcd-ef0123456789`
+- `tools={cppa-risk}`, `batch_size=6`, `instrument_version=gc-2026-07-27-s6-eu-uk-ca-au-sg`, `campaign_id=NULL`.
+- Kicked via `kick-wrapped-batch` with `mode_expected="enforce"`, `target_fn="run-cppa-risk-assessment"`. Kicker response:
+
+```
+{
+  "mode_check": {
+    "actual": "enforce",
+    "build_stamp": "ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z",
+    "expected": "enforce",
+    "target_fn": "run-cppa-risk-assessment"
+  },
+  "status": 202,
+  "upstream": "{\"ok\":true,\"build_stamp\":\"ds-t2c-orch-hbfix@2026-07-25T04:54:00Z\"}"
+}
+```
+
+Pre-assertion PASSED (enforce == enforce); orchestrator accepted the kick with 202. Monitor owns Wave C extraction on terminal.
+
+**(4) HARNESS WRITEBACK — cancel-any-pre-execution law (LTP §17):**
+
+Root cause of the item 161 zombie class: `cancel_requested=true` on a row that never enters the orchestrator loop is served by NO automation — `batch-kickoff-pickup`'s pre-fix filter targeted `status='running' AND phase='kickoff'` (missing `queued`), and the reaper targets `running_tool` + kickoff, not `queued`. Cancels on `queued` rows sat forever.
+
+Structural fix (deployed this turn, `batch-kickoff-pickup` BUILD_STAMP `qbp25-cancel-any-pre-execution@2026-07-27T03:15:00Z`):
+
+- `decidePickup(...)` extended with a highest-priority branch: any non-terminal row with `cancel_requested=true` AND `phase != 'running_tool'` returns a new `cancel_finalize` decision, regardless of `status` (`queued`, `running`, or any pre-execution state). The orchestrator loop retains authority for `phase='running_tool'` cancels (it observes the flag mid-loop).
+- Query widened from `.eq("status","running")` to `.not("status","in","(complete,failed,cancelled)")` so `queued` rows are visible to the picker.
+- New `cancel_finalize` server-side action: `UPDATE quality_batch_runs SET status='cancelled', phase='done', last_error='[kickoff-pickup: cancel_requested honored in pre-execution phase=… status=… (LTP §17)]', completed_at=now() WHERE id=… AND cancel_requested=true AND status NOT IN (terminal)`.
+- Unit tests: `supabase/functions/batch-kickoff-pickup/cancel-any-pre-execution.test.ts` — 6/6 pass covering queued+cancel→finalize, kickoff+cancel→finalize, running_tool+cancel→single_flight_skip (loop owns it), terminal+cancel→noop, cancel-priority-over-kick, regression (no-cancel behavior unchanged).
+
+Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success.
+
+**(5) Design law — LEGAL-TEST-PIPELINE.md §17 appended** (harness section; generalized clause): *"Cancel requests are honored in EVERY pre-execution state, not only mid-loop."* Full text below and in `docs/design/LEGAL-TEST-PIPELINE.md`.
+
+**Files touched this turn:**
+- `supabase/functions/batch-kickoff-pickup/index.ts` — BUILD_STAMP + decidePickup extension + server-side cancel_finalize action.
+- `supabase/functions/batch-kickoff-pickup/cancel-any-pre-execution.test.ts` — NEW.
+- `docs/design/LEGAL-TEST-PIPELINE.md` — §17 appended.
+- `docs/pipeline-state.md` — this item + header restamp.
+
+**Monitor:** Wave C extraction owned by monitor on batch `a1b2c3d4-e5f6-4890-abcd-ef0123456789` terminal.
+
+**Status:** DONE.
