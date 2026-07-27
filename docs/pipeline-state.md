@@ -2743,3 +2743,33 @@ Ping response (this turn): `{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-
 - `docs/pipeline-state.md` (this item + header restamp)
 
 **Status:** DONE.
+
+---
+
+### Item 161 — HELD: Wave C batch 2a3c07a2 stalled behind un-terminated 9c1e3a8f (monitor observation)
+
+**Dispatch:** monitor nudge, 2026-07-27 ~02:44Z. Observation-only turn; no dispatch re-send, no code, no deploys. Single-launch discipline observed.
+
+**Observed state (psql, 02:46Z):**
+
+| batch_id | status | phase | cancel_requested | current_quality_run_id | last_heartbeat_at | started_at |
+|---|---|---|---|---|---|---|
+| `2a3c07a2-7bd3-4250-a73e-ce19ea725633` (Wave C proper) | queued | starting | f | NULL | 2026-07-27T02:42:56Z | 2026-07-27T02:12:16Z |
+| `9c1e3a8f-5b2d-4e7c-9a4b-8f2d1e5c7b3a` (superseded pre-fix launch) | queued | starting | **t** | NULL | 2026-07-27T02:03:07Z | 2026-07-27T02:02:56Z |
+
+**Corroborating evidence:**
+- `quality_batch_log` rows for both batch_ids: **0**.
+- `cppa_assessments` created since 02:00Z: **0**.
+- `quality-batch-orchestrator` recent logs: `dc_heartbeat_no_live_contract` for `2a3c07a2` at 02:16:16Z and 02:02:16Z — orchestrator wakes, finds no live delivery contract to service, and exits without launching. Heartbeat on 2a3c07a2 continues advancing (02:42:56Z) via the heartbeat-only path, but current_quality_run_id remains NULL and no doc has been created.
+- Prior batch (`127a6714`, Wave B.2) began doc creation ≈4 min after its `started_at`; 2a3c07a2 is at +34 min with no doc.
+
+**Root-cause hypothesis (matches evidence):**
+Batch `9c1e3a8f` was marked `cancel_requested=t` at 02:03:07Z but was never picked up by the orchestrator loop — the cancel check runs inside the loop, so a batch that never enters `running` never observes its own cancel flag. Its stale heartbeat (02:03Z) also means the delivery-sentinel path did not reap it. It sits in `queued` indefinitely and holds whatever single-launch mutex the kickoff-pickup path honors, blocking `2a3c07a2` from graduating out of `queued/starting`.
+
+**HELD note (per single-launch/dedup discipline):** Wave C measurement is HELD-pending-9c1e3a8f-termination. No relaunch, no manual poke this turn. Two candidate resolutions (either requires a separate CEO-approved turn; not executed here):
+1. Terminal-force `9c1e3a8f` via migration (status→'cancelled', completed_at=now(), last_error='never-started; cancel_requested honored post-hoc'); then `batch-kickoff-pickup` should pick up `2a3c07a2` on its next tick.
+2. Extend `batch-kickoff-pickup` / `delivery-sentinel` to reap `queued`-and-`cancel_requested=t` batches whose heartbeat is stale beyond N minutes — closes this class as a standing rule (candidate spec-writeback into LEGAL-TEST-PIPELINE.md §16 or the batch-wrap standing rule).
+
+**No files changed** except this ledger and the header restamp.
+
+**Status:** HELD-awaiting-9c1e3a8f-termination. Monitor to re-observe next tick.
