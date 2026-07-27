@@ -80,11 +80,13 @@ function writeAroundPlan(input: DeriveInput, reason: string): RenderPlan {
  */
 export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
   const t0 = Date.now();
-  // ENGINE B ALWAYS ON (CEO ruling 2026-07-27; ledger item 170).
-  // LTP_ENFORCE_ENABLED and every mode branch removed. The Legal Test
-  // Pipeline is the ONLY composition path. Safety = conservative
-  // write-around per §16/§28 (LEGAL-TEST-PIPELINE.md).
-
+  const enforceEnabled = Deno.env.get("LTP_ENFORCE_ENABLED") === "1";
+  if (!enforceEnabled) {
+    return {
+      plan: derivePlan(input),
+      telemetry: { ran: false, attempts: 0, ok: false, latency_ms: 0, write_around: false, validator_issues: 0 },
+    };
+  }
 
   let lastErr = "";
   for (let attempt = 1; attempt <= PASS1_MAX_ATTEMPTS; attempt++) {

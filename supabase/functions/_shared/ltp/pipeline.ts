@@ -1,17 +1,17 @@
 /**
- * LTP — LEGAL TEST PIPELINE ORCHESTRATOR.
+ * LTP — LEGAL TEST PIPELINE ORCHESTRATOR (Phase-2 shadow-mode).
  *
- * ENGINE B ALWAYS ON (CEO ruling 2026-07-27; ledger item 170; verbatim:
- * "Engine B has to ALWAYS be on. Where we apply it and how are the tricky
- * parts, but the Legal Test is what frames the initial trajectory of the
- * report, and without that, we lose the trajectory.").
+ * Sequences Derive → Guide → (deterministic render hooks) → Verify and
+ * returns a compact telemetry envelope for `_meta.internal.legal_test_pipeline`
+ * per LEGAL-TEST-PIPELINE.md §8. In shadow mode the customer-visible
+ * report_data is NOT modified; the envelope is stashed under `_meta.internal`
+ * only, which is stripped by the existing serializer whitelist.
  *
- * The mode toggle (LTP_ENFORCE_ENABLED, `ltpMode()`, "shadow" vs "enforce"
- * telemetry label) is REMOVED. The pipeline is the sole composition path;
- * degradation is per-section conservative write-around, never a fallback
- * to a non-Legal-Test composition state. See LEGAL-TEST-PIPELINE.md §16
- * (simplified: version-mismatch, not mode-mismatch) and §28 (switch
- * removal is the mandatory terminus of every product's shadow phase).
+ * CEO Q2 (retry budget): Derive's shadow implementation is deterministic and
+ * cannot fail beyond conservative_write_around, so N=2 is trivially satisfied;
+ * the retry loop wires to the model-driven Pass-1 in a downstream turn.
+ * CEO Q3 (routing): shadow mode makes no model call; enforce-mode uses the
+ * same model as the existing generation call.
  *
  * Never throws; failures are captured on the envelope and never bubble up.
  */
@@ -21,29 +21,12 @@ import { chooseVariant, computeCloseness } from "./closeness.ts";
 import { runVerifyStage } from "./verify.ts";
 import { validateRenderPlan } from "../render-plan/validators.ts";
 import { WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
-import { PASS1_DERIVE_PROMPT_VERSION } from "./content/pass1-derive-prompt.ts";
-import { PASS2_TEMPLATES_VERSION } from "./content/pass2-templates.ts";
-import { RENDERPLAN_WIRE_SCHEMA_VERSION } from "./content/renderplan-wire-schema.ts";
 
 export const LTP_STAMP = "ltp-risk-p2";
 
-/**
- * Content-set versions carried on every generation for §16 version-match
- * assertion (replaces mode-match). Batches assert presence + equality of
- * these fields against the harness-declared expectation.
- */
-export const LTP_PIPELINE_VERSION = LTP_STAMP;
-export const LTP_CONTENT_VERSIONS = {
-  pipeline: LTP_PIPELINE_VERSION,
-  pass1_prompt: PASS1_DERIVE_PROMPT_VERSION,
-  pass2_templates: PASS2_TEMPLATES_VERSION,
-  renderplan_wire_schema: RENDERPLAN_WIRE_SCHEMA_VERSION,
-} as const;
-
 export interface LtpTelemetry {
   readonly version: string;
-  readonly pipeline_version: string;
-  readonly content_versions: typeof LTP_CONTENT_VERSIONS;
+  readonly mode: "shadow" | "enforce";
   readonly ran: boolean;
   readonly elapsed_ms: number;
   readonly derive: {
@@ -87,12 +70,16 @@ export interface RunLtpInput {
 
 const SUBSUMED_GUARDS = ["_risk_citation_dup_fix", "_w18_risk_vocab", "_w15_risk_va"];
 
-/**
- * Run the derive/guide/closeness/verify orchestrator and return a compact
- * telemetry envelope. Engine B always on; no mode branching.
- */
-export function runLegalTestPipeline(input: RunLtpInput): LtpTelemetry {
+export function ltpMode(): "shadow" | "enforce" {
+  return Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
+}
+
+export function runLegalTestPipelineShadow(input: RunLtpInput): LtpTelemetry {
   const t0 = Date.now();
+  // The shadow orchestrator is the shadow-arm computation; its `mode` field is
+  // always "shadow" by definition. Fleet-level enforce/shadow selection lives
+  // in `ltpMode()` and is reported separately by the enforce-arm (runPass1Llm).
+  const _mode: "shadow" = "shadow";
   try {
     const plan = derivePlan(input);
     const guide = runGuideStage(plan);
@@ -107,8 +94,7 @@ export function runLegalTestPipeline(input: RunLtpInput): LtpTelemetry {
 
     return {
       version: LTP_STAMP,
-      pipeline_version: LTP_PIPELINE_VERSION,
-      content_versions: LTP_CONTENT_VERSIONS,
+      mode: _mode,
       ran: true,
       elapsed_ms: Date.now() - t0,
       derive: {
@@ -139,8 +125,7 @@ export function runLegalTestPipeline(input: RunLtpInput): LtpTelemetry {
   } catch (e) {
     return {
       version: LTP_STAMP,
-      pipeline_version: LTP_PIPELINE_VERSION,
-      content_versions: LTP_CONTENT_VERSIONS,
+      mode: _mode,
       ran: false,
       elapsed_ms: Date.now() - t0,
       derive: { propositions: 0, type_r: 0, type_w: 0, type_j: 0, gates_total: 0, gates_blocking: 0, write_around: true },
@@ -153,10 +138,3 @@ export function runLegalTestPipeline(input: RunLtpInput): LtpTelemetry {
     };
   }
 }
-
-/**
- * @deprecated Retained as a thin alias for callers not yet migrated to
- * `runLegalTestPipeline`. Both produce identical output — there is no
- * shadow arm anymore. Remove call sites, then remove this alias.
- */
-export const runLegalTestPipelineShadow = runLegalTestPipeline;

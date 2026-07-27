@@ -634,31 +634,3 @@ Any failed assertion aborts the batch pre-launch with HTTP 409 `narrative_missin
 **Motivating case.** Item 169: WAVE-D READINESS STEP 1 verified §16 (ping enforce, boot enforce, hash frozen) and passed all-green. STEP 2 smoke then produced 3 docs with narrative absent. §16 alone cannot catch composition-wiring gaps; §27 closes the gap by asserting on a real payload.
 
 **Sequencing law.** §27 wiring is itself launch infrastructure. Its deployment turn is preceded by NO measurement; the next measurement turn after §27 lands uses the newly-asserted path from the first smoke.
-
-## 28. SWITCH-REMOVAL TERMINUS (CEO ruling 2026-07-27; ledger item 170; standing, product-agnostic)
-
-**CEO ruling, verbatim.** "Engine B has to ALWAYS be on. Where we apply it and how are the tricky parts, but the Legal Test is what frames the initial trajectory of the report, and without that, we lose the trajectory."
-
-**Rule.** For every product migration, the shadow phase is BUILD-STAGE ONLY. It MUST terminate in **switch removal**, never in switch-on. A production system MAY NOT possess a reachable non-Legal-Test composition state. There is no runtime toggle, no environment gate, no fallback branch back to Engine A composition. Engine A history is preserved in git; it is not reachable at runtime.
-
-**Sequencing (per product).**
-
-1. Shadow-mode overlay validates the pipeline against live traffic without touching customer surfaces.
-2. Content anchoring, wiring, and citation closures land.
-3. **SWITCH REMOVAL turn.** The mode toggle, its environment variable, and every branch that reads it are DELETED (not defaulted). The Pass-1 adapter runs unconditionally. Telemetry retires the `mode` field.
-4. Only after switch removal does measurement resume, on the newly-canonical always-on path.
-
-**Safety model.** Degradation lives inside the pipeline. Per-section conservative write-around (§8 telemetry + Items-for-your-review surfacing) is the sole failure mode; a customer is never blocked, and the composition trajectory is never abandoned for a non-Legal-Test path. A "global fallback" to Engine A composition is a §28 defect by construction.
-
-**§16 simplification (folded).** With no modes, the measurement-validity assertion becomes VERSION-based:
-
-- Every generation records `pipeline_version` and `content_versions` (Pass-1 prompt, Pass-2 templates, RenderPlan wire schema) in `_meta.internal.legal_test_pipeline`.
-- Batches assert version PRESENCE and EQUALITY, not mode equality.
-- Mode-mismatch aborts are replaced by version-mismatch aborts (HTTP 409 `ltp_pipeline_version_mismatch`).
-- The boot line prints `pipeline_version` and `content_versions`; the "shadow" vocabulary is retired for risk and MUST NOT reappear in any new product's boot log.
-
-**Header contract.** Callers assert `x-ltp-pipeline-version-expected`; the retired `x-ltp-mode-expected` header is ignored. `kick-wrapped-batch` accepts `pipeline_version_expected` + `target_fn` and pings before spawning; the retired `mode_expected` input is warned and dropped.
-
-**Motivating case.** Item 169 accounting (Link A/B/C) showed §16's mode-shaped assertion could not catch composition-wiring gaps and could not prevent silent regressions on any deploy that lost the enforce env. Switch removal makes both classes structurally impossible: there is no env to lose and no non-Legal-Test state to regress to.
-
-**Enforcement.** A product function that ships a mode branch, an `LTP_*_ENABLED` env read, or a "shadow" telemetry label after its switch-removal turn is a §28 defect. Any measurement launched against such a function is non-evidential.

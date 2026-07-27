@@ -11,26 +11,16 @@ import { PASS2_TEMPLATES, FIRM_VARIANT_CLOSENESS_MAX } from "./content/pass2-tem
 
 const buildStamp = "test-waveb";
 
-Deno.test("pass1-llm: runs unconditionally (Engine B always on, item 170)", async () => {
-  // No LTP_ENFORCE_ENABLED gate exists anymore; Pass-1 attempts the
-  // gateway on every call. With no LOVABLE_API_KEY the terminal write-
-  // around fires — proof that the adapter ran and degraded per §16/§28
-  // rather than skipping via a mode toggle.
-  Deno.env.delete("LTP_ENFORCE_ENABLED"); // presence must not matter
-  const prior = Deno.env.get("LOVABLE_API_KEY");
-  Deno.env.delete("LOVABLE_API_KEY");
-  try {
-    const res = await runPass1Llm({ intake: { q1_revenue: "10000000", q2_consumers: "50000" }, report_data: {}, buildStamp });
-    assert(res.telemetry.ran, "pass1 must run unconditionally");
-    assert(res.telemetry.write_around, "no api key -> write-around");
-    assertEquals(res.plan.conservative_write_around.triggered, true);
-    assertEquals(res.plan.product, "cppa-risk-assessment");
-  } finally {
-    if (prior) Deno.env.set("LOVABLE_API_KEY", prior);
-  }
+Deno.test("pass1-llm: write-around when LTP_ENFORCE_ENABLED is not set", async () => {
+  Deno.env.delete("LTP_ENFORCE_ENABLED");
+  const res = await runPass1Llm({ intake: { q1_revenue: "10000000", q2_consumers: "50000" }, report_data: {}, buildStamp });
+  assertEquals(res.telemetry.ran, false);
+  assertEquals(res.plan.plan_version, "v1");
+  assertEquals(res.plan.product, "cppa-risk-assessment");
 });
 
 Deno.test("pass1-llm: write-around fallback preserves customer path on gateway missing key", async () => {
+  Deno.env.set("LTP_ENFORCE_ENABLED", "1");
   const prior = Deno.env.get("LOVABLE_API_KEY");
   Deno.env.delete("LOVABLE_API_KEY");
   try {
@@ -40,9 +30,9 @@ Deno.test("pass1-llm: write-around fallback preserves customer path on gateway m
     assertEquals(res.plan.conservative_write_around.triggered, true);
   } finally {
     if (prior) Deno.env.set("LOVABLE_API_KEY", prior);
+    Deno.env.delete("LTP_ENFORCE_ENABLED");
   }
 });
-
 
 Deno.test("pass2-render: forbidden-token check catches § injection via slot", () => {
   const plan = derivePlan({ intake: { q1_revenue: "1000000" }, report_data: {}, buildStamp });

@@ -1,17 +1,17 @@
 // INSTRUMENT-EPOCH-AUDIT-S6 kick helper (2026-07-27, ledger item 155).
-// AMENDED ENGINE-B-ALWAYS-ON (2026-07-27, ledger item 170): measurement-
-// validity pre-assertion is now VERSION-BASED, not mode-based. Mode
-// toggles are retired system-wide; the Legal Test Pipeline is the only
-// composition path. See LEGAL-TEST-PIPELINE.md §16 (simplified) + §28.
+// AMENDED ENFORCE-MODE-REGRESSION-2026-07-27 (ledger item 159): now
+// implements the measurement-validity law (LEGAL-TEST-PIPELINE.md §16).
+// One-shot resume kicker for the Wave-B RELAUNCH standing rule (ledger
+// item 152): every measurement run MUST be batch-wrapped. Caller supplies
+// a pre-inserted `quality_batch_runs.id`; this function invokes the
+// quality-batch-orchestrator with service-role + x-internal-resume so
+// `runUnit(runId)` picks the batch up.
 //
-// Caller MAY supply `pipeline_version_expected` and `target_fn` (a slug
-// like "run-cppa-risk-assessment"). When provided, this kicker PINGS the
-// target function's GET /?ping=1 endpoint and aborts with 409 if the
-// target's reported `pipeline_version` differs from the expected value —
-// the batch NEVER launches against a mismatched generator.
-//
-// Legacy inputs (`mode_expected` + target's `ltp_mode`) still accepted
-// for one release cycle and normalized to a warning; they DO NOT gate.
+// MEASUREMENT-VALIDITY LAW: caller may also supply `mode_expected` and
+// `target_fn` (a slug like "run-cppa-risk-assessment"). When provided,
+// this kicker PINGS the target function's GET /?ping=1 endpoint and
+// aborts with 409 if the target's reported `ltp_mode` differs from
+// `mode_expected` — the batch NEVER launches on a mismatched generator.
 import { corsHeaders as cors } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -22,11 +22,8 @@ Deno.serve(async (req) => {
   let body: any = {};
   try { body = await req.json(); } catch { /* */ }
   const runId = String(body?.run_id ?? "");
-  const versionExpected = body?.pipeline_version_expected
-    ? String(body.pipeline_version_expected)
-    : null;
+  const modeExpected = body?.mode_expected ? String(body.mode_expected) : null;
   const targetFn = body?.target_fn ? String(body.target_fn) : null;
-  const legacyModeExpected = body?.mode_expected ? String(body.mode_expected) : null;
 
   if (!runId) {
     return new Response(JSON.stringify({ error: "run_id required (quality_batch_runs.id)" }), {
@@ -34,44 +31,32 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Measurement-validity pre-assertion (LEGAL-TEST-PIPELINE.md §16, simplified).
-  let version_check: Record<string, unknown> | null = null;
-  if (versionExpected && targetFn) {
+  // Measurement-validity pre-assertion (LEGAL-TEST-PIPELINE.md §16).
+  let mode_check: Record<string, unknown> | null = null;
+  if (modeExpected && targetFn) {
     try {
       const pr = await fetch(`${SUPABASE_URL}/functions/v1/${targetFn}?ping=1`, {
         method: "GET",
         headers: { "Authorization": `Bearer ${SERVICE_KEY}`, "apikey": SERVICE_KEY },
       });
       const pj = await pr.json().catch(() => ({} as any));
-      const actual = pj?.pipeline_version ?? pj?.ltp_version ?? null;
-      version_check = {
-        target_fn: targetFn,
-        expected: versionExpected,
-        actual,
-        content_versions: pj?.content_versions ?? null,
-        build_stamp: pj?.build_stamp ?? null,
-      };
-      if (actual !== versionExpected) {
-        console.log(JSON.stringify({ evt: "kick_wrapped_batch_version_mismatch_abort", run_id: runId, version_check }));
+      const actual = pj?.ltp_mode ?? null;
+      mode_check = { target_fn: targetFn, expected: modeExpected, actual, build_stamp: pj?.build_stamp ?? null };
+      if (actual !== modeExpected) {
+        console.log(JSON.stringify({ evt: "kick_wrapped_batch_mode_mismatch_abort", run_id: runId, mode_check }));
         return new Response(JSON.stringify({
-          error: "ltp_pipeline_version_mismatch",
-          law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity (simplified, item 170)",
-          version_check,
+          error: "ltp_mode_mismatch",
+          law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
+          mode_check,
         }), { status: 409, headers: { ...cors, "Content-Type": "application/json" } });
       }
     } catch (e) {
       return new Response(JSON.stringify({
-        error: "version_precheck_failed",
+        error: "mode_precheck_failed",
         law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
         detail: (e as Error)?.message ?? "unknown",
       }), { status: 409, headers: { ...cors, "Content-Type": "application/json" } });
     }
-  } else if (legacyModeExpected) {
-    console.log(JSON.stringify({
-      evt: "kick_wrapped_batch_legacy_mode_expected_ignored",
-      run_id: runId,
-      note: "mode toggles retired per ledger item 170; supply pipeline_version_expected instead",
-    }));
   }
 
   const r = await fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
@@ -88,7 +73,7 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({
     status: r.status,
     upstream: txt.slice(0, 500),
-    version_check,
+    mode_check,
   }), {
     status: 200, headers: { ...cors, "Content-Type": "application/json" },
   });

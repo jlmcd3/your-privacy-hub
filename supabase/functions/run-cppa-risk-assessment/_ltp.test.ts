@@ -1,7 +1,6 @@
 // LTP Phase-2 integration tests (shadow-mode). Deterministic; no network.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runLegalTestPipeline, runLegalTestPipelineShadow, LTP_STAMP, LTP_PIPELINE_VERSION } from "../_shared/ltp/pipeline.ts";
-
+import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { evaluateCppaRiskGates } from "../_shared/ltp/gate-eval.ts";
 import { derivePlan } from "../_shared/ltp/derive.ts";
 import { runGuideStage } from "../_shared/ltp/guide.ts";
@@ -17,25 +16,15 @@ const BASE_INTAKE = {
 
 const BASE_REPORT = { _meta: {}, executive_summary: {} };
 
-Deno.test("LTP: pipeline produces telemetry envelope (Engine B always on, item 170)", () => {
-  const t = runLegalTestPipeline({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
-  assertEquals((t as any).mode, undefined); // mode field retired per item 170
-  assertEquals(t.pipeline_version, LTP_PIPELINE_VERSION);
-  assert(t.content_versions.pass1_prompt.startsWith("pass1-derive-"));
+Deno.test("LTP: shadow orchestrator produces telemetry envelope", () => {
+  const t = runLegalTestPipelineShadow({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
+  assertEquals(t.mode, "shadow");
   assert(t.ran, "orchestrator should run");
   assert(t.version === LTP_STAMP);
   assert(t.derive.propositions > 0, "should derive propositions");
   assert(t.derive.type_r > 0, "should have Type R propositions");
   assert(!t.derive.write_around, "no write-around on happy path");
 });
-
-Deno.test("LTP: legacy runLegalTestPipelineShadow alias returns identical envelope", () => {
-  const a = runLegalTestPipeline({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
-  const b = runLegalTestPipelineShadow({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
-  assertEquals(a.pipeline_version, b.pipeline_version);
-  assertEquals(a.derive.propositions, b.derive.propositions);
-});
-
 
 Deno.test("LTP: ADMT gate blocks when q18_admt_use is negative", () => {
   const outcomes = evaluateCppaRiskGates({ q18_admt_use: "no" });
@@ -73,21 +62,21 @@ Deno.test("LTP: closeness heuristic + variant chooser deterministic", () => {
 });
 
 Deno.test("LTP: write-around trips on internal derive failure (never blocks)", () => {
+  // Passing a proxy that throws on any read forces the derive error path.
   const boom = new Proxy({}, { get() { throw new Error("simulated"); }, has() { throw new Error("simulated"); } }) as any;
-  const t = runLegalTestPipeline({ intake: boom, report_data: BASE_REPORT, buildStamp: "test@x" });
-  // Engine B always on: even on internal error, telemetry is produced.
-  assertEquals((t as any).mode, undefined);
+  const t = runLegalTestPipelineShadow({ intake: boom, report_data: BASE_REPORT, buildStamp: "test@x" });
+  // Shadow mode: even on internal error, telemetry is produced (ran=true or error captured)
+  assert(t.mode === "shadow");
   assert(typeof t.elapsed_ms === "number");
 });
 
 Deno.test("LTP: verify stage disabled by default", () => {
-  const t = runLegalTestPipeline({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
+  const t = runLegalTestPipelineShadow({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
   assertEquals(t.verify.enabled, false);
   assertEquals(t.verify.ran, false);
 });
 
 Deno.test("LTP: subsumed-guards telemetry names the interim scrubbers", () => {
-  const t = runLegalTestPipeline({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
+  const t = runLegalTestPipelineShadow({ intake: BASE_INTAKE, report_data: BASE_REPORT, buildStamp: "test@x" });
   assert(t.guards_subsumed_by_two_pass.includes("_risk_citation_dup_fix"));
 });
-
