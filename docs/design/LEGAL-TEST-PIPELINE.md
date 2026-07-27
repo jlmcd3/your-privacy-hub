@@ -568,6 +568,22 @@ The prior invariant — pickup selects `status='running' AND phase='kickoff'` on
 
 **Cost/benefit.** Smoke cost = 1 doc grader spend (cents). The night of 2026-07-27's cascade — enforce-mode silent-off, `queued/starting` stall, zombie mutex, placeholder-UUID replacement — is the counterfactual: any one of those would have surfaced on a smoke batch and cost minutes to unwind instead of hours.
 
+### 22.1 SMOKE-RETIREMENT RULE (CEO-approved 2026-07-27; standing, product-agnostic)
+
+**Scope (unchanged).** Smoke-before-measure applies ONLY after infrastructure / configuration / composition changes as enumerated in §22 Scope. It is **never** required on routine measurement waves.
+
+**Clean arm — evidence-gated retirement.** Each smoke run MUST record, in its courier, whether it caught ANY failure class that the deterministic assertion layer did not already flag. The assertion layer comprises: §16 configuration asserts (mode/BUILD_STAMP/grader-context pre-ping), the surface-ownership write-guard, the choke-point value screen (leak lexicon + statutory-text class), count conformance, and post-render structural asserts. This is the **unique-catch counter**.
+
+- After **THREE CONSECUTIVE** clean-arm smokes with **zero unique catches**, the clean arm **RETIRES** for that product's pipeline. Assertions carry the load thereafter.
+- A retired clean arm returns **only** when a new failure class evades the assertion layer in production measurement. Per spec-writeback law, that same failure class must also be codified as a new deterministic assertion in the layer; the smoke arm is not a substitute for the assertion.
+- Counter is per-product and resets to zero on any §22 Scope change that alters the composition path or assertion layer itself.
+
+**Crash-test arm (forced degradation).** One-time-per-product: proven ONCE at that product's pipeline migration (write-around composes cleanly: registry-only degraded sections, intact trajectory elsewhere, Items-for-your-review disclosure, zero internal vocabulary, telemetry `write_around=true`). Re-proven ONLY when the write-around mechanism itself changes (composition-path hook, disclosure template, or degradation surface set). It is **not** a recurring cost on routine smokes or measurement waves.
+
+**Courier accounting.** Every smoke courier MUST print the unique-catch counter for the clean arm in the form: `clean-arm unique-catch counter: N/3 (this smoke: {unique_catches | none})`. Retirement is declared in the courier at the third consecutive zero and echoed to the ledger.
+
+**Current chain unaffected.** Tonight's Stage-C re-smoke proceeds as specified — load-bearing because the prior fix set failed live once (run #149 → #151). Unique-catch accounting **starts** with the Stage-C re-smoke (counter opens at 0/3).
+
 ## 23. PROCESS-RETRO-WRITEBACK — R5 ops post-conditions (ops + harness; item 165, 2026-07-27; standing, product-agnostic)
 
 **Ruling.** Every ops action MUST verify its own outcome **in the same turn** it is taken. Post-conditions are:
