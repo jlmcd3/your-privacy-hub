@@ -3340,7 +3340,7 @@ async function runPipeline(assessment_id: string) {
           product: "cppa-risk-assessment",
           signature: _sig.hash,
           plan_version: "v1",
-          instrument_version: "gc-2026-07-26-s5",
+          instrument_version: GRADER_CONTEXT_VERSION,
           registry_versions: _fbRegistryVersions,
           scenario_set: (row as any)?.scenario_set ?? null,
           run_ref: assessment_id ?? null,
