@@ -271,8 +271,8 @@ export function validateSlots(report: Report): SlotValidation {
     for (const k of ["certifying_executive_name", "certifying_executive_title", "certifying_contact_email", "certification_statement", "statutory_basis", "submission_status", "submission_deadline"]) {
       if (!(k in ab)) errors.push(`attestation_block.${k} missing`);
     }
-    if (typeof ab.statutory_basis === "string" && !/7156/.test(ab.statutory_basis)) {
-      errors.push("attestation_block.statutory_basis does not cite § 7156");
+    if (typeof ab.statutory_basis === "string" && !/715[67]/.test(ab.statutory_basis)) {
+      errors.push("attestation_block.statutory_basis does not cite § 7156 or § 7157");
     }
     if (typeof ab.certification_statement === "string" && ab.certification_statement.length < 40) {
       warnings.push("attestation_block.certification_statement is unusually short");
