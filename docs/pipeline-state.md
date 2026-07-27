@@ -3588,3 +3588,14 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Courier:** `docs/courier/SMOKE-LATENCY-ROOTCAUSE-2026-07-27.md`.
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; smokes #153, #154, #155 remain non-evidential.
 - **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller re-inserts the smoke row only after verifying the ping surface and deployed gates.
+
+## Item 204 — SMOKE #4 BRANCH FAIL (2026-07-27 ~16:48Z)
+
+- **Batch:** `08499e5f-5930-443e-bb37-adab6eb891cf` complete 16:48:16Z; quality run `8aa1bcf5…` #156; assessment `f3a989e7-d89c-47f4-b3d6-2eb2b5dd780b` complete with `report_data`, 5 m 19 s E2E, `function_runs.status=success` (Item-203 semantics honored), report-completion gate honored (`updated_at` == invocation `finished_at` ±215 ms).
+- **Build stamp on wire:** `ltp-risk-smoke-latency-rootcause@2026-07-27T16:25:46Z`.
+- **Defect A — value-screen enforce violation:** `_meta.internal.composition_finalize` records `errored=true, enforce_violation=true, error_kind=ValueScreenError` with 4 hits all on `leak-lexicon:"We "`. The bare substring `"We "` in `LEAK_LEXICON` (`_shared/ltp/value-screen.ts`, seeded from A.i #178 owner-slot fragment) false-positives on any legitimate prose containing the word "We ". Safe-finalize backstop absorbed it and shipped the pre-final composed document; enforce-mode is currently unreliable in production.
+- **Defect B — resolved-band cohort not rendered on graded surface:** intake resolved band `$25M to under $50M` (directive: → April 1, 2030 on graded surface). Actual `submission_summary.submission_deadline="April 1, 2028"` with framework `§§ 7150–7157`; § 7121(a) cybersecurity-audit cohort routed to `information_needed[3]` (`info_cyber_audit_7121a3_revenue`, asks `annual_gross_revenue_2028`) with `risk_w21a.a2_cohort_skipped_reason="no_revenue_signal_under_50m"`. Neither enumerated branch (PASS / CUT-redirect) applies verbatim — deferred to a graded surface, not to `cross_tool_recommendations`.
+- **Non-evidential residuals:** `emit_gate` 3 degraded (doubled-token `"the the"`×2, unterminated-sentence×1); 3 `information_needed` rows without `id`/`topic`; Pass-1 LLM `write_around=true` after 75 s timeout (clock cap fired as designed).
+- **Courier:** `docs/courier/SMOKE-4-BRANCH-FAIL-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; smokes #153–#155 non-evidential; smoke #4 non-evidential.
+- **Disposition:** **HARD STOP for controller review.** No fix invented in this turn.
