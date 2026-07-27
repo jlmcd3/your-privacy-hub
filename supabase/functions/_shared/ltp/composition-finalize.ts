@@ -305,40 +305,32 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
     throw new ValueScreenError(screen.finalHitDetails);
   }
 
-  // (2) surface-write-guard walk (ITEM 208 FIX): only rulings whose
-  // grain IS the top level are enforced here (REMOVE / EMPTY_ARRAY).
-  // Nested OBJECT_PRUNE rulings are enforced post-serializer at the
-  // wire-site via evaluateShippedSurfaceGuard.
+  // (2) surface-write-guard walk (ITEM 211 FIX): CUT enforcement lives
+  // solely at the post-serializer wire-site (evaluateShippedSurfaceGuard).
+  // Pre-serializer, we only RECORD presence of CUT paths under
+  // pre_serializer_cut_pending telemetry and enforce the unowned-top-
+  // level class (not a serializer concern).
   const surface_unowned_paths: string[] = [];
-  const surface_cut_violations: string[] = [];
+  const pre_serializer_cut_pending: string[] = [];
   const rd = screen.reportData as Record<string, unknown>;
+  // Presence check for every CUT ruling at its DECLARED path (any grain).
+  for (const ruling of RISK_CUT_RULINGS) {
+    const v = getByPath(screen.reportData, ruling.path);
+    if (isPresent(v)) pre_serializer_cut_pending.push(ruling.path);
+  }
+  // Unowned-top-level walk.
   for (const k of topKeys(screen.reportData)) {
     if (k.startsWith("_")) continue;
-    if (CUT_TOP_LEVEL_REMOVE.has(k)) {
-      if (isPresent(rd[k])) surface_cut_violations.push(k);
-      continue;
-    }
-    if (CUT_TOP_LEVEL_EMPTY_ARRAY.has(k)) {
-      const v = rd[k];
-      if (Array.isArray(v) && v.length > 0) surface_cut_violations.push(k);
-      continue;
-    }
-    if (CUT_TOP_LEVEL_ALL.has(k)) continue; // OBJECT_PRUNE-only ruling — allowed here
+    if (CUT_TOP_LEVEL_ALL.has(k)) continue; // covered by a CUT ruling
     if (!ALLOWED_TOP_LEVEL.has(k)) surface_unowned_paths.push(k);
   }
 
-  if (mode === "enforce") {
-    if (surface_cut_violations.length > 0) {
-      throw new Error(
-        `[composition-finalize] surface-guard: ${surface_cut_violations.length} CUT-list violation(s): ${surface_cut_violations.join(", ")}`,
-      );
-    }
-    if (surface_unowned_paths.length > 0) {
-      throw new Error(
-        `[composition-finalize] surface-guard: ${surface_unowned_paths.length} unowned top-level path(s): ${surface_unowned_paths.join(", ")}`,
-      );
-    }
+  if (mode === "enforce" && surface_unowned_paths.length > 0) {
+    throw new Error(
+      `[composition-finalize] surface-guard: ${surface_unowned_paths.length} unowned top-level path(s): ${surface_unowned_paths.join(", ")}`,
+    );
   }
+
 
   // (3) composition-hook-audit — always fail-loud (config surface)
   assertCompositionHookConformance({
