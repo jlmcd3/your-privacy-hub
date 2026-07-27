@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T04:09:21Z
+**Last updated:** 2026-07-27T04:16:30Z
 
 ---
 
@@ -2927,3 +2927,41 @@ Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success
 **Prior-item back-references:** items 141 (Wave-A), 145 (Wave-B extract courier `LTP-RISK-WAVEB-EXTRACT-2026-07-27.md`), 153 (Wave-B verdict), 154 (Wave-B completion always-on subset), 155 (s5→s6 re-key), 156 (Wave-B.2 extract), 157 (Wave-B2 closure fixes + Wave-C launch), 159 (enforce-mode regression fix + §16 measurement-validity law), 160 (Run 146 non-evidential-for-composition / evidential-positive-for-always-on refinement), 162 / 163 (Wave-C stall unblock + §17 cancel-any-pre-execution + §18 launch-state equivalence).
 
 **Status:** DONE (extraction). Monitor stands down on Wave-C. Two of three §5 criteria have now held across two consecutive evidential waves; citation-binding remains the outstanding class blocking trial completion. Next dispatch owner: CEO / deploy-authorized turn. Campaign `fd1be147` remains PAUSED.
+
+---
+
+## Item 165 — PROCESS-RETRO-WRITEBACK (docs + one harness turn, 2026-07-27 ~04:16Z)
+
+**Dispatch id:** PROCESS-RETRO-2026-07-27 (CEO-ordered process double-check). TEAM-REVIEWED (five-lens + CS/ops lens load-bearing). GATED — executed after Wave-C extraction (item 164) landed. No measurement batches this turn. Campaign `fd1be147` stays PAUSED (CEO-reserved).
+
+**VERIFIED-FACTS preamble (§24 / R6, landed this turn).** Reads at 2026-07-27T04:12–04:16Z against: `supabase/functions/batch-kickoff-pickup/index.ts` (BUILD_STAMP was `qbp26-launch-state-equivalence@2026-07-27T03:30:00Z`, bumped this turn), `docs/design/LEGAL-TEST-PIPELINE.md` (§16–§18), `docs/pipeline-state.md` (through item 164), and the new conformance test suite (`supabase--test_edge_functions` — 6/6 green). No unverified assumptions ship.
+
+**Root diagnosis (recorded):** the seven operational incidents (bare-run wedge, isolate orphan, enforce-mode silent-off, zombie mutex, `queued/starting` stall, stale-state cancel, placeholder UUID) share four structural causes: (i) no canonical harness state machine; (ii) actions executing against stale state; (iii) no ops post-conditions; (iv) compounded novelty per measurement.
+
+**Standing law landed this turn (R1–R7):**
+
+- **R1 — canonical state machine.** `docs/design/HARNESS-STATE-MACHINE.md` (new) formalises the batch/run lifecycle: 6 legal states, transitions, primary owners, cancel paths, reap rules. CEO-pick: CANONICAL BORN STATE = `(running, kickoff)`; `(queued, starting)` remains legal as legacy external-launcher shape, served by picker with normalize-on-kick (§18). Named laws §17/§18 subsumed as clauses. Cross-referenced as `LEGAL-TEST-PIPELINE.md` §19.
+- **R2 — guarded mutations.** `LEGAL-TEST-PIPELINE.md` §20. Every state change carries `UPDATE … WHERE status/phase = expected`; zero-rows-affected = record + re-read, never proceed. Every ops instruction states its expected precondition; agent no-ops on stale precondition with a ledger note rather than acting.
+- **R3 — state-ownership map + live-row rule.** `LEGAL-TEST-PIPELINE.md` §21. Controller owns live batch-row surgery (with immediate ledger note); agent owns code/docs/deploys; crons own their canonical states. ANY actor mutating shared state re-reads the live row **immediately before** the guarded WRITE — turn-start context is never sufficient.
+- **R4 — smoke-before-measure.** `LEGAL-TEST-PIPELINE.md` §22. Any measurement batch following an infrastructure / config / deploy change MUST be preceded by a `batch_size=1` SMOKE batch with full §16 assertions; measurement launches only on smoke pass. Cost is cents; last night's cascade is the counterfactual.
+- **R5 — ops post-conditions.** `LEGAL-TEST-PIPELINE.md` §23. Launch → picked-up within 2 pickup cycles; cancel → honoured to terminal in-turn; env/config → boot-line/telemetry echo; deploy → boot log (already law); insert → row readback by generated id.
+- **R6 — controller courier discipline.** `LEGAL-TEST-PIPELINE.md` §24. Every content/ops courier opens with a VERIFIED-FACTS preamble (what was checked against codebase/DB and when, with turn clock). Unverified assumptions named as such or the courier doesn't ship. Retracted and re-issued otherwise.
+- **R7 — generated-ids only.** `LEGAL-TEST-PIPELINE.md` §25. Row ids ALWAYS generated (`gen_random_uuid()` / column default); NEVER literal. Migrations touching launch-inserted tables MUST include `DEFAULT gen_random_uuid()`. Motivating incident: item 162's `a1b2c3d4-e5f6-4890-abcd-ef0123456789` placeholder.
+
+**Harness code landed and deployed this turn (one function, per protocol):**
+
+- NEW `supabase/functions/_shared/harness/state-machine.ts` — canonical `LEGAL_STATES`, `TERMINAL_STATES`, `PRE_EXECUTION_STATES`, `OWNERSHIP`, `CANCEL_OWNERSHIP`, `REAP_OWNERSHIP` + `verifyStateMachine()` + `assertStateMachineConformance()`. Single source of truth.
+- NEW `supabase/functions/batch-kickoff-pickup/state-machine-conformance.test.ts` — 6 tests: (1) every non-terminal state has a primary owner; (2) every terminal state has null owner; (3) every non-terminal state has a cancel path (§17); (4) every non-terminal state has a reap owner; (5) picker `KICKOFF_ELIGIBLE` ≡ canonical `PRE_EXECUTION_STATES` (§18); (6) `isKickoffEligible()` serves every canonical pre-execution state. **All 6 pass** via `supabase--test_edge_functions`.
+- EDIT `supabase/functions/batch-kickoff-pickup/index.ts` — imports `assertStateMachineConformance` + `verifyStateMachine`; prints boot-line conformance summary; asserts at import (fail-loud). BUILD_STAMP bumped to `qbp27-state-machine-conformance@2026-07-27T04:15:00Z`.
+- **Deploy proof:** `deploy_edge_functions(["batch-kickoff-pickup"])` returned success. Boot-line printed on every pre-test setup: `[batch-kickoff-pickup] state-machine conformance: ok=true legal=6 owned=3 unowned=0 missing_cancel=0`.
+- Orchestrator + delivery-sentinel filters are consistent with the canonical map as-is (they operate on `running/running_tool` and terminal states only); no filter re-key required this turn. Per §19, any future edit to those functions MUST include its own conformance test.
+
+**Incident → clause cross-reference:** all seven incidents mapped to the clause preventing recurrence — bare-run wedge → R1+R4+R5; isolate orphan → R1+R5; enforce-mode silent-off → R4 (+§16); zombie mutex → R1+§17; `queued/starting` stall → R1+§18; stale-state cancel → R2+R3+R5; placeholder UUID → R7. Full table in courier §"Incident → clause cross-reference".
+
+**Courier:** `docs/courier/PROCESS-RETRO-2026-07-27.md` (VERIFIED-FACTS preamble, root diagnosis, clause table, harness deploy log, full incident→clause cross-reference).
+
+**Constraints honoured:** docs + one harness function (batch-kickoff-pickup) only; no measurement batches; no instrument/rubric/golden/corpus/contract edits; campaign `fd1be147` stays PAUSED; no literal UUIDs inserted into production tables this turn (the `a1b2c3d4…` reference in prose is an incident citation, not data).
+
+**Prior-item back-references:** items 152 (batch-wrap rule), 155 (s5→s6 re-key), 157 (Wave-B2 closure), 159 (enforce-mode + §16), 160 (run-146 refinement), 162 (§17 cancel-any-pre-execution), 163 (§18 launch-state equivalence), 164 (Wave-C digest + hygiene flag). This item CLOSES the process defect class opened by items 161–164.
+
+**Status:** DONE. Standing state advanced — §19–§25 now bind all future harness code and ops turns. Next measurement wave MUST pass a §22 smoke batch first. Next dispatch owner: CEO / deploy-authorized turn.
