@@ -167,7 +167,7 @@ export async function runPass1Llm(
     plan: writeAroundPlan(input, lastErr || "unknown"),
     telemetry: {
       ran: true,
-        attempts: maxAttempts,
+      attempts: maxAttempts,
       ok: false,
       latency_ms: Date.now() - t0,
       write_around: true,

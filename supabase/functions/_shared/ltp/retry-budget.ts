@@ -39,8 +39,8 @@ export const POST_LINT_PASS1_MAX_CALL_MS = POST_LINT_PASS1_TIMEOUT_MS * 2;
 
 // Post-lint work guard — used by non-retry LLM sites (forward-path guard,
 // CoT-leak guard). Callers pass elapsedMs and skip the downstream LLM
-// call if elapsed exceeds this threshold. Persist-early already covers
-// document safety; this covers pipeline-clock safety.
+// call if elapsed exceeds this threshold. report_data remains final-only;
+// this covers pipeline-clock safety without exposing a pre-final document.
 export const POST_LINT_LLM_BUDGET_MS = 300_000;        // 5 min: no more LLM calls past this
 export function hasBudgetForPostLintLLM(elapsedMs: number): boolean {
   return elapsedMs < POST_LINT_LLM_BUDGET_MS;
