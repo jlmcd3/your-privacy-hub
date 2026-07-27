@@ -42,9 +42,21 @@ import {
   type ContractDeps,
 } from "./_contract_hooks.ts";
 import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
+import { assertCreatedByIsRealUser, CreatedByGuardError } from "../_shared/harness/created-by-guard.ts";
 
 
-export const BUILD_STAMP = "qbo-corrections-bundle-mode-assert@2026-07-27T06:10:00Z";
+export const BUILD_STAMP = "qbo-stage-b-cont-createdby-guard@2026-07-27T10:15:00Z";
+
+// created-by lookup bound to auth.admin.getUserById; returns true iff the
+// UUID resolves to an existing auth user. Injected into assertCreatedByIsRealUser
+// at the born-state boundary per Stage-B CONTINUATION step 1 (Item 190 §3).
+async function userExistsInAuth(id: string): Promise<boolean> {
+  try {
+    const { data, error } = await admin().auth.admin.getUserById(id);
+    if (error) return false;
+    return !!data?.user?.id;
+  } catch { return false; }
+}
 
 // DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
 // Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
