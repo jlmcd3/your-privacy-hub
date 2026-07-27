@@ -3518,3 +3518,13 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C.
 - **Chain state:** Stage B open at post-Block-B / mid-step-9. Both hardening turns (Item 197 finalize wrapper + Item 198 persist-first retry) now in place. Steps 9, 9b, 10, 11, 12 (CONTINUATION-5) still owed to controller.
 - **Disposition:** **CORRECTED ROOT FIX LANDED. HARD STOP.** Awaiting controller relaunch of the wrapped smoke to verify the persist-first invariant on the wire, then 9b–12 as dispatched.
+
+## Item 199 — DEPLOY-OUTAGE (2026-07-27 ~10:19Z–11:05Z)
+
+- **Symptom:** 35 edge functions returned HTTP 404 `NOT_FOUND_FUNCTION_BLOB` to every invocation, including all cron ticks. `function_runs` recorded zero rows in the interval; `batch-kickoff-pickup` blind since 10:18Z.
+- **Not affected:** `run-cppa-risk-assessment` (most recent deploy — persist-first retry, stamp `ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z`) stayed 200 with full ping surface (`ltp_mode=enforce`, `composition_enforce=1`, `persist_first_retry=retry-budget@2026-07-27-persistfirst`). `quality-batch-orchestrator` / `run-quality-batch` also alive.
+- **Root cause:** Platform-side blob-resolution incident. Affected set spanned functions untouched for weeks alongside recent ones; the most recently deployed function was NOT affected — inconsistent with a partial-deploy race. Failure mode is the platform's blob-store lookup surface, not user code.
+- **Mitigation:** Redeploy of all 35 affected functions in one batch. Post-deploy OPTIONS sweep clean (200) on `batch-kickoff-pickup`, `delivery-sentinel`, `improvement-cycle-watchdog`, `reap-stuck-generations`, `ql2-watchdog`, `quality-batch-orchestrator`, `run-cppa-risk-assessment`. `run-cppa-risk-assessment` ping re-verified — persist-first deploy intact.
+- **DB-side recovery:** Smoke batch `cd1cb716-73f5-40d9-8341-e2e939e40da0` (queued 10:58:31Z, within 30-min reap window) transitioned `queued → running` at the 11:10Z cron tick — no manual kick — `phase=running_tool`, `last_heartbeat_at=2026-07-27 11:09:57Z`. State machine served it as designed; harness autonomic layer verified back on the wire.
+- **Courier:** `docs/courier/DEPLOY-OUTAGE-2026-07-27.md`.
+- **Disposition:** Outage resolved. Precedes and gates CONTINUATION-6. Wrapped smoke `cd1cb716` now on-wire; CONTINUATION-5 steps 9/9b/10/11/12 remain owed once it terminates.
