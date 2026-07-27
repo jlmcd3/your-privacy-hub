@@ -81,18 +81,113 @@ export interface FinalizeResult {
 }
 
 // ── Surface-map top-level path normalization ──────────────────────────
+//
+// ITEM 208 FIX (SMOKE-#6 review): the surface-guard walk previously
+// collapsed EVERY CutRuling to its top-level key. That wrongly
+// condemned bound surfaces like `scope_and_triggers` whose sole cut
+// ruling is a NESTED OBJECT_PRUNE (`scope_and_triggers.scope_notes`).
+//
+// The rulings in risk-surface-map.ts state that CUTs execute at the
+// LEAK-PREV-P2 serializer layer. At finalize (pre-serializer) we only
+// enforce the two rulings whose grain IS the top level:
+//   REMOVE       → the top-level key must be absent
+//   EMPTY_ARRAY  → the array may exist but must be empty
+// OBJECT_PRUNE rulings are enforced by the post-serializer guard at
+// the wire-site (see `evaluateShippedSurfaceGuard`).
 
-const ALLOWED_TOP_LEVEL: ReadonlySet<string> = new Set(
-  RISK_SURFACE_BINDINGS.map((b) => b.path.split(".")[0].replace(/\[\]$/, "")),
+const CUT_TOP_LEVEL_REMOVE: ReadonlySet<string> = new Set(
+  RISK_CUT_RULINGS
+    .filter((c) => c.mode === "REMOVE" && !c.path.includes("."))
+    .map((c) => c.path.replace(/\[\]$/, "")),
 );
-const CUT_TOP_LEVEL: ReadonlySet<string> = new Set(
-  RISK_CUT_RULINGS.map((c) => c.path.split(".")[0].replace(/\[\]$/, "")),
+const CUT_TOP_LEVEL_EMPTY_ARRAY: ReadonlySet<string> = new Set(
+  RISK_CUT_RULINGS
+    .filter((c) => c.mode === "EMPTY_ARRAY" && !c.path.includes("."))
+    .map((c) => c.path.replace(/\[\]$/, "")),
+);
+const ALLOWED_TOP_LEVEL: ReadonlySet<string> = new Set(
+  RISK_SURFACE_BINDINGS.map((b) => b.path.split(".")[0].split("[")[0]),
+);
+// Preserve broader CUT set for unowned-vs-cut disambiguation.
+const CUT_TOP_LEVEL_ALL: ReadonlySet<string> = new Set(
+  RISK_CUT_RULINGS.map((c) => c.path.split(".")[0].split("[")[0]),
 );
 
 function topKeys(obj: unknown): string[] {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) return [];
   return Object.keys(obj as Record<string, unknown>);
 }
+
+/** Read a value by dotted path; returns undefined for any missing segment. */
+function getByPath(root: unknown, path: string): unknown {
+  const parts = path.replace(/\[\]/g, "").split(".").filter(Boolean);
+  let cur: any = root;
+  for (const p of parts) {
+    if (cur == null || typeof cur !== "object") return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+/** Presence test for OBJECT_PRUNE / REMOVE. */
+function isPresent(v: unknown): boolean {
+  if (v === undefined || v === null) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === "object") return Object.keys(v as object).length > 0;
+  if (typeof v === "string") return v.length > 0;
+  return true;
+}
+
+/**
+ * ITEM 208 — POST-SERIALIZER SURFACE GUARD.
+ *
+ * Evaluates every CutRuling at its DECLARED path + mode against the
+ * shipped/graded projection (the artifact that leaves the wire). Also
+ * flags top-level keys that are neither bound in the surface map nor
+ * covered by any CUT ruling.
+ *
+ * Callers run this AFTER the LEAK-PREV-P2 serializer. Enforcement is
+ * telemetry-only at the wire-site — the persist invariant forbids
+ * blocking on finalize-class failures.
+ */
+export interface ShippedSurfaceEvaluation {
+  readonly cut_violations: readonly { path: string; mode: string; detail: string }[];
+  readonly unowned_paths: readonly string[];
+}
+
+export function evaluateShippedSurfaceGuard(shipped: unknown): ShippedSurfaceEvaluation {
+  const cut_violations: { path: string; mode: string; detail: string }[] = [];
+  for (const ruling of RISK_CUT_RULINGS) {
+    const v = getByPath(shipped, ruling.path);
+    if (ruling.mode === "REMOVE" || ruling.mode === "OBJECT_PRUNE") {
+      if (isPresent(v)) {
+        cut_violations.push({
+          path: ruling.path,
+          mode: ruling.mode,
+          detail: `${ruling.mode} path present post-serializer`,
+        });
+      }
+    } else if (ruling.mode === "EMPTY_ARRAY") {
+      if (Array.isArray(v) && v.length > 0) {
+        cut_violations.push({
+          path: ruling.path,
+          mode: ruling.mode,
+          detail: `EMPTY_ARRAY path has ${v.length} entries`,
+        });
+      }
+    }
+  }
+  const unowned_paths: string[] = [];
+  for (const k of topKeys(shipped)) {
+    if (k.startsWith("_")) continue; // _meta subtree is not surface-map bound
+    if (ALLOWED_TOP_LEVEL.has(k)) continue;
+    if (CUT_TOP_LEVEL_ALL.has(k)) continue; // covered by CUT rulings above
+    unowned_paths.push(k);
+  }
+  return { cut_violations, unowned_paths };
+}
+
+
 
 // ── One-bounded-recompose value-screen driver ─────────────────────────
 
