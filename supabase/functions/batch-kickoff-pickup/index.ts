@@ -28,7 +28,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 
-export const BUILD_STAMP = "qbp25-cancel-any-pre-execution@2026-07-27T03:15:00Z";
+export const BUILD_STAMP = "qbp26-launch-state-equivalence@2026-07-27T03:30:00Z";
+
+// LTP §18 — Launch-state equivalence law.
+// Two canonical pre-execution states are treated identically by the picker:
+//   (A) status='running',  phase='kickoff'   — the "born-served" canonical form
+//   (B) status='queued',   phase='starting'  — the controller/query_database
+//                                              external-insert form
+// Either shape is valid and MUST be picked up equivalently. The prior stall
+// (Wave-C batch 2a3c07a2, zombie 9c1e3a8f) was caused by inserts landing in
+// shape (B) while the picker only served shape (A). Cancel handling already
+// covers every non-terminal phase via §17.
+export const KICKOFF_ELIGIBLE: Array<{ status: string; phase: string }> = [
+  { status: "running", phase: "kickoff" },
+  { status: "queued", phase: "starting" },
+];
+export function isKickoffEligible(status: string, phase: string): boolean {
+  return KICKOFF_ELIGIBLE.some((s) => s.status === status && s.phase === phase);
+}
 export const BRIEF_CHAIN_TIMEOUT_MS = 10 * 60_000; // 10 min: brief_chain rows past this → generate_timeout
 export const EXPORT_RETRY_WINDOW_MS = 72 * 60 * 60_000; // 72h
 export const EXPORT_RETRY_MAX_ATTEMPTS = 3;
