@@ -3459,3 +3459,16 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C re-smoke.
 - **Chain state:** Stage B at BLOCK-B-COMPLETE (steps 1-8 landed); steps 9-12 (enforce-mode re-smoke, degradation re-smoke, full-suite paste, security appendix, Stage-B COMPLETE marker) defer to CONTINUATION-5. Stages C/D still gated.
 - **Disposition:** **BLOCK-B-COMPLETE. HARD STOP** per dispatch checkpoint clause. Awaiting CEO read + CONTINUATION-5.
+
+### Item 196 · Stage-B CONTINUATION-5 — IN-FLIGHT HALT (2026-07-27)
+
+- **Dispatch:** Steps 9-12 (enforce-mode re-smoke, degradation re-smoke, full-suite, security appendix, Stage-B COMPLETE marker).
+- **Executed:** Step 9 kick only. Enforce-mode canonical wrapped `batch_size=1` smoke launched against `run-cppa-risk-assessment` via `quality-batch-orchestrator` (isCron path, `ADMIN_SECRET_TOKEN` bearer). Batch `bcba50fa-a7e3-43ab-9111-af931909f9ec`; child quality-run `1b55c7ba-e77f-427e-aa04-d70756f4d1e5`; `created_by` resolved via `resolveAdminOwner()` (real admin UUID; §25/§19 guards silent).
+- **Pre-smoke ping-prove:** `ltp_mode="enforce"`, `composition_enforce="1"`, BUILD_STAMP `ltp-risk-stage-b-blockb-cohort-r181-ceassert@2026-07-27T13:35:00Z`.
+- **Born-state conformance (positive):** `quality_batch_runs.declared_count = 1` written at insert; `actual_count` correctly null until terminal; heartbeats advancing (10:24 → 10:42+ UTC). No guard throws, no §16 abort, no FK violation, no `count_conformance_violation`.
+- **Halt cause:** Turn-cap physically bit while the single assessment was still `status=building`. Worker healthy; not a hard failure. Dispatch's only permitted mid-chain checkpoint is after (9b), so no verification claims are recorded for a report not yet composed.
+- **Deferred to CONTINUATION-6:** (9) terminal verification + RESOLVED-BAND COHORT CHECK (with resolved-band redirect + redeploy if the cut-surface routing recurs); (9b) degradation re-smoke; (10) full deno suite paste; (11) security-panel appendix; (12) SMOKE-FIX-ROUND-COMPLETE-2026-07-27.md + STAGE-B COMPLETE ledger marker.
+- **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION5-HALT-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C.
+- **Chain state:** Stage B remains open at post-Block-B / mid-step-9. Stages C/D still gated.
+- **Disposition:** **HALT — SMOKE IN FLIGHT.** Awaiting CEO read + CONTINUATION-6 release to resume from batch's terminal state.
