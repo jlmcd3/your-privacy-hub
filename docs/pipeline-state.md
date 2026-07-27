@@ -2446,3 +2446,48 @@ Recommend option 1 for Wave C and all future standalone tuning/holdout launches.
 **Turn scope.** Ledger update + one INSERT + courier addendum. No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, or corpus edits. No deploys. Monitor extracts at terminal per existing Wave-B extraction spec.
 
 **Courier:** addendum appended to `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
+
+## Ledger item 153 — LTP-RISK-WAVE-B POST-TERMINAL EXTRACTION (2026-07-27T00:19:48Z)
+
+**Status:** DONE (read-only monitor extraction). Execution per items 150 / 152.
+
+**Constraints honoured.** No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, or instrument edits. No deploys. No batch launches. Campaign `fd1be147` stays paused (CEO-reserved). All DB reads via project database.
+
+**Terminal state.**
+- `quality_batch_runs.id = fc6a8394-a265-4297-b086-805e183d2ee5` — `status=complete`, `phase=done`, `started_at=2026-07-26T23:20:10.237Z`, `completed_at=2026-07-27T00:13:31.271Z` (wall time ≈ 53m 21s), `last_error=NULL`, `campaign_id=NULL`.
+- Child `quality_runs.id = e1360a41-eb79-4b13-b60f-02e016850928` — `run_number=145`, `checks_total=162`, `checks_passed=116`, `checks_failed=46`, `grader_context_version='gc-2026-07-26-s5-eu-uk-ca-au-sg'`.
+
+**(1) Pooled Claude/GPT delta vs Wave-A baseline (78.80).**
+- Claude `score_overall` = **72.75** (Δ **−6.05**).
+- GPT `gpt_score_overall` = **85.00**.
+- Pooled (Claude+GPT)/2 = **78.88** (Δ **+0.08 = flat**).
+- Per-doc: t/62.05/85, t/88.55/86, t/68.85/85, t/77.10/88, h/71.05/83, h/68.65/79. Widest cross-grader spread on doc 1 (Δ 22.95pt).
+
+**(2) Enforce-preview telemetry (`_meta.internal.legal_test_pipeline.enforce_preview`).**
+- `pass1_ok` = **6/6 (100%)**.
+- `write_around` = **0/6 (0%)**.
+- `attempts` distribution = **{1: 6}** (N=2 retry budget never consumed).
+- `validator_issues` = **0** on every doc — Pass-1 output cleared `validateRenderPlan` on first try.
+- `latency_ms` — min 34,127 / mean 45,764 / max 55,423.
+- Read: enforce-preview stack is stable; fallback path unexercised.
+
+**(3) Subsumption cross-check.**
+- `_w18_risk_vocab` → `h2_internal_vocab_ok` **0/6 fails**.
+- `_w15_risk_va` → `h1_article_phrasing_ok` **0/6 fails**.
+- `_risk_citation_dup_fix` → citation-duplication component of `rubric_citation_misapplied` — no duplicate-pinpoint evidence in sample; the 5 citation fails are misapplication class, not dup.
+- No regression attributable to subsumed guards.
+
+**(4) Tuning-vs-holdout diagnostic (batch_size 6 ≥ 4 → ACTIVE).**
+- Tuning n=4 — Claude mean 74.14 / GPT mean 86.00 / persisted `score_overall_tuning`=74.
+- Holdout n=2 — Claude mean 69.85 / GPT mean 81.00 / persisted `score_overall_holdout`=70.
+- Δ(T−H) = +4.29 Claude / +5.00 GPT. Inside batch-noise for n=2 holdout — **no material overfitting signal**.
+
+**(5) VERDICT vs §5 success criteria (`intake-drift 0 / citation-binding 0 / gate violations 0`).**
+- **intake-drift PASS** — no mid-prose drift check surfaced. `qc_r1_4_cohort_determinism` (4 fails) is a separate cohort-determinism class.
+- **citation-binding FAIL** — `rubric_citation_misapplied` 5 fails (tuning 2/5, holdout 3/3).
+- **gate violations PASS** — `qc_r1_1_no_asks_on_resolved_tests` 0/6, `qc_r1_5_exception_fields_consumed` 0/6, ADMT-consequence gate not tripped in sample.
+- **Overall: PARTIAL PASS (2/3).** No rollback signal; citation-binding is the leading next-fix class.
+
+**Failed-finding classes (context, not proposals).** `rubric_unsupported_business_claim` 8 (t5/h3), `rubric_citation_misapplied` 5 (t2/h3), `qc_r1_2_spi_prong_utilization` 5 (t3/h2), `qc_r1_3_50pct_prong_utilization` 5 (t3/h2), `qc_r1_4_cohort_determinism` 4 (t2/h2, `critical`), `e6_counsel_referral` 4 (t3/h1), `rubric_internal_reasoning_leak` 3 (t1/h2), `rubric_generic_boilerplate` 2 (tuning only).
+
+**Courier:** `docs/courier/LTP-RISK-WAVEB-EXTRACT-2026-07-27.md`.
