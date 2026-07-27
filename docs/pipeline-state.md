@@ -3023,3 +3023,21 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **Not touched this turn:** no instrument/rubric/golden/corpus/contract edits; no other measurement activity; campaign `fd1be147` remains PAUSED.
 
 **Status:** STEP 1 DONE (all-green). STEP 2 LAUNCHED (`e1cd0e3e`). STEP 3 QUEUED behind smoke pass. Monitor owns smoke pickup verification and terminal read.
+
+## Ledger item 168 — LTP-RISK WAVE-D STEP 2 SMOKE PASS (monitor tick, 2026-07-27T04:59:55Z)
+
+**Batch:** `e1cd0e3e-6525-4d28-9d18-814b2a94bf9c`, terminal `complete/done` at 2026-07-27T04:46:31.205Z, `last_error=NULL`.
+**Backing quality_run:** `00d3eb37-1454-4440-acbf-3397f650a457` (run #149); 3 tuning docs all `status=complete`.
+
+**Smoke criteria (per item 167 STEP 2 / R4):**
+- Single doc terminal — PASS (3/3 docs complete).
+- Expected stamp echoes — PASS (`_meta.internal.risk_va.build_stamp = "ltp-risk-waved-readiness@2026-07-27T04:28:00Z"` echoed live; prior wave stamps present).
+- Enforce mode — PASS (shadow orchestrator `mode:"shadow"` per invariant; fleet enforce proven via `_meta.internal.legal_test_pipeline.enforce_preview.telemetry = {ran:true, ok:true, attempts:1, latency_ms:30983, write_around:false, validator_issues:0}`; boot log at deploy already confirmed `ltp_mode=enforce`).
+- Narrative present — PASS (`submission_summary` 694 chars on doc 1; full section set emitted).
+- Zero write-around — PASS (shadow `derive.write_around=false`; enforce `telemetry.write_around=false`, `plan_summary.write_around=false`).
+
+**Verdict:** SMOKE PASS. STEP 3 gate cleared. Courier: `docs/courier/WAVE-D-SMOKE-2026-07-27.md`.
+
+**Evidentiality:** Run #149 is NON-EVIDENTIAL for §5 per R4 (smoke never advances/retreats trial verdict); scores (score_overall=67.15, gpt=85) reported for completeness only.
+
+**Not launched this turn:** STEP 3 (Wave D comprehensive, batch_size=6) — launches under its own turn per single-launch discipline. Standing: campaign `fd1be147` PAUSED; run #147 SEALED per item 166; no other measurement activity.
