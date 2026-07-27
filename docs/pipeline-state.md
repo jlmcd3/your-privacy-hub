@@ -3659,3 +3659,10 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Class analysis (evidence-only, no fix invented per instructions):** composer emitted CUT-listed surfaces `scope_and_triggers` and `cross_tool_recommendations` that §28 Engine-B primacy prohibits on the graded surface; surface-guard walk correctly caught it in enforce mode.
 - **§22.1 clean-arm counter (cppa-risk):** unchanged **0/3** (Stage-C accounting only).
 - **Disposition:** **HARD STOP for controller review.** No relaunch, no fix invented, no chain roll to 9b-12.
+
+## Item 208 HELD — Awaiting controller review (2026-07-27)
+
+- **Status:** Smoke #6 BRANCH FAIL evidence recorded in Item 208; no new controller dispatch received since HARD STOP.
+- **Ledger updated:** appended HELD note to maintain continuity while awaiting controller review of the surface-guard CUT-list violation.
+- **Next action:** pending controller instruction on whether to fix, re-scope, or relaunch.
+
