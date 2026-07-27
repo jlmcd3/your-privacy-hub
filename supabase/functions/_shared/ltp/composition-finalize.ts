@@ -68,6 +68,10 @@ export interface FinalizeTelemetry {
   readonly fragment_omit_version: string;
   readonly fragment_omit_count: number;
   readonly fragment_omit_paths: readonly string[];
+  /** Retained for schema stability; always empty — unowned enforcement
+   *  moved to `evaluateShippedSurfaceGuard` on the shipped projection
+   *  (Item 213). Pre-serializer presence recorded in
+   *  `pre_serializer_unowned_pending`. */
   readonly surface_unowned_paths: readonly string[];
   /** Retained for schema stability; always empty — CUT enforcement moved
    *  to `evaluateShippedSurfaceGuard` on the shipped projection (Item 211). */
@@ -75,10 +79,15 @@ export interface FinalizeTelemetry {
   /** Item 211: presence of CUT-ruled paths (any grain) observed on the
    *  PRE-serializer composed object. Telemetry only. */
   readonly pre_serializer_cut_pending: readonly string[];
+  /** Item 213: presence of unowned top-level keys (not in surface-map
+   *  allow-list and not covered by a CUT ruling) observed on the
+   *  PRE-serializer composed object. Telemetry only. */
+  readonly pre_serializer_unowned_pending: readonly string[];
   readonly hook_audit_ok: boolean;
   readonly hook_value_present: boolean;
   readonly write_around_entered: boolean;
 }
+
 
 
 export interface FinalizeResult {
