@@ -174,3 +174,24 @@ Requires: (a) set `LTP_TEST_FORCE_WRITE_AROUND=1` (full edge redeploy + boot-pro
 - **New:** `docs/courier/DUAL-SMOKE-POSTFIX-2026-07-27.md` (this file).
 - **Edited:** `docs/pipeline-state.md` (header stamp + ledger Item 178).
 - **No code, prompts, rubrics, graders, goldens, contracts, migrations, or deploys this turn.**
+
+---
+
+## A.ii — Forced-Degradation Arm (2026-07-27T08:35Z)
+
+**Status: HELD — DISPATCH FAILURE (not an emitter failure).**
+
+- Secret `LTP_TEST_FORCE_WRITE_AROUND=unit-test-only-2026-07-27` was SET (edge redeploy inferred) and later DELETED (restored to pre-arm state).
+- Batch row `6003880f-ba15-4a11-856e-94ab4dc5f4ce` inserted in canonical born-state (`status=running, phase=kickoff`, `instrument_version=gc-2026-07-26-s6`, `tools=[cppa-risk]`, `batch_size=1`).
+- §16 pre-ping PASSED both attempts: `expected=enforce`, `actual=enforce`, target `run-cppa-risk-assessment` at `ltp-risk-pre-waved-emitter-fixes@2026-07-27T06:55:00Z`; orchestrator upstream 202 `qbo-corrections-bundle-mode-assert@2026-07-27T06:10:00Z`.
+- Batch terminated `status=failed, phase=done` with `tool_results[0].error = "seed insert: insert or update on table \"quality_runs\" violates foreign key constraint \"quality_runs_created_by_fkey\""` and `final_status=dispatch_failed`. No `quality_runs` row created; no document composed; write-around code path never exercised.
+- Root cause: the controller-owned canonical batch insertion in this turn used `created_by='00000000-0000-0000-0000-000000000000'` (no matching `auth.users` row). This is a controller-owned dispatch defect, not an Engine-B or emitter defect; A.ii carries no clean-arm or degraded-arm evidence.
+- Restoration: `LTP_TEST_FORCE_WRITE_AROUND` deleted; a second redeploy is implicit on that delete. No further mutations this turn.
+
+### A.ii disposition
+- Forced-degradation arm evidence: **NONE COLLECTED**.
+- Impact on chain: A.i (clean-arm) evidence and the four root-cause traces remain valid and Stage-B fix targets remain the ones already itemized in this courier.
+- Re-run requirement for A.ii: insertion must use a real admin `auth.users.id` (or bypass FK via service-role-owned created_by policy) — controller fix, no code change to the pipeline.
+
+### DECLARED-COUNT CONFORMANCE (clause candidate — restated for Stage B)
+A run must create exactly the declared document count, or abort at dispatch with a diagnostic; both declared and actual counts recorded on the `quality_batch_runs` row. Fix targets per A.i trace: `quality-batch-orchestrator/index.ts:381` (pin unconditional) + `run-quality-batch/index.ts:1908` (no trim on overshoot).
