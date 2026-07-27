@@ -14,11 +14,12 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-waveb-enforce@2026-07-26T21:45:00Z";
+export const BUILD_STAMP = "ltp-risk-waveb-completion@2026-07-27T02:20:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} design=docs/design/LEGAL-TEST-PIPELINE.md subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=gc-2026-07-26-s5-eu-uk-ca-au-sg risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
+console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b`);
 import {
   newVocabScrubMetrics,
   scrubReportVocab,
@@ -3139,6 +3140,45 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] T7 pilot fix failed (non-fatal):", (e as Error)?.message);
     }
+
+
+    // ── LTP WAVE-B COMPLETION (2026-07-27, item 154) ─────────────────
+    // Deterministic post-generation surface closure for the three
+    // Wave-B leaks (paraphrased purpose / meta-string priority_actions /
+    // free-prose inconsistency_flags), the PII field-class rendering
+    // rule (b), and the § 7120(b) per-prong cyber-audit crosswalk (c).
+    // Runs AFTER T7 pilot fix and BEFORE the LTP shadow-mode telemetry
+    // block. Fail-open. Telemetry lands at
+    // `_meta.internal.waveb_completion`; LEAK-PREV-P2 preserves
+    // `_meta.internal` unmodified. Post-render PII assertion result
+    // recorded (never blocks — the scrubbers empty the surface first).
+    try {
+      const { applyWaveBCompletion, assertNoPiiInNarrative, WAVEB_COMPLETION_STAMP, WAVEB_COMPLETION_VERSION } =
+        await import("../_shared/ltp/waveb-completion.ts");
+      const _wbIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const _wb = applyWaveBCompletion(report_data as any, _wbIntake as any);
+      report_data = _wb.report as any;
+      const _piiAssert = assertNoPiiInNarrative(report_data as any);
+      const _rd: any = report_data as any;
+      const _meta = _rd._meta ?? (_rd._meta = {});
+      const _internal = _meta.internal ?? (_meta.internal = {});
+      _internal.waveb_completion = {
+        version: WAVEB_COMPLETION_VERSION,
+        stamp: WAVEB_COMPLETION_STAMP,
+        build_stamp: BUILD_STAMP,
+        counters: _wb.counters,
+        pii_narrative_assertion_errors: _piiAssert,
+      };
+      console.log(JSON.stringify({
+        evt: "waveb_completion_applied", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, stamp: WAVEB_COMPLETION_STAMP,
+        ..._wb.counters,
+        pii_assert_errors: _piiAssert.length,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] LTP WAVE-B COMPLETION failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
     // ── LTP PHASE-2 SHADOW-MODE (2026-07-26, item 137) ──────────────
