@@ -98,20 +98,32 @@ Deno.test("safeFinalize: catch-path preserves hits array with kind+match+path (I
   assertEquals(typeof res.telemetry.hits[0].path, "string");
 });
 
-Deno.test("composition-finalize: CUT-list top-level violation in enforce mode throws", () => {
+Deno.test("composition-finalize: CUT-ruled path present pre-serializer records telemetry, does NOT throw (Item 211)", () => {
   const rd = {
     assessment_summary: { narrative: "clean." },
-    cross_tool_recommendations: [{ x: 1 }], // CUT
+    cross_tool_recommendations: [{ x: 1 }], // CUT REMOVE — serializer strips it
+    scope_and_triggers: { scope_notes: "leak", other: "ok" }, // CUT OBJECT_PRUNE — serializer strips scope_notes
   };
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.surface_cut_violations, []);
+  assert(res.telemetry.pre_serializer_cut_pending.includes("cross_tool_recommendations"));
+  assert(res.telemetry.pre_serializer_cut_pending.includes("scope_and_triggers.scope_notes"));
+});
+
+Deno.test("composition-finalize: unowned top-level in enforce mode throws", () => {
+  const rd = { assessment_summary: { narrative: "clean." }, made_up_key: { z: 1 } };
   assertThrows(
     () =>
       finalizeComposition({
         reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
       }),
     Error,
-    "CUT-list",
+    "unowned top-level",
   );
 });
+
 
 Deno.test("composition-finalize: unowned top-level in observe records but does not throw", () => {
   const rd = { assessment_summary: { narrative: "clean." }, made_up_key: { z: 1 } };
