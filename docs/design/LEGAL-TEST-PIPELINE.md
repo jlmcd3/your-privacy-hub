@@ -490,3 +490,17 @@ Every defect-class closure follows the standing loop:
 The generalized clause MUST be written into this document (or `docs/design/LEGAL-TEST.md` when the amendment is authoring-time) in the **same turn as the root fix, or the immediately following docs-only turn** — never later. Dispatches compile from the law, so the law is where learning lives. A root fix that is not followed by its design-law writeback within one turn is a **process defect** and is called out in the ledger.
 
 The writeback turn's courier MUST include a **defect → clause traceability table** (see `docs/courier/SPEC-WRITEBACK-2026-07-27.md` for the canonical form).
+
+## 16. Measurement-validity law (ENFORCE-MODE-REGRESSION-2026-07-27; standing, product-agnostic)
+
+Every measurement records and asserts the **generative configuration it claims to measure**. Silent measurement against a different configuration than the batch declared is a **defect of the measurement itself**, not the generator — scores from such a run are **non-evidential** and must be marked as such in the ledger.
+
+Requirements (all three MUST hold for a measurement to be evidential):
+
+1. **Generator boot log MUST print `ltp_mode=enforce|shadow` at every cold start** (dedicated line, not embedded in a wider log). Boot-log assertion is part of the deploy protocol: post-deploy, the deploy turn MUST paste the boot line as evidence.
+2. **Generator MUST expose its reported mode** via a side-effect-free ping (GET `?ping=1` returning `{ltp_mode, build_stamp, ltp_version}`) AND MUST honor a request header `x-ltp-mode-expected` that aborts generation with HTTP 409 `ltp_mode_mismatch` when the caller's expectation does not match the generator's reported mode.
+3. **The batch harness MUST record the generator's reported mode on the `quality_run` / `quality_batch_runs` row at dispatch AND MUST pre-assert the reported mode equals the batch's declared expectation before the first generation call.** A measurement batch whose subject generator reports a mode different from the batch's declared expectation **ABORTS at kickoff with a diagnostic** — the batch NEVER silently measures the wrong thing. The batch-wrap kicker (per §standing rule item 152) implements the pre-assertion; a bare invocation that bypasses the kicker is not a valid measurement dispatch.
+
+**Non-evidential marking.** When a batch is discovered post-hoc to have measured against a mode different from the one it claimed (e.g., a `shadow` telemetry label on a run declared as `enforce`), the ledger MUST tag that run **NON-EVIDENTIAL** and no downstream digest, extraction, or verdict may treat its scores as a read on the declared configuration. A non-evidential run is not a regression, a pass, or a fail — it is a measurement error.
+
+Motivating incident: run 146 (batch 127a6714) scored 72.35 with per-doc telemetry reporting `mode=shadow` while the surrounding turn intended a `enforce` read of the citation-closure fixes. The scores are non-evidential; the closure fixes remain deployed and validated by their unit tests, but the wave-C confirmation must be re-measured on an enforce-verified generator per this section.
