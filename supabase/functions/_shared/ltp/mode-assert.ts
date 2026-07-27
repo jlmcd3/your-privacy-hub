@@ -28,12 +28,22 @@ export function ltpExpectedMode(): "shadow" | "enforce" {
   return v === "shadow" ? "shadow" : "enforce";
 }
 
+// STAGE-B CONTINUATION-4 (2026-07-27, item 195) — COMPOSITION-ENFORCE §16 SURFACE.
+// Fleet-declared expectation for LTP_COMPOSITION_ENFORCE. Default "1" so an
+// observe-mode reversion trips §16 abort instead of drifting silently.
+export function ltpExpectedCompositionEnforce(): "1" | "0" {
+  const v = (Deno.env.get("LTP_COMPOSITION_ENFORCE_EXPECTED") ?? "1").trim();
+  return v === "0" ? "0" : "1";
+}
+
 export interface ModeCheckEntry {
   readonly tool: string;
   readonly target_fn: string;
   readonly expected: "shadow" | "enforce";
   readonly actual: string | null;
   readonly build_stamp: string | null;
+  readonly composition_enforce_expected: "1" | "0";
+  readonly composition_enforce_actual: string | null;
   readonly ok: boolean;
   readonly error?: string;
 }
@@ -44,7 +54,11 @@ export interface ModeAssertResult {
   readonly aborted_tool?: string;
 }
 
-async function pingTool(tool: string, targetFn: string, expected: "shadow" | "enforce"): Promise<ModeCheckEntry> {
+async function pingTool(
+  tool: string, targetFn: string,
+  expected: "shadow" | "enforce",
+  ceExpected: "1" | "0",
+): Promise<ModeCheckEntry> {
   try {
     const pr = await fetch(`${SUPABASE_URL}/functions/v1/${targetFn}?ping=1`, {
       method: "GET",
@@ -52,32 +66,40 @@ async function pingTool(tool: string, targetFn: string, expected: "shadow" | "en
     });
     const pj = await pr.json().catch(() => ({} as any));
     const actual = pj?.ltp_mode ?? null;
+    const ceActual = pj?.composition_enforce != null ? String(pj.composition_enforce) : null;
+    const modeOk = actual === expected;
+    const ceOk = ceActual === ceExpected;
     return {
       tool, target_fn: targetFn, expected, actual,
       build_stamp: pj?.build_stamp ?? null,
-      ok: actual === expected,
+      composition_enforce_expected: ceExpected,
+      composition_enforce_actual: ceActual,
+      ok: modeOk && ceOk,
+      error: modeOk && ceOk ? undefined : (!modeOk ? "ltp_mode_mismatch" : "composition_enforce_mismatch"),
     };
   } catch (e) {
     return {
       tool, target_fn: targetFn, expected, actual: null, build_stamp: null,
+      composition_enforce_expected: ceExpected,
+      composition_enforce_actual: null,
       ok: false, error: (e as Error)?.message ?? "unknown",
     };
   }
 }
 
 /**
- * Assert every LTP-managed tool in `tools[]` reports the fleet-expected mode.
- * NEVER throws — callers must inspect `result.ok` and abort the launch on
- * failure. On abort, the caller MUST record the check payload on the batch/run
- * row so the mismatch is durable.
+ * Assert every LTP-managed tool in `tools[]` reports the fleet-expected mode
+ * AND the fleet-expected composition_enforce state (§16 measurement-validity).
+ * NEVER throws — callers inspect `result.ok` and abort the launch on failure.
  */
 export async function assertLtpModeForTools(tools: readonly string[]): Promise<ModeAssertResult> {
   const expected = ltpExpectedMode();
+  const ceExpected = ltpExpectedCompositionEnforce();
   const managed = tools.filter((t) => t in LTP_MANAGED_TOOL_TO_FN);
   if (managed.length === 0) return { ok: true, checks: [] };
   const checks: ModeCheckEntry[] = [];
   for (const t of managed) {
-    const entry = await pingTool(t, LTP_MANAGED_TOOL_TO_FN[t], expected);
+    const entry = await pingTool(t, LTP_MANAGED_TOOL_TO_FN[t], expected, ceExpected);
     checks.push(entry);
     if (!entry.ok) return { ok: false, checks, aborted_tool: t };
   }
