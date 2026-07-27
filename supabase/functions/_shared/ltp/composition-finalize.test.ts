@@ -110,3 +110,77 @@ Deno.test("composition-finalize: hook set + branch entered = OK", () => {
   assertEquals(res.telemetry.hook_value_present, true);
   assertEquals(res.telemetry.write_around_entered, true);
 });
+
+import { safeFinalizeComposition, SAFE_FINALIZE_VERSION } from "./composition-finalize.ts";
+
+Deno.test("safeFinalizeComposition: version stamp", () => {
+  assertEquals(SAFE_FINALIZE_VERSION, "safe-finalize@2026-07-27-hangfix");
+});
+
+Deno.test("safeFinalizeComposition: clean report — mirrors inner telemetry, errored=false", () => {
+  const rd = { assessment_summary: { narrative: "The record supports the assessment." } };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.enforce_violation, false);
+  assertEquals(res.telemetry.safe_version, SAFE_FINALIZE_VERSION);
+  assert(res.telemetry.elapsed_ms >= 0);
+  assert(res.telemetry.inner !== undefined);
+});
+
+Deno.test("safeFinalizeComposition: enforce-mode value-screen throw is CAUGHT (persist not blocked)", () => {
+  const rd = { assessment_summary: { narrative: "We recommend safeguards." } };
+  // Would throw ValueScreenError in bare finalizeComposition
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, true);
+  assertEquals(res.telemetry.error_kind, "ValueScreenError");
+  assertEquals(res.telemetry.enforce_violation, true);
+  // Original report_data must be returned unchanged so persist can ship it.
+  assertEquals(res.reportData, rd);
+});
+
+Deno.test("safeFinalizeComposition: hook-audit throw is CAUGHT (persist not blocked)", () => {
+  const rd = { assessment_summary: { narrative: "clean." } };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: "1", writeAroundEntered: false, env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, true);
+  assertEquals(res.telemetry.error_kind, "CompositionHookAuditError");
+  // Hook audit is a config-surface signal, not a measurement enforce violation.
+  assertEquals(res.telemetry.enforce_violation, false);
+  assertEquals(res.reportData, rd);
+});
+
+Deno.test("safeFinalizeComposition: throwing recompose is CAUGHT (persist not blocked)", () => {
+  const rd = { assessment_summary: { narrative: "We recommend safeguards." } };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+    recompose: () => { throw new Error("recompose exploded"); },
+  });
+  assertEquals(res.telemetry.errored, true);
+  assertEquals(res.reportData, rd);
+});
+
+Deno.test("safeFinalizeComposition: unowned top-level in enforce is caught, doc still ships", () => {
+  const rd = { assessment_summary: { narrative: "clean." }, weird_key: { z: 1 } };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, true);
+  assertEquals(res.telemetry.enforce_violation, true);
+  assertEquals(res.reportData, rd);
+});
+
+Deno.test("safeFinalizeComposition: budget telemetry present and honored", () => {
+  const rd = { assessment_summary: { narrative: "clean." } };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, env: nullEnv,
+    budgetMs: 1_000,
+  });
+  assertEquals(res.telemetry.budget_ms, 1_000);
+  assert(typeof res.telemetry.elapsed_ms === "number");
+  assert(typeof res.telemetry.budget_exceeded === "boolean");
+});
