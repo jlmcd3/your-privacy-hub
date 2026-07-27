@@ -43,10 +43,10 @@ export function applyCohortAppendIfAbsent(
     return { appended: false, reason: "no_summary", ...base };
   }
   const band = classifyRevenueBand((intake as any)?.q1_revenue);
-  // Only act when the band is INDETERMINATE — a resolved band gets its
-  // single-date treatment elsewhere. Indeterminate = we cannot pick a
-  // single cohort year and MUST expose the conditional to the reader.
-  if (band?.over_25m !== "indeterminate") {
+  // Only act when the cohort is INDETERMINATE — unspecified revenue or the
+  // legacy $25M–$100M band. A resolved cohort has its own single-date
+  // treatment elsewhere and MUST NOT get the conditional clause.
+  if (band?.audit_cohort !== "indeterminate") {
     return { appended: false, reason: "band_resolved", ...base };
   }
   const existing = String(summary.submission_basis ?? "");
