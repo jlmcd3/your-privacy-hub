@@ -154,7 +154,10 @@ export function buildAttestationBlock(intake: Intake, report: Report): Attestati
     certifying_executive_title: clampStr(cd.certifying_exec_title || (flat as any).i8_certifying_exec_title),
     certifying_contact_email: clampStr(cd.certifying_contact_email || (flat as any).i8_contact_email),
     certification_statement: CERTIFICATION_STATEMENT,
-    statutory_basis: "§ 7156(a)",
+    // WAVEB2-CLOSURE (2026-07-27, item 157): re-anchored to § 7157(b)(5) — the
+    // verbatim perjury/attestation clause — and § 7157(c) — the executive-
+    // authority clause. § 7156(a) removed as unverified in provision_texts.
+    statutory_basis: "§ 7157(b)(5), § 7157(c)",
     submission_status: "pending",
     submission_deadline: requiresSubmission ? SUBMISSION_DEADLINE_DEFAULT : "not required",
     ...(url ? { public_privacy_policy_url: url } : {}),
