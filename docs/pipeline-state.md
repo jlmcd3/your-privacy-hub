@@ -3742,3 +3742,5 @@ Stage-C candidates recorded (no code change):
 Courier: `docs/courier/SMOKE8-CUT-ENFORCEMENT-SITE-2026-07-27.md`.
 
 **READY-FOR-RELAUNCH. HARD STOP.**
+
+**HELD** (2026-07-27, post-Item-211): READY-FOR-RELAUNCH state maintained. Awaiting controller relaunch of smoke #9. No new work this nudge.
