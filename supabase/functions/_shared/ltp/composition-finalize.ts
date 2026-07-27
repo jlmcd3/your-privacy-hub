@@ -64,6 +64,10 @@ export interface FinalizeTelemetry {
   readonly value_screen_hits: number;
   readonly value_screen_recomposed: boolean;
   readonly value_screen_final_hits: number;
+  readonly value_screen_hit_details: readonly ValueScreenHit[];
+  readonly fragment_omit_version: string;
+  readonly fragment_omit_count: number;
+  readonly fragment_omit_paths: readonly string[];
   readonly surface_unowned_paths: readonly string[];
   readonly surface_cut_violations: readonly string[];
   readonly hook_audit_ok: boolean;
