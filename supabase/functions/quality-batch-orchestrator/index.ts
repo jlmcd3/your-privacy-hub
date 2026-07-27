@@ -772,6 +772,7 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
     current_tool_index: 0, tool_results: [], created_by: createdBy,
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency: 1,
+    declared_count: pins.length, // §16.n born-state (single tool)
   }).select("id").single();
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   const attribution = sentinel ? ` (attribution=${sentinel})` : "";
