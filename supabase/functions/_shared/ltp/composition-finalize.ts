@@ -24,6 +24,8 @@
 import {
   runValueScreen,
   ValueScreenError,
+  TRUNCATED_SLOT_VALUE_SET,
+  isAnchorPath,
   type ValueScreenHit,
 } from "./value-screen.ts";
 import {
