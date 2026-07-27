@@ -3417,3 +3417,18 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION2-HALT-2026-07-27.md` — enumerates the 4 artifacts required for CONTINUATION-3 release (re-pinned traces, Pass-2 write-site enumeration, composition finalizer anchor, count-migration DDL).
 - **Chain state:** Stage B still at WIRING-CHECKPOINT (1/12); Stages C/D still gated. Clean-arm counter unchanged 0/3.
 - **Disposition:** **HALTED — HARD-FAILURE STOP** per CONTINUATION-2 dispatch early-stop clause. Awaiting controller re-pin + CONTINUATION-3.
+
+## Item 194 — STAGE-B CONTINUATION-3 BLOCK-A-COMPLETE (2026-07-27)
+
+- **Release:** CONTINUATION-3 released with self-serve boundary ruling on items 1-3 of the halt request; migration DDL (item 4) supplied verbatim by controller.
+- **Two-block deploy concession:** steps 2-8 permitted to land as BLOCK A (guard wiring) then BLOCK B (traced fixes + migration + Item-181 renderer wiring), with a checkpoint between them ONLY if the cap physically bites.
+- **Landed this turn (BLOCK A, steps 2-4):**
+  - `_shared/ltp/composition-finalize.ts` — single composition-exit driver composing value-screen (with one-bounded-recompose), surface-write-guard walk against `RISK_SURFACE_BINDINGS` + `RISK_CUT_RULINGS`, and `assertCompositionHookConformance`. Mode via env `LTP_COMPOSITION_ENFORCE`: `observe` (default) records telemetry, `enforce` throws. Hook audit ALWAYS fail-loud.
+  - Wired at single composition-exit in `run-cppa-risk-assessment/index.ts` after the LTP shadow + enforce-preview blocks, before the FUTURE-BUILDING F0 emit. `writeAroundEntered` sourced from `enforce_preview.plan_summary.write_around`. Telemetry lands under `_meta.internal.composition_finalize` (stripped by LEAK-PREV-P2). Fail-open outer boundary.
+  - `BUILD_STAMP` bumped to `ltp-risk-stage-b-blocka-finalizer@2026-07-27T12:15:00Z` → auto-deploy on next kickoff.
+- **Tests:** 35/35 green (`composition-finalize` 9, `composition-hook-audit` 5, `value-screen` 8, `surface-write-guard` 7, `created-by-guard` 6).
+- **Checkpoint reason:** cap bit at the guard/migration boundary. Each block is a consolidated deploy + boot-prove; splitting keeps BLOCK B as one clean second deploy.
+- **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION3-BLOCKA-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C re-smoke.
+- **Chain state:** Stage B at BLOCK-A-COMPLETE (steps 1-4 landed); steps 5-12 defer to CONTINUATION-4. Stages C/D still gated.
+- **Disposition:** **BLOCK-A-COMPLETE. HARD STOP** per dispatch checkpoint clause. Awaiting CEO read + CONTINUATION-4.
