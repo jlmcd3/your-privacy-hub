@@ -186,7 +186,7 @@ Deno.test("safeFinalizeComposition: hook-audit throw is CAUGHT (persist not bloc
 });
 
 Deno.test("safeFinalizeComposition: throwing recompose is CAUGHT (persist not blocked)", () => {
-  const rd = { assessment_summary: { narrative: "We recommend safeguards." } };
+  const rd = { assessment_summary: { narrative: "Per Engine-B composition, safeguards recommended." } };
   const res = safeFinalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
     recompose: () => { throw new Error("recompose exploded"); },
