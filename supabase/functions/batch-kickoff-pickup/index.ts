@@ -647,9 +647,11 @@ Deno.serve(async (req) => {
 
   // Widen fetch so cancel_requested on non-'running' rows (e.g. status='queued'
   // zombies that never entered the orchestrator loop) is observable.
+  // CORRECTIONS-BUNDLE 2026-07-27 — include `tools` so §16 measurement-validity
+  // can be asserted against every LTP-managed generator BEFORE the kick.
   const { data: rows, error } = await admin
     .from("quality_batch_runs")
-    .select("id, status, phase, last_heartbeat_at, started_at, cancel_requested")
+    .select("id, status, phase, last_heartbeat_at, started_at, cancel_requested, tools")
     .not("status", "in", "(complete,failed,cancelled)");
 
   if (error) {
