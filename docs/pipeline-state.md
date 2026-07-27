@@ -2,8 +2,6 @@
 
 **Purpose:** Single source of truth for parallel pipeline controllers (this session, scheduled ticks, human dispatchers). Read this file from a fresh clone BEFORE dispatching, green-lighting, or deploying. A green-light contradicting an ACTIVE HOLD must name the hold and state why it is released.
 
-**Last updated:** 2026-07-27T05:36:06Z (Item 171).
-
 **Stamp doctrine:** Re-read the sandbox clock (`date -u`) immediately before writing any timestamp — including this ledger's "Last updated" field and any function BUILD_STAMP. Never carry a stamp forward from an earlier turn.
 
 **Backend access law (CEO standing order, 2026-07-24):** ALL backend/database access for this project goes through Lovable `query_database` (project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2) — no exceptions. The Supabase MCP connector pointing at project `viqqhoxtakscdiazhvwf` is a DEAD project: INACTIVE is its expected and permanent state. Never query, restore, pause, modify, or "fix" it, and never treat its INACTIVE status as an incident. Any controller session (tick, interactive, or fresh reset) that attempts direct Supabase access is misbehaving per the mutex rule.
@@ -3044,26 +3042,12 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 
 **Not launched this turn:** STEP 3 (Wave D comprehensive, batch_size=6) — launches under its own turn per single-launch discipline. Standing: campaign `fd1be147` PAUSED; run #147 SEALED per item 166; no other measurement activity.
 
-## Item 171 — STATE AUDIT (docs-only inventory, 2026-07-27T05:36:06Z)
+## Ledger item 172 — CORRECTIONS-BUNDLE HELD (monitor nudge, 2026-07-27T05:52:00Z)
 
-**Dispatch id:** STATE-AUDIT-2026-07-27. **Mode:** READ-ONLY. No code / config / deploy / DB / batch actions taken. Courier: `docs/courier/STATE-AUDIT-2026-07-27.md`.
+**Status:** HELD — no progress artifact landed for the gated CORRECTIONS-BUNDLE turn since STATE-AUDIT (item 171, 05:36Z).
 
-**Ground-truth headline:** repo state does NOT reflect any reversal of the ENGINE-B-ALWAYS-ON / model-routing edits. Deployed-runtime boot line for `run-cppa-risk-assessment` was NOT in this turn's edge-function log slice — a live `?ping=1` capture is the recommended follow-up to resolve any repo↔deployed divergence.
+**Blocker:** awaiting Content Courier for Link C wiring (`composeAssessmentSummary` invocation inside `run-cppa-risk-assessment/index.ts`) — this is a content-anchored change per change-control rules and must arrive via John. Harness-side §16/§27 kickoff assertion turn and READINESS v2 remain queued behind Link C landing.
 
-**Per-item evidence** (see courier for pastes):
-- **(1) BUILD_STAMP + boot line:** repo `ltp-risk-engineb-always-on@2026-07-27T05:22:35Z` (index.ts L17–18). Live boot not observed.
-- **(2) `LTP_ENFORCE_ENABLED`:** no live reader; only comments (`pass1-llm.ts:84`, `pipeline.ts:9`) and an inversion-test in `waveb.test.ts`.
-- **(3) Composition path:** Engine-A composition still writes customer `report_data`; LTP orchestrator + Pass-1 LLM attach `_meta.internal.legal_test_pipeline` overlay only. `composeAssessmentSummary` NOT invoked in `run-cppa-risk-assessment` — Link C (Item 169) STILL OPEN. `pass1-llm.ts` SHADOW-PREVIEW header is STALE (attachment shape moved to `.pass1`, not `.enforce_preview`).
-- **(4) Fix inventory:**
-  - Six citation-closure fixes: 3/6 directly verified in repo (dup-fix, ADMT gate, crosswalk); 3/6 UNVERIFIED (token-truncation guard, contradiction filter, whole-sentence excision) — not disconfirmed.
-  - Completion wiring: ✅ (`index.ts` L3157–3187).
-  - PII field-class rule: ✅ (`assertNoPiiInNarrative`).
-  - Crosswalk emitter: ✅ (`waveb-completion.ts` L293).
-  - s6 instrument: `GRADER_CONTEXT_VERSION = "gc-2026-07-27-s6-eu-uk-ca-au-sg"` (`_shared/grader/context.ts:16`). **DRIFT:** `_tests/counsel-voice-1.test.ts:120` still asserts the s5 value → RED test surface.
-  - §16 wiring: `kick-wrapped-batch` ✅ version pre-check; `batch-kickoff-pickup` ❌ NO §16 assertion (Link B still open per Item 169).
-  - R1–R7 retro + state-machine conformance: ✅ landed and live-verified (boot log `state-machine conformance: ok=true legal=6 owned=3 unowned=0 missing_cancel=0` on three ticks this turn).
-  - §26 divergence-tripwire: ✅ documented in LEGAL-TEST-PIPELINE.md §26; automated extraction enforcement not audited this turn.
-- **(5) Diff of CEO reversal:** NONE OBSERVED in repo. Three interpretation options recorded in courier (out-of-band deploy / different branch / pending).
-- **(6) Halted-chain execution:** Item 169 landed; Item 170 repo edits landed (deploy not proven from this turn's logs); Link C wiring NOT DONE; §16 wiring in `batch-kickoff-pickup` NOT DONE; s6 test-surface DRIFT; pass1-llm.ts header retirement NOT DONE; READINESS v2 / new SMOKE / WAVE D NOT LAUNCHED.
+**No work this turn:** no code edits, no deploys, no measurement activity. Campaign `fd1be147` PAUSED. Run #147 SEALED (item 166). Run #149 NON-EVIDENTIAL (item 169). Item 168 smoke-pass verdict remains RETRACTED.
 
-**No opinions, no fixes.** Inventory only. Chain remains halted. Campaign `fd1be147` remains PAUSED. Run #147 SEALED, Run #149 NON-EVIDENTIAL — both unchanged.
+**Next progress artifact:** either (a) Content Courier for Link C, or (b) CEO direction changing the resumption chain — whichever arrives first.
