@@ -67,7 +67,8 @@ export const TRUNCATED_SLOT_VALUES: readonly string[] = [
   "We", "The", "A", "An", "Our", "Their", "It", "This", "That",
   "TODO", "TBD",
 ] as const;
-const TRUNCATED_SLOT_VALUE_SET: ReadonlySet<string> = new Set(TRUNCATED_SLOT_VALUES);
+export const TRUNCATED_SLOT_VALUE_SET: ReadonlySet<string> = new Set(TRUNCATED_SLOT_VALUES);
+export { isAnchorPath as isValueScreenAnchorPath };
 
 const CITE_SPAN_RE = /\{\{cite:[^}]+\}\}/g;
 const INTAKE_SPAN_RE = /\{\{intake:[^}]+\}\}/g;
