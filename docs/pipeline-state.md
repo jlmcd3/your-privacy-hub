@@ -2867,37 +2867,3 @@ Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success
 **Prior-item back-references:** item 161 (stall diagnosis, HELD), item 162 (unblock + §17 cancel-any-pre-execution). Together items 162+163 close the Wave-C-stall defect class end-to-end.
 
 **Status:** DONE. §15 improvement-loop satisfied: defect → root fix (§18 launch-state equivalence + normalize-on-kick) → generalized clause in design law (LEGAL-TEST-PIPELINE §18) → inherited by all future harness components.
-
----
-
-## Item 164 — LTP-RISK-WAVE-C EXTRACTION (monitor tick, 2026-07-27 ~04:07Z)
-
-**Dispatch id:** LTP-RISK-WAVEC-EXTRACT-2026-07-27. Read-only monitor extraction per items 150 / 162 / 163 ("Monitor owns extraction upon terminal"). No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, or instrument edits. No deploys. Campaign `fd1be147` stays PAUSED (CEO-reserved). No new batch launches (single-launch rule).
-
-**Terminal batch:** `quality_batch_runs.id = a1b2c3d4-e5f6-4890-abcd-ef0123456789` — tools={cppa-risk}, batch_size=6, instrument=`gc-2026-07-27-s6-eu-uk-ca-au-sg`, mode=enforce. `status=complete / phase=done` at 2026-07-27T03:55:03.574Z; wall time ≈ 38m 15s. `last_error=NULL`. Child run `quality_runs.id = 3d8a7017-f456-46d2-9fd0-5540087891cc`, **run #148**, checks 158/passed 118/failed 40; `score_overall=71.15`, tuning=71, holdout=73, GPT overall=88.
-
-**Pooled scores (three-wave comparison):**
-
-| Grader                | Wave-C #148 | Wave-B #145 | Wave-A baseline | Δ vs B    |
-| --------------------- | ----------- | ----------- | --------------- | --------- |
-| Claude `score_overall`  | **71.13**  | 72.75       | 78.80           | **−1.62** |
-| GPT `gpt_score_overall` | **87.17**  | 85.00       | —               | **+2.17** |
-| Pooled (C+G)/2          | **79.15**  | 78.88       | 78.80           | **+0.27** |
-
-**Enforce-preview telemetry:** 6/6 `pass1_ok=true`, `attempts=1` everywhere (retry budget N=2 never consumed), `write_around=0/6`, `validator_issues=0`, latency 35.3s–54.0s (mean 41.5s). Manifest stable (`stamp=ltp-pass1-llm-2026-07-26`, `model=google/gemini-3.6-flash`, `plan_version=v1`). **Enforce-mode boot assertion (§16) held for the full batch** — no shadow-mode regression.
-
-**Tuning-vs-holdout (batch_size 6 ≥ 4 → active):** tuning Claude mean 70.53, holdout Claude mean 72.35 → holdout leads by +1.83pt on Claude, ≈parity on GPT (+0.25). **Inverts Wave-B's holdout-trails pattern** (Wave-B was +4.29 Claude / +5.00 GPT tuning-over-holdout); no material overfitting signal — if anything the weaker docs (1 & 3) now sit inside the tuning subset.
-
-**§5 VERDICT — PARTIAL PASS (2/3):** intake-drift **PASS** (no mid-prose intake-value drift check failed; `qc_r1_4_cohort_determinism` 5 critical fails is the cohort-date determinism class, not the mid-prose intake-drift class per Wave-B/B.2 convention); gate-violations **PASS** (no `qc_r1_1_no_asks_on_resolved_tests`, `qc_r1_5_exception_fields_consumed`, or ADMT-consequence gate failures); **citation-binding FAIL** — `rubric_citation_misapplied` 7 fails (tuning 4, holdout 3) — regression class **persists and increased vs Wave-B (5) and Wave-B.2 (6)** despite the Wave-B2-closure deploy (item 157). The closure fix handled a subset of the observed patterns but did not eliminate the class. **Citation-binding remains the next fix priority.** No rollback signal from Wave-C's pooled movement.
-
-**Top failed-finding classes (context for next fix dispatch):** `rubric_unsupported_business_claim` 12 fails (hallucination high — largest, up from 8), `rubric_citation_misapplied` 7 (§5 blocker), `rubric_actionability` 7 (intelligence medium), `rubric_generic_boilerplate` 6 (analysis medium, up from 2), `qc_r1_4_cohort_determinism` 5 (accuracy critical, deterministic), `rubric_internal_reasoning_leak` 3 (hallucination high).
-
-**Non-blocking harness observation:** run #148 `grader_context_version` was recorded as `gc-2026-07-26-s5-eu-uk-ca-au-sg` while batch `instrument_version` is `gc-2026-07-27-s6-eu-uk-ca-au-sg`. Digest reports the batch value per launch spec. Scores are unaffected (s5→s6 was a check re-keying per item 155; grader inputs are identical). Flagging as a future harness-labeling check surface — not a HELD condition.
-
-**Courier:** `docs/courier/LTP-RISK-WAVEC-EXTRACT-2026-07-27.md` (full digest, per-doc scores, per-doc enforce-preview telemetry, failed-finding class table).
-
-**Extraction constraints honoured:** `supabase--read_query` only; no direct Supabase console; no instrument/rubric/golden/corpus/contract/code edits; no deploys; no campaign resume; no new batch launches.
-
-**Prior-item back-references:** items 141 (Wave-A), 153 (Wave-B extract), 156 (Wave-B.2 extract), 157 (Wave-B2 closure + Wave-C launch), 159 (enforce-mode regression fix + §16), 162 / 163 (Wave-C stall unblock + §17/§18). Wave-C is the first fully evidential run under the enforce-mode structural guarantees.
-
-**Status:** DONE (extraction). Wave-C's outstanding class = citation-binding; next dispatch owner: CEO / deploy-authorized turn. Campaign `fd1be147` remains PAUSED.
