@@ -701,7 +701,33 @@ Deno.serve(async (req) => {
     }).eq("id", decision.run_id)
       .in("status", ["running", "queued"])
       .in("phase", ["kickoff", "starting"]);
-    // decision.kind === "kick"
+
+    // §16 MEASUREMENT-VALIDITY (fail-loud pre-kick).
+    // Look up the row's declared tools; assert every LTP-managed tool reports
+    // the fleet-expected mode. On mismatch, mark the batch failed with the
+    // check payload recorded to `last_error`. NEVER kick a mismatched generator.
+    const rowForKick = (rows ?? []).find((r) => r.id === decision.run_id) as { tools?: string[] } | undefined;
+    const toolsForKick: string[] = Array.isArray(rowForKick?.tools) ? rowForKick!.tools : [];
+    const modeCheck = await assertLtpModeForTools(toolsForKick);
+    if (!modeCheck.ok) {
+      const note = `[kickoff-pickup: §16 mode-assert abort tool=${modeCheck.aborted_tool} checks=${JSON.stringify(modeCheck.checks)}]`;
+      await admin.from("quality_batch_runs").update({
+        status: "failed",
+        phase: "done",
+        last_error: note,
+        completed_at: new Date().toISOString(),
+      }).eq("id", decision.run_id).not("status", "in", "(complete,failed,cancelled)");
+      await logRun({
+        decision: "mode_assert_abort", run_id: decision.run_id,
+        tools: toolsForKick, mode_check: modeCheck,
+      }, "error");
+      return new Response(JSON.stringify({
+        decision, aborted: "ltp_mode_mismatch",
+        law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
+        mode_check: modeCheck, build_stamp: BUILD_STAMP,
+      }), { status: 409, headers: { ...cors, "Content-Type": "application/json" } });
+    }
+
     const result = await invokeGated("quality-batch-orchestrator", { run_id: decision.run_id }, { timeoutMs: 15_000 });
     const kickRes = await fetch(`${SUPABASE_URL}/functions/v1/quality-batch-orchestrator`, {
       method: "POST",
@@ -723,6 +749,7 @@ Deno.serve(async (req) => {
       kick_ok: kickOk,
       kick_status: kickStatus,
       invoke_gated_probe: { ok: result.ok, status: result.status },
+      mode_check: modeCheck,
     }, kickOk ? "success" : "error");
   }
 
