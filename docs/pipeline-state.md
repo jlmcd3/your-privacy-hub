@@ -3666,3 +3666,16 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Ledger updated:** appended HELD note to maintain continuity while awaiting controller review of the surface-guard CUT-list violation.
 - **Next action:** pending controller instruction on whether to fix, re-scope, or relaunch.
 
+
+## Item 209 — SMOKE-#6 SURFACE-GUARD-GRAIN FIX (2026-07-27)
+
+- **Root cause (controller-verified):** finalize surface-guard collapsed every `CutRuling` to top-level via `path.split(".")[0]`, ignored `mode`, and ran pre-serializer. That wrongly condemned the bound surface `scope_and_triggers` (whose only ruling is nested `scope_and_triggers.scope_notes` OBJECT_PRUNE). Guard was checking the wrong object at the wrong grain; smoke #6 shipped a fully conformant document.
+- **Fix (both options taken):**
+  - `_shared/ltp/composition-finalize.ts`: finalize walk now enforces only REMOVE / EMPTY_ARRAY rulings whose grain IS the top level; OBJECT_PRUNE-only rulings ignored here. New export `evaluateShippedSurfaceGuard(shipped)` evaluates every ruling by declared path + mode against the shipped/post-serializer projection.
+  - `run-cppa-risk-assessment/index.ts`: after LEAK-PREV-P2 serializer, run `evaluateShippedSurfaceGuard`; telemetry on `_meta.internal.shipped_surface_guard` (`mode`, `cut_violations`, `unowned_paths`, `enforce_violation`). Wire-site never throws — persist invariant.
+  - `_shared/ltp/cyber-audit-schedule.ts`: removed Item-204 legacy mirror write to `cross_tool_recommendations.cybersecurity_audit_rationale` (dead write to a REMOVE-cut surface and the trigger for smoke-#6 CTR guard false positive). Renderer-tolerance already proven in `risk-surface-map.ts`.
+- **Regression tests (added to `_shared/ltp/composition-finalize.test.ts`):** smoke-#6 shipped shape clean; scope_notes present FAILS; cross_tool_recommendations present post-serializer FAILS; non-empty inconsistency_flags FAILS; bound `scope_and_triggers` with only allowed children does NOT throw in finalize enforce mode.
+- **Tests:** `deno test` on `composition-finalize.test.ts`, `cyber-audit-schedule.test.ts`, `surface-write-guard.test.ts` — **34/34 green**.
+- **Deploy:** `run-cppa-risk-assessment` redeployed; `BUILD_STAMP` `ltp-risk-item208-shipped-surface-guard@2026-07-27T19:30:00Z`. §16 ping verified on the wire.
+- **Courier:** `docs/courier/SMOKE6-SURFACE-GUARD-GRAIN-2026-07-27.md`.
+- **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller relaunches smoke #7.

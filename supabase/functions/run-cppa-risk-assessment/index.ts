@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item206-fragment-omit-hits@2026-07-27T18:40:00Z";
+export const BUILD_STAMP = "ltp-risk-item208-shipped-surface-guard@2026-07-27T19:30:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
@@ -51,7 +51,9 @@ import {
   readForceWriteAroundOnce,
   currentEnforceMode,
   COMPOSITION_FINALIZE_VERSION,
+  evaluateShippedSurfaceGuard,
 } from "../_shared/ltp/composition-finalize.ts";
+
 import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
@@ -3660,6 +3662,40 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── ITEM 208 — POST-SERIALIZER SURFACE GUARD (SMOKE-#6 fix) ──────
+    // The CutRulings execute at the LEAK-PREV-P2 serializer; the
+    // finalize surface-guard checks the wrong grain against the wrong
+    // object. Re-evaluate rulings by declared path + mode against the
+    // SHIPPED (post-serializer) projection — the artifact that ships.
+    // Telemetry-only at the wire-site (persist invariant): enforce
+    // verdicts land on _meta.internal.shipped_surface_guard.
+    try {
+      const shippedEval = evaluateShippedSurfaceGuard(report_data);
+      const _rdS: any = report_data as any;
+      _rdS._meta = _rdS._meta ?? {};
+      _rdS._meta.internal = _rdS._meta.internal ?? {};
+      const _shippedMode = currentEnforceMode(Deno.env);
+      _rdS._meta.internal.shipped_surface_guard = {
+        build_stamp: BUILD_STAMP,
+        mode: _shippedMode,
+        cut_violations: shippedEval.cut_violations,
+        unowned_paths: shippedEval.unowned_paths,
+        enforce_violation:
+          _shippedMode === "enforce"
+          && (shippedEval.cut_violations.length > 0 || shippedEval.unowned_paths.length > 0),
+      };
+      console.log(JSON.stringify({
+        evt: "shipped_surface_guard_ran", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, mode: _shippedMode,
+        cut_violation_count: shippedEval.cut_violations.length,
+        cut_violations: shippedEval.cut_violations,
+        unowned_paths: shippedEval.unowned_paths,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] shipped_surface_guard failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });

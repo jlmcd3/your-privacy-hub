@@ -215,3 +215,52 @@ Deno.test("safeFinalizeComposition: budget telemetry present and honored", () =>
   assert(typeof res.telemetry.elapsed_ms === "number");
   assert(typeof res.telemetry.budget_exceeded === "boolean");
 });
+
+// ── ITEM 208 — POST-SERIALIZER SHIPPED SURFACE GUARD ────────────────
+import { evaluateShippedSurfaceGuard } from "./composition-finalize.ts";
+
+Deno.test("shipped-surface-guard: smoke-#6 shipped shape (scope_notes absent, no CTR, empty flags) is clean", () => {
+  const shipped = {
+    scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] }, // scope_notes absent
+    inconsistency_flags: [],
+    assessment_summary: { narrative: "clean." },
+    _meta: { build: "x" },
+  };
+  const e = evaluateShippedSurfaceGuard(shipped);
+  assertEquals(e.cut_violations, []);
+  assertEquals(e.unowned_paths, []);
+});
+
+Deno.test("shipped-surface-guard: OBJECT_PRUNE — scope_notes present FAILS", () => {
+  const shipped = {
+    scope_and_triggers: { triggered_activities_detail: [], scope_notes: "leaked note" },
+    inconsistency_flags: [],
+  };
+  const e = evaluateShippedSurfaceGuard(shipped);
+  assert(e.cut_violations.some((v) => v.path === "scope_and_triggers.scope_notes"));
+});
+
+Deno.test("shipped-surface-guard: REMOVE — cross_tool_recommendations present post-serializer FAILS", () => {
+  const shipped = { cross_tool_recommendations: { anything: 1 }, inconsistency_flags: [] };
+  const e = evaluateShippedSurfaceGuard(shipped);
+  assert(e.cut_violations.some((v) => v.path === "cross_tool_recommendations"));
+});
+
+Deno.test("shipped-surface-guard: EMPTY_ARRAY — non-empty inconsistency_flags FAILS", () => {
+  const shipped = { inconsistency_flags: [{ id: "x" }] };
+  const e = evaluateShippedSurfaceGuard(shipped);
+  assert(e.cut_violations.some((v) => v.path === "inconsistency_flags"));
+});
+
+Deno.test("finalize: scope_and_triggers bound top-level with only allowed children does NOT throw in enforce (Item 208 regression)", () => {
+  const rd = {
+    scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] },
+    inconsistency_flags: [],
+    assessment_summary: { narrative: "clean." },
+  };
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.surface_cut_violations, []);
+});
+
