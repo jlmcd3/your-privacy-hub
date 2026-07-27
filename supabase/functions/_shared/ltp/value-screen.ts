@@ -103,7 +103,7 @@ function normalize(s: string): string {
 }
 
 /** Anchor / metadata paths whose values are structured tokens, not customer prose. */
-function isAnchorPath(path: string): boolean {
+export function isAnchorPath(path: string): boolean {
   const lastKey = path.split(".").pop() ?? "";
   const bare = lastKey.replace(/\[\d+\]$/, "");
   if (bare.startsWith("_")) return true;
