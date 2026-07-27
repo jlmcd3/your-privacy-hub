@@ -3084,3 +3084,23 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **Next progress artifact:** monitor tick when smoke 1 reaches terminal → set LTP_TEST_FORCE_WRITE_AROUND → launch smoke 2 → wait terminal → clear secret → paste both section inventories in `docs/courier/DUAL-SMOKE-2026-07-27.md`. HARD STOP after that courier per dispatch.
 
 **Standing:** campaign `fd1be147` PAUSED. Run #147 SEALED. Run #149 NON-EVIDENTIAL. No enforcement-state or architecture change this turn.
+
+## Ledger item 175 — RUN #149 FAILING-CHECK ADJUDICATION (docs-only, 2026-07-27T06:46:32Z)
+
+**Scope:** per-check adjudication of all 17 failing checks on run #149 (`00d3eb37…`, batch `e1cd0e3e…`). Docs-only. NO code changes, NO deploys, NO batches. Run #149 remains NON-EVIDENTIAL per item 169; run #147 remains SEALED per item 166.
+
+**Method:** divergence-adjudication — evidence line per finding pasted alongside the emitter output, verdict = EMITTER GAP or SCAN-MISMATCH.
+
+**Verdict counts:** EMITTER GAP = 17; SCAN-MISMATCH (instrument re-key candidate) = 0.
+
+**Cohort-determinism CRITICALs (3):** all three docs recorded intake band `$25M to under $50M` and emitted `submission_summary.submission_deadline = "April 1, 2028"`; scan target requires `April 1, 2030` for that band per § 7121(a) tier schedule. **Verdict: EMITTER GAP** on all three — the emitter assigned the highest-tier date (April 1, 2028) to the lowest revenue tier. Not a scan-pattern artifact; no re-key possible.
+
+**Nine distinct emitter defect classes identified** (full evidence in courier §8). Top-fanout defect: `i7_internal_contributors` placeholder never substituted → trips 7 of 17 findings across `internal_reasoning_leak` ×2 + `actionability` ×3 + `generic_boilerplate` ×2.
+
+**Instrument re-key candidates for CEO ruling: NONE.**
+
+**Pre-Wave-D fix list (CEO-gated, not authorized this turn):** (1) § 7121(a) tier→deadline map for the $25M–<$50M band, (2) `i7_internal_contributors` substitution, (3) § 1798.140 sale-pinpoint (ad→ab), (4) `information_needed` cross-section coherence with `triggered_activities_detail[0]`, (5) ADMT-consequence gate extension to opening_summary § 7150(b)(3) slot, (6) truncation-residue closure for the new `We`-leak surfaces, (7) intake-contradiction filter q5b × i1 pair, (8) risk-register row differentiation, (9) adverse-effects intake conditioning.
+
+**Courier:** `docs/courier/RUN149-ADJUDICATION-2026-07-27.md`.
+
+**Standing:** campaign `fd1be147` PAUSED. Item 174 dual-smoke HELD status unchanged (clean smoke `b091113d…` still in flight last observed 06:32Z; forced-degradation smoke not launched). No enforcement-state or architecture change this turn.
