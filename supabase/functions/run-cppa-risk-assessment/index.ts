@@ -3343,13 +3343,16 @@ async function runPipeline(assessment_id: string) {
           registry_versions: _fbRegistryVersions,
           scenario_set: (row as any)?.scenario_set ?? null,
           run_ref: assessment_id ?? null,
-        }).then(({ error }) => {
-          if (error) {
-            console.warn("[run-cppa-risk-assessment] future-building insert failed (non-fatal):", error.message);
-          }
-        }).catch((err: unknown) => {
-          console.warn("[run-cppa-risk-assessment] future-building insert threw (non-fatal):", (err as Error)?.message);
-        });
+        }).then(
+          ({ error }) => {
+            if (error) {
+              console.warn("[run-cppa-risk-assessment] future-building insert failed (non-fatal):", error.message);
+            }
+          },
+          (err: unknown) => {
+            console.warn("[run-cppa-risk-assessment] future-building insert threw (non-fatal):", (err as Error)?.message);
+          },
+        );
         _rd._meta.internal.future_building = {
           observed: true,
           signature: _sig.hash,
