@@ -9,6 +9,7 @@ import {
   PASS2_FORBIDDEN_TOKENS,
   BALANCE_DIRECTION_CLAUSES,
   FIRM_VARIANT_CLOSENESS_MAX,
+  shouldEmitBCriterionCountQuestion,
 } from "./pass2-templates.ts";
 import { RENDERPLAN_WIRE_SCHEMA, planKeysProjected } from "./renderplan-wire-schema.ts";
 import { derivePlan } from "../derive.ts";
@@ -35,14 +36,17 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.admt.consequence_suppressed",
     "T.risk.applicability.engaged",
     "T.risk.applicability.not_engaged",
+    "T.risk.balance.factor_line",
     "T.risk.balance.firm",
     "T.risk.balance.hedged",
     "T.risk.closing.reserved",
     "T.risk.cohort",
     "T.risk.documentation.gap",
     "T.risk.documentation.present",
+    "T.risk.information_needed.b_criterion_count",
     "T.risk.review_items",
     "T.risk.summary.activity_line",
+    "T.risk.summary.aggregation_note",
     "T.risk.summary.docs",
     "T.risk.summary.opening.all_firm",
     "T.risk.summary.opening.any_negative",
@@ -50,6 +54,115 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.summary.opening.mixed_hedged",
   ];
   assertEquals(ids, expected);
+});
+
+// ── ENRICHED BALANCE + AGGREGATION + (B)-GAP TESTS (CONTENT COURIER 2026-07-27) ──
+
+function renderTemplate(id: string, slots: Record<string, string>): string {
+  const t = PASS2_TEMPLATES[id];
+  let out = t.text;
+  for (const [k, v] of Object.entries(slots)) {
+    out = out.split(`{{plan:${k}}}`).join(v).split(`{{cite:${k}}}`).join(v);
+  }
+  return out;
+}
+
+Deno.test("content: factor_line renders with guidance clause substituted", () => {
+  const t = PASS2_TEMPLATES["T.risk.balance.factor_line"];
+  assertEquals(t.citation_slots, ["GUIDANCE_PIN"]);
+  assertEquals(t.plan_slots, ["factor_label", "factor_basis", "guidance_clause"]);
+  const rendered = renderTemplate("T.risk.balance.factor_line", {
+    factor_label: "Fraud prevention benefit",
+    factor_basis: "documented as the primary business purpose",
+    guidance_clause: "The Agency's Final Statement of Reasons addresses this consideration: [FSOR-P42].",
+  });
+  assert(rendered.startsWith("Fraud prevention benefit: documented as the primary business purpose."));
+  assert(rendered.includes("Final Statement of Reasons"));
+  assert(!rendered.includes("{{"));
+  assert(rendered.length <= t.max_chars);
+});
+
+Deno.test("content: factor_line renders basis-only when guidance_clause is empty", () => {
+  const rendered = renderTemplate("T.risk.balance.factor_line", {
+    factor_label: "Retention safeguard",
+    factor_basis: "30-day deletion policy on the record",
+    guidance_clause: "",
+  });
+  // Basis-only rendering: no invented reasoning, no dangling tokens.
+  assertEquals(rendered.trim(), "Retention safeguard: 30-day deletion policy on the record.");
+  assert(!rendered.includes("{{"));
+});
+
+Deno.test("content: aggregation_note contains driving_activity_label and precedence framing", () => {
+  const t = PASS2_TEMPLATES["T.risk.summary.aggregation_note"];
+  assertEquals(t.plan_slots, ["driving_activity_label"]);
+  assertEquals(t.citation_slots, []);
+  const rendered = renderTemplate("T.risk.summary.aggregation_note", {
+    driving_activity_label: "Automated hiring decisions",
+  });
+  assert(rendered.includes("Automated hiring decisions"));
+  assert(rendered.includes("most consequential activity"));
+  assert(rendered.includes("are not averaged"));
+  assert(rendered.length <= t.max_chars);
+});
+
+Deno.test("content: (B)-gap question — emission matrix (all three conditions required)", () => {
+  // Truth table: emit iff A_unresolved && sell_or_share && !has_count.
+  const cases: Array<{ a: boolean; ss: boolean; hc: boolean; want: boolean }> = [
+    { a: false, ss: true, hc: false, want: true },   // canonical emit
+    { a: true,  ss: true, hc: false, want: false },  // A resolved → suppress
+    { a: false, ss: false, hc: false, want: false }, // no sell/share → suppress
+    { a: false, ss: true, hc: true,  want: false },  // count present → suppress
+    { a: true,  ss: false, hc: true, want: false },
+    { a: true,  ss: true,  hc: true, want: false },
+    { a: false, ss: false, hc: true, want: false },
+    { a: true,  ss: false, hc: false, want: false },
+  ];
+  for (const c of cases) {
+    const got = shouldEmitBCriterionCountQuestion({
+      criterion_a_resolved: c.a,
+      intake_affirms_sell_or_share: c.ss,
+      has_compliant_count_field: c.hc,
+    });
+    assertEquals(got, c.want, `A=${c.a} SS=${c.ss} HC=${c.hc}`);
+  }
+});
+
+Deno.test("content: (B)-gap question text is intake-gap disciplined (no negative implication, no citation glyph)", () => {
+  const t = PASS2_TEMPLATES["T.risk.information_needed.b_criterion_count"];
+  const text = t.text;
+  // Named-statute reference is template-authored (per PASS2_FORBIDDEN_TOKENS
+  // scope: connective tissue). The (B)-gap question is a customer-facing
+  // ask, so it names the pinpoint verbatim. Assert it does NOT use the
+  // negative-implication phrasings reserved for gap/closing surfaces.
+  const negativeImplicationMarkers = [
+    "does not",
+    "cannot",
+    "is not sufficient",
+    "no basis",
+    "insufficient",
+  ];
+  for (const m of negativeImplicationMarkers) {
+    assert(!text.toLowerCase().includes(m.toLowerCase()), `negative-implication token present: ${m}`);
+  }
+  // Never in opening: this template has no opening_slot and no plan slots,
+  // so it can only be routed to the information_needed surface.
+  assertEquals(t.plan_slots, []);
+  assertEquals(t.intake_slots, []);
+  assert(text.length <= t.max_chars);
+});
+
+Deno.test("content: new templates lint clean against PASS2_FORBIDDEN_TOKENS in connective tissue", () => {
+  // Forbidden tokens apply to model-authored connective tissue; templates
+  // themselves are courier-authored and may name statutes verbatim in
+  // customer-facing question surfaces (see (B)-gap ruling). Assert the
+  // two Pass-2 narrative templates do not carry the model-only glyphs.
+  for (const id of ["T.risk.balance.factor_line", "T.risk.summary.aggregation_note"]) {
+    const text = PASS2_TEMPLATES[id].text;
+    for (const tok of ["Art.", "Sec.", "GDPR", "persuasive-markers-absent-check"]) {
+      assert(!text.includes(tok), `${id} contains forbidden token: ${tok}`);
+    }
+  }
 });
 
 
