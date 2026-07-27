@@ -531,3 +531,69 @@ The prior invariant — pickup selects `status='running' AND phase='kickoff'` on
 **Ownership.** Every harness component with an external-insertable pre-execution queue MUST publish its canonical launch shape(s) and MUST serve every published shape from the same tick — either by picking every shape natively or by declaring one canonical shape and normalizing others at pickup. Cancel handling (§17) covers all pre-execution shapes automatically. A component that publishes one shape and serves another is a **harness defect** and is ledgered per §15 within one turn.
 
 **Unit test contract.** The pure decision function MUST have tests covering: (a) both canonical shapes are kickoff-eligible; (b) Shape B past PICKUP_STALE_MS → `kick`; (c) Shape B does NOT trigger `single_flight_skip` against a Shape A peer; (d) a `running_tool` peer DOES block a Shape B pickup via `single_flight_skip`; (e) Shape B past REAP_STALE_MS → `reap` with parity to Shape A. See `supabase/functions/batch-kickoff-pickup/launch-state-equivalence.test.ts`.
+
+## 19. PROCESS-RETRO-WRITEBACK — R1 canonical state machine (harness; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** The batch/run lifecycle is now formally described in `docs/design/HARNESS-STATE-MACHINE.md`. Every state, transition, primary owner, cancel path, and reap rule is enumerated there. Named laws §17 and §18 are **subsumed** by that document; they remain in force as clauses. `HARNESS-STATE-MACHINE.md` is the canonical picture; §19–§25 below are the process clauses that operate on top of it.
+
+**Canonical born state (R1 pick).** External wrapper inserts MUST land in `(running, kickoff)`. The legacy `(queued, starting)` shape is served indefinitely by `batch-kickoff-pickup` (§18) and normalized on kick; it is a **compatibility surface**, not a preferred shape.
+
+**Conformance test.** Every deploy touching `batch-kickoff-pickup`, `quality-batch-orchestrator`, or `delivery-sentinel` MUST include a test asserting every state × daemon pair has an owner AND a cancel path AND a reap owner. Canonical helpers live at `supabase/functions/_shared/harness/state-machine.ts` (`verifyStateMachine`, `assertStateMachineConformance`, `LEGAL_STATES`, `PRE_EXECUTION_STATES`, `OWNERSHIP`, `CANCEL_OWNERSHIP`, `REAP_OWNERSHIP`). No unserved state can exist — a state with no owner is a test-time failure.
+
+**Boot assertion.** Daemons in scope MUST call `assertStateMachineConformance()` at import time. A failed conformance throws at boot and the deploy fails loud — same discipline as §16 (measurement-validity) applied to structural conformance.
+
+## 20. PROCESS-RETRO-WRITEBACK — R2 guarded mutations (harness + ops; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** Every state change to `public.quality_batch_runs` (or any shared harness row) — whether from code, SQL, or ops migration — MUST carry a compare-and-act predicate: `UPDATE … WHERE id = $1 AND status = <expected> AND phase = <expected>`. If the update affects zero rows, the actor MUST record the divergence and re-read the live row. The actor MUST NOT proceed as if the write succeeded, MUST NOT re-issue the same write with a broader WHERE clause, and MUST NOT act on turn-start context.
+
+**Dispatch convention.** Every ops instruction states its **expected precondition** (which live state the row is in at dispatch time). The receiving actor **no-ops on stale precondition** and records a divergence note in the ledger rather than acting.
+
+**Motivation.** Item 162's replacement-wrapper insertion assumed `2a3c07a2` was still in `queued/starting`; a concurrent cron tick had already transitioned it to `running_tool` at 03:16:34Z. Guarded mutations detect this at the SQL level and force a re-read before any follow-up.
+
+## 21. PROCESS-RETRO-WRITEBACK — R3 state-ownership map (ops; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** Ownership of shared harness state is:
+
+- **Controller** owns live batch-row surgery (`query_database` UPDATEs to move a wrapper past a wedge) AND MUST record an immediate ledger note whenever it writes to `quality_batch_runs`.
+- **Agent** owns code, docs, deploys, and the design-law amendments that follow from surgery.
+- **Crons** (`batch-kickoff-pickup`, orchestrator self-chain, delivery-sentinel) own their canonical states per the ownership map in `HARNESS-STATE-MACHINE.md` §4.
+
+**Live-row rule.** ANY actor mutating shared state MUST re-read the live row **immediately before the guarded WRITE**. Turn-start context is **never** sufficient for a mutation. The re-read and the WRITE are the actor's atomic unit; nothing else in the turn may separate them.
+
+## 22. PROCESS-RETRO-WRITEBACK — R4 smoke-before-measure (harness + ops; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** Any measurement batch that follows an infrastructure / config / deploy change MUST be preceded by a **`batch_size=1` SMOKE batch** carrying full §16 mode/config assertions. The measurement batch launches only on smoke pass.
+
+**Scope.** Applies whenever ANY of the following changed since the last measurement wave: (a) a deploy to `run-*` (product tool), `quality-batch-orchestrator`, `batch-kickoff-pickup`, or a `_shared/` module imported by them; (b) an env-var flip touching `LTP_ENFORCE_ENABLED` or grader routing; (c) a `grader_context_version` bump; (d) any migration to a table read by the grader/rubric.
+
+**Cost/benefit.** Smoke cost = 1 doc grader spend (cents). The night of 2026-07-27's cascade — enforce-mode silent-off, `queued/starting` stall, zombie mutex, placeholder-UUID replacement — is the counterfactual: any one of those would have surfaced on a smoke batch and cost minutes to unwind instead of hours.
+
+## 23. PROCESS-RETRO-WRITEBACK — R5 ops post-conditions (ops + harness; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** Every ops action MUST verify its own outcome **in the same turn** it is taken. Post-conditions are:
+
+| Action                              | In-turn post-condition                                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| Launch a wrapper                    | Wrapper transitions past its born state within **2 pickup cycles** (~2×60s), else stall.     |
+| Cancel a wrapper                    | Wrapper reaches a terminal state (`cancelled/done` or otherwise) before turn end.            |
+| Set/flip an env var or config       | Ping the affected daemon and confirm the value via boot-line or telemetry echo.              |
+| Deploy an edge function             | Boot log carries the new BUILD_STAMP (**already law**, §16-adjacent).                        |
+| Insert a row (any harness table)    | Read the row back by generated id in the same turn; the read is the receipt.                 |
+
+An ops action whose post-condition cannot be verified in-turn is **HELD** and named as such in the ledger; the turn does not close claiming success.
+
+## 24. PROCESS-RETRO-WRITEBACK — R6 controller courier discipline (docs + ops; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** Every content or ops courier MUST open with a **VERIFIED-FACTS preamble**: a short list of what was checked against the codebase or the database and when. Unverified assumptions are either (a) named explicitly as ASSUMPTIONS, or (b) omitted; the courier does not ship claims dressed as facts.
+
+**Preamble minimum.** (i) live-state checks: which rows / files were read and their timestamps or checksums; (ii) tool used: `supabase--read_query` / `code--view` / `edge_function_logs`; (iii) turn clock (`date -u`) at read time.
+
+Couriers that ship without a VERIFIED-FACTS preamble are **retracted** by the next controller tick and re-issued with one — no exceptions.
+
+## 25. PROCESS-RETRO-WRITEBACK — R7 generated-ids only (harness; item 165, 2026-07-27; standing, product-agnostic)
+
+**Ruling.** Row ids for production tables are ALWAYS generated (`gen_random_uuid()` / column default). NEVER type a literal UUID in a dispatch, migration, insert statement, or agent-authored SQL. Any table externally insertable at launch time MUST carry a DB-level `DEFAULT gen_random_uuid()`.
+
+**Motivating incident.** Item 162's replacement wrapper id `a1b2c3d4-e5f6-4890-abcd-ef0123456789` was a hand-typed placeholder from documentation. The DB accepted it because the id column had no strict shape check; ledger accounting then had to distinguish a real UUID from a placeholder pattern. Both problems disappear when the id is generated.
+
+**Enforcement.** Migrations touching launch-inserted tables MUST include `DEFAULT gen_random_uuid()` on the id column. Any external insert dispatch MUST omit `id` from the column list unless the caller can guarantee `gen_random_uuid()` on the value expression.
