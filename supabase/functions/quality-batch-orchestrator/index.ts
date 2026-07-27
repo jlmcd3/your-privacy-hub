@@ -812,7 +812,8 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
       "error");
     return { started: false, reason: `ltp_mode_mismatch:${modeCheck.aborted_tool}` };
   }
-  {
+
+
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: createdBy,
