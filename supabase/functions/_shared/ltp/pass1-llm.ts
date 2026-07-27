@@ -26,9 +26,14 @@ import {
   PASS1_DERIVE_USER_TEMPLATE,
   PASS1_DERIVE_PROMPT_VERSION,
 } from "./content/pass1-derive-prompt.ts";
+import { callAnthropicWithContinuation } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-2026-07-26";
-export const PASS1_MODEL = "google/gemini-3.6-flash";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-2026-07-27-anthropic-direct";
+// CEO Q3 same-model ruling (PRE-WAVED-EMITTER-FIXES-2026-07-27): Pass-1
+// runs on the same generator model as run-cppa-risk-assessment
+// (claude-sonnet-4-6, called via the shared Anthropic client, bypassing
+// the Lovable AI gateway which does not serve Anthropic models).
+export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 
 export interface Pass1Telemetry {
@@ -55,14 +60,23 @@ function fillUserTemplate(input: DeriveInput): string {
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
 }
 
-async function callGateway(body: unknown): Promise<Response> {
-  const key = Deno.env.get("LOVABLE_API_KEY");
-  if (!key) throw new Error("missing_LOVABLE_API_KEY");
-  return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { "content-type": "application/json", "Lovable-API-Key": key },
-    body: JSON.stringify(body),
+async function callPass1Model(system: string, user: string): Promise<string> {
+  // PRE-WAVED-EMITTER-FIXES-2026-07-27 (CEO Q3): direct Anthropic client;
+  // gateway path retired for Pass-1 because the Lovable AI gateway does
+  // not serve Anthropic models and the CEO same-model ruling requires
+  // Pass-1 to run on the generator's model.
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) throw new Error("missing_ANTHROPIC_API_KEY");
+  const res = await callAnthropicWithContinuation({
+    model: PASS1_MODEL,
+    system,
+    user,
+    maxTokens: 8000,
+    label: "ltp-pass1-derive",
+    callerName: "run-cppa-risk-assessment",
+    product: "cppa-risk-assessment",
   });
+  return res.text;
 }
 
 function writeAroundPlan(input: DeriveInput, reason: string): RenderPlan {
@@ -105,23 +119,15 @@ export async function runPass1Llm(input: DeriveInput): Promise<Pass1Result> {
   let lastErr = "";
   for (let attempt = 1; attempt <= PASS1_MAX_ATTEMPTS; attempt++) {
     try {
-      const res = await callGateway({
-        model: PASS1_MODEL,
-        messages: [
-          { role: "system", content: PASS1_DERIVE_SYSTEM },
-          { role: "user", content: fillUserTemplate(input) },
-        ],
-        response_format: { type: "json_object" },
-      });
-      if (!res.ok) {
-        lastErr = `gateway_${res.status}`;
-        await res.text().catch(() => "");
-        continue;
-      }
-      const payload = await res.json();
-      const raw = payload?.choices?.[0]?.message?.content;
+      const raw = await callPass1Model(
+        typeof PASS1_DERIVE_SYSTEM === "string" ? PASS1_DERIVE_SYSTEM : JSON.stringify(PASS1_DERIVE_SYSTEM),
+        fillUserTemplate(input),
+      );
       if (!raw) { lastErr = "empty_content"; continue; }
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      // Anthropic returns text; extract the first JSON object.
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? jsonMatch[0] : raw;
+      const parsed = JSON.parse(jsonText);
       // Force product + build_stamp to the caller-known values.
       const candidate: RenderPlan = {
         ...parsed,

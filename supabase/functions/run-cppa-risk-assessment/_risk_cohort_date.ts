@@ -44,23 +44,49 @@
 
 import { classifyRevenueBand } from "../_shared/cppa-test-states.ts";
 
-export const RISK_COHORT_DATE_STAMP = "risk-cohort-date@2026-07-26T03:09:53Z";
-export const RISK_COHORT_DATE_VERSION = "risk-cohort-date-v1-2026-07-26";
+// PRE-WAVED-EMITTER-FIXES-2026-07-27: extend from 25_50m-only to a full
+// V2 truth-table over ALL revenue bands. The § 7121(a) tier→deadline map
+// is corpus-pinned; the emitter guarantees the correct literal per band
+// and excises any wrong-cohort sentence regardless of band.
+export const RISK_COHORT_DATE_STAMP = "risk-cohort-date@2026-07-27T06:40:00Z";
+export const RISK_COHORT_DATE_VERSION = "risk-cohort-date-v2-truth-table-2026-07-27";
 
-// Corpus-pinned literal — verbatim from provision_texts row cppa-7121
-// (status=approved), § 7121(a)(3): the < $50M cohort due date.
-// Tests pin BOTH the date literal and the audit-period window; changing
-// either without a corpus write breaks the pinned assertion.
+// Corpus-pinned literals — verbatim from provision_texts row cppa-7121
+// (status=approved). Tests pin the literals so registry drift trips CI.
 export const COHORT_DATE_LITERAL_25_50M = "April 1, 2030";
 export const AUDIT_PERIOD_LITERAL_25_50M =
   "January 1, 2029 through January 1, 2030";
+export const COHORT_DATE_LITERAL_50_100M = "April 1, 2029";
+export const AUDIT_PERIOD_LITERAL_50_100M =
+  "January 1, 2028 through January 1, 2029";
+export const COHORT_DATE_LITERAL_OVER_100M = "April 1, 2028";
+export const AUDIT_PERIOD_LITERAL_OVER_100M =
+  "January 1, 2027 through January 1, 2028";
 
-// The deterministic sentence emitted into the cybersecurity-audit
-// rationale surface. Advocate-drafter voice; no hedges.
+// V2 truth-table: revenue-band key → { subdivision, date, audit period }.
+// "unspecified"/"legacy_25_100m" resolve to "not determinable" — the
+// emitter refuses to invent a date when the band is indeterminate.
+export const COHORT_TRUTH_TABLE = {
+  under_25m:      { subdivision: "(a)(3)", date: COHORT_DATE_LITERAL_25_50M,     period: AUDIT_PERIOD_LITERAL_25_50M },
+  "25_50m":       { subdivision: "(a)(3)", date: COHORT_DATE_LITERAL_25_50M,     period: AUDIT_PERIOD_LITERAL_25_50M },
+  "50_100m":      { subdivision: "(a)(2)", date: COHORT_DATE_LITERAL_50_100M,    period: AUDIT_PERIOD_LITERAL_50_100M },
+  over_100m:      { subdivision: "(a)(1)", date: COHORT_DATE_LITERAL_OVER_100M,  period: AUDIT_PERIOD_LITERAL_OVER_100M },
+  "100_500m":     { subdivision: "(a)(1)", date: COHORT_DATE_LITERAL_OVER_100M,  period: AUDIT_PERIOD_LITERAL_OVER_100M },
+  over_500m:      { subdivision: "(a)(1)", date: COHORT_DATE_LITERAL_OVER_100M,  period: AUDIT_PERIOD_LITERAL_OVER_100M },
+  legacy_25_100m: { subdivision: null,     date: null,                            period: null },
+  unspecified:    { subdivision: null,     date: null,                            period: null },
+} as const;
+
 export const DETERMINISTIC_COHORT_SENTENCE_25_50M =
   `Per 11 CCR § 7121(a)(3), the first cybersecurity audit report is due ` +
   `${COHORT_DATE_LITERAL_25_50M} (audit period ${AUDIT_PERIOD_LITERAL_25_50M}) ` +
   `for a business whose 2028 annual gross revenue was less than $50,000,000.`;
+
+function deterministicSentenceFor(bandKey: string): string | null {
+  const row = (COHORT_TRUTH_TABLE as Record<string, { subdivision: string | null; date: string | null; period: string | null }>)[bandKey];
+  if (!row || !row.date || !row.subdivision) return null;
+  return `Per 11 CCR § 7121${row.subdivision}, the first cybersecurity audit report is due ${row.date} (audit period ${row.period}).`;
+}
 
 // Anchor keys — mirrors W24A_V3 ANCHOR_KEYS. Never rewritten.
 const ANCHOR_KEYS = new Set<string>([
@@ -71,8 +97,6 @@ const ANCHOR_KEYS = new Set<string>([
   "deadline", "deadline_basis",
 ]);
 
-// Surfaces walked for wrong-date excision. Deadline/compliance-timeline
-// prose lives here.
 const TIMELINE_STRING_KEYS = new Set<string>([
   "cybersecurity_audit_rationale",
   "audit_timing",
@@ -80,11 +104,16 @@ const TIMELINE_STRING_KEYS = new Set<string>([
   "compliance_timeline",
   "timeline",
   "scope_notes",
+  "opening_summary",
+  "executive_summary",
+  "summary",
+  "narrative",
+  "rationale",
 ]);
 
-const COHORT_CITE_HINT = /§\s*7121|7121\(a\)|cohort/i;
-const WRONG_DATE_RE_25_50M =
-  /\b(?:April\s+1,?\s+2028|Apr\.?\s+1,?\s+2028|2028-04-01|April\s+1,?\s+2029|Apr\.?\s+1,?\s+2029|2029-04-01)\b/i;
+const COHORT_CITE_HINT = /§\s*7121|7121\(a\)|cohort|cybersecurity\s+audit/i;
+const ALL_COHORT_DATE_RE =
+  /\b(?:April\s+1,?\s+(?:2028|2029|2030)|Apr\.?\s+1,?\s+(?:2028|2029|2030)|(?:2028|2029|2030)-04-01)\b/i;
 
 function splitSentences(s: string): string[] {
   const parts: string[] = [];
@@ -153,8 +182,36 @@ function exciseWrongCohortSentences(
   }
 }
 
+// Excise sentences that mention a WRONG cohort date for the resolved
+// band and sit in a § 7121/cohort context. For indeterminate bands
+// (unspecified / legacy_25_100m) every cohort-date literal is wrong.
+function exciseAnyWrongCohortSentences(
+  s: string,
+  correctDate: string | null,
+  c: RiskCohortDateCounters,
+): string {
+  try {
+    if (typeof s !== "string" || !s) return s;
+    if (!ALL_COHORT_DATE_RE.test(s)) return s;
+    const sentences = splitSentences(s);
+    const kept: string[] = [];
+    let excised = 0;
+    for (const raw of sentences) {
+      const dateMatch = raw.match(ALL_COHORT_DATE_RE);
+      const hasWrong = !!dateMatch && (correctDate == null || !raw.includes(correctDate));
+      const hasCohortCtx = COHORT_CITE_HINT.test(raw);
+      if (hasWrong && hasCohortCtx) { excised += 1; continue; }
+      kept.push(raw);
+    }
+    if (excised === 0) return s;
+    c.sentences_excised += excised;
+    return normalizeSpacing(kept.join(" "));
+  } catch { c.errors += 1; return s; }
+}
+
 function walkExcise(
   node: unknown,
+  correctDate: string | null,
   c: RiskCohortDateCounters,
   keyCtx?: string,
 ): unknown {
@@ -163,41 +220,38 @@ function walkExcise(
     if (typeof node === "string") {
       if (keyCtx && ANCHOR_KEYS.has(keyCtx)) return node;
       if (keyCtx && TIMELINE_STRING_KEYS.has(keyCtx)) {
-        return exciseWrongCohortSentences(node, c);
+        return exciseAnyWrongCohortSentences(node, correctDate, c);
       }
       return node;
     }
-    if (Array.isArray(node)) return node.map((v) => walkExcise(v, c, keyCtx));
+    if (Array.isArray(node)) return node.map((v) => walkExcise(v, correctDate, c, keyCtx));
     if (typeof node === "object") {
       const src = node as Record<string, unknown>;
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(src)) {
-        if (k.startsWith("_")) { out[k] = v; continue; } // reserved subtrees
-        out[k] = walkExcise(v, c, k);
+        if (k.startsWith("_")) { out[k] = v; continue; }
+        out[k] = walkExcise(v, correctDate, c, k);
       }
       return out;
     }
     return node;
-  } catch {
-    c.errors += 1;
-    return node;
-  }
+  } catch { c.errors += 1; return node; }
 }
 
-// Check whether the entire report already contains the corpus-pinned
-// cohort date literal (long form or ISO). If yes, no emit needed.
-function reportHasCohortDate(report: unknown): boolean {
+// Check whether the report already contains the given cohort literal.
+function reportHasLiteral(report: unknown, literal: string): boolean {
   try {
     const s = JSON.stringify(report ?? "");
-    return /\bApril\s+1,?\s+2030\b/i.test(s) || /\b2030-04-01\b/.test(s);
+    return s.includes(literal);
   } catch { return false; }
 }
 
 /**
- * RISK-COHORT-DATE-DETERMINISM emitter. Guarantees the § 7121(a)(3)
- * cohort date "April 1, 2030" is stated in the deadline/compliance-
- * timeline surface when the resolved revenue band is $25M–$50M.
- * No-op for every other band. Fail-open.
+ * RISK-COHORT-DATE-DETERMINISM emitter (V2 truth-table). Guarantees the
+ * corpus-pinned § 7121(a) cohort date for the resolved revenue band is
+ * present in the deadline/compliance-timeline surface, and excises any
+ * wrong-date sentence regardless of band. OMISSION-OVER-INVENTION for
+ * indeterminate bands (unspecified / legacy_25_100m). Fail-open.
  */
 export function applyRiskCohortDate(
   intake: Record<string, unknown> | null | undefined,
@@ -207,46 +261,37 @@ export function applyRiskCohortDate(
   const counters = emptyCounters(opts?.buildStamp ?? null);
   if (!report || typeof report !== "object") return { counters, report };
   try {
-    const band = classifyRevenueBand((intake ?? {}) as any && (intake as any)?.q1_revenue);
+    const band = classifyRevenueBand((intake as any)?.q1_revenue);
     counters.band_resolved = band?.key ?? null;
+    const row = band ? (COHORT_TRUTH_TABLE as Record<string, { subdivision: string | null; date: string | null; period: string | null }>)[band.key] : null;
+    const correctDate = row?.date ?? null;
+    const sentence = band ? deterministicSentenceFor(band.key) : null;
 
-    // OMISSION-OVER-INVENTION: only fire for $25M–$50M band.
-    if (!band || band.key !== "25_50m") return { counters, report };
+    // 1) Wrong-date excision — always safe; for indeterminate bands
+    //    correctDate is null so every cohort-date sentence is excised.
+    const walked = walkExcise(report, correctDate, counters) as Record<string, unknown>;
 
-    // 1) Wrong-date excision in targeted timeline surfaces.
-    const walked = walkExcise(report, counters) as Record<string, unknown>;
+    // OMISSION-OVER-INVENTION for indeterminate bands: excise only, never emit.
+    if (!sentence) return { counters, report: walked };
 
-    // 2) If deterministic sentence already present verbatim → idempotent no-op.
+    // 2) Idempotent no-op if deterministic sentence is already verbatim.
     const ctr = ((walked as any).cross_tool_recommendations ??= {}) as any;
     const existingRationale =
       typeof ctr.cybersecurity_audit_rationale === "string"
         ? ctr.cybersecurity_audit_rationale
         : "";
-    if (existingRationale.includes(DETERMINISTIC_COHORT_SENTENCE_25_50M)) {
+    if (existingRationale.includes(sentence)) return { counters, report: walked };
+
+    // 3) If report already carries the correct literal anywhere → no emit.
+    if (correctDate && reportHasLiteral(walked, correctDate) && counters.sentences_excised === 0) {
       return { counters, report: walked };
     }
 
-    // 3) If we excised wrong-date sentences → REPLACE with deterministic sentence.
-    if (counters.sentences_excised > 0) {
-      const prefix = existingRationale.trim();
-      ctr.cybersecurity_audit_rationale = prefix
-        ? `${prefix} ${DETERMINISTIC_COHORT_SENTENCE_25_50M}`
-        : DETERMINISTIC_COHORT_SENTENCE_25_50M;
-      counters.date_corrected = 1;
-      return { counters, report: walked };
-    }
-
-    // 4) Otherwise, ensure the cohort date is stated somewhere in the
-    //    report. If the entire report JSON already contains "April 1,
-    //    2030" (or the ISO variant), no emit needed — grader is satisfied.
-    if (reportHasCohortDate(walked)) return { counters, report: walked };
-
-    // 5) EMIT — append deterministic sentence to the timeline surface.
+    // 4) Emit or correct — append the deterministic sentence.
     const prefix = existingRationale.trim();
-    ctr.cybersecurity_audit_rationale = prefix
-      ? `${prefix} ${DETERMINISTIC_COHORT_SENTENCE_25_50M}`
-      : DETERMINISTIC_COHORT_SENTENCE_25_50M;
-    counters.date_emitted = 1;
+    ctr.cybersecurity_audit_rationale = prefix ? `${prefix} ${sentence}` : sentence;
+    if (counters.sentences_excised > 0) counters.date_corrected = 1;
+    else counters.date_emitted = 1;
     return { counters, report: walked };
   } catch {
     counters.errors += 1;

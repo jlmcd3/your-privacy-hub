@@ -3104,3 +3104,31 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **Courier:** `docs/courier/RUN149-ADJUDICATION-2026-07-27.md`.
 
 **Standing:** campaign `fd1be147` PAUSED. Item 174 dual-smoke HELD status unchanged (clean smoke `b091113d…` still in flight last observed 06:32Z; forced-degradation smoke not launched). No enforcement-state or architecture change this turn.
+
+## Item 176 — PRE-WAVED EMITTER FIXES (single turn, deployed)
+
+**Dispatch:** PRE-WAVE-D EMITTER FIXES — SINGLE TURN (CEO-ordered 2026-07-27). TEAM-REVIEWED (five-lens). One deploy of `run-cppa-risk-assessment` (BUILD_STAMP `ltp-risk-pre-waved-emitter-fixes@2026-07-27T06:55:00Z`).
+
+**VERIFIED-FACTS acknowledged:** (i) corpus `cppa_authorities` row for `Cal. Civ. Code § 1798.140` confirms verbatim that **(ad) defines "Sell/Sale"** and (ab) defines Research. Adjudication class 3 (§ 1798.140(ad)→(ab) pinpoint) is therefore **RECLASSIFIED grader-knowledge-error, NOT emitter gap**; the doc's (ad) cite was CORRECT and **no pinpoint change** was made this turn. Grader-map update to add the verified `(ad)=sale` anchor is a CEO-gated instrument note (deferred; instrument NOT edited this turn). (ii) `run-cppa-risk-assessment` already calls Anthropic directly via `callAnthropicWithContinuation` (`index.ts:874`), so the CEO Q3 same-model ruling is satisfied by rewiring Pass-1 to the same direct client. (iii) Queued dual-smoke may have executed pre-fix; if so it is PRE-FIX BASELINE, non-gating.
+
+**Fixes-by-class disposition (releasing adjudication obligations from Item 175):**
+
+| # | Class | Disposition |
+|---|---|---|
+| 1 | § 7121(a) tier→deadline map | **FIXED.** `_risk_cohort_date.ts` extended to a V2 truth-table: `COHORT_TRUTH_TABLE` covers all V2 bands (`under_25m`,`25_50m`,`50_100m`,`over_100m`,`100_500m`,`over_500m`) with corpus-pinned literals; `legacy_25_100m`/`unspecified` → **not determinable** (OMISSION-OVER-INVENTION). Wrong-cohort excision now runs for **every** band, not just $25M–$50M; extended surface list includes `opening_summary`, `executive_summary`, `summary`, `narrative`, `rationale`. |
+| 2 | Owner-slot + placeholder (7 findings) | **STANDING LAW LANDED.** `pass2-render.ts` adds `assertStructuredSlotShape()` + `STRUCTURED_SLOT_FORBIDDEN_FRAGMENTS` regex covering `{{intake:`, `{{plan:`, `{{cite:`, and single-token stubs. Content amendment: owner/deadline_basis/exceptions_status slots bind to `{{intake:i8_certifying_exec_title}}` rendered as "the <title>, as certifying executive" with fallback "the assessment owner (see attestation)". Applies at post-render hard-reject. |
+| 3 | § 1798.140 sale pinpoint | **RECLASSIFIED — grader-knowledge-error, NOT emitter defect.** No code change. Corpus `cppa_authorities` verbatim confirms (ad)=Sell/Sale, (ab)=Research. CEO-gated instrument-note: add verified `(ad)=sale` anchor to grader map (deferred; instrument NOT edited). |
+| 4 | Information-needed coherence | **STANDING INVARIANT EXTENDED (design law).** `information_needed` composer MUST read resolved `triggered_activities_detail` statutory bases before asking; never request a pinpoint the report states. Recorded in courier as extension of the standing coherence invariant to this composer; regression source doc `169a63bb`. |
+| 5 | ADMT-gate → opening | **DESIGN-LAW EXTENSION.** G.q18/ADMT-negation gate outcomes now govern the § 7150(b)(3) trigger enumeration in `opening_summary` — same suppression rule as § 7001(ddd) (already landed in `_risk_citation_dup_fix.ts`). New slot binding recorded; regression source doc `7f9dd5ea`. |
+| 6 | Truncation residue ("We") | **FIXED.** `assertStructuredSlotShape()` in `pass2-render.ts` bars bare `We`/`The`/`A`/`An` in structured slots; min-length 8 chars enforced. Atomic-token law explicitly extended to structured slots per courier. |
+| 7 | q5b × i1 purpose pair | **FILTER LAW EXTENDED.** `_risk_intake_contradiction.ts` invariant extended: tick-box selections inform trigger evaluation only; never override `i1_processing_purpose` as the operative purpose sentence. Regression sources `2daec4ac`/`7f9dd5ea`. |
+| 8 | Risk-register row differentiation | **DESIGN-LAW.** Rows derive per-activity: severity/likelihood from that activity's impact intake + factor table; `statutory_basis` = that activity's own trigger pinpoint. Identical-rows-with-identical-basis for differentiated activities is a tested impossibility. |
+| 9 | Adverse-effects conditioning | **DESIGN-LAW.** Composer conditions on structured intake (`q4_pi_categories`, `q15_sensitive_pi`, `q18_admt_use`) via factor-table bindings; generic boilerplate hard-rejected. Regression source `7f9dd5ea`. |
+
+**CEO Q3 satisfaction (fix #3):** `PASS1_MODEL = "claude-sonnet-4-6"`; `pass1-llm.ts` `callGateway()` removed and replaced with `callPass1Model()` invoking `callAnthropicWithContinuation` (`_shared/anthropic-call.ts`). `PASS1_LLM_STAMP = "ltp-pass1-llm-2026-07-27-anthropic-direct"`. Manifest reflects the change.
+
+**Deploy proof:** `run-cppa-risk-assessment` deployed with `BUILD_STAMP=ltp-risk-pre-waved-emitter-fixes@2026-07-27T06:55:00Z`. Enforcement state UNCHANGED (`LTP_ENFORCE_ENABLED=1`); s6 instrument frozen; §16 assertion in place; state-machine conformance in place.
+
+**Dual-smoke:** Queued smoke (`b091113d…`) still in flight at deploy time. Per CEO dispatch, if the queued smoke already executed pre-fix, its results are PRE-FIX BASELINE and non-gating; if it has not yet run, the queued smoke executes against the deployed fix set and counts. Forced-degradation smoke gated on clean-smoke terminal. HARD STOP after smoke courier: no Wave D, no enforcement-state change, no Engine-A removal — CEO-reserved.
+
+**Courier:** `docs/courier/PRE-WAVED-EMITTER-FIXES-2026-07-27.md`.
