@@ -238,20 +238,20 @@ function walkExcise(
   } catch { c.errors += 1; return node; }
 }
 
-// Check whether the entire report already contains the corpus-pinned
-// cohort date literal (long form or ISO). If yes, no emit needed.
-function reportHasCohortDate(report: unknown): boolean {
+// Check whether the report already contains the given cohort literal.
+function reportHasLiteral(report: unknown, literal: string): boolean {
   try {
     const s = JSON.stringify(report ?? "");
-    return /\bApril\s+1,?\s+2030\b/i.test(s) || /\b2030-04-01\b/.test(s);
+    return s.includes(literal);
   } catch { return false; }
 }
 
 /**
- * RISK-COHORT-DATE-DETERMINISM emitter. Guarantees the § 7121(a)(3)
- * cohort date "April 1, 2030" is stated in the deadline/compliance-
- * timeline surface when the resolved revenue band is $25M–$50M.
- * No-op for every other band. Fail-open.
+ * RISK-COHORT-DATE-DETERMINISM emitter (V2 truth-table). Guarantees the
+ * corpus-pinned § 7121(a) cohort date for the resolved revenue band is
+ * present in the deadline/compliance-timeline surface, and excises any
+ * wrong-date sentence regardless of band. OMISSION-OVER-INVENTION for
+ * indeterminate bands (unspecified / legacy_25_100m). Fail-open.
  */
 export function applyRiskCohortDate(
   intake: Record<string, unknown> | null | undefined,
@@ -261,46 +261,37 @@ export function applyRiskCohortDate(
   const counters = emptyCounters(opts?.buildStamp ?? null);
   if (!report || typeof report !== "object") return { counters, report };
   try {
-    const band = classifyRevenueBand((intake ?? {}) as any && (intake as any)?.q1_revenue);
+    const band = classifyRevenueBand((intake as any)?.q1_revenue);
     counters.band_resolved = band?.key ?? null;
+    const row = band ? (COHORT_TRUTH_TABLE as Record<string, { subdivision: string | null; date: string | null; period: string | null }>)[band.key] : null;
+    const correctDate = row?.date ?? null;
+    const sentence = band ? deterministicSentenceFor(band.key) : null;
 
-    // OMISSION-OVER-INVENTION: only fire for $25M–$50M band.
-    if (!band || band.key !== "25_50m") return { counters, report };
+    // 1) Wrong-date excision — always safe; for indeterminate bands
+    //    correctDate is null so every cohort-date sentence is excised.
+    const walked = walkExcise(report, correctDate, counters) as Record<string, unknown>;
 
-    // 1) Wrong-date excision in targeted timeline surfaces.
-    const walked = walkExcise(report, counters) as Record<string, unknown>;
+    // OMISSION-OVER-INVENTION for indeterminate bands: excise only, never emit.
+    if (!sentence) return { counters, report: walked };
 
-    // 2) If deterministic sentence already present verbatim → idempotent no-op.
+    // 2) Idempotent no-op if deterministic sentence is already verbatim.
     const ctr = ((walked as any).cross_tool_recommendations ??= {}) as any;
     const existingRationale =
       typeof ctr.cybersecurity_audit_rationale === "string"
         ? ctr.cybersecurity_audit_rationale
         : "";
-    if (existingRationale.includes(DETERMINISTIC_COHORT_SENTENCE_25_50M)) {
+    if (existingRationale.includes(sentence)) return { counters, report: walked };
+
+    // 3) If report already carries the correct literal anywhere → no emit.
+    if (correctDate && reportHasLiteral(walked, correctDate) && counters.sentences_excised === 0) {
       return { counters, report: walked };
     }
 
-    // 3) If we excised wrong-date sentences → REPLACE with deterministic sentence.
-    if (counters.sentences_excised > 0) {
-      const prefix = existingRationale.trim();
-      ctr.cybersecurity_audit_rationale = prefix
-        ? `${prefix} ${DETERMINISTIC_COHORT_SENTENCE_25_50M}`
-        : DETERMINISTIC_COHORT_SENTENCE_25_50M;
-      counters.date_corrected = 1;
-      return { counters, report: walked };
-    }
-
-    // 4) Otherwise, ensure the cohort date is stated somewhere in the
-    //    report. If the entire report JSON already contains "April 1,
-    //    2030" (or the ISO variant), no emit needed — grader is satisfied.
-    if (reportHasCohortDate(walked)) return { counters, report: walked };
-
-    // 5) EMIT — append deterministic sentence to the timeline surface.
+    // 4) Emit or correct — append the deterministic sentence.
     const prefix = existingRationale.trim();
-    ctr.cybersecurity_audit_rationale = prefix
-      ? `${prefix} ${DETERMINISTIC_COHORT_SENTENCE_25_50M}`
-      : DETERMINISTIC_COHORT_SENTENCE_25_50M;
-    counters.date_emitted = 1;
+    ctr.cybersecurity_audit_rationale = prefix ? `${prefix} ${sentence}` : sentence;
+    if (counters.sentences_excised > 0) counters.date_corrected = 1;
+    else counters.date_emitted = 1;
     return { counters, report: walked };
   } catch {
     counters.errors += 1;
