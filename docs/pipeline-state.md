@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T04:16:30Z
+**Last updated:** 2026-07-27T04:22:00Z
 
 ---
 
@@ -2965,3 +2965,22 @@ Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success
 **Prior-item back-references:** items 152 (batch-wrap rule), 155 (s5→s6 re-key), 157 (Wave-B2 closure), 159 (enforce-mode + §16), 160 (run-146 refinement), 162 (§17 cancel-any-pre-execution), 163 (§18 launch-state equivalence), 164 (Wave-C digest + hygiene flag). This item CLOSES the process defect class opened by items 161–164.
 
 **Status:** DONE. Standing state advanced — §19–§25 now bind all future harness code and ops turns. Next measurement wave MUST pass a §22 smoke batch first. Next dispatch owner: CEO / deploy-authorized turn.
+
+---
+
+## Item 166 — WAVE C CANCELLED BY CEO ORDER (docs-only, 2026-07-27 ~04:22Z)
+
+**CEO order (verbatim):** "Wave C cancelled by CEO; run #147 sealed unread; process retro takes precedence; measurement program suspended pending CEO resumption."
+
+**Supersedes:** extraction dispatch umsg_01kygw1q and the retro turn's gate.
+
+**Effects landed this turn:**
+
+1. **Run 110ce03a (run #147) — SEALED, HELD-UNREAD BY CEO ORDER.** Data retained untouched in `quality_runs` / `quality_check_results`. Carries **NO §5 verdict**, **NO evidential status** (neither positive nor negative), and **NO trial-progression effect**. No actor may read, cite, aggregate, or grade this run's outputs until the CEO explicitly directs otherwise. Item 164's Wave-C digest is retroactively **WITHDRAWN**: its verdict (2/3 partial pass), pooled score (74.71), tuning/holdout split, and per-doc failure detail are **VOID** for all downstream purposes. Item 164 remains in the ledger as historical record of what was written before this order; its evidential force is nullified by this item.
+2. **Courier `docs/courier/LTP-RISK-WAVEC-2026-07-27.md`** — top-of-file WITHDRAWN banner added this turn. Title amended to "(WITHDRAWN)". Body preserved for provenance only.
+3. **PROCESS-RETRO-WRITEBACK (item 165) — UNGATED and confirmed as the correct-order turn.** Executed prior to this ledger entry per the CEO's process-first direction. R1–R7 (LEGAL-TEST-PIPELINE.md §19–§25, HARNESS-STATE-MACHINE.md, conformance test, `qbp27` deploy) stand.
+4. **Measurement program suspended.** No batch launches, no wave reads, no smoke batches, no extraction of any run, no §5 verdicts, and no trial-progression claims until the CEO explicitly orders resumption. Campaign `fd1be147` remains PAUSED. Standing state advances: measurement suspension is now the top-of-stack constraint.
+
+**Not touched this turn:** no code, no deploys, no instrument/rubric/golden/corpus/contract edits, no DB writes (run #147 data is retained untouched per order).
+
+**Status:** DONE. Awaiting explicit CEO order to (a) unseal run #147 or (b) resume the measurement program.
