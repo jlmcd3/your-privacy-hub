@@ -3528,3 +3528,10 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **DB-side recovery:** Smoke batch `cd1cb716-73f5-40d9-8341-e2e939e40da0` (queued 10:58:31Z, within 30-min reap window) transitioned `queued → running` at the 11:10Z cron tick — no manual kick — `phase=running_tool`, `last_heartbeat_at=2026-07-27 11:09:57Z`. State machine served it as designed; harness autonomic layer verified back on the wire.
 - **Courier:** `docs/courier/DEPLOY-OUTAGE-2026-07-27.md`.
 - **Disposition:** Outage resolved. Precedes and gates CONTINUATION-6. Wrapped smoke `cd1cb716` now on-wire; CONTINUATION-5 steps 9/9b/10/11/12 remain owed once it terminates.
+
+## Item 200 — HELD (2026-07-27, post-Item-199 addendum)
+
+- **State:** HELD — awaiting controller re-insertion of the wrapped `batch_size=1` smoke row (§18 shape, `created_by 02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122`, `LTP_COMPOSITION_ENFORCE=1`).
+- **Ready surface:** `run-cppa-risk-assessment` ping stamp `ltp-risk-smokehang-persistfirst-retry@2026-07-27T15:05:00Z`; `persist_first_retry=retry-budget@2026-07-27-persistfirst`; `safe_finalize=safe-finalize@2026-07-27-hangfix`; `composition_enforce=1`; `ltp_mode=enforce`. Belt-and-suspenders redeploy performed prior turn; ping re-verified identical post-redeploy. Wire-site source confirmed to contain `withRetryPersistFirst`.
+- **Owed on relaunch:** CONTINUATION-5 steps 9, 9b, 10, 11, 12. Both dead smokes (#153, #154) remain non-evidential; §22.1 clean-arm counter unchanged at **0/3 for `cppa-risk`**.
+- **Nudge outcome:** No in-flight work on agent side; no code, no redeploy, no smoke kick. HELD note recorded per §R6 controller-courier discipline.
