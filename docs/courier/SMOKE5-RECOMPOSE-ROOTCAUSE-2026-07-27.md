@@ -34,11 +34,13 @@ entire trimmed content equals a token in `TRUNCATED_SLOT_VALUE_SET`
 key deleted; array entry elided). Anchor paths (`id`, `citation`, `url`,
 etc.) and `_`-prefixed subtrees are exempt.
 
-This implements the CEO ruling verbatim: *"the slot must be filled with
-the full intended value or omitted entirely (never a fragment)."* Where
-the emitter still produces a fragment, the fragment does not ship; it
-disappears. Telemetry records the omission so upstream producers remain
-diagnosable (see (c)).
+This implements the **controller directive** (Item 206 review) verbatim:
+*"the slot must be filled with the full intended value or omitted
+entirely (never a fragment)."* NOT a CEO ruling — the CEO rulings log
+carries only the CEO's own words; this text is controller-authored
+dispatch language. Where the emitter still produces a fragment, the
+fragment does not ship; it disappears. Telemetry records the omission so
+upstream producers remain diagnosable (see (c)).
 
 Version stamp: `FRAGMENT_OMIT_VERSION = "fragment-omit@2026-07-27-item206"`.
 
