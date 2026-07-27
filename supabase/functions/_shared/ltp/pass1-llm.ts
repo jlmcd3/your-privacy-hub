@@ -26,9 +26,14 @@ import {
   PASS1_DERIVE_USER_TEMPLATE,
   PASS1_DERIVE_PROMPT_VERSION,
 } from "./content/pass1-derive-prompt.ts";
+import { callAnthropicWithContinuation } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-2026-07-26";
-export const PASS1_MODEL = "google/gemini-3.6-flash";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-2026-07-27-anthropic-direct";
+// CEO Q3 same-model ruling (PRE-WAVED-EMITTER-FIXES-2026-07-27): Pass-1
+// runs on the same generator model as run-cppa-risk-assessment
+// (claude-sonnet-4-6, called via the shared Anthropic client, bypassing
+// the Lovable AI gateway which does not serve Anthropic models).
+export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 
 export interface Pass1Telemetry {
