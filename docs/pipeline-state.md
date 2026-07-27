@@ -3408,3 +3408,12 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION-2026-07-27.md`.
 - **Disposition:** **WIRING-CHECKPOINT.** HARD STOP per dispatch escape clause ("checkpoint ONLY at deploy-complete or re-smoke-complete, record it, STOP"). Stage C remains gated on Stage-B COMPLETE. Awaiting CEO read + release for CONTINUATION-2.
 
+
+## Item 193 — STAGE-B CONTINUATION-2 HARD-FAILURE HALT (2026-07-27)
+
+- **Release:** CONTINUATION-2 released this turn; binding boundary = block of steps 2–8 then optional 9–12; only permitted early stop = hard failure (red test or genuine content gap).
+- **Halt reason (genuine content gap):** The Item-190 courier §3 anchor `quality-batch-orchestrator/index.ts:381` (pin-slice) and `run-quality-batch/index.ts:1908` (overshoot) are **stale post Step-1**: L375–395 now hosts `seedAndResume`, L1900–1920 hosts intake generation. No pin-slice/overshoot logic at those anchors. Additionally, the Pass-2 emitter write-site enumeration required for `assertSurfaceWriteAllowed` wiring was never produced (Item-190 courier explicitly deferred it). Wiring blind would land a broken consolidated deploy of two large functions with no rollback.
+- **What this turn did:** probe-only reads to verify staleness; no code, no deploys, no re-smoke, no test runs, no security pull.
+- **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION2-HALT-2026-07-27.md` — enumerates the 4 artifacts required for CONTINUATION-3 release (re-pinned traces, Pass-2 write-site enumeration, composition finalizer anchor, count-migration DDL).
+- **Chain state:** Stage B still at WIRING-CHECKPOINT (1/12); Stages C/D still gated. Clean-arm counter unchanged 0/3.
+- **Disposition:** **HALTED — HARD-FAILURE STOP** per CONTINUATION-2 dispatch early-stop clause. Awaiting controller re-pin + CONTINUATION-3.
