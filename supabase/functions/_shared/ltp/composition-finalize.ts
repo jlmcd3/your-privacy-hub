@@ -352,9 +352,11 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       fragment_omit_count: omit.omittedPaths.length,
       fragment_omit_paths: omit.omittedPaths,
       surface_unowned_paths,
-      surface_cut_violations,
+      surface_cut_violations: [],
+      pre_serializer_cut_pending,
       hook_audit_ok: true,
       hook_value_present: hookPresent,
+
       write_around_entered: input.writeAroundEntered,
     },
   };
