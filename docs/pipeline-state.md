@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T02:03:20Z
+**Last updated:** 2026-07-27T02:05:38Z
 
 ---
 
@@ -2645,3 +2645,29 @@ ok | 8 passed | 0 failed
 **Monitor:** extracts at terminal against §5 (intake-drift 0 / gate violations 0 / citation-binding 0 post-closure); tuning/holdout split reported.
 
 **Courier:** `docs/courier/LTP-RISK-WAVEC-LAUNCH-2026-07-27.md`.
+
+## Ledger item 158 — SPEC-WRITEBACK-WAVE-B2: design-law generalization of the six Wave-B2 defect closures (2026-07-27T02:05:38Z)
+
+**Class:** Docs-only design-law amendment (no code, no deploys, no instrument changes). CEO-directed feedback-loop closure. Follows item 157 (Wave-B.2 citation closure landed + deployed) — the six root fixes are in the deployed build; this turn writes their **generalized clauses** into the standing design law so every future dispatch (risk, lia, and all Stage-2/3 products) inherits them **by compilation**.
+
+**Standing improvement-loop law recorded (new, product-agnostic):** defect → root fix → generalized clause in design law → inherited by all future dispatches. The generalized clause MUST be written into the design law in the same turn as the root fix, or the immediately following docs-only turn — never later. Codified as `docs/design/LEGAL-TEST-PIPELINE.md` §15.
+
+**Files touched (docs-only):**
+- `docs/design/LEGAL-TEST-PIPELINE.md` — §4.1 gains clauses (6) atomic-token invariant + (7) no-self-contradiction invariant; NEW §12 Emitter law; NEW §13 Surface-map ownership law (closed vocabulary `{pipeline-template | deterministic-emitter | legacy-frozen}`, `unchanged/unmapped` retired, `legacy-frozen` requires same-turn citation-token audit + retirement/migration target); NEW §14 Fix-shape law (upstream-first; new downstream string-surgery scrubbers FORBIDDEN for pipeline products; bounded transitional-scrubber exception); NEW §15 Standing improvement-loop law.
+- `docs/design/LEGAL-TEST.md` — Q1 Type-R infrastructure gains the statutory-enumeration resolution-map clause (trigger→prong, band→cohort, band→prong, count→cohort, threshold→outcome are registry artifacts; exhaustive assignment tests against corpus verbatim enumeration at authoring time; silent misresolution = HARD REJECT).
+- `docs/courier/SPEC-WRITEBACK-2026-07-27.md` — courier with the six-defect → new-clause traceability table.
+- CEO rulings log entry: "spec-writeback ordered as standing practice: every defect class closure includes its design-law generalization in the same or next turn — dispatches compile from the law, so the law is where learning lives."
+
+**Defect → clause traceability (canonical table in the courier):**
+| Wave-B2 defect | Root layer fixed (item 157) | Generalized clause (this turn) |
+|---|---|---|
+| (1) token-substitution truncation (`140(d)(1)(A)…` fragment) | substitution/clamp interaction hardened; sentence-drop guard as belt-and-braces | LTP-PIPELINE §4.1 clause 6 — atomic-token invariant across all pipeline products |
+| (2) `information_needed` self-contradiction | deterministic post-render cross-check in `waveb2-closure.ts` | LTP-PIPELINE §4.1 clause 7 — no-self-contradiction invariant (product-agnostic) |
+| (3) T7 opening emitter trigger-map (§ 7150(b) prong misresolution) | prong assignments verified against `ccpa-7150-pin.ts`; exhaustive prong-assignment test added | LEGAL-TEST Q1 addendum — statutory-enumeration resolution maps are registry artifacts with exhaustive corpus-verbatim assignment tests at authoring time |
+| (4) `attestation_block` cited unverified § 7156(a) | re-anchored to registry-verified § 7157(b)(5) + § 7157(c) in `_w9_risk_slots.ts` | LTP-PIPELINE §13 — surface-map ownership law; `legacy-frozen` requires same-turn citation-token audit + retirement/migration target (attestation_block is the MOTIVATING CASE cited in the clause) |
+| (5) cyber-crosswalk `§ 7120(b)(2)(A) met` on straddling band | `computeProngOutcomes` now emits `indeterminate` on `$25M to under $50M` × 250K+ | LTP-PIPELINE §12 — emitter law (exhaustive input-domain matrix test at authoring; `indeterminate` output class mandatory on statutory-edge straddling inputs; silent decisive output = defect) |
+| (6) fix-shape drift (repeated string-surgery scrubbers accreting) | Wave-B2 closures shipped upstream where possible; residual scrubbers marked transitional | LTP-PIPELINE §14 — fix-shape law: upstream-first; new downstream string-surgery scrubbers FORBIDDEN for pipeline products; bounded transitional-scrubber exception requires same-turn design-law writeback + recorded retirement wave |
+
+**Status:** LANDED (docs-only). No code, no deploys, no instrument changes; s6 remains frozen; campaign fd1be147 remains CEO-paused. Wave-C batch `9c1e3a8f-5b2d-4e7c-9a4b-8f2d1e5c7b3a` (launched item 157) proceeds under monitor; its terminal extraction happens on the frozen s6 instrument.
+
+**Inheritance note:** all future dispatches — including the pending LIA and IR-Band-Realignment turns (item 114) and the Two-Pass rollouts to Stage-2/3 products — now compile from the amended LTP-PIPELINE + LEGAL-TEST law and inherit clauses §4.1(6), §4.1(7), §12, §13, §14, §15, and the LEGAL-TEST Q1 resolution-map clause without additional per-product carrier language.
