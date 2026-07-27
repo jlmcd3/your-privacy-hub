@@ -3388,3 +3388,12 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **CONTINUATION turn scope** (verbatim in §3 of the courier): wire the 4 modules at their call sites, land the 4 traced A.i fixes, migration for declared/actual counts + §16.n design-law adoption, Item-181 renderer wiring, deploy (`run-cppa-risk-assessment` + `quality-batch-orchestrator` + `run-quality-batch`), A.ii degradation re-smoke under the wired hook re-audit with real admin `created_by`, full-suite green pasted, security-panel appendix, continuation courier, Stage-B COMPLETE marker.
 - **Files touched this turn:** 8 new files (4 modules + 4 test files); `docs/courier/SMOKE-FIX-ROUND-2026-07-27.md` (new); `docs/pipeline-state.md` (this item). Zero edits to any existing edge function, prompt, rubric, grader, golden, contract, fixture, registry, or corpus row. Enforcement state, s6 instrument, campaign pause, and all HELDs unchanged.
 - **HARD STOP.** Per dispatch: "STOP — I will read and release the continuation. HARD STOP either way after the courier: Stage C awaits my read of your response."
+
+## 191. NUDGE — STAGE-B CONTINUATION HELD (2026-07-27)
+
+- **Signal:** User nudge "continue in-flight turn; if HELD, record HELD note."
+- **State:** Item 190 closed at **AUTHOR-CHECKPOINT** with an explicit **HARD STOP** per the Stage-B dispatch escape clause ("I will read and release the continuation").
+- **Disposition:** **HELD — awaiting CEO release** of the Stage-B CONTINUATION turn. No code, deploys, DB writes, batch launches, or secret mutations performed this turn.
+- **Continuation scope (unchanged from Item 190 §CONTINUATION):** wire the 4 guard modules at call sites; land the 4 traced A.i fixes; declared/actual count migration + §16.n adoption; Item-181 renderer wiring; deploy (`run-cppa-risk-assessment`, `quality-batch-orchestrator`, `run-quality-batch`); A.ii degradation re-smoke under the wired hook re-audit with a real admin `created_by`; full-suite green pasted; security-panel appendix; Stage-B COMPLETE marker.
+- **Chain state:** unchanged. Stage C gated on Stage-B CONTINUATION landing. Stage D gated on Stage C. BSS-100K (Item 186) and Step 0 Build-Overview (Item 187) remain QUEUED. Clean-arm unique-catch counter still 0/3 for `cppa-risk`, opening at Stage-C re-smoke.
+- **No new HELDs opened.** Item 190 HARD STOP remains the sole blocker.
