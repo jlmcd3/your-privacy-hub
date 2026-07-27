@@ -246,9 +246,17 @@ function reportHas7121A3(report: Record<string, unknown>): boolean {
 
 function maybeEmitCohortRow(
   report: Record<string, unknown>,
-  intake: Record<string, unknown> | null | undefined,
+  _intake: Record<string, unknown> | null | undefined,
   c: W21RiskTurnACounters,
 ): void {
+  // ITEM-204 CEO RULING (Defect B), 2026-07-27:
+  // Cohort membership is NO LONGER computed on this surface. The
+  // § 7121(a) phase-in schedule is emitted whole by
+  // `_shared/ltp/cyber-audit-schedule.ts` (applyCyberAuditSchedule),
+  // rendered from corpus literals. This function is retired to a
+  // no-op that only records skip telemetry so audits remain stable.
+  // The `annual_gross_revenue_2028` information_needed ask
+  // (info_cyber_audit_7121a3_revenue) is retired for the same reason.
   try {
     if (!reportHasCyberAuditContext(report)) {
       c.a2_cohort_skipped_reason = "no_cyber_audit_context";
@@ -258,56 +266,7 @@ function maybeEmitCohortRow(
       c.a2_cohort_skipped_reason = "already_present";
       return;
     }
-    // W24-RISK-TURNA (bimodal hardening): if the cohort does NOT resolve
-    // deterministically from intake, emit NO cohort claim. Route through
-    // the existing information_needed path with empty citation/quote so
-    // the customer surface never receives a hedged "resolved" claim. Item
-    // 74 / dispatch W24-RISK-TURNA-2026-07-25 §1(b).
-    if (!revenueUnder50M(intake ?? null)) {
-      c.a2_cohort_skipped_reason = "no_revenue_signal_under_50m";
-      try {
-        const infoArr = Array.isArray(report.information_needed)
-          ? report.information_needed as unknown[]
-          : [];
-        const alreadyAsked = infoArr.some((e: any) =>
-          e && typeof e === "object" && (e.field === "annual_gross_revenue_2028" ||
-            (Array.isArray(e.source_fields) && e.source_fields.includes("annual_gross_revenue_2028")))
-        );
-        if (!alreadyAsked) {
-          (report as any).information_needed = [...infoArr, {
-            id: "info_cyber_audit_7121a3_revenue",
-            topic: "cybersecurity_audit_deadline_cohort",
-            field: "annual_gross_revenue_2028",
-            source_fields: ["annual_gross_revenue_2028"],
-            prompt:
-              "Confirm the business's annual gross revenue for 2028 so the § 7121 cybersecurity-audit cohort can be determined.",
-            citation: "",
-            verbatim_quote: "",
-          }];
-          c.a2_cohort_info_needed_emitted = 1;
-        }
-      } catch { /* fail-open */ }
-      return;
-    }
-    const arr = Array.isArray(report.cross_tool_recommendations)
-      ? report.cross_tool_recommendations as unknown[]
-      : [];
-    const entry: Record<string, unknown> = {
-      id: "ctr_cyber_audit_7121a3",
-      topic: "cybersecurity_audit_deadline",
-      title:
-        "Cybersecurity-audit deadline cohort (§ 7121(a)(3)) — annual gross revenue under $50M for 2028",
-      action:
-        "The record indicates annual gross revenue below $50 million for 2028, which places the business in the § 7121(a)(3) cohort. Confirm the 2028 figure, then plan for the § 7121(a)(3) audit-report deadline.",
-      citation: CPPA_7121_A3_CITATION,
-      verbatim_quote: CPPA_7121_A3_VERBATIM,
-      proposition_key: CPPA_7121_A3_PROPOSITION_KEY,
-      source_fields: ["annual_gross_revenue_2028"],
-      deadline: "2030-04-01",
-      deadline_basis: "11 CCR § 7121(a)(3)",
-    };
-    (report as any).cross_tool_recommendations = [...arr, entry];
-    c.a2_cohort_emitted = 1;
+    c.a2_cohort_skipped_reason = "retired_item204_full_schedule_renders";
   } catch {
     c.a2_cohort_skipped_reason = "throw_fail_open";
   }

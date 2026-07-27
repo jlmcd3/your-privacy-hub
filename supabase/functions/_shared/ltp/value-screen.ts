@@ -1,57 +1,73 @@
 /**
  * value-screen — Stage-B AUTHOR-CHECKPOINT (2026-07-27).
  *
- * LEAK-PREV-P2 boundary choke-point value screen. Item 180.1 addendum.
+ * ITEM-204 CEO RULING (Defect A) — 2026-07-27T~17Z:
+ *   The bare "We " lexicon entry (seeded from A.i #178 owner-slot leak)
+ *   false-positived on all ordinary prose containing the word "We ".
+ *   The ACTUAL leaked fragment from the A.i #178 trace was a structured
+ *   slot whose ENTIRE value was truncated to a single pronoun/article
+ *   (verbatim evidence: `deadline_basis: "We"` — DUAL-SMOKE-POSTFIX
+ *   2026-07-27 courier §3, table row 2, "Owner-slot / placeholder
+ *   cleanup — PARTIAL — deadline_basis:\"We\" still emitted (1×)").
  *
- * Two hit classes:
- *   (a) LEAK LEXICON — seeded from A.i traces + historical ledger
- *       leaks. Substring match, case-insensitive, on any string value
- *       written into report_data outside a substituted {{cite:…}} span.
- *   (b) STATUTORY-TEXT class — verbatim regulation / statute text
- *       appearing OUTSIDE a {{cite:…}} span. Normalized-substring
- *       match above LEN_THRESHOLD against caller-supplied corpus
- *       snippets. Detector is injected — the boundary caller passes
- *       the corpus snippets for the propositions being rendered.
+ *   Fix class: replace the substring lexicon entry with a STRUCTURAL
+ *   EXACT-VALUE guard. `TRUNCATED_SLOT_VALUES` fires only when a string
+ *   value's entire trimmed content is one of a small closed set of
+ *   pronouns/articles/short determiners — which cannot legitimately be
+ *   the entire value of any customer-facing slot. Ordinary prose
+ *   containing the word "We " passes cleanly.
  *
- * Behavior on hit: fail-loud (throw). Caller may catch and trigger
- * exactly ONE bounded recompose; a second hit escalates to
- * write-around per Item 179 / Item 185 discipline.
+ *   AUDIT — other bare/short-substring lexicon entries removed in the
+ *   same class-fix sweep (each falsely fired on ordinary counsel prose):
+ *     • "We "               → REMOVED (replaced by TRUNCATED_SLOT_VALUES exact-match)
+ *     • "our internal"      → REMOVED (fires on "our internal policies", etc.)
+ *     • "internal review"   → REMOVED (legitimate legal prose)
+ *     • "…"                 → REMOVED (ordinary ellipsis is common in counsel prose;
+ *                             the truncation-residue class remains covered by
+ *                             `...\n` and the exact-value guard)
+ *   Retained entries are either (a) module/system names that never
+ *   legitimately appear in customer prose or (b) explicit placeholder
+ *   sentinels (`{{intake:`, `{{cite:`, `[filtered]`, `TODO`, etc.).
  */
 
-export const VALUE_SCREEN_VERSION = "value-screen@2026-07-27";
+export const VALUE_SCREEN_VERSION = "value-screen@2026-07-27b-item204";
 
-/** A.i traces + historical ledger leaks. Extend by evidence only. */
+/**
+ * Substring-match lexicon — kept ONLY for entries that cannot false-
+ * positive on ordinary counsel prose. Extend by evidence only.
+ */
 export const LEAK_LEXICON: readonly string[] = [
-  // A.i #178 traces
-  "We ", // owner-slot leak fragment (Item 176 §2 / Item 178)
-  "Our team",
-  "internal review",
-  "our internal",
   // Historical filter-annotation leaks
   "[filtered]",
   "[redacted by policy]",
-  "reasoning:",
   "chain-of-thought",
   // Historical module-name leaks (Item 136 CUT + Item 178)
   "cross_tool_recommendations",
   "risk-surface-map",
   "Engine-A",
   "Engine-B",
-  "Pass-1",
-  "Pass-2",
-  "Pass-G",
-  "Pass-V",
   "RenderPlan",
   // Placeholder / substitution leaks
   "{{intake:",
   "{{cite:",
-  "TODO",
-  "TBD",
+  "{{plan:",
   "<placeholder>",
-  // Truncation residue (Item 176 §6)
-  "…",
+  // Truncation residue tail
   "...\n",
 ] as const;
+
+/**
+ * ITEM-204 (Defect A) STRUCTURAL GUARD — exact-value match.
+ * Fires only when a string value's entire trimmed content equals one of
+ * these tokens. Catches the A.i #178 owner-slot truncation class
+ * (`deadline_basis: "We"`, `owner: "The"`, etc.) without touching any
+ * substring of ordinary prose.
+ */
+export const TRUNCATED_SLOT_VALUES: readonly string[] = [
+  "We", "The", "A", "An", "Our", "Their", "It", "This", "That",
+  "TODO", "TBD",
+] as const;
+const TRUNCATED_SLOT_VALUE_SET: ReadonlySet<string> = new Set(TRUNCATED_SLOT_VALUES);
 
 const CITE_SPAN_RE = /\{\{cite:[^}]+\}\}/g;
 const INTAKE_SPAN_RE = /\{\{intake:[^}]+\}\}/g;
@@ -66,33 +82,46 @@ export class ValueScreenError extends Error {
 }
 
 export interface ValueScreenHit {
-  readonly kind: "leak-lexicon" | "statutory-text";
+  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value";
   readonly match: string;
   readonly path: string;
   readonly context: string;
 }
 
 export interface ScreenInput {
-  /** Fully composed report_data (post-substitution). */
   readonly reportData: unknown;
-  /**
-   * Corpus snippets to check for statutory-text-outside-cite class.
-   * Caller supplies only the snippets relevant to the current render
-   * (typically the pinpoint verbatim_excerpt values that were bound
-   * via {{cite:…}} tokens for this document).
-   */
   readonly corpusSnippets?: readonly string[];
-  /** Minimum length to treat a corpus-snippet match as a statutory-text hit. */
   readonly statutoryLenThreshold?: number;
 }
 
-/** Strip cite/intake spans so their contents don't produce false hits. */
 function scrubSpans(s: string): string {
   return s.replace(CITE_SPAN_RE, " ").replace(INTAKE_SPAN_RE, " ");
 }
 
 function normalize(s: string): string {
   return s.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+/** Anchor / metadata paths whose values are structured tokens, not customer prose. */
+function isAnchorPath(path: string): boolean {
+  const lastKey = path.split(".").pop() ?? "";
+  const bare = lastKey.replace(/\[\d+\]$/, "");
+  if (bare.startsWith("_")) return true;
+  return (
+    bare === "id" ||
+    bare === "key" ||
+    bare === "stamp" ||
+    bare === "build_stamp" ||
+    bare === "version" ||
+    bare === "schema_version" ||
+    bare === "citation" ||
+    bare === "provision" ||
+    bare === "regulatory_citation" ||
+    bare === "proposition_key" ||
+    bare === "field" ||
+    bare === "url" ||
+    bare === "primary_source_url"
+  );
 }
 
 function* walkStrings(node: unknown, path = ""): Generator<{ path: string; value: string }> {
@@ -108,6 +137,8 @@ function* walkStrings(node: unknown, path = ""): Generator<{ path: string; value
   }
   if (node && typeof node === "object") {
     for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      // Skip _meta/_internal reserved subtrees entirely.
+      if (k.startsWith("_")) continue;
       yield* walkStrings(v, path ? `${path}.${k}` : k);
     }
   }
@@ -122,6 +153,18 @@ export function runValueScreen(input: ScreenInput): void {
     .map((s) => ({ raw: s, norm: normalize(s) }));
 
   for (const { path, value } of walkStrings(input.reportData)) {
+    // (a) Structural: exact-value truncation guard (A.i #178 class).
+    const trimmed = value.trim();
+    if (!isAnchorPath(path) && TRUNCATED_SLOT_VALUE_SET.has(trimmed)) {
+      hits.push({
+        kind: "truncated-slot-value",
+        match: trimmed,
+        path,
+        context: value.slice(0, 120),
+      });
+      // Fall through so lexicon/statutory checks still run.
+    }
+
     const scrubbed = scrubSpans(value);
     const lower = scrubbed.toLowerCase();
     for (const needle of LEAK_LEXICON) {
