@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T04:06:55Z
+**Last updated:** 2026-07-27T04:09:21Z
 
 ---
 
@@ -2870,34 +2870,60 @@ Deploy proof: `deploy_edge_functions(["batch-kickoff-pickup"])` returned success
 
 ---
 
-## Item 164 — LTP-RISK-WAVE-C EXTRACTION (monitor tick, 2026-07-27 ~04:07Z)
+## Item 164 — LTP-RISK-WAVE-C MEASUREMENT DIGEST (monitor tick, 2026-07-27 ~04:09Z)
 
-**Dispatch id:** LTP-RISK-WAVEC-EXTRACT-2026-07-27. Read-only monitor extraction per items 150 / 162 / 163 ("Monitor owns extraction upon terminal"). No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, or instrument edits. No deploys. Campaign `fd1be147` stays PAUSED (CEO-reserved). No new batch launches (single-launch rule).
+**Dispatch id:** LTP-RISK-WAVEC-2026-07-27. Read-only monitor extraction per items 150 / 162 / 163 and controller verification (~04:10Z). No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, or instrument edits. No deploys. No new batch launches. Campaign `fd1be147` stays PAUSED (CEO-reserved).
 
-**Terminal batch:** `quality_batch_runs.id = a1b2c3d4-e5f6-4890-abcd-ef0123456789` — tools={cppa-risk}, batch_size=6, instrument=`gc-2026-07-27-s6-eu-uk-ca-au-sg`, mode=enforce. `status=complete / phase=done` at 2026-07-27T03:55:03.574Z; wall time ≈ 38m 15s. `last_error=NULL`. Child run `quality_runs.id = 3d8a7017-f456-46d2-9fd0-5540087891cc`, **run #148**, checks 158/passed 118/failed 40; `score_overall=71.15`, tuning=71, holdout=73, GPT overall=88.
+**Correction to earlier draft this turn:** the Wave-C evidential run is **run #147 (`quality_runs.id = 110ce03a-172d-4f1e-9cfa-46ac246ab26a`)**, not run #148. Controller verification located the correct run: #147 completed 6/6 docs at 2026-07-27T03:56:10.675Z with `score_overall=70.05`, `gpt_score_overall=81`, tuning=70, holdout=70, checks 157/passed 117/failed 40. The stale draft (`LTP-RISK-WAVEC-EXTRACT-2026-07-27.md` referencing run #148) has been deleted; the canonical courier is `docs/courier/LTP-RISK-WAVEC-2026-07-27.md`.
 
-**Pooled scores (three-wave comparison):**
+**Wrapper accounting (single generation, no duplicate spend):**
+- `2a3c07a2-7bd3-4250-a73e-ce19ea725633` transitioned `queued/starting → running/kickoff` at ~03:15Z (controller `query_database`), pickup tick kicked to `running/running_tool` at 03:16:34Z, then **cancelled/done at 03:16:49Z (15s after kickoff)**.
+- Replacement wrapper `a1b2c3d4-e5f6-4890-abcd-ef0123456789` inserted in the same turn; completed/done at 03:55:03Z; adopted the same `quality_run 110ce03a…` (#147) rather than launching a new run.
+- **Who / why:** the item-162 turn (Wave-C stall unblock / §17 cancel-any-pre-execution + §18 launch-state-equivalence). The unblock migration finalized both `9c1e3a8f` (zombie) and `2a3c07a2` (stale pre-execution) as `cancelled/done` and inserted a clean-relaunch wrapper so the picker would resume from a canonical `queued/starting` row under the newly-deployed §18 semantics. In practice the picker also served the already-live `110ce03a…` run under the cancelled wrapper, so the replacement wrapper adopted that same run — one generation, two wrapper rows, zero duplicate Claude/GPT spend.
 
-| Grader                | Wave-C #148 | Wave-B #145 | Wave-A baseline | Δ vs B    |
+**HYGIENE FLAG (harness writeback clause list):** the replacement wrapper id `a1b2c3d4-e5f6-4890-abcd-ef0123456789` is a **literal placeholder UUID typed by hand** during item 162, not a `gen_random_uuid()` value. **Standing rule (candidate §19 — generated-id law):** row ids in production tables are ALWAYS generated (`gen_random_uuid()` / column default), NEVER literal example UUIDs from documentation or agent drafts; any table externally insertable at launch time MUST carry a DB-level `DEFAULT gen_random_uuid()`. Added to the harness writeback clause list for the next deploy-authorized turn. Non-blocking for this extraction.
+
+**Pooled scoreboard (three-wave comparison):**
+
+| Grader                | Wave-C #147 | Wave-B #145 | Wave-A baseline | Δ vs B    |
 | --------------------- | ----------- | ----------- | --------------- | --------- |
-| Claude `score_overall`  | **71.13**  | 72.75       | 78.80           | **−1.62** |
-| GPT `gpt_score_overall` | **87.17**  | 85.00       | —               | **+2.17** |
-| Pooled (C+G)/2          | **79.15**  | 78.88       | 78.80           | **+0.27** |
+| Claude `score_overall`  | **70.09**  | 72.75       | 78.80           | **−2.66** |
+| GPT `gpt_score_overall` | **79.33**  | 85.00       | —               | **−5.67** |
+| Pooled (C+G)/2          | **74.71**  | 78.88       | 78.80           | **−4.17** |
 
-**Enforce-preview telemetry:** 6/6 `pass1_ok=true`, `attempts=1` everywhere (retry budget N=2 never consumed), `write_around=0/6`, `validator_issues=0`, latency 35.3s–54.0s (mean 41.5s). Manifest stable (`stamp=ltp-pass1-llm-2026-07-26`, `model=google/gemini-3.6-flash`, `plan_version=v1`). **Enforce-mode boot assertion (§16) held for the full batch** — no shadow-mode regression.
+**Per-doc:** T-1 65.85/82, T-2 67.70/88, T-3 68.65/80, T-4 77.70/76, H-5 69.20/75, H-6 71.45/75. **Tuning-vs-holdout (n=6, active):** Claude tuning 69.98 / holdout 70.33 (Δ −0.35, parity — no overfitting signal); GPT tuning 81.50 / holdout 75.00 (Δ +6.50, inside n=2 batch-noise). Full per-dimension breakdown in courier §2.
 
-**Tuning-vs-holdout (batch_size 6 ≥ 4 → active):** tuning Claude mean 70.53, holdout Claude mean 72.35 → holdout leads by +1.83pt on Claude, ≈parity on GPT (+0.25). **Inverts Wave-B's holdout-trails pattern** (Wave-B was +4.29 Claude / +5.00 GPT tuning-over-holdout); no material overfitting signal — if anything the weaker docs (1 & 3) now sit inside the tuning subset.
+**Enforce-mode confirmation (§16, per-doc `_meta.internal.legal_test_pipeline.enforce_preview`):** 6/6 `pass1_ok=true`, `write_around=0/6`, `validator_issues=0` across all docs; attempts distribution {1: 5, 2: 1} — one retry consumed on doc 3, retry budget N=2 never exhausted; latency mean 57.7s (max 96.9s on doc-3 retry); manifest stable (`stamp=ltp-pass1-llm-2026-07-26`, `model=google/gemini-3.6-flash`, `prompt_version=pass1-derive-2026-07-26`, `plan_version=v1`, `propositions ∈ {14,15}`, `gate_outcomes = 12`). **§16 boot-log assertion held for the full batch** — no shadow-mode fallback, no item-159-class regression. **Pass-V yield: 6/6 clean (100%).**
 
-**§5 VERDICT — PARTIAL PASS (2/3):** intake-drift **PASS** (no mid-prose intake-value drift check failed; `qc_r1_4_cohort_determinism` 5 critical fails is the cohort-date determinism class, not the mid-prose intake-drift class per Wave-B/B.2 convention); gate-violations **PASS** (no `qc_r1_1_no_asks_on_resolved_tests`, `qc_r1_5_exception_fields_consumed`, or ADMT-consequence gate failures); **citation-binding FAIL** — `rubric_citation_misapplied` 7 fails (tuning 4, holdout 3) — regression class **persists and increased vs Wave-B (5) and Wave-B.2 (6)** despite the Wave-B2-closure deploy (item 157). The closure fix handled a subset of the observed patterns but did not eliminate the class. **Citation-binding remains the next fix priority.** No rollback signal from Wave-C's pooled movement.
+**Six B.2 closure fixes — per-fix verdict (run #147 vs Wave-B #145):**
 
-**Top failed-finding classes (context for next fix dispatch):** `rubric_unsupported_business_claim` 12 fails (hallucination high — largest, up from 8), `rubric_citation_misapplied` 7 (§5 blocker), `rubric_actionability` 7 (intelligence medium), `rubric_generic_boilerplate` 6 (analysis medium, up from 2), `qc_r1_4_cohort_determinism` 5 (accuracy critical, deterministic), `rubric_internal_reasoning_leak` 3 (hallucination high).
+| # | Fix (item 157)                                          | Verdict     | Evidence                                                                                                                          |
+| - | ------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Prong-map surface re-key (SPI-prong utilization)        | **HOLDS**   | `qc_r1_2_spi_prong_utilization` + `qc_r1_3_50pct_prong_utilization` NOT in run-#147 fail list (both fail 5 each in Wave-B)         |
+| 2 | Cyber-audit § 7120(b) crosswalk matrix (item 154)       | **HOLDS**   | No `rubric_crosswalk_*` / cyber-audit-shape check surfaced as failed; always-on subset from #146 remains positive                 |
+| 3 | Token-truncation guard                                  | **HOLDS**   | Zero truncation-class deterministic failures                                                                                       |
+| 4 | Information self-contradiction filter                   | **REGRESSED** | `rubric_internal_reasoning_leak` 5 fails (tuning 3 / holdout 2), up from Wave-B 3                                                |
+| 5 | Attestation-citation binding                            | **REGRESSED** | `rubric_citation_misapplied` **8 fails** (tuning 5 / holdout 3), up from Wave-B 5 and Wave-B.2 6                                 |
+| 6 | Purpose-verbatim wiring (always-on, positive #146)      | **HOLDS**   | No `purpose_verbatim_*` failure in #147                                                                                            |
 
-**Non-blocking harness observation:** run #148 `grader_context_version` was recorded as `gc-2026-07-26-s5-eu-uk-ca-au-sg` while batch `instrument_version` is `gc-2026-07-27-s6-eu-uk-ca-au-sg`. Digest reports the batch value per launch spec. Scores are unaffected (s5→s6 was a check re-keying per item 155; grader inputs are identical). Flagging as a future harness-labeling check surface — not a HELD condition.
+**§5 VERDICT — PARTIAL PASS (2/3):** intake-drift **PASS** (no mid-prose intake-value drift; `qc_r1_4_cohort_determinism` 5 critical fails is the cohort-date determinism class per Wave-B/B.2 convention); gate-violations **PASS** (no `qc_r1_1_no_asks_on_resolved_tests`, `qc_r1_5_exception_fields_consumed`, or ADMT-consequence gate failures); citation-binding **FAIL** — `rubric_citation_misapplied` 8 fails, regression class persists and grew (Wave-B 5 → Wave-B.2 6 → Wave-C 8).
 
-**Courier:** `docs/courier/LTP-RISK-WAVEC-EXTRACT-2026-07-27.md` (full digest, per-doc scores, per-doc enforce-preview telemetry, failed-finding class table).
+**Two-consecutive-wave trial standard:**
+- **Passing classes (intake-drift, gate-violations) — SATISFIED across Wave-B → Wave-C (both PASS back-to-back).** The always-on subset from #146 (purpose-verbatim, cyber-audit § 7120(b) crosswalk) is also positively evidenced in #147.
+- **Citation-binding = 0 — NOT SATISFIED.** Class regressed in absolute count rather than reaching 0; no consecutive-wave hold at 0 has occurred.
 
-**Extraction constraints honoured:** `supabase--read_query` only; no direct Supabase console; no instrument/rubric/golden/corpus/contract/code edits; no deploys; no campaign resume; no new batch launches.
+**What remains for trial completion:** citation-binding must reach 0 AND the passing classes must continue to hold for one more consecutive evidential wave. Next fix dispatch should target the attestation-citation binding rule at its root and not rely on model prose consistency to hold the line. Also worth watching: `rubric_unsupported_business_claim` +3 (largest single class, 11 fails), `rubric_generic_boilerplate` +4 (GPT_only analysis), `rubric_internal_reasoning_leak` +2 — pooled −4.17 vs Wave-B is inside batch-noise for wave-to-wave variance but monotonic on GPT across the last two waves.
 
-**Prior-item back-references:** items 141 (Wave-A), 153 (Wave-B extract), 156 (Wave-B.2 extract), 157 (Wave-B2 closure + Wave-C launch), 159 (enforce-mode regression fix + §16), 162 / 163 (Wave-C stall unblock + §17/§18). Wave-C is the first fully evidential run under the enforce-mode structural guarantees.
+**Guard-subsumption counters:** `_w18_risk_vocab` → `h2_internal_vocab_ok` 0/6 fails; `_w15_risk_va` → `h1_article_phrasing_ok` 0/6 fails; `_risk_citation_dup_fix` → no duplicate-pinpoint pattern in the citation failures (misapplication of otherwise-distinct pinpoints, not duplication).
 
-**Status:** DONE (extraction). Wave-C's outstanding class = citation-binding; next dispatch owner: CEO / deploy-authorized turn. Campaign `fd1be147` remains PAUSED.
+**Costs / batch hygiene:** 12 grader completions (1 Claude + 1 GPT × 6 docs); 1 Pass-1 retry consumed (doc 3); 0 write-around invocations; wall time 40m 09s for 6 docs; 1 duplicate wrapper row with **zero additional generation cost**.
+
+**Non-blocking harness observation:** run #147's persisted `grader_context_version` is `gc-2026-07-26-s5-eu-uk-ca-au-sg` while the launching batch's `instrument_version` is `gc-2026-07-27-s6-eu-uk-ca-au-sg`. Digest reports the batch value per launch spec; scores are unaffected (s5→s6 was a check re-keying per item 155, grader inputs identical). Flagged as a harness-labeling follow-up surface — not a HELD condition.
+
+**Courier:** `docs/courier/LTP-RISK-WAVEC-2026-07-27.md` (full digest, per-doc all-dimension scoreboard, per-doc enforce-mode table, six-fix verdict, full failed-class table, wrapper accounting, hygiene flag).
+
+**Extraction constraints honoured:** `supabase--read_query` only; no direct Supabase console; no instrument/rubric/golden/corpus/contract/code edits; no deploys; no new batch launches; no campaign resume.
+
+**Prior-item back-references:** items 141 (Wave-A), 145 (Wave-B extract courier `LTP-RISK-WAVEB-EXTRACT-2026-07-27.md`), 153 (Wave-B verdict), 154 (Wave-B completion always-on subset), 155 (s5→s6 re-key), 156 (Wave-B.2 extract), 157 (Wave-B2 closure fixes + Wave-C launch), 159 (enforce-mode regression fix + §16 measurement-validity law), 160 (Run 146 non-evidential-for-composition / evidential-positive-for-always-on refinement), 162 / 163 (Wave-C stall unblock + §17 cancel-any-pre-execution + §18 launch-state equivalence).
+
+**Status:** DONE (extraction). Monitor stands down on Wave-C. Two of three §5 criteria have now held across two consecutive evidential waves; citation-binding remains the outstanding class blocking trial completion. Next dispatch owner: CEO / deploy-authorized turn. Campaign `fd1be147` remains PAUSED.
