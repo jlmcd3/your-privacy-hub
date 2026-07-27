@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T08:39:54Z
+**Last updated:** 2026-07-27T09:47:53Z
 
 ---
 
@@ -3397,3 +3397,14 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Continuation scope (unchanged from Item 190 §CONTINUATION):** wire the 4 guard modules at call sites; land the 4 traced A.i fixes; declared/actual count migration + §16.n adoption; Item-181 renderer wiring; deploy (`run-cppa-risk-assessment`, `quality-batch-orchestrator`, `run-quality-batch`); A.ii degradation re-smoke under the wired hook re-audit with a real admin `created_by`; full-suite green pasted; security-panel appendix; Stage-B COMPLETE marker.
 - **Chain state:** unchanged. Stage C gated on Stage-B CONTINUATION landing. Stage D gated on Stage C. BSS-100K (Item 186) and Step 0 Build-Overview (Item 187) remain QUEUED. Clean-arm unique-catch counter still 0/3 for `cppa-risk`, opening at Stage-C re-smoke.
 - **No new HELDs opened.** Item 190 HARD STOP remains the sole blocker.
+
+## 192. STAGE-B CONTINUATION — WIRING-CHECKPOINT (step 1 of 12) — 2026-07-27T09:47:53Z
+
+- **Signal:** CEO release "STAGE-B CONTINUATION RELEASED" — executes Item 190 §3 12-step plan under a single deploy.
+- **Landed this turn (step 1 only):** `assertCreatedByIsRealUser` wired at all 3 born-state insert sites in `supabase/functions/quality-batch-orchestrator/index.ts` — `startRun` (~L698), `startPinnedRerunBatch` (~L742), `startCampaignWave` (~L839). `userExistsInAuth` bound to `admin().auth.admin.getUserById`. On guard error each site returns `400 created_by_guard: <msg>` (or logs to campaign progress_log). BUILD_STAMP bumped to `qbo-stage-b-cont-createdby-guard@2026-07-27T10:15:00Z`; auto-deploys on Lovable-managed edge.
+- **Tests:** 26/26 green across the four Stage-B modules (`created-by-guard`, `composition-hook-audit`, `value-screen`, `surface-write-guard`).
+- **Deferred to CONTINUATION-2 (steps 2–12, unchanged scope):** hook-conformance wiring at composition finalizer; surface-write-guard at Pass-2 emitters; value-screen at LEAK-PREV-P2 boundary + one-bounded-recompose driver; traced A.i fixes (orch :381 pin-slice, rqb :1908 overshoot, cohort append-if-absent, filter-annotation lexicon extension); declared/actual count migration + §16.n adoption; Item-181 renderer wiring; deploy of `run-cppa-risk-assessment` + `run-quality-batch`; A.ii degradation re-smoke with real admin `created_by=02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122`; full-suite green; security-panel appendix; Stage-B COMPLETE marker.
+- **Clean-arm unique-catch counter (§22.1):** unchanged. **0/3 for `cppa-risk`**; opens at Stage-C re-smoke.
+- **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION-2026-07-27.md`.
+- **Disposition:** **WIRING-CHECKPOINT.** HARD STOP per dispatch escape clause ("checkpoint ONLY at deploy-complete or re-smoke-complete, record it, STOP"). Stage C remains gated on Stage-B COMPLETE. Awaiting CEO read + release for CONTINUATION-2.
+

@@ -42,9 +42,21 @@ import {
   type ContractDeps,
 } from "./_contract_hooks.ts";
 import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
+import { assertCreatedByIsRealUser, CreatedByGuardError } from "../_shared/harness/created-by-guard.ts";
 
 
-export const BUILD_STAMP = "qbo-corrections-bundle-mode-assert@2026-07-27T06:10:00Z";
+export const BUILD_STAMP = "qbo-stage-b-cont-createdby-guard@2026-07-27T10:15:00Z";
+
+// created-by lookup bound to auth.admin.getUserById; returns true iff the
+// UUID resolves to an existing auth user. Injected into assertCreatedByIsRealUser
+// at the born-state boundary per Stage-B CONTINUATION step 1 (Item 190 §3).
+async function userExistsInAuth(id: string): Promise<boolean> {
+  try {
+    const { data, error } = await admin().auth.admin.getUserById(id);
+    if (error) return false;
+    return !!data?.user?.id;
+  } catch { return false; }
+}
 
 // DS-T2b live deps: fail-open subject-keyed thin wrappers over delivery-contract.
 // Any DB failure here is swallowed by the hooks in _contract_hooks.ts.
@@ -685,6 +697,12 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   }
 
   const db = admin();
+  // §19/§25 AUTHOR-CHECKPOINT — reject nil/malformed/unknown created_by.
+  try { await assertCreatedByIsRealUser(userId, userExistsInAuth); }
+  catch (e) {
+    const msg = e instanceof CreatedByGuardError ? e.message : (e as Error).message;
+    return { ok: false, status: 400, err: `created_by_guard: ${msg}` };
+  }
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: userId,
@@ -722,6 +740,12 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
     };
   }
   const db = admin();
+  // §19/§25 AUTHOR-CHECKPOINT — reject nil/malformed/unknown created_by.
+  try { await assertCreatedByIsRealUser(createdBy, userExistsInAuth); }
+  catch (e) {
+    const msg = e instanceof CreatedByGuardError ? e.message : (e as Error).message;
+    return { ok: false, status: 400, err: `created_by_guard: ${msg}` };
+  }
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: [tool], batch_size: pins.length, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: createdBy,
@@ -813,6 +837,13 @@ async function startCampaignWave(campaign: any): Promise<{ started: boolean; rea
     return { started: false, reason: `ltp_mode_mismatch:${modeCheck.aborted_tool}` };
   }
 
+  // §19/§25 AUTHOR-CHECKPOINT — reject nil/malformed/unknown created_by.
+  try { await assertCreatedByIsRealUser(createdBy!, userExistsInAuth); }
+  catch (e) {
+    const msg = e instanceof CreatedByGuardError ? e.message : (e as Error).message;
+    await logCampaign(campaign.id, `Wave aborted (§19/§25): ${msg}`, "error");
+    return { started: false, reason: `created_by_guard:${msg}` };
+  }
 
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools: eligible, batch_size: batchSize, status: "running", phase: "kickoff",
