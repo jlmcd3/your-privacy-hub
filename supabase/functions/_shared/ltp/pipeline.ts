@@ -76,7 +76,10 @@ export function ltpMode(): "shadow" | "enforce" {
 
 export function runLegalTestPipelineShadow(input: RunLtpInput): LtpTelemetry {
   const t0 = Date.now();
-  const _mode = ltpMode();
+  // The shadow orchestrator is the shadow-arm computation; its `mode` field is
+  // always "shadow" by definition. Fleet-level enforce/shadow selection lives
+  // in `ltpMode()` and is reported separately by the enforce-arm (runPass1Llm).
+  const _mode: "shadow" = "shadow";
   try {
     const plan = derivePlan(input);
     const guide = runGuideStage(plan);
