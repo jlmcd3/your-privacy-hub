@@ -282,7 +282,7 @@ export { readForceWriteAroundOnce };
 // they can safely persist. Enforce-mode strictness is preserved via
 // `telemetry.enforce_violation` for measurement verdicts — the
 // document still ships; the verdict is what enforce mode governs.
-export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-hangfix";
+export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-item206-hits";
 export const SAFE_FINALIZE_BUDGET_MS_DEFAULT = 15_000;
 
 export interface SafeFinalizeTelemetry {
@@ -296,6 +296,12 @@ export interface SafeFinalizeTelemetry {
   readonly budget_ms: number;
   readonly elapsed_ms: number;
   readonly budget_exceeded: boolean;
+  /**
+   * ITEM 206 — per-hit ValueScreenError details preserved on the catch
+   * path so the wire-site can persist path/context under
+   * `_meta.internal.composition_finalize.hits`. Never blind again.
+   */
+  readonly hits: readonly ValueScreenHit[];
   readonly inner?: FinalizeTelemetry;
 }
 
@@ -310,17 +316,6 @@ function nowMs(): number {
     : Date.now();
 }
 
-/**
- * Call finalizeComposition() with belt-and-suspenders safety:
- *   - ANY exception → caught, telemetered, original reportData returned unchanged
- *   - Soft wall-clock budget → elapsed_ms + budget_exceeded flag (sync work
- *     cannot be preempted, but overshoot is telemetered)
- *   - NEVER throws — persist always runs
- *
- * Enforce-mode value-screen / surface-guard throws are recorded as
- * `enforce_violation: true` on telemetry so measurement can act on them;
- * the document itself is never blocked.
- */
 export function safeFinalizeComposition(
   input: FinalizeInput & { budgetMs?: number },
 ): SafeFinalizeResult {
@@ -345,6 +340,7 @@ export function safeFinalizeComposition(
         budget_ms: budgetMs,
         elapsed_ms: elapsed,
         budget_exceeded: elapsed > budgetMs,
+        hits: res.telemetry.value_screen_hit_details,
         inner: res.telemetry,
       },
     };
@@ -353,6 +349,8 @@ export function safeFinalizeComposition(
     const err = e as Error;
     const kind = err?.name ?? "Error";
     const message = err?.message ?? String(e);
+    const hits: readonly ValueScreenHit[] =
+      e instanceof ValueScreenError ? e.hits : [];
     return {
       reportData: originalReport,
       telemetry: {
@@ -367,6 +365,7 @@ export function safeFinalizeComposition(
         budget_ms: budgetMs,
         elapsed_ms: elapsed,
         budget_exceeded: elapsed > budgetMs,
+        hits,
       },
     };
   }
