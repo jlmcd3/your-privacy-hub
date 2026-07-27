@@ -41,8 +41,8 @@ export interface WaveB2Result {
 //   - unclosed opening parenthesis in a § span: "§ N(…" without matching ")"
 const TRUNCATION_PATTERNS: RegExp[] = [
   /§[^.;!?]{0,80}…/,
-  /\(\d+\)[^)]{0,20}…/,
-  /\d+\(\d+\)\(\w+\)\s*…/,
+  /\([\w\d]+\)\s*…/,
+  /\d[\d.]*\([\w\d]+\)(?:\([\w\d]+\))*\s*…/,
 ];
 
 function splitSentences(s: string): string[] {
