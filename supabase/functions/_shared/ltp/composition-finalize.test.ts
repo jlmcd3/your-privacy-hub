@@ -112,16 +112,20 @@ Deno.test("composition-finalize: CUT-ruled path present pre-serializer records t
   assert(res.telemetry.pre_serializer_cut_pending.includes("scope_and_triggers.scope_notes"));
 });
 
-Deno.test("composition-finalize: unowned top-level in enforce mode throws", () => {
-  const rd = { assessment_summary: { narrative: "clean." }, made_up_key: { z: 1 } };
-  assertThrows(
-    () =>
-      finalizeComposition({
-        reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
-      }),
-    Error,
-    "unowned top-level",
-  );
+Deno.test("composition-finalize: unowned top-level in enforce records telemetry, does NOT throw (Item 213)", () => {
+  const rd = {
+    assessment_summary: { narrative: "clean." },
+    made_up_key: { z: 1 },
+    generated_at: "2026-07-27T00:00:00Z",
+    retrieval_meta: { source: "x" },
+  };
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.surface_unowned_paths, []);
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("made_up_key"));
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("generated_at"));
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("retrieval_meta"));
 });
 
 
@@ -130,8 +134,10 @@ Deno.test("composition-finalize: unowned top-level in observe records but does n
   const res = finalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, env: nullEnv,
   });
-  assert(res.telemetry.surface_unowned_paths.includes("made_up_key"));
+  assert(res.telemetry.pre_serializer_unowned_pending.includes("made_up_key"));
+  assertEquals(res.telemetry.surface_unowned_paths, []);
 });
+
 
 Deno.test("composition-finalize: hook-audit ALWAYS fires (silent-bypass throws even in observe)", () => {
   const rd = { assessment_summary: { narrative: "clean." } };
@@ -207,15 +213,16 @@ Deno.test("safeFinalizeComposition: throwing recompose is CAUGHT (persist not bl
   assertEquals(res.reportData, rd);
 });
 
-Deno.test("safeFinalizeComposition: unowned top-level in enforce is caught, doc still ships", () => {
+Deno.test("safeFinalizeComposition: unowned top-level in enforce is telemetered, no throw (Item 213)", () => {
   const rd = { assessment_summary: { narrative: "clean." }, weird_key: { z: 1 } };
   const res = safeFinalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
   });
-  assertEquals(res.telemetry.errored, true);
-  assertEquals(res.telemetry.enforce_violation, true);
-  assertEquals(res.reportData, rd);
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.enforce_violation, false);
+  assert(res.telemetry.inner?.pre_serializer_unowned_pending.includes("weird_key"));
 });
+
 
 Deno.test("safeFinalizeComposition: budget telemetry present and honored", () => {
   const rd = { assessment_summary: { narrative: "clean." } };
@@ -264,6 +271,16 @@ Deno.test("shipped-surface-guard: EMPTY_ARRAY — non-empty inconsistency_flags 
   assert(e.cut_violations.some((v) => v.path === "inconsistency_flags"));
 });
 
+Deno.test("shipped-surface-guard: unowned top-level key FAILS on shipped projection (Item 213)", () => {
+  const shipped = {
+    assessment_summary: { narrative: "clean." },
+    made_up_key: { z: 1 },
+    inconsistency_flags: [],
+  };
+  const e = evaluateShippedSurfaceGuard(shipped);
+  assert(e.unowned_paths.includes("made_up_key"));
+});
+
 Deno.test("finalize: scope_and_triggers bound top-level with only allowed children does NOT throw in enforce (Item 208 regression)", () => {
   const rd = {
     scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] },
@@ -275,4 +292,27 @@ Deno.test("finalize: scope_and_triggers bound top-level with only allowed childr
   });
   assertEquals(res.telemetry.surface_cut_violations, []);
 });
+
+Deno.test("finalize: smoke-#9 exact composed shape (5 unowned + clean surface) passes with telemetry (Item 213)", () => {
+  const rd = {
+    assessment_summary: { narrative: "The record supports the assessment." },
+    scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] },
+    inconsistency_flags: [],
+    // The five smoke-#9 unowned keys the serializer strips:
+    generated_at: "2026-07-27T23:04:00Z",
+    legacy_shim_applied: true,
+    normalised_intake: { q1: "y" },
+    retrieval_meta: { source: "reg" },
+    open_items: [],
+  };
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.surface_unowned_paths, []);
+  assertEquals(res.telemetry.surface_cut_violations, []);
+  for (const k of ["generated_at", "legacy_shim_applied", "normalised_intake", "retrieval_meta", "open_items"]) {
+    assert(res.telemetry.pre_serializer_unowned_pending.includes(k), `missing ${k}`);
+  }
+});
+
 

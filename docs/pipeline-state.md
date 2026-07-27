@@ -3744,3 +3744,29 @@ Courier: `docs/courier/SMOKE8-CUT-ENFORCEMENT-SITE-2026-07-27.md`.
 **READY-FOR-RELAUNCH. HARD STOP.**
 
 **HELD** (2026-07-27, post-Item-211): READY-FOR-RELAUNCH state maintained. Awaiting controller relaunch of smoke #9. No new work this nudge.
+
+## Item 213 — SMOKE-#9 UNOWNED-SITE (2026-07-27)
+
+Smoke #9 run #161 completed (327s, C=81.45 / G=88); shipped_surface_guard
+FULLY CLEAN (`cut_violations=[]`, `unowned_paths=[]`); Item-211 stamp
+proven on wire. `composition_finalize.errored=true` — same class as
+smoke #6 / #8: pre-serializer unowned-top-level check threw on 5 keys
+(`generated_at`, `legacy_shim_applied`, `normalised_intake`,
+`retrieval_meta`, `open_items`) that the LEAK-PREV-P2 serializer strips.
+
+CONSOLIDATION FIX (single turn):
+- `_shared/ltp/composition-finalize.ts`: pre-serializer surface walk is
+  now ENTIRELY telemetry-only in every mode. New telemetry field
+  `pre_serializer_unowned_pending`. `surface_unowned_paths` and
+  `surface_cut_violations` kept for schema stability, always `[]`.
+- `_shared/ltp/content/risk-surface-map.ts`: ALL surface-shape rulings
+  (CUT + unowned) enforce SOLELY at post-serializer
+  `evaluateShippedSurfaceGuard` on the shipped projection.
+- Regression: smoke-#9 exact composed shape (5 unowned + clean surface)
+  passes finalize with all 5 telemetered; shipped projection with an
+  unowned key still FAILS the shipped guard. 26/26 green.
+- Deploy: `BUILD_STAMP=ltp-risk-item213-unowned-site@2026-07-27T23:45:00Z`. §16 ping proven.
+
+Courier: `docs/courier/SMOKE9-UNOWNED-SITE-2026-07-27.md`.
+
+**READY-FOR-RELAUNCH. HARD STOP.**

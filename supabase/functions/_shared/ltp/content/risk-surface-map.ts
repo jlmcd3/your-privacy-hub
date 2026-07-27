@@ -128,12 +128,16 @@ export interface CutRuling {
   readonly mode: "REMOVE" | "EMPTY_ARRAY" | "OBJECT_PRUNE";
   readonly rationale: string;
 }
-// ENFORCEMENT SITE (Item 211): CUT rulings are enforced SOLELY at the
-// post-serializer wire-site by `evaluateShippedSurfaceGuard` on the
+// ENFORCEMENT SITE (Item 213): ALL surface-shape rulings — CUT paths
+// AND the unowned-top-level class (any root key not in the surface-map
+// allow-list and not covered by a CUT ruling) — are enforced SOLELY at
+// the post-serializer wire-site by `evaluateShippedSurfaceGuard` on the
 // shipped/graded projection. The pre-serializer `finalizeComposition`
 // only records presence under `telemetry.pre_serializer_cut_pending`
-// and never throws on CUT presence — the composed object legitimately
-// contains these paths and the LEAK-PREV-P2 serializer strips them.
+// and `telemetry.pre_serializer_unowned_pending`, and never throws on
+// surface-shape presence — the composed object legitimately contains
+// these paths and the LEAK-PREV-P2 serializer strips them.
+
 
 
 export const RISK_CUT_RULINGS: readonly CutRuling[] = [
