@@ -3432,3 +3432,30 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C re-smoke.
 - **Chain state:** Stage B at BLOCK-A-COMPLETE (steps 1-4 landed); steps 5-12 defer to CONTINUATION-4. Stages C/D still gated.
 - **Disposition:** **BLOCK-A-COMPLETE. HARD STOP** per dispatch checkpoint clause. Awaiting CEO read + CONTINUATION-4.
+
+## Item 195 — STAGE-B CONTINUATION-4 BLOCK-B-COMPLETE (2026-07-27)
+
+- **Release:** CONTINUATION-4 released with two-block deploy concession honored (Block A landed Item 194; Block B lands here).
+- **Landed this turn (BLOCK B, steps 5-8 + §16 enforce-assertion ruling):**
+  - **Traced A.i fixes:**
+    - Pin-slice cap in `_shared/quality/seed-row.ts` — `buildSeedRow` slices `opts.pins` to `batchSize` at the seed boundary (source of truth).
+    - Overshoot arm in `run-quality-batch/index.ts:1908` — symmetric slice with warn log when `intakes.length > batchSize` on first invocation; mid-run resume preserved.
+    - `_shared/ltp/cohort-append.ts` (NEW) wired at `run-cppa-risk-assessment/index.ts:3220` post-WAVE-B — idempotent § 7121(a) conditional clause append when `audit_cohort === "indeterminate"` (unspecified OR legacy `$25M–$100M`). Telemetry under `_meta.internal.cohort_append`.
+    - Lexicon extension: no new leak surfaces observed in dry reads → deferred unchanged.
+  - **Declared/actual count migration + §16.n adoption:**
+    - DDL applied verbatim: `ALTER TABLE public.quality_batch_runs ADD COLUMN IF NOT EXISTS declared_count integer, ADD COLUMN IF NOT EXISTS actual_count integer`, with COMMENTs documenting historical NULL exemption.
+    - Born-state writes at all three orchestrator insert sites (`startRun`, `startPinnedRerunBatch`, `startCampaignWave`): `declared_count = tools.length * batchSize` (or `pins.length` for pinned reruns).
+    - Terminal-state assertion in `markTerminalAll`: computes `actual_count = completeCount * batchSize` from `tool_results`, patches alongside `completed_at`; conformance mismatch on `status='complete'` emits `evt=count_conformance_violation` warn log; fail-open.
+  - **Item-181 renderer wiring:** `_shared/ltp/renderer-181.ts` (NEW) — (a) factor_line-before-conclusion positional assertion, (b) aggregation-note N>1 gate, (c) (B)-question predicate + info-needed filter. 5/5 unit tests green. Subordinated helpers per §28.
+  - **§16 COMPOSITION-ENFORCE surface (dispatch addition):** `_shared/ltp/mode-assert.ts` extended with `ltpExpectedCompositionEnforce()` (default `"1"`); `ModeCheckEntry` gains `composition_enforce_expected`/`_actual`; ping mismatch trips `composition_enforce_mismatch` §16 abort. `run-cppa-risk-assessment` ping now emits `composition_enforce`. Secrets set: `LTP_COMPOSITION_ENFORCE=1`, `LTP_COMPOSITION_ENFORCE_EXPECTED=1`.
+- **Deploy + boot-prove (step 8):**
+  - `run-cppa-risk-assessment` → `ltp-risk-stage-b-blockb-cohort-r181-ceassert@2026-07-27T13:35:00Z`
+  - `quality-batch-orchestrator` → `qbo-stage-b-blockb-declared-actual-count@2026-07-27T13:35:00Z`
+  - `run-quality-batch` → deployed (piggy-backed).
+  - Ping-prove (risk): `{"build_stamp":"ltp-risk-stage-b-blockb-cohort-r181-ceassert@2026-07-27T13:35:00Z","ltp_mode":"enforce","composition_enforce":"1"}` — §16 pre-ping now covers mode AND composition_enforce.
+- **Tests (partial — full suite deferred to CONTINUATION-5 step 10):** 9/9 green on new modules — `renderer-181` 5/5, `cohort-append` 4/4; isolated `deno check` clean on all files touched.
+- **Pre-existing typecheck errors** (unchanged, unrelated to this block): `summary-compose.ts:267`, `cppa-risk-factors.ts` guidance_refs widening — will be surfaced in the full-suite paste in CONTINUATION-5 step 10.
+- **Courier:** `docs/courier/SMOKE-FIX-ROUND-CONTINUATION4-2026-07-27.md`.
+- **Clean-arm counter (§22.1):** unchanged **0/3 for `cppa-risk`**; opens at Stage-C re-smoke.
+- **Chain state:** Stage B at BLOCK-B-COMPLETE (steps 1-8 landed); steps 9-12 (enforce-mode re-smoke, degradation re-smoke, full-suite paste, security appendix, Stage-B COMPLETE marker) defer to CONTINUATION-5. Stages C/D still gated.
+- **Disposition:** **BLOCK-B-COMPLETE. HARD STOP** per dispatch checkpoint clause. Awaiting CEO read + CONTINUATION-5.
