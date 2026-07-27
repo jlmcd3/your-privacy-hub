@@ -60,14 +60,23 @@ function fillUserTemplate(input: DeriveInput): string {
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
 }
 
-async function callGateway(body: unknown): Promise<Response> {
-  const key = Deno.env.get("LOVABLE_API_KEY");
-  if (!key) throw new Error("missing_LOVABLE_API_KEY");
-  return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { "content-type": "application/json", "Lovable-API-Key": key },
-    body: JSON.stringify(body),
+async function callPass1Model(system: string, user: string): Promise<string> {
+  // PRE-WAVED-EMITTER-FIXES-2026-07-27 (CEO Q3): direct Anthropic client;
+  // gateway path retired for Pass-1 because the Lovable AI gateway does
+  // not serve Anthropic models and the CEO same-model ruling requires
+  // Pass-1 to run on the generator's model.
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) throw new Error("missing_ANTHROPIC_API_KEY");
+  const res = await callAnthropicWithContinuation({
+    model: PASS1_MODEL,
+    system,
+    user,
+    maxTokens: 8000,
+    label: "ltp-pass1-derive",
+    callerName: "run-cppa-risk-assessment",
+    product: "cppa-risk-assessment",
   });
+  return res.text;
 }
 
 function writeAroundPlan(input: DeriveInput, reason: string): RenderPlan {
