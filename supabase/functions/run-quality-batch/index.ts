@@ -1528,7 +1528,10 @@ async function pollGenerationRow(
       } else {
         const { data } = await admin.from(sourceTable).select("status, report_data").eq("id", sourceRowId).single();
         const s = (data as any)?.status;
-        if (s === "complete") return { status: "complete", reportData: (data as any)?.report_data };
+        if (s === "complete") {
+          if ((data as any)?.report_data != null) return { status: "complete", reportData: (data as any)?.report_data };
+          return { status: "error", error: `${sourceTable} status=complete_without_report_data` };
+        }
         if (["error", "failed", "cancelled"].includes(s ?? "")) return { status: "error", error: `${sourceTable} status=${s}` };
       }
 
@@ -1568,6 +1571,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
         const { data } = await admin.from(table).select(cols).eq("id", id).single();
         if ((data as any)?.status === "complete") {
           const rd = (data as any)?.report_data ?? {};
+          if ((data as any)?.report_data == null) throw new Error(`${table} status=complete_without_report_data`);
           if (bodyCol) return { ...rd, [bodyCol]: (data as any)?.[bodyCol] ?? "" };
           return rd;
         }

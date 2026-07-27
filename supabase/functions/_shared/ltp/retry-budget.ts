@@ -32,11 +32,15 @@ export const MAX_END_TO_END_MS = 900_000;              // alias — used for ret
 export const MAX_ELAPSED_FOR_RETRY_MS = 240_000;       // 4 min: past this, no retries
 export const POST_RETRY_RESERVE_MS = 180_000;          // 3 min: finalize + serializer + persist
 export const MIN_RETRY_WINDOW_MS = 30_000;
+export const POST_LINT_LLM_CALL_TIMEOUT_MS = 120_000;  // per Anthropic leg; continuation makes max 240s
+export const POST_LINT_PASS1_TIMEOUT_MS = 75_000;      // per Anthropic leg; pass-1 runs one attempt in clock mode
+export const POST_LINT_LLM_MAX_CALL_MS = POST_LINT_LLM_CALL_TIMEOUT_MS * 2;
+export const POST_LINT_PASS1_MAX_CALL_MS = POST_LINT_PASS1_TIMEOUT_MS * 2;
 
 // Post-lint work guard — used by non-retry LLM sites (forward-path guard,
 // CoT-leak guard). Callers pass elapsedMs and skip the downstream LLM
-// call if elapsed exceeds this threshold. Persist-early already covers
-// document safety; this covers pipeline-clock safety.
+// call if elapsed exceeds this threshold. report_data remains final-only;
+// this covers pipeline-clock safety without exposing a pre-final document.
 export const POST_LINT_LLM_BUDGET_MS = 300_000;        // 5 min: no more LLM calls past this
 export function hasBudgetForPostLintLLM(elapsedMs: number): boolean {
   return elapsedMs < POST_LINT_LLM_BUDGET_MS;
