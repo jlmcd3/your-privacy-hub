@@ -2671,3 +2671,53 @@ ok | 8 passed | 0 failed
 **Status:** LANDED (docs-only). No code, no deploys, no instrument changes; s6 remains frozen; campaign fd1be147 remains CEO-paused. Wave-C batch `9c1e3a8f-5b2d-4e7c-9a4b-8f2d1e5c7b3a` (launched item 157) proceeds under monitor; its terminal extraction happens on the frozen s6 instrument.
 
 **Inheritance note:** all future dispatches — including the pending LIA and IR-Band-Realignment turns (item 114) and the Two-Pass rollouts to Stage-2/3 products — now compile from the amended LTP-PIPELINE + LEGAL-TEST law and inherit clauses §4.1(6), §4.1(7), §12, §13, §14, §15, and the LEGAL-TEST Q1 resolution-map clause without additional per-product carrier language.
+
+## Ledger item 159 — ENFORCE-MODE REGRESSION diagnosed + structurally fixed; Wave C relaunched (2026-07-27T02:12:39Z)
+
+**Class:** Urgent deploy turn (controller double-check, CEO-ordered verification). Root-caused a measurement-validity defect: two prior batches ran while the LTP telemetry envelope reported `mode=shadow` and the customer-visible generator was never on a Derive-then-Render enforce path. Non-evidential runs marked; structural fix landed and deployed; Wave C properly relaunched batch-wrapped with a mode-mismatch abort in the loop.
+
+**(1) LEDGER ACCOUNTING — batch provenance:**
+- `127a6714-1062-427e-8f94-484ca9241006` (run 146, scored 72.35) was launched by the **INSTRUMENT-EPOCH-AUDIT s5→s6** turn (item 155) as the initial WAVE B.2 measurement. Its per-doc telemetry (queried this turn on the 6 documents): `_meta.internal.legal_test_pipeline.mode = "shadow"` on every doc, though `enforce_preview.telemetry.ok = true`. Ruling: **NON-EVIDENTIAL** for any enforce-mode claim. Wave-B.2 extraction (item 156) treated it as a partial-PASS read; per §16 measurement-validity law (below) that treatment is retracted for enforce-mode claims. Item 156's citation-binding FAIL count remains valid as a post-render defect signal (the closure fixes had not yet deployed).
+- `9c1e3a8f-5b2d-4e7c-9a4b-8f2d1e5c7b3a` was launched by the **WAVE-B.2 CITATION CLOSURE** turn (item 157) at 02:02:56Z as its declared "Wave C" measurement. Controller set `cancel_requested = true` at 02:03:07Z (~11s later) upon detecting the shadow-mode label persisting. State this turn: `status=queued, cancel_requested=t, completed_at=∅` — awaiting orchestrator/sentinel to reach terminal `cancelled`. Ruling: **WAVE C DID NOT HAPPEN** on that batch; it is a superseded launch, not a measurement.
+
+**(2) ROOT-CAUSE — the enforcement / label loss:**
+- `LTP_ENFORCE_ENABLED = 1` was set on the function environment throughout and remains set (confirmed this turn: env value = `1`; enforce_preview per-doc telemetry on run 146 shows `ok=true`, so Pass-1 LLM ran).
+- The defect was in `supabase/functions/_shared/ltp/pipeline.ts`: the `LtpTelemetry.mode` field was **hardcoded to `"shadow"`** on both the success and error return branches of `runLegalTestPipelineShadow()`. The env flag governed only whether the enforce_preview subtree got attached; the top-level `mode` label — the field a controller reads to verify configuration — was blind to the env and always emitted `"shadow"`. There was no ping surface, no boot-log line dedicated to mode, and no batch-harness pre-assertion, so a caller could not detect the mismatch before spending model credits.
+- Deploy provenance: the label defect has been present since `ltp-risk-p2@2026-07-26T08:50:44Z` (item 137 shadow-mode landing). Every subsequent deploy (`ltp-risk-p2+fb-f0`, `ltp-risk-waveb-enforce`, `ltp-risk-waveb-completion`, `ltp-risk-waveb2-closure`) inherited it. No deploy "reset" the flag — the flag was correct; the **label** was wrong. The measurement-validity failure is therefore a **spec/architecture defect**, not an ops mistake.
+
+**(3) STRUCTURAL FIX (spec-writeback shape, not a hand-set env):**
+- **Code (deployed):**
+  - `supabase/functions/_shared/ltp/pipeline.ts` — added `export function ltpMode()` reading `LTP_ENFORCE_ENABLED`; both `runLegalTestPipelineShadow()` return branches now emit the real `mode` label from env.
+  - `supabase/functions/run-cppa-risk-assessment/index.ts`:
+    - Dedicated boot-log line: `[run-cppa-risk-assessment] boot ltp_mode=<enforce|shadow> design=…§16-measurement-validity-law`.
+    - `GET /?ping=1` handler — returns `{fn, build_stamp, ltp_mode, ltp_version}`; no side effects; no auth required (mode + stamp are non-secret configuration metadata).
+    - Request-header assertion — `x-ltp-mode-expected: enforce|shadow`; mismatch aborts pre-work with HTTP 409 `ltp_mode_mismatch` and a diagnostic body.
+    - `BUILD_STAMP` bumped to `ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z`.
+  - `supabase/functions/kick-wrapped-batch/index.ts` — accepts `mode_expected` + `target_fn`; PINGS the target's `?ping=1` before invoking the orchestrator; returns HTTP 409 `ltp_mode_mismatch` (never spawns the batch) when the target's reported mode differs.
+- **Design law (new, standing, product-agnostic) — `docs/design/LEGAL-TEST-PIPELINE.md` §16 measurement-validity law:** every measurement records and asserts the generative configuration it claims to measure. Three requirements (boot-log line, ping+header on generator, batch-harness pre-assertion). NON-EVIDENTIAL marking rule for post-hoc-discovered mismatches.
+- **Boot-log assertion added to deploy protocol:** post-deploy turns MUST paste the boot line as evidence.
+
+**Boot-log proof (pasted from live edge logs, 2026-07-27T02:11:51Z):**
+```
+[run-cppa-risk-assessment] boot ltp_mode=enforce design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law
+[run-cppa-risk-assessment] boot build_stamp=ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z
+[run-cppa-risk-assessment] boot waveb_completion=LANDED waveb2_closure=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b+atomic_tokens+info_needed_contradiction
+```
+Ping response (this turn): `{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z","ltp_mode":"enforce","ltp_version":"ltp-risk-p2"}`.
+
+**(4) 9c1e3a8f state:** `queued, cancel_requested=t` at 02:12Z. Not yet terminal cancelled; monitor observes to terminal. This turn does not resume it (cancellation intent stands).
+
+**(5) WAVE C RELAUNCH — batch-wrapped with §16 pre-assertion active:**
+- New batch: `2a3c07a2-7bd3-4250-a73e-ce19ea725633` (tools=`{cppa-risk}`, batch_size=6, standalone s6 `gc-2026-07-27-s6-eu-uk-ca-au-sg`, concurrency=1, campaign_id NULL).
+- Kicked via `kick-wrapped-batch` with `mode_expected="enforce"`, `target_fn="run-cppa-risk-assessment"`. Pre-assertion response: `mode_check.expected="enforce", mode_check.actual="enforce", build_stamp=ltp-risk-enforce-regression-fix@2026-07-27T02:20:00Z`. Orchestrator returned `202 {ok:true}`. Batch state at end-of-turn: `status=queued, phase=starting, cancel_requested=f`.
+- Monitor extracts at terminal against §5 success criteria (intake-drift 0 / gate violations 0 / citation-binding 0) AND MUST confirm per-doc `_meta.internal.legal_test_pipeline.mode = "enforce"` on all 6 documents (measurement-validity confirmation).
+
+**Files touched this turn:**
+- `supabase/functions/_shared/ltp/pipeline.ts` (mode label from env)
+- `supabase/functions/run-cppa-risk-assessment/index.ts` (boot line, ping, header assertion, BUILD_STAMP bump)
+- `supabase/functions/kick-wrapped-batch/index.ts` (mode_expected pre-assertion)
+- `docs/design/LEGAL-TEST-PIPELINE.md` (§16 measurement-validity law)
+- `docs/courier/ENFORCE-MODE-REGRESSION-2026-07-27.md` (incident + clauses)
+- `docs/pipeline-state.md` (this item)
+
+**Status:** LANDED + DEPLOYED. Wave C relaunched batch-wrapped on the enforce-verified generator; monitor extracts at terminal. Campaign fd1be147 remains CEO-paused. s6 instrument frozen.
