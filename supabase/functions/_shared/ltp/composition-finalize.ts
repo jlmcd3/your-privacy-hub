@@ -38,6 +38,7 @@ import {
 } from "./composition-hook-audit.ts";
 
 export const COMPOSITION_FINALIZE_VERSION = "composition-finalize@2026-07-27";
+export const FRAGMENT_OMIT_VERSION = "fragment-omit@2026-07-27-item206";
 export const ENFORCE_ENV = "LTP_COMPOSITION_ENFORCE";
 
 export type FinalizeMode = "observe" | "enforce";
