@@ -3679,3 +3679,25 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
 - **Deploy:** `run-cppa-risk-assessment` redeployed; `BUILD_STAMP` `ltp-risk-item208-shipped-surface-guard@2026-07-27T19:30:00Z`. §16 ping verified on the wire.
 - **Courier:** `docs/courier/SMOKE6-SURFACE-GUARD-GRAIN-2026-07-27.md`.
 - **Disposition:** **READY-FOR-RELAUNCH. HARD STOP.** Controller relaunches smoke #7.
+
+## Item 210 — SMOKE #7 BRANCH FAIL + CEO scope note (2026-07-27 ~22:02Z)
+
+**Branch:** FAIL. Evidence-only, no fixes invented.
+
+**Rows:**
+- `quality_batch_runs 3528a039-919c-4e4b-83a3-a672e400afe0`: inserted 21:57:23.539Z, terminal via child at 22:00:10Z.
+- `quality_runs #159 4d77ff89-a431-494d-9e51-07a3be695742`: tool=cppa-risk, status=error, mode=NULL, grader_context_version=gc-2026-07-27-s6-eu-uk-ca-au-sg, started_at=22:00:04.142Z, completed_at=22:00:10.068Z (E2E 5.9s), last_heartbeat_at=22:00:10.024Z, error="No documents completed", no scores.
+- `cppa_assessments 8a912cff-70ef-4afa-904e-5ed350fb6ace` (module=risk_assessment, user=02bc7cd6-…): created 22:00:04.833Z, updated 22:00:06.486Z (Δ 1.65s), status=error, retry_count=0, `report_data = { "error": "Error: Anthropic 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CdTKAFvJkhLGYKMbW24Up\"}" }`.
+
+**Read:** upstream Anthropic 529 `overloaded_error` on the Pass-1 direct-Anthropic call (rewired per Item 176). Death at T+1.65s from assessment insert; watchdog reaped at T+5.9s ("No documents completed"). Composition / finalize / LEAK-PREV-P2 serializer / Item-209 shipped_surface_guard never ran — `_meta.internal.*` absent; the `report_data` here is the generator outer-catch error envelope, not a shipped document. Item-209 build `ltp-risk-item208-shipped-surface-guard@2026-07-27T19:30:00Z` remains **unproven on the wire** this run.
+
+**§22.1 accounting:** cppa-risk clean-arm counter unchanged at **0/3**. Smokes #153–#155 and #4–#7 all non-evidential.
+
+**Disposition:** HARD STOP. Controller relaunches smoke #8.
+
+### CEO scope note (recorded per dispatch, no action)
+
+CEO direction 2026-07-27: "these smoke test fixes may be particular to cppa-risk product only." A controller/panel cross-product applicability inventory (three tiers: engine-universal wiring, pattern-reusable content, cppa-risk-only) has been prepared as CEO planning input for per-product ports. Flags:
+- (a) The silent-document-loss retry class and completion-on-presence race plausibly exist in the other nine `run-*` functions today — **pre-migration defect-class audit added to the Step-0 checklist** of `docs/design/PRODUCT-MIGRATION-CHECKLIST.md` scope (courier note; file edit deferred until a port is authorized).
+- (b) `cppa-cyber` shares § 7121 directly, making the §31 phase-in schedule surface (Item 204 Defect-B) its fastest port.
+- **No port work authorized.**
