@@ -18,7 +18,35 @@ import {
 } from "./content/pass2-templates.ts";
 import { resolveSlot, type SlotContext } from "./slot-resolver.ts";
 
-export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-26";
+export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-27-slot-guard";
+
+// PRE-WAVED-EMITTER-FIXES-2026-07-27 (class 6, adjudication):
+// Structured slots (owner, deadline_basis, exceptions_status,
+// triggered_activities[]) must NEVER carry a sliced fragment such as
+// bare "We" or a placeholder literal from pass2-templates.ts. Atomic-
+// token law is extended to these slots: verbatim-complete or omit.
+export const STRUCTURED_SLOT_MIN_CHARS = 8;
+export const STRUCTURED_SLOT_FORBIDDEN_FRAGMENTS: readonly string[] = [
+  "^We$", "^We\\.$", "^The$", "^A$", "^An$",
+  "\\{\\{intake:", "\\{\\{plan:", "\\{\\{cite:",
+];
+export function assertStructuredSlotShape(
+  slotName: string,
+  value: unknown,
+): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") return null;
+  const v = value.trim();
+  if (v.length === 0) return null; // omission is allowed
+  if (v.length < STRUCTURED_SLOT_MIN_CHARS) {
+    return `structured_slot_fragment:${slotName}:len=${v.length}`;
+  }
+  for (const re of STRUCTURED_SLOT_FORBIDDEN_FRAGMENTS) {
+    if (new RegExp(re).test(v)) return `structured_slot_forbidden:${slotName}:${re}`;
+  }
+  return null;
+}
+const _PASS2_RENDER_VERSION_UNUSED = "ltp-pass2-render-2026-07-26";
 
 export interface RenderResult {
   readonly template_id: string;
