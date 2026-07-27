@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-27T00:32:33Z — **INSTRUMENT-EPOCH-AUDIT s5 → s6 LANDED + DEPLOYED + WAVE-B.2 LAUNCHED (item 155).** Instrument turn (gated on item-154 completion-deploy so re-key targets exist). Bumped `GRADER_CONTEXT_VERSION` `gc-2026-07-26-s5-eu-uk-ca-au-sg` → `gc-2026-07-27-s6-eu-uk-ca-au-sg` (SHA-256 `_shared/grader/context.ts` `e296d44c…4bf8d`; `_shared/grader/amendments-block.ts` `3d8198cc…c99c2`). Re-keyed three cppa-risk checks in `run-quality-batch/index.ts` from full-report JSON scans to `report.submission_summary` (the approved surface-map render site for the crosswalk / cohort clauses landed by item 154): `qc_r1_2_spi_prong_utilization`, `qc_r1_3_50pct_prong_utilization` (+ `indeterminate` added to the insufficient-basis phrasing lane in the SAME lane), `qc_r1_4_cohort_determinism`. Rubric text, dimensions, severity weights, thresholds: UNTOUCHED. `e6_counsel_referral` VALIDATED unchanged (caught the PII leak in Wave B). CUT-surface sweep found no orphaned scans (`scope_notes`, `cross_tool_recommendations`, legacy `assessment_summary` — zero refs). All 4 `qc_r1_4` Wave-B failures traced to a wiring defect in `run-cppa-risk-assessment/_w9_risk_slots.ts` (unconditional `April 1, 2028` emission) — recorded for a future deploy-guarded turn on that generator, NOT re-keyed around (per dispatch integrity directive). Certification counters reset noted (0/3, campaign `fd1be147` remains CEO-paused → zero practical cost). Deployed `run-quality-batch`. **WAVE-B.2 LAUNCHED, batch-wrapped per item 152:** `quality_batch_runs.id = 127a6714-1062-427e-8f94-484ca9241006` (tools={cppa-risk}, batch_size=6, concurrency=1, `instrument_version=gc-2026-07-27-s6-eu-uk-ca-au-sg`, campaign_id=NULL, `created_by=02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122`, `started_at=2026-07-27T00:32:17.251Z`). New helper `kick-wrapped-batch` (deployed this turn) replaces bare `kick-perfect-intake` for multi-doc batches: invokes `quality-batch-orchestrator` with `x-internal-resume:1` + SERVICE_ROLE + `run_id`; upstream returned 202; batch is `phase=running_tool` with `last_heartbeat_at=2026-07-27T00:32:33.235Z` at t+16s. Tuning/holdout split ACTIVE (n=6 → 4 tuning / 2 holdout). Monitor extracts at terminal against §5 success criteria (intake-drift 0 / citation-binding 0 / gate violations 0). **Courier:** `docs/courier/INSTRUMENT-EPOCH-AUDIT-S6-2026-07-27.md`.
+**Last updated:** 2026-07-27T01:15:00Z — **LTP-RISK WAVE-B.2 POST-TERMINAL EXTRACTION (item 156).** Monitor tick; read-only; no code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus / instrument edits; no deploys; no new batch launches; campaign `fd1be147` remains CEO-paused (untouched). Batch `127a6714-1062-427e-8f94-484ca9241006` (WAVE-B.2, tools={cppa-risk}, batch_size=6, `instrument_version=gc-2026-07-27-s6-eu-uk-ca-au-sg`) reached `status=complete / phase=done` at `2026-07-27T01:07:20.194Z` (wall ≈ 35m 03s). Child `quality_runs.id=248fe42c-a37d-4b57-b222-a03cccc16f2d` run #146: 156 checks / 119 passed / 37 failed; Claude `score_overall=72.35`, GPT `gpt_score_overall=85`, pooled **78.68** (Δ vs Wave-B 78.88 = **−0.20**; Δ vs Wave-A 78.80 = **−0.12** — flat on both baselines). Split ACTIVE (n=6): tuning=73 (n=4, Claude mean 72.96 / GPT 88.00), holdout=71 (n=2, Claude mean 70.58 / GPT 77.00); Claude tuning−holdout Δ +2.4pt = no material overfitting. Enforce-preview 6/6 clean per doc: `pass1_ok=true`, `attempts=1`, `write_around=false`, `validator_issues=0`, latency mean 47.7s, retry budget (N=2) never consumed. Item-154 completion pass validated live on every doc: `pii_narrative_assertion_errors=0/6`, `submission_basis_prongs_added=3/3` on every doc (§ 7120(b)(1) / (2)(A) / (2)(B) crosswalk landed everywhere), `purpose_activities_rewritten≥1/doc`, meta-strings scrubbed 63 across batch, TEMPLATE_CUT dropped 10 inconsistency_flags, dup-connective guard armed with 0 hits. **§5 verdict: PARTIAL PASS (2/3)** — intake-drift 0 PASS, gate violations 0 PASS (`qc_r1_1` 0/6, `qc_r1_5` 0/6, ADMT-consequence not tripped), citation-binding 0 **FAIL** (`rubric_citation_misapplied` 6, tuning 4 / holdout 2). Family movement vs #145: `qc_r1_2_spi_prong_utilization` 5 → **0** RESOLVED and `qc_r1_3_50pct_prong_utilization` 5 → **0** RESOLVED (item-155 s6 re-key + item-154 crosswalk emitter combined closure); `e6_counsel_referral` 4 → **0** (item-154 PII fix removed the trigger; e6 stays VALIDATED unchanged per item 155); `qc_r1_4_cohort_determinism` 4 → **5** (wiring defect in `run-cppa-risk-assessment/_w9_risk_slots.ts` persists per item-155 backlog — recorded, NOT re-keyed around); `rubric_unsupported_business_claim` 8 → 10, `rubric_citation_misapplied` 5 → 6, `rubric_internal_reasoning_leak` 3 → 4, `rubric_generic_boilerplate` 2 → 6, `rubric_actionability` 6 in failing set. No rollback signal; citation-binding remains the leading next-fix class alongside the item-155 cohort wiring defect. **Courier:** `docs/courier/LTP-RISK-WAVEB2-EXTRACT-2026-07-27.md`.
 
 ---
 
@@ -2545,3 +2545,57 @@ Recommend option 1 for Wave C and all future standalone tuning/holdout launches.
 **CEO rulings log:** instrument epoch audit ordered by CEO after Wave-B decomposition; checks re-keyed with per-doc evidence, none weakened; e6 validated unchanged; wiring defect on `submission_deadline` recorded (not re-keyed around).
 
 **Courier:** `docs/courier/INSTRUMENT-EPOCH-AUDIT-S6-2026-07-27.md`.
+
+## Ledger item 156 — LTP-RISK WAVE-B.2 POST-TERMINAL EXTRACTION (2026-07-27T01:15:00Z)
+
+**Status:** DONE (monitor tick; read-only). Controller-authorized standing extraction action per items 150 / 152 / 155.
+
+**Scope guarantees.** No code / prompt / rubric / grader / golden / contract / fixture / sample / registry / corpus / instrument edits. No deploys. No new batch launches. Campaign `fd1be147` remains CEO-paused (untouched). Reads via Lovable-managed DB access only.
+
+**Terminal state.**
+- `quality_batch_runs.id = 127a6714-1062-427e-8f94-484ca9241006` — `status=complete`, `phase=done`, `last_error=NULL`, `campaign_id=NULL`.
+- `tools={cppa-risk}`, `batch_size=6`, `instrument_version=gc-2026-07-27-s6-eu-uk-ca-au-sg`.
+- `started_at=2026-07-27T00:32:17.251Z`, `completed_at=2026-07-27T01:07:20.194Z` (wall ≈ 35m 03s).
+- Child `quality_runs.id=248fe42c-a37d-4b57-b222-a03cccc16f2d`, run #146: 156 checks / 119 passed / 37 failed.
+
+**Scores.** Claude `score_overall=72.35`, GPT `gpt_score_overall=85`, pooled (Claude+GPT)/2 = **78.68**. Δ vs Wave-B (#145, 78.88) = **−0.20**; Δ vs Wave-A (#144, 78.80) = **−0.12** — pooled **flat on both baselines**.
+
+**Tuning-vs-holdout split (ACTIVE, n=6 = 4 tuning / 2 holdout).**
+- tuning: `score_overall_tuning=73`; Claude mean 72.96; GPT mean 88.00.
+- holdout: `score_overall_holdout=71`; Claude mean 70.58; GPT mean 77.00.
+- Claude Δ (tuning − holdout) = +2.38pt → **no material overfitting**. GPT Δ = +11pt driven by doc 6 (74), inside n=2 noise; flagged for next cycle.
+
+**Enforce-mode confirmation (per-doc, all mapped surfaces).** `_meta.internal.legal_test_pipeline.enforce_preview.telemetry` on all 6 docs: `ok=true`, `attempts=1`, `write_around=false`, `validator_issues=0`. Latency (ms): 35085 / 36567 / 50506 / 64874 / 44135 / 55103 (mean 47712). `pass1_ok` rate = 6/6 = **100%**. `write_around` rate = **0%**. Retry budget (N=2) **never consumed**. Model = `google/gemini-3.6-flash`; prompt = `pass1-derive-2026-07-26`; plan_version v1; 15 propositions rendered per doc.
+
+**Item-154 completion pass — validated live on every doc (`_meta.internal.waveb_completion.counters`).**
+- `pii_narrative_assertion_errors` = **0/6 on every doc** — the standing PII field-class rule (CONTACT/PERSONNEL renders verbatim only in `attestation_block` / `document_metadata`) VALIDATED at scale.
+- `submission_basis_prongs_added` = **3/3 on every doc** — § 7120(b)(1) / (2)(A) / (2)(B) cyber-audit crosswalk emitter landed on every render.
+- `purpose_activities_rewritten` ≥ 1 on every doc (per-doc 1/2/1/1/2/1) — intake verbatim enforced on `risk_assessment_by_activity[].purpose`.
+- `meta_strings_scrubbed` = 5/2/4/15/24/13 (batch total 63) — first-person / meta-commentary ban applied across ALL surfaces via the walker.
+- `inconsistency_flags_dropped` = 0/2/1/3/1/3 (batch total 10) — TEMPLATE_CUT enforced at render, not just serializer.
+- `dup_connectives_scrubbed` = 0/6 — "on the record on the current record" class not reappearing; regression guard remains armed.
+
+**§5 verdict: PARTIAL PASS (2/3).**
+- **intake-drift 0 — PASS.** `purpose_activities_rewritten ≥ 1` per doc; `h1_article_phrasing_ok` and `h2_internal_vocab_ok` both 0/6.
+- **citation-binding 0 — FAIL.** `rubric_citation_misapplied` = 6 (tuning 4 / holdout 2), carried from Wave-B (was 5). Remains the outstanding regression class.
+- **gate violations 0 — PASS.** `qc_r1_1_no_asks_on_resolved_tests` 0/6, `qc_r1_5_exception_fields_consumed` 0/6, ADMT-consequence gate not tripped in sample.
+
+**Family movement vs #145.**
+- `qc_r1_2_spi_prong_utilization`: 5 → **0** RESOLVED (item-155 s6 re-key + item-154 crosswalk emitter — combined closure).
+- `qc_r1_3_50pct_prong_utilization`: 5 → **0** RESOLVED (same combination).
+- `e6_counsel_referral`: 4 → **0** (item-154 PII completion removed the trigger; e6 stays VALIDATED and unchanged per item 155).
+- `qc_r1_4_cohort_determinism`: 4 → **5** — wiring defect in `run-cppa-risk-assessment/_w9_risk_slots.ts` persists per item-155 backlog. Recorded for a future deploy-guarded turn on that generator; NOT re-keyed around (integrity directive preserved).
+- `rubric_unsupported_business_claim`: 8 → 10 (largest single class; unchanged root).
+- `rubric_citation_misapplied`: 5 → 6 (§5 blocker).
+- `rubric_internal_reasoning_leak`: 3 → 4.
+- `rubric_generic_boilerplate`: 2 → 6 (new increase; watch next cycle).
+- `rubric_actionability`: 6 in failing set.
+
+**No rollback signal.** Enforce-preview 100% clean, pooled score flat, item-154 (PII / purpose / crosswalk / meta-string ban / TEMPLATE_CUT) validated across all six docs, s6 re-keyed checks (`qc_r1_2` / `qc_r1_3`) both zero-fail this run — item-155 re-key operated on legitimate render sites (not around a defect) and item-154 supplied the citation content the re-keyed checks now find.
+
+**Next-fix backlog (context only; no proposals this turn).**
+1. `rubric_citation_misapplied` — §5 blocker; leading candidate for next deploy-guarded generator turn.
+2. `qc_r1_4_cohort_determinism` wiring defect on `_w9_risk_slots.ts` (item-155 backlog).
+3. `rubric_unsupported_business_claim` and `rubric_generic_boilerplate` — post-citation-binding cycles.
+
+**Courier:** `docs/courier/LTP-RISK-WAVEB2-EXTRACT-2026-07-27.md`.
