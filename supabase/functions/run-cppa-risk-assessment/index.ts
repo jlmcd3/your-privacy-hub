@@ -3216,15 +3216,19 @@ async function runPipeline(assessment_id: string) {
 
 
 
-    // ── LTP PHASE-2 SHADOW-MODE (2026-07-26, item 137) ──────────────
-    // Runs the Legal Test Pipeline (Derive → Guide → deterministic
-    // Render hooks → Verify-scaffold) over intake + report_data.
-    // Telemetry only: writes under _meta.internal.legal_test_pipeline
-    // which the LEAK-PREV-P2 whitelist serializer strips. Never mutates
-    // customer-visible surfaces. Fail-open in all paths.
+    // ── LTP — ENGINE B ALWAYS ON (CEO ruling 2026-07-27, item 170) ──
+    // The Legal Test Pipeline (Derive → Guide → deterministic Render
+    // hooks → Verify) is the ONLY composition trajectory. Both the
+    // deterministic orchestrator AND the LLM Pass-1 adapter run
+    // unconditionally on every generation — there is no mode toggle
+    // and no fallback to a non-Legal-Test composition state. Safety =
+    // per-section conservative write-around (never a blocked customer,
+    // never a non-Legal-Test path). Telemetry lands under
+    // `_meta.internal.legal_test_pipeline` (stripped by LEAK-PREV-P2).
+    // Fail-open in all paths.
     try {
       const _ltpIntake = (row as any).intake_data ?? {};
-      const _ltpTelemetry = runLegalTestPipelineShadow({
+      const _ltpTelemetry = runLegalTestPipeline({
         intake: _ltpIntake,
         report_data: report_data as any,
         buildStamp: BUILD_STAMP,
@@ -3234,9 +3238,11 @@ async function runPipeline(assessment_id: string) {
       _rd._meta.internal = _rd._meta.internal ?? {};
       _rd._meta.internal.legal_test_pipeline = _ltpTelemetry;
       console.log(JSON.stringify({
-        evt: "ltp_shadow_ran", fn: "run-cppa-risk-assessment",
+        evt: "ltp_ran", fn: "run-cppa-risk-assessment",
         build_stamp: BUILD_STAMP, ltp_stamp: LTP_STAMP,
-        mode: _ltpTelemetry.mode, ran: _ltpTelemetry.ran,
+        pipeline_version: _ltpTelemetry.pipeline_version,
+        content_versions: _ltpTelemetry.content_versions,
+        ran: _ltpTelemetry.ran,
         elapsed_ms: _ltpTelemetry.elapsed_ms,
         propositions: _ltpTelemetry.derive.propositions,
         gates_blocking: _ltpTelemetry.derive.gates_blocking,
@@ -3247,12 +3253,9 @@ async function runPipeline(assessment_id: string) {
         validator_issues: _ltpTelemetry.validators.total_issues,
       }));
 
-      // ── LTP WAVE-B PART-1 ENFORCE PREVIEW ────────────────────────────
-      // When LTP_ENFORCE_ENABLED=1, run the LLM Pass-1 adapter (N=2 retry,
-      // write-around fallback) and attach its telemetry + slim plan preview
-      // under _meta.internal.legal_test_pipeline.enforce_preview. This does
-      // NOT mutate customer-visible report_data; the whitelist serializer
-      // strips _meta.internal. Fail-open in all paths.
+      // Pass-1 LLM adapter (always on, N=2 retry, write-around on
+      // terminal failure). Telemetry + slim plan summary attach to
+      // `_meta.internal.legal_test_pipeline.pass1`. Fail-open.
       try {
         const _pass1 = await runPass1Llm({
           intake: _ltpIntake,
@@ -3260,7 +3263,7 @@ async function runPipeline(assessment_id: string) {
           buildStamp: BUILD_STAMP,
         });
         const _rd2: any = report_data as any;
-        _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+        _rd2._meta.internal.legal_test_pipeline.pass1 = {
           manifest: PASS1_MANIFEST,
           telemetry: _pass1.telemetry,
           plan_summary: {
@@ -3271,17 +3274,18 @@ async function runPipeline(assessment_id: string) {
           },
         };
         console.log(JSON.stringify({
-          evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
+          evt: "ltp_pass1_ran", fn: "run-cppa-risk-assessment",
           build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
           attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
           latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
         }));
       } catch (e) {
-        console.warn("[run-cppa-risk-assessment] LTP enforce-preview failed (non-fatal):", (e as Error)?.message);
+        console.warn("[run-cppa-risk-assessment] LTP pass1 failed (non-fatal):", (e as Error)?.message);
       }
     } catch (e) {
-      console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
+      console.warn("[run-cppa-risk-assessment] LTP pipeline failed (non-fatal):", (e as Error)?.message);
     }
+
 
     // ── FUTURE-BUILDING F0 — observation-only signature emit ─────────
     // Non-blocking, post-validation, PI-free. Writes a scenario signature
