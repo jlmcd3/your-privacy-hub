@@ -697,6 +697,12 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   }
 
   const db = admin();
+  // §19/§25 AUTHOR-CHECKPOINT — reject nil/malformed/unknown created_by.
+  try { await assertCreatedByIsRealUser(userId, userExistsInAuth); }
+  catch (e) {
+    const msg = e instanceof CreatedByGuardError ? e.message : (e as Error).message;
+    return { ok: false, status: 400, err: `created_by_guard: ${msg}` };
+  }
   const { data: row, error } = await db.from("quality_batch_runs").insert({
     tools, batch_size: batchSize, status: "running", phase: "kickoff",
     current_tool_index: 0, tool_results: [], created_by: userId,
