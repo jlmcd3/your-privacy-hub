@@ -597,3 +597,40 @@ Couriers that ship without a VERIFIED-FACTS preamble are **retracted** by the ne
 **Motivating incident.** Item 162's replacement wrapper id `a1b2c3d4-e5f6-4890-abcd-ef0123456789` was a hand-typed placeholder from documentation. The DB accepted it because the id column had no strict shape check; ledger accounting then had to distinguish a real UUID from a placeholder pattern. Both problems disappear when the id is generated.
 
 **Enforcement.** Migrations touching launch-inserted tables MUST include `DEFAULT gen_random_uuid()` on the id column. Any external insert dispatch MUST omit `id` from the column list unless the caller can guarantee `gen_random_uuid()` on the value expression.
+
+## 26. GRADER-DIVERGENCE TRIPWIRE (CEO ruling; item 169, 2026-07-27; standing, product-agnostic; measurement + extraction spec)
+
+**CEO ruling, verbatim (2026-07-27 ~05:10Z):** "one of the answers lies somewhere between ChatGPT and Claude testing, as evidenced by the divergence".
+
+**Rule.** Whenever `|claude_overall − gpt_overall| ≥ 12` on any run (per-doc or pooled), the extraction turn MUST automatically adjudicate the divergence **BEFORE any §5 interpretation**:
+
+1. **List** every failing deterministic check driving the gap (per-doc, per-check id, per-rubric anchor).
+2. **Classify** each failing check as one of:
+   - **(a) genuine-defect** — the deterministic check has evidence the GPT grader missed (specific rubric anchor, verbatim citation, gate outcome). **Trust the check.** The run remains evidential for that class; the finding stands.
+   - **(b) configuration/instrument artifact** — a shape or mode mismatch (wrong instrument version, telemetry mode ≠ declared mode, composition surface absent, stamp mismatch, unwired path). **Fix the config/instrument.** The run's affected classes are marked **non-evidential** in the ledger; they do not advance or retreat the trial verdict.
+3. **Default posture on large divergence is CONFIGURATION ALARM first, quality signal second.** For `|Δ| ≥ 12` the interpretive default inverts: do not read the run as a quality outcome until every failing deterministic check has been classified.
+
+**Class-(b) presumption pattern.** Deterministic-dominant failures + GPT ≥ 85 = **wrong machine under test**. When both hold, class-(b) is the presumption for each failing check; the extraction MUST name the config surface it suspects (wiring absence, env flag, stamp, instrument version) and either (i) prove class-(a) by citing the missed rubric anchor, or (ii) accept class-(b) and record the affected classes non-evidential.
+
+**Motivating case (cited anchor).** Run #149 tuning docs (item 168 → item 169): pooled `score_overall=67.15` (Claude) / `gpt_overall=85` (GPT), `|Δ|=17.85`. Failing deterministic checks were composition-shaped (narrative absent); ping declared `enforce`; enforce_preview.telemetry.ran=true. Diagnosis: `composeAssessmentSummary()` was never invoked from the generator — class-(b) configuration artifact. Run #149 marked non-evidential.
+
+**Extraction-turn checklist addition.** Every wave-extraction courier MUST include a "Divergence adjudication" section when `|Δ| ≥ 12` on any surface it reports (per-doc, tuning-pooled, holdout-pooled). Missing this section is a courier defect and the courier is retracted per §24.
+
+## 27. NARRATIVE-PRESENT KICKOFF ASSERTION (§16 sibling; item 169, 2026-07-27; standing, product-agnostic)
+
+**Rule.** §16 is CONFIG-SHAPED (mode label + boot + ping). It does not catch the case where mode is correctly `enforce` but a required composition surface is unwired. §27 adds a BEHAVIOR-SHAPED assertion.
+
+**Requirement.** For every measurement launch (smoke and full), the harness MUST run a **single generation probe** against a canonical fixture BEFORE the batch spawns its full doc set, and MUST assert on the probe result:
+
+1. `_meta.internal.legal_test_pipeline.enforce_preview.telemetry.ran === true` (enforce arm executed);
+2. `assessment_summary.narrative` present and non-empty (composition executed);
+3. Deployed BUILD_STAMP echoed in the doc's `_meta.internal.*.build_stamp`;
+4. `write_around` false on both shadow and enforce arms.
+
+Any failed assertion aborts the batch pre-launch with HTTP 409 `narrative_missing` / `enforce_arm_absent` / `stamp_mismatch` / `write_around_triggered` and records the abort on the batch row. The probe doc is discarded; no doc-cost accrues to the run.
+
+**Where wired.** `batch-kickoff-pickup` (canonical pickup path per §18) and `kick-wrapped-batch` (caller-driven path per §16). Every launch path MUST route through this assertion — an unassertied launch path is a §27 defect.
+
+**Motivating case.** Item 169: WAVE-D READINESS STEP 1 verified §16 (ping enforce, boot enforce, hash frozen) and passed all-green. STEP 2 smoke then produced 3 docs with narrative absent. §16 alone cannot catch composition-wiring gaps; §27 closes the gap by asserting on a real payload.
+
+**Sequencing law.** §27 wiring is itself launch infrastructure. Its deployment turn is preceded by NO measurement; the next measurement turn after §27 lands uses the newly-asserted path from the first smoke.
