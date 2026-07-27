@@ -304,22 +304,28 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
     throw new ValueScreenError(screen.finalHitDetails);
   }
 
-  // (2) surface-write-guard walk (top-level only — the map's canonical grain)
+  // (2) surface-write-guard walk (ITEM 208 FIX): only rulings whose
+  // grain IS the top level are enforced here (REMOVE / EMPTY_ARRAY).
+  // Nested OBJECT_PRUNE rulings are enforced post-serializer at the
+  // wire-site via evaluateShippedSurfaceGuard.
   const surface_unowned_paths: string[] = [];
   const surface_cut_violations: string[] = [];
+  const rd = screen.reportData as Record<string, unknown>;
   for (const k of topKeys(screen.reportData)) {
-    if (CUT_TOP_LEVEL.has(k)) {
-      const v = (screen.reportData as Record<string, unknown>)[k];
-      const present = Array.isArray(v)
-        ? v.length > 0
-        : v && typeof v === "object"
-          ? Object.keys(v).length > 0
-          : !!v;
-      if (present) surface_cut_violations.push(k);
+    if (k.startsWith("_")) continue;
+    if (CUT_TOP_LEVEL_REMOVE.has(k)) {
+      if (isPresent(rd[k])) surface_cut_violations.push(k);
       continue;
     }
+    if (CUT_TOP_LEVEL_EMPTY_ARRAY.has(k)) {
+      const v = rd[k];
+      if (Array.isArray(v) && v.length > 0) surface_cut_violations.push(k);
+      continue;
+    }
+    if (CUT_TOP_LEVEL_ALL.has(k)) continue; // OBJECT_PRUNE-only ruling — allowed here
     if (!ALLOWED_TOP_LEVEL.has(k)) surface_unowned_paths.push(k);
   }
+
   if (mode === "enforce") {
     if (surface_cut_violations.length > 0) {
       throw new Error(
