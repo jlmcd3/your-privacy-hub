@@ -69,11 +69,17 @@ export interface FinalizeTelemetry {
   readonly fragment_omit_count: number;
   readonly fragment_omit_paths: readonly string[];
   readonly surface_unowned_paths: readonly string[];
+  /** Retained for schema stability; always empty — CUT enforcement moved
+   *  to `evaluateShippedSurfaceGuard` on the shipped projection (Item 211). */
   readonly surface_cut_violations: readonly string[];
+  /** Item 211: presence of CUT-ruled paths (any grain) observed on the
+   *  PRE-serializer composed object. Telemetry only. */
+  readonly pre_serializer_cut_pending: readonly string[];
   readonly hook_audit_ok: boolean;
   readonly hook_value_present: boolean;
   readonly write_around_entered: boolean;
 }
+
 
 export interface FinalizeResult {
   readonly reportData: unknown;
