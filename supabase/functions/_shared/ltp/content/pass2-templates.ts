@@ -197,7 +197,70 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 420,
   },
+  // ── ENRICHED BALANCE RATIONALE (CONTENT COURIER 2026-07-27) ──
+  // Per-factor reasoning line that exposes the Pass-G weighing frame.
+  // Renders EXISTING validated data only: factor_basis = factor row's
+  // weight_note (facts); guidance_clause renders ONLY from FSOR-anchored
+  // guidance for that factor via {{cite:GUIDANCE_PIN}}. Factors with empty
+  // guidance render basis-only (no invented reasoning). Composition order:
+  // benefit factor_lines → negative factor_lines → safeguard factor_lines →
+  // existing firm/hedged conclusion sentence. Calibration law unchanged
+  // (firm forbidden at closeness ≥ FIRM_VARIANT_CLOSENESS_MAX).
+  "T.risk.balance.factor_line": {
+    id: "T.risk.balance.factor_line",
+    text: "{{plan:factor_label}}: {{plan:factor_basis}}. {{plan:guidance_clause}}",
+    citation_slots: ["GUIDANCE_PIN"],
+    plan_slots: ["factor_label", "factor_basis", "guidance_clause"],
+    intake_slots: [],
+    max_chars: 420,
+  },
+  // ── AGGREGATION RATIONALE (CONTENT COURIER 2026-07-27) ──
+  // Multi-activity docs only (N>1). Renders in assessment_summary.narrative
+  // immediately after the activity lines. Mirrors the "most consequential
+  // activity" precedence rule in _shared/ltp/risk-level-map.ts; activity
+  // outcomes are reported individually and are not averaged.
+  "T.risk.summary.aggregation_note": {
+    id: "T.risk.summary.aggregation_note",
+    text: "The overall risk level for this assessment reflects the most consequential activity on the record ({{plan:driving_activity_label}}); per this assessment's precedence rule, activity outcomes are reported individually and are not averaged.",
+    citation_slots: [],
+    plan_slots: ["driving_activity_label"],
+    intake_slots: [],
+    max_chars: 300,
+  },
+  // ── (B)-GAP CUSTOMER QUESTION (CONTENT COURIER 2026-07-27) ──
+  // Information-needed entry template (intake-gap discipline). NEVER
+  // negative-implication, NEVER in the opening. Emitted ONLY when:
+  //   criterion (A) did not resolve applicability
+  //   AND intake affirms sell/share activity
+  //   AND no compliant count field exists.
+  // Mirrors the S0 telemetry rejection reason; sourced from the risk-opening
+  // provenance (see supabase/functions/_shared/openings/risk-opening.ts).
+  "T.risk.information_needed.b_criterion_count": {
+    id: "T.risk.information_needed.b_criterion_count",
+    text: "To evaluate the CCPA applicability criterion at Civ. Code § 1798.140(d)(1)(B), please provide the approximate number of California consumers or households whose personal information the business buys, sells, or shares annually.",
+    citation_slots: [],
+    plan_slots: [],
+    intake_slots: [],
+    max_chars: 320,
+  },
 };
+
+/**
+ * Emission gate for T.risk.information_needed.b_criterion_count.
+ * Returns true iff all three conditions are met (intake-gap discipline,
+ * mirrors the S0 telemetry rejection reason). Pure predicate; no I/O.
+ */
+export function shouldEmitBCriterionCountQuestion(input: {
+  readonly criterion_a_resolved: boolean;
+  readonly intake_affirms_sell_or_share: boolean;
+  readonly has_compliant_count_field: boolean;
+}): boolean {
+  return (
+    input.criterion_a_resolved === false &&
+    input.intake_affirms_sell_or_share === true &&
+    input.has_compliant_count_field === false
+  );
+}
 
 /**
  * Closed enums for the assessment_summary composition templates.
