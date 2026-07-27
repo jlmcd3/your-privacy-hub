@@ -1,4 +1,6 @@
-# LTP-RISK-WAVE-C — MEASUREMENT DIGEST
+> **WITHDRAWN — CEO ORDER 2026-07-27 (ledger item 166).** Wave C cancelled by CEO. Run 110ce03a (run #147) is SEALED — HELD-UNREAD BY CEO ORDER. This courier's §5 verdict, per-doc scores, PASS/FAIL flags, and any trial-progression implications are **VOID** and carry no evidential status. Data is retained untouched; nothing below may be cited, aggregated, or acted upon until the CEO explicitly directs otherwise.
+
+# LTP-RISK-WAVE-C — MEASUREMENT DIGEST (WITHDRAWN)
 
 Dispatch id: LTP-RISK-WAVEC-2026-07-27
 Turn timestamp: 2026-07-27 ~04:09Z
