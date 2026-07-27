@@ -141,6 +141,57 @@ function driveValueScreen(
   };
 }
 
+// ── Fragment-omit pre-pass (Item 206) ─────────────────────────────────
+// ROOT-ADJACENT FIX: any string slot whose entire trimmed value is a
+// closed-set truncation token (see TRUNCATED_SLOT_VALUES) cannot be a
+// legitimate value of a customer-facing slot. Rather than shipping the
+// fragment, we OMIT the key entirely (object) or elide the entry (array).
+// This satisfies the CEO ruling: "the slot must be filled with the full
+// intended value or omitted entirely (never a fragment)." Anchor paths
+// (id/citation/…) are exempt. Underscore subtrees (_meta) are not walked.
+export interface FragmentOmitResult {
+  readonly reportData: unknown;
+  readonly omittedPaths: readonly string[];
+}
+
+export function omitFragmentSlots(node: unknown, path = ""): FragmentOmitResult {
+  const omitted: string[] = [];
+  function walk(n: unknown, p: string): unknown {
+    if (typeof n === "string") return n;
+    if (Array.isArray(n)) {
+      const out: unknown[] = [];
+      for (let i = 0; i < n.length; i++) {
+        const childPath = `${p}[${i}]`;
+        const v = n[i];
+        if (typeof v === "string" && !isAnchorPath(childPath)
+            && TRUNCATED_SLOT_VALUE_SET.has(v.trim())) {
+          omitted.push(childPath);
+          continue; // elide fragment array entry
+        }
+        out.push(walk(v, childPath));
+      }
+      return out;
+    }
+    if (n && typeof n === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(n as Record<string, unknown>)) {
+        if (k.startsWith("_")) { out[k] = v; continue; } // preserve _meta untouched
+        const childPath = p ? `${p}.${k}` : k;
+        if (typeof v === "string" && !isAnchorPath(childPath)
+            && TRUNCATED_SLOT_VALUE_SET.has(v.trim())) {
+          omitted.push(childPath);
+          continue; // omit fragment slot entirely
+        }
+        out[k] = walk(v, childPath);
+      }
+      return out;
+    }
+    return n;
+  }
+  const scrubbed = walk(node, path);
+  return { reportData: scrubbed, omittedPaths: omitted };
+}
+
 // ── Public API ───────────────────────────────────────────────────────
 
 export function finalizeComposition(input: FinalizeInput): FinalizeResult {
@@ -148,8 +199,12 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
   const mode: FinalizeMode =
     input.mode ?? (env.get(ENFORCE_ENV) === "1" ? "enforce" : "observe");
 
+  // (0) Fragment-omit pre-pass — remove whole-value truncation slots at root.
+  const omit = omitFragmentSlots(input.reportData);
+  const rescreenInput: FinalizeInput = { ...input, reportData: omit.reportData };
+
   // (1) value-screen with one bounded recompose
-  const screen = driveValueScreen(input);
+  const screen = driveValueScreen(rescreenInput);
   if (mode === "enforce" && screen.finalHits > 0) {
     throw new ValueScreenError(screen.finalHitDetails);
   }
@@ -198,6 +253,10 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       value_screen_hits: screen.firstHits,
       value_screen_recomposed: screen.recomposed,
       value_screen_final_hits: screen.finalHits,
+      value_screen_hit_details: screen.finalHitDetails,
+      fragment_omit_version: FRAGMENT_OMIT_VERSION,
+      fragment_omit_count: omit.omittedPaths.length,
+      fragment_omit_paths: omit.omittedPaths,
       surface_unowned_paths,
       surface_cut_violations,
       hook_audit_ok: true,
