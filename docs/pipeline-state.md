@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-26T23:20:10Z — **WAVE-B RELAUNCH, BATCH-WRAPPED (item 152).** Prior bare-run `quality_runs.id=d8d42997-8601-4984-9a37-34c3230cba17` (item 151 unwedge) terminated `status='failed'` with `last_error='Orphaned by runtime shutdown — rerun to continue.'`, 0 docs, 0 scores — marked SUPERSEDED (not a duplicate-launch violation; relaunch replaces a 0-yield failure). Item-151 prevention rule promoted from Wave-C guidance to **standing rule NOW**: all measurement runs MUST be launched wrapped in a `quality_batch_runs` row. Inserted single `quality_batch_runs.id=fc6a8394-a265-4297-b086-805e183d2ee5` — `tools={cppa-risk}`, `batch_size=6`, `instrument_version='gc-2026-07-26-s5-eu-uk-ca-au-sg'`, `status='running'`, `phase='kickoff'`, `campaign_id=NULL` (standalone, single launch, locks pasted). `batch-kickoff-pickup` will pick it up; orchestrator self-chains per-doc (isolate-death resilient); delivery sentinel reaps. Visible on `/admin/quality-batch`. **`kick-perfect-intake` path retired for multi-doc runs.** Prior WAVE-B enforce build (item 150) unchanged: `ltp-risk-waveb-enforce@2026-07-26T21:45:00Z`, `LTP_ENFORCE_ENABLED=1`. Post-terminal extraction deferred to monitor per existing Wave-B extraction spec.
+**Last updated:** 2026-07-27T00:19:48Z — **LTP-RISK-WAVE-B POST-TERMINAL EXTRACTION (item 153).** Read-only monitor turn per items 150/152. Terminal batch `quality_batch_runs.id=fc6a8394-a265-4297-b086-805e183d2ee5` (status=complete/phase=done, completed_at=2026-07-27T00:13:31Z, last_error=NULL) → child `quality_runs.id=e1360a41-eb79-4b13-b60f-02e016850928` run #145, checks 116/162 passed. **Pooled delta vs Wave-A baseline 78.80:** Claude 72.75 (−6.05), GPT 85.00, pooled 78.88 (**+0.08 = flat**). **Enforce-preview telemetry:** pass1_ok 6/6 (100%), write_around 0/6 (0%), attempts distribution {1:6} (N=2 retry never consumed), validator_issues 0 across all docs, latency_ms min 34,127 / mean 45,764 / max 55,423. **Subsumption cross-check:** `_w18_risk_vocab` (h2_internal_vocab_ok) 0/6, `_w15_risk_va` (h1_article_phrasing_ok) 0/6, `_risk_citation_dup_fix` no dup-pinpoint evidence in sample (citation fails are misapplication class). **Tuning-vs-holdout diagnostic (batch_size 6 ≥ 4 → ACTIVE):** tuning n=4 Claude 74.14/GPT 86.00 (persisted 74), holdout n=2 Claude 69.85/GPT 81.00 (persisted 70), Δ(T−H) +4.29 Claude / +5.00 GPT — no material overfitting signal. **VERDICT vs §5 (intake-drift 0 / citation-binding 0 / gate violations 0): PARTIAL PASS 2/3** — intake-drift PASS, gate-violations PASS (qc_r1_1 0/6, qc_r1_5 0/6, ADMT-consequence gate not tripped), citation-binding **FAIL** (rubric_citation_misapplied 5 fails; tuning 2/5, holdout 3/3). Enforce-preview stack stable; no rollback signal; citation-binding is the leading next-fix class. **Failed-finding classes** recorded (rubric_unsupported_business_claim 8, citation_misapplied 5, spi_prong 5, 50pct_prong 5, cohort_determinism 4, counsel_referral 4, internal_reasoning_leak 3, generic_boilerplate 2). No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, or instrument edits; no deploys; campaign fd1be147 stays paused. **Courier:** `docs/courier/LTP-RISK-WAVEB-EXTRACT-2026-07-27.md`.
 
 ---
 
@@ -2446,3 +2446,48 @@ Recommend option 1 for Wave C and all future standalone tuning/holdout launches.
 **Turn scope.** Ledger update + one INSERT + courier addendum. No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, or corpus edits. No deploys. Monitor extracts at terminal per existing Wave-B extraction spec.
 
 **Courier:** addendum appended to `docs/courier/LTP-RISK-WAVEB-LIVE-2026-07-26.md`.
+
+## Ledger item 153 — LTP-RISK-WAVE-B POST-TERMINAL EXTRACTION (2026-07-27T00:19:48Z)
+
+**Status:** DONE (read-only monitor extraction). Execution per items 150 / 152.
+
+**Constraints honoured.** No code, prompt, rubric, grader, golden, contract, fixture, sample, registry, corpus, or instrument edits. No deploys. No batch launches. Campaign `fd1be147` stays paused (CEO-reserved). All DB reads via project database.
+
+**Terminal state.**
+- `quality_batch_runs.id = fc6a8394-a265-4297-b086-805e183d2ee5` — `status=complete`, `phase=done`, `started_at=2026-07-26T23:20:10.237Z`, `completed_at=2026-07-27T00:13:31.271Z` (wall time ≈ 53m 21s), `last_error=NULL`, `campaign_id=NULL`.
+- Child `quality_runs.id = e1360a41-eb79-4b13-b60f-02e016850928` — `run_number=145`, `checks_total=162`, `checks_passed=116`, `checks_failed=46`, `grader_context_version='gc-2026-07-26-s5-eu-uk-ca-au-sg'`.
+
+**(1) Pooled Claude/GPT delta vs Wave-A baseline (78.80).**
+- Claude `score_overall` = **72.75** (Δ **−6.05**).
+- GPT `gpt_score_overall` = **85.00**.
+- Pooled (Claude+GPT)/2 = **78.88** (Δ **+0.08 = flat**).
+- Per-doc: t/62.05/85, t/88.55/86, t/68.85/85, t/77.10/88, h/71.05/83, h/68.65/79. Widest cross-grader spread on doc 1 (Δ 22.95pt).
+
+**(2) Enforce-preview telemetry (`_meta.internal.legal_test_pipeline.enforce_preview`).**
+- `pass1_ok` = **6/6 (100%)**.
+- `write_around` = **0/6 (0%)**.
+- `attempts` distribution = **{1: 6}** (N=2 retry budget never consumed).
+- `validator_issues` = **0** on every doc — Pass-1 output cleared `validateRenderPlan` on first try.
+- `latency_ms` — min 34,127 / mean 45,764 / max 55,423.
+- Read: enforce-preview stack is stable; fallback path unexercised.
+
+**(3) Subsumption cross-check.**
+- `_w18_risk_vocab` → `h2_internal_vocab_ok` **0/6 fails**.
+- `_w15_risk_va` → `h1_article_phrasing_ok` **0/6 fails**.
+- `_risk_citation_dup_fix` → citation-duplication component of `rubric_citation_misapplied` — no duplicate-pinpoint evidence in sample; the 5 citation fails are misapplication class, not dup.
+- No regression attributable to subsumed guards.
+
+**(4) Tuning-vs-holdout diagnostic (batch_size 6 ≥ 4 → ACTIVE).**
+- Tuning n=4 — Claude mean 74.14 / GPT mean 86.00 / persisted `score_overall_tuning`=74.
+- Holdout n=2 — Claude mean 69.85 / GPT mean 81.00 / persisted `score_overall_holdout`=70.
+- Δ(T−H) = +4.29 Claude / +5.00 GPT. Inside batch-noise for n=2 holdout — **no material overfitting signal**.
+
+**(5) VERDICT vs §5 success criteria (`intake-drift 0 / citation-binding 0 / gate violations 0`).**
+- **intake-drift PASS** — no mid-prose drift check surfaced. `qc_r1_4_cohort_determinism` (4 fails) is a separate cohort-determinism class.
+- **citation-binding FAIL** — `rubric_citation_misapplied` 5 fails (tuning 2/5, holdout 3/3).
+- **gate violations PASS** — `qc_r1_1_no_asks_on_resolved_tests` 0/6, `qc_r1_5_exception_fields_consumed` 0/6, ADMT-consequence gate not tripped in sample.
+- **Overall: PARTIAL PASS (2/3).** No rollback signal; citation-binding is the leading next-fix class.
+
+**Failed-finding classes (context, not proposals).** `rubric_unsupported_business_claim` 8 (t5/h3), `rubric_citation_misapplied` 5 (t2/h3), `qc_r1_2_spi_prong_utilization` 5 (t3/h2), `qc_r1_3_50pct_prong_utilization` 5 (t3/h2), `qc_r1_4_cohort_determinism` 4 (t2/h2, `critical`), `e6_counsel_referral` 4 (t3/h1), `rubric_internal_reasoning_leak` 3 (t1/h2), `rubric_generic_boilerplate` 2 (tuning only).
+
+**Courier:** `docs/courier/LTP-RISK-WAVEB-EXTRACT-2026-07-27.md`.
