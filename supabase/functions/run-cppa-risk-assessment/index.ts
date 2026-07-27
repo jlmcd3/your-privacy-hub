@@ -3663,6 +3663,40 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 208 — POST-SERIALIZER SURFACE GUARD (SMOKE-#6 fix) ──────
+    // The CutRulings execute at the LEAK-PREV-P2 serializer; the
+    // finalize surface-guard checks the wrong grain against the wrong
+    // object. Re-evaluate rulings by declared path + mode against the
+    // SHIPPED (post-serializer) projection — the artifact that ships.
+    // Telemetry-only at the wire-site (persist invariant): enforce
+    // verdicts land on _meta.internal.shipped_surface_guard.
+    try {
+      const shippedEval = evaluateShippedSurfaceGuard(report_data);
+      const _rdS: any = report_data as any;
+      _rdS._meta = _rdS._meta ?? {};
+      _rdS._meta.internal = _rdS._meta.internal ?? {};
+      const _shippedMode = currentEnforceMode(Deno.env);
+      _rdS._meta.internal.shipped_surface_guard = {
+        build_stamp: BUILD_STAMP,
+        mode: _shippedMode,
+        cut_violations: shippedEval.cut_violations,
+        unowned_paths: shippedEval.unowned_paths,
+        enforce_violation:
+          _shippedMode === "enforce"
+          && (shippedEval.cut_violations.length > 0 || shippedEval.unowned_paths.length > 0),
+      };
+      console.log(JSON.stringify({
+        evt: "shipped_surface_guard_ran", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, mode: _shippedMode,
+        cut_violation_count: shippedEval.cut_violations.length,
+        cut_violations: shippedEval.cut_violations,
+        unowned_paths: shippedEval.unowned_paths,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] shipped_surface_guard failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
