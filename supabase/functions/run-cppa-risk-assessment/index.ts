@@ -2980,7 +2980,7 @@ async function runPipeline(assessment_id: string) {
       internalRcd.risk_cohort_date = _rcdC;
       console.log(JSON.stringify({
         evt: "_risk_cohort_date", fn: "run-cppa-risk-assessment",
-        build_stamp: BUILD_STAMP, risk_cohort_date_stamp: RISK_COHORT_DATE_STAMP, ..._rcdC,
+        ..._rcdC, build_stamp: BUILD_STAMP, risk_cohort_date_stamp: RISK_COHORT_DATE_STAMP,
       }));
     } catch (e) {
       console.warn("[RISK] RISK-COHORT-DATE-DETERMINISM failed (non-fatal):", (e as Error)?.message);
