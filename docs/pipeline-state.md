@@ -3226,3 +3226,16 @@ Only edits: (a) `docs/design/LEGAL-TEST-PIPELINE.md` appended §28, (b) this led
   1. **STATUTORY-TEXT LEAK CLASS — added to the value screen.** Verbatim corpus text (statute / regulation quotations) appearing OUTSIDE a substituted `{{cite:…}}` span counts as a screen hit. Detector built from the corpus rows the registries quote — normalized-substring match above a length threshold; fail-loud like all other screen hits.
   2. **SURFACE-OWNERSHIP ENFORCEMENT AT COMPOSITION TIME.** Implement the surface map as a write-guard: any emitter or renderer writing to a `report_data` path it does not own per `risk-surface-map.ts` = hard reject with a diagnostic. Mechanically enforces §28 Engine-B primacy and would have auto-caught the cohort-to-CUT-surface bug already traced in `docs/courier/DUAL-SMOKE-POSTFIX-2026-07-27.md`. Conformance test: every write site enumerated against the map.
 - **Application rule:** If Stage B is executed fresh after this item lands, fold both scope items into that Stage-B turn's courier and code changes. If Stage B has already been executed, run a dedicated B-ADDENDUM turn that lands both items with green tests and produces its own courier; Stage C cannot begin until that addendum courier exists.
+
+---
+
+### Item 181 — CONTENT COURIER: Weighing Depth + Aggregation Rationale + (B)-Gap Question (Stage-B fold-in) — 2026-07-27T08:44:57Z
+- **Status:** LANDED (content + predicate + tests). Renderer wiring deferred to Stage-B execution turn; no deploy this turn.
+- **Sequencing:** Stage B not complete per Items 179/180 → folded into Stage-B template work per courier rule.
+- **Home:** `supabase/functions/_shared/ltp/content/pass2-templates.ts`.
+- **Templates added:** `T.risk.balance.factor_line` (max_chars 420; GUIDANCE_PIN citation; renders basis-only when guidance empty — no invented reasoning); `T.risk.summary.aggregation_note` (max_chars 300; N>1 only; precedence rule surfaced); `T.risk.information_needed.b_criterion_count` (max_chars 320; intake-gap discipline; never in opening).
+- **Predicate added:** `shouldEmitBCriterionCountQuestion({criterion_a_resolved, intake_affirms_sell_or_share, has_compliant_count_field})` — emit iff all three conditions (A_unresolved && sell_or_share && !has_count), mirrors S0 telemetry rejection reason.
+- **Composition order (documented in code):** balance section = benefit factor_lines → negative factor_lines → safeguard factor_lines → existing firm/hedged conclusion. Calibration law unchanged (firm forbidden at closeness ≥ 0.6).
+- **Tests:** 17/17 green including template-lint, factor_line with & without guidance, aggregation_note framing, (B)-question 8-row emission matrix, (B)-question negative-implication screen, id-list conformance.
+- **Courier:** `docs/courier/CONTENT-COURIER-WEIGHING-DEPTH-2026-07-27.md`.
+- **Stage-B carry-forward:** renderer wiring for these templates joins the Stage-B code turn together with the Item-180 addenda (statutory-text leak class in value screen; surface-ownership write-guard at composition time). Stage-C gate = Stage-B courier + Item-180 addenda + this courier (already produced).
