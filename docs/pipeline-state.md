@@ -3072,3 +3072,15 @@ Not launched this turn. On smoke pass (single doc terminal with expected stamps 
 **Standing.** Campaign `fd1be147` PAUSED. Run #147 SEALED (item 166). Run #149 NON-EVIDENTIAL (item 169). Item 168 verdict RETRACTED. `LTP_ENFORCE_ENABLED` unchanged. No batch launched this turn.
 
 **Courier:** `docs/courier/CORRECTIONS-BUNDLE-2026-07-27.md`.
+
+## Ledger item 174 — DUAL SMOKE HELD (in-flight; 2026-07-27T06:40:00Z)
+
+**Status:** HELD — clean smoke launched, forced-degradation smoke NOT YET launched (serial gating: LTP_TEST_FORCE_WRITE_AROUND env must not be set while clean smoke is in flight, or it would contaminate the clean arm).
+
+**(i) CLEAN SMOKE launched:** batch `b091113d-9390-43a9-b5e3-ff55359efc82`, born canonical `status=running / phase=kickoff` per §18, tools=`['cppa-risk']`, batch_size=1, instrument_version=`gc-2026-07-27-s6-eu-uk-ca-au-sg`, cancel_requested=false. Pickup at 2026-07-27T06:32:02.027Z as `quality_run` `9cfc514b-a647-4c49-b233-6862d65e512d` (run #150). §16 mode-assert wired at kick per item 173 (b) — deploy image `qbp28-corrections-bundle-mode-assert@2026-07-27T06:10:00Z`. Currently `phase=running_tool`, `final_status=in_flight`, `last_error=NULL`. Scenario cohort recorded here (schema has no `scenario_set` column): `tuning`. Evidentiality: NEVER evidential for §5.
+
+**(ii) FORCED-DEGRADATION SMOKE:** NOT LAUNCHED THIS TURN. Sequencing law: `LTP_TEST_FORCE_WRITE_AROUND=unit-test-only-2026-07-27` must be set only after clean smoke terminal, and cleared immediately after forced smoke terminal, to prevent cross-arm contamination via the process-wide env-var hook in `_shared/ltp/pass1-llm.ts`. Launch will be born-canonical (batch_size=1, tools=`['cppa-risk']`, s6), with post-run scrub of the secret verified before releasing.
+
+**Next progress artifact:** monitor tick when smoke 1 reaches terminal → set LTP_TEST_FORCE_WRITE_AROUND → launch smoke 2 → wait terminal → clear secret → paste both section inventories in `docs/courier/DUAL-SMOKE-2026-07-27.md`. HARD STOP after that courier per dispatch.
+
+**Standing:** campaign `fd1be147` PAUSED. Run #147 SEALED. Run #149 NON-EVIDENTIAL. No enforcement-state or architecture change this turn.
