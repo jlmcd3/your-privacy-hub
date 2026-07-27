@@ -8,7 +8,29 @@ This document is the CEO-reviewed **cross-product applicability matrix**. Every 
 
 ---
 
+## STEP 0 — CEO BUILD-OVERVIEW DOCUMENT (MANDATORY GATE, PRECEDES ALL OTHER STEPS)
+
+**Rule.** Before any structural revision of a product begins — before Step 1 of §A, before any contract turn, before any pipeline wiring — the controller MUST deliver to the CEO a complete **document-production overview** for that product. The migration is GATED on CEO review of this document; no further step in this checklist may execute until CEO acceptance is recorded.
+
+**Scope of the overview (all items required, codebase-verified with provenance tags):**
+- Intake fields collected (every field, its source-of-truth file path, and its downstream consumers).
+- Every build stage (Pass-1 through emitter, composer, serializer, grader; entry/exit contracts at each boundary).
+- All decisions embedded in the current build (gates, precedence rules, applicability logic, band mappings, criterion emitters, information-needed emitters).
+- Current state AND planned build under the then-current plan (explicit deltas: what stays, what changes, what retires, what is added).
+- Provenance tags on every claim (file path + symbol + line-range or commit stamp; no unverified statements).
+
+**Format precedent.** The **CPPA-Risk overview of 2026-07-27** is the format precedent. New product overviews must match its section structure, provenance-tagging discipline, and level of codebase specificity.
+
+**Delivery format.** Word document (`.docx`) written to `/mnt/documents/` for CEO download and external second-opinion review. Ledger records the file path and the CEO-review status.
+
+**Gate release.** Migration Steps 1–8 (this document) may proceed only after the CEO records acceptance of the overview. If the CEO returns changes, the overview is revised and re-delivered before any step executes.
+
+**First consumer.** `lia` — its overview is due **after `cppa-risk` implementation acceptance** and **BEFORE `lia` Phase-2 wiring begins**. Subsequent products (dpia, ir, cyber, governance, dpa, registration, biometric) each require their own Step-0 overview at the start of their migration turn.
+
+---
+
 ## A. UNIVERSAL — mechanically inherited by every product
+
 
 Every product migrating onto the pipeline MUST land these in the migration turn.
 
