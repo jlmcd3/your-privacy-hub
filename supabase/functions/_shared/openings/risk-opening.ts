@@ -37,7 +37,14 @@ import {
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
 
-export const RISK_OPENING_VERSION = "risk-opening-t7-pilotfix3@2026-07-26";
+export const RISK_OPENING_VERSION = "risk-opening-cp5-coherence-prose-customer-first@2026-07-28";
+// Customer-first render order (CP5 ADDENDUM CEO-approved 2026-07-28):
+// S2 (entity + data + purpose) → S3 (posture qualifiers) → S4 (safeguards)
+// → S0 (CCPA applicability) → S1 (§ 7150(b) triggers) → S5 (§ 7152 frame)
+// → S6 (as-of). Slot sources and provenance UNCHANGED — reorder only.
+// Exported so tests can assert the order at the source of truth.
+export const RISK_OPENING_SLOT_ORDER: readonly ["S2","S3","S4","S0","S1","S5","S6"] =
+  ["S2","S3","S4","S0","S1","S5","S6"];
 
 // BAND-REALIGNMENT-T2A (2026-07-26) — retargeted to V2 revenue vocabulary.
 // V2 bands whose FLOOR strictly exceeds $25M pre-adjustment qualify to
