@@ -347,10 +347,13 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
     if (!ALLOWED_TOP_LEVEL.has(k)) pre_serializer_unowned_pending.push(k);
   }
 
-  // (3) composition-hook-audit — always fail-loud (config surface)
+  // (3) composition-hook-audit — always fail-loud (config surface).
+  //     Item 217: pass write_around origin so authorized clock-cap /
+  //     timeout / test-forced entries pass without a test flag.
   assertCompositionHookConformance({
     hookValue: input.hookValue,
     writeAroundEntered: input.writeAroundEntered,
+    writeAroundOrigin: input.writeAroundOrigin,
   });
 
   const hookPresent = typeof input.hookValue === "string" && input.hookValue.length > 0;
@@ -373,8 +376,8 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       pre_serializer_value_screen_pending: screen.finalHitDetails,
       hook_audit_ok: true,
       hook_value_present: hookPresent,
-
       write_around_entered: input.writeAroundEntered,
+      write_around_origin: input.writeAroundEntered ? (input.writeAroundOrigin ?? "unknown") : null,
     },
   };
 }
