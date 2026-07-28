@@ -22,8 +22,14 @@
  *      count, outcome (ok|abort|error). This is the empirical basis for
  *      tuning the 120s number later — no more blind budgets.
  */
-import { derivePlan, type DeriveInput } from "./derive.ts";
-import type { RenderPlan } from "../render-plan/schema.ts";
+import {
+  derivePlan,
+  pickLedger,
+  pickCitationBindings,
+  pickFactorTable,
+  type DeriveInput,
+} from "./derive.ts";
+import type { RenderPlan, Proposition, FactorTableEntry } from "../render-plan/schema.ts";
 import { validateRenderPlan } from "../render-plan/validators.ts";
 import { WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
@@ -35,15 +41,18 @@ import {
   PASS1_DERIVE_USER_TEMPLATE,
   PASS1_DERIVE_PROMPT_VERSION,
 } from "./content/pass1-derive-prompt.ts";
+import { evaluateCppaRiskGates } from "./gate-eval.ts";
+import { runGuideStage } from "./guide.ts";
 import {
   callAnthropicWithContinuation,
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-validator-evidence@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-cp2-single-writer@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
+
 
 export const PASS1_ABORT_TIMEOUT_ERROR = "pass1_abort_timeout";
 
