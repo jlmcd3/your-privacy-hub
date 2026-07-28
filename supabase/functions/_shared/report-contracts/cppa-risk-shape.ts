@@ -33,7 +33,7 @@
  * are OPTIONAL — the LTP-shape wire carries strings.
  */
 
-export const CPPA_RISK_SHAPE_VERSION = "cppa-risk-shape@2026-07-28-cp3";
+export const CPPA_RISK_SHAPE_VERSION = "cppa-risk-shape@2026-07-28-cp5-coherence-prose";
 
 export type NarrativeScalarKey =
   | "opening_summary"
