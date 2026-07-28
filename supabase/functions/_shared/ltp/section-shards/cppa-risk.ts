@@ -53,7 +53,8 @@ import type { RenderPlan } from "../../render-plan/schema.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../../report-schemas/cppa-risk.ts";
 
 export const CPPA_RISK_SECTION_SHARDS_VERSION =
-  "cppa-risk-section-shards-2026-07-28-tm2";
+export const CPPA_RISK_SECTION_SHARDS_VERSION =
+  "cppa-risk-section-shards-2026-07-28-tm3";
 
 /**
  * The three owner kinds recognized by the registry.
