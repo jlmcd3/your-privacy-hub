@@ -250,6 +250,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       maxTokens: opts.maxTokens,
       timeoutMs: DEGENERATE_RETRY_TIMEOUT_MS,
       label: `${opts.label}#cont2`,
+      abortSignal: opts.abortSignal,
     });
     console.log(`[${opts.label}#cont2] stage=callAnthropic retry elapsed=${retry.elapsedMs}ms stop=${retry.stopReason} output_tokens=${retry.outputTokens ?? "?"} chars=${retry.text.length}`);
     recordApiUsage({
