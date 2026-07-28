@@ -3567,11 +3567,19 @@ async function runPipeline(assessment_id: string) {
           // path. _meta subtree is preserved (assembler never writes
           // there); shipped body top-level keys are overwritten.
           try {
-            const _writeAround = !!_pass1.plan?.conservative_write_around?.triggered
-              || !_pass1.telemetry.ok;
-            // T-M9 (Item 230): classify pass1_abort_timeout as a distinct
-            // authorized origin so composition-hook-audit can allow the
-            // designed abort-controller degradation without a hook-audit throw.
+            // T-M9.4 (Item 234) — VALID PLAN INVARIANT (belt-and-suspenders).
+            // A successful, validator-clean RenderPlan is ALWAYS assembled
+            // and shipped. The clock contract gates LLM retries only; the
+            // Pass-2 assembler is deterministic and requires no LLM budget.
+            // Type-J write-around fires ONLY on terminal Pass-1 failure
+            // (abort×N, validator hard-reject, or model error). Pass-1's
+            // upstream fix (pass1-llm.ts) forces triggered=false on ok,
+            // and we re-assert here so a future regression cannot re-route
+            // a valid plan to Type-J via a stray triggered=true.
+            const _pass1Ok = !!_pass1.telemetry.ok;
+            const _writeAround = _pass1Ok
+              ? false
+              : (!!_pass1.plan?.conservative_write_around?.triggered || !_pass1.telemetry.ok);
             const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown" = _writeAround
               ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
                   : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
