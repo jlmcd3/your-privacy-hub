@@ -57,8 +57,13 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.priority_action",
     // ITEM 241.3 — GOLDEN four-move gap-driven action shape.
     "T.risk.priority_action.golden",
+    // T-M3 — record_sufficiency per-item shape.
+    "T.risk.record_sufficiency.item",
     // ITEM 241.3 — record_sufficiency flowing-prose lead-in (Golden §4.3).
     "T.risk.record_sufficiency.prose",
+    "T.risk.review_items",
+    // T-M3 — inconsistency_flags per-entry shape.
+    "T.risk.review_items.entry",
     // ITEM 241.3 — CP5 §3.2 customer-first section-opener templates.
     "T.risk.section_opener.actions",
     "T.risk.section_opener.balance",
@@ -66,11 +71,6 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.section_opener.executive_summary",
     "T.risk.section_opener.scope",
 
-    // T-M3 — record_sufficiency per-item shape.
-    "T.risk.record_sufficiency.item",
-    "T.risk.review_items",
-    // T-M3 — inconsistency_flags per-entry shape.
-    "T.risk.review_items.entry",
     "T.risk.summary.activity_line",
     "T.risk.summary.aggregation_note",
     "T.risk.summary.docs",
