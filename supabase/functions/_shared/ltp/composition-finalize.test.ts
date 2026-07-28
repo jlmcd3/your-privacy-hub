@@ -7,7 +7,6 @@ import {
   finalizeComposition,
   COMPOSITION_FINALIZE_VERSION,
 } from "./composition-finalize.ts";
-import { ValueScreenError } from "./value-screen.ts";
 import { CompositionHookAuditError } from "./composition-hook-audit.ts";
 
 const nullEnv = { get: (_: string) => undefined };
