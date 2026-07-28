@@ -5234,3 +5234,51 @@ Boot `build_stamp` echoes `ltp-risk-item242-cpb-final@…` — CP-B FINAL wire c
 **Courier.** `docs/courier/ITEM242-CPB-FINAL-2026-07-28.md`.
 
 **Disposition.** CP-B FINAL live. HARD STOP — controller wire-verifies and launches the BATCH OF THREE.
+
+---
+
+## Item 243 — BATCH-#180 fix set (PARTIAL: defects 1, 2, 7)
+
+Dispatch: Item 243 (BATCH-#180). Ships the three dispositive defects
+under the code-is-truth + triple-check bar. Defects 3, 4, 5, 6, 8 are
+**not** wired in this turn and are enumerated as follow-up.
+
+**Defect 1 (grounded-note checker malfunction).** Root cause five sites
+(`grounded-note.ts::ledgerVerbatimStrings`, `pickDrivingLedger`,
+`buildGroundedForm`, `derive.ts::pickLedger`, missing whitelist for the
+canonical `"no record evidence"` phrase). Fixed all five: vocab now
+absorbs field-labels and humanized intake-field keys; `pickDrivingLedger`
+returns `undefined` on unref'd rows (no arbitrary binding); ledger
+`display` is now the human label, not the value; whitelist added;
+`GroundedNoteCheckerAbort` class landed for wire-site surfacing of
+over-threshold batches. Version: `pass1-grounded-note@2026-07-28-item243-checker-repair`.
+
+**Defect 2 (posture dead-path).** Root cause: the Pass-2 assembler's
+`submission_summary` default artifact called only
+`renderCyberAuditSchedule()`. `renderAllProngPostures` was reachable only
+through the retired Engine-A `extendSubmissionBasisCrosswalk` seam. Fix:
+`buildDefaultSubmissionSummary(plan)` now reconstructs intake from
+`plan.intake_ledger` (Pass-2 single source of truth), invokes
+`computeProngOutcomes`, and appends per-prong posture clauses under the
+header *"Submission postures under 11 CCR § 7120(b):"*. Assembler stamp:
+`ltp-pass2-assembler-2026-07-28-item243-posture-live`.
+
+**Defect 7 (polish).** `pass2-templates.ts:417` — replaced *"decisions
+counsel or the external auditor holds"* with *"decisions the regulation
+reserves to the business and its qualified counsel"*, per CP-B FINAL /
+CP5-ADDENDUM voice.
+
+**Tests.** `ok | 18 passed | 0 failed` across
+`_item242_bc_rider_grounded_note.test.ts`, `pass2-assembler.test.ts`,
+`cyber-audit-schedule.test.ts`.
+
+**Deploy.** Explicit deploy of `run-cppa-risk-assessment` executed.
+
+**Not addressed this turn (for next dispatch).** Defects 3, 4, 5, 6, 8
+— each requires independent verify-first tracing; see courier for the
+scoped list.
+
+**Courier.** `docs/courier/ITEM243-BATCH180-PARTIAL-2026-07-28.md`.
+
+**Disposition.** Defects 1/2/7 live. HARD STOP — controller
+wire-verifies and schedules the remainder as a follow-up dispatch.
