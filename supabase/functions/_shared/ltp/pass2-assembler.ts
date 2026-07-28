@@ -51,8 +51,9 @@ import {
   CPPA_RISK_SHAPE_VERSION,
   type ShippedCoherenceViolation,
 } from "../report-contracts/cppa-risk-shape.ts";
+import { evaluateGoldenShape, type GoldenShapeReport } from "./golden-shape-quotas.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp5-coherence-prose";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item241-1-structural";
 
 /**
  * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
@@ -533,6 +534,9 @@ function assembleCore(
   }
   const emittedCount = sectionTele.filter((s) => s.emitted).length;
   const structural = structuralCompleteness(sectionTele);
+  // ITEM 241.1 — GOLDEN-SHAPE quotas as depth telemetry. Never deletes
+  // content; production behavior is telemetry + review-flag on shortfall.
+  const golden_shape: GoldenShapeReport = evaluateGoldenShape(report);
 
   return {
     version: PASS2_ASSEMBLER_VERSION,
@@ -547,6 +551,7 @@ function assembleCore(
         shipped_surface,
         shipped_value_screen,
         shipped_coherence,
+        golden_shape,
       },
       structural_completeness: structural,
       composition_shape: COMPOSITION_SHAPE_DECLARATION,

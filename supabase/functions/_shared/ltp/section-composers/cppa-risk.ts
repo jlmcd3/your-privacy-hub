@@ -79,8 +79,25 @@ const engagedApplicability = (plan: RenderPlan): Proposition[] =>
 
 const activityCount = (plan: RenderPlan): number => engagedApplicability(plan).length;
 
+/**
+ * ITEM 241.1 (E2) — INSUFFICIENCY-PREDICATE FIX. Insufficiency is derived
+ * from DOCUMENTATION GATES ALONE (§ 7152(a) doc-presence gates), per the
+ * §2.5 precedence law. Absent optional factors and Type-J conversions do
+ * NOT constitute record-insufficiency. Bug named in the CP courier:
+ * the pre-fix predicate keyed on `factor_table.present_in_intake` and
+ * additionally treated `activityCount === 0` as insufficient in
+ * aggregateBalance — both of which caused "coherently insufficient"
+ * conclusions on records that had documented purpose/categories.
+ *
+ * A documentation gate is failing when its outcome is NOT "pass" (either
+ * "block" — all keyed fields negative — or "not_applicable" — all keyed
+ * fields absent). Either state means § 7152(a) documentation is not on
+ * the record.
+ */
 const insufficientRecord = (plan: RenderPlan): boolean =>
-  plan.factor_table.filter((f) => f.present_in_intake).length === 0;
+  plan.gate_outcomes.some(
+    (g) => g.gate_id.startsWith("G.documentation.") && g.outcome !== "pass",
+  );
 
 const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   const benefits = plan.factor_table.filter((f) => f.kind === "benefit" && f.present_in_intake).length;
@@ -91,11 +108,12 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
 /**
  * CP4 (c) — SHARED BALANCE AGGREGATION. composeExecutive and balanceInstance
  * both consume this so an "insufficient" exec over a rendered firm/hedged
- * balance is structurally impossible.
+ * balance is structurally impossible. ITEM 241.1 (E2): activityCount === 0
+ * disjunct removed — insufficiency comes from documentation gates only.
  */
 type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
 function aggregateBalance(plan: RenderPlan): BalanceMode {
-  if (insufficientRecord(plan) || activityCount(plan) === 0) return "insufficient";
+  if (insufficientRecord(plan)) return "insufficient";
   if (anyImpactsOutweigh(plan)) return "negative";
   const closeness = computeCloseness(plan, plan.weighing_frame);
   return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
@@ -341,24 +359,28 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       .filter((p) => /appl(icab|y)/i.test(p.conclusion_id))
       .map((p) => [p.conclusion_id, p]),
   );
-  return applicabilityConcls.map<TemplateInstance>((c) => {
+  const instances = applicabilityConcls.map<TemplateInstance & { __engaged: boolean }>((c) => {
     const gate = c.rule_gate ? gateById.get(c.rule_gate) : undefined;
     const prop = propById.get(c.id);
     const engagedFromGate = gate?.outcome === "pass";
     const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
     const engaged = engagedFromGate || engagedFromProp;
     const templateId = engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged";
-    // CP5 (a) — per-prong subject from the registry display_label so each
-    // instance reads distinctly. CP4 (b) — per-prong pinpoint from THIS
-    // conclusion's anchor.
+    // CP5 (a) — per-prong subject from the registry display_label.
+    // CP4 (b) — per-prong pinpoint from THIS conclusion's anchor.
     return {
       template_id: templateId,
       ctx: {
         prong_subject: c.display_label || "this trigger",
         __cite: { PINPOINT: c.anchor.pinpoint },
       },
+      __engaged: engaged,
     };
   });
+  // ITEM 241.1 (E1) — engaged prongs LEAD; not-engaged prongs follow.
+  // Stable sort so registry order is preserved within each bucket.
+  instances.sort((a, b) => (a.__engaged === b.__engaged) ? 0 : (a.__engaged ? -1 : 1));
+  return instances.map(({ template_id, ctx }) => ({ template_id, ctx }));
 }
 
 // ── Public dispatch ──────────────────────────────────────────────────────
