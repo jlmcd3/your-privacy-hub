@@ -156,6 +156,7 @@ Deno.test("T-M4 (c): deterministic + template-cut projections are total over a v
     // manifest lands in Pass-1 output (queued post-T-M6).
     "debug_review_notes",
     "fsor_commentary",
+    "validation_summary",
   ]);
   for (const k of noneCount) {
     assert(NONE_ALLOWED.has(k), `unexpected NONE projection on ${k}`);
