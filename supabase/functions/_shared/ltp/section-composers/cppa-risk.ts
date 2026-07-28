@@ -107,23 +107,14 @@ const engagedApplicability = (plan: RenderPlan): Proposition[] =>
 const activityCount = (plan: RenderPlan): number => engagedApplicability(plan).length;
 
 /**
- * ITEM 241.1 (E2) — INSUFFICIENCY-PREDICATE FIX. Insufficiency is derived
- * from DOCUMENTATION GATES ALONE (§ 7152(a) doc-presence gates), per the
- * §2.5 precedence law. Absent optional factors and Type-J conversions do
- * NOT constitute record-insufficiency. Bug named in the CP courier:
- * the pre-fix predicate keyed on `factor_table.present_in_intake` and
- * additionally treated `activityCount === 0` as insufficient in
- * aggregateBalance — both of which caused "coherently insufficient"
- * conclusions on records that had documented purpose/categories.
- *
- * A documentation gate is failing when its outcome is NOT "pass" (either
- * "block" — all keyed fields negative — or "not_applicable" — all keyed
- * fields absent). Either state means § 7152(a) documentation is not on
- * the record.
+ * ITEM 241.3 CONDITION 5 — insufficiency derives from the FACTUAL
+ * documentation-gate subset only. Judgment-subset gates are reserved
+ * decisions and cannot cause an insufficient exec on a docs-complete
+ * record. See DOCUMENTATION_FACTUAL_GATE_IDS / DOCUMENTATION_JUDGMENT_GATE_IDS.
  */
 const insufficientRecord = (plan: RenderPlan): boolean =>
   plan.gate_outcomes.some(
-    (g) => g.gate_id.startsWith("G.documentation.") && g.outcome !== "pass",
+    (g) => DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id) && g.outcome !== "pass",
   );
 
 const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
@@ -132,12 +123,6 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   return negatives > 0 && negatives > benefits;
 };
 
-/**
- * CP4 (c) — SHARED BALANCE AGGREGATION. composeExecutive and balanceInstance
- * both consume this so an "insufficient" exec over a rendered firm/hedged
- * balance is structurally impossible. ITEM 241.1 (E2): activityCount === 0
- * disjunct removed — insufficiency comes from documentation gates only.
- */
 type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
 function aggregateBalance(plan: RenderPlan): BalanceMode {
   if (insufficientRecord(plan)) return "insufficient";
@@ -145,6 +130,7 @@ function aggregateBalance(plan: RenderPlan): BalanceMode {
   const closeness = computeCloseness(plan, plan.weighing_frame);
   return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
 }
+
 
 // ── Composers ────────────────────────────────────────────────────────────
 
