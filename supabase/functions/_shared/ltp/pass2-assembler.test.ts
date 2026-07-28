@@ -64,14 +64,13 @@ Deno.test("T-M5: submission_summary harvest auto-defaults to renderCyberAuditSch
 Deno.test("T-M5: forced-conflict opening_summary harvest is REJECTED with telemetry (paste)", () => {
   const plan = fixturePlan();
   // Force a conflict: intake_ref pointing at a field not present in plan.intake_ledger.
-  const bad: OpeningHarvestArtifact = {
+  const bad = {
     text: "Some opening narrative text sourced from unknown fields.",
     provenance: {
-      s0_criteria: [],
       // deliberately reference an intake field the plan never observed
-      sources: { s1_prong: "nonexistent_intake_field_zzz" } as never,
-    } as never,
-  };
+      sources: { s1_prong: "nonexistent_intake_field_zzz" },
+    },
+  } as unknown as OpeningHarvestArtifact;
   const result = assembleReportShadow(plan, { opening_summary: bad });
   const dec = result.telemetry.harvest_decisions.find((d) => d.harvest_key === "opening_summary")!;
   // Paste the rejection telemetry so a reviewer sees the shape.
