@@ -14,7 +14,10 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item226-t-m6-cutover@2026-07-28T09:00:00Z";
+// T-M9 (Item 230, 2026-07-28): stamp refreshed for pass1 abort-controller
+// wire + deploy-pipeline diagnosis. No future-dating — read against
+// wall-clock at cutover turn.
+export const BUILD_STAMP = "ltp-risk-item230-t-m9-pass1-abort@2026-07-28T13:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
