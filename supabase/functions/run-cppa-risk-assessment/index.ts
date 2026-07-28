@@ -14,11 +14,20 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-// T-M9 (Item 230, 2026-07-28): stamp refreshed for pass1 abort-controller
-// wire + deploy-pipeline diagnosis. No future-dating — read against
-// wall-clock at cutover turn.
-export const BUILD_STAMP = "ltp-risk-item231-t-m9.1-fail-loud@2026-07-28T08:27:33Z";
+// T-M9.2 (Item 232, 2026-07-28): LEGACY GENERATION EXECUTION RETIRED.
+// Runtime shape now matches declared: intake → fact ledger → Pass-1 derive
+// (abort-controller, 120s×2) → Guide → Pass-2 assembler → guards → persist.
+// The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
+// callModel throws on invocation and a runtime shape-conformance assert
+// fails loud on any drift.
+export const BUILD_STAMP = "ltp-risk-item232-t-m9.2-runtime-shape@2026-07-28T09:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+// T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
+// When true, callModel() throws instead of hitting Anthropic, and the
+// end-of-pipeline shape-conformance assert requires legacyLlmCallCount === 0.
+const LEGACY_GENERATION_RETIRED = true;
+let legacyLlmCallCount = 0;
+const legacyLlmCallLabels: string[] = [];
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
 // generation. LTP_MODE_BOOT is pinned to "enforce" so §16 measurement-validity
