@@ -69,12 +69,15 @@ const basePlan: RenderPlan = {
 };
 
 Deno.test("CP4 (b) — scope composer emits one instance per prong with distinct pinpoints", () => {
-  const instances = composeSection("scope_and_triggers", basePlan)!;
+  // ITEM 241.3 — composer now prepends a CP5 §3.2 section opener; strip
+  // it for prong-shape assertions (opener is asserted separately in the
+  // 241.3 wiring test).
+  const all = composeSection("scope_and_triggers", basePlan)!;
+  const instances = all.filter((i) => !i.template_id.startsWith("T.risk.section_opener."));
   assertEquals(instances.length, 5, "expected 5 § 7150(b) prong instances");
   const pinpoints = instances.map((i) => (i.ctx as any).__cite?.PINPOINT);
   const uniq = new Set(pinpoints);
   assertEquals(uniq.size, 5, `expected 5 distinct pinpoints, got ${JSON.stringify(pinpoints)}`);
-  // (b)(4) is engaged via gate outcome; others not.
   const engagedIds = instances.filter((i) => i.template_id === "T.risk.applicability.engaged");
   assertEquals(engagedIds.length, 1, "only (b)(4) should be engaged");
   assert(
@@ -82,6 +85,7 @@ Deno.test("CP4 (b) — scope composer emits one instance per prong with distinct
     "engaged instance must carry the (b)(4) pinpoint",
   );
 });
+
 
 Deno.test("CP4 (b) — record_sufficiency and information_needed cite own anchors", () => {
   const plan: RenderPlan = {
