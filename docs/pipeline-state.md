@@ -3770,3 +3770,5 @@ CONSOLIDATION FIX (single turn):
 Courier: `docs/courier/SMOKE9-UNOWNED-SITE-2026-07-27.md`.
 
 **READY-FOR-RELAUNCH. HARD STOP.**
+
+**HELD** (2026-07-27, post-Item-213): READY-FOR-RELAUNCH state maintained. Awaiting controller relaunch of smoke #10. No new work this nudge.
