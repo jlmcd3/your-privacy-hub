@@ -512,6 +512,22 @@ function assembleCore(
 
   const shipped_surface = evaluateShippedSurfaceGuard(report);
   const shipped_value_screen = evaluateShippedValueScreen(report, { mode: exitMode });
+  // CP5-COHERENCE-PROSE — exec/balance coherence, ENFORCED at exit.
+  const coherenceViolations = assertShippedCoherence(report);
+  const shipped_coherence = {
+    mode: exitMode,
+    violations: coherenceViolations,
+    enforce_violation: exitMode === "enforce" && coherenceViolations.length > 0,
+  };
+  if (shipped_coherence.enforce_violation) {
+    // Enforce: collapse the ship to insufficient exec + narrative so the
+    // customer never receives contradictory prose. The full failure is
+    // captured in telemetry for the controller.
+    const disclosure =
+      "On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis. The specific items needed to complete this assessment are set out under Items for your review.";
+    report["executive_summary"] = disclosure;
+    report["assessment_summary"] = { ...(report["assessment_summary"] as object ?? {}), narrative: disclosure };
+  }
   const emittedCount = sectionTele.filter((s) => s.emitted).length;
   const structural = structuralCompleteness(sectionTele);
 
@@ -527,6 +543,7 @@ function assembleCore(
         pii_rejections: piiRejections,
         shipped_surface,
         shipped_value_screen,
+        shipped_coherence,
       },
       structural_completeness: structural,
       composition_shape: COMPOSITION_SHAPE_DECLARATION,
