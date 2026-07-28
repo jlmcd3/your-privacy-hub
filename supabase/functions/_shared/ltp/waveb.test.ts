@@ -75,13 +75,16 @@ Deno.test("slot-resolver: unknown slot returns empty", () => {
   assertEquals(resolveSlot(plan, "nonexistent_slot"), "");
 });
 
-Deno.test("pass1 manifest exposes model + prompt version", () => {
-  assert(PASS1_MANIFEST.model.startsWith("google/"));
+Deno.test("pass1 manifest exposes model + prompt version (T-M5 fold-in: direct Anthropic client)", () => {
+  // CEO Q3 same-model ruling (PRE-WAVED-EMITTER-FIXES-2026-07-27): Pass-1
+  // runs on claude-sonnet-4-6 via the shared Anthropic client (not the
+  // Lovable AI gateway). Assertion updated from "google/…" prefix.
+  assertEquals(PASS1_MANIFEST.model, "claude-sonnet-4-6");
   assertEquals(PASS1_MANIFEST.max_attempts, 2);
   assert(PASS1_MANIFEST.prompt_version.startsWith("pass1-derive-"));
 });
 
-Deno.test("all 16 templates enumerated (per courier + summary composition + insufficient-opening 2026-07-26)", () => {
-  assertEquals(Object.keys(PASS2_TEMPLATES).length, 16);
+Deno.test("all 27 templates enumerated (T-M3 authored 8 new; T-M5 fold-in updates count from 16)", () => {
+  assertEquals(Object.keys(PASS2_TEMPLATES).length, 27);
 });
 
