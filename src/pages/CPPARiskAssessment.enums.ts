@@ -51,6 +51,20 @@ export const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M"
 // Aligned to statutory breakpoints (100,000 and 250,000). Legacy V1 labels
 // resolve via resolveConsumerBand in the edge-side normaliser.
 export const CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"];
+// T-C1 (2026-07-28) — § 1798.140(d)(1)(B) OPERAND bands. Legal meaning:
+// the approximate number of California consumers or households whose
+// personal information the business BUYS, SELLS, or SHARES annually.
+// Distinct name from CONSUMER_OPTS (which is "consumers processed") so the
+// two fields cannot be conflated by refactor. The 100,000 edge is the
+// hard § 1798.140(d)(1)(B) statutory line — no band may straddle it.
+// The remaining edges mirror CONSUMER_OPTS V2 (§ 7120(b)(2)(A) 250,000
+// prong; 1,000,000) so the same band vocabulary is familiar to the user.
+export const BOUGHT_SOLD_SHARED_OPTS = [
+  "Under 100,000",
+  "100,000 to under 250,000",
+  "250,000 to under 1,000,000",
+  "1,000,000 or more",
+];
 // R1a additions.
 export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"];
 export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
