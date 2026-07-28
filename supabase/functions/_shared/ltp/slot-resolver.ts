@@ -138,6 +138,8 @@ export function resolveSlot(
     }
     case "doc_element_label":       return ctx.doc_element_label ?? "";
     case "customer_question":       return ctx.customer_question ?? "";
+    // ITEM 241.1 (E1) — scope per-prong subject passthrough.
+    case "prong_subject":           return ctx.prong_subject ?? "";
     // ── Summary-composition slots (context-provided, verbatim pass-through) ──
     case "activity_count_phrase":       return ctx.activity_count_phrase ?? "";
     case "each_or_this_clause":         return ctx.each_or_this_clause ?? "";
