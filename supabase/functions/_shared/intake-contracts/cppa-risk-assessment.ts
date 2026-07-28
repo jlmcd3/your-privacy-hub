@@ -209,6 +209,14 @@ export const cppaRiskContract: IntakeContract = {
     // by _tests/golden-contract.test.ts and the risk option-drift test.
     { key: "sensitive_location_basis", kind: "enum", required: "optional",
       options: SENSITIVE_LOCATION_BASIS_OPTS },
+    // T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand. Legal meaning:
+    // approximate number of California consumers or households whose PI the
+    // business BUYS, SELLS, or SHARES annually. Optional at intake time
+    // (unanswered → surfaces in information_needed per the (B)-gap gate,
+    // per Item 218 T-C1). Legacy rows without this key resolve to
+    // unknown (omission over invention) — no deterministic (B) assertion.
+    { key: "bought_sold_shared_count", kind: "enum", required: "optional",
+      options: BOUGHT_SOLD_SHARED_OPTS },
     // Public privacy-policy URL rendered as a record anchor in the
     // attestation_block and submission_summary. Free-form text; the
     // contract's convention for URL/text fields is `kind: "text"`
