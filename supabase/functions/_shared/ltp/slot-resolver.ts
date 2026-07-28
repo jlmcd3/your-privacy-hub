@@ -20,7 +20,7 @@
 import type { RenderPlan, FactorTableEntry, WeighingFrameEntry } from "../render-plan/schema.ts";
 import { BALANCE_DIRECTION_CLAUSES } from "./content/pass2-templates.ts";
 
-export const SLOT_RESOLVER_VERSION = "ltp-slot-resolver-2026-07-26";
+export const SLOT_RESOLVER_VERSION = "ltp-slot-resolver-2026-07-28-item235";
 
 export interface SlotContext {
   readonly activity_ref?: string;
@@ -28,10 +28,6 @@ export interface SlotContext {
   readonly cohort_date?: string;
   readonly review_items?: readonly string[];
   // ── Summary-composition context (CONTENT COURIER 2026-07-26) ──
-  // Populated by summary-compose.ts before invoking renderTemplate on any
-  // T.risk.summary.* or T.risk.summary.opening.* template. Values are
-  // deterministically pre-rendered by the composer from partitioned
-  // activity outcomes; the resolver returns them verbatim.
   readonly activity_count_phrase?: string;
   readonly each_or_this_clause?: string;
   readonly firm_positive_list?: string;
@@ -42,6 +38,24 @@ export interface SlotContext {
   readonly outcome_clause?: string;
   readonly key_factor_token?: string;
   readonly docs_completion_clause?: string;
+  readonly activity_singplural_clause?: string;
+  // ── ITEM 235 (T-M9.5) per-instance slot passthroughs ──
+  readonly action_label?: string;
+  readonly action_basis?: string;
+  readonly deadline_basis?: string;
+  readonly step_label?: string;
+  readonly step_basis?: string;
+  readonly element_label?: string;
+  readonly element_status_clause?: string;
+  readonly factor_label?: string;
+  readonly factor_basis?: string;
+  readonly guidance_clause?: string;
+  readonly review_label?: string;
+  readonly review_basis?: string;
+  readonly driving_activity_label?: string;
+  readonly what_would_tip_it?: string;
+  readonly doc_element_label?: string;
+  readonly customer_question?: string;
 }
 
 
