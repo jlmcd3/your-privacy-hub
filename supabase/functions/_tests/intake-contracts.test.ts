@@ -24,6 +24,7 @@ import {
   cppaRiskContract,
   REVENUE_OPTS as RISK_REVENUE_OPTS,
   CONSUMER_OPTS as RISK_CONSUMER_OPTS,
+  BOUGHT_SOLD_SHARED_OPTS as RISK_BSS_OPTS,
   SPI_VOLUME_OPTS as RISK_SPI_VOLUME_OPTS,
   SHARE_REVENUE_50PCT_OPTS as RISK_SHARE_50_OPTS,
   Q5_SELL_SHARE_OPTS as RISK_Q5_OPTS,
@@ -185,6 +186,8 @@ Deno.test("intake-contracts / validator — accepts empty maturity (optional)", 
 Deno.test("intake-contracts / risk PARITY — contract enums === form enums", () => {
   assertEquals([...RISK_REVENUE_OPTS], [...RiskEnums.REVENUE_OPTS]);
   assertEquals([...RISK_CONSUMER_OPTS], [...RiskEnums.CONSUMER_OPTS]);
+  // T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand bands.
+  assertEquals([...RISK_BSS_OPTS], [...RiskEnums.BOUGHT_SOLD_SHARED_OPTS]);
   assertEquals([...RISK_SPI_VOLUME_OPTS], [...RiskEnums.SPI_VOLUME_OPTS]);
   assertEquals([...RISK_SHARE_50_OPTS], [...RiskEnums.SHARE_REVENUE_50PCT_OPTS]);
   assertEquals([...RISK_Q5_OPTS], [...RiskEnums.Q5_SELL_SHARE_OPTS]);
@@ -216,6 +219,7 @@ Deno.test("intake-contracts / risk MIRROR — FIELD_ENUM_MIRROR entries match co
   const pairs: Array<[string, readonly string[]]> = [
     ["cppa_risk_assessment:q1_revenue", RISK_REVENUE_OPTS],
     ["cppa_risk_assessment:q2_consumers", RISK_CONSUMER_OPTS],
+    ["cppa_risk_assessment:bought_sold_shared_count", RISK_BSS_OPTS],
     ["cppa_risk_assessment:q5_sell_share", RISK_Q5_OPTS],
     ["cppa_risk_assessment:q5c_share_revenue_50pct", RISK_SHARE_50_OPTS],
     ["cppa_risk_assessment:q15_sensitive_pi", RISK_Q15_OPTS],
