@@ -48,7 +48,7 @@ import {
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-cp2-single-writer@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-cp4-labels@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
@@ -170,6 +170,7 @@ function applySingleWriterInjection(
       epistemic_type: c.epistemic_type,
       jurisdiction_tag: c.jurisdiction_tag,
       anchor: c.anchor,
+      display_label: c.display_label,
       intake_ledger_refs: c.epistemic_type === "R" ? ledgerIds.slice(0, 2) : [],
       citation_binding_refs: [bindingIdByConclusion.get(c.id) ?? `cb.${c.id}`],
       ...(polarity ? { polarity } : {}),

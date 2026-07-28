@@ -62,6 +62,11 @@ export interface SlotContext {
   readonly safeguard_summary_tokens?: string;
   readonly balance_direction_clause?: string;
   readonly tipping_factors?: string;
+  // ── ITEM 240 CP4 — per-instance citation pinpoints. When present,
+  //    substituteCitations reads ctx.__cite[slot] verbatim as the pinpoint.
+  //    This is the per-proposition binding seam that ends the "everything
+  //    cites § 7150(b)(1)" class (global-first-binding fallback).
+  readonly __cite?: Readonly<Record<string, string>>;
 }
 
 

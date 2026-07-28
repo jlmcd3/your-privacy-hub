@@ -50,7 +50,7 @@ import {
   CPPA_RISK_SHAPE_VERSION,
 } from "../report-contracts/cppa-risk-shape.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp3-shape";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp4-labels";
 
 /**
  * COMPOSITION SHAPE DECLARATION (T-M6(f); CEO ruling 2026-07-28 verbatim):

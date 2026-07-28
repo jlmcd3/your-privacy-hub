@@ -57,6 +57,8 @@ export interface Proposition {
   readonly anchor: StatutoryAnchor;
   readonly intake_ledger_refs: readonly string[];   // ids into intake_ledger
   readonly citation_binding_refs: readonly string[]; // ids into citation_bindings
+  /** ITEM 240 CP4 — display_label projected from the ConclusionSpec; composers use this ONLY. */
+  readonly display_label?: string;
   /** For Type W: which weighing_frame entry supports this proposition. */
   readonly weighing_frame_ref?: string;
   /** Optional narrative template slot; final wording is Pass-2's job within template bounds. */
@@ -72,6 +74,10 @@ export interface FactorTableEntry {
   readonly intake_ledger_refs: readonly string[];
   readonly guidance_refs: readonly GuidanceRef[];
   readonly anchor: StatutoryAnchor;
+  /** ITEM 240 CP4 — customer-facing label projected from the FactorRow. */
+  readonly display_label?: string;
+  /** Optional model-authored weight note (adapter passthrough). */
+  readonly weight_note?: string;
 }
 
 /** Pass-G output row: an authority the model may draw on for the weighing narrative. */

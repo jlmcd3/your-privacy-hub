@@ -90,6 +90,7 @@ function pickPropositions(bindings: readonly CitationBinding[], ledger: readonly
       epistemic_type: c.epistemic_type,
       jurisdiction_tag: c.jurisdiction_tag,
       anchor: c.anchor,
+      display_label: c.display_label,
       intake_ledger_refs: c.epistemic_type === "R" ? ledgerIds.slice(0, 2) : [],
       citation_binding_refs: [bindingIdByConclusion.get(c.id) ?? `cb.${c.id}`],
       ...(c.epistemic_type === "R" ? { polarity: "not_applicable" as const } : {}),
@@ -108,6 +109,7 @@ export function pickFactorTable(): FactorTableEntry[] {
     intake_ledger_refs: [],
     guidance_refs: f.guidance_refs ?? [],
     anchor: f.anchor,
+    display_label: f.label,
   }));
 }
 

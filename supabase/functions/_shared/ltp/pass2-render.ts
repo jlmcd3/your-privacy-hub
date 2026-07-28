@@ -18,7 +18,7 @@ import {
 } from "./content/pass2-templates.ts";
 import { resolveSlot, type SlotContext } from "./slot-resolver.ts";
 
-export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-28-item235-fill-or-omit";
+export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-28-item240-cp4-percite";
 
 /**
  * ITEM 235 (T-M9.5) — FILL-OR-OMIT AT RENDER.
@@ -120,13 +120,23 @@ function substituteCitations(
   plan: RenderPlan,
   citation_slots: readonly string[],
   errors: string[],
+  ctx: SlotContext = {},
 ): string {
   let out = text;
+  const cite = ctx.__cite ?? {};
   for (const slot of citation_slots) {
     const token = `{{cite:${slot}}}`;
-    // Resolve by pinpoint_ref suffix match (SLOT is a symbolic id like
-    // PINPOINT_7152A5; the citation_bindings pinpoint_ref carries the
-    // conclusion id — a downstream courier binds these formally.
+    // ITEM 240 CP4 — per-instance override wins over any binding lookup.
+    // Composer supplies the exact pinpoint for THIS instance from the
+    // proposition/factor/gate's own StatutoryAnchor. This ends the
+    // global-first-binding fallback class (5×§7150(b)(1) in scope, etc.).
+    const perInstance = typeof cite[slot] === "string" ? cite[slot] : "";
+    if (perInstance && perInstance.length > 0) {
+      out = out.replaceAll(token, perInstance);
+      continue;
+    }
+    // Legacy path: resolve by pinpoint_ref suffix match (retained for
+    // templates whose caller has not yet migrated to __cite).
     const found = plan.citation_bindings.find((b) =>
       b.pinpoint_ref.toUpperCase().includes(slot.replace(/^PINPOINT_?/, ""))
     ) ?? plan.citation_bindings[0];
@@ -243,7 +253,7 @@ export function renderTemplate(
   const errors: string[] = [];
   let text = tpl.text;
   checkForbiddenTokens(text, errors);
-  text = substituteCitations(text, plan, tpl.citation_slots, errors);
+  text = substituteCitations(text, plan, tpl.citation_slots, errors, ctx);
   text = substituteIntake(text, plan, tpl.intake_slots, errors);
   const required = REQUIRED_PLAN_SLOTS[templateId] ?? tpl.plan_slots;
   const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, templateId, required, errors);

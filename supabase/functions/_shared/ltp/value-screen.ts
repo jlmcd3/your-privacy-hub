@@ -30,7 +30,7 @@
  *   sentinels (`{{intake:`, `{{cite:`, `[filtered]`, `TODO`, etc.).
  */
 
-export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item235-residue";
+export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item240-cp4-registry-ids";
 
 /**
  * Substring-match lexicon — kept ONLY for entries that cannot false-
@@ -73,6 +73,22 @@ export const INTERPOLATION_RESIDUE_RES: readonly RegExp[] = [
 ] as const;
 
 /**
+ * ITEM 240 CP4 — REGISTRY-ID PATTERNS (structural hard rejects).
+ * Registry ids (j.*, r.*, w.*, prop.*, test.*, and bare benefit_/neg_/safe_
+ * token prefixes) must NEVER reach the customer surface. Every ship-side
+ * label goes through the display_label layer; a registry-id shape in
+ * shipped prose is a composer bug and enforce-arm-rejects the run.
+ * Anchor paths are exempt (see isAnchorPath).
+ */
+export const REGISTRY_ID_PATTERNS: readonly RegExp[] = [
+  /\bj\.[a-z][a-z0-9_]*\b/,
+  /\b[rw]\.[a-z][a-z0-9_.]*\b/,
+  /\bprop\.[a-z]/i,
+  /\btest\.[a-z]/i,
+  /(^|[ ,;:])(benefit|neg|safe)[ _][a-z]/i,
+] as const;
+
+/**
  * ITEM-204 (Defect A) STRUCTURAL GUARD — exact-value match.
  * Fires only when a string value's entire trimmed content equals one of
  * these tokens. Catches the A.i #178 owner-slot truncation class
@@ -98,7 +114,7 @@ export class ValueScreenError extends Error {
 }
 
 export interface ValueScreenHit {
-  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value" | "interpolation-residue";
+  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value" | "interpolation-residue" | "registry-id";
   readonly match: string;
   readonly path: string;
   readonly context: string;
@@ -199,6 +215,17 @@ export function runValueScreen(input: ScreenInput): void {
         if (re.test(value)) {
           hits.push({
             kind: "interpolation-residue",
+            match: re.toString(),
+            path,
+            context: value.slice(0, 120),
+          });
+        }
+      }
+      // ITEM 240 CP4 — registry-id structural rejects on customer prose.
+      for (const re of REGISTRY_ID_PATTERNS) {
+        if (re.test(value)) {
+          hits.push({
+            kind: "registry-id",
             match: re.toString(),
             path,
             context: value.slice(0, 120),

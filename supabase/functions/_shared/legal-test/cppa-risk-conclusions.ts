@@ -67,6 +67,13 @@ export interface ConclusionSpec {
   readonly surface: string;
   /** Primary statutory anchor. */
   readonly anchor: StatutoryAnchor;
+  /**
+   * ITEM 240 CP4 — DISPLAY-LABEL LAYER. Customer-facing English label
+   * used wherever a composer would otherwise humanize the registry id.
+   * REQUIRED on every row; registry-id shapes are structurally unshippable
+   * per value-screen's REGISTRY_ID_PATTERNS class.
+   */
+  readonly display_label: string;
   /** Additional supporting anchors (all must be jurisdiction-domain matched). */
   readonly supporting_anchors?: readonly StatutoryAnchor[];
   /** One-line description of what the conclusion asserts. */
@@ -92,6 +99,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(1)" },
+    display_label: "Selling or sharing personal information",
     description:
       "A risk assessment is required whenever the business sells or shares personal information.",
     rule_gate: "G.applicability.selling_sharing",
@@ -102,6 +110,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(2)" },
+    display_label: "Processing sensitive personal information",
     description:
       "A risk assessment is required when the business processes the personal information of consumers "
       + "and that processing involves sensitive personal information (excluding the § 7027 employment-benefits carve-out).",
@@ -113,6 +122,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(3)" },
+    display_label: "Using ADMT for a significant decision concerning a consumer",
     description:
       "A risk assessment is required when the business uses ADMT to make a significant decision concerning a consumer.",
     rule_gate: "G.applicability.admt_significant_decision",
@@ -123,6 +133,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(4)" },
+    display_label: "Using ADMT for extensive profiling of a consumer",
     description:
       "A risk assessment is required when the business uses ADMT for extensive profiling of a consumer.",
     rule_gate: "G.applicability.extensive_profiling",
@@ -133,6 +144,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(5)" },
+    display_label: "Training ADMT for significant decisions, extensive profiling, or physical/biological identification",
     description:
       "A risk assessment is required when the business processes personal information to train ADMT that is capable of "
       + "being used for a significant decision, extensive profiling, or physical/biological identification or profiling.",
@@ -144,6 +156,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "deadlines",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(c)" },
+    display_label: "Compliance deadline (cohort date)",
     description:
       "The compliance deadline is the cohort date that flows deterministically from the applicability prong(s) triggered "
       + "and the business's revenue band (V2 stat-aligned bands).",
@@ -155,6 +168,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "documentation_check",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(1)" },
+    display_label: "Processing purpose documented",
     description:
       "The risk assessment report must identify a non-generic processing purpose. Presence check only; the "
       + "specificity/adequacy assessment is Type J (reserved to the business).",
@@ -166,6 +180,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "documentation_check",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(2)" },
+    display_label: "Categories of personal information documented",
     description:
       "The report must identify the categories of personal information processed, including sensitive PI categories, "
       + "with the minimum-necessary framing.",
@@ -177,6 +192,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "documentation_check",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(3)" },
+    display_label: "Operational elements documented",
     description:
       "The report must document the operational elements (a)(3)(A)-(G). ADMT logic and output disclosure ((a)(3)(G)) is "
       + "required only for § 7150(b)(3) uses.",
@@ -188,6 +204,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "documentation_check",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(9)" },
+    display_label: "Reviewer or approver identified",
     description:
       "The report must identify the reviewer/approver — an individual with authority to decide whether the business will "
       + "initiate the processing.",
@@ -199,6 +216,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "admt_consequence",
     anchor: { corpus_key: "cppa-7001", pinpoint: "11 CCR § 7001(ddd)" },
+    display_label: "ADMT consequence disclosure",
     description:
       "§ 7001(ddd) consequence assertions must NOT be emitted when intake q18 (ADMT use) is negative. Suppression is "
       + "deterministic at the render layer, not a model choice.",
@@ -217,6 +235,7 @@ const WEIGHING_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "balancing",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)" },
+    display_label: "Balancing benefits against negative impacts",
     description:
       "Whether the risks to consumers' privacy from the processing outweigh the benefits to the consumer, the business, "
       + "other stakeholders, and the public from that same processing. This is the single Type-W conclusion in the report "
@@ -236,6 +255,7 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "closing",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(7)" },
+    display_label: "Decision whether to initiate the processing",
     description:
       "Whether the business will initiate the processing subject to the risk assessment. The regulation expressly "
       + "delegates this decision to the business.",
@@ -247,6 +267,7 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "documentation_check",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(1)" },
+    display_label: "Adequacy of the processing purpose statement",
     description:
       "Whether a given non-generic purpose statement is adequately specific for the business's circumstances. The tool "
       + "checks presence + non-generic phrasing; substantive adequacy is reserved to counsel/business.",
@@ -258,6 +279,7 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "safeguards",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)" },
+    display_label: "Sufficiency of the safeguards",
     description:
       "Whether the safeguards a business plans to implement are sufficient to address the identified negative impacts. "
       + "The tool inventories the safeguard categories the business claims; sufficiency is reserved to counsel/business.",
