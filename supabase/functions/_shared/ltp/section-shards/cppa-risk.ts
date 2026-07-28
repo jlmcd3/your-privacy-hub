@@ -579,13 +579,15 @@ export type ExpectedEmission =
   | "empty-by-design";
 
 const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
-  // Metadata / disclaimers — always present.
-  schema_version: "empty-by-design",
-  document_metadata: "conditional",
-  attestation_block: "conditional",
-  disclaimer: "conditional",
-  framework_disclaimer: "conditional",
-  accuracy_caveat: "conditional",
+  // Metadata / disclaimers — ITEM 236 fix (c): always present (real
+  // deterministic literal projections; boilerplate absence is never
+  // intentional and the tightened E2E gate enforces this).
+  schema_version: "always",
+  document_metadata: "always",
+  attestation_block: "always",
+  disclaimer: "always",
+  framework_disclaimer: "always",
+  accuracy_caveat: "always",
   domains: "always",
   _meta: "always",
   // Headline scores — always emitted from factor_table.
@@ -609,7 +611,9 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   exception_analysis: "conditional",
   record_sufficiency: "conditional",
   information_needed: "conditional",
-  // V3 legacy passthroughs — empty-by-default.
+  // V3 legacy passthroughs — ITEM 236 fix (c): empty-by-design.
+  // Assembler ships them as `{}` (see deterministic projections) so
+  // absence is honest and intentional.
   part_a: "empty-by-design",
   part_b: "empty-by-design",
   gating: "empty-by-design",
@@ -620,8 +624,8 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   fsor_commentary: "manifest-gated",
   citation_ledger: "conditional",
   validation_summary: "manifest-gated",
-  // Enforcement — empty-by-finding (CPPA-verified rows only; none today).
-  enforcement_context: "empty-by-design",
+  // Enforcement — standing line always emitted until precedents ingested.
+  enforcement_context: "always",
   enforcement_precedents: "empty-by-design",
   enforcement_meta: "empty-by-design",
 };
