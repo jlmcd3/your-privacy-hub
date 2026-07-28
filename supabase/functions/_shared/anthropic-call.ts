@@ -45,6 +45,12 @@ export interface AnthropicCallOpts {
   callerName?: string;
   product?: string;
   sourceRowId?: string;
+  // T-M9 (Item 230): OUTER abort signal — every fetch leg (first + all
+  // continuation legs) must respect this signal so a caller-owned
+  // AbortController can terminate the whole call within a bounded window.
+  // Without this, the continuation loop could outlive the caller's timeout
+  // (root cause of the T-M8 silent hang).
+  abortSignal?: AbortSignal;
 }
 
 export interface AnthropicCallResult {
