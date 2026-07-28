@@ -24,25 +24,28 @@
  * §16 kin (fail-loud config assertion).
  */
 
-export const COMPOSITION_HOOK_AUDIT_VERSION = "composition-hook-audit@2026-07-28-item217";
+export const COMPOSITION_HOOK_AUDIT_VERSION = "composition-hook-audit@2026-07-28-item230";
 
 export const FORCE_WRITE_AROUND_ENV = "LTP_TEST_FORCE_WRITE_AROUND";
 
 /**
  * ITEM 217 — write-around origin.
- *   - "clock_cap"    : Pass-1 clock-cap / retry-exhaustion write-around
- *                      (designed degradation per Item 203).
- *   - "timeout"      : upstream hard timeout took the write-around path.
- *   - "test_forced"  : test-only forcing token was used (production
- *                      requests never set this).
- *   - "unknown"      : origin not identified — treated as unauthorized
- *                      unless the hook is set.
+ *   - "clock_cap"           : Pass-1 clock-cap / retry-exhaustion write-around
+ *                             (designed degradation per Item 203).
+ *   - "timeout"             : upstream hard timeout took the write-around path.
+ *   - "pass1_abort_timeout" : T-M9 (Item 230) — Pass-1 per-attempt AbortController
+ *                             fired on both N=2 attempts. Designed degradation.
+ *   - "test_forced"         : test-only forcing token was used (production
+ *                             requests never set this).
+ *   - "unknown"             : origin not identified — treated as unauthorized
+ *                             unless the hook is set.
  */
-export type WriteAroundOrigin = "clock_cap" | "timeout" | "test_forced" | "unknown";
+export type WriteAroundOrigin = "clock_cap" | "timeout" | "pass1_abort_timeout" | "test_forced" | "unknown";
 
 const AUTHORIZED_ORIGINS: ReadonlySet<WriteAroundOrigin> = new Set([
   "clock_cap",
   "timeout",
+  "pass1_abort_timeout",
   "test_forced",
 ]);
 
