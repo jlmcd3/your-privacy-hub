@@ -65,23 +65,20 @@ export function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[]
 }
 
 export function pickCitationBindings(): CitationBinding[] {
-  // Seed with the anchors named by the conclusion inventory.
-  const seen = new Set<string>();
-  const out: CitationBinding[] = [];
-  for (const c of CPPA_RISK_CONCLUSIONS) {
-    const key = `${c.anchor.corpus_key}::${c.anchor.pinpoint}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({
-      pinpoint_ref: `cb.${c.id}`,
-      corpus_key: c.anchor.corpus_key,
-      pinpoint: c.anchor.pinpoint,
-      jurisdiction_tag: c.jurisdiction_tag,
-      authority_weight: "binding",
-    });
-  }
-  return out;
+  // ITEM 240 CP2: one binding per conclusion so `cb.<conclusion_id>`
+  // always resolves. Deduplication by (corpus_key, pinpoint) was
+  // cosmetic and caused V2_CITE_MISS on Type-J propositions that
+  // share an anchor with earlier conclusions once the plan is
+  // validated on the authoritative Pass-1 path.
+  return CPPA_RISK_CONCLUSIONS.map((c) => ({
+    pinpoint_ref: `cb.${c.id}`,
+    corpus_key: c.anchor.corpus_key,
+    pinpoint: c.anchor.pinpoint,
+    jurisdiction_tag: c.jurisdiction_tag,
+    authority_weight: "binding" as const,
+  }));
 }
+
 
 function pickPropositions(bindings: readonly CitationBinding[], ledger: readonly IntakeLedgerEntry[]): Proposition[] {
   const bindingIdByConclusion = new Map(bindings.map((b) => [b.pinpoint_ref.replace(/^cb\./, ""), b.pinpoint_ref]));
