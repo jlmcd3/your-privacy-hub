@@ -4177,3 +4177,30 @@ ok | 6 passed | 0 failed
 **Courier:** `docs/courier/T-M4-COVERAGE-CHECKPOINT-2026-07-28.md` (full 38-key coverage table + NONE-cohort enumeration + T-M5 risk register + `waveb.test.ts` T-M7 defer confirmation).
 
 **Disposition: CEO CHECKPOINT — HARD STOP.** No further turns until the controller relays CEO review of the checkpoint courier. Next per Item 218 plan: **T-M5 ASSEMBLER BUILD** (shadow-mode; cutover deferred to T-M6).
+
+## Item 225 — T-M5 PASS-2 SECTION-SHARDED ASSEMBLER (SHADOW MODE) (2026-07-28T06:45Z)
+
+**Dispatch:** T-M5 (CEO-released after T-M4 checkpoint). Seventh turn of the LEGAL-TEST-PIPELINE rebuild chain (219→225). Shadow-mode only; legacy composer still ships the body. Cutover is T-M6.
+
+**Delivered:**
+- `_shared/ltp/pass2-assembler.ts` (`ltp-pass2-assembler-2026-07-28-tm5-shadow`) — walks `CPPA_RISK_SECTION_SHARDS` (38 keys), dispatches by owner kind (template / harvest / deterministic / template-cut), aggregates a full report-shape object.
+- **T-M4 mitigations wired (BINDING):** (1) manifest-hydration existence check on `debug_review_notes|fsor_commentary|validation_summary`; (2) harvest guard AT the write callsite (`evaluateOpeningHarvest`/`evaluateSubmissionHarvest`), reject → omit + telemeter; (3) shadow output persisted to `_meta.internal.assembler_shadow` (mirrors Item-221 render_plan pattern), zero writes to shipped surface; (4) `evaluateShippedSurfaceGuard` + `evaluateShippedValueScreen({mode:"observe"})` run against shadow output in TELEMETRY-ONLY mode; (5) stale `waveb.test.ts` model + template-count assertions fixed (retry-budget branch-correction stays queued for T-M7).
+- **Assembler-exit checks:** §2.5 flat-certainty on close balance (`assertCalibrationMatch` per rendered template when any activity closeness ≥ `FIRM_VARIANT_CLOSENESS_MAX`); PII regex (email/phone) on narrative-class surfaces; violations reject the section.
+- **Wire site:** `run-cppa-risk-assessment/index.ts` — assembler invoked immediately after authoritative RenderPlan write; wrapped in try/catch (non-fatal); telemetry event `ltp_pass2_assembler_shadow_ran` emitted.
+- **Ping surface:** `pass2_assembler_shadow: ltp-pass2-assembler-2026-07-28-tm5-shadow`.
+
+**Tests:**
+- `_shared/ltp/pass2-assembler.test.ts` — 6/6 green (full-report fixture, manifest-hydration omission, submission_summary auto-default acceptance, forced-conflict opening rejection with telemetry paste, emission-across-kinds, telemetry-only shipped guards).
+- `_shared/ltp/waveb.test.ts` — 10/10 green after stale-assertion fixes.
+- Full LTP suite (`deno test --no-check _shared/ltp/`): **196 passed | 1 failed** — only pre-existing `retry-budget.branch-correction` (queued T-M7).
+
+**Forced-conflict harvest paste:**
+```
+[tm5-forced-conflict-paste] {"guard_version":"harvest-guard@2026-07-28-tm3","harvest_key":"opening_summary","artifact_present":true,"artifact_len":56,"rejection_reason":"harvest_intake_ref_not_in_plan_ledger","evidence":["ungrounded_intake_ref:s1_prong=nonexistent_intake_field_zzz"]}
+```
+
+**Deploy:** `run-cppa-risk-assessment` deployed twice (assembler wire + ping surface). Ping verified live.
+
+**Courier:** `docs/courier/T-M5-PASS2-ASSEMBLER-SHADOW-2026-07-28.md`.
+
+**Disposition:** SHIPPED-SHADOW. **HARD STOP after courier + ledger.** Next per Item 218 plan: **T-M6 — assembler cutover** (parity mode against legacy composer, then promote shadow to shipped body).
