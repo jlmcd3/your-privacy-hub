@@ -3919,6 +3919,9 @@ Deno.serve(async (req) => {
       pass1_model: PASS1_MODEL,
       pass1_max_attempts: PASS1_MAX_ATTEMPTS,
       pass1_stamp: PASS1_MANIFEST.stamp,
+      // T-M5 (Item 225) — Pass-2 assembler shadow surface.
+      pass2_assembler_shadow: PASS2_ASSEMBLER_VERSION,
+
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
