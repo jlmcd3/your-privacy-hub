@@ -52,6 +52,8 @@ export interface FinalizeInput {
   readonly hookValue: string | undefined | null;
   /** Whether the composition branch actually took the write-around path. */
   readonly writeAroundEntered: boolean;
+  /** Item 217: origin of the write-around entry, when known. */
+  readonly writeAroundOrigin?: WriteAroundOrigin;
   /** Optional one-shot recompose driver. Returns the recomposed report_data. */
   readonly recompose?: (hits: readonly ValueScreenHit[]) => unknown;
   /** Override env-derived mode; primarily for tests. */
