@@ -36,8 +36,10 @@ Deno.test("CP5 (a) scope: each prong instance carries prong_subject + own PINPOI
   assert(notEngaged.plan_slots.includes("prong_subject"));
 
   const plan = fixturePlan();
-  const scope = composeSection("scope_and_triggers", plan)!;
+  const scope = composeSection("scope_and_triggers", plan)!
+    .filter((i) => !i.template_id.startsWith("T.risk.section_opener."));
   assertEquals(scope.length, 5, "must emit one instance per § 7150(b) prong");
+
   const pinpoints = new Set<string>();
   for (const inst of scope) {
     const cite = (inst.ctx as { __cite?: Record<string, string> }).__cite ?? {};
