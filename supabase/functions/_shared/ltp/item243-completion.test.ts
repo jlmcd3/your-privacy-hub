@@ -54,7 +54,7 @@ Deno.test("defect 4 — RECORD_STATUS_CLAUSES includes the ADMT not-applicable c
 
 Deno.test("defect 5 — factual gate id set defines exactly the four § 7152(a) documentation gates", async () => {
   const mod = await import("./section-composers/cppa-risk.ts");
-  const ids: Set<string> = mod.DOCUMENTATION_FACTUAL_GATE_IDS;
+  const ids: ReadonlySet<string> = mod.DOCUMENTATION_FACTUAL_GATE_IDS;
   assertEquals(ids.size, 4);
   assert(ids.has("G.documentation.purpose_present"));
   assert(ids.has("G.documentation.categories_present"));
