@@ -42,8 +42,9 @@ import {
   type ShippedValueScreenEvaluation,
 } from "./composition-finalize.ts";
 import { renderCyberAuditSchedule } from "./cyber-audit-schedule.ts";
+import { composeSection } from "./section-composers/cppa-risk.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-tm6";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item235-fill-or-omit";
 
 /**
  * COMPOSITION SHAPE DECLARATION (T-M6(f); CEO ruling 2026-07-28 verbatim):
@@ -213,18 +214,26 @@ function renderTemplateSection(
   plan: RenderPlan,
   closeBalance: boolean,
 ): RenderedSection {
-  const ids = shard.owner.template_ids;
   const rendered: string[] = [];
   const errors: string[] = [];
   const usedIds: string[] = [];
-  for (const id of ids) {
-    if (id === "deterministic") continue;
-    const r = renderTemplate(id, plan);
+
+  // ITEM 235 (T-M9.5) — per-instance composer path. When a composer
+  // exists for this key, render each instance with its populated ctx.
+  // Renderer enforces fill-or-omit at the instance level.
+  const instances = composeSection(shard.key, plan);
+  const renderList: { id: string; ctx: Record<string, unknown> }[] = instances
+    ? instances.map((i) => ({ id: i.template_id, ctx: i.ctx as Record<string, unknown> }))
+    : shard.owner.template_ids
+        .filter((id) => id !== "deterministic")
+        .map((id) => ({ id, ctx: {} }));
+
+  for (const { id, ctx } of renderList) {
+    const r = renderTemplate(id, plan, ctx);
     if (r.errors.length > 0) errors.push(...r.errors.map((e) => `${id}:${e}`));
     if (r.text && r.text.length > 0) {
       rendered.push(r.text);
       usedIds.push(id);
-      // §2.5 flat-certainty on close balance.
       if (closeBalance) {
         const cal = assertCalibrationMatch(id, FIRM_VARIANT_CLOSENESS_MAX);
         if (cal) {
@@ -244,7 +253,6 @@ function renderTemplateSection(
     }
   }
   const value = rendered.length > 0 ? rendered : undefined;
-  // PII gate on narrative-class surfaces.
   if (value !== undefined && NARRATIVE_CLASS_KEYS.has(shard.key)) {
     const pii = containsPii(value);
     if (pii) {

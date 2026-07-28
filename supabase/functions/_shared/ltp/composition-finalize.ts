@@ -378,7 +378,7 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       hook_audit_ok: true,
       hook_value_present: hookPresent,
       write_around_entered: input.writeAroundEntered,
-      write_around_origin: input.writeAroundEntered ? (input.writeAroundOrigin ?? "unknown") : null,
+      write_around_origin: input.writeAroundEntered ? (input.writeAroundOrigin ?? null) : null,
     },
   };
 }
