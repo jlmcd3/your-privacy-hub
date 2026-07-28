@@ -17,12 +17,14 @@ import { derivePlan } from "../derive.ts";
 Deno.test("content: pass1 prompt loads and carries expected priority rules", () => {
   assert(PASS1_DERIVE_PROMPT_VERSION.startsWith("pass1-derive-"));
   assert(PASS1_DERIVE_SYSTEM.includes("You DERIVE; you never write prose"));
-  assert(PASS1_DERIVE_SYSTEM.includes("INTAKE LEDGER"));
-  assert(PASS1_DERIVE_SYSTEM.includes("byte-exact substring"));
+  // ITEM 240 CP2 — SINGLE-WRITER LAW replaces prior INTAKE LEDGER rule.
+  assert(PASS1_DERIVE_SYSTEM.includes("SINGLE-WRITER LAW"));
+  assert(PASS1_DERIVE_SYSTEM.includes("adapter OWNS these fields"));
   assert(PASS1_DERIVE_SYSTEM.includes("NO PROSE"));
   assert(PASS1_DERIVE_USER_TEMPLATE.includes("{intake_json}"));
   assert(PASS1_DERIVE_USER_TEMPLATE.includes("{response_schema}"));
 });
+
 
 Deno.test("content: passv prompt loads and forbids rewrite", () => {
   assert(PASSV_VERIFY_PROMPT_VERSION.startsWith("passv-verify-"));

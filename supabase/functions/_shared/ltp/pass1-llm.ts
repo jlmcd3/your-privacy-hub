@@ -22,8 +22,14 @@
  *      count, outcome (ok|abort|error). This is the empirical basis for
  *      tuning the 120s number later — no more blind budgets.
  */
-import { derivePlan, type DeriveInput } from "./derive.ts";
-import type { RenderPlan } from "../render-plan/schema.ts";
+import {
+  derivePlan,
+  pickLedger,
+  pickCitationBindings,
+  pickFactorTable,
+  type DeriveInput,
+} from "./derive.ts";
+import type { RenderPlan, Proposition, FactorTableEntry } from "../render-plan/schema.ts";
 import { validateRenderPlan } from "../render-plan/validators.ts";
 import { WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
@@ -35,15 +41,18 @@ import {
   PASS1_DERIVE_USER_TEMPLATE,
   PASS1_DERIVE_PROMPT_VERSION,
 } from "./content/pass1-derive-prompt.ts";
+import { evaluateCppaRiskGates } from "./gate-eval.ts";
+import { runGuideStage } from "./guide.ts";
 import {
   callAnthropicWithContinuation,
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-validator-evidence@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-cp2-single-writer@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
+
 
 export const PASS1_ABORT_TIMEOUT_ERROR = "pass1_abort_timeout";
 
@@ -92,6 +101,124 @@ function fillUserTemplate(input: DeriveInput): string {
     .replace("{gate_registry}", JSON.stringify(CPPA_RISK_GATES))
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
 }
+
+/**
+ * ITEM 240 CP2 — SINGLE-WRITER CORE.
+ *
+ * After the model returns, the adapter overwrites every deterministically-
+ * owned field on the RenderPlan with the same functions used by the shadow
+ * derive path (single source of truth). Then runs the Guide stage to
+ * populate `weighing_frame` and binds `weighing_frame_ref` on every engaged
+ * Type-W proposition. Type-W propositions whose weighing test has no Guide
+ * candidates are converted to epistemic_type "J" per the §0 empty-by-
+ * finding contract so V7 does not reject the plan for something Guide
+ * cannot produce.
+ *
+ * Model-emitted values for owned fields are TELEMETERED as drift and
+ * discarded; they are never shipped.
+ */
+function applySingleWriterInjection(
+  parsed: Record<string, unknown>,
+  input: DeriveInput,
+): { plan: RenderPlan; empty_by_finding: readonly string[] } {
+  const ledger = pickLedger(input.intake ?? {});
+  const bindings = pickCitationBindings();
+  const gate_outcomes = evaluateCppaRiskGates(input.intake ?? {});
+  const factorScaffold = pickFactorTable();
+
+  // Preserve model-authored judgment overlays on factor_table
+  // (weight_note + present_in_intake) keyed by factor_id.
+  const modelFactorsRaw = Array.isArray(parsed.factor_table) ? parsed.factor_table as unknown[] : [];
+  const modelByFactor = new Map<string, Record<string, unknown>>();
+  for (const f of modelFactorsRaw) {
+    if (f && typeof f === "object" && typeof (f as any).factor_id === "string") {
+      modelByFactor.set((f as any).factor_id, f as Record<string, unknown>);
+    }
+  }
+  const factor_table: FactorTableEntry[] = factorScaffold.map((row) => {
+    const m = modelByFactor.get(row.factor_id);
+    if (!m) return row;
+    const weight_note = typeof m.weight_note === "string" ? String(m.weight_note).slice(0, 240) : undefined;
+    const present_in_intake = typeof m.present_in_intake === "boolean" ? m.present_in_intake : row.present_in_intake;
+    return { ...row, present_in_intake, ...(weight_note ? { weight_note } : {}) } as FactorTableEntry;
+  });
+
+  // Propositions: adapter-authored id/anchor/refs skeleton keyed by
+  // conclusion, with model-authored polarity preserved for Type R when
+  // provided; ledger/citation refs are adapter-derived.
+  const bindingIdByConclusion = new Map(bindings.map((b) => [b.pinpoint_ref.replace(/^cb\./, ""), b.pinpoint_ref]));
+  const ledgerIds = ledger.map((l) => l.ledger_id);
+  const modelPropsRaw = Array.isArray(parsed.propositions) ? parsed.propositions as unknown[] : [];
+  const modelPropByConclusion = new Map<string, Record<string, unknown>>();
+  for (const p of modelPropsRaw) {
+    if (p && typeof p === "object" && typeof (p as any).conclusion_id === "string") {
+      modelPropByConclusion.set((p as any).conclusion_id, p as Record<string, unknown>);
+    }
+  }
+  const propositions: Proposition[] = CPPA_RISK_CONCLUSIONS.map((c) => {
+    const m = modelPropByConclusion.get(c.id);
+    const modelPolarity = m && typeof m.polarity === "string" ? m.polarity : undefined;
+    const polarity =
+      c.epistemic_type === "R"
+        ? (modelPolarity === "positive" || modelPolarity === "negative" || modelPolarity === "not_applicable"
+            ? modelPolarity
+            : "not_applicable")
+        : undefined;
+    return {
+      id: `p.${c.id}`,
+      conclusion_id: c.id,
+      epistemic_type: c.epistemic_type,
+      jurisdiction_tag: c.jurisdiction_tag,
+      anchor: c.anchor,
+      intake_ledger_refs: c.epistemic_type === "R" ? ledgerIds.slice(0, 2) : [],
+      citation_binding_refs: [bindingIdByConclusion.get(c.id) ?? `cb.${c.id}`],
+      ...(polarity ? { polarity } : {}),
+    } as Proposition;
+  });
+
+  const seed: RenderPlan = {
+    plan_version: "v1",
+    product: "cppa-risk-assessment",
+    build_stamp: input.buildStamp,
+    jurisdiction_tag: "cppa-ca",
+    intake_ledger: ledger,
+    citation_bindings: bindings,
+    propositions,
+    factor_table,
+    weighing_frame: [],
+    gate_outcomes,
+    conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
+  };
+
+  // Guide precedes validation by construction.
+  const guide = runGuideStage(seed);
+  const frameIdsByTest = new Map<string, string>();
+  for (const f of guide.frame) {
+    if (!frameIdsByTest.has(f.test_id)) frameIdsByTest.set(f.test_id, f.frame_id);
+  }
+
+  // Bind weighing_frame_ref on Type-W props; convert unframed to Type-J
+  // per §0 empty-by-finding contract.
+  const boundProps: Proposition[] = seed.propositions.map((p) => {
+    if (p.epistemic_type !== "W") return p;
+    const conc = CPPA_RISK_CONCLUSIONS.find((c) => c.id === p.conclusion_id);
+    const testId = conc?.weighing_test_id;
+    const frameId = testId ? frameIdsByTest.get(testId) : undefined;
+    if (frameId) return { ...p, weighing_frame_ref: frameId };
+    // Empty-by-finding: reserve judgment.
+    return { ...p, epistemic_type: "J" as const };
+  });
+
+  const plan: RenderPlan = {
+    ...seed,
+    propositions: boundProps,
+    weighing_frame: guide.frame,
+  };
+  return { plan, empty_by_finding: guide.empty_by_finding };
+}
+
+
+
 
 async function callPass1Model(
   system: string,
@@ -192,22 +319,17 @@ export async function runPass1Llm(
       }
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       const jsonText = jsonMatch ? jsonMatch[0] : raw;
-      const parsed = JSON.parse(jsonText);
-      // T-M9.4 (Item 234) — VALID PLAN INVARIANT.
-      // A validator-clean Pass-1 output is authoritative. The model's own
-      // `conservative_write_around` flag is IGNORED on the ok path — Type-J
-      // write-around fires ONLY on terminal LLM failure (abort×N, validator
-      // hard-reject, or exception). Preserving a model-emitted triggered=true
-      // here caused run #168's clean plan to be discarded by the cutover
-      // classifier and routed to Type-J with a stale clock_cap origin.
-      const candidate: RenderPlan = {
-        ...parsed,
-        plan_version: "v1",
-        product: "cppa-risk-assessment",
-        build_stamp: input.buildStamp,
-        conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
-      };
+      const parsed = JSON.parse(jsonText) as Record<string, unknown>;
+      // ITEM 240 CP2 — SINGLE-WRITER CORE.
+      // Parse → adapter INJECTS deterministic fields → Guide populates
+      // weighing_frame + binds refs → THEN validate. This is the sequencing
+      // fix for run #173's V7_W_PROP_NO_FRAME (Guide previously ran after
+      // validation, so V7 demanded frames the model was never asked for).
+      // T-M9.4 VALID PLAN INVARIANT retained: model's own
+      // conservative_write_around is IGNORED on the ok path.
+      const { plan: candidate } = applySingleWriterInjection(parsed, input);
       const issues = validateRenderPlan(candidate, WEIGHING_TESTS);
+
       if (issues.length > 0) {
         lastErr = `validator_issues:${issues.length}`;
         allAborted = false;
