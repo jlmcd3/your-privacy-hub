@@ -97,12 +97,22 @@ export function assertStructuredSlotShape(
 }
 const _PASS2_RENDER_VERSION_UNUSED = "ltp-pass2-render-2026-07-26";
 
+export interface SlotTelemetry {
+  readonly template_id: string;
+  readonly slot: string;
+  readonly source: "ctx" | "plan" | "none";
+  readonly required: boolean;
+  readonly empty: boolean;
+}
+
 export interface RenderResult {
   readonly template_id: string;
   readonly text: string;
   readonly errors: readonly string[];
   readonly slots_resolved: number;
   readonly slots_missing: number;
+  /** ITEM 235b (T-M9.5b, LAW 1) — per-slot resolution record. */
+  readonly slot_telemetry: readonly SlotTelemetry[];
 }
 
 function substituteCitations(
@@ -156,25 +166,40 @@ function substitutePlanSlots(
   plan: RenderPlan,
   slots: readonly string[],
   ctx: SlotContext,
+  templateId: string,
+  requiredSet: readonly string[],
   errors: string[],
-): { text: string; resolved: number; missing: number; empty_slots: string[] } {
+): { text: string; resolved: number; missing: number; empty_slots: string[]; slot_telemetry: SlotTelemetry[] } {
   let out = text;
   let resolved = 0;
   let missing = 0;
   const empty_slots: string[] = [];
+  const slot_telemetry: SlotTelemetry[] = [];
   for (const slot of slots) {
     const token = `{{plan:${slot}}}`;
+    const ctxVal = (ctx as Record<string, unknown>)[slot];
+    const source: "ctx" | "plan" =
+      typeof ctxVal === "string" && ctxVal.trim().length > 0 ? "ctx" : "plan";
     const value = resolveSlot(plan, slot, ctx);
-    if (value === "" || value === "no items on the record") {
+    const empty = value === "" || value === "no items on the record";
+    if (empty) {
       missing++;
       empty_slots.push(slot);
     } else {
       resolved++;
     }
+    slot_telemetry.push({
+      template_id: templateId,
+      slot,
+      source: empty ? "none" : source,
+      required: requiredSet.includes(slot),
+      empty,
+    });
     out = out.replaceAll(token, value);
   }
-  return { text: out, resolved, missing, empty_slots };
+  return { text: out, resolved, missing, empty_slots, slot_telemetry };
 }
+
 
 function checkForbiddenTokens(text: string, errors: string[]): void {
   for (const t of PASS2_FORBIDDEN_TOKENS) {
