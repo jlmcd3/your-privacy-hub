@@ -45,9 +45,13 @@ export function computeCloseness(plan: RenderPlan, frame: readonly WeighingFrame
   return Math.max(0, Math.min(1, unified));
 }
 
-export function chooseVariant(closeness: number, threshold = 0.6): Variant {
+export function chooseVariant(closeness: number, threshold: number = FIRM_VARIANT_CLOSENESS_MAX): Variant {
   // ITEM 236 fix (b) — CEO ruling: at closeness ≥ threshold the balance
   // is close enough that firm assertion is not warranted; hedge and
   // surface what would tip it. Below threshold → firm.
+  // ITEM 240 (B) — the 0.6 literal is retired; the canonical threshold
+  // FIRM_VARIANT_CLOSENESS_MAX from pass2-templates.ts is the single
+  // source of truth (also used by the assembler close-balance guard and
+  // by assertCalibrationMatch).
   return closeness >= threshold ? "hedged" : "firm";
 }
