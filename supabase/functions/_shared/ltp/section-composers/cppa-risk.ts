@@ -22,7 +22,37 @@ import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec 
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-batch3";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-cpb-final";
+
+/**
+ * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
+ * Consumed as `element_short_label` PREFIX in T.risk.priority_action.golden
+ * per courier §2.1. Bold header becomes `${STEM} ${label}`. Rest of the
+ * golden template (customer_recorded_fact_clause, gap_or_consequence,
+ * compliance_guidance, deadline_sentence, owner) continues to render.
+ */
+export type ActionKind =
+  | "benefit_absent"
+  | "harm_absent"
+  | "safeguard_absent"
+  | "gate_unresolved"
+  | "type_j_reserved"
+  | "conditional";
+
+export const KIND_OPENERS: Readonly<Record<ActionKind, string>> = {
+  benefit_absent: "Additional information would be needed to substantiate the stated benefit of",
+  harm_absent: "Additional information would be needed to address the potential negative impact category",
+  safeguard_absent: "Additional information would be needed to document the safeguard",
+  gate_unresolved: "Additional information would be needed for",
+  type_j_reserved: "Qualified counsel should be consulted for further consideration of",
+  conditional: "Additional information would be necessary to substantiate",
+};
+
+export const FAMILY_THRESHOLDS: Readonly<Record<"harm" | "safeguard" | "benefit", number>> = {
+  harm: 2,
+  safeguard: 2,
+  benefit: 3,
+};
 
 export { aggregateBalance, DOCUMENTATION_FACTUAL_GATE_IDS, DOCUMENTATION_JUDGMENT_GATE_IDS };
 // ITEM 242 batch-3 A — expose the two composers under test for the
