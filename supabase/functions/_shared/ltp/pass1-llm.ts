@@ -90,6 +90,8 @@ export interface Pass1Telemetry {
   readonly timeout_enforced: string;
   readonly per_attempt_timeout_ms: number;
   readonly attempts_detail: readonly Pass1AttemptDetail[];
+  /** ITEM 242 CP-C — present/note coherence rewrites (dedicated key, NOT wa_origin). */
+  readonly pass1_coherence_rewrites?: readonly CoherenceRewrite[];
 }
 
 export interface Pass1Result {
