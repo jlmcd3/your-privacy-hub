@@ -16,7 +16,7 @@ import {
   buildGroundedSet,
   isGrounded,
   applyGroundedNoteScreen,
-} from "../_shared/ltp/pass1-grounded-note.ts";
+} from "../_shared/ltp/grounded-note.ts";
 import { PASS1_DERIVE_PROMPT_VERSION, PASS1_DERIVE_SYSTEM } from "../_shared/ltp/content/pass1-derive-prompt.ts";
 import { PASS1_LLM_STAMP } from "../_shared/ltp/pass1-llm.ts";
 import type { IntakeLedgerEntry, RenderPlan } from "../_shared/render-plan/schema.ts";

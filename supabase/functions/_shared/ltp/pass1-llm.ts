@@ -54,7 +54,7 @@ import {
 import {
   applyGroundedNoteScreen,
   type GroundedNoteTelemetry,
-} from "./pass1-grounded-note.ts";
+} from "./grounded-note.ts";
 
 export const PASS1_LLM_STAMP = "ltp-pass1-llm-item242-bc-rider-grounded-note@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
