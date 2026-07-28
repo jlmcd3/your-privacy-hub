@@ -55,7 +55,34 @@ import {
 } from "../report-contracts/cppa-risk-shape.ts";
 import { evaluateGoldenShape, type GoldenShapeReport } from "./golden-shape-quotas.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item241-3-wiring";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item243-posture-live";
+
+/**
+ * ITEM 243 defect 2 — Rebuild the intake dict from plan.intake_ledger so
+ * the assembler can compute § 7120(b) prong outcomes without a signature
+ * change. The ledger IS the Pass-2 source of truth for intake facts.
+ */
+function intakeFromLedger(plan: RenderPlan): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const l of plan.intake_ledger ?? []) {
+    if (l.intake_field) out[l.intake_field] = l.value;
+  }
+  return out;
+}
+
+function buildDefaultSubmissionSummary(plan: RenderPlan): string {
+  const schedule = renderCyberAuditSchedule();
+  try {
+    const intake = intakeFromLedger(plan);
+    const outcomes = computeProngOutcomes(intake as Record<string, any>);
+    const postures = renderAllProngPostures(outcomes);
+    if (postures.length === 0) return schedule;
+    return `${schedule}\n\nSubmission postures under 11 CCR § 7120(b):\n\n${postures.join("\n\n")}`;
+  } catch {
+    // Fail-open — never lose the schedule text on a posture crash.
+    return schedule;
+  }
+}
 
 /**
  * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
