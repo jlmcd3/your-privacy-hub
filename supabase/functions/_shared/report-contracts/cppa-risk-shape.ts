@@ -117,3 +117,57 @@ export function assertExecSummaryCoherent(text: string): string | null {
   }
   return null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// CP5-COHERENCE-PROSE — EXEC/BALANCE COHERENCE, RUNTIME-ENFORCED AT EXIT.
+// The CP4 assert compared composer inputs; it did NOT re-inspect the
+// shipped strings after coercion. The class of "insufficient exec over a
+// firm balance" survived because the assert never fired at the wire.
+// This helper fingerprints the SHIPPED strings and returns a diagnostic
+// when the two modes disagree. The assembler wires it into the exit
+// checks and rejects the ship in enforce mode.
+// ─────────────────────────────────────────────────────────────────────────
+
+export type ShippedMode = "firm" | "hedged" | "negative" | "insufficient" | "unknown";
+
+/** Fingerprint a shipped narrative string against its composer's mode. */
+export function detectShippedMode(text: unknown): ShippedMode {
+  if (typeof text !== "string" || !text.trim()) return "unknown";
+  const s = text.toLowerCase();
+  // Order matters: insufficient wins over hedged/firm phrases that may
+  // co-occur in a mixed sentence; negative wins over firm.
+  if (/not sufficient to complete|items needed to complete this assessment/.test(s)) return "insufficient";
+  if (/does not support the conclusion that the benefits outweigh/.test(s)) return "negative";
+  if (/close balance|balance (?:between|of).*is close|reasonable assessments could differ/.test(s)) return "hedged";
+  if (/benefits (?:identified )?outweigh (?:the )?negative impacts|outweigh the identified negative impacts/.test(s)) return "firm";
+  return "unknown";
+}
+
+export interface ShippedCoherenceViolation {
+  readonly kind: "exec_balance_mode_mismatch";
+  readonly executive_summary_mode: ShippedMode;
+  readonly assessment_summary_mode: ShippedMode;
+  readonly evidence: string;
+}
+
+/** Enforce exec/balance coherence on the SHIPPED report. Returns [] when OK. */
+export function assertShippedCoherence(
+  report: Record<string, unknown>,
+): readonly ShippedCoherenceViolation[] {
+  const execText = typeof report.executive_summary === "string" ? report.executive_summary : "";
+  const asBag = report.assessment_summary as { narrative?: unknown } | undefined;
+  const asText = typeof asBag?.narrative === "string" ? asBag.narrative : "";
+  const execMode = detectShippedMode(execText);
+  const asMode = detectShippedMode(asText);
+  // Only enforce when both sides fingerprint to a known mode.
+  if (execMode === "unknown" || asMode === "unknown") return [];
+  if (execMode === asMode) return [];
+  // "insufficient" on assessment_summary + non-insufficient exec is the
+  // CP5-recurring class; the reverse is symmetrically invalid.
+  return [{
+    kind: "exec_balance_mode_mismatch",
+    executive_summary_mode: execMode,
+    assessment_summary_mode: asMode,
+    evidence: `exec=${execMode}; balance=${asMode}`,
+  }];
+}
