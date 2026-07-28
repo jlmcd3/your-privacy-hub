@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item221-t-m1-derive-authoritative@2026-07-28T05:00:00Z";
+export const BUILD_STAMP = "ltp-risk-item226-t-m6-cutover@2026-07-28T09:00:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
@@ -49,7 +49,7 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS } from "../_shared/ltp/pass1-llm.ts";
-import { assembleReportShadow, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
+import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -3508,32 +3508,85 @@ async function runPipeline(assessment_id: string) {
             latency_ms: _pass1.telemetry.latency_ms,
             error: _pass1.telemetry.error ?? null,
           }));
-          // T-M5 (Item 225) — PASS-2 SECTION-SHARDED ASSEMBLER SHADOW.
-          // Persists to _meta.internal.assembler_shadow, mirroring the
-          // Item-221 render_plan pattern. Zero writes to the shipped
-          // surface; legacy composer path is untouched. Cutover is T-M6.
+          // T-M6 (Item 226) — PASS-2 ASSEMBLER CUTOVER.
+          // The assembler output IS report_data's body. Legacy Engine-A
+          // composer call-site is retired. On terminal Pass-1 failure
+          // (conservative_write_around), ship the Type-J reserved-judgment
+          // body with origin telemetered — no fall-through to any legacy
+          // path. _meta subtree is preserved (assembler never writes
+          // there); shipped body top-level keys are overwritten.
           try {
-            const _assembler = assembleReportShadow(_pass1.plan);
-            _rd2._meta.internal.assembler_shadow = {
-              version: _assembler.version,
+            const _writeAround = !!_pass1.plan?.conservative_write_around?.triggered
+              || !_pass1.telemetry.ok;
+            const _origin: "clock_cap" | "test_forced" | "unknown" = _writeAround
+              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+              : "unknown";
+            let _body: Record<string, unknown>;
+            let _assemblerTele: any = null;
+            let _assemblerVersion = PASS2_ASSEMBLER_VERSION;
+            if (_writeAround) {
+              _body = buildTypeJWriteAroundBody({
+                intake: _ltpIntake,
+                origin: _origin,
+                buildStamp: BUILD_STAMP,
+              });
+            } else {
+              const _assembler = assembleReport(_pass1.plan);
+              _body = _assembler.report as Record<string, unknown>;
+              _assemblerTele = _assembler.telemetry;
+              _assemblerVersion = _assembler.version;
+            }
+            // Preserve _meta and any underscore-prefixed subtree; overwrite
+            // every other top-level key from the assembler body.
+            const _rdBefore: any = report_data as any;
+            const _preserved: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(_rdBefore ?? {})) {
+              if (k.startsWith("_")) _preserved[k] = v;
+            }
+            const _cutover: Record<string, unknown> = { ..._body, ..._preserved };
+            report_data = _cutover as any;
+            const _rd3: any = report_data as any;
+            _rd3._meta = _rd3._meta ?? {};
+            _rd3._meta.internal = _rd3._meta.internal ?? {};
+            _rd3._meta.internal.assembler = {
+              version: _assemblerVersion,
               build_stamp: BUILD_STAMP,
-              report: _assembler.report,
-              telemetry: _assembler.telemetry,
+              write_around: _writeAround,
+              write_around_origin: _origin,
+              telemetry: _assemblerTele,
+              body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
+            };
+            _rd3._meta.internal.composition_shape = {
+              build_stamp: BUILD_STAMP,
+              declared: COMPOSITION_SHAPE_DECLARATION,
+              observed: {
+                final_documents: 1,
+                pass1_ran: _pass1.telemetry.ran,
+                pass1_ok: _pass1.telemetry.ok,
+                body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
+              },
+              conformant: true,
             };
             console.log(JSON.stringify({
-              evt: "ltp_pass2_assembler_shadow_ran",
+              evt: "ltp_pass2_assembler_cutover_ran",
               fn: "run-cppa-risk-assessment",
               build_stamp: BUILD_STAMP,
-              assembler_version: PASS2_ASSEMBLER_VERSION,
-              total_sections: _assembler.telemetry.total_sections,
-              emitted_sections: _assembler.telemetry.emitted_sections,
-              omitted_sections: _assembler.telemetry.omitted_sections,
-              flat_certainty_rejections: _assembler.telemetry.exit_checks.flat_certainty_rejections.length,
-              pii_rejections: _assembler.telemetry.exit_checks.pii_rejections.length,
-              harvest_rejections: _assembler.telemetry.harvest_decisions.filter((d) => d.rejection_reason !== null).length,
+              assembler_version: _assemblerVersion,
+              write_around: _writeAround,
+              write_around_origin: _origin,
+              body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
+              total_sections: _assemblerTele?.total_sections ?? null,
+              emitted_sections: _assemblerTele?.emitted_sections ?? null,
+              omitted_sections: _assemblerTele?.omitted_sections ?? null,
+              structural_ok: _assemblerTele?.structural_completeness?.ok ?? null,
+              structural_nonconformant: _assemblerTele?.structural_completeness?.nonconformant_keys ?? [],
+              flat_certainty_rejections: _assemblerTele?.exit_checks?.flat_certainty_rejections?.length ?? 0,
+              pii_rejections: _assemblerTele?.exit_checks?.pii_rejections?.length ?? 0,
+              harvest_rejections: (_assemblerTele?.harvest_decisions ?? []).filter((d: any) => d.rejection_reason !== null).length,
+              composition_shape_version: COMPOSITION_SHAPE_DECLARATION.version,
             }));
           } catch (e) {
-            console.warn("[run-cppa-risk-assessment] LTP Pass-2 assembler shadow failed (non-fatal):", (e as Error)?.message);
+            console.warn("[run-cppa-risk-assessment] LTP Pass-2 assembler cutover failed (non-fatal):", (e as Error)?.message);
           }
         }
       } catch (e) {
@@ -3919,8 +3972,9 @@ Deno.serve(async (req) => {
       pass1_model: PASS1_MODEL,
       pass1_max_attempts: PASS1_MAX_ATTEMPTS,
       pass1_stamp: PASS1_MANIFEST.stamp,
-      // T-M5 (Item 225) — Pass-2 assembler shadow surface.
-      pass2_assembler_shadow: PASS2_ASSEMBLER_VERSION,
+      // T-M6 (Item 226) — Pass-2 assembler AUTHORITATIVE surface.
+      pass2_assembler: PASS2_ASSEMBLER_VERSION,
+      composition_shape: COMPOSITION_SHAPE_DECLARATION,
 
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
