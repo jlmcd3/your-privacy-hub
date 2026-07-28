@@ -409,7 +409,12 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // (min_chars=500 in the quota table).
   "T.risk.record_sufficiency.prose": {
     id: "T.risk.record_sufficiency.prose",
-    text: "The record supporting this assessment is {{plan:sufficiency_clause}}. {{plan:entity_name}} has documented the four factual elements § 7152(a) requires — {{plan:factual_elements_summary_clause}} — and has recorded reserved judgments for {{plan:reserved_judgments_list}}, each attached to the specific record element the judgment governs. Reserved judgments are decisions counsel or the external auditor holds under {{plan:type_j_pinpoints}}; they are not gaps in the record and do not diminish record sufficiency. Where a factual element is absent, the deficiency is enumerated in the safeguard-gaps section with its own pinpoint. As of {{plan:as_of_date}}, the record is sufficient for the § 7152(a)(6) balancing frame to weigh.",
+    // ITEM 242 (defect 6) — closer bound to the SAME source as the opener
+    // via `sufficiency_closer_clause`. The composer derives both from a
+    // single boolean; contradiction between opener and closer is
+    // structurally impossible after this change. The e2e contradiction
+    // assert (item242-record-sufficiency.test.ts) enforces it.
+    text: "The record supporting this assessment is {{plan:sufficiency_clause}}. {{plan:entity_name}} has documented the four factual elements § 7152(a) requires — {{plan:factual_elements_summary_clause}} — and has recorded reserved judgments for {{plan:reserved_judgments_list}}, each attached to the specific record element the judgment governs. Reserved judgments are decisions counsel or the external auditor holds under {{plan:type_j_pinpoints}}; they are not gaps in the record and do not diminish record sufficiency. Where a factual element is absent, the deficiency is enumerated in the safeguard-gaps section with its own pinpoint. As of {{plan:as_of_date}}, the record {{plan:sufficiency_closer_clause}}.",
     citation_slots: [],
     plan_slots: [
       "sufficiency_clause",
@@ -418,6 +423,7 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
       "reserved_judgments_list",
       "type_j_pinpoints",
       "as_of_date",
+      "sufficiency_closer_clause",
     ],
     intake_slots: [],
     max_chars: 1400,
