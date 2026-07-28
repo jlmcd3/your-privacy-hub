@@ -310,3 +310,75 @@ Deno.test("finalize: smoke-#9 exact composed shape (5 unowned + clean surface) p
 });
 
 
+
+// ── ITEM 215 — POST-SERIALIZER SHIPPED VALUE-SCREEN ─────────────────
+import {
+  evaluateShippedValueScreen,
+  SHIPPED_VALUE_SCREEN_VERSION,
+  isRetiredSurfacePath,
+} from "./composition-finalize.ts";
+
+Deno.test("shipped-value-screen: version stamp (Item 215)", () => {
+  assertEquals(SHIPPED_VALUE_SCREEN_VERSION, "shipped-value-screen@2026-07-28-item215");
+});
+
+Deno.test("shipped-value-screen: clean shipped projection → no hits, no violation", () => {
+  const shipped = { assessment_summary: { narrative: "The record supports the assessment." } };
+  const e = evaluateShippedValueScreen(shipped, { mode: "enforce" });
+  assertEquals(e.hits.length, 0);
+  assertEquals(e.enforce_violation, false);
+});
+
+Deno.test("shipped-value-screen: leak-lexicon on shipped projection FAILS in enforce (Item 215)", () => {
+  const shipped = { assessment_summary: { narrative: "Per Engine-B composition, safeguards recommended." } };
+  const e = evaluateShippedValueScreen(shipped, { mode: "enforce" });
+  assert(e.hits.length > 0);
+  assertEquals(e.enforce_violation, true);
+  assertEquals(e.hits[0].kind, "leak-lexicon");
+});
+
+Deno.test("shipped-value-screen: truncated-slot-value on shipped projection FAILS in enforce (Item 215)", () => {
+  const shipped = { submission_summary: { deadline_basis: "We" } };
+  const e = evaluateShippedValueScreen(shipped, { mode: "enforce" });
+  assert(e.hits.some((h) => h.kind === "truncated-slot-value"));
+  assertEquals(e.enforce_violation, true);
+});
+
+Deno.test("shipped-value-screen: observe mode records hits but no enforce violation", () => {
+  const shipped = { assessment_summary: { narrative: "Per Engine-B composition." } };
+  const e = evaluateShippedValueScreen(shipped, { mode: "observe" });
+  assert(e.hits.length > 0);
+  assertEquals(e.enforce_violation, false);
+});
+
+Deno.test("shipped-value-screen: NEVER throws on internal error input", () => {
+  // Circular structure would blow up JSON walkers; screen must swallow.
+  const shipped: any = { a: 1 };
+  shipped.self = shipped;
+  const e = evaluateShippedValueScreen(shipped, { mode: "enforce" });
+  assertEquals(e.enforce_violation, false); // no hits observed → no violation
+});
+
+Deno.test("finalize: SMOKE-#10 exact shape — lint_warnings referencing retired path passes finalize errored=false with hit telemetered (Item 215)", () => {
+  const rd = {
+    assessment_summary: { narrative: "The record supports the assessment." },
+    scope_and_triggers: { triggered_activities_detail: [{ x: 1 }] },
+    inconsistency_flags: [],
+    lint_warnings: [{ field: "cross_tool_recommendations.cybersecurity_audit_rationale", msg: "stale" }],
+  };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.enforce_violation, false);
+  const pending = res.telemetry.inner?.pre_serializer_value_screen_pending ?? [];
+  assert(pending.some((h) => h.match === "cross_tool_recommendations"));
+});
+
+Deno.test("isRetiredSurfacePath: matches CUT top-level prefixes, rejects live paths (Item 215)", () => {
+  assertEquals(isRetiredSurfacePath("cross_tool_recommendations.cybersecurity_audit_rationale"), true);
+  assertEquals(isRetiredSurfacePath("cross_tool_recommendations"), true);
+  assertEquals(isRetiredSurfacePath("assessment_summary.narrative"), false);
+  assertEquals(isRetiredSurfacePath(""), false);
+  assertEquals(isRetiredSurfacePath(undefined), false);
+});
