@@ -46,7 +46,9 @@ const LEDGER_KEYS: readonly string[] = [
   "bought_sold_shared_count",
 ];
 
-function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[] {
+export { LEDGER_KEYS };
+
+export function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[] {
   const out: IntakeLedgerEntry[] = [];
   for (const k of LEDGER_KEYS) {
     if (intake && k in intake) {
@@ -62,7 +64,7 @@ function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[] {
   return out;
 }
 
-function pickCitationBindings(): CitationBinding[] {
+export function pickCitationBindings(): CitationBinding[] {
   // Seed with the anchors named by the conclusion inventory.
   const seen = new Set<string>();
   const out: CitationBinding[] = [];
@@ -100,7 +102,7 @@ function pickPropositions(bindings: readonly CitationBinding[], ledger: readonly
   });
 }
 
-function pickFactorTable(): FactorTableEntry[] {
+export function pickFactorTable(): FactorTableEntry[] {
   return CPPA_RISK_FACTORS.map((f) => ({
     factor_id: f.id,
     kind: f.kind,
@@ -111,6 +113,7 @@ function pickFactorTable(): FactorTableEntry[] {
     anchor: f.anchor,
   }));
 }
+
 
 export function derivePlan(input: DeriveInput): RenderPlan {
   try {
