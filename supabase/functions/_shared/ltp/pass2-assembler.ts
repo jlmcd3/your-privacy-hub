@@ -60,25 +60,22 @@ export interface CompositionShapeDeclaration {
   readonly llm_calls_per_document: readonly {
     readonly stage: string;
     readonly role: string;
-    readonly model_role: "pass1_derive" | "harvest_legacy";
+    readonly model_role: "pass1_derive";
   }[];
   readonly intermediate_artifacts: readonly string[];
   readonly note: string;
 }
 
 export const COMPOSITION_SHAPE_DECLARATION: CompositionShapeDeclaration = {
-  version: "cppa-risk-shape@2026-07-28-tm6",
+  version: "cppa-risk-shape@2026-07-28-tm7-retirement",
   product: "cppa-risk-assessment",
   final_documents_per_assessment: 1,
   llm_calls_per_document: [
     { stage: "pass1_derive", role: "authoritative RenderPlan derive", model_role: "pass1_derive" },
-    { stage: "harvest_legacy_generation", role: "Engine-A generation (subordinated; harvest guard filtered)", model_role: "harvest_legacy" },
   ],
   intermediate_artifacts: [
     "render_plan (authoritative)",
-    "opening_summary_harvest (subordinated)",
-    "submission_summary_harvest (subordinated)",
-    "assembler_output (shipped body)",
+    "assembler_output (shipped body; harvests are deterministic)",
   ],
   note: "CEO ruling 2026-07-28: undeclared drift aborts; declared shape is the conformance target.",
 };
