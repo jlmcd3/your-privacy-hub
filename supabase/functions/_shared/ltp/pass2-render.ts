@@ -157,17 +157,23 @@ function substitutePlanSlots(
   slots: readonly string[],
   ctx: SlotContext,
   errors: string[],
-): { text: string; resolved: number; missing: number } {
+): { text: string; resolved: number; missing: number; empty_slots: string[] } {
   let out = text;
   let resolved = 0;
   let missing = 0;
+  const empty_slots: string[] = [];
   for (const slot of slots) {
     const token = `{{plan:${slot}}}`;
     const value = resolveSlot(plan, slot, ctx);
-    if (value === "" || value === "no items on the record") missing++; else resolved++;
+    if (value === "" || value === "no items on the record") {
+      missing++;
+      empty_slots.push(slot);
+    } else {
+      resolved++;
+    }
     out = out.replaceAll(token, value);
   }
-  return { text: out, resolved, missing };
+  return { text: out, resolved, missing, empty_slots };
 }
 
 function checkForbiddenTokens(text: string, errors: string[]): void {
@@ -176,11 +182,32 @@ function checkForbiddenTokens(text: string, errors: string[]): void {
   }
 }
 
+/** ITEM 235 — check post-render text for interpolation residue. */
+function hasInterpolationResidue(text: string): string | null {
+  for (const re of INTERPOLATION_RESIDUE_PATTERNS) {
+    if (re.test(text)) return re.toString();
+  }
+  return null;
+}
+
+export interface RenderOptions {
+  /**
+   * ITEM 235 — Fill-or-omit at render (DEFAULT true).
+   * When any REQUIRED plan_slot for the template resolves empty, the
+   * instance returns `text=""` and `omitted=true`. Callers treat empty
+   * text as no emission. Set false only for legacy tests that rely on
+   * partial rendering.
+   */
+  readonly fillOrOmit?: boolean;
+}
+
 export function renderTemplate(
   templateId: string,
   plan: RenderPlan,
   ctx: SlotContext = {},
-): RenderResult {
+  opts: RenderOptions = {},
+): RenderResult & { omitted?: boolean; omit_reason?: string } {
+  const fillOrOmit = opts.fillOrOmit !== false;
   const tpl: Pass2Template | undefined = PASS2_TEMPLATES[templateId];
   if (!tpl) {
     return { template_id: templateId, text: "", errors: [`unknown_template:${templateId}`], slots_resolved: 0, slots_missing: 0 };
@@ -190,16 +217,46 @@ export function renderTemplate(
   }
   const errors: string[] = [];
   let text = tpl.text;
-  // Forbidden-token check runs on the RAW template (pre-substitution).
-  // Citation substitution legitimately introduces § glyphs from pinpoints;
-  // the check exists to catch model-authored injections in template bodies.
   checkForbiddenTokens(text, errors);
   text = substituteCitations(text, plan, tpl.citation_slots, errors);
   text = substituteIntake(text, plan, tpl.intake_slots, errors);
   const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, errors);
   text = planSub.text;
+
+  // ITEM 235 — required-slot check. Default set = all plan_slots on the
+  // template; override via REQUIRED_PLAN_SLOTS.
+  const required = REQUIRED_PLAN_SLOTS[templateId] ?? tpl.plan_slots;
+  const emptyRequired = planSub.empty_slots.filter((s) => required.includes(s));
+  if (fillOrOmit && emptyRequired.length > 0) {
+    errors.push(`omit_empty_required_slots:${emptyRequired.join(",")}`);
+    return {
+      template_id: templateId,
+      text: "",
+      errors,
+      slots_resolved: planSub.resolved,
+      slots_missing: planSub.missing,
+      omitted: true,
+      omit_reason: "required_slot_empty",
+    };
+  }
+
+  // ITEM 235 — interpolation-residue defense-in-depth (catches templates
+  // that don't declare a slot as required but still assemble to blanks).
+  const residue = hasInterpolationResidue(text);
+  if (fillOrOmit && residue) {
+    errors.push(`omit_interpolation_residue:${residue}`);
+    return {
+      template_id: templateId,
+      text: "",
+      errors,
+      slots_resolved: planSub.resolved,
+      slots_missing: planSub.missing,
+      omitted: true,
+      omit_reason: "interpolation_residue",
+    };
+  }
+
   if (text.length > tpl.max_chars) errors.push(`over_max_chars:${text.length}/${tpl.max_chars}`);
-  // Any un-substituted {{...}} indicates a leaked slot.
   if (/\{\{[a-z]+:[A-Z0-9_]+\}\}/i.test(text)) errors.push("leaked_slot_marker");
   return {
     template_id: templateId,
