@@ -17,7 +17,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // T-M9 (Item 230, 2026-07-28): stamp refreshed for pass1 abort-controller
 // wire + deploy-pipeline diagnosis. No future-dating — read against
 // wall-clock at cutover turn.
-export const BUILD_STAMP = "ltp-risk-item230a-t-m9-redeploy@2026-07-28T08:16:03Z";
+export const BUILD_STAMP = "ltp-risk-item231-t-m9.1-fail-loud@2026-07-28T08:27:33Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
@@ -929,6 +929,24 @@ async function runPipeline(assessment_id: string) {
     if (!procWrite.ok) {
       // Cannot persist lifecycle state — abort before spending model time.
       return;
+    }
+
+    // T-M9.1 (Item 231): worker_start liveness touch — fires IMMEDIATELY
+    // after the processing write and BEFORE any slow work (corpus retrieval,
+    // deadline block, first model call). Together with worker_liveness_pass1_start
+    // (deeper in the pipeline) this bounds the "silent gap" between DB
+    // touches so a stalled worker is distinguishable from a slow one within
+    // seconds instead of minutes. Non-fatal on failure.
+    try {
+      await supabase.from("cppa_assessments").update({
+        updated_at: new Date().toISOString(),
+      }).eq("id", assessment_id);
+      console.log(JSON.stringify({
+        evt: "worker_liveness_start", fn: "run-cppa-risk-assessment",
+        assessment_id, build_stamp: BUILD_STAMP,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] worker_liveness_start touch failed (non-fatal):", (e as Error)?.message);
     }
 
     const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
@@ -4112,6 +4130,37 @@ Deno.serve(async (req) => {
           metadata: { assessment_id, recovered_after_error: true, original_error: (e as Error)?.message ?? String(e) },
         });
       } else {
+        // T-M9.1 (Item 231) — FAIL-LOUD: persist the error to the assessment
+        // row itself so a dead background isolate cannot leave a row frozen
+        // at status='processing' with last_error=NULL. Silent background
+        // death is now structurally impossible: any uncaught throw in
+        // runPipeline lands here and writes status='error' + last_error
+        // BEFORE the isolate exits. Wrapped in its own try/catch so a DB
+        // failure on the error-write path cannot re-throw and defeat the
+        // guarantee.
+        const errMsg = (e as Error)?.message ?? String(e);
+        const errStack = (e as Error)?.stack?.slice(0, 2000) ?? null;
+        try {
+          await supabase.from("cppa_assessments").update({
+            status: "error",
+            last_error: `background_task_uncaught: ${errMsg}`,
+            updated_at: new Date().toISOString(),
+          }).eq("id", assessment_id!);
+          console.error(JSON.stringify({
+            evt: "background_task_persisted_error",
+            fn: "run-cppa-risk-assessment",
+            assessment_id, build_stamp: BUILD_STAMP,
+            error: errMsg, stack: errStack,
+          }));
+        } catch (persistErr) {
+          console.error(JSON.stringify({
+            evt: "background_task_persist_error_failed",
+            fn: "run-cppa-risk-assessment",
+            assessment_id, build_stamp: BUILD_STAMP,
+            original_error: errMsg,
+            persist_error: (persistErr as Error)?.message ?? String(persistErr),
+          }));
+        }
         await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
       }
     }
