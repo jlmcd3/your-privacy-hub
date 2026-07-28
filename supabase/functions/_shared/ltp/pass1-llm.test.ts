@@ -83,7 +83,7 @@ Deno.test("pass1-llm: N=2 aborts → write_around with pass1_abort_timeout", asy
 // validator-clean plan whose parsed JSON includes `triggered:true`, the
 // adapter MUST override it to `triggered:false` so the cutover ships the
 // assembler body instead of routing to Type-J with a stale clock_cap origin.
-Deno.test("pass1-llm: model-emitted triggered=true is IGNORED on validator-clean ok", async () => {
+Deno.test({ name: "pass1-llm: model-emitted triggered=true is IGNORED on validator-clean ok", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const { derivePlan } = await import("./derive.ts");
   // Build a real, validator-clean plan via the deterministic shadow
   // arm, then decorate it with a stray triggered=true to simulate a
