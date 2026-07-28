@@ -82,9 +82,12 @@ Deno.test("T-M5: forced-conflict opening_summary harvest is REJECTED with teleme
   assert(!("opening_summary" in result.report));
 });
 
-Deno.test("T-M5: assembler output contains no PASS2_FORBIDDEN_TOKENS on narrative surfaces", () => {
+Deno.test("T-M5: assembler template-owned surfaces contain no PASS2_FORBIDDEN_TOKENS", () => {
   const plan = fixturePlan();
   const result = assembleReportShadow(plan);
+  const templateKeys = new Set(
+    CPPA_RISK_SECTION_SHARDS.filter((s) => s.owner.kind === "template").map((s) => s.key),
+  );
   const walk = (v: unknown): string[] => {
     if (typeof v === "string") return [v];
     if (Array.isArray(v)) return v.flatMap(walk);
@@ -92,10 +95,10 @@ Deno.test("T-M5: assembler output contains no PASS2_FORBIDDEN_TOKENS on narrativ
     return [];
   };
   for (const [k, v] of Object.entries(result.report)) {
-    if (k === "_meta") continue;
+    if (!templateKeys.has(k)) continue; // deterministic surfaces may quote the law verbatim
     for (const s of walk(v)) {
       for (const tok of PASS2_FORBIDDEN_TOKENS) {
-        assert(!s.includes(tok), `forbidden token "${tok}" in ${k}`);
+        assert(!s.includes(tok), `forbidden token "${tok}" in template-owned ${k}`);
       }
     }
   }
