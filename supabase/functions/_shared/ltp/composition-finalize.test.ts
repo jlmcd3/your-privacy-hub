@@ -11,8 +11,8 @@ import { CompositionHookAuditError } from "./composition-hook-audit.ts";
 
 const nullEnv = { get: (_: string) => undefined };
 
-Deno.test("composition-finalize: version stamp (Item 215)", () => {
-  assertEquals(COMPOSITION_FINALIZE_VERSION, "composition-finalize@2026-07-28-item215");
+Deno.test("composition-finalize: version stamp (Item 217)", () => {
+  assertEquals(COMPOSITION_FINALIZE_VERSION, "composition-finalize@2026-07-28-item217");
 });
 
 Deno.test("composition-finalize: clean report, observe mode, no hits, hook clean", () => {
