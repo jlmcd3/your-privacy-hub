@@ -503,7 +503,7 @@ function entityPlaceholder(): string { return "the business"; }
 
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
-  const owner = ownerRoleTitles(plan);
+
   const rawSources: ActionSource[] = [];
 
   // (1)+(2) factor-table gaps — filtered by gap-applicability law.
@@ -602,7 +602,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         gap_or_consequence_clause: s.gap_or_consequence_clause,
         compliance_guidance_sentence: s.compliance_guidance_sentence,
         deadline_sentence: sel.row.deadline_sentence,
-        owner_role_titles: owner,
+        owner_role_titles: ownerForKind(s.kind, plan),
         __cite: { PINPOINT: s.pinpoint },
       },
     };
@@ -636,7 +636,20 @@ function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
 function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   // ITEM 241.3 — GOLDEN prose lead-in FIRST (courier §4.3).
   const entity = entityName(plan);
-  const factual = plan.factor_table.filter((f) => f.present_in_intake).map(factorLabel).filter(Boolean);
+  // ITEM 243 defect 5 — the "four factual elements" slot reads the FOUR
+  // DOCUMENTATION FACTUAL GATES, never factor labels. Each element
+  // renders as the gate's compact human tail with its own § 7152(a)
+  // pinpoint carried at the item level (below); the summary clause
+  // enumerates the four gate topics in registry order.
+  const factualGateLabelMap: Readonly<Record<string, string>> = {
+    "G.documentation.purpose_present": "the § 7152(a)(1) processing purpose",
+    "G.documentation.categories_present": "the § 7152(a)(2) categories of personal information",
+    "G.documentation.operational_elements_present": "the § 7152(a)(3) operational elements",
+    "G.documentation.approver_present": "the § 7152(a)(9) authorised approver",
+  };
+  const factualGateLabels = Array.from(DOCUMENTATION_FACTUAL_GATE_IDS)
+    .map((id) => factualGateLabelMap[id])
+    .filter(Boolean);
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
   const jLabels = jProps.map(propLabel).filter(Boolean);
   const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
@@ -645,10 +658,6 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const prose: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose",
     ctx: {
-      // ITEM 242 (defect 6) — opener + closer derived from the SAME
-      // `sufficient` boolean via distinct grammatically-fitted clauses.
-      // Contradiction between opener and closer is structurally
-      // impossible; e2e assert enforces it.
       sufficiency_clause: sufficient
         ? "sufficient for the § 7152(a)(6) balancing frame to weigh"
         : "not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies below",
@@ -656,24 +665,37 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
         ? "is sufficient for the § 7152(a)(6) balancing frame to weigh"
         : "remains not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies above",
       entity_name: entity,
-      factual_elements_summary_clause: factual.length > 0 ? joinList(factual) : "the factual elements captured on the record",
+      factual_elements_summary_clause: factualGateLabels.length > 0
+        ? joinList(factualGateLabels)
+        : "the four § 7152(a) factual documentation elements",
       reserved_judgments_list: jLabels.length > 0 ? joinList(jLabels) : "no reserved judgments",
       type_j_pinpoints: jPinpoints.length > 0 ? joinList(jPinpoints) : "the applicable § 7152(a) subdivisions",
       as_of_date: asOf,
     },
   };
-  const items = plan.factor_table.map<TemplateInstance>((f) => ({
-    template_id: "T.risk.record_sufficiency.item",
-    ctx: {
-      element_label: factorLabel(f),
-      element_status_clause: f.present_in_intake
+  // ITEM 243 defect 4 — ADMT-scoped rows resolve to RECORD_STATUS_CLAUSES[3]
+  // ("not applicable — ADMT not in use per the record") when the
+  // G.q18.admt_consequence gate blocks. Never emits the "not present"
+  // gap clause for a structurally inapplicable element.
+  const admtBlocked = admtGateBlocked(plan);
+  const items = plan.factor_table.map<TemplateInstance>((f) => {
+    const statusClause = admtBlocked && isAdmtScoped(f.factor_id)
+      ? RECORD_STATUS_CLAUSES[3]
+      : f.present_in_intake
         ? RECORD_STATUS_CLAUSES[0]
-        : RECORD_STATUS_CLAUSES[1],
-      __cite: { PINPOINT: f.anchor.pinpoint },
-    },
-  }));
+        : RECORD_STATUS_CLAUSES[1];
+    return {
+      template_id: "T.risk.record_sufficiency.item",
+      ctx: {
+        element_label: factorLabel(f),
+        element_status_clause: statusClause,
+        __cite: { PINPOINT: f.anchor.pinpoint },
+      },
+    };
+  });
   return [prose, ...items];
 }
+
 
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
