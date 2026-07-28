@@ -4002,3 +4002,29 @@ This turn is **accounting and plan ONLY**. No code, no deploy.
 Courier: `docs/courier/PROGRAM-REDIRECTION-LTP-MIGRATION-2026-07-28.md`.
 
 **Disposition: HARD STOP for CEO/controller review of the plan before build turns begin.**
+
+---
+
+## Item 219 — T-S1 SECURITY FIX TURN (2026-07-28)
+
+**Dispatch:** T-S1 security-panel fix, first turn of Item-218 rebuild chain (CEO-approved 2026-07-28). Engineering-side; no content changes, no grader edits, no batch inserts.
+
+**Approach:** Column-level `REVOKE UPDATE/INSERT` from `anon, authenticated` per SEC-2 memory (Supabase's default `public` ACL grants `arwdDxtm` on every new relation; targeted per-column revokes are the static, RLS-independent way to satisfy the scanner without WITH CHECK expressions that cannot reference OLD). Service_role unaffected. Existing `lock_paywall_columns`, `lock_purchase_columns_*`, `lock_registration_order_billing`, `protect_registration_order_payment_fields` triggers left in place as defence-in-depth.
+
+**Findings addressed (4/4):**
+- `eu_us_ropa_sessions_payment_bypass` (ERROR): revoked write on `payment_confirmed, paid_at` from anon/authenticated on `eu_notice_sessions`, `us_notice_sessions`, `ropa_sessions`.
+- `registration_orders_self_update` (ERROR): revoked write on the billing/fulfillment/tier/jurisdictions/owner column set on `registration_orders`.
+- `tool_assessment_tables_payment_bypass` (ERROR): revoked write on `is_subscriber_credit, purchased_as_standalone, purchase_price_cents, stripe_payment_intent_id, status, user_id` (and `stage` on li) across `li_assessments, biometric_assessments, dpa_documents, dpia_frameworks, governance_assessments, ir_playbooks`; `cppa_assessments` uses the reduced column set (no subscriber-credit/standalone cols).
+- `sample_reports_bucket_all_objects_readable` (WARN): dropped `public read sample-reports objects`; replaced with `public read sample-reports published only`, which joins `storage.objects.name = sample_reports.pdf_path` and requires `sample_reports.status = 'published'`.
+
+**Verification:**
+- Migration applied cleanly; linter response returns the 62 pre-existing ignored-list findings only (SECURITY DEFINER view/function, extension-in-public) — none of the four T-S1 findings.
+- `bunx vitest run src/test/entitlements.test.ts` — **9/9 passed** (entitlement gate uses service_role; unaffected).
+- `security--manage_security_finding` marked all four fixed → "No security findings remain active" on the persisted-findings surface.
+- Ignored-list findings and dependency versions NOT touched this turn per dispatch.
+
+**Discharge:** Deferred Stage-B step 11 (security appendix) is discharged.
+
+**Courier:** `docs/courier/SECURITY-PANEL-APPENDIX-2026-07-28.md`.
+
+**Disposition: HARD STOP** for controller review. Next turn is T-M1 (authoritative Pass-1 wire) per Item 218 plan.
