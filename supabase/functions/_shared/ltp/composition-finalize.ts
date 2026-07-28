@@ -380,7 +380,8 @@ export function currentEnforceMode(env: { get(name: string): string | undefined 
   return env.get(ENFORCE_ENV) === "1" ? "enforce" : "observe";
 }
 
-/** Re-export for callers that read the hook value at the composition start. */
+
+
 
 // ── ITEM 215 — POST-SERIALIZER SHIPPED VALUE-SCREEN ──────────────────
 //
