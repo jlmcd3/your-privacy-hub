@@ -69,5 +69,9 @@ Deno.test("branch-correction: retry + reserve fit inside E2E budget by construct
 
 Deno.test("branch-correction: post-lint LLM call caps fit inside 15-min E2E budget", () => {
   assert(POST_LINT_LLM_BUDGET_MS + POST_LINT_LLM_MAX_CALL_MS + POST_RETRY_RESERVE_MS <= MAX_END_TO_END_MS);
-  assert(POST_LINT_LLM_BUDGET_MS + POST_LINT_PASS1_MAX_CALL_MS + POST_RETRY_RESERVE_MS <= MAX_END_TO_END_MS);
+  // T-M9.3 (Item 233): Pass-1 is the sole authoritative LLM call (T-M9.2
+  // retired legacy Engine-A generation). It runs BEFORE the post-lint LLM
+  // budget window, not additive with it — the E2E bound is Pass-1 worst-
+  // case + post-retry reserve.
+  assert(POST_LINT_PASS1_MAX_CALL_MS + POST_RETRY_RESERVE_MS <= MAX_END_TO_END_MS);
 });
