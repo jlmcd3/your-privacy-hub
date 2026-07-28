@@ -4127,6 +4127,10 @@ Deno.serve(async (req) => {
       composition_shape: COMPOSITION_SHAPE_DECLARATION,
       // ITEM 235b (T-M9.5b) — LTP LAWS 1-3 landed as standing law.
       ltp_laws_1_3: "item235b-2026-07-28",
+      // ITEM 236 (T-M9.6) — RUN #170 fixes: T7 harvest wire, chooseVariant
+      // routing, deterministic boilerplate composers, exec-summary
+      // projection fix, wa_origin null-on-ok.
+      run170_fixes: "item236-2026-07-28",
 
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
