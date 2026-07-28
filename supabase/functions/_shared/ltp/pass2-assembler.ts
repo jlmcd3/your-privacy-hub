@@ -46,11 +46,13 @@ import { composeSection } from "./section-composers/cppa-risk.ts";
 import {
   coerceNarrativeScalar,
   coerceAssessmentSummary,
+  assertShippedCoherence,
   NARRATIVE_SCALAR_KEYS,
   CPPA_RISK_SHAPE_VERSION,
+  type ShippedCoherenceViolation,
 } from "../report-contracts/cppa-risk-shape.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp5-single-writer";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp5-coherence-prose";
 
 /**
  * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
