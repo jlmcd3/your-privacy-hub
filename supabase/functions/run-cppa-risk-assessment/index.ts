@@ -4009,12 +4009,12 @@ async function runPipeline(assessment_id: string) {
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     const isTimeout = e instanceof AnthropicTimeoutError
-      || (e instanceof Error && (e as any).code === "generation_timeout_330s");
+      || (e instanceof Error && ((e as any).code === "anthropic_attempt_abort" || (e as any).code === "generation_timeout_330s"));
     try {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: isTimeout
-          ? { error: "generation_timeout_330s", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null }
+          ? { error: "anthropic_attempt_abort", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null, limit_ms: (e as any).limitMs ?? null, label: (e as any).label ?? null }
           : { error: String(e) },
       }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }
