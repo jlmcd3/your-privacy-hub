@@ -84,6 +84,7 @@ function formatRelativeTime(d: Date): string {
 export {
   REVENUE_OPTS,
   CONSUMER_OPTS,
+  BOUGHT_SOLD_SHARED_OPTS,
   SPI_VOLUME_OPTS,
   SHARE_REVENUE_50PCT_OPTS,
   Q5_SELL_SHARE_OPTS,
@@ -93,6 +94,7 @@ export {
 import {
   REVENUE_OPTS,
   CONSUMER_OPTS,
+  BOUGHT_SOLD_SHARED_OPTS,
   SPI_VOLUME_OPTS,
   SHARE_REVENUE_50PCT_OPTS,
   Q5_SELL_SHARE_OPTS,
@@ -342,6 +344,10 @@ export default function CPPARiskAssessment() {
   // New § 7152 data elements (see EUP gap analysis). Each persists via draft (Prompt 2/3).
   const [q5bProfiling, setQ5bProfiling] = useState("");      // § 7150(b)(4) systematic-observation / sensitive-location profiling trigger
   const [q5cShareRev, setQ5cShareRev] = useState("");        // R1a: § 1798.140(d)(1)(C) / § 7120(b)(1) 50%-revenue prong
+  // T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand: consumers/households
+  // whose PI is bought, sold, or shared annually. Optional; unanswered flows
+  // to information_needed via the (B)-gap gate.
+  const [bssCount, setBssCount] = useState("");
   const [q15bUnder16, setQ15bUnder16] = useState("");        // § 7001(bbb) under-16 actual-knowledge -> SPI elevation
   const [q15cSpiVolume, setQ15cSpiVolume] = useState("");    // R1a: § 7120(b)(2)(B) SPI volume band
   const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
