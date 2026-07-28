@@ -20,7 +20,7 @@ import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SIN
 import { computeCloseness, chooseVariant } from "../closeness.ts";
 import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../legal-test/cppa-risk-conclusions.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item240-cp5";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item241-1-e1e2";
 
 export { aggregateBalance };
 export type { BalanceMode };
