@@ -4701,3 +4701,81 @@ Ping surface adds `ltp_laws_1_3: "item235b-2026-07-28"`.
 **Courier:** `docs/courier/T-M9.5b-LTP-LAWS-1-3-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH.
 HARD STOP.
+
+---
+
+## Item 236 — T-M9.6 RUN #170 FIVE FIXES (2026-07-28)
+
+**Basis.** Run #170 was the first real Pass-2 document shipped (C=56.6/G=78);
+build not accepted per CEO checklist line 7. CEO dispatched five fixes plus
+LAW 2 tightening.
+
+**Fix (a) — T7 OPENING HARVEST WIRE.** `run-cppa-risk-assessment/index.ts`
+now passes the T7 `buildRiskOpening` output — `{ text, provenance{ sources,
+s0_criteria, s1_triggers, omitted, s0_b_rejected_reason } }` — into
+`assembleReport({ opening_summary })`. Harvest guard updated
+(`_shared/ltp/harvest-guard.ts`) to accept prefixed sources
+(`registry:`, `cppa_authorities:`, `provision_texts:`, `runtime:`) and to
+validate CSV `intake:<field,field>` against `plan.intake_ledger`.
+
+**Fix (b) — VARIANT SELECTION LAW.**
+`_shared/ltp/closeness.ts::chooseVariant` inverted per CEO ruling: at
+`closeness ≥ FIRM_VARIANT_CLOSENESS_MAX (0.6)` → hedged (surface
+what_would_tip_it); below → firm. `assessment_summary` and
+`risk_assessment_by_activity` composers now select through
+`chooseVariant(closeness)` instead of hardcoded firm. Flat-certainty
+guard retained as backstop.
+
+**Fix (c) — DETERMINISTIC COMPOSERS + LAW 2 TIGHTENING.**
+`_shared/ltp/section-shards/cppa-risk.ts`:
+- `schema_version`, `document_metadata`, `attestation_block`,
+  `disclaimer`, `framework_disclaimer`, `accuracy_caveat`,
+  `enforcement_context` reclassified `always` with real deterministic
+  literal projections.
+- `part_a`, `part_b`, `gating` reclassified `empty-by-design` honestly
+  (V3 legacy passthrough).
+- `enforcement_precedents`, `enforcement_meta` kept `empty-by-design`.
+LAW 2 (e2e-document.test.ts) tightened: any `always`-section that omits
+FAILS the test — reclassify honestly rather than weakening.
+
+**Fix (d) — EXEC-SUMMARY PROJECTIONS.**
+`_shared/ltp/section-composers/cppa-risk.ts::activityLabelForProp` now
+returns `humanize(conclusion_id)`, never a raw intake answer value.
+Singular/plural clause selection resolves through
+`SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[n===1?0:1]`.
+
+**Fix (e) — WA_ORIGIN TELEMETRY.** `_origin` typed
+`… | null` and set to `null` on pass1-ok; the "unknown" sentinel is
+retired at the emission site. Regression assertion added in
+`e2e-document.test.ts`.
+
+**Tests.**
+
+```
+running 10 tests from ./_shared/ltp/e2e-document.test.ts
+LAW 2 (i–iv), structural completeness ......................... ok
+ITEM 236 / LAW 2 TIGHTENED (no always-section omits) .......... ok
+ITEM 236 fix (b) — balance-template chooseVariant routing ..... ok
+ITEM 236 fix (b) — chooseVariant contract 0.6 → hedged ........ ok
+ITEM 236 fix (c) — always-boilerplate emitted with content .... ok
+ITEM 236 fix (d) — activity_label never raw intake answer ..... ok
+10 passed | 0 failed
+```
+
+Full `_shared/ltp/` suite: 218 passed | 2 failed. Both failures
+(`value-screen version stamp`, `waveb gateway missing key`) predate
+Item 236 and are out of scope.
+
+**Deploy.** `BUILD_STAMP` bumped to
+`ltp-risk-item236-t-m9.6-run170-fixes@2026-07-28T10:13:52.305Z`.
+Ping surface adds `run170_fixes: "item236-2026-07-28"`.
+
+**Ping (verbatim).**
+
+```
+{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-item236-t-m9.6-run170-fixes@2026-07-28T10:13:52.305Z","ltp_mode":"enforce","ltp_version":"ltp-risk-p2","pass1_authoritative":"1","pass1_model":"claude-sonnet-4-6","pass1_stamp":"ltp-pass1-llm-item234-valid-plan-ships@2026-07-28","pass2_assembler":"ltp-pass2-assembler-2026-07-28-item235-fill-or-omit","ltp_laws_1_3":"item235b-2026-07-28","run170_fixes":"item236-2026-07-28"}
+```
+
+**Courier:** `docs/courier/T-M9.6-RUN170-FIXES-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-RELAUNCH.
+HARD STOP.

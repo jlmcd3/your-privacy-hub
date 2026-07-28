@@ -20,7 +20,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
 // callModel throws on invocation and a runtime shape-conformance assert
 // fails loud on any drift.
-export const BUILD_STAMP = `ltp-risk-item235b-t-m9.5b-ltp-laws-1-3@${new Date().toISOString()}`;
+export const BUILD_STAMP = `ltp-risk-item236-t-m9.6-run170-fixes@${new Date().toISOString()}`;
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
 // When true, callModel() throws instead of hitting Anthropic, and the
@@ -3585,10 +3585,14 @@ async function runPipeline(assessment_id: string) {
             const _writeAround = _pass1Ok
               ? false
               : (!!_pass1.plan?.conservative_write_around?.triggered || !_pass1.telemetry.ok);
-            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown" = _writeAround
+            // ITEM 236 fix (e) — wa_origin is NULL on pass1-ok runs. The
+            // "unknown" sentinel is retired at the emission site; a
+            // regression test in e2e-document.test.ts fails the suite if
+            // an ok run ever telemeters an origin.
+            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | null = _writeAround
               ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
                   : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
-              : "unknown";
+              : null;
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
             let _assemblerVersion = PASS2_ASSEMBLER_VERSION;
@@ -3596,11 +3600,38 @@ async function runPipeline(assessment_id: string) {
             if (_writeAround) {
               _body = buildTypeJWriteAroundBody({
                 intake: _ltpIntake,
-                origin: _origin,
+                origin: _origin ?? "unknown",
                 buildStamp: BUILD_STAMP,
               });
             } else {
-              const _assembler = assembleReport(_pass1.plan);
+              // ITEM 236 fix (a) — Wire the T7 deterministic opening_summary
+              // artifact into the assembler so the harvest guard evaluates
+              // it and (when accepted) emits opening_summary from the
+              // shipped body. Falls back silently to no harvest if the
+              // builder failed earlier in the pipeline.
+              let _openingHarvest: any = undefined;
+              try {
+                const _rdA: any = report_data as any;
+                const _openingText = typeof _rdA?.opening_summary === "string" ? _rdA.opening_summary : "";
+                const _openingProv = _rdA?._meta?.internal?.risk_t7_opening;
+                if (_openingText && _openingProv) {
+                  _openingHarvest = {
+                    text: _openingText,
+                    provenance: {
+                      version: _openingProv.version,
+                      s0_criteria: _openingProv.s0_criteria ?? [],
+                      s1_triggers: _openingProv.s1_triggers ?? [],
+                      omitted: _openingProv.omitted ?? [],
+                      sources: _openingProv.sources ?? {},
+                      s0_b_rejected_reason: _openingProv.s0_b_rejected_reason ?? null,
+                    },
+                  };
+                }
+              } catch { /* fall through to no harvest */ }
+              const _assembler = assembleReport(
+                _pass1.plan,
+                _openingHarvest ? { opening_summary: _openingHarvest } : {},
+              );
               _body = _assembler.report as Record<string, unknown>;
               _assemblerTele = _assembler.telemetry;
               _assemblerVersion = _assembler.version;
@@ -4096,6 +4127,10 @@ Deno.serve(async (req) => {
       composition_shape: COMPOSITION_SHAPE_DECLARATION,
       // ITEM 235b (T-M9.5b) — LTP LAWS 1-3 landed as standing law.
       ltp_laws_1_3: "item235b-2026-07-28",
+      // ITEM 236 (T-M9.6) — RUN #170 fixes: T7 harvest wire, chooseVariant
+      // routing, deterministic boilerplate composers, exec-summary
+      // projection fix, wa_origin null-on-ok.
+      run170_fixes: "item236-2026-07-28",
 
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

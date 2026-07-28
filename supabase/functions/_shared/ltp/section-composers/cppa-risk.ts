@@ -11,9 +11,10 @@
  */
 import type { RenderPlan, FactorTableEntry, Proposition } from "../../render-plan/schema.ts";
 import type { SlotContext } from "../slot-resolver.ts";
-import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES } from "../content/pass2-templates.ts";
+import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES, BALANCE_DIRECTION_CLAUSES } from "../content/pass2-templates.ts";
+import { computeCloseness, chooseVariant } from "../closeness.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item235";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item236";
 
 export interface TemplateInstance {
   readonly template_id: string;
@@ -67,16 +68,25 @@ const insufficientRecord = (plan: RenderPlan): boolean =>
 
 // ── Composers ────────────────────────────────────────────────────────────
 
+/**
+ * ITEM 236 fix (d) — activity_label MUST resolve from the proposition
+ * (humanized conclusion_id), never from the raw intake answer value.
+ * The engaged Type-R propositions carry the activity semantics; the
+ * intake ledger display for the referenced field is a raw answer
+ * (e.g. "Yes — systematic observation…") and would surface a
+ * customer-facing label like "For Yes — systematic observation…".
+ */
+function activityLabelForProp(p: Proposition, _plan: RenderPlan): string {
+  return humanize(p.conclusion_id);
+}
+
 function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   const n = activityCount(plan);
   const each = n === 1 ? SUMMARY_EACH_OR_THIS_CLAUSES[0] : SUMMARY_EACH_OR_THIS_CLAUSES[1];
+  // ITEM 236 fix (d) — singular/plural clause: n==1 → "activity", n!=1 → "activities".
   const singplural = n === 1 ? SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[0] : SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[1];
   const acp = pluralActivityPhrase(n);
-  const engagedLabels = engagedApplicability(plan).map((p) => {
-    const ref = p.intake_ledger_refs?.[0];
-    const ent = ref ? plan.intake_ledger.find((l) => l.ledger_id === ref) : undefined;
-    return ent?.display?.trim() || p.conclusion_id;
-  });
+  const engagedLabels = engagedApplicability(plan).map((p) => activityLabelForProp(p, plan));
   if (insufficientRecord(plan)) {
     return [{ template_id: "T.risk.exec.insufficient", ctx: { activity_singplural_clause: singplural } }];
   }
@@ -85,12 +95,16 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
       template_id: "T.risk.exec.negative",
       ctx: {
         activity_count_phrase: acp,
-        negative_list: joinList(engagedLabels),
+        negative_list: joinList(engagedLabels) || "the activities identified on the record",
         remaining_outcomes_clause: "",
       },
     }];
   }
-  if (anyCloseBalance(plan)) {
+  // ITEM 236 fix (b) — variant selection through chooseVariant(closeness).
+  // Closeness ≥ FIRM_VARIANT_CLOSENESS_MAX → hedged (with what_would_tip_it),
+  // never firm. Flat-certainty guard remains as backstop.
+  const closeness = computeCloseness(plan, plan.weighing_frame);
+  if (chooseVariant(closeness) === "hedged") {
     const tipping = plan.weighing_frame
       .slice()
       .sort((a, b) => (b.closeness_contribution ?? 0) - (a.closeness_contribution ?? 0))
@@ -111,6 +125,66 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
     ctx: { activity_count_phrase: acp, each_or_this_clause: each },
   }];
 }
+
+/**
+ * ITEM 236 fix (b) — Balance-template selection MUST route through
+ * chooseVariant(closeness). At closeness ≥ FIRM_VARIANT_CLOSENESS_MAX
+ * the hedged variant is chosen, with the tipping-factor context slot
+ * populated. Firm variant is never emitted at close balance.
+ */
+function balanceInstance(plan: RenderPlan): TemplateInstance {
+  const closeness = computeCloseness(plan, plan.weighing_frame);
+  const variant = chooseVariant(closeness);
+  if (variant === "hedged") {
+    const tipping = plan.weighing_frame
+      .slice()
+      .sort((a, b) => (b.closeness_contribution ?? 0) - (a.closeness_contribution ?? 0))
+      .slice(0, 3)
+      .map((f) => f.anchor_hint || f.pinpoint);
+    return {
+      template_id: "T.risk.balance.hedged",
+      ctx: {
+        what_would_tip_it: joinList(tipping) || "the balance of benefits, negative impacts, and safeguards on the record",
+      },
+    };
+  }
+  return { template_id: "T.risk.balance.firm", ctx: {} };
+}
+
+function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
+  if (insufficientRecord(plan)) {
+    // Nothing to weigh; return an insufficient exec-style summary line via docs.
+    return [{
+      template_id: "T.risk.summary.docs",
+      ctx: { docs_completion_clause: "has outstanding documentation items — see Items for your review; the record does not yet complete" },
+    }];
+  }
+  return [
+    balanceInstance(plan),
+    { template_id: "T.risk.summary.docs", ctx: { docs_completion_clause: "is complete against" } },
+  ];
+}
+
+function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
+  const engaged = engagedApplicability(plan);
+  if (engaged.length === 0) {
+    // Fall back to a single balance instance so the section still ships
+    // meaningful analytical prose when no Type-R activities are engaged
+    // but factor content exists on the plan.
+    if (!insufficientRecord(plan)) return [balanceInstance(plan)];
+    return [];
+  }
+  // One balance instance per activity; label context slot for downstream
+  // narrative composition.
+  return engaged.map<TemplateInstance>((p) => {
+    const inst = balanceInstance(plan);
+    return {
+      template_id: inst.template_id,
+      ctx: { ...inst.ctx, activity_label: activityLabelForProp(p, plan) },
+    };
+  });
+}
+
 
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   // Priority actions derive from negative-impact factors and safeguard gaps.
@@ -220,6 +294,8 @@ export function composeSection(sectionKey: string, plan: RenderPlan): TemplateIn
     case "exception_analysis":           return composeExceptionAnalysis(plan);
     case "scope_confirmation":           return composeScope(plan);
     case "scope_and_triggers":           return composeScope(plan);
+    case "assessment_summary":           return composeAssessmentSummary(plan);
+    case "risk_assessment_by_activity":  return composeRiskByActivity(plan);
     default:
       return null; // caller falls back to legacy single-render behavior.
   }

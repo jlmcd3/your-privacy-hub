@@ -31,5 +31,8 @@ export function computeCloseness(plan: RenderPlan, frame: readonly WeighingFrame
 }
 
 export function chooseVariant(closeness: number, threshold = 0.6): Variant {
-  return closeness >= threshold ? "firm" : "hedged";
+  // ITEM 236 fix (b) — CEO ruling: at closeness ≥ threshold the balance
+  // is close enough that firm assertion is not warranted; hedge and
+  // surface what would tip it. Below threshold → firm.
+  return closeness >= threshold ? "hedged" : "firm";
 }
