@@ -101,6 +101,7 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
     "sufficiency_clause",
     "entity_name",
     "factual_elements_summary_clause",
+    "sufficiency_closer_clause",
   ],
 };
 
