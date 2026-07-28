@@ -5145,3 +5145,23 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Deliverables.** `docs/courier/ITEM242-CHECKPOINT-C-CONTENT-2026-07-28.md` — 8-entry field-semantics glossary (verbatim) + prompt APPENDIX form; present/note coherence validator rule text + 4-pattern registry (verbatim); 9-phrase invented-characterization value-screen additions (verbatim) + new SYSTEM rule 8; prompt version bump target `pass1-derive-2026-07-28-item242-cpC`.
 
 **Disposition.** HARD STOP. Sign-off releases 242-CP-C wiring.
+
+### Item 242-BC — CP-C WIRED + DEPLOYED; CP-B AUTHORED/HELD
+
+**Date.** 2026-07-28. **Dispatch.** `CONTROLLER RELEASE — ITEM 242 CHECKPOINTS B+C, CORRECTED`.
+
+**Scope shipped.**
+- CP-C prompt update — `PASS1_DERIVE_PROMPT_VERSION="pass1-derive-2026-07-28-item242-cpC"`; SYSTEM rules 7 (PRESENT/NOTE COHERENCE) + 8 (NO INVENTED CHARACTERIZATION); FIELD-SEMANTICS GLOSSARY APPENDIX re-keyed to canonical intake contract IDs (`q18b_admt_training`, `i7_external_consultees`, `q15c_spi_volume`, etc.) verified against `_shared/intake-contracts/cppa-risk-assessment.ts`.
+- New module `_shared/ltp/pass1-present-note-coherence.ts` — deterministic post-injection screen with 4-pattern registry; version `pass1-present-note-coherence@2026-07-28-item242-bc`.
+- Adapter wire in `_shared/ltp/pass1-llm.ts` — `applyCoherenceScreen` sits BETWEEN `applySingleWriterInjection` and `validateRenderPlan`; new dedicated telemetry key `Pass1Telemetry.pass1_coherence_rewrites[]` (NOT overloaded onto `wa_origin`, per controller CP-C §ii).
+- Marketing telemetry — `_shared/ltp/value-screen.ts` bumped to `value-screen@2026-07-28-item242-bc-marketing-review-flags`; new `MARKETING_PHRASE_PATTERNS` (9 phrases) + `collectMarketingReviewFlags()` non-throwing collector (Item-214 enforce-site unchanged).
+- Joint test `_item242_bc_cpc.test.ts` — 10 asserts (version stamps, glossary parity for 9 canonical IDs, rules 7/8 present, coherence rewrite + exculpation, marketing flag detection).
+- BUILD_STAMP bumped → `ltp-risk-item242-bc-cpc-wired@…`.
+
+**Scope authored/held.**
+- **CP-B §2 (KIND templates + family grouping)** — six KIND opener clauses and family-grouping thresholds (Harm/Safeguard ≥ 2, Benefit ≥ 3) authored verbatim in `docs/courier/ITEM242-BC-WIRED-2026-07-28.md` §2 for CEO sign-off; composer wiring HOLDS pending sign-off.
+- **CP-B §1 (§ 7120(b)(1) / § 7120(b)(2)(B) postures)** — HELD pending corpus-sourced verbatim provision-text turn (inline paraphrase would violate CP2 SINGLE-WRITER LAW and § 7120 verbatim rule). Composer seam `composeSubmissionPosture(plan)` documented; ships with the verbatim content.
+
+**Courier.** `docs/courier/ITEM242-BC-WIRED-2026-07-28.md`.
+
+**Disposition.** CP-C live. Awaiting CEO sign-off on §2.1 opener clauses (releases CP-B §2 composer wiring) and release of a corpus-sourced §1 verbatim content turn (releases CP-B §1 posture wiring).
