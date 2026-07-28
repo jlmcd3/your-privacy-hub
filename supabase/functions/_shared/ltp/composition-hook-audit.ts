@@ -1,21 +1,50 @@
 /**
- * composition-hook-audit — Stage-B AUTHOR-CHECKPOINT (2026-07-27).
+ * composition-hook-audit — Stage-B AUTHOR-CHECKPOINT.
  *
- * A.ii RCA (Item 185): env var LTP_TEST_FORCE_WRITE_AROUND was set but
- * the composition branch was never entered — telemetry showed
- * ltp.composition.write_around=false across 3/3 documents. The hook
- * reader was silently absent from the composition path.
+ * Original A.ii RCA (Item 185): the LTP_TEST_FORCE_WRITE_AROUND hook
+ * was set but the composition branch was never entered — silent
+ * bypass. The audit fires on any config-vs-runtime mismatch.
  *
- * Contract: call at end of composition. If the hook secret is present
- * but the write_around branch was NOT taken, throw. Prevents future
- * "hook set + branch not entered" silent failures.
+ * ITEM 217 AUTHORIZATION-MODEL FIX (2026-07-28) — Smoke #11 review:
+ * production clock-cap write-around (Pass-1 75s cap → write_around=true;
+ * seen smokes #4/#10/#11) is a DESIGNED degradation per the Item-203
+ * clock contract, not a test scenario. Entry into the write-around
+ * branch is now AUTHORIZED when it originates from a known runtime
+ * path (`clock_cap`, `timeout`, `test_forced`). The audit throws only
+ * on genuinely unauthorized entry — no origin AND no test flag.
+ *
+ * Truth table (hook = LTP_TEST_FORCE_WRITE_AROUND):
+ *
+ *   hook SET   + branch entered                         → OK
+ *   hook SET   + branch NOT entered                     → THROW (silent bypass — A.ii)
+ *   hook UNSET + branch NOT entered                     → OK (normal production)
+ *   hook UNSET + branch entered + authorized origin     → OK (Item 217 clock-cap path)
+ *   hook UNSET + branch entered + no/unknown origin     → THROW (unauthorized degradation)
  *
  * §16 kin (fail-loud config assertion).
  */
 
-export const COMPOSITION_HOOK_AUDIT_VERSION = "composition-hook-audit@2026-07-27";
+export const COMPOSITION_HOOK_AUDIT_VERSION = "composition-hook-audit@2026-07-28-item217";
 
 export const FORCE_WRITE_AROUND_ENV = "LTP_TEST_FORCE_WRITE_AROUND";
+
+/**
+ * ITEM 217 — write-around origin.
+ *   - "clock_cap"    : Pass-1 clock-cap / retry-exhaustion write-around
+ *                      (designed degradation per Item 203).
+ *   - "timeout"      : upstream hard timeout took the write-around path.
+ *   - "test_forced"  : test-only forcing token was used (production
+ *                      requests never set this).
+ *   - "unknown"      : origin not identified — treated as unauthorized
+ *                      unless the hook is set.
+ */
+export type WriteAroundOrigin = "clock_cap" | "timeout" | "test_forced" | "unknown";
+
+const AUTHORIZED_ORIGINS: ReadonlySet<WriteAroundOrigin> = new Set([
+  "clock_cap",
+  "timeout",
+  "test_forced",
+]);
 
 export class CompositionHookAuditError extends Error {
   constructor(msg: string) {
@@ -29,14 +58,15 @@ export interface HookAuditInput {
   readonly hookValue: string | undefined | null;
   /** Whether the composition branch actually took the write-around path. */
   readonly writeAroundEntered: boolean;
+  /**
+   * ITEM 217: origin of the write-around entry, when known. If
+   * `writeAroundEntered` is false this field is ignored.
+   */
+  readonly writeAroundOrigin?: WriteAroundOrigin;
 }
 
 /**
- * Fail-loud audit.
- *   hook SET     + branch entered      → OK
- *   hook SET     + branch NOT entered  → THROW  (silent bypass — the A.ii bug)
- *   hook UNSET   + branch entered      → THROW  (unauthorized degradation)
- *   hook UNSET   + branch NOT entered  → OK  (normal production)
+ * Fail-loud audit. See truth table in the module header.
  */
 export function assertCompositionHookConformance(input: HookAuditInput): void {
   const set = typeof input.hookValue === "string" && input.hookValue.length > 0;
@@ -46,8 +76,10 @@ export function assertCompositionHookConformance(input: HookAuditInput): void {
     );
   }
   if (!set && input.writeAroundEntered) {
+    const origin = input.writeAroundOrigin;
+    if (origin && AUTHORIZED_ORIGINS.has(origin)) return; // Item 217: authorized
     throw new CompositionHookAuditError(
-      `write-around branch was entered but ${FORCE_WRITE_AROUND_ENV} is not set — unauthorized degradation path.`,
+      `write-around branch was entered without ${FORCE_WRITE_AROUND_ENV} and without an authorized origin (got origin=${origin ?? "undefined"}) — unauthorized degradation path.`,
     );
   }
 }
