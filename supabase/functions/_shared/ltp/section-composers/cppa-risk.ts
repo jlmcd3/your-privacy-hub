@@ -135,20 +135,41 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
 function balanceInstance(plan: RenderPlan): TemplateInstance {
   const closeness = computeCloseness(plan, plan.weighing_frame);
   const variant = chooseVariant(closeness);
+  const benefits = plan.factor_table.filter((f) => f.kind === "benefit" && f.present_in_intake);
+  const negatives = plan.factor_table.filter((f) => f.kind === "negative_impact" && f.present_in_intake);
+  const safeguards = plan.factor_table.filter((f) => f.kind === "safeguard" && f.present_in_intake);
+  const benefit_summary_tokens = joinList(benefits.map(factorLabel)) || "the benefits documented on the record";
+  const negative_summary_tokens = joinList(negatives.map(factorLabel)) || "the potential negative impacts documented on the record";
+  const safeguard_summary_tokens = joinList(safeguards.map(factorLabel)) || "the safeguards documented on the record";
+  const tipping = plan.weighing_frame
+    .slice()
+    .sort((a, b) => (b.closeness_contribution ?? 0) - (a.closeness_contribution ?? 0))
+    .slice(0, 3)
+    .map((f) => f.anchor_hint || f.pinpoint);
+  const tipping_factors = joinList(tipping) || "the balance of benefits, negative impacts, and safeguards on the record";
   if (variant === "hedged") {
-    const tipping = plan.weighing_frame
-      .slice()
-      .sort((a, b) => (b.closeness_contribution ?? 0) - (a.closeness_contribution ?? 0))
-      .slice(0, 3)
-      .map((f) => f.anchor_hint || f.pinpoint);
     return {
       template_id: "T.risk.balance.hedged",
       ctx: {
-        what_would_tip_it: joinList(tipping) || "the balance of benefits, negative impacts, and safeguards on the record",
+        benefit_summary_tokens,
+        negative_summary_tokens,
+        tipping_factors,
+        what_would_tip_it: tipping_factors,
       },
     };
   }
-  return { template_id: "T.risk.balance.firm", ctx: {} };
+  const direction = anyImpactsOutweigh(plan)
+    ? BALANCE_DIRECTION_CLAUSES[1]
+    : BALANCE_DIRECTION_CLAUSES[0];
+  return {
+    template_id: "T.risk.balance.firm",
+    ctx: {
+      benefit_summary_tokens,
+      negative_summary_tokens,
+      safeguard_summary_tokens,
+      balance_direction_clause: direction,
+    },
+  };
 }
 
 function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
