@@ -465,8 +465,8 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   {
     key: "enforcement_context",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "enforcement-context-standing-line" },
-    project: NONE,
-    note: "CPPA-verified rows only; none exist today → standing line or empty-by-finding omission.",
+    project: (_plan) => ENFORCEMENT_CONTEXT_STANDING_LINE,
+    note: "Limited-history standing line; replaced when CPPA enforcement rows verified into the corpus.",
   },
   {
     key: "enforcement_precedents",
