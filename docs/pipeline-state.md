@@ -4461,3 +4461,35 @@ All required wire values verified: `build_stamp` = item230a; `post_lint_pass1_ti
 **Deliverables.** Fix diff on `supabase/functions/run-cppa-risk-assessment/index.ts` (worker_liveness_start + fail-loud persist). Courier: `docs/courier/T-M9.1-BACKGROUND-DEATH-FIX-2026-07-28.md`.
 
 **Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-RELAUNCH. HARD STOP.
+
+---
+
+## Item 232 — T-M9.2: RUNTIME SHAPE CONFORMANCE — LEGACY V4 GENERATION EXECUTION RETIRED (2026-07-28)
+
+**Dispatch.** CONTROLLER T-M9.2 following the Item-231 log paste: [cppa-risk v4] generation (~120611 ms) + post-gen scrub + generate-v4-retry (120 s abort) all executed BEFORE Pass-1 on the item230a build. Declared shape is `llm_calls_per_document=[pass1_derive]`; observed runtime was 2–3 LLM calls including the legacy Engine-A v4 whose output the T-M6 assembler discards (overwrites every non-underscore top-level key; both harvests deterministic per T-M7(c)). Undeclared composition-shape drift AND spend waste per document. T-M7 retired the declaration and modules but not the execution.
+
+**VERIFY-FIRST evidence.** Consumers of the legacy `parsed` output (lines 1017–3577) all mutate `report_data` fields the T-M6 assembler overwrites at line 3589 (`_cutover = { ..._body, ..._preserved }` where `_preserved` keeps only underscore-prefixed subtrees). Harvests (`opening_summary`, `submission_summary`) are deterministic via `harvest-guard`. `_meta.internal` telemetry attached by scrub passes is preserved but does not carry legacy prose to the shipped surface. Conclusion: NO real consumer of legacy generation output reaches the customer report. Deletion is safe.
+
+**Fixes landed.**
+1. `LEGACY_GENERATION_RETIRED = true` constant + `legacyLlmCallCount` module counter at boot.
+2. `callModel(...)` fails loud when the retirement flag is set: increments the counter and throws `composition_shape_drift:legacy_v4_callmodel_invoked:label=<label>`. No Anthropic request is issued.
+3. Primary `generate-v4` block (previously ~L1017–1054) replaced with a stub `parsed = { assessment_summary: {}, _legacy_generation_retired: {...} }`, no callModel invocation, `terminal_error_parse` bypass, and a `legacy_v4_generation_skipped` log event.
+4. Three post-gen scrub-retry `callModel` sites (previously ~L1321 T5/BL retry, ~L1492 fwdpath retry, ~L1545 CoT-leak retry) short-circuited under `LEGACY_GENERATION_RETIRED` before any invocation (defensive; they would otherwise throw and be swallowed by their local try/catch).
+5. Runtime shape-conformance assert immediately before `terminal_complete`: if `legacyLlmCallCount > 0`, persist `status='error'` + `last_error=composition_shape_drift:legacy_v4_call_count=<n>;labels=<...>` and RETURN — no ship of spend-wasted output. Drift is now self-enforcing at runtime, not just declared.
+6. Fresh-clock build stamp: `ltp-risk-item232-t-m9.2-runtime-shape@2026-07-28T09:15:00Z`. Explicit deploy via `supabase--deploy_edge_functions` (standing law).
+
+**Post-deploy `GET ?ping=1` verbatim.**
+- `build_stamp`: `ltp-risk-item232-t-m9.2-runtime-shape@2026-07-28T09:15:00Z`
+- `pass1_timeout_enforced`: `abort-controller`
+- `post_lint_pass1_timeout_ms`: 120000
+- `pass1_stamp`: `ltp-pass1-llm-item230-abort-controller@2026-07-28`
+- `pass2_assembler`: `ltp-pass2-assembler-2026-07-28-tm6`
+- `composition_shape.version`: `cppa-risk-shape@2026-07-28-tm7-retirement`
+- `composition_shape.llm_calls_per_document`: `[{ stage: pass1_derive, role: authoritative RenderPlan derive, model_role: pass1_derive }]` (single entry)
+- `composition_shape.intermediate_artifacts`: `[render_plan (authoritative), assembler_output (shipped body; harvests are deterministic)]`
+
+**Expected E2E envelope.** Removing the legacy generation execution eliminates ~120 s primary generation + up to ~120 s scrub-retry + post-gen scrub work from the runtime. The runtime becomes: intake validation + corpus retrieval (~few s) → deterministic ledger/telemetry passes (fast, no LLM) → Pass-1 derive (single LLM call, N=2 × 120 s worst-case, typical single-attempt sub-30 s) → deterministic Guide + Pass-2 assembler → guards → persist. Expected new E2E: ~30–60 s typical, ≤ ~4 min worst-case (Pass-1 retry exhaustion → Type-J write-around, which is the designed degradation), vs. the prior ~4–7 min envelope dominated by discarded generation.
+
+**Deliverables.** Diff on `supabase/functions/run-cppa-risk-assessment/index.ts` (callModel fail-loud + primary block stub + 3 scrub-retry guards + runtime shape assert + fresh stamp). Courier: `docs/courier/T-M9.2-RUNTIME-SHAPE-CONFORMANCE-2026-07-28.md`.
+
+**Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
