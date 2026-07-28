@@ -4960,3 +4960,24 @@ composition_enforce: "1"
 
 **Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP5-SCOPE-COHERENCE-2026-07-28.md`.
 **Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP.
+
+## Item 240 CP5 ADDENDUM — CUSTOMER-FIRST OPENING (CEO directive, 2026-07-28)
+Dispatch: CEO CP5 addendum, 2026-07-28. Docs-only turn; zero code edits; no deploy.
+
+**Verbatim CEO directive of record (rulings log):**
+> "The PDF should lead with the customer, not the laws of the test."
+
+**Scope folded into CP5(e) prose-panel pass:**
+1. Reorder the T7 opening slot sequence and every PDF section lead so the document opens with the CUSTOMER — who they are, what they process, for what purpose (S2-class content first) — then states what this assessment is and why it is required (the legal trigger, S0/S1-class content) after. The statute serves the customer's story, never leads it.
+2. Same rule audited across every section opener in the prose pass: customer's facts first, legal frame second.
+3. All reordering ships as content-anchored courier text for CEO review before wiring; slot laws and provenance unchanged (deterministic emitter, ledger/registry sources, polarity locks, omit-over-invent, all-that-apply enumeration, boundary-band rule).
+4. Standing design law for every product's opening — recorded in the cross-product doc.
+
+**Docs written this turn:**
+- `docs/design/OPENING-PARAGRAPH-DESIGN.md` §4 — new standing "CUSTOMER-FIRST OPENING LAW (STANDING, CROSS-PRODUCT)" section; §2 cppa-risk slot line reordered to **S2 → S3 → S4 → S0 → S1 → S5 → S6** as the pilot per-product application; slot sources / ledger provenance / polarity locks / emitter law unchanged.
+- `docs/pipeline-state.md` — this item (240 CP5 ADDENDUM) + "Last updated" header restamped to 2026-07-28T13:01Z.
+- Courier: `docs/courier/CP5-ADDENDUM-CUSTOMER-FIRST-2026-07-28.md` (content-anchored reordering text for CEO review; per-product opener drafts held for CP5(e) prose-panel pass, drafted in courier for review before wiring).
+
+**Not changed this turn:** any code file; any Pass-2 template; any registry row; any slot source or provenance; slot inventories per product; deterministic emitter, ledger-only sources, emit-gate wire, and citation binding all UNCHANGED. No `run-cppa-risk-assessment` build, no BUILD_STAMP, no deploy.
+
+**Disposition.** DONE-DOCS. CP5(e) prose-panel wiring remains held for a subsequent wiring turn once CEO approves the content-anchored reorderings in the courier. HARD STOP.
