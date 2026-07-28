@@ -48,3 +48,16 @@ orgName/orgType; biometricTypes + purpose verbatim; jurisdictions + other_state_
 3. European products in registry-maturity order: dpia → lia → dpa → ir → governance.
 4. registration (after AI-Act registry verification); biometric last (after statute corpus).
 Each rollout is a full turn: contract/schema surfaces + fixtures + goldens + REGEN flag + five-lens + REPORT FLOW rule. No new intake fields required for any opening above; criterion (C) intake field deliberately deferred.
+
+## 4. CUSTOMER-FIRST OPENING LAW (STANDING, CROSS-PRODUCT — CEO-directed 2026-07-28; CP5 addendum)
+Verbatim CEO directive of record:
+> "The PDF should lead with the customer, not the laws of the test."
+
+Standing law (applies to every product's opening paragraph AND every section opener rendered by Pass-2 templates):
+1. **Customer-facts first.** The opening leads with S2-class content: who the customer is (organization identity), what they process (data categories / processing description), for what purpose (stated purpose / processing activity). Then S3/S4-class qualifiers and safeguards where non-silent.
+2. **Legal frame second.** Only after the customer's facts does the paragraph state what the assessment is and why it is required — S0 statutory applicability, then S1 statute-specific trigger(s) all-that-apply, then the operative content-frame (S5) and as-of date (S6).
+3. **The statute serves the customer's story, never leads it.** No paragraph may open with a code section, a rule number, a framework name, or a "This assessment is required under …" clause. Statutory anchors attach to the customer's facts, not the other way around.
+4. **Section-opener audit.** The same rule extends into every section opener in the prose pass (scope, balance, actions, guidance, etc.): the section states the customer's facts relevant to that section first, then the legal frame that governs them.
+5. **Unchanged.** Slot laws, source-of-truth pinning (ledger row or registry row), polarity locks, omit-over-invent, all-that-apply enumeration, boundary-band rule, and deterministic-emitter provenance are UNCHANGED. Only render order and section-opener prose ordering are constrained.
+6. **Per-product application.** Each product's §2 slot plan is re-read through this law; §2 cppa-risk is already reordered as the pilot. Other products are reordered in the CP5(e) prose-panel pass as content-anchored courier text for CEO review before wiring; slot inventories and sources do not change.
+7. **Cross-product doc of record.** This section (§4) is the canonical statement of the customer-first law; per-product design docs and Pass-2 template authoring reference it, they do not re-state it.
