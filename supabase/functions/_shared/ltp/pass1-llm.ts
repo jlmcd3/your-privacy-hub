@@ -334,7 +334,14 @@ export async function runPass1Llm(
       // validation, so V7 demanded frames the model was never asked for).
       // T-M9.4 VALID PLAN INVARIANT retained: model's own
       // conservative_write_around is IGNORED on the ok path.
-      const { plan: candidate } = applySingleWriterInjection(parsed, input);
+      const { plan: injected } = applySingleWriterInjection(parsed, input);
+      // ITEM 242 CP-C — present/note coherence screen sits BETWEEN
+      // injection and validation. Rewrites are recorded in a dedicated
+      // telemetry key `pass1_coherence_rewrites`; do NOT overload
+      // wa_origin (controller CP-C §ii).
+      const screened = applyCoherenceScreen(injected);
+      const candidate = screened.plan;
+      const coherenceRewrites = screened.rewrites;
       const issues = validateRenderPlan(candidate, WEIGHING_TESTS);
 
       if (issues.length > 0) {
@@ -364,6 +371,7 @@ export async function runPass1Llm(
           timeout_enforced: PASS1_TIMEOUT_ENFORCED,
           per_attempt_timeout_ms: perAttemptTimeoutMs,
           attempts_detail: details,
+          pass1_coherence_rewrites: coherenceRewrites,
         },
       };
     } catch (e) {
