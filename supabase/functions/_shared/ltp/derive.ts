@@ -48,6 +48,8 @@ const LEDGER_KEYS: readonly string[] = [
 
 export { LEDGER_KEYS };
 
+import { displayLabelForField } from "./grounded-note.ts";
+
 export function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[] {
   const out: IntakeLedgerEntry[] = [];
   for (const k of LEDGER_KEYS) {
@@ -57,7 +59,11 @@ export function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[]
         ledger_id: `L.${k}`,
         intake_field: k,
         value: (typeof v === "string" || typeof v === "number" || typeof v === "boolean" || v === null) ? v : JSON.stringify(v),
-        display: typeof v === "string" ? v : JSON.stringify(v ?? null),
+        // ITEM 243 defect 1(d) — display is the HUMAN LABEL for the
+        // intake field, not the value. Previously `display` was the value
+        // itself, which starved the grounded-note vocabulary of the
+        // field-label tokens.
+        display: displayLabelForField(k),
       });
     }
   }
