@@ -5050,3 +5050,23 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Courier.** `docs/courier/ITEM241-1-STRUCTURAL-GOLDEN-SHAPE-2026-07-28.md`.
 
 
+
+---
+
+### Item 241.2 — GOLDEN-SHAPE CONTENT COURIER (cppa-risk, CONTENT-AUTHORING ONLY)
+
+**Date.** 2026-07-28T20:39Z. **Scope.** Content-authoring courier for CEO verbatim sign-off. NO code, NO wiring, NO deploy. Option A step 2 of 3 under Item 241 (GOLDEN-SHAPE IMPOSITION). Trigger: 241.1 smoke passed its gates on run #178 (scope emits with per-prong pinpoints; exec/body coherent and gate-derived; depth telemetry live; C=72 / G=88, best combined to date).
+
+**Deliverables (all verbatim in courier).**
+- (1) `compliance_guidance` sentence proposed per registry row across the 15 conclusions in `cppa-risk-conclusions.ts` (5 applicability, 1 cohort, 4 documentation, 1 ADMT-conditional, 1 weighing, 3 reserved-judgment), plus the reuse rule for gate-level guidance. Every sentence is authored to the golden-register anatomy clause ("names the concrete outcome, the population that receives it, and the causal connection to the processing").
+- (2) `deadline_basis` registry proposed as `_shared/legal-test/cppa-risk-deadlines.ts` (authored in 241.3 from this content). Seven rows covering the § 7155(a)/(b)/(c) assessment-record class, the § 7220 ADMT pre-use notice class (existing / prospective), the § 7157 annual-attestation submission class, and the `ongoing_processing` fallback. Prospective-marking rule text, ongoing-processing rule text ("Immediate (before continuing the processing)."), and the one-deadline-per-action law restated verbatim as module-header comments.
+- (3) CP5 §3.2 section-opener template texts in final wording for Scope & Triggers, Balance, Actions/Recommendations, Compliance Guidance, and Executive Summary — customer-first per the approved CP5-ADDENDUM shapes.
+- (4) Golden-register template rewrites for the deep sections per the Golden-Shape spec §B–§C: four-part rationale assembly (record-status / colorable-argument / countervailing-with-enumerated-gaps / calibrated outcome), enumerated safeguard-gaps form, record-sufficiency flowing-prose form, benefits-to-business and benefits-to-consumers per-factor prose (distinct), four-move action template, adverse-effects per-factor prose.
+
+**Engineering rider (recorded now for 241.3 execution, not for this content pass).** Run #178 shipped an insufficiency finding on a documentation-complete record because `insufficientRecord` counts the three Type-J documentation gates (`G.documentation.initiation_decision`, `G.documentation.purpose_specificity`, `G.documentation.safeguard_sufficiency`) as unresolved when they resolve to `not_applicable` awaiting a reserved judgment. Type-J items are reserved decisions, never record gaps. 241.3 must (i) partition `G.documentation.*` into a factual subset (purpose / categories / operational elements / approver) and a judgment subset (initiation / purpose specificity / safeguard sufficiency); (ii) restrict `insufficientRecord` and `aggregateBalance` to the factual subset; (iii) add a fixture assert that a docs-complete record with three Type-J judgment gates emits a firm mode, never insufficient.
+
+**Provenance & law integrity.** Slot laws, provenance, per-proposition citation binding (CP4), coherence invariant (CP3/CP5), shape contract (CP3), Single-Writer Law (CP2 core), customer-first opener law (CP5-ADDENDUM §4), omit-over-invent, and the Golden-Shape rendering contract (Item 241) — UNCHANGED.
+
+**Disposition.** Courier goes to CEO for verbatim sign-off. Approval releases 241.3 wiring turn (bind registry content through pass-2 templates; execute engineering rider; consider flipping `golden_shape` from observe to advisory once quotas stabilise on live runs). HARD STOP.
+
+**Courier.** `docs/courier/GOLDEN-SHAPE-CONTENT-2026-07-28.md`.
