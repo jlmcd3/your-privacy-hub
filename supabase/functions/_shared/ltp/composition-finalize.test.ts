@@ -42,15 +42,14 @@ Deno.test("composition-finalize: leak hit → observe mode records, does not thr
   assertEquals(res.telemetry.value_screen_recomposed, false);
 });
 
-Deno.test("composition-finalize: leak hit → enforce mode throws", () => {
+Deno.test("composition-finalize: leak hit in enforce records telemetry, does NOT throw (Item 215)", () => {
   const rd = { assessment_summary: { narrative: "Per Engine-B composition, safeguards are recommended." } };
-  assertThrows(
-    () =>
-      finalizeComposition({
-        reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
-      }),
-    ValueScreenError,
-  );
+  const res = finalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assert(res.telemetry.value_screen_final_hits > 0);
+  assert(res.telemetry.pre_serializer_value_screen_pending.length > 0);
+  assertEquals(res.telemetry.pre_serializer_value_screen_pending[0].kind, "leak-lexicon");
 });
 
 Deno.test("composition-finalize: one bounded recompose scrubs, re-screens clean", () => {
