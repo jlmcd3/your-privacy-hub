@@ -20,7 +20,7 @@
  */
 import type { FactorTableEntry, RenderPlan } from "../render-plan/schema.ts";
 
-export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item242-bc";
+export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item243-present-requires-refs";
 
 export interface CoherenceRewrite {
   readonly factor_id: string;
