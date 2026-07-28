@@ -51,8 +51,12 @@ import {
   applyCoherenceScreen,
   type CoherenceRewrite,
 } from "./pass1-present-note-coherence.ts";
+import {
+  applyGroundedNoteScreen,
+  type GroundedNoteTelemetry,
+} from "./grounded-note.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-cp4-labels@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item242-bc-rider-grounded-note@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
@@ -92,7 +96,14 @@ export interface Pass1Telemetry {
   readonly attempts_detail: readonly Pass1AttemptDetail[];
   /** ITEM 242 CP-C — present/note coherence rewrites (dedicated key, NOT wa_origin). */
   readonly pass1_coherence_rewrites?: readonly CoherenceRewrite[];
+  /** ITEM 242 CP-C RIDER (2026-07-28) — GROUNDED-NOTE LAW telemetry. Projected to _meta.internal via render_plan.telemetry. */
+  readonly grounded_note?: GroundedNoteTelemetry;
+  /** Convenience mirror of grounded_note.replacements (per panel condition 4). */
+  readonly grounded_note_replacements?: number;
+  /** Convenience mirror of grounded_note.replacement_rate. */
+  readonly grounded_note_replacement_rate?: number;
 }
+
 
 export interface Pass1Result {
   readonly plan: RenderPlan;
@@ -340,8 +351,17 @@ export async function runPass1Llm(
       // telemetry key `pass1_coherence_rewrites`; do NOT overload
       // wa_origin (controller CP-C §ii).
       const screened = applyCoherenceScreen(injected);
-      const candidate = screened.plan;
+      // ITEM 242 CP-C RIDER — GROUNDED-NOTE LAW.
+      // Post-coherence, pre-validation: every content-bearing token in
+      // each factor weight_note must come from the ledger verbatims, the
+      // registry vocabulary, or the closed CONNECTIVE LEXICON. Violators
+      // are deterministically replaced (never model-mediated). Telemetry
+      // lands under pass1.telemetry.grounded_note and is projected to
+      // _meta.internal.render_plan.telemetry.grounded_note downstream.
+      const grounded = applyGroundedNoteScreen(screened.plan);
+      const candidate = grounded.plan;
       const coherenceRewrites = screened.rewrites;
+      const groundedTele = grounded.telemetry;
       const issues = validateRenderPlan(candidate, WEIGHING_TESTS);
 
       if (issues.length > 0) {
@@ -372,6 +392,9 @@ export async function runPass1Llm(
           per_attempt_timeout_ms: perAttemptTimeoutMs,
           attempts_detail: details,
           pass1_coherence_rewrites: coherenceRewrites,
+          grounded_note: groundedTele,
+          grounded_note_replacements: groundedTele.replacements,
+          grounded_note_replacement_rate: groundedTele.replacement_rate,
         },
       };
     } catch (e) {

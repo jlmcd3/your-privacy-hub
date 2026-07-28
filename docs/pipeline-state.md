@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T21:38Z (Item 242-CP-A deployed with verbatim post-deploy ping; Item 242-CP-B and Item 242-CP-C content couriers authored and awaiting CEO sign-off.)
+**Last updated:** 2026-07-28T22:23Z (Item 242-BC-RIDER — GROUNDED-NOTE LAW wired into Pass-1 between coherence and validator; prompt Rule 9 disclosure landed; deployed with verbatim post-deploy ping; CP-B §1/§2 remain HELD per the CP-C release.)
 
 ---
 
@@ -5165,3 +5165,45 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Courier.** `docs/courier/ITEM242-BC-WIRED-2026-07-28.md`.
 
 **Disposition.** CP-C live. Awaiting CEO sign-off on §2.1 opener clauses (releases CP-B §2 composer wiring) and release of a corpus-sourced §1 verbatim content turn (releases CP-B §1 posture wiring).
+
+### Item 242-BC-RIDER — GROUNDED-NOTE LAW WIRED + DEPLOYED
+
+**Date.** 2026-07-28T22:23Z. **Dispatch.** `RIDER TO THE IN-FLIGHT ITEM 242 B/C WIRING TURN — THE GROUNDED-NOTE LAW`. **CEO-directed, panel-reviewed.**
+
+**Law shipped (verbatim).** Every content-bearing token in a factor `weight_note` MUST originate from (i) the plan's intake-ledger verbatims, (ii) the registry vocabulary (display labels, factor/gate terms), or (iii) the closed CONNECTIVE LEXICON. Violators are deterministically REPLACED — never model-mediated — by `the intake records "{ledger_verbatim}" for {field_display_label}` (or `no record evidence` where no ledger row supports the factor).
+
+**Wiring.**
+- New module `_shared/ltp/grounded-note.ts` — `CONNECTIVE_LEXICON` (curated; **not** a stop-word list), `tokenize()` (case-fold, quote-stripping, hyphen/apostrophe-preserving), `buildGroundedSet()` (lexicon ∪ registry vocab ∪ ledger verbatims; numerals via ledger substring match), inflection tolerance (`±s`, `±es`, `±ing`, `±ed`, `y↔ies` — no stemming beyond these rules), `applyGroundedNoteScreen(plan)` → new plan + telemetry. Version: `pass1-grounded-note@2026-07-28-item242-bc-rider`.
+- Adapter wire in `_shared/ltp/pass1-llm.ts`: `applyGroundedNoteScreen` sits BETWEEN `applyCoherenceScreen` and `validateRenderPlan`. Stamp bumped to `ltp-pass1-llm-item242-bc-rider-grounded-note@2026-07-28`.
+- Prompt rule 9 (disclosure per panel condition 5) added to `PASS1_DERIVE_SYSTEM`; prompt version bumped to `pass1-derive-2026-07-28-item242-cpC-rider-grounded-note`.
+- Telemetry keys on `Pass1Telemetry`: `grounded_note` (full record incl. `details[]`, `tuning_threshold_rate: 0.25`, `over_threshold`), plus convenience mirrors `grounded_note_replacements` and `grounded_note_replacement_rate`. Projected downstream through `_meta.internal.render_plan.telemetry.grounded_note` — no `wa_origin` overload, no new `_meta.internal.*` key invented (CP-C §ii preserved).
+
+**Panel conditions honored.**
+1. **Prose panel (lexicon).** The CONNECTIVE LEXICON is authored as content-anchored courier text (§R.2 of `ITEM242-BC-WIRED-2026-07-28.md`) — record verbs, neutral analytic terms, hedges, quantity/scope function words, and register connectives — the codebase constant is a verbatim mirror.
+2. **Prose panel (marked quotations).** Ledger verbatims render as marked quotations in the deterministic replacement form; quote characters are treated as connective punctuation by the tokenizer, never content tokens.
+3. **Prompt panel (normalization spec).** Case-fold, punctuation-boundary, `y↔ies` and ±s/es/ing/ed inflection tolerance, numerals grounded via ledger-substring only — test-asserted with positive AND negative fixtures.
+4. **Prompt panel (rate telemetry).** Per-plan `grounded_note_replacement_rate` with tuning threshold **0.25**; `over_threshold` boolean; batch-level rate > 25% is a CEO-review data flag, not silent widening.
+5. **Prompt panel (expression only).** Rule 9 discloses the check; the model still authors `present_in_intake` and supporting refs. Facts unchanged; only expression is constrained.
+
+**BUILD_STAMP.** `ltp-risk-item242-bc-rider-grounded-note@2026-07-28T22:23:30.461Z`.
+
+**Suite.** `deno test run-cppa-risk-assessment/`: **88 passed, 0 failed**. New joint test `_item242_bc_rider_grounded_note.test.ts` — 8 asserts (prompt version, tokenizer, inflection, numerals, POSITIVE non-firing case, NEGATIVE run-#179 `audience insights` firing case, threshold telemetry, closed-lexicon sanity). Adjacent CP-C prompt-version assert amended to expect the rider-inclusive version.
+
+**Verbatim ping** (`GET /run-cppa-risk-assessment?ping=1` → 200):
+
+```json
+{
+  "build_stamp": "ltp-risk-item242-bc-rider-grounded-note@2026-07-28T22:23:30.461Z",
+  "pass1_stamp": "ltp-pass1-llm-item242-bc-rider-grounded-note@2026-07-28",
+  "pass1_model": "claude-sonnet-4-6",
+  "pass1_max_attempts": 2,
+  "pass1_timeout_enforced": "abort-controller",
+  "ltp_version": "ltp-risk-p2",
+  "ltp_mode": "enforce",
+  "pass2_assembler": "ltp-pass2-assembler-2026-07-28-item241-3-wiring"
+}
+```
+
+**Courier.** `docs/courier/ITEM242-BC-WIRED-2026-07-28.md` §R.1–§R.9 (rider appended to the in-flight CP-C courier, per dispatch: "All other B/C corrections from the prior release unchanged. Deliverables fold into ITEM242-BC-WIRED courier + ledger.").
+
+**Disposition.** GROUNDED-NOTE LAW live in production. CP-B §1 (verbatim submission postures) and CP-B §2 (KIND-family composer wiring) remain HELD per the prior CP-C release. HARD STOP — controller wire-verifies and relaunches the batch of three.

@@ -14,8 +14,9 @@ import {
 } from "../_shared/ltp/value-screen.ts";
 import type { FactorTableEntry } from "../_shared/render-plan/schema.ts";
 
-Deno.test("CP-C — prompt version bumped to item242-cpC", () => {
-  assertEquals(PASS1_DERIVE_PROMPT_VERSION, "pass1-derive-2026-07-28-item242-cpC");
+Deno.test("CP-C — prompt version bumped to item242-cpC (rider-inclusive)", () => {
+  // Rider (2026-07-28) further bumps the version to include the grounded-note law.
+  assertEquals(PASS1_DERIVE_PROMPT_VERSION, "pass1-derive-2026-07-28-item242-cpC-rider-grounded-note");
 });
 
 Deno.test("CP-C — glossary parity: canonical intake ids appear verbatim", () => {
