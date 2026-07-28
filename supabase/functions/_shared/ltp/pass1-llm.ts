@@ -40,7 +40,7 @@ import {
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item230-abort-controller@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item234-valid-plan-ships@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
@@ -182,12 +182,19 @@ export async function runPass1Llm(
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       const jsonText = jsonMatch ? jsonMatch[0] : raw;
       const parsed = JSON.parse(jsonText);
+      // T-M9.4 (Item 234) — VALID PLAN INVARIANT.
+      // A validator-clean Pass-1 output is authoritative. The model's own
+      // `conservative_write_around` flag is IGNORED on the ok path — Type-J
+      // write-around fires ONLY on terminal LLM failure (abort×N, validator
+      // hard-reject, or exception). Preserving a model-emitted triggered=true
+      // here caused run #168's clean plan to be discarded by the cutover
+      // classifier and routed to Type-J with a stale clock_cap origin.
       const candidate: RenderPlan = {
         ...parsed,
         plan_version: "v1",
         product: "cppa-risk-assessment",
         build_stamp: input.buildStamp,
-        conservative_write_around: parsed?.conservative_write_around ?? { triggered: false, disclosure: "silent+telemetry" },
+        conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
       };
       const issues = validateRenderPlan(candidate, WEIGHING_TESTS);
       if (issues.length > 0) {

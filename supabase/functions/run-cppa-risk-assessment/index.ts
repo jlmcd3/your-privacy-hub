@@ -20,7 +20,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
 // callModel throws on invocation and a runtime shape-conformance assert
 // fails loud on any drift.
-export const BUILD_STAMP = "ltp-risk-item233-t-m9.3-pass1-window-240s@2026-07-28T08:53:00Z";
+export const BUILD_STAMP = `ltp-risk-item234-t-m9.4-valid-plan-ships@${new Date().toISOString()}`;
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
 // When true, callModel() throws instead of hitting Anthropic, and the
@@ -3516,11 +3516,16 @@ async function runPipeline(assessment_id: string) {
           } catch (e) {
             console.warn("[run-cppa-risk-assessment] worker_liveness_pass1_start touch failed (non-fatal):", (e as Error)?.message);
           }
+          // T-M9.4 (Item 234) — STAGE TIMINGS. Capture per-stage elapsed
+          // (relative to worker t0) so the next successful run tells us
+          // where pre-Pass-1 time goes. Persisted under _meta.internal.
+          const _stagePass1Start = Date.now() - t0;
           const _pass1 = await runPass1Llm({
             intake: _ltpIntake,
             report_data: report_data as any,
             buildStamp: BUILD_STAMP,
           }, { maxAttempts: PASS1_MAX_ATTEMPTS, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          const _stagePass1End = Date.now() - t0;
           const _planSummary = {
             plan_version: _pass1.plan.plan_version,
             propositions: _pass1.plan.propositions?.length ?? 0,
@@ -3567,11 +3572,19 @@ async function runPipeline(assessment_id: string) {
           // path. _meta subtree is preserved (assembler never writes
           // there); shipped body top-level keys are overwritten.
           try {
-            const _writeAround = !!_pass1.plan?.conservative_write_around?.triggered
-              || !_pass1.telemetry.ok;
-            // T-M9 (Item 230): classify pass1_abort_timeout as a distinct
-            // authorized origin so composition-hook-audit can allow the
-            // designed abort-controller degradation without a hook-audit throw.
+            // T-M9.4 (Item 234) — VALID PLAN INVARIANT (belt-and-suspenders).
+            // A successful, validator-clean RenderPlan is ALWAYS assembled
+            // and shipped. The clock contract gates LLM retries only; the
+            // Pass-2 assembler is deterministic and requires no LLM budget.
+            // Type-J write-around fires ONLY on terminal Pass-1 failure
+            // (abort×N, validator hard-reject, or model error). Pass-1's
+            // upstream fix (pass1-llm.ts) forces triggered=false on ok,
+            // and we re-assert here so a future regression cannot re-route
+            // a valid plan to Type-J via a stray triggered=true.
+            const _pass1Ok = !!_pass1.telemetry.ok;
+            const _writeAround = _pass1Ok
+              ? false
+              : (!!_pass1.plan?.conservative_write_around?.triggered || !_pass1.telemetry.ok);
             const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown" = _writeAround
               ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
                   : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
@@ -3579,6 +3592,7 @@ async function runPipeline(assessment_id: string) {
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
             let _assemblerVersion = PASS2_ASSEMBLER_VERSION;
+            const _stageAssemblerStart = Date.now() - t0;
             if (_writeAround) {
               _body = buildTypeJWriteAroundBody({
                 intake: _ltpIntake,
@@ -3591,6 +3605,7 @@ async function runPipeline(assessment_id: string) {
               _assemblerTele = _assembler.telemetry;
               _assemblerVersion = _assembler.version;
             }
+            const _stageAssemblerEnd = Date.now() - t0;
             // Preserve _meta and any underscore-prefixed subtree; overwrite
             // every other top-level key from the assembler body.
             const _rdBefore: any = report_data as any;
@@ -3621,6 +3636,17 @@ async function runPipeline(assessment_id: string) {
                 body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
               },
               conformant: true,
+            };
+            _rd3._meta.internal.stage_timings = {
+              build_stamp: BUILD_STAMP,
+              worker_start_ms: 0,
+              pass1_start_ms: _stagePass1Start,
+              pass1_end_ms: _stagePass1End,
+              pass1_elapsed_ms: _stagePass1End - _stagePass1Start,
+              assembler_start_ms: _stageAssemblerStart,
+              assembler_end_ms: _stageAssemblerEnd,
+              assembler_elapsed_ms: _stageAssemblerEnd - _stageAssemblerStart,
+              cutover_end_ms: Date.now() - t0,
             };
             console.log(JSON.stringify({
               evt: "ltp_pass2_assembler_cutover_ran",
@@ -3665,12 +3691,13 @@ async function runPipeline(assessment_id: string) {
       _rdF._meta.internal = _rdF._meta.internal ?? {};
       const _hookValue = readForceWriteAroundOnce(Deno.env);
       const _ltpPreview = _rdF._meta.internal.legal_test_pipeline?.enforce_preview;
-      const _writeAroundEntered = !!_ltpPreview?.plan_summary?.write_around;
-      // ITEM 217 fix (a): classify the write-around origin so the
-      // hook-audit knows this is a designed clock-cap degradation
-      // (Item 203 clock contract), not an unauthorized bypass. Pass-1
-      // sets telemetry.write_around=true only after the N=2 retry
-      // budget exhausts OR the test forcing token is used.
+      // T-M9.4 (Item 234) — VALID PLAN INVARIANT (finalize-site guard).
+      // Only enter write-around when Pass-1 actually failed. The upstream
+      // plan_summary.write_around flag mirrors the model-emitted
+      // conservative_write_around and can be a false positive on a clean
+      // ok run. Gate on telemetry.ok === true → NEVER write-around.
+      const _pass1TeleOk = _ltpPreview?.telemetry?.ok === true;
+      const _writeAroundEntered = !_pass1TeleOk && !!_ltpPreview?.plan_summary?.write_around;
       const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
       const _writeAroundOrigin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | undefined =
         _writeAroundEntered

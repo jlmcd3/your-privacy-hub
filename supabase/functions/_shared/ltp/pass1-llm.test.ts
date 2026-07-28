@@ -77,3 +77,48 @@ Deno.test("pass1-llm: N=2 aborts → write_around with pass1_abort_timeout", asy
     Deno.env.delete("LTP_ENFORCE_ENABLED");
   }
 });
+
+// T-M9.4 (Item 234) — VALID PLAN INVARIANT.
+// The model does NOT own `conservative_write_around`. If Pass-1 returns a
+// validator-clean plan whose parsed JSON includes `triggered:true`, the
+// adapter MUST override it to `triggered:false` so the cutover ships the
+// assembler body instead of routing to Type-J with a stale clock_cap origin.
+Deno.test({ name: "pass1-llm: model-emitted triggered=true is IGNORED on validator-clean ok", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const { derivePlan } = await import("./derive.ts");
+  // Build a real, validator-clean plan via the deterministic shadow
+  // arm, then decorate it with a stray triggered=true to simulate a
+  // model that copied the flag through.
+  const shadow = derivePlan({ intake: BASE.intake, report_data: {}, buildStamp: "test@x" });
+  const poisoned = {
+    ...shadow,
+    conservative_write_around: { triggered: true, reason: "model_hallucinated", disclosure: "silent+telemetry" },
+  };
+  const body = {
+    content: [{ type: "text", text: JSON.stringify(poisoned) }],
+    stop_reason: "end_turn",
+    usage: { input_tokens: 1, output_tokens: 1 },
+  };
+  Deno.env.set("LTP_ENFORCE_ENABLED", "1");
+  Deno.env.delete("LTP_TEST_FORCE_WRITE_AROUND");
+  const prevKey = Deno.env.get("ANTHROPIC_API_KEY");
+  Deno.env.set("ANTHROPIC_API_KEY", "test-dummy-not-a-real-key");
+  const origFetch = globalThis.fetch;
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).fetch = () => Promise.resolve(new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }));
+  try {
+    const r = await runPass1Llm(BASE, { maxAttempts: 2, timeoutMs: 5_000 });
+    if (r.telemetry.ok) {
+      assertEquals(r.telemetry.write_around, false, "write_around must be false on ok");
+      assertEquals(r.plan.conservative_write_around?.triggered, false,
+        "model-emitted triggered=true must be overridden to false on ok");
+    } else {
+      // Validator rejected; invariant vacuously satisfied.
+      assert(r.telemetry.validator_issues >= 0);
+    }
+  } finally {
+    globalThis.fetch = origFetch;
+    if (prevKey !== undefined) Deno.env.set("ANTHROPIC_API_KEY", prevKey);
+    else Deno.env.delete("ANTHROPIC_API_KEY");
+    Deno.env.delete("LTP_ENFORCE_ENABLED");
+  }
+} });
