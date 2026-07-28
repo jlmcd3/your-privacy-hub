@@ -318,7 +318,9 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // ~747 chars/action per Golden-Shape §1 (top-50 empirical).
   "T.risk.priority_action.golden": {
     id: "T.risk.priority_action.golden",
-    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}}",
+    // ITEM 242 (defect 7a) — owner slot appended verbatim to every action.
+    // Sourced from i7_internal_contributors (role-title only, per PII law).
+    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}} Owner: {{plan:owner_role_titles}}.",
     citation_slots: ["PINPOINT"],
     plan_slots: [
       "element_short_label",
@@ -327,9 +329,10 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
       "gap_or_consequence_clause",
       "compliance_guidance_sentence",
       "deadline_sentence",
+      "owner_role_titles",
     ],
     intake_slots: [],
-    max_chars: 1200,
+    max_chars: 1400,
   },
 
   // ITEM 241.3 — CP5 §3.2 section-opener templates. Customer-first per
