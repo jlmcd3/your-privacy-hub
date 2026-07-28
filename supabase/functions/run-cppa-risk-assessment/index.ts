@@ -1318,6 +1318,7 @@ async function runPipeline(assessment_id: string) {
             null,
             budget.retryCapMs,
             async (_signal) => {
+              if (LEGACY_GENERATION_RETIRED) return null; // T-M9.2: legacy retry retired
               const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry", CPPA_RISK_MAX_TOKENS, POST_LINT_LLM_CALL_TIMEOUT_MS);
               const retryParsed = tryParseJson(retry.text);
               if (retryParsed && retryParsed.assessment_summary) {
