@@ -225,6 +225,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     maxTokens: opts.maxTokens,
     timeoutMs,
     label: `${opts.label}#cont`,
+    abortSignal: opts.abortSignal,
   });
   // RC-A A7 — meter the continuation leg (before any degenerate retry).
   recordApiUsage({
