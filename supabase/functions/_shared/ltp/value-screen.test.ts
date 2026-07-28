@@ -11,7 +11,7 @@ import {
 } from "./value-screen.ts";
 
 Deno.test("value-screen: version stamp (Item 237)", () => {
-  assertEquals(VALUE_SCREEN_VERSION, "value-screen@2026-07-28-item240-cp4-registry-ids");
+  assertEquals(VALUE_SCREEN_VERSION, "value-screen@2026-07-28-item242-bc-marketing-review-flags");
 });
 
 Deno.test("value-screen: bare 'We ' substring is NO LONGER in the lexicon (Item 204 Defect A)", () => {

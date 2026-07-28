@@ -22,7 +22,37 @@ import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec 
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-batch3";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-cpb-final";
+
+/**
+ * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
+ * Consumed as `element_short_label` PREFIX in T.risk.priority_action.golden
+ * per courier §2.1. Bold header becomes `${STEM} ${label}`. Rest of the
+ * golden template (customer_recorded_fact_clause, gap_or_consequence,
+ * compliance_guidance, deadline_sentence, owner) continues to render.
+ */
+export type ActionKind =
+  | "benefit_absent"
+  | "harm_absent"
+  | "safeguard_absent"
+  | "gate_unresolved"
+  | "type_j_reserved"
+  | "conditional";
+
+export const KIND_OPENERS: Readonly<Record<ActionKind, string>> = {
+  benefit_absent: "Additional information would be needed to substantiate the stated benefit of",
+  harm_absent: "Additional information would be needed to address the potential negative impact category",
+  safeguard_absent: "Additional information would be needed to document the safeguard",
+  gate_unresolved: "Additional information would be needed for",
+  type_j_reserved: "Qualified counsel should be consulted for further consideration of",
+  conditional: "Additional information would be necessary to substantiate",
+};
+
+export const FAMILY_THRESHOLDS: Readonly<Record<"harm" | "safeguard" | "benefit", number>> = {
+  harm: 2,
+  safeguard: 2,
+  benefit: 3,
+};
 
 export { aggregateBalance, DOCUMENTATION_FACTUAL_GATE_IDS, DOCUMENTATION_JUDGMENT_GATE_IDS };
 // ITEM 242 batch-3 A — expose the two composers under test for the
@@ -360,7 +390,9 @@ function deadlineForAction(conclusionId: string | undefined, isDocumentationGate
 }
 
 interface ActionSource {
+  readonly kind: ActionKind;
   readonly conclusion_id?: string;
+  readonly factor_id?: string;
   readonly element_short_label: string;
   readonly pinpoint: string;
   readonly customer_recorded_fact_clause: string;
@@ -369,10 +401,74 @@ interface ActionSource {
   readonly is_documentation_gate: boolean;
 }
 
+/** Lowercase the first character (used to fold CEO opener into label prefix). */
+function lcFirst(s: string): string {
+  return s.length === 0 ? s : s[0].toLowerCase() + s.slice(1);
+}
+
+/**
+ * Family grouping (CEO courier §2.2). Consolidate ≥2 absent harms,
+ * ≥2 absent safeguards, ≥3 absent benefits into single family actions
+ * with a bulleted sub-list, reducing 14-clone action sets to ~11 diverse.
+ */
+function groupFamilies(sources: ActionSource[]): ActionSource[] {
+  const groups: Record<"harm" | "safeguard" | "benefit", ActionSource[]> = {
+    harm: [], safeguard: [], benefit: [],
+  };
+  const other: ActionSource[] = [];
+  for (const s of sources) {
+    if (s.kind === "harm_absent" && s.factor_id?.startsWith("neg.")) groups.harm.push(s);
+    else if (s.kind === "safeguard_absent" && s.factor_id?.startsWith("safe.")) groups.safeguard.push(s);
+    else if (s.kind === "benefit_absent" && s.factor_id?.startsWith("benefit.")) groups.benefit.push(s);
+    else other.push(s);
+  }
+  const out: ActionSource[] = [...other];
+  const FAMILY_META: Record<"harm" | "safeguard" | "benefit", { pinpoint: string; opener_family: string; guidance: string }> = {
+    harm: {
+      pinpoint: "11 CCR § 7152(a)(5)",
+      opener_family: "the following potential negative impact categories",
+      guidance: "Document each of the listed § 7152(a)(5) negative-impact categories on the assessment record with the specificity the subsection requires.",
+    },
+    safeguard: {
+      pinpoint: "11 CCR § 7152(a)(6)",
+      opener_family: "the following safeguards",
+      guidance: "Document each of the listed § 7152(a)(6) safeguards on the assessment record with the specificity the subsection requires.",
+    },
+    benefit: {
+      pinpoint: "11 CCR § 7152(a)(4)",
+      opener_family: "the following stated benefits",
+      guidance: "Document each of the listed § 7152(a)(4) benefits on the assessment record with the specificity the subsection requires.",
+    },
+  };
+  (["harm", "safeguard", "benefit"] as const).forEach((fam) => {
+    const rows = groups[fam];
+    if (rows.length >= FAMILY_THRESHOLDS[fam]) {
+      const meta = FAMILY_META[fam];
+      const bullets = rows.map((r) => `• ${r.element_short_label.replace(/^[A-Z]/, (c) => c)}`).join("\n");
+      out.push({
+        kind: rows[0].kind,
+        factor_id: `family.${fam}`,
+        element_short_label: `${meta.opener_family}:\n${bullets}`,
+        pinpoint: meta.pinpoint,
+        customer_recorded_fact_clause: `none of the listed items above are on ${entityPlaceholder()}'s record`,
+        gap_or_consequence_clause: `${meta.pinpoint} requires each of these elements to be documented for the assessment record to be complete`,
+        compliance_guidance_sentence: meta.guidance,
+        is_documentation_gate: false,
+      });
+    } else {
+      out.push(...rows);
+    }
+  });
+  return out;
+}
+
+// Sentinel used only inside groupFamilies (composer substitutes entityName at emit).
+function entityPlaceholder(): string { return "the business"; }
+
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
   const owner = ownerRoleTitles(plan);
-  const sources: ActionSource[] = [];
+  const rawSources: ActionSource[] = [];
 
   // (1)+(2) factor-table gaps — filtered by gap-applicability law.
   for (const f of plan.factor_table) {
@@ -380,14 +476,22 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     if (!isGap) continue;
     if (!factorAdmtApplicable(f, plan)) continue; // defect 4
     const label = factorLabel(f) || "this factor";
-    sources.push({
+    // Map factor kind → ActionKind.
+    const kind: ActionKind =
+      f.kind === "benefit" ? "benefit_absent"
+      : f.kind === "negative_impact" ? "harm_absent"
+      : f.kind === "safeguard" ? "safeguard_absent"
+      : "gate_unresolved";
+    rawSources.push({
+      kind,
+      factor_id: f.factor_id,
       element_short_label: label,
       pinpoint: f.anchor.pinpoint,
       customer_recorded_fact_clause: f.present_in_intake
-        ? `the record shows ${label.toLowerCase()} but the supporting detail is thin`
-        : `${label.toLowerCase()} is not present on the record`,
-      gap_or_consequence_clause: `the § 7152(a) record cannot be relied upon for ${label.toLowerCase()} without further documentation`,
-      compliance_guidance_sentence: `Document ${label.toLowerCase()} in the assessment record with the specificity ${f.anchor.pinpoint} requires.`,
+        ? `the record shows ${lcFirst(label)} but the supporting detail is thin`
+        : `${lcFirst(label)} is not present on ${entity}'s record`,
+      gap_or_consequence_clause: `the § 7152(a) record cannot be relied upon for ${lcFirst(label)} without further documentation`,
+      compliance_guidance_sentence: `Document ${lcFirst(label)} in the assessment record with the specificity ${f.anchor.pinpoint} requires.`,
       is_documentation_gate: false,
     });
   }
@@ -403,25 +507,22 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
       : spec?.reserved_to === "external_auditor"
         ? "the external auditor"
         : "the accountable business owner";
-    sources.push({
+    rawSources.push({
+      kind: "type_j_reserved",
       conclusion_id: p.conclusion_id,
       element_short_label: label,
       pinpoint: p.anchor.pinpoint,
-      customer_recorded_fact_clause: `the record reserves ${label.toLowerCase()} to ${reservedTo}`,
+      customer_recorded_fact_clause: `the record reserves ${lcFirst(label)} to ${reservedTo}`,
       gap_or_consequence_clause: `the reserved judgment must be exercised and recorded before the assessment closes`,
       compliance_guidance_sentence: spec?.compliance_guidance
-        ?? `Record ${reservedTo}'s decision on ${label.toLowerCase()} in the assessment file per ${p.anchor.pinpoint}.`,
+        ?? `Record ${reservedTo}'s decision on ${lcFirst(label)} in the assessment file per ${p.anchor.pinpoint}.`,
       is_documentation_gate: false,
     });
   }
 
   // (4) Unresolved FACTUAL documentation gates.
-  // ITEM 242 (defect 7c) — use the gate REGISTRY's anchor_pinpoint and
-  // a short id-derived label (never the raw description sentence, which
-  // may pollute the shipped action with internal cross-reference prose).
   const gateLabel = (id: string): string => {
     const tail = id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
-    // "purpose present" → "assessment record — purpose"
     const noun = tail.replace(/\s+present$/i, "").trim();
     return `assessment record — ${noun}`;
   };
@@ -431,24 +532,37 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     const spec = CPPA_RISK_GATE_INDEX[g.gate_id];
     const pin = spec?.anchor_pinpoint ?? "11 CCR § 7152(a)";
     const label = gateLabel(g.gate_id);
-    sources.push({
+    rawSources.push({
+      kind: "gate_unresolved",
       element_short_label: label,
       pinpoint: pin,
-      customer_recorded_fact_clause: `${label.toLowerCase()} is not on the record`,
+      customer_recorded_fact_clause: `${lcFirst(label)} is not on ${entity}'s record`,
       gap_or_consequence_clause: `${pin} requires this element for the assessment record to be complete`,
-      compliance_guidance_sentence: `Complete the ${pin} record for ${label.toLowerCase()} before the assessment closes.`,
+      compliance_guidance_sentence: `Complete the ${pin} record for ${lcFirst(label)} before the assessment closes.`,
       is_documentation_gate: true,
     });
   }
 
+  // Family grouping (CEO §2.2). Non-family kinds pass through untouched.
+  const sources = groupFamilies(rawSources);
+
   return sources.map<TemplateInstance>((s) => {
     const sel = selectDeadlineOrFallback(deadlineForAction(s.conclusion_id, s.is_documentation_gate, plan));
+    // KIND opener stem prepended to element_short_label per courier §2.1.
+    // For family-grouped rows the label already carries the family opener
+    // ("the following …:"); prepend the KIND stem to complete the sentence.
+    const stem = KIND_OPENERS[s.kind];
+    const prefixedLabel = s.factor_id?.startsWith("family.")
+      ? `${stem} ${s.element_short_label}`
+      : `${stem} ${lcFirst(s.element_short_label)}`;
+    // Family customer_recorded_fact_clause carries the "the business" sentinel — replace here.
+    const factClause = s.customer_recorded_fact_clause.replace(/the business's record/g, `${entity}'s record`);
     return {
       template_id: "T.risk.priority_action.golden",
       ctx: {
-        element_short_label: s.element_short_label,
+        element_short_label: prefixedLabel,
         entity_name: entity,
-        customer_recorded_fact_clause: s.customer_recorded_fact_clause,
+        customer_recorded_fact_clause: factClause,
         gap_or_consequence_clause: s.gap_or_consequence_clause,
         compliance_guidance_sentence: s.compliance_guidance_sentence,
         deadline_sentence: sel.row.deadline_sentence,

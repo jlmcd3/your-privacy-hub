@@ -5207,3 +5207,30 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Courier.** `docs/courier/ITEM242-BC-WIRED-2026-07-28.md` §R.1–§R.9 (rider appended to the in-flight CP-C courier, per dispatch: "All other B/C corrections from the prior release unchanged. Deliverables fold into ITEM242-BC-WIRED courier + ledger.").
 
 **Disposition.** GROUNDED-NOTE LAW live in production. CP-B §1 (verbatim submission postures) and CP-B §2 (KIND-family composer wiring) remain HELD per the prior CP-C release. HARD STOP — controller wire-verifies and relaunches the batch of three.
+
+---
+
+## Item 242-CPB-FINAL — CP-B FINAL WIRING (postures + KIND openers + family grouping)
+
+**Dispatch.** `CONTROLLER RELEASE — ITEM 242 CP-B FINAL WIRING (2026-07-28)`.
+
+**Executed.** 2026-07-28. Build stamp `ltp-risk-item242-cpb-final@2026-07-28T23:07:59.895Z`. Composer version `ltp-section-composers-cppa-risk-2026-07-28-item242-cpb-final`. Submission-postures stamp `submission-postures@2026-07-28-cpb-final`.
+
+**Scope.** (A) Six CEO KIND opener stems wired into `element_short_label` prefix in `T.risk.priority_action.golden`. (B) Repeated-opener assert re-scoped: ratified stems exempt; substance (KIND, element_core, post-stem tail) duplication remains a failure. (C) § 7120(b)(1) / (b)(2)(A) / (b)(2)(B) posture clauses authored from verbatim provision text (`provision_texts:cppa-7120`); marker sources verified in code (M4 → `q15c_spi_volume`, M5 → `q5c_share_revenue_50pct`); 3 × 4 = 12 posture forms exercised in joint tests. (D) Family grouping consolidator: harm ≥ 2 / safeguard ≥ 2 / benefit ≥ 3 → one action per family with bulleted sub-list; non-family kinds pass through untouched.
+
+**Wired.** `_shared/openings/ccpa-7120-pin.ts` (new corpus pins). `_shared/ltp/submission-postures.ts` (new emitter). `_shared/ltp/waveb-completion.ts::extendSubmissionBasisCrosswalk` (posture clauses replace compact form; idempotency skip marker `§ 7120(b)(1) incorporates`). `_shared/ltp/section-composers/cppa-risk.ts` (`KIND_OPENERS`, `FAMILY_THRESHOLDS`, `groupFamilies`, kind-typed `ActionSource`, KIND-stem prefix at emission). `_shared/ltp/value-screen.test.ts:14` stamp expectation refreshed to match deployed VALUE_SCREEN_VERSION. `run-cppa-risk-assessment/index.ts` BUILD_STAMP bumped.
+
+**Tests.** `run-cppa-risk-assessment/_item242_cpb_final.test.ts` — 8 joint asserts (posture verbatim, 12 posture forms, crosswalk emission, KIND opener exposure, opener-stem prefix, family grouping, re-scoped opener assert, M4/M5 marker verification). Full suite: `322 passed | 0 failed (5s)`.
+
+**Deploy.** `supabase--deploy_edge_functions(["run-cppa-risk-assessment"])` — deploy succeeded. Real edge-function boot log (via `supabase--edge_function_logs`):
+
+```
+2026-07-28T23:07:59Z INFO {"evt":"risk_va_registry_loaded","fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-item242-cpb-final@2026-07-28T23:07:59.895Z","va_version":"risk-va-w1-2026-07-24","va_rows":44}
+2026-07-28T23:07:59Z INFO [run-cppa-risk-assessment] boot build_stamp=ltp-risk-item242-cpb-final@2026-07-28T23:07:59.895Z
+```
+
+Boot `build_stamp` echoes `ltp-risk-item242-cpb-final@…` — CP-B FINAL wire confirmed live.
+
+**Courier.** `docs/courier/ITEM242-CPB-FINAL-2026-07-28.md`.
+
+**Disposition.** CP-B FINAL live. HARD STOP — controller wire-verifies and launches the BATCH OF THREE.
