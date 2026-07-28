@@ -1,32 +1,57 @@
 /**
- * LTP Section Composers — cppa-risk (ITEM 235 / T-M9.5).
+ * LTP Section Composers — cppa-risk (ITEM 240 CP4 — LABELS + PER-INSTANCE CITATIONS).
  *
- * Per-shard composers that turn a RenderPlan into an ordered list of
- * template INSTANCES with populated SlotContext. Renderer enforces
- * fill-or-omit at the instance level; composers therefore ship every
- * candidate instance and let the renderer drop the ones whose required
- * slots resolve empty.
- *
- * Pure; RenderPlan-only inputs.
+ * CP4 fixes (2026-07-28):
+ *   (a) DISPLAY-LABEL LAYER: every customer-facing label resolves via the
+ *       registry's display_label (ConclusionSpec.display_label / FactorRow.label),
+ *       never via humanize(id). Registry-id shapes are structurally
+ *       unshippable — enforced downstream by value-screen's REGISTRY_ID_PATTERNS.
+ *   (b) PER-PROPOSITION CITATION BINDING: every template instance carries
+ *       ctx.__cite pinpoints from ITS OWN anchor (proposition/factor/gate).
+ *       Scope & Triggers renders one instance PER § 7150(b) prong with the
+ *       correct engaged/not-engaged from gate outcomes and each with its
+ *       own pinpoint. Ends the global-first-binding fallback class.
+ *   (c) EXEC/BALANCE COHERENCE: composeExecutive consumes the same
+ *       aggregateBalance(plan) mode that balanceInstance uses.
  */
-import type { RenderPlan, FactorTableEntry, Proposition } from "../../render-plan/schema.ts";
+import type { RenderPlan, FactorTableEntry, Proposition, StatutoryAnchor } from "../../render-plan/schema.ts";
 import type { SlotContext } from "../slot-resolver.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES, BALANCE_DIRECTION_CLAUSES } from "../content/pass2-templates.ts";
 import { computeCloseness, chooseVariant } from "../closeness.ts";
+import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../legal-test/cppa-risk-conclusions.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item236";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item240-cp4";
 
 export interface TemplateInstance {
   readonly template_id: string;
   readonly ctx: SlotContext;
 }
 
-// ── Small helpers ────────────────────────────────────────────────────────
+// ── Registry-backed label + anchor lookups ───────────────────────────────
 
-const humanize = (id: string): string =>
-  id.replace(/^[a-z]+\.[a-z]\./i, "").replace(/^F\./, "").replace(/[._-]+/g, " ").trim();
+const BALANCE_ANCHOR: StatutoryAnchor =
+  CPPA_RISK_CONCLUSION_INDEX["w.balance.risks_vs_benefits"]?.anchor
+  ?? { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)" };
 
-const factorLabel = (f: FactorTableEntry): string => humanize(f.factor_id);
+const DOC_APPROVER_ANCHOR: StatutoryAnchor =
+  CPPA_RISK_CONCLUSION_INDEX["r.documentation.approver_present"]?.anchor
+  ?? { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(9)" };
+
+function conclusionAnchor(conclusionId: string): StatutoryAnchor | undefined {
+  return CPPA_RISK_CONCLUSION_INDEX[conclusionId]?.anchor;
+}
+
+function conclusionLabel(conclusionId: string): string {
+  return CPPA_RISK_CONCLUSION_INDEX[conclusionId]?.display_label ?? "";
+}
+
+function propLabel(p: Proposition): string {
+  return p.display_label ?? conclusionLabel(p.conclusion_id) ?? "";
+}
+
+function factorLabel(f: FactorTableEntry): string {
+  return f.display_label ?? "";
+}
 
 const joinList = (labels: readonly string[]): string => {
   const clean = labels.filter((s) => typeof s === "string" && s.trim().length > 0);
@@ -43,7 +68,6 @@ const pluralActivityPhrase = (n: number): string =>
       ? "one activity requiring assessment"
       : `${n} activities requiring assessment`;
 
-/** Engaged Type R applicability propositions (mirrors summary-compose.ts). */
 const engagedApplicability = (plan: RenderPlan): Proposition[] =>
   plan.propositions.filter(
     (p) => p.epistemic_type === "R" && (p as { polarity?: string }).polarity === "positive"
@@ -52,10 +76,8 @@ const engagedApplicability = (plan: RenderPlan): Proposition[] =>
 
 const activityCount = (plan: RenderPlan): number => engagedApplicability(plan).length;
 
-const anyCloseBalance = (plan: RenderPlan): boolean =>
-  plan.weighing_frame.some(
-    (f) => typeof f.closeness_contribution === "number" && f.closeness_contribution >= FIRM_VARIANT_CLOSENESS_MAX,
-  );
+const insufficientRecord = (plan: RenderPlan): boolean =>
+  plan.factor_table.filter((f) => f.present_in_intake).length === 0;
 
 const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   const benefits = plan.factor_table.filter((f) => f.kind === "benefit" && f.present_in_intake).length;
@@ -63,40 +85,33 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   return negatives > 0 && negatives > benefits;
 };
 
-const insufficientRecord = (plan: RenderPlan): boolean =>
-  plan.factor_table.filter((f) => f.present_in_intake).length === 0;
+/**
+ * CP4 (c) — SHARED BALANCE AGGREGATION. composeExecutive and balanceInstance
+ * both consume this so an "insufficient" exec over a rendered firm/hedged
+ * balance is structurally impossible.
+ */
+type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
+function aggregateBalance(plan: RenderPlan): BalanceMode {
+  if (insufficientRecord(plan) || activityCount(plan) === 0) return "insufficient";
+  if (anyImpactsOutweigh(plan)) return "negative";
+  const closeness = computeCloseness(plan, plan.weighing_frame);
+  return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
+}
 
 // ── Composers ────────────────────────────────────────────────────────────
-
-/**
- * ITEM 236 fix (d) — activity_label MUST resolve from the proposition
- * (humanized conclusion_id), never from the raw intake answer value.
- * The engaged Type-R propositions carry the activity semantics; the
- * intake ledger display for the referenced field is a raw answer
- * (e.g. "Yes — systematic observation…") and would surface a
- * customer-facing label like "For Yes — systematic observation…".
- */
-function activityLabelForProp(p: Proposition, _plan: RenderPlan): string {
-  return humanize(p.conclusion_id);
-}
 
 function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   const n = activityCount(plan);
   const each = n === 1 ? SUMMARY_EACH_OR_THIS_CLAUSES[0] : SUMMARY_EACH_OR_THIS_CLAUSES[1];
-  // ITEM 236 fix (d) — singular/plural clause: n==1 → "activity", n!=1 → "activities".
   const singplural = n === 1 ? SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[0] : SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[1];
   const acp = pluralActivityPhrase(n);
-  const engagedLabels = engagedApplicability(plan).map((p) => activityLabelForProp(p, plan));
-  // CP3 (Item 240) — COHERENCE INVARIANT. The exec summary may never
-  // simultaneously say "no activities identified" AND reference "the
-  // activities identified on the record". Route zero-activity cases to
-  // the insufficient variant regardless of factor-impact tally so the
-  // sibling slots stay consistent. Fixture: cp3 fixture asserts coherence.
-  if (insufficientRecord(plan) || n === 0 || engagedLabels.length === 0) {
+  const engagedLabels = engagedApplicability(plan).map(propLabel);
+  const mode = aggregateBalance(plan);
+  if (mode === "insufficient" || engagedLabels.length === 0) {
     return [{ template_id: "T.risk.exec.insufficient", ctx: { activity_singplural_clause: singplural } }];
   }
   const engagedList = joinList(engagedLabels);
-  if (anyImpactsOutweigh(plan)) {
+  if (mode === "negative") {
     return [{
       template_id: "T.risk.exec.negative",
       ctx: {
@@ -106,11 +121,7 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
       },
     }];
   }
-  // ITEM 236 fix (b) — variant selection through chooseVariant(closeness).
-  // Closeness ≥ FIRM_VARIANT_CLOSENESS_MAX → hedged (with what_would_tip_it),
-  // never firm. Flat-certainty guard remains as backstop.
-  const closeness = computeCloseness(plan, plan.weighing_frame);
-  if (chooseVariant(closeness) === "hedged") {
+  if (mode === "hedged") {
     const tipping = plan.weighing_frame
       .slice()
       .sort((a, b) => (b.closeness_contribution ?? 0) - (a.closeness_contribution ?? 0))
@@ -132,15 +143,8 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   }];
 }
 
-/**
- * ITEM 236 fix (b) — Balance-template selection MUST route through
- * chooseVariant(closeness). At closeness ≥ FIRM_VARIANT_CLOSENESS_MAX
- * the hedged variant is chosen, with the tipping-factor context slot
- * populated. Firm variant is never emitted at close balance.
- */
 function balanceInstance(plan: RenderPlan): TemplateInstance {
-  const closeness = computeCloseness(plan, plan.weighing_frame);
-  const variant = chooseVariant(closeness);
+  const mode = aggregateBalance(plan);
   const benefits = plan.factor_table.filter((f) => f.kind === "benefit" && f.present_in_intake);
   const negatives = plan.factor_table.filter((f) => f.kind === "negative_impact" && f.present_in_intake);
   const safeguards = plan.factor_table.filter((f) => f.kind === "safeguard" && f.present_in_intake);
@@ -153,7 +157,9 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
     .slice(0, 3)
     .map((f) => f.anchor_hint || f.pinpoint);
   const tipping_factors = joinList(tipping) || "the balance of benefits, negative impacts, and safeguards on the record";
-  if (variant === "hedged") {
+  // CP4 (b) — per-instance citation for the § 7152(a) balance.
+  const baseCite = { PINPOINT_7152A5: BALANCE_ANCHOR.pinpoint, PINPOINT_7152A: BALANCE_ANCHOR.pinpoint, PINPOINT_7152: BALANCE_ANCHOR.pinpoint };
+  if (mode === "hedged") {
     return {
       template_id: "T.risk.balance.hedged",
       ctx: {
@@ -161,10 +167,11 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
         negative_summary_tokens,
         tipping_factors,
         what_would_tip_it: tipping_factors,
+        __cite: baseCite,
       },
     };
   }
-  const direction = anyImpactsOutweigh(plan)
+  const direction = mode === "negative"
     ? BALANCE_DIRECTION_CLAUSES[1]
     : BALANCE_DIRECTION_CLAUSES[0];
   return {
@@ -174,47 +181,49 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
       negative_summary_tokens,
       safeguard_summary_tokens,
       balance_direction_clause: direction,
+      __cite: baseCite,
     },
   };
 }
 
 function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
   if (insufficientRecord(plan)) {
-    // Nothing to weigh; return an insufficient exec-style summary line via docs.
     return [{
       template_id: "T.risk.summary.docs",
-      ctx: { docs_completion_clause: "has outstanding documentation items — see Items for your review; the record does not yet complete" },
+      ctx: {
+        docs_completion_clause: "has outstanding documentation items — see Items for your review; the record does not yet complete",
+        __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+      },
     }];
   }
   return [
     balanceInstance(plan),
-    { template_id: "T.risk.summary.docs", ctx: { docs_completion_clause: "is complete against" } },
+    {
+      template_id: "T.risk.summary.docs",
+      ctx: {
+        docs_completion_clause: "is complete against",
+        __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+      },
+    },
   ];
 }
 
 function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
-    // Fall back to a single balance instance so the section still ships
-    // meaningful analytical prose when no Type-R activities are engaged
-    // but factor content exists on the plan.
     if (!insufficientRecord(plan)) return [balanceInstance(plan)];
     return [];
   }
-  // One balance instance per activity; label context slot for downstream
-  // narrative composition.
   return engaged.map<TemplateInstance>((p) => {
     const inst = balanceInstance(plan);
     return {
       template_id: inst.template_id,
-      ctx: { ...inst.ctx, activity_label: activityLabelForProp(p, plan) },
+      ctx: { ...inst.ctx, activity_label: propLabel(p) },
     };
   });
 }
 
-
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
-  // Priority actions derive from negative-impact factors and safeguard gaps.
   const rows = plan.factor_table.filter((f) =>
     f.present_in_intake && (f.kind === "negative_impact" || /gap|remediat|action/i.test(f.factor_id))
   );
@@ -222,8 +231,10 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     template_id: "T.risk.priority_action",
     ctx: {
       action_label: `Address ${factorLabel(f)}`,
-      action_basis: `The record identifies this factor as bearing on the § 7152(a) analysis and warranting a documented response.`,
+      action_basis: `The record identifies this factor as bearing on the balancing analysis and warranting a documented response.`,
       deadline_basis: "Complete before the next annual review or before the next material change to the processing activity",
+      // CP4 (b) — deadline pinpoint = this factor's own anchor.
+      __cite: { PINPOINT_DEADLINE: f.anchor.pinpoint },
     },
   }));
 }
@@ -246,12 +257,13 @@ function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
     ctx: {
       doc_element_label: factorLabel(f),
       customer_question: `Please provide additional record support for ${factorLabel(f)}.`,
+      __cite: { PINPOINT: f.anchor.pinpoint },
     },
   }));
 }
 
 function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
-  // Each factor row becomes an item; present_in_intake picks the status clause.
+  // CP4 (b) — each record item cites its own factor anchor pinpoint.
   return plan.factor_table.map<TemplateInstance>((f) => ({
     template_id: "T.risk.record_sufficiency.item",
     ctx: {
@@ -259,21 +271,23 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       element_status_clause: f.present_in_intake
         ? RECORD_STATUS_CLAUSES[0]
         : RECORD_STATUS_CLAUSES[1],
+      __cite: { PINPOINT: f.anchor.pinpoint },
     },
   }));
 }
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
-  // Judgmental (Type J) propositions become customer questions.
+  // CP4 (a)+(b) — Type J review items resolve display_label + own anchor.
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
   return jProps.map<TemplateInstance>((p) => {
-    const ref = p.intake_ledger_refs?.[0];
-    const ent = ref ? plan.intake_ledger.find((l) => l.ledger_id === ref) : undefined;
+    const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
+    const anchor = conclusionAnchor(p.conclusion_id) ?? DOC_APPROVER_ANCHOR;
     return {
       template_id: "T.risk.documentation.gap",
       ctx: {
-        doc_element_label: ent?.display || p.conclusion_id,
-        customer_question: `Please confirm or provide additional detail regarding ${ent?.display || p.conclusion_id}.`,
+        doc_element_label: label,
+        customer_question: `Please confirm or provide additional detail regarding ${label}.`,
+        __cite: { PINPOINT: anchor.pinpoint },
       },
     };
   });
@@ -283,29 +297,52 @@ function composeExceptionAnalysis(plan: RenderPlan): TemplateInstance[] {
   return plan.propositions
     .filter((p) => p.epistemic_type === "R" && /exception/i.test(p.conclusion_id))
     .map<TemplateInstance>((p) => {
-      const ref = p.intake_ledger_refs?.[0];
-      const ent = ref ? plan.intake_ledger.find((l) => l.ledger_id === ref) : undefined;
+      const label = propLabel(p) || "this exception";
       const templateId = (p as { polarity?: string }).polarity === "positive"
         ? "T.risk.documentation.present"
         : "T.risk.documentation.gap";
       return {
         template_id: templateId,
         ctx: {
-          doc_element_label: ent?.display || p.conclusion_id,
-          customer_question: `Please describe the basis for the exception recorded for ${ent?.display || p.conclusion_id}.`,
+          doc_element_label: label,
+          customer_question: `Please describe the basis for the exception recorded for ${label}.`,
+          __cite: { PINPOINT: p.anchor.pinpoint },
         },
       };
     });
 }
 
+/**
+ * CP4 (b) — SCOPE & TRIGGERS. One instance PER § 7150(b) prong. Each
+ * instance carries its OWN anchor pinpoint and its OWN engaged/not-engaged
+ * flag from the plan's gate outcomes (falling back to the proposition
+ * polarity). Ends the run-#175 "5× identical § 7150(b)(1)" class.
+ */
 function composeScope(plan: RenderPlan): TemplateInstance[] {
-  return plan.propositions
-    .filter((p) => p.epistemic_type === "R" && /appl(icab|y)/i.test(p.conclusion_id))
-    .map<TemplateInstance>((p) => {
-      const engaged = (p as { polarity?: string }).polarity === "positive";
-      const templateId = engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged";
-      return { template_id: templateId, ctx: {} };
-    });
+  const applicabilityConcls = CPPA_RISK_CONCLUSIONS.filter(
+    (c) => c.epistemic_type === "R" && /appl(icab|y)/i.test(c.id),
+  );
+  const gateById = new Map(plan.gate_outcomes.map((g) => [g.gate_id, g]));
+  const propById = new Map(
+    plan.propositions
+      .filter((p) => /appl(icab|y)/i.test(p.conclusion_id))
+      .map((p) => [p.conclusion_id, p]),
+  );
+  return applicabilityConcls.map<TemplateInstance>((c) => {
+    const gate = c.rule_gate ? gateById.get(c.rule_gate) : undefined;
+    const prop = propById.get(c.id);
+    const engagedFromGate = gate?.outcome === "pass";
+    const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
+    const engaged = engagedFromGate || engagedFromProp;
+    const templateId = engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged";
+    // CP4 (b) — per-prong pinpoint from THIS conclusion's anchor.
+    return {
+      template_id: templateId,
+      ctx: {
+        __cite: { PINPOINT: c.anchor.pinpoint },
+      },
+    };
+  });
 }
 
 // ── Public dispatch ──────────────────────────────────────────────────────
@@ -324,6 +361,6 @@ export function composeSection(sectionKey: string, plan: RenderPlan): TemplateIn
     case "assessment_summary":           return composeAssessmentSummary(plan);
     case "risk_assessment_by_activity":  return composeRiskByActivity(plan);
     default:
-      return null; // caller falls back to legacy single-render behavior.
+      return null;
   }
 }
