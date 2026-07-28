@@ -17,7 +17,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // T-M9 (Item 230, 2026-07-28): stamp refreshed for pass1 abort-controller
 // wire + deploy-pipeline diagnosis. No future-dating — read against
 // wall-clock at cutover turn.
-export const BUILD_STAMP = "ltp-risk-item230-t-m9-pass1-abort@2026-07-28T13:15:00Z";
+export const BUILD_STAMP = "ltp-risk-item230a-t-m9-redeploy@2026-07-28T08:16:03Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every

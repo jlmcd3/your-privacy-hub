@@ -175,3 +175,19 @@ not as a product regression.
 
 **READY-FOR-CONTROLLER-VERIFY.** HARD STOP after courier + ledger;
 controller verifies wire and relaunches the smoke.
+
+---
+
+## Addendum — T-M9 BRANCH-FAIL CORRECTION (2026-07-28 08:16Z, deploy-only)
+
+**Branch-fail cause:** T-M9's original deploy claim rested on auto-deploy-on-write; live wire remained on the T-M6 stamp with `post_lint_pass1_timeout_ms=75000` and no `pass1_timeout_enforced` key. Deploy silently no-op'd — same failure mode as T-M7.
+
+**New standing law:** Every edge-function deploy is EXPLICIT via `supabase--deploy_edge_functions`, and every deploy claim requires a verbatim post-deploy `GET ?ping=1` paste. Template pastes and future-dated stamps are branch-fails.
+
+**Actions (no product code changes; stamp + declared-shape only):**
+1. Read UTC clock: `2026-07-28T08:16:03Z`. Restamped `BUILD_STAMP=ltp-risk-item230a-t-m9-redeploy@2026-07-28T08:16:03Z`.
+2. Updated `COMPOSITION_SHAPE_DECLARATION` in `_shared/ltp/pass2-assembler.ts` to reflect the already-shipped T-M7 code retirement: dropped `harvest_legacy_generation` from `llm_calls_per_document`; version bumped to `cppa-risk-shape@2026-07-28-tm7-retirement`.
+3. Explicit `supabase--deploy_edge_functions(["run-cppa-risk-assessment"])` → success.
+4. Post-deploy `GET ?ping=1` verbatim (see ledger Item 230 Addendum for full body). All required keys present: `build_stamp=ltp-risk-item230a-…`, `post_lint_pass1_timeout_ms=120000`, `pass1_timeout_enforced="abort-controller"`, `pass1_stamp=ltp-pass1-llm-item230-abort-controller@2026-07-28`, `composition_shape.llm_calls_per_document=[pass1_derive]`.
+
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP.

@@ -4373,3 +4373,60 @@ report_data={"error":"reaped_stuck_generation"}
 **Disposition:** **READY-FOR-CONTROLLER-VERIFY.** HARD STOP after courier + ledger. Controller verifies wire (`?ping=1` must show `build_stamp=ltp-risk-item230-t-m9-pass1-abort@…` AND `pass1_timeout_enforced="abort-controller"`) and relaunches the smoke.
 
 **Courier:** `docs/courier/T-M9-PASS1-ABORT-DEPLOY-FIX-2026-07-28.md`.
+
+---
+
+## Item 230 — Addendum (T-M9 BRANCH-FAIL CORRECTION, 2026-07-28 08:16Z)
+
+**Controller finding:** Independent wire fetch after the T-M9 turn showed `build_stamp=ltp-risk-item226-t-m6-cutover`, `post_lint_pass1_timeout_ms=75000`, no `pass1_timeout_enforced` key. The T-M9 redeploy did not land — branch-fail under T-M9's own rule.
+
+**Diagnosis (recorded):** The T-M9 courier relied on "Lovable-managed edge functions deploy automatically on write." Evidence contradicts: T-S1 and T-M6 used the EXPLICIT `supabase--deploy_edge_functions` tool and their builds landed; T-M7 and T-M9 relied on auto-deploy-on-write and both silently no-op'd on the wire.
+
+**NEW STANDING LAW (recorded):** Every edge-function deploy is EXPLICIT via `supabase--deploy_edge_functions`. Every deploy claim requires a real post-deploy `GET ?ping=1` pasted verbatim. Template pastes and future-dated stamps are branch-fails.
+
+**Actions this turn (deploy-only, no code changes except stamp + declared shape):**
+- Restamped `BUILD_STAMP=ltp-risk-item230a-t-m9-redeploy@2026-07-28T08:16:03Z` (fresh UTC read).
+- Updated `COMPOSITION_SHAPE_DECLARATION` in `supabase/functions/_shared/ltp/pass2-assembler.ts` to reflect T-M7 retirement: `llm_calls_per_document=[pass1_derive]` only; version bumped to `cppa-risk-shape@2026-07-28-tm7-retirement`; `harvest_legacy_generation` removed from declared shape; intermediate artifacts trimmed to `render_plan (authoritative)` + `assembler_output (shipped body; harvests are deterministic)`.
+- EXPLICIT `supabase--deploy_edge_functions(["run-cppa-risk-assessment"])` — success.
+- Live `GET ?ping=1` verbatim response:
+
+```
+{
+  "build_stamp": "ltp-risk-item230a-t-m9-redeploy@2026-07-28T08:16:03Z",
+  "composition_enforce": "1",
+  "composition_shape": {
+    "final_documents_per_assessment": 1,
+    "intermediate_artifacts": [
+      "render_plan (authoritative)",
+      "assembler_output (shipped body; harvests are deterministic)"
+    ],
+    "llm_calls_per_document": [
+      { "model_role": "pass1_derive", "role": "authoritative RenderPlan derive", "stage": "pass1_derive" }
+    ],
+    "note": "CEO ruling 2026-07-28: undeclared drift aborts; declared shape is the conformance target.",
+    "product": "cppa-risk-assessment",
+    "version": "cppa-risk-shape@2026-07-28-tm7-retirement"
+  },
+  "fn": "run-cppa-risk-assessment",
+  "ltp_mode": "enforce",
+  "ltp_version": "ltp-risk-p2",
+  "pass1_authoritative": "1",
+  "pass1_max_attempts": 2,
+  "pass1_model": "claude-sonnet-4-6",
+  "pass1_stamp": "ltp-pass1-llm-item230-abort-controller@2026-07-28",
+  "pass1_timeout_enforced": "abort-controller",
+  "pass2_assembler": "ltp-pass2-assembler-2026-07-28-tm6",
+  "persist_first_retry": "retry-budget@2026-07-27-persistfirst",
+  "post_lint_llm_budget_ms": 300000,
+  "post_lint_llm_call_timeout_ms": 120000,
+  "post_lint_pass1_timeout_ms": 120000,
+  "report_completion_gate": "final-status-and-report-data@2026-07-27-smoke-latency-rootcause",
+  "safe_finalize": "safe-finalize@2026-07-28-item217-repair-outside-guard"
+}
+```
+
+All required wire values verified: `build_stamp` = item230a; `post_lint_pass1_timeout_ms` = 120000; `pass1_timeout_enforced` = "abort-controller"; `pass1_stamp` = ltp-pass1-llm-item230-abort-controller@2026-07-28; `composition_shape.llm_calls_per_document` reduced to `[pass1_derive]` only (T-M7 retirement now reflected on the wire).
+
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP. Controller re-fetches ping; smoke relaunches only on match.
+
+**Courier:** `docs/courier/T-M9-PASS1-ABORT-DEPLOY-FIX-2026-07-28.md` (addendum appended).
