@@ -84,17 +84,16 @@ Deno.test("composition-finalize: fragment-omit removes whole-value truncation sl
   assertEquals(out.priority_actions[0].action, undefined);
 });
 
-Deno.test("safeFinalize: catch-path preserves hits array with kind+match+path (Item 206)", () => {
-  // Force a throw AFTER omit by supplying a leak-lexicon hit that omit can't touch.
+Deno.test("safeFinalize: value-screen hits surfaced on inner telemetry with path/kind (Item 215)", () => {
   const rd = { assessment_summary: { narrative: "Per Engine-B composition, safeguards recommended." } };
   const res = safeFinalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
   });
-  assertEquals(res.telemetry.errored, true);
-  assertEquals(res.telemetry.error_kind, "ValueScreenError");
-  assert(res.telemetry.hits.length > 0);
-  assertEquals(res.telemetry.hits[0].kind, "leak-lexicon");
-  assertEquals(typeof res.telemetry.hits[0].path, "string");
+  assertEquals(res.telemetry.errored, false);
+  const pending = res.telemetry.inner?.pre_serializer_value_screen_pending ?? [];
+  assert(pending.length > 0);
+  assertEquals(pending[0].kind, "leak-lexicon");
+  assertEquals(typeof pending[0].path, "string");
 });
 
 Deno.test("composition-finalize: CUT-ruled path present pre-serializer records telemetry, does NOT throw (Item 211)", () => {
