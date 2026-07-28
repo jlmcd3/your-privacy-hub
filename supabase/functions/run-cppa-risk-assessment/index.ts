@@ -25,6 +25,7 @@ const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1"
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase=t-m1-derive-authoritative pass1_authoritative=1 subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
+console.log(`[run-cppa-risk-assessment] boot pass1_model=${PASS1_MODEL} pass1_max_attempts=${PASS1_MAX_ATTEMPTS} pass1_stamp=${PASS1_MANIFEST.stamp}`);
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=${GRADER_CONTEXT_VERSION} risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
 console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED waveb2_closure=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b+atomic_tokens+info_needed_contradiction`);
