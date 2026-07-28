@@ -14,11 +14,20 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-// T-M9 (Item 230, 2026-07-28): stamp refreshed for pass1 abort-controller
-// wire + deploy-pipeline diagnosis. No future-dating — read against
-// wall-clock at cutover turn.
-export const BUILD_STAMP = "ltp-risk-item231-t-m9.1-fail-loud@2026-07-28T08:27:33Z";
+// T-M9.2 (Item 232, 2026-07-28): LEGACY GENERATION EXECUTION RETIRED.
+// Runtime shape now matches declared: intake → fact ledger → Pass-1 derive
+// (abort-controller, 120s×2) → Guide → Pass-2 assembler → guards → persist.
+// The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
+// callModel throws on invocation and a runtime shape-conformance assert
+// fails loud on any drift.
+export const BUILD_STAMP = "ltp-risk-item232-t-m9.2-runtime-shape@2026-07-28T09:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+// T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
+// When true, callModel() throws instead of hitting Anthropic, and the
+// end-of-pipeline shape-conformance assert requires legacyLlmCallCount === 0.
+const LEGACY_GENERATION_RETIRED = true;
+let legacyLlmCallCount = 0;
+const legacyLlmCallLabels: string[] = [];
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
 // generation. LTP_MODE_BOOT is pinned to "enforce" so §16 measurement-validity
@@ -903,6 +912,14 @@ async function callModel(
   maxTokens: number = CPPA_RISK_MAX_TOKENS,
   timeoutMs?: number,
 ): Promise<{ text: string; stopReason: string | null }> {
+  // T-M9.2 (Item 232): legacy v4 generation is retired at runtime. Any
+  // invocation is undeclared composition-shape drift — fail loud so the
+  // pipeline never spends on a discarded call again.
+  if (LEGACY_GENERATION_RETIRED) {
+    legacyLlmCallCount += 1;
+    legacyLlmCallLabels.push(label);
+    throw new Error(`composition_shape_drift:legacy_v4_callmodel_invoked:label=${label}`);
+  }
   const r = await callAnthropicWithContinuation({
     model: "claude-sonnet-4-6",
     system, user, maxTokens, label, timeoutMs,
@@ -999,42 +1016,32 @@ async function runPipeline(assessment_id: string) {
 
 
     const t0 = Date.now();
-    let parsed: any = null;
+    // T-M9.2 (Item 232): legacy v4 generation execution retired. The Pass-2
+    // assembler (T-M6 cutover, ~L3577) overwrites every non-underscore
+    // top-level key with the deterministic body — none of the legacy
+    // scrub/lint/retry work reached the shipped surface. `parsed` is a
+    // minimal shape-valid stub so the downstream scrub passes (which mutate
+    // fields the assembler will overwrite anyway) no-op safely on empty
+    // inputs; `report_data` is initialized from `parsed` and preserved for
+    // the _meta.internal telemetry attached below.
+    let parsed: any = {
+      assessment_summary: {},
+      _legacy_generation_retired: {
+        retired: true,
+        build_stamp: BUILD_STAMP,
+        note: "Body composed exclusively by Pass-2 assembler (T-M6 cutover); no Engine-A LLM call executed.",
+      },
+    };
     let debugRaw = "";
-    let lastStopReason: string | null = null;
+    let lastStopReason: string | null = "retired";
+    console.log(JSON.stringify({
+      evt: "legacy_v4_generation_skipped",
+      fn: "run-cppa-risk-assessment",
+      build_stamp: BUILD_STAMP,
+      reason: "T-M9.2 retirement — Pass-2 assembler is the shipped body",
+    }));
 
-    // Courier 2026-07-12 items 1+4: first call at CPPA_RISK_MAX_TOKENS with
-    // continuation-on-truncation handled inside callAnthropicWithContinuation.
-    // If the stitched response is still max_tokens, fall through to the
-    // existing generation_truncated error path — no second full generation.
-    const first = await callModel(system, userPrompt, "generate-v4");
-    lastStopReason = first.stopReason;
-    debugRaw = first.text;
-    parsed = tryParseJson(first.text);
-    if (!parsed && first.stopReason !== "max_tokens") {
-      console.warn("[cppa-risk v4] first parse failed — retrying once");
-      const retry = await callModel(system, userPrompt, "generate-v4-retry");
-      lastStopReason = retry.stopReason;
-      debugRaw = retry.text;
-      parsed = tryParseJson(retry.text);
-    }
 
-    console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms stop=${lastStopReason}`);
-
-    if (!parsed || !parsed.assessment_summary) {
-      const errorCode = lastStopReason === "max_tokens"
-        ? "generation_truncated"
-        : "generation_parse_failed";
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
-        status: "error",
-        report_data: {
-          error: errorCode,
-          stop_reason: lastStopReason,
-          debug: debugRaw.slice(0, 4000),
-        },
-      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_parse" });
-      return;
-    }
 
     // MEASUREMENT-VALIDITY FIX (SMOKE-LATENCY-ROOTCAUSE, 2026-07-27):
     // report_data is a completion surface for the harness. Therefore no
@@ -1311,6 +1318,7 @@ async function runPipeline(assessment_id: string) {
             null,
             budget.retryCapMs,
             async (_signal) => {
+              if (LEGACY_GENERATION_RETIRED) return null; // T-M9.2: legacy retry retired
               const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry", CPPA_RISK_MAX_TOKENS, POST_LINT_LLM_CALL_TIMEOUT_MS);
               const retryParsed = tryParseJson(retry.text);
               if (retryParsed && retryParsed.assessment_summary) {
@@ -1478,6 +1486,8 @@ async function runPipeline(assessment_id: string) {
         const elapsedNow = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(elapsedNow)) {
           console.warn(JSON.stringify({ evt: "forward_path_retry_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow, budget_ms: POST_LINT_LLM_BUDGET_MS }));
+        } else if (LEGACY_GENERATION_RETIRED) {
+          console.warn(JSON.stringify({ evt: "forward_path_retry_skipped_retired", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP }));
         } else {
           console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow }));
           const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
@@ -1522,6 +1532,8 @@ async function runPipeline(assessment_id: string) {
         const elapsedNow = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(elapsedNow)) {
           console.warn(JSON.stringify({ evt: "cot_leak_retry_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow, budget_ms: POST_LINT_LLM_BUDGET_MS, hits: hitPaths.length }));
+        } else if (LEGACY_GENERATION_RETIRED) {
+          console.warn(JSON.stringify({ evt: "cot_leak_retry_skipped_retired", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP, hits: hitPaths.length }));
         } else {
         console.warn(JSON.stringify({
           evt: "cot_leak_detected",
@@ -3941,6 +3953,37 @@ async function runPipeline(assessment_id: string) {
 
 
 
+
+    // ── T-M9.2 (Item 232) — RUNTIME SHAPE-CONFORMANCE ASSERT ────────
+    // Declared shape (COMPOSITION_SHAPE_DECLARATION) allows exactly one
+    // LLM call per document: pass1_derive. Any legacy Engine-A v4 call
+    // is undeclared drift. Fail loud to status=error rather than ship
+    // spend-wasted output.
+    if (legacyLlmCallCount > 0) {
+      const _driftDetail = `legacy_v4_call_count=${legacyLlmCallCount};labels=${legacyLlmCallLabels.slice(0, 8).join(",")}`;
+      console.warn(JSON.stringify({
+        evt: "composition_shape_drift_detected",
+        fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP,
+        detail: _driftDetail,
+      }));
+      try {
+        const _rdD: any = report_data as any;
+        _rdD._meta = _rdD._meta ?? {};
+        _rdD._meta.internal = _rdD._meta.internal ?? {};
+        _rdD._meta.internal.composition_shape_drift = {
+          build_stamp: BUILD_STAMP,
+          legacy_v4_call_count: legacyLlmCallCount,
+          labels: legacyLlmCallLabels,
+        };
+      } catch { /* best-effort */ }
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+        status: "error",
+        report_data: { error: "composition_shape_drift", detail: _driftDetail },
+        last_error: `composition_shape_drift:${_driftDetail}`,
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_shape_drift" });
+      return;
+    }
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
