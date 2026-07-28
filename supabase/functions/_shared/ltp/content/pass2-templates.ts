@@ -439,3 +439,61 @@ export const BALANCE_DIRECTION_CLAUSES: readonly string[] = [
  * Post-render assert (Pass V + deterministic check).
  */
 export const FIRM_VARIANT_CLOSENESS_MAX = 0.6;
+
+// ─────────────────────────────────────────────────────────────────
+// T-M3 (CONTENT COURIER 2026-07-28) — closed enums + ordering law.
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Closed enum for T.risk.record_sufficiency.item element_status_clause.
+ * Each entry is fill-or-omit at the item level: emit the item with one
+ * of these clauses or drop the item entirely — never a fragment.
+ */
+export const RECORD_STATUS_CLAUSES: readonly string[] = [
+  "present in the record as documented",
+  "not present in the record as documented",
+  "partially present; specific items are listed under Items for your review",
+] as const;
+
+/**
+ * T-M3 ordering + dedup law for next_steps vs priority_actions.
+ * Pure specification consumed by the T-M6 wire; declared here so it
+ * is change-controlled with the templates.
+ *
+ *   1. DEDUP: for each priority_actions[i].action_label, drop any
+ *      next_steps[j] whose step_label matches (case-insensitive,
+ *      whitespace-normalized).
+ *   2. MATERIALITY ORDER: sort remaining next_steps by
+ *      materiality_tier (lower ordinal first), then by first-
+ *      appearance order in factor_table (stable).
+ *   3. MOST-CAUTIOUS-WINS: within the same materiality tier, a
+ *      "documentation.gap" step precedes a "documentation.present"
+ *      step (outcomes never averaged; the more cautious framing wins).
+ */
+export const NEXT_STEPS_MATERIALITY_TIERS: readonly string[] = [
+  "record-completeness",
+  "safeguard",
+  "administrative",
+] as const;
+
+/**
+ * Owner-slot registry for the structured-slot guard in pass2-render.ts.
+ * These slots MUST be whole-value or omitted; the fragment guard
+ * (STRUCTURED_SLOT_MIN_CHARS + forbidden-fragment regexes) applies.
+ * Fixtures in content.test.ts exercise every entry.
+ */
+export const STRUCTURED_OWNER_SLOTS: readonly string[] = [
+  // Historical (Item 176 / smoke-#11)
+  "owner",
+  "deadline_basis",
+  "exceptions_status",
+  // T-M3 additions
+  "action_label",
+  "action_basis",
+  "step_label",
+  "step_basis",
+  "element_label",
+  "element_status_clause",
+  "review_label",
+  "review_basis",
+] as const;
