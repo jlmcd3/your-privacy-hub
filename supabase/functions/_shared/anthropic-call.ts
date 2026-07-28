@@ -166,6 +166,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     maxTokens: opts.maxTokens,
     timeoutMs,
     label: opts.label,
+    abortSignal: opts.abortSignal,
   });
   console.log(`[${opts.label}] stage=callAnthropic model=${opts.model} elapsed=${first.elapsedMs}ms stop=${first.stopReason} output_tokens=${first.outputTokens ?? "?"} input_tokens=${first.inputTokens ?? "?"} cache_read=${first.cacheReadTokens ?? "?"} cache_creation=${first.cacheCreationTokens ?? "?"} chars=${first.text.length}`);
   // RC-A A7 — fire-and-forget spend metering per API call (first leg).
