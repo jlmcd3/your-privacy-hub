@@ -1,97 +1,65 @@
-## Item 239 — Bottom-Up Codebase Analysis (docs-only)
 
-Zero code changes. Zero deploys. Produce one analysis document plus a ledger entry. Every claim in the document must cite `file:line` read this turn; no assertions from memory or prior couriers.
+# ITEM 242 — BATCH-OF-THREE FIX SET — EXECUTION PLAN
 
-### Deliverables
+Requesting controller sign-off on the split before wiring. Seven independent defect classes; two require content/registry decisions that outrun a single autonomous turn. Proposing three checkpoints so each ships with verify-first evidence, joint tests, and the courier text CEO expects verbatim.
 
-1. `docs/analysis/BOTTOM-UP-CODEBASE-ANALYSIS-2026-07-28.md` — four inventories (below).
-2. `docs/pipeline-state.md` — append Item 239 pointing at the analysis doc.
+## Verify-first findings (already surveyed this turn)
 
-### Read plan (this turn, before writing)
+- **Defect 1 (submission_summary § 7120(b) posture):** `harvest-guard.ts` has a `submission_summary` harvest key; `waveb-completion.ts` populates `submission_basis` with the § 7121(a) cyber-audit linkage from M4/M5; `cyber-audit-schedule.ts` writes `cybersecurity_audit_schedule`. **Neither writes a § 7120(b)(1)/(b)(2)(B) resolved posture per M4/M5 state.** Root cause: no composer for `submission_summary` in `section-composers/cppa-risk.ts` and no template in `pass2-templates.ts` for the § 7120(b) prong posture. Regression source: never wired.
+- **Defect 3 (neg.e economic_harms guidance_refs):** `cppa-risk-factors.ts:244-252` — row anchor is `(a)(5)(E)`; the sole guidance_ref is `(a)(5)(F)` p.36 with anchor_hint “‘based upon profiling’ added to clarify economic injury.” Comment already flags the mismatch. FSOR sweep needed to decide: (i) re-key guidance to `(a)(5)(E)` if provision_texts confirms the p.36 commentary discusses (E), or (ii) retag the row honestly. **Requires reading cppa_fsor_commentary row on p.36 to decide honestly.**
+- **Defect 4 (gap-applicability):** `composePriorityActions` in `section-composers/cppa-risk.ts:307-380` emits an action for every absent factor and every non-passing factual gate, with no applicability filter. ADMT actions leak when `q18=No`. Fix: gate emission on `plan.gate_outcomes` (block/not_applicable on the governing applicability gate suppresses the action).
+- **Defect 6 (record_sufficiency closer):** template `T.risk.record_sufficiency.prose` in `pass2-templates.ts` — closer sentence hardcoded; opener conditional on `sufficiency_clause`. Fix: single sufficiency slot drives both.
+- **Defect 7 (action mechanics):**
+  - Owner slot missing entirely from `T.risk.priority_action.golden` context (`section-composers/cppa-risk.ts:365-379`).
+  - `deadlineForAction()` returns `d.ongoing_processing` for everything except ADMT and documentation gates → all `neg.*`/`safe.*` actions collapse to “ongoing.” Fix: cohort-aware selector reading § 7155(a)/(b)/(c) rows for assessment-record actions.
+  - Factual-gate actions use `label = g.gate_id.replace(/^G\.documentation\./,'')` and hardcoded `11 CCR § 7152(a)` — must use gate registry display + per-gate pinpoints `(a)(1)/(a)(2)/(a)(3)/(a)(9)`.
+- **Defect 2 (action diversity):** `composePriorityActions` emits identical `T.risk.priority_action.golden` for every source with `element_is not present` phrasing. Need per-kind variants and family-consolidation (one action per absent-harm family, one per absent-safeguard family).
+- **Defect 5 (Pass-1 judgment hygiene):** field-semantics glossary is prompt content requiring CEO courier gating; present/note coherence screen is a validator layer; invented-characterization patterns are value-screen additions. Purely additive; safe in a later checkpoint.
 
-Batched reads, grouped by inventory. Each file gets a fresh read this turn; nothing is asserted from context summaries.
+## Proposed split
 
-**Schema + shared constants (Inventory 1 — Ownership Map)**
-- `supabase/functions/_shared/render-plan/schema.ts` — walk every field.
-- `supabase/functions/_shared/render-plan/validators.ts` — writer/reader surface.
-- `supabase/functions/_shared/ltp/derive.ts` — `LEDGER_KEYS`, plan construction.
-- `supabase/functions/_shared/ltp/pass1-llm.ts` (and any `pass1-*.ts`) — model-authored fields.
-- `supabase/functions/_shared/ltp/content/renderplan-wire-schema.ts` — wire projection.
-- `supabase/functions/_shared/ltp/closeness.ts` — `FIRM_VARIANT_CLOSENESS_MAX`, `computeCloseness`, `chooseVariant`.
-- `supabase/functions/_shared/ltp/pass2-render.ts` — `REQUIRED_PLAN_SLOTS`, slot vocabularies.
-- `supabase/functions/_shared/ltp/slot-resolver.ts` — resolution vocabulary.
-- `supabase/functions/_shared/ltp/section-composers/cppa-risk.ts` — composer authorship.
-- `supabase/functions/_shared/ltp/section-shards/cppa-risk.ts` — shard registry + `COMPOSITION_SHAPE_DECLARATION`.
-- `supabase/functions/_shared/ltp/harvest-guard.ts` — provenance source formats.
-- `supabase/functions/_shared/ltp/value-screen.ts` — leak lexicon.
-- `supabase/functions/_shared/ltp/pass2-assembler.ts` — WriteAroundOrigin, telemetry.
-- `supabase/functions/_shared/openings/risk-opening.ts` — T7 provenance format.
+### Checkpoint 242.A — Deterministic composer & registry fixes (this turn if approved)
 
-**Seam inventory (Inventory 2)**
-- `supabase/functions/run-cppa-risk-assessment/index.ts` — full end-to-end wiring (intake→persist).
-- `supabase/functions/_shared/ltp/pipeline.ts` — pipeline seams.
-- PDF-export seam: locate via `rg` for `pdf`, `html-to-docx`, `renderPdf`, `report_data` consumers under `supabase/functions/`.
-- Test files under `supabase/functions/_shared/ltp/*.test.ts` — enumerate which seams have joint tests.
+Scope: defects **4, 6, 7** plus the **defect 3 verify-first read** (report finding; fix only if provision_texts confirms).
 
-**Assumptions inventory (Inventory 3)**
-- `supabase/functions/_shared/ltp/retry-budget.ts` — timeouts, budgets.
-- Any `constants.ts` / `POST_LINT_PASS1_TIMEOUT_MS` / clock caps under `_shared/ltp/`.
-- `run-cppa-risk-assessment/index.ts` — `BUILD_STAMP`, stage timeouts, labels.
-- Grep for legacy labels (`shadow`, `wave`, `v3`, `v4`, `harvest_legacy`) to flag fossils.
+Files:
+- `supabase/functions/_shared/ltp/section-composers/cppa-risk.ts` — gap-applicability filter (defect 4); owner slot from `i7_internal_contributors` (defect 7a); cohort-aware `deadlineForAction()` consuming § 7155 rows (defect 7b); gate-registry display + per-gate pinpoints (defect 7c).
+- `supabase/functions/_shared/ltp/content/pass2-templates.ts` — record_sufficiency closer bound to single `sufficiency_clause` (defect 6).
+- `supabase/functions/_shared/ltp/slot-resolver.ts` — owner slot resolver; sufficiency_clause exposed to closer.
+- `supabase/functions/_shared/legal-test/cppa-risk-factors.ts` — defect 3 fix conditional on provision_texts read.
+- `supabase/functions/_shared/legal-test/registry-anchor-consistency.test.ts` — extend to guidance_refs subsection family match.
+- New joint tests: `item242-gap-applicability.test.ts` (q18=No → zero ADMT actions), `item242-record-sufficiency.test.ts` (contradiction assert), `item242-action-mechanics.test.ts` (owner present, deadline per cohort, pinpoints from gate).
 
-**Validator-reject diagnosis (Inventory 4)**
-- Re-read `_shared/render-plan/validators.ts` end-to-end.
-- Re-read `_shared/ltp/derive.ts` — `pickLedger` construction and its intersection with Pass-1 propositions.
-- Re-read `_shared/ltp/pass1-llm.ts` — whether the model constructs its own ledger or receives one.
-- Cross-reference: does extending `LEDGER_KEYS` in derive.ts change any Pass-1 contract input? Trace via file:line.
+### Checkpoint 242.B — Submission prong posture + action diversity (next dispatch)
 
-### Document structure
+Scope: defects **1, 2**.
 
-```
-# Bottom-Up Codebase Analysis — 2026-07-28 (Item 239)
+Files:
+- New `submission_summary` composer emitting a template instance per resolved § 7120(b)(1) and § 7120(b)(2)(B) marker (met / not_met / not_applicable).
+- New templates `T.risk.submission.b1_posture`, `T.risk.submission.b2b_posture` — text needs CEO verbatim in courier before wiring.
+- `composePriorityActions` per-kind variants + family-consolidation targeting ~11 diverse actions; move-2 renders real ledger `display` verbatim.
+- Joint tests per marker state; intra-section repeated-opener assert (loop2 L4).
 
-## 1. Ownership Map
-### 1.1 RenderPlan fields
-| field | writer(s) file:line | reader(s) file:line | dual-authored? |
-### 1.2 Shared constants/vocabularies
-| name | definition site file:line | consumers file:line | dual-defined? |
-### 1.3 Pass-1 model authorship decomposition
-| wire field | model-authored? | judgment vs deterministic | evidence file:line |
+### Checkpoint 242.C — Pass-1 judgment hygiene (docs-anchored)
 
-## 2. Seam Inventory
-For each seam (intake → contract → ledger → prompt → wire → validators → plan →
-projections → composers → templates → assembler → guards → serializer → persist →
-PDF export → grader input): contract location (file:line or NONE), joint test
-(file or NONE). PDF-export seam gets a dedicated subsection with the render
-function, consumed fields, and missing-section behavior.
+Scope: defect **5**.
 
-## 3. Assumptions Inventory
-| item | value | set at file:line | justified in single-call Pass-2? | fossil evidence |
+Files:
+- `supabase/functions/_shared/ltp/content/pass1-derive-prompt.ts` — field-semantics glossary (courier §5.1 verbatim).
+- New validator `pass1-present-note-coherence.ts` — flag present_in_intake=true with weight_note naming only contradicting evidence.
+- `supabase/functions/_shared/ltp/value-screen.ts` — invented-characterization patterns where structurally detectable.
+- Courier text for glossary + patterns must be CEO-signed before wiring (mirrors 241.2→241.3 protocol).
 
-## 4. Validator-Reject Root Cause (run #172)
-Trace of validator_issues:1 with file:line evidence; hypothesis (LEDGER_KEYS
-extension vs Pass-1 contract) confirmed/refuted.
+## Rationale for the split
 
-## Consolidated Correction Scope (ranked)
-1. Dual-authorship instances (ranked by blast radius)
-2. Contract-less seams (ranked by failure mode)
-3. Fossils (ranked by drift risk)
-```
+- 242.A is fully deterministic; every change is registry/composer/template mechanics against verifiable current-state evidence.
+- 242.B needs new template text (§ 7120(b) posture prose × 3 states × 2 markers = 6 sentences) and action-diversity template families — CEO expects verbatim review, not agent-authored prose landing in shipped documents (per Item 241.2→241.3 protocol).
+- 242.C is docs-first for the same reason: the derive-prompt glossary is change-controlled content anchored to the courier.
 
-### Ledger entry
+## Deliverables per checkpoint
 
-Append to `docs/pipeline-state.md`:
+Each checkpoint: verify-first citations, full diff, verbatim new registry/template text in the courier for CEO review, full suite ZERO failures with new asserts pasted, fresh stamp, EXPLICIT deploy, REAL verbatim boot ping, ledger + courier files.
 
-```
-### Item 239 — BOTTOM-UP CODEBASE ANALYSIS (docs-only, controller dispatch)
-Doc: docs/analysis/BOTTOM-UP-CODEBASE-ANALYSIS-2026-07-28.md
-Scope: OWNERSHIP MAP · SEAM INVENTORY · ASSUMPTIONS · VALIDATOR-REJECT ROOT CAUSE
-Status: READY-FOR-CONTROLLER-SPOT-VERIFY. HARD STOP.
-```
+## HARD STOP
 
-### Discipline
-
-- Every table row carries a `file:line` citation read this turn.
-- No claim carried forward from prior couriers, memory, or the ledger.
-- No code edits; no deploy; no test runs.
-- Ends with HARD STOP.
+Awaiting controller ruling: (a) approve the A/B/C split and release 242.A now, or (b) direct that 242.A + 242.B + 242.C ship in a single turn (with the understanding that new template prose lands without CEO pre-review), or (c) revise the split.
