@@ -144,8 +144,22 @@ function intakeRefsGroundedInPlan(
   const ledgerFields = new Set(plan.intake_ledger.map((e) => e.intake_field));
   for (const [slot, src] of Object.entries(sources)) {
     if (!src || typeof src !== "string") continue;
-    if (src.startsWith("registry:")) continue; // registry pin, not intake
-    // sources use intake field names as of risk-opening provenance
+    // ITEM 236 fix (a) — accept prefixed sources emitted by the T7
+    // deterministic opening builder (registry:, cppa_authorities:,
+    // provision_texts:, intake:<csv>, runtime:). For "intake:<csv>"
+    // verify each comma-separated field is in the plan's intake_ledger;
+    // for other prefixes the S0 applicability cross-check owns the
+    // subordination gate, so the intake-ref check skips them.
+    if (src.startsWith("intake:")) {
+      const csv = src.slice("intake:".length);
+      for (const f of csv.split(",").map((s) => s.trim()).filter(Boolean)) {
+        if (!ledgerFields.has(f)) {
+          evidence.push(`ungrounded_intake_ref:${slot}=${f}`);
+        }
+      }
+      continue;
+    }
+    if (src.includes(":")) continue; // registry / provision_texts / cppa_authorities / runtime
     if (!ledgerFields.has(src)) {
       evidence.push(`ungrounded_intake_ref:${slot}=${src}`);
     }
