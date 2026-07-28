@@ -49,6 +49,7 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS } from "../_shared/ltp/pass1-llm.ts";
+import { assembleReportShadow, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -3507,6 +3508,33 @@ async function runPipeline(assessment_id: string) {
             latency_ms: _pass1.telemetry.latency_ms,
             error: _pass1.telemetry.error ?? null,
           }));
+          // T-M5 (Item 225) — PASS-2 SECTION-SHARDED ASSEMBLER SHADOW.
+          // Persists to _meta.internal.assembler_shadow, mirroring the
+          // Item-221 render_plan pattern. Zero writes to the shipped
+          // surface; legacy composer path is untouched. Cutover is T-M6.
+          try {
+            const _assembler = assembleReportShadow(_pass1.plan);
+            _rd2._meta.internal.assembler_shadow = {
+              version: _assembler.version,
+              build_stamp: BUILD_STAMP,
+              report: _assembler.report,
+              telemetry: _assembler.telemetry,
+            };
+            console.log(JSON.stringify({
+              evt: "ltp_pass2_assembler_shadow_ran",
+              fn: "run-cppa-risk-assessment",
+              build_stamp: BUILD_STAMP,
+              assembler_version: PASS2_ASSEMBLER_VERSION,
+              total_sections: _assembler.telemetry.total_sections,
+              emitted_sections: _assembler.telemetry.emitted_sections,
+              omitted_sections: _assembler.telemetry.omitted_sections,
+              flat_certainty_rejections: _assembler.telemetry.exit_checks.flat_certainty_rejections.length,
+              pii_rejections: _assembler.telemetry.exit_checks.pii_rejections.length,
+              harvest_rejections: _assembler.telemetry.harvest_decisions.filter((d) => d.rejection_reason !== null).length,
+            }));
+          } catch (e) {
+            console.warn("[run-cppa-risk-assessment] LTP Pass-2 assembler shadow failed (non-fatal):", (e as Error)?.message);
+          }
         }
       } catch (e) {
         console.warn("[run-cppa-risk-assessment] LTP Pass-1 authoritative failed (non-fatal):", (e as Error)?.message);
@@ -3891,6 +3919,9 @@ Deno.serve(async (req) => {
       pass1_model: PASS1_MODEL,
       pass1_max_attempts: PASS1_MAX_ATTEMPTS,
       pass1_stamp: PASS1_MANIFEST.stamp,
+      // T-M5 (Item 225) — Pass-2 assembler shadow surface.
+      pass2_assembler_shadow: PASS2_ASSEMBLER_VERSION,
+
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
