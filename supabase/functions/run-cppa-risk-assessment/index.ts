@@ -1532,6 +1532,8 @@ async function runPipeline(assessment_id: string) {
         const elapsedNow = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(elapsedNow)) {
           console.warn(JSON.stringify({ evt: "cot_leak_retry_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow, budget_ms: POST_LINT_LLM_BUDGET_MS, hits: hitPaths.length }));
+        } else if (LEGACY_GENERATION_RETIRED) {
+          console.warn(JSON.stringify({ evt: "cot_leak_retry_skipped_retired", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP, hits: hitPaths.length }));
         } else {
         console.warn(JSON.stringify({
           evt: "cot_leak_detected",
