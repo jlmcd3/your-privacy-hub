@@ -97,12 +97,22 @@ export function assertStructuredSlotShape(
 }
 const _PASS2_RENDER_VERSION_UNUSED = "ltp-pass2-render-2026-07-26";
 
+export interface SlotTelemetry {
+  readonly template_id: string;
+  readonly slot: string;
+  readonly source: "ctx" | "plan" | "none";
+  readonly required: boolean;
+  readonly empty: boolean;
+}
+
 export interface RenderResult {
   readonly template_id: string;
   readonly text: string;
   readonly errors: readonly string[];
   readonly slots_resolved: number;
   readonly slots_missing: number;
+  /** ITEM 235b (T-M9.5b, LAW 1) — per-slot resolution record. */
+  readonly slot_telemetry: readonly SlotTelemetry[];
 }
 
 function substituteCitations(
@@ -156,25 +166,40 @@ function substitutePlanSlots(
   plan: RenderPlan,
   slots: readonly string[],
   ctx: SlotContext,
+  templateId: string,
+  requiredSet: readonly string[],
   errors: string[],
-): { text: string; resolved: number; missing: number; empty_slots: string[] } {
+): { text: string; resolved: number; missing: number; empty_slots: string[]; slot_telemetry: SlotTelemetry[] } {
   let out = text;
   let resolved = 0;
   let missing = 0;
   const empty_slots: string[] = [];
+  const slot_telemetry: SlotTelemetry[] = [];
   for (const slot of slots) {
     const token = `{{plan:${slot}}}`;
+    const ctxVal = (ctx as Record<string, unknown>)[slot];
+    const source: "ctx" | "plan" =
+      typeof ctxVal === "string" && ctxVal.trim().length > 0 ? "ctx" : "plan";
     const value = resolveSlot(plan, slot, ctx);
-    if (value === "" || value === "no items on the record") {
+    const empty = value === "" || value === "no items on the record";
+    if (empty) {
       missing++;
       empty_slots.push(slot);
     } else {
       resolved++;
     }
+    slot_telemetry.push({
+      template_id: templateId,
+      slot,
+      source: empty ? "none" : source,
+      required: requiredSet.includes(slot),
+      empty,
+    });
     out = out.replaceAll(token, value);
   }
-  return { text: out, resolved, missing, empty_slots };
+  return { text: out, resolved, missing, empty_slots, slot_telemetry };
 }
+
 
 function checkForbiddenTokens(text: string, errors: string[]): void {
   for (const t of PASS2_FORBIDDEN_TOKENS) {
@@ -210,31 +235,35 @@ export function renderTemplate(
   const fillOrOmit = opts.fillOrOmit !== false;
   const tpl: Pass2Template | undefined = PASS2_TEMPLATES[templateId];
   if (!tpl) {
-    return { template_id: templateId, text: "", errors: [`unknown_template:${templateId}`], slots_resolved: 0, slots_missing: 0 };
+    return { template_id: templateId, text: "", errors: [`unknown_template:${templateId}`], slots_resolved: 0, slots_missing: 0, slot_telemetry: [] };
   }
   if (tpl.emits_nothing) {
-    return { template_id: templateId, text: "", errors: [], slots_resolved: 0, slots_missing: 0 };
+    return { template_id: templateId, text: "", errors: [], slots_resolved: 0, slots_missing: 0, slot_telemetry: [] };
   }
   const errors: string[] = [];
   let text = tpl.text;
   checkForbiddenTokens(text, errors);
   text = substituteCitations(text, plan, tpl.citation_slots, errors);
   text = substituteIntake(text, plan, tpl.intake_slots, errors);
-  const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, errors);
+  const required = REQUIRED_PLAN_SLOTS[templateId] ?? tpl.plan_slots;
+  const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, templateId, required, errors);
   text = planSub.text;
 
   // ITEM 235 — required-slot check. Default set = all plan_slots on the
   // template; override via REQUIRED_PLAN_SLOTS.
-  const required = REQUIRED_PLAN_SLOTS[templateId] ?? tpl.plan_slots;
   const emptyRequired = planSub.empty_slots.filter((s) => required.includes(s));
   if (fillOrOmit && emptyRequired.length > 0) {
-    errors.push(`omit_empty_required_slots:${emptyRequired.join(",")}`);
+    // ITEM 235b (T-M9.5b, LAW 1) — per-slot omission telemetry.
+    for (const s of emptyRequired) {
+      errors.push(`omit_empty_required_slot:${templateId}:${s}`);
+    }
     return {
       template_id: templateId,
       text: "",
       errors,
       slots_resolved: planSub.resolved,
       slots_missing: planSub.missing,
+      slot_telemetry: planSub.slot_telemetry,
       omitted: true,
       omit_reason: "required_slot_empty",
     };
@@ -251,6 +280,7 @@ export function renderTemplate(
       errors,
       slots_resolved: planSub.resolved,
       slots_missing: planSub.missing,
+      slot_telemetry: planSub.slot_telemetry,
       omitted: true,
       omit_reason: "interpolation_residue",
     };
@@ -264,8 +294,10 @@ export function renderTemplate(
     errors,
     slots_resolved: planSub.resolved,
     slots_missing: planSub.missing,
+    slot_telemetry: planSub.slot_telemetry,
   };
 }
+
 
 /**
  * Firm/hedged calibration assert: when closeness ≥ FIRM_VARIANT_CLOSENESS_MAX,
