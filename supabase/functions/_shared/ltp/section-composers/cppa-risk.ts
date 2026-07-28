@@ -289,10 +289,70 @@ function entityName(plan: RenderPlan): string {
     || "the business";
 }
 
-function deadlineForAction(conclusionId: string | undefined, isDocumentationGate: boolean): string {
-  if (isDocumentationGate) return "d.assessment_record.pre_existing";
-  if (conclusionId && /admt/i.test(conclusionId)) return "d.admt_pre_use_notice.existing";
-  return "d.ongoing_processing";
+/**
+ * ITEM 242 (defect 7a) — OWNER slot from i7_internal_contributors.
+ * Role-titles only (PII law). Falls back to the accountable-owner
+ * clause when no roster is on the record.
+ */
+function ownerRoleTitles(plan: RenderPlan): string {
+  const raw = pickIntakeDisplay(plan, "i7_internal_contributors");
+  if (!raw) return "the accountable business owner named on the assessment record";
+  return raw;
+}
+
+/**
+ * ITEM 242 (defect 4) — GAP-APPLICABILITY LAW. An action for an
+ * absent factor / gate is emitted ONLY when the governing applicability
+ * gate is `pass` or `not_applicable` (i.e., not `block`). ADMT-scoped
+ * items with q18_admt_use negative resolve to `block` on
+ * G.q18.admt_consequence — those actions are suppressed here and
+ * instead surface in record_sufficiency as "not applicable".
+ */
+function isAdmtScoped(id: string | undefined): boolean {
+  return !!id && /admt|automated_decision|profiling/i.test(id);
+}
+
+function admtGateBlocked(plan: RenderPlan): boolean {
+  const g = plan.gate_outcomes.find((o) => o.gate_id === "G.q18.admt_consequence");
+  return g?.outcome === "block";
+}
+
+function factorAdmtApplicable(f: FactorTableEntry, plan: RenderPlan): boolean {
+  if (!isAdmtScoped(f.factor_id)) return true;
+  return !admtGateBlocked(plan);
+}
+
+function propAdmtApplicable(p: Proposition, plan: RenderPlan): boolean {
+  if (!isAdmtScoped(p.conclusion_id)) return true;
+  return !admtGateBlocked(plan);
+}
+
+/**
+ * ITEM 242 (defect 7b) — cohort-aware deadline resolver. Documentation
+ * gates and factor gaps read the § 7155 cohort marker off the intake
+ * (processing_start_date / cohort_effective_date proxies) instead of
+ * defaulting every non-ADMT action to `d.ongoing_processing`.
+ */
+function cohortIsProspective(plan: RenderPlan): boolean {
+  const start = pickIntakeDisplay(plan, "processing_start_date");
+  const cohort = pickIntakeDisplay(plan, "cohort_effective_date");
+  // If the record explicitly names a prospective start date after the
+  // operative period, prospective wins; otherwise the record is treated
+  // as pre-existing processing (§ 7155(b) applies).
+  return /^prospective\b/i.test(start) || /^prospective\b/i.test(cohort);
+}
+
+function deadlineForAction(conclusionId: string | undefined, isDocumentationGate: boolean, plan: RenderPlan): string {
+  const prospective = cohortIsProspective(plan);
+  if (conclusionId && /admt/i.test(conclusionId)) {
+    return prospective ? "d.admt_pre_use_notice.prospective" : "d.admt_pre_use_notice.existing";
+  }
+  if (isDocumentationGate) {
+    return prospective ? "d.assessment_record.prospective" : "d.assessment_record.pre_existing";
+  }
+  // Factor-table gaps (safeguard / negative-impact documentation) are
+  // assessment-record items under § 7155 — NOT ongoing-processing.
+  return prospective ? "d.assessment_record.prospective" : "d.assessment_record.pre_existing";
 }
 
 interface ActionSource {
@@ -307,12 +367,14 @@ interface ActionSource {
 
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
+  const owner = ownerRoleTitles(plan);
   const sources: ActionSource[] = [];
 
-  // (1)+(2) factor-table gaps: mandatory factors absent OR gap-tagged.
+  // (1)+(2) factor-table gaps — filtered by gap-applicability law.
   for (const f of plan.factor_table) {
     const isGap = !f.present_in_intake || /gap|absent|missing/i.test(f.factor_id);
     if (!isGap) continue;
+    if (!factorAdmtApplicable(f, plan)) continue; // defect 4
     const label = factorLabel(f) || "this factor";
     sources.push({
       element_short_label: label,
@@ -326,9 +388,10 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     });
   }
 
-  // (3) Type-J reserved judgments.
+  // (3) Type-J reserved judgments — filtered by gap-applicability law.
   for (const p of plan.propositions) {
     if (p.epistemic_type !== "J") continue;
+    if (!propAdmtApplicable(p, plan)) continue; // defect 4
     const spec: ConclusionSpec | undefined = CPPA_RISK_CONCLUSION_INDEX[p.conclusion_id];
     const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
     const reservedTo = spec?.reserved_to === "legal_counsel"
@@ -349,22 +412,30 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   }
 
   // (4) Unresolved FACTUAL documentation gates.
+  // ITEM 242 (defect 7c) — use the gate REGISTRY's anchor_pinpoint +
+  // description, never the hardcoded § 7152(a) or the raw gate_id.
   for (const g of plan.gate_outcomes) {
     if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
     if (g.outcome === "pass") continue;
-    const label = g.gate_id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
+    const spec = CPPA_RISK_GATE_INDEX[g.gate_id];
+    const pin = spec?.anchor_pinpoint ?? "11 CCR § 7152(a)";
+    // Display label derived from the gate description's element phrase.
+    const label = (spec?.description ?? g.gate_id)
+      .replace(/^Documentation-presence gate\s*—\s*/i, "")
+      .replace(/\.$/, "")
+      .trim() || g.gate_id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
     sources.push({
       element_short_label: label,
-      pinpoint: "11 CCR § 7152(a)",
-      customer_recorded_fact_clause: `${label} is not on the record`,
-      gap_or_consequence_clause: `§ 7152(a) requires this element for the assessment record to be complete`,
-      compliance_guidance_sentence: `Complete the § 7152(a) record for ${label} before the assessment closes.`,
+      pinpoint: pin,
+      customer_recorded_fact_clause: `${label.toLowerCase()} is not on the record`,
+      gap_or_consequence_clause: `${pin} requires this element for the assessment record to be complete`,
+      compliance_guidance_sentence: `Complete the ${pin} record for ${label.toLowerCase()} before the assessment closes.`,
       is_documentation_gate: true,
     });
   }
 
   return sources.map<TemplateInstance>((s) => {
-    const sel = selectDeadlineOrFallback(deadlineForAction(s.conclusion_id, s.is_documentation_gate));
+    const sel = selectDeadlineOrFallback(deadlineForAction(s.conclusion_id, s.is_documentation_gate, plan));
     return {
       template_id: "T.risk.priority_action.golden",
       ctx: {
@@ -374,6 +445,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         gap_or_consequence_clause: s.gap_or_consequence_clause,
         compliance_guidance_sentence: s.compliance_guidance_sentence,
         deadline_sentence: sel.row.deadline_sentence,
+        owner_role_titles: owner,
         __cite: { PINPOINT: s.pinpoint },
       },
     };
