@@ -3624,9 +3624,10 @@ async function runPipeline(assessment_id: string) {
       // sets telemetry.write_around=true only after the N=2 retry
       // budget exhausts OR the test forcing token is used.
       const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
-      const _writeAroundOrigin: "clock_cap" | "test_forced" | undefined =
+      const _writeAroundOrigin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | undefined =
         _writeAroundEntered
-          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced"
+              : (_pass1Err === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
           : undefined;
       const _mode = currentEnforceMode(Deno.env);
       const _safe = safeFinalizeComposition({
