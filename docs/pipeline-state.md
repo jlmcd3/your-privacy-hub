@@ -4913,3 +4913,31 @@ pass1_stamp: ltp-pass1-llm-item240-cp2-single-writer@2026-07-28
 
 **Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP3-PDF-SEAM-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY + PDF OPEN. HARD STOP.
+
+## Item 240-CP4 — LABELS + PER-PROPOSITION CITATIONS (CEO-approved 2026-07-28)
+
+**Root cause (controller-verified from shipped PDF of assessment e151a41b, run #175).**
+- Registry ids reached customer prose ("j.initiation_decision", "safe ii privacy enhancing technologies", …). Composer `humanize()` stripped a `foo.` prefix and space-split the rest; no display-label layer existed.
+- Citations nearly everywhere resolved to `plan.citation_bindings[0]` (§ 7150(b)(1)) because `substituteCitations` looked up bindings by slot-suffix substring match with a global first-binding fallback. Scope & Triggers printed the (b)(1) pinpoint five times, once per prong, contradicting the opening that stated (b)(4) IS engaged.
+- Executive Summary said "record insufficient" while Assessment Summary reached a firm benefits-outweigh conclusion — two separate branch-selection functions.
+
+**Action.**
+1. Added `ConclusionSpec.display_label` (required) and populated all 15 rows verbatim. `FactorRow.label` already existed; `FactorTableEntry.display_label` now carries it through the adapter.
+2. Retired composer `humanize()`. `propLabel(p)` / `factorLabel(f)` read `display_label` only.
+3. Added `SlotContext.__cite`; `substituteCitations` consumes it first. Composers set `__cite.PINPOINT` (and `PINPOINT_DEADLINE` / `PINPOINT_7152A5`) per instance from the row's own `StatutoryAnchor`.
+4. `composeScope` iterates 5 prong conclusions individually; each carries its own pinpoint and engaged/not-engaged read from `plan.gate_outcomes` first.
+5. Shared `aggregateBalance(plan)` → `insufficient|negative|hedged|firm` consumed by both exec and balance composers. Coherence violation is now structurally impossible.
+6. `value-screen.ts` REGISTRY_ID_PATTERNS class (`\bj\.[a-z_]+`, `\b[rw]\.[a-z_.]+`, `prop.*`, `test.*`, `(benefit|neg|safe)[ _]` prefix) — enforce-arm hard reject on any non-anchor customer path.
+
+**Joint test.** `_shared/legal-test/cp4-labels-citations.test.ts` — 5 / 5 green (display-label presence; 5-prong scope emission with 5 distinct pinpoints and (b)(4)-only engaged; per-anchor citation on record_sufficiency + information_needed; exec/balance coherence for insufficient-record; value-screen registry-id class).
+
+**Deploy + ping (verbatim excerpt).**
+```
+build_stamp: ltp-risk-item240-cp4-labels-citations@2026-07-28T12:29:50.746Z
+pass1_stamp: ltp-pass1-llm-item240-cp4-labels@2026-07-28
+pass2_assembler: ltp-pass2-assembler-2026-07-28-item240-cp4-labels
+composition_enforce: "1"
+```
+
+**Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP4-LABELS-CITATIONS-2026-07-28.md`.
+**Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY. Controller runs smoke, reads PDF, confirms zero registry-id shapes, distinct pinpoints, and exec/balance agreement. HARD STOP.
