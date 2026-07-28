@@ -5070,3 +5070,26 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Disposition.** Courier goes to CEO for verbatim sign-off. Approval releases 241.3 wiring turn (bind registry content through pass-2 templates; execute engineering rider; consider flipping `golden_shape` from observe to advisory once quotas stabilise on live runs). HARD STOP.
 
 **Courier.** `docs/courier/GOLDEN-SHAPE-CONTENT-2026-07-28.md`.
+
+---
+
+### Item 241.3 — GOLDEN-SHAPE WIRING (cppa-risk, DEPLOYED)
+
+**Date.** 2026-07-28T21:05Z. **Scope.** Wiring turn on `run-cppa-risk-assessment` — binds the CEO-approved 241.2 content (compliance_guidance sentences on 15 conclusions, 7-row deadline registry, 5 CP5 §3.2 section openers, golden deep-section templates incl. four-move gap-driven action + record-sufficiency flowing lead-in) through pass-2 rendering with all five CEO binding conditions applied and the Type-J engineering rider executed.
+
+**CEO conditions (all applied).**
+1. Registry-bound pinpoints — composers read `CPPA_RISK_CONCLUSION_INDEX[id].anchor.pinpoint` / `f.anchor.pinpoint` and pass verbatim via `ctx.__cite`; hand-typed courier pinpoints are overwritten at emit.
+2. `j.safeguard_sufficiency.reserved_to = legal_counsel` retained.
+3. `r.admt.consequence_gated` § 7001(ddd) anchor retained.
+4. `selectDeadlineOrFallback` degrades any failed-pin id to `d.ongoing_processing`; boot-time drift lint owned by `verifyCppaDeadlineDrift`.
+5. Type-J engineering rider — `DOCUMENTATION_FACTUAL_GATE_IDS` / `DOCUMENTATION_JUDGMENT_GATE_IDS` partition; `insufficientRecord` restricted to factual subset; docs-complete + Type-J now emits firm, not insufficient.
+
+**Tests.** 252 passed | 0 failed (`_shared/legal-test/`, `_shared/ltp/`, `_shared/report-contracts/`, deno --no-check). Template count 27 → 34.
+
+**Deploy.** `BUILD_STAMP=ltp-risk-item241-3-golden-shape-wiring@2026-07-28T21:04:54.103Z`. Boot log verified verbatim.
+
+**Provenance & law integrity.** Registry / provenance / Single-Writer (CP2) / CP3 shape / CP4 per-proposition citation binding / CP5 coherence & customer-first opener law / Golden-Shape rendering contract — UNCHANGED.
+
+**Disposition.** HARD STOP. Controller wire-verifies then launches the BATCH OF THREE for the first variance-aware read.
+
+**Courier.** `docs/courier/GOLDEN-SHAPE-WIRING-2026-07-28.md`.
