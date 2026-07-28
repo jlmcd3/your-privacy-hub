@@ -3597,6 +3597,7 @@ async function runPipeline(assessment_id: string) {
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
             let _assemblerVersion = PASS2_ASSEMBLER_VERSION;
+            const _stageAssemblerStart = Date.now() - t0;
             if (_writeAround) {
               _body = buildTypeJWriteAroundBody({
                 intake: _ltpIntake,
@@ -3609,6 +3610,7 @@ async function runPipeline(assessment_id: string) {
               _assemblerTele = _assembler.telemetry;
               _assemblerVersion = _assembler.version;
             }
+            const _stageAssemblerEnd = Date.now() - t0;
             // Preserve _meta and any underscore-prefixed subtree; overwrite
             // every other top-level key from the assembler body.
             const _rdBefore: any = report_data as any;
