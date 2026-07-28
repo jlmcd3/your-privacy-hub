@@ -211,7 +211,19 @@ export async function runPass1Llm(
       if (issues.length > 0) {
         lastErr = `validator_issues:${issues.length}`;
         allAborted = false;
-        details.push({ attempt, elapsed_ms: Date.now() - attemptT0, outcome: "error", error: lastErr, continuation_count: continuationCount });
+        const evidence: Pass1AttemptIssueEvidence[] = issues.slice(0, PASS1_MAX_ISSUE_EVIDENCE).map((i) => ({
+          code: i.code,
+          path: i.path,
+          message: i.message,
+        }));
+        details.push({
+          attempt,
+          elapsed_ms: Date.now() - attemptT0,
+          outcome: "error",
+          error: lastErr,
+          continuation_count: continuationCount,
+          validator_issues_detail: evidence,
+        });
         continue;
       }
       details.push({ attempt, elapsed_ms: Date.now() - attemptT0, outcome: "ok", continuation_count: continuationCount });
