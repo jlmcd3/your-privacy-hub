@@ -201,3 +201,41 @@ Deno.test("ITEM 236 fix (d): exec-summary activity_label never carries a raw int
     }
   }
 });
+
+// ── ITEM 237 (T-M9.7) — JOINT SEAM TEST per LAW-1 discipline ──────────
+
+Deno.test("ITEM 237 fix (b): assembler emits hedged (NEVER firm) for assessment_summary + risk_assessment_by_activity at closeness ≥ threshold", () => {
+  const base = fixturePlan();
+  const closePlan = {
+    ...base,
+    weighing_frame: [
+      { pinpoint: "test.pin.1", anchor_hint: "close-balance factor A", closeness_contribution: 0.9 },
+    ],
+    // Give the activity-per-proposition composer something to attach to.
+    propositions: base.propositions.length > 0 ? base.propositions : [
+      {
+        id: "p.C.applicability.A",
+        conclusion_id: "C.applicability.A",
+        epistemic_type: "R" as const,
+        jurisdiction_tag: "cppa-ca" as const,
+        polarity: "positive" as const,
+        anchor: { corpus_key: "cppa-7152", pinpoint: "test" } as any,
+        intake_ledger_refs: [],
+        citation_binding_refs: [],
+      } as any,
+    ],
+  } as any;
+  const result = assembleReport(closePlan, {}, { exitMode: "observe" });
+  for (const key of ["assessment_summary", "risk_assessment_by_activity"]) {
+    const s = result.telemetry.sections.find((r) => r.key === key);
+    assert(s, `section ${key} missing from telemetry`);
+    assert(
+      !s!.template_ids_rendered.includes("T.risk.balance.firm"),
+      `assembler shipped T.risk.balance.firm for ${key} at closeness ≥ threshold: rendered=${JSON.stringify(s!.template_ids_rendered)}`,
+    );
+    assert(
+      s!.emitted,
+      `section ${key} omitted at close balance: reason=${s!.omitted_reason}`,
+    );
+  }
+});
