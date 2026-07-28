@@ -45,6 +45,12 @@ export interface AnthropicCallOpts {
   callerName?: string;
   product?: string;
   sourceRowId?: string;
+  // T-M9 (Item 230): OUTER abort signal — every fetch leg (first + all
+  // continuation legs) must respect this signal so a caller-owned
+  // AbortController can terminate the whole call within a bounded window.
+  // Without this, the continuation loop could outlive the caller's timeout
+  // (root cause of the T-M8 silent hang).
+  abortSignal?: AbortSignal;
 }
 
 export interface AnthropicCallResult {
@@ -76,6 +82,23 @@ interface RawCallResult {
   elapsedMs: number;
 }
 
+function combineSignals(external: AbortSignal | undefined, timeoutMs: number): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!external) return timeout;
+  // AbortSignal.any is available in Deno 1.39+/edge runtime.
+  // deno-lint-ignore no-explicit-any
+  const any = (AbortSignal as any).any as ((s: AbortSignal[]) => AbortSignal) | undefined;
+  if (typeof any === "function") return any([external, timeout]);
+  // Fallback: manual composition.
+  const ctrl = new AbortController();
+  const onAbort = () => ctrl.abort((external.aborted ? external.reason : timeout.reason));
+  if (external.aborted) ctrl.abort(external.reason);
+  else external.addEventListener("abort", onAbort, { once: true });
+  if (timeout.aborted) ctrl.abort(timeout.reason);
+  else timeout.addEventListener("abort", onAbort, { once: true });
+  return ctrl.signal;
+}
+
 async function doOne(opts: {
   model: string;
   system: unknown;
@@ -83,6 +106,7 @@ async function doOne(opts: {
   maxTokens: number;
   timeoutMs: number;
   label: string;
+  abortSignal?: AbortSignal;
 }): Promise<RawCallResult> {
   const startedAt = Date.now();
   let res: Response;
@@ -100,14 +124,14 @@ async function doOne(opts: {
         system: opts.system,
         messages: opts.messages,
       }),
-      signal: AbortSignal.timeout(opts.timeoutMs),
+      signal: combineSignals(opts.abortSignal, opts.timeoutMs),
     });
   } catch (e) {
     const elapsedMs = Date.now() - startedAt;
-    const isAbort = (e instanceof DOMException && e.name === "TimeoutError")
+    const isAbort = (e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError"))
       || (e instanceof Error && /abort|timeout/i.test(e.message));
     if (isAbort) {
-      console.error(`[${opts.label}] stage=callAnthropic ABORT elapsed=${elapsedMs}ms limit=${opts.timeoutMs}ms`);
+      console.error(`[${opts.label}] stage=callAnthropic ABORT elapsed=${elapsedMs}ms limit=${opts.timeoutMs}ms outer_aborted=${opts.abortSignal?.aborted ?? false}`);
       throw new AnthropicTimeoutError(elapsedMs, opts.label);
     }
     throw e;
@@ -142,6 +166,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     maxTokens: opts.maxTokens,
     timeoutMs,
     label: opts.label,
+    abortSignal: opts.abortSignal,
   });
   console.log(`[${opts.label}] stage=callAnthropic model=${opts.model} elapsed=${first.elapsedMs}ms stop=${first.stopReason} output_tokens=${first.outputTokens ?? "?"} input_tokens=${first.inputTokens ?? "?"} cache_read=${first.cacheReadTokens ?? "?"} cache_creation=${first.cacheCreationTokens ?? "?"} chars=${first.text.length}`);
   // RC-A A7 — fire-and-forget spend metering per API call (first leg).
@@ -200,6 +225,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     maxTokens: opts.maxTokens,
     timeoutMs,
     label: `${opts.label}#cont`,
+    abortSignal: opts.abortSignal,
   });
   // RC-A A7 — meter the continuation leg (before any degenerate retry).
   recordApiUsage({
@@ -224,6 +250,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       maxTokens: opts.maxTokens,
       timeoutMs: DEGENERATE_RETRY_TIMEOUT_MS,
       label: `${opts.label}#cont2`,
+      abortSignal: opts.abortSignal,
     });
     console.log(`[${opts.label}#cont2] stage=callAnthropic retry elapsed=${retry.elapsedMs}ms stop=${retry.stopReason} output_tokens=${retry.outputTokens ?? "?"} chars=${retry.text.length}`);
     recordApiUsage({

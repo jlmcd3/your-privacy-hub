@@ -14,7 +14,10 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item226-t-m6-cutover@2026-07-28T09:00:00Z";
+// T-M9 (Item 230, 2026-07-28): stamp refreshed for pass1 abort-controller
+// wire + deploy-pipeline diagnosis. No future-dating — read against
+// wall-clock at cutover turn.
+export const BUILD_STAMP = "ltp-risk-item230-t-m9-pass1-abort@2026-07-28T13:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
 // shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
@@ -48,7 +51,7 @@ import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION }
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
-import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS } from "../_shared/ltp/pass1-llm.ts";
+import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../_shared/ltp/pass1-llm.ts";
 import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
@@ -3465,6 +3468,24 @@ async function runPipeline(assessment_id: string) {
           };
           console.warn(JSON.stringify({ evt: "ltp_pass1_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
         } else {
+          // T-M9 (Item 230): worker LIVENESS TOUCH at pass1-start. Bumps
+          // updated_at + records the pass1_start marker so a dead worker
+          // is distinguishable from a slow one in under a minute (the T-M8
+          // silent hang held updated_at FROZEN for 17+ minutes). Failure
+          // to touch is not fatal — Pass-1 still proceeds.
+          try {
+            await supabase.from("cppa_assessments").update({
+              updated_at: new Date().toISOString(),
+            }).eq("id", assessment_id);
+            console.log(JSON.stringify({
+              evt: "worker_liveness_pass1_start", fn: "run-cppa-risk-assessment",
+              assessment_id, build_stamp: BUILD_STAMP,
+              pass1_timeout_enforced: PASS1_TIMEOUT_ENFORCED,
+              per_attempt_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+            }));
+          } catch (e) {
+            console.warn("[run-cppa-risk-assessment] worker_liveness_pass1_start touch failed (non-fatal):", (e as Error)?.message);
+          }
           const _pass1 = await runPass1Llm({
             intake: _ltpIntake,
             report_data: report_data as any,
@@ -3518,8 +3539,12 @@ async function runPipeline(assessment_id: string) {
           try {
             const _writeAround = !!_pass1.plan?.conservative_write_around?.triggered
               || !_pass1.telemetry.ok;
-            const _origin: "clock_cap" | "test_forced" | "unknown" = _writeAround
-              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+            // T-M9 (Item 230): classify pass1_abort_timeout as a distinct
+            // authorized origin so composition-hook-audit can allow the
+            // designed abort-controller degradation without a hook-audit throw.
+            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown" = _writeAround
+              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
+                  : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
               : "unknown";
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
@@ -3617,9 +3642,10 @@ async function runPipeline(assessment_id: string) {
       // sets telemetry.write_around=true only after the N=2 retry
       // budget exhausts OR the test forcing token is used.
       const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
-      const _writeAroundOrigin: "clock_cap" | "test_forced" | undefined =
+      const _writeAroundOrigin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | undefined =
         _writeAroundEntered
-          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced"
+              : (_pass1Err === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
           : undefined;
       const _mode = currentEnforceMode(Deno.env);
       const _safe = safeFinalizeComposition({
@@ -3964,6 +3990,11 @@ Deno.serve(async (req) => {
       post_lint_llm_budget_ms: POST_LINT_LLM_BUDGET_MS,
       post_lint_llm_call_timeout_ms: POST_LINT_LLM_CALL_TIMEOUT_MS,
       post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+      // T-M9 (Item 230): the declared per-attempt timeout is now a REAL
+      // AbortController abort on every fetch leg — not a budget the caller
+      // never observes. Kickoff mode-assert pings this to detect declared-
+      // vs-actual abort-enforcement drift before spend.
+      pass1_timeout_enforced: PASS1_TIMEOUT_ENFORCED,
 
       safe_finalize: SAFE_FINALIZE_VERSION,
       // T-M1 (Item 221) — Pass-1 authoritative surface. Kickoff mode-assert
