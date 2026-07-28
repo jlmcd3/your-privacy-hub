@@ -4609,3 +4609,95 @@ overreach class — deferred so this turn stays structural.
 
 **Courier:** `docs/courier/T-M9.5-SLOT-FILL-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
+
+
+## Item 235b — T-M9.5b — LTP LAWS 1-3 (2026-07-28)
+
+**CEO ADDENDUM to T-M9.5.** The three laws below are STANDING LAW for
+cppa-risk and every future product migration. Landed as an addendum turn
+because T-M9.5 was already committed.
+
+**LAW 1 — projection→template seam is a first-class invariant, enforced
+per-slot.** `renderTemplate` now records `slot_telemetry` for every
+plan_slot with `{template_id, slot, source: "ctx"|"plan"|"none",
+required, empty}`. Empty REQUIRED slots emit
+`omit_empty_required_slot:<template_id>:<slot>` (one error per slot,
+replacing the aggregated `omit_empty_required_slots:` form) and the
+INSTANCE is omitted. `pass2-render.ts` remains at
+`ltp-pass2-render-2026-07-28-item235-fill-or-omit`; behavior extension
+only (added field on `RenderResult`, more granular error strings).
+
+**LAW 2 — deterministic end-to-end document test as REQUIRED CI GATE.**
+New file `_shared/ltp/e2e-document.test.ts` (5 tests). From the
+fixture intake it runs derive → assembler and asserts:
+(i) every emitted section carries real, residue-free content;
+(ii) every omission maps to a classified `omitted_reason` in the closed
+enumeration (manifest_absent, template_cut_empty_by_design, no_content,
+harvest_rejected, flat_certainty_on_close_balance, pii_leak,
+required_slot_empty, interpolation_residue, empty_by_finding,
+fill-or-omit-rejected); (iii) every shipped top-level key ∈ shard
+registry AND ∈ report-schema top-level; (iv) zero blank-slot regex
+matches anywhere on the shipped body (` For , `, `— Deadline basis:  (`,
+`: .`, and the pass2-render `INTERPOLATION_RESIDUE_PATTERNS`). Plus
+structural_completeness `nonconformant_keys === []`. CEO ruling
+verbatim: **"'Tests are green' must always imply 'the document is full.'
+No exceptions."**
+
+**LAW 3 — surface-ownership enforcement at build time.** New file
+`_shared/ltp/surface-ownership.test.ts` (4 tests). Static + runtime:
+(a) grep-scan of `pass2-assembler.ts` proves exactly ONE `report[...] =`
+write site AND its key expression is `shard.key`;
+(b) every `shard.key` ∈ report-schema top-level;
+(c) any shard whose key equals a top-level CUT ruling path MUST have
+owner_kind `template-cut` — any other owner kind targeting a CUT path
+fails the suite; (d) at assembly time, no shipped key equals a CUT
+REMOVE path. The cohort-to-CUT-surface class (§ 7121(a) →
+`cross_tool_recommendations`) is now structurally impossible to
+reintroduce.
+
+**Green-suite paste.**
+
+```
+Check _shared/ltp/e2e-document.test.ts
+Check _shared/ltp/surface-ownership.test.ts
+running 5 tests from ./_shared/ltp/e2e-document.test.ts
+LAW 2 (i): every emitted section carries real, residue-free content ... ok
+LAW 2 (ii): every omitted section carries a classified omit reason ... ok
+LAW 2 (iii): every shipped top-level key ∈ shard registry AND ∈ report schema ... ok
+LAW 2 (iv): zero blank-slot patterns anywhere on the shipped surface ... ok
+LAW 2: structural completeness — assembler reports no nonconformant keys ... ok
+running 4 tests from ./_shared/ltp/surface-ownership.test.ts
+LAW 3 (a): assembler source declares exactly ONE report[<key>] write site ... ok
+LAW 3 (b): every shard.key is present in report schema top-level allow-list ... ok
+LAW 3 (c): no shard.key is a top-level CUT ruling path ... ok
+LAW 3 (d): assembler never ships a top-level key that matches a CUT ruling path ... ok
+ok | 25 passed | 0 failed (525ms)
+```
+(waveb + summary-compose regressions included in the 25-pass count.)
+
+**Deploy.** BUILD_STAMP bumped to
+`ltp-risk-item235b-t-m9.5b-ltp-laws-1-3@2026-07-28T09:53:17.905Z`.
+Ping surface adds `ltp_laws_1_3: "item235b-2026-07-28"`.
+
+**Ping (verbatim).**
+
+```
+{
+  "build_stamp": "ltp-risk-item235b-t-m9.5b-ltp-laws-1-3@2026-07-28T09:53:17.905Z",
+  "composition_enforce": "1",
+  "fn": "run-cppa-risk-assessment",
+  "ltp_laws_1_3": "item235b-2026-07-28",
+  "ltp_mode": "enforce",
+  "ltp_version": "ltp-risk-p2",
+  "pass1_authoritative": "1",
+  "pass1_model": "claude-sonnet-4-6",
+  "pass1_stamp": "ltp-pass1-llm-item234-valid-plan-ships@2026-07-28",
+  "pass1_timeout_enforced": "abort-controller",
+  "pass2_assembler": "ltp-pass2-assembler-2026-07-28-item235-fill-or-omit",
+  "composition_shape.version": "cppa-risk-shape@2026-07-28-tm7-retirement"
+}
+```
+
+**Courier:** `docs/courier/T-M9.5b-LTP-LAWS-1-3-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH.
+HARD STOP.
