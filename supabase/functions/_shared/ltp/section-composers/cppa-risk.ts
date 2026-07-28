@@ -18,12 +18,39 @@ import type { RenderPlan, FactorTableEntry, Proposition, StatutoryAnchor } from 
 import type { SlotContext } from "../slot-resolver.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES, BALANCE_DIRECTION_CLAUSES } from "../content/pass2-templates.ts";
 import { computeCloseness, chooseVariant } from "../closeness.ts";
-import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../legal-test/cppa-risk-conclusions.ts";
+import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec } from "../../legal-test/cppa-risk-conclusions.ts";
+import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item241-1-e1e2";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item241-3-wiring";
 
-export { aggregateBalance };
+export { aggregateBalance, DOCUMENTATION_FACTUAL_GATE_IDS, DOCUMENTATION_JUDGMENT_GATE_IDS };
 export type { BalanceMode };
+
+/**
+ * ITEM 241.3 CONDITION 5 (Type-J engineering rider) — DOCUMENTATION GATE
+ * PARTITION. Factual gates count against record sufficiency; judgment
+ * gates are reserved decisions (never record gaps). `insufficientRecord`
+ * and `aggregateBalance` restrict to the factual subset only, per the
+ * courier's Engineering Rider and the CEO's binding CONDITION 5.
+ *
+ * The judgment subset is enumerated for future protection: today
+ * cppa-risk-gates.ts declares only factual documentation gates, but any
+ * future j.* documentation gate MUST land in the judgment set so the
+ * predicate cannot regress.
+ */
+const DOCUMENTATION_FACTUAL_GATE_IDS: ReadonlySet<string> = new Set([
+  "G.documentation.purpose_present",
+  "G.documentation.categories_present",
+  "G.documentation.operational_elements_present",
+  "G.documentation.approver_present",
+]);
+
+const DOCUMENTATION_JUDGMENT_GATE_IDS: ReadonlySet<string> = new Set([
+  "G.documentation.initiation_decision",
+  "G.documentation.purpose_specificity",
+  "G.documentation.safeguard_sufficiency",
+]);
+
 
 export interface TemplateInstance {
   readonly template_id: string;
