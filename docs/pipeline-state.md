@@ -4561,3 +4561,51 @@ Landed:
 
 **Courier:** `docs/courier/T-M9.4-VALID-PLAN-SHIPS-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
+
+---
+
+## Item 235 — T-M9.5: SLOT-FILL COMPLETION + FILL-OR-OMIT ENFORCEMENT (2026-07-28)
+
+**Trigger.** Run #169 / assessment `6caeb7cc` shipped blank template
+interpolations on the customer surface (executive_summary,
+priority_actions, next_steps, record_sufficiency, strengthen_items).
+Pass-1 ok (151.8s), assembler 12ms, C=54.15 / G=57. Root class:
+plan_slot projections returned empty for several sections and fill-or-
+omit was not enforced at slot level. Telemetry bug: `write_around_origin`
+recorded as `"unknown"` on pass1-ok runs.
+
+**Fixes landed.** (a) New `_shared/ltp/section-composers/cppa-risk.ts`:
+per-shard composers that project RenderPlan → template-instance list
+with populated `SlotContext` (executive/priority_actions/next_steps/
+strengthen_items/record_sufficiency/information_needed/exception_analysis/
+scope). `SlotContext` extended with per-instance passthroughs
+(action_label, action_basis, deadline_basis, step_label, step_basis,
+element_label, element_status_clause, factor_label, factor_basis,
+review_label, review_basis, driving_activity_label, what_would_tip_it,
+doc_element_label, customer_question, activity_singplural_clause).
+Assembler wires composer path before legacy `template_ids` loop; unknown
+keys fall through to legacy behavior. (b) `renderTemplate` gains
+`RenderOptions.fillOrOmit` (DEFAULT true) + `REQUIRED_PLAN_SLOTS`
+registry; an instance whose required slot resolves empty returns
+`text=""` with `omitted=true` and is dropped by the assembler — blanks
+never ship. `INTERPOLATION_RESIDUE_PATTERNS` provides defense-in-depth.
+(c) `value-screen` gains `interpolation-residue` hit kind and matches
+the same residue patterns on every non-anchor path of the shipped
+surface. (d) `composition-finalize` returns `write_around_origin=null`
+when `writeAroundEntered=false`, fixing the pass1-ok telemetry.
+(e) Fresh-clock BUILD_STAMP `ltp-risk-item235-t-m9.5-slot-fill@…`.
+
+**Deploy.** Explicit `supabase deploy_edge_functions` on
+`run-cppa-risk-assessment`. Live ping (verbatim):
+`build_stamp=ltp-risk-item235-t-m9.5-slot-fill@2026-07-28T09:44:03.402Z`,
+`pass2_assembler=ltp-pass2-assembler-2026-07-28-item235-fill-or-omit`,
+`pass1_timeout_enforced=abort-controller`, `post_lint_pass1_timeout_ms=240000`.
+
+**Deferred (evidence-flagged, non-blocking).** FIX (c) `neg.e.economic_harms`
+pinpoint/guidance alignment — registry cross-check punted to a dedicated
+courier because the correct labeling is content-anchored. FIX (e)
+`weight_note` prompt-constraint + validator screen for the AWS/Stripe
+overreach class — deferred so this turn stays structural.
+
+**Courier:** `docs/courier/T-M9.5-SLOT-FILL-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
