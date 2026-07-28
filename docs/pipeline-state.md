@@ -4335,3 +4335,41 @@ report_data={"error":"reaped_stuck_generation"}
 **Disposition:** HARD STOP. Fix turn is **T-M9** (per dispatch scope): enforced AbortController per-attempt timeout raised to 120s × 2 attempts per CEO caveat, attempt-duration telemetry, deploy-pipeline diagnosis, and redeploy of the post-retirement (item227) build. Awaits separate release.
 
 **Courier:** `docs/courier/T-M8-BRANCH-FAIL-2026-07-28.md`.
+
+## Item 230 — T-M9 PASS-1 ABORT-CONTROLLER + DEPLOY-PIPELINE FIX (2026-07-28)
+
+**Dispatch:** T-M9 SMOKE-FAIL FIX TURN. Scope frozen to the four sub-items from Item-229 evidence + hermetic pass1-llm test.
+
+**Fixes (a) enforced per-attempt abort:**
+- `_shared/anthropic-call.ts`: added `abortSignal?: AbortSignal` on `AnthropicCallOpts`; wired into every fetch leg (first + `#cont` + `#cont2`) via `combineSignals()` using `AbortSignal.any` (fallback: manual composition). Continuation loops now inherit the outer controller.
+- `_shared/ltp/retry-budget.ts`: `POST_LINT_PASS1_TIMEOUT_MS` **75s → 120s** (CEO caveat).
+- `_shared/ltp/pass1-llm.ts` (rewritten): per-attempt `AbortController` + `setTimeout(ctrl.abort, 120_000)`. N=2 attempts. Second abort → conservative write-around with `telemetry.error="pass1_abort_timeout"` and `plan.conservative_write_around.reason="pass1_abort_timeout"`. Never throws. New stamp `PASS1_LLM_STAMP="ltp-pass1-llm-item230-abort-controller@2026-07-28"`.
+
+**(b) attempt-duration telemetry:** `Pass1Telemetry` now carries `timeout_enforced="abort-controller"`, `per_attempt_timeout_ms`, and `attempts_detail[]` (`{attempt, elapsed_ms, outcome, error?, continuation_count?}`), forwarded through the existing `_meta.internal.render_plan.telemetry` and enforce_preview surfaces.
+
+**(c) worker liveness:** worker-start `updated_at` touch retained via the pre-existing `lifecycleUpdate({status:"processing"})`; NEW pass1-start touch is a bare `supabase.from("cppa_assessments").update({updated_at})` immediately before `runPass1Llm(...)` plus a JSON log `evt=worker_liveness_pass1_start` with `assessment_id, build_stamp, pass1_timeout_enforced, per_attempt_timeout_ms`. Zero-writes-for-17-minutes (T-M8 signature) is now structurally impossible: worker returns with a write-around body within 240s of pass1-start.
+
+**Ping surface:** adds `pass1_timeout_enforced: "abort-controller"`; `post_lint_pass1_timeout_ms=120000`; `build_stamp="ltp-risk-item230-t-m9-pass1-abort@2026-07-28T13:15:00Z"` (fresh wall-clock; no future-dating); `pass1_stamp` refreshed to the item230 stamp.
+
+**Origin plumbing:**
+- `composition-hook-audit.ts`: added `"pass1_abort_timeout"` to `WriteAroundOrigin` and to `AUTHORIZED_ORIGINS`; version stamp bumped to `composition-hook-audit@2026-07-28-item230`.
+- `pass2-assembler.ts`: `buildTypeJWriteAroundBody({origin})` accepts `"pass1_abort_timeout"`.
+- `run-cppa-risk-assessment/index.ts`: both write-around classification sites now map `_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR` to origin `"pass1_abort_timeout"`; `test_forced`/`clock_cap` paths preserved.
+
+**Hermetic pass1-llm test:** sets `ANTHROPIC_API_KEY=test-dummy…` so the abort path is reachable; mocks `globalThis.fetch` with a never-resolving promise that rejects `AbortError` on `signal.abort`. `runPass1Llm(BASE, {maxAttempts:2, timeoutMs:50})` → asserts `write_around`, `error==="pass1_abort_timeout"`, `attempts===2`, every `attempts_detail[].outcome==="abort"`, `timeout_enforced==="abort-controller"`. Magic-token forced-degradation regression tests preserved.
+
+**(d) deploy-pipeline diagnosis:** no `deno.lock` present anywhere under `supabase/` → not a stale-lockfile bundle failure. No bundling error in retained logs from the T-M7 turn → the platform deploy silently no-op'd rather than failing on an import. One residual reference to the retired stage NAME survives as an informational label at `pass2-assembler.ts:75` inside the composer's shape declaration — a string, not an import; deliberate for observability, does not affect wire. The T-M7 turn's `BUILD_STAMP` used a future-dated wall-clock (`@2026-07-28T12:00:00Z`), invalid per the T-M9 "no future-dated stamps" rule; this turn reads clock immediately before write. Lovable-managed edge functions redeploy on write, so saving this turn's files triggers a fresh deploy; controller re-fetches ping independently before smoke relaunch.
+
+**Files changed:**
+- `supabase/functions/_shared/anthropic-call.ts`
+- `supabase/functions/_shared/ltp/retry-budget.ts`
+- `supabase/functions/_shared/ltp/pass1-llm.ts` (rewritten)
+- `supabase/functions/_shared/ltp/pass1-llm.test.ts` (hermetic)
+- `supabase/functions/_shared/ltp/composition-hook-audit.ts`
+- `supabase/functions/_shared/ltp/composition-hook-audit.test.ts`
+- `supabase/functions/_shared/ltp/pass2-assembler.ts` (Type-J origin union widened)
+- `supabase/functions/run-cppa-risk-assessment/index.ts` (BUILD_STAMP, ping, origin, liveness)
+
+**Disposition:** **READY-FOR-CONTROLLER-VERIFY.** HARD STOP after courier + ledger. Controller verifies wire (`?ping=1` must show `build_stamp=ltp-risk-item230-t-m9-pass1-abort@…` AND `pass1_timeout_enforced="abort-controller"`) and relaunches the smoke.
+
+**Courier:** `docs/courier/T-M9-PASS1-ABORT-DEPLOY-FIX-2026-07-28.md`.
