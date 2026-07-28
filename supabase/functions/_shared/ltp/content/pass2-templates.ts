@@ -575,7 +575,15 @@ export const RECORD_STATUS_CLAUSES: readonly string[] = [
   "present in the record as documented",
   "not present in the record as documented",
   "partially present; specific items are listed under Items for your review",
+  // ITEM 243 defect 4 — ADMT NOT-APPLICABLE COMPLETION. When
+  // `q18_admt_use` is negative the G.q18.admt_consequence gate blocks
+  // and every ADMT-scoped documentation row is not a "gap" — it is
+  // structurally not applicable. Emit this clause instead of the
+  // "not present" clause so the record-sufficiency panel never labels
+  // an inapplicable element as a documentation deficit.
+  "not applicable — automated decisionmaking technology is not in use per the record",
 ] as const;
+
 
 /**
  * T-M3 ordering + dedup law for next_steps vs priority_actions.
