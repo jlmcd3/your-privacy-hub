@@ -52,6 +52,9 @@ import {
   currentEnforceMode,
   COMPOSITION_FINALIZE_VERSION,
   evaluateShippedSurfaceGuard,
+  evaluateShippedValueScreen,
+  SHIPPED_VALUE_SCREEN_VERSION,
+  isRetiredSurfacePath,
 } from "../_shared/ltp/composition-finalize.ts";
 
 import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
