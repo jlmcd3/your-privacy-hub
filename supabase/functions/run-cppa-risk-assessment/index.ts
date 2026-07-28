@@ -3532,11 +3532,6 @@ async function runPipeline(assessment_id: string) {
             gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
             write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
           };
-            plan_version: _pass1.plan.plan_version,
-            propositions: _pass1.plan.propositions?.length ?? 0,
-            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
-            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
-          };
           // Legacy shadow-preview slot (retained for T-M2..T-M5 back-compat).
           _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
             manifest: PASS1_MANIFEST,
