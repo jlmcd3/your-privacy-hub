@@ -211,18 +211,34 @@ Deno.test("ITEM 237 fix (b): assembler emits hedged (NEVER firm) for assessment_
     weighing_frame: [
       { pinpoint: "test.pin.1", anchor_hint: "close-balance factor A", closeness_contribution: 0.9 },
     ],
-    // Give the activity-per-proposition composer something to attach to.
-    propositions: base.propositions.length > 0 ? base.propositions : [
+    // Force at least one engaged Type-R applicability proposition so the
+    // per-activity composer produces an instance to route through
+    // chooseVariant. Without this, engagedApplicability() would be empty
+    // and the composer's insufficient-record fallback would omit.
+    propositions: [
       {
         id: "p.C.applicability.A",
         conclusion_id: "C.applicability.A",
-        epistemic_type: "R" as const,
-        jurisdiction_tag: "cppa-ca" as const,
-        polarity: "positive" as const,
-        anchor: { corpus_key: "cppa-7152", pinpoint: "test" } as any,
+        epistemic_type: "R",
+        jurisdiction_tag: "cppa-ca",
+        polarity: "positive",
+        anchor: { corpus_key: "cppa-7152", pinpoint: "test" },
         intake_ledger_refs: [],
         citation_binding_refs: [],
-      } as any,
+      },
+    ],
+    // Ensure at least one factor row is present so insufficientRecord()
+    // returns false and the composer emits the balance instance.
+    factor_table: [
+      {
+        factor_id: "F.benefit.test",
+        kind: "benefit",
+        jurisdiction_tag: "cppa-ca",
+        present_in_intake: true,
+        intake_ledger_refs: [],
+        guidance_refs: [],
+        anchor: { corpus_key: "cppa-7152", pinpoint: "test" },
+      },
     ],
   } as any;
   const result = assembleReport(closePlan, {}, { exitMode: "observe" });
