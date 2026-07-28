@@ -8,8 +8,8 @@ import {
   COMPOSITION_HOOK_AUDIT_VERSION,
 } from "./composition-hook-audit.ts";
 
-Deno.test("composition-hook-audit: version stamp", () => {
-  assertEquals(COMPOSITION_HOOK_AUDIT_VERSION, "composition-hook-audit@2026-07-27");
+Deno.test("composition-hook-audit: version stamp (Item 217)", () => {
+  assertEquals(COMPOSITION_HOOK_AUDIT_VERSION, "composition-hook-audit@2026-07-28-item217");
 });
 
 Deno.test("composition-hook-audit: hook set + branch entered = OK", () => {
@@ -30,10 +30,38 @@ Deno.test("composition-hook-audit: hook set + branch NOT entered = THROW (A.ii b
   );
 });
 
-Deno.test("composition-hook-audit: hook unset + branch entered = THROW (unauthorized degradation)", () => {
+Deno.test("composition-hook-audit: hook unset + branch entered + NO origin = THROW (unauthorized)", () => {
   assertThrows(
     () => assertCompositionHookConformance({ hookValue: undefined, writeAroundEntered: true }),
     CompositionHookAuditError,
     "unauthorized degradation",
   );
+});
+
+Deno.test("composition-hook-audit: hook unset + branch entered + unknown origin = THROW (Item 217)", () => {
+  assertThrows(
+    () => assertCompositionHookConformance({
+      hookValue: undefined, writeAroundEntered: true, writeAroundOrigin: "unknown",
+    }),
+    CompositionHookAuditError,
+    "unauthorized degradation",
+  );
+});
+
+Deno.test("composition-hook-audit: hook unset + branch entered + clock_cap origin = OK (Item 217)", () => {
+  assertCompositionHookConformance({
+    hookValue: undefined, writeAroundEntered: true, writeAroundOrigin: "clock_cap",
+  });
+});
+
+Deno.test("composition-hook-audit: hook unset + branch entered + timeout origin = OK (Item 217)", () => {
+  assertCompositionHookConformance({
+    hookValue: undefined, writeAroundEntered: true, writeAroundOrigin: "timeout",
+  });
+});
+
+Deno.test("composition-hook-audit: hook unset + branch entered + test_forced origin = OK (Item 217)", () => {
+  assertCompositionHookConformance({
+    hookValue: undefined, writeAroundEntered: true, writeAroundOrigin: "test_forced",
+  });
 });
