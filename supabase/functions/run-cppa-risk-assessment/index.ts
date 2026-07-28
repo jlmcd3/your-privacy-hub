@@ -3521,8 +3521,12 @@ async function runPipeline(assessment_id: string) {
           try {
             const _writeAround = !!_pass1.plan?.conservative_write_around?.triggered
               || !_pass1.telemetry.ok;
-            const _origin: "clock_cap" | "test_forced" | "unknown" = _writeAround
-              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+            // T-M9 (Item 230): classify pass1_abort_timeout as a distinct
+            // authorized origin so composition-hook-audit can allow the
+            // designed abort-controller degradation without a hook-audit throw.
+            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown" = _writeAround
+              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
+                  : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
               : "unknown";
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
