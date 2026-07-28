@@ -316,22 +316,17 @@ export async function runPass1Llm(
       }
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       const jsonText = jsonMatch ? jsonMatch[0] : raw;
-      const parsed = JSON.parse(jsonText);
-      // T-M9.4 (Item 234) — VALID PLAN INVARIANT.
-      // A validator-clean Pass-1 output is authoritative. The model's own
-      // `conservative_write_around` flag is IGNORED on the ok path — Type-J
-      // write-around fires ONLY on terminal LLM failure (abort×N, validator
-      // hard-reject, or exception). Preserving a model-emitted triggered=true
-      // here caused run #168's clean plan to be discarded by the cutover
-      // classifier and routed to Type-J with a stale clock_cap origin.
-      const candidate: RenderPlan = {
-        ...parsed,
-        plan_version: "v1",
-        product: "cppa-risk-assessment",
-        build_stamp: input.buildStamp,
-        conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
-      };
+      const parsed = JSON.parse(jsonText) as Record<string, unknown>;
+      // ITEM 240 CP2 — SINGLE-WRITER CORE.
+      // Parse → adapter INJECTS deterministic fields → Guide populates
+      // weighing_frame + binds refs → THEN validate. This is the sequencing
+      // fix for run #173's V7_W_PROP_NO_FRAME (Guide previously ran after
+      // validation, so V7 demanded frames the model was never asked for).
+      // T-M9.4 VALID PLAN INVARIANT retained: model's own
+      // conservative_write_around is IGNORED on the ok path.
+      const { plan: candidate } = applySingleWriterInjection(parsed, input);
       const issues = validateRenderPlan(candidate, WEIGHING_TESTS);
+
       if (issues.length > 0) {
         lastErr = `validator_issues:${issues.length}`;
         allAborted = false;
