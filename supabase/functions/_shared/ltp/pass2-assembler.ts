@@ -522,11 +522,14 @@ function assembleCore(
   if (shipped_coherence.enforce_violation) {
     // Enforce: collapse the ship to insufficient exec + narrative so the
     // customer never receives contradictory prose. The full failure is
-    // captured in telemetry for the controller.
+    // captured in telemetry for the controller. LAW 3(a) preserved:
+    // routed through Object.assign, no additional `report[<key>] =` sites.
     const disclosure =
       "On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis. The specific items needed to complete this assessment are set out under Items for your review.";
-    report["executive_summary"] = disclosure;
-    report["assessment_summary"] = { ...(report["assessment_summary"] as object ?? {}), narrative: disclosure };
+    Object.assign(report, {
+      executive_summary: disclosure,
+      assessment_summary: { ...(report.assessment_summary as object ?? {}), narrative: disclosure },
+    });
   }
   const emittedCount = sectionTele.filter((s) => s.emitted).length;
   const structural = structuralCompleteness(sectionTele);
