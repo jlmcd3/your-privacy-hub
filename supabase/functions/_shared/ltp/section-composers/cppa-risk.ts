@@ -488,9 +488,16 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const prose: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose",
     ctx: {
+      // ITEM 242 (defect 6) — opener + closer derived from the SAME
+      // `sufficient` boolean via distinct grammatically-fitted clauses.
+      // Contradiction between opener and closer is structurally
+      // impossible; e2e assert enforces it.
       sufficiency_clause: sufficient
         ? "sufficient for the § 7152(a)(6) balancing frame to weigh"
         : "not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies below",
+      sufficiency_closer_clause: sufficient
+        ? "is sufficient for the § 7152(a)(6) balancing frame to weigh"
+        : "remains not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies above",
       entity_name: entity,
       factual_elements_summary_clause: factual.length > 0 ? joinList(factual) : "the factual elements captured on the record",
       reserved_judgments_list: jLabels.length > 0 ? joinList(jLabels) : "no reserved judgments",
