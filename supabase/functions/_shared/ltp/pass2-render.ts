@@ -47,6 +47,15 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
   "T.risk.summary.aggregation_note": ["driving_activity_label"],
   // Per-item shards.
   "T.risk.priority_action": ["action_label", "action_basis", "deadline_basis"],
+  // ITEM 241.3 — GOLDEN four-move gap-driven action template.
+  "T.risk.priority_action.golden": [
+    "element_short_label",
+    "entity_name",
+    "customer_recorded_fact_clause",
+    "gap_or_consequence_clause",
+    "compliance_guidance_sentence",
+    "deadline_sentence",
+  ],
   "T.risk.next_step": ["step_label", "step_basis"],
   "T.risk.record_sufficiency.item": ["element_label", "element_status_clause"],
   "T.risk.review_items.entry": ["review_label", "review_basis"],
@@ -57,7 +66,42 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
   // Balance sentences — need SOME summary tokens.
   "T.risk.balance.firm": ["benefit_summary_tokens", "negative_summary_tokens", "balance_direction_clause"],
   "T.risk.balance.hedged": ["benefit_summary_tokens", "negative_summary_tokens", "tipping_factors"],
+  // ITEM 241.3 — CP5 §3.2 section-opener required-slot sets.
+  "T.risk.section_opener.scope": [
+    "entity_name",
+    "q4_pi_categories",
+    "i1_processing_purpose",
+    "prong_list_with_individual_pinpoints",
+  ],
+  "T.risk.section_opener.balance": [
+    "entity_name",
+    "q4_pi_categories",
+    "balance_outcome_sentence",
+  ],
+  "T.risk.section_opener.actions": [
+    "customer_fact_clause",
+    "entity_name",
+    "action_verb_phrase",
+  ],
+  "T.risk.section_opener.compliance_guidance": [
+    "customer_fact_clause",
+    "compliance_guidance_sentence",
+  ],
+  "T.risk.section_opener.executive_summary": [
+    "entity_name",
+    "q4_pi_categories",
+    "i1_processing_purpose",
+    "aggregateBalance_sentence",
+    "sections_7150b_pinpoints",
+    "as_of_date",
+  ],
+  "T.risk.record_sufficiency.prose": [
+    "sufficiency_clause",
+    "entity_name",
+    "factual_elements_summary_clause",
+  ],
 };
+
 
 /** Interpolation-residue regexes: catch blank template artifacts that
  *  slip past renderer omission (defense-in-depth for value-screen). */
