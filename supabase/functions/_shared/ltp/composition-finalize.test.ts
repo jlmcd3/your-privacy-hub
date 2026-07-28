@@ -161,8 +161,8 @@ Deno.test("composition-finalize: hook set + branch entered = OK", () => {
 
 import { safeFinalizeComposition, SAFE_FINALIZE_VERSION } from "./composition-finalize.ts";
 
-Deno.test("safeFinalizeComposition: version stamp (Item 206)", () => {
-  assertEquals(SAFE_FINALIZE_VERSION, "safe-finalize@2026-07-27-item206-hits");
+Deno.test("safeFinalizeComposition: version stamp (Item 215)", () => {
+  assertEquals(SAFE_FINALIZE_VERSION, "safe-finalize@2026-07-28-item215-vs-site");
 });
 
 Deno.test("safeFinalizeComposition: clean report — mirrors inner telemetry, errored=false", () => {
@@ -177,17 +177,14 @@ Deno.test("safeFinalizeComposition: clean report — mirrors inner telemetry, er
   assert(res.telemetry.inner !== undefined);
 });
 
-Deno.test("safeFinalizeComposition: enforce-mode value-screen throw is CAUGHT (persist not blocked)", () => {
+Deno.test("safeFinalizeComposition: enforce-mode value-screen hit is TELEMETRY-ONLY (Item 215)", () => {
   const rd = { assessment_summary: { narrative: "Per Engine-B composition, safeguards recommended." } };
-  // Would throw ValueScreenError in bare finalizeComposition
   const res = safeFinalizeComposition({
     reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
   });
-  assertEquals(res.telemetry.errored, true);
-  assertEquals(res.telemetry.error_kind, "ValueScreenError");
-  assertEquals(res.telemetry.enforce_violation, true);
-  // Original report_data must be returned unchanged so persist can ship it.
-  assertEquals(res.reportData, rd);
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.enforce_violation, false);
+  assert((res.telemetry.inner?.pre_serializer_value_screen_pending.length ?? 0) > 0);
 });
 
 Deno.test("safeFinalizeComposition: hook-audit throw is CAUGHT (persist not blocked)", () => {
