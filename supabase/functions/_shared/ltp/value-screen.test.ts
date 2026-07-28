@@ -10,8 +10,8 @@ import {
   TRUNCATED_SLOT_VALUES,
 } from "./value-screen.ts";
 
-Deno.test("value-screen: version stamp (Item 204)", () => {
-  assertEquals(VALUE_SCREEN_VERSION, "value-screen@2026-07-27b-item204");
+Deno.test("value-screen: version stamp (Item 237)", () => {
+  assertEquals(VALUE_SCREEN_VERSION, "value-screen@2026-07-28-item235-residue");
 });
 
 Deno.test("value-screen: bare 'We ' substring is NO LONGER in the lexicon (Item 204 Defect A)", () => {
