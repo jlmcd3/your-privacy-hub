@@ -142,6 +142,8 @@ export interface ExitCheckTelemetry {
     readonly violations: readonly ShippedCoherenceViolation[];
     readonly enforce_violation: boolean;
   };
+  /** ITEM 241.1 — depth telemetry against the top-50 empirical quotas. */
+  readonly golden_shape: GoldenShapeReport;
 }
 
 export interface StructuralCompletenessRow {
