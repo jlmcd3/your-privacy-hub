@@ -84,6 +84,10 @@ export interface FinalizeTelemetry {
    *  allow-list and not covered by a CUT ruling) observed on the
    *  PRE-serializer composed object. Telemetry only. */
   readonly pre_serializer_unowned_pending: readonly string[];
+  /** Item 215: value-screen residual hits observed on the PRE-serializer
+   *  composed object. Telemetry only — enforcement authority moved to
+   *  `evaluateShippedValueScreen` on the shipped projection. */
+  readonly pre_serializer_value_screen_pending: readonly ValueScreenHit[];
   readonly hook_audit_ok: boolean;
   readonly hook_value_present: boolean;
   readonly write_around_entered: boolean;
