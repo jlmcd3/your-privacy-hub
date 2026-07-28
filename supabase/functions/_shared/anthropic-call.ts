@@ -144,7 +144,7 @@ async function doOne(opts: {
       || (e instanceof Error && /abort|timeout/i.test(e.message));
     if (isAbort) {
       console.error(`[${opts.label}] stage=callAnthropic ABORT elapsed=${elapsedMs}ms limit=${opts.timeoutMs}ms outer_aborted=${opts.abortSignal?.aborted ?? false}`);
-      throw new AnthropicTimeoutError(elapsedMs, opts.label);
+      throw new AnthropicTimeoutError(elapsedMs, opts.label, opts.timeoutMs);
     }
     throw e;
   }
