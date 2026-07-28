@@ -107,10 +107,8 @@ export function resolveSlot(
       if (unknowns.length === 0) return "";
       return `Open questions: ${joinTokens(unknowns.map((u) => u.conclusion_id))}.`;
     }
-    case "doc_element_label":
-    case "customer_question":
-      // Bound to a per-gate context; caller substitutes from gate_outcomes.
-      return "";
+    case "doc_element_label":       return ctx.doc_element_label ?? "";
+    case "customer_question":       return ctx.customer_question ?? "";
     // ── Summary-composition slots (context-provided, verbatim pass-through) ──
     case "activity_count_phrase":       return ctx.activity_count_phrase ?? "";
     case "each_or_this_clause":         return ctx.each_or_this_clause ?? "";
@@ -122,6 +120,22 @@ export function resolveSlot(
     case "outcome_clause":              return ctx.outcome_clause ?? "";
     case "key_factor_token":            return ctx.key_factor_token ?? "";
     case "docs_completion_clause":      return ctx.docs_completion_clause ?? "";
+    case "activity_singplural_clause":  return ctx.activity_singplural_clause ?? "";
+    // ── ITEM 235 (T-M9.5) per-instance slot passthroughs ──
+    case "action_label":                return ctx.action_label ?? "";
+    case "action_basis":                return ctx.action_basis ?? "";
+    case "deadline_basis":              return ctx.deadline_basis ?? "";
+    case "step_label":                  return ctx.step_label ?? "";
+    case "step_basis":                  return ctx.step_basis ?? "";
+    case "element_label":               return ctx.element_label ?? "";
+    case "element_status_clause":       return ctx.element_status_clause ?? "";
+    case "factor_label":                return ctx.factor_label ?? "";
+    case "factor_basis":                return ctx.factor_basis ?? "";
+    case "guidance_clause":             return ctx.guidance_clause ?? "";
+    case "review_label":                return ctx.review_label ?? "";
+    case "review_basis":                return ctx.review_basis ?? "";
+    case "driving_activity_label":      return ctx.driving_activity_label ?? "";
+    case "what_would_tip_it":           return ctx.what_would_tip_it ?? "";
     default:
       return "";
   }
