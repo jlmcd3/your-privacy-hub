@@ -74,6 +74,15 @@ export interface ConclusionSpec {
    * per value-screen's REGISTRY_ID_PATTERNS class.
    */
   readonly display_label: string;
+  /**
+   * ITEM 241.3 — COMPLIANCE-GUIDANCE SENTENCE (registry-authored, verbatim
+   * from ITEM 241.2 courier §1, CEO-approved 2026-07-28). Consumed as
+   * move (iv) of the four-move gap-driven action template and as the
+   * body of the compliance-guidance section-opener. Registry is the
+   * single source of truth (Single-Writer Law applied to the courier
+   * itself per CEO CONDITION 1); composers never restate.
+   */
+  readonly compliance_guidance?: string;
   /** Additional supporting anchors (all must be jurisdiction-domain matched). */
   readonly supporting_anchors?: readonly StatutoryAnchor[];
   /** One-line description of what the conclusion asserts. */
@@ -85,6 +94,7 @@ export interface ConclusionSpec {
   /** For Type J: who holds the reserved judgment (business, external auditor, counsel). */
   readonly reserved_to?: "business" | "external_auditor" | "legal_counsel";
 }
+
 
 const CPPA: JurisdictionTag = "cppa-ca";
 
