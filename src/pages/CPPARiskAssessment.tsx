@@ -676,6 +676,7 @@ export default function CPPARiskAssessment() {
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
     if (typeof d.q5cShareRev === "string") setQ5cShareRev(d.q5cShareRev);
+    if (typeof d.bssCount === "string" && (d.bssCount === "" || (BOUGHT_SOLD_SHARED_OPTS as readonly string[]).includes(d.bssCount))) setBssCount(d.bssCount);
     if (typeof d.q15bUnder16 === "string") setQ15bUnder16(d.q15bUnder16);
     if (typeof d.q15cSpiVolume === "string") setQ15cSpiVolume(d.q15cSpiVolume);
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
@@ -900,6 +901,25 @@ export default function CPPARiskAssessment() {
                   <Label>Q5c: Does 50% or more of your annual gross revenue derive from selling or sharing personal information? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(C) / 11 CCR § 7120(b)(1))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the covered-business test for the § 7120(b)(1) 50%-revenue prong. Skip if you're unsure or the number isn't material.</p>
                   <div className="mt-2"><Radio name="q5c" options={SHARE_REVENUE_50PCT_OPTS} value={q5cShareRev} onChange={setQ5cShareRev} /></div>
+                </div>
+              )}
+              {/* T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand: bought/sold/shared count.
+                  Optional; asked only when q5_sell_share is affirmative because the
+                  (B) covered-business prong only resolves against a sell/share operand.
+                  Unanswered flows to information_needed via the (B)-gap gate. */}
+              {q5 && q5 !== "No" && (
+                <div data-rail-key="bought_sold_shared_count" onFocus={() => focusRail('bought_sold_shared_count')}>
+                  <Label htmlFor="bought_sold_shared_count">Q5e: Approximately how many California consumers or households have personal information you <em>buy, sell, or share</em> annually? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(B))</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">Optional — this is the operand for the § 1798.140(d)(1)(B) covered-business prong. If left blank, the assessment will list it as an outstanding item rather than assume a value.</p>
+                  <select
+                    id="bought_sold_shared_count"
+                    value={bssCount}
+                    onChange={(e) => setBssCount(e.target.value)}
+                    className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="">Select…</option>
+                    {BOUGHT_SOLD_SHARED_OPTS.map((s) => <option key={s}>{s}</option>)}
+                  </select>
                 </div>
               )}
               <div data-rail-key="q5b_profiling" onFocus={() => focusRail('q5b_profiling')}>
