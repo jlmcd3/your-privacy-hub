@@ -3772,3 +3772,36 @@ Courier: `docs/courier/SMOKE9-UNOWNED-SITE-2026-07-27.md`.
 **READY-FOR-RELAUNCH. HARD STOP.**
 
 **HELD** (2026-07-27, post-Item-213): READY-FOR-RELAUNCH state maintained. Awaiting controller relaunch of smoke #10. No new work this nudge.
+
+## Item 214 — SMOKE-#10 BRANCH FAIL: value-screen leak-lexicon on internal lint_warnings (2026-07-28 ~01:10Z)
+
+Evidence-only turn (controller dispatch). No code changes, no deploy, no grader edits.
+
+Rows (controller-verified):
+- Batch `cc1a4a7c-f00d-4779-8c64-a40995e5e204`: inserted 01:01:38.323Z (§18 shape, batch_size=1, declared_count=1), status=complete, phase=done, completed_at=01:10:30.317Z.
+- Run `quality_runs #162` `3615fef8-c633-4b0e-812b-f09c94c2d352`: status=complete, error=NULL, 01:04:02.361Z → 01:10:22.703Z, score_overall=70.85, gpt_score_overall=93, checks 22/28 passed. Mid-run poll-resume boundary at 01:09:06 (isolate 1, 300s) worked as designed.
+- Doc `7ed3c40a-70ea-4f92-acbe-c217ecdfbdcc`: source_row_id=`e291790c-…`, status=complete, doc-level C=70.85 / G=92.
+- Assessment `cppa_assessments e291790c-…`: status=complete, retry_count=0, last_error=NULL, E2E 5m29.97s — clock contract HELD.
+- Build on wire: `ltp-risk-item213-unowned-site@2026-07-27T23:45:00Z` — Item-213 stamp proven.
+
+Branch gate:
+- `shipped_surface_guard`: mode=enforce, `cut_violations=[]`, `unowned_paths=[]`, `enforce_violation=false` — FULLY CLEAN second consecutive run.
+- `composition_finalize`: version=`composition-finalize@2026-07-27`, safe_version=`safe-finalize@2026-07-27-item206-hits`, mode=enforce, budget_ms=15000, budget_exceeded=false, elapsed_ms=4, **errored=TRUE**, **enforce_violation=TRUE**, error_kind=`ValueScreenError`, error_message=`[value-screen] 1 hit(s): leak-lexicon:cross_tool_recommendations`, fragment_omit_count=0, hits=[{kind:"leak-lexicon", path:"lint_warnings[0].field", match:"cross_tool_recommendations", context:"cross_tool_recommendations.cybersecurity_audit_rationale"}].
+- **BRANCH FAIL** on `composition_finalize.errored=true`.
+
+Class read (evidence only):
+- Item-207 per-hit telemetry printed exact path for the first time.
+- Leak-lexicon token `cross_tool_recommendations` (retained in Item 205 sweep) fired on `lint_warnings[0].field` — an INTERNAL pre-serializer structure that LEAK-PREV-P2 strips (present in this run's serializer `dropped_keys`).
+- The lint warning's field value references the legacy `cross_tool_recommendations.cybersecurity_audit_rationale` path (mirror write removed in Item 209; a lint rule still references it).
+- Same false-positive family as smokes #6 / #8 / #9: pre-serializer screen judging content the serializer strips from the shipped surface. Shipped document itself conforms fully.
+
+Stage-C candidates (record, no action):
+- C/G grader divergence on run #162 = 22.15 (70.85 vs 93). Log next to run #160's divergence of 15 for Stage-C divergence check.
+- Lint rule still referencing retired `cross_tool_recommendations.cybersecurity_audit_rationale` path.
+- Non-evidential residuals: `emit_gate degraded_count=7` (unterminated_sentence: 6× `priority_actions[*].deadline_basis`, 1× `benefits_outweigh_risks_conclusion` — Stage-C truncation-emitter class; `fragment_omit_paths=[]` so these are mid-string truncations, not whole-value slots).
+
+§22.1 clean-arm counter (cppa-risk): unchanged **0/3** — smoke #10 non-evidential (all smokes #153–#162 non-evidential; counter opens at Stage C).
+
+Courier: `docs/courier/SMOKE-10-BRANCH-FAIL-2026-07-27.md`.
+
+**HARD STOP** for controller review. No relaunch, no fix, no roll to 9b–12.
