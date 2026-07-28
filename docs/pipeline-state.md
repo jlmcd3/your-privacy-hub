@@ -4779,3 +4779,68 @@ Ping surface adds `run170_fixes: "item236-2026-07-28"`.
 **Courier:** `docs/courier/T-M9.6-RUN170-FIXES-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-RELAUNCH.
 HARD STOP.
+
+---
+
+## Item 237 — T-M9.7 RUN-#171 FIXES (2026-07-28)
+
+**Scope.** Two blockers from run #171 (opening_summary + balance
+sections) plus hygiene stragglers. RenderPlan primacy preserved; no
+grader edits; no batch inserts.
+
+**(a) OPENING HARVEST — LEDGER VOCABULARY.** T7 provenance references
+canonical intake fields (`entity_name`, `q4_pi_categories`,
+`i1_processing_purpose`, `q5_sell_share`, `q5b_profiling_observation`,
+`i1b_min_pi`, `i4_disclosure_mechanisms`, `bought_sold_shared_count`)
+that `derivePlan()` did not include in `LEDGER_KEYS`. Guard rejection
+was correct; the ledger was under-populated. Extended `LEDGER_KEYS` in
+`_shared/ltp/derive.ts` to carry all T7-referenced intake fields. Guard
+logic untouched.
+
+**(b) FIRM-VARIANT RUNTIME DISCREPANCY — UNIFIED SELECTION SEAM.**
+Callsite enumeration: `section-composers/cppa-risk.ts::balanceInstance`
+(runtime), `pipeline.ts` (shadow telemetry only), `pass2-render.ts`
+`assertCalibrationMatch` (post-selection guard). The composer's
+`chooseVariant(computeCloseness(plan, frame))` consumed a WEIGHTED
+SCALAR that stayed below 0.6 even when a single frame contribution was
+≥ 0.6, while `anyCloseBalance` used the PER-FRAME MAX. Two definitions
+of "closeness" → guard rejected firm renders the composer chose. Fix
+in `_shared/ltp/closeness.ts`: `computeCloseness` now returns
+`max(weighted_scalar, max_per_frame_contribution)` so a dominant
+close-balance factor promotes the composer to `hedged` and matches the
+guard exactly. Composer `balanceInstance` also now populates the actual
+template plan-slots (`benefit_summary_tokens`,
+`negative_summary_tokens`, `tipping_factors`,
+`safeguard_summary_tokens`, `balance_direction_clause`) from the plan
+so the hedged/firm templates render with real content instead of the
+"no items on the record" sentinel. `slot-resolver.ts` now prefers
+ctx-supplied values for these slots when non-empty. Joint E2E assert
+added per LAW-1 discipline (asserts on assembler output, not on
+`chooseVariant` in isolation).
+
+**(c) HYGIENE.** Reclassified `part_a` / `part_b` / `gating` to emit
+`{}` as empty-by-design (was `no_content`). Pinned `value-screen`
+version stamp test to current value. Rewrote the `waveb`
+gateway-missing-key probe to be hermetic per the T-M9 pattern — it now
+exercises the direct Anthropic client path (missing
+`ANTHROPIC_API_KEY` → `write_around=true`) that replaced the retired
+Lovable-gateway path.
+
+**Tests.** `_shared/ltp/e2e-document.test.ts` 11/11 pass, including the
+new joint hedged-emission assertion. Full `_shared/ltp/` suite 221/221
+pass (previously 218/220).
+
+**Deploy.** `BUILD_STAMP` bumped to
+`ltp-risk-item237-t-m9.7-run171-fixes@2026-07-28T10:44:52.457Z`.
+Ping surface unchanged (already exposes composition shape + version
+stamps).
+
+**Ping (verbatim).**
+
+```
+{"build_stamp":"ltp-risk-item237-t-m9.7-run171-fixes@2026-07-28T10:44:52.457Z","composition_enforce":"1","fn":"run-cppa-risk-assessment","ltp_laws_1_3":"item235b-2026-07-28","ltp_mode":"enforce","ltp_version":"ltp-risk-p2","pass1_authoritative":"1","pass1_max_attempts":2,"pass1_model":"claude-sonnet-4-6","pass1_stamp":"ltp-pass1-llm-item234-valid-plan-ships@2026-07-28","pass1_timeout_enforced":"abort-controller","pass2_assembler":"ltp-pass2-assembler-2026-07-28-item235-fill-or-omit","post_lint_llm_budget_ms":300000,"post_lint_llm_call_timeout_ms":120000,"post_lint_pass1_timeout_ms":240000,"run170_fixes":"item236-2026-07-28","safe_finalize":"safe-finalize@2026-07-28-item217-repair-outside-guard"}
+```
+
+**Courier:** `docs/courier/T-M9.7-RUN171-FIXES-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-RELAUNCH.
+HARD STOP.
