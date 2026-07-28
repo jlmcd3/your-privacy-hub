@@ -3468,6 +3468,24 @@ async function runPipeline(assessment_id: string) {
           };
           console.warn(JSON.stringify({ evt: "ltp_pass1_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
         } else {
+          // T-M9 (Item 230): worker LIVENESS TOUCH at pass1-start. Bumps
+          // updated_at + records the pass1_start marker so a dead worker
+          // is distinguishable from a slow one in under a minute (the T-M8
+          // silent hang held updated_at FROZEN for 17+ minutes). Failure
+          // to touch is not fatal — Pass-1 still proceeds.
+          try {
+            await supabase.from("cppa_assessments").update({
+              updated_at: new Date().toISOString(),
+            }).eq("id", assessment_id);
+            console.log(JSON.stringify({
+              evt: "worker_liveness_pass1_start", fn: "run-cppa-risk-assessment",
+              assessment_id, build_stamp: BUILD_STAMP,
+              pass1_timeout_enforced: PASS1_TIMEOUT_ENFORCED,
+              per_attempt_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+            }));
+          } catch (e) {
+            console.warn("[run-cppa-risk-assessment] worker_liveness_pass1_start touch failed (non-fatal):", (e as Error)?.message);
+          }
           const _pass1 = await runPass1Llm({
             intake: _ltpIntake,
             report_data: report_data as any,
