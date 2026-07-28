@@ -235,6 +235,7 @@ const WEIGHING_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "balancing",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)" },
+    display_label: "Balancing benefits against negative impacts",
     description:
       "Whether the risks to consumers' privacy from the processing outweigh the benefits to the consumer, the business, "
       + "other stakeholders, and the public from that same processing. This is the single Type-W conclusion in the report "
