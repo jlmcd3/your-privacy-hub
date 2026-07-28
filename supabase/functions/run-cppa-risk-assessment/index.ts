@@ -1486,6 +1486,8 @@ async function runPipeline(assessment_id: string) {
         const elapsedNow = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(elapsedNow)) {
           console.warn(JSON.stringify({ evt: "forward_path_retry_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow, budget_ms: POST_LINT_LLM_BUDGET_MS }));
+        } else if (LEGACY_GENERATION_RETIRED) {
+          console.warn(JSON.stringify({ evt: "forward_path_retry_skipped_retired", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP }));
         } else {
           console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow }));
           const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
