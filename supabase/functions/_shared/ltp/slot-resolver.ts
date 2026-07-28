@@ -67,12 +67,33 @@ export interface SlotContext {
   readonly safeguard_summary_tokens?: string;
   readonly balance_direction_clause?: string;
   readonly tipping_factors?: string;
+  // ── ITEM 241.3 — gap-driven four-move action + section-opener slots ──
+  readonly element_short_label?: string;
+  readonly entity_name?: string;
+  readonly customer_recorded_fact_clause?: string;
+  readonly gap_or_consequence_clause?: string;
+  readonly compliance_guidance_sentence?: string;
+  readonly deadline_sentence?: string;
+  readonly q4_pi_categories?: string;
+  readonly i1_processing_purpose?: string;
+  readonly prong_list_with_individual_pinpoints?: string;
+  readonly balance_outcome_sentence?: string;
+  readonly customer_fact_clause?: string;
+  readonly action_verb_phrase?: string;
+  readonly aggregateBalance_sentence?: string;
+  readonly sections_7150b_pinpoints?: string;
+  readonly as_of_date?: string;
+  readonly sufficiency_clause?: string;
+  readonly factual_elements_summary_clause?: string;
+  readonly reserved_judgments_list?: string;
+  readonly type_j_pinpoints?: string;
   // ── ITEM 240 CP4 — per-instance citation pinpoints. When present,
   //    substituteCitations reads ctx.__cite[slot] verbatim as the pinpoint.
   //    This is the per-proposition binding seam that ends the "everything
   //    cites § 7150(b)(1)" class (global-first-binding fallback).
   readonly __cite?: Readonly<Record<string, string>>;
 }
+
 
 
 const joinTokens = (labels: readonly string[]): string => {
@@ -167,8 +188,29 @@ export function resolveSlot(
     case "review_basis":                return ctx.review_basis ?? "";
     case "driving_activity_label":      return ctx.driving_activity_label ?? "";
     case "what_would_tip_it":           return ctx.what_would_tip_it ?? "";
+    // ── ITEM 241.3 — four-move action + section-opener passthroughs ──
+    case "element_short_label":         return ctx.element_short_label ?? "";
+    case "entity_name":                 return ctx.entity_name ?? "";
+    case "customer_recorded_fact_clause": return ctx.customer_recorded_fact_clause ?? "";
+    case "gap_or_consequence_clause":   return ctx.gap_or_consequence_clause ?? "";
+    case "compliance_guidance_sentence": return ctx.compliance_guidance_sentence ?? "";
+    case "deadline_sentence":           return ctx.deadline_sentence ?? "";
+    case "q4_pi_categories":            return ctx.q4_pi_categories ?? "";
+    case "i1_processing_purpose":       return ctx.i1_processing_purpose ?? "";
+    case "prong_list_with_individual_pinpoints": return ctx.prong_list_with_individual_pinpoints ?? "";
+    case "balance_outcome_sentence":    return ctx.balance_outcome_sentence ?? "";
+    case "customer_fact_clause":        return ctx.customer_fact_clause ?? "";
+    case "action_verb_phrase":          return ctx.action_verb_phrase ?? "";
+    case "aggregateBalance_sentence":   return ctx.aggregateBalance_sentence ?? "";
+    case "sections_7150b_pinpoints":    return ctx.sections_7150b_pinpoints ?? "";
+    case "as_of_date":                  return ctx.as_of_date ?? "";
+    case "sufficiency_clause":          return ctx.sufficiency_clause ?? "";
+    case "factual_elements_summary_clause": return ctx.factual_elements_summary_clause ?? "";
+    case "reserved_judgments_list":     return ctx.reserved_judgments_list ?? "";
+    case "type_j_pinpoints":            return ctx.type_j_pinpoints ?? "";
     default:
       return "";
   }
 }
+
 
