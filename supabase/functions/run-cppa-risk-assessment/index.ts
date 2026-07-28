@@ -3585,10 +3585,14 @@ async function runPipeline(assessment_id: string) {
             const _writeAround = _pass1Ok
               ? false
               : (!!_pass1.plan?.conservative_write_around?.triggered || !_pass1.telemetry.ok);
-            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown" = _writeAround
+            // ITEM 236 fix (e) — wa_origin is NULL on pass1-ok runs. The
+            // "unknown" sentinel is retired at the emission site; a
+            // regression test in e2e-document.test.ts fails the suite if
+            // an ok run ever telemeters an origin.
+            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | null = _writeAround
               ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
                   : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
-              : "unknown";
+              : null;
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
             let _assemblerVersion = PASS2_ASSEMBLER_VERSION;
@@ -3596,11 +3600,38 @@ async function runPipeline(assessment_id: string) {
             if (_writeAround) {
               _body = buildTypeJWriteAroundBody({
                 intake: _ltpIntake,
-                origin: _origin,
+                origin: _origin ?? "unknown",
                 buildStamp: BUILD_STAMP,
               });
             } else {
-              const _assembler = assembleReport(_pass1.plan);
+              // ITEM 236 fix (a) — Wire the T7 deterministic opening_summary
+              // artifact into the assembler so the harvest guard evaluates
+              // it and (when accepted) emits opening_summary from the
+              // shipped body. Falls back silently to no harvest if the
+              // builder failed earlier in the pipeline.
+              let _openingHarvest: any = undefined;
+              try {
+                const _rdA: any = report_data as any;
+                const _openingText = typeof _rdA?.opening_summary === "string" ? _rdA.opening_summary : "";
+                const _openingProv = _rdA?._meta?.internal?.risk_t7_opening;
+                if (_openingText && _openingProv) {
+                  _openingHarvest = {
+                    text: _openingText,
+                    provenance: {
+                      version: _openingProv.version,
+                      s0_criteria: _openingProv.s0_criteria ?? [],
+                      s1_triggers: _openingProv.s1_triggers ?? [],
+                      omitted: _openingProv.omitted ?? [],
+                      sources: _openingProv.sources ?? {},
+                      s0_b_rejected_reason: _openingProv.s0_b_rejected_reason ?? null,
+                    },
+                  };
+                }
+              } catch { /* fall through to no harvest */ }
+              const _assembler = assembleReport(
+                _pass1.plan,
+                _openingHarvest ? { opening_summary: _openingHarvest } : {},
+              );
               _body = _assembler.report as Record<string, unknown>;
               _assemblerTele = _assembler.telemetry;
               _assemblerVersion = _assembler.version;
