@@ -4116,3 +4116,32 @@ ok | 10 passed | 0 failed (28ms)
 **Courier:** `docs/courier/T-M2-SECTION-SHARD-REGISTRY-2026-07-28.md`.
 
 **Disposition: HARD STOP** after courier + ledger, per dispatch. Next per Item 218 plan: T-M3 (per-section template wire-in + harvest subordination guard).
+
+---
+
+## Item 223 — T-M3 TEMPLATES + HARVEST SUBORDINATION WIRE (cppa-risk)
+
+**Status:** DONE — AUTHORING + GUARDS. No deploy this turn. Item 218 rebuild chain, step 5 of 10.
+**Dispatch:** T-M3 (2026-07-28). Item 219 (T-S1), 220 (T-C1), 221 (T-M1), 222 (T-M2) complete.
+
+**Deliverables:**
+- **8 new templates** in `_shared/ltp/content/pass2-templates.ts` — `T.risk.exec.{firm,hedged,negative,insufficient}`, `T.risk.priority_action`, `T.risk.next_step`, `T.risk.record_sufficiency.item`, `T.risk.review_items.entry`. Plus `RECORD_STATUS_CLAUSES`, `NEXT_STEPS_MATERIALITY_TIERS`, `STRUCTURED_OWNER_SLOTS` (extended with `deadline_basis`).
+- **Harvest subordination guard** at `_shared/ltp/harvest-guard.ts` — `evaluateOpeningHarvest` (T7 emitter) + `evaluateSubmissionHarvest` (§ 7121(a) + § 7120 crosswalk). Both reject on conflict, telemeter reason, never silently suppress.
+- **Section-shard registry** at `_shared/ltp/section-shards/cppa-risk.ts` — rebound gap-report keys (`executive_summary`, `priority_actions`, `next_steps`, `record_sufficiency`, `inconsistency_flags`) to dedicated template ids. Version bumped to `cppa-risk-section-shards-2026-07-28-tm3`.
+- **`CPPA_RISK_TEMPLATE_GAPS` = `[]`.** Every Item-222 gap-report row closed. Zero template-set-needs-authoring rows remaining; harvest rows wired.
+
+**Binding laws verified per template:** calibration (firm forbidden ≥ FIRM_VARIANT_CLOSENESS_MAX; hedged requires `what_would_tip_it`; Type-J counsel-voice for reserved); token-substitution only (PASS2_FORBIDDEN_TOKENS clean); LIST-LEVEL contributor/PII discipline preserved; fill-or-omit with `STRUCTURED_OWNER_SLOTS` extended to `deadline_basis` (smoke-#11 truncation class fixtured); aggregation law (negative > hedged > firm; materiality-tier ordering in next_steps).
+
+**Test evidence (paste green):**
+```
+running 10 tests from ./_shared/ltp/section-shards/cppa-risk.test.ts … ok
+running 18 tests from ./_shared/ltp/content/content.test.ts … ok
+running 13 tests from ./_shared/ltp/harvest-guard.test.ts … ok
+ok | 41 passed | 0 failed (330ms)
+```
+
+**Not this turn:** Shipped surface unchanged — legacy composer still produces the body until **T-M6** cutover. Stale `waveb.test.ts:79–81` `PASS1_MANIFEST.model.startsWith("google/")` assertion remains queued for **T-M7 cleanup** (per Item 221 courier).
+
+**Courier:** `docs/courier/T-M3-TEMPLATES-HARVEST-GUARD-2026-07-28.md` (verbatim template text; harvest rejection-reason enumeration).
+
+**Disposition: HARD STOP** after courier + ledger, per dispatch. Next per Item 218 plan: T-M4 (validator wiring / factor-driver population from Pass-1 authoritative RenderPlan).

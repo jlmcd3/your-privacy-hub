@@ -43,8 +43,21 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.cohort",
     "T.risk.documentation.gap",
     "T.risk.documentation.present",
+    // T-M3 (CONTENT COURIER 2026-07-28) — executive_summary shape.
+    "T.risk.exec.firm",
+    "T.risk.exec.hedged",
+    "T.risk.exec.insufficient",
+    "T.risk.exec.negative",
     "T.risk.information_needed.b_criterion_count",
+    // T-M3 — next_steps per-step shape.
+    "T.risk.next_step",
+    // T-M3 — priority_actions per-action shape (owner-slot deadline_basis).
+    "T.risk.priority_action",
+    // T-M3 — record_sufficiency per-item shape.
+    "T.risk.record_sufficiency.item",
     "T.risk.review_items",
+    // T-M3 — inconsistency_flags per-entry shape.
+    "T.risk.review_items.entry",
     "T.risk.summary.activity_line",
     "T.risk.summary.aggregation_note",
     "T.risk.summary.docs",

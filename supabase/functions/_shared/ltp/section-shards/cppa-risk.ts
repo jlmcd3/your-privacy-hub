@@ -53,7 +53,7 @@ import type { RenderPlan } from "../../render-plan/schema.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../../report-schemas/cppa-risk.ts";
 
 export const CPPA_RISK_SECTION_SHARDS_VERSION =
-  "cppa-risk-section-shards-2026-07-28-tm2";
+  "cppa-risk-section-shards-2026-07-28-tm3";
 
 /**
  * The three owner kinds recognized by the registry.
@@ -227,16 +227,16 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "executive_summary",
     owner: {
       kind: "template",
+      // T-M3: dedicated top-of-report shape (distinct from summary.opening.*).
       template_ids: [
-        "T.risk.summary.opening.all_firm",
-        "T.risk.summary.opening.mixed_hedged",
-        "T.risk.summary.opening.any_negative",
-        "T.risk.summary.opening.insufficient",
-        "T.risk.summary.aggregation_note",
+        "T.risk.exec.firm",
+        "T.risk.exec.hedged",
+        "T.risk.exec.negative",
+        "T.risk.exec.insufficient",
       ],
     },
     project: projectFactorTable,
-    note: "Answer-first opening template group; calibration MUST match the balance variant.",
+    note: "T-M3: dedicated exec templates (firm/hedged/negative/insufficient); calibration inherits from balance variant per FIRM_VARIANT_CLOSENESS_MAX.",
   },
   {
     key: "assessment_summary",
@@ -310,23 +310,23 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "priority_actions",
     owner: {
       kind: "template",
-      template_ids: [
-        "T.risk.documentation.gap",
-        "T.risk.documentation.present",
-      ],
+      // T-M3: dedicated per-action shape (owner-slot deadline_basis).
+      template_ids: ["T.risk.priority_action"],
     },
     project: (plan) => plan.factor_table.filter((r) => /gap|action|remediat/i.test(r.factor_id)),
+    note: "T-M3: dedicated priority_action template; deadline_basis owner-slot enforced by STRUCTURED_OWNER_SLOTS + assertStructuredSlotShape.",
   },
   {
     key: "next_steps",
     owner: {
       kind: "template",
-      template_ids: [
-        "T.risk.documentation.gap",
-        "T.risk.documentation.present",
-      ],
+      // T-M3: dedicated per-step shape; ordering + dedup vs priority_actions
+      // governed by NEXT_STEPS_MATERIALITY_TIERS + the dedup law in
+      // pass2-templates.ts (T-M3 CONTENT COURIER 2026-07-28).
+      template_ids: ["T.risk.next_step"],
     },
     project: projectFactorTable,
+    note: "T-M3: dedicated next_step template; dedup vs priority_actions by case-insensitive action_label match; materiality-tier ordering; most-cautious-wins.",
   },
   {
     key: "strengthen_items",
@@ -337,11 +337,13 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "inconsistency_flags",
     owner: {
       kind: "template-cut",
-      template_ids: ["T.risk.review_items"],
-      emitter: "TEMPLATE_CUT — key retained; content restricted to T.risk.review_items output",
+      // T-M3: T.risk.review_items is the LIST-LEVEL surface template;
+      // T.risk.review_items.entry is the per-entry shape it wraps.
+      template_ids: ["T.risk.review_items", "T.risk.review_items.entry"],
+      emitter: "TEMPLATE_CUT — key retained; content restricted to T.risk.review_items output (validator/gate-derived; EMPTY_ARRAY otherwise)",
     },
     project: (plan) => plan.propositions.filter((p) => p.epistemic_type === "J"),
-    note: "RISK_CUT_RULINGS.mode=EMPTY_ARRAY unless T.risk.review_items produces bounded content.",
+    note: "T-M3: wired to T.risk.review_items + T.risk.review_items.entry; EMPTY_ARRAY when validators produce no bounded content.",
   },
   {
     key: "exception_analysis",
@@ -359,12 +361,11 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "record_sufficiency",
     owner: {
       kind: "template",
-      template_ids: [
-        "T.risk.documentation.present",
-        "T.risk.documentation.gap",
-      ],
+      // T-M3: dedicated per-record item shape.
+      template_ids: ["T.risk.record_sufficiency.item"],
     },
     project: projectFactorTable,
+    note: "T-M3: dedicated record_sufficiency.item template; element_status_clause is the closed RECORD_STATUS_CLAUSES enum.",
   },
   {
     key: "information_needed",
@@ -511,40 +512,18 @@ export interface GapEntry {
   readonly note: string;
 }
 
-export const CPPA_RISK_TEMPLATE_GAPS: readonly GapEntry[] = [
-  {
-    key: "executive_summary",
-    reason: "template-set-needs-authoring",
-    note: "Opening group exists; aggregation across activities not yet a dedicated template.",
-  },
-  {
-    key: "priority_actions",
-    reason: "template-set-needs-authoring",
-    note: "Reuses documentation.{gap,present}; a dedicated priority-action shape may be needed for deadline_basis owner-slot fidelity.",
-  },
-  {
-    key: "next_steps",
-    reason: "template-set-needs-authoring",
-    note: "Reuses documentation.{gap,present}; ordering + deduplication vs priority_actions is unauthored.",
-  },
-  {
-    key: "record_sufficiency",
-    reason: "template-set-needs-authoring",
-    note: "Reuses documentation.{gap,present}; per-record shape not yet authored.",
-  },
-  {
-    key: "inconsistency_flags",
-    reason: "template-cut-needs-review-items",
-    note: "Currently EMPTY_ARRAY unless T.risk.review_items produces bounded content.",
-  },
-  {
-    key: "opening_summary",
-    reason: "harvest-needs-subordination-wire",
-    note: "T7 emitter present; the plan-conflict rejection + telemetry wire lands with T-M3.",
-  },
-  {
-    key: "submission_summary",
-    reason: "harvest-needs-subordination-wire",
-    note: "cyber-audit-schedule + § 7120 crosswalk emitters present; subordination guard rides T-M3.",
-  },
-] as const;
+/**
+ * T-M3 status (2026-07-28): all seven Item-222 gap-report rows are
+ * closed. Remaining Pass-2 wire-in (make the shipped surface come from
+ * templates + harvest guard) is the T-M6 cutover; the AUTHORING and
+ * GUARDS are complete here.
+ *
+ *   • executive_summary       — T.risk.exec.{firm,hedged,negative,insufficient}
+ *   • priority_actions        — T.risk.priority_action (owner-slot deadline_basis)
+ *   • next_steps              — T.risk.next_step + NEXT_STEPS_MATERIALITY_TIERS + dedup law
+ *   • record_sufficiency      — T.risk.record_sufficiency.item + RECORD_STATUS_CLAUSES
+ *   • inconsistency_flags     — T.risk.review_items + T.risk.review_items.entry (TEMPLATE_CUT)
+ *   • opening_summary         — evaluateOpeningHarvest (harvest-guard.ts)
+ *   • submission_summary      — evaluateSubmissionHarvest (harvest-guard.ts)
+ */
+export const CPPA_RISK_TEMPLATE_GAPS: readonly GapEntry[] = [] as const;
