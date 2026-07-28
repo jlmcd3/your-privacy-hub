@@ -151,36 +151,16 @@ function emptyCounters(buildStamp: string | null): RiskCohortDateCounters {
   };
 }
 
-// Excise wrong-cohort sentences from a targeted timeline string. Only
-// touches sentences that BOTH (a) mention a wrong-year cohort date
-// literal and (b) sit in a § 7121 / cohort context sentence.
-function exciseWrongCohortSentences(
-  s: string,
-  c: RiskCohortDateCounters,
-): string {
-  try {
-    if (typeof s !== "string" || !s) return s;
-    if (!WRONG_DATE_RE_25_50M.test(s)) return s;
-    const sentences = splitSentences(s);
-    const kept: string[] = [];
-    let excised = 0;
-    for (const raw of sentences) {
-      const hasWrong = WRONG_DATE_RE_25_50M.test(raw);
-      const hasCohortCtx = COHORT_CITE_HINT.test(raw);
-      if (hasWrong && hasCohortCtx) {
-        excised += 1;
-        continue;
-      }
-      kept.push(raw);
-    }
-    if (excised === 0) return s;
-    c.sentences_excised += excised;
-    return normalizeSpacing(kept.join(" "));
-  } catch {
-    c.errors += 1;
-    return s;
-  }
-}
+// T-M7.1 (dispatch d): the legacy 25–50M-only wrong-date excision helper
+// `exciseWrongCohortSentences` (and its `WRONG_DATE_RE_25_50M` sentinel)
+// is REMOVED as genuinely obsolete under the V2 truth-table module.
+// Rationale: wrong-date excision now runs band-aware via
+// `exciseAnyWrongCohortSentences` + `ALL_COHORT_DATE_RE`, which handles
+// every cohort year (2028/2029/2030) against the resolved correct date
+// for ANY band — the single-band 25–50M helper had no remaining call
+// sites and its narrower regex would silently miss wrong dates for the
+// other bands. Recorded verbatim in docs/courier/T-M7.1-TEST-BOOKKEEPING-2026-07-28.md.
+
 
 // Excise sentences that mention a WRONG cohort date for the resolved
 // band and sit in a § 7121/cohort context. For indeterminate bands

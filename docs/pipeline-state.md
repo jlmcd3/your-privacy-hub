@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T06:02Z (Item 224 — T-M4 COVERAGE COMPLETION + CHECKPOINT: zero gap rows; 27/27 Pass-2 templates pass shipped-value-screen fixture sweep; 24 deterministic + 2 harvest + 11 template + 1 template-cut = 38 keys with total projections; NONE cohort bounded to 13 metadata/legacy/manifest-pending keys; CEO CHECKPOINT — HARD STOP before T-M5.)
+**Last updated:** 2026-07-28T07:13Z (Item 228 — T-M7.1 TEST BOOKKEEPING PASS: 13 stale wave-test files deleted per ruling (a); RCD version pin + no-op band assertions updated to V2 truth-table per rulings (b)+(c); retry-budget wall-clock test updated to assert dead-branch stability; ruling-(d) dead helper `exciseWrongCohortSentences` + `WRONG_DATE_RE_25_50M` removed with in-file rationale. 266 passed | 1 pre-existing out-of-scope `pass1-llm` hang queued. TEST-ONLY — no deploy. HARD STOP before T-M8.)
 
 ---
 
@@ -4237,3 +4237,39 @@ ok | 6 passed | 0 failed
 **Courier:** `docs/courier/T-M6-CUTOVER-2026-07-28.md`.
 
 **NO smoke this turn — T-M8 is the smoke.** HARD STOP after courier + ledger. Next per Item 218 plan: **T-M7 — legacy composer body-repair retirement + retry-budget branch-correction fix**.
+
+## Item 228 — T-M7.1 TEST BOOKKEEPING PASS (cppa-risk) (2026-07-28T07:13Z)
+
+**Status:** DONE — test-file bookkeeping complete; 266 passed | 1 pre-existing out-of-scope hang (queued).
+
+**Dispatch:** CONTROLLER DISPATCH — T-M7.1 (CEO-released). Scope: exactly the 18 residual failures enumerated in the T-M7 courier §Residual failures, plus one constant (`WRONG_DATE_RE_25_50M`). TEST-FILE CHANGES ONLY; zero product-code changes; no deploy; no grader edits; no batch inserts. Rulings (a)–(d).
+
+**Ruling (a) — DELETE stale wave-test files (retired modules per T-M7):**
+- Deleted: `_w6_risk_fix.test.ts`, `_w9_risk_slots.test.ts`, `_w10_risk_b1.test.ts`, `_w12_turnd.test.ts`, `_w15_risk_fl.test.ts`, `_w15_risk_va.test.ts`, `_w16_risk_collapse.test.ts`, `_w18_risk_collapse2.test.ts`, `_w18_risk_vocab.test.ts`, `_w19_risk_turnb.test.ts`, `_w20_risk_turnb.test.ts`, `_w24_risk_turna.test.ts`, `_w24a_v3.test.ts` (13 files). Each pinned a BUILD_STAMP export or a module retired/subsumed at T-M7 (see SUBSUMED_GUARDS list in `_shared/ltp/pipeline.ts`). No product-code behaviour depends on the deleted assertions.
+
+**Ruling (b) — RCD version-string tests:**
+- Updated `_risk_cohort_date.test.ts` version pin to shipped `risk-cohort-date-v2-truth-table-2026-07-27` (bumped at PRE-WAVE-D EMITTER FIXES 2026-07-27; V2 truth-table over ALL revenue bands).
+
+**Ruling (c) — Contract-aligned test corrections (T-C1 fold-in):**
+- `_w9_risk_slots.test.ts` deleted under (a); the failing `buildAttestationBlock` assertion asserted `/7156/` on `statutory_basis`, but the shipped module removed § 7156 as unverified in `provision_texts` and emits `"§ 7157(b)(5), § 7157(c)"`. Tests follow the contract; assertion retired with the file.
+- `_w18_risk_vocab.test.ts` deleted under (a); its `RISK_INTAKE_LABELS` completeness assertion tripped on the new T-C1 field `bought_sold_shared_count` (product-side labels map is stale w.r.t. the contract but the entire vocab-scrub module is subsumed per T-M7 — no runtime consumer remains).
+- `_risk_cohort_date.test.ts`: no-op band tests updated to match the V2 truth-table. Under V2 the ONLY no-emit bands are (i) `unspecified` and (ii) `legacy_25_100m` ("$25M–$100M"); the previously-stubbed no-op assertions for "Under $25M", "$50M–$100M", "$100M–$500M", "Over $500M" were reversed to assert **emit=1** at the corpus-pinned per-band literal (2030/2029/2028/2028). Assertions on the emitted deterministic sentence switched from `DETERMINISTIC_COHORT_SENTENCE_25_50M` (long form, retained solely as corpus-pin constant) to `EMITTED_SENTENCE_25_50M` (the short form actually appended by `deterministicSentenceFor("25_50m")`).
+- `_shared/ltp/retry-budget.test.ts`: `wall_clock_insufficient` branch is unreachable under the current SMOKE-HANG BRANCH-CORRECTION constants (ISOLATE_CEILING=900s, MAX_ELAPSED_FOR_RETRY=240s, POST_RETRY_RESERVE=180s, MIN_RETRY_WINDOW=30s). Test was pinned to the OLD (330s / 90s) constants that made the branch reachable. Updated to assert the branch stays dead so any future ceiling tightening that revives it lands a real assertion.
+
+**Ruling (d) — `WRONG_DATE_RE_25_50M` restoration → PRODUCT-CODE MICRO-CHANGE with dispatch-authorized rationale:**
+- The dispatch permits (d) to restore the constant to its real regex *or* remove it explicitly with rationale if genuinely obsolete under the truth-table module. It is genuinely obsolete: the only consumer was `exciseWrongCohortSentences`, a single-band (25–50M) helper with **no remaining call sites** (`walkExcise` invokes only the band-aware `exciseAnyWrongCohortSentences` against `ALL_COHORT_DATE_RE`). Restoring the constant would leave a dead sentinel that would silently miss wrong dates for 2028/2029 cohorts under V2. Removed the helper + constant with an in-file provenance comment. Zero runtime behavior change (function was unreachable). This is the sole product-code edit in this turn and is scope-authorized by ruling (d).
+
+**Verification (no-check, full suite `_shared/ltp/ run-cppa-risk-assessment/`):**
+```
+266 passed | 1 failed (2m 4s)
+  FAILED: pass1-llm: write-around fallback preserves customer path on gateway missing key
+          (_shared/ltp/waveb.test.ts:22:6)
+```
+- All 18 enumerated residuals from T-M7 courier §Residual failures: CLEARED.
+- Single remaining failure is a **pre-existing out-of-scope hang** first noted in Item 226 (§ Tests) as `pass1-llm live-network probe timeout queued T-M7`. Not in the T-M7 courier's 18-item residual list. Root cause hypothesis (unverified; not addressed here): after PRE-WAVE-D rewired Pass-1 to the direct Anthropic client, the test deletes `LOVABLE_API_KEY` to force the write-around fallback, but Pass-1 now attempts the Anthropic path on `ANTHROPIC_API_KEY` before the fallback fires and blocks on network. Queued as a separate product-code investigation ticket for a future dispatch (out of scope for T-M7.1's test-file-only mandate).
+
+**No product deploy this turn** — per dispatch, test-only edits require no deploy, and the ruling-(d) sole product-code edit is a dead-code removal with zero runtime effect.
+
+**Courier:** `docs/courier/T-M7.1-TEST-BOOKKEEPING-2026-07-28.md`.
+
+**HARD STOP.** Next per Item 218 plan: **T-M8 — production smoke on the assembler-body path (was queued as the T-M7 smoke)**.
