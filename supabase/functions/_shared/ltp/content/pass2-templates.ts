@@ -243,7 +243,112 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 320,
   },
+
+  // ─────────────────────────────────────────────────────────────────
+  // T-M3 (CONTENT COURIER 2026-07-28) — dedicated shapes for the
+  // Item-222 gap-report sections. Verbatim template text; courier-only
+  // edits from here down.
+  // ─────────────────────────────────────────────────────────────────
+
+  // executive_summary — TOP-OF-REPORT single paragraph. Distinct role
+  // from the T.risk.summary.opening.* group (which composes the
+  // narrative INSIDE assessment_summary). Firm+hedged variants; the
+  // firm variant is FORBIDDEN when any activity rendered hedged
+  // (same calibration law as T.risk.balance.firm, cross-checked
+  // against FIRM_VARIANT_CLOSENESS_MAX).
+  "T.risk.exec.firm": {
+    id: "T.risk.exec.firm",
+    text: "On the record as documented, {{plan:activity_count_phrase}} were assessed for this Risk Assessment. For {{plan:each_or_this_clause}}, the benefits identified outweigh the negative impacts, subject to the safeguards described. The sufficiency of those safeguards and the decision to proceed rest with the Company and its counsel.",
+    citation_slots: [],
+    plan_slots: ["activity_count_phrase", "each_or_this_clause"],
+    intake_slots: [],
+    max_chars: 520,
+  },
+  "T.risk.exec.hedged": {
+    id: "T.risk.exec.hedged",
+    text: "On the record as documented, {{plan:activity_count_phrase}} were assessed for this Risk Assessment. For {{plan:close_list}}, the balance between benefits and identified negative impacts is close on the present record, and reasonable assessments could differ; the considerations most likely to tip the balance are: {{plan:what_would_tip_it}}. {{plan:remaining_outcomes_clause}} The decision to proceed rests with the Company and its counsel.",
+    citation_slots: [],
+    plan_slots: [
+      "activity_count_phrase",
+      "close_list",
+      "what_would_tip_it",
+      "remaining_outcomes_clause",
+    ],
+    intake_slots: [],
+    max_chars: 700,
+  },
+  "T.risk.exec.negative": {
+    id: "T.risk.exec.negative",
+    text: "On the record as documented, {{plan:activity_count_phrase}} were assessed for this Risk Assessment. For {{plan:negative_list}}, the record does not support the conclusion that the benefits outweigh the identified negative impacts; the safeguard gaps bearing on that outcome are set out below. {{plan:remaining_outcomes_clause}}",
+    citation_slots: [],
+    plan_slots: ["activity_count_phrase", "negative_list", "remaining_outcomes_clause"],
+    intake_slots: [],
+    max_chars: 640,
+  },
+  "T.risk.exec.insufficient": {
+    id: "T.risk.exec.insufficient",
+    text: "On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis for the {{plan:activity_singplural_clause}} assessed. The specific items needed to complete this assessment are set out under Items for your review.",
+    citation_slots: [],
+    plan_slots: ["activity_singplural_clause"],
+    intake_slots: [],
+    max_chars: 380,
+  },
+
+  // priority_actions — per-action shape with deadline_basis as an
+  // OWNER SLOT. Whole-value fill-or-omit; the structured-slot guard
+  // in pass2-render.ts (STRUCTURED_SLOT_MIN_CHARS + forbidden-fragment
+  // regexes) is fixtured for this slot in content.test.ts to catch
+  // the smoke-#11 truncation class ("We" / "The" / "" fragments).
+  "T.risk.priority_action": {
+    id: "T.risk.priority_action",
+    text: "{{plan:action_label}} — {{plan:action_basis}} Deadline basis: {{plan:deadline_basis}} ({{cite:PINPOINT_DEADLINE}}).",
+    citation_slots: ["PINPOINT_DEADLINE"],
+    plan_slots: ["action_label", "action_basis", "deadline_basis"],
+    intake_slots: [],
+    max_chars: 520,
+  },
+
+  // next_steps — per-step shape. Ordering + dedup vs priority_actions
+  // is enforced by NEXT_STEPS_ORDERING_LAW (below): a next_step whose
+  // action_label matches (case-insensitive, trimmed) an emitted
+  // priority_action.action_label is dropped from next_steps. Remaining
+  // steps sort by materiality tier (record-completeness > safeguard >
+  // administrative), then by first-appearance order in the factor
+  // table (stable).
+  "T.risk.next_step": {
+    id: "T.risk.next_step",
+    text: "{{plan:step_label}} — {{plan:step_basis}}",
+    citation_slots: [],
+    plan_slots: ["step_label", "step_basis"],
+    intake_slots: [],
+    max_chars: 400,
+  },
+
+  // record_sufficiency — per-record item shape. Cites the pinpoint
+  // whose documentation element the record either satisfies or lacks;
+  // element_status_clause is the closed enum RECORD_STATUS_CLAUSES.
+  "T.risk.record_sufficiency.item": {
+    id: "T.risk.record_sufficiency.item",
+    text: "{{plan:element_label}}: {{plan:element_status_clause}} ({{cite:PINPOINT}}).",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["element_label", "element_status_clause"],
+    intake_slots: [],
+    max_chars: 360,
+  },
+
+  // inconsistency_flags — per-entry rendering. T.risk.review_items
+  // (already present) is the LIST-LEVEL surface; this entry template
+  // is what feeds it. Validator-derived only; no LLM composition.
+  "T.risk.review_items.entry": {
+    id: "T.risk.review_items.entry",
+    text: "{{plan:review_label}}: {{plan:review_basis}}",
+    citation_slots: [],
+    plan_slots: ["review_label", "review_basis"],
+    intake_slots: [],
+    max_chars: 340,
+  },
 };
+
 
 /**
  * Emission gate for T.risk.information_needed.b_criterion_count.
