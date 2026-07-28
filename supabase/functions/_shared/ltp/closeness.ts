@@ -8,6 +8,8 @@
  * Pure; never throws.
  */
 import type { RenderPlan, WeighingFrameEntry } from "../render-plan/schema.ts";
+import { FIRM_VARIANT_CLOSENESS_MAX } from "./content/pass2-templates.ts";
+export { FIRM_VARIANT_CLOSENESS_MAX };
 
 export type Variant = "firm" | "hedged";
 
