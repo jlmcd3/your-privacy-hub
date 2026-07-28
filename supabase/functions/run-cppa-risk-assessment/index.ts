@@ -3516,12 +3516,22 @@ async function runPipeline(assessment_id: string) {
           } catch (e) {
             console.warn("[run-cppa-risk-assessment] worker_liveness_pass1_start touch failed (non-fatal):", (e as Error)?.message);
           }
+          // T-M9.4 (Item 234) — STAGE TIMINGS. Capture per-stage elapsed
+          // (relative to worker t0) so the next successful run tells us
+          // where pre-Pass-1 time goes. Persisted under _meta.internal.
+          const _stagePass1Start = Date.now() - t0;
           const _pass1 = await runPass1Llm({
             intake: _ltpIntake,
             report_data: report_data as any,
             buildStamp: BUILD_STAMP,
           }, { maxAttempts: PASS1_MAX_ATTEMPTS, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          const _stagePass1End = Date.now() - t0;
           const _planSummary = {
+            plan_version: _pass1.plan.plan_version,
+            propositions: _pass1.plan.propositions?.length ?? 0,
+            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
+            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
+          };
             plan_version: _pass1.plan.plan_version,
             propositions: _pass1.plan.propositions?.length ?? 0,
             gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
