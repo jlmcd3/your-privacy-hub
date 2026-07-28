@@ -294,6 +294,8 @@ export function composeSection(sectionKey: string, plan: RenderPlan): TemplateIn
     case "exception_analysis":           return composeExceptionAnalysis(plan);
     case "scope_confirmation":           return composeScope(plan);
     case "scope_and_triggers":           return composeScope(plan);
+    case "assessment_summary":           return composeAssessmentSummary(plan);
+    case "risk_assessment_by_activity":  return composeRiskByActivity(plan);
     default:
       return null; // caller falls back to legacy single-render behavior.
   }
