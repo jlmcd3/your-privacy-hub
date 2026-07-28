@@ -3852,11 +3852,18 @@ Deno.serve(async (req) => {
       post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
 
       safe_finalize: SAFE_FINALIZE_VERSION,
+      // T-M1 (Item 221) — Pass-1 authoritative surface. Kickoff mode-assert
+      // pings this to detect declared-vs-actual model drift before spend.
+      pass1_authoritative: "1",
+      pass1_model: PASS1_MODEL,
+      pass1_max_attempts: PASS1_MAX_ATTEMPTS,
+      pass1_stamp: PASS1_MANIFEST.stamp,
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-  // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
-  // a mismatch aborts before any generation work runs.
+  // POST-time header assertion — caller may declare `x-ltp-mode-expected`
+  // and/or `x-ltp-pass1-model-expected`; a mismatch aborts before any
+  // generation work runs (LEGAL-TEST-PIPELINE.md §16, T-M1 model-assert).
   const _modeExpected = req.headers.get("x-ltp-mode-expected");
   if (_modeExpected && _modeExpected !== LTP_MODE_BOOT) {
     console.log(JSON.stringify({
