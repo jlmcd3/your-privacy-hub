@@ -4094,6 +4094,8 @@ Deno.serve(async (req) => {
       // T-M6 (Item 226) — Pass-2 assembler AUTHORITATIVE surface.
       pass2_assembler: PASS2_ASSEMBLER_VERSION,
       composition_shape: COMPOSITION_SHAPE_DECLARATION,
+      // ITEM 235b (T-M9.5b) — LTP LAWS 1-3 landed as standing law.
+      ltp_laws_1_3: "item235b-2026-07-28",
 
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
