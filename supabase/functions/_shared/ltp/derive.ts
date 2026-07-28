@@ -30,9 +30,20 @@ export interface DeriveInput {
 }
 
 const LEDGER_KEYS: readonly string[] = [
+  // Base contract fields.
   "q1_revenue", "q2_consumers", "q18_admt_use",
   "sell_share", "sensitive_pi", "processing_purposes",
   "safeguards_summary", "retention_period",
+  // ITEM 237 fix (a) — Fields referenced by the T7 deterministic opening
+  // (risk-opening.ts) provenance sources. Absent from the ledger, the
+  // harvest guard rejects opening_summary with
+  // `harvest_intake_ref_not_in_plan_ledger` even though the fields are
+  // legitimate intake inputs. The ledger must carry them so the guard
+  // can verify grounding without weakening.
+  "entity_name", "q4_pi_categories", "i1_processing_purpose",
+  "q5_sell_share", "q5b_profiling_observation",
+  "i1b_min_pi", "i4_disclosure_mechanisms",
+  "bought_sold_shared_count",
 ];
 
 function pickLedger(intake: Record<string, unknown>): IntakeLedgerEntry[] {
