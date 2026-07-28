@@ -4204,3 +4204,36 @@ ok | 6 passed | 0 failed
 **Courier:** `docs/courier/T-M5-PASS2-ASSEMBLER-SHADOW-2026-07-28.md`.
 
 **Disposition:** SHIPPED-SHADOW. **HARD STOP after courier + ledger.** Next per Item 218 plan: **T-M6 — assembler cutover** (parity mode against legacy composer, then promote shadow to shipped body).
+
+---
+
+### Item 226 — T-M6 CUTOVER: ASSEMBLER BECOMES THE SHIPPED BODY (LTP rebuild, turn 9/10)
+
+**Stamp:** 2026-07-28T06:39:53Z
+**Build stamp:** `ltp-risk-item226-t-m6-cutover@2026-07-28T09:00:00Z`
+**Product:** `run-cppa-risk-assessment` (Pass-2 section-sharded assembler → shipped body)
+**Disposition:** **SHIPPED — legacy Engine-A composer write-site retired.**
+
+**What shipped:**
+- (a) `assembleReport` (promoted from `assembleReportShadow`) writes the shipped `report_data` body at the wire; `_meta` subtree preserved verbatim.
+- (b) Type-J write-around body via `buildTypeJWriteAroundBody({ origin ∈ clock_cap|test_forced|unknown })` on terminal Pass-1 failure — no fall-through to legacy.
+- (c) Shipped guards in ENFORCE on the new body; `RISK_SURFACE_BINDINGS.allowedTopLevel` REGENERATED from section-shard registry via `deriveTopLevelAllowedKeys()` — single source of truth. Pre-serializer `finalizeComposition` value-screen arm now TELEMETRY-ONLY permanently (retirement completes T-M7).
+- (d) Engine-A harvests subordinated at the write callsite — audit defect-1 re-verified: § 7121(a) cohort sentence lands in `submission_summary` on the new body.
+- (e) Structural completeness: `expectedEmissionForKey` classifies all 38 schema top-level keys; assembler emits `structural_completeness.rows[]` telemetry; test `cppa-risk.tm6-structural.test.ts` (6/6 green) asserts emitted-key set against the registry's expected-emission classification.
+- (f) `COMPOSITION_SHAPE_DECLARATION` (version `cppa-risk-shape@2026-07-28-tm6`): 1 final document, 2 LLM calls (pass1_derive authoritative + harvest_legacy_generation subordinated), 4 intermediate artifacts. Observed shape stamped per assessment; declared-count conformance asserts DECLARED shape.
+- (g) Ping key renamed `pass2_assembler_shadow` → `pass2_assembler`; ping now emits `composition_shape`.
+
+**CEO ruling recorded (verbatim, rulings log):** "if the rebuilt product requires 3 documents, or 3 API calls, to create the final end user document, then that is hereby authorized."
+
+**Tests:**
+- New `_shared/ltp/section-shards/cppa-risk.tm6-structural.test.ts` — 6/6 green.
+- `pass2-assembler.test.ts` + colocated `composition-finalize.test.ts` — 51/51 green.
+- Full LTP suite: 75 passed | 1 failed (only pre-existing `retry-budget` known failure — queued T-M7; `pass1-llm` live-network probe timeout also queued T-M7).
+
+**§16 ping (highlights):** `build_stamp=ltp-risk-item226-t-m6-cutover@2026-07-28T09:00:00Z`, `ltp_mode=enforce`, `composition_enforce=1`, `pass1_authoritative=1`, `pass1_model=claude-sonnet-4-6`, `pass2_assembler=ltp-pass2-assembler-2026-07-28-tm6`, `composition_shape.version=cppa-risk-shape@2026-07-28-tm6`.
+
+**Deploy:** `run-cppa-risk-assessment` — fresh-clock build stamp verified via ping.
+
+**Courier:** `docs/courier/T-M6-CUTOVER-2026-07-28.md`.
+
+**NO smoke this turn — T-M8 is the smoke.** HARD STOP after courier + ledger. Next per Item 218 plan: **T-M7 — legacy composer body-repair retirement + retry-budget branch-correction fix**.

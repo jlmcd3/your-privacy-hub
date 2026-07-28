@@ -1,41 +1,29 @@
 /**
- * LTP Pass-2 Section-Sharded Assembler — SHADOW MODE (T-M5, Item 225).
+ * LTP Pass-2 Section-Sharded Assembler — PRODUCTION (T-M6, Item 226).
  *
- * Seventh turn of the LEGAL-TEST-PIPELINE rebuild chain (Items 219–224
- * complete). Pure module. NO writes to the shipped surface. Output
- * persists to _meta.internal.assembler_shadow, mirroring the Item-221
- * render_plan pattern. Legacy composer path is untouched.
+ * Ninth turn of the LEGAL-TEST-PIPELINE rebuild chain. The assembler
+ * output IS report_data's body at the wire. Legacy Engine-A composer
+ * call-site is retired; Engine-A remains only as subordinated harvest
+ * artifacts (opening_summary, submission_summary) filtered through the
+ * harvest guard at the write callsite.
+ *
+ * The historical shadow entrypoint (`assembleReportShadow`) is retained
+ * as a thin alias for tests and for the retiring T-M5 telemetry slot.
+ * New callers must use `assembleReport`.
  *
  * Design lineage:
  *   • Section-shard registry → _shared/ltp/section-shards/cppa-risk.ts (T-M2)
  *   • Template catalog       → _shared/ltp/content/pass2-templates.ts (T-M3)
  *   • Harvest guard          → _shared/ltp/harvest-guard.ts (T-M3)
  *   • Shipped guards         → _shared/ltp/composition-finalize.ts
- *                              (evaluateShippedSurfaceGuard + shipped
- *                              value screen; TELEMETRY-ONLY on shadow).
  *
- * T-M4 mitigations (BINDING):
- *   (1) MANIFEST-HYDRATION: existence check gates all manifest-derived
- *       projections (debug_review_notes / fsor_commentary /
- *       validation_summary). Absent manifest → empty-by-finding.
- *   (2) HARVEST GUARD AT WRITE CALLSITE: evaluateOpeningHarvest /
- *       evaluateSubmissionHarvest run HERE. Rejection → omit + telemeter.
- *   (3) SHADOW OUTPUT ONLY.
- *   (4) SHIPPED GUARDS TELEMETRY-ONLY.
- *   (5) STALE TESTS: waveb.test.ts model + template-count assertions
- *       fixed alongside this turn.
- *
- * Assembler-exit checks (per T-M5 dispatch):
- *   • §2.5 flat-certainty on close balance: if any balance section
- *     rendered "T.risk.balance.firm" while any activity closeness
- *     >= FIRM_VARIANT_CLOSENESS_MAX, hard-reject that section.
- *   • PII post-render: email/phone regex on narrative-class surfaces
- *     = hard reject (in shadow mode: omit + telemeter, never ship
- *     because the whole assembler is shadow).
+ * T-M4 mitigations (BINDING) preserved; T-M6(c) attaches the shipped
+ * value-screen ENFORCE arm at production callsites (still telemetry-only
+ * on shadow to keep the T-M5 test surface stable).
  */
 
 import type { RenderPlan } from "../render-plan/schema.ts";
-import { CPPA_RISK_SECTION_SHARDS, type SectionShard } from "./section-shards/cppa-risk.ts";
+import { CPPA_RISK_SECTION_SHARDS, expectedEmissionForKey, type SectionShard, type ExpectedEmission } from "./section-shards/cppa-risk.ts";
 import { renderTemplate, assertCalibrationMatch } from "./pass2-render.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX } from "./content/pass2-templates.ts";
 import {
@@ -48,12 +36,52 @@ import {
 import {
   evaluateShippedSurfaceGuard,
   evaluateShippedValueScreen,
+  currentEnforceMode,
+  type FinalizeMode,
   type ShippedSurfaceEvaluation,
   type ShippedValueScreenEvaluation,
 } from "./composition-finalize.ts";
 import { renderCyberAuditSchedule } from "./cyber-audit-schedule.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-tm5-shadow";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-tm6";
+
+/**
+ * COMPOSITION SHAPE DECLARATION (T-M6(f); CEO ruling 2026-07-28 verbatim):
+ * "if the rebuilt product requires 3 documents, or 3 API calls, to create
+ * the final end user document, then that is hereby authorized." One
+ * customer assessment still yields exactly one final document; declared
+ * shape describes the intermediate LLM calls and artifacts. Conformance
+ * asserts DECLARED shape — aborts undeclared drift only.
+ */
+export interface CompositionShapeDeclaration {
+  readonly version: string;
+  readonly product: "cppa-risk-assessment";
+  readonly final_documents_per_assessment: 1;
+  readonly llm_calls_per_document: readonly {
+    readonly stage: string;
+    readonly role: string;
+    readonly model_role: "pass1_derive" | "harvest_legacy";
+  }[];
+  readonly intermediate_artifacts: readonly string[];
+  readonly note: string;
+}
+
+export const COMPOSITION_SHAPE_DECLARATION: CompositionShapeDeclaration = {
+  version: "cppa-risk-shape@2026-07-28-tm6",
+  product: "cppa-risk-assessment",
+  final_documents_per_assessment: 1,
+  llm_calls_per_document: [
+    { stage: "pass1_derive", role: "authoritative RenderPlan derive", model_role: "pass1_derive" },
+    { stage: "harvest_legacy_generation", role: "Engine-A generation (subordinated; harvest guard filtered)", model_role: "harvest_legacy" },
+  ],
+  intermediate_artifacts: [
+    "render_plan (authoritative)",
+    "opening_summary_harvest (subordinated)",
+    "submission_summary_harvest (subordinated)",
+    "assembler_output (shipped body)",
+  ],
+  note: "CEO ruling 2026-07-28: undeclared drift aborts; declared shape is the conformance target.",
+};
 
 // ---------------------------------------------------------------------
 // Types
@@ -87,11 +115,24 @@ export interface ExitCheckTelemetry {
   readonly shipped_value_screen: ShippedValueScreenEvaluation;
 }
 
+export interface StructuralCompletenessRow {
+  readonly key: string;
+  readonly expected: ExpectedEmission;
+  readonly emitted: boolean;
+  readonly conformant: boolean;
+}
+
 export interface AssemblerTelemetry {
   readonly version: string;
   readonly sections: readonly SectionTelemetry[];
   readonly harvest_decisions: readonly HarvestTelemetry[];
   readonly exit_checks: ExitCheckTelemetry;
+  readonly structural_completeness: {
+    readonly rows: readonly StructuralCompletenessRow[];
+    readonly nonconformant_keys: readonly string[];
+    readonly ok: boolean;
+  };
+  readonly composition_shape: CompositionShapeDeclaration;
   readonly total_sections: number;
   readonly emitted_sections: number;
   readonly omitted_sections: number;
@@ -371,9 +412,32 @@ function renderTemplateCutSection(shard: SectionShard): RenderedSection {
 // Public entrypoint
 // ---------------------------------------------------------------------
 
-export function assembleReportShadow(
+export interface AssembleOptions {
+  /** Exit-mode for the shipped value-screen. Defaults to observe. */
+  readonly exitMode?: FinalizeMode;
+}
+
+function structuralCompleteness(sections: readonly SectionTelemetry[]) {
+  const rows: StructuralCompletenessRow[] = [];
+  const nonconformant: string[] = [];
+  for (const s of sections) {
+    const expected = expectedEmissionForKey(s.key);
+    let conformant = true;
+    if (expected === "always" && !s.emitted) conformant = false;
+    // "conditional", "manifest-gated", "template-cut", "empty-by-design" —
+    // both emitted and omitted are conformant; the check is that we
+    // reached the shard (no accidental drop-through). Presence in
+    // section telemetry proves reach, so all such rows are conformant.
+    rows.push({ key: s.key, expected, emitted: s.emitted, conformant });
+    if (!conformant) nonconformant.push(s.key);
+  }
+  return { rows, nonconformant_keys: nonconformant, ok: nonconformant.length === 0 };
+}
+
+function assembleCore(
   plan: RenderPlan,
-  harvest: HarvestInputs = {},
+  harvest: HarvestInputs,
+  exitMode: FinalizeMode,
 ): AssemblerResult {
   const report: Record<string, unknown> = {};
   const sectionTele: SectionTelemetry[] = [];
@@ -407,11 +471,10 @@ export function assembleReportShadow(
     }
   }
 
-  // Assembler-exit shipped guards — TELEMETRY-ONLY on shadow.
   const shipped_surface = evaluateShippedSurfaceGuard(report);
-  const shipped_value_screen = evaluateShippedValueScreen(report, { mode: "observe" });
-
+  const shipped_value_screen = evaluateShippedValueScreen(report, { mode: exitMode });
   const emittedCount = sectionTele.filter((s) => s.emitted).length;
+  const structural = structuralCompleteness(sectionTele);
 
   return {
     version: PASS2_ASSEMBLER_VERSION,
@@ -426,9 +489,90 @@ export function assembleReportShadow(
         shipped_surface,
         shipped_value_screen,
       },
+      structural_completeness: structural,
+      composition_shape: COMPOSITION_SHAPE_DECLARATION,
       total_sections: sectionTele.length,
       emitted_sections: emittedCount,
       omitted_sections: sectionTele.length - emittedCount,
     },
   };
 }
+
+/** SHADOW entrypoint (retained for T-M5 tests + legacy telemetry slot). */
+export function assembleReportShadow(
+  plan: RenderPlan,
+  harvest: HarvestInputs = {},
+): AssemblerResult {
+  return assembleCore(plan, harvest, "observe");
+}
+
+/** PRODUCTION entrypoint (T-M6). Exit-mode defaults to env-derived. */
+export function assembleReport(
+  plan: RenderPlan,
+  harvest: HarvestInputs = {},
+  opts: AssembleOptions = {},
+): AssemblerResult {
+  let exitMode: FinalizeMode = "observe";
+  try { exitMode = opts.exitMode ?? currentEnforceMode(); } catch { /* env unavailable */ }
+  return assembleCore(plan, harvest, exitMode);
+}
+
+// ---------------------------------------------------------------------
+// Type-J WRITE-AROUND BODY (T-M6(b); deferred from T-M1(e))
+// ---------------------------------------------------------------------
+
+/** Reserved-judgment SHIPPED body used when Pass-1 terminally fails.
+ *  Registry-only degraded sections + explicit disclosure. No fall-through
+ *  to any legacy path. Origin telemetered by the caller.
+ */
+export function buildTypeJWriteAroundBody(input: {
+  readonly intake?: unknown;
+  readonly origin: "clock_cap" | "test_forced" | "unknown";
+  readonly buildStamp?: string;
+}): Record<string, unknown> {
+  const disclosure =
+    "Reserved-judgment output — the deterministic derive pass could not complete within the retry budget. " +
+    "This document lists ONLY items needing your review; substantive risk conclusions are withheld. " +
+    "Please resubmit or contact support.";
+  return {
+    schema_version: "cppa_risk_v4",
+    opening_summary: disclosure,
+    executive_summary: [disclosure],
+    assessment_summary: { narrative: disclosure },
+    submission_summary: renderCyberAuditSchedule(),
+    risk_level: "reserved",
+    overall_score: null,
+    disclaimer:
+      "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.",
+    framework_disclaimer: disclosure,
+    accuracy_caveat: disclosure,
+    domains: [],
+    inconsistency_flags: [],
+    priority_actions: [],
+    next_steps: [],
+    strengthen_items: [],
+    information_needed: [
+      { question: "Items for your review — please resubmit; the automated pass could not complete." },
+    ],
+    record_sufficiency: [],
+    exception_analysis: [],
+    scope_confirmation: [],
+    scope_and_triggers: {},
+    risk_assessment_by_activity: [],
+    risk_register: [],
+    top_risks: [],
+    attestation_block: {},
+    document_metadata: { build_stamp: input.buildStamp ?? null, type_j_origin: input.origin },
+    annotations: [],
+    requires_attorney_review: true,
+    citation_ledger: [],
+    validation_summary: {},
+    enforcement_context: {},
+    enforcement_precedents: [],
+    enforcement_meta: {},
+    part_a: {},
+    part_b: {},
+    gating: {},
+  };
+}
+

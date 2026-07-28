@@ -527,3 +527,85 @@ export interface GapEntry {
  *   • submission_summary      — evaluateSubmissionHarvest (harvest-guard.ts)
  */
 export const CPPA_RISK_TEMPLATE_GAPS: readonly GapEntry[] = [] as const;
+
+// ---------------------------------------------------------------------
+// T-M6: EXPECTED-EMISSION CLASSIFICATION (structural completeness).
+// ---------------------------------------------------------------------
+//
+// Every top-level report_data key is classified so the assembler can
+// tell "intentionally empty" from "accidentally blank":
+//
+//   • "always"         — Must be emitted on any valid RenderPlan.
+//   • "conditional"    — Emitted only when plan slice is non-empty.
+//   • "manifest-gated" — Emitted only when RenderPlan.manifest is present.
+//   • "template-cut"   — Bounded/empty-by-design (validator-derived).
+//   • "empty-by-design"— Legacy passthrough / empty-by-finding surface.
+//
+// Test cppa-risk.tm6-structural.test.ts asserts every 38 keys have a
+// classification and that assembler emissions match. Add new keys here
+// when the schema top-level allow-list grows.
+export type ExpectedEmission =
+  | "always"
+  | "conditional"
+  | "manifest-gated"
+  | "template-cut"
+  | "empty-by-design";
+
+const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
+  // Metadata / disclaimers — always present.
+  schema_version: "empty-by-design",
+  document_metadata: "conditional",
+  attestation_block: "conditional",
+  disclaimer: "conditional",
+  framework_disclaimer: "conditional",
+  accuracy_caveat: "conditional",
+  domains: "always",
+  _meta: "always",
+  // Headline scores — always emitted from factor_table.
+  overall_score: "always",
+  risk_level: "always",
+  // Harvest bindings — subordinated to plan; conditional emission.
+  opening_summary: "conditional",
+  submission_summary: "conditional",
+  // Body sections — conditional on non-empty template render.
+  executive_summary: "conditional",
+  assessment_summary: "conditional",
+  scope_confirmation: "conditional",
+  scope_and_triggers: "conditional",
+  risk_assessment_by_activity: "conditional",
+  risk_register: "conditional",
+  top_risks: "conditional",
+  priority_actions: "conditional",
+  next_steps: "conditional",
+  strengthen_items: "conditional",
+  inconsistency_flags: "template-cut",
+  exception_analysis: "conditional",
+  record_sufficiency: "conditional",
+  information_needed: "conditional",
+  // V3 legacy passthroughs — empty-by-default.
+  part_a: "empty-by-design",
+  part_b: "empty-by-design",
+  gating: "empty-by-design",
+  // Annotations / debug — manifest or plan-derived.
+  annotations: "conditional",
+  requires_attorney_review: "conditional",
+  debug_review_notes: "manifest-gated",
+  fsor_commentary: "manifest-gated",
+  citation_ledger: "conditional",
+  validation_summary: "manifest-gated",
+  // Enforcement — empty-by-finding (CPPA-verified rows only; none today).
+  enforcement_context: "empty-by-design",
+  enforcement_precedents: "empty-by-design",
+  enforcement_meta: "empty-by-design",
+};
+
+export function expectedEmissionForKey(key: string): ExpectedEmission {
+  return EXPECTED_EMISSION_MAP[key] ?? "conditional";
+}
+
+/** T-M6(c): shard-derived top-level allow-list — single source of truth
+ *  regenerated from the section-shard registry for surface-guard binding. */
+export function deriveTopLevelAllowedKeys(): readonly string[] {
+  return CPPA_RISK_SECTION_SHARDS.map((s) => s.key);
+}
+

@@ -122,12 +122,13 @@ export interface FinalizeResult {
 // The former CUT_TOP_LEVEL_REMOVE / _EMPTY_ARRAY throw paths (Item 208)
 // are retired; presence is telemetered, not thrown on.
 
-const ALLOWED_TOP_LEVEL: ReadonlySet<string> = new Set(
-  RISK_SURFACE_BINDINGS.map((b) => b.path.split(".")[0].split("[")[0]),
-);
-// Preserve broader CUT set for unowned-vs-cut disambiguation (top-level
-// keys covered by a CUT ruling are NOT "unowned" — they are pending
-// serializer removal).
+// T-M6(c) — SINGLE SOURCE OF TRUTH. The top-level allow-list is
+// REGENERATED from the section-shard registry (CPPA_RISK_SECTION_SHARDS).
+// The prior RISK_SURFACE_BINDINGS-derived allow-list is retired here;
+// path-level bindings inside RISK_SURFACE_BINDINGS remain the source of
+// truth for sub-path template ownership at authoring time.
+import { deriveTopLevelAllowedKeys } from "./section-shards/cppa-risk.ts";
+const ALLOWED_TOP_LEVEL: ReadonlySet<string> = new Set(deriveTopLevelAllowedKeys());
 const CUT_TOP_LEVEL_ALL: ReadonlySet<string> = new Set(
   RISK_CUT_RULINGS.map((c) => c.path.split(".")[0].split("[")[0]),
 );
