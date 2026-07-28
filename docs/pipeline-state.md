@@ -4850,3 +4850,21 @@ Doc: `docs/analysis/BOTTOM-UP-CODEBASE-ANALYSIS-2026-07-28.md`.
 Scope: OWNERSHIP MAP (RenderPlan fields + shared constants, model-vs-deterministic decomposition of Pass-1 output) · SEAM INVENTORY (19 seams intake→PDF, each with contract site or NONE and joint-test presence) · ASSUMPTIONS INVENTORY (legacy budgets, fossils, misleading POST_LINT_LLM_* labels, shadow-preview slot, wave suppression modules) · VALIDATOR-REJECT ROOT CAUSE (Item 238 hypothesis REFUTED by code as read this turn — `LEDGER_KEYS` is shadow-only, not fed into Pass-1 prompt/wire-schema; V1 closure is intra-plan; real cause is model-side prompt conformance and requires either plan inspection or pass1-llm telemetry extension to name the V-code).
 Ranked scope for the consolidated correction turn: 5 dual-authorship instances (intake_ledger, WriteAroundOrigin enum, close-balance predicate, FIRM_VARIANT_CLOSENESS_MAX literal, deterministic-field model authorship), 4 contract-less seams (prompt↔V1, harvest prefixes, PDF↔assembler, serializer), 6 fossils (assembleReportShadow, enforce_preview slot, withRetryPersistFirst + POST_LINT_LLM_* constants, wave suppression stamps, legacy V1 band labels, part_a/b/gating empty shards). Open evidence gaps flagged (generate-report-pdf not read, serializer module not read, grader input not read, V-code of run #172 not nameable from evidence gathered).
 Disposition: READY-FOR-CONTROLLER-SPOT-VERIFY. HARD STOP.
+
+### Item 240 — CONSOLIDATED CORRECTION Checkpoint 1 (SINGLE-WRITER LAW + SEAM CONTRACTS)
+Dispatch: CONSOLIDATED CORRECTION TURN — Single-Writer Law + Seam Contracts + Fossils (CEO 2026-07-28).
+Scope shipped this turn (Checkpoint 1): **(B) unifications** and **(C) validator evidence**. Deferred to Checkpoint 2 with justification in courier: (A full SINGLE-WRITER adapter + prompt/wire-schema shrink), (D fossil retirement), (E PDF+serializer seams), (F remaining joint tests), and HARVEST_SOURCE_PREFIXES unification — each requires content-anchored prompt authoring and/or reads of files (generate-report-pdf, serializer) not verified this turn. Checkpointing at a clean boundary per dispatch clause; no half-wired call sites.
+
+**Diffs (verify-first).**
+- `_shared/ltp/composition-hook-audit.ts`: extended `WriteAroundOrigin` with `pass1_validator_reject` + `pass1_model_error` (both added to `AUTHORIZED_ORIGINS`); introduced canonical `classifyPass1WriteAroundOrigin(err)` — single source of truth mapping `Pass1Telemetry.error` → origin (validator_issues:* → pass1_validator_reject; exception:* / empty_content → pass1_model_error; test_only_forced_degradation → test_forced; pass1_abort_timeout → pass1_abort_timeout; other → clock_cap; null → unknown).
+- `run-cppa-risk-assessment/index.ts` L3591-3598 and L3735-3739: retired both inline origin unions; both sites now import `WriteAroundOrigin` + `classifyPass1WriteAroundOrigin` from `composition-hook-audit.ts`. Future failure classes propagate automatically.
+- `_shared/ltp/pass2-assembler.ts:535`: widened `buildTypeJWriteAroundBody.origin` union to accept new variants; body behaviour unchanged.
+- `_shared/ltp/closeness.ts:46`: retired the `0.6` literal in `chooseVariant`; default threshold now imports the canonical `FIRM_VARIANT_CLOSENESS_MAX` from `content/pass2-templates.ts`.
+- `_shared/ltp/pass1-llm.ts`: bumped stamp to `ltp-pass1-llm-item240-validator-evidence@2026-07-28`; added `Pass1AttemptIssueEvidence { code; path?; message? }`, `PASS1_MAX_ISSUE_EVIDENCE=5`, and `Pass1AttemptDetail.validator_issues_detail?`. Validator-reject branch now captures the first 5 issues so telemetry names the V-code + path forever after (closes Item 239's "V-code not nameable from evidence" gap for future runs).
+
+**Tests.** `composition-hook-audit.test.ts` extended with pass1_validator_reject OK, pass1_model_error OK, and canonical classifier mapping for every recognised failure string. Full `_shared/ltp/` suite **224/224 pass, 0 failed** (previously 221/221 → +3 new tests, 0 regressions).
+
+**Deploy.** `BUILD_STAMP` bumped to `ltp-risk-item240-checkpoint1@2026-07-28T11:28:14Z`.
+
+**Courier:** `docs/courier/CONSOLIDATED-CORRECTION-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-CHECKPOINT2-DISPATCH. HARD STOP.
