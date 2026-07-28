@@ -42,8 +42,9 @@ import {
   type ShippedValueScreenEvaluation,
 } from "./composition-finalize.ts";
 import { renderCyberAuditSchedule } from "./cyber-audit-schedule.ts";
+import { composeSection } from "./section-composers/cppa-risk.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-tm6";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item235-fill-or-omit";
 
 /**
  * COMPOSITION SHAPE DECLARATION (T-M6(f); CEO ruling 2026-07-28 verbatim):
