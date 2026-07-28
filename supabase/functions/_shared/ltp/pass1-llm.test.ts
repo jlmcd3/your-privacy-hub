@@ -77,3 +77,46 @@ Deno.test("pass1-llm: N=2 aborts → write_around with pass1_abort_timeout", asy
     Deno.env.delete("LTP_ENFORCE_ENABLED");
   }
 });
+
+// T-M9.4 (Item 234): valid-plan invariant. A validator-clean Pass-1 return
+// whose model output includes `conservative_write_around: {triggered:true}`
+// MUST be assembled and shipped — the model does not control this flag.
+Deno.test("pass1-llm: model-emitted triggered=true is IGNORED on validator-clean ok", async () => {
+  Deno.env.set("LTP_ENFORCE_ENABLED", "1");
+  Deno.env.delete("LTP_TEST_FORCE_WRITE_AROUND");
+  const prevKey = Deno.env.get("ANTHROPIC_API_KEY");
+  Deno.env.set("ANTHROPIC_API_KEY", "test-dummy-not-a-real-key");
+  const origFetch = globalThis.fetch;
+  // Mock fetch → returns a validator-clean RenderPlan whose top-level
+  // conservative_write_around is (erroneously) triggered=true.
+  const goodPlan = {
+    plan_version: "v1",
+    product: "cppa-risk-assessment",
+    build_stamp: "test@x",
+    intake_ledger: [],
+    propositions: [],
+    weighing_frame: [],
+    gate_outcomes: [],
+    conclusions: [],
+    conservative_write_around: { triggered: true, reason: "model_hallucinated", disclosure: "silent+telemetry" },
+  };
+  const body = {
+    content: [{ type: "text", text: JSON.stringify(goodPlan) }],
+    stop_reason: "end_turn",
+    usage: { input_tokens: 1, output_tokens: 1 },
+  };
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).fetch = () => Promise.resolve(new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }));
+  try {
+    const r = await runPass1Llm(BASE, { maxAttempts: 2, timeoutMs: 5_000 });
+    assertEquals(r.telemetry.ok, true, "expected ok=true on validator-clean plan");
+    assertEquals(r.telemetry.write_around, false, "write_around must be false on ok");
+    assertEquals(r.plan.conservative_write_around?.triggered, false,
+      "model-emitted triggered=true must be overridden to false");
+  } finally {
+    globalThis.fetch = origFetch;
+    if (prevKey !== undefined) Deno.env.set("ANTHROPIC_API_KEY", prevKey);
+    else Deno.env.delete("ANTHROPIC_API_KEY");
+    Deno.env.delete("LTP_ENFORCE_ENABLED");
+  }
+});
