@@ -42,12 +42,28 @@ function chip(text: string) {
   return `<span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;background:${bg};color:${color};margin-left:6px;">${esc(text)}</span>`;
 }
 
+function coerceNarrative(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) {
+    return v.filter((x) => typeof x === "string" && x.trim().length > 0).join("\n\n");
+  }
+  if (v && typeof v === "object") {
+    const bag = v as { narrative?: unknown };
+    if (typeof bag.narrative === "string") return bag.narrative;
+  }
+  return "";
+}
+
 function renderRisk(row: any) {
   const r = row?.report_data || {};
-  const scope = r.scope_confirmation || {};
+  const scope = r.scope_confirmation && typeof r.scope_confirmation === "object" && !Array.isArray(r.scope_confirmation) ? r.scope_confirmation : {};
+  const scopeList = Array.isArray(r.scope_confirmation) ? r.scope_confirmation : (Array.isArray(r.scope_and_triggers) ? r.scope_and_triggers : []);
   const domains: any[] = Array.isArray(r.domains) ? r.domains : [];
   const top: any[] = Array.isArray(r.top_risks) ? r.top_risks : [];
   const next: any[] = Array.isArray(r.next_steps) ? r.next_steps : [];
+  const execTxt = coerceNarrative(r.executive_summary);
+  const opening = coerceNarrative(r.opening_summary);
+  const summaryNarr = coerceNarrative(r.assessment_summary);
   return `
   <section class="module">
     <div class="module-head">
@@ -57,23 +73,30 @@ function renderRisk(row: any) {
         ${r.overall_score != null ? `<span class="pill">Score: <strong>${esc(r.overall_score)} / 100</strong></span>` : ""}
         ${r.risk_level ? `<span class="pill">${esc(r.risk_level)} risk</span>` : ""}
       </div>
-      ${r.executive_summary ? `<p class="summary">${esc(r.executive_summary)}</p>` : ""}
+      ${opening ? `<p class="summary" style="font-style:italic">${esc(opening)}</p>` : ""}
+      ${execTxt ? `<p class="summary">${esc(execTxt)}</p>` : ""}
+      ${summaryNarr && summaryNarr !== execTxt ? `<p class="summary">${esc(summaryNarr)}</p>` : ""}
     </div>
 
-    ${Object.keys(scope).length ? `<div class="block">
+    ${scopeList.length ? `<div class="block">
+      <h3>Scope Confirmation</h3>
+      ${scopeList.filter((x: unknown) => typeof x === "string" && x).map((s: string) => `<p>${esc(s)}</p>`).join("")}
+    </div>` : (Object.keys(scope).length ? `<div class="block">
       <h3>Scope Confirmation</h3>
       <p><strong>In scope:</strong> ${esc(scope.in_scope)}</p>
       ${scope.threshold_met ? `<p><strong>Threshold met:</strong> ${esc(scope.threshold_met)}</p>` : ""}
       ${Array.isArray(scope.applicable_deadlines) && scope.applicable_deadlines.length
         ? `<p><strong>Applicable deadlines:</strong></p><ul>${scope.applicable_deadlines.map((d: string) => `<li>${esc(d)}</li>`).join("")}</ul>`
         : ""}
-    </div>` : ""}
+    </div>` : "")}
 
-    ${r.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(r.enforcement_context)}</p></div>` : ""}
+    ${r.enforcement_context && typeof r.enforcement_context === "string" ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(r.enforcement_context)}</p></div>` : ""}
 
     ${domains.length ? `<div class="block">
       <h3>Domain Findings</h3>
-      ${domains.map((d) => `<div class="row">
+      ${domains.map((d) => typeof d === "string"
+        ? `<div class="row"><p>${esc(d)}</p></div>`
+        : `<div class="row">
         <p class="row-head"><strong>${esc(d.domain)}</strong>${d.score != null ? ` <span class="muted">${esc(d.score)}/100</span>` : ""}${d.status ? chip(d.status) : ""}</p>
         ${d.finding ? `<p><span class="label">Finding:</span> ${esc(d.finding)}</p>` : ""}
         ${d.regulatory_basis ? `<p><span class="label">Regulatory basis:</span> ${esc(d.regulatory_basis)}</p>` : ""}
@@ -84,8 +107,8 @@ function renderRisk(row: any) {
 
     ${top.length ? `<div class="block">
       <h3>Top Risks</h3>
-      ${top.slice(0, 3).map((t) => `<div class="row">
-        <p><strong>${esc(t.title)}</strong></p>
+      ${top.slice(0, 3).map((t) => typeof t === "string" ? `<div class="row"><p>${esc(t)}</p></div>` : `<div class="row">
+        <p><strong>${esc(t.title || t.factor_id || "")}</strong></p>
         ${t.description ? `<p>${esc(t.description)}</p>` : ""}
         ${t.deadline ? `<p class="muted">Deadline: ${esc(t.deadline)}</p>` : ""}
         ${t.consequence ? `<p class="muted" style="color:#991b1b">${esc(t.consequence)}</p>` : ""}
@@ -94,7 +117,7 @@ function renderRisk(row: any) {
 
     ${next.length ? `<div class="block">
       <h3>Next Steps</h3>
-      <ol>${next.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
+      <ol>${next.map((s) => `<li>${esc(typeof s === "string" ? s : (s?.step_label || s?.action || ""))}</li>`).join("")}</ol>
     </div>` : ""}
   </section>`;
 }
