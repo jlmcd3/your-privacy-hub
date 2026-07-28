@@ -215,6 +215,9 @@ function applySingleWriterInjection(
     weighing_frame: guide.frame,
   };
   return { plan, empty_by_finding: guide.empty_by_finding };
+}
+
+
 
 
 async function callPass1Model(
