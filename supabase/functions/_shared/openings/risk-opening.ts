@@ -330,7 +330,12 @@ export function buildRiskOpening(
   const S6 = `As of ${asOf}.`;
   sources.S6 = "runtime:asOfDate";
 
-  const text = [S0, S1, S2, S3, S4, S5, S6].filter(Boolean).join(" ");
+  // CP5 ADDENDUM — customer-first render order (S2→S3→S4→S0→S1→S5→S6).
+  const orderedSlots = { S0, S1, S2, S3, S4, S5, S6 } as const;
+  const text = RISK_OPENING_SLOT_ORDER
+    .map((k) => orderedSlots[k])
+    .filter(Boolean)
+    .join(" ");
 
   return {
     text,
