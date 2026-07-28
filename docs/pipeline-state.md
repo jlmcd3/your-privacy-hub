@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T05:13Z (Item 220 — T-C1 INTAKE CONTRACT: `bought_sold_shared_count` added to cppa-risk intake per Civ. Code § 1798.140(d)(1)(B); enum, refine registry, T-class register, contract PARITY/MIRROR, callsite-derived predicate tests, UI question wired; NO deploy — authoring-only)
+**Last updated:** 2026-07-28T05:23Z (Item 221 — T-M1 DERIVE AUTHORITATIVE: `LTP_ENFORCE_ENABLED` gate retired for cppa-risk; Pass-1 runs unconditionally with N=2 retry; RenderPlan persisted at `_meta.internal.render_plan`; `pass1_model=claude-sonnet-4-6` exposed on `?ping=1` and enforced by `x-ltp-pass1-model-expected` header; round-trip tests green; deployed.)
 
 ---
 
@@ -4028,3 +4028,50 @@ Courier: `docs/courier/PROGRAM-REDIRECTION-LTP-MIGRATION-2026-07-28.md`.
 **Courier:** `docs/courier/SECURITY-PANEL-APPENDIX-2026-07-28.md`.
 
 **Disposition: HARD STOP** for controller review. Next turn is T-M1 (authoritative Pass-1 wire) per Item 218 plan.
+
+## Item 221 — T-M1 DERIVE AUTHORITATIVE for cppa-risk (2026-07-28T05:23Z)
+
+**Dispatch:** T-M1 (CEO-released 2026-07-28). Third turn of the Item-218 rebuild chain (after Items 219 T-S1, 220 T-C1). Design: `docs/design/LEGAL-TEST-PIPELINE.md` DESIGN COMPLETE-v2.3 · Item 218 §(b)(1). No grader edits; no batch inserts.
+
+**Scope executed:**
+- (a) **Shadow-branch retirement:** `LTP_MODE_BOOT` pinned to `"enforce"`; the `LTP_ENFORCE_ENABLED` gate at the Pass-1 call site is retired. `run-cppa-risk-assessment` now runs the LTP Pass-1 adapter (deterministic derive + LLM arm + V1–V8 validators) unconditionally, budget-skip path preserved.
+- (b) **Model assert (CEO same-model ruling):** Pass-1 continues on `claude-sonnet-4-6` via `callAnthropicWithContinuation` (unchanged). Boot log adds `pass1_model=claude-sonnet-4-6 pass1_max_attempts=2 pass1_stamp=ltp-pass1-llm-2026-07-27-anthropic-direct`. `GET /?ping=1` surface adds `pass1_authoritative`, `pass1_model`, `pass1_max_attempts`, `pass1_stamp`. New POST header `x-ltp-pass1-model-expected` returns HTTP 409 `ltp_pass1_model_mismatch` on drift before any generation spend (logged as `ltp_pass1_model_mismatch_abort`).
+- (c) **Authoritative persistence:** On successful Pass-1 the RenderPlan is persisted verbatim at `report_data._meta.internal.render_plan` with envelope `{ authoritative, manifest, plan, plan_summary, telemetry, build_stamp, model, max_attempts, timeout_ms }`. Legacy `_meta.internal.legal_test_pipeline.enforce_preview` slot retained one-release for T-M2..T-M5 back-compat.
+- (d) **Validator gating:** V1–V8 remain enforced inside `runPass1Llm` via `validateRenderPlan`; issues reject the attempt within the N=2 budget; terminal failure surfaces as `conservative_write_around.triggered=true` on the plan and `write_around=true` on telemetry.
+- (e) **Write-around origin:** Existing `safeFinalizeComposition` hook classifies origin (`clock_cap` default, `test_forced` on magic token). Type-J reserved-judgment body as the *shipped surface* on write-around rides with T-M6 body cutover; T-M1 records `write_around_origin` on telemetry only. Legacy composer still produces the shipped body this turn per dispatch.
+- (f) **Clock:** 15-min wall-clock cap and persist-first (Items 202–203) unchanged; Pass-1 per-attempt cap retained at `POST_LINT_PASS1_TIMEOUT_MS = 75000ms`; N=2 retry per §0 Q2 (`PASS1_MAX_ATTEMPTS=2`).
+
+**Round-trip unit tests (green):**
+```
+$ deno test --allow-env --allow-net _shared/ltp/render-plan-roundtrip.test.ts
+running 2 tests from ./_shared/ltp/render-plan-roundtrip.test.ts
+derive→persist round-trip: minimal intake yields JSON-stable plan ... ok (2ms)
+derive→persist round-trip: authoritative envelope shape is JSON-stable ... ok (1ms)
+ok | 2 passed | 0 failed (10ms)
+```
+
+**Deploy + §16 ping (mode=enforce, model id, build stamp):**
+```
+GET /run-cppa-risk-assessment?ping=1
+{"fn":"run-cppa-risk-assessment",
+ "build_stamp":"ltp-risk-item221-t-m1-derive-authoritative@2026-07-28T05:00:00Z",
+ "ltp_mode":"enforce","ltp_version":"ltp-risk-p2","composition_enforce":"1",
+ "persist_first_retry":"retry-budget@2026-07-27-persistfirst",
+ "report_completion_gate":"final-status-and-report-data@2026-07-27-smoke-latency-rootcause",
+ "post_lint_llm_budget_ms":300000,"post_lint_llm_call_timeout_ms":120000,"post_lint_pass1_timeout_ms":75000,
+ "safe_finalize":"safe-finalize@2026-07-28-item217-repair-outside-guard",
+ "pass1_authoritative":"1","pass1_model":"claude-sonnet-4-6","pass1_max_attempts":2,
+ "pass1_stamp":"ltp-pass1-llm-2026-07-27-anthropic-direct"}
+```
+
+**Files touched:**
+- `supabase/functions/run-cppa-risk-assessment/index.ts` — BUILD_STAMP `ltp-risk-item221-t-m1-derive-authoritative@2026-07-28T05:00:00Z`; `LTP_MODE_BOOT="enforce"` pin; Pass-1 call site rewired unconditional with `maxAttempts: PASS1_MAX_ATTEMPTS`; render_plan authoritative envelope persist; ping-surface fields; `x-ltp-pass1-model-expected` header assert; boot log adds Pass-1 model line.
+- `supabase/functions/_shared/ltp/render-plan-roundtrip.test.ts` — new derive→persist round-trip test file (2 cases, both green).
+
+**Not in scope (deferred per dispatch):**
+- **T-M6** body cutover — Pass-2 templates producing the shipped surface; Type-J reserved-judgment body as the shipped surface on write-around rides with T-M6.
+- `waveb.test.ts` lines 79–81 still assert `PASS1_MANIFEST.model.startsWith("google/")` — stale since CEO Q3 same-model ruling landed the direct-Anthropic client; NOT touched this turn (out of dispatch scope).
+
+**Courier:** `docs/courier/T-M1-DERIVE-AUTHORITATIVE-2026-07-28.md`.
+
+**Disposition: HARD STOP** after courier + ledger, per dispatch. Next turn per Item 218 plan: T-M2 (Pass-2 template registry seeding).
