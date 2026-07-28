@@ -3837,3 +3837,31 @@ Response verbatim: `build_stamp: "ltp-risk-item215-value-screen-site@2026-07-28T
 Courier: `docs/courier/ITEM214-RULINGS-EXECUTED-2026-07-28.md`.
 
 **Disposition: READY-FOR-RELAUNCH. HARD STOP.** Controller launches smoke #11.
+
+## Item 216 — SMOKE #11 BRANCH FAIL: hook-audit throw + FIRST SHIPPED-SURFACE truncation catch (2026-07-28 ~01:36Z)
+
+Evidence only per controller dispatch. No code changes, no deploy, no grader edits, no batch inserts. §22.1 counter unchanged **0/3**.
+
+**Rows (controller-verified):**
+- Batch `quality_batch_runs` `184db50b-0770-427e-bc09-eac46174fec5`: inserted ~01:27Z (§18 shape), status=complete, phase=done, completed_at=01:36:30.847Z.
+- Run `quality_runs` #163 `f71b3069-2d03-44c6-9916-80466c2eef7d`: status=complete, error=NULL, 01:30:03.725Z → 01:36:20.452Z, score_overall=77.15, gpt_score_overall=79 (C/G divergence 1.85; series now 15 / 22.15 / 1.85), checks 21/25.
+- Assessment `cppa_assessments` `c5bc2f7f-a4cc-4e7a-96bc-54a48a003b72`: status=complete, retry_count=0, last_error=NULL, created 01:30:04.427Z → updated 01:35:32.919Z, E2E 5m28.49s — clock contract HELD.
+- Build on wire: `ltp-risk-item215-value-screen-site@2026-07-28T02:15:00Z` — Item-215 stamp proven.
+
+**Gates (three-part, per Item 215):**
+1. `shipped_surface_guard`: mode=enforce, cut_violations=[], unowned_paths=[], enforce_violation=false — CLEAN, third consecutive run.
+2. `composition_finalize` VERBATIM: version=`composition-finalize@2026-07-28-item215`, safe_version=`safe-finalize@2026-07-28-item215-vs-site`, mode=enforce, budget_ms=15000, budget_exceeded=false, elapsed_ms=4, **errored=TRUE**, enforce_violation=false, error_kind=`CompositionHookAuditError`, error_message=`"[composition-hook-audit] write-around branch was entered but LTP_TEST_FORCE_WRITE_AROUND is not set — unauthorized degradation path."`, hits=[], fragment_omit_count=0, fragment_omit_paths=[]. → NEW failure class, first appearance on the wire.
+3. `shipped_value_screen` VERBATIM: version=`shipped-value-screen@2026-07-28-item215`, mode=enforce, **enforce_violation=TRUE**, hits=[{kind:"truncated-slot-value", path:"priority_actions[2].deadline_basis", match:"We", context:"We"}]. → FIRST-EVER catch of the A.i #178 whole-value truncation class ON THE SHIPPED PROJECTION with exact path. Item-215 fix (a) proven working as designed — REAL defect a customer would have seen, not a false positive.
+
+**BRANCH FAIL** on gates (2) and (3).
+
+**Class read (evidence only, no fix invented):**
+- The two failures chain. fragment_omit_count=0 yet a whole-value "We" slot shipped. Consistent sequence: `finalizeComposition` threw `CompositionHookAuditError` → safe-finalize absorbed and restored `originalReport` → the fragment-omit repair (step 0 inside finalizeComposition) was DISCARDED with the rest of the finalize output → LEAK-PREV-P2 serialized the un-repaired composed object → truncated slot shipped. Evidence-level implication: safe-finalize restore path bypasses repairs — any finalize throw un-does fragment-omit. Recorded as attribution, not as a fix directive.
+- `CompositionHookAuditError` itself: the write-around branch (previously observed as Pass-1 telemetry `write_around=true` after the 75s clock cap, e.g. smokes #4/#10) is now audited and treated as unauthorized without `LTP_TEST_FORCE_WRITE_AROUND`. First run on the Item-215 build to traverse it. Whether the audit's authorization model is correct for production clock-cap write-arounds is a controller/CEO question — recorded only.
+- Producer of the "We" slot: `priority_actions[2].deadline_basis` — same field family as the emit_gate `unterminated_sentence` residuals on #162 (6× `priority_actions[*].deadline_basis`). Stage-C truncation-emitter hunt now has a live shipped-surface specimen with exact path.
+
+**Stage-C candidates (record, no action):** (a) safe-finalize restore-path repair bypass; (b) composition-hook-audit authorization model vs production write-around; (c) `priority_actions.deadline_basis` truncation emitter (specimen above); (d) C/G divergence series 15 / 22.15 / 1.85.
+
+Courier: `docs/courier/SMOKE-11-BRANCH-FAIL-2026-07-28.md`.
+
+**Disposition: HARD STOP for controller review.** No relaunch, no fix, no chain roll to 9b–12.
