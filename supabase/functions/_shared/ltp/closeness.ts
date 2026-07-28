@@ -27,7 +27,20 @@ export function computeCloseness(plan: RenderPlan, frame: readonly WeighingFrame
   const safeguardBoost = Math.min(0.2, safeguards * 0.05);
 
   const raw = 0.5 * factorImbalance + 0.4 * guidanceNorm + 0.1 * safeguardBoost;
-  return Math.max(0, Math.min(1, raw));
+
+  // ITEM 237 fix (b) — UNIFIED SELECTION SEAM. The assembler's close-balance
+  // guard treats ANY single frame entry with closeness_contribution ≥
+  // FIRM_VARIANT_CLOSENESS_MAX as close balance. The composer's chooseVariant
+  // must consume the SAME signal, or the guard rejects firm renders the
+  // composer emitted from a lower scalar. Take the max of the weighted
+  // scalar and the strongest per-frame contribution so a single dominant
+  // close-balance factor promotes the composer to `hedged` deterministically.
+  const maxFrame = frame.reduce(
+    (m, e) => Math.max(m, typeof e.closeness_contribution === "number" ? e.closeness_contribution : 0),
+    0,
+  );
+  const unified = Math.max(raw, maxFrame);
+  return Math.max(0, Math.min(1, unified));
 }
 
 export function chooseVariant(closeness: number, threshold = 0.6): Variant {

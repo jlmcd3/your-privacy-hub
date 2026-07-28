@@ -19,9 +19,14 @@ Deno.test("pass1-llm: write-around when LTP_ENFORCE_ENABLED is not set", async (
   assertEquals(res.plan.product, "cppa-risk-assessment");
 });
 
-Deno.test("pass1-llm: write-around fallback preserves customer path on gateway missing key", async () => {
+Deno.test("pass1-llm: write-around fallback preserves customer path on missing ANTHROPIC_API_KEY", async () => {
+  // ITEM 237 fix (c) — hermetic per T-M9 pattern. The direct Anthropic
+  // client (T-M9.2/9.3) reads ANTHROPIC_API_KEY; absence must trigger the
+  // conservative write-around fallback and preserve the customer path.
   Deno.env.set("LTP_ENFORCE_ENABLED", "1");
-  const prior = Deno.env.get("LOVABLE_API_KEY");
+  const priorAnthropic = Deno.env.get("ANTHROPIC_API_KEY");
+  const priorLovable = Deno.env.get("LOVABLE_API_KEY");
+  Deno.env.delete("ANTHROPIC_API_KEY");
   Deno.env.delete("LOVABLE_API_KEY");
   try {
     const res = await runPass1Llm({ intake: {}, report_data: {}, buildStamp });
@@ -29,7 +34,8 @@ Deno.test("pass1-llm: write-around fallback preserves customer path on gateway m
     assert(res.telemetry.write_around);
     assertEquals(res.plan.conservative_write_around.triggered, true);
   } finally {
-    if (prior) Deno.env.set("LOVABLE_API_KEY", prior);
+    if (priorAnthropic) Deno.env.set("ANTHROPIC_API_KEY", priorAnthropic);
+    if (priorLovable) Deno.env.set("LOVABLE_API_KEY", priorLovable);
     Deno.env.delete("LTP_ENFORCE_ENABLED");
   }
 });

@@ -201,3 +201,57 @@ Deno.test("ITEM 236 fix (d): exec-summary activity_label never carries a raw int
     }
   }
 });
+
+// ── ITEM 237 (T-M9.7) — JOINT SEAM TEST per LAW-1 discipline ──────────
+
+Deno.test("ITEM 237 fix (b): assembler emits hedged (NEVER firm) for assessment_summary + risk_assessment_by_activity at closeness ≥ threshold", () => {
+  const base = fixturePlan();
+  const closePlan = {
+    ...base,
+    weighing_frame: [
+      { pinpoint: "test.pin.1", anchor_hint: "close-balance factor A", closeness_contribution: 0.9 },
+    ],
+    // Force at least one engaged Type-R applicability proposition so the
+    // per-activity composer produces an instance to route through
+    // chooseVariant. Without this, engagedApplicability() would be empty
+    // and the composer's insufficient-record fallback would omit.
+    propositions: [
+      {
+        id: "p.C.applicability.A",
+        conclusion_id: "C.applicability.A",
+        epistemic_type: "R",
+        jurisdiction_tag: "cppa-ca",
+        polarity: "positive",
+        anchor: { corpus_key: "cppa-7152", pinpoint: "test" },
+        intake_ledger_refs: [],
+        citation_binding_refs: [],
+      },
+    ],
+    // Ensure at least one factor row is present so insufficientRecord()
+    // returns false and the composer emits the balance instance.
+    factor_table: [
+      {
+        factor_id: "F.benefit.test",
+        kind: "benefit",
+        jurisdiction_tag: "cppa-ca",
+        present_in_intake: true,
+        intake_ledger_refs: [],
+        guidance_refs: [],
+        anchor: { corpus_key: "cppa-7152", pinpoint: "test" },
+      },
+    ],
+  } as any;
+  const result = assembleReport(closePlan, {}, { exitMode: "observe" });
+  for (const key of ["assessment_summary", "risk_assessment_by_activity"]) {
+    const s = result.telemetry.sections.find((r) => r.key === key);
+    assert(s, `section ${key} missing from telemetry`);
+    assert(
+      !s!.template_ids_rendered.includes("T.risk.balance.firm"),
+      `assembler shipped T.risk.balance.firm for ${key} at closeness ≥ threshold: rendered=${JSON.stringify(s!.template_ids_rendered)}`,
+    );
+    assert(
+      s!.emitted,
+      `section ${key} omitted at close balance: reason=${s!.omitted_reason}`,
+    );
+  }
+});

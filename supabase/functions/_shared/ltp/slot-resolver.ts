@@ -56,6 +56,12 @@ export interface SlotContext {
   readonly what_would_tip_it?: string;
   readonly doc_element_label?: string;
   readonly customer_question?: string;
+  // ── ITEM 237 (T-M9.7) — balance-instance ctx passthroughs ──
+  readonly benefit_summary_tokens?: string;
+  readonly negative_summary_tokens?: string;
+  readonly safeguard_summary_tokens?: string;
+  readonly balance_direction_clause?: string;
+  readonly tipping_factors?: string;
 }
 
 
@@ -84,18 +90,31 @@ export function resolveSlot(
 ): string {
   switch (slot) {
     case "benefit_summary_tokens":
-      return joinTokens(factorsByKind(plan, "benefit").map(factorLabel));
+      // ITEM 237 fix (b) — ctx-supplied value wins when non-empty so the
+      // composer's balance-instance projection is authoritative.
+      return (typeof ctx.benefit_summary_tokens === "string" && ctx.benefit_summary_tokens.trim().length > 0)
+        ? ctx.benefit_summary_tokens
+        : joinTokens(factorsByKind(plan, "benefit").map(factorLabel));
     case "negative_summary_tokens":
-      return joinTokens(factorsByKind(plan, "negative_impact").map(factorLabel));
+      return (typeof ctx.negative_summary_tokens === "string" && ctx.negative_summary_tokens.trim().length > 0)
+        ? ctx.negative_summary_tokens
+        : joinTokens(factorsByKind(plan, "negative_impact").map(factorLabel));
     case "safeguard_summary_tokens":
-      return joinTokens(factorsByKind(plan, "safeguard").map(factorLabel));
+      return (typeof ctx.safeguard_summary_tokens === "string" && ctx.safeguard_summary_tokens.trim().length > 0)
+        ? ctx.safeguard_summary_tokens
+        : joinTokens(factorsByKind(plan, "safeguard").map(factorLabel));
     case "balance_direction_clause": {
+      if (typeof ctx.balance_direction_clause === "string" && ctx.balance_direction_clause.trim().length > 0) {
+        return ctx.balance_direction_clause;
+      }
       const b = factorsByKind(plan, "benefit").length;
       const n = factorsByKind(plan, "negative_impact").length;
       return n > b ? BALANCE_DIRECTION_CLAUSES[1] : BALANCE_DIRECTION_CLAUSES[0];
     }
     case "tipping_factors":
-      return tippingFrom(plan.weighing_frame);
+      return (typeof ctx.tipping_factors === "string" && ctx.tipping_factors.trim().length > 0)
+        ? ctx.tipping_factors
+        : tippingFrom(plan.weighing_frame);
     case "cohort_date":
       return ctx.cohort_date ?? "";
     case "review_item_list":
