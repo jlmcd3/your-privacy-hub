@@ -416,18 +416,21 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   }
 
   // (4) Unresolved FACTUAL documentation gates.
-  // ITEM 242 (defect 7c) — use the gate REGISTRY's anchor_pinpoint +
-  // description, never the hardcoded § 7152(a) or the raw gate_id.
+  // ITEM 242 (defect 7c) — use the gate REGISTRY's anchor_pinpoint and
+  // a short id-derived label (never the raw description sentence, which
+  // may pollute the shipped action with internal cross-reference prose).
+  const gateLabel = (id: string): string => {
+    const tail = id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
+    // "purpose present" → "assessment record — purpose"
+    const noun = tail.replace(/\s+present$/i, "").trim();
+    return `assessment record — ${noun}`;
+  };
   for (const g of plan.gate_outcomes) {
     if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
     if (g.outcome === "pass") continue;
     const spec = CPPA_RISK_GATE_INDEX[g.gate_id];
     const pin = spec?.anchor_pinpoint ?? "11 CCR § 7152(a)";
-    // Display label derived from the gate description's element phrase.
-    const label = (spec?.description ?? g.gate_id)
-      .replace(/^Documentation-presence gate\s*—\s*/i, "")
-      .replace(/\.$/, "")
-      .trim() || g.gate_id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
+    const label = gateLabel(g.gate_id);
     sources.push({
       element_short_label: label,
       pinpoint: pin,
