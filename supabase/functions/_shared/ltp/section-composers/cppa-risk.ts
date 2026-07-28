@@ -25,6 +25,10 @@ import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
 export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-batch3";
 
 export { aggregateBalance, DOCUMENTATION_FACTUAL_GATE_IDS, DOCUMENTATION_JUDGMENT_GATE_IDS };
+// ITEM 242 batch-3 A — expose the two composers under test for the
+// deterministic-fix asserts (defects 3, 4, 6, 7).
+export { composePriorityActions as composePriorityActionsForTest };
+export { composeRecordSufficiency as composeRecordSufficiencyForTest };
 export type { BalanceMode };
 
 /**
