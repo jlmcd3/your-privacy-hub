@@ -542,7 +542,7 @@ export function buildTypeJWriteAroundBody(input: {
   return {
     schema_version: "cppa_risk_v4",
     opening_summary: disclosure,
-    executive_summary: [disclosure],
+    executive_summary: disclosure,
     assessment_summary: { narrative: disclosure },
     submission_summary: renderCyberAuditSchedule(),
     risk_level: "reserved",
