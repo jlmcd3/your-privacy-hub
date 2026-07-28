@@ -228,16 +228,16 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "executive_summary",
     owner: {
       kind: "template",
+      // T-M3: dedicated top-of-report shape (distinct from summary.opening.*).
       template_ids: [
-        "T.risk.summary.opening.all_firm",
-        "T.risk.summary.opening.mixed_hedged",
-        "T.risk.summary.opening.any_negative",
-        "T.risk.summary.opening.insufficient",
-        "T.risk.summary.aggregation_note",
+        "T.risk.exec.firm",
+        "T.risk.exec.hedged",
+        "T.risk.exec.negative",
+        "T.risk.exec.insufficient",
       ],
     },
     project: projectFactorTable,
-    note: "Answer-first opening template group; calibration MUST match the balance variant.",
+    note: "T-M3: dedicated exec templates (firm/hedged/negative/insufficient); calibration inherits from balance variant per FIRM_VARIANT_CLOSENESS_MAX.",
   },
   {
     key: "assessment_summary",
@@ -311,23 +311,23 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "priority_actions",
     owner: {
       kind: "template",
-      template_ids: [
-        "T.risk.documentation.gap",
-        "T.risk.documentation.present",
-      ],
+      // T-M3: dedicated per-action shape (owner-slot deadline_basis).
+      template_ids: ["T.risk.priority_action"],
     },
     project: (plan) => plan.factor_table.filter((r) => /gap|action|remediat/i.test(r.factor_id)),
+    note: "T-M3: dedicated priority_action template; deadline_basis owner-slot enforced by STRUCTURED_OWNER_SLOTS + assertStructuredSlotShape.",
   },
   {
     key: "next_steps",
     owner: {
       kind: "template",
-      template_ids: [
-        "T.risk.documentation.gap",
-        "T.risk.documentation.present",
-      ],
+      // T-M3: dedicated per-step shape; ordering + dedup vs priority_actions
+      // governed by NEXT_STEPS_MATERIALITY_TIERS + the dedup law in
+      // pass2-templates.ts (T-M3 CONTENT COURIER 2026-07-28).
+      template_ids: ["T.risk.next_step"],
     },
     project: projectFactorTable,
+    note: "T-M3: dedicated next_step template; dedup vs priority_actions by case-insensitive action_label match; materiality-tier ordering; most-cautious-wins.",
   },
   {
     key: "strengthen_items",
