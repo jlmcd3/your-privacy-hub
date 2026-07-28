@@ -18,7 +18,56 @@ import {
 } from "./content/pass2-templates.ts";
 import { resolveSlot, type SlotContext } from "./slot-resolver.ts";
 
-export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-27-slot-guard";
+export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-28-item235-fill-or-omit";
+
+/**
+ * ITEM 235 (T-M9.5) — FILL-OR-OMIT AT RENDER.
+ *
+ * Enforce the Item 206 law at the slot level: a template INSTANCE whose
+ * required plan_slots resolve empty is OMITTED — never shipped with
+ * blank interpolations. This eliminates the run #169 class where
+ * "For ___, the benefits identified outweigh…" and
+ * "— Deadline basis: ___ (11 CCR § 7150(b)(1))" reached the customer
+ * surface. Required-slot set below is closed; extend by evidence only.
+ *
+ * A template with no entry defaults to "all plan_slots required".
+ */
+export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = {
+  // Exec / summary openings — activity_count_phrase drives the sentence.
+  "T.risk.exec.firm": ["activity_count_phrase", "each_or_this_clause"],
+  "T.risk.exec.hedged": ["activity_count_phrase", "close_list", "what_would_tip_it"],
+  "T.risk.exec.negative": ["activity_count_phrase", "negative_list"],
+  "T.risk.exec.insufficient": ["activity_singplural_clause"],
+  "T.risk.summary.opening.all_firm": ["activity_count_phrase", "each_or_this_clause"],
+  "T.risk.summary.opening.mixed_hedged": ["activity_count_phrase", "firm_positive_list", "close_list"],
+  "T.risk.summary.opening.any_negative": ["activity_count_phrase", "negative_list"],
+  "T.risk.summary.opening.insufficient": ["activity_count_phrase", "activity_singplural_clause"],
+  "T.risk.summary.activity_line": ["activity_label", "outcome_clause"],
+  "T.risk.summary.docs": ["docs_completion_clause"],
+  "T.risk.summary.aggregation_note": ["driving_activity_label"],
+  // Per-item shards.
+  "T.risk.priority_action": ["action_label", "action_basis", "deadline_basis"],
+  "T.risk.next_step": ["step_label", "step_basis"],
+  "T.risk.record_sufficiency.item": ["element_label", "element_status_clause"],
+  "T.risk.review_items.entry": ["review_label", "review_basis"],
+  "T.risk.balance.factor_line": ["factor_label", "factor_basis"],
+  // Documentation.
+  "T.risk.documentation.present": ["doc_element_label"],
+  "T.risk.documentation.gap": ["doc_element_label", "customer_question"],
+  // Balance sentences — need SOME summary tokens.
+  "T.risk.balance.firm": ["benefit_summary_tokens", "negative_summary_tokens", "balance_direction_clause"],
+  "T.risk.balance.hedged": ["benefit_summary_tokens", "negative_summary_tokens", "tipping_factors"],
+};
+
+/** Interpolation-residue regexes: catch blank template artifacts that
+ *  slip past renderer omission (defense-in-depth for value-screen). */
+export const INTERPOLATION_RESIDUE_PATTERNS: readonly RegExp[] = [
+  / For , /,               // "For {{empty}}, ..."
+  /: {2,}\(/,              // "Deadline basis:  ("
+  /— {2,}/,                // dangling em-dash
+  /: \./,                  // "Label: ."
+  / \(\)/,                 // stray empty parens
+];
 
 // PRE-WAVED-EMITTER-FIXES-2026-07-27 (class 6, adjudication):
 // Structured slots (owner, deadline_basis, exceptions_status,
