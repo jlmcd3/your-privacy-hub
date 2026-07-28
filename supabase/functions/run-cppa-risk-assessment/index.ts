@@ -3878,6 +3878,20 @@ Deno.serve(async (req) => {
       law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
     }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+  const _pass1ModelExpected = req.headers.get("x-ltp-pass1-model-expected");
+  if (_pass1ModelExpected && _pass1ModelExpected !== PASS1_MODEL) {
+    console.log(JSON.stringify({
+      evt: "ltp_pass1_model_mismatch_abort", fn: "run-cppa-risk-assessment",
+      expected: _pass1ModelExpected, actual: PASS1_MODEL, build_stamp: BUILD_STAMP,
+    }));
+    return new Response(JSON.stringify({
+      error: "ltp_pass1_model_mismatch",
+      expected: _pass1ModelExpected,
+      actual: PASS1_MODEL,
+      build_stamp: BUILD_STAMP,
+      law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity (T-M1 model-assert)",
+    }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 
   const caller = await verifyCaller(req, "user");
   if (!caller.ok) {
