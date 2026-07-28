@@ -20,13 +20,25 @@
 
 export const ANTHROPIC_ABORT_MS = 330_000;
 
+// T-M9.3 (Item 233, 2026-07-28): label hygiene. The abort error is thrown
+// on any fetch-leg abort — the governing limit is the actual per-leg
+// timeoutMs at the call site (Pass-1 uses 240s via POST_LINT_PASS1_TIMEOUT_MS,
+// the legacy default is ANTHROPIC_ABORT_MS). The old "generation_timeout_330s"
+// code hard-coded 330s into telemetry even when the real per-attempt cap was
+// 120s (Pass-1), producing false-governing-limit rows. The code is now
+// `anthropic_attempt_abort` and the message reports the ACTUAL limit
+// observed at throw time.
 export class AnthropicTimeoutError extends Error {
-  code = "generation_timeout_330s";
+  code = "anthropic_attempt_abort";
   elapsedMs: number;
-  constructor(elapsedMs: number, label: string) {
-    super(`generation_timeout_330s: ${label} aborted after ${elapsedMs}ms (limit ${ANTHROPIC_ABORT_MS}ms)`);
+  limitMs: number;
+  label: string;
+  constructor(elapsedMs: number, label: string, limitMs: number) {
+    super(`anthropic_attempt_abort: ${label} aborted after ${elapsedMs}ms (limit ${limitMs}ms)`);
     this.name = "AnthropicTimeoutError";
     this.elapsedMs = elapsedMs;
+    this.limitMs = limitMs;
+    this.label = label;
   }
 }
 
