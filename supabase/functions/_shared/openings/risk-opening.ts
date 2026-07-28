@@ -272,10 +272,12 @@ export function buildRiskOpening(
   else if (admt === "In evaluation") qparts.push("is evaluating ADMT for significant decisions");
 
   if (prof) {
+    // CP5 (c) — no hyphen. Hyphenated compound was rendering as
+    // "systematicobservation" after PDF text extraction on some viewers.
     if (/^No\b/i.test(prof)) {
-      qparts.push("does not conduct systematic-observation profiling");
+      qparts.push("does not conduct systematic observation profiling");
     } else if (/^Yes/.test(prof)) {
-      qparts.push("conducts systematic-observation profiling as described in the intake");
+      qparts.push("conducts systematic observation profiling as described in the intake");
     }
   }
 

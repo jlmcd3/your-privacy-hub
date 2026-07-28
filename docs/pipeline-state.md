@@ -4941,3 +4941,22 @@ composition_enforce: "1"
 
 **Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP4-LABELS-CITATIONS-2026-07-28.md`.
 **Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY. Controller runs smoke, reads PDF, confirms zero registry-id shapes, distinct pinpoints, and exec/balance agreement. HARD STOP.
+
+## Item 240 CP5 — SCOPE ENGAGED-FLAG + BALANCE COHERENCE + T7 SPACING (2026-07-28)
+
+**Status.** DONE. Deployed `run-cppa-risk-assessment` with assembler stamp `ltp-pass2-assembler-2026-07-28-item240-cp5-single-writer`; composers `ltp-section-composers-cppa-risk-2026-07-28-item240-cp5`.
+
+**Fixes.**
+1. **Scope engaged-flag (Blocker a).** `T.risk.applicability.engaged` no longer references `intake:LEDGER_ID` (missing slot silently dropped every engaged prong via fill-or-omit). Both scope templates now take `plan:prong_subject`, populated by `composeScope` from the registry `display_label`. Each of the five § 7150(b) prongs renders distinctly with its own pinpoint.
+2. **Exec/balance coherence (Blocker b).** `balanceInstance` now handles `aggregateBalance("insufficient")` by routing to `T.risk.summary.docs`. Firm/hedged balance prose on an insufficient plan is now structurally impossible; joint test `CP5 (b)` guards every by-activity + summary instance.
+3. **T7 spacing (Defect c).** Removed hyphen from `systematic-observation` in `risk-opening.ts`. Some PDF viewers drop ASCII hyphens on text extraction, producing "systematicobservation"; source is now `systematic observation`.
+4. **SINGLE-WRITER (LAW 3(a)).** CP3's three write sites collapsed to one via a `coerceForShard(key, value)` helper; `surface-ownership.test.ts` LAW 3(a) is green.
+
+**Deferred to CP6 (change-controlled content, requires anchored courier).**
+- (d) `compliance_guidance` sentence + real statutory deadline per ConclusionSpec row.
+- (e) Prose Panel rewrite of `pass2-templates.ts` for professional cadence.
+
+**Joint tests.** 25 / 25 green across `surface-ownership`, `pass2-assembler`, `cp4-labels-citations`, `cp5-scope-coherence`, `cppa-risk-shape`.
+
+**Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP5-SCOPE-COHERENCE-2026-07-28.md`.
+**Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP.

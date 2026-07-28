@@ -52,19 +52,22 @@ export interface Pass2Template {
 export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   "T.risk.applicability.engaged": {
     id: "T.risk.applicability.engaged",
-    text: "The record indicates this processing activity requires a risk assessment under {{cite:PINPOINT}}: {{intake:LEDGER_ID}}.",
+    // CP5 (a) — no LEDGER_ID fallback. Prong subject is composer-supplied
+    // from the registry display_label so each of the five § 7150(b) prongs
+    // reads with distinct, human-readable prose.
+    text: "Engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the record supports this trigger and this activity falls within the risk-assessment obligation.",
     citation_slots: ["PINPOINT"],
-    plan_slots: [],
-    intake_slots: ["LEDGER_ID"],
+    plan_slots: ["prong_subject"],
+    intake_slots: [],
     max_chars: 400,
   },
   "T.risk.applicability.not_engaged": {
     id: "T.risk.applicability.not_engaged",
-    text: "Based on the record, the trigger at {{cite:PINPOINT}} is not engaged.",
+    text: "Not engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the record does not support this trigger.",
     citation_slots: ["PINPOINT"],
-    plan_slots: [],
+    plan_slots: ["prong_subject"],
     intake_slots: [],
-    max_chars: 240,
+    max_chars: 320,
   },
   "T.risk.cohort": {
     id: "T.risk.cohort",
