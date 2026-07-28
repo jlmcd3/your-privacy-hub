@@ -267,6 +267,7 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "documentation_check",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(1)" },
+    display_label: "Adequacy of the processing purpose statement",
     description:
       "Whether a given non-generic purpose statement is adequately specific for the business's circumstances. The tool "
       + "checks presence + non-generic phrasing; substantive adequacy is reserved to counsel/business.",
