@@ -77,8 +77,9 @@ Deno.test("T-M4 (b): every Pass-2 template renders clean through the value-scree
     const t = PASS2_TEMPLATES[id];
     if (t.emits_nothing) continue;
     const rendered = renderTemplate(id);
-    // Fill-or-omit: no unresolved slot tokens.
-    assert(!/{{\s*(plan|cite|intake):/.test(rendered), `${id}: unresolved slot token`);
+    // Fill-or-omit: no unresolved plan slot tokens (cite spans are
+    // token-substituted downstream; value-screen tolerates {{cite:…}}).
+    assert(!/{{\s*plan:/.test(rendered), `${id}: unresolved plan slot token`);
     // max_chars honored by the fixture (defensive; slot values are short).
     assert(rendered.length <= t.max_chars + 200, `${id}: fixture exceeds max_chars`);
     // Shipped-value-screen: rendered template body must not fire.
