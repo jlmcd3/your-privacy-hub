@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   assertCompositionHookConformance,
+  classifyPass1WriteAroundOrigin,
   CompositionHookAuditError,
   COMPOSITION_HOOK_AUDIT_VERSION,
 } from "./composition-hook-audit.ts";
