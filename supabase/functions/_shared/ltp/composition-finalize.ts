@@ -94,6 +94,8 @@ export interface FinalizeTelemetry {
   readonly hook_audit_ok: boolean;
   readonly hook_value_present: boolean;
   readonly write_around_entered: boolean;
+  /** Item 217: origin classification for the write-around entry (or null). */
+  readonly write_around_origin: WriteAroundOrigin | null;
 }
 
 
