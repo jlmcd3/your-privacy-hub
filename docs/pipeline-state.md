@@ -3865,3 +3865,38 @@ Evidence only per controller dispatch. No code changes, no deploy, no grader edi
 Courier: `docs/courier/SMOKE-11-BRANCH-FAIL-2026-07-28.md`.
 
 **Disposition: HARD STOP for controller review.** No relaunch, no fix, no chain roll to 9b–12.
+
+## Item 217 — ITEM 216 RULINGS EXECUTED: hook-audit authorization + safe-finalize repair-outside-guard (2026-07-28 ~03:15Z)
+
+CEO ruling (verbatim, 2026-07-28): *"Let's fix both, but I want to end the smoke tests and do a production run of the product as built now and then score that. So do the fixes, and run one more smoke, but then we do a real production run and see where we have landed."*
+
+**PLAN AMENDMENT (record).** After Item 217 lands and ONE more smoke (#12) is evaluated, the smoke-test phase ENDS regardless of the §22.1 three-clean counter. Next step is a production run — Wave-D shape, Engine-B-led batch of 6 (already CEO pre-authorized) — scored, as the acceptance baseline. §22.1 counter is superseded by CEO acceptance criteria for this product. Campaign `fd1be147` remains CEO-reserved and untouched.
+
+Two fixes landed in a single turn on `run-cppa-risk-assessment`; no grader/instrument changes; no batch inserts.
+
+**Fix (a) — COMPOSITION-HOOK-AUDIT AUTHORIZATION MODEL.** Smoke #11's throw on production clock-cap write-around was a mis-applied audit. Reworked:
+- `_shared/ltp/composition-hook-audit.ts`: new `WriteAroundOrigin = "clock_cap" | "timeout" | "test_forced" | "unknown"`; `HookAuditInput` gains optional `writeAroundOrigin`. Truth table: hook UNSET + branch entered + authorized origin (`clock_cap` / `timeout` / `test_forced`) → OK; hook UNSET + branch entered + no/unknown origin → THROW. Silent-bypass (hook SET + branch NOT entered) still throws. `LTP_TEST_FORCE_WRITE_AROUND` is test-only forcing, not a production authorization gate. Version → `composition-hook-audit@2026-07-28-item217`.
+- `_shared/ltp/composition-finalize.ts`: `FinalizeInput` accepts `writeAroundOrigin`; `FinalizeTelemetry.write_around_origin` telemetered. Version → `composition-finalize@2026-07-28-item217`.
+- `run-cppa-risk-assessment/index.ts` wire-site derives origin from Pass-1 telemetry (`error === "test_only_forced_degradation"` → `"test_forced"`; else `"clock_cap"` — Pass-1 sets `write_around=true` only after N=2 retry exhaustion/timeout).
+
+**Fix (b) — SAFE-FINALIZE RESTORE MUST NOT DISCARD REPAIRS.** Smoke #11 chain: finalize throw → safe restore of `originalReport` → fragment-omit repair discarded → "We" shipped. Fixed:
+- `_shared/ltp/composition-finalize.ts` — `safeFinalizeComposition`: `omitFragmentSlots` now runs OUTSIDE the guarded try. Guarded finalize receives the ALREADY-REPAIRED report. Catch-path restore baseline is the REPAIRED object, not raw input. New authoritative top-level `fragment_omit_version` / `fragment_omit_count` / `fragment_omit_paths` on `SafeFinalizeTelemetry`, populated on BOTH success and catch paths. `SAFE_FINALIZE_VERSION` → `safe-finalize@2026-07-28-item217-repair-outside-guard`.
+- Wire-site reads top-level `fragment_omit_*` (authoritative), preserving telemetry key stability at `_meta.internal.composition_finalize.fragment_omit_*` and in the `composition_finalize_ran` log.
+
+**Regression tests** (all in `composition-hook-audit.test.ts` + `composition-finalize.test.ts`):
+- 5 new hook-audit truth-table tests (NO/unknown origin THROW; clock_cap/timeout/test_forced OK).
+- `finalizeComposition` with `writeAroundOrigin="clock_cap"` → `hook_audit_ok=true`, `write_around_origin="clock_cap"`.
+- `safeFinalizeComposition` with clock_cap origin → `errored=false`.
+- Unauthorized write-around still throws direct / telemeters via safe wrapper.
+- **Smoke-#11 exact chain regression:** composed object with `priority_actions[2].deadline_basis="We"` AND `writeAroundEntered=true` with no origin → `errored=true`, top-level `fragment_omit_count=1`, `fragment_omit_paths` includes `priority_actions[2].deadline_basis`, `res.reportData.priority_actions[2].deadline_basis === undefined`. Truncated slot DOES NOT SHIP.
+- Success-path repair-outside-guard test.
+- All existing finalize / value-screen / shipped-guard / smoke-#9/#10 tests stay green.
+- **deno test result: 48/48 passed** (9 hook-audit + 39 finalize).
+
+**Deploy & §16 ping-prove** — `BUILD_STAMP="ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z"`. Response verbatim: `build_stamp: "ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z"`, `composition_enforce: "1"`, `ltp_mode: "enforce"`, `safe_finalize: "safe-finalize@2026-07-28-item217-repair-outside-guard"`, `report_completion_gate: "final-status-and-report-data@2026-07-27-smoke-latency-rootcause"`, `persist_first_retry: "retry-budget@2026-07-27-persistfirst"`, `post_lint_pass1_timeout_ms: 75000`. All prior gates preserved.
+
+**CEO rulings log** — 2026-07-28: *"Let's fix both, but I want to end the smoke tests and do a production run of the product as built now and then score that. So do the fixes, and run one more smoke, but then we do a real production run and see where we have landed."*
+
+Courier: `docs/courier/ITEM216-RULINGS-EXECUTED-2026-07-28.md`.
+
+**Disposition: READY-FOR-SMOKE-12 (FINAL SMOKE). HARD STOP.** After smoke #12 review, smoke phase ENDS; product moves to real production run (Wave-D shape, Engine-B-led batch of 6, scored) as the acceptance baseline.
