@@ -1016,42 +1016,32 @@ async function runPipeline(assessment_id: string) {
 
 
     const t0 = Date.now();
-    let parsed: any = null;
+    // T-M9.2 (Item 232): legacy v4 generation execution retired. The Pass-2
+    // assembler (T-M6 cutover, ~L3577) overwrites every non-underscore
+    // top-level key with the deterministic body — none of the legacy
+    // scrub/lint/retry work reached the shipped surface. `parsed` is a
+    // minimal shape-valid stub so the downstream scrub passes (which mutate
+    // fields the assembler will overwrite anyway) no-op safely on empty
+    // inputs; `report_data` is initialized from `parsed` and preserved for
+    // the _meta.internal telemetry attached below.
+    let parsed: any = {
+      assessment_summary: {},
+      _legacy_generation_retired: {
+        retired: true,
+        build_stamp: BUILD_STAMP,
+        note: "Body composed exclusively by Pass-2 assembler (T-M6 cutover); no Engine-A LLM call executed.",
+      },
+    };
     let debugRaw = "";
-    let lastStopReason: string | null = null;
+    let lastStopReason: string | null = "retired";
+    console.log(JSON.stringify({
+      evt: "legacy_v4_generation_skipped",
+      fn: "run-cppa-risk-assessment",
+      build_stamp: BUILD_STAMP,
+      reason: "T-M9.2 retirement — Pass-2 assembler is the shipped body",
+    }));
 
-    // Courier 2026-07-12 items 1+4: first call at CPPA_RISK_MAX_TOKENS with
-    // continuation-on-truncation handled inside callAnthropicWithContinuation.
-    // If the stitched response is still max_tokens, fall through to the
-    // existing generation_truncated error path — no second full generation.
-    const first = await callModel(system, userPrompt, "generate-v4");
-    lastStopReason = first.stopReason;
-    debugRaw = first.text;
-    parsed = tryParseJson(first.text);
-    if (!parsed && first.stopReason !== "max_tokens") {
-      console.warn("[cppa-risk v4] first parse failed — retrying once");
-      const retry = await callModel(system, userPrompt, "generate-v4-retry");
-      lastStopReason = retry.stopReason;
-      debugRaw = retry.text;
-      parsed = tryParseJson(retry.text);
-    }
 
-    console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms stop=${lastStopReason}`);
-
-    if (!parsed || !parsed.assessment_summary) {
-      const errorCode = lastStopReason === "max_tokens"
-        ? "generation_truncated"
-        : "generation_parse_failed";
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
-        status: "error",
-        report_data: {
-          error: errorCode,
-          stop_reason: lastStopReason,
-          debug: debugRaw.slice(0, 4000),
-        },
-      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_parse" });
-      return;
-    }
 
     // MEASUREMENT-VALIDITY FIX (SMOKE-LATENCY-ROOTCAUSE, 2026-07-27):
     // report_data is a completion surface for the harness. Therefore no
