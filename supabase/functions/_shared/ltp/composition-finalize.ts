@@ -442,7 +442,7 @@ export { readForceWriteAroundOnce };
 // they can safely persist. Enforce-mode strictness is preserved via
 // `telemetry.enforce_violation` for measurement verdicts — the
 // document still ships; the verdict is what enforce mode governs.
-export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-item206-hits";
+export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-28-item215-vs-site";
 export const SAFE_FINALIZE_BUDGET_MS_DEFAULT = 15_000;
 
 export interface SafeFinalizeTelemetry {
