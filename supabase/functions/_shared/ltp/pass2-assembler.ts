@@ -46,11 +46,13 @@ import { composeSection } from "./section-composers/cppa-risk.ts";
 import {
   coerceNarrativeScalar,
   coerceAssessmentSummary,
+  assertShippedCoherence,
   NARRATIVE_SCALAR_KEYS,
   CPPA_RISK_SHAPE_VERSION,
+  type ShippedCoherenceViolation,
 } from "../report-contracts/cppa-risk-shape.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp5-single-writer";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp5-coherence-prose";
 
 /**
  * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
@@ -133,6 +135,12 @@ export interface ExitCheckTelemetry {
   readonly pii_rejections: readonly { key: string; kind: "email" | "phone" }[];
   readonly shipped_surface: ShippedSurfaceEvaluation;
   readonly shipped_value_screen: ShippedValueScreenEvaluation;
+  /** CP5-COHERENCE-PROSE — post-serializer exec/balance mode agreement. */
+  readonly shipped_coherence: {
+    readonly mode: FinalizeMode;
+    readonly violations: readonly ShippedCoherenceViolation[];
+    readonly enforce_violation: boolean;
+  };
 }
 
 export interface StructuralCompletenessRow {
@@ -504,6 +512,25 @@ function assembleCore(
 
   const shipped_surface = evaluateShippedSurfaceGuard(report);
   const shipped_value_screen = evaluateShippedValueScreen(report, { mode: exitMode });
+  // CP5-COHERENCE-PROSE — exec/balance coherence, ENFORCED at exit.
+  const coherenceViolations = assertShippedCoherence(report);
+  const shipped_coherence = {
+    mode: exitMode,
+    violations: coherenceViolations,
+    enforce_violation: exitMode === "enforce" && coherenceViolations.length > 0,
+  };
+  if (shipped_coherence.enforce_violation) {
+    // Enforce: collapse the ship to insufficient exec + narrative so the
+    // customer never receives contradictory prose. The full failure is
+    // captured in telemetry for the controller. LAW 3(a) preserved:
+    // routed through Object.assign — no additional bracketed write site.
+    const disclosure =
+      "On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis. The specific items needed to complete this assessment are set out under Items for your review.";
+    Object.assign(report, {
+      executive_summary: disclosure,
+      assessment_summary: { ...(report.assessment_summary as object ?? {}), narrative: disclosure },
+    });
+  }
   const emittedCount = sectionTele.filter((s) => s.emitted).length;
   const structural = structuralCompleteness(sectionTele);
 
@@ -519,6 +546,7 @@ function assembleCore(
         pii_rejections: piiRejections,
         shipped_surface,
         shipped_value_screen,
+        shipped_coherence,
       },
       structural_completeness: structural,
       composition_shape: COMPOSITION_SHAPE_DECLARATION,

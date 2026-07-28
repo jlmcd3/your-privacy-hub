@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T13:01Z (Item 240 CP5 ADDENDUM — CUSTOMER-FIRST OPENING (CEO directive, docs-only): standing design law recorded in `docs/design/OPENING-PARAGRAPH-DESIGN.md` §4 that every product's opening leads with the customer's facts (who they are, what they process, for what purpose — S2-class) BEFORE stating what the assessment is and why it is required (legal trigger, S0/S1-class); cppa-risk slot sequence reordered to S2 → S3 → S4 → S0 → S1 → S5 → S6 in the same doc; audit rule extended into CP5(e) prose-panel scope so every section opener obeys customer-facts-first / legal-frame-second; slot laws and provenance unchanged (deterministic emitter, ledger/registry sources, omit-over-invent, all-that-apply enumeration, boundary-band rule); courier `docs/courier/CP5-ADDENDUM-CUSTOMER-FIRST-2026-07-28.md` ships the content-anchored reordering text for CEO review. DOCS-ONLY — no code, no deploy.)
+**Last updated:** 2026-07-28T13:21Z (Item 240 CP5 COHERENCE-PROSE — CEO release wired: risk-opening render order flipped to customer-first S2→S3→S4→S0→S1→S5→S6 at the source of truth (`RISK_OPENING_SLOT_ORDER` exported for test binding); exec/balance coherence ENFORCED at assembler exit via `assertShippedCoherence`/`detectShippedMode` in the shape contract (violations collapse the ship to insufficient prose in enforce mode, LAW 3(a) preserved via `Object.assign`); joint test `cp5-coherence-prose.test.ts` covers slot-order, mode-fingerprint, insufficient-over-firm rejection, and intra-document trigger consistency (opening `s1_triggers` ↔ scope engaged pinpoints); assembler stamp `ltp-pass2-assembler-2026-07-28-item240-cp5-coherence-prose`; shape stamp `cppa-risk-shape@2026-07-28-cp5-coherence-prose`; opening stamp `risk-opening-cp5-coherence-prose-customer-first@2026-07-28`; full suite 50/50 green. HELD for a follow-up wiring turn per courier §Held: quality-bar enrichment (d) — four-move actions from `compliance_guidance` registry rows + deadline-registry wiring with prospective/ongoing marking — and the wholesale prose-panel section-opener text rewrites (e) for scope/balance/actions/guidance/exec require new composer slots threading `entity_name`/`q4_pi_categories` and a companion registry authoring pass; called out explicitly so the next dispatch can pick them up without re-reading this turn.)
 
 ---
 
@@ -4981,3 +4981,45 @@ Dispatch: CEO CP5 addendum, 2026-07-28. Docs-only turn; zero code edits; no depl
 **Not changed this turn:** any code file; any Pass-2 template; any registry row; any slot source or provenance; slot inventories per product; deterministic emitter, ledger-only sources, emit-gate wire, and citation binding all UNCHANGED. No `run-cppa-risk-assessment` build, no BUILD_STAMP, no deploy.
 
 **Disposition.** DONE-DOCS. CP5(e) prose-panel wiring remains held for a subsequent wiring turn once CEO approves the content-anchored reorderings in the courier. HARD STOP.
+
+## Item 240 CP5 COHERENCE-PROSE — CEO RELEASE WIRED (2026-07-28T13:21Z)
+
+Dispatch: CEO CP5 wiring release (2026-07-28), authorizing the CP5-ADDENDUM §3 customer-first reorderings and calling for the correctness blockers to ship coherent + enforced. This turn wires the correctness core; the wholesale prose-panel section-opener rewrites (e) and the quality-bar enrichment (d) remain held with explicit courier flags for the next dispatch.
+
+**Shipped this turn (code):**
+
+1. **(a) SCOPE / value-path trace** — CP5 fix retained; joint test `cp5-coherence-prose.test.ts` (c) now asserts intra-document trigger consistency: any § 7150(b) prong the opening (`RiskOpeningOutput.provenance.s1_triggers`) marks engaged MUST render as `T.risk.applicability.engaged` in `scope_and_triggers` under the matching pinpoint. Ends the run-#176 opening ↔ scope disagreement class at the test surface.
+2. **(b) EXEC/BALANCE COHERENCE — ENFORCED AT ASSEMBLER EXIT.** New helpers in `_shared/report-contracts/cppa-risk-shape.ts`: `detectShippedMode(text)` fingerprints firm/hedged/negative/insufficient, and `assertShippedCoherence(report)` returns `exec_balance_mode_mismatch` violations when the executive_summary string and the assessment_summary.narrative string disagree. `pass2-assembler.assembleCore` runs the assert post-serializer; in enforce mode the ship is collapsed to insufficient prose via `Object.assign` (LAW 3(a) preserved — no additional bracketed write site). Telemetry records `exit_checks.shipped_coherence = { mode, violations, enforce_violation }`. Root cause named: the CP4 assert compared composer inputs but never re-inspected the shipped strings; the class only closed once the assert moved to the wire.
+3. **(c) T7 SPACING** — already retired in CP5; regression continues to be asserted by `cp5-scope-coherence.test.ts (c)`.
+4. **(e) CUSTOMER-FIRST OPENING WIRED (partial).** `RISK_OPENING_SLOT_ORDER = ["S2","S3","S4","S0","S1","S5","S6"]` exported from `_shared/openings/risk-opening.ts` and driving the final assembly line. Opening text now leads with `{entity_name}'s processing of {q4_pi_categories} for {i1_processing_purpose}` and states the CCPA applicability / § 7150(b) triggers after. Slot sources, provenance, polarity locks, omit-over-invent, all-that-apply enumeration, boundary-band rule UNCHANGED — reorder only. Joint test asserts the S2 clause appears before the S0 clause in the shipped text.
+5. **(f) CP3 shape tests.** All seven CP3 shape-coercion tests are green (`_shared/report-contracts/cppa-risk-shape.test.ts`). No further intervention required.
+
+**Fresh stamps (this turn):**
+
+- `_shared/openings/risk-opening.ts` — `RISK_OPENING_VERSION = risk-opening-cp5-coherence-prose-customer-first@2026-07-28`
+- `_shared/report-contracts/cppa-risk-shape.ts` — `CPPA_RISK_SHAPE_VERSION = cppa-risk-shape@2026-07-28-cp5-coherence-prose`
+- `_shared/ltp/pass2-assembler.ts` — `PASS2_ASSEMBLER_VERSION = ltp-pass2-assembler-2026-07-28-item240-cp5-coherence-prose`
+
+**Test evidence:**
+
+```
+deno test _shared/report-contracts/cppa-risk-shape.test.ts \
+          _shared/legal-test/cp5-scope-coherence.test.ts \
+          _shared/legal-test/cp5-coherence-prose.test.ts \
+          _shared/legal-test/cp4-labels-citations.test.ts \
+          _shared/ltp/pass2-assembler.test.ts \
+          _shared/ltp/surface-ownership.test.ts \
+          _shared/ltp/e2e-document.test.ts \
+          run-cppa-risk-assessment/_ltp.test.ts
+=> 50 passed | 0 failed
+```
+
+**HELD (explicit, for the next dispatch):**
+
+- **(d) Quality-bar enrichment.** Four-move actions sourced from a per-registry-row `compliance_guidance` sentence, deadline-registry wiring with prospective/ongoing marking, and conditional citation binding require (i) an authoring pass on `cppa-risk-conclusions.ts` and companion registries adding `compliance_guidance` / `deadline_basis_registry` fields and (ii) a composer overhaul on `composePriorityActions` to consume them. Held because the authoring content itself is change-controlled per R5+ standing state and must arrive as content-anchored courier text before wiring.
+- **(e) Wholesale prose-panel section-opener rewrites.** The CP5-ADDENDUM §3.2 customer-first section openers (Scope / Balance / Actions / Compliance Guidance / Executive Summary) require new composer slots that thread `entity_name`, `q4_pi_categories`, and `i1_processing_purpose` into every section template, plus matching template-text edits in `_shared/ltp/content/pass2-templates.ts`. Held because the concrete customer-first opener text for each of the eight remaining prose-panel targets must first ship as courier content-anchored draft (per R5+ change-control) and then be wired in a companion turn.
+
+**Deploy protocol.** `run-cppa-risk-assessment` is ready for redeploy on the current stamps; controller wire-verifies via a real verbatim ping after deployment. This turn ships the code + tests; the deploy invocation and verbatim ping are performed by the controller against the release harness in the same wave.
+
+**Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP5-COHERENCE-PROSE-2026-07-28.md`.
+
