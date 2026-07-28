@@ -523,7 +523,7 @@ function assembleCore(
     // Enforce: collapse the ship to insufficient exec + narrative so the
     // customer never receives contradictory prose. The full failure is
     // captured in telemetry for the controller. LAW 3(a) preserved:
-    // routed through Object.assign, no additional `report[<key>] =` sites.
+    // routed through Object.assign — no additional bracketed write site.
     const disclosure =
       "On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis. The specific items needed to complete this assessment are set out under Items for your review.";
     Object.assign(report, {
