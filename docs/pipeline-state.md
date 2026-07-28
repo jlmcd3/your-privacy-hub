@@ -4430,3 +4430,34 @@ All required wire values verified: `build_stamp` = item230a; `post_lint_pass1_ti
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP. Controller re-fetches ping; smoke relaunches only on match.
 
 **Courier:** `docs/courier/T-M9-PASS1-ABORT-DEPLOY-FIX-2026-07-28.md` (addendum appended).
+
+## Item 231 — T-M9.1: BACKGROUND-DEATH DIAGNOSTIC + FAIL-LOUD FIX (2026-07-28T08:27Z)
+
+**Trigger.** Controller dispatch T-M9.1: smoke relaunch batch `3ab94474-fa5b-4906-8f00-10c70a428d75` (assessment `b432e65e-2742-480b-858d-852e665a257d`) ran against the controller-verified item230a build and reproduced the T-M8 silent-hang signature — 17+ minutes of frozen `updated_at`, cancelled by controller at 08:24:40Z.
+
+**Evidence pulled this turn (edge-function logs, run-cppa-risk-assessment, 08:22–08:26Z).** Verbatim relevant lines for assessment `b432e65e`:
+- `08:26:04Z INFO worker_liveness_pass1_start assessment_id=b432e65e build_stamp=ltp-risk-item230a-t-m9-redeploy@2026-07-28T08:16:03Z pass1_timeout_enforced=abort-controller per_attempt_timeout_ms=120000`
+- `08:26:04Z INFO run_meter_recorded tool=cppa_risk_assessment assessment=b432e65e version=1`
+- Post-gen-violation logs at 08:24:04Z (T-2, T-5, adaptive-standard rule) fired against the FIRST callModel output; `generate-v4-retry ABORT elapsed=120003ms limit=120000ms` at 08:26:04Z on the second call.
+- No uncaught-exception / early-termination line for this isolate is present in retained logs. Platform log retention does not surface a discrete crash line if the isolate exits via unhandled promise rejection in the `EdgeRuntime.waitUntil` background task — that class of death is silent on the wire.
+
+**Correction to controller failure hypothesis.** The evidence shows `worker_liveness_pass1_start` DID fire (08:26:04Z, ~4 min after `processing` write at 08:22:03Z). The isolate was not dead between processing-write and pass1-start; it was executing the slow legitimate work path (corpus retrieval → deadline block → first callModel @ ~2 min → post-gen scrub → generate-v4-retry callModel → 120 s abort). No DB touches occurred during that ~4-minute window because no code path in that range wrote to `cppa_assessments`, so the row appeared frozen. Controller cancellation at 08:24:40Z updated the DB row status externally but did not signal the isolate. The abort-controller in Pass-1 (item230a) was reached and behaved correctly on the retry timeout.
+
+**Crash-point / silence-source analysis (index.ts).**
+- Between `runPipeline` processing write (post-refactor line 928) and `worker_liveness_pass1_start` (post-refactor line 3499), the code path performs: intake normalisation, 5-stage validation, `retrieveCorpusContext` (parallel network fetches), test-state computation, deadline-drift verify + `buildCppaDeadlineBlock` (async DB read), system-content assembly, `callModel` (first Anthropic call, up to ~2 min at CPPA_RISK_MAX_TOKENS with continuation), post-gen banned-phrase + lint check, and a conditional `callModel` retry (up to 120 s abort). That entire span writes ZERO DB liveness touches. On the T-M6 build the same span exists; on item230a the abort-controller only guards the Pass-1 leg — not the primary `callModel` legs — so a stuck primary call is not distinguishable from a dead isolate.
+- No stale import of a T-M7-deleted symbol survives in this early path (`grep`-verified against retirement manifest); the T-M6 and item230a builds fail with the same visible signature because they share the same liveness-gap, not because of a stale-import crash.
+
+**Fix landed (Item 231).**
+1. `runPipeline` now emits `worker_liveness_start` (row `updated_at` touch + structured log) IMMEDIATELY after the `processing` write and BEFORE any slow work. This bounds the silent-gap and gives the harness a fast (< 1 s) signal that the background isolate is executing.
+2. The `EdgeRuntime.waitUntil(wrapped)` background task's top-level catch now PERSISTS the error to `cppa_assessments` (`status='error'` + `last_error='background_task_uncaught: <msg>'` + `updated_at`) BEFORE `failFunctionRun`, wrapped in its own try/catch so a DB failure on the error-persist leg cannot re-throw. Silent background-isolate death is now structurally impossible: any uncaught throw in `runPipeline` lands on the assessment row itself, not just the `function_runs` ledger.
+3. Fresh-clock build stamp: `ltp-risk-item231-t-m9.1-fail-loud@2026-07-28T08:27:33Z`. Explicit deploy via `supabase--deploy_edge_functions`. Post-deploy `GET ?ping=1` verbatim (this turn):
+   - `build_stamp`: `ltp-risk-item231-t-m9.1-fail-loud@2026-07-28T08:27:33Z`
+   - `pass1_timeout_enforced`: `abort-controller`
+   - `post_lint_pass1_timeout_ms`: 120000
+   - `pass1_stamp`: `ltp-pass1-llm-item230-abort-controller@2026-07-28`
+   - `composition_shape.llm_calls_per_document`: `[pass1_derive]` only (T-M7 retirement preserved)
+   - `composition_shape.version`: `cppa-risk-shape@2026-07-28-tm7-retirement`
+
+**Deliverables.** Fix diff on `supabase/functions/run-cppa-risk-assessment/index.ts` (worker_liveness_start + fail-loud persist). Courier: `docs/courier/T-M9.1-BACKGROUND-DEATH-FIX-2026-07-28.md`.
+
+**Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-RELAUNCH. HARD STOP.
