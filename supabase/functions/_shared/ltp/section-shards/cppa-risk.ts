@@ -411,20 +411,22 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   {
     key: "part_a",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "legacy-v3-passthrough" },
-    project: NONE,
-    note: "V3 legacy surface. Frontend-tolerant. No plan projection; empty-by-default.",
+    // ITEM 237 fix (c) — emit as empty-by-design so telemetry states the
+    // truth (structural presence at the shard) rather than `no_content`.
+    project: () => ({}),
+    note: "V3 legacy surface. Frontend-tolerant. Emits {} as empty-by-design.",
   },
   {
     key: "part_b",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "legacy-v3-passthrough" },
-    project: NONE,
-    note: "V3 legacy surface. Frontend-tolerant. No plan projection; empty-by-default.",
+    project: () => ({}),
+    note: "V3 legacy surface. Frontend-tolerant. Emits {} as empty-by-design.",
   },
   {
     key: "gating",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "legacy-v3-passthrough" },
-    project: NONE,
-    note: "V3 legacy surface. Frontend-tolerant. No plan projection; empty-by-default.",
+    project: () => ({}),
+    note: "V3 legacy surface. Frontend-tolerant. Emits {} as empty-by-design.",
   },
 
   // ── Annotations / review / debug (deterministic from plan/validators) ─
