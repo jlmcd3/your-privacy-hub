@@ -365,6 +365,7 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       surface_cut_violations: [],
       pre_serializer_cut_pending,
       pre_serializer_unowned_pending,
+      pre_serializer_value_screen_pending: screen.finalHitDetails,
       hook_audit_ok: true,
       hook_value_present: hookPresent,
 
