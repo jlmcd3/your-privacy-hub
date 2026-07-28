@@ -478,7 +478,18 @@ function assembleCore(
     }
     sectionTele.push(rendered.telemetry);
     if (rendered.value !== undefined) {
-      report[shard.key] = rendered.value;
+      // CP3 shape contract — narrative-scalar shards ship as a single
+      // string; assessment_summary ships as { narrative: string }. See
+      // _shared/report-contracts/cppa-risk-shape.ts.
+      if ((NARRATIVE_SCALAR_KEYS as readonly string[]).includes(shard.key)) {
+        const s = coerceNarrativeScalar(rendered.value);
+        if (s !== undefined) report[shard.key] = s;
+      } else if (shard.key === "assessment_summary") {
+        const bag = coerceAssessmentSummary(rendered.value);
+        if (bag !== undefined) report[shard.key] = bag;
+      } else {
+        report[shard.key] = rendered.value;
+      }
     }
   }
 
