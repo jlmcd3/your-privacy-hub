@@ -4887,3 +4887,29 @@ Scope: (A) SINGLE-WRITER CORE with revised order of operations in `runPass1Llm`;
 
 **Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP2-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP.
+
+---
+
+### Item 240 CP3 — CONSOLIDATED CORRECTION CHECKPOINT 3 (PDF SEAM + EXEC PROJECTION)
+Date: 2026-07-28 (post-run-#174)
+Status: DONE — deployed, ping-verified.
+
+**Action.** Closed the customer-facing seam:
+1. Authored `_shared/report-contracts/cppa-risk-shape.ts` — single shape contract imported by the assembler and both PDF exporters.
+2. Assembler (`pass2-assembler.ts`) coerces every narrative-scalar shard (`executive_summary`, `opening_summary`, `submission_summary`, …) to a plain string and shrinks `assessment_summary` to `{ narrative }`. Version → `ltp-pass2-assembler-2026-07-28-item240-cp3-shape`.
+3. `composeExecutive` gains a COHERENCE INVARIANT: zero-activity / empty engaged-applicability routes to the "insufficient" variant, killing the run-#174 "no activities identified… For the activities identified…" contradiction.
+4. `generate-report-pdf/index.ts` — new `buildCPPARiskLtpHTML` renders the assembler shape directly; dispatched via `isLtpRiskShape`. BUILD_STAMP → `generate-report-pdf-item240-cp3`.
+5. `generate-cppa-suite-pdf/index.ts` — `renderRisk` consumes the LTP shape via `coerceNarrative` (opening, string exec, string arrays for scope/next-steps, string-form top-risks/domains).
+6. `run-cppa-risk-assessment` BUILD_STAMP → `ltp-risk-item240-cp3`.
+
+**Joint test.** `_shared/report-contracts/cppa-risk-shape.test.ts` — 7 tests: scalar/array/bag coercion, empty-drop, exec coherence detection, normal-path assembler emits string exec, Type-J path emits string exec, version constant. Result: 15 passed / 0 failed (joint + assembler + single-writer).
+
+**Deploy + ping (verbatim excerpt).**
+```
+build_stamp: ltp-risk-item240-cp3@2026-07-28T12:09:03.880Z
+pass2_assembler: ltp-pass2-assembler-2026-07-28-item240-cp3-shape
+pass1_stamp: ltp-pass1-llm-item240-cp2-single-writer@2026-07-28
+```
+
+**Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP3-PDF-SEAM-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY + PDF OPEN. HARD STOP.
