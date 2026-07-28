@@ -526,6 +526,8 @@ export default function CPPARiskAssessment() {
     // new § 7152 elements
     q5b_profiling_observation: q5bProfiling,
     q5c_share_revenue_50pct: q5cShareRev,           // R1a
+    // T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand.
+    bought_sold_shared_count: bssCount,
     q15b_under16_knowledge: q15bUnder16,
     q15c_spi_volume: q15cSpiVolume,                 // R1a
     q18b_admt_training: q18bTraining,
@@ -565,7 +567,7 @@ export default function CPPARiskAssessment() {
   }), [
     entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
-    q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -581,7 +583,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, subjectAnchor, q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     exceptionClaims, impactData,
   }), [
@@ -590,7 +592,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, subjectAnchor, q5bProfiling, q5cShareRev, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     exceptionClaims, impactData,
   ]);
@@ -601,7 +603,7 @@ export default function CPPARiskAssessment() {
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
-    entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
