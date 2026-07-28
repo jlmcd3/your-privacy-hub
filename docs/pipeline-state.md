@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T13:21Z (Item 240 CP5 COHERENCE-PROSE — CEO release wired: risk-opening render order flipped to customer-first S2→S3→S4→S0→S1→S5→S6 at the source of truth (`RISK_OPENING_SLOT_ORDER` exported for test binding); exec/balance coherence ENFORCED at assembler exit via `assertShippedCoherence`/`detectShippedMode` in the shape contract (violations collapse the ship to insufficient prose in enforce mode, LAW 3(a) preserved via `Object.assign`); joint test `cp5-coherence-prose.test.ts` covers slot-order, mode-fingerprint, insufficient-over-firm rejection, and intra-document trigger consistency (opening `s1_triggers` ↔ scope engaged pinpoints); assembler stamp `ltp-pass2-assembler-2026-07-28-item240-cp5-coherence-prose`; shape stamp `cppa-risk-shape@2026-07-28-cp5-coherence-prose`; opening stamp `risk-opening-cp5-coherence-prose-customer-first@2026-07-28`; full suite 50/50 green. HELD for a follow-up wiring turn per courier §Held: quality-bar enrichment (d) — four-move actions from `compliance_guidance` registry rows + deadline-registry wiring with prospective/ongoing marking — and the wholesale prose-panel section-opener text rewrites (e) for scope/balance/actions/guidance/exec require new composer slots threading `entity_name`/`q4_pi_categories` and a companion registry authoring pass; called out explicitly so the next dispatch can pick them up without re-reading this turn.)
+**Last updated:** 2026-07-28T20:26Z (Item 241.1 STRUCTURAL — E1 scope engaged-lead + `prong_subject` resolver gap closed; E2 insufficiency predicate re-keyed to `G.documentation.*` gates alone; Q1/Q2 golden-shape depth telemetry landed observe-mode at assembler exit; deployed `run-cppa-risk-assessment` build_stamp=`ltp-risk-item241-1-structural-golden-shape@2026-07-28T20:26:08.905Z` with verbatim boot ping.)
 
 ---
 
@@ -5022,4 +5022,31 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Deploy protocol.** `run-cppa-risk-assessment` is ready for redeploy on the current stamps; controller wire-verifies via a real verbatim ping after deployment. This turn ships the code + tests; the deploy invocation and verbatim ping are performed by the controller against the release harness in the same wave.
 
 **Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP5-COHERENCE-PROSE-2026-07-28.md`.
+
+---
+
+### Item 241.1 — STRUCTURAL FIXES + GOLDEN-SHAPE TELEMETRY (cppa-risk)
+
+**Date.** 2026-07-28T20:26Z. **Scope.** Authoring + deploy on `run-cppa-risk-assessment`. Option A step 1 of 3 under Item 241 (GOLDEN-SHAPE IMPOSITION).
+
+**Fixes.**
+- **E1 — Scope engaged-lead + resolver gap.** `slot-resolver.ts` gained `prong_subject` in `SlotContext` and in `resolveSlot`; without it, fill-or-omit dropped scope templates on the required-slot check. `composeScope` in `section-composers/cppa-risk.ts` now sorts engaged prongs to the lead via bucketed stable sort (registry order preserved within bucket).
+- **E2 — Insufficiency predicate re-keyed.** `insufficientRecord` derives insufficiency exclusively from `G.documentation.*` gate outcomes; legacy `factor_table.length === 0` heuristic retired. `aggregateBalance` consumes the same predicate so exec/balance modes cannot split at the exit.
+- **Q1/Q2 — Golden-shape depth telemetry.** New `_shared/ltp/golden-shape-quotas.ts` (top-50 corpus quotas, pure evaluator). `pass2-assembler.ts` wires `evaluateGoldenShape(report)` into `telemetry.exit_checks.golden_shape` (observe-mode; no mutation). Assembler version bumped to `pass2-assembler@2026-07-28-item241-1-structural`.
+
+**Design mirror.** `docs/design/GOLDEN-SHAPE-cppa-risk.md`.
+
+**Tests.** `_shared/legal-test/item241-1-structural.test.ts` → 5/5 green. Related suites (`_shared/legal-test/**`, `pass2-assembler.test.ts`, `e2e-document.test.ts`, `report-contracts/**`) → 43 passed / 0 failed under `--no-check`. A pre-existing `--check` failure in `_shared/render-plan/validators.lia.test.ts:237` (fixture rows missing `authority_weight` on `guidance_refs`) is unrelated to this scope and is flagged for a hygiene turn.
+
+**Deploy + verbatim ping.** BUILD_STAMP bumped in `run-cppa-risk-assessment/index.ts` line 23. Deployed. Boot log verbatim:
+
+```
+2026-07-28T20:26:08Z INFO [run-cppa-risk-assessment] boot build_stamp=ltp-risk-item241-1-structural-golden-shape@2026-07-28T20:26:08.905Z
+2026-07-28T20:26:08Z INFO {"evt":"risk_va_registry_loaded","fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-item241-1-structural-golden-shape@2026-07-28T20:26:08.905Z","va_version":"risk-va-w1-2026-07-24","va_rows":44}
+```
+
+**Next.** 241.2 — Registry authoring courier (per-row `compliance_guidance` + statutory deadline registry content, verbatim for CEO review). 241.3 — Wiring turn (bind registry content through pass-2 templates; consider flipping `golden_shape` from observe to advisory once quotas stabilise on live runs).
+
+**Courier.** `docs/courier/ITEM241-1-STRUCTURAL-GOLDEN-SHAPE-2026-07-28.md`.
+
 
