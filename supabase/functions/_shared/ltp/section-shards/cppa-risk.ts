@@ -130,39 +130,66 @@ const projectMeta = (plan: RenderPlan): unknown => ({
 // The registry.
 // ---------------------------------------------------------------------
 
+// ---------------------------------------------------------------------
+// ITEM 236 fix (c) — Deterministic composers for always-emitting boilerplate
+// surfaces. Every 38-key row now has an honest expected-emission class;
+// the E2E document gate (LAW 2, tightened) fails when any always-section
+// omits — an always-section's absence is never intentional.
+// ---------------------------------------------------------------------
+
+const STANDARD_DISCLAIMER =
+  "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
+
+const FRAMEWORK_DISCLAIMER =
+  "This assessment is structured against the framework of the CCPA and its implementing regulations (11 CCR §§ 7150–7157). It is a documentation aid, not a legal opinion.";
+
+const ACCURACY_CAVEAT =
+  "The analytical outputs in this document are computed deterministically from the intake record and the corpus-verified statutory anchors. Facts that are silent on the record are omitted, never invented.";
+
+const ENFORCEMENT_CONTEXT_STANDING_LINE =
+  "No CPPA enforcement precedents are verified in the corpus at the time of this assessment. Enforcement context will be added when precedent rows are ingested and 40-character verbatim substring verified.";
+
+const ATTESTATION_TEXT =
+  "This assessment must be reviewed and attested to by qualified legal counsel before operational reliance. The Company remains responsible for the accuracy of the underlying intake and for its determination under 11 CCR § 7152.";
+
 export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   // ── Metadata / frontend contract literals (deterministic) ─────────
   {
     key: "schema_version",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "schema-version-literal" },
-    project: NONE,
-    note: "Frontend-visible schema tag; emitted by run-cppa-risk-assessment.",
+    project: (_plan) => "cppa_risk_v4",
+    note: "Frontend-visible schema tag; literal owned by the shard.",
   },
   {
     key: "document_metadata",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "document-metadata-composer" },
-    project: NONE,
+    project: (plan) => ({
+      tool: "cppa_risk_assessment",
+      render_plan_version: (plan as unknown as { plan_version?: string }).plan_version ?? "v1",
+      build_stamp: plan.build_stamp,
+      jurisdiction_tag: plan.jurisdiction_tag,
+    }),
   },
   {
     key: "attestation_block",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "attestation-block-composer" },
-    project: NONE,
+    project: (_plan) => ({ text: ATTESTATION_TEXT, attested: false }),
   },
   {
     key: "disclaimer",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "standard-disclaimer-literal" },
-    project: NONE,
+    project: (_plan) => STANDARD_DISCLAIMER,
     note: 'Core-memory Standard Disclaimer literal ("not legal advice…").',
   },
   {
     key: "framework_disclaimer",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "framework-disclaimer-literal" },
-    project: NONE,
+    project: (_plan) => FRAMEWORK_DISCLAIMER,
   },
   {
     key: "accuracy_caveat",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "accuracy-caveat-literal" },
-    project: NONE,
+    project: (_plan) => ACCURACY_CAVEAT,
   },
   {
     key: "domains",
