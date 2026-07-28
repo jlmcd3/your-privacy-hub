@@ -8,8 +8,14 @@ import {
   COMPOSITION_HOOK_AUDIT_VERSION,
 } from "./composition-hook-audit.ts";
 
-Deno.test("composition-hook-audit: version stamp (Item 217)", () => {
-  assertEquals(COMPOSITION_HOOK_AUDIT_VERSION, "composition-hook-audit@2026-07-28-item217");
+Deno.test("composition-hook-audit: version stamp (Item 230)", () => {
+  assertEquals(COMPOSITION_HOOK_AUDIT_VERSION, "composition-hook-audit@2026-07-28-item230");
+});
+
+Deno.test("composition-hook-audit: hook unset + branch entered + pass1_abort_timeout origin = OK (Item 230)", () => {
+  assertCompositionHookConformance({
+    hookValue: undefined, writeAroundEntered: true, writeAroundOrigin: "pass1_abort_timeout",
+  });
 });
 
 Deno.test("composition-hook-audit: hook set + branch entered = OK", () => {
