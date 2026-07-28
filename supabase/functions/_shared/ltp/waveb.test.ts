@@ -90,7 +90,8 @@ Deno.test("pass1 manifest exposes model + prompt version (T-M5 fold-in: direct A
   assert(PASS1_MANIFEST.prompt_version.startsWith("pass1-derive-"));
 });
 
-Deno.test("all 27 templates enumerated (T-M3 authored 8 new; T-M5 fold-in updates count from 16)", () => {
-  assertEquals(Object.keys(PASS2_TEMPLATES).length, 27);
+Deno.test("all 34 templates enumerated (ITEM 241.3 adds 7: golden four-move action, record_sufficiency prose lead-in, 5 CP5 §3.2 section openers)", () => {
+  assertEquals(Object.keys(PASS2_TEMPLATES).length, 34);
 });
+
 
