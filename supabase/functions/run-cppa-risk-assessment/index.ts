@@ -912,6 +912,14 @@ async function callModel(
   maxTokens: number = CPPA_RISK_MAX_TOKENS,
   timeoutMs?: number,
 ): Promise<{ text: string; stopReason: string | null }> {
+  // T-M9.2 (Item 232): legacy v4 generation is retired at runtime. Any
+  // invocation is undeclared composition-shape drift — fail loud so the
+  // pipeline never spends on a discarded call again.
+  if (LEGACY_GENERATION_RETIRED) {
+    legacyLlmCallCount += 1;
+    legacyLlmCallLabels.push(label);
+    throw new Error(`composition_shape_drift:legacy_v4_callmodel_invoked:label=${label}`);
+  }
   const r = await callAnthropicWithContinuation({
     model: "claude-sonnet-4-6",
     system, user, maxTokens, label, timeoutMs,
