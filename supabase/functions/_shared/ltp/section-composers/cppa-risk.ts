@@ -14,14 +14,15 @@
  *   (c) EXEC/BALANCE COHERENCE: composeExecutive consumes the same
  *       aggregateBalance(plan) mode that balanceInstance uses.
  */
-import type { RenderPlan, FactorTableEntry, Proposition, StatutoryAnchor } from "../../render-plan/schema.ts";
+import type { RenderPlan, FactorTableEntry, Proposition, StatutoryAnchor, GateRuleOutcome } from "../../render-plan/schema.ts";
 import type { SlotContext } from "../slot-resolver.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES, BALANCE_DIRECTION_CLAUSES } from "../content/pass2-templates.ts";
 import { computeCloseness, chooseVariant } from "../closeness.ts";
 import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec } from "../../legal-test/cppa-risk-conclusions.ts";
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
+import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item241-3-wiring";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-batch3";
 
 export { aggregateBalance, DOCUMENTATION_FACTUAL_GATE_IDS, DOCUMENTATION_JUDGMENT_GATE_IDS };
 export type { BalanceMode };
