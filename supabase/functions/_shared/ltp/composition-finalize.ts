@@ -381,7 +381,57 @@ export function currentEnforceMode(env: { get(name: string): string | undefined 
 }
 
 /** Re-export for callers that read the hook value at the composition start. */
+
+// ── ITEM 215 — POST-SERIALIZER SHIPPED VALUE-SCREEN ──────────────────
+//
+// Same consolidation pattern as Items 211 (CUT) and 213 (unowned): the
+// enforce decision for leak-lexicon / truncated-slot-value / statutory-
+// text hits moves to the shipped projection at the wire-site. NEVER
+// throws — wire-site persist invariant is absolute. Callers write
+// `_meta.internal.shipped_value_screen` from the returned envelope and
+// enforce measurement verdicts via `enforce_violation`.
+
+export interface ShippedValueScreenEvaluation {
+  readonly version: string;
+  readonly mode: FinalizeMode;
+  readonly hits: readonly ValueScreenHit[];
+  readonly enforce_violation: boolean;
+}
+
+export function evaluateShippedValueScreen(
+  shipped: unknown,
+  opts: { mode?: FinalizeMode; corpusSnippets?: readonly string[] } = {},
+): ShippedValueScreenEvaluation {
+  const mode: FinalizeMode = opts.mode ?? currentEnforceMode();
+  let hits: readonly ValueScreenHit[] = [];
+  try {
+    runValueScreen({ reportData: shipped, corpusSnippets: opts.corpusSnippets });
+  } catch (e) {
+    if (e instanceof ValueScreenError) hits = e.hits;
+    // any other error → suppress; wire-site cannot throw
+  }
+  return {
+    version: SHIPPED_VALUE_SCREEN_VERSION,
+    mode,
+    hits,
+    enforce_violation: mode === "enforce" && hits.length > 0,
+  };
+}
+
+/** Item 215 fix (b) — true iff a lint entry's `field` references a
+ * retired-surface path (any RISK_CUT_RULINGS top-level prefix). Callers
+ * use this to skip pushing lint_warnings entries whose subject was
+ * removed by the serializer, so retired surfaces never appear in lint
+ * output. */
+export function isRetiredSurfacePath(p: unknown): boolean {
+  if (typeof p !== "string" || p.length === 0) return false;
+  const top = p.split(".")[0].split("[")[0];
+  return CUT_TOP_LEVEL_ALL.has(top);
+}
+
+/** Re-export for callers that read the hook value at the composition start. */
 export { readForceWriteAroundOnce };
+
 
 // ── SAFE WRAPPER (SMOKE-HANG ROOT FIX, 2026-07-27) ─────────────────
 // HARD INVARIANT: finalize-path failures must NEVER prevent persist.
