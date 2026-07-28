@@ -224,8 +224,17 @@ export interface GroundedSet {
 function ledgerVerbatimStrings(ledger: readonly IntakeLedgerEntry[]): string[] {
   const out: string[] = [];
   for (const l of ledger) {
+    // ITEM 243 defect 1(a) — feed EVERY content-bearing field of the
+    // ledger row into the grounded vocabulary: display label, verbatim
+    // value, AND the humanized intake_field key. Prior versions only
+    // fed `display` (often == value), so vocab like "opt out", "revenue"
+    // that lived in the field-key never grounded.
     if (l.display) out.push(String(l.display));
     if (l.value !== null && l.value !== undefined) out.push(String(l.value));
+    if (l.intake_field) {
+      out.push(displayLabelForField(l.intake_field));
+      out.push(l.intake_field.replace(/_/g, " "));
+    }
   }
   return out;
 }
@@ -236,7 +245,6 @@ export function buildGroundedSet(ledger: readonly IntakeLedgerEntry[]): Grounded
   const feed = (text: string) => {
     for (const raw of tokenize(text)) {
       if (!isContentToken(raw)) continue;
-      // Numerals are grounded through numeralSources — not here.
       if (/^\d/.test(raw)) continue;
       for (const v of inflections(raw)) tokens.add(v);
     }
@@ -254,7 +262,6 @@ export function buildGroundedSet(ledger: readonly IntakeLedgerEntry[]): Grounded
 export function isGrounded(token: string, set: GroundedSet): boolean {
   if (!isContentToken(token)) return true;
   if (/^\d/.test(token)) {
-    // numeral: any exact substring hit in any ledger verbatim
     return set.numeralSources.some((s) => s.includes(token));
   }
   return set.tokens.has(token);
@@ -267,37 +274,40 @@ export function isGrounded(token: string, set: GroundedSet): boolean {
 export interface GroundedNoteReplacement {
   readonly factor_id: string;
   readonly reason: "ungrounded_token";
-  readonly ungrounded_tokens: readonly string[];  // up to 5 for evidence
-  readonly original_note: string;                 // ≤200 chars
+  readonly ungrounded_tokens: readonly string[];
+  readonly original_note: string;
   readonly replacement_note: string;
-  readonly ledger_ref?: string;                   // ledger_id used for the grounded form, if any
+  readonly ledger_ref?: string;
 }
 
 export interface GroundedNoteTelemetry {
   readonly version: string;
-  readonly candidates: number;              // rows with non-empty weight_note pre-screen
+  readonly candidates: number;
   readonly replacements: number;
-  readonly replacement_rate: number;        // 0..1
-  readonly tuning_threshold_rate: number;   // 0.25 per panel condition 4
+  readonly replacement_rate: number;
+  readonly tuning_threshold_rate: number;
   readonly over_threshold: boolean;
   readonly details: readonly GroundedNoteReplacement[];
 }
 
+/**
+ * ITEM 243 defect 1(c) — pickDrivingLedger MUST NOT arbitrarily fall
+ * back to the first ledger row with a value. That fallback bound
+ * unrelated verbatims (e.g. "email address") onto factors about entirely
+ * different intake fields, yielding false replacements that read as
+ * hallucinations. On no explicit ref match we return undefined, and the
+ * replacement collapses to the canonical "no record evidence".
+ */
 function pickDrivingLedger(
   row: FactorTableEntry,
   ledger: readonly IntakeLedgerEntry[],
 ): IntakeLedgerEntry | undefined {
   const refs = row.intake_ledger_refs ?? [];
-  if (refs.length > 0) {
-    const byId = new Map(ledger.map((l) => [l.ledger_id, l] as const));
-    for (const r of refs) {
-      const hit = byId.get(r);
-      if (hit && hit.value !== null && hit.value !== "" && hit.value !== undefined) return hit;
-    }
-  }
-  // fallback: first ledger row with a non-empty value
-  for (const l of ledger) {
-    if (l.value !== null && l.value !== "" && l.value !== undefined) return l;
+  if (refs.length === 0) return undefined;
+  const byId = new Map(ledger.map((l) => [l.ledger_id, l] as const));
+  for (const r of refs) {
+    const hit = byId.get(r);
+    if (hit && hit.value !== null && hit.value !== "" && hit.value !== undefined) return hit;
   }
   return undefined;
 }
@@ -305,15 +315,14 @@ function pickDrivingLedger(
 function buildGroundedForm(driver: IntakeLedgerEntry | undefined): { note: string; ledger_ref?: string } {
   if (!driver) return { note: "no record evidence" };
   const value = String(driver.value ?? "").trim();
-  const label = String(driver.display ?? driver.intake_field ?? "").trim();
   if (!value) return { note: "no record evidence" };
-  if (!label) return { note: `the intake records "${value}"`, ledger_ref: driver.ledger_id };
+  const label = displayLabelForField(driver.intake_field);
   return { note: `the intake records "${value}" for ${label}`, ledger_ref: driver.ledger_id };
 }
 
 const TUNING_THRESHOLD_RATE = 0.25;
 
-/** Screen the full plan; returns a new plan + telemetry. Pure, never throws. */
+/** Screen the full plan; returns a new plan + telemetry. Pure. */
 export function applyGroundedNoteScreen(
   plan: RenderPlan,
 ): { plan: RenderPlan; telemetry: GroundedNoteTelemetry } {
@@ -323,6 +332,8 @@ export function applyGroundedNoteScreen(
   const out: FactorTableEntry[] = (plan.factor_table ?? []).map((row) => {
     const note = (row.weight_note ?? "").toString();
     if (!note) return row;
+    // ITEM 243 defect 1(b) — canonical no-evidence phrase whitelist.
+    if (CANONICAL_NO_EVIDENCE.test(note)) return row;
     candidates++;
     const tokens = tokenize(note).filter(isContentToken);
     const ungrounded: string[] = [];
@@ -358,3 +369,4 @@ export function applyGroundedNoteScreen(
   };
   return { plan: { ...plan, factor_table: out }, telemetry };
 }
+
