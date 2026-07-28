@@ -11,9 +11,10 @@
  */
 import type { RenderPlan, FactorTableEntry, Proposition } from "../../render-plan/schema.ts";
 import type { SlotContext } from "../slot-resolver.ts";
-import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES } from "../content/pass2-templates.ts";
+import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES, BALANCE_DIRECTION_CLAUSES } from "../content/pass2-templates.ts";
+import { computeCloseness, chooseVariant } from "../closeness.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item235";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item236";
 
 export interface TemplateInstance {
   readonly template_id: string;
