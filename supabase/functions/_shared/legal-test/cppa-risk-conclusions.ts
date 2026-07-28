@@ -67,6 +67,13 @@ export interface ConclusionSpec {
   readonly surface: string;
   /** Primary statutory anchor. */
   readonly anchor: StatutoryAnchor;
+  /**
+   * ITEM 240 CP4 — DISPLAY-LABEL LAYER. Customer-facing English label
+   * used wherever a composer would otherwise humanize the registry id.
+   * REQUIRED on every row; registry-id shapes are structurally unshippable
+   * per value-screen's REGISTRY_ID_PATTERNS class.
+   */
+  readonly display_label: string;
   /** Additional supporting anchors (all must be jurisdiction-domain matched). */
   readonly supporting_anchors?: readonly StatutoryAnchor[];
   /** One-line description of what the conclusion asserts. */
