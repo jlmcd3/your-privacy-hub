@@ -311,6 +311,116 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     max_chars: 520,
   },
 
+  // ITEM 241.3 — GOLDEN four-move gap-driven action template. Renders
+  // (i) element_short_label, (ii) customer_recorded_fact_clause,
+  // (iii) gap_or_consequence_clause, (iv) compliance_guidance_sentence
+  // + one deadline_sentence from the deadline registry. Quota target:
+  // ~747 chars/action per Golden-Shape §1 (top-50 empirical).
+  "T.risk.priority_action.golden": {
+    id: "T.risk.priority_action.golden",
+    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}}",
+    citation_slots: ["PINPOINT"],
+    plan_slots: [
+      "element_short_label",
+      "entity_name",
+      "customer_recorded_fact_clause",
+      "gap_or_consequence_clause",
+      "compliance_guidance_sentence",
+      "deadline_sentence",
+    ],
+    intake_slots: [],
+    max_chars: 1200,
+  },
+
+  // ITEM 241.3 — CP5 §3.2 section-opener templates. Customer-first per
+  // CP5-ADDENDUM §4. Each opener stands alone as an item in the section
+  // list; composers prepend them via composeSection.
+  "T.risk.section_opener.scope": {
+    id: "T.risk.section_opener.scope",
+    text: "{{plan:entity_name}}'s processing of {{plan:q4_pi_categories}} for {{plan:i1_processing_purpose}} engages the following review prongs. Each is a distinct trigger under 11 CCR § 7150(b): {{plan:prong_list_with_individual_pinpoints}}.",
+    citation_slots: [],
+    plan_slots: [
+      "entity_name",
+      "q4_pi_categories",
+      "i1_processing_purpose",
+      "prong_list_with_individual_pinpoints",
+    ],
+    intake_slots: [],
+    max_chars: 700,
+  },
+  "T.risk.section_opener.balance": {
+    id: "T.risk.section_opener.balance",
+    text: "Weighing {{plan:entity_name}}'s stated purpose against the risks to consumers whose {{plan:q4_pi_categories}} is processed, {{plan:balance_outcome_sentence}}. The 11 CCR § 7152 balancing frame governs this assessment.",
+    citation_slots: [],
+    plan_slots: [
+      "entity_name",
+      "q4_pi_categories",
+      "balance_outcome_sentence",
+    ],
+    intake_slots: [],
+    max_chars: 640,
+  },
+  "T.risk.section_opener.actions": {
+    id: "T.risk.section_opener.actions",
+    text: "Given {{plan:customer_fact_clause}}, {{plan:entity_name}} should {{plan:action_verb_phrase}}. This action is required by {{cite:PINPOINT}}.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: [
+      "customer_fact_clause",
+      "entity_name",
+      "action_verb_phrase",
+    ],
+    intake_slots: [],
+    max_chars: 520,
+  },
+  "T.risk.section_opener.compliance_guidance": {
+    id: "T.risk.section_opener.compliance_guidance",
+    text: "For {{plan:customer_fact_clause}}, the regulation requires the following: {{plan:compliance_guidance_sentence}} ({{cite:PINPOINT}}).",
+    citation_slots: ["PINPOINT"],
+    plan_slots: [
+      "customer_fact_clause",
+      "compliance_guidance_sentence",
+    ],
+    intake_slots: [],
+    max_chars: 900,
+  },
+  "T.risk.section_opener.executive_summary": {
+    id: "T.risk.section_opener.executive_summary",
+    text: "{{plan:entity_name}} processes {{plan:q4_pi_categories}} for {{plan:i1_processing_purpose}}. This assessment finds {{plan:aggregateBalance_sentence}}. It is required by {{plan:sections_7150b_pinpoints}} and follows 11 CCR § 7152. As of {{plan:as_of_date}}.",
+    citation_slots: [],
+    plan_slots: [
+      "entity_name",
+      "q4_pi_categories",
+      "i1_processing_purpose",
+      "aggregateBalance_sentence",
+      "sections_7150b_pinpoints",
+      "as_of_date",
+    ],
+    intake_slots: [],
+    max_chars: 720,
+  },
+
+  // ITEM 241.3 — record-sufficiency flowing-prose lead-in (Golden §4.3).
+  // Emitted as the FIRST item in record_sufficiency; per-item entries
+  // (T.risk.record_sufficiency.item) follow. Golden Shape aggregate
+  // quota ~845 chars; this lead-in supplies the flowing-prose surface
+  // (min_chars=500 in the quota table).
+  "T.risk.record_sufficiency.prose": {
+    id: "T.risk.record_sufficiency.prose",
+    text: "The record supporting this assessment is {{plan:sufficiency_clause}}. {{plan:entity_name}} has documented the four factual elements § 7152(a) requires — {{plan:factual_elements_summary_clause}} — and has recorded reserved judgments for {{plan:reserved_judgments_list}}, each attached to the specific record element the judgment governs. Reserved judgments are decisions counsel or the external auditor holds under {{plan:type_j_pinpoints}}; they are not gaps in the record and do not diminish record sufficiency. Where a factual element is absent, the deficiency is enumerated in the safeguard-gaps section with its own pinpoint. As of {{plan:as_of_date}}, the record is sufficient for the § 7152(a)(6) balancing frame to weigh.",
+    citation_slots: [],
+    plan_slots: [
+      "sufficiency_clause",
+      "entity_name",
+      "factual_elements_summary_clause",
+      "reserved_judgments_list",
+      "type_j_pinpoints",
+      "as_of_date",
+    ],
+    intake_slots: [],
+    max_chars: 1400,
+  },
+
+
   // next_steps — per-step shape. Ordering + dedup vs priority_actions
   // is enforced by NEXT_STEPS_ORDERING_LAW (below): a next_step whose
   // action_label matches (case-insensitive, trimmed) an emitted

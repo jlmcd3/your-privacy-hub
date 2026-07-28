@@ -45,7 +45,8 @@ Deno.test("241.1 (E1): scope_and_triggers emits five instances and engaged prong
     report_data: {},
     buildStamp: "item241-1@test",
   });
-  const scope = composeSection("scope_and_triggers", plan)!;
+  const scope = composeSection("scope_and_triggers", plan)!
+    .filter((i) => !i.template_id.startsWith("T.risk.section_opener."));
   assertEquals(scope.length, 5, "must emit one instance per § 7150(b) prong");
   const engagedIndices: number[] = [];
   const notEngagedIndices: number[] = [];
@@ -66,6 +67,7 @@ Deno.test("241.1 (E1): scope_and_triggers emits five instances and engaged prong
     assert(subj.length > 0, "every instance must carry a prong_subject");
   }
 });
+
 
 Deno.test("241.1 (E1): scope shards emit in the shipped report (fill-or-omit no longer trips prong_subject)", () => {
   const plan = derivePlan({

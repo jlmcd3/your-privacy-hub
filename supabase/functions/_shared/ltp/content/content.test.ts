@@ -55,11 +55,22 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.next_step",
     // T-M3 — priority_actions per-action shape (owner-slot deadline_basis).
     "T.risk.priority_action",
+    // ITEM 241.3 — GOLDEN four-move gap-driven action shape.
+    "T.risk.priority_action.golden",
     // T-M3 — record_sufficiency per-item shape.
     "T.risk.record_sufficiency.item",
+    // ITEM 241.3 — record_sufficiency flowing-prose lead-in (Golden §4.3).
+    "T.risk.record_sufficiency.prose",
     "T.risk.review_items",
     // T-M3 — inconsistency_flags per-entry shape.
     "T.risk.review_items.entry",
+    // ITEM 241.3 — CP5 §3.2 customer-first section-opener templates.
+    "T.risk.section_opener.actions",
+    "T.risk.section_opener.balance",
+    "T.risk.section_opener.compliance_guidance",
+    "T.risk.section_opener.executive_summary",
+    "T.risk.section_opener.scope",
+
     "T.risk.summary.activity_line",
     "T.risk.summary.aggregation_note",
     "T.risk.summary.docs",

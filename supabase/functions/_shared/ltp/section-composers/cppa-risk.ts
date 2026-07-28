@@ -18,12 +18,39 @@ import type { RenderPlan, FactorTableEntry, Proposition, StatutoryAnchor } from 
 import type { SlotContext } from "../slot-resolver.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES, SUMMARY_EACH_OR_THIS_CLAUSES, BALANCE_DIRECTION_CLAUSES } from "../content/pass2-templates.ts";
 import { computeCloseness, chooseVariant } from "../closeness.ts";
-import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../legal-test/cppa-risk-conclusions.ts";
+import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec } from "../../legal-test/cppa-risk-conclusions.ts";
+import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item241-1-e1e2";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item241-3-wiring";
 
-export { aggregateBalance };
+export { aggregateBalance, DOCUMENTATION_FACTUAL_GATE_IDS, DOCUMENTATION_JUDGMENT_GATE_IDS };
 export type { BalanceMode };
+
+/**
+ * ITEM 241.3 CONDITION 5 (Type-J engineering rider) — DOCUMENTATION GATE
+ * PARTITION. Factual gates count against record sufficiency; judgment
+ * gates are reserved decisions (never record gaps). `insufficientRecord`
+ * and `aggregateBalance` restrict to the factual subset only, per the
+ * courier's Engineering Rider and the CEO's binding CONDITION 5.
+ *
+ * The judgment subset is enumerated for future protection: today
+ * cppa-risk-gates.ts declares only factual documentation gates, but any
+ * future j.* documentation gate MUST land in the judgment set so the
+ * predicate cannot regress.
+ */
+const DOCUMENTATION_FACTUAL_GATE_IDS: ReadonlySet<string> = new Set([
+  "G.documentation.purpose_present",
+  "G.documentation.categories_present",
+  "G.documentation.operational_elements_present",
+  "G.documentation.approver_present",
+]);
+
+const DOCUMENTATION_JUDGMENT_GATE_IDS: ReadonlySet<string> = new Set([
+  "G.documentation.initiation_decision",
+  "G.documentation.purpose_specificity",
+  "G.documentation.safeguard_sufficiency",
+]);
+
 
 export interface TemplateInstance {
   readonly template_id: string;
@@ -80,23 +107,14 @@ const engagedApplicability = (plan: RenderPlan): Proposition[] =>
 const activityCount = (plan: RenderPlan): number => engagedApplicability(plan).length;
 
 /**
- * ITEM 241.1 (E2) — INSUFFICIENCY-PREDICATE FIX. Insufficiency is derived
- * from DOCUMENTATION GATES ALONE (§ 7152(a) doc-presence gates), per the
- * §2.5 precedence law. Absent optional factors and Type-J conversions do
- * NOT constitute record-insufficiency. Bug named in the CP courier:
- * the pre-fix predicate keyed on `factor_table.present_in_intake` and
- * additionally treated `activityCount === 0` as insufficient in
- * aggregateBalance — both of which caused "coherently insufficient"
- * conclusions on records that had documented purpose/categories.
- *
- * A documentation gate is failing when its outcome is NOT "pass" (either
- * "block" — all keyed fields negative — or "not_applicable" — all keyed
- * fields absent). Either state means § 7152(a) documentation is not on
- * the record.
+ * ITEM 241.3 CONDITION 5 — insufficiency derives from the FACTUAL
+ * documentation-gate subset only. Judgment-subset gates are reserved
+ * decisions and cannot cause an insufficient exec on a docs-complete
+ * record. See DOCUMENTATION_FACTUAL_GATE_IDS / DOCUMENTATION_JUDGMENT_GATE_IDS.
  */
 const insufficientRecord = (plan: RenderPlan): boolean =>
   plan.gate_outcomes.some(
-    (g) => g.gate_id.startsWith("G.documentation.") && g.outcome !== "pass",
+    (g) => DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id) && g.outcome !== "pass",
   );
 
 const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
@@ -105,12 +123,6 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   return negatives > 0 && negatives > benefits;
 };
 
-/**
- * CP4 (c) — SHARED BALANCE AGGREGATION. composeExecutive and balanceInstance
- * both consume this so an "insufficient" exec over a rendered firm/hedged
- * balance is structurally impossible. ITEM 241.1 (E2): activityCount === 0
- * disjunct removed — insufficiency comes from documentation gates only.
- */
 type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
 function aggregateBalance(plan: RenderPlan): BalanceMode {
   if (insufficientRecord(plan)) return "insufficient";
@@ -118,6 +130,7 @@ function aggregateBalance(plan: RenderPlan): BalanceMode {
   const closeness = computeCloseness(plan, plan.weighing_frame);
   return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
 }
+
 
 // ── Composers ────────────────────────────────────────────────────────────
 
@@ -254,21 +267,118 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   });
 }
 
-function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
-  const rows = plan.factor_table.filter((f) =>
-    f.present_in_intake && (f.kind === "negative_impact" || /gap|remediat|action/i.test(f.factor_id))
-  );
-  return rows.map<TemplateInstance>((f) => ({
-    template_id: "T.risk.priority_action",
-    ctx: {
-      action_label: `Address ${factorLabel(f)}`,
-      action_basis: `The record identifies this factor as bearing on the balancing analysis and warranting a documented response.`,
-      deadline_basis: "Complete before the next annual review or before the next material change to the processing activity",
-      // CP4 (b) — deadline pinpoint = this factor's own anchor.
-      __cite: { PINPOINT_DEADLINE: f.anchor.pinpoint },
-    },
-  }));
+// ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
+//
+// Sources, in order (Golden Shape §2):
+//   (1) absent mandatory factors, (2) safeguard gaps, (3) Type-J
+//   reserved judgments, (4) unresolved factual documentation gates,
+//   (5) conditional obligations, (6) present-but-thin factors as
+//   "strengthen" actions. Each emission uses the four-move template
+//   T.risk.priority_action.golden and consumes exactly one deadline row
+//   via selectDeadlineOrFallback (ONE-DEADLINE-PER-ACTION LAW).
+
+function pickIntakeDisplay(plan: RenderPlan, field: string): string {
+  const row = plan.intake_ledger.find((r) => r.intake_field === field);
+  return (row?.display ?? "").trim();
 }
+
+function entityName(plan: RenderPlan): string {
+  return pickIntakeDisplay(plan, "entity_name")
+    || pickIntakeDisplay(plan, "company_name")
+    || "the business";
+}
+
+function deadlineForAction(conclusionId: string | undefined, isDocumentationGate: boolean): string {
+  if (isDocumentationGate) return "d.assessment_record.pre_existing";
+  if (conclusionId && /admt/i.test(conclusionId)) return "d.admt_pre_use_notice.existing";
+  return "d.ongoing_processing";
+}
+
+interface ActionSource {
+  readonly conclusion_id?: string;
+  readonly element_short_label: string;
+  readonly pinpoint: string;
+  readonly customer_recorded_fact_clause: string;
+  readonly gap_or_consequence_clause: string;
+  readonly compliance_guidance_sentence: string;
+  readonly is_documentation_gate: boolean;
+}
+
+function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
+  const entity = entityName(plan);
+  const sources: ActionSource[] = [];
+
+  // (1)+(2) factor-table gaps: mandatory factors absent OR gap-tagged.
+  for (const f of plan.factor_table) {
+    const isGap = !f.present_in_intake || /gap|absent|missing/i.test(f.factor_id);
+    if (!isGap) continue;
+    const label = factorLabel(f) || "this factor";
+    sources.push({
+      element_short_label: label,
+      pinpoint: f.anchor.pinpoint,
+      customer_recorded_fact_clause: f.present_in_intake
+        ? `the record shows ${label.toLowerCase()} but the supporting detail is thin`
+        : `${label.toLowerCase()} is not present on the record`,
+      gap_or_consequence_clause: `the § 7152(a) record cannot be relied upon for ${label.toLowerCase()} without further documentation`,
+      compliance_guidance_sentence: `Document ${label.toLowerCase()} in the assessment record with the specificity ${f.anchor.pinpoint} requires.`,
+      is_documentation_gate: false,
+    });
+  }
+
+  // (3) Type-J reserved judgments.
+  for (const p of plan.propositions) {
+    if (p.epistemic_type !== "J") continue;
+    const spec: ConclusionSpec | undefined = CPPA_RISK_CONCLUSION_INDEX[p.conclusion_id];
+    const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
+    const reservedTo = spec?.reserved_to === "legal_counsel"
+      ? "qualified legal counsel"
+      : spec?.reserved_to === "external_auditor"
+        ? "the external auditor"
+        : "the accountable business owner";
+    sources.push({
+      conclusion_id: p.conclusion_id,
+      element_short_label: label,
+      pinpoint: p.anchor.pinpoint,
+      customer_recorded_fact_clause: `the record reserves ${label.toLowerCase()} to ${reservedTo}`,
+      gap_or_consequence_clause: `the reserved judgment must be exercised and recorded before the assessment closes`,
+      compliance_guidance_sentence: spec?.compliance_guidance
+        ?? `Record ${reservedTo}'s decision on ${label.toLowerCase()} in the assessment file per ${p.anchor.pinpoint}.`,
+      is_documentation_gate: false,
+    });
+  }
+
+  // (4) Unresolved FACTUAL documentation gates.
+  for (const g of plan.gate_outcomes) {
+    if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
+    if (g.outcome === "pass") continue;
+    const label = g.gate_id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
+    sources.push({
+      element_short_label: label,
+      pinpoint: "11 CCR § 7152(a)",
+      customer_recorded_fact_clause: `${label} is not on the record`,
+      gap_or_consequence_clause: `§ 7152(a) requires this element for the assessment record to be complete`,
+      compliance_guidance_sentence: `Complete the § 7152(a) record for ${label} before the assessment closes.`,
+      is_documentation_gate: true,
+    });
+  }
+
+  return sources.map<TemplateInstance>((s) => {
+    const sel = selectDeadlineOrFallback(deadlineForAction(s.conclusion_id, s.is_documentation_gate));
+    return {
+      template_id: "T.risk.priority_action.golden",
+      ctx: {
+        element_short_label: s.element_short_label,
+        entity_name: entity,
+        customer_recorded_fact_clause: s.customer_recorded_fact_clause,
+        gap_or_consequence_clause: s.gap_or_consequence_clause,
+        compliance_guidance_sentence: s.compliance_guidance_sentence,
+        deadline_sentence: sel.row.deadline_sentence,
+        __cite: { PINPOINT: s.pinpoint },
+      },
+    };
+  });
+}
+
 
 function composeNextSteps(plan: RenderPlan): TemplateInstance[] {
   const rows = plan.factor_table.filter((f) => f.present_in_intake && f.kind === "safeguard");
@@ -294,8 +404,28 @@ function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
 }
 
 function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
-  // CP4 (b) — each record item cites its own factor anchor pinpoint.
-  return plan.factor_table.map<TemplateInstance>((f) => ({
+  // ITEM 241.3 — GOLDEN prose lead-in FIRST (courier §4.3).
+  const entity = entityName(plan);
+  const factual = plan.factor_table.filter((f) => f.present_in_intake).map(factorLabel).filter(Boolean);
+  const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
+  const jLabels = jProps.map(propLabel).filter(Boolean);
+  const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
+  const sufficient = !insufficientRecord(plan);
+  const asOf = pickIntakeDisplay(plan, "assessment_date") || new Date().toISOString().slice(0, 10);
+  const prose: TemplateInstance = {
+    template_id: "T.risk.record_sufficiency.prose",
+    ctx: {
+      sufficiency_clause: sufficient
+        ? "sufficient for the § 7152(a)(6) balancing frame to weigh"
+        : "not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies below",
+      entity_name: entity,
+      factual_elements_summary_clause: factual.length > 0 ? joinList(factual) : "the factual elements captured on the record",
+      reserved_judgments_list: jLabels.length > 0 ? joinList(jLabels) : "no reserved judgments",
+      type_j_pinpoints: jPinpoints.length > 0 ? joinList(jPinpoints) : "the applicable § 7152(a) subdivisions",
+      as_of_date: asOf,
+    },
+  };
+  const items = plan.factor_table.map<TemplateInstance>((f) => ({
     template_id: "T.risk.record_sufficiency.item",
     ctx: {
       element_label: factorLabel(f),
@@ -305,7 +435,9 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       __cite: { PINPOINT: f.anchor.pinpoint },
     },
   }));
+  return [prose, ...items];
 }
+
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
   // CP4 (a)+(b) — Type J review items resolve display_label + own anchor.
@@ -378,10 +510,23 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     };
   });
   // ITEM 241.1 (E1) — engaged prongs LEAD; not-engaged prongs follow.
-  // Stable sort so registry order is preserved within each bucket.
   instances.sort((a, b) => (a.__engaged === b.__engaged) ? 0 : (a.__engaged ? -1 : 1));
-  return instances.map(({ template_id, ctx }) => ({ template_id, ctx }));
+  const prongList = instances
+    .map(({ ctx, __engaged }) => `${(ctx.prong_subject ?? "").toString()} (${(ctx.__cite?.PINPOINT ?? "")}) — ${__engaged ? "engaged" : "not engaged"}`)
+    .join("; ");
+  // ITEM 241.3 — CP5 §3.2 customer-first opener prepended.
+  const opener: TemplateInstance = {
+    template_id: "T.risk.section_opener.scope",
+    ctx: {
+      entity_name: entityName(plan),
+      q4_pi_categories: pickIntakeDisplay(plan, "q4_pi_categories") || "personal information",
+      i1_processing_purpose: pickIntakeDisplay(plan, "i1_processing_purpose") || "its stated business purposes",
+      prong_list_with_individual_pinpoints: prongList || "the § 7150(b) triggers enumerated below",
+    },
+  };
+  return [opener, ...instances.map(({ template_id, ctx }) => ({ template_id, ctx }))];
 }
+
 
 // ── Public dispatch ──────────────────────────────────────────────────────
 
