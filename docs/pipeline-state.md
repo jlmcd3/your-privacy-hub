@@ -4868,3 +4868,22 @@ Scope shipped this turn (Checkpoint 1): **(B) unifications** and **(C) validator
 
 **Courier:** `docs/courier/CONSOLIDATED-CORRECTION-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-CHECKPOINT2-DISPATCH. HARD STOP.
+
+### Item 240 CP2 — CONSOLIDATED CORRECTION Checkpoint 2 (SINGLE-WRITER CORE)
+Dispatch: CEO Item 240 Checkpoint 2 (2026-07-28).
+Scope: (A) SINGLE-WRITER CORE with revised order of operations in `runPass1Llm`; (E) shipped-shape contract fix for `executive_summary`; (F) joint tests; verify-first fossil re-scan (POST_LINT_LLM_* NOT fossils this turn — retirement deferred with justification).
+
+**Root cause named (code-verified against run #173).** `validateRenderPlan` ran at Pass-1 parse time, BEFORE `runGuideStage` populated `weighing_frame`. The courier-controlled prompt (Rule 4) covered `factor_table` only and never asked the model to author frames. V7_W_PROP_NO_FRAME therefore fires deterministically; passing runs #169-171 survived only via spontaneous model fabrication of frame entries. This is the Item 239 S1 (sequencing) + S2 (ambiguous authorship) class.
+
+**Diffs (verify-first).**
+- `_shared/ltp/derive.ts`: exported `pickLedger`, `pickCitationBindings`, `pickFactorTable`, `LEDGER_KEYS` (single source of truth reused by adapter injection).
+- `_shared/ltp/pass1-llm.ts`: introduced `applySingleWriterInjection(parsed, input)`. New order in `runPass1Llm`: parse → adapter injects deterministic fields (plan_version, product, build_stamp, jurisdiction_tag, intake_ledger via `pickLedger`, citation_bindings via `pickCitationBindings`, gate_outcomes via `evaluateCppaRiskGates`, factor_table scaffold via `pickFactorTable` with model overlay of `present_in_intake` + `weight_note` only, propositions skeleton keyed by `CPPA_RISK_CONCLUSIONS` with model-authored polarity preserved for Type R when valid) → `runGuideStage(seed)` populates `weighing_frame` → adapter binds `weighing_frame_ref` on every engaged Type-W proposition → §0 empty-by-finding contract converts any unframed Type-W to Type-J → THEN `validateRenderPlan`. `conservative_write_around` forced to `{triggered:false}` (T-M9.4 VALID PLAN INVARIANT retained). Stamp bumped to `ltp-pass1-llm-item240-cp2-single-writer@2026-07-28`.
+- `_shared/ltp/content/pass1-derive-prompt.ts`: shrunken system prompt to model-judgment fields only; explicit SINGLE-WRITER LAW clause (Rule 2) names adapter-owned fields. Full revised prompt reproduced verbatim in courier. Version bumped to `pass1-derive-2026-07-28-item240-cp2`.
+- `_shared/ltp/pass2-assembler.ts:545`: `buildTypeJWriteAroundBody.executive_summary` fixed from `[disclosure]` (array) to `disclosure` (string) — shared-shape contract now honoured on the correct (assembler) side; PDF exporters unchanged.
+
+**Tests.** New joint test file `_shared/ltp/pass1-llm-single-writer.test.ts` (2 tests): (1) mocked model output that OMITS `weighing_frame` produces a validator-clean plan with Guide-populated frame and resolvable refs on every shipped Type-W prop; (2) adapter overwrites model-authored junk for `intake_ledger`, `citation_bindings`, `gate_outcomes` and preserves the VALID PLAN INVARIANT for `conservative_write_around`. Empty-by-finding invariant is guarded by construction (unframed Type-W → Type-J before validation).
+
+**Fossils (verify-first).** `POST_LINT_LLM_BUDGET_MS`, `POST_LINT_LLM_MAX_CALL_MS`, `POST_LINT_LLM_CALL_TIMEOUT_MS` are still imported by `run-cppa-risk-assessment/index.ts` and referenced by `retry-budget.ts` + `retry-budget.branch-correction.test.ts`. NOT fossils this turn. Full fossil pass deferred to a follow-up dispatch with an explicit preservation table.
+
+**Courier.** `docs/courier/CONSOLIDATED-CORRECTION-CP2-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY. HARD STOP.
