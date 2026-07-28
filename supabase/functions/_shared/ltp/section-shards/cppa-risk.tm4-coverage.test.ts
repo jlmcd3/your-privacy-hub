@@ -151,6 +151,11 @@ Deno.test("T-M4 (c): deterministic + template-cut projections are total over a v
     "enforcement_context",
     "enforcement_precedents",
     "enforcement_meta",
+    // projectManifest projects an optional field that is absent from the
+    // v1 RenderPlan surface today; permitted NONE. Populated once the
+    // manifest lands in Pass-1 output (queued post-T-M6).
+    "debug_review_notes",
+    "fsor_commentary",
   ]);
   for (const k of noneCount) {
     assert(NONE_ALLOWED.has(k), `unexpected NONE projection on ${k}`);
