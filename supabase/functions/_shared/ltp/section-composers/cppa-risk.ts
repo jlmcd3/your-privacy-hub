@@ -404,8 +404,28 @@ function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
 }
 
 function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
-  // CP4 (b) — each record item cites its own factor anchor pinpoint.
-  return plan.factor_table.map<TemplateInstance>((f) => ({
+  // ITEM 241.3 — GOLDEN prose lead-in FIRST (courier §4.3).
+  const entity = entityName(plan);
+  const factual = plan.factor_table.filter((f) => f.present_in_intake).map(factorLabel).filter(Boolean);
+  const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
+  const jLabels = jProps.map(propLabel).filter(Boolean);
+  const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
+  const sufficient = !insufficientRecord(plan);
+  const asOf = pickIntakeDisplay(plan, "assessment_date") || new Date().toISOString().slice(0, 10);
+  const prose: TemplateInstance = {
+    template_id: "T.risk.record_sufficiency.prose",
+    ctx: {
+      sufficiency_clause: sufficient
+        ? "sufficient for the § 7152(a)(6) balancing frame to weigh"
+        : "not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies below",
+      entity_name: entity,
+      factual_elements_summary_clause: factual.length > 0 ? joinList(factual) : "the factual elements captured on the record",
+      reserved_judgments_list: jLabels.length > 0 ? joinList(jLabels) : "no reserved judgments",
+      type_j_pinpoints: jPinpoints.length > 0 ? joinList(jPinpoints) : "the applicable § 7152(a) subdivisions",
+      as_of_date: asOf,
+    },
+  };
+  const items = plan.factor_table.map<TemplateInstance>((f) => ({
     template_id: "T.risk.record_sufficiency.item",
     ctx: {
       element_label: factorLabel(f),
@@ -415,7 +435,9 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       __cite: { PINPOINT: f.anchor.pinpoint },
     },
   }));
+  return [prose, ...items];
 }
+
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
   // CP4 (a)+(b) — Type J review items resolve display_label + own anchor.
