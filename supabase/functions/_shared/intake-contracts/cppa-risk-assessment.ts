@@ -40,6 +40,18 @@ export const SENSITIVE_LOCATION_BASIS_OPTS = [
 // edges align with § 1798.140(d)(1)(B) 100,000 trigger and § 7120(b)(2)(A)
 // 250,000 prong. Legacy V1 labels remain resolvable via resolveConsumerBand.
 export const CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"] as const;
+// T-C1 (2026-07-28) — § 1798.140(d)(1)(B) OPERAND bands. Legal meaning:
+// the approximate number of California consumers or households whose
+// personal information the business BUYS, SELLS, or SHARES annually.
+// The 100,000 edge is the hard § 1798.140(d)(1)(B) statutory line — no
+// band straddles it. Distinct name from CONSUMER_OPTS so a refactor
+// cannot conflate the two operands (see risk-opening.ts design rule 6).
+export const BOUGHT_SOLD_SHARED_OPTS = [
+  "Under 100,000",
+  "100,000 to under 250,000",
+  "250,000 to under 1,000,000",
+  "1,000,000 or more",
+] as const;
 export const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
 export const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
 export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"] as const;
