@@ -382,3 +382,109 @@ Deno.test("isRetiredSurfacePath: matches CUT top-level prefixes, rejects live pa
   assertEquals(isRetiredSurfacePath(""), false);
   assertEquals(isRetiredSurfacePath(undefined), false);
 });
+
+
+// ── ITEM 217 — REGRESSION TESTS ─────────────────────────────────────
+
+Deno.test("Item 217 fix (a): finalize with clock_cap write-around origin does NOT throw hook-audit (production authorized)", () => {
+  const rd = { assessment_summary: { narrative: "clean." } };
+  const res = finalizeComposition({
+    reportData: rd,
+    hookValue: undefined,
+    writeAroundEntered: true,
+    writeAroundOrigin: "clock_cap",
+    mode: "enforce",
+    env: nullEnv,
+  });
+  assertEquals(res.telemetry.hook_audit_ok, true);
+  assertEquals(res.telemetry.write_around_entered, true);
+  assertEquals(res.telemetry.write_around_origin, "clock_cap");
+});
+
+Deno.test("Item 217 fix (a): safeFinalize with clock_cap origin → errored=false", () => {
+  const rd = { assessment_summary: { narrative: "clean." } };
+  const res = safeFinalizeComposition({
+    reportData: rd,
+    hookValue: undefined,
+    writeAroundEntered: true,
+    writeAroundOrigin: "clock_cap",
+    mode: "enforce",
+    env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.enforce_violation, false);
+});
+
+Deno.test("Item 217 fix (a): unauthorized write-around (no origin, no flag) still THROWS/telemeters as audit violation", () => {
+  const rd = { assessment_summary: { narrative: "clean." } };
+  // Direct finalize throws:
+  assertThrows(
+    () => finalizeComposition({
+      reportData: rd,
+      hookValue: undefined,
+      writeAroundEntered: true,
+      // no writeAroundOrigin
+      env: nullEnv,
+    }),
+    CompositionHookAuditError,
+    "unauthorized",
+  );
+  // safe wrapper catches and telemeters:
+  const res = safeFinalizeComposition({
+    reportData: rd,
+    hookValue: undefined,
+    writeAroundEntered: true,
+    env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, true);
+  assertEquals(res.telemetry.error_kind, "CompositionHookAuditError");
+});
+
+Deno.test("Item 217 fix (b): smoke-#11 exact chain — finalize throws AND whole-value 'We' at priority_actions[2].deadline_basis → shipped MUST NOT contain the truncated slot; fragment_omit_paths records it", () => {
+  // Reproduce the exact chain: composed object has the truncated slot
+  // AND the finalize path throws (unauthorized write-around, no origin).
+  // Prior to Item 217 fix (b), the safe-wrapper catch would restore the
+  // unrepaired baseline and the "We" would ship.
+  const rd = {
+    assessment_summary: { narrative: "clean." },
+    priority_actions: [
+      { action: "Do X", deadline_basis: "December 31, 2027" },
+      { action: "Do Y", deadline_basis: "March 1, 2028" },
+      { action: "Do Z", deadline_basis: "We" }, // ← smoke-#11 truncation
+    ],
+  };
+  const res = safeFinalizeComposition({
+    reportData: rd,
+    hookValue: undefined,
+    writeAroundEntered: true, // triggers hook-audit throw (no origin)
+    mode: "enforce",
+    env: nullEnv,
+  });
+  // Finalize threw:
+  assertEquals(res.telemetry.errored, true);
+  assertEquals(res.telemetry.error_kind, "CompositionHookAuditError");
+  // But the repair SURVIVED — top-level fragment_omit fields populated:
+  assertEquals(res.telemetry.fragment_omit_count, 1);
+  assert(res.telemetry.fragment_omit_paths.includes("priority_actions[2].deadline_basis"));
+  // And the shipped/persisted reportData does NOT contain the "We" slot:
+  const out = res.reportData as any;
+  assertEquals(out.priority_actions[2].deadline_basis, undefined);
+  assertEquals(out.priority_actions[0].deadline_basis, "December 31, 2027");
+  assertEquals(out.priority_actions[1].deadline_basis, "March 1, 2028");
+});
+
+Deno.test("Item 217 fix (b): success path — repair happens outside the guard; top-level fields authoritative", () => {
+  const rd = {
+    assessment_summary: { narrative: "The record supports the assessment." },
+    submission_summary: { deadline_basis: "We", real_field: "keep" },
+  };
+  const res = safeFinalizeComposition({
+    reportData: rd, hookValue: undefined, writeAroundEntered: false, mode: "enforce", env: nullEnv,
+  });
+  assertEquals(res.telemetry.errored, false);
+  assertEquals(res.telemetry.fragment_omit_count, 1);
+  assert(res.telemetry.fragment_omit_paths.includes("submission_summary.deadline_basis"));
+  const out = res.reportData as any;
+  assertEquals(out.submission_summary.deadline_basis, undefined);
+  assertEquals(out.submission_summary.real_field, "keep");
+});
