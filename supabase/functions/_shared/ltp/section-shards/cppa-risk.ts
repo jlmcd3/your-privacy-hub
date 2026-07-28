@@ -338,11 +338,13 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "inconsistency_flags",
     owner: {
       kind: "template-cut",
-      template_ids: ["T.risk.review_items"],
-      emitter: "TEMPLATE_CUT — key retained; content restricted to T.risk.review_items output",
+      // T-M3: T.risk.review_items is the LIST-LEVEL surface template;
+      // T.risk.review_items.entry is the per-entry shape it wraps.
+      template_ids: ["T.risk.review_items", "T.risk.review_items.entry"],
+      emitter: "TEMPLATE_CUT — key retained; content restricted to T.risk.review_items output (validator/gate-derived; EMPTY_ARRAY otherwise)",
     },
     project: (plan) => plan.propositions.filter((p) => p.epistemic_type === "J"),
-    note: "RISK_CUT_RULINGS.mode=EMPTY_ARRAY unless T.risk.review_items produces bounded content.",
+    note: "T-M3: wired to T.risk.review_items + T.risk.review_items.entry; EMPTY_ARRAY when validators produce no bounded content.",
   },
   {
     key: "exception_analysis",
@@ -360,12 +362,11 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     key: "record_sufficiency",
     owner: {
       kind: "template",
-      template_ids: [
-        "T.risk.documentation.present",
-        "T.risk.documentation.gap",
-      ],
+      // T-M3: dedicated per-record item shape.
+      template_ids: ["T.risk.record_sufficiency.item"],
     },
     project: projectFactorTable,
+    note: "T-M3: dedicated record_sufficiency.item template; element_status_clause is the closed RECORD_STATUS_CLAUSES enum.",
   },
   {
     key: "information_needed",
