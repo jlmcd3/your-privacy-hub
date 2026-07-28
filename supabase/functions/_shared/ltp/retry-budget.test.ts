@@ -29,13 +29,21 @@ Deno.test("computeRetryBudget: skip when elapsed exceeds threshold", () => {
   assertEquals(b.reason, "elapsed_budget_exceeded");
 });
 
-Deno.test("computeRetryBudget: skip when remaining wall-clock < reserve+minWindow", () => {
-  // ceiling 330s, reserve 90s → cap = 330 - elapsed - 90 must be >= 30
-  // elapsed 220s → cap = 20s → skip
+Deno.test("computeRetryBudget: wall_clock_insufficient branch is unreachable under current constants (T-M7.1)", () => {
+  // T-M7.1 (dispatch, +1 constant): the wall_clock_insufficient branch
+  // requires (a) elapsedMs < MAX_ELAPSED_FOR_RETRY_MS and (b) retryCapMs <
+  // MIN_RETRY_WINDOW_MS. Under the current SMOKE-HANG BRANCH-CORRECTION
+  // constants (ISOLATE_CEILING=900s, MAX_ELAPSED_FOR_RETRY=240s,
+  // POST_RETRY_RESERVE=180s, MIN_RETRY_WINDOW=30s), any elapsed satisfying
+  // (a) leaves remainingWallClock ≥ 660s and retryCapMs ≥ 480s ≫ minWindow,
+  // so (b) can never fire — the branch is dead code preserved as
+  // defence-in-depth if the ceiling ever tightens. Prior test pinned the
+  // OLD (330s / 90s) constants; updated to assert the branch stays dead so
+  // any future constant tightening that revives it lands a real assertion.
   const b = computeRetryBudget({ elapsedMs: 220_000, elapsedThresholdMs: 300_000 });
-  assertEquals(b.allowed, false);
-  assertEquals(b.reason, "wall_clock_insufficient");
-  assertEquals(b.retryCapMs, ISOLATE_CEILING_MS - 220_000 - POST_RETRY_RESERVE_MS);
+  assertEquals(b.allowed, true);
+  assertEquals(b.reason, "ok");
+  assertEquals(b.remainingWallClockMs >= POST_RETRY_RESERVE_MS + MIN_RETRY_WINDOW_MS, true);
 });
 
 Deno.test("computeRetryBudget: cap uses remaining wall clock minus reserve", () => {

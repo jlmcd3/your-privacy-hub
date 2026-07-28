@@ -31,9 +31,20 @@ Deno.test("RCD [corpus pin]: literal date + audit period match § 7121(a)(3) ver
   assert(DETERMINISTIC_COHORT_SENTENCE_25_50M.includes("$50,000,000"));
 });
 
+// V2 shape actually appended by applyRiskCohortDate for the 25_50m band
+// (short per-band form emitted by deterministicSentenceFor; the exported
+// DETERMINISTIC_COHORT_SENTENCE_25_50M is a corpus-pin constant, not the
+// emitted string).
+const EMITTED_SENTENCE_25_50M =
+  "Per 11 CCR § 7121(a)(3), the first cybersecurity audit report is due " +
+  "April 1, 2030 (audit period January 1, 2029 through January 1, 2030).";
+
 Deno.test("RCD [stamp+version shape]", () => {
   assert(RISK_COHORT_DATE_STAMP.startsWith("risk-cohort-date@"));
-  assertEquals(RISK_COHORT_DATE_VERSION, "risk-cohort-date-v1-2026-07-26");
+  // T-M7.1 (dispatch b): pin updated to the V2 truth-table version bumped
+  // at Wave-D (PRE-WAVE-D EMITTER FIXES 2026-07-27) — tests follow the
+  // shipped version constant.
+  assertEquals(RISK_COHORT_DATE_VERSION, "risk-cohort-date-v2-truth-table-2026-07-27");
 });
 
 // ── Band-not-resolved / other-band no-ops ────────────────────────────────
@@ -45,15 +56,37 @@ Deno.test("RCD [no-op]: unspecified band → no emit, no mutation", () => {
   assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "unchanged.");
 });
 
-for (const other of ["Under $25M", "$50M–$100M", "$100M–$500M", "Over $500M", "$25M–$100M"]) {
-  Deno.test(`RCD [no-op]: band ${other} → no emit`, () => {
-    const before = { cross_tool_recommendations: { cybersecurity_audit_rationale: "keep me." } };
+// T-M7.1 (dispatch c): under the V2 truth-table the ONLY no-emit bands
+// are (i) unspecified and (ii) legacy_25_100m ("$25M–$100M"). All four
+// resolved real bands emit their corpus-pinned cohort date. Prior tests
+// pinned V1 semantics (25–50M-only emit); updated to match shipped V2.
+Deno.test("RCD [no-op]: band $25M–$100M (legacy) → no emit", () => {
+  const before = { cross_tool_recommendations: { cybersecurity_audit_rationale: "keep me." } };
+  const { counters, report } = applyRiskCohortDate(
+    { q1_revenue: "$25M–$100M" }, before as any,
+  );
+  assertEquals(counters.date_emitted, 0);
+  assertEquals(counters.date_corrected, 0);
+  assertEquals(counters.band_resolved, "legacy_25_100m");
+  assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "keep me.");
+});
+
+for (const [q1, bandKey, expectedDate] of [
+  ["Under $25M",   "under_25m", "April 1, 2030"],
+  ["$50M–$100M",   "50_100m",   "April 1, 2029"],
+  ["$100M–$500M",  "100_500m",  "April 1, 2028"],
+  ["Over $500M",   "over_500m", "April 1, 2028"],
+] as const) {
+  Deno.test(`RCD [emit v2]: band ${q1} → emits ${expectedDate}`, () => {
+    const before = { cross_tool_recommendations: { cybersecurity_audit_rationale: "" } };
     const { counters, report } = applyRiskCohortDate(
-      { q1_revenue: other }, before as any,
+      { q1_revenue: q1 }, before as any,
     );
-    assertEquals(counters.date_emitted, 0);
-    assertEquals(counters.date_corrected, 0);
-    assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "keep me.");
+    assertEquals(counters.band_resolved, bandKey);
+    assertEquals(counters.date_emitted, 1);
+    assertEquals(counters.errors, 0);
+    const rat = String((report as any).cross_tool_recommendations.cybersecurity_audit_rationale);
+    assert(rat.includes(expectedDate), `expected ${expectedDate} in: ${rat}`);
   });
 }
 
@@ -90,7 +123,7 @@ Deno.test("RCD [regression w27 7f0de458 / w28 e5a04cf7+1036f12c shape]: after V3
   assertEquals(counters.errors, 0);
   assert(
     String((after as any).cross_tool_recommendations.cybersecurity_audit_rationale)
-      .includes(DETERMINISTIC_COHORT_SENTENCE_25_50M),
+      .includes(EMITTED_SENTENCE_25_50M),
   );
 });
 
@@ -128,7 +161,7 @@ Deno.test("RCD [wrong-date excision]: sentence stating April 1, 2029 for cohort 
   assertEquals(counters.date_corrected, 1);
   const out = String((report as any).cross_tool_recommendations.cybersecurity_audit_rationale);
   assert(!/April\s+1,?\s+2029/.test(out), "wrong date must be gone");
-  assert(out.includes(DETERMINISTIC_COHORT_SENTENCE_25_50M));
+  assert(out.includes(EMITTED_SENTENCE_25_50M));
   assert(out.includes("Baseline sentence unrelated"));
   assert(out.includes("Another retained sentence"));
 });
