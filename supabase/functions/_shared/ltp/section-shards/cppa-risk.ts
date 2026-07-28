@@ -513,40 +513,18 @@ export interface GapEntry {
   readonly note: string;
 }
 
-export const CPPA_RISK_TEMPLATE_GAPS: readonly GapEntry[] = [
-  {
-    key: "executive_summary",
-    reason: "template-set-needs-authoring",
-    note: "Opening group exists; aggregation across activities not yet a dedicated template.",
-  },
-  {
-    key: "priority_actions",
-    reason: "template-set-needs-authoring",
-    note: "Reuses documentation.{gap,present}; a dedicated priority-action shape may be needed for deadline_basis owner-slot fidelity.",
-  },
-  {
-    key: "next_steps",
-    reason: "template-set-needs-authoring",
-    note: "Reuses documentation.{gap,present}; ordering + deduplication vs priority_actions is unauthored.",
-  },
-  {
-    key: "record_sufficiency",
-    reason: "template-set-needs-authoring",
-    note: "Reuses documentation.{gap,present}; per-record shape not yet authored.",
-  },
-  {
-    key: "inconsistency_flags",
-    reason: "template-cut-needs-review-items",
-    note: "Currently EMPTY_ARRAY unless T.risk.review_items produces bounded content.",
-  },
-  {
-    key: "opening_summary",
-    reason: "harvest-needs-subordination-wire",
-    note: "T7 emitter present; the plan-conflict rejection + telemetry wire lands with T-M3.",
-  },
-  {
-    key: "submission_summary",
-    reason: "harvest-needs-subordination-wire",
-    note: "cyber-audit-schedule + § 7120 crosswalk emitters present; subordination guard rides T-M3.",
-  },
-] as const;
+/**
+ * T-M3 status (2026-07-28): all seven Item-222 gap-report rows are
+ * closed. Remaining Pass-2 wire-in (make the shipped surface come from
+ * templates + harvest guard) is the T-M6 cutover; the AUTHORING and
+ * GUARDS are complete here.
+ *
+ *   • executive_summary       — T.risk.exec.{firm,hedged,negative,insufficient}
+ *   • priority_actions        — T.risk.priority_action (owner-slot deadline_basis)
+ *   • next_steps              — T.risk.next_step + NEXT_STEPS_MATERIALITY_TIERS + dedup law
+ *   • record_sufficiency      — T.risk.record_sufficiency.item + RECORD_STATUS_CLAUSES
+ *   • inconsistency_flags     — T.risk.review_items + T.risk.review_items.entry (TEMPLATE_CUT)
+ *   • opening_summary         — evaluateOpeningHarvest (harvest-guard.ts)
+ *   • submission_summary      — evaluateSubmissionHarvest (harvest-guard.ts)
+ */
+export const CPPA_RISK_TEMPLATE_GAPS: readonly GapEntry[] = [] as const;
