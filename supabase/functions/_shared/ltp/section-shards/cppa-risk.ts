@@ -553,7 +553,7 @@ export type ExpectedEmission =
 
 const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   // Metadata / disclaimers — always present.
-  schema_version: "always",
+  schema_version: "empty-by-design",
   document_metadata: "conditional",
   attestation_block: "conditional",
   disclaimer: "conditional",
