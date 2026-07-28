@@ -103,9 +103,11 @@ Deno.test("CP4 (b) — record_sufficiency and information_needed cite own anchor
       },
     ],
   };
-  const rs = composeSection("record_sufficiency", plan)!;
+  const rs = composeSection("record_sufficiency", plan)!
+    .filter((i) => i.template_id === "T.risk.record_sufficiency.item");
   assertEquals((rs[0].ctx as any).__cite.PINPOINT, "11 CCR § 7152(a)(4)");
   assertEquals((rs[0].ctx as any).element_label, "Benefits to the business");
+
 
   const inf = composeSection("information_needed", plan)!;
   // At least one Type-J item; each cites its OWN anchor pinpoint.
