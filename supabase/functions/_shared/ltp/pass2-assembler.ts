@@ -527,7 +527,7 @@ export function assembleReport(
  */
 export function buildTypeJWriteAroundBody(input: {
   readonly intake?: unknown;
-  readonly origin: "clock_cap" | "test_forced" | "unknown";
+  readonly origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | "unknown";
   readonly buildStamp?: string;
 }): Record<string, unknown> {
   const disclosure =
