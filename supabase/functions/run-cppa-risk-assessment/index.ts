@@ -4130,6 +4130,37 @@ Deno.serve(async (req) => {
           metadata: { assessment_id, recovered_after_error: true, original_error: (e as Error)?.message ?? String(e) },
         });
       } else {
+        // T-M9.1 (Item 231) — FAIL-LOUD: persist the error to the assessment
+        // row itself so a dead background isolate cannot leave a row frozen
+        // at status='processing' with last_error=NULL. Silent background
+        // death is now structurally impossible: any uncaught throw in
+        // runPipeline lands here and writes status='error' + last_error
+        // BEFORE the isolate exits. Wrapped in its own try/catch so a DB
+        // failure on the error-write path cannot re-throw and defeat the
+        // guarantee.
+        const errMsg = (e as Error)?.message ?? String(e);
+        const errStack = (e as Error)?.stack?.slice(0, 2000) ?? null;
+        try {
+          await supabase.from("cppa_assessments").update({
+            status: "error",
+            last_error: `background_task_uncaught: ${errMsg}`,
+            updated_at: new Date().toISOString(),
+          }).eq("id", assessment_id!);
+          console.error(JSON.stringify({
+            evt: "background_task_persisted_error",
+            fn: "run-cppa-risk-assessment",
+            assessment_id, build_stamp: BUILD_STAMP,
+            error: errMsg, stack: errStack,
+          }));
+        } catch (persistErr) {
+          console.error(JSON.stringify({
+            evt: "background_task_persist_error_failed",
+            fn: "run-cppa-risk-assessment",
+            assessment_id, build_stamp: BUILD_STAMP,
+            original_error: errMsg,
+            persist_error: (persistErr as Error)?.message ?? String(persistErr),
+          }));
+        }
         await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
       }
     }
