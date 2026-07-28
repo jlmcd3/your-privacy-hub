@@ -30,7 +30,45 @@
  *   sentinels (`{{intake:`, `{{cite:`, `[filtered]`, `TODO`, etc.).
  */
 
-export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item240-cp4-registry-ids";
+export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item242-bc-marketing-review-flags";
+
+/**
+ * ITEM 242 CP-C (defect 5, part 3) — marketing/consultancy phrases as
+ * REVIEW-FLAG ONLY telemetry per controller correction. NOT enforced;
+ * hits are surfaced via `collectMarketingReviewFlags` and recorded so
+ * graders can spot invented characterization without aborting the ship.
+ */
+export const MARKETING_PHRASE_PATTERNS: readonly RegExp[] = [
+  /\baudience insights\b/i,
+  /\bcustomer journey\b/i,
+  /\bdata[-\s]driven optimization\b/i,
+  /\bstrategic alignment\b/i,
+  /\bholistic view\b/i,
+  /\benterprise[-\s]grade\b/i,
+  /\bbest[-\s]in[-\s]class\b/i,
+  /\bindustry[-\s]leading\b/i,
+  /\bstakeholder engagement\b/i,
+] as const;
+
+export interface MarketingReviewFlag {
+  readonly path: string;
+  readonly match: string;
+  readonly context: string;
+}
+
+/** Non-throwing collector; returns [] when clean. Telemetry-only. */
+export function collectMarketingReviewFlags(reportData: unknown): MarketingReviewFlag[] {
+  const flags: MarketingReviewFlag[] = [];
+  for (const { path, value } of walkStrings(reportData)) {
+    for (const re of MARKETING_PHRASE_PATTERNS) {
+      const m = value.match(re);
+      if (m) {
+        flags.push({ path, match: m[0], context: value.slice(0, 120) });
+      }
+    }
+  }
+  return flags;
+}
 
 /**
  * Substring-match lexicon — kept ONLY for entries that cannot false-

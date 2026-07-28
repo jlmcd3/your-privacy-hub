@@ -20,7 +20,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
 // callModel throws on invocation and a runtime shape-conformance assert
 // fails loud on any drift.
-export const BUILD_STAMP = `ltp-risk-item242-batch3-fixes@${new Date().toISOString()}`;
+export const BUILD_STAMP = `ltp-risk-item242-bc-cpc-wired@${new Date().toISOString()}`;
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
 // When true, callModel() throws instead of hitting Anthropic, and the
