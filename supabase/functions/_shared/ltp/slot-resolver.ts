@@ -56,6 +56,12 @@ export interface SlotContext {
   readonly what_would_tip_it?: string;
   readonly doc_element_label?: string;
   readonly customer_question?: string;
+  // ── ITEM 237 (T-M9.7) — balance-instance ctx passthroughs ──
+  readonly benefit_summary_tokens?: string;
+  readonly negative_summary_tokens?: string;
+  readonly safeguard_summary_tokens?: string;
+  readonly balance_direction_clause?: string;
+  readonly tipping_factors?: string;
 }
 
 
