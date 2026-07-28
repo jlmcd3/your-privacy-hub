@@ -5093,3 +5093,29 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Disposition.** HARD STOP. Controller wire-verifies then launches the BATCH OF THREE for the first variance-aware read.
 
 **Courier.** `docs/courier/GOLDEN-SHAPE-WIRING-2026-07-28.md`.
+
+---
+
+### Item 242 — BATCH-OF-THREE FIX SET, CHECKPOINT A (cppa-risk, deterministic subset)
+
+**Date.** 2026-07-28. **Scope.** Deterministic-fix subset of the ITEM 242 dispatch (defects 3, 4, 6, 7a/7b/7c). Content-authoring defects 1, 2, 5 are held for Checkpoints B/C content-anchored couriers per courier-discipline law.
+
+**Deliverables.**
+- (3) `neg.e.economic_harms` guidance_ref re-keyed from `11 CCR § 7152(a)(5)(F)` (pre-mod FSOR label) to `(a)(5)(E)` (post-mod economic-harms enumeration). Pre-mod label preserved verbatim in `anchor_hint` as historical provenance.
+- (4) GAP-APPLICABILITY LAW: `composePriorityActions` now filters absent-and-inapplicable elements. When `G.q18.admt_consequence` = block (q18_admt_use negative), every ADMT-scoped factor and Type-J proposition is dropped from the action set.
+- (6) `T.risk.record_sufficiency.prose` closer is now conditional (`sufficiency_closer_clause`) derived from the same `sufficient` boolean as the opener. Opener/closer polarity contradiction is structurally impossible.
+- (7a) `owner_role_titles` slot added to `T.risk.priority_action.golden`; sourced from `i7_internal_contributors` (role-titles only, PII-safe).
+- (7b) `deadlineForAction` now cohort-aware — factor-gap and documentation-gate actions consume `§ 7155` assessment-record rows instead of defaulting to `d.ongoing_processing`.
+- (7c) Documentation-gate actions carry per-gate `CPPA_RISK_GATE_INDEX[id].anchor_pinpoint` (a)(1)/(a)(2)/(a)(3)/(a)(9); id-derived short labels replace raw description sentences.
+
+**Tests.** New `_item242_batch3_a.test.ts` — 6/6 green (one assert per defect). Full LTP + risk suite: 296 passed | 0 failed.
+
+**Build stamp.** `ltp-risk-item242-batch3-fixes@…`. Composer version `ltp-section-composers-cppa-risk-2026-07-28-item242-batch3`.
+
+**Deploy.** Code landed; EXPLICIT DEPLOY pending controller wire.
+
+**Provenance & law integrity.** Registry-bound pinpoints / Single-Writer (CP2) / CP3 shape / CP4 per-proposition citation binding / CP5 coherence & customer-first opener law / Golden-Shape rendering contract / Type-J engineering rider — UNCHANGED.
+
+**Disposition.** HARD STOP. Checkpoint B (defects 1 + 2, content-anchored) and Checkpoint C (defect 5, Pass-1 prompt glossary + coherence screen) require CEO sign-off before wiring.
+
+**Courier.** `docs/courier/ITEM242-BATCH3-FIXES-2026-07-28.md`.
