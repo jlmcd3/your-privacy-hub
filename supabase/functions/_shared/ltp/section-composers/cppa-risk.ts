@@ -22,7 +22,7 @@ import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec 
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-cpb-final";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item243-completion";
 
 /**
  * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
