@@ -255,6 +255,7 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "closing",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(7)" },
+    display_label: "Decision whether to initiate the processing",
     description:
       "Whether the business will initiate the processing subject to the risk assessment. The regulation expressly "
       + "delegates this decision to the business.",
