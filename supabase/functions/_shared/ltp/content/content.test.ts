@@ -128,6 +128,60 @@ Deno.test("content: (B)-gap question — emission matrix (all three conditions r
   }
 });
 
+// T-C1 (2026-07-28) — callsite-derived predicate semantics.
+// `has_compliant_count_field` is true iff the `bought_sold_shared_count`
+// intake key exists AND is answered with any value in the enum. Any
+// answered value — including "Under 100,000" — suppresses the question
+// (the (B) prong resolves against the answered value; the user is not
+// re-asked). Unanswered → question emits when the other two hold.
+Deno.test("content: (B)-gap question — callsite-derived `has_compliant_count_field` semantics", () => {
+  const BOUGHT_SOLD_SHARED_OPTS = [
+    "Under 100,000",
+    "100,000 to under 250,000",
+    "250,000 to under 1,000,000",
+    "1,000,000 or more",
+  ] as const;
+  const derive = (intake: Record<string, unknown>): boolean =>
+    (BOUGHT_SOLD_SHARED_OPTS as readonly string[]).includes(
+      String(intake["bought_sold_shared_count"] ?? ""),
+    );
+  // Baseline where the other two conditions hold (A unresolved, sell/share affirmed).
+  const baseA = false;
+  const baseSS = true;
+  // (i) unanswered → question emits.
+  assertEquals(
+    shouldEmitBCriterionCountQuestion({
+      criterion_a_resolved: baseA,
+      intake_affirms_sell_or_share: baseSS,
+      has_compliant_count_field: derive({}),
+    }),
+    true,
+    "unanswered field should emit the (B)-gap question",
+  );
+  // (ii) answered with any enum band → question suppressed.
+  for (const band of BOUGHT_SOLD_SHARED_OPTS) {
+    assertEquals(
+      shouldEmitBCriterionCountQuestion({
+        criterion_a_resolved: baseA,
+        intake_affirms_sell_or_share: baseSS,
+        has_compliant_count_field: derive({ bought_sold_shared_count: band }),
+      }),
+      false,
+      `answered "${band}" should suppress the (B)-gap question`,
+    );
+  }
+  // (iii) legacy off-enum value → field is treated as unanswered → emit.
+  assertEquals(
+    shouldEmitBCriterionCountQuestion({
+      criterion_a_resolved: baseA,
+      intake_affirms_sell_or_share: baseSS,
+      has_compliant_count_field: derive({ bought_sold_shared_count: "roughly 500k" }),
+    }),
+    true,
+    "off-enum legacy value must NOT satisfy has_compliant_count_field",
+  );
+});
+
 Deno.test("content: (B)-gap question text is intake-gap disciplined (no negative implication, no citation glyph)", () => {
   const t = PASS2_TEMPLATES["T.risk.information_needed.b_criterion_count"];
   const text = t.text;

@@ -43,6 +43,11 @@ const HARM_TYPES = [
 // intake contract at supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts.
 const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"];
 const CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"];
+// T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand bands. Mirror of
+// BOUGHT_SOLD_SHARED_OPTS in cppa-risk-assessment.ts and
+// src/pages/CPPARiskAssessment.enums.ts. Distinct enum key so the refine
+// surface never routes q2_consumers picks into the (B) operand slot.
+const BOUGHT_SOLD_SHARED_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"];
 const SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"];
 const SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"];
 const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"];
@@ -140,6 +145,7 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "cppa_risk_assessment:q15c_spi_volume": SPI_VOLUME_OPTS,
   "cppa_risk_assessment:q18_admt_use": Q18_ADMT_USE_OPTS,
   "cppa_risk_assessment:q20_admt_opt_out": Q20_ADMT_OPT_OUT_OPTS,
+  "cppa_risk_assessment:bought_sold_shared_count": BOUGHT_SOLD_SHARED_OPTS,
   "cppa_risk_assessment:triggers.q1_revenue": REVENUE_OPTS,
   "cppa_risk_assessment:triggers.q2_consumers": CONSUMER_OPTS,
   "cppa_risk_assessment:triggers.q5_sell_share": Q5_SELL_SHARE_OPTS,

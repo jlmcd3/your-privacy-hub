@@ -249,6 +249,17 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
  * Emission gate for T.risk.information_needed.b_criterion_count.
  * Returns true iff all three conditions are met (intake-gap discipline,
  * mirrors the S0 telemetry rejection reason). Pure predicate; no I/O.
+ *
+ * T-C1 (2026-07-28) — `has_compliant_count_field` semantics: the
+ * `bought_sold_shared_count` intake key exists AND is answered with any
+ * value in the BOUGHT_SOLD_SHARED_OPTS enum. Callsites derive this from
+ * intake as:
+ *   has_compliant_count_field =
+ *     BOUGHT_SOLD_SHARED_OPTS.includes(String(intake.bought_sold_shared_count ?? ""))
+ * The question emits when the field is unanswered AND the other two
+ * conditions hold. Once answered — with any band — the question is
+ * suppressed (the covered-business (B) prong resolves against the
+ * answered value; the user is not re-asked).
  */
 export function shouldEmitBCriterionCountQuestion(input: {
   readonly criterion_a_resolved: boolean;

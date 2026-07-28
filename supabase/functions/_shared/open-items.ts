@@ -112,6 +112,7 @@ const T_CLASS_FIELDS: Record<string, Record<string, { enum_ref: string }>> = {
     q15c_spi_volume:          { enum_ref: "cppa_risk_assessment:q15c_spi_volume" },
     q18_admt_use:             { enum_ref: "cppa_risk_assessment:q18_admt_use" },
     q20_admt_opt_out:         { enum_ref: "cppa_risk_assessment:q20_admt_opt_out" },
+    bought_sold_shared_count: { enum_ref: "cppa_risk_assessment:bought_sold_shared_count" },
     "impact.likelihood_of_harm":     { enum_ref: "cppa_risk_assessment:impact.likelihood_of_harm" },
     "impact.severity_of_harm":       { enum_ref: "cppa_risk_assessment:impact.severity_of_harm" },
     "impact.benefits_outweigh_risks":{ enum_ref: "cppa_risk_assessment:impact.benefits_outweigh_risks" },

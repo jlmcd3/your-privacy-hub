@@ -21,6 +21,7 @@ import {
   HARM_TYPES,
   REVENUE_OPTS,
   CONSUMER_OPTS,
+  BOUGHT_SOLD_SHARED_OPTS,
   SPI_VOLUME_OPTS,
   SHARE_REVENUE_50PCT_OPTS,
   Q5_SELL_SHARE_OPTS,
@@ -91,6 +92,8 @@ const REGISTRY: EnumRegistry = {
     // surface.
     q1_revenue: REVENUE_OPTS,
     q2_consumers: CONSUMER_OPTS,
+    // T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand register.
+    bought_sold_shared_count: BOUGHT_SOLD_SHARED_OPTS,
     i3_ca_consumer_band: CONSUMER_OPTS,
     annual_consumer_volume: CONSUMER_OPTS,
     q5_sell_share: Q5_SELL_SHARE_OPTS,
