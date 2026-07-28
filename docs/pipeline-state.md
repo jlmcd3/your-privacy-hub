@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T05:23Z (Item 221 — T-M1 DERIVE AUTHORITATIVE: `LTP_ENFORCE_ENABLED` gate retired for cppa-risk; Pass-1 runs unconditionally with N=2 retry; RenderPlan persisted at `_meta.internal.render_plan`; `pass1_model=claude-sonnet-4-6` exposed on `?ping=1` and enforced by `x-ltp-pass1-model-expected` header; round-trip tests green; deployed.)
+**Last updated:** 2026-07-28T06:02Z (Item 224 — T-M4 COVERAGE COMPLETION + CHECKPOINT: zero gap rows; 27/27 Pass-2 templates pass shipped-value-screen fixture sweep; 24 deterministic + 2 harvest + 11 template + 1 template-cut = 38 keys with total projections; NONE cohort bounded to 13 metadata/legacy/manifest-pending keys; CEO CHECKPOINT — HARD STOP before T-M5.)
 
 ---
 
@@ -4145,3 +4145,35 @@ ok | 41 passed | 0 failed (330ms)
 **Courier:** `docs/courier/T-M3-TEMPLATES-HARVEST-GUARD-2026-07-28.md` (verbatim template text; harvest rejection-reason enumeration).
 
 **Disposition: HARD STOP** after courier + ledger, per dispatch. Next per Item 218 plan: T-M4 (validator wiring / factor-driver population from Pass-1 authoritative RenderPlan).
+
+## Item 224 — T-M4 COVERAGE COMPLETION + CHECKPOINT (cppa-risk) (2026-07-28T06:02Z)
+
+**Status:** DONE — VERIFICATION + CHECKPOINT. No deploy, no template authoring beyond fixture sweep. Item 218 rebuild chain, step 6 of 10.
+**Dispatch:** T-M4 (CEO-released 2026-07-28). Items 219 (T-S1), 220 (T-C1), 221 (T-M1), 222 (T-M2), 223 (T-M3) complete.
+
+**Controller reconciliation:** The Item-222 gap report was closed by T-M3 (Item 223). This turn's dispatch scope (verification + checkpoint) is what T-M4 executes; the originally-assumed "T-M4 bulk authoring" is not needed and would violate the T-M3 completeness invariant.
+
+**Deliverables:**
+- **New test file:** `supabase/functions/_shared/ltp/section-shards/cppa-risk.tm4-coverage.test.ts` — 6 tests: (a) zero-gap re-assertion + registry-id existence; (b) fixture sweep across all 27 Pass-2 templates + owner-slot positive control on `priority_actions.deadline_basis`; (c) deterministic + template-cut projection totality + template + harvest projection totality on a valid derived `RenderPlan`.
+- **Coverage table (38 keys):** 24 deterministic + 2 harvest + 11 template + 1 template-cut. NONE cohort bounded to 13 metadata-literal / legacy-V3 / manifest-pending keys (enumerated in courier §3).
+- **T-M5 risk register** authored in courier §6 (5 risks: manifest cliff, harvest wire, legacy-composer coexistence, shadow-guard interaction, stale enumeration assertions).
+
+**Test evidence (paste green):**
+```
+running 6 tests from ./_shared/ltp/section-shards/cppa-risk.tm4-coverage.test.ts
+T-M4 (a): zero gap rows remaining (Item-222/223 closed) ... ok
+T-M4 (a): every template-owned shard names at least one Pass-2 template id that exists ... ok
+T-M4 (b): every Pass-2 template renders clean through the value-screen fixture ... ok
+T-M4 (b): T-M3 owner-slot (deadline_basis) rejects the smoke-#11 truncation class ... ok
+T-M4 (c): deterministic + template-cut projections are total over a valid RenderPlan ... ok
+T-M4 (c): template + harvest projections are total over a valid RenderPlan ... ok
+ok | 6 passed | 0 failed
+```
+
+**Full LTP suite (deno test --no-check _shared/ltp/):** `ok | 188 passed | 3 failed (1s)`. The 3 failures are pre-existing, unrelated to T-M4, and already queued for T-M7 cleanup (see courier §1a): (i) `waveb.test.ts` stale `PASS1_MANIFEST.model.startsWith("google/")` assertion (queued since Item 221); (ii) `waveb.test.ts` `"all 16 templates enumerated"` (literal count now 27 after T-M3); (iii) `retry-budget.branch-correction.test.ts` pre-existing skip-window edge case (Item 217).
+
+**Sections resisting bounded-template expression:** NONE. All 38 top-level keys have bounded owners; the seven Item-222 gap rows remain closed.
+
+**Courier:** `docs/courier/T-M4-COVERAGE-CHECKPOINT-2026-07-28.md` (full 38-key coverage table + NONE-cohort enumeration + T-M5 risk register + `waveb.test.ts` T-M7 defer confirmation).
+
+**Disposition: CEO CHECKPOINT — HARD STOP.** No further turns until the controller relays CEO review of the checkpoint courier. Next per Item 218 plan: **T-M5 ASSEMBLER BUILD** (shadow-mode; cutover deferred to T-M6).
