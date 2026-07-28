@@ -3642,6 +3642,17 @@ async function runPipeline(assessment_id: string) {
               },
               conformant: true,
             };
+            _rd3._meta.internal.stage_timings = {
+              build_stamp: BUILD_STAMP,
+              worker_start_ms: 0,
+              pass1_start_ms: _stagePass1Start,
+              pass1_end_ms: _stagePass1End,
+              pass1_elapsed_ms: _stagePass1End - _stagePass1Start,
+              assembler_start_ms: _stageAssemblerStart,
+              assembler_end_ms: _stageAssemblerEnd,
+              assembler_elapsed_ms: _stageAssemblerEnd - _stageAssemblerStart,
+              cutover_end_ms: Date.now() - t0,
+            };
             console.log(JSON.stringify({
               evt: "ltp_pass2_assembler_cutover_ran",
               fn: "run-cppa-risk-assessment",
