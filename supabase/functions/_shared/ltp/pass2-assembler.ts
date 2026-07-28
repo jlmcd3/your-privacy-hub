@@ -53,7 +53,7 @@ import {
 } from "../report-contracts/cppa-risk-shape.ts";
 import { evaluateGoldenShape, type GoldenShapeReport } from "./golden-shape-quotas.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item241-1-structural";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item241-3-wiring";
 
 /**
  * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
