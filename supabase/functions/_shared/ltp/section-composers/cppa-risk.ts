@@ -87,15 +87,21 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   const singplural = n === 1 ? SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[0] : SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[1];
   const acp = pluralActivityPhrase(n);
   const engagedLabels = engagedApplicability(plan).map((p) => activityLabelForProp(p, plan));
-  if (insufficientRecord(plan)) {
+  // CP3 (Item 240) — COHERENCE INVARIANT. The exec summary may never
+  // simultaneously say "no activities identified" AND reference "the
+  // activities identified on the record". Route zero-activity cases to
+  // the insufficient variant regardless of factor-impact tally so the
+  // sibling slots stay consistent. Fixture: cp3 fixture asserts coherence.
+  if (insufficientRecord(plan) || n === 0 || engagedLabels.length === 0) {
     return [{ template_id: "T.risk.exec.insufficient", ctx: { activity_singplural_clause: singplural } }];
   }
+  const engagedList = joinList(engagedLabels);
   if (anyImpactsOutweigh(plan)) {
     return [{
       template_id: "T.risk.exec.negative",
       ctx: {
         activity_count_phrase: acp,
-        negative_list: joinList(engagedLabels) || "the activities identified on the record",
+        negative_list: engagedList,
         remaining_outcomes_clause: "",
       },
     }];
@@ -114,7 +120,7 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
       template_id: "T.risk.exec.hedged",
       ctx: {
         activity_count_phrase: acp,
-        close_list: joinList(engagedLabels) || "the activities identified on the record",
+        close_list: engagedList,
         what_would_tip_it: joinList(tipping) || "the balance of benefits, negative impacts, and safeguards on the record",
         remaining_outcomes_clause: "",
       },
