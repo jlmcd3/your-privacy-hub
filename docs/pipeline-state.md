@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T20:26Z (Item 241.1 STRUCTURAL — E1 scope engaged-lead + `prong_subject` resolver gap closed; E2 insufficiency predicate re-keyed to `G.documentation.*` gates alone; Q1/Q2 golden-shape depth telemetry landed observe-mode at assembler exit; deployed `run-cppa-risk-assessment` build_stamp=`ltp-risk-item241-1-structural-golden-shape@2026-07-28T20:26:08.905Z` with verbatim boot ping.)
+**Last updated:** 2026-07-28T21:38Z (Item 242-CP-A deployed with verbatim post-deploy ping; Item 242-CP-B and Item 242-CP-C content couriers authored and awaiting CEO sign-off.)
 
 ---
 
@@ -5119,3 +5119,29 @@ deno test _shared/report-contracts/cppa-risk-shape.test.ts \
 **Disposition.** HARD STOP. Checkpoint B (defects 1 + 2, content-anchored) and Checkpoint C (defect 5, Pass-1 prompt glossary + coherence screen) require CEO sign-off before wiring.
 
 **Courier.** `docs/courier/ITEM242-BATCH3-FIXES-2026-07-28.md`.
+
+### Item 242-CP-A DEPLOY — WIRE CONFIRMED
+
+**Date.** 2026-07-28T21:38Z. **Scope.** Explicit deploy of Checkpoint A per controller release.
+
+**Deploy.** `supabase--deploy_edge_functions(["run-cppa-risk-assessment"])` — success.
+
+**Post-deploy ping (verbatim).** `build_stamp=ltp-risk-item242-batch3-fixes@2026-07-28T21:38:09.608Z`, `ltp_mode=enforce`, `pass2_assembler=ltp-pass2-assembler-2026-07-28-item241-3-wiring`, `pass1_authoritative=1`. Full response appended to `docs/courier/ITEM242-BATCH3-FIXES-2026-07-28.md`.
+
+**Disposition.** Checkpoint A live. Awaiting controller wire-verification.
+
+### Item 242-CP-B CONTENT COURIER — AWAITING CEO SIGN-OFF
+
+**Date.** 2026-07-28. **Scope.** Content-only courier for defects 1 (submission-prong utilization) and 2 (per-KIND action templates + family grouping). No wiring; no deploy.
+
+**Deliverables.** `docs/courier/ITEM242-CHECKPOINT-B-CONTENT-2026-07-28.md` — two submission-prong templates × three marker states each (verbatim); six per-KIND action templates + one FAMILY template (verbatim); grouping thresholds; repeated-opener assert spec; wiring hooks documented for the release turn.
+
+**Disposition.** HARD STOP. Sign-off releases 242-CP-B wiring.
+
+### Item 242-CP-C CONTENT COURIER — AWAITING CEO SIGN-OFF
+
+**Date.** 2026-07-28. **Scope.** Content-only courier for defect 5 (Pass-1 judgment hygiene). No wiring; no deploy.
+
+**Deliverables.** `docs/courier/ITEM242-CHECKPOINT-C-CONTENT-2026-07-28.md` — 8-entry field-semantics glossary (verbatim) + prompt APPENDIX form; present/note coherence validator rule text + 4-pattern registry (verbatim); 9-phrase invented-characterization value-screen additions (verbatim) + new SYSTEM rule 8; prompt version bump target `pass1-derive-2026-07-28-item242-cpC`.
+
+**Disposition.** HARD STOP. Sign-off releases 242-CP-C wiring.
