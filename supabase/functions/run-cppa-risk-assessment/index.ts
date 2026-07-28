@@ -14,7 +14,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item213-unowned-site@2026-07-27T23:45:00Z";
+export const BUILD_STAMP = "ltp-risk-item215-value-screen-site@2026-07-28T02:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
@@ -52,6 +52,9 @@ import {
   currentEnforceMode,
   COMPOSITION_FINALIZE_VERSION,
   evaluateShippedSurfaceGuard,
+  evaluateShippedValueScreen,
+  SHIPPED_VALUE_SCREEN_VERSION,
+  isRetiredSurfacePath,
 } from "../_shared/ltp/composition-finalize.ts";
 
 import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
@@ -3695,6 +3698,68 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] shipped_surface_guard failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── ITEM 215 — POST-SERIALIZER SHIPPED VALUE-SCREEN (SMOKE-#10 fix) ──
+    // Same consolidation pattern as Items 211 (CUT) and 213 (unowned):
+    // leak-lexicon / truncated-slot-value / statutory-text enforcement
+    // authority lives on the SHIPPED (post-serializer) projection — the
+    // artifact the customer receives. Pre-serializer scaffolding
+    // (lint_warnings, retrieval_meta, legacy shims) may reference
+    // retired-surface tokens without ever reaching the customer, and
+    // the finalize pass records those only as telemetry. Wire-site is
+    // telemetry-only for persist (never throws); enforce verdicts land
+    // on _meta.internal.shipped_value_screen.
+    try {
+      // Fix (b) — scrub stale lint entries that reference retired
+      // (CUT-listed) top-level surfaces before both the wire-site
+      // screen and any downstream consumer. Retired-surface subjects
+      // are removed by the serializer; a lint entry describing them
+      // is stale.
+      try {
+        const _rdL: any = report_data as any;
+        if (Array.isArray(_rdL.lint_warnings)) {
+          const before = _rdL.lint_warnings.length;
+          _rdL.lint_warnings = _rdL.lint_warnings.filter(
+            (w: any) => !isRetiredSurfacePath(w?.field),
+          );
+          const dropped = before - _rdL.lint_warnings.length;
+          if (dropped > 0) {
+            console.log(JSON.stringify({
+              evt: "lint_warnings_retired_surface_scrub",
+              fn: "run-cppa-risk-assessment",
+              build_stamp: BUILD_STAMP, dropped,
+            }));
+          }
+        }
+      } catch { /* best-effort scrub */ }
+
+      const svsMode = currentEnforceMode(Deno.env);
+      const svsEval = evaluateShippedValueScreen(report_data, { mode: svsMode });
+      const _rdV: any = report_data as any;
+      _rdV._meta = _rdV._meta ?? {};
+      _rdV._meta.internal = _rdV._meta.internal ?? {};
+      _rdV._meta.internal.shipped_value_screen = {
+        build_stamp: BUILD_STAMP,
+        version: SHIPPED_VALUE_SCREEN_VERSION,
+        mode: svsEval.mode,
+        hits: svsEval.hits.map((h) => ({
+          kind: h.kind, match: h.match, path: h.path, context: h.context,
+        })),
+        enforce_violation: svsEval.enforce_violation,
+      };
+      console.log(JSON.stringify({
+        evt: "shipped_value_screen_ran", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, version: SHIPPED_VALUE_SCREEN_VERSION,
+        mode: svsEval.mode,
+        hit_count: svsEval.hits.length,
+        enforce_violation: svsEval.enforce_violation,
+        hits: svsEval.hits.map((h) => ({ kind: h.kind, match: h.match, path: h.path })),
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] shipped_value_screen failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
 
 

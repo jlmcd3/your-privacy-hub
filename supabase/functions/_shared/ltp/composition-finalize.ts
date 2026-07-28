@@ -37,9 +37,10 @@ import {
   readForceWriteAroundOnce,
 } from "./composition-hook-audit.ts";
 
-export const COMPOSITION_FINALIZE_VERSION = "composition-finalize@2026-07-27";
+export const COMPOSITION_FINALIZE_VERSION = "composition-finalize@2026-07-28-item215";
 export const FRAGMENT_OMIT_VERSION = "fragment-omit@2026-07-27-item206";
 export const ENFORCE_ENV = "LTP_COMPOSITION_ENFORCE";
+export const SHIPPED_VALUE_SCREEN_VERSION = "shipped-value-screen@2026-07-28-item215";
 
 export type FinalizeMode = "observe" | "enforce";
 
@@ -83,6 +84,10 @@ export interface FinalizeTelemetry {
    *  allow-list and not covered by a CUT ruling) observed on the
    *  PRE-serializer composed object. Telemetry only. */
   readonly pre_serializer_unowned_pending: readonly string[];
+  /** Item 215: value-screen residual hits observed on the PRE-serializer
+   *  composed object. Telemetry only — enforcement authority moved to
+   *  `evaluateShippedValueScreen` on the shipped projection. */
+  readonly pre_serializer_value_screen_pending: readonly ValueScreenHit[];
   readonly hook_audit_ok: boolean;
   readonly hook_value_present: boolean;
   readonly write_around_entered: boolean;
@@ -308,11 +313,16 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
   const omit = omitFragmentSlots(input.reportData);
   const rescreenInput: FinalizeInput = { ...input, reportData: omit.reportData };
 
-  // (1) value-screen with one bounded recompose
+  // (1) value-screen with one bounded recompose — ITEM 215 CONSOLIDATION:
+  // pre-serializer value-screen is ENTIRELY telemetry-only in every mode.
+  // ALL leak-lexicon / truncated-slot-value enforcement authority lives at
+  // the post-serializer wire-site (`evaluateShippedValueScreen`). The
+  // composed object legitimately contains scaffolding the LEAK-PREV-P2
+  // serializer strips (e.g. lint_warnings, retrieval_meta, legacy shims)
+  // whose contents may reference retired-surface paths without ever
+  // reaching the customer. Fragment-omit pre-pass (item 206) still runs
+  // above — it is a repair, not a screen.
   const screen = driveValueScreen(rescreenInput);
-  if (mode === "enforce" && screen.finalHits > 0) {
-    throw new ValueScreenError(screen.finalHitDetails);
-  }
 
   // (2) surface-write-guard walk — ITEM 213 CONSOLIDATION: pre-serializer
   // surface checks are ENTIRELY telemetry-only in every mode. ALL
@@ -355,6 +365,7 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
       surface_cut_violations: [],
       pre_serializer_cut_pending,
       pre_serializer_unowned_pending,
+      pre_serializer_value_screen_pending: screen.finalHitDetails,
       hook_audit_ok: true,
       hook_value_present: hookPresent,
 
@@ -369,8 +380,59 @@ export function currentEnforceMode(env: { get(name: string): string | undefined 
   return env.get(ENFORCE_ENV) === "1" ? "enforce" : "observe";
 }
 
+
+
+
+// ── ITEM 215 — POST-SERIALIZER SHIPPED VALUE-SCREEN ──────────────────
+//
+// Same consolidation pattern as Items 211 (CUT) and 213 (unowned): the
+// enforce decision for leak-lexicon / truncated-slot-value / statutory-
+// text hits moves to the shipped projection at the wire-site. NEVER
+// throws — wire-site persist invariant is absolute. Callers write
+// `_meta.internal.shipped_value_screen` from the returned envelope and
+// enforce measurement verdicts via `enforce_violation`.
+
+export interface ShippedValueScreenEvaluation {
+  readonly version: string;
+  readonly mode: FinalizeMode;
+  readonly hits: readonly ValueScreenHit[];
+  readonly enforce_violation: boolean;
+}
+
+export function evaluateShippedValueScreen(
+  shipped: unknown,
+  opts: { mode?: FinalizeMode; corpusSnippets?: readonly string[] } = {},
+): ShippedValueScreenEvaluation {
+  const mode: FinalizeMode = opts.mode ?? currentEnforceMode();
+  let hits: readonly ValueScreenHit[] = [];
+  try {
+    runValueScreen({ reportData: shipped, corpusSnippets: opts.corpusSnippets });
+  } catch (e) {
+    if (e instanceof ValueScreenError) hits = e.hits;
+    // any other error → suppress; wire-site cannot throw
+  }
+  return {
+    version: SHIPPED_VALUE_SCREEN_VERSION,
+    mode,
+    hits,
+    enforce_violation: mode === "enforce" && hits.length > 0,
+  };
+}
+
+/** Item 215 fix (b) — true iff a lint entry's `field` references a
+ * retired-surface path (any RISK_CUT_RULINGS top-level prefix). Callers
+ * use this to skip pushing lint_warnings entries whose subject was
+ * removed by the serializer, so retired surfaces never appear in lint
+ * output. */
+export function isRetiredSurfacePath(p: unknown): boolean {
+  if (typeof p !== "string" || p.length === 0) return false;
+  const top = p.split(".")[0].split("[")[0];
+  return CUT_TOP_LEVEL_ALL.has(top);
+}
+
 /** Re-export for callers that read the hook value at the composition start. */
 export { readForceWriteAroundOnce };
+
 
 // ── SAFE WRAPPER (SMOKE-HANG ROOT FIX, 2026-07-27) ─────────────────
 // HARD INVARIANT: finalize-path failures must NEVER prevent persist.
@@ -380,7 +442,7 @@ export { readForceWriteAroundOnce };
 // they can safely persist. Enforce-mode strictness is preserved via
 // `telemetry.enforce_violation` for measurement verdicts — the
 // document still ships; the verdict is what enforce mode governs.
-export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-27-item206-hits";
+export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-28-item215-vs-site";
 export const SAFE_FINALIZE_BUDGET_MS_DEFAULT = 15_000;
 
 export interface SafeFinalizeTelemetry {

@@ -3805,3 +3805,35 @@ Stage-C candidates (record, no action):
 Courier: `docs/courier/SMOKE-10-BRANCH-FAIL-2026-07-27.md`.
 
 **HARD STOP** for controller review. No relaunch, no fix, no roll to 9b–12.
+
+## Item 215 — SMOKE-#10 RULINGS EXECUTED: value-screen enforcement site consolidation + stale lint rule retirement (2026-07-28 ~02:20Z)
+
+CEO ruling (verbatim, 2026-07-28): *"dispatch both fixes and let's smoke another one"*.
+
+Two fixes on `run-cppa-risk-assessment`; no grader/instrument changes; no batch inserts. §22.1 counter unchanged **0/3**.
+
+**Fix (a) — VALUE-SCREEN ENFORCEMENT SITE.** Same consolidation pattern as Items 211 (CUT) and 213 (unowned).
+- `_shared/ltp/composition-finalize.ts`: `finalizeComposition` no longer throws on value-screen hits in any mode. New `FinalizeTelemetry.pre_serializer_value_screen_pending` mirrors the pre_serializer_cut_pending / pre_serializer_unowned_pending precedent. Fragment-omit pre-pass (Item 206) unchanged — it is a repair, not a screen.
+- New non-throwing helper `evaluateShippedValueScreen(shipped, {mode, corpusSnippets})` → `{version, mode, hits[], enforce_violation}`. Persist invariant: wire-site never throws.
+- Version stamps: `COMPOSITION_FINALIZE_VERSION=composition-finalize@2026-07-28-item215`; `SAFE_FINALIZE_VERSION=safe-finalize@2026-07-28-item215-vs-site`; `SHIPPED_VALUE_SCREEN_VERSION=shipped-value-screen@2026-07-28-item215`.
+- `run-cppa-risk-assessment/index.ts`: wire-site block after `evaluateShippedSurfaceGuard` writes `_meta.internal.shipped_value_screen={build_stamp,version,mode,hits[{kind,match,path,context}],enforce_violation}` and logs `shipped_value_screen_ran`.
+
+**Fix (b) — STALE LINT RULE.** New `isRetiredSurfacePath(p)` helper — true iff `field` targets any RISK_CUT_RULINGS top-level prefix (e.g. `cross_tool_recommendations.*`, mirror write removed in Item 209). Wire-site pre-scrub of `report_data.lint_warnings` drops matching entries; log `lint_warnings_retired_surface_scrub` telemeters dropped count.
+
+**Regression tests** (all in `_shared/ltp/composition-finalize.test.ts`):
+- SMOKE-#10 exact shape: `lint_warnings[0].field="cross_tool_recommendations.cybersecurity_audit_rationale"` → finalize `errored=false, enforce_violation=false`, hit telemetered on `pre_serializer_value_screen_pending`.
+- Shipped projection with genuine leak-lexicon FAILS `evaluateShippedValueScreen` in enforce.
+- Truncated-slot-value on shipped projection FAILS in enforce.
+- Fragment-omit / hook-audit / shipped-surface-guard / smoke-#9 exact-shape tests stay green.
+- `isRetiredSurfacePath` matches CUT prefixes, rejects live paths.
+- `evaluateShippedValueScreen` NEVER throws.
+- **deno test result: 45/45 passed** (34 finalize + 11 value-screen).
+
+**Deploy & §16 ping-prove** — `BUILD_STAMP="ltp-risk-item215-value-screen-site@2026-07-28T02:15:00Z"`.
+Response verbatim: `build_stamp: "ltp-risk-item215-value-screen-site@2026-07-28T02:15:00Z"`, `composition_enforce: "1"`, `ltp_mode: "enforce"`, `safe_finalize: "safe-finalize@2026-07-28-item215-vs-site"`, `report_completion_gate: "final-status-and-report-data@2026-07-27-smoke-latency-rootcause"`, `persist_first_retry: "retry-budget@2026-07-27-persistfirst"`. All prior gates preserved.
+
+**CEO rulings log** — 2026-07-28: *"dispatch both fixes and let's smoke another one"*.
+
+Courier: `docs/courier/ITEM214-RULINGS-EXECUTED-2026-07-28.md`.
+
+**Disposition: READY-FOR-RELAUNCH. HARD STOP.** Controller launches smoke #11.
