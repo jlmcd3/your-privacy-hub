@@ -3508,6 +3508,33 @@ async function runPipeline(assessment_id: string) {
             latency_ms: _pass1.telemetry.latency_ms,
             error: _pass1.telemetry.error ?? null,
           }));
+          // T-M5 (Item 225) — PASS-2 SECTION-SHARDED ASSEMBLER SHADOW.
+          // Persists to _meta.internal.assembler_shadow, mirroring the
+          // Item-221 render_plan pattern. Zero writes to the shipped
+          // surface; legacy composer path is untouched. Cutover is T-M6.
+          try {
+            const _assembler = assembleReportShadow(_pass1.plan);
+            _rd2._meta.internal.assembler_shadow = {
+              version: _assembler.version,
+              build_stamp: BUILD_STAMP,
+              report: _assembler.report,
+              telemetry: _assembler.telemetry,
+            };
+            console.log(JSON.stringify({
+              evt: "ltp_pass2_assembler_shadow_ran",
+              fn: "run-cppa-risk-assessment",
+              build_stamp: BUILD_STAMP,
+              assembler_version: PASS2_ASSEMBLER_VERSION,
+              total_sections: _assembler.telemetry.total_sections,
+              emitted_sections: _assembler.telemetry.emitted_sections,
+              omitted_sections: _assembler.telemetry.omitted_sections,
+              flat_certainty_rejections: _assembler.telemetry.exit_checks.flat_certainty_rejections.length,
+              pii_rejections: _assembler.telemetry.exit_checks.pii_rejections.length,
+              harvest_rejections: _assembler.telemetry.harvest_decisions.filter((d) => d.rejection_reason !== null).length,
+            }));
+          } catch (e) {
+            console.warn("[run-cppa-risk-assessment] LTP Pass-2 assembler shadow failed (non-fatal):", (e as Error)?.message);
+          }
         }
       } catch (e) {
         console.warn("[run-cppa-risk-assessment] LTP Pass-1 authoritative failed (non-fatal):", (e as Error)?.message);
