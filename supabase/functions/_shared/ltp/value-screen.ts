@@ -30,7 +30,7 @@
  *   sentinels (`{{intake:`, `{{cite:`, `[filtered]`, `TODO`, etc.).
  */
 
-export const VALUE_SCREEN_VERSION = "value-screen@2026-07-27b-item204";
+export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item235-residue";
 
 /**
  * Substring-match lexicon — kept ONLY for entries that cannot false-
@@ -54,6 +54,22 @@ export const LEAK_LEXICON: readonly string[] = [
   "<placeholder>",
   // Truncation residue tail
   "...\n",
+] as const;
+
+/**
+ * ITEM 235 (T-M9.5) — INTERPOLATION-RESIDUE PATTERNS.
+ * Blank-slot artifacts observed in run #169: "For ___, the benefits…",
+ * "— Deadline basis: ___ (11 CCR § 7150(b)(1))". Fill-or-omit at render
+ * eliminates the class upstream; these patterns are the shipped-surface
+ * defense-in-depth that prevents any blank interpolation from reaching
+ * the customer even if a future template escapes required-slot registry.
+ */
+export const INTERPOLATION_RESIDUE_RES: readonly RegExp[] = [
+  / For , /,
+  /: {2,}\(/,
+  /— {2,}/,
+  /: \./,
+  / \(\)/,
 ] as const;
 
 /**
