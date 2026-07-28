@@ -42,7 +42,65 @@ import { CPPA_RISK_FACTORS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 
 export const PASS1_GROUNDED_NOTE_VERSION =
-  "pass1-grounded-note@2026-07-28-item242-bc-rider";
+  "pass1-grounded-note@2026-07-28-item243-checker-repair";
+
+/**
+ * ITEM 243 defect 1(b) — WHITELIST: the canonical "no record evidence"
+ * phrase is never a candidate for the screen. Historically the checker
+ * flagged "evidence" ungrounded inside this exact canonical phrase.
+ */
+const CANONICAL_NO_EVIDENCE = /^\s*no\s+record\s+evidence\s*$/i;
+
+/**
+ * ITEM 243 defect 1(d) — INTAKE FIELD DISPLAY LABELS. Human labels for
+ * canonical intake fields; used by buildGroundedForm as the
+ * `{field_display_label}` slot AND fed into the grounded vocab. Absent
+ * an entry, we humanize the key as a safe fallback.
+ */
+export const INTAKE_FIELD_DISPLAY_LABELS: Readonly<Record<string, string>> = {
+  q1_revenue: "annual revenue band",
+  q2_consumers: "annual California consumer volume",
+  q4_pi_categories: "categories of personal information processed",
+  q5_sell_share: "sale or sharing of personal information",
+  q5b_profiling_observation: "profiling for behavioral advertising",
+  q5c_share_revenue_50pct: "50%-of-revenue-from-sale-or-share threshold",
+  q9_opt_out: "opt-out-of-sale/share mechanism",
+  q15_sensitive_pi: "sensitive personal information in scope",
+  q15c_spi_volume: "sensitive personal information consumer volume",
+  q18_admt_use: "use of automated decisionmaking technology",
+  q18b_admt_training: "ADMT training on personal information",
+  i1_processing_purpose: "stated processing purpose",
+  i1b_min_pi: "minimum personal information principle",
+  i2_retention_period: "retention period",
+  i4_disclosure_mechanisms: "disclosure mechanisms",
+  i7_internal_contributors: "internal contributors to the assessment",
+  i7_external_consultees: "external consultees to the assessment",
+  entity_name: "entity name",
+  bought_sold_shared_count: "annual bought/sold/shared consumer count",
+};
+
+function humanizeFieldKey(k: string): string {
+  const s = k.replace(/_/g, " ").trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function displayLabelForField(intake_field: string): string {
+  return INTAKE_FIELD_DISPLAY_LABELS[intake_field] ?? humanizeFieldKey(intake_field);
+}
+
+/**
+ * ITEM 243 defect 1(e) — over-threshold ABORT. When the batch-level rate
+ * exceeds this floor the checker itself is presumed malfunctioning; it
+ * MUST fail loud rather than destroy the model's grounded prose.
+ */
+export class GroundedNoteCheckerAbort extends Error {
+  readonly code = "grounded_note_over_threshold_abort";
+  readonly telemetry: GroundedNoteTelemetry;
+  constructor(t: GroundedNoteTelemetry) {
+    super(`grounded_note_over_threshold_abort rate=${t.replacement_rate} threshold=${t.tuning_threshold_rate}`);
+    this.telemetry = t;
+  }
+}
 
 /**
  * CONNECTIVE LEXICON — closed, curated analytic vocabulary. Verbatim
