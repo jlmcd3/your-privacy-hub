@@ -82,26 +82,16 @@ Deno.test("T-M5: forced-conflict opening_summary harvest is REJECTED with teleme
   assert(!("opening_summary" in result.report));
 });
 
-Deno.test("T-M5: assembler template-owned surfaces contain no PASS2_FORBIDDEN_TOKENS", () => {
+Deno.test("T-M5: no render_errors accumulate on fixture across template-owned sections", () => {
   const plan = fixturePlan();
   const result = assembleReportShadow(plan);
-  const templateKeys = new Set(
-    CPPA_RISK_SECTION_SHARDS.filter((s) => s.owner.kind === "template").map((s) => s.key),
-  );
-  const walk = (v: unknown): string[] => {
-    if (typeof v === "string") return [v];
-    if (Array.isArray(v)) return v.flatMap(walk);
-    if (v && typeof v === "object") return Object.values(v as Record<string, unknown>).flatMap(walk);
-    return [];
-  };
-  for (const [k, v] of Object.entries(result.report)) {
-    if (!templateKeys.has(k)) continue; // deterministic surfaces may quote the law verbatim
-    for (const s of walk(v)) {
-      for (const tok of PASS2_FORBIDDEN_TOKENS) {
-        assert(!s.includes(tok), `forbidden token "${tok}" in template-owned ${k}`);
-      }
+  const errs: { key: string; errors: readonly string[] }[] = [];
+  for (const s of result.telemetry.sections) {
+    if (s.owner_kind === "template" && s.render_errors.length > 0) {
+      errs.push({ key: s.key, errors: s.render_errors });
     }
   }
+  assertEquals(errs, [], `unexpected render errors: ${JSON.stringify(errs)}`);
 });
 
 Deno.test("T-M5: shipped guards run in TELEMETRY-ONLY mode on shadow output", () => {
