@@ -47,6 +47,10 @@ import {
   callAnthropicWithContinuation,
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
+import {
+  applyCoherenceScreen,
+  type CoherenceRewrite,
+} from "./pass1-present-note-coherence.ts";
 
 export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-cp4-labels@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
