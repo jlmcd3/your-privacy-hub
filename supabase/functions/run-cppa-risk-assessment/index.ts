@@ -3673,12 +3673,13 @@ async function runPipeline(assessment_id: string) {
       _rdF._meta.internal = _rdF._meta.internal ?? {};
       const _hookValue = readForceWriteAroundOnce(Deno.env);
       const _ltpPreview = _rdF._meta.internal.legal_test_pipeline?.enforce_preview;
-      const _writeAroundEntered = !!_ltpPreview?.plan_summary?.write_around;
-      // ITEM 217 fix (a): classify the write-around origin so the
-      // hook-audit knows this is a designed clock-cap degradation
-      // (Item 203 clock contract), not an unauthorized bypass. Pass-1
-      // sets telemetry.write_around=true only after the N=2 retry
-      // budget exhausts OR the test forcing token is used.
+      // T-M9.4 (Item 234) — VALID PLAN INVARIANT (finalize-site guard).
+      // Only enter write-around when Pass-1 actually failed. The upstream
+      // plan_summary.write_around flag mirrors the model-emitted
+      // conservative_write_around and can be a false positive on a clean
+      // ok run. Gate on telemetry.ok === true → NEVER write-around.
+      const _pass1TeleOk = _ltpPreview?.telemetry?.ok === true;
+      const _writeAroundEntered = !_pass1TeleOk && !!_ltpPreview?.plan_summary?.write_around;
       const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
       const _writeAroundOrigin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | undefined =
         _writeAroundEntered
