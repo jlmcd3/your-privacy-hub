@@ -84,9 +84,12 @@ export interface SlotContext {
   readonly sections_7150b_pinpoints?: string;
   readonly as_of_date?: string;
   readonly sufficiency_clause?: string;
+  readonly sufficiency_closer_clause?: string;
   readonly factual_elements_summary_clause?: string;
   readonly reserved_judgments_list?: string;
   readonly type_j_pinpoints?: string;
+  // ── ITEM 242 (defect 7a) — action owner slot.
+  readonly owner_role_titles?: string;
   // ── ITEM 240 CP4 — per-instance citation pinpoints. When present,
   //    substituteCitations reads ctx.__cite[slot] verbatim as the pinpoint.
   //    This is the per-proposition binding seam that ends the "everything
@@ -205,9 +208,12 @@ export function resolveSlot(
     case "sections_7150b_pinpoints":    return ctx.sections_7150b_pinpoints ?? "";
     case "as_of_date":                  return ctx.as_of_date ?? "";
     case "sufficiency_clause":          return ctx.sufficiency_clause ?? "";
+    case "sufficiency_closer_clause":   return ctx.sufficiency_closer_clause ?? "";
     case "factual_elements_summary_clause": return ctx.factual_elements_summary_clause ?? "";
     case "reserved_judgments_list":     return ctx.reserved_judgments_list ?? "";
     case "type_j_pinpoints":            return ctx.type_j_pinpoints ?? "";
+    // ── ITEM 242 (defect 7a) — action owner passthrough.
+    case "owner_role_titles":           return ctx.owner_role_titles ?? "";
     default:
       return "";
   }

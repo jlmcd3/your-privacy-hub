@@ -48,6 +48,7 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
   // Per-item shards.
   "T.risk.priority_action": ["action_label", "action_basis", "deadline_basis"],
   // ITEM 241.3 — GOLDEN four-move gap-driven action template.
+  // ITEM 242 (defect 7a) — owner_role_titles added to required set.
   "T.risk.priority_action.golden": [
     "element_short_label",
     "entity_name",
@@ -55,6 +56,7 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
     "gap_or_consequence_clause",
     "compliance_guidance_sentence",
     "deadline_sentence",
+    "owner_role_titles",
   ],
   "T.risk.next_step": ["step_label", "step_basis"],
   "T.risk.record_sufficiency.item": ["element_label", "element_status_clause"],
@@ -99,6 +101,7 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
     "sufficiency_clause",
     "entity_name",
     "factual_elements_summary_clause",
+    "sufficiency_closer_clause",
   ],
 };
 

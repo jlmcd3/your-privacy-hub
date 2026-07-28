@@ -318,7 +318,9 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // ~747 chars/action per Golden-Shape §1 (top-50 empirical).
   "T.risk.priority_action.golden": {
     id: "T.risk.priority_action.golden",
-    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}}",
+    // ITEM 242 (defect 7a) — owner slot appended verbatim to every action.
+    // Sourced from i7_internal_contributors (role-title only, per PII law).
+    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}} Owner: {{plan:owner_role_titles}}.",
     citation_slots: ["PINPOINT"],
     plan_slots: [
       "element_short_label",
@@ -327,9 +329,10 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
       "gap_or_consequence_clause",
       "compliance_guidance_sentence",
       "deadline_sentence",
+      "owner_role_titles",
     ],
     intake_slots: [],
-    max_chars: 1200,
+    max_chars: 1400,
   },
 
   // ITEM 241.3 — CP5 §3.2 section-opener templates. Customer-first per
@@ -406,7 +409,12 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // (min_chars=500 in the quota table).
   "T.risk.record_sufficiency.prose": {
     id: "T.risk.record_sufficiency.prose",
-    text: "The record supporting this assessment is {{plan:sufficiency_clause}}. {{plan:entity_name}} has documented the four factual elements § 7152(a) requires — {{plan:factual_elements_summary_clause}} — and has recorded reserved judgments for {{plan:reserved_judgments_list}}, each attached to the specific record element the judgment governs. Reserved judgments are decisions counsel or the external auditor holds under {{plan:type_j_pinpoints}}; they are not gaps in the record and do not diminish record sufficiency. Where a factual element is absent, the deficiency is enumerated in the safeguard-gaps section with its own pinpoint. As of {{plan:as_of_date}}, the record is sufficient for the § 7152(a)(6) balancing frame to weigh.",
+    // ITEM 242 (defect 6) — closer bound to the SAME source as the opener
+    // via `sufficiency_closer_clause`. The composer derives both from a
+    // single boolean; contradiction between opener and closer is
+    // structurally impossible after this change. The e2e contradiction
+    // assert (item242-record-sufficiency.test.ts) enforces it.
+    text: "The record supporting this assessment is {{plan:sufficiency_clause}}. {{plan:entity_name}} has documented the four factual elements § 7152(a) requires — {{plan:factual_elements_summary_clause}} — and has recorded reserved judgments for {{plan:reserved_judgments_list}}, each attached to the specific record element the judgment governs. Reserved judgments are decisions counsel or the external auditor holds under {{plan:type_j_pinpoints}}; they are not gaps in the record and do not diminish record sufficiency. Where a factual element is absent, the deficiency is enumerated in the safeguard-gaps section with its own pinpoint. As of {{plan:as_of_date}}, the record {{plan:sufficiency_closer_clause}}.",
     citation_slots: [],
     plan_slots: [
       "sufficiency_clause",
@@ -415,6 +423,7 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
       "reserved_judgments_list",
       "type_j_pinpoints",
       "as_of_date",
+      "sufficiency_closer_clause",
     ],
     intake_slots: [],
     max_chars: 1400,

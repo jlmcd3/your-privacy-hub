@@ -237,16 +237,20 @@ const NEGATIVE_IMPACTS: readonly FactorRow[] = [
       + "prices, or compensating consumers at lower rates based upon profiling; or imposing additional costs upon "
       + "consumers, including costs associated with the unauthorized access to consumers' personal information.",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(5)(E)" },
-    // FSOR-INGESTION 2026-07-27: adeb9b63 (p. 36) is filed under the FSOR's pre-modification
-    // (a)(5)(F) label but the Agency's ruling addresses economic-harm framing verbatim
-    // ("based upon profiling" clarification for economic harms). Substance controls over
-    // pre-mod pinpoint labeling; no re-tag performed (row's own citation preserved).
+    // ITEM 242 (defect 3) — 2026-07-28 re-key. The FSOR p.36 commentary
+    // filed under the pre-modification (a)(5)(F) label discusses
+    // 'based upon profiling' as a pathway to ECONOMIC injury, which the
+    // post-modification enumeration places at (a)(5)(E). Substance
+    // controls: guidance_ref.regulation_citation is re-keyed to
+    // (a)(5)(E) so the guidance-family matches the row anchor. The
+    // pre-mod (F) label is preserved in the anchor_hint as historical
+    // provenance, not as a live cross-provision reach.
     guidance_refs: [
       {
         source_table: "cppa_fsor_commentary",
-        regulation_citation: "11 CCR § 7152(a)(5)(F)",
+        regulation_citation: "11 CCR § 7152(a)(5)(E)",
         page_ref: "p. 36",
-        anchor_hint: "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers",
+        anchor_hint: "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers (FSOR filed under pre-modification (a)(5)(F) label; substance addresses (a)(5)(E) economic harms)",
         authority_weight: "binding",
       },
     ],
