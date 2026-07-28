@@ -4517,3 +4517,47 @@ All required wire values verified: `build_stamp` = item230a; `post_lint_pass1_ti
 **Deliverables.** Diff on `retry-budget.ts` + colocated test + `anthropic-call.ts` + `run-cppa-risk-assessment/index.ts`. Explicit deploy via `supabase--deploy_edge_functions`; ping verified verbatim above. Courier: `docs/courier/T-M9.3-PASS1-WINDOW-240S-2026-07-28.md`.
 
 **Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
+
+---
+
+### Item 234 — T-M9.4: VALID PLAN INVARIANT (successful plan was discarded by stale write-around flag). 2026-07-28
+
+**Evidence.** Batch `46c90de6`, run #168, assessment `63542548-33eb-45af-90fb-36042f99d5ed` on the item233 build. `attempts_detail`: attempt 1 `outcome=ok`, `elapsed_ms=139156`, `continuation_count=1` — **PASS-1 SUCCEEDED** (validating the 240 s window; 139 s is the first real Pass-1 duration measurement). Yet `write_around_origin="clock_cap"` and the Type-J body shipped → C=19.9 / G=61. A successful, validator-clean RenderPlan was routed to Type-J.
+
+**Root cause.** `_shared/ltp/pass1-llm.ts` line 190 preserved `conservative_write_around` from the model's parsed JSON:
+```
+conservative_write_around: parsed?.conservative_write_around ?? { triggered: false, ... }
+```
+The model output validated cleanly but included `{triggered:true}` for the flag. Downstream:
+- `run-cppa-risk-assessment/index.ts:3570` (cutover): `_writeAround = !!_pass1.plan?.conservative_write_around?.triggered || !_pass1.telemetry.ok;` → true.
+- `_pass1.telemetry.error` is undefined on ok → the ternary falls through to the `"clock_cap"` bucket at line 3577.
+- The finalize hook at :3668 mirrored the same flag via `_planSummary.write_around` (set at :3528 from the same field).
+Both consumer sites derived write-around exclusively from the model-owned flag, so a model that hallucinated `triggered:true` reliably discarded validated plans.
+
+**Fix (per CEO invariant, stated in code + here): A successful, validator-clean RenderPlan is ALWAYS assembled and shipped. The clock contract gates LLM retries only; the Pass-2 assembler is deterministic and requires no LLM budget. Type-J write-around fires ONLY when Pass-1 actually terminally failed (abort×N, validator hard-reject, or model error). Clock-cap can still bound the total pipeline via persist-first, but it MUST NEVER reroute a valid plan to Type-J.**
+
+Landed:
+1. **`pass1-llm.ts`** — on the validator-clean ok path, the model-emitted `conservative_write_around` is **overridden** to `{triggered:false, disclosure:"silent+telemetry"}`. The adapter, not the model, owns this flag. Stamp bumped to `ltp-pass1-llm-item234-valid-plan-ships@2026-07-28`.
+2. **`run-cppa-risk-assessment/index.ts` (cutover site, :3568)** — belt-and-suspenders: `const _writeAround = _pass1.telemetry.ok ? false : (…);`. A future regression that reintroduces `triggered:true` on ok cannot re-route a valid plan.
+3. **`run-cppa-risk-assessment/index.ts` (finalize hook, :3667)** — belt-and-suspenders: `_writeAroundEntered = !_pass1TeleOk && !!_ltpPreview?.plan_summary?.write_around;`. The finalize-site classifier now also refuses to enter write-around when `_ltpPreview.telemetry.ok === true`.
+4. **Stage timings** persisted at `_meta.internal.stage_timings`: `{ worker_start_ms, pass1_start_ms, pass1_end_ms, pass1_elapsed_ms, assembler_start_ms, assembler_end_ms, assembler_elapsed_ms, cutover_end_ms }` — the empirical basis for measuring pre-Pass-1 time and tuning later. `worker_start_ms=0` by construction; the rest are relative to worker `t0`.
+5. **Unit test** in `_shared/ltp/pass1-llm.test.ts`: mocks `globalThis.fetch` to return a `derivePlan`-seeded, validator-clean plan decorated with a stray `triggered:true`; asserts that on ok, both `telemetry.write_around` and `plan.conservative_write_around.triggered` are false. Adapter-owned flag override is now regression-guarded.
+
+**Test paste (touched scopes).**
+- `_shared/ltp/pass1-llm.test.ts`: 4 passed / 0 failed.
+- `_shared/ltp/pass2-assembler.test.ts`: 6 passed / 0 failed.
+- `run-cppa-risk-assessment/_ltp.test.ts`: 8 passed / 0 failed.
+
+**Fresh-clock stamp + explicit deploy.** `BUILD_STAMP` is now computed at module load with `new Date().toISOString()` — no more manually-typed timestamps to future-date. Deployed via `supabase--deploy_edge_functions`. Post-deploy `GET ?ping=1` verbatim:
+- `build_stamp`: `ltp-risk-item234-t-m9.4-valid-plan-ships@2026-07-28T09:14:48.093Z`
+- `pass1_stamp`: `ltp-pass1-llm-item234-valid-plan-ships@2026-07-28`
+- `pass1_timeout_enforced`: `abort-controller`
+- `post_lint_pass1_timeout_ms`: 240000
+- `pass1_model`: `claude-sonnet-4-6`, `pass1_max_attempts`: 2
+- `pass2_assembler`: `ltp-pass2-assembler-2026-07-28-tm6`
+- `composition_shape.version`: `cppa-risk-shape@2026-07-28-tm7-retirement`, `llm_calls_per_document`: `[pass1_derive]` only.
+
+**Next steps (CEO-directed, dispatch follows separately).** After this fix works: (1) controller reruns smoke; (2) on success, build the **TRIAGE/LEAN layer** — deterministic intake triage partition `{decisive-yes | decisive-no | analysis-relevant | irrelevant-given-gates}` + conjunction gates + `derived_lean` priors in the weighing frame, calibration-law-bounded, Type-J excluded — as **LEGAL-TEST-PIPELINE v2.4**.
+
+**Courier:** `docs/courier/T-M9.4-VALID-PLAN-SHIPS-2026-07-28.md`.
+**Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
