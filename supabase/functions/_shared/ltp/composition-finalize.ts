@@ -450,7 +450,7 @@ export { readForceWriteAroundOnce };
 // they can safely persist. Enforce-mode strictness is preserved via
 // `telemetry.enforce_violation` for measurement verdicts — the
 // document still ships; the verdict is what enforce mode governs.
-export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-28-item215-vs-site";
+export const SAFE_FINALIZE_VERSION = "safe-finalize@2026-07-28-item217-repair-outside-guard";
 export const SAFE_FINALIZE_BUDGET_MS_DEFAULT = 15_000;
 
 export interface SafeFinalizeTelemetry {
@@ -464,12 +464,19 @@ export interface SafeFinalizeTelemetry {
   readonly budget_ms: number;
   readonly elapsed_ms: number;
   readonly budget_exceeded: boolean;
-  /**
-   * ITEM 206 — per-hit ValueScreenError details preserved on the catch
-   * path so the wire-site can persist path/context under
-   * `_meta.internal.composition_finalize.hits`. Never blind again.
-   */
+  /** Item 206 — per-hit ValueScreenError details preserved on the catch path. */
   readonly hits: readonly ValueScreenHit[];
+  /**
+   * ITEM 217 fix (b) — fragment-omit repair runs OUTSIDE the guarded
+   * finalize section, so its output survives any finalize throw. These
+   * top-level fields are the AUTHORITATIVE record of the repair pass
+   * and are populated on BOTH success and catch paths. Callers should
+   * prefer these over `inner.fragment_omit_*` (which reflects the
+   * inner idempotent re-run and will read 0 on success).
+   */
+  readonly fragment_omit_version: string;
+  readonly fragment_omit_count: number;
+  readonly fragment_omit_paths: readonly string[];
   readonly inner?: FinalizeTelemetry;
 }
 
@@ -489,13 +496,34 @@ export function safeFinalizeComposition(
 ): SafeFinalizeResult {
   const budgetMs = input.budgetMs ?? SAFE_FINALIZE_BUDGET_MS_DEFAULT;
   const t0 = nowMs();
-  const originalReport = input.reportData;
+
+  // ── ITEM 217 FIX (b) — REPAIR OUTSIDE THE GUARDED SECTION ─────────
+  // The fragment-omit pass is a REPAIR, not a screen. Prior to Item 217
+  // it ran inside `finalizeComposition`, so if any later step in that
+  // function threw (hook-audit, etc.) safeFinalizeComposition's catch
+  // clause would restore `originalReport` and the repair would be
+  // silently discarded — smoke #11 shipped a whole-value "We" slot for
+  // exactly this reason. Now the repair runs here, unconditionally,
+  // and the restore baseline is the ALREADY-REPAIRED object.
+  let outerOmit: FragmentOmitResult = { reportData: input.reportData, omittedPaths: [] };
+  try {
+    outerOmit = omitFragmentSlots(input.reportData);
+  } catch {
+    // A bug in the repair pass must not block persist; fall back to raw.
+  }
+  const repairedReport = outerOmit.reportData;
+
   let envMode: FinalizeMode = "observe";
   try {
     envMode = input.mode ?? currentEnforceMode(input.env ?? Deno.env);
   } catch { /* env read cannot block persist */ }
+
   try {
-    const res = finalizeComposition(input);
+    // Pass the REPAIRED data through finalize. Fragment-omit is
+    // idempotent on repaired input (no truncated tokens remain), so
+    // inner.fragment_omit_count will be 0 on success — the top-level
+    // fields carry the authoritative counts.
+    const res = finalizeComposition({ ...input, reportData: repairedReport });
     const elapsed = Math.round(nowMs() - t0);
     return {
       reportData: res.reportData,
@@ -509,6 +537,9 @@ export function safeFinalizeComposition(
         elapsed_ms: elapsed,
         budget_exceeded: elapsed > budgetMs,
         hits: res.telemetry.value_screen_hit_details,
+        fragment_omit_version: FRAGMENT_OMIT_VERSION,
+        fragment_omit_count: outerOmit.omittedPaths.length,
+        fragment_omit_paths: outerOmit.omittedPaths,
         inner: res.telemetry,
       },
     };
@@ -520,7 +551,9 @@ export function safeFinalizeComposition(
     const hits: readonly ValueScreenHit[] =
       e instanceof ValueScreenError ? e.hits : [];
     return {
-      reportData: originalReport,
+      // ITEM 217 FIX (b): restore the REPAIRED baseline, not raw input,
+      // so any finalize throw does not un-do fragment-omit.
+      reportData: repairedReport,
       telemetry: {
         version: COMPOSITION_FINALIZE_VERSION,
         safe_version: SAFE_FINALIZE_VERSION,
@@ -534,7 +567,11 @@ export function safeFinalizeComposition(
         elapsed_ms: elapsed,
         budget_exceeded: elapsed > budgetMs,
         hits,
+        fragment_omit_version: FRAGMENT_OMIT_VERSION,
+        fragment_omit_count: outerOmit.omittedPaths.length,
+        fragment_omit_paths: outerOmit.omittedPaths,
       },
     };
   }
 }
+
