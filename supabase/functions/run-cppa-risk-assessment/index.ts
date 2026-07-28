@@ -3954,6 +3954,37 @@ async function runPipeline(assessment_id: string) {
 
 
 
+    // ── T-M9.2 (Item 232) — RUNTIME SHAPE-CONFORMANCE ASSERT ────────
+    // Declared shape (COMPOSITION_SHAPE_DECLARATION) allows exactly one
+    // LLM call per document: pass1_derive. Any legacy Engine-A v4 call
+    // is undeclared drift. Fail loud to status=error rather than ship
+    // spend-wasted output.
+    if (legacyLlmCallCount > 0) {
+      const _driftDetail = `legacy_v4_call_count=${legacyLlmCallCount};labels=${legacyLlmCallLabels.slice(0, 8).join(",")}`;
+      console.warn(JSON.stringify({
+        evt: "composition_shape_drift_detected",
+        fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP,
+        detail: _driftDetail,
+      }));
+      try {
+        const _rdD: any = report_data as any;
+        _rdD._meta = _rdD._meta ?? {};
+        _rdD._meta.internal = _rdD._meta.internal ?? {};
+        _rdD._meta.internal.composition_shape_drift = {
+          build_stamp: BUILD_STAMP,
+          legacy_v4_call_count: legacyLlmCallCount,
+          labels: legacyLlmCallLabels,
+        };
+      } catch { /* best-effort */ }
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+        status: "error",
+        report_data: { error: "composition_shape_drift", detail: _driftDetail },
+        last_error: `composition_shape_drift:${_driftDetail}`,
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_shape_drift" });
+      return;
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
