@@ -4075,3 +4075,44 @@ GET /run-cppa-risk-assessment?ping=1
 **Courier:** `docs/courier/T-M1-DERIVE-AUTHORITATIVE-2026-07-28.md`.
 
 **Disposition: HARD STOP** after courier + ledger, per dispatch. Next turn per Item 218 plan: T-M2 (Pass-2 template registry seeding).
+
+## Item 222 — T-M2 SECTION-SHARD REGISTRY for cppa-risk (2026-07-28T06:10Z)
+
+**Dispatch:** T-M2 (Item 218 §(b)(2) cutover plan, step 2 of 10). Fourth turn of the LEGAL-TEST-PIPELINE rebuild chain (Items 219–221 complete). Registry-only turn: no new templates, no grader edits, no batch inserts, no deploy.
+
+**Action:** Authored `supabase/functions/_shared/ltp/section-shards/cppa-risk.ts` — 38 entries, one per top-level key of `CPPA_RISK_REPORT_SCHEMA`, each bound to (a) a template set and (b) a pure `(plan: RenderPlan) => unknown` projection. "Unmapped" not permitted; frontend contract preserved (registry key set == schema top-level allow-list, exactly).
+
+**Engine-A HARVEST bindings (subordinated to RenderPlan; not on any deletion list):**
+- `opening_summary` → `_shared/openings/risk-opening.ts` (T7 S0–S6). Owner kind `harvest`, `subordinated: true`.
+- `submission_summary` → `_shared/ltp/cyber-audit-schedule.ts` + § 7120 crosswalk. Owner kind `harvest`, `subordinated: true`.
+
+Subordination guard (plan-conflict → reject artifact + telemetry, never silent suppress) rides with T-M3 wire-in; this turn declares the binding only.
+
+**Coverage test (paste green):**
+```
+running 10 tests from ./_shared/ltp/section-shards/cppa-risk.test.ts
+registry: every schema top-level key has an owner ... ok
+registry: no extra keys beyond the schema allow-list ... ok
+registry: no duplicate keys ... ok
+registry: key count equals schema top-level count ... ok
+registry: every entry has a non-empty template_ids list ... ok
+registry: every entry exposes a callable projection ... ok
+harvest: opening_summary binds to T7 emitter, subordinated ... ok
+harvest: submission_summary binds to § 7121(a) + § 7120 crosswalk ... ok
+harvest: neither opening_summary nor submission_summary is on any CUT list ... ok
+gap-report: shape is valid and refers only to registry keys ... ok
+ok | 10 passed | 0 failed (28ms)
+```
+
+**Gap report (T-M3/T-M4 scoping input) — sections lacking dedicated templates:**
+`executive_summary`, `priority_actions`, `next_steps`, `record_sufficiency` (all reuse `documentation.{gap,present}` — dedicated shapes unauthored); `inconsistency_flags` (TEMPLATE_CUT — review-items content unauthored); plus the two harvest sections `opening_summary` and `submission_summary` awaiting the subordination wire.
+
+**Files touched:**
+- Added: `supabase/functions/_shared/ltp/section-shards/cppa-risk.ts` (registry + coverage helpers + gap report; version `cppa-risk-section-shards-2026-07-28-tm2`).
+- Added: `supabase/functions/_shared/ltp/section-shards/cppa-risk.test.ts` (10 tests, all green).
+
+**Not fixed this turn (queued):** `supabase/functions/_shared/ltp/waveb.test.ts:79–81` stale `PASS1_MANIFEST.model.startsWith("google/")` assertion (stale since Q3 same-model ruling; queued for **T-M7 cleanup** per Item 221 courier).
+
+**Courier:** `docs/courier/T-M2-SECTION-SHARD-REGISTRY-2026-07-28.md`.
+
+**Disposition: HARD STOP** after courier + ledger, per dispatch. Next per Item 218 plan: T-M3 (per-section template wire-in + harvest subordination guard).
