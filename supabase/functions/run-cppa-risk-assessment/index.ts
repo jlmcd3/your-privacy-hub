@@ -931,6 +931,24 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
+    // T-M9.1 (Item 231): worker_start liveness touch — fires IMMEDIATELY
+    // after the processing write and BEFORE any slow work (corpus retrieval,
+    // deadline block, first model call). Together with worker_liveness_pass1_start
+    // (deeper in the pipeline) this bounds the "silent gap" between DB
+    // touches so a stalled worker is distinguishable from a slow one within
+    // seconds instead of minutes. Non-fatal on failure.
+    try {
+      await supabase.from("cppa_assessments").update({
+        updated_at: new Date().toISOString(),
+      }).eq("id", assessment_id);
+      console.log(JSON.stringify({
+        evt: "worker_liveness_start", fn: "run-cppa-risk-assessment",
+        assessment_id, build_stamp: BUILD_STAMP,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] worker_liveness_start touch failed (non-fatal):", (e as Error)?.message);
+    }
+
     const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
 
     const validation = validateFiveStage(fiveStage, /* lenient */ wasLegacyShimmed);
