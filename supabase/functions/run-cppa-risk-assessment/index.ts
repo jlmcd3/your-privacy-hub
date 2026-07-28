@@ -3492,11 +3492,22 @@ async function runPipeline(assessment_id: string) {
       const _hookValue = readForceWriteAroundOnce(Deno.env);
       const _ltpPreview = _rdF._meta.internal.legal_test_pipeline?.enforce_preview;
       const _writeAroundEntered = !!_ltpPreview?.plan_summary?.write_around;
+      // ITEM 217 fix (a): classify the write-around origin so the
+      // hook-audit knows this is a designed clock-cap degradation
+      // (Item 203 clock contract), not an unauthorized bypass. Pass-1
+      // sets telemetry.write_around=true only after the N=2 retry
+      // budget exhausts OR the test forcing token is used.
+      const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
+      const _writeAroundOrigin: "clock_cap" | "test_forced" | undefined =
+        _writeAroundEntered
+          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+          : undefined;
       const _mode = currentEnforceMode(Deno.env);
       const _safe = safeFinalizeComposition({
         reportData: report_data,
         hookValue: _hookValue,
         writeAroundEntered: _writeAroundEntered,
+        writeAroundOrigin: _writeAroundOrigin,
         mode: _mode,
       });
       report_data = _safe.reportData as any;
@@ -3512,8 +3523,12 @@ async function runPipeline(assessment_id: string) {
         hits: (_safe.telemetry.hits ?? []).map((h: any) => ({
           kind: h.kind, match: h.match, path: h.path, context: h.context,
         })),
-        fragment_omit_count: _safe.telemetry.inner?.fragment_omit_count ?? 0,
-        fragment_omit_paths: _safe.telemetry.inner?.fragment_omit_paths ?? [],
+        // ITEM 217 fix (b): prefer top-level fragment_omit_* (authoritative;
+        // survives finalize throws) over inner (which reflects the inner
+        // idempotent re-run on already-repaired input).
+        fragment_omit_count: _safe.telemetry.fragment_omit_count,
+        fragment_omit_paths: _safe.telemetry.fragment_omit_paths,
+        write_around_origin: _writeAroundOrigin ?? null,
       };
       console.log(JSON.stringify({
         evt: "composition_finalize_ran", fn: "run-cppa-risk-assessment",
@@ -3526,13 +3541,14 @@ async function runPipeline(assessment_id: string) {
         budget_exceeded: _safe.telemetry.budget_exceeded,
         value_screen_hits: _safe.telemetry.inner?.value_screen_hits ?? null,
         value_screen_final_hits: _safe.telemetry.inner?.value_screen_final_hits ?? null,
-        fragment_omit_count: _safe.telemetry.inner?.fragment_omit_count ?? 0,
-        fragment_omit_paths: _safe.telemetry.inner?.fragment_omit_paths ?? [],
+        fragment_omit_count: _safe.telemetry.fragment_omit_count,
+        fragment_omit_paths: _safe.telemetry.fragment_omit_paths,
         hits: (_safe.telemetry.hits ?? []).map((h: any) => ({ kind: h.kind, match: h.match, path: h.path })),
         surface_unowned_count: _safe.telemetry.inner?.surface_unowned_paths.length ?? null,
         surface_cut_violations: _safe.telemetry.inner?.surface_cut_violations.length ?? null,
         hook_present: _safe.telemetry.inner?.hook_value_present ?? null,
         write_around_entered: _safe.telemetry.inner?.write_around_entered ?? null,
+        write_around_origin: _writeAroundOrigin ?? null,
       }));
     } catch (e) {
       // Belt-and-suspenders: safeFinalizeComposition is designed never to
