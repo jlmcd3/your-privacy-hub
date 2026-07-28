@@ -14,6 +14,7 @@
  */
 
 import { computeTestStates, classifyRevenueBand } from "../cppa-test-states.ts";
+import { renderAllProngPostures } from "./submission-postures.ts";
 
 export const WAVEB_COMPLETION_STAMP = "ltp-waveb-completion@2026-07-27T02:15:00Z";
 export const WAVEB_COMPLETION_VERSION = "waveb-completion-v1";
@@ -300,7 +301,6 @@ export function extendSubmissionBasisCrosswalk(report: any, intake: Record<strin
   const outcomes = computeProngOutcomes(intake);
   // CP-B FINAL — state-the-law posture clauses grounded in verbatim
   // provision text (see _shared/ltp/submission-postures.ts).
-  const { renderAllProngPostures } = await import("./submission-postures.ts");
   const clauses = renderAllProngPostures(outcomes);
   const glue = base && !/[.;]\s*$/.test(base) ? "; " : " ";
   summary.submission_basis = `${base}${glue}${clauses.join(" ")}`;
