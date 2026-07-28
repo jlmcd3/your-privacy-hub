@@ -4844,3 +4844,9 @@ stamps).
 **Courier:** `docs/courier/T-M9.7-RUN171-FIXES-2026-07-28.md`.
 **Disposition:** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-RELAUNCH.
 HARD STOP.
+
+### Item 239 — BOTTOM-UP CODEBASE ANALYSIS (docs-only)
+Doc: `docs/analysis/BOTTOM-UP-CODEBASE-ANALYSIS-2026-07-28.md`.
+Scope: OWNERSHIP MAP (RenderPlan fields + shared constants, model-vs-deterministic decomposition of Pass-1 output) · SEAM INVENTORY (19 seams intake→PDF, each with contract site or NONE and joint-test presence) · ASSUMPTIONS INVENTORY (legacy budgets, fossils, misleading POST_LINT_LLM_* labels, shadow-preview slot, wave suppression modules) · VALIDATOR-REJECT ROOT CAUSE (Item 238 hypothesis REFUTED by code as read this turn — `LEDGER_KEYS` is shadow-only, not fed into Pass-1 prompt/wire-schema; V1 closure is intra-plan; real cause is model-side prompt conformance and requires either plan inspection or pass1-llm telemetry extension to name the V-code).
+Ranked scope for the consolidated correction turn: 5 dual-authorship instances (intake_ledger, WriteAroundOrigin enum, close-balance predicate, FIRM_VARIANT_CLOSENESS_MAX literal, deterministic-field model authorship), 4 contract-less seams (prompt↔V1, harvest prefixes, PDF↔assembler, serializer), 6 fossils (assembleReportShadow, enforce_preview slot, withRetryPersistFirst + POST_LINT_LLM_* constants, wave suppression stamps, legacy V1 band labels, part_a/b/gating empty shards). Open evidence gaps flagged (generate-report-pdf not read, serializer module not read, grader input not read, V-code of run #172 not nameable from evidence gathered).
+Disposition: READY-FOR-CONTROLLER-SPOT-VERIFY. HARD STOP.
