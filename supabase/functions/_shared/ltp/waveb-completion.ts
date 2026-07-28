@@ -293,20 +293,18 @@ export function extendSubmissionBasisCrosswalk(report: any, intake: Record<strin
   const summary = report.submission_summary;
   if (!summary || typeof summary !== "object") return 0;
   const base = String(summary.submission_basis ?? "");
-  // Idempotent: skip if we already appended prong clauses.
-  if (base.includes("cybersecurity-audit linkage — § 7120(b)(1)")) return 0;
+  // Idempotent: skip if we already appended prong clauses (either legacy
+  // compact form or the CP-B FINAL posture form).
+  if (base.includes("cybersecurity-audit linkage — § 7120(b)(1)")
+      || base.includes("§ 7120(b)(1) incorporates")) return 0;
   const outcomes = computeProngOutcomes(intake);
-  const clauses: string[] = [];
-  let added = 0;
-  for (const key of ["b1", "b2A", "b2B"] as const) {
-    const { pinpoint, label } = PRONG_LABELS[key];
-    const outcome = outcomes[key];
-    clauses.push(`cybersecurity-audit linkage — ${pinpoint} (${label}) ${outcome} on the record`);
-    added++;
-  }
-  const glue = base && !/;\s*$/.test(base) ? "; " : "";
-  summary.submission_basis = `${base}${glue}${clauses.join("; ")}`;
-  return added;
+  // CP-B FINAL — state-the-law posture clauses grounded in verbatim
+  // provision text (see _shared/ltp/submission-postures.ts).
+  const { renderAllProngPostures } = await import("./submission-postures.ts");
+  const clauses = renderAllProngPostures(outcomes);
+  const glue = base && !/[.;]\s*$/.test(base) ? "; " : " ";
+  summary.submission_basis = `${base}${glue}${clauses.join(" ")}`;
+  return clauses.length;
 }
 
 /* ─────────────────────────── orchestrator ─────────────────────────── */
