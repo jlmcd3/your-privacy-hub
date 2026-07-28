@@ -98,7 +98,7 @@ export class ValueScreenError extends Error {
 }
 
 export interface ValueScreenHit {
-  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value";
+  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value" | "interpolation-residue";
   readonly match: string;
   readonly path: string;
   readonly context: string;
@@ -191,6 +191,19 @@ export function runValueScreen(input: ScreenInput): void {
           path,
           context: value.slice(0, 120),
         });
+      }
+    }
+    // ITEM 235 — interpolation-residue defense-in-depth on shipped surface.
+    if (!isAnchorPath(path)) {
+      for (const re of INTERPOLATION_RESIDUE_RES) {
+        if (re.test(value)) {
+          hits.push({
+            kind: "interpolation-residue",
+            match: re.toString(),
+            path,
+            context: value.slice(0, 120),
+          });
+        }
       }
     }
     if (normalizedSnippets.length > 0) {
