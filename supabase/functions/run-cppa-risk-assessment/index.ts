@@ -3424,17 +3424,23 @@ async function runPipeline(assessment_id: string) {
         validator_issues: _ltpTelemetry.validators.total_issues,
       }));
 
-      // ── LTP WAVE-B PART-1 ENFORCE PREVIEW ────────────────────────────
-      // When LTP_ENFORCE_ENABLED=1, run the LLM Pass-1 adapter (N=2 retry,
-      // write-around fallback) and attach its telemetry + slim plan preview
-      // under _meta.internal.legal_test_pipeline.enforce_preview. This does
-      // NOT mutate customer-visible report_data; the whitelist serializer
-      // strips _meta.internal. Fail-open in all paths.
+      // ── T-M1 (Item 221): PASS-1 DERIVE AS AUTHORITATIVE ──────────────
+      // The historical env gate (LTP_ENFORCE_ENABLED) is retired for
+      // cppa-risk. Pass-1 (deterministic derive + LLM arm + V1–V8
+      // validators) runs unconditionally with the CEO-ruled N=2 retry
+      // budget (PASS1_MAX_ATTEMPTS) and the 75s per-attempt cap. On
+      // success the RenderPlan is persisted as the authoritative artifact
+      // at _meta.internal.render_plan; the legacy shadow-preview slot is
+      // kept populated for one release for back-compat but downstream
+      // wiring (T-M6) will read exclusively from render_plan. On terminal
+      // failure Pass-1 returns conservative_write_around=true; the finalize
+      // hook (below) records write_around_origin so the composer does NOT
+      // silently fall through.
       try {
         const _rd2: any = report_data as any;
         const _elapsedBeforePass1 = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(_elapsedBeforePass1)) {
-          _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+          const _skipTelemetry = {
             manifest: PASS1_MANIFEST,
             telemetry: {
               ran: false,
@@ -3449,34 +3455,61 @@ async function runPipeline(assessment_id: string) {
             elapsed_ms: _elapsedBeforePass1,
             budget_ms: POST_LINT_LLM_BUDGET_MS,
           };
-          console.warn(JSON.stringify({ evt: "ltp_enforce_preview_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
+          _rd2._meta.internal.legal_test_pipeline.enforce_preview = _skipTelemetry;
+          _rd2._meta.internal.render_plan = {
+            authoritative: false,
+            reason: "skipped_budget",
+            manifest: PASS1_MANIFEST,
+            telemetry: _skipTelemetry.telemetry,
+          };
+          console.warn(JSON.stringify({ evt: "ltp_pass1_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
         } else {
           const _pass1 = await runPass1Llm({
             intake: _ltpIntake,
             report_data: report_data as any,
             buildStamp: BUILD_STAMP,
-          }, { maxAttempts: 1, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          }, { maxAttempts: PASS1_MAX_ATTEMPTS, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          const _planSummary = {
+            plan_version: _pass1.plan.plan_version,
+            propositions: _pass1.plan.propositions?.length ?? 0,
+            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
+            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
+          };
+          // Legacy shadow-preview slot (retained for T-M2..T-M5 back-compat).
           _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
             manifest: PASS1_MANIFEST,
             telemetry: _pass1.telemetry,
-            plan_summary: {
-              plan_version: _pass1.plan.plan_version,
-              propositions: _pass1.plan.propositions?.length ?? 0,
-              gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
-              write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
-            },
+            plan_summary: _planSummary,
             timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
-            max_attempts: 1,
+            max_attempts: PASS1_MAX_ATTEMPTS,
+          };
+          // AUTHORITATIVE RenderPlan artifact. Cutover consumer (T-M6) reads
+          // _meta.internal.render_plan; this is the single input for downstream
+          // body assembly once the composer swap lands.
+          _rd2._meta.internal.render_plan = {
+            authoritative: _pass1.telemetry.ok,
+            manifest: PASS1_MANIFEST,
+            plan: _pass1.plan,
+            plan_summary: _planSummary,
+            telemetry: _pass1.telemetry,
+            build_stamp: BUILD_STAMP,
+            model: PASS1_MODEL,
+            max_attempts: PASS1_MAX_ATTEMPTS,
+            timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
           };
           console.log(JSON.stringify({
-            evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
-            build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
-            attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
-            latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
+            evt: "ltp_pass1_authoritative_ran", fn: "run-cppa-risk-assessment",
+            build_stamp: BUILD_STAMP, pass1_model: PASS1_MODEL,
+            pass1_ok: _pass1.telemetry.ok,
+            attempts: _pass1.telemetry.attempts,
+            write_around: _pass1.telemetry.write_around,
+            validator_issues: _pass1.telemetry.validator_issues,
+            latency_ms: _pass1.telemetry.latency_ms,
+            error: _pass1.telemetry.error ?? null,
           }));
         }
       } catch (e) {
-        console.warn("[run-cppa-risk-assessment] LTP enforce-preview failed (non-fatal):", (e as Error)?.message);
+        console.warn("[run-cppa-risk-assessment] LTP Pass-1 authoritative failed (non-fatal):", (e as Error)?.message);
       }
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
