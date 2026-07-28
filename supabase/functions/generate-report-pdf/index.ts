@@ -1,12 +1,15 @@
 // pdf build active
-// BUILD_STAMP — real exported constant (was previously absent; telemetry could
-// not verify the deploy). Bump on every behavior edit. External-verification gate:
-// clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "qbp25-b2-governance-v2-pdf@2026-07-23T09:00:00Z";
+// BUILD_STAMP — real exported constant. Bump on every behavior edit.
+// External-verification gate: clone HEAD sha == BUILD_STAMP prefix.
+export const BUILD_STAMP = "generate-report-pdf-item240-cp3@2026-07-28T12:30:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
+import {
+  coerceNarrativeScalar,
+  coerceNarrativeList,
+} from "../_shared/report-contracts/cppa-risk-shape.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
