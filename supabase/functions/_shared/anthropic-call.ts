@@ -82,6 +82,23 @@ interface RawCallResult {
   elapsedMs: number;
 }
 
+function combineSignals(external: AbortSignal | undefined, timeoutMs: number): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!external) return timeout;
+  // AbortSignal.any is available in Deno 1.39+/edge runtime.
+  // deno-lint-ignore no-explicit-any
+  const any = (AbortSignal as any).any as ((s: AbortSignal[]) => AbortSignal) | undefined;
+  if (typeof any === "function") return any([external, timeout]);
+  // Fallback: manual composition.
+  const ctrl = new AbortController();
+  const onAbort = () => ctrl.abort((external.aborted ? external.reason : timeout.reason));
+  if (external.aborted) ctrl.abort(external.reason);
+  else external.addEventListener("abort", onAbort, { once: true });
+  if (timeout.aborted) ctrl.abort(timeout.reason);
+  else timeout.addEventListener("abort", onAbort, { once: true });
+  return ctrl.signal;
+}
+
 async function doOne(opts: {
   model: string;
   system: unknown;
@@ -89,6 +106,7 @@ async function doOne(opts: {
   maxTokens: number;
   timeoutMs: number;
   label: string;
+  abortSignal?: AbortSignal;
 }): Promise<RawCallResult> {
   const startedAt = Date.now();
   let res: Response;
@@ -106,14 +124,14 @@ async function doOne(opts: {
         system: opts.system,
         messages: opts.messages,
       }),
-      signal: AbortSignal.timeout(opts.timeoutMs),
+      signal: combineSignals(opts.abortSignal, opts.timeoutMs),
     });
   } catch (e) {
     const elapsedMs = Date.now() - startedAt;
-    const isAbort = (e instanceof DOMException && e.name === "TimeoutError")
+    const isAbort = (e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError"))
       || (e instanceof Error && /abort|timeout/i.test(e.message));
     if (isAbort) {
-      console.error(`[${opts.label}] stage=callAnthropic ABORT elapsed=${elapsedMs}ms limit=${opts.timeoutMs}ms`);
+      console.error(`[${opts.label}] stage=callAnthropic ABORT elapsed=${elapsedMs}ms limit=${opts.timeoutMs}ms outer_aborted=${opts.abortSignal?.aborted ?? false}`);
       throw new AnthropicTimeoutError(elapsedMs, opts.label);
     }
     throw e;
