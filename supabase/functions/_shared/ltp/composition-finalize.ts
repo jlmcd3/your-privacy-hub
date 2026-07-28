@@ -313,11 +313,16 @@ export function finalizeComposition(input: FinalizeInput): FinalizeResult {
   const omit = omitFragmentSlots(input.reportData);
   const rescreenInput: FinalizeInput = { ...input, reportData: omit.reportData };
 
-  // (1) value-screen with one bounded recompose
+  // (1) value-screen with one bounded recompose — ITEM 215 CONSOLIDATION:
+  // pre-serializer value-screen is ENTIRELY telemetry-only in every mode.
+  // ALL leak-lexicon / truncated-slot-value enforcement authority lives at
+  // the post-serializer wire-site (`evaluateShippedValueScreen`). The
+  // composed object legitimately contains scaffolding the LEAK-PREV-P2
+  // serializer strips (e.g. lint_warnings, retrieval_meta, legacy shims)
+  // whose contents may reference retired-surface paths without ever
+  // reaching the customer. Fragment-omit pre-pass (item 206) still runs
+  // above — it is a repair, not a screen.
   const screen = driveValueScreen(rescreenInput);
-  if (mode === "enforce" && screen.finalHits > 0) {
-    throw new ValueScreenError(screen.finalHitDetails);
-  }
 
   // (2) surface-write-guard walk — ITEM 213 CONSOLIDATION: pre-serializer
   // surface checks are ENTIRELY telemetry-only in every mode. ALL
