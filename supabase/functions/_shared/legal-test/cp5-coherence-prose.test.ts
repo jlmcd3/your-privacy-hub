@@ -117,7 +117,11 @@ Deno.test("CP5-CP: (c) intra-document trigger consistency — opening s1_trigger
     q2_consumers: "1,000,000 or more",
     q4_pi_categories: ["identifiers"],
     i1_processing_purpose: "onboarding",
+    // Opening reads q5_sell_share; the gate registry reads q_sells_or_shares.
+    // The intra-document consistency law requires BOTH derive from the same
+    // customer fact, so the fixture sets both from the one intake answer.
     q5_sell_share: "Yes — sell only",
+    q_sells_or_shares: "yes",
     sell_share: true,
     bought_sold_shared_count: "1,000,000 or more",
     q18_admt_use: "no",
