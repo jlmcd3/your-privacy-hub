@@ -3967,6 +3967,11 @@ Deno.serve(async (req) => {
       post_lint_llm_budget_ms: POST_LINT_LLM_BUDGET_MS,
       post_lint_llm_call_timeout_ms: POST_LINT_LLM_CALL_TIMEOUT_MS,
       post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+      // T-M9 (Item 230): the declared per-attempt timeout is now a REAL
+      // AbortController abort on every fetch leg — not a budget the caller
+      // never observes. Kickoff mode-assert pings this to detect declared-
+      // vs-actual abort-enforcement drift before spend.
+      pass1_timeout_enforced: PASS1_TIMEOUT_ENFORCED,
 
       safe_finalize: SAFE_FINALIZE_VERSION,
       // T-M1 (Item 221) — Pass-1 authoritative surface. Kickoff mode-assert
