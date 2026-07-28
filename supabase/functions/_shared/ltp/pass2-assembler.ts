@@ -42,6 +42,8 @@ import {
   type ShippedValueScreenEvaluation,
 } from "./composition-finalize.ts";
 import { renderCyberAuditSchedule } from "./cyber-audit-schedule.ts";
+import { computeProngOutcomes } from "./waveb-completion.ts";
+import { renderAllProngPostures } from "./submission-postures.ts";
 import { composeSection } from "./section-composers/cppa-risk.ts";
 import {
   coerceNarrativeScalar,
