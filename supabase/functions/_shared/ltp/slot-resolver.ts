@@ -84,9 +84,12 @@ export interface SlotContext {
   readonly sections_7150b_pinpoints?: string;
   readonly as_of_date?: string;
   readonly sufficiency_clause?: string;
+  readonly sufficiency_closer_clause?: string;
   readonly factual_elements_summary_clause?: string;
   readonly reserved_judgments_list?: string;
   readonly type_j_pinpoints?: string;
+  // ── ITEM 242 (defect 7a) — action owner slot.
+  readonly owner_role_titles?: string;
   // ── ITEM 240 CP4 — per-instance citation pinpoints. When present,
   //    substituteCitations reads ctx.__cite[slot] verbatim as the pinpoint.
   //    This is the per-proposition binding seam that ends the "everything
