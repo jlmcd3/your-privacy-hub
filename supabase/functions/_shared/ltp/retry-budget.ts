@@ -33,11 +33,14 @@ export const MAX_ELAPSED_FOR_RETRY_MS = 240_000;       // 4 min: past this, no r
 export const POST_RETRY_RESERVE_MS = 180_000;          // 3 min: finalize + serializer + persist
 export const MIN_RETRY_WINDOW_MS = 30_000;
 export const POST_LINT_LLM_CALL_TIMEOUT_MS = 120_000;  // per Anthropic leg; continuation makes max 240s
-// T-M9 (Item 230; CEO caveat 2026-07-28): raised from 75s → 120s per attempt.
-// The declared cap must be a REAL abort (see pass1-llm AbortController wire),
-// not just a budget. N=2 attempts → 240s worst-case Pass-1 wall time, well
-// inside POST_LINT_LLM_BUDGET_MS (300s) and the E2E 15-min ceiling.
-export const POST_LINT_PASS1_TIMEOUT_MS = 120_000;     // per Anthropic leg; enforced by AbortController in pass1-llm
+// T-M9.3 (Item 233; CEO time-allowance authority 2026-07-28): raised
+// 120s → 240s per attempt on evidence from smoke run #167 — both Pass-1
+// attempts aborted at exactly 120s mid-continuation, i.e., Pass-1 derive
+// legitimately exceeds 120s and the real Pass-2 body never shipped. N=2
+// retained → 480s worst-case Pass-1 wall time, still inside
+// POST_LINT_LLM_BUDGET_MS (720s) and the E2E 15-min ceiling with the
+// 3-min post-retry reserve intact.
+export const POST_LINT_PASS1_TIMEOUT_MS = 240_000;     // per Anthropic leg; enforced by AbortController in pass1-llm
 export const POST_LINT_LLM_MAX_CALL_MS = POST_LINT_LLM_CALL_TIMEOUT_MS * 2;
 export const POST_LINT_PASS1_MAX_CALL_MS = POST_LINT_PASS1_TIMEOUT_MS * 2;
 

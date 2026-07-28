@@ -20,7 +20,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
 // callModel throws on invocation and a runtime shape-conformance assert
 // fails loud on any drift.
-export const BUILD_STAMP = "ltp-risk-item232-t-m9.2-runtime-shape@2026-07-28T09:15:00Z";
+export const BUILD_STAMP = "ltp-risk-item233-t-m9.3-pass1-window-240s@2026-07-28T08:53:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
 // When true, callModel() throws instead of hitting Anthropic, and the
@@ -4009,12 +4009,12 @@ async function runPipeline(assessment_id: string) {
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     const isTimeout = e instanceof AnthropicTimeoutError
-      || (e instanceof Error && (e as any).code === "generation_timeout_330s");
+      || (e instanceof Error && ((e as any).code === "anthropic_attempt_abort" || (e as any).code === "generation_timeout_330s"));
     try {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: isTimeout
-          ? { error: "generation_timeout_330s", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null }
+          ? { error: "anthropic_attempt_abort", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null, limit_ms: (e as any).limitMs ?? null, label: (e as any).label ?? null }
           : { error: String(e) },
       }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }

@@ -4493,3 +4493,27 @@ All required wire values verified: `build_stamp` = item230a; `post_lint_pass1_ti
 **Deliverables.** Diff on `supabase/functions/run-cppa-risk-assessment/index.ts` (callModel fail-loud + primary block stub + 3 scrub-retry guards + runtime shape assert + fresh stamp). Courier: `docs/courier/T-M9.2-RUNTIME-SHAPE-CONFORMANCE-2026-07-28.md`.
 
 **Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
+
+## Item 233 — T-M9.3: PASS-1 ATTEMPT WINDOW RAISED 120s → 240s + LABEL HYGIENE (2026-07-28)
+
+**Dispatch.** CONTROLLER T-M9.3. Item-232 smoke run #167 (assessment 902b4e42) completed mechanically clean E2E (~5 min): liveness writes fired, abort-controller enforced, N=2 exercised, write_around_origin=`pass1_abort_timeout`, Type-J body shipped, `shipped_value_screen` enforce clean, no hang, fail-loud unneeded, declared single-call shape held, PDF exported. Scores C=19.15 / G=50 are the scores OF THE DESIGNED TYPE-J DEGRADATION — `attempts_detail` shows both attempts aborted at exactly 120 s mid-continuation (attempt 1 first leg ~87 s, continuation killed ~33 s in). Pass-1 derive legitimately exceeds 120 s; the real Pass-2 body has not yet shipped in any run. Smoke recorded as MECHANICAL PASS / CONTENT NOT-YET-MEASURED.
+
+**Fixes landed.**
+1. **`POST_LINT_PASS1_TIMEOUT_MS` raised 120000 → 240000** (`supabase/functions/_shared/ltp/retry-budget.ts`) under CEO time-allowance authority. `POST_LINT_PASS1_MAX_CALL_MS` = 480000 (N=2 × 240 s) worst-case Pass-1 wall time. 480 s + 180 s post-retry reserve = 660 s ≤ 900 s E2E ceiling, with the 3-min reserve intact.
+2. **Branch-correction test updated** (`retry-budget.branch-correction.test.ts`) — since T-M9.2 retired legacy generation, Pass-1 runs BEFORE the post-lint LLM window (not additive with it); the E2E bound for the pass1 arm is `POST_LINT_PASS1_MAX_CALL_MS + POST_RETRY_RESERVE_MS ≤ MAX_END_TO_END_MS`.
+3. **Label hygiene** on `AnthropicTimeoutError` (`supabase/functions/_shared/anthropic-call.ts`): `code` renamed `generation_timeout_330s` → `anthropic_attempt_abort`; message now reports the ACTUAL per-leg `timeoutMs` at throw time (not the hard-coded 330 s ceiling). The prior label read `generation_timeout_330s ... (limit 330000ms)` even on 120 s pass1 aborts — false governing-limit in telemetry. `AnthropicTimeoutError` now carries `limitMs` and `label` fields; caller shape in `run-cppa-risk-assessment/index.ts` sniffs the new code (retains legacy code sniff for defence in depth) and persists `{ error: "anthropic_attempt_abort", elapsed_ms, limit_ms, label }` on the terminal error path.
+4. **Attempts telemetry unchanged.** `attempts_detail` remains the empirical basis for T-M10 tuning.
+5. **Fresh-clock build stamp.** Read the wall clock immediately before writing: `ltp-risk-item233-t-m9.3-pass1-window-240s@2026-07-28T08:53:00Z`. Rounded/future-dated stamps (e.g., the item232 09:15:00Z stamp) violate the standing law; the item232 stamp is called out here as a violation of record.
+
+**Post-deploy `GET ?ping=1` verbatim.**
+- `build_stamp`: `ltp-risk-item233-t-m9.3-pass1-window-240s@2026-07-28T08:53:00Z`
+- `post_lint_pass1_timeout_ms`: 240000
+- `pass1_timeout_enforced`: `abort-controller`
+- `pass1_stamp`: `ltp-pass1-llm-item230-abort-controller@2026-07-28`
+- `pass1_model`: `claude-sonnet-4-6`, `pass1_max_attempts`: 2
+- `pass2_assembler`: `ltp-pass2-assembler-2026-07-28-tm6`
+- `composition_shape.version`: `cppa-risk-shape@2026-07-28-tm7-retirement`; `llm_calls_per_document`: `[pass1_derive]` only
+
+**Deliverables.** Diff on `retry-budget.ts` + colocated test + `anthropic-call.ts` + `run-cppa-risk-assessment/index.ts`. Explicit deploy via `supabase--deploy_edge_functions`; ping verified verbatim above. Courier: `docs/courier/T-M9.3-PASS1-WINDOW-240S-2026-07-28.md`.
+
+**Disposition.** READY-FOR-CONTROLLER-WIRE-VERIFY-AND-SMOKE-RELAUNCH. HARD STOP.
