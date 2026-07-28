@@ -235,31 +235,35 @@ export function renderTemplate(
   const fillOrOmit = opts.fillOrOmit !== false;
   const tpl: Pass2Template | undefined = PASS2_TEMPLATES[templateId];
   if (!tpl) {
-    return { template_id: templateId, text: "", errors: [`unknown_template:${templateId}`], slots_resolved: 0, slots_missing: 0 };
+    return { template_id: templateId, text: "", errors: [`unknown_template:${templateId}`], slots_resolved: 0, slots_missing: 0, slot_telemetry: [] };
   }
   if (tpl.emits_nothing) {
-    return { template_id: templateId, text: "", errors: [], slots_resolved: 0, slots_missing: 0 };
+    return { template_id: templateId, text: "", errors: [], slots_resolved: 0, slots_missing: 0, slot_telemetry: [] };
   }
   const errors: string[] = [];
   let text = tpl.text;
   checkForbiddenTokens(text, errors);
   text = substituteCitations(text, plan, tpl.citation_slots, errors);
   text = substituteIntake(text, plan, tpl.intake_slots, errors);
-  const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, errors);
+  const required = REQUIRED_PLAN_SLOTS[templateId] ?? tpl.plan_slots;
+  const planSub = substitutePlanSlots(text, plan, tpl.plan_slots, ctx, templateId, required, errors);
   text = planSub.text;
 
   // ITEM 235 — required-slot check. Default set = all plan_slots on the
   // template; override via REQUIRED_PLAN_SLOTS.
-  const required = REQUIRED_PLAN_SLOTS[templateId] ?? tpl.plan_slots;
   const emptyRequired = planSub.empty_slots.filter((s) => required.includes(s));
   if (fillOrOmit && emptyRequired.length > 0) {
-    errors.push(`omit_empty_required_slots:${emptyRequired.join(",")}`);
+    // ITEM 235b (T-M9.5b, LAW 1) — per-slot omission telemetry.
+    for (const s of emptyRequired) {
+      errors.push(`omit_empty_required_slot:${templateId}:${s}`);
+    }
     return {
       template_id: templateId,
       text: "",
       errors,
       slots_resolved: planSub.resolved,
       slots_missing: planSub.missing,
+      slot_telemetry: planSub.slot_telemetry,
       omitted: true,
       omit_reason: "required_slot_empty",
     };
@@ -276,6 +280,7 @@ export function renderTemplate(
       errors,
       slots_resolved: planSub.resolved,
       slots_missing: planSub.missing,
+      slot_telemetry: planSub.slot_telemetry,
       omitted: true,
       omit_reason: "interpolation_residue",
     };
@@ -289,8 +294,10 @@ export function renderTemplate(
     errors,
     slots_resolved: planSub.resolved,
     slots_missing: planSub.missing,
+    slot_telemetry: planSub.slot_telemetry,
   };
 }
+
 
 /**
  * Firm/hedged calibration assert: when closeness ≥ FIRM_VARIANT_CLOSENESS_MAX,
