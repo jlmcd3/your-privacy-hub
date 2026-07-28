@@ -55,6 +55,11 @@ export interface SlotContext {
   readonly driving_activity_label?: string;
   readonly what_would_tip_it?: string;
   readonly doc_element_label?: string;
+  // ── ITEM 241.1 (E1) — scope per-prong composer context. Without this
+  //    slot in the resolver, T.risk.applicability.engaged/not_engaged
+  //    tripped fill-or-omit and BOTH scope_and_triggers and
+  //    scope_confirmation dropped out at the wire (run-#177 blocker).
+  readonly prong_subject?: string;
   readonly customer_question?: string;
   // ── ITEM 237 (T-M9.7) — balance-instance ctx passthroughs ──
   readonly benefit_summary_tokens?: string;
