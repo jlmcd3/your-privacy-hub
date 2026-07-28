@@ -124,3 +124,15 @@ Checkpoint A is code-complete and green. Explicit deploy pending
 controller wire; Checkpoint B (defects 1 + 2, content-anchored courier)
 and Checkpoint C (defect 5, Pass-1 prompt-glossary + coherence-screen
 content) require CEO sign-off before wiring per courier-discipline law.
+
+---
+
+## Post-deploy ping (verbatim)
+
+Deployed 2026-07-28 21:38:09Z via `supabase--deploy_edge_functions(["run-cppa-risk-assessment"])`. Real ping response:
+
+```
+{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-item242-batch3-fixes@2026-07-28T21:38:09.608Z","ltp_mode":"enforce","ltp_version":"ltp-risk-p2","composition_enforce":"1","persist_first_retry":"retry-budget@2026-07-27-persistfirst","report_completion_gate":"final-status-and-report-data@2026-07-27-smoke-latency-rootcause","post_lint_llm_budget_ms":300000,"post_lint_llm_call_timeout_ms":120000,"post_lint_pass1_timeout_ms":240000,"pass1_timeout_enforced":"abort-controller","safe_finalize":"safe-finalize@2026-07-28-item217-repair-outside-guard","pass1_authoritative":"1","pass1_model":"claude-sonnet-4-6","pass1_max_attempts":2,"pass1_stamp":"ltp-pass1-llm-item240-cp4-labels@2026-07-28","pass2_assembler":"ltp-pass2-assembler-2026-07-28-item241-3-wiring","composition_shape":{"version":"cppa-risk-shape@2026-07-28-tm7-retirement","product":"cppa-risk-assessment","final_documents_per_assessment":1,"llm_calls_per_document":[{"stage":"pass1_derive","role":"authoritative RenderPlan derive","model_role":"pass1_derive"}],"intermediate_artifacts":["render_plan (authoritative)","assembler_output (shipped body; harvests are deterministic)"],"note":"CEO ruling 2026-07-28: undeclared drift aborts; declared shape is the conformance target."},"ltp_laws_1_3":"item235b-2026-07-28","run170_fixes":"item236-2026-07-28"}
+```
+
+`build_stamp` echoes `ltp-risk-item242-batch3-fixes@…` — Checkpoint A wire confirmed live.
