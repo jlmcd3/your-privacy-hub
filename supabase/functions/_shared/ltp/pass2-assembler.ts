@@ -43,8 +43,14 @@ import {
 } from "./composition-finalize.ts";
 import { renderCyberAuditSchedule } from "./cyber-audit-schedule.ts";
 import { composeSection } from "./section-composers/cppa-risk.ts";
+import {
+  coerceNarrativeScalar,
+  coerceAssessmentSummary,
+  NARRATIVE_SCALAR_KEYS,
+  CPPA_RISK_SHAPE_VERSION,
+} from "../report-contracts/cppa-risk-shape.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item235-fill-or-omit";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp3-shape";
 
 /**
  * COMPOSITION SHAPE DECLARATION (T-M6(f); CEO ruling 2026-07-28 verbatim):
@@ -472,7 +478,18 @@ function assembleCore(
     }
     sectionTele.push(rendered.telemetry);
     if (rendered.value !== undefined) {
-      report[shard.key] = rendered.value;
+      // CP3 shape contract — narrative-scalar shards ship as a single
+      // string; assessment_summary ships as { narrative: string }. See
+      // _shared/report-contracts/cppa-risk-shape.ts.
+      if ((NARRATIVE_SCALAR_KEYS as readonly string[]).includes(shard.key)) {
+        const s = coerceNarrativeScalar(rendered.value);
+        if (s !== undefined) report[shard.key] = s;
+      } else if (shard.key === "assessment_summary") {
+        const bag = coerceAssessmentSummary(rendered.value);
+        if (bag !== undefined) report[shard.key] = bag;
+      } else {
+        report[shard.key] = rendered.value;
+      }
     }
   }
 

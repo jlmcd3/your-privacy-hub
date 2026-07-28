@@ -1,12 +1,15 @@
 // pdf build active
-// BUILD_STAMP — real exported constant (was previously absent; telemetry could
-// not verify the deploy). Bump on every behavior edit. External-verification gate:
-// clone HEAD sha == BUILD_STAMP prefix.
-export const BUILD_STAMP = "qbp25-b2-governance-v2-pdf@2026-07-23T09:00:00Z";
+// BUILD_STAMP — real exported constant. Bump on every behavior edit.
+// External-verification gate: clone HEAD sha == BUILD_STAMP prefix.
+export const BUILD_STAMP = "generate-report-pdf-item240-cp3@2026-07-28T12:30:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
+import {
+  coerceNarrativeScalar,
+  coerceNarrativeList,
+} from "../_shared/report-contracts/cppa-risk-shape.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -1140,6 +1143,13 @@ function labelForIntakeFieldId(raw: unknown): string {
 
 // Dispatch on schema: v4 rows carry risk_assessment_by_activity; v3 rows carry part_a; legacy rows carry domains.
 function buildCPPARiskReportHTML(report: any, record: any): string {
+  // CP3 (Item 240) — LTP-shape detection. When the assembler is the body
+  // source, executive_summary is a string, assessment_summary carries a
+  // .narrative string, and narrative-list sections carry paragraph
+  // strings. Dispatch to the LTP-native renderer in that case.
+  if (report && isLtpRiskShape(report)) {
+    return buildCPPARiskLtpHTML(report, record);
+  }
   if (report && (Array.isArray(report.risk_assessment_by_activity) || (report.assessment_summary && typeof report.assessment_summary === "object"))) {
     return buildCPPARiskV4HTML(report, record);
   }
@@ -1147,6 +1157,101 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
     return buildCPPARiskV3HTML(report, record);
   }
   return buildCPPARiskLegacyHTML(report, record);
+}
+
+function isLtpRiskShape(report: any): boolean {
+  if (!report || typeof report !== "object") return false;
+  const es = report.executive_summary;
+  const as = report.assessment_summary;
+  const hasStringExec = typeof es === "string" && es.trim().length > 0;
+  const hasNarrativeBag = as && typeof as === "object" && !Array.isArray(as) && typeof as.narrative === "string";
+  const hasStringOpening = typeof report.opening_summary === "string" && report.opening_summary.trim().length > 0;
+  return hasStringExec || hasNarrativeBag || hasStringOpening;
+}
+
+/**
+ * CP3 LTP-native CPPA-risk PDF renderer. Consumes the assembler shape
+ * declared in _shared/report-contracts/cppa-risk-shape.ts. Every
+ * assembler-emitted section renders non-blank; omitted sections
+ * degrade gracefully (no <section> element written).
+ */
+function buildCPPARiskLtpHTML(report: any, record: any): string {
+  const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+  const para = (v: string) => `<p>${text(v).replace(/\n+/g, "</p><p>")}</p>`;
+  const summary = (report.assessment_summary && typeof report.assessment_summary === "object") ? report.assessment_summary : {};
+  const meta = (report.document_metadata && typeof report.document_metadata === "object") ? report.document_metadata : {};
+  const orgName = summary.company_name || record?.intake_data?.org_context?.company_name || "";
+  const opening = coerceNarrativeScalar(report.opening_summary);
+  const exec = coerceNarrativeScalar(report.executive_summary);
+  const summaryNarr = coerceNarrativeScalar(summary.narrative);
+  const submission = coerceNarrativeScalar(report.submission_summary);
+  const activityPara = coerceNarrativeList(report.risk_assessment_by_activity);
+  const scopeConf = coerceNarrativeList(report.scope_confirmation);
+  const scopeTrig = coerceNarrativeList(report.scope_and_triggers);
+  const priority = coerceNarrativeList(report.priority_actions);
+  const nextSteps = coerceNarrativeList(report.next_steps);
+  const strengthen = coerceNarrativeList(report.strengthen_items);
+  const exceptions = coerceNarrativeList(report.exception_analysis);
+  const infoNeeded = coerceNarrativeList(report.information_needed);
+  const recordSuf = coerceNarrativeList(report.record_sufficiency);
+  const disclaimer = typeof report.disclaimer === "string"
+    ? report.disclaimer
+    : "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
+  const generatedDate = new Date(record?.created_at || Date.now()).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+  const listSection = (title: string, items?: readonly string[]) =>
+    items && items.length ? `<section><h2>${text(title)}</h2>${items.map((s) => `<div class="card">${para(s)}</div>`).join("")}</section>` : "";
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
+<style>
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; }
+  * { box-sizing:border-box; }
+  body { font-family:'Times New Roman',Times,serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.55; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .header { background:var(--navy); color:#fff; padding:24px 28px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
+  h1 { font-size:24px; margin:0; line-height:1.2; }
+  .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+  .body { padding:22px 28px 28px; }
+  h2 { color:var(--navy); font-size:17px; margin:24px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  p { margin:0 0 10px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
+  .label { font-weight:700; color:var(--navy); }
+  .opening { font-size:12pt; color:var(--navy); font-style:italic; margin-bottom:14px; }
+  .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
+</style></head><body><div class="shell">
+  <header class="header">
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+    <h1>CPPA Privacy Risk Assessment</h1>
+    ${buildReportMetaLine({ generatedAt: record?.created_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
+  </header>
+  <div class="body">
+    <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
+    ${opening ? `<section><div class="opening">${para(opening)}</div></section>` : ""}
+    ${exec ? `<section><h2>Executive Summary</h2>${para(exec)}</section>` : ""}
+    ${(summaryNarr || summary.company_name || summary.assessment_date || summary.overall_risk_level) ? `<section><h2>Assessment Summary</h2>
+      ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
+      ${summary.assessment_date ? `<p><span class="label">Assessment date:</span> ${text(summary.assessment_date)}</p>` : ""}
+      ${summary.overall_risk_level ? `<p><span class="label">Overall risk level:</span> ${text(summary.overall_risk_level)}</p>` : ""}
+      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status)}</p>` : ""}
+      ${summaryNarr ? para(summaryNarr) : ""}
+    </section>` : ""}
+    ${listSection("Scope & Triggers", scopeTrig || scopeConf)}
+    ${listSection("Risk Assessment by Activity", activityPara)}
+    ${listSection("Exception Analysis", exceptions)}
+    ${listSection("Priority Actions", priority)}
+    ${listSection("Next Steps", nextSteps)}
+    ${listSection("What Would Strengthen the Record", strengthen)}
+    ${listSection("Items for Your Review", infoNeeded)}
+    ${listSection("Record Sufficiency", recordSuf)}
+    ${submission ? `<section><h2>Submission Summary</h2>${para(submission)}</section>` : ""}
+    <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
+    <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>
+  </div>
+</div></body></html>`;
 }
 
 
