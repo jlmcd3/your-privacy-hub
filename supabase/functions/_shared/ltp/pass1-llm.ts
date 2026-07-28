@@ -40,7 +40,7 @@ import {
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item230-abort-controller@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item234-valid-plan-ships@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
