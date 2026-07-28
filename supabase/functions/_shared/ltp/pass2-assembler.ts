@@ -355,9 +355,16 @@ function renderHarvestSection(
     };
   }
   if (shard.key === "submission_summary") {
+    // ITEM 243 defect 2 — POSTURE DEAD-PATH FIX. The assembler's default
+    // artifact previously invoked only the cyber-audit schedule text; the
+    // § 7120(b) posture clauses authored in submission-postures.ts were
+    // never composed onto the shipped surface. Rebuild the default
+    // artifact so each prong posture is stated verbatim alongside the
+    // schedule. Intake is reconstructed from the plan's intake_ledger
+    // (single source of truth on the Pass-2 side).
     const artifact: SubmissionHarvestArtifact = harvest.submission_summary ?? {
-      text: renderCyberAuditSchedule(),
-      stamp: "cyber-audit-schedule@assembler-default",
+      text: buildDefaultSubmissionSummary(plan),
+      stamp: "cyber-audit-schedule+postures@assembler-default",
     };
     const d = evaluateSubmissionHarvest(artifact, plan);
     if (!d.accepted) {
