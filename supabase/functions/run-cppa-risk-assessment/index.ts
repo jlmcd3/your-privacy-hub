@@ -3590,9 +3590,12 @@ async function runPipeline(assessment_id: string) {
             // "unknown" sentinel is retired at the emission site; a
             // regression test in e2e-document.test.ts fails the suite if
             // an ok run ever telemeters an origin.
-            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | null = _writeAround
-              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
-                  : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
+            // ITEM 240 (B) — origin classification lives in one place
+            // (composition-hook-audit.classifyPass1WriteAroundOrigin);
+            // the old inline union is retired so a new failure class
+            // (e.g. pass1_validator_reject) is picked up automatically.
+            const _origin: WriteAroundOrigin | null = _writeAround
+              ? classifyPass1WriteAroundOrigin(_pass1.telemetry.error ?? null)
               : null;
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
