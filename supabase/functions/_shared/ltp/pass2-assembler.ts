@@ -135,6 +135,12 @@ export interface ExitCheckTelemetry {
   readonly pii_rejections: readonly { key: string; kind: "email" | "phone" }[];
   readonly shipped_surface: ShippedSurfaceEvaluation;
   readonly shipped_value_screen: ShippedValueScreenEvaluation;
+  /** CP5-COHERENCE-PROSE — post-serializer exec/balance mode agreement. */
+  readonly shipped_coherence: {
+    readonly mode: FinalizeMode;
+    readonly violations: readonly ShippedCoherenceViolation[];
+    readonly enforce_violation: boolean;
+  };
 }
 
 export interface StructuralCompletenessRow {
