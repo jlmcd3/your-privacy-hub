@@ -40,14 +40,39 @@ export const FORCE_WRITE_AROUND_ENV = "LTP_TEST_FORCE_WRITE_AROUND";
  *   - "unknown"             : origin not identified — treated as unauthorized
  *                             unless the hook is set.
  */
-export type WriteAroundOrigin = "clock_cap" | "timeout" | "pass1_abort_timeout" | "test_forced" | "unknown";
+export type WriteAroundOrigin =
+  | "clock_cap"
+  | "timeout"
+  | "pass1_abort_timeout"
+  | "pass1_validator_reject"
+  | "pass1_model_error"
+  | "test_forced"
+  | "unknown";
 
 const AUTHORIZED_ORIGINS: ReadonlySet<WriteAroundOrigin> = new Set([
   "clock_cap",
   "timeout",
   "pass1_abort_timeout",
+  "pass1_validator_reject",
+  "pass1_model_error",
   "test_forced",
 ]);
+
+/**
+ * ITEM 240 (B) — canonical classifier from a Pass-1 telemetry.error string to
+ * a WriteAroundOrigin. Central so index.ts, composition-finalize.ts, and any
+ * future caller cannot drift on the mapping; unit-asserted in the composition-
+ * hook-audit tests. Returns "unknown" on unrecognized input (audit will treat
+ * unauthorized unless the hook is set).
+ */
+export function classifyPass1WriteAroundOrigin(err: string | null | undefined): WriteAroundOrigin {
+  if (!err) return "unknown";
+  if (err === "test_only_forced_degradation") return "test_forced";
+  if (err === "pass1_abort_timeout") return "pass1_abort_timeout";
+  if (err.startsWith("validator_issues:")) return "pass1_validator_reject";
+  if (err.startsWith("exception:") || err === "empty_content") return "pass1_model_error";
+  return "clock_cap";
+}
 
 export class CompositionHookAuditError extends Error {
   constructor(msg: string) {

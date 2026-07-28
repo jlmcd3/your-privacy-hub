@@ -20,7 +20,7 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
 // callModel throws on invocation and a runtime shape-conformance assert
 // fails loud on any drift.
-export const BUILD_STAMP = `ltp-risk-item237-t-m9.7-run171-fixes@${new Date().toISOString()}`;
+export const BUILD_STAMP = `ltp-risk-item240-checkpoint1@${new Date().toISOString()}`;
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
 // When true, callModel() throws instead of hitting Anthropic, and the
@@ -61,6 +61,7 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../_shared/ltp/pass1-llm.ts";
+import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../_shared/ltp/composition-hook-audit.ts";
 import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
@@ -3589,9 +3590,12 @@ async function runPipeline(assessment_id: string) {
             // "unknown" sentinel is retired at the emission site; a
             // regression test in e2e-document.test.ts fails the suite if
             // an ok run ever telemeters an origin.
-            const _origin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | null = _writeAround
-              ? (_pass1.telemetry.error === "test_only_forced_degradation" ? "test_forced"
-                  : (_pass1.telemetry.error === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
+            // ITEM 240 (B) — origin classification lives in one place
+            // (composition-hook-audit.classifyPass1WriteAroundOrigin);
+            // the old inline union is retired so a new failure class
+            // (e.g. pass1_validator_reject) is picked up automatically.
+            const _origin: WriteAroundOrigin | null = _writeAround
+              ? classifyPass1WriteAroundOrigin(_pass1.telemetry.error ?? null)
               : null;
             let _body: Record<string, unknown>;
             let _assemblerTele: any = null;
@@ -3730,10 +3734,9 @@ async function runPipeline(assessment_id: string) {
       const _pass1TeleOk = _ltpPreview?.telemetry?.ok === true;
       const _writeAroundEntered = !_pass1TeleOk && !!_ltpPreview?.plan_summary?.write_around;
       const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
-      const _writeAroundOrigin: "clock_cap" | "test_forced" | "pass1_abort_timeout" | undefined =
+      const _writeAroundOrigin: WriteAroundOrigin | undefined =
         _writeAroundEntered
-          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced"
-              : (_pass1Err === PASS1_ABORT_TIMEOUT_ERROR ? "pass1_abort_timeout" : "clock_cap"))
+          ? classifyPass1WriteAroundOrigin(_pass1Err ?? null)
           : undefined;
       const _mode = currentEnforceMode(Deno.env);
       const _safe = safeFinalizeComposition({

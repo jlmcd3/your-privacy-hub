@@ -40,12 +40,21 @@ import {
   AnthropicTimeoutError,
 } from "../anthropic-call.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item234-valid-plan-ships@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item240-validator-evidence@2026-07-28";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
 
 export const PASS1_ABORT_TIMEOUT_ERROR = "pass1_abort_timeout";
+
+/** ITEM 240 (C) — bounded validator-issue evidence surfaced in per-attempt telemetry. */
+export const PASS1_MAX_ISSUE_EVIDENCE = 5;
+
+export interface Pass1AttemptIssueEvidence {
+  readonly code: string;
+  readonly path?: string;
+  readonly message?: string;
+}
 
 export interface Pass1AttemptDetail {
   readonly attempt: number;
@@ -53,6 +62,8 @@ export interface Pass1AttemptDetail {
   readonly outcome: "ok" | "abort" | "error";
   readonly error?: string;
   readonly continuation_count?: number;
+  /** ITEM 240 (C) — first N validator issues from this attempt when outcome=error and error starts with "validator_issues:". */
+  readonly validator_issues_detail?: readonly Pass1AttemptIssueEvidence[];
 }
 
 export interface Pass1Telemetry {
@@ -200,7 +211,19 @@ export async function runPass1Llm(
       if (issues.length > 0) {
         lastErr = `validator_issues:${issues.length}`;
         allAborted = false;
-        details.push({ attempt, elapsed_ms: Date.now() - attemptT0, outcome: "error", error: lastErr, continuation_count: continuationCount });
+        const evidence: Pass1AttemptIssueEvidence[] = issues.slice(0, PASS1_MAX_ISSUE_EVIDENCE).map((i) => ({
+          code: i.code,
+          path: i.path,
+          message: i.message,
+        }));
+        details.push({
+          attempt,
+          elapsed_ms: Date.now() - attemptT0,
+          outcome: "error",
+          error: lastErr,
+          continuation_count: continuationCount,
+          validator_issues_detail: evidence,
+        });
         continue;
       }
       details.push({ attempt, elapsed_ms: Date.now() - attemptT0, outcome: "ok", continuation_count: continuationCount });
