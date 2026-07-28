@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T05:13Z (Item 220 — T-C1 INTAKE CONTRACT: `bought_sold_shared_count` added to cppa-risk intake per Civ. Code § 1798.140(d)(1)(B); enum, refine registry, T-class register, contract PARITY/MIRROR, callsite-derived predicate tests, UI question wired; NO deploy — authoring-only)
+**Last updated:** 2026-07-28T05:23Z (Item 221 — T-M1 DERIVE AUTHORITATIVE: `LTP_ENFORCE_ENABLED` gate retired for cppa-risk; Pass-1 runs unconditionally with N=2 retry; RenderPlan persisted at `_meta.internal.render_plan`; `pass1_model=claude-sonnet-4-6` exposed on `?ping=1` and enforced by `x-ltp-pass1-model-expected` header; round-trip tests green; deployed.)
 
 ---
 
