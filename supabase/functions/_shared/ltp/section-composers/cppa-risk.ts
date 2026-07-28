@@ -510,10 +510,23 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     };
   });
   // ITEM 241.1 (E1) — engaged prongs LEAD; not-engaged prongs follow.
-  // Stable sort so registry order is preserved within each bucket.
   instances.sort((a, b) => (a.__engaged === b.__engaged) ? 0 : (a.__engaged ? -1 : 1));
-  return instances.map(({ template_id, ctx }) => ({ template_id, ctx }));
+  const prongList = instances
+    .map(({ ctx, __engaged }) => `${(ctx.prong_subject ?? "").toString()} (${(ctx.__cite?.PINPOINT ?? "")}) — ${__engaged ? "engaged" : "not engaged"}`)
+    .join("; ");
+  // ITEM 241.3 — CP5 §3.2 customer-first opener prepended.
+  const opener: TemplateInstance = {
+    template_id: "T.risk.section_opener.scope",
+    ctx: {
+      entity_name: entityName(plan),
+      q4_pi_categories: pickIntakeDisplay(plan, "q4_pi_categories") || "personal information",
+      i1_processing_purpose: pickIntakeDisplay(plan, "i1_processing_purpose") || "its stated business purposes",
+      prong_list_with_individual_pinpoints: prongList || "the § 7150(b) triggers enumerated below",
+    },
+  };
+  return [opener, ...instances.map(({ template_id, ctx }) => ({ template_id, ctx }))];
 }
+
 
 // ── Public dispatch ──────────────────────────────────────────────────────
 
