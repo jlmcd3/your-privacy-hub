@@ -3900,3 +3900,105 @@ Two fixes landed in a single turn on `run-cppa-risk-assessment`; no grader/instr
 Courier: `docs/courier/ITEM216-RULINGS-EXECUTED-2026-07-28.md`.
 
 **Disposition: READY-FOR-SMOKE-12 (FINAL SMOKE). HARD STOP.** After smoke #12 review, smoke phase ENDS; product moves to real production run (Wave-D shape, Engine-B-led batch of 6, scored) as the acceptance baseline.
+
+## Item 218 — PROGRAM REDIRECTION: legacy smoke-fix chain TERMINATED; complete LTP migration so Pass-2 IS the shipped surface (2026-07-28)
+
+**CEO ruling (verbatim, 2026-07-28):** *"We have wasted time trying to correct something that we had agreed to REMOVE. ... We need to build the revised product NOW and that is what we should be testing."*
+
+**Effective immediately:**
+1. Legacy-body smoke-fix chain **TERMINATED**. No further fixes, patches, or scrub-pass work on the legacy single-generation composer path. Smoke #12 (batch `cec002f3-6d10-438a-ba32-5e56043b83fd`, in flight) may complete but triggers no work.
+2. Batch-of-3 production run **CANCELLED** (CEO-confirmed).
+3. New program objective: complete the **LEGAL TEST PIPELINE migration for cppa-risk** so that Pass-2 section-sharded rendering IS the shipped report surface, per `docs/design/LEGAL-TEST-PIPELINE.md` (DESIGN COMPLETE-v2.3; build previously authorized; ledger items 129, 132–137). That revised product is what we test going forward. §22.1 clean-arm counter superseded.
+
+This turn is **accounting and plan ONLY**. No code, no deploy.
+
+---
+
+### (a) Migration-status accounting vs build-blocking design requirements
+
+| Requirement (design §) | Status for cppa-risk | Evidence |
+|---|---|---|
+| §2.5 R/W/J conclusion inventory | **BUILT** | `_shared/legal-test/cppa-risk-conclusions.ts` |
+| §2.5 factor registries with `guidance_refs[]` | **BUILT** | `_shared/factors/cppa-risk-factors.ts` (+ `WEIGHING_TESTS`) |
+| §2.5 Pass-2 W templates (firm+hedged variants; `what_would_tip_it` slot) | **PARTIAL** | 19 templates in `content/pass2-templates.ts`; `T.risk.balance.firm` + `T.risk.balance.hedged` + `factor_line` present; `what_would_tip_it` slot on hedged not yet inventoried. **Section-shard coverage for the full report surface is NOT yet complete.** |
+| §2.5 Type J counsel-voice templates | **PARTIAL** | `T.risk.closing.reserved` present; posed-question slot mechanics not audited |
+| §2.6 Pass G (Guide) with candidate-set closure / eligibility / pin-tests | **BUILT (shadow)** | `_shared/ltp/guide.ts`, `closeness.ts`; produces `weighing_frame[]`; runs inside `runLegalTestPipelineShadow` |
+| §2.6 RenderPlan `weighing_frame[]` schema | **BUILT** | `_shared/render-plan/schema.ts` (`WeighingFrameEntry`); validators in `validators.ts` |
+| §2.6 Combined closeness heuristic + deterministic variant selection | **BUILT** | `closeness.ts` `computeCloseness` / `chooseVariant`; `pass2-render.ts` `assertCalibrationMatch` |
+| §2.6 Pass V (Verify), optional flag-gated | **BUILT (disabled)** | `_shared/ltp/verify.ts`; `verify.enabled=false` in telemetry |
+| §2.7 Jurisdiction tagging on propositions/factors/frame/candidates | **BUILT** | `schema.ts` `JurisdictionTag`; validators enforce; v2.2/v2.3 authority-weight tiers in place |
+| §2.7 Cross-domain rejection + `FORBIDDEN_COMPARATIVE_TOKENS` | **BUILT** | `schema.ts`; `pass2-render.checkForbiddenTokens` |
+| Pass-1 derive as authoritative producer (not shadow) | **NOT BUILT** | `pipeline.ts` orchestrator is `runLegalTestPipelineShadow`; enforce-arm exists only for the Pass-1 LLM call (`pass1-llm.ts`) with 75s cap + write-around; downstream body is still legacy composer |
+| Pass-2 renderer wired as authoritative body producer per report section | **NOT BUILT** | `pass2-render.renderTemplate` exists and is exercised by unit tests + one-off `renderer-181`; no section-sharded assembly driver replaces the legacy composer output; shipped body still assembled by Engine-A + legacy scrub passes |
+| Legacy scrub-pass retirement (`_risk_citation_dup_fix`, value-screen, cohort-append, cyber-audit-schedule, info-needed-normalize, waveb/waveb2 closures, summary-compose, surface-write-guard, safe-finalize repair, hook-audit, etc.) | **NOT STARTED** | ~15 modules under `_shared/ltp/` are legacy-body guards subsumed by two-pass per §7; `SUBSUMED_GUARDS` in `pipeline.ts` names only three |
+| Section-sharded rendering (dpia unit-pipeline precedent) | **NOT BUILT** | no cppa-risk section assembler; templates author individual lines only |
+
+**What Waves A/B/C actually delivered (toward render cutover):**
+- **Wave A** — corpus/deadline registries, cohort-map fixes; deterministic slots (opening paragraph pilot). Feeds Pass-1 derive, not a renderer.
+- **Wave B** — completion driver, summary-compose, LTP wire on `_meta.internal`, shadow orchestrator, R/W/J inventory, factor registries, Guide stage, closeness/variant selection, forbidden-comparative tokens, structured-slot shape assertions. **Everything except the authoritative wire.**
+- **Wave C** — smoke-hardening: persist-first, clock-budget law, composition-finalize + safe-finalize, value-screen (pre → shipped), hook-audit, shipped-surface-guard, unowned checks. **All applied to the legacy body.** These are the guards the CEO's redirection identifies as work on the surface we agreed to remove.
+
+**Net:** Derive/Guide/Verify plumbing + schemas + validators + closeness + tag-domain enforcement are **BUILT**. Pass-2 renderer engine exists but is **NOT wired as the shipped body**. Section-shard coverage across the full report surface is the largest remaining authoring workload.
+
+---
+
+### (b) What remains to make Pass-2 the shipped surface
+
+1. **Pass-1 derive as authoritative (production form).** Today `derivePlan` runs deterministically in shadow; `pass1-llm.ts` handles the model-driven arm behind `LTP_ENFORCE_ENABLED=1` with N=2 retry (§0 Q2) + 75s cap + `conservative_write_around`. Production form requires: (i) enforce-mode wired unconditionally for cppa-risk (retire the shadow branch for this product); (ii) `RenderPlan` output persisted as the authoritative artifact for downstream stages (currently only telemetered on `_meta.internal`); (iii) write-around path emits the Type J "reserved judgment" body per §0 Q6 (silent+telemetry disclosure for pilot) instead of falling through to the legacy composer; (iv) all v1/v2/v2.1 validators wired as hard rejects at derive-exit (already implemented in `validators.ts`; must actually gate the pipeline).
+2. **Pass G engaged for every Type-W section.** Already built; needs (i) production candidate-set indices for every Type-W `test_id` in the risk inventory (currently seeded); (ii) empty-by-finding telemetry sink to the T5 ingestion backlog; (iii) failure-mode contract when `candidate_set` is empty AND the Type-W proposition is engaged.
+3. **Pass-2 section-sharded renderer coverage.** Author templates + assembly driver for every report section the customer sees today:
+   - `executive_summary` / `opening_summary` (openings partially built)
+   - `assessment_summary` (10 keys per report schema)
+   - `scope_and_triggers.triggered_activities_detail`
+   - `risk_assessment_by_activity` (per-activity: rationale, safeguards, benefits, adverse effects, information_needed, citations)
+   - `top_risks` / `priority_actions` / `next_steps` / `strengthen_items`
+   - `inconsistency_flags` / `review_items`
+   - `exception_analysis`, `record_sufficiency`, `attestation_block`, `scope_confirmation`, `document_metadata`, `disclaimer` / `framework_disclaimer`
+   - `citation_ledger`, `fsor_commentary`
+   The section assembler consumes the RenderPlan + weighing_frame + gate_outcomes, calls `renderTemplate` per shard, and writes the resulting object at the same top-level keys the report schema (`report-schemas/cppa-risk.ts`) declares. Report-schema surface stays IDENTICAL — the frontend contract is preserved.
+4. **Retirement list.**
+   - **Die with the legacy body** (delete when Pass-2 is the shipped body): `summary-compose.ts`, `waveb-completion.ts`, `waveb2-closure.ts`, `cohort-append.ts`, `info-needed-normalize.ts`, `renderer-181.ts`, `surface-write-guard.ts` (Item 209 site), the legacy Engine-A composer path in `run-cppa-risk-assessment/index.ts`, and the interim `_risk_citation_dup_fix` scrubber.
+   - **Survive as validators** (attach to the Pass-2 shipped body): `composition-finalize.ts` (repurposed to Pass-2 assembler exit), `safe-finalize.ts` (persist-first still required for clock contract), `value-screen.ts` shipped-surface arm (defense-in-depth against renderer bugs), `shipped-surface-guard` (unowned-paths check still valid against report schema), `mode-assert.ts`, `retry-budget.ts` clock contract, `composition-hook-audit.ts` (with authorized-origin model already in place).
+   - **Migrate as pure functions** into Pass-2 assembler: `cyber-audit-schedule.ts` (§7121(a) rule renders directly from RenderPlan), `risk-level-map.ts` (band determination in derive, render trivially), `slot-resolver.ts` (already used by `pass2-render`).
+5. **Shipped-surface guards / value screen / clock contract attach to the new body.**
+   - Clock contract: `retry-budget.ts` + persist-first survive; the 15-min wall-clock cap now bounds Derive+Guide+Render+Verify.
+   - Shipped-surface guard: `evaluateShippedSurfaceGuard` runs on the Pass-2 assembler output; RISK_SURFACE_BINDINGS is regenerated from the assembler's section-shard registry (single source of truth).
+   - Value screen: shipped-projection arm only (Item 215 already put enforcement there). Pre-serializer arm retires with the legacy body.
+   - Post-render hard rejects from §2.5 (flat-certainty on close-balance) already spec'd; wire at Pass-2 assembler exit.
+
+---
+
+### (c) Turn-by-turn cutover plan
+
+**Estimated total to first Pass-2-shipped document: 8–10 build turns.**
+
+| Turn | Scope | Deliverable |
+|---|---|---|
+| **T-M1** | **Derive-as-authoritative wire.** Unconditionally run Pass-1 (LLM + validators) for cppa-risk; persist RenderPlan at `_meta.internal.render_plan` AND make it the sole input for downstream body assembly. Retire shadow branch for this product. | `run-cppa-risk-assessment/index.ts` derives-first; validators gate; write-around path telemetered; unit tests for derive→persist round-trip. |
+| **T-M2** | **Section-shard registry.** Author `_shared/ltp/section-shards/cppa-risk.ts` — enumerate every report-schema top-level key, bind each to (a) a set of Pass-2 templates and (b) a RenderPlan projection function. No new templates yet; wire the ones that exist and mark gaps. | Registry + gap report (which sections still lack templates). Frontend contract preserved (report schema unchanged). |
+| **T-M3** | **Template authoring pass — high-volume sections.** Fill `risk_assessment_by_activity`, `top_risks`, `priority_actions`, `next_steps`, `assessment_summary`, `scope_and_triggers`. Firm+hedged variants for Type-W items; `what_would_tip_it` slot required on hedged; Type J counsel-voice for reserved items. | Templates + `pass2-templates.content.test.ts` extensions; per-template shipped-value-screen fixtures. |
+| **T-M4** | **Template authoring pass — remaining sections.** `strengthen_items`, `inconsistency_flags`, `exception_analysis`, `record_sufficiency`, `citation_ledger`, `fsor_commentary`, `attestation_block`, `scope_confirmation`, `document_metadata`, disclaimers. | Templates + tests; registry now 100% covered. |
+| **T-M5** | **Pass-2 assembler.** Build the section-sharded assembler that walks the registry, calls `renderTemplate` per shard, and returns the report-shape object. Reuse `composition-finalize` repurposed as assembler-exit checks. | `_shared/ltp/pass2-assembler.ts` + tests; produces a full report object from a fixture RenderPlan. |
+| **T-M6** | **Wire the assembler as the shipped body.** Replace Engine-A composer call in `run-cppa-risk-assessment/index.ts` with the assembler. Attach clock contract, shipped-surface-guard (regenerated bindings), shipped-value-screen, mode-assert, hook-audit (write-around origin). Delete the legacy composer call site. | Deploy candidate build; §16 ping proves the new body path. |
+| **T-M7** | **Legacy retirement.** Delete the "die-with-legacy-body" modules listed in §(b)(4). Update `SUBSUMED_GUARDS` in `pipeline.ts`. Prune report-schema surfaces the assembler doesn't emit (if any). | Diff shows net-negative LOC; harness still green. |
+| **T-M8** | **First Pass-2-shipped document — controlled smoke.** Single-document run against the Wave-D fixture set. Verify: assembler exit clean, shipped guards clean, RenderPlan validators clean, no leaks, clock held. | Evidence rows + courier. This is the first evidential run against the new product. |
+| **T-M9** (contingent) | **Section-shard gap-fixing** identified during T-M8, if any. | Patch turn. |
+| **T-M10** | **Production baseline run.** Wave-D shape, Engine-B-led batch of 6 (already CEO pre-authorized in Item 217 plan amendment), scored, as the acceptance baseline. | Scored production run against the revised product. |
+
+**Existing harness pieces that verify Pass-2-shipped output:**
+- Deno unit tests: `pass2-render`, `renderer-181`, `composition-finalize`, `value-screen`, `surface-write-guard`, `validators`, `validators.lia`, `waveb`, `cohort-append`, `cyber-audit-schedule`, `info-needed-normalize` (last three re-purposed as pure-function tests inside the assembler).
+- Batch harness `quality_batch_runs` / `quality_runs` / `quality_run_documents` unchanged.
+- §16 ping-prove endpoint unchanged; new build-stamps prove the wire.
+- Grader instruments (`gc-2026-07-26-s6`) unchanged — they judge the shipped report, which retains its schema.
+
+**Single riskiest item:** **T-M3+T-M4 template authoring coverage.** The legacy composer produces 20+ semantically dense sections in free-form prose; Pass-2 requires every one of those to be expressible as a bounded template (with firm+hedged variants where Type-W engages) driven only by RenderPlan slots. Under-authored templates ship blanks; over-constrained templates ship stiff prose; either fails acceptance. This is the phase where scope discovery is most likely to force a re-plan.
+
+---
+
+### (d) Does anything in the design doc block immediate build start?
+
+**No.** DESIGN COMPLETE-v2.3 is authorized; §0 open questions answered; v1 + v2 + v2.1 (+ v2.2/v2.3 authority-domain tiering) amendments are in place; the seven build-blocking prerequisites for cppa-risk (R/W/J inventory, factor registries with `guidance_refs[]`, weighing_frame schema, Pass G, combined closeness, empty-by-finding sink, Pass V stub, jurisdiction-tag scoping) are all satisfied. Item 137 already landed Phase-2 shadow; the remaining work is the wire (T-M1) + coverage (T-M2..M5) + cutover (T-M6..M7). No design amendment is required to begin T-M1.
+
+Courier: `docs/courier/PROGRAM-REDIRECTION-LTP-MIGRATION-2026-07-28.md`.
+
+**Disposition: HARD STOP for CEO/controller review of the plan before build turns begin.**
