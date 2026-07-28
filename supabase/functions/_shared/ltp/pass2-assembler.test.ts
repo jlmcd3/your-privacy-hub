@@ -7,7 +7,8 @@ import { assembleReportShadow, PASS2_ASSEMBLER_VERSION } from "./pass2-assembler
 import { derivePlan } from "./derive.ts";
 import { CPPA_RISK_SECTION_SHARDS } from "./section-shards/cppa-risk.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
-import { PASS2_FORBIDDEN_TOKENS } from "./content/pass2-templates.ts";
+// PASS2_FORBIDDEN_TOKENS is a slot-injection guard applied inside
+// renderTemplate; the output assertion here is `render_errors === []`.
 import { renderCyberAuditSchedule, SCHEDULE_MARKER } from "./cyber-audit-schedule.ts";
 import type { OpeningHarvestArtifact } from "./harvest-guard.ts";
 
