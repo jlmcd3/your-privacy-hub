@@ -324,15 +324,51 @@ function entityName(plan: RenderPlan): string {
 }
 
 /**
- * ITEM 242 (defect 7a) — OWNER slot from i7_internal_contributors.
- * Role-titles only (PII law). Falls back to the accountable-owner
- * clause when no roster is on the record.
+ * ITEM 243 defect 6 — PER-KIND OWNER RESOLUTION from i7/i8.
+ *
+ * Reads role-title fields ONLY (PII law holds — never names, phones, emails).
+ * Per-KIND defaults when the intake yields no matching role title:
+ *   • Type-J reserved judgment → "qualified legal counsel"
+ *   • Unresolved documentation gate → certifying executive role title
+ *     (i8_certifying_exec_title), else "the certifying executive"
+ *   • Factor gaps (benefit/harm/safeguard/family/conditional) →
+ *     best-matching internal contributor role title (i7_internal_contributors),
+ *     else the certifying executive title, else the accountable-owner clause
+ *
+ * The prior implementation returned the raw i7_internal_contributors
+ * string for every kind, which (a) leaked personnel names captured in
+ * that narrative field into every action row and (b) attached the
+ * wrong owner to Type-J and to certifying-executive gates.
  */
-function ownerRoleTitles(plan: RenderPlan): string {
-  const raw = pickIntakeDisplay(plan, "i7_internal_contributors");
-  if (!raw) return "the accountable business owner named on the assessment record";
-  return raw;
+function certifyingExecTitle(plan: RenderPlan): string {
+  return pickIntakeDisplay(plan, "i8_certifying_exec_title") || "the certifying executive";
 }
+
+function contributorRoleTitles(plan: RenderPlan): string {
+  const raw = pickIntakeDisplay(plan, "i7_internal_contributors");
+  if (!raw) return "";
+  // Role-titles-only guard: drop tokens that look like names / contact
+  // handles (defect 6 PII invariant). Retain segments that read as role
+  // titles (contain job-title-ish tokens or are short comma-separated
+  // items). This is a mechanical filter — nothing legal-substantive.
+  const segments = raw.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+  const roleLike = segments.filter((s) =>
+    /officer|counsel|manager|director|lead|analyst|engineer|admin|privacy|security|compliance|dpo|cpo|ciso|cfo|cto|ceo|coo|specialist|architect|owner/i.test(s)
+    && !/@|\+?\d{7,}/.test(s),
+  );
+  return roleLike.length > 0 ? roleLike.join(", ") : "";
+}
+
+function ownerForKind(kind: ActionKind, plan: RenderPlan): string {
+  if (kind === "type_j_reserved") return "qualified legal counsel";
+  if (kind === "gate_unresolved") return certifyingExecTitle(plan);
+  // benefit_absent / harm_absent / safeguard_absent / conditional →
+  // contributors first, then certifying exec, then accountable-owner fallback.
+  return contributorRoleTitles(plan)
+    || certifyingExecTitle(plan)
+    || "the accountable business owner named on the assessment record";
+}
+
 
 /**
  * ITEM 242 (defect 4) — GAP-APPLICABILITY LAW. An action for an
