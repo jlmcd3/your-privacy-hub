@@ -279,6 +279,7 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "safeguards",
     anchor: { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(6)" },
+    display_label: "Sufficiency of the safeguards",
     description:
       "Whether the safeguards a business plans to implement are sufficient to address the identified negative impacts. "
       + "The tool inventories the safeguard categories the business claims; sufficiency is reserved to counsel/business.",
