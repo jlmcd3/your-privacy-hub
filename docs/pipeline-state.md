@@ -5282,3 +5282,109 @@ scoped list.
 
 **Disposition.** Defects 1/2/7 live. HARD STOP — controller
 wire-verifies and schedules the remainder as a follow-up dispatch.
+
+---
+
+## Item 243 — COMPLETION (defects 3, 4, 5, 6, 8) + Item 244 content courier
+
+Dispatch: Item 243 Completion + Item 244 Content Courier (CEO "Go" on
+244 recorded 2026-07-28). Part (A) had priority and shipped in full;
+Part (B) is authoring-only, HELD pending CEO sign-off.
+
+### Part (A) — Item 243 completion (five defects wired, deployed)
+
+**Defect 3 (present-requires-refs coherence rule).** Extended
+`pass1-present-note-coherence.ts::screenPresentNoteCoherence` so any
+factor row with `present_in_intake=true` AND `intake_ledger_refs=[]`
+is deterministically rewritten to absent with `weight_note="no record
+evidence"`, recorded under the dedicated `pass1_coherence_rewrites[]`
+telemetry key with `field_id="(intake_ledger_refs)"`. Runs BEFORE the
+glossary patterns. Version:
+`pass1-present-note-coherence@2026-07-28-item243-present-requires-refs`.
+
+**Defect 4 (ADMT NOT-APPLICABLE completion).** Added
+`RECORD_STATUS_CLAUSES[3]` — *"not applicable — automated
+decisionmaking technology is not in use per the record"* — and rewrote
+`composeRecordSufficiency` to emit that clause (never a "gap" clause)
+for ADMT-scoped rows when `admtGateBlocked(plan)` is true. Priority
+Actions was already filtered by `factorAdmtApplicable` /
+`propAdmtApplicable` (Checkpoint A); the batch fixtures did not fire
+that filter because the record-sufficiency panel had no matching
+"not applicable" clause and rendered the ADMT rows as "not present"
+gaps — closed here.
+
+**Defect 5 (record-sufficiency "four factual elements" slot).**
+`factual_elements_summary_clause` now reads the four
+`DOCUMENTATION_FACTUAL_GATE_IDS` (purpose / categories / operational
+elements / approver), each labeled by its § 7152(a) subdivision, in
+registry order. No longer maps factor labels.
+
+**Defect 6 (per-KIND owner resolution).** Retired the single
+`ownerRoleTitles` helper. Introduced `ownerForKind(kind, plan)`:
+Type-J → *"qualified legal counsel"*; `gate_unresolved` →
+`i8_certifying_exec_title` (fallback *"the certifying executive"*);
+factor kinds → filtered contributor role titles from
+`i7_internal_contributors` (role-title-only regex filter, PII invariant
+holds — names, emails, phones dropped), else certifying-exec title,
+else the accountable-owner fallback.
+
+**Defect 8 (intake-fact coverage / q5b/q5c mapping gap).** Added
+`FIELD_ALIASES` shim in `gate-eval.ts` so gate-normalized names
+(`q_sells_or_shares`, `q_extensive_profiling`,
+`q_processes_sensitive_pi`, `q_trains_admt`,
+`q_admt_significant_decision`, `pi_categories`, `sensitive_pi_categories`,
+`processing_purpose`, `retention_period`, `consumer_interaction_channel`,
+`approver_name`, `approver_position`, `approximate_consumer_count`,
+`operational_method`, `disclosures_made`, `recipients`, `revenue_band`,
+`consumer_band`) resolve to their canonical cppa-risk contract fields
+(`q5_sell_share`, `q5b_profiling_observation`, `q15_sensitive_pi`,
+`q18b_admt_training`, `q19_admt_description`, `q4_pi_categories`,
+`q15c_spi_volume`, `i1_processing_purpose`, `i2_retention_period`,
+`i4_disclosure_mechanisms`, `i8_certifying_exec_name`,
+`i8_certifying_exec_title`, `i3_ca_consumer_band`, `i6_vendors`,
+`q1_revenue`, `q2_consumers`). Read-only shim; never mutates intake.
+
+**Composer stamp.** `ltp-section-composers-cppa-risk-2026-07-28-item243-completion`.
+
+**Tests.** `ok | 7 passed | 0 failed` on
+`_shared/ltp/item243-completion.test.ts`; broader LTP suite
+`ok | 233 passed | 0 failed`. No regressions.
+
+**Deploy.** Explicit deploy of `run-cppa-risk-assessment`; ping
+returned `build_stamp: "ltp-risk-item243-completion@2026-07-28T23:46:44.223Z"`
+with `pass2_assembler` and `ltp_laws_1_3` stamps carried forward.
+
+### Part (B) — Item 244 content courier (authoring only, HELD)
+
+Content-anchored courier authored at
+`docs/courier/ITEM244-CONTENT-COURIER-2026-07-28.md`. Every sentence
+verbatim (current vs proposed) for CEO sign-off before wiring:
+
+- **L1** Processing Narrative section template (collection → use →
+  disclosure → retention → deletion, slot resolution law included).
+- **L2** Benefit–Harm–Safeguard TRIAD rationale forms (firm / hedged /
+  reserved) replacing the three-lists assembly.
+- **L3** Less-intrusive-alternatives line from `i1b_min_pi` with
+  reserved framing when silent.
+- **L4** Epistemic-method sentence for the T7 opening (slot S4.5,
+  between customer paragraph and assessment-purpose sentence).
+- **L5** Affirmations block opener (adequately-documented items
+  before gaps, spelled-numeral rule ≤ 12).
+- **E1** Scope-paragraph aggregation text (engaged foregrounded,
+  non-engaged enumerated compactly).
+- **E3** Customer-first section headers (full 12-header set).
+- **E4** Anaphora rule text (full name first mention per section,
+  then "the company").
+- **P2** Golden exemplar factor row for the Pass-1 prompt (from
+  doc-23ac50b5 regression corpus).
+- **P3** Notes-destination context sentence appended to the Pass-1
+  system prompt.
+
+Riders recorded for the wiring turn that follows CEO sign-off: **(C1)**
+grader-deterministic-check mirror in the e2e gate; **(C3)**
+determinism snapshot test; **(P1)** wire-schema reorder placing
+`supporting_ledger_ids` immediately before `weight_note`.
+
+**Disposition.** Item 243 CLOSED — five completion defects live at the
+`ltp-risk-item243-completion` stamp. Item 244 content courier drafted
+and HELD for CEO sign-off; wiring turn schedules after sign-off.

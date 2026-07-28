@@ -136,3 +136,36 @@ code-is-truth bar; the controller should schedule them as a follow-up.
 - **(6) OWNER RESOLUTION** — role-based owner slot inventory needed.
 - **(8) INTAKE-FACT COVERAGE ASSERT** — Pass-1 exit invariant; belongs
   next to `assertShippedCoherence`.
+
+---
+
+## ADDENDUM — Item 243 COMPLETION (defects 3, 4, 5, 6, 8)
+
+Follow-up dispatch shipped the five remaining defects. Summary here;
+full ledger entry at `docs/pipeline-state.md` Item 243 — COMPLETION.
+
+- **Defect 3.** `pass1-present-note-coherence.ts` now rewrites any
+  `present_in_intake=true` row with empty `intake_ledger_refs` to
+  absent with `"no record evidence"`. Runs BEFORE glossary patterns.
+- **Defect 4.** `RECORD_STATUS_CLAUSES[3]` added
+  (*"not applicable — automated decisionmaking technology is not in
+  use per the record"*); `composeRecordSufficiency` emits it for
+  ADMT-scoped rows when `admtGateBlocked(plan)`. Root cause for the
+  batch-fixture miss: the sufficiency panel had no matching clause,
+  so the row rendered as "not present" gap despite the Checkpoint-A
+  action filter already suppressing the corresponding action.
+- **Defect 5.** `factual_elements_summary_clause` now reads the four
+  `DOCUMENTATION_FACTUAL_GATE_IDS` labeled by § 7152(a) subdivision,
+  in registry order — never factor labels.
+- **Defect 6.** `ownerForKind(kind, plan)` replaces `ownerRoleTitles`.
+  Type-J → *"qualified legal counsel"*; gates → certifying-exec title
+  (`i8_certifying_exec_title`); factors → role-title-filtered
+  contributors (PII invariant intact — names/emails/phones dropped).
+- **Defect 8.** `FIELD_ALIASES` shim in `gate-eval.ts` maps
+  gate-normalized field names to their canonical cppa-risk contract
+  keys (q5b/q5c and 16 sibling mappings). Read-only; never mutates
+  intake.
+
+**Deploy.** `ltp-risk-item243-completion@2026-07-28T23:46:44.223Z`.
+Tests: 7 new Item 243 completion tests + 233 broader LTP suite, all
+green.

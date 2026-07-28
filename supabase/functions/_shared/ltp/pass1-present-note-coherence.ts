@@ -20,7 +20,7 @@
  */
 import type { FactorTableEntry, RenderPlan } from "../render-plan/schema.ts";
 
-export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item242-bc";
+export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item243-present-requires-refs";
 
 export interface CoherenceRewrite {
   readonly factor_id: string;
@@ -78,6 +78,20 @@ export function screenPresentNoteCoherence(
   const rewrites: CoherenceRewrite[] = [];
   const out: FactorTableEntry[] = factor_table.map((row) => {
     if (!row.present_in_intake) return row;
+    // ITEM 243 defect 3 — PRESENT-REQUIRES-REFS. A factor row marked
+    // present_in_intake=true with an empty intake_ledger_refs array has
+    // no record substantiation and is deterministically rewritten to
+    // absent with the canonical no-evidence weight_note. Runs BEFORE
+    // the glossary patterns so downstream screens see a coherent row.
+    if (!row.intake_ledger_refs || row.intake_ledger_refs.length === 0) {
+      rewrites.push({
+        factor_id: row.factor_id,
+        field_id: "(intake_ledger_refs)",
+        reason: "present_in_intake=true with empty intake_ledger_refs — no record substantiation",
+        original_note: (row.weight_note ?? "").toString().slice(0, 200),
+      });
+      return { ...row, present_in_intake: false, weight_note: "no record evidence" } as FactorTableEntry;
+    }
     const note = (row.weight_note ?? "").toString();
     if (!note) return row;
     for (const p of PATTERNS) {
@@ -97,6 +111,7 @@ export function screenPresentNoteCoherence(
   });
   return { factor_table: out, rewrites };
 }
+
 
 /** Convenience: screen a whole plan and return a new plan + rewrites. */
 export function applyCoherenceScreen(plan: RenderPlan): { plan: RenderPlan; rewrites: CoherenceRewrite[] } {

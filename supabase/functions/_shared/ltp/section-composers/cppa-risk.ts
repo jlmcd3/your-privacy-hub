@@ -22,7 +22,7 @@ import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec 
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item242-cpb-final";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item243-completion";
 
 /**
  * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
@@ -324,15 +324,51 @@ function entityName(plan: RenderPlan): string {
 }
 
 /**
- * ITEM 242 (defect 7a) — OWNER slot from i7_internal_contributors.
- * Role-titles only (PII law). Falls back to the accountable-owner
- * clause when no roster is on the record.
+ * ITEM 243 defect 6 — PER-KIND OWNER RESOLUTION from i7/i8.
+ *
+ * Reads role-title fields ONLY (PII law holds — never names, phones, emails).
+ * Per-KIND defaults when the intake yields no matching role title:
+ *   • Type-J reserved judgment → "qualified legal counsel"
+ *   • Unresolved documentation gate → certifying executive role title
+ *     (i8_certifying_exec_title), else "the certifying executive"
+ *   • Factor gaps (benefit/harm/safeguard/family/conditional) →
+ *     best-matching internal contributor role title (i7_internal_contributors),
+ *     else the certifying executive title, else the accountable-owner clause
+ *
+ * The prior implementation returned the raw i7_internal_contributors
+ * string for every kind, which (a) leaked personnel names captured in
+ * that narrative field into every action row and (b) attached the
+ * wrong owner to Type-J and to certifying-executive gates.
  */
-function ownerRoleTitles(plan: RenderPlan): string {
-  const raw = pickIntakeDisplay(plan, "i7_internal_contributors");
-  if (!raw) return "the accountable business owner named on the assessment record";
-  return raw;
+function certifyingExecTitle(plan: RenderPlan): string {
+  return pickIntakeDisplay(plan, "i8_certifying_exec_title") || "the certifying executive";
 }
+
+function contributorRoleTitles(plan: RenderPlan): string {
+  const raw = pickIntakeDisplay(plan, "i7_internal_contributors");
+  if (!raw) return "";
+  // Role-titles-only guard: drop tokens that look like names / contact
+  // handles (defect 6 PII invariant). Retain segments that read as role
+  // titles (contain job-title-ish tokens or are short comma-separated
+  // items). This is a mechanical filter — nothing legal-substantive.
+  const segments = raw.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+  const roleLike = segments.filter((s) =>
+    /officer|counsel|manager|director|lead|analyst|engineer|admin|privacy|security|compliance|dpo|cpo|ciso|cfo|cto|ceo|coo|specialist|architect|owner/i.test(s)
+    && !/@|\+?\d{7,}/.test(s),
+  );
+  return roleLike.length > 0 ? roleLike.join(", ") : "";
+}
+
+function ownerForKind(kind: ActionKind, plan: RenderPlan): string {
+  if (kind === "type_j_reserved") return "qualified legal counsel";
+  if (kind === "gate_unresolved") return certifyingExecTitle(plan);
+  // benefit_absent / harm_absent / safeguard_absent / conditional →
+  // contributors first, then certifying exec, then accountable-owner fallback.
+  return contributorRoleTitles(plan)
+    || certifyingExecTitle(plan)
+    || "the accountable business owner named on the assessment record";
+}
+
 
 /**
  * ITEM 242 (defect 4) — GAP-APPLICABILITY LAW. An action for an
@@ -467,7 +503,7 @@ function entityPlaceholder(): string { return "the business"; }
 
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
-  const owner = ownerRoleTitles(plan);
+
   const rawSources: ActionSource[] = [];
 
   // (1)+(2) factor-table gaps — filtered by gap-applicability law.
@@ -566,7 +602,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         gap_or_consequence_clause: s.gap_or_consequence_clause,
         compliance_guidance_sentence: s.compliance_guidance_sentence,
         deadline_sentence: sel.row.deadline_sentence,
-        owner_role_titles: owner,
+        owner_role_titles: ownerForKind(s.kind, plan),
         __cite: { PINPOINT: s.pinpoint },
       },
     };
@@ -600,7 +636,20 @@ function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
 function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   // ITEM 241.3 — GOLDEN prose lead-in FIRST (courier §4.3).
   const entity = entityName(plan);
-  const factual = plan.factor_table.filter((f) => f.present_in_intake).map(factorLabel).filter(Boolean);
+  // ITEM 243 defect 5 — the "four factual elements" slot reads the FOUR
+  // DOCUMENTATION FACTUAL GATES, never factor labels. Each element
+  // renders as the gate's compact human tail with its own § 7152(a)
+  // pinpoint carried at the item level (below); the summary clause
+  // enumerates the four gate topics in registry order.
+  const factualGateLabelMap: Readonly<Record<string, string>> = {
+    "G.documentation.purpose_present": "the § 7152(a)(1) processing purpose",
+    "G.documentation.categories_present": "the § 7152(a)(2) categories of personal information",
+    "G.documentation.operational_elements_present": "the § 7152(a)(3) operational elements",
+    "G.documentation.approver_present": "the § 7152(a)(9) authorised approver",
+  };
+  const factualGateLabels = Array.from(DOCUMENTATION_FACTUAL_GATE_IDS)
+    .map((id) => factualGateLabelMap[id])
+    .filter(Boolean);
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
   const jLabels = jProps.map(propLabel).filter(Boolean);
   const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
@@ -609,10 +658,6 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const prose: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose",
     ctx: {
-      // ITEM 242 (defect 6) — opener + closer derived from the SAME
-      // `sufficient` boolean via distinct grammatically-fitted clauses.
-      // Contradiction between opener and closer is structurally
-      // impossible; e2e assert enforces it.
       sufficiency_clause: sufficient
         ? "sufficient for the § 7152(a)(6) balancing frame to weigh"
         : "not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies below",
@@ -620,24 +665,37 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
         ? "is sufficient for the § 7152(a)(6) balancing frame to weigh"
         : "remains not yet sufficient for the § 7152(a)(6) balancing frame — see enumerated deficiencies above",
       entity_name: entity,
-      factual_elements_summary_clause: factual.length > 0 ? joinList(factual) : "the factual elements captured on the record",
+      factual_elements_summary_clause: factualGateLabels.length > 0
+        ? joinList(factualGateLabels)
+        : "the four § 7152(a) factual documentation elements",
       reserved_judgments_list: jLabels.length > 0 ? joinList(jLabels) : "no reserved judgments",
       type_j_pinpoints: jPinpoints.length > 0 ? joinList(jPinpoints) : "the applicable § 7152(a) subdivisions",
       as_of_date: asOf,
     },
   };
-  const items = plan.factor_table.map<TemplateInstance>((f) => ({
-    template_id: "T.risk.record_sufficiency.item",
-    ctx: {
-      element_label: factorLabel(f),
-      element_status_clause: f.present_in_intake
+  // ITEM 243 defect 4 — ADMT-scoped rows resolve to RECORD_STATUS_CLAUSES[3]
+  // ("not applicable — ADMT not in use per the record") when the
+  // G.q18.admt_consequence gate blocks. Never emits the "not present"
+  // gap clause for a structurally inapplicable element.
+  const admtBlocked = admtGateBlocked(plan);
+  const items = plan.factor_table.map<TemplateInstance>((f) => {
+    const statusClause = admtBlocked && isAdmtScoped(f.factor_id)
+      ? RECORD_STATUS_CLAUSES[3]
+      : f.present_in_intake
         ? RECORD_STATUS_CLAUSES[0]
-        : RECORD_STATUS_CLAUSES[1],
-      __cite: { PINPOINT: f.anchor.pinpoint },
-    },
-  }));
+        : RECORD_STATUS_CLAUSES[1];
+    return {
+      template_id: "T.risk.record_sufficiency.item",
+      ctx: {
+        element_label: factorLabel(f),
+        element_status_clause: statusClause,
+        __cite: { PINPOINT: f.anchor.pinpoint },
+      },
+    };
+  });
   return [prose, ...items];
 }
+
 
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
