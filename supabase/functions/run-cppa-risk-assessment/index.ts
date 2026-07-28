@@ -61,6 +61,7 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../_shared/ltp/pass1-llm.ts";
+import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../_shared/ltp/composition-hook-audit.ts";
 import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
