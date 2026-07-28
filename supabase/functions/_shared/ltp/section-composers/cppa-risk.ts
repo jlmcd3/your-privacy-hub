@@ -20,7 +20,10 @@ import { FIRM_VARIANT_CLOSENESS_MAX, RECORD_STATUS_CLAUSES, SUMMARY_ACTIVITY_SIN
 import { computeCloseness, chooseVariant } from "../closeness.ts";
 import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../legal-test/cppa-risk-conclusions.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item240-cp4";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item240-cp5";
+
+export { aggregateBalance };
+export type { BalanceMode };
 
 export interface TemplateInstance {
   readonly template_id: string;
@@ -157,8 +160,18 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
     .slice(0, 3)
     .map((f) => f.anchor_hint || f.pinpoint);
   const tipping_factors = joinList(tipping) || "the balance of benefits, negative impacts, and safeguards on the record";
-  // CP4 (b) — per-instance citation for the § 7152(a) balance.
   const baseCite = { PINPOINT_7152A5: BALANCE_ANCHOR.pinpoint, PINPOINT_7152A: BALANCE_ANCHOR.pinpoint, PINPOINT_7152: BALANCE_ANCHOR.pinpoint };
+  // CP5 (b) — coherence: `insufficient` mode routes to the docs template so
+  // aggregateBalance("insufficient") NEVER produces firm/hedged balance prose.
+  if (mode === "insufficient") {
+    return {
+      template_id: "T.risk.summary.docs",
+      ctx: {
+        docs_completion_clause: "has outstanding documentation items — see Items for your review; the record does not yet complete",
+        __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+      },
+    };
+  }
   if (mode === "hedged") {
     return {
       template_id: "T.risk.balance.hedged",
@@ -335,10 +348,13 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
     const engaged = engagedFromGate || engagedFromProp;
     const templateId = engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged";
-    // CP4 (b) — per-prong pinpoint from THIS conclusion's anchor.
+    // CP5 (a) — per-prong subject from the registry display_label so each
+    // instance reads distinctly. CP4 (b) — per-prong pinpoint from THIS
+    // conclusion's anchor.
     return {
       template_id: templateId,
       ctx: {
+        prong_subject: c.display_label || "this trigger",
         __cite: { PINPOINT: c.anchor.pinpoint },
       },
     };

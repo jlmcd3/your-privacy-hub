@@ -50,7 +50,23 @@ import {
   CPPA_RISK_SHAPE_VERSION,
 } from "../report-contracts/cppa-risk-shape.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp4-labels";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item240-cp5-single-writer";
+
+/**
+ * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
+ * dispatch behind one function so the assembler retains a single
+ * `report(shard.key) = ...` write site (LAW 3(a)).
+ */
+function coerceForShard(key: string, value: unknown): unknown {
+  if (value === undefined) return undefined;
+  if ((NARRATIVE_SCALAR_KEYS as readonly string[]).includes(key)) {
+    return coerceNarrativeScalar(value);
+  }
+  if (key === "assessment_summary") {
+    return coerceAssessmentSummary(value);
+  }
+  return value;
+}
 
 /**
  * COMPOSITION SHAPE DECLARATION (T-M6(f); CEO ruling 2026-07-28 verbatim):
@@ -477,19 +493,12 @@ function assembleCore(
       rendered = renderDeterministicSection(shard, plan);
     }
     sectionTele.push(rendered.telemetry);
-    if (rendered.value !== undefined) {
-      // CP3 shape contract — narrative-scalar shards ship as a single
-      // string; assessment_summary ships as { narrative: string }. See
-      // _shared/report-contracts/cppa-risk-shape.ts.
-      if ((NARRATIVE_SCALAR_KEYS as readonly string[]).includes(shard.key)) {
-        const s = coerceNarrativeScalar(rendered.value);
-        if (s !== undefined) report[shard.key] = s;
-      } else if (shard.key === "assessment_summary") {
-        const bag = coerceAssessmentSummary(rendered.value);
-        if (bag !== undefined) report[shard.key] = bag;
-      } else {
-        report[shard.key] = rendered.value;
-      }
+    // LAW 3(a) SINGLE-WRITER — exactly ONE assembler write site.
+    // in the assembler. Shape coercion happens in this helper, not in a
+    // branching set of write statements.
+    const coerced = coerceForShard(shard.key, rendered.value);
+    if (coerced !== undefined) {
+      report[shard.key] = coerced;
     }
   }
 
