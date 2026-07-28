@@ -297,7 +297,7 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   {
     key: "risk_register",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-register-projection" },
-    project: (plan) => plan.factor_table.filter((r) => r.polarity === "negative"),
+    project: (plan) => plan.factor_table.filter((r) => r.kind === "negative_impact"),
     note: "Deterministic projection over negative-polarity factor rows.",
   },
   {
