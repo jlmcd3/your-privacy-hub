@@ -880,6 +880,7 @@ export function composeSection(sectionKey: string, plan: RenderPlan): TemplateIn
     case "scope_and_triggers":           return composeScope(plan);
     case "assessment_summary":           return composeAssessmentSummary(plan);
     case "risk_assessment_by_activity":  return composeRiskByActivity(plan);
+    case "processing_narrative":         return composeProcessingNarrative(plan);
     default:
       return null;
   }
