@@ -124,6 +124,8 @@ export interface RiskOpeningOutput {
     S2: string | null;
     S3: string | null;
     S4: string | null;
+    /** ITEM 244 (L4) — epistemic-method verbatim sentence (always present). */
+    S4_5: string;
     S5: string;
     S6: string;
   };
