@@ -163,6 +163,7 @@ export const CPPA_RISK_FRONTEND_READ_PATHS: readonly string[] = [
   "document_metadata",
   "scope_confirmation",
   "scope_and_triggers",
+  "processing_narrative",
   "risk_assessment_by_activity",
   "risk_register",
   "top_risks",
