@@ -102,6 +102,8 @@ export interface Pass1Telemetry {
   readonly grounded_note_replacements?: number;
   /** Convenience mirror of grounded_note.replacement_rate. */
   readonly grounded_note_replacement_rate?: number;
+  /** ITEM 257 — count of model-authored factor intake_ledger_refs dropped by the Single-Writer filter as invalid/unknown against the adapter-derived ledger. Dedicated key; do NOT overload existing telemetry. */
+  readonly pass1_factor_ref_drops?: number;
 }
 
 
