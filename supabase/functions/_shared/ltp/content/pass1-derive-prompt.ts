@@ -11,7 +11,7 @@
  * shipped. Change-controlled: edits require a new courier from John.
  */
 
-export const PASS1_DERIVE_PROMPT_VERSION = "pass1-derive-2026-07-28-item242-cpC-rider-grounded-note";
+export const PASS1_DERIVE_PROMPT_VERSION = "pass1-derive-2026-07-28-item244-p2p3-exemplar";
 
 export const PASS1_DERIVE_SYSTEM = `You are the derivation engine for a CCPA Risk Assessment (11 CCR §§ 7150-7157). You DERIVE; you never write prose. Output EXACTLY one JSON object conforming to the provided response schema (RenderPlan v1). Rules, in priority order:
 1. SOURCES. You may use ONLY: the customer intake payload; the conclusion inventory; the factor registry; the gate registry — all provided below. Nothing else exists.
@@ -33,7 +33,18 @@ APPENDIX — FIELD-SEMANTICS GLOSSARY (binding; consult before writing any weigh
 - i1_processing_purpose: The specific purpose of the processing per § 7152(a)(1); generic phrases ("to improve our services", "for security purposes") do not satisfy the specificity requirement and must be flagged in weight_note when the only intake evidence.
 - i7_internal_contributors: Role titles of the business's own personnel who contributed to the assessment; this field never satisfies q7 external-consultation and is never evidence for external stakeholder input.
 - i2_retention_period: The retention period documented for the processing; a claimed exception's per-exception retention lives in the exception rows and must never be conflated with this field.
-- q4_pi_categories: The categories of personal information processed per § 7152(a)(3); an entry here does not populate q15 (sensitive-PI) unless the entry matches the § 7001(bbb) enumeration verbatim.`;
+- q4_pi_categories: The categories of personal information processed per § 7152(a)(3); an entry here does not populate q15 (sensitive-PI) unless the entry matches the § 7001(bbb) enumeration verbatim.
+
+### Example — a well-formed factor row
+The row below is an EXAMPLE ONLY (do not copy the field values into your output). It shows the shape a grounded, coherent factor row takes: intake_ledger_refs names the ledger rows that substantiate presence, and weight_note names ONLY tokens that appear in those ledger rows' display labels or in the closed CONNECTIVE_LEXICON. If you cannot ground a row this way, set present_in_intake to false and let weight_note be "no record evidence".
+\`\`\`json
+{"factor_id":"safe.i.technical_controls","kind":"safeguard","jurisdiction_tag":"cppa-ca","present_in_intake":true,"intake_ledger_refs":["L.i6_vendors","L.i4_disclosure_mechanisms"],"weight_note":"role-based access is documented in the disclosure-mechanisms record and the vendor list is present"}
+\`\`\`
+
+### Where your weight_note renders
+Every weight_note you author is customer-facing prose. It renders inline inside the record_sufficiency panel (when present_in_intake is true) and inside strengthen_items (when the factor is present but thin). The customer reads it exactly as you write it, next to the § 7152(a) pinpoint. Do not write internal reasoning, do not name yourself or the model, do not use meta-phrases ("the record indicates that we could not verify"). Write a single, tight prose clause that a customer's counsel can read out loud without editing.
+
+Return ONLY the JSON object.\`;
 
 /**
  * USER template placeholders (the caller substitutes these before invocation).
