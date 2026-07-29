@@ -29,7 +29,7 @@ import type { PerDocResult, ReplayDoc, SideBySideRow }
   from "../_shared/ltp/replay/types.ts";
 
 export const HARNESS_BUILD_STAMP =
-  "replay-cppa-risk-harness-2026-07-29-item258";
+  "replay-cppa-risk-harness-2026-07-29-item260";
 
 const MAX_DOC_IDS = 50;
 
@@ -111,7 +111,7 @@ async function processDoc(
       intake: replayDoc.intake_data,
       report_data: {},
       buildStamp: `${HARNESS_BUILD_STAMP}#${doc.id}`,
-    });
+    }, { callerName: "replay-cppa-risk-harness" });
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });
     const substance = evaluateSubstance(
       p1.plan,
@@ -211,11 +211,34 @@ async function processDoc(
   }
 }
 
+/**
+ * ITEM 260 — opportunistic reaper. Runs at the TOP of every request (ping and
+ * run) before other work. Cheap, idempotent, controller-visible. Any job left
+ * 'running' for > 15 minutes is presumed isolate-dead and closed out.
+ */
+async function reapStaleJobs(sb: ReturnType<typeof serviceClient>): Promise<void> {
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const { error } = await sb
+    .from("replay_harness_jobs")
+    .update({
+      status: "error",
+      finished_at: new Date().toISOString(),
+      error: "reaper:stale_running_over_15m",
+    })
+    .eq("status", "running")
+    .lt("started_at", cutoff);
+  if (error) console.error("[harness] reaper_failed", error.message);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
   const url = new URL(req.url);
+
+  // ITEM 260 — reaper first, on every request path.
+  const reaperClient = serviceClient();
+  await reapStaleJobs(reaperClient);
 
   // Ping — safe metadata only. No secrets echoed.
   if (url.searchParams.get("ping") === "1") {
@@ -297,80 +320,110 @@ Deno.serve(async (req) => {
     }, 400);
   }
 
-  const summary: Record<string, unknown>[] = [];
-  try {
-    for (const docId of docIds) {
-      const loaded = await loadArchivedDoc(sb, String(docId));
-      let outcome: DocProcessOutcome;
-      if ("error" in loaded) {
-        outcome = {
-          perDoc: {
-            doc_id: String(docId),
-            provider_kind: "model",
-            pass1_telemetry_summary: {
-              ok: false, attempts: 0, write_around: true,
-              grounded_note_replacement_rate: 0,
+  // ITEM 260 — BACKGROUND TASK PATTERN (mirrors run-cppa-risk-assessment
+  // :3921-3953). ITEM 259 evidence: the isolate died ~199s into an
+  // inline-held request with no top-level catch reached. The doc loop and
+  // finalize now run in an unawaited IIFE registered with
+  // EdgeRuntime.waitUntil; the request returns 202 immediately. All error
+  // paths still write the job row.
+  const er = (globalThis as any).EdgeRuntime;
+  const hasWaitUntil = typeof er?.waitUntil === "function";
+  await sb.from("replay_harness_jobs")
+    .update({
+      notes: `[bg:${hasWaitUntil ? "waitUntil" : "inline"}]`,
+    })
+    .eq("id", job.id);
+
+  const wrapped = (async () => {
+    const summary: Record<string, unknown>[] = [];
+    try {
+      for (const docId of docIds) {
+        const loaded = await loadArchivedDoc(sb, String(docId));
+        let outcome: DocProcessOutcome;
+        if ("error" in loaded) {
+          outcome = {
+            perDoc: {
+              doc_id: String(docId),
+              provider_kind: "model",
+              pass1_telemetry_summary: {
+                ok: false, attempts: 0, write_around: true,
+                grounded_note_replacement_rate: 0,
+              },
+              substance: {
+                presence_rate: 0, present_factor_count: 0,
+                factors_with_ledger_refs: 0, note_token_diversity: 0,
+                action_kind_diversity_ok: false,
+                golden_shape: { review_flag: true, shortfall_keys: [] },
+              },
+              structure: { sections_emitted: 0, sections_omitted_by_class: {} },
+              hard_failures: [`harness_error:${loaded.error}`],
             },
-            substance: {
-              presence_rate: 0, present_factor_count: 0,
-              factors_with_ledger_refs: 0, note_token_diversity: 0,
-              action_kind_diversity_ok: false,
-              golden_shape: { review_flag: true, shortfall_keys: [] },
-            },
-            structure: { sections_emitted: 0, sections_omitted_by_class: {} },
-            hard_failures: [`harness_error:${loaded.error}`],
-          },
-          sideBySide: null,
-          pass1Usage: { error: loaded.error },
-          assembledReport: null,
-        };
-      } else {
-        outcome = await processDoc(loaded);
+            sideBySide: null,
+            pass1Usage: { error: loaded.error },
+            assembledReport: null,
+          };
+        } else {
+          outcome = await processDoc(loaded);
+        }
+
+        const ins = await sb.from("replay_harness_results").insert({
+          job_id: job.id,
+          doc_id: String(docId),
+          per_doc_result: outcome.perDoc,
+          side_by_side: outcome.sideBySide,
+          pass1_usage: outcome.pass1Usage,
+          assembled_report: outcome.assembledReport,
+        });
+        if (ins.error) {
+          // Fail-loud: record the row-insert failure in the summary but keep going.
+          summary.push({
+            doc_id: docId,
+            insert_error: ins.error.message,
+            hard_failure_count: outcome.perDoc.hard_failures.length,
+          });
+        } else {
+          summary.push({
+            doc_id: docId,
+            hard_failure_count: outcome.perDoc.hard_failures.length,
+          });
+        }
       }
 
-      const ins = await sb.from("replay_harness_results").insert({
-        job_id: job.id,
-        doc_id: String(docId),
-        per_doc_result: outcome.perDoc,
-        side_by_side: outcome.sideBySide,
-        pass1_usage: outcome.pass1Usage,
-        assembled_report: outcome.assembledReport,
-      });
-      if (ins.error) {
-        // Fail-loud: record the row-insert failure in the summary but keep going.
-        summary.push({
-          doc_id: docId,
-          insert_error: ins.error.message,
-          hard_failure_count: outcome.perDoc.hard_failures.length,
-        });
-      } else {
-        summary.push({
-          doc_id: docId,
-          hard_failure_count: outcome.perDoc.hard_failures.length,
-        });
-      }
+      await sb.from("replay_harness_jobs")
+        .update({ status: "done", finished_at: new Date().toISOString() })
+        .eq("id", job.id);
+
+      console.log("[harness] job_done", job.id, "docs", summary.length);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      await sb.from("replay_harness_jobs")
+        .update({
+          status: "error",
+          finished_at: new Date().toISOString(),
+          error: `harness_error:top_level:${msg}`,
+        })
+        .eq("id", job.id);
+      console.error("[harness] job_top_level_error", job.id, msg);
     }
+  })();
 
-    await sb.from("replay_harness_jobs")
-      .update({ status: "done", finished_at: new Date().toISOString() })
-      .eq("id", job.id);
-
+  if (hasWaitUntil) {
+    er.waitUntil(wrapped);
     return json({
-      ok: true,
+      accepted: true,
       job_id: job.id,
-      docs_processed: summary.length,
-      per_doc: summary,
+      docs: docIds.length,
       harness_build_stamp: HARNESS_BUILD_STAMP,
-    });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    await sb.from("replay_harness_jobs")
-      .update({
-        status: "error",
-        finished_at: new Date().toISOString(),
-        error: `harness_error:top_level:${msg}`,
-      })
-      .eq("id", job.id);
-    return json({ error: "top_level", message: msg, job_id: job.id }, 500);
+    }, 202);
   }
+
+  // Local/dev fallback: no waitUntil available — await inline (prior behavior).
+  await wrapped;
+  return json({
+    accepted: true,
+    job_id: job.id,
+    docs: docIds.length,
+    harness_build_stamp: HARNESS_BUILD_STAMP,
+    background: "inline",
+  }, 202);
 });
