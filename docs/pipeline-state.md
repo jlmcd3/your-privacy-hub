@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T01:49Z (Item 246 — TRACK 2 kickoff: offline code-only edit to `pass1-derive-prompt.ts` implementing SPEC §3 incentive redesign; new stamp `pass1-derive-2026-07-29-item246-incentive-redesign`; NOT deployed; Track-1 legacy wire untouched.)
+**Last updated:** 2026-07-29T06:05Z (Item 247 — TRACK 2 Stage 2: shipped Rider (C3) determinism-snapshot test; ASSESSED golden-shape gate on richest fixture — 5 shortfall keys, hard assert NOT wired pending controller ruling; NOT deployed; Track-1 legacy wire untouched.)
 
 ---
 
@@ -5545,3 +5545,69 @@ glossary, and the "Where your weight_note renders" section unchanged.
 
 **Not deployed.** No tests run. No batches launched. Awaiting Track-1
 confirmation smoke and CEO release of Track 2 build phase.
+
+## Item 247 — TRACK 2: DETERMINISM SNAPSHOT + GOLDEN-SHAPE GATE ASSESSMENT
+
+**Timestamp:** 2026-07-29T06:05Z. Spec §6 guards/gates turn. Code + test
+only. `supabase/functions/run-cppa-risk-assessment/` (live Track-1
+legacy path) and `supabase/_rebuild-snapshot-item244/` untouched. No
+deploy. No full-suite gate. No batches, no live calls.
+
+**Rider (P1):** SKIPPED — spec-satisfied. `FactorTableEntry` in
+`supabase/functions/_shared/render-plan/schema.ts` already orders
+`intake_ledger_refs` (field 5) before `weight_note` (field 9). Spec
+§3.4's literal requirement ("intake_ledger_refs precedes weight_note in
+the wire schema") already holds; the ITEM 244 courier's stronger
+"immediately adjacent" phrasing is a nice-to-have, not a spec
+requirement — no field reorder.
+
+### SHIPPED (this turn)
+
+**Rider (C3) — determinism snapshot** →
+`supabase/functions/_shared/ltp/determinism-snapshot.test.ts`
+(`DETERMINISM_SNAPSHOT_VERSION = "determinism-snapshot-2026-07-29-item247"`).
+Two Deno tests build the same fixture plan twice from an identical
+intake, run `assembleReport(plan, {}, {exitMode:"observe"})` on each,
+and assert full JSON equality of (i) `result.report` and (ii)
+`result.telemetry.sections`. No hand-rolled partial comparator — JSON
+round-trip only, per spec §6 direction. Result on new files:
+`ok | 3 passed | 0 failed (227ms)` (2 determinism tests + 1 assessment
+test).
+
+### ASSESSED — NOT WIRED (pending controller ruling)
+
+**Golden-shape hard assert** →
+`supabase/functions/_shared/ltp/golden-shape-gate.test.ts`. Richest
+fixture available in the suite (the ITEM 237 close-balance seed —
+weighing_frame + factor_table + one engaged Type-R applicability
+proposition; verbatim reuse, no invention) run through `assembleReport`
+and evaluated with `evaluateGoldenShape(result.report)` from
+`golden-shape-quotas.ts` (`GOLDEN_SHAPE_QUOTAS_VERSION =
+"golden-shape-quotas-cppa-risk-2026-07-28-item241-1"`). Hard assert
+INTENTIONALLY commented out per Item 236 law (report honestly; never
+weaken quotas or pad fixtures to force green).
+
+**Verbatim shortfall report (`review_flag: true`):**
+
+- `assessment_summary` — `narrative_min_chars:167<300` (present, 167 chars).
+- `risk_assessment_by_activity` — `avg_chars_per_item:217<800` (present, 2 items × avg 217 chars, chars total 433).
+- `priority_actions` — `min_items:3<5` (present, 3 items, avg 614 chars — meets per-item quota; item count short).
+- `next_steps` — `min_items:0<1` (absent from shipped body).
+- `information_needed` — `min_items:0<1` (absent from shipped body).
+
+Sections meeting quota: `executive_summary` (240 chars),
+`scope_and_triggers` (6 items × avg 227 chars),
+`scope_confirmation` (6 items × avg 227 chars),
+`record_sufficiency` (1 item, 973 chars). No shortfall was masked; no
+quota was loosened; no fixture content was invented to pad.
+
+**Ruling requested:** whether to (a) enrich the fixture via a
+controller-authored intake extension so all quotas meet, (b) rebase
+selected quotas on empirical richness of the current rebuild, or
+(c) defer the hard assert until additional composer content lands.
+
+### Not deployed
+
+No `deploy_edge_functions` call. `run-cppa-risk-assessment/` unchanged.
+`_rebuild-snapshot-item244/` unchanged. Only test runs performed were
+against the two new files (reported above).
