@@ -165,3 +165,95 @@ Deno.test("(d) proposition refs remain adapter-derived regardless of model input
     );
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// ITEM 258 — additional coverage
+// ─────────────────────────────────────────────────────────────────────────
+
+Deno.test("(e) pickLedger over contract-real intake ledgers every populated non-dotted, non-PII-excluded contract field", () => {
+  const ledger = pickLedger(BASE_INTAKE);
+  const ledgeredKeys = new Set(ledger.map((l) => l.intake_field));
+
+  // Every populated contract key that isn't dotted and isn't PII-excluded
+  // must appear in the ledger.
+  const expected = cppaRiskContract.fields
+    .map((f) => f.key)
+    .filter((k) => !k.includes("."))
+    .filter((k) => !["i8_certifying_exec_name", "i8_contact_email", "i8_contact_phone"].includes(k))
+    .filter((k) => Object.prototype.hasOwnProperty.call(BASE_INTAKE, k));
+
+  for (const k of expected) {
+    assert(ledgeredKeys.has(k), `expected ledger to carry field ${k}`);
+  }
+
+  // PII-excluded fields must NEVER appear in the ledger even if populated.
+  for (const pii of ["i8_certifying_exec_name", "i8_contact_email", "i8_contact_phone"]) {
+    assert(!ledgeredKeys.has(pii), `PII field ${pii} must not appear in ledger`);
+    assert(!LEDGER_KEYS.includes(pii), `PII field ${pii} must not appear in LEDGER_KEYS`);
+  }
+
+  // Dotted leaves must NEVER appear.
+  for (const k of ledgeredKeys) {
+    assert(!k.includes("."), `dotted leaf ${k} must not appear in ledger`);
+  }
+
+  // Shadow-era fossils are gone.
+  for (const fossil of ["sell_share", "sensitive_pi", "processing_purposes", "safeguards_summary", "retention_period"]) {
+    assert(!LEDGER_KEYS.includes(fossil), `shadow-era fossil ${fossil} must not appear in LEDGER_KEYS`);
+  }
+});
+
+function makePlanWithFactors(rows: Array<{ factor_id: string; weight_note: string }>): RenderPlan {
+  return {
+    plan_version: "v1",
+    product: "cppa-risk-assessment",
+    build_stamp: "test@item258-f",
+    jurisdiction_tag: "cppa-ca",
+    intake_ledger: [
+      { ledger_id: "L.i1_processing_purpose", intake_field: "i1_processing_purpose",
+        value: "provide SaaS analytics functionality", display: "stated processing purpose" },
+    ],
+    citation_bindings: [],
+    propositions: [],
+    factor_table: rows.map((r) => ({
+      factor_id: r.factor_id,
+      kind: "benefit" as const,
+      jurisdiction_tag: "cppa-ca",
+      present_in_intake: true,
+      intake_ledger_refs: ["L.i1_processing_purpose"],
+      guidance_refs: [],
+      anchor: { corpus_key: "ccpa-regs", pinpoint: "§ 7152(a)" },
+      display_label: r.factor_id,
+      weight_note: r.weight_note,
+    })) as any,
+    weighing_frame: [],
+    gate_outcomes: [],
+    conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
+  };
+}
+
+Deno.test("(f) grounded-note mass-replace ABORTS above threshold and does NOT abort at/below threshold", () => {
+  // ABOVE threshold: 4 rows, all with fully ungrounded prose → rate 1.0 > 0.5.
+  const aboveRows = [
+    { factor_id: "benefit.other_stakeholders", weight_note: "xyzzy plugh foobar quux garply" },
+    { factor_id: "benefit.public",             weight_note: "xyzzy plugh foobar quux garply" },
+    { factor_id: "benefit.business",           weight_note: "xyzzy plugh foobar quux garply" },
+    { factor_id: "benefit.consumer",           weight_note: "xyzzy plugh foobar quux garply" },
+  ];
+  assertThrows(
+    () => applyGroundedNoteScreen(makePlanWithFactors(aboveRows)),
+    GroundedNoteMassReplaceAbort,
+  );
+
+  // AT/BELOW threshold: 4 rows, only 2 ungrounded → rate 0.5, NOT > 0.5.
+  const belowRows = [
+    { factor_id: "benefit.other_stakeholders", weight_note: "xyzzy plugh foobar quux garply" },
+    { factor_id: "benefit.public",             weight_note: "xyzzy plugh foobar quux garply" },
+    { factor_id: "benefit.business",           weight_note: "no record evidence" },
+    { factor_id: "benefit.consumer",           weight_note: "no record evidence" },
+  ];
+  const { telemetry } = applyGroundedNoteScreen(makePlanWithFactors(belowRows));
+  assertEquals(telemetry.replacement_rate <= GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD, true,
+    `expected replacement_rate ≤ ${GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD}, got ${telemetry.replacement_rate}`);
+});
+
