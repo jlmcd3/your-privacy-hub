@@ -14,13 +14,30 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-legacy-restore-item217+bss@2026-07-29T01:06:37Z";
+// T-M9.2 (Item 232, 2026-07-28): LEGACY GENERATION EXECUTION RETIRED.
+// Runtime shape now matches declared: intake → fact ledger → Pass-1 derive
+// (abort-controller, 120s×2) → Guide → Pass-2 assembler → guards → persist.
+// The legacy Engine-A v4 generation (callModel) is unreachable at runtime;
+// callModel throws on invocation and a runtime shape-conformance assert
+// fails loud on any drift.
+export const BUILD_STAMP = `ltp-risk-item243-completion@${new Date().toISOString()}`;
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
-const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
+// T-M9.2 retirement flag + runtime LLM-call counter for the legacy v4 path.
+// When true, callModel() throws instead of hitting Anthropic, and the
+// end-of-pipeline shape-conformance assert requires legacyLlmCallCount === 0.
+const LEGACY_GENERATION_RETIRED = true;
+let legacyLlmCallCount = 0;
+const legacyLlmCallLabels: string[] = [];
+// T-M1 (Item 221): Pass-1 is AUTHORITATIVE for cppa-risk. The historical
+// shadow/enforce env gate is retired — Pass-1 runs unconditionally on every
+// generation. LTP_MODE_BOOT is pinned to "enforce" so §16 measurement-validity
+// pings continue to advertise the fleet-declared expectation.
+const LTP_MODE_BOOT = "enforce";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
-console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
+console.log(`[run-cppa-risk-assessment] boot ltp_phase=t-m1-derive-authoritative pass1_authoritative=1 subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
+console.log(`[run-cppa-risk-assessment] boot pass1_model=${PASS1_MODEL} pass1_max_attempts=${PASS1_MAX_ATTEMPTS} pass1_stamp=${PASS1_MANIFEST.stamp}`);
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=${GRADER_CONTEXT_VERSION} risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
 console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED waveb2_closure=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b+atomic_tokens+info_needed_contradiction`);
@@ -43,7 +60,9 @@ import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION }
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
-import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../_shared/ltp/pass1-llm.ts";
+import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../_shared/ltp/composition-hook-audit.ts";
+import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -894,6 +913,14 @@ async function callModel(
   maxTokens: number = CPPA_RISK_MAX_TOKENS,
   timeoutMs?: number,
 ): Promise<{ text: string; stopReason: string | null }> {
+  // T-M9.2 (Item 232): legacy v4 generation is retired at runtime. Any
+  // invocation is undeclared composition-shape drift — fail loud so the
+  // pipeline never spends on a discarded call again.
+  if (LEGACY_GENERATION_RETIRED) {
+    legacyLlmCallCount += 1;
+    legacyLlmCallLabels.push(label);
+    throw new Error(`composition_shape_drift:legacy_v4_callmodel_invoked:label=${label}`);
+  }
   const r = await callAnthropicWithContinuation({
     model: "claude-sonnet-4-6",
     system, user, maxTokens, label, timeoutMs,
@@ -920,6 +947,24 @@ async function runPipeline(assessment_id: string) {
     if (!procWrite.ok) {
       // Cannot persist lifecycle state — abort before spending model time.
       return;
+    }
+
+    // T-M9.1 (Item 231): worker_start liveness touch — fires IMMEDIATELY
+    // after the processing write and BEFORE any slow work (corpus retrieval,
+    // deadline block, first model call). Together with worker_liveness_pass1_start
+    // (deeper in the pipeline) this bounds the "silent gap" between DB
+    // touches so a stalled worker is distinguishable from a slow one within
+    // seconds instead of minutes. Non-fatal on failure.
+    try {
+      await supabase.from("cppa_assessments").update({
+        updated_at: new Date().toISOString(),
+      }).eq("id", assessment_id);
+      console.log(JSON.stringify({
+        evt: "worker_liveness_start", fn: "run-cppa-risk-assessment",
+        assessment_id, build_stamp: BUILD_STAMP,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] worker_liveness_start touch failed (non-fatal):", (e as Error)?.message);
     }
 
     const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
@@ -972,42 +1017,32 @@ async function runPipeline(assessment_id: string) {
 
 
     const t0 = Date.now();
-    let parsed: any = null;
+    // T-M9.2 (Item 232): legacy v4 generation execution retired. The Pass-2
+    // assembler (T-M6 cutover, ~L3577) overwrites every non-underscore
+    // top-level key with the deterministic body — none of the legacy
+    // scrub/lint/retry work reached the shipped surface. `parsed` is a
+    // minimal shape-valid stub so the downstream scrub passes (which mutate
+    // fields the assembler will overwrite anyway) no-op safely on empty
+    // inputs; `report_data` is initialized from `parsed` and preserved for
+    // the _meta.internal telemetry attached below.
+    let parsed: any = {
+      assessment_summary: {},
+      _legacy_generation_retired: {
+        retired: true,
+        build_stamp: BUILD_STAMP,
+        note: "Body composed exclusively by Pass-2 assembler (T-M6 cutover); no Engine-A LLM call executed.",
+      },
+    };
     let debugRaw = "";
-    let lastStopReason: string | null = null;
+    let lastStopReason: string | null = "retired";
+    console.log(JSON.stringify({
+      evt: "legacy_v4_generation_skipped",
+      fn: "run-cppa-risk-assessment",
+      build_stamp: BUILD_STAMP,
+      reason: "T-M9.2 retirement — Pass-2 assembler is the shipped body",
+    }));
 
-    // Courier 2026-07-12 items 1+4: first call at CPPA_RISK_MAX_TOKENS with
-    // continuation-on-truncation handled inside callAnthropicWithContinuation.
-    // If the stitched response is still max_tokens, fall through to the
-    // existing generation_truncated error path — no second full generation.
-    const first = await callModel(system, userPrompt, "generate-v4");
-    lastStopReason = first.stopReason;
-    debugRaw = first.text;
-    parsed = tryParseJson(first.text);
-    if (!parsed && first.stopReason !== "max_tokens") {
-      console.warn("[cppa-risk v4] first parse failed — retrying once");
-      const retry = await callModel(system, userPrompt, "generate-v4-retry");
-      lastStopReason = retry.stopReason;
-      debugRaw = retry.text;
-      parsed = tryParseJson(retry.text);
-    }
 
-    console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms stop=${lastStopReason}`);
-
-    if (!parsed || !parsed.assessment_summary) {
-      const errorCode = lastStopReason === "max_tokens"
-        ? "generation_truncated"
-        : "generation_parse_failed";
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
-        status: "error",
-        report_data: {
-          error: errorCode,
-          stop_reason: lastStopReason,
-          debug: debugRaw.slice(0, 4000),
-        },
-      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_parse" });
-      return;
-    }
 
     // MEASUREMENT-VALIDITY FIX (SMOKE-LATENCY-ROOTCAUSE, 2026-07-27):
     // report_data is a completion surface for the harness. Therefore no
@@ -1284,6 +1319,7 @@ async function runPipeline(assessment_id: string) {
             null,
             budget.retryCapMs,
             async (_signal) => {
+              if (LEGACY_GENERATION_RETIRED) return null; // T-M9.2: legacy retry retired
               const retry = await callModel(system, userPrompt + t5InstructionSuffix + blInstructionSuffix, "generate-v4-retry", CPPA_RISK_MAX_TOKENS, POST_LINT_LLM_CALL_TIMEOUT_MS);
               const retryParsed = tryParseJson(retry.text);
               if (retryParsed && retryParsed.assessment_summary) {
@@ -1451,6 +1487,8 @@ async function runPipeline(assessment_id: string) {
         const elapsedNow = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(elapsedNow)) {
           console.warn(JSON.stringify({ evt: "forward_path_retry_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow, budget_ms: POST_LINT_LLM_BUDGET_MS }));
+        } else if (LEGACY_GENERATION_RETIRED) {
+          console.warn(JSON.stringify({ evt: "forward_path_retry_skipped_retired", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP }));
         } else {
           console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow }));
           const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
@@ -1495,6 +1533,8 @@ async function runPipeline(assessment_id: string) {
         const elapsedNow = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(elapsedNow)) {
           console.warn(JSON.stringify({ evt: "cot_leak_retry_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: elapsedNow, budget_ms: POST_LINT_LLM_BUDGET_MS, hits: hitPaths.length }));
+        } else if (LEGACY_GENERATION_RETIRED) {
+          console.warn(JSON.stringify({ evt: "cot_leak_retry_skipped_retired", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP, hits: hitPaths.length }));
         } else {
         console.warn(JSON.stringify({
           evt: "cot_leak_detected",
@@ -3419,17 +3459,23 @@ async function runPipeline(assessment_id: string) {
         validator_issues: _ltpTelemetry.validators.total_issues,
       }));
 
-      // ── LTP WAVE-B PART-1 ENFORCE PREVIEW ────────────────────────────
-      // When LTP_ENFORCE_ENABLED=1, run the LLM Pass-1 adapter (N=2 retry,
-      // write-around fallback) and attach its telemetry + slim plan preview
-      // under _meta.internal.legal_test_pipeline.enforce_preview. This does
-      // NOT mutate customer-visible report_data; the whitelist serializer
-      // strips _meta.internal. Fail-open in all paths.
+      // ── T-M1 (Item 221): PASS-1 DERIVE AS AUTHORITATIVE ──────────────
+      // The historical env gate (LTP_ENFORCE_ENABLED) is retired for
+      // cppa-risk. Pass-1 (deterministic derive + LLM arm + V1–V8
+      // validators) runs unconditionally with the CEO-ruled N=2 retry
+      // budget (PASS1_MAX_ATTEMPTS) and the 75s per-attempt cap. On
+      // success the RenderPlan is persisted as the authoritative artifact
+      // at _meta.internal.render_plan; the legacy shadow-preview slot is
+      // kept populated for one release for back-compat but downstream
+      // wiring (T-M6) will read exclusively from render_plan. On terminal
+      // failure Pass-1 returns conservative_write_around=true; the finalize
+      // hook (below) records write_around_origin so the composer does NOT
+      // silently fall through.
       try {
         const _rd2: any = report_data as any;
         const _elapsedBeforePass1 = Date.now() - t0;
         if (!hasBudgetForPostLintLLM(_elapsedBeforePass1)) {
-          _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
+          const _skipTelemetry = {
             manifest: PASS1_MANIFEST,
             telemetry: {
               ran: false,
@@ -3444,34 +3490,223 @@ async function runPipeline(assessment_id: string) {
             elapsed_ms: _elapsedBeforePass1,
             budget_ms: POST_LINT_LLM_BUDGET_MS,
           };
-          console.warn(JSON.stringify({ evt: "ltp_enforce_preview_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
+          _rd2._meta.internal.legal_test_pipeline.enforce_preview = _skipTelemetry;
+          _rd2._meta.internal.render_plan = {
+            authoritative: false,
+            reason: "skipped_budget",
+            manifest: PASS1_MANIFEST,
+            telemetry: _skipTelemetry.telemetry,
+          };
+          console.warn(JSON.stringify({ evt: "ltp_pass1_skipped_budget", fn: "run-cppa-risk-assessment", elapsed_ms: _elapsedBeforePass1, budget_ms: POST_LINT_LLM_BUDGET_MS }));
         } else {
+          // T-M9 (Item 230): worker LIVENESS TOUCH at pass1-start. Bumps
+          // updated_at + records the pass1_start marker so a dead worker
+          // is distinguishable from a slow one in under a minute (the T-M8
+          // silent hang held updated_at FROZEN for 17+ minutes). Failure
+          // to touch is not fatal — Pass-1 still proceeds.
+          try {
+            await supabase.from("cppa_assessments").update({
+              updated_at: new Date().toISOString(),
+            }).eq("id", assessment_id);
+            console.log(JSON.stringify({
+              evt: "worker_liveness_pass1_start", fn: "run-cppa-risk-assessment",
+              assessment_id, build_stamp: BUILD_STAMP,
+              pass1_timeout_enforced: PASS1_TIMEOUT_ENFORCED,
+              per_attempt_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+            }));
+          } catch (e) {
+            console.warn("[run-cppa-risk-assessment] worker_liveness_pass1_start touch failed (non-fatal):", (e as Error)?.message);
+          }
+          // T-M9.4 (Item 234) — STAGE TIMINGS. Capture per-stage elapsed
+          // (relative to worker t0) so the next successful run tells us
+          // where pre-Pass-1 time goes. Persisted under _meta.internal.
+          const _stagePass1Start = Date.now() - t0;
           const _pass1 = await runPass1Llm({
             intake: _ltpIntake,
             report_data: report_data as any,
             buildStamp: BUILD_STAMP,
-          }, { maxAttempts: 1, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          }, { maxAttempts: PASS1_MAX_ATTEMPTS, timeoutMs: POST_LINT_PASS1_TIMEOUT_MS });
+          const _stagePass1End = Date.now() - t0;
+          const _planSummary = {
+            plan_version: _pass1.plan.plan_version,
+            propositions: _pass1.plan.propositions?.length ?? 0,
+            gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
+            write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
+          };
+          // Legacy shadow-preview slot (retained for T-M2..T-M5 back-compat).
           _rd2._meta.internal.legal_test_pipeline.enforce_preview = {
             manifest: PASS1_MANIFEST,
             telemetry: _pass1.telemetry,
-            plan_summary: {
-              plan_version: _pass1.plan.plan_version,
-              propositions: _pass1.plan.propositions?.length ?? 0,
-              gate_outcomes: _pass1.plan.gate_outcomes?.length ?? 0,
-              write_around: _pass1.plan.conservative_write_around?.triggered ?? false,
-            },
+            plan_summary: _planSummary,
             timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
-            max_attempts: 1,
+            max_attempts: PASS1_MAX_ATTEMPTS,
+          };
+          // AUTHORITATIVE RenderPlan artifact. Cutover consumer (T-M6) reads
+          // _meta.internal.render_plan; this is the single input for downstream
+          // body assembly once the composer swap lands.
+          _rd2._meta.internal.render_plan = {
+            authoritative: _pass1.telemetry.ok,
+            manifest: PASS1_MANIFEST,
+            plan: _pass1.plan,
+            plan_summary: _planSummary,
+            telemetry: _pass1.telemetry,
+            build_stamp: BUILD_STAMP,
+            model: PASS1_MODEL,
+            max_attempts: PASS1_MAX_ATTEMPTS,
+            timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
           };
           console.log(JSON.stringify({
-            evt: "ltp_enforce_preview_ran", fn: "run-cppa-risk-assessment",
-            build_stamp: BUILD_STAMP, pass1_ok: _pass1.telemetry.ok,
-            attempts: _pass1.telemetry.attempts, write_around: _pass1.telemetry.write_around,
-            latency_ms: _pass1.telemetry.latency_ms, error: _pass1.telemetry.error ?? null,
+            evt: "ltp_pass1_authoritative_ran", fn: "run-cppa-risk-assessment",
+            build_stamp: BUILD_STAMP, pass1_model: PASS1_MODEL,
+            pass1_ok: _pass1.telemetry.ok,
+            attempts: _pass1.telemetry.attempts,
+            write_around: _pass1.telemetry.write_around,
+            validator_issues: _pass1.telemetry.validator_issues,
+            latency_ms: _pass1.telemetry.latency_ms,
+            error: _pass1.telemetry.error ?? null,
           }));
+          // T-M6 (Item 226) — PASS-2 ASSEMBLER CUTOVER.
+          // The assembler output IS report_data's body. Legacy Engine-A
+          // composer call-site is retired. On terminal Pass-1 failure
+          // (conservative_write_around), ship the Type-J reserved-judgment
+          // body with origin telemetered — no fall-through to any legacy
+          // path. _meta subtree is preserved (assembler never writes
+          // there); shipped body top-level keys are overwritten.
+          try {
+            // T-M9.4 (Item 234) — VALID PLAN INVARIANT (belt-and-suspenders).
+            // A successful, validator-clean RenderPlan is ALWAYS assembled
+            // and shipped. The clock contract gates LLM retries only; the
+            // Pass-2 assembler is deterministic and requires no LLM budget.
+            // Type-J write-around fires ONLY on terminal Pass-1 failure
+            // (abort×N, validator hard-reject, or model error). Pass-1's
+            // upstream fix (pass1-llm.ts) forces triggered=false on ok,
+            // and we re-assert here so a future regression cannot re-route
+            // a valid plan to Type-J via a stray triggered=true.
+            const _pass1Ok = !!_pass1.telemetry.ok;
+            const _writeAround = _pass1Ok
+              ? false
+              : (!!_pass1.plan?.conservative_write_around?.triggered || !_pass1.telemetry.ok);
+            // ITEM 236 fix (e) — wa_origin is NULL on pass1-ok runs. The
+            // "unknown" sentinel is retired at the emission site; a
+            // regression test in e2e-document.test.ts fails the suite if
+            // an ok run ever telemeters an origin.
+            // ITEM 240 (B) — origin classification lives in one place
+            // (composition-hook-audit.classifyPass1WriteAroundOrigin);
+            // the old inline union is retired so a new failure class
+            // (e.g. pass1_validator_reject) is picked up automatically.
+            const _origin: WriteAroundOrigin | null = _writeAround
+              ? classifyPass1WriteAroundOrigin(_pass1.telemetry.error ?? null)
+              : null;
+            let _body: Record<string, unknown>;
+            let _assemblerTele: any = null;
+            let _assemblerVersion = PASS2_ASSEMBLER_VERSION;
+            const _stageAssemblerStart = Date.now() - t0;
+            if (_writeAround) {
+              _body = buildTypeJWriteAroundBody({
+                intake: _ltpIntake,
+                origin: _origin ?? "unknown",
+                buildStamp: BUILD_STAMP,
+              });
+            } else {
+              // ITEM 236 fix (a) — Wire the T7 deterministic opening_summary
+              // artifact into the assembler so the harvest guard evaluates
+              // it and (when accepted) emits opening_summary from the
+              // shipped body. Falls back silently to no harvest if the
+              // builder failed earlier in the pipeline.
+              let _openingHarvest: any = undefined;
+              try {
+                const _rdA: any = report_data as any;
+                const _openingText = typeof _rdA?.opening_summary === "string" ? _rdA.opening_summary : "";
+                const _openingProv = _rdA?._meta?.internal?.risk_t7_opening;
+                if (_openingText && _openingProv) {
+                  _openingHarvest = {
+                    text: _openingText,
+                    provenance: {
+                      version: _openingProv.version,
+                      s0_criteria: _openingProv.s0_criteria ?? [],
+                      s1_triggers: _openingProv.s1_triggers ?? [],
+                      omitted: _openingProv.omitted ?? [],
+                      sources: _openingProv.sources ?? {},
+                      s0_b_rejected_reason: _openingProv.s0_b_rejected_reason ?? null,
+                    },
+                  };
+                }
+              } catch { /* fall through to no harvest */ }
+              const _assembler = assembleReport(
+                _pass1.plan,
+                _openingHarvest ? { opening_summary: _openingHarvest } : {},
+              );
+              _body = _assembler.report as Record<string, unknown>;
+              _assemblerTele = _assembler.telemetry;
+              _assemblerVersion = _assembler.version;
+            }
+            const _stageAssemblerEnd = Date.now() - t0;
+            // Preserve _meta and any underscore-prefixed subtree; overwrite
+            // every other top-level key from the assembler body.
+            const _rdBefore: any = report_data as any;
+            const _preserved: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(_rdBefore ?? {})) {
+              if (k.startsWith("_")) _preserved[k] = v;
+            }
+            const _cutover: Record<string, unknown> = { ..._body, ..._preserved };
+            report_data = _cutover as any;
+            const _rd3: any = report_data as any;
+            _rd3._meta = _rd3._meta ?? {};
+            _rd3._meta.internal = _rd3._meta.internal ?? {};
+            _rd3._meta.internal.assembler = {
+              version: _assemblerVersion,
+              build_stamp: BUILD_STAMP,
+              write_around: _writeAround,
+              write_around_origin: _origin,
+              telemetry: _assemblerTele,
+              body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
+            };
+            _rd3._meta.internal.composition_shape = {
+              build_stamp: BUILD_STAMP,
+              declared: COMPOSITION_SHAPE_DECLARATION,
+              observed: {
+                final_documents: 1,
+                pass1_ran: _pass1.telemetry.ran,
+                pass1_ok: _pass1.telemetry.ok,
+                body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
+              },
+              conformant: true,
+            };
+            _rd3._meta.internal.stage_timings = {
+              build_stamp: BUILD_STAMP,
+              worker_start_ms: 0,
+              pass1_start_ms: _stagePass1Start,
+              pass1_end_ms: _stagePass1End,
+              pass1_elapsed_ms: _stagePass1End - _stagePass1Start,
+              assembler_start_ms: _stageAssemblerStart,
+              assembler_end_ms: _stageAssemblerEnd,
+              assembler_elapsed_ms: _stageAssemblerEnd - _stageAssemblerStart,
+              cutover_end_ms: Date.now() - t0,
+            };
+            console.log(JSON.stringify({
+              evt: "ltp_pass2_assembler_cutover_ran",
+              fn: "run-cppa-risk-assessment",
+              build_stamp: BUILD_STAMP,
+              assembler_version: _assemblerVersion,
+              write_around: _writeAround,
+              write_around_origin: _origin,
+              body_source: _writeAround ? "type_j_write_around" : "pass2_assembler",
+              total_sections: _assemblerTele?.total_sections ?? null,
+              emitted_sections: _assemblerTele?.emitted_sections ?? null,
+              omitted_sections: _assemblerTele?.omitted_sections ?? null,
+              structural_ok: _assemblerTele?.structural_completeness?.ok ?? null,
+              structural_nonconformant: _assemblerTele?.structural_completeness?.nonconformant_keys ?? [],
+              flat_certainty_rejections: _assemblerTele?.exit_checks?.flat_certainty_rejections?.length ?? 0,
+              pii_rejections: _assemblerTele?.exit_checks?.pii_rejections?.length ?? 0,
+              harvest_rejections: (_assemblerTele?.harvest_decisions ?? []).filter((d: any) => d.rejection_reason !== null).length,
+              composition_shape_version: COMPOSITION_SHAPE_DECLARATION.version,
+            }));
+          } catch (e) {
+            console.warn("[run-cppa-risk-assessment] LTP Pass-2 assembler cutover failed (non-fatal):", (e as Error)?.message);
+          }
         }
       } catch (e) {
-        console.warn("[run-cppa-risk-assessment] LTP enforce-preview failed (non-fatal):", (e as Error)?.message);
+        console.warn("[run-cppa-risk-assessment] LTP Pass-1 authoritative failed (non-fatal):", (e as Error)?.message);
       }
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] LTP shadow-mode failed (non-fatal):", (e as Error)?.message);
@@ -3491,16 +3726,17 @@ async function runPipeline(assessment_id: string) {
       _rdF._meta.internal = _rdF._meta.internal ?? {};
       const _hookValue = readForceWriteAroundOnce(Deno.env);
       const _ltpPreview = _rdF._meta.internal.legal_test_pipeline?.enforce_preview;
-      const _writeAroundEntered = !!_ltpPreview?.plan_summary?.write_around;
-      // ITEM 217 fix (a): classify the write-around origin so the
-      // hook-audit knows this is a designed clock-cap degradation
-      // (Item 203 clock contract), not an unauthorized bypass. Pass-1
-      // sets telemetry.write_around=true only after the N=2 retry
-      // budget exhausts OR the test forcing token is used.
+      // T-M9.4 (Item 234) — VALID PLAN INVARIANT (finalize-site guard).
+      // Only enter write-around when Pass-1 actually failed. The upstream
+      // plan_summary.write_around flag mirrors the model-emitted
+      // conservative_write_around and can be a false positive on a clean
+      // ok run. Gate on telemetry.ok === true → NEVER write-around.
+      const _pass1TeleOk = _ltpPreview?.telemetry?.ok === true;
+      const _writeAroundEntered = !_pass1TeleOk && !!_ltpPreview?.plan_summary?.write_around;
       const _pass1Err: string | undefined = _ltpPreview?.telemetry?.error;
-      const _writeAroundOrigin: "clock_cap" | "test_forced" | undefined =
+      const _writeAroundOrigin: WriteAroundOrigin | undefined =
         _writeAroundEntered
-          ? (_pass1Err === "test_only_forced_degradation" ? "test_forced" : "clock_cap")
+          ? classifyPass1WriteAroundOrigin(_pass1Err ?? null)
           : undefined;
       const _mode = currentEnforceMode(Deno.env);
       const _safe = safeFinalizeComposition({
@@ -3779,6 +4015,37 @@ async function runPipeline(assessment_id: string) {
 
 
 
+    // ── T-M9.2 (Item 232) — RUNTIME SHAPE-CONFORMANCE ASSERT ────────
+    // Declared shape (COMPOSITION_SHAPE_DECLARATION) allows exactly one
+    // LLM call per document: pass1_derive. Any legacy Engine-A v4 call
+    // is undeclared drift. Fail loud to status=error rather than ship
+    // spend-wasted output.
+    if (legacyLlmCallCount > 0) {
+      const _driftDetail = `legacy_v4_call_count=${legacyLlmCallCount};labels=${legacyLlmCallLabels.slice(0, 8).join(",")}`;
+      console.warn(JSON.stringify({
+        evt: "composition_shape_drift_detected",
+        fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP,
+        detail: _driftDetail,
+      }));
+      try {
+        const _rdD: any = report_data as any;
+        _rdD._meta = _rdD._meta ?? {};
+        _rdD._meta.internal = _rdD._meta.internal ?? {};
+        _rdD._meta.internal.composition_shape_drift = {
+          build_stamp: BUILD_STAMP,
+          legacy_v4_call_count: legacyLlmCallCount,
+          labels: legacyLlmCallLabels,
+        };
+      } catch { /* best-effort */ }
+      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
+        status: "error",
+        report_data: { error: "composition_shape_drift", detail: _driftDetail },
+        last_error: `composition_shape_drift:${_driftDetail}`,
+      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_shape_drift" });
+      return;
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data }, { fn: "run-cppa-risk-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", report_data: { error: "complete_write_failed", message: completeWrite.message } }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
@@ -3803,12 +4070,12 @@ async function runPipeline(assessment_id: string) {
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     const isTimeout = e instanceof AnthropicTimeoutError
-      || (e instanceof Error && (e as any).code === "generation_timeout_330s");
+      || (e instanceof Error && ((e as any).code === "anthropic_attempt_abort" || (e as any).code === "generation_timeout_330s"));
     try {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
         status: "error",
         report_data: isTimeout
-          ? { error: "generation_timeout_330s", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null }
+          ? { error: "anthropic_attempt_abort", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null, limit_ms: (e as any).limitMs ?? null, label: (e as any).label ?? null }
           : { error: String(e) },
       }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
     } catch { /* ignore */ }
@@ -3845,13 +4112,35 @@ Deno.serve(async (req) => {
       post_lint_llm_budget_ms: POST_LINT_LLM_BUDGET_MS,
       post_lint_llm_call_timeout_ms: POST_LINT_LLM_CALL_TIMEOUT_MS,
       post_lint_pass1_timeout_ms: POST_LINT_PASS1_TIMEOUT_MS,
+      // T-M9 (Item 230): the declared per-attempt timeout is now a REAL
+      // AbortController abort on every fetch leg — not a budget the caller
+      // never observes. Kickoff mode-assert pings this to detect declared-
+      // vs-actual abort-enforcement drift before spend.
+      pass1_timeout_enforced: PASS1_TIMEOUT_ENFORCED,
 
       safe_finalize: SAFE_FINALIZE_VERSION,
+      // T-M1 (Item 221) — Pass-1 authoritative surface. Kickoff mode-assert
+      // pings this to detect declared-vs-actual model drift before spend.
+      pass1_authoritative: "1",
+      pass1_model: PASS1_MODEL,
+      pass1_max_attempts: PASS1_MAX_ATTEMPTS,
+      pass1_stamp: PASS1_MANIFEST.stamp,
+      // T-M6 (Item 226) — Pass-2 assembler AUTHORITATIVE surface.
+      pass2_assembler: PASS2_ASSEMBLER_VERSION,
+      composition_shape: COMPOSITION_SHAPE_DECLARATION,
+      // ITEM 235b (T-M9.5b) — LTP LAWS 1-3 landed as standing law.
+      ltp_laws_1_3: "item235b-2026-07-28",
+      // ITEM 236 (T-M9.6) — RUN #170 fixes: T7 harvest wire, chooseVariant
+      // routing, deterministic boilerplate composers, exec-summary
+      // projection fix, wa_origin null-on-ok.
+      run170_fixes: "item236-2026-07-28",
+
 
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-  // POST-time header assertion — caller may declare `x-ltp-mode-expected`;
-  // a mismatch aborts before any generation work runs.
+  // POST-time header assertion — caller may declare `x-ltp-mode-expected`
+  // and/or `x-ltp-pass1-model-expected`; a mismatch aborts before any
+  // generation work runs (LEGAL-TEST-PIPELINE.md §16, T-M1 model-assert).
   const _modeExpected = req.headers.get("x-ltp-mode-expected");
   if (_modeExpected && _modeExpected !== LTP_MODE_BOOT) {
     console.log(JSON.stringify({
@@ -3864,6 +4153,20 @@ Deno.serve(async (req) => {
       actual: LTP_MODE_BOOT,
       build_stamp: BUILD_STAMP,
       law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity",
+    }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const _pass1ModelExpected = req.headers.get("x-ltp-pass1-model-expected");
+  if (_pass1ModelExpected && _pass1ModelExpected !== PASS1_MODEL) {
+    console.log(JSON.stringify({
+      evt: "ltp_pass1_model_mismatch_abort", fn: "run-cppa-risk-assessment",
+      expected: _pass1ModelExpected, actual: PASS1_MODEL, build_stamp: BUILD_STAMP,
+    }));
+    return new Response(JSON.stringify({
+      error: "ltp_pass1_model_mismatch",
+      expected: _pass1ModelExpected,
+      actual: PASS1_MODEL,
+      build_stamp: BUILD_STAMP,
+      law: "LEGAL-TEST-PIPELINE.md §16 measurement-validity (T-M1 model-assert)",
     }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
@@ -3937,6 +4240,37 @@ Deno.serve(async (req) => {
           metadata: { assessment_id, recovered_after_error: true, original_error: (e as Error)?.message ?? String(e) },
         });
       } else {
+        // T-M9.1 (Item 231) — FAIL-LOUD: persist the error to the assessment
+        // row itself so a dead background isolate cannot leave a row frozen
+        // at status='processing' with last_error=NULL. Silent background
+        // death is now structurally impossible: any uncaught throw in
+        // runPipeline lands here and writes status='error' + last_error
+        // BEFORE the isolate exits. Wrapped in its own try/catch so a DB
+        // failure on the error-write path cannot re-throw and defeat the
+        // guarantee.
+        const errMsg = (e as Error)?.message ?? String(e);
+        const errStack = (e as Error)?.stack?.slice(0, 2000) ?? null;
+        try {
+          await supabase.from("cppa_assessments").update({
+            status: "error",
+            last_error: `background_task_uncaught: ${errMsg}`,
+            updated_at: new Date().toISOString(),
+          }).eq("id", assessment_id!);
+          console.error(JSON.stringify({
+            evt: "background_task_persisted_error",
+            fn: "run-cppa-risk-assessment",
+            assessment_id, build_stamp: BUILD_STAMP,
+            error: errMsg, stack: errStack,
+          }));
+        } catch (persistErr) {
+          console.error(JSON.stringify({
+            evt: "background_task_persist_error_failed",
+            fn: "run-cppa-risk-assessment",
+            assessment_id, build_stamp: BUILD_STAMP,
+            original_error: errMsg,
+            persist_error: (persistErr as Error)?.message ?? String(persistErr),
+          }));
+        }
         await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
       }
     }

@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-28T22:23Z (Item 242-BC-RIDER — GROUNDED-NOTE LAW wired into Pass-1 between coherence and validator; prompt Rule 9 disclosure landed; deployed with verbatim post-deploy ping; CP-B §1/§2 remain HELD per the CP-C release.)
+**Last updated:** 2026-07-29T01:06Z (Item 245 — TRACK 1 legacy engine restored to commit 4fe2e76c1 / Item 217 build; deployed as ltp-risk-legacy-restore-item217+bss@2026-07-29T01:06:37Z with verbatim boot log; bought_sold_shared_count reader verified at risk-opening.ts:165 — no port needed; HARD STOP for controller wire-verify + confirmation smoke.)
 
 ---
 
@@ -5446,3 +5446,53 @@ Coherence stamp: `pass1-present-note-coherence@2026-07-28-item244-addendum-mass-
 Postures stamp: `submission-postures@2026-07-28-item244-addendum-tokens`.
 
 Courier: docs/courier/ITEM244-ADDENDUM-BATCH-55B9F3A2-2026-07-28.md.
+
+---
+
+## Item 245 — TRACK 1 LEGACY ENGINE RESTORE (Item 217 build) + bss verify — DONE
+
+**Dispatch:** CEO ruling 2026-07-29 (TRACK 1 PRODUCTION ROLLBACK; both
+Track 1 and Track 2 approved; Track 1 requires the post-July-21 intake
+field included).
+
+**Source commit:** `4fe2e76c1` — Item 217 build
+`ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z`
+(last full-legacy-body deploy; smoke #12 passed all three gates).
+
+**Restoration strategy.** `supabase/functions/run-cppa-risk-assessment/`
+restored verbatim via `git archive` from `4fe2e76c1`; no hand
+reconstruction. Current rebuild snapshot preserved in-tree at
+`supabase/_rebuild-snapshot-item244/run-cppa-risk-assessment/` for
+Track 2. Shared modules under `_shared/` left on HEAD — item217-era
+imports link cleanly.
+
+**(b) Intake-field verify — no port required.** Confirmed
+`supabase/functions/_shared/openings/risk-opening.ts:165` in the
+restored code reads `intake.bought_sold_shared_count` via
+`const bssCount = str(intake.bought_sold_shared_count);` and evaluates
+it into `satisfiesB = affirmativeBuySellShare && hasCompliantBssBand`
+with the `BOUGHT_SOLD_SHARED_BANDS_100K_OR_MORE` band table. The
+`information_needed` (B)-gap predicate reads the same field. The T-C1
+courier's own line-165 observation is verified in-place.
+
+**Deploy.** Fresh self-computed stamp
+`ltp-risk-legacy-restore-item217+bss@2026-07-29T01:06:37Z` (`+bss`
+marker distinguishes the rollback build). Explicit deploy succeeded;
+verbatim boot log captured in the courier (all legacy sub-stamps
+present: w23/w24/w24a-v3/t7-pilotfix/t7-pilotfix2/risk-cohort-date/
+risk-intake-contradiction-body/risk-citation-dup-fix).
+
+**Colocated legacy tests (as-restored).** Ran; Deno strict-check
+returned 4 errors, ALL pre-existing defects in the item217 shipped body
+(`WRONG_DATE_RE_25_50M` referenced without definition in
+`_risk_cohort_date.ts:163,168`; duplicate `version`/`safe_version` keys
+in `index.ts:3519–3521`). These are not introduced by the restore; the
+runtime deploy path uses `--no-check` and shipped cleanly at item217.
+Suite drift is noted honestly in the courier per CEO instruction — no
+test bodies were edited to make them pass.
+
+**HARD STOP** for controller wire-verify + single confirmation smoke
+(observe-first). Track 2 does NOT start until CEO-ordered specification
+is authored and signed.
+
+Courier: `docs/courier/TRACK1-LEGACY-RESTORE-2026-07-29.md`.
