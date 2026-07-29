@@ -37,6 +37,14 @@ export interface SubstanceMetrics {
   readonly factors_with_ledger_refs: number;
   readonly note_token_diversity: number;
   readonly action_kind_diversity_ok: boolean;
+  /**
+   * Item 254 — set true when a review band is configured and
+   * `presence_rate` falls below `review_low` (still at/above the hard
+   * floor). Advisory only; never contributes to `hard_failures`.
+   */
+  readonly review_band_low?: boolean;
+  /** Item 254 — set true when `presence_rate` exceeds `review_high`. */
+  readonly review_band_high?: boolean;
   readonly golden_shape: {
     readonly review_flag: boolean;
     readonly shortfall_keys: readonly string[];
