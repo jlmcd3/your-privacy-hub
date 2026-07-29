@@ -30,7 +30,32 @@
  *   sentinels (`{{intake:`, `{{cite:`, `[filtered]`, `TODO`, etc.).
  */
 
-export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item242-bc-marketing-review-flags";
+export const VALUE_SCREEN_VERSION = "value-screen@2026-07-28-item244-addendum-slot-name-literals";
+
+/**
+ * BATCH 55b9f3a2 ADDENDUM (a) — UNRESOLVED SLOT-NAME LITERALS.
+ *
+ * When a composer/renderer leaks a slot NAME as prose (e.g. the literal
+ * string "entity name" or "activity label" shipping into customer-facing
+ * text — evidence: doc e7e8e64d record_sufficiency + priority_actions),
+ * the shipped surface reads as an unresolved template token even though
+ * the {{plan:…}} token was substituted. This class fires on the humanised
+ * lower-case slot-name string appearing as a standalone prose fragment
+ * (word-bounded), not on legitimate section headers or metadata.
+ *
+ * Fires ONLY outside anchor/metadata paths (isAnchorPath already exempt).
+ */
+export const SLOT_NAME_LITERAL_PATTERNS: readonly RegExp[] = [
+  /\bentity name\b/i,
+  /\bactivity label\b/i,
+  /\bactivity name\b/i,
+  /\belement short label\b/i,
+  /\bowner role titles\b/i,
+  /\bdeadline sentence\b/i,
+  /\bcompliance guidance sentence\b/i,
+  /\bcustomer recorded fact clause\b/i,
+  /\bgap or consequence clause\b/i,
+] as const;
 
 /**
  * ITEM 242 CP-C (defect 5, part 3) — marketing/consultancy phrases as
@@ -152,7 +177,7 @@ export class ValueScreenError extends Error {
 }
 
 export interface ValueScreenHit {
-  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value" | "interpolation-residue" | "registry-id";
+  readonly kind: "leak-lexicon" | "statutory-text" | "truncated-slot-value" | "interpolation-residue" | "registry-id" | "slot-name-literal";
   readonly match: string;
   readonly path: string;
   readonly context: string;
@@ -265,6 +290,18 @@ export function runValueScreen(input: ScreenInput): void {
           hits.push({
             kind: "registry-id",
             match: re.toString(),
+            path,
+            context: value.slice(0, 120),
+          });
+        }
+      }
+      // BATCH 55b9f3a2 ADDENDUM (a) — unresolved slot-name literals.
+      for (const re of SLOT_NAME_LITERAL_PATTERNS) {
+        const m = value.match(re);
+        if (m) {
+          hits.push({
+            kind: "slot-name-literal",
+            match: m[0],
             path,
             context: value.slice(0, 120),
           });

@@ -5388,3 +5388,61 @@ determinism snapshot test; **(P1)** wire-schema reorder placing
 **Disposition.** Item 243 CLOSED — five completion defects live at the
 `ltp-risk-item243-completion` stamp. Item 244 content courier drafted
 and HELD for CEO sign-off; wiring turn schedules after sign-off.
+
+---
+
+## Item 244 — WIRED + BATCH 55b9f3a2 ADDENDUM (2026-07-28)
+
+**Status.** Item 244 primary wiring landed in previous turn; addendum
+folded into the same deploy window per CEO release.
+
+**Batch 55b9f3a2 evidence.** C 60.5–63.35 / G 65–85; failures 23→13;
+prong hits 6→1. Terminal batch; five addendum classes lifted from
+run c7fa1d50 grader findings + telemetry.
+
+**Addendum (a) — SLOT-NAME LITERAL RESIDUE.** value-screen extended
+with `SLOT_NAME_LITERAL_PATTERNS` (`entity name`, `activity label`,
+`activity name`, `element short label`, `owner role titles`,
+`deadline sentence`, `compliance guidance sentence`,
+`customer recorded fact clause`, `gap or consequence clause`). Fires
+on shipped-surface prose only; anchor/metadata paths remain exempt.
+New hit kind: `slot-name-literal`.
+
+**Addendum (b) — MASS-ABSENCE ABORT.** `applyCoherenceScreen` now
+computes `rewrite_rate` and throws `MassAbsenceRewriteAbort` when
+> 0.5 of factor rows are flipped absent+"no record evidence". Assembly
+routes the run to the Type-J write-around body via the existing
+pass1-llm try/catch. 244 P1 schema reorder + P2 exemplar + P3
+destination sentence deploy in this same window as the model-side
+cure; expected effect: rewrite_rate drops as the model emits grounded
+`intake_ledger_refs` instead of empty arrays.
+
+**Addendum (c) — BALANCE-SUBSTANCE RULE.** `aggregateBalance` now
+returns `insufficient` when zero present benefits exist on the record.
+Coherence assert already ships enforce-arm collapse when exec asserts
+outweigh over an empty factor table (doc 2e697bf1 pattern).
+
+**Addendum (d) — POSTURE PHRASING TOKENS.** `renderProngPosture`
+"not applicable" and "indeterminate" branches now carry the grader's
+expected `insufficient basis` phrasing family alongside the state-the-law
+verbatim quote. Resolution sentence retains met/not met vocabulary.
+
+**Addendum (e) — ADMT-INAPPLICABILITY EXPLANATION.** New constant
+`ADMT_INAPPLICABILITY_EXPLANATION` composed into record_sufficiency
+when `q18_admt_use=No` AND `q5b_profiling=Yes`. Text verbatim:
+"ADMT-specific governance is inapplicable because the record states
+no ADMT is in use; the profiling activity is assessed under the
+§ 7150(b)(4) trigger and its own safeguards."
+
+**Housekeeping.** Fixed pre-existing parse defect in
+`content/pass1-derive-prompt.ts` (escaped closing backtick prevented
+the template literal from terminating; Supabase edge bundler strict).
+
+**Deploy.** `run-cppa-risk-assessment` redeployed successfully.
+Composer stamp: `ltp-section-composers-cppa-risk-2026-07-28-item244-addendum`.
+Assembler stamp: `ltp-pass2-assembler-2026-07-28-item244-addendum`.
+Value-screen stamp: `value-screen@2026-07-28-item244-addendum-slot-name-literals`.
+Coherence stamp: `pass1-present-note-coherence@2026-07-28-item244-addendum-mass-absence-abort`.
+Postures stamp: `submission-postures@2026-07-28-item244-addendum-tokens`.
+
+Courier: docs/courier/ITEM244-ADDENDUM-BATCH-55B9F3A2-2026-07-28.md.

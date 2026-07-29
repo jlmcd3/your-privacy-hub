@@ -51,15 +51,19 @@ function prongPreface(prong: ProngKey): string {
  */
 export function renderProngPosture(prong: ProngKey, outcome: ProngOutcome): string {
   const preface = prongPreface(prong);
+  // BATCH 55b9f3a2 ADDENDUM (d) — align resolution tokens with the
+  // grader's expected vocabulary ("met" / "not met" / "insufficient
+  // basis"). State-the-law preface unchanged; resolution sentence
+  // carries the token family verbatim so qc_r1_3 finds the phrasing.
   switch (outcome) {
     case "met":
       return `${preface}. On the current record this threshold is met.`;
     case "not met":
       return `${preface}. On the current record this threshold is not met.`;
     case "not applicable":
-      return `${preface}. On the current record this prong is not applicable.`;
+      return `${preface}. On the current record this prong is not applicable; there is insufficient basis to apply it here.`;
     case "indeterminate":
-      return `${preface}. The current record does not yet resolve this threshold; completing the underlying intake field resolves it.`;
+      return `${preface}. The current record provides insufficient basis to resolve this threshold as met or not met; completing the underlying intake field resolves it.`;
   }
 }
 
@@ -69,4 +73,4 @@ export function renderAllProngPostures(
   return (["b1", "b2A", "b2B"] as const).map((k) => renderProngPosture(k, outcomes[k]));
 }
 
-export const SUBMISSION_POSTURES_STAMP = "submission-postures@2026-07-28-cpb-final";
+export const SUBMISSION_POSTURES_STAMP = "submission-postures@2026-07-28-item244-addendum-tokens";

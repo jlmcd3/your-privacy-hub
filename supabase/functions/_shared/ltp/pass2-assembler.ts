@@ -55,7 +55,7 @@ import {
 } from "../report-contracts/cppa-risk-shape.ts";
 import { evaluateGoldenShape, type GoldenShapeReport } from "./golden-shape-quotas.ts";
 
-export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item243-posture-live";
+export const PASS2_ASSEMBLER_VERSION = "ltp-pass2-assembler-2026-07-28-item244-addendum";
 
 /**
  * ITEM 243 defect 2 — Rebuild the intake dict from plan.intake_ledger so
