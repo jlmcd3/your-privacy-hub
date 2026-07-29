@@ -8,7 +8,7 @@
  * Courier-only edits.
  */
 
-export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-26";
+export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-28-item244-wired";
 
 /**
  * Surface-audit rulings (item-136 default: CUT unless defended).
@@ -469,6 +469,97 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 340,
   },
+  // ─────────────────────────────────────────────────────────────────
+  // ITEM 244 CEO-approved wiring (2026-07-28). Every clause below is
+  // verbatim from the ITEM244-WIRED courier. Silent intake sub-elements
+  // resolve to a reserved-framing string; NEVER an invented process.
+  // ─────────────────────────────────────────────────────────────────
+
+  // L1 — Processing Narrative section. Composed from the operational-
+  // elements ledger fields in fixed order: collection → use → disclosure
+  // → retention → deletion. Deletion fallback is "not stated on the
+  // record" per Item 244 Correction 1 (no silent process may be
+  // asserted).
+  "T.risk.processing_narrative": {
+    id: "T.risk.processing_narrative",
+    text: "**How {{plan:entity_name}} processes personal information for {{plan:activity_label}}.**\n\n{{plan:entity_name}} collects {{plan:pi_categories_clause}} from {{plan:sources_clause}}. The information is used {{plan:i1_processing_purpose_clause}}. {{plan:entity_name}} discloses this information to {{plan:i6_vendors_clause}} through {{plan:i4_disclosure_mechanisms_clause}}. The record sets a retention period of {{plan:i2_retention_period_clause}}, applying the criterion that {{plan:i2_retention_criteria_clause}}. At the end of that period the information is {{plan:i2_deletion_clause}}.\n\nEach element above is drawn from the assessment record. Where the record is silent on a sub-element, the corresponding clause reads \"not stated on the record\" and the item is enumerated in Items for your review.",
+    citation_slots: [],
+    plan_slots: [
+      "entity_name",
+      "activity_label",
+      "pi_categories_clause",
+      "sources_clause",
+      "i1_processing_purpose_clause",
+      "i6_vendors_clause",
+      "i4_disclosure_mechanisms_clause",
+      "i2_retention_period_clause",
+      "i2_retention_criteria_clause",
+      "i2_deletion_clause",
+    ],
+    intake_slots: [],
+    max_chars: 2000,
+  },
+
+  // L3 — Less-Intrusive Alternatives line. Correction 3: pinpoint bound
+  // from the registry-verified nearest anchor. Corpus pin-test 2026-07-28:
+  // provision_texts:cppa-7152 contains no verbatim "less-intrusive
+  // alternatives" clause; § 7152(a)(4)(B) is not a numbered leaf. The
+  // verified NEAREST verbatim anchor is § 7152(a)(2)'s minimum-PI
+  // requirement ("the minimum personal information that is necessary to
+  // achieve the purpose of processing consumers' personal information"),
+  // which is the operative statement for the minimization / less-
+  // intrusive-alternatives judgment. The wired courier records this
+  // verification result.
+  "T.risk.less_intrusive_alternatives.present": {
+    id: "T.risk.less_intrusive_alternatives.present",
+    text: "The record states that {{plan:entity_name}} considered less-intrusive alternatives as follows: {{plan:i1b_min_pi_clause}}. Under {{cite:PINPOINT}}, this record is the operative statement for the balancing frame.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["entity_name", "i1b_min_pi_clause"],
+    intake_slots: [],
+    max_chars: 640,
+  },
+  "T.risk.less_intrusive_alternatives.silent": {
+    id: "T.risk.less_intrusive_alternatives.silent",
+    text: "The record does not yet state the less-intrusive alternatives {{plan:entity_name}} considered for this activity. The {{cite:PINPOINT}} analysis therefore reserves this element; qualified legal counsel should record the alternatives considered before the assessment closes.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["entity_name"],
+    intake_slots: [],
+    max_chars: 520,
+  },
+
+  // E1 — Scope aggregation opener. Correction 4: the engaged-trigger
+  // basis clause is sourced from § 7150(b) verbatim (openings/ccpa-7150-pin
+  // constants), NOT from submission-postures.ts (§ 7120 family).
+  "T.risk.section_opener.scope.v2": {
+    id: "T.risk.section_opener.scope.v2",
+    text: "**Scope & Triggers.** This assessment is triggered under **{{cite:PINPOINT_ENGAGED}} — {{plan:engaged_prong_label}}** on the following record basis: {{plan:engaged_prong_posture_clause}}. The remaining § 7150(b) applicability prongs are not engaged on the current record: {{plan:non_engaged_prongs_inline}}.",
+    citation_slots: ["PINPOINT_ENGAGED"],
+    plan_slots: [
+      "engaged_prong_label",
+      "engaged_prong_posture_clause",
+      "non_engaged_prongs_inline",
+    ],
+    intake_slots: [],
+    max_chars: 1400,
+  },
+
+  // L5 — Affirmations block opener. Adequately-documented items lead;
+  // gaps trail. Single sentence assembled from the four factual gates +
+  // total gap enumeration.
+  "T.risk.record_sufficiency.prose.v2": {
+    id: "T.risk.record_sufficiency.prose.v2",
+    text: "The record {{plan:sufficiency_clause}}. {{plan:entity_name}} has adequately documented {{plan:affirmed_count_clause}} of the § 7152(a) elements listed below; {{plan:gap_count_clause}} of these elements remain enumerated for your review. Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed.",
+    citation_slots: [],
+    plan_slots: [
+      "sufficiency_clause",
+      "entity_name",
+      "affirmed_count_clause",
+      "gap_count_clause",
+    ],
+    intake_slots: [],
+    max_chars: 900,
+  },
+
 };
 
 
