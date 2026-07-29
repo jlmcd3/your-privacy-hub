@@ -5835,3 +5835,112 @@ this ledger entry + header restamp. Live legacy path
 ruling on CHECK 1 wiring option (Type-J `intake_ledger_refs` at derive
 time vs. `resolution_source_fields` on the Type-J `ConclusionSpec`)
 before this test can graduate to green.
+
+---
+
+## Item 250 — TRACK 2: RULINGS A+B (team-unanimous) + TYPE-J SCAFFOLD
+
+**Dispatch:** TRACK 2 — STAGE 5. Two controller rulings, each reasoned
+per-lens across the four spec-authoring panels (privacy law / CS /
+prompt engineering / prose) per CEO team-unanimity governance
+(2026-07-29). Code + test + one HELD content courier only. Track-1
+wire (`supabase/functions/run-cppa-risk-assessment/`) and rebuild
+snapshot (`supabase/_rebuild-snapshot-item244/`) untouched. No deploy;
+no batches; no live calls.
+
+### Ruling A — GOLDEN-SHAPE GATE LOCATION (SPEC-CLARIFYING)
+
+Content-density quotas measure MODEL-authored richness, which the
+deterministic `derivePlan()` e2e path cannot produce by construction
+(`pickFactorTable` pins `present_in_intake:false` by design). Spec §6
+"hard asserts in the e2e gate" is reinterpreted as "hard asserts once
+real model-authored plans are available" — the §7 replay harness, not
+the deterministic e2e suite. WHAT is measured is unchanged; WHERE it
+is enforced moves. Full four-panel reasoning in
+`docs/courier/ITEM250-RULING-A-GOLDEN-SHAPE-GATE-LOCATION-2026-07-29.md`.
+
+Wired this turn:
+- Header comment in
+  `supabase/functions/_shared/ltp/golden-shape-gate.test.ts` points to
+  the Ruling-A courier and clarifies the file's role is pre-replay
+  assessment/telemetry, not a release gate.
+- Commented hard assert stays commented; quotas, fixture, and
+  evaluator are byte-identical to Item 248. Item 236 law still binds.
+
+### Ruling B — TYPE-J RESOLUTION-SOURCE FIELDS (SCAFFOLD + HELD)
+
+Wiring-mechanism decision (team-unanimous): option (b) from Item 249's
+courier — add optional `resolution_source_fields?: readonly string[]`
+to the Type-J `ConclusionSpec`, registry-driven (fits Single-Writer
+Law). Composer skips a Type-J review item when every listed field is
+non-empty on `plan.intake_ledger`. Registry population is
+customer-facing content and remains under the CEO-signed courier law
+— team-unanimity governed only the mechanism, not the values.
+
+Wired this turn (SCAFFOLD, no behavior change):
+1. `ConclusionSpec.resolution_source_fields?: readonly string[]` added
+   in `supabase/functions/_shared/legal-test/cppa-risk-conclusions.ts`.
+   Undefined on every current row; behavior byte-identical.
+2. `composeInformationNeeded` in
+   `supabase/functions/_shared/ltp/section-composers/cppa-risk.ts`
+   now skips a Type-J entry when every listed field is populated on
+   the intake_ledger. No-op today.
+3. `supabase/functions/_shared/ltp/grader-check-mirror.test.ts`
+   CHECK 1 rewritten to assert every Type-J row carries a populated
+   `resolution_source_fields`. Version bumped to
+   `grader-check-mirror-2026-07-29-item250`.
+
+HELD content — `docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md`:
+- `j.initiation_decision` → PROPOSED empty (no intake field records
+  the § 7152(a)(7) initiation decision; row stays always-asking).
+- `j.purpose_specificity_adequacy` → PROPOSED
+  `["i1_processing_purpose"]`.
+- `j.safeguard_sufficiency` → PROPOSED `["safeguards_summary"]`.
+
+Awaiting CEO sign-off before registry population.
+
+### CHECK 1 test output after Item 250 (verbatim)
+
+```
+CHECK 1 (qc_r1_1): information_needed makes no ask about an already-resolved intake field ... FAILED (…)
+error: AssertionError: scaffold wired (Item 250); resolution_source_fields not yet populated — HELD pending CEO sign-off on docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md. Observed: 3 Type-J ConclusionSpec rows; 0 carry resolution_source_fields.
+
+FAILED | 5 passed | 1 failed
+```
+
+CHECK 2 (qc_r1_2, M4 → § 7120(b)(2)(B)) and CHECK 3 (qc_r1_3, M5 →
+§ 7120(b)(1)) continue to pass across the 3 M4 + 2 M5 fixtures from
+Item 249.
+
+### C1 scoping — remaining 4 checks
+
+Transient DB outage prevented scoping the remaining checks this turn.
+No new work on:
+
+- `qc_r1_4_cohort_determinism`
+- `qc_r1_5_exception_fields_consumed`
+- `qc_r1_7_enhancement_placement_det`
+- `qc_ws6_1_supplemental_consumption`
+
+Still NOT YET SCOPED. Grader-rule extraction from
+`quality_archive.quality_check_results_20260728` deferred to a
+follow-up turn once DB access is available.
+
+### Not deployed
+
+No `deploy_edge_functions` call. Files modified this turn:
+- `supabase/functions/_shared/legal-test/cppa-risk-conclusions.ts`
+  (type-level `resolution_source_fields` scaffold).
+- `supabase/functions/_shared/ltp/section-composers/cppa-risk.ts`
+  (`composeInformationNeeded` skip-logic; no-op until registry
+  populated).
+- `supabase/functions/_shared/ltp/grader-check-mirror.test.ts`
+  (CHECK 1 rewritten; version bumped).
+- `supabase/functions/_shared/ltp/golden-shape-gate.test.ts`
+  (header comment amended for Ruling A).
+- `docs/courier/ITEM250-RULING-A-GOLDEN-SHAPE-GATE-LOCATION-2026-07-29.md` (new).
+- `docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md` (new).
+- This ledger entry + header restamp.
+
+Live legacy path `supabase/functions/run-cppa-risk-assessment/`
+untouched; `supabase/_rebuild-snapshot-item244/` untouched.
