@@ -245,15 +245,21 @@ Deno.test("(f) grounded-note mass-replace ABORTS above threshold and does NOT ab
     GroundedNoteMassReplaceAbort,
   );
 
-  // AT/BELOW threshold: 4 rows, only 2 ungrounded → rate 0.5, NOT > 0.5.
+  // AT/BELOW threshold: 4 candidates, 2 ungrounded + 2 grounded (lexicon
+  // tokens only) → rate 0.5, NOT > 0.5. ("no record evidence" is
+  // whitelisted and would not count as a candidate at all, so we use
+  // real grounded prose to keep candidates=4.)
   const belowRows = [
     { factor_id: "benefit.other_stakeholders", weight_note: "xyzzy plugh foobar quux garply" },
     { factor_id: "benefit.public",             weight_note: "xyzzy plugh foobar quux garply" },
-    { factor_id: "benefit.business",           weight_note: "no record evidence" },
-    { factor_id: "benefit.consumer",           weight_note: "no record evidence" },
+    { factor_id: "benefit.business",           weight_note: "record states the stated purpose" },
+    { factor_id: "benefit.consumer",           weight_note: "record states the stated purpose" },
   ];
   const { telemetry } = applyGroundedNoteScreen(makePlanWithFactors(belowRows));
+  assertEquals(telemetry.candidates, 4);
+  assertEquals(telemetry.replacements, 2);
   assertEquals(telemetry.replacement_rate <= GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD, true,
     `expected replacement_rate ≤ ${GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD}, got ${telemetry.replacement_rate}`);
 });
+
 
