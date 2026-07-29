@@ -13,8 +13,9 @@
 import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assembleReport } from "./pass2-assembler.ts";
 import { derivePlan } from "./derive.ts";
+import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 
-export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item249";
+export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item250";
 
 // ---------------------------------------------------------------------------
 // FIXTURE — real archived intake (ClearPath Credit Solutions), reused from
