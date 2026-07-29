@@ -420,6 +420,7 @@ export async function runPass1Llm(
           grounded_note: groundedTele,
           grounded_note_replacements: groundedTele.replacements,
           grounded_note_replacement_rate: groundedTele.replacement_rate,
+          pass1_factor_ref_drops: factor_ref_drops,
         },
       };
     } catch (e) {
