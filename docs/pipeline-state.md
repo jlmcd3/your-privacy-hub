@@ -6269,3 +6269,31 @@ GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
 **Courier.** `docs/courier/ITEM258-FULL-LEDGER-AND-GROUNDED-ABORT-2026-07-29.md`.
 
 **Live-call declaration.** NO harness invocation, NO Pass-1 model call, NO DB writes, NO grader edits this turn. Controller re-runs personally.
+
+## Item 259 — TRACK 2 / Stage B(2) EVIDENCE-ONLY TURN (read-only)
+
+**Date.** 2026-07-29T16:20Z. No code, no deploys, no DB writes.
+
+**Finding.** Ramp-1 attempt 4 (job `c159a22b-b288-4633-a7d3-94319ec455fc`, started 16:07:21Z) died silently — status stuck `running`, ZERO results rows, no `finished_at`, for 8m54s until controller reap (`controller_reap:isolate_presumed_dead`). Last activity 16:10:41Z (bare `shutdown` logs), ~199s after start; no boot event, no platform kill reason surfaced, harness top-level `catch` never reached → death outside JS control flow. One Pass-1 call DID complete and IS billed: `[ltp-pass1-derive] stage=callAnthropic model=claude-sonnet-4-6 elapsed=96278ms stop=end_turn output_tokens=7888 input_tokens=13528 cache_read=0 cache_creation=0 chars=24572` (16:08:58Z). Attempt 3 (`a5c209d1`, pre-Item-258) completed in 1m39.8s under the same pattern. `supabase/config.toml` declares no function-specific limits. Legacy wire survives long work via immediate-202 + `EdgeRuntime.waitUntil` (`run-cppa-risk-assessment/index.ts:3921–3953`); harness had no equivalent. **Spend-attribution finding:** harness `api_usage` rows were mislabelled `run-cppa-risk-assessment` (hard-coded `callerName`).
+
+## Item 260 — TRACK 2 / Stage B(2) FIX: harness adopts the legacy background-task + reaper pattern
+
+**Date.** 2026-07-29T16:22Z.
+**Team.** Unanimous, CS-led (proven platform pattern ported). Privacy/prompt/prose: n/a — no content, no prompt changes.
+**Scope.** `replay-cppa-risk-harness/index.ts`, `_shared/ltp/pass1-llm.ts` (callerName plumbing + stamp), `_shared/ltp/replay/providers.ts` (`modelProvider` opts), courier addendum, ledger, EXPLICIT redeploy of ONLY `replay-cppa-risk-harness`. Legacy wire, `_rebuild-snapshot-item244/`, screens, composers, templates UNTOUCHED.
+
+**FIX 1 — background pattern (mirrors legacy :3921–3953).** After the atomic CAS and the fail-closed env gates, the whole doc loop + finalize runs in an unawaited async IIFE registered with `(globalThis as any).EdgeRuntime?.waitUntil(...)`; the request returns `202 {accepted:true, job_id, docs, harness_build_stamp}` immediately. All error paths inside the background task still write the job row; the two former `return json(...)` terminals became `console.log`/`console.error` (no longer on a request path). Without `waitUntil` (local/dev) the task is awaited inline and returns the same 202 shape with `background:"inline"`. Chosen path APPENDED (never clobbered) to `replay_harness_jobs.notes` as `[bg:waitUntil]` / `[bg:inline]` — **no new columns**.
+
+**FIX 2 — opportunistic reaper.** At the TOP of every request (ping AND run), before other work: one idempotent UPDATE setting `status='error', finished_at=now(), error='reaper:stale_running_over_15m'` WHERE `status='running' AND started_at < now() - interval '15 minutes'`. Cheap, controller-visible.
+
+**FIX 3 — spend attribution (minimal `_shared` change).** `runPass1Llm` gains optional `opts.callerName`, threaded `callPass1Model` → `callAnthropicWithContinuation`. Default stays `"run-cppa-risk-assessment"` → legacy bundle behavior byte-identical. `modelProvider` gains optional `{ callerName }`; harness passes `"replay-cppa-risk-harness"`. Compile-time assertion keeps `modelProvider` assignable to `Pass1Provider`, so the Stage-A zero-invocation counter test is unaffected. `PASS1_LLM_STAMP` → `ltp-pass1-llm-item260-caller-attribution@2026-07-29`.
+
+**UNCHANGED.** Env-gate order, CAS semantics, `MAX_DOC_IDS=50`, per-doc fail-loud continue, results-row shape.
+
+**Tests.** `replay.test.ts` + `pass1-injection.test.ts` + `grader-check-mirror.test.ts` = **24 passed | 0 failed (594ms)**, including `STATIC ASSERTION — modelProvider was never invoked during Stage A suite ... ok`. `deno check` on the harness entrypoint clean.
+
+**Deploy.** `HARNESS_BUILD_STAMP` → `replay-cppa-risk-harness-2026-07-29-item260`. EXPLICIT redeploy of ONLY `replay-cppa-risk-harness`.
+
+**Courier.** ITEM 260 addendum appended to `docs/courier/ITEM255-REPLAY-HARNESS-ENDPOINT-2026-07-29.md`.
+
+**Live-call declaration.** NO harness invocation, NO Pass-1 model call, NO grader edits this turn. Controller reruns personally.
