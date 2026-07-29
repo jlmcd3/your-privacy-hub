@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T14:19Z (Item 253 — TRACK 2 / SPEC §7.1 REPLAY HARNESS Stage A: core modules `types.ts`/`providers.ts`/`substance-gates.ts`/`runner.ts`/`side-by-side.ts` landed under `supabase/functions/_shared/ltp/replay/`; deterministic-provider test suite (5/5 pass) verifies harness teeth on the deterministic path; `modelProvider` gated for Stage B (CEO release per courier); grader-check-mirror regression 10/10 pass; NO live LLM calls; NOT deployed.)
+**Last updated:** 2026-07-29T14:32Z (Item 254 — TRACK 2 / SPEC §7.1 Stage B(1) PRESENCE-BAND MINING wired into harness config: `presence-band.ts` exports `MINED_PRESENCE_BAND` {hard_floor 0.25, review_low 0.4375, review_high 0.6875, median 0.5625, mined_n 15, provisional true} + `defaultSubstanceGateConfig()`; `substance-gates.ts` + `types.ts` extended with advisory `review_band_low`/`review_band_high` flags (never hard-fail); `replay.test.ts` 8/8 pass incl. 3 new band tests (9/16 in-band no flags; 0/16 collapse class trips hard floor; 5/16 flags review_band_low advisory-only); grader-check-mirror regression 10/10 pass; courier `docs/courier/ITEM254-PRESENCE-BAND-MINING-2026-07-29.md`; NO live LLM calls; NOT deployed.)
 
 ---
 
