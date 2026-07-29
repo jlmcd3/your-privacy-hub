@@ -338,8 +338,13 @@ export function buildRiskOpening(
   const S6 = `As of ${asOf}.`;
   sources.S6 = "runtime:asOfDate";
 
-  // CP5 ADDENDUM — customer-first render order (S2→S3→S4→S0→S1→S5→S6).
-  const orderedSlots = { S0, S1, S2, S3, S4, S5, S6 } as const;
+  // ITEM 244 (L4) — epistemic sentence, always present. Sources: verbatim.
+  const S4_5 = EPISTEMIC_METHOD_SENTENCE;
+  sources.S4_5 = "item244:epistemic_method_verbatim";
+
+  // CP5 ADDENDUM + Item 244 L4 — customer-first render order
+  // (S2 → S3 → S4 → S4.5 → S0 → S1 → S5 → S6).
+  const orderedSlots = { S0, S1, S2, S3, S4, S4_5, S5, S6 } as const;
   const text = RISK_OPENING_SLOT_ORDER
     .map((k) => orderedSlots[k])
     .filter(Boolean)
@@ -347,7 +352,7 @@ export function buildRiskOpening(
 
   return {
     text,
-    slots: { S0, S1, S2, S3, S4, S5, S6 },
+    slots: { S0, S1, S2, S3, S4, S4_5, S5, S6 },
     provenance: {
       version: RISK_OPENING_VERSION,
       s0_criteria: provCriteria,
