@@ -9189,6 +9189,14 @@ export type Database = {
       prune_old_user_events: { Args: never; Returns: undefined }
       quality_runs_watchdog: { Args: never; Returns: Json }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
+      replay_harness_fetch_doc: {
+        Args: { p_doc_id: string }
+        Returns: {
+          id: string
+          intake_data: Json
+          report_data: Json
+        }[]
+      }
       stress_batch_watchdog: { Args: never; Returns: Json }
       verify_admin_secret_token: { Args: { _token: string }; Returns: boolean }
     }
