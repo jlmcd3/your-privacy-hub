@@ -754,30 +754,62 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       .filter((p) => /appl(icab|y)/i.test(p.conclusion_id))
       .map((p) => [p.conclusion_id, p]),
   );
-  const instances = applicabilityConcls.map<TemplateInstance & { __engaged: boolean }>((c) => {
+  const enriched = applicabilityConcls.map((c) => {
     const gate = c.rule_gate ? gateById.get(c.rule_gate) : undefined;
     const prop = propById.get(c.id);
     const engagedFromGate = gate?.outcome === "pass";
     const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
     const engaged = engagedFromGate || engagedFromProp;
-    const templateId = engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged";
-    // CP5 (a) — per-prong subject from the registry display_label.
-    // CP4 (b) — per-prong pinpoint from THIS conclusion's anchor.
-    return {
-      template_id: templateId,
-      ctx: {
-        prong_subject: c.display_label || "this trigger",
-        __cite: { PINPOINT: c.anchor.pinpoint },
-      },
-      __engaged: engaged,
-    };
+    // Item 244 Correction 4: prong index from the pinpoint substring
+    // "7150(b)(N)"; used to look up the verbatim § 7150(b) label.
+    const m = /7150\(b\)\((\d+)\)/.exec(c.anchor.pinpoint);
+    const prongIdx = m ? Number(m[1]) as 1|2|3|4|5|6 : null;
+    return { c, engaged, prongIdx };
   });
-  // ITEM 241.1 (E1) — engaged prongs LEAD; not-engaged prongs follow.
-  instances.sort((a, b) => (a.__engaged === b.__engaged) ? 0 : (a.__engaged ? -1 : 1));
-  const prongList = instances
-    .map(({ ctx, __engaged }) => `${(ctx.prong_subject ?? "").toString()} (${(ctx.__cite?.PINPOINT ?? "")}) — ${__engaged ? "engaged" : "not engaged"}`)
+  const engaged = enriched.filter((e) => e.engaged);
+  const notEngaged = enriched.filter((e) => !e.engaged);
+
+  // ITEM 244 (E1) — new opener sourced from § 7150(b) verbatim labels.
+  const prongLabelFor = (idx: 1|2|3|4|5|6 | null) =>
+    idx ? CCPA_7150_B_LABELS[idx] : "the applicable § 7150(b) trigger";
+  const nonEngagedInline = notEngaged.length > 0
+    ? notEngaged
+        .map((e) => `${prongLabelFor(e.prongIdx)} (${e.c.anchor.pinpoint})`)
+        .join("; ")
+    : "none — every listed § 7150(b) prong is engaged on the current record";
+
+  if (engaged.length > 0) {
+    // One opener per engaged prong, with per-prong verbatim posture.
+    const openers = engaged.map<TemplateInstance>((e) => {
+      const verbatim = e.prongIdx
+        ? [null, CCPA_7150_B_1, CCPA_7150_B_2, CCPA_7150_B_3, CCPA_7150_B_4, CCPA_7150_B_5, CCPA_7150_B_6][e.prongIdx] as string
+        : "";
+      return {
+        template_id: "T.risk.section_opener.scope.v2",
+        ctx: {
+          engaged_prong_label: prongLabelFor(e.prongIdx),
+          engaged_prong_posture_clause: verbatim
+            ? `the record affirms conduct falling within § 7150(b)(${e.prongIdx}), which reads: "${verbatim}"`
+            : "the record affirms conduct falling within this trigger",
+          non_engaged_prongs_inline: nonEngagedInline,
+          __cite: { PINPOINT_ENGAGED: e.c.anchor.pinpoint },
+        },
+      };
+    });
+    const items = enriched.map<TemplateInstance>((e) => ({
+      template_id: e.engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged",
+      ctx: {
+        prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
+        __cite: { PINPOINT: e.c.anchor.pinpoint },
+      },
+    }));
+    return [...openers, ...items];
+  }
+
+  // No engaged prongs: fall through to previous customer-first opener + items.
+  const prongList = enriched
+    .map((e) => `${prongLabelFor(e.prongIdx)} (${e.c.anchor.pinpoint}) — not engaged`)
     .join("; ");
-  // ITEM 241.3 — CP5 §3.2 customer-first opener prepended.
   const opener: TemplateInstance = {
     template_id: "T.risk.section_opener.scope",
     ctx: {
@@ -787,7 +819,49 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       prong_list_with_individual_pinpoints: prongList || "the § 7150(b) triggers enumerated below",
     },
   };
-  return [opener, ...instances.map(({ template_id, ctx }) => ({ template_id, ctx }))];
+  const items = enriched.map<TemplateInstance>((e) => ({
+    template_id: "T.risk.applicability.not_engaged",
+    ctx: {
+      prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
+      __cite: { PINPOINT: e.c.anchor.pinpoint },
+    },
+  }));
+  return [opener, ...items];
+}
+
+// ── ITEM 244 (L1) — Processing Narrative composer ───────────────────────
+function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
+  const entity = entityName(plan);
+  // Correction 1: silent sub-elements resolve to "not stated on the record".
+  const nsotr = "not stated on the record";
+  const pick = (field: string) => pickIntakeDisplay(plan, field) || nsotr;
+  const engaged = engagedApplicability(plan);
+  const activityLabel = engaged.length > 0
+    ? engaged.map(propLabel).filter(Boolean).join(", ")
+    : (pickIntakeDisplay(plan, "i1_processing_purpose") || "the processing activity in scope");
+  return [{
+    template_id: "T.risk.processing_narrative",
+    ctx: {
+      entity_name: entity,
+      activity_label: activityLabel,
+      pi_categories_clause: pick("q4_pi_categories"),
+      sources_clause: pick("i3_sources") || nsotr,
+      i1_processing_purpose_clause: pick("i1_processing_purpose"),
+      i6_vendors_clause: pick("i6_vendors"),
+      i4_disclosure_mechanisms_clause: pick("i4_disclosure_mechanisms"),
+      i2_retention_period_clause: pick("i2_retention_period"),
+      i2_retention_criteria_clause: pick("i2_retention_criteria"),
+      i2_deletion_clause: pick("i2_deletion"),
+    },
+  }];
+}
+
+// ── ITEM 244 (E4) — anaphora rule helper ────────────────────────────────
+// Full entity name on first mention per section; "the company" thereafter.
+// Consumed by the Pass-2 assembler render seam.
+export function renderEntity(sectionKey: string, mentionIndex: number, plan: RenderPlan): string {
+  void sectionKey;
+  return mentionIndex === 0 ? entityName(plan) : "the company";
 }
 
 
