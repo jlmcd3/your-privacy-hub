@@ -6060,3 +6060,53 @@ The `safeguards_summary` entry in `_shared/ltp/derive.ts` `LEDGER_KEYS` is a sha
 Remaining grader checks NOT YET SCOPED: `qc_r1_5_exception_fields_consumed`, `qc_r1_7_enhancement_placement_det`, `qc_ws6_1_supplemental_consumption`. 4 of 7 checks now mirrored (CHECK 1 signed + CHECK 2 + CHECK 3 + CHECK 4).
 
 **Deploy status:** NOT DEPLOYED. Code and test edits only; no changes to the shipped wire.
+
+
+---
+
+## Item 253 — TRACK 2 / SPEC §7.1: REPLAY HARNESS Stage A (core modules + tests)
+
+**Timestamp:** 2026-07-29T14:19Z. **Status:** Stage A LANDED; Stage B NOT started. **Deploy:** none. **Live calls:** none.
+
+**Design record:** `docs/courier/ITEM253-REPLAY-HARNESS-DESIGN-2026-07-29.md` (team-unanimous four-lens: CS / privacy-law / prompt-engineering / prose).
+
+**Files added (all new, all under `supabase/functions/_shared/ltp/replay/`):**
+- `types.ts` — `ReplayDoc`, `Pass1Provider`, `PerDocResult`, `AggregateReport`, `PresenceRateDistribution`, `SideBySideRow`, `SubstanceGateConfig`. Types-only.
+- `providers.ts` — `deterministicProvider` (wraps `derivePlan`; pipeline-smoke-only per Ruling A) and `modelProvider` (wraps `runPass1Llm`; module-scope call counter enforces zero Stage-A invocation). Provider-kind labels exported.
+- `substance-gates.ts` — `presenceRate`, `noteSpecificity`, `actionDiversity`, `goldenShapeHard`, and aggregate `evaluateSubstance`. Ruling A's hard-assert site: `shortfall_keys` non-empty ⇒ one hard-failure per key. Presence band is config-driven (Stage B mines values); no hardcoded band.
+- `runner.ts` — `runReplayDoc` (never throws; catches into `hard_failures ["harness_error:<msg>"]`), `runReplayBatch` (aggregates hard-failure counts, per-gate counts, presence-rate distribution min/p25/median/p75/max, side-by-side rows).
+- `side-by-side.ts` — `compareDoc(perDocResult, legacyReport)`; tolerates missing legacy keys via `deltas.missing_legacy_keys` entries.
+- `replay.test.ts` — DETERMINISTIC-PROVIDER TESTS ONLY (5 tests).
+
+**Verbatim test output — `replay.test.ts`:**
+```
+running 5 tests from ./_shared/ltp/replay/replay.test.ts
+harness has teeth: deterministic-provider run on real intake yields non-empty golden-shape hard failures ... ok (23ms)
+presence_rate on deterministic path is 0 (pickFactorTable pins present_in_intake:false) ... ok (8ms)
+runReplayBatch aggregates per-gate counts + presence-rate distribution correctly over 2 copies ... ok (14ms)
+side-by-side compareDoc returns deltas and tolerates a missing legacy key ... ok (6ms)
+STATIC ASSERTION — modelProvider was never invoked during Stage A suite ... ok (0ms)
+
+ok | 5 passed | 0 failed (58ms)
+```
+
+**Verbatim test output — `grader-check-mirror.test.ts` (regression):**
+```
+running 10 tests from ./_shared/ltp/grader-check-mirror.test.ts
+CHECK 1a (qc_r1_1): registry carries the signed resolution_source_fields state ... ok (1ms)
+CHECK 1b (qc_r1_1): composer skips purpose-adequacy ask when i1_processing_purpose is populated; still asks otherwise ... ok (1ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume qualifying) → submission_summary cites § 7120(b)(2)(B) ... ok (15ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume below threshold) → submission_summary cites § 7120(b)(2)(B) ... ok (7ms)
+CHECK 2 (qc_r1_2): M4 not_applicable (q15_sensitive_pi=No) → submission_summary still cites § 7120(b)(2)(B) ... ok (4ms)
+CHECK 3 (qc_r1_3): resolved M5 met (q5c=Yes) → submission_summary cites § 7120(b)(1) ... ok (6ms)
+CHECK 3 (qc_r1_3): resolved M5 not_met (q5c=No) → submission_summary cites § 7120(b)(1) ... ok (7ms)
+CHECK 4 (qc_r1_4): resolved revenue band → full § 7121(a) schedule in submission_summary ... ok (5ms)
+CHECK 4 (qc_r1_4): absent revenue band → indeterminate two-cohort treatment subsumed by full schedule ... ok (5ms)
+CHECK 4 (qc_r1_4): shipped schedule never computes a customer-specific cohort ... ok (5ms)
+
+ok | 10 passed | 0 failed (65ms)
+```
+
+**Stage B scope (declared; NOT started):** archive export of cppa-risk intakes + legacy reports; presence-band mining from archived distributions; run-release protocol (every model-provider execution CEO-released with cost estimate; ramp 1→10→50→full distribution, one courier + ledger entry per ramp).
+
+**Discipline:** no live LLM calls this turn; `run-cppa-risk-assessment` and `supabase/_rebuild-snapshot-item244/` untouched; no DB writes; no grader edits; no deploys.
