@@ -681,6 +681,33 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
   const sufficient = !insufficientRecord(plan);
   const asOf = pickIntakeDisplay(plan, "assessment_date") || new Date().toISOString().slice(0, 10);
+  // ITEM 244 (L5) — Affirmations block opener. Adequately-documented
+  // items lead; gaps trail. Emitted BEFORE the legacy prose so the
+  // customer reads the affirmative posture first.
+  const admtBlocked = admtGateBlocked(plan);
+  const statusForFactor = (f: FactorTableEntry) =>
+    admtBlocked && isAdmtScoped(f.factor_id)
+      ? RECORD_STATUS_CLAUSES[3]
+      : f.present_in_intake
+        ? RECORD_STATUS_CLAUSES[0]
+        : RECORD_STATUS_CLAUSES[1];
+  const affirmedCount = plan.factor_table.filter(
+    (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[0],
+  ).length;
+  const gapCount = plan.factor_table.filter(
+    (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[1],
+  ).length;
+  const affirmationsOpener: TemplateInstance = {
+    template_id: "T.risk.record_sufficiency.prose.v2",
+    ctx: {
+      sufficiency_clause: sufficient
+        ? "is sufficient for the § 7152(a)(6) balancing frame to weigh"
+        : "is not yet sufficient for the § 7152(a)(6) balancing frame",
+      entity_name: entity,
+      affirmed_count_clause: `${affirmedCount}`,
+      gap_count_clause: `${gapCount}`,
+    },
+  };
   const prose: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose",
     ctx: {
@@ -700,26 +727,24 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
     },
   };
   // ITEM 243 defect 4 — ADMT-scoped rows resolve to RECORD_STATUS_CLAUSES[3]
-  // ("not applicable — ADMT not in use per the record") when the
-  // G.q18.admt_consequence gate blocks. Never emits the "not present"
-  // gap clause for a structurally inapplicable element.
-  const admtBlocked = admtGateBlocked(plan);
-  const items = plan.factor_table.map<TemplateInstance>((f) => {
-    const statusClause = admtBlocked && isAdmtScoped(f.factor_id)
-      ? RECORD_STATUS_CLAUSES[3]
-      : f.present_in_intake
-        ? RECORD_STATUS_CLAUSES[0]
-        : RECORD_STATUS_CLAUSES[1];
-    return {
-      template_id: "T.risk.record_sufficiency.item",
-      ctx: {
-        element_label: factorLabel(f),
-        element_status_clause: statusClause,
-        __cite: { PINPOINT: f.anchor.pinpoint },
-      },
-    };
+  // when the G.q18.admt_consequence gate blocks; affirmed items lead the
+  // enumeration per Item 244 (L5).
+  const factorsAffirmedFirst = [...plan.factor_table].sort((a, b) => {
+    const sa = statusForFactor(a);
+    const sb = statusForFactor(b);
+    const rank = (s: string) =>
+      s === RECORD_STATUS_CLAUSES[0] ? 0 : s === RECORD_STATUS_CLAUSES[3] ? 1 : 2;
+    return rank(sa) - rank(sb);
   });
-  return [prose, ...items];
+  const items = factorsAffirmedFirst.map<TemplateInstance>((f) => ({
+    template_id: "T.risk.record_sufficiency.item",
+    ctx: {
+      element_label: factorLabel(f),
+      element_status_clause: statusForFactor(f),
+      __cite: { PINPOINT: f.anchor.pinpoint },
+    },
+  }));
+  return [affirmationsOpener, prose, ...items];
 }
 
 
