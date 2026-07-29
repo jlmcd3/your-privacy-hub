@@ -23,7 +23,9 @@ import {
 } from "./providers.ts";
 import { runReplayBatch, runReplayDoc } from "./runner.ts";
 import { compareDoc } from "./side-by-side.ts";
-import type { ReplayDoc } from "./types.ts";
+import { defaultSubstanceGateConfig, MINED_PRESENCE_BAND } from "./presence-band.ts";
+import type { Pass1Provider, ReplayDoc } from "./types.ts";
+import type { DeriveInput } from "../derive.ts";
 
 _modelProviderCallCount_reset();
 
