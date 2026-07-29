@@ -1,38 +1,84 @@
 // ITEM 257 — SPEC-CONFORMANCE unit tests on applySingleWriterInjection.
-//
-// Verifies:
-//   (a) Model row with valid refs ["L.i1_processing_purpose"] + present=true
-//       survives injection with refs intact.
-//   (b) Invalid ref "L.not_a_field" is dropped and counted.
-//   (c) A row with all-invalid refs ends with intake_ledger_refs=[] and its
-//       present flag is preserved (the coherence screen decides fate).
-//   (d) Proposition refs remain adapter-derived regardless of model input.
-import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+// ITEM 258 — BASE_INPUT rebuilt on contract-real field names (shadow-era
+//            fossils sell_share/sensitive_pi/processing_purposes/
+//            safeguards_summary/retention_period are gone with the
+//            full-contract LEDGER_KEYS). (a)–(d) remain green; (e) added
+//            for full-contract ledger coverage; (f) added for grounded-note
+//            mass-replace abort threshold.
+import { assert, assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { applySingleWriterInjection } from "./pass1-llm.ts";
+import { pickLedger, LEDGER_KEYS } from "./derive.ts";
+import {
+  applyGroundedNoteScreen,
+  GroundedNoteMassReplaceAbort,
+  GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD,
+} from "./grounded-note.ts";
+import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
+import type { RenderPlan } from "../render-plan/schema.ts";
+
+// Populate every contract-real (non-dotted, non-PII-excluded) key so pickLedger
+// yields the full ledger. Values are illustrative — the ledger cares only
+// that the key exists in the intake object.
+const BASE_INTAKE: Record<string, unknown> = {
+  entity_name: "Acme Co",
+  subject_anchor: "SaaS analytics workflow",
+  q1_revenue: "Over $100M",
+  q2_consumers: "1,000,000 or more",
+  q3_sector: "Technology/SaaS",
+  q4_pi_categories: "Contact identifiers (name, email, phone)",
+  q5_sell_share: "No",
+  q5b_profiling_observation: "No",
+  q5c_share_revenue_50pct: "",
+  sensitive_location_basis: "Not applicable — no sensitive-location processing",
+  bought_sold_shared_count: "Under 100,000",
+  public_privacy_policy_url: "https://example.com/privacy",
+  q6_right_know: "Online form with identity verification",
+  q6_right_know_multi: "Online form with identity verification",
+  q7_right_delete: "Automated deletion with confirmation",
+  q8_right_correct: "Online self-service",
+  q9_opt_out: "Yes, prominently on homepage",
+  q10_id_verification: "Documented verification process matching CPPA guidance",
+  q11_policy_review: "Within 12 months",
+  q12_notice_at_collection: "Yes, covers all collection points",
+  q13_notice_content: "Yes, all three",
+  q14_employee_notice: "Yes",
+  q15_sensitive_pi: "No",
+  q15b_under16_knowledge: "No — we do not knowingly process under-16 data",
+  q15c_spi_volume: "",
+  q16_sensitive_limit: "",
+  q17_sensitive_basis: "",
+  q18_admt_use: "No",
+  q19_admt_description: "",
+  q20_admt_opt_out: "",
+  q18b_admt_training: "No",
+  i1_processing_purpose: "provide SaaS analytics functionality to enterprise customers",
+  i1b_min_pi: "collection is limited to fields required for the stated purpose",
+  i2_retention_period: "24 months",
+  i2_retention_criteria: "Fixed period from collection",
+  i2_retention_detail: "",
+  i3_ca_consumer_band: "100,000–1,000,000",
+  i4_disclosure_mechanisms: "Privacy policy",
+  i4b_sources: "collected directly from consumers via account signup",
+  i5_admt_logic: "",
+  i5_admt_training_source: "",
+  i5_admt_fairness_testing: "",
+  i5_admt_human_review: "",
+  i6_vendors: "Experian, Equifax, Plaid, Acxiom, LexisNexis",
+  i7_internal_contributors: "Head of Privacy, CISO",
+  i7_external_consultees: "",
+  i8_certifying_exec_title: "Chief Privacy Officer",
+  i9_has_existing_dpia: "No",
+  i9_existing_dpia_summary: "",
+  exceptions_intake: {},
+  impact_intake: {},
+};
 
 const BASE_INPUT = {
-  intake: {
-    // Populate every LEDGER_KEYS field so pickLedger produces the full ledger.
-    q1_revenue: "Over $100M",
-    q2_consumers: "Over 100,000",
-    q18_admt_use: "yes",
-    sell_share: "no",
-    sensitive_pi: "yes",
-    processing_purposes: "SaaS analytics",
-    safeguards_summary: "encryption at rest and in transit",
-    retention_period: "24 months",
-    entity_name: "Acme Co",
-    q4_pi_categories: "identifiers",
-    i1_processing_purpose: "provide SaaS analytics functionality to enterprise customers",
-    q5_sell_share: "no",
-    q5b_profiling_observation: "no",
-    i1b_min_pi: "yes",
-    i4_disclosure_mechanisms: "privacy notice",
-    bought_sold_shared_count: "0",
-  } as Record<string, unknown>,
+  intake: BASE_INTAKE,
   report_data: {} as Record<string, unknown>,
-  buildStamp: "test@item257",
+  buildStamp: "test@item258",
 };
+
 
 function findRow(plan: any, factor_id: string) {
   return plan.factor_table.find((r: any) => r.factor_id === factor_id);
