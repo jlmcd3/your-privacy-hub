@@ -13,8 +13,9 @@
 import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assembleReport } from "./pass2-assembler.ts";
 import { derivePlan } from "./derive.ts";
+import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 
-export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item249";
+export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item250";
 
 // ---------------------------------------------------------------------------
 // FIXTURE — real archived intake (ClearPath Credit Solutions), reused from
@@ -62,56 +63,32 @@ function planFor(intake: Record<string, unknown>) {
 // ---------------------------------------------------------------------------
 
 Deno.test("CHECK 1 (qc_r1_1): information_needed makes no ask about an already-resolved intake field", () => {
-  // KNOWN-FAILING per Item 249 courier discipline (do NOT weaken, do NOT
-  // narrow, do NOT delete). This assertion documents a real composer gap
-  // rather than a symptom on a specific intake.
+  // ITEM 250 (Ruling B, team-unanimous 2026-07-29) — SCAFFOLD WIRED.
+  // The optional `resolution_source_fields` field is now defined on the
+  // Type-J ConclusionSpec type, and composeInformationNeeded skips a
+  // Type-J entry when every listed intake field is populated on the
+  // plan's intake_ledger. No registry row populates the field today,
+  // so the assertion below still FAILS by design — the failure now
+  // documents the HELD content courier rather than an absent mechanism.
   //
-  // Grader rule (verbatim from evidence):
-  //   "information_needed asks for resolved field X" is a failure
-  //   whenever field X already has a non-null/non-empty value in intake.
-  //
-  // Current composer state (supabase/functions/_shared/ltp/section-
-  // composers/cppa-risk.ts::composeInformationNeeded, lines 788–803):
-  // one TemplateInstance per Type-J proposition, UNCONDITIONALLY. There
-  // is no "resolved-field skip" in the composer.
-  //
-  // Underlying data-layer state (supabase/functions/_shared/ltp/derive.ts
-  // line 100): `intake_ledger_refs: c.epistemic_type === "R" ? ledgerIds
-  // .slice(0, 2) : []`. Type-J propositions carry an EMPTY
-  // intake_ledger_refs array, so even if the composer wanted to cross-
-  // check "is the underlying intake field populated", it has no
-  // ledger linkage to check against.
-  //
-  // → No mechanism exists by which composeInformationNeeded could
-  //   suppress an entry whose underlying intake field is already
-  //   resolved. This assertion fails to expose that gap for the
-  //   controller. Wiring options (either is sufficient):
-  //     (a) populate intake_ledger_refs on Type-J propositions in
-  //         derive.ts, then filter in composeInformationNeeded when
-  //         every ref resolves in the intake ledger; OR
-  //     (b) attach a `resolution_source_fields: string[]` on the Type-J
-  //         ConclusionSpec and skip when all listed intake fields have
-  //         non-empty values on the intake used to derive the plan.
+  // Do NOT force this green by inventing resolution_source_fields values
+  // in the registry. Population must arrive as a CEO-signed courier per
+  // the standing content-law.
   const plan = planFor(REAL_INTAKE);
-  // exitMode:"observe" — non-blocking assembly path used elsewhere in
-  // the CI suite (see e2e-document.test.ts, golden-shape-gate.test.ts).
   assembleReport(plan, {}, { exitMode: "observe" });
 
-  const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
-  const hasLedgerLinkage = jProps.length > 0
-    && jProps.every((p) => (p.intake_ledger_refs?.length ?? 0) > 0);
+  const jSpecs = CPPA_RISK_CONCLUSIONS.filter((c) => c.epistemic_type === "J");
+  const populatedSpecs = jSpecs.filter(
+    (c) => (c.resolution_source_fields?.length ?? 0) > 0,
+  );
 
   assert(
-    hasLedgerLinkage,
-    "GAP (qc_r1_1 mirror): Type-J propositions carry no intake_ledger_refs, " +
-      "and composeInformationNeeded emits one entry per Type-J proposition " +
-      "unconditionally. The composer therefore has no data by which to " +
-      "cross-check 'is this field already resolved on the intake' before " +
-      "emitting a review item. Wire ledger linkage on Type-J propositions " +
-      "(derive.ts:100) OR add a resolution-source-fields filter in " +
-      "composeInformationNeeded before shipping this test green. " +
-      `Observed: ${jProps.length} Type-J propositions; ` +
-      `intake_ledger_refs lengths = [${jProps.map((p) => p.intake_ledger_refs?.length ?? 0).join(", ")}].`,
+    populatedSpecs.length === jSpecs.length && jSpecs.length > 0,
+    "scaffold wired (Item 250); resolution_source_fields not yet " +
+      "populated — HELD pending CEO sign-off on " +
+      "docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md. " +
+      `Observed: ${jSpecs.length} Type-J ConclusionSpec rows; ` +
+      `${populatedSpecs.length} carry resolution_source_fields.`,
   );
 });
 

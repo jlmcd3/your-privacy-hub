@@ -787,18 +787,42 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
   // CP4 (a)+(b) — Type J review items resolve display_label + own anchor.
+  // ITEM 250 (Ruling B) — scaffold skip-logic. When a Type-J
+  // ConclusionSpec carries a non-empty `resolution_source_fields`, and
+  // every listed intake field has a non-empty value on the derived
+  // intake_ledger, the reserved judgment is already resolved on the
+  // record and MUST NOT surface as a review ask (grader check
+  // qc_r1_1_no_asks_on_resolved_tests). SCAFFOLD ONLY: no registry row
+  // populates the field today, so this is a no-op until the courier
+  // ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS is CEO-signed.
+  const ledgerByField = new Map(
+    plan.intake_ledger.map((r) => [r.intake_field, r.value]),
+  );
+  const isPopulated = (field: string): boolean => {
+    if (!ledgerByField.has(field)) return false;
+    const v = ledgerByField.get(field);
+    if (v === null || v === undefined) return false;
+    if (typeof v === "string") return v.trim().length > 0;
+    return true;
+  };
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
-  return jProps.map<TemplateInstance>((p) => {
+  return jProps.flatMap<TemplateInstance>((p) => {
+    const spec = CPPA_RISK_CONCLUSIONS.find((c) => c.id === p.conclusion_id);
+    const fields = spec?.resolution_source_fields ?? [];
+    if (fields.length > 0 && fields.every(isPopulated)) {
+      // Resolved on the record — skip per Ruling B.
+      return [];
+    }
     const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
     const anchor = conclusionAnchor(p.conclusion_id) ?? DOC_APPROVER_ANCHOR;
-    return {
+    return [{
       template_id: "T.risk.documentation.gap",
       ctx: {
         doc_element_label: label,
         customer_question: `Please confirm or provide additional detail regarding ${label}.`,
         __cite: { PINPOINT: anchor.pinpoint },
       },
-    };
+    }];
   });
 }
 

@@ -93,6 +93,22 @@ export interface ConclusionSpec {
   readonly weighing_test_id?: string;
   /** For Type J: who holds the reserved judgment (business, external auditor, counsel). */
   readonly reserved_to?: "business" | "external_auditor" | "legal_counsel";
+  /**
+   * ITEM 250 (Ruling B, team-unanimous 2026-07-29) — TYPE-J
+   * RESOLUTION-SOURCE FIELDS. Optional list of intake field names whose
+   * non-empty values on the intake indicate that this reserved judgment
+   * is already resolved on the record. When every listed field is
+   * populated, composers (see composeInformationNeeded) MUST skip the
+   * corresponding review item to satisfy grader check
+   * qc_r1_1_no_asks_on_resolved_tests.
+   *
+   * SCAFFOLD ONLY: left undefined on every current row per CEO
+   * content-law (customer-facing content ships only via signed
+   * courier). Proposed values are HELD in
+   * docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md.
+   * Wiring is a no-op until this field is populated.
+   */
+  readonly resolution_source_fields?: readonly string[];
 }
 
 
