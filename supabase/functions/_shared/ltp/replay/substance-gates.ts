@@ -13,6 +13,7 @@ import type { AssemblerResult } from "../pass2-assembler.ts";
 import type { TemplateInstance } from "../section-composers/cppa-risk.ts";
 import { composeSection, KIND_OPENERS } from "../section-composers/cppa-risk.ts";
 import { evaluateGoldenShape } from "../golden-shape-quotas.ts";
+import { INTAKE_FIELD_DISPLAY_LABELS } from "../grounded-note.ts";
 import type { SubstanceGateConfig, SubstanceMetrics } from "./types.ts";
 
 const RATIFIED_STEMS: ReadonlySet<string> = new Set(
@@ -149,6 +150,41 @@ export function goldenShapeHard(report: Record<string, unknown>): {
   };
 }
 
+/**
+ * ITEM 262 — UNRESOLVED-SLOT LITERAL ("entity name" class) HARNESS ASSERT.
+ *
+ * SPEC §6 structure-side check, sited here per Ruling A. If the assembled
+ * report text carries a field LABEL where a VALUE belongs (the ramp-1
+ * attempt-6 residue "On entity name's record..."), the run hard-fails.
+ *
+ * Two literal classes:
+ *   (1) the bare "entity name" label — a field label, never plausible
+ *       customer prose in an assembled assessment;
+ *   (2) any INTAKE_FIELD_DISPLAY_LABELS entry in possessive form
+ *       ("<label>'s"), which can only arise from a label/value swap.
+ */
+export function evaluateLabelResidue(report: Record<string, unknown>): {
+  matches: readonly string[];
+  failures: readonly string[];
+} {
+  const text = JSON.stringify(report ?? {});
+  const matches: string[] = [];
+  const push = (m: string) => {
+    if (!matches.includes(m)) matches.push(m);
+  };
+
+  if (/\bentity name\b/i.test(text)) push("entity name");
+
+  for (const label of Object.values(INTAKE_FIELD_DISPLAY_LABELS)) {
+    const esc = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // possessive form: "<label>'s" (straight or curly apostrophe)
+    const re = new RegExp(`\\b${esc}['\u2019]s\\b`, "i");
+    if (re.test(text)) push(`${label}'s`);
+  }
+
+  return { matches, failures: matches.map((m) => `label_residue:${m}`) };
+}
+
 /** Aggregate evaluator used by the runner. */
 export function evaluateSubstance(
   plan: RenderPlan,
@@ -159,11 +195,13 @@ export function evaluateSubstance(
   const ns = noteSpecificity(plan);
   const ad = actionDiversity(plan);
   const gs = goldenShapeHard(result.report);
+  const lr = evaluateLabelResidue(result.report);
   const failures = [
     ...(pr.failure ? [pr.failure] : []),
     ...ns.failures,
     ...ad.failures,
     ...gs.failures,
+    ...lr.failures,
   ];
   return {
     metrics: {
