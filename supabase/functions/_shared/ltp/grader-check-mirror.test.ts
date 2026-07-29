@@ -1,5 +1,5 @@
 /**
- * ITEM 249/251 — TRACK 2 STAGE 4 / Rider (C1): GRADER-CHECK MIRROR.
+ * ITEM 249/251/252 — TRACK 2 STAGE 4/5/6 / Rider (C1): GRADER-CHECK MIRROR.
  *
  * Mirrors 4 of the 7 cppa-risk deterministic grader checks into the
  * product e2e gate. Per courier: "Never ship a document that
@@ -9,6 +9,13 @@
  *
  * Discipline: Item 236 law — report the true state; never weaken or
  * narrow a check to force green.
+ *
+ * CHECK 1 status (ITEM 252, CEO-signed 2026-07-29): now asserts the
+ * SIGNED Ruling-B state exactly (no longer known-failing). Row 2
+ * (`j.purpose_specificity_adequacy`) carries
+ * `resolution_source_fields: ["i1_processing_purpose"]`; Rows 1 and 3
+ * (`j.initiation_decision`, `j.safeguard_sufficiency`) intentionally
+ * carry undefined per docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md.
  *
  * CHECK 4 scoping (Item 251):
  *   Grader rule from quality_archive.quality_check_results_20260728
@@ -33,14 +40,16 @@
  *   Spec §4 mandates this design. Empirically qc_r1_4 passes 100% on
  *   runs 157–164 (0 fails).
  */
-import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assembleReport } from "./pass2-assembler.ts";
 import { derivePlan } from "./derive.ts";
-import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
+import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../legal-test/cppa-risk-conclusions.ts";
+import { composeSection } from "./section-composers/cppa-risk.ts";
 import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "./cyber-audit-schedule.ts";
 import { CUSTOMER_COHORT_PATTERNS } from "./harvest-guard.ts";
 
-export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item251";
+export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item252";
+
 
 // ---------------------------------------------------------------------------
 // FIXTURE — real archived intake (ClearPath Credit Solutions), reused from
@@ -86,36 +95,76 @@ function planFor(intake: Record<string, unknown>) {
 // ---------------------------------------------------------------------------
 // CHECK 1 — qc_r1_1_no_asks_on_resolved_tests
 // ---------------------------------------------------------------------------
+// ITEM 252 (Ruling B signed, CEO 2026-07-29). Asserts the SIGNED state
+// exactly per docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md. Do NOT
+// weaken these asserts to silence a future registry drift — a diff here is
+// the signal that the signed record was violated.
 
-Deno.test("CHECK 1 (qc_r1_1): information_needed makes no ask about an already-resolved intake field", () => {
-  // ITEM 250 (Ruling B, team-unanimous 2026-07-29) — SCAFFOLD WIRED.
-  // The optional `resolution_source_fields` field is now defined on the
-  // Type-J ConclusionSpec type, and composeInformationNeeded skips a
-  // Type-J entry when every listed intake field is populated on the
-  // plan's intake_ledger. No registry row populates the field today,
-  // so the assertion below still FAILS by design — the failure now
-  // documents the HELD content courier rather than an absent mechanism.
-  //
-  // Do NOT force this green by inventing resolution_source_fields values
-  // in the registry. Population must arrive as a CEO-signed courier per
-  // the standing content-law.
-  const plan = planFor(REAL_INTAKE);
-  assembleReport(plan, {}, { exitMode: "observe" });
+const COURIER_252 =
+  "docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md";
 
-  const jSpecs = CPPA_RISK_CONCLUSIONS.filter((c) => c.epistemic_type === "J");
-  const populatedSpecs = jSpecs.filter(
-    (c) => (c.resolution_source_fields?.length ?? 0) > 0,
+Deno.test("CHECK 1a (qc_r1_1): registry carries the signed resolution_source_fields state", () => {
+  const purpose = CPPA_RISK_CONCLUSION_INDEX["j.purpose_specificity_adequacy"];
+  const initiation = CPPA_RISK_CONCLUSION_INDEX["j.initiation_decision"];
+  const safeguard = CPPA_RISK_CONCLUSION_INDEX["j.safeguard_sufficiency"];
+
+  assertEquals(
+    purpose.resolution_source_fields,
+    ["i1_processing_purpose"],
+    `Row 2 (j.purpose_specificity_adequacy) MUST carry ` +
+      `["i1_processing_purpose"] per signed ${COURIER_252}.`,
   );
-
-  assert(
-    populatedSpecs.length === jSpecs.length && jSpecs.length > 0,
-    "scaffold wired (Item 250); resolution_source_fields not yet " +
-      "populated — HELD pending CEO sign-off on " +
-      "docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md. " +
-      `Observed: ${jSpecs.length} Type-J ConclusionSpec rows; ` +
-      `${populatedSpecs.length} carry resolution_source_fields.`,
+  assertEquals(
+    initiation.resolution_source_fields,
+    undefined,
+    `Row 1 (j.initiation_decision) MUST leave resolution_source_fields ` +
+      `undefined (always-asking) per signed ${COURIER_252}.`,
+  );
+  assertEquals(
+    safeguard.resolution_source_fields,
+    undefined,
+    `Row 3 (j.safeguard_sufficiency) MUST leave resolution_source_fields ` +
+      `undefined (always-asking; ITEM250 proposal REJECTED — safeguards_summary ` +
+      `is not a contract-real intake field) per signed ${COURIER_252}.`,
   );
 });
+
+Deno.test("CHECK 1b (qc_r1_1): composer skips purpose-adequacy ask when i1_processing_purpose is populated; still asks otherwise", () => {
+  const purposeLabel = CPPA_RISK_CONCLUSION_INDEX["j.purpose_specificity_adequacy"].display_label;
+  const initiationLabel = CPPA_RISK_CONCLUSION_INDEX["j.initiation_decision"].display_label;
+  const safeguardLabel = CPPA_RISK_CONCLUSION_INDEX["j.safeguard_sufficiency"].display_label;
+
+  // Populated case: purpose-adequacy is resolved on the record → skipped.
+  const planResolved = planFor(REAL_INTAKE);
+  const itemsResolved = composeSection("information_needed", planResolved) ?? [];
+  const labelsResolved = itemsResolved.map((i) => i.ctx?.doc_element_label as string);
+  assert(
+    !labelsResolved.includes(purposeLabel),
+    `purpose-adequacy review item MUST be skipped when i1_processing_purpose ` +
+      `is populated (signed ${COURIER_252}); observed labels: ${JSON.stringify(labelsResolved)}`,
+  );
+  assert(
+    labelsResolved.includes(initiationLabel),
+    `initiation-decision review item MUST remain (Row 1 always-asking); ` +
+      `observed labels: ${JSON.stringify(labelsResolved)}`,
+  );
+  assert(
+    labelsResolved.includes(safeguardLabel),
+    `safeguard-sufficiency review item MUST remain (Row 3 always-asking); ` +
+      `observed labels: ${JSON.stringify(labelsResolved)}`,
+  );
+
+  // Unpopulated case: purpose-adequacy is not resolved → item present.
+  const planUnresolved = planFor({ ...REAL_INTAKE, i1_processing_purpose: undefined });
+  const itemsUnresolved = composeSection("information_needed", planUnresolved) ?? [];
+  const labelsUnresolved = itemsUnresolved.map((i) => i.ctx?.doc_element_label as string);
+  assert(
+    labelsUnresolved.includes(purposeLabel),
+    `purpose-adequacy review item MUST be present when i1_processing_purpose ` +
+      `is absent; observed labels: ${JSON.stringify(labelsUnresolved)}`,
+  );
+});
+
 
 // ---------------------------------------------------------------------------
 // CHECK 2 — qc_r1_2_spi_prong_utilization (M4 → § 7120(b)(2)(B))

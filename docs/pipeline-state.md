@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T13:57Z (Item 251 — TRACK 2 / Rider C1: CHECK 4 (qc_r1_4_cohort_determinism) wired into grader-check mirror; 4 of 7 checks now mirrored; CHECK 4 passes 3/3 by construction of Item-204 § 7121(a) three-tier schedule emitter; NOT deployed; test-only turn.)
+**Last updated:** 2026-07-29T14:11Z (Item 252 — TRACK 2 / Ruling B SIGNED: CEO-signed content courier executed; Row 2 `j.purpose_specificity_adequacy` populated with `["i1_processing_purpose"]`; Rows 1 and 3 intentionally undefined (Row 3's ITEM250-proposed `safeguards_summary` REJECTED — not a contract-real intake field); CHECK 1 rewritten as 1a+1b, all 10 grader-check-mirror tests pass; NOT deployed.)
 
 ---
 
@@ -6011,3 +6011,52 @@ not touched). CHECKs 2–3 pass.
 
 **Not deployed.** Test-file + one-line export edit only. `run-cppa-risk-assessment`
 untouched; no batches, no live calls, no DB writes.
+
+## Item 252 — TRACK 2: RULING B SIGNED (CEO 2026-07-29) — TYPE-J CONTENT POPULATED
+
+**Turn type:** content courier + code + test (4 files). NOT deployed; no batches; no live calls; no DB writes. Track-1 wire (`supabase/functions/run-cppa-risk-assessment/`) untouched; rebuild snapshots (`supabase/_rebuild-snapshot-item244/`) untouched.
+
+**CEO instruction (verbatim, 2026-07-29):** *"Proceed with your recommendations for Ruling B sign-off"* — signed AS AMENDED by controller verification against the intake contract and ledger mechanics.
+
+### Signed row decisions (executed this turn)
+
+| Row | Conclusion | `resolution_source_fields` | Rationale |
+|---|---|---|---|
+| 1 | `j.initiation_decision` (§ 7152(a)(7)) | **undefined** (always-asking) | No intake field captures the reasoned § 7152(a)(7) initiation decision; matches ITEM250 courier proposal verbatim. |
+| 2 | `j.purpose_specificity_adequacy` (§ 7152(a)(1)) | **`["i1_processing_purpose"]`** | Contract-real, always-required, LEDGER_KEYS-registered field. Directly fixes the empirically-observed grader failure string *"information_needed asks for resolved field 'i1_processing_purpose'"*. |
+| 3 | `j.safeguard_sufficiency` (§ 7152(a)(6)) | **undefined** (always-asking) — ITEM250 proposal REJECTED | `safeguards_summary` does not exist in `_shared/intake-contracts/cppa-risk-assessment.ts`; its `LEDGER_KEYS` entry is a shadow-era fossil, so `pickLedger` never emits the row and the skip could never fire. Populating would green CHECK 1 vacuously. Zero safeguard-related qc_r1_1 failures in the archive. |
+
+### Edits (four files, in scope)
+
+1. `docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md` — NEW. Full signed record with per-row rationale, Row-3 rejection evidence, and CHECK 1 narrowing authorization (anticipated by ITEM250's closing paragraph).
+2. `supabase/functions/_shared/legal-test/cppa-risk-conclusions.ts` — Row 2 populated with `resolution_source_fields: ["i1_processing_purpose"]` citing the signed courier. Rows 1 and 3 carry explanatory comments confirming intentional undefined state.
+3. `supabase/functions/_shared/ltp/grader-check-mirror.test.ts` — CHECK 1 rewritten as two tests (1a registry, 1b behavioral via `composeSection("information_needed", plan)` using `CPPA_RISK_CONCLUSION_INDEX` display labels). `GRADER_CHECK_MIRROR_VERSION` bumped to `grader-check-mirror-2026-07-29-item252`. Header updated: CHECK 1 no longer known-failing.
+4. `docs/pipeline-state.md` — this ledger entry + header restamp.
+
+### Verbatim test output (all 10 tests pass)
+
+```
+running 10 tests from ./_shared/ltp/grader-check-mirror.test.ts
+CHECK 1a (qc_r1_1): registry carries the signed resolution_source_fields state ... ok (1ms)
+CHECK 1b (qc_r1_1): composer skips purpose-adequacy ask when i1_processing_purpose is populated; still asks otherwise ... ok (1ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume qualifying) → submission_summary cites § 7120(b)(2)(B) ... ok (22ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume below threshold) → submission_summary cites § 7120(b)(2)(B) ... ok (10ms)
+CHECK 2 (qc_r1_2): M4 not_applicable (q15_sensitive_pi=No) → submission_summary still cites § 7120(b)(2)(B) ... ok (4ms)
+CHECK 3 (qc_r1_3): resolved M5 met (q5c=Yes) → submission_summary cites § 7120(b)(1) ... ok (7ms)
+CHECK 3 (qc_r1_3): resolved M5 not_met (q5c=No) → submission_summary cites § 7120(b)(1) ... ok (4ms)
+CHECK 4 (qc_r1_4): resolved revenue band → full § 7121(a) schedule in submission_summary ... ok (7ms)
+CHECK 4 (qc_r1_4): absent revenue band → indeterminate two-cohort treatment subsumed by full schedule ... ok (12ms)
+CHECK 4 (qc_r1_4): shipped schedule never computes a customer-specific cohort ... ok (6ms)
+
+ok | 10 passed | 0 failed (82ms)
+```
+
+### Deferred cleanup (recorded, not executed)
+
+The `safeguards_summary` entry in `_shared/ltp/derive.ts` `LEDGER_KEYS` is a shadow-era fossil (see Row 3 rationale in the signed courier). Removing it is outside the strict four-file scope of this dispatch; noted for a future ledger-cleanup turn rather than silently retiring.
+
+### C1 scoping (unchanged from Item 251)
+
+Remaining grader checks NOT YET SCOPED: `qc_r1_5_exception_fields_consumed`, `qc_r1_7_enhancement_placement_det`, `qc_ws6_1_supplemental_consumption`. 4 of 7 checks now mirrored (CHECK 1 signed + CHECK 2 + CHECK 3 + CHECK 4).
+
+**Deploy status:** NOT DEPLOYED. Code and test edits only; no changes to the shipped wire.

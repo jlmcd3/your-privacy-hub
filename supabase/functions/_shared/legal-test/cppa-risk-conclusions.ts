@@ -317,6 +317,10 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
       "Whether the business will initiate the processing subject to the risk assessment. The regulation expressly "
       + "delegates this decision to the business.",
     reserved_to: "business",
+    // ITEM 252 (Ruling B signed, CEO 2026-07-29) — resolution_source_fields
+    // intentionally undefined per docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md
+    // — always-asking. No current intake field captures the § 7152(a)(7)
+    // reasoned initiation decision, so no field can resolve it.
     compliance_guidance:
       "The business must record a reasoned initiation decision — proceed, proceed with modifications, or do not initiate — attaching the decision to the specific balancing outcome, naming the decisionmaker and the date of decision, and, when proceeding with modifications, listing each modification and the risk it addresses.",
   },
@@ -331,6 +335,14 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
       "Whether a given non-generic purpose statement is adequately specific for the business's circumstances. The tool "
       + "checks presence + non-generic phrasing; substantive adequacy is reserved to counsel/business.",
     reserved_to: "legal_counsel",
+    // ITEM 252 (Ruling B signed, CEO 2026-07-29) — populated per
+    // docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md. i1_processing_purpose
+    // is the canonical, LEDGER_KEYS-registered contract-real field carrying
+    // the operational purpose text; when present, counsel's adequacy
+    // determination attaches to that text and asking for it again trips
+    // grader check qc_r1_1_no_asks_on_resolved_tests (historical failure
+    // string names i1_processing_purpose verbatim).
+    resolution_source_fields: ["i1_processing_purpose"],
     compliance_guidance:
       "Counsel must record a reasoned adequacy determination on the stated operational purpose, attaching the determination to the exact purpose language in the record, and identifying any narrowing required for the purpose to satisfy § 7152(a)(1) specificity.",
   },
@@ -349,9 +361,18 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     // ITEM 241.3 CONDITION 2 — reserved_to REVERTS to legal_counsel
     // (courier's external_auditor reassignment is NOT authorized).
     reserved_to: "legal_counsel",
+    // ITEM 252 (Ruling B signed, CEO 2026-07-29) — resolution_source_fields
+    // intentionally undefined per docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md
+    // — always-asking. ITEM250's proposed ["safeguards_summary"] was
+    // REJECTED on controller verification: the field does not exist in
+    // _shared/intake-contracts/cppa-risk-assessment.ts (its LEDGER_KEYS
+    // entry is a shadow-era fossil), so pickLedger never emits the ledger
+    // row and the skip could never fire; population would green CHECK 1
+    // vacuously. Zero safeguard-related qc_r1_1 failures in the archive.
     compliance_guidance:
       "Counsel must record a reasoned sufficiency determination on the safeguards documented, attaching the determination to the specific safeguards enumerated in the record, and identifying any safeguard gap the balancing outcome must weigh under § 7152(a)(6).",
   },
+
 ];
 
 
