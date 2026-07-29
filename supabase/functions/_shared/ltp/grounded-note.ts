@@ -103,6 +103,36 @@ export class GroundedNoteCheckerAbort extends Error {
 }
 
 /**
+ * ITEM 258 — SPEC §6 MASS-REPLACE ABORT. The 0.25 tuning threshold above
+ * flags the LEXICON as too narrow (informational — CEO reviews the data).
+ * This 0.5 threshold enforces SPEC §6's mass-action-guard rule: a
+ * malfunction-scale replacement rate ABORTS fail-loud rather than mass-
+ * rewriting customer prose. Empirical basis: ramp-1 attempt 3 (job
+ * `a5c209d1`) replaced 8/8 factor notes (rate 1.0) with repetitive
+ * quote-the-i1 boilerplate while the model's originals cited real
+ * intake verbatims (vendors, fairness testing, human review, harm types)
+ * that only failed grounding because LEDGER_KEYS was narrow — plus the
+ * historical run-#180 destroyer-class incident. With the Item-258
+ * full-contract ledger, legitimate rates should be near zero; 0.5 only
+ * fires on malfunction. Same class as MassAbsenceRewriteAbort in
+ * pass1-present-note-coherence.ts.
+ */
+export const GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD = 0.5;
+
+export class GroundedNoteMassReplaceAbort extends Error {
+  readonly code = "grounded_note_mass_replace_abort";
+  readonly replacement_rate: number;
+  readonly telemetry: GroundedNoteTelemetry;
+  constructor(t: GroundedNoteTelemetry) {
+    super(`[grounded-note] mass-replace replacement_rate=${t.replacement_rate.toFixed(3)} exceeds ${GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD}`);
+    this.replacement_rate = t.replacement_rate;
+    this.telemetry = t;
+    this.name = "GroundedNoteMassReplaceAbort";
+  }
+}
+
+
+/**
  * CONNECTIVE LEXICON — closed, curated analytic vocabulary. Verbatim
  * mirror of §5 of docs/courier/ITEM242-BC-WIRED-2026-07-28.md. Any
  * addition/removal is a courier turn.
@@ -367,6 +397,15 @@ export function applyGroundedNoteScreen(
     over_threshold: replacement_rate > TUNING_THRESHOLD_RATE,
     details,
   };
+  // ITEM 258 — SPEC §6 MASS-REPLACE ABORT. Fail-loud when replacement_rate
+  // exceeds the 0.5 malfunction-scale threshold; the caller's catch surfaces
+  // this as attempt outcome "error" (same pattern as MassAbsenceRewriteAbort
+  // in the coherence screen). The 0.25 tuning-threshold flag on the
+  // telemetry above is retained UNCHANGED for lexicon-width review.
+  if (replacement_rate > GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD) {
+    throw new GroundedNoteMassReplaceAbort(telemetry);
+  }
   return { plan: { ...plan, factor_table: out }, telemetry };
 }
+
 
