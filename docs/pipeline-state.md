@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T14:11Z (Item 252 — TRACK 2 / Ruling B SIGNED: CEO-signed content courier executed; Row 2 `j.purpose_specificity_adequacy` populated with `["i1_processing_purpose"]`; Rows 1 and 3 intentionally undefined (Row 3's ITEM250-proposed `safeguards_summary` REJECTED — not a contract-real intake field); CHECK 1 rewritten as 1a+1b, all 10 grader-check-mirror tests pass; NOT deployed.)
+**Last updated:** 2026-07-29T14:19Z (Item 253 — TRACK 2 / SPEC §7.1 REPLAY HARNESS Stage A: core modules `types.ts`/`providers.ts`/`substance-gates.ts`/`runner.ts`/`side-by-side.ts` landed under `supabase/functions/_shared/ltp/replay/`; deterministic-provider test suite (5/5 pass) verifies harness teeth on the deterministic path; `modelProvider` gated for Stage B (CEO release per courier); grader-check-mirror regression 10/10 pass; NO live LLM calls; NOT deployed.)
 
 ---
 
