@@ -56,7 +56,7 @@ import {
   type GroundedNoteTelemetry,
 } from "./grounded-note.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item242-bc-rider-grounded-note@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item257-factor-refs-conformance@2026-07-29";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
@@ -102,6 +102,8 @@ export interface Pass1Telemetry {
   readonly grounded_note_replacements?: number;
   /** Convenience mirror of grounded_note.replacement_rate. */
   readonly grounded_note_replacement_rate?: number;
+  /** ITEM 257 — count of model-authored factor intake_ledger_refs dropped by the Single-Writer filter as invalid/unknown against the adapter-derived ledger. Dedicated key; do NOT overload existing telemetry. */
+  readonly pass1_factor_ref_drops?: number;
 }
 
 
@@ -134,17 +136,25 @@ function fillUserTemplate(input: DeriveInput): string {
  * Model-emitted values for owned fields are TELEMETERED as drift and
  * discarded; they are never shipped.
  */
-function applySingleWriterInjection(
+export function applySingleWriterInjection(
   parsed: Record<string, unknown>,
   input: DeriveInput,
-): { plan: RenderPlan; empty_by_finding: readonly string[] } {
+): { plan: RenderPlan; empty_by_finding: readonly string[]; factor_ref_drops: number } {
   const ledger = pickLedger(input.intake ?? {});
   const bindings = pickCitationBindings();
   const gate_outcomes = evaluateCppaRiskGates(input.intake ?? {});
   const factorScaffold = pickFactorTable();
 
   // Preserve model-authored judgment overlays on factor_table
-  // (weight_note + present_in_intake) keyed by factor_id.
+  // (weight_note + present_in_intake + intake_ledger_refs) keyed by factor_id.
+  // ITEM 257 SPEC-CONFORMANCE: model authors the factor's supporting ledger
+  // refs per SPEC §2 / §3.4 (grounding-then-writing). Adapter FILTERS refs
+  // against the derived ledger id set (valid shape "L.<field>" AND present
+  // in pickLedger output), drops unknown ids, and counts drops into
+  // pass1_factor_ref_drops telemetry. Rows whose refs are all dropped keep
+  // [] and let the coherence screen judge (present-requires-refs remains
+  // authoritative). Proposition refs remain adapter-owned (Rule 3).
+  const validLedgerIds = new Set(ledger.map((l) => l.ledger_id));
   const modelFactorsRaw = Array.isArray(parsed.factor_table) ? parsed.factor_table as unknown[] : [];
   const modelByFactor = new Map<string, Record<string, unknown>>();
   for (const f of modelFactorsRaw) {
@@ -152,12 +162,27 @@ function applySingleWriterInjection(
       modelByFactor.set((f as any).factor_id, f as Record<string, unknown>);
     }
   }
+  let factor_ref_drops = 0;
   const factor_table: FactorTableEntry[] = factorScaffold.map((row) => {
     const m = modelByFactor.get(row.factor_id);
     if (!m) return row;
     const weight_note = typeof m.weight_note === "string" ? String(m.weight_note).slice(0, 240) : undefined;
     const present_in_intake = typeof m.present_in_intake === "boolean" ? m.present_in_intake : row.present_in_intake;
-    return { ...row, present_in_intake, ...(weight_note ? { weight_note } : {}) } as FactorTableEntry;
+    const rawRefs = Array.isArray(m.intake_ledger_refs) ? m.intake_ledger_refs : [];
+    const kept: string[] = [];
+    for (const r of rawRefs) {
+      if (typeof r === "string" && /^L\.[a-zA-Z0-9_]+$/.test(r) && validLedgerIds.has(r)) {
+        kept.push(r);
+      } else {
+        factor_ref_drops += 1;
+      }
+    }
+    return {
+      ...row,
+      present_in_intake,
+      intake_ledger_refs: kept,
+      ...(weight_note ? { weight_note } : {}),
+    } as FactorTableEntry;
   });
 
   // Propositions: adapter-authored id/anchor/refs skeleton keyed by
@@ -232,7 +257,7 @@ function applySingleWriterInjection(
     propositions: boundProps,
     weighing_frame: guide.frame,
   };
-  return { plan, empty_by_finding: guide.empty_by_finding };
+  return { plan, empty_by_finding: guide.empty_by_finding, factor_ref_drops };
 }
 
 
@@ -345,7 +370,7 @@ export async function runPass1Llm(
       // validation, so V7 demanded frames the model was never asked for).
       // T-M9.4 VALID PLAN INVARIANT retained: model's own
       // conservative_write_around is IGNORED on the ok path.
-      const { plan: injected } = applySingleWriterInjection(parsed, input);
+      const { plan: injected, factor_ref_drops } = applySingleWriterInjection(parsed, input);
       // ITEM 242 CP-C — present/note coherence screen sits BETWEEN
       // injection and validation. Rewrites are recorded in a dedicated
       // telemetry key `pass1_coherence_rewrites`; do NOT overload
@@ -395,6 +420,7 @@ export async function runPass1Llm(
           grounded_note: groundedTele,
           grounded_note_replacements: groundedTele.replacements,
           grounded_note_replacement_rate: groundedTele.replacement_rate,
+          pass1_factor_ref_drops: factor_ref_drops,
         },
       };
     } catch (e) {
