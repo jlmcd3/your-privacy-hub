@@ -53,7 +53,14 @@ export const deterministicProvider: Pass1Provider = async (input: DeriveInput) =
  * Every invocation increments the module-scope counter so the Stage-A
  * test suite can assert zero live calls.
  */
-export const modelProvider: Pass1Provider = async (input: DeriveInput) => {
+export const modelProvider: (
+  input: DeriveInput,
+  opts?: { callerName?: string },
+) => Promise<Pass1Result> = async (input, opts) => {
   _modelProviderCallCount += 1;
-  return await runPass1Llm(input);
+  return await runPass1Llm(input, opts?.callerName ? { callerName: opts.callerName } : {});
 };
+
+// Type-conformance assertion: modelProvider still satisfies Pass1Provider.
+const _modelProviderConformsToPass1Provider: Pass1Provider = modelProvider;
+void _modelProviderConformsToPass1Provider;

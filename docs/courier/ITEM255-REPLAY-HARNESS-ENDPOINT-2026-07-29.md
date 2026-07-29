@@ -212,3 +212,75 @@ maps the returned rows: empty → `"archive_row_not_found"`; error →
   results failed at `loadArchivedDoc` before `modelProvider` was reached.
 - This turn: controller did NOT call `?ping=1` or `?run=1`. No new job
   row was INSERTed. Controller re-runs personally after wire verification.
+
+---
+
+## ITEM 260 ADDENDUM — background-task + reaper adoption (2026-07-29)
+
+### Evidence basis (ITEM 259 read-only report)
+
+Ramp-1 attempt 4 (job `c159a22b-b288-4633-a7d3-94319ec455fc`, started
+2026-07-29T16:07:21Z) died silently: status stuck `running`, ZERO
+`replay_harness_results` rows, no `finished_at`, for 8m54s until the
+controller reaped it manually (`controller_reap:isolate_presumed_dead`).
+
+Verbatim log line — the one Pass-1 call that DID complete server-side:
+
+```
+2026-07-29T16:08:58Z INFO [ltp-pass1-derive] stage=callAnthropic model=claude-sonnet-4-6 elapsed=96278ms stop=end_turn output_tokens=7888 input_tokens=13528 cache_read=0 cache_creation=0 chars=24572
+```
+
+Last recorded activity 16:10:41Z (three bare `shutdown` logs), ~199s after
+start. No boot events, no platform kill reason surfaced, and the harness's
+top-level `catch` never ran — death occurred outside JS control flow.
+Attempt 3 (job `a5c209d1`, pre-Item-258) completed in 1m39.8s under the same
+invocation pattern. `supabase/config.toml` declares no function-specific
+wall-clock/CPU/memory limits for the harness; it runs on platform defaults.
+
+Legacy comparison: `run-cppa-risk-assessment/index.ts:3921–3953` returns
+`202 {accepted:true}` immediately and processes the pipeline inside an
+unawaited async IIFE registered with `EdgeRuntime.waitUntil`. The harness had
+no such mechanism — it held the request open across the whole doc loop.
+
+Spend-attribution finding: `api_usage` rows produced by harness runs were
+labelled `run-cppa-risk-assessment`, because `callPass1Model` hard-coded that
+`callerName`.
+
+### Fix
+
+1. **Background pattern.** After the atomic CAS and the fail-closed env gates,
+   the entire doc loop + finalize now runs in an unawaited async IIFE
+   registered with `(globalThis as any).EdgeRuntime?.waitUntil(...)`; the
+   request returns `202 {accepted, job_id, docs, harness_build_stamp}`
+   immediately. All error paths inside the background task still write the job
+   row (unchanged behavior); the two former `return json(...)` terminals became
+   `console.log`/`console.error` since they are no longer on a request path.
+   Where `waitUntil` is unavailable (local/dev), the task is awaited inline and
+   the same 202 shape is returned with `background:"inline"`. The chosen path is
+   appended (never clobbered) to `replay_harness_jobs.notes` as
+   `[bg:waitUntil]` or `[bg:inline]` — no new columns.
+2. **Reaper (opportunistic).** At the TOP of every request (ping AND run),
+   before any other work, one idempotent UPDATE sets
+   `status='error', finished_at=now(), error='reaper:stale_running_over_15m'`
+   for any row with `status='running' AND started_at < now() - 15 minutes`.
+3. **Unchanged.** Env-gate order, CAS semantics, `MAX_DOC_IDS=50` cap, per-doc
+   fail-loud continue, results-row shape.
+4. **Spend attribution.** `runPass1Llm` accepts optional
+   `opts.callerName`, threaded into `callPass1Model` →
+   `callAnthropicWithContinuation`. Default remains
+   `"run-cppa-risk-assessment"`, so the legacy bundle's behavior is
+   byte-identical. `modelProvider` accepts optional
+   `{ callerName }` and the harness passes `"replay-cppa-risk-harness"`.
+   A compile-time assertion keeps `modelProvider` assignable to
+   `Pass1Provider`.
+
+### Lens record
+
+CS-led: a proven, in-repo platform pattern ported verbatim in shape from the
+legacy wire. Privacy / prompt / prose lenses: n/a — no content, no prompt, no
+template, no grader changes.
+
+### Stamps
+
+- `HARNESS_BUILD_STAMP` → `replay-cppa-risk-harness-2026-07-29-item260`
+- `PASS1_LLM_STAMP` → `ltp-pass1-llm-item260-caller-attribution@2026-07-29`
