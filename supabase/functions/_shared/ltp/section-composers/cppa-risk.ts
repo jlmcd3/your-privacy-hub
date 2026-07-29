@@ -21,8 +21,12 @@ import { computeCloseness, chooseVariant } from "../closeness.ts";
 import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec } from "../../legal-test/cppa-risk-conclusions.ts";
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
+import {
+  CCPA_7150_B_1, CCPA_7150_B_2, CCPA_7150_B_3, CCPA_7150_B_4, CCPA_7150_B_5, CCPA_7150_B_6,
+  CCPA_7150_B_LABELS,
+} from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item243-completion";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item244-wired";
 
 /**
  * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
