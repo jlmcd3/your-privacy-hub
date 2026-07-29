@@ -292,18 +292,40 @@ function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
 }
 
 function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
+  // ITEM 244 (L3) — Less-intrusive-alternatives line. Correction 3:
+  // pinpoint verified as § 7152(a)(2) (minimum PI necessary); no
+  // verbatim "less-intrusive alternatives" leaf exists in cppa-7152.
+  const LIA_PINPOINT = "11 CCR § 7152(a)(2)";
+  const liaText = pickIntakeDisplay(plan, "i1b_min_pi");
+  const liaLine: TemplateInstance = liaText
+    ? {
+        template_id: "T.risk.less_intrusive_alternatives.present",
+        ctx: {
+          entity_name: entityName(plan),
+          i1b_min_pi_clause: liaText,
+          __cite: { PINPOINT: LIA_PINPOINT },
+        },
+      }
+    : {
+        template_id: "T.risk.less_intrusive_alternatives.silent",
+        ctx: {
+          entity_name: entityName(plan),
+          __cite: { PINPOINT: LIA_PINPOINT },
+        },
+      };
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
-    if (!insufficientRecord(plan)) return [balanceInstance(plan)];
+    if (!insufficientRecord(plan)) return [balanceInstance(plan), liaLine];
     return [];
   }
-  return engaged.map<TemplateInstance>((p) => {
+  const balances = engaged.map<TemplateInstance>((p) => {
     const inst = balanceInstance(plan);
     return {
       template_id: inst.template_id,
       ctx: { ...inst.ctx, activity_label: propLabel(p) },
     };
   });
+  return [...balances, liaLine];
 }
 
 // ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
