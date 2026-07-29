@@ -172,6 +172,12 @@ export function evaluateSubstance(
       factors_with_ledger_refs: ns.factors_with_ledger_refs,
       note_token_diversity: ns.note_token_diversity,
       action_kind_diversity_ok: ad.ok,
+      ...(pr.review_band_low !== undefined
+        ? { review_band_low: pr.review_band_low }
+        : {}),
+      ...(pr.review_band_high !== undefined
+        ? { review_band_high: pr.review_band_high }
+        : {}),
       golden_shape: {
         review_flag: gs.review_flag,
         shortfall_keys: gs.shortfall_keys,
