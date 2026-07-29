@@ -184,3 +184,49 @@ Deno.test("CHECK 3 (qc_r1_3): resolved M5 not_met (q5c=No) → submission_summar
     "M5 resolves not_met with q5c_share_revenue_50pct='No'; submission_summary must cite § 7120(b)(1).",
   );
 });
+
+// ---------------------------------------------------------------------------
+// CHECK 4 — qc_r1_4_cohort_determinism (§ 7121(a) full three-tier schedule)
+//
+// Scoping recorded in the file header. Item-204 (Defect B) retired customer-
+// specific cohort computation; cyber-audit-schedule.ts emits the full three-
+// tier schedule identically for resolved AND indeterminate bands, with tier
+// determination reserved to customer + counsel. The harvest guard
+// (evaluateSubmissionHarvest) already rejects artifacts missing
+// SCHEDULE_MARKER, missing any tier deadline, or matching
+// CUSTOMER_COHORT_PATTERNS. This CHECK asserts the schedule is present
+// end-to-end on the shipped assembled submission_summary.
+// ---------------------------------------------------------------------------
+
+Deno.test("CHECK 4 (qc_r1_4): resolved revenue band → full § 7121(a) schedule in submission_summary", () => {
+  const text = submissionSummaryText(REAL_INTAKE);
+  assert(text.length > 0, "submission_summary was empty (harvest rejected?)");
+  assertStringIncludes(text, SCHEDULE_MARKER, "§ 7121(a) schedule marker missing");
+  assertStringIncludes(text, SCHEDULE_LITERALS.tier1.deadline, "tier1 deadline missing");
+  assertStringIncludes(text, SCHEDULE_LITERALS.tier2.deadline, "tier2 deadline missing");
+  assertStringIncludes(text, SCHEDULE_LITERALS.tier3.deadline, "tier3 deadline missing");
+});
+
+Deno.test("CHECK 4 (qc_r1_4): absent revenue band → indeterminate two-cohort treatment subsumed by full schedule", () => {
+  const text = submissionSummaryText({ ...REAL_INTAKE, q1_revenue: undefined as unknown as string });
+  assert(text.length > 0, "submission_summary was empty (harvest rejected?)");
+  assertStringIncludes(text, SCHEDULE_MARKER, "§ 7121(a) schedule marker missing on absent-band intake");
+  assertStringIncludes(text, SCHEDULE_LITERALS.tier2.deadline, "tier2 (2029) deadline missing on absent-band intake");
+  assertStringIncludes(text, SCHEDULE_LITERALS.tier3.deadline, "tier3 (2030) deadline missing on absent-band intake");
+});
+
+Deno.test("CHECK 4 (qc_r1_4): shipped schedule never computes a customer-specific cohort", () => {
+  const text = submissionSummaryText(REAL_INTAKE);
+  assert(text.length > 0, "submission_summary was empty (harvest rejected?)");
+  for (const re of CUSTOMER_COHORT_PATTERNS) {
+    assert(
+      !re.test(text),
+      `submission_summary matched customer-cohort pattern ${re} — Item-204 (Defect B) forbids customer-specific cohort attribution`,
+    );
+  }
+  assertStringIncludes(
+    text,
+    "The customer, in consultation with qualified legal counsel",
+    "reserved-to-counsel closing sentence missing",
+  );
+});
