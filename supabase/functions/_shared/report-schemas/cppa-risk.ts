@@ -71,6 +71,11 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "document_metadata",
     "scope_confirmation",
     "scope_and_triggers",
+    // ITEM 244 (L1) — Processing Narrative section. Placed between
+    // scope_and_triggers and risk_assessment_by_activity. Composed
+    // deterministically from operational-elements ledger fields; silent
+    // sub-elements resolve to "not stated on the record".
+    "processing_narrative",
     "risk_assessment_by_activity",
     "risk_register",
     "top_risks",

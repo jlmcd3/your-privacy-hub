@@ -304,6 +304,16 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     project: projectPropositionsByType("R"),
     note: "scope_notes CUT (OBJECT_PRUNE); triggered_activities_detail retained via object allow-list.",
   },
+  // ── ITEM 244 (L1) — Processing Narrative ─────────────────────────
+  {
+    key: "processing_narrative",
+    owner: {
+      kind: "template",
+      template_ids: ["T.risk.processing_narrative"],
+    },
+    project: projectIntakeLedger,
+    note: "ITEM 244 (L1): deterministic prose from operational-elements ledger; silent sub-elements resolve to 'not stated on the record'.",
+  },
   {
     key: "risk_assessment_by_activity",
     owner: {
@@ -603,6 +613,7 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   assessment_summary: "conditional",
   scope_confirmation: "conditional",
   scope_and_triggers: "conditional",
+  processing_narrative: "conditional",
   risk_assessment_by_activity: "conditional",
   risk_register: "conditional",
   top_risks: "conditional",
