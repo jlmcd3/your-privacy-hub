@@ -6110,3 +6110,60 @@ ok | 10 passed | 0 failed (65ms)
 **Stage B scope (declared; NOT started):** archive export of cppa-risk intakes + legacy reports; presence-band mining from archived distributions; run-release protocol (every model-provider execution CEO-released with cost estimate; ramp 1→10→50→full distribution, one courier + ledger entry per ramp).
 
 **Discipline:** no live LLM calls this turn; `run-cppa-risk-assessment` and `supabase/_rebuild-snapshot-item244/` untouched; no DB writes; no grader edits; no deploys.
+
+## Item 254 — TRACK 2 / SPEC §7.1 Stage B(1): PRESENCE-BAND MINING WIRED INTO HARNESS CONFIG
+
+**Timestamp:** 2026-07-29T14:32Z. **Status:** Threshold config LANDED. **Deploy:** none. **Live calls:** none. **DB writes:** none. **Grader edits:** none. Wire (`run-cppa-risk-assessment`) and `supabase/_rebuild-snapshot-item244/` untouched.
+
+**Courier:** `docs/courier/ITEM254-PRESENCE-BAND-MINING-2026-07-29.md` (mining record, 7-doc classification table, verbatim caveats, four-lens decision record, provisional status + re-mine-at-ramp plan).
+
+**Mining record (verified via SELECTs 2026-07-29):**
+- Replay corpus (for the Stage-B ramp, NOT mined here): `quality_archive.quality_run_documents_20260728`, tool=`cppa-risk`, 245 docs, ALL with `intake_data`, ZERO with persisted `render_plan`.
+- Presence source (this turn): LIVE `public.quality_run_documents`, 22 docs with `report_data->_meta->internal->render_plan`; presence at `render_plan->plan->factor_table` (16 rows).
+- 15 model-authored non-degenerate plans (item233 → item242-cpb, 2026-07-28): present counts `7, 9, 9, 8, 10, 7, 8, 11, 8, 9, 11, 11, 7, 9, 7` (of 16) → band `[0.4375, 0.6875]`, median `0.5625`.
+- 7 zero-presence docs classified: 3 DEGENERATE (excluded — `53d4b9c0` pass1_abort_timeout; `9a83145e`, `563117cb` validator_issues:1 deterministic-path pin); 4 HOLLOW-DOCUMENT COLLAPSE (retained — `3bbc3a69`, `4eee3f7a`, `3302dc39`, `f7981c15`, all item243-completion, pass1_ok true, write_around false — model genuinely returned all-absent).
+- Caveats: n=15 same-day rich smoke-fixture plans; run-#180 doc `61be3318` note-side stats excluded (corrupted `weight_notes`); band values PROVISIONAL until re-mined across the real distribution during the Stage-B ramp.
+
+**Team-unanimous configuration (four-lens):**
+- HARD floor `min_presence_rate = 0.25` — catches the collapse class (all four item243 docs at 0.0) with ~1.75x headroom below the observed working minimum 0.4375.
+- REVIEW band `[0.4375, 0.6875]` — rates outside (but at/above hard floor) flag `review_band_low` / `review_band_high` in metrics; NEVER hard failures.
+- CS lens: config-as-data with provenance, no logic change. Privacy-law lens: internal quality instrumentation, no customer surface. Prompt-engineering lens: measurable target (median 0.5625) that penalises both under- and over-assertion. Prose lens: n/a.
+
+**Files touched:**
+- NEW `supabase/functions/_shared/ltp/replay/presence-band.ts` — `MINED_PRESENCE_BAND` + full provenance/caveats block + `defaultSubstanceGateConfig()`.
+- EXTENDED `supabase/functions/_shared/ltp/replay/types.ts` — `SubstanceGateConfig` gains optional `review_low` / `review_high`; `SubstanceMetrics` gains optional `review_band_low` / `review_band_high`.
+- EXTENDED `supabase/functions/_shared/ltp/replay/substance-gates.ts` — `presenceRate` returns advisory band flags; `evaluateSubstance` surfaces them in `metrics` when configured. Hard-failure behaviour unchanged.
+- EXTENDED `supabase/functions/_shared/ltp/replay/replay.test.ts` — 3 new tests (band fixtures 9/16, 0/16, 5/16); modelProvider counter test remains LAST and green.
+- NEW `docs/courier/ITEM254-PRESENCE-BAND-MINING-2026-07-29.md`.
+
+**Verbatim test output — `replay.test.ts`:**
+```
+running 8 tests from ./_shared/ltp/replay/replay.test.ts
+harness has teeth: deterministic-provider run on real intake yields non-empty golden-shape hard failures ... ok (52ms)
+presence_rate on deterministic path is 0 (pickFactorTable pins present_in_intake:false) ... ok (22ms)
+runReplayBatch aggregates per-gate counts + presence-rate distribution correctly over 2 copies ... ok (36ms)
+side-by-side compareDoc returns deltas and tolerates a missing legacy key ... ok (23ms)
+Item 254: 9/16 present → passes hard floor, sits IN review band, no band flags ... ok (10ms)
+Item 254: 0/16 present (collapse class — item243 4-doc footprint) → presence_rate hard failure under default config ... ok (8ms)
+Item 254: 5/16 present (0.3125) → passes hard floor, flags review_band_low, no presence hard failure ... ok (9ms)
+STATIC ASSERTION — modelProvider was never invoked during Stage A suite ... ok (0ms)
+
+ok | 8 passed | 0 failed (172ms)
+```
+
+**Verbatim test output — `grader-check-mirror.test.ts` (regression):**
+```
+running 10 tests from ./_shared/ltp/grader-check-mirror.test.ts
+CHECK 1a (qc_r1_1): registry carries the signed resolution_source_fields state ... ok (1ms)
+CHECK 1b (qc_r1_1): composer skips purpose-adequacy ask when i1_processing_purpose is populated; still asks otherwise ... ok (2ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume qualifying) → submission_summary cites § 7120(b)(2)(B) ... ok (40ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume below threshold) → submission_summary cites § 7120(b)(2)(B) ... ok (17ms)
+CHECK 2 (qc_r1_2): M4 not_applicable (q15_sensitive_pi=No) → submission_summary still cites § 7120(b)(2)(B) ... ok (13ms)
+CHECK 3 (qc_r1_3): resolved M5 met (q5c=Yes) → submission_summary cites § 7120(b)(1) ... ok (27ms)
+CHECK 3 (qc_r1_3): resolved M5 not_met (q5c=No) → submission_summary cites § 7120(b)(1) ... ok (22ms)
+CHECK 4 (qc_r1_4): resolved revenue band → full § 7121(a) schedule in submission_summary ... ok (16ms)
+CHECK 4 (qc_r1_4): absent revenue band → indeterminate two-cohort treatment subsumed by full schedule ... ok (6ms)
+CHECK 4 (qc_r1_4): shipped schedule never computes a customer-specific cohort ... ok (13ms)
+
+ok | 10 passed | 0 failed (172ms)
+```
