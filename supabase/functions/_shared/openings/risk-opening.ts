@@ -37,14 +37,20 @@ import {
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
 
-export const RISK_OPENING_VERSION = "risk-opening-cp5-coherence-prose-customer-first@2026-07-28";
-// Customer-first render order (CP5 ADDENDUM CEO-approved 2026-07-28):
-// S2 (entity + data + purpose) → S3 (posture qualifiers) → S4 (safeguards)
-// → S0 (CCPA applicability) → S1 (§ 7150(b) triggers) → S5 (§ 7152 frame)
-// → S6 (as-of). Slot sources and provenance UNCHANGED — reorder only.
-// Exported so tests can assert the order at the source of truth.
-export const RISK_OPENING_SLOT_ORDER: readonly ["S2","S3","S4","S0","S1","S5","S6"] =
-  ["S2","S3","S4","S0","S1","S5","S6"];
+export const RISK_OPENING_VERSION = "risk-opening-item244-l4-epistemic@2026-07-28";
+// ITEM 244 (L4) — CEO-approved courier: EPISTEMIC-METHOD SENTENCE. Inserted
+// as slot S4.5 between the customer-first paragraph (S2/S3/S4) and the
+// assessment-purpose clause (S0/S1). Verbatim sentence, no interpolation;
+// tells the reader what the document IS before it tells them what it does.
+// Customer-first render order (CP5 ADDENDUM CEO-approved 2026-07-28), amended
+// 2026-07-28 by Item 244 CEO ruling to insert S4.5:
+// S2 → S3 → S4 → S4.5 (epistemic method) → S0 → S1 → S5 → S6.
+export const RISK_OPENING_SLOT_ORDER: readonly ["S2","S3","S4","S4_5","S0","S1","S5","S6"] =
+  ["S2","S3","S4","S4_5","S0","S1","S5","S6"];
+
+// ITEM 244 (L4) — verbatim epistemic-method sentence, CEO-approved.
+export const EPISTEMIC_METHOD_SENTENCE =
+  "This assessment is derived solely from the record you provided and the cited regulatory text; it does not add facts, and where the record is silent it reserves the corresponding element rather than infer one.";
 
 // BAND-REALIGNMENT-T2A (2026-07-26) — retargeted to V2 revenue vocabulary.
 // V2 bands whose FLOOR strictly exceeds $25M pre-adjustment qualify to
