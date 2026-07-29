@@ -1,21 +1,46 @@
 /**
- * ITEM 249 — TRACK 2 STAGE 4 / Rider (C1): GRADER-CHECK MIRROR.
+ * ITEM 249/251 — TRACK 2 STAGE 4 / Rider (C1): GRADER-CHECK MIRROR.
  *
- * Mirrors 3 of the 7 cppa-risk deterministic grader checks into the
+ * Mirrors 4 of the 7 cppa-risk deterministic grader checks into the
  * product e2e gate. Per courier: "Never ship a document that
  * deterministically fails a known check." Not-yet-scoped:
- * qc_r1_4_cohort_determinism, qc_r1_5_exception_fields_consumed,
- * qc_r1_7_enhancement_placement_det, qc_ws6_1_supplemental_consumption.
+ * qc_r1_5_exception_fields_consumed, qc_r1_7_enhancement_placement_det,
+ * qc_ws6_1_supplemental_consumption.
  *
  * Discipline: Item 236 law — report the true state; never weaken or
  * narrow a check to force green.
+ *
+ * CHECK 4 scoping (Item 251):
+ *   Grader rule from quality_archive.quality_check_results_20260728
+ *   (check_id qc_r1_4_cohort_determinism; 48 fails across runs 71–156).
+ *   Verbatim evidence strings:
+ *     - "resolved band $25M to under $50M requires § 7121(a) cohort
+ *        April 1, 2030 (ISO or long form) in submission_summary; not stated"
+ *     - "resolved band $50M to $100M requires § 7121(a) cohort April 1,
+ *        2029 ... not stated"
+ *     - "legacy/absent revenue band requires both April 1, 2029 and
+ *        April 1, 2030 cohort dates (ISO or long form); found 2029=true
+ *        2030=false"
+ *     - "legacy/absent revenue band requires indeterminate two-cohort
+ *        treatment; not present"
+ *     - "resolved cohort April 1, 2029 is hedged near the cite window"
+ *       (also 2030 variant).
+ *   Item-204 CEO ruling (Defect B, 2026-07-27) retired customer-cohort
+ *   computation: cyber-audit-schedule.ts emits the FULL three-tier
+ *   § 7121(a) schedule (tier1/2/3 = April 1, 2028 / 2029 / 2030,
+ *   corpus-pinned) with tier determination reserved to customer +
+ *   counsel — identical output for resolved AND indeterminate bands.
+ *   Spec §4 mandates this design. Empirically qc_r1_4 passes 100% on
+ *   runs 157–164 (0 fails).
  */
 import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assembleReport } from "./pass2-assembler.ts";
 import { derivePlan } from "./derive.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
+import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "./cyber-audit-schedule.ts";
+import { CUSTOMER_COHORT_PATTERNS } from "./harvest-guard.ts";
 
-export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item250";
+export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item251";
 
 // ---------------------------------------------------------------------------
 // FIXTURE — real archived intake (ClearPath Credit Solutions), reused from
