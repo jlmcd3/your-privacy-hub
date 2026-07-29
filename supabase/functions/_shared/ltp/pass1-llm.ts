@@ -56,7 +56,7 @@ import {
   type GroundedNoteTelemetry,
 } from "./grounded-note.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item260-caller-attribution@2026-07-29";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item261-grounded-observe@2026-07-29";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
@@ -384,7 +384,11 @@ export async function runPass1Llm(
       // are deterministically replaced (never model-mediated). Telemetry
       // lands under pass1.telemetry.grounded_note and is projected to
       // _meta.internal.render_plan.telemetry.grounded_note downstream.
-      const grounded = applyGroundedNoteScreen(screened.plan);
+      // ITEM 261 — SPEC §6 guard-lifecycle law: the grounded-note screen
+      // runs OBSERVE-ONLY (telemetry, no rewrite, no abort) pending
+      // calibration. See
+      // docs/courier/ITEM261-GROUNDED-OBSERVE-DEMOTION-2026-07-29.md.
+      const grounded = applyGroundedNoteScreen(screened.plan, { mode: "observe" });
       const candidate = grounded.plan;
       const coherenceRewrites = screened.rewrites;
       const groundedTele = grounded.telemetry;

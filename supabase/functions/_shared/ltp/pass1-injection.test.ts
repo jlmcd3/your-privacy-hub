@@ -232,7 +232,11 @@ function makePlanWithFactors(rows: Array<{ factor_id: string; weight_note: strin
   };
 }
 
-Deno.test("(f) grounded-note mass-replace ABORTS above threshold and does NOT abort at/below threshold", () => {
+// ITEM 261 — the screen now DEFAULTS to observe mode (SPEC §6
+// guard-lifecycle law); the Item-258 abort is an ENFORCE-mode instrument.
+// This fixture is updated to pass { mode: "enforce" } explicitly so it
+// remains the regression guard for a future promotion courier.
+Deno.test("(f) grounded-note mass-replace ABORTS above threshold and does NOT abort at/below threshold (enforce mode)", () => {
   // ABOVE threshold: 4 rows, all with fully ungrounded prose → rate 1.0 > 0.5.
   const aboveRows = [
     { factor_id: "benefit.other_stakeholders", weight_note: "xyzzy plugh foobar quux garply" },
@@ -241,7 +245,7 @@ Deno.test("(f) grounded-note mass-replace ABORTS above threshold and does NOT ab
     { factor_id: "benefit.consumer",           weight_note: "xyzzy plugh foobar quux garply" },
   ];
   assertThrows(
-    () => applyGroundedNoteScreen(makePlanWithFactors(aboveRows)),
+    () => applyGroundedNoteScreen(makePlanWithFactors(aboveRows), { mode: "enforce" }),
     GroundedNoteMassReplaceAbort,
   );
 
@@ -255,7 +259,7 @@ Deno.test("(f) grounded-note mass-replace ABORTS above threshold and does NOT ab
     { factor_id: "benefit.business",           weight_note: "record states the stated purpose" },
     { factor_id: "benefit.consumer",           weight_note: "record states the stated purpose" },
   ];
-  const { telemetry } = applyGroundedNoteScreen(makePlanWithFactors(belowRows));
+  const { telemetry } = applyGroundedNoteScreen(makePlanWithFactors(belowRows), { mode: "enforce" });
   assertEquals(telemetry.candidates, 4);
   assertEquals(telemetry.replacements, 2);
   assertEquals(telemetry.replacement_rate <= GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD, true,
