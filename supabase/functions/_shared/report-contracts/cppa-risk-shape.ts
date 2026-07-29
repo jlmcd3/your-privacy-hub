@@ -33,7 +33,39 @@
  * are OPTIONAL — the LTP-shape wire carries strings.
  */
 
-export const CPPA_RISK_SHAPE_VERSION = "cppa-risk-shape@2026-07-28-cp5-coherence-prose";
+export const CPPA_RISK_SHAPE_VERSION = "cppa-risk-shape@2026-07-28-item244-wired-headers-l1";
+
+/**
+ * ITEM 244 (E3) — CUSTOMER-FIRST SECTION HEADERS. Shared header map;
+ * single source of truth consumed by (a) the LTP composer prose that
+ * references section names in body copy and (b) the PDF exporter's
+ * <h2> tags. Adding a new section requires adding a header here so
+ * the PDF renderer stays in lock-step with the assembler shard set.
+ * Statutory pinpoints move to the first sentence of each body
+ * paragraph, never the header.
+ */
+export const CPPA_RISK_HEADER_MAP: Readonly<Record<string, string>> = {
+  opening_summary: "About this assessment",
+  executive_summary: "What this assessment concludes",
+  assessment_summary: "Why we reached this conclusion",
+  scope_and_triggers: "What this assessment covers and what triggered it",
+  scope_confirmation: "What this assessment covers and what triggered it",
+  // ITEM 244 (L1) — Processing Narrative section, placed after
+  // Scope & Triggers and before Risk Assessment by Activity.
+  processing_narrative: "How the business processes personal information",
+  risk_assessment_by_activity: "How the balancing frame reads for each covered activity",
+  priority_actions: "What to do next, in order of priority",
+  next_steps: "What to confirm on the record",
+  strengthen_items: "Where the record is strong and how to keep it strong",
+  exception_analysis: "Where the record admits a reserved exception",
+  record_sufficiency: "How complete the record is against § 7152(a)",
+  information_needed: "Items for your review",
+  submission_summary: "How to submit and retain this assessment",
+};
+
+export function headerForSection(key: string, fallback?: string): string {
+  return CPPA_RISK_HEADER_MAP[key] ?? fallback ?? key.replace(/_/g, " ");
+}
 
 export type NarrativeScalarKey =
   | "opening_summary"
