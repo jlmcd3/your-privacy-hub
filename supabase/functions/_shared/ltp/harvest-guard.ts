@@ -252,7 +252,7 @@ export function evaluateOpeningHarvest(
  * NOT compute a customer-specific tier. Reject if the artifact
  * contains a customer-cohort attribution pattern.
  */
-const CUSTOMER_COHORT_PATTERNS: readonly RegExp[] = [
+export const CUSTOMER_COHORT_PATTERNS: readonly RegExp[] = [
   /\byour (?:cohort|tier|deadline|audit period)\b/i,
   /\bthe (?:company|business)['’]s (?:cohort|tier)\b/i,
   /\byou (?:fall in|are in|belong to) tier\b/i,
