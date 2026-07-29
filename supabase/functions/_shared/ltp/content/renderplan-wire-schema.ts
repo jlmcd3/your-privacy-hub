@@ -13,7 +13,7 @@
  * round-trips against golden plan fixtures.
  */
 
-export const RENDERPLAN_WIRE_SCHEMA_VERSION = "wire-v1-2026-07-26";
+export const RENDERPLAN_WIRE_SCHEMA_VERSION = "wire-v1-2026-07-28-item244-p1-reorder";
 
 const AUTHORITY_WEIGHT_ENUM = ["binding", "persuasive"] as const;
 const EPISTEMIC_TYPE_ENUM = ["R", "W", "J"] as const;
@@ -95,23 +95,28 @@ const propositionSchema = {
 const factorTableEntrySchema = {
   type: "object",
   additionalProperties: false,
+  // ITEM 244 (P1) — supporting_ledger_ids (aliased here as
+  // `intake_ledger_refs`, the canonical schema.ts field name) placed
+  // immediately before `weight_note` in property order to mirror the
+  // Pass-1 P2 exemplar row and reduce model drift on the token that
+  // most affects grounded-note grounding.
   required: [
     "factor_id",
     "kind",
     "jurisdiction_tag",
     "present_in_intake",
-    "intake_ledger_refs",
     "guidance_refs",
     "anchor",
+    "intake_ledger_refs",
   ],
   properties: {
     factor_id: { type: "string" },
     kind: { type: "string", enum: ["benefit", "negative_impact", "safeguard"] },
     jurisdiction_tag: { type: "string", enum: JURISDICTION_TAG_ENUM },
     present_in_intake: { type: "boolean" },
-    intake_ledger_refs: { type: "array", items: { type: "string" } },
     guidance_refs: { type: "array" },
     anchor: anchorSchema,
+    intake_ledger_refs: { type: "array", items: { type: "string" } },
     weight_note: { ...noteString },
   },
 } as const;

@@ -21,8 +21,12 @@ import { computeCloseness, chooseVariant } from "../closeness.ts";
 import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX, type ConclusionSpec } from "../../legal-test/cppa-risk-conclusions.ts";
 import { selectDeadlineOrFallback } from "../../legal-test/cppa-risk-deadlines.ts";
 import { CPPA_RISK_GATE_INDEX } from "../../gates/cppa-risk-gates.ts";
+import {
+  CCPA_7150_B_1, CCPA_7150_B_2, CCPA_7150_B_3, CCPA_7150_B_4, CCPA_7150_B_5, CCPA_7150_B_6,
+  CCPA_7150_B_LABELS,
+} from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item243-completion";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item244-wired";
 
 /**
  * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
@@ -288,18 +292,40 @@ function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
 }
 
 function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
+  // ITEM 244 (L3) — Less-intrusive-alternatives line. Correction 3:
+  // pinpoint verified as § 7152(a)(2) (minimum PI necessary); no
+  // verbatim "less-intrusive alternatives" leaf exists in cppa-7152.
+  const LIA_PINPOINT = "11 CCR § 7152(a)(2)";
+  const liaText = pickIntakeDisplay(plan, "i1b_min_pi");
+  const liaLine: TemplateInstance = liaText
+    ? {
+        template_id: "T.risk.less_intrusive_alternatives.present",
+        ctx: {
+          entity_name: entityName(plan),
+          i1b_min_pi_clause: liaText,
+          __cite: { PINPOINT: LIA_PINPOINT },
+        },
+      }
+    : {
+        template_id: "T.risk.less_intrusive_alternatives.silent",
+        ctx: {
+          entity_name: entityName(plan),
+          __cite: { PINPOINT: LIA_PINPOINT },
+        },
+      };
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
-    if (!insufficientRecord(plan)) return [balanceInstance(plan)];
+    if (!insufficientRecord(plan)) return [balanceInstance(plan), liaLine];
     return [];
   }
-  return engaged.map<TemplateInstance>((p) => {
+  const balances = engaged.map<TemplateInstance>((p) => {
     const inst = balanceInstance(plan);
     return {
       template_id: inst.template_id,
       ctx: { ...inst.ctx, activity_label: propLabel(p) },
     };
   });
+  return [...balances, liaLine];
 }
 
 // ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
@@ -655,6 +681,33 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
   const sufficient = !insufficientRecord(plan);
   const asOf = pickIntakeDisplay(plan, "assessment_date") || new Date().toISOString().slice(0, 10);
+  // ITEM 244 (L5) — Affirmations block opener. Adequately-documented
+  // items lead; gaps trail. Emitted BEFORE the legacy prose so the
+  // customer reads the affirmative posture first.
+  const admtBlocked = admtGateBlocked(plan);
+  const statusForFactor = (f: FactorTableEntry) =>
+    admtBlocked && isAdmtScoped(f.factor_id)
+      ? RECORD_STATUS_CLAUSES[3]
+      : f.present_in_intake
+        ? RECORD_STATUS_CLAUSES[0]
+        : RECORD_STATUS_CLAUSES[1];
+  const affirmedCount = plan.factor_table.filter(
+    (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[0],
+  ).length;
+  const gapCount = plan.factor_table.filter(
+    (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[1],
+  ).length;
+  const affirmationsOpener: TemplateInstance = {
+    template_id: "T.risk.record_sufficiency.prose.v2",
+    ctx: {
+      sufficiency_clause: sufficient
+        ? "is sufficient for the § 7152(a)(6) balancing frame to weigh"
+        : "is not yet sufficient for the § 7152(a)(6) balancing frame",
+      entity_name: entity,
+      affirmed_count_clause: `${affirmedCount}`,
+      gap_count_clause: `${gapCount}`,
+    },
+  };
   const prose: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose",
     ctx: {
@@ -674,26 +727,24 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
     },
   };
   // ITEM 243 defect 4 — ADMT-scoped rows resolve to RECORD_STATUS_CLAUSES[3]
-  // ("not applicable — ADMT not in use per the record") when the
-  // G.q18.admt_consequence gate blocks. Never emits the "not present"
-  // gap clause for a structurally inapplicable element.
-  const admtBlocked = admtGateBlocked(plan);
-  const items = plan.factor_table.map<TemplateInstance>((f) => {
-    const statusClause = admtBlocked && isAdmtScoped(f.factor_id)
-      ? RECORD_STATUS_CLAUSES[3]
-      : f.present_in_intake
-        ? RECORD_STATUS_CLAUSES[0]
-        : RECORD_STATUS_CLAUSES[1];
-    return {
-      template_id: "T.risk.record_sufficiency.item",
-      ctx: {
-        element_label: factorLabel(f),
-        element_status_clause: statusClause,
-        __cite: { PINPOINT: f.anchor.pinpoint },
-      },
-    };
+  // when the G.q18.admt_consequence gate blocks; affirmed items lead the
+  // enumeration per Item 244 (L5).
+  const factorsAffirmedFirst = [...plan.factor_table].sort((a, b) => {
+    const sa = statusForFactor(a);
+    const sb = statusForFactor(b);
+    const rank = (s: string) =>
+      s === RECORD_STATUS_CLAUSES[0] ? 0 : s === RECORD_STATUS_CLAUSES[3] ? 1 : 2;
+    return rank(sa) - rank(sb);
   });
-  return [prose, ...items];
+  const items = factorsAffirmedFirst.map<TemplateInstance>((f) => ({
+    template_id: "T.risk.record_sufficiency.item",
+    ctx: {
+      element_label: factorLabel(f),
+      element_status_clause: statusForFactor(f),
+      __cite: { PINPOINT: f.anchor.pinpoint },
+    },
+  }));
+  return [affirmationsOpener, prose, ...items];
 }
 
 
@@ -750,30 +801,62 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       .filter((p) => /appl(icab|y)/i.test(p.conclusion_id))
       .map((p) => [p.conclusion_id, p]),
   );
-  const instances = applicabilityConcls.map<TemplateInstance & { __engaged: boolean }>((c) => {
+  const enriched = applicabilityConcls.map((c) => {
     const gate = c.rule_gate ? gateById.get(c.rule_gate) : undefined;
     const prop = propById.get(c.id);
     const engagedFromGate = gate?.outcome === "pass";
     const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
     const engaged = engagedFromGate || engagedFromProp;
-    const templateId = engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged";
-    // CP5 (a) — per-prong subject from the registry display_label.
-    // CP4 (b) — per-prong pinpoint from THIS conclusion's anchor.
-    return {
-      template_id: templateId,
-      ctx: {
-        prong_subject: c.display_label || "this trigger",
-        __cite: { PINPOINT: c.anchor.pinpoint },
-      },
-      __engaged: engaged,
-    };
+    // Item 244 Correction 4: prong index from the pinpoint substring
+    // "7150(b)(N)"; used to look up the verbatim § 7150(b) label.
+    const m = /7150\(b\)\((\d+)\)/.exec(c.anchor.pinpoint);
+    const prongIdx = m ? Number(m[1]) as 1|2|3|4|5|6 : null;
+    return { c, engaged, prongIdx };
   });
-  // ITEM 241.1 (E1) — engaged prongs LEAD; not-engaged prongs follow.
-  instances.sort((a, b) => (a.__engaged === b.__engaged) ? 0 : (a.__engaged ? -1 : 1));
-  const prongList = instances
-    .map(({ ctx, __engaged }) => `${(ctx.prong_subject ?? "").toString()} (${(ctx.__cite?.PINPOINT ?? "")}) — ${__engaged ? "engaged" : "not engaged"}`)
+  const engaged = enriched.filter((e) => e.engaged);
+  const notEngaged = enriched.filter((e) => !e.engaged);
+
+  // ITEM 244 (E1) — new opener sourced from § 7150(b) verbatim labels.
+  const prongLabelFor = (idx: 1|2|3|4|5|6 | null) =>
+    idx ? CCPA_7150_B_LABELS[idx] : "the applicable § 7150(b) trigger";
+  const nonEngagedInline = notEngaged.length > 0
+    ? notEngaged
+        .map((e) => `${prongLabelFor(e.prongIdx)} (${e.c.anchor.pinpoint})`)
+        .join("; ")
+    : "none — every listed § 7150(b) prong is engaged on the current record";
+
+  if (engaged.length > 0) {
+    // One opener per engaged prong, with per-prong verbatim posture.
+    const openers = engaged.map<TemplateInstance>((e) => {
+      const verbatim = e.prongIdx
+        ? [null, CCPA_7150_B_1, CCPA_7150_B_2, CCPA_7150_B_3, CCPA_7150_B_4, CCPA_7150_B_5, CCPA_7150_B_6][e.prongIdx] as string
+        : "";
+      return {
+        template_id: "T.risk.section_opener.scope.v2",
+        ctx: {
+          engaged_prong_label: prongLabelFor(e.prongIdx),
+          engaged_prong_posture_clause: verbatim
+            ? `the record affirms conduct falling within § 7150(b)(${e.prongIdx}), which reads: "${verbatim}"`
+            : "the record affirms conduct falling within this trigger",
+          non_engaged_prongs_inline: nonEngagedInline,
+          __cite: { PINPOINT_ENGAGED: e.c.anchor.pinpoint },
+        },
+      };
+    });
+    const items = enriched.map<TemplateInstance>((e) => ({
+      template_id: e.engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged",
+      ctx: {
+        prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
+        __cite: { PINPOINT: e.c.anchor.pinpoint },
+      },
+    }));
+    return [...openers, ...items];
+  }
+
+  // No engaged prongs: fall through to previous customer-first opener + items.
+  const prongList = enriched
+    .map((e) => `${prongLabelFor(e.prongIdx)} (${e.c.anchor.pinpoint}) — not engaged`)
     .join("; ");
-  // ITEM 241.3 — CP5 §3.2 customer-first opener prepended.
   const opener: TemplateInstance = {
     template_id: "T.risk.section_opener.scope",
     ctx: {
@@ -783,7 +866,49 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       prong_list_with_individual_pinpoints: prongList || "the § 7150(b) triggers enumerated below",
     },
   };
-  return [opener, ...instances.map(({ template_id, ctx }) => ({ template_id, ctx }))];
+  const items = enriched.map<TemplateInstance>((e) => ({
+    template_id: "T.risk.applicability.not_engaged",
+    ctx: {
+      prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
+      __cite: { PINPOINT: e.c.anchor.pinpoint },
+    },
+  }));
+  return [opener, ...items];
+}
+
+// ── ITEM 244 (L1) — Processing Narrative composer ───────────────────────
+function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
+  const entity = entityName(plan);
+  // Correction 1: silent sub-elements resolve to "not stated on the record".
+  const nsotr = "not stated on the record";
+  const pick = (field: string) => pickIntakeDisplay(plan, field) || nsotr;
+  const engaged = engagedApplicability(plan);
+  const activityLabel = engaged.length > 0
+    ? engaged.map(propLabel).filter(Boolean).join(", ")
+    : (pickIntakeDisplay(plan, "i1_processing_purpose") || "the processing activity in scope");
+  return [{
+    template_id: "T.risk.processing_narrative",
+    ctx: {
+      entity_name: entity,
+      activity_label: activityLabel,
+      pi_categories_clause: pick("q4_pi_categories"),
+      sources_clause: pick("i3_sources") || nsotr,
+      i1_processing_purpose_clause: pick("i1_processing_purpose"),
+      i6_vendors_clause: pick("i6_vendors"),
+      i4_disclosure_mechanisms_clause: pick("i4_disclosure_mechanisms"),
+      i2_retention_period_clause: pick("i2_retention_period"),
+      i2_retention_criteria_clause: pick("i2_retention_criteria"),
+      i2_deletion_clause: pick("i2_deletion"),
+    },
+  }];
+}
+
+// ── ITEM 244 (E4) — anaphora rule helper ────────────────────────────────
+// Full entity name on first mention per section; "the company" thereafter.
+// Consumed by the Pass-2 assembler render seam.
+export function renderEntity(sectionKey: string, mentionIndex: number, plan: RenderPlan): string {
+  void sectionKey;
+  return mentionIndex === 0 ? entityName(plan) : "the company";
 }
 
 
@@ -802,6 +927,7 @@ export function composeSection(sectionKey: string, plan: RenderPlan): TemplateIn
     case "scope_and_triggers":           return composeScope(plan);
     case "assessment_summary":           return composeAssessmentSummary(plan);
     case "risk_assessment_by_activity":  return composeRiskByActivity(plan);
+    case "processing_narrative":         return composeProcessingNarrative(plan);
     default:
       return null;
   }
