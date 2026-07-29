@@ -397,6 +397,15 @@ export function applyGroundedNoteScreen(
     over_threshold: replacement_rate > TUNING_THRESHOLD_RATE,
     details,
   };
+  // ITEM 258 — SPEC §6 MASS-REPLACE ABORT. Fail-loud when replacement_rate
+  // exceeds the 0.5 malfunction-scale threshold; the caller's catch surfaces
+  // this as attempt outcome "error" (same pattern as MassAbsenceRewriteAbort
+  // in the coherence screen). The 0.25 tuning-threshold flag on the
+  // telemetry above is retained UNCHANGED for lexicon-width review.
+  if (replacement_rate > GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD) {
+    throw new GroundedNoteMassReplaceAbort(telemetry);
+  }
   return { plan: { ...plan, factor_table: out }, telemetry };
 }
+
 
