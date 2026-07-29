@@ -42,7 +42,23 @@ import { CPPA_RISK_FACTORS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 
 export const PASS1_GROUNDED_NOTE_VERSION =
-  "pass1-grounded-note@2026-07-28-item243-checker-repair";
+  "pass1-grounded-note@2026-07-29-item261-observe-default";
+
+/**
+ * ITEM 261 — SPEC §6 GUARD-LIFECYCLE LAW. The screen now DEFAULTS to
+ * "observe": telemetry is built identically, but no `weight_note` is
+ * modified and the mass-replace abort does not fire. Evidence and law
+ * basis: docs/courier/ITEM261-GROUNDED-OBSERVE-DEMOTION-2026-07-29.md
+ * (observed false-positive-ish rate ~82–100% across three model runs;
+ * ungrounded tokens were ordinary derivational English — "setting",
+ * "detection", "include", "human" — whose stems/facts ARE grounded).
+ * SPEC §6: "every guard ships OBSERVE-FIRST against a regression corpus
+ * of real prior outputs; promotion to enforce requires ~zero observed
+ * false positives." The enforce path below is preserved UNCHANGED for
+ * future promotion. The LEXICON is untouched — widening it remains a
+ * CEO-reviewed courier informed by replay data.
+ */
+export type GroundedNoteMode = "observe" | "enforce";
 
 /**
  * ITEM 243 defect 1(b) — WHITELIST: the canonical "no record evidence"
@@ -313,10 +329,18 @@ export interface GroundedNoteReplacement {
 export interface GroundedNoteTelemetry {
   readonly version: string;
   readonly candidates: number;
+  /**
+   * ITEM 261 — in "enforce" mode this is the count of notes actually
+   * replaced; in "observe" mode (the default) it is the count of notes
+   * that WOULD be replaced. The field name is kept for continuity of the
+   * telemetry series across the demotion.
+   */
   readonly replacements: number;
   readonly replacement_rate: number;
   readonly tuning_threshold_rate: number;
   readonly over_threshold: boolean;
+  /** ITEM 261 — "observe" (default) reports only; "enforce" replaces + aborts. */
+  readonly mode: GroundedNoteMode;
   readonly details: readonly GroundedNoteReplacement[];
 }
 
@@ -355,7 +379,9 @@ const TUNING_THRESHOLD_RATE = 0.25;
 /** Screen the full plan; returns a new plan + telemetry. Pure. */
 export function applyGroundedNoteScreen(
   plan: RenderPlan,
+  opts?: { mode?: GroundedNoteMode },
 ): { plan: RenderPlan; telemetry: GroundedNoteTelemetry } {
+  const mode: GroundedNoteMode = opts?.mode ?? "observe";
   const set = buildGroundedSet(plan.intake_ledger ?? []);
   const details: GroundedNoteReplacement[] = [];
   let candidates = 0;
@@ -384,6 +410,9 @@ export function applyGroundedNoteScreen(
       replacement_note: replacement,
       ...(ledger_ref ? { ledger_ref } : {}),
     });
+    // ITEM 261 — observe mode records the would-replace decision but
+    // leaves the model-authored note byte-identical.
+    if (mode === "observe") return row;
     return { ...row, weight_note: replacement } as FactorTableEntry;
   });
   const replacements = details.length;
@@ -395,6 +424,7 @@ export function applyGroundedNoteScreen(
     replacement_rate,
     tuning_threshold_rate: TUNING_THRESHOLD_RATE,
     over_threshold: replacement_rate > TUNING_THRESHOLD_RATE,
+    mode,
     details,
   };
   // ITEM 258 — SPEC §6 MASS-REPLACE ABORT. Fail-loud when replacement_rate
@@ -402,7 +432,9 @@ export function applyGroundedNoteScreen(
   // this as attempt outcome "error" (same pattern as MassAbsenceRewriteAbort
   // in the coherence screen). The 0.25 tuning-threshold flag on the
   // telemetry above is retained UNCHANGED for lexicon-width review.
-  if (replacement_rate > GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD) {
+  // ITEM 261 — the abort is an ENFORCE-mode instrument only; in observe
+  // mode a high rate is data, not a malfunction signal to fail on.
+  if (mode === "enforce" && replacement_rate > GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD) {
     throw new GroundedNoteMassReplaceAbort(telemetry);
   }
   return { plan: { ...plan, factor_table: out }, telemetry };
