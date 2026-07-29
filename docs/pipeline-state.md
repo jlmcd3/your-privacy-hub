@@ -6167,3 +6167,23 @@ CHECK 4 (qc_r1_4): shipped schedule never computes a customer-specific cohort ..
 
 ok | 10 passed | 0 failed (172ms)
 ```
+
+## Item 255 — TRACK 2 / SPEC §7.1 Stage B(2): REPLAY HARNESS ENDPOINT (2026-07-29T14:53Z)
+
+**Design.** Team-unanimous four-lens record in `docs/courier/ITEM255-REPLAY-HARNESS-ENDPOINT-2026-07-29.md`. Launch authorization = SINGLE-USE JOB ROW (capability pattern, mirrors controller-inserts batch-launch law). Controller INSERTs into `public.replay_harness_jobs` (status=`queued`, `doc_ids[]`); function only runs when `GET ?run=1&job=<uuid>` names an EXISTING queued row and atomically CAS-flips it to `running` (0 rows returned ⇒ reject; prevents replay/double-fire). Hard cap 50 doc_ids/job. Per-doc failures append `harness_error:<msg>` to that doc's `hard_failures` and CONTINUE the batch (fail-loud, never silent). Fail-closed env gate: `LTP_ENFORCE_ENABLED=1` AND `ANTHROPIC_API_KEY` required — absence marks job `error` and returns HTTP 412 rather than silently running deterministic.
+
+**Files.**
+- Migration: `public.replay_harness_jobs` + `public.replay_harness_results` (both RLS enabled; `REVOKE ALL FROM anon, authenticated`; `GRANT ALL TO service_role`; single `FOR ALL TO service_role` policy per table; FK jobs→results with `ON DELETE CASCADE`; index on `results(job_id)`).
+- New function: `supabase/functions/replay-cppa-risk-harness/index.ts` (build stamp `replay-cppa-risk-harness-2026-07-29-item255`).
+- Reuses import-only: `_shared/ltp/pass1-llm.ts` (PASS1_MANIFEST), `_shared/ltp/pass2-assembler.ts` (assembleReport), `_shared/ltp/replay/{providers,substance-gates,side-by-side,presence-band,types}.ts`.
+- UNTOUCHED: `supabase/functions/run-cppa-risk-assessment/`, `supabase/_rebuild-snapshot-item244/`, every other `_shared` module, the grader.
+
+**Endpoint contract.**
+- `GET ?ping=1` → `{ ok, harness_build_stamp, pass1_manifest, mined_presence_band, env_anthropic_key_present:bool, env_ltp_enforce_enabled:bool }` (secret VALUES never echoed).
+- `GET ?run=1&job=<uuid>` → CAS + per-doc pipeline (`loadArchivedDoc` from `quality_archive.quality_run_documents_20260728` where `tool='cppa-risk'` → `modelProvider` → `assembleReport(plan, {}, {exitMode:"observe"})` → `evaluateSubstance(plan, result, defaultSubstanceGateConfig())` → `compareDoc` vs legacy `report_data` → INSERT `replay_harness_results` row {`per_doc_result`, `side_by_side`, `pass1_usage`, `assembled_report`}) → mark job `done`. Response: `{ ok, job_id, docs_processed, per_doc[{doc_id, hard_failure_count}], harness_build_stamp }`.
+
+**Verify-first read — Pass-1 usage passthrough.** `_shared/anthropic-call.ts` DOES expose per-call Anthropic usage on `AnthropicCallResult` (`inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheCreationTokens`, `stitchedChars`; see `interface AnthropicCallResult` at `_shared/anthropic-call.ts` lines ~68–86, comment "RC-A A7 — full usage exposed for callers that want it inline."). However `_shared/ltp/pass1-llm.ts` DOES NOT surface those fields through `Pass1Telemetry` (see `Pass1Telemetry` interface at `_shared/ltp/pass1-llm.ts:86–105`). Wiring the passthrough would edit `pass1-llm.ts`, out of scope this turn. `pass1_usage` therefore records attempt-level telemetry only (`{attempts, latency_ms, per_attempt_timeout_ms, attempts_detail, write_around, validator_issues, grounded_note, note:"token_usage_not_surfaced_by_runPass1Llm_2026-07-29"}`). Future optional passthrough noted in courier.
+
+**Deploy evidence.** Explicit deploy of ONLY `replay-cppa-risk-harness`; platform confirmed `Successfully deployed edge functions: replay-cppa-risk-harness` (2026-07-29T14:52Z). Deployed URL `https://tvksbtrelpzhbyeutzgp.functions.supabase.co/replay-cppa-risk-harness`. No other function deployed.
+
+**Non-invocation attestation.** NO harness invocation this turn: `?ping=1` NOT called, `?run=1` NOT called, no job row INSERTed, no Pass-1 call, no `replay_harness_results` row exists. `modelProvider` imported but never invoked. Controller invokes personally after wire verification.
