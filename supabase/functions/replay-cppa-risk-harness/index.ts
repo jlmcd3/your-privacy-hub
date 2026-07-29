@@ -69,21 +69,25 @@ async function loadArchivedDoc(
   sb: ReturnType<typeof serviceClient>,
   docId: string,
 ): Promise<ArchivedDoc | { error: string }> {
-  // Archive lives in the quality_archive schema (see presence-band.ts
-  // provenance comment). Access via PostgREST schema switch.
-  const { data, error } = await sb
-    .schema("quality_archive" as unknown as "public")
-    .from("quality_run_documents_20260728")
-    .select("id, intake_data, report_data, tool")
-    .eq("id", docId)
-    .eq("tool", "cppa-risk")
-    .maybeSingle();
-  if (error) return { error: `archive_select:${error.message}` };
-  if (!data) return { error: "archive_row_not_found" };
+  // ITEM 256: PostgREST does not expose the quality_archive schema
+  // (INTENTIONAL — the archive sits outside the app's exposed API surface).
+  // Access is via a narrow SECURITY DEFINER RPC that returns exactly one
+  // row shape and is execute-locked to service_role.
+  const { data, error } = await sb.rpc("replay_harness_fetch_doc", {
+    p_doc_id: docId,
+  });
+  if (error) return { error: `archive_rpc:${error.message}` };
+  const rows = (data ?? []) as Array<{
+    id: string;
+    intake_data: Record<string, unknown> | null;
+    report_data: Record<string, unknown> | null;
+  }>;
+  if (rows.length === 0) return { error: "archive_row_not_found" };
+  const row = rows[0];
   return {
-    id: data.id as string,
-    intake_data: (data.intake_data ?? {}) as Record<string, unknown>,
-    report_data: (data.report_data ?? null) as Record<string, unknown> | null,
+    id: row.id,
+    intake_data: (row.intake_data ?? {}) as Record<string, unknown>,
+    report_data: (row.report_data ?? null) as Record<string, unknown> | null,
   };
 }
 
