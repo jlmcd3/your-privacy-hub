@@ -11,7 +11,7 @@
  * shipped. Change-controlled: edits require a new courier from John.
  */
 
-export const PASS1_DERIVE_PROMPT_VERSION = "pass1-derive-2026-07-29-item246-incentive-redesign";
+export const PASS1_DERIVE_PROMPT_VERSION = "pass1-derive-2026-07-29-item257-factor-refs";
 
 export const PASS1_DERIVE_SYSTEM = `You are the derivation engine for a CCPA Risk Assessment (11 CCR §§ 7150-7157). You DERIVE; you never write prose. Output EXACTLY one JSON object conforming to the provided response schema (RenderPlan v1). Rules, in priority order:
 1. SOURCES. You may use ONLY: the customer intake payload; the conclusion inventory; the factor registry; the gate registry — all provided below. Nothing else exists.
