@@ -6312,6 +6312,80 @@ export type Database = {
           },
         ]
       }
+      replay_harness_jobs: {
+        Row: {
+          created_at: string
+          doc_ids: string[]
+          error: string | null
+          finished_at: string | null
+          id: string
+          notes: string | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          doc_ids: string[]
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          doc_ids?: string[]
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      replay_harness_results: {
+        Row: {
+          assembled_report: Json | null
+          created_at: string
+          doc_id: string
+          id: string
+          job_id: string | null
+          pass1_usage: Json | null
+          per_doc_result: Json
+          side_by_side: Json | null
+        }
+        Insert: {
+          assembled_report?: Json | null
+          created_at?: string
+          doc_id: string
+          id?: string
+          job_id?: string | null
+          pass1_usage?: Json | null
+          per_doc_result: Json
+          side_by_side?: Json | null
+        }
+        Update: {
+          assembled_report?: Json | null
+          created_at?: string
+          doc_id?: string
+          id?: string
+          job_id?: string | null
+          pass1_usage?: Json | null
+          per_doc_result?: Json
+          side_by_side?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "replay_harness_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "replay_harness_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_configs: {
         Row: {
           converted: boolean | null
