@@ -56,7 +56,7 @@ import {
   type GroundedNoteTelemetry,
 } from "./grounded-note.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item258-full-ledger-grounded-abort@2026-07-29";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item260-caller-attribution@2026-07-29";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
@@ -268,6 +268,7 @@ async function callPass1Model(
   user: string,
   timeoutMs: number,
   signal: AbortSignal,
+  callerName = "run-cppa-risk-assessment",
 ): Promise<{ text: string; continuationCount: number }> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("missing_ANTHROPIC_API_KEY");
@@ -277,7 +278,7 @@ async function callPass1Model(
     user,
     maxTokens: 8000,
     label: "ltp-pass1-derive",
-    callerName: "run-cppa-risk-assessment",
+    callerName,
     product: "cppa-risk-assessment",
     timeoutMs,
     abortSignal: signal,
@@ -308,7 +309,7 @@ function isAbort(e: unknown): boolean {
  */
 export async function runPass1Llm(
   input: DeriveInput,
-  opts: { maxAttempts?: number; timeoutMs?: number } = {},
+  opts: { maxAttempts?: number; timeoutMs?: number; callerName?: string } = {},
 ): Promise<Pass1Result> {
   const t0 = Date.now();
   const perAttemptTimeoutMs = Math.max(1_000, opts.timeoutMs ?? 120_000);
@@ -351,7 +352,7 @@ export async function runPass1Llm(
     let continuationCount = 0;
     try {
       const sys = typeof PASS1_DERIVE_SYSTEM === "string" ? PASS1_DERIVE_SYSTEM : JSON.stringify(PASS1_DERIVE_SYSTEM);
-      const call = await callPass1Model(sys, fillUserTemplate(input), perAttemptTimeoutMs, ctrl.signal);
+      const call = await callPass1Model(sys, fillUserTemplate(input), perAttemptTimeoutMs, ctrl.signal, opts.callerName ?? "run-cppa-risk-assessment");
       continuationCount = call.continuationCount;
       const raw = call.text;
       if (!raw) {
