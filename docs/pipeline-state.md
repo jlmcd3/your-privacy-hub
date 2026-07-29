@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T10:11Z (Item 250 — TRACK 2 Stage 5: team-unanimous rulings A (golden-shape gate location clarified — replay harness, not deterministic e2e) and B (Type-J `resolution_source_fields` scaffold wired; content values HELD in ITEM250-RULING-B courier); C1 scoping of remaining 4 grader checks blocked by transient DB outage — still NOT YET SCOPED; NOT deployed; Track-1 legacy wire untouched.)
+**Last updated:** 2026-07-29T13:57Z (Item 251 — TRACK 2 / Rider C1: CHECK 4 (qc_r1_4_cohort_determinism) wired into grader-check mirror; 4 of 7 checks now mirrored; CHECK 4 passes 3/3 by construction of Item-204 § 7121(a) three-tier schedule emitter; NOT deployed; test-only turn.)
 
 ---
 
