@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T07:58Z (Item 248 — TRACK 2 Stage 3: golden-shape gate re-run on REAL archived intake (best-document exemplar, doc 43c17b1c…); 6/9 sections meet quota, 3 shortfalls remain (assessment_summary narrative 258<300, risk_assessment_by_activity avg 167<800, next_steps 0<1); hard assert stays commented out; NOT deployed; Track-1 legacy wire untouched.)
+**Last updated:** 2026-07-29T08:48Z (Item 249 — TRACK 2 Stage 4: grader-check mirror (Rider C1), 3 of 7 checks wired in `_shared/ltp/grader-check-mirror.test.ts`; CHECK 1 (qc_r1_1) known-failing exposing composer gap; CHECK 2/3 (qc_r1_2/qc_r1_3) pass across 3 M4 + 2 M5 fixtures; 4 remaining checks NOT YET SCOPED; NOT deployed; Track-1 legacy wire untouched.)
 
 ---
 
@@ -5707,3 +5707,131 @@ swap + Item 248 header comment) and this ledger entry. Awaiting
 controller ruling on the remaining 3 shortfalls (assessment_summary
 narrative depth, risk_assessment_by_activity per-activity depth,
 next_steps composer emission).
+
+## Item 249 — TRACK 2: GRADER-CHECK MIRROR (C1), 3 of 7 checks
+
+**Timestamp:** 2026-07-29T08:48Z. Track-2 Stage 4. Code + test only. No
+deploys, no batches, no live LLM calls. `run-cppa-risk-assessment/` and
+`_rebuild-snapshot-item244/` untouched.
+
+### Scope
+
+Rider (C1) from `docs/courier/ITEM244-CONTENT-COURIER-2026-07-28.md`:
+"Mirror the grader's deterministic checks into the product e2e gate.
+Never ship a document that deterministically fails a known check." This
+turn wires 3 of the 7 cppa-risk deterministic grader checks — the
+subset for which the grader rule was pinnable from
+`quality_archive.quality_check_results_20260728` evidence without
+guessing. The other 4 are explicitly listed as NOT YET SCOPED below.
+
+New file: `supabase/functions/_shared/ltp/grader-check-mirror.test.ts`
+(version stamp `grader-check-mirror-2026-07-29-item249`).
+
+Fixture: the ClearPath Credit Solutions real archived intake from
+Item 248 (doc `43c17b1c-dbb7-467a-ad99-fc98e352cbac`), fully populated
+so CHECK 1 has an unambiguous "resolved" baseline. CHECK 2/CHECK 3
+mutate a single marker field per test on top of that baseline.
+
+### Per-check result
+
+**CHECK 1 — `qc_r1_1_no_asks_on_resolved_tests` — KNOWN FAILING.**
+Grader rule mirrored: `information_needed` asks for resolved field X
+is a failure whenever X already has a non-null/non-empty value in
+intake. Result: FAILS with a clear composer-gap message; kept in the
+suite (not `.ignore`, not deleted) per Item 236 discipline.
+
+Root cause (verified by reading the composer, not paraphrased):
+`composeInformationNeeded` (section-composers/cppa-risk.ts:788–803)
+emits one `TemplateInstance` per Type-J proposition **unconditionally**.
+Type-J propositions carry `intake_ledger_refs: []` — `derive.ts:100`
+sets `intake_ledger_refs: c.epistemic_type === "R" ? ledgerIds.slice(0, 2) : []`.
+So even if the composer wanted to cross-check "is the underlying
+intake field populated", it has **no ledger linkage** to check against.
+Observed on ClearPath fixture: 3 Type-J propositions; ledger-ref
+lengths `[0, 0, 0]`. The assertion documents the gap and lists two
+wiring options (populate Type-J `intake_ledger_refs` at derive time,
+or attach a `resolution_source_fields` field on the Type-J
+`ConclusionSpec` and skip when every listed field is populated) so
+that shipping this test green is an intentional composer decision, not
+a silent narrowing.
+
+**CHECK 2 — `qc_r1_2_spi_prong_utilization` (M4) — PASSES 3/3.**
+Grader rule mirrored: whenever M4 resolves (met, not_met, or
+not_applicable), shipped `submission_summary` MUST reference
+§ 7120(b)(2)(B). Fixtures: (a) `q15c_spi_volume="50,000 or more"` →
+resolves met; (b) `q15c_spi_volume="Fewer than 50,000"` → resolves
+not_met; (c) `q15_sensitive_pi="No"` + `q15c_spi_volume` cleared →
+resolves not_applicable. In all three the pinpoint appears verbatim
+in `submission_summary`. Grounding: `_shared/ltp/pass2-assembler.ts`
+line 384–420 builds the default `submission_summary` artifact from
+`buildDefaultSubmissionSummary(plan)` which calls
+`renderAllProngPostures` (submission-postures.ts:70–74), and the b2B
+preface (submission-postures.ts:42) always includes the § 7120(b)(2)(B)
+pinpoint regardless of outcome token.
+
+**CHECK 3 — `qc_r1_3_50pct_prong_utilization` (M5) — PASSES 2/2.**
+Same pattern for M5 → § 7120(b)(1). Fixtures:
+`q5c_share_revenue_50pct="Yes"` (met) and `="No"` (not_met). In both
+the pinpoint appears verbatim in `submission_summary`. Grounding:
+same `renderAllProngPostures` path; the b1 preface (submission-postures.ts:38–39)
+always includes the § 7120(b)(1) pinpoint via the § 1798.140(d)(1)(C)
+incorporation clause.
+
+### Contradictions to the courier's description
+
+None substantive on CHECK 2/CHECK 3 — the description matched the
+posture-builder's actual behavior. On CHECK 1 the courier's phrasing
+("asks for resolved field X") assumes the composer emits entries keyed
+to intake fields; the current composer only emits reserved-judgment
+review items (Type-J), and none of the shipped `information_needed`
+entries names an intake field at all. That does **not** trivially
+satisfy the grader — it means the mechanism the grader is checking
+against does not exist yet. The known-failing assert reflects that
+distinction rather than papering over it with a substring scan that
+would pass by coincidence.
+
+### Test run (verbatim)
+
+```
+$ deno test --allow-read --allow-env grader-check-mirror.test.ts
+running 6 tests from ./grader-check-mirror.test.ts
+CHECK 1 (qc_r1_1): information_needed makes no ask about an already-resolved intake field ... FAILED (25ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume qualifying) → submission_summary cites § 7120(b)(2)(B) ... ok (10ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume below threshold) → submission_summary cites § 7120(b)(2)(B) ... ok (8ms)
+CHECK 2 (qc_r1_2): M4 not_applicable (q15_sensitive_pi=No) → submission_summary still cites § 7120(b)(2)(B) ... ok (8ms)
+CHECK 3 (qc_r1_3): resolved M5 met (q5c=Yes) → submission_summary cites § 7120(b)(1) ... ok (7ms)
+CHECK 3 (qc_r1_3): resolved M5 not_met (q5c=No) → submission_summary cites § 7120(b)(1) ... ok (9ms)
+
+FAILED | 5 passed | 1 failed (78ms)
+```
+
+CHECK 1 failure message (verbatim, single-line collapsed):
+"GAP (qc_r1_1 mirror): Type-J propositions carry no intake_ledger_refs,
+and composeInformationNeeded emits one entry per Type-J proposition
+unconditionally. … Observed: 3 Type-J propositions; intake_ledger_refs
+lengths = [0, 0, 0]."
+
+### Remaining 4 checks — NOT YET SCOPED
+
+Per courier, these need more scoping before I'll build against them
+(no guessing at the grader rule):
+
+- `qc_r1_4_cohort_determinism`
+- `qc_r1_5_exception_fields_consumed`
+- `qc_r1_7_enhancement_placement_det`
+- `qc_ws6_1_supplemental_consumption`
+
+Wire these in a follow-up turn once the grader rule for each is
+extracted verbatim from `quality_archive.quality_check_results_20260728`
+(same evidence discipline as CHECKs 1–3).
+
+### Not deployed
+
+No `deploy_edge_functions` call. Files modified this turn:
+`supabase/functions/_shared/ltp/grader-check-mirror.test.ts` (new) and
+this ledger entry + header restamp. Live legacy path
+`supabase/functions/run-cppa-risk-assessment/` untouched;
+`supabase/_rebuild-snapshot-item244/` untouched. Awaiting controller
+ruling on CHECK 1 wiring option (Type-J `intake_ledger_refs` at derive
+time vs. `resolution_source_fields` on the Type-J `ConclusionSpec`)
+before this test can graduate to green.
