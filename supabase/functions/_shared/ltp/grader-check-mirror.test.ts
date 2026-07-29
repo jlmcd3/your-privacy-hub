@@ -1,5 +1,5 @@
 /**
- * ITEM 249/251 — TRACK 2 STAGE 4 / Rider (C1): GRADER-CHECK MIRROR.
+ * ITEM 249/251/252 — TRACK 2 STAGE 4/5/6 / Rider (C1): GRADER-CHECK MIRROR.
  *
  * Mirrors 4 of the 7 cppa-risk deterministic grader checks into the
  * product e2e gate. Per courier: "Never ship a document that
@@ -9,6 +9,13 @@
  *
  * Discipline: Item 236 law — report the true state; never weaken or
  * narrow a check to force green.
+ *
+ * CHECK 1 status (ITEM 252, CEO-signed 2026-07-29): now asserts the
+ * SIGNED Ruling-B state exactly (no longer known-failing). Row 2
+ * (`j.purpose_specificity_adequacy`) carries
+ * `resolution_source_fields: ["i1_processing_purpose"]`; Rows 1 and 3
+ * (`j.initiation_decision`, `j.safeguard_sufficiency`) intentionally
+ * carry undefined per docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md.
  *
  * CHECK 4 scoping (Item 251):
  *   Grader rule from quality_archive.quality_check_results_20260728
@@ -33,14 +40,16 @@
  *   Spec §4 mandates this design. Empirically qc_r1_4 passes 100% on
  *   runs 157–164 (0 fails).
  */
-import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assembleReport } from "./pass2-assembler.ts";
 import { derivePlan } from "./derive.ts";
-import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
+import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../legal-test/cppa-risk-conclusions.ts";
+import { composeSection } from "./section-composers/cppa-risk.ts";
 import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "./cyber-audit-schedule.ts";
 import { CUSTOMER_COHORT_PATTERNS } from "./harvest-guard.ts";
 
-export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item251";
+export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item252";
+
 
 // ---------------------------------------------------------------------------
 // FIXTURE — real archived intake (ClearPath Credit Solutions), reused from
