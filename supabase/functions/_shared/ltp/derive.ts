@@ -22,6 +22,7 @@ import type {
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 import { CPPA_RISK_FACTORS, WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { evaluateCppaRiskGates } from "./gate-eval.ts";
+import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 
 export interface DeriveInput {
   readonly intake: Record<string, unknown>;
@@ -29,22 +30,44 @@ export interface DeriveInput {
   readonly buildStamp: string;
 }
 
-const LEDGER_KEYS: readonly string[] = [
-  // Base contract fields.
-  "q1_revenue", "q2_consumers", "q18_admt_use",
-  "sell_share", "sensitive_pi", "processing_purposes",
-  "safeguards_summary", "retention_period",
-  // ITEM 237 fix (a) — Fields referenced by the T7 deterministic opening
-  // (risk-opening.ts) provenance sources. Absent from the ledger, the
-  // harvest guard rejects opening_summary with
-  // `harvest_intake_ref_not_in_plan_ledger` even though the fields are
-  // legitimate intake inputs. The ledger must carry them so the guard
-  // can verify grounding without weakening.
-  "entity_name", "q4_pi_categories", "i1_processing_purpose",
-  "q5_sell_share", "q5b_profiling_observation",
-  "i1b_min_pi", "i4_disclosure_mechanisms",
-  "bought_sold_shared_count",
-];
+/**
+ * ITEM 258 — SPEC §2 FULL-CONTRACT LEDGER (Build-Issues Issue-4 code half CLOSED).
+ *
+ * The ledger is now derived from the intake contract source of truth
+ * (`cppaRiskContract.fields[].key`) so every contract field the customer
+ * populates is grounded vocabulary for the grounded-note screen — not just
+ * the hand-typed subset previously listed here. Two exclusions apply:
+ *
+ *  (1) Dotted-leaf keys (contain "."): the parent structured key
+ *      (e.g. `impact_intake`) carries the verbatim payload; the leaves
+ *      (`impact_intake.harmTypes`, etc.) are enum-parity anchors only.
+ *
+ *  (2) PII CARVE-OUT: `i8_certifying_exec_name`, `i8_contact_email`,
+ *      `i8_contact_phone`. SPEC §2's "full contract key list" is qualified
+ *      by SPEC §4's PII law ("PII verbatim only in attestation/metadata
+ *      with post-render email/phone reject"). Ledger verbatims feed the
+ *      grounded-note ALLOWED vocabulary; including name/email/phone would
+ *      license PII into customer-facing weight_notes. Excluding these
+ *      three fields is a non-material deviation from §2's literal text in
+ *      service of §4's explicit law. `i8_certifying_exec_title` (role
+ *      title, PII-law-permitted) STAYS.
+ *
+ * The five shadow-era fossils (`sell_share`, `sensitive_pi`,
+ * `processing_purposes`, `safeguards_summary`, `retention_period`) are
+ * NOT contract keys and therefore disappear naturally — this CLOSES the
+ * code half of Build-Issues Issue 4.
+ */
+const PII_EXCLUDED_LEDGER_KEYS: ReadonlySet<string> = new Set([
+  "i8_certifying_exec_name",
+  "i8_contact_email",
+  "i8_contact_phone",
+]);
+
+const LEDGER_KEYS: readonly string[] = cppaRiskContract.fields
+  .map((f) => f.key)
+  .filter((k) => !k.includes("."))
+  .filter((k) => !PII_EXCLUDED_LEDGER_KEYS.has(k));
+
 
 export { LEDGER_KEYS };
 
