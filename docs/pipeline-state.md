@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T01:06Z (Item 245 — TRACK 1 legacy engine restored to commit 4fe2e76c1 / Item 217 build; deployed as ltp-risk-legacy-restore-item217+bss@2026-07-29T01:06:37Z with verbatim boot log; bought_sold_shared_count reader verified at risk-opening.ts:165 — no port needed; HARD STOP for controller wire-verify + confirmation smoke.)
+**Last updated:** 2026-07-29T01:49Z (Item 246 — TRACK 2 kickoff: offline code-only edit to `pass1-derive-prompt.ts` implementing SPEC §3 incentive redesign; new stamp `pass1-derive-2026-07-29-item246-incentive-redesign`; NOT deployed; Track-1 legacy wire untouched.)
 
 ---
 
@@ -5496,3 +5496,52 @@ test bodies were edited to make them pass.
 is authored and signed.
 
 Courier: `docs/courier/TRACK1-LEGACY-RESTORE-2026-07-29.md`.
+
+## Item 246 — TRACK 2 KICKOFF: MODEL CONTRACT INCENTIVE REDESIGN (SPEC §3)
+
+**Disposition:** code-only, NOT deployed. Track-1 legacy wire
+(`supabase/functions/run-cppa-risk-assessment/`) untouched;
+`supabase/_rebuild-snapshot-item244/` untouched. Single file edited:
+`supabase/functions/_shared/ltp/content/pass1-derive-prompt.ts`.
+
+**New build stamp:** `pass1-derive-2026-07-29-item246-incentive-redesign`
+(prior: `pass1-derive-2026-07-28-item244-p2p3-exemplar`).
+
+### Change 1 — rule 4 (THE BALANCE) load-bearing law added
+BEFORE (tail of rule 4): "…mandatory factors with no supporting intake
+get weight_note \"no record evidence\" — never invented support. Set
+present_in_intake truthfully."
+AFTER: "…mandatory factors with no supporting intake get weight_note
+\"no record evidence\" — never invented support. Marking a factor
+absent when the record contains supporting material is AS SERIOUS an
+error as inventing support. Your job is to FIND the record's evidence
+for each factor and cite it. Absence is reserved for genuine silence —
+do not default to it. Set present_in_intake truthfully."
+
+### Change 2 — exemplar block: presence-first pair
+BEFORE: single "Example — a well-formed factor row" using
+`safe.i.technical_controls` (present).
+AFTER: "Exemplars — well-formed factor rows (presence first)" framing
+paragraph explicitly labeling PRESENT as the proven register and ABSENT
+as the fallback ONLY on genuine silence; caveat "do not copy the field
+values into your output" preserved. PRESENT row is factor_id
+`benefit.other_stakeholders` (verbatim from run #180 / source_row_id
+23ac50b5-b9a1-4d89-b01e-b4c0d76d9ba3, telemetry path
+`report_data._meta.internal.render_plan.telemetry.grounded_note.details[].original_note`).
+ABSENT row is factor_id `benefit.public` with weight_note
+`"no record evidence"`.
+
+### Change 3 — rule 9 (GROUNDED-NOTE LAW) framing reframed
+BEFORE (opening): "Every content-bearing token in a weight_note MUST
+originate from …"
+AFTER (opening): "Write in the record's own words — the PRESENT
+exemplar above shows how: name the intake fact, use the field's
+display label, and let the closed connective vocabulary carry the
+sentence. Every content-bearing token in a weight_note MUST originate
+from …"
+Mechanical replacement mechanism, telemetry, and expression-only
+constraint preserved verbatim. Rules 1, 2, 3, 5, 6, 7, 8, the APPENDIX
+glossary, and the "Where your weight_note renders" section unchanged.
+
+**Not deployed.** No tests run. No batches launched. Awaiting Track-1
+confirmation smoke and CEO release of Track 2 build phase.
