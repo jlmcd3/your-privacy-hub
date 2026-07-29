@@ -328,11 +328,17 @@ Deno.serve(async (req) => {
   // paths still write the job row.
   const er = (globalThis as any).EdgeRuntime;
   const hasWaitUntil = typeof er?.waitUntil === "function";
-  await sb.from("replay_harness_jobs")
-    .update({
-      notes: `[bg:${hasWaitUntil ? "waitUntil" : "inline"}]`,
-    })
-    .eq("id", job.id);
+  // Append (never clobber) the background-path marker on the job row.
+  {
+    const prior = await sb.from("replay_harness_jobs")
+      .select("notes").eq("id", job.id).maybeSingle();
+    const priorNotes = (prior.data?.notes as string | null) ?? "";
+    await sb.from("replay_harness_jobs")
+      .update({
+        notes: `${priorNotes}${priorNotes ? " " : ""}[bg:${hasWaitUntil ? "waitUntil" : "inline"}]`,
+      })
+      .eq("id", job.id);
+  }
 
   const wrapped = (async () => {
     const summary: Record<string, unknown>[] = [];
