@@ -5611,3 +5611,99 @@ selected quotas on empirical richness of the current rebuild, or
 No `deploy_edge_functions` call. `run-cppa-risk-assessment/` unchanged.
 `_rebuild-snapshot-item244/` unchanged. Only test runs performed were
 against the two new files (reported above).
+
+## Item 248 — TRACK 2: GOLDEN-SHAPE GATE, REAL-INTAKE FIXTURE (2026-07-29T07:58Z)
+
+**Dispatch:** TRACK 2 — STAGE 3 (Item 248). Follow-up to Item 247's
+golden-shape assessment. Replace the thin synthetic fixture with a REAL
+archived intake — doc `43c17b1c-dbb7-467a-ad99-fc98e352cbac`
+(source_row_id `f5b607fa-fd54-4aaf-b2b2-2e08cd5fea3c`), the
+"best-document" (C-93/G-90, gpt_overall_score 90) the CPPA-risk
+implementation spec §9 names as the Target Dossier exemplar. Code +
+test only. No deploy. No batches. No live calls. Track-1 legacy
+`run-cppa-risk-assessment/` and `_rebuild-snapshot-item244/` untouched.
+
+### What shipped
+
+- **`supabase/functions/_shared/ltp/golden-shape-gate.test.ts`** —
+  rewrote `richestFixturePlan()` → `realIntakePlan()`. Embeds the
+  full 46-field real intake as a verbatim TypeScript literal (see
+  `REAL_INTAKE_248` in the file). Calls `derivePlan({ intake, ... })`
+  with `buildStamp: "golden-shape-gate@item248-real-intake"` and NO
+  hand-added `weighing_frame` / `factor_table` / `propositions`
+  overrides. The normal derive pipeline populates those from the
+  intake's own trigger signals (`q5_sell_share=Yes — share for advertising only`,
+  `q18_admt_use=Yes`, `q15_sensitive_pi=Yes`,
+  `q18b_admt_training=Yes — training ADMT for significant decisions`).
+  Then `assembleReport(plan, {}, { exitMode: "observe" })` →
+  `evaluateGoldenShape(result.report)`. Same console.log format as
+  Item 247.
+
+### Result — before / after shortfall report
+
+**Item 247 (synthetic 3-field intake + hand-added overrides): 5 shortfall keys**
+`assessment_summary` (narrative 167<300), `risk_assessment_by_activity`
+(avg 217<800), `priority_actions` (3<5 items), `next_steps` (0<1),
+`information_needed` (0<1).
+
+**Item 248 (REAL best-document intake, no overrides): 3 shortfall keys**
+
+```json
+{
+  "version": "golden-shape-quotas-cppa-risk-2026-07-28-item241-1",
+  "review_flag": true,
+  "shortfall_keys": [
+    "assessment_summary",
+    "risk_assessment_by_activity",
+    "next_steps"
+  ],
+  "sections": [
+    { "key": "executive_summary",          "kind": "scalar",         "present": true,  "chars": 242,  "items": 0,  "avg_chars_per_item": 0,   "meets_quota": true,  "shortfall_reasons": [] },
+    { "key": "assessment_summary",         "kind": "narrative_bag",  "present": true,  "chars": 258,  "items": 0,  "avg_chars_per_item": 0,   "meets_quota": false, "shortfall_reasons": ["narrative_min_chars:258<300"] },
+    { "key": "scope_and_triggers",         "kind": "list",           "present": true,  "chars": 881,  "items": 5,  "avg_chars_per_item": 176, "meets_quota": true,  "shortfall_reasons": [] },
+    { "key": "scope_confirmation",         "kind": "list",           "present": true,  "chars": 881,  "items": 5,  "avg_chars_per_item": 176, "meets_quota": true,  "shortfall_reasons": [] },
+    { "key": "risk_assessment_by_activity","kind": "list",           "present": true,  "chars": 167,  "items": 1,  "avg_chars_per_item": 167, "meets_quota": false, "shortfall_reasons": ["avg_chars_per_item:167<800"] },
+    { "key": "priority_actions",           "kind": "list",           "present": true,  "chars": 5228, "items": 6,  "avg_chars_per_item": 871, "meets_quota": true,  "shortfall_reasons": [] },
+    { "key": "next_steps",                 "kind": "list",           "present": false, "chars": 0,    "items": 0,  "avg_chars_per_item": 0,   "meets_quota": false, "shortfall_reasons": ["min_items:0<1"] },
+    { "key": "record_sufficiency",         "kind": "list",           "present": true,  "chars": 2638, "items": 17, "avg_chars_per_item": 155, "meets_quota": true,  "shortfall_reasons": [] },
+    { "key": "information_needed",         "kind": "list",           "present": true,  "chars": 694,  "items": 3,  "avg_chars_per_item": 231, "meets_quota": true,  "shortfall_reasons": [] }
+  ]
+}
+```
+
+**Movement (Item 247 → Item 248):** 5 shortfalls → 3. Newly meeting
+quota under the real intake: `scope_and_triggers` (0→5 items / 881c),
+`scope_confirmation` (0→5 items / 881c), `priority_actions`
+(3→6 items, avg 400→871c), `information_needed` (0→3 items),
+`record_sufficiency` (already passing but now 17 items / 2638c
+vs the synthetic 1 item). Persisting shortfalls sharpened rather than
+resolved: `assessment_summary` narrative closer to the 300 floor
+(167→258, gap −42), `risk_assessment_by_activity` still single-item at
+167c avg (gap unchanged in shape but now on 1 real activity rather than
+1 synthetic), `next_steps` still absent.
+
+### Hard assert: NOT enabled
+
+`shortfall_keys` is non-empty, so per Item 247/248 spec and Item 236
+law the `assertEquals(report.shortfall_keys, [])` line stays commented
+out. `CPPA_RISK_GOLDEN_QUOTAS` untouched. No synthetic content added
+to the fixture. Test file continues to run as ASSESSMENT-ONLY.
+
+### Test run
+
+```
+$ deno test --allow-all --no-check golden-shape-gate.test.ts
+running 1 test from ./golden-shape-gate.test.ts
+ITEM 248 (Task B): golden-shape gate on real-intake fixture (best-document exemplar) ... ok (36ms)
+ok | 1 passed | 0 failed (43ms)
+```
+
+### Not deployed
+
+No `deploy_edge_functions` call. `run-cppa-risk-assessment/` unchanged.
+`_rebuild-snapshot-item244/` unchanged. Only file modified this turn:
+`supabase/functions/_shared/ltp/golden-shape-gate.test.ts` (fixture
+swap + Item 248 header comment) and this ledger entry. Awaiting
+controller ruling on the remaining 3 shortfalls (assessment_summary
+narrative depth, risk_assessment_by_activity per-activity depth,
+next_steps composer emission).
