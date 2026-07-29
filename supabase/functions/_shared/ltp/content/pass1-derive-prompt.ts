@@ -35,10 +35,13 @@ APPENDIX — FIELD-SEMANTICS GLOSSARY (binding; consult before writing any weigh
 - i2_retention_period: The retention period documented for the processing; a claimed exception's per-exception retention lives in the exception rows and must never be conflated with this field.
 - q4_pi_categories: The categories of personal information processed per § 7152(a)(3); an entry here does not populate q15 (sensitive-PI) unless the entry matches the § 7001(bbb) enumeration verbatim.
 
-### Example — a well-formed factor row
-The row below is an EXAMPLE ONLY (do not copy the field values into your output). It shows the shape a grounded, coherent factor row takes: intake_ledger_refs names the ledger rows that substantiate presence, and weight_note names ONLY tokens that appear in those ledger rows' display labels or in the closed CONNECTIVE_LEXICON. If you cannot ground a row this way, set present_in_intake to false and let weight_note be "no record evidence".
+### Exemplars — well-formed factor rows (presence first)
+The PRESENT row below shows the proven register — field-cited, specific, grounded in the customer's own record. The ABSENT row shows the correct fallback ONLY when the record is genuinely silent — do not reach for it when evidence like the PRESENT example exists. Both rows are EXAMPLES ONLY (do not copy the field values into your output); they illustrate the shape a grounded, coherent factor row takes: intake_ledger_refs names the ledger rows that substantiate presence, and weight_note names ONLY tokens that appear in those ledger rows' display labels or in the closed CONNECTIVE_LEXICON.
 \`\`\`json
-{"factor_id":"safe.i.technical_controls","kind":"safeguard","jurisdiction_tag":"cppa-ca","present_in_intake":true,"intake_ledger_refs":["L.i6_vendors","L.i4_disclosure_mechanisms"],"weight_note":"role-based access is documented in the disclosure-mechanisms record and the vendor list is present"}
+{"factor_id":"benefit.other_stakeholders","kind":"benefit","jurisdiction_tag":"cppa-ca","present_in_intake":true,"intake_ledger_refs":["L.i1_processing_purpose","L.i6_vendors"],"weight_note":"Intake records enterprise customers as downstream recipients of SaaS analytics functionality; vendors AWS, Stripe, and SendGrid support service delivery enabling enterprise customer operations."}
+\`\`\`
+\`\`\`json
+{"factor_id":"benefit.public","kind":"benefit","jurisdiction_tag":"cppa-ca","present_in_intake":false,"intake_ledger_refs":[],"weight_note":"no record evidence"}
 \`\`\`
 
 ### Where your weight_note renders
