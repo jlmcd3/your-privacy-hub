@@ -26,7 +26,7 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item244-addendum";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-29-item262-value-seam";
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.
@@ -316,7 +316,7 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   // pinpoint verified as § 7152(a)(2) (minimum PI necessary); no
   // verbatim "less-intrusive alternatives" leaf exists in cppa-7152.
   const LIA_PINPOINT = "11 CCR § 7152(a)(2)";
-  const liaText = pickIntakeDisplay(plan, "i1b_min_pi");
+  const liaText = pickIntakeValue(plan, "i1b_min_pi");
   const liaLine: TemplateInstance = liaText
     ? {
         template_id: "T.risk.less_intrusive_alternatives.present",
@@ -358,14 +358,30 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
 //   T.risk.priority_action.golden and consumes exactly one deadline row
 //   via selectDeadlineOrFallback (ONE-DEADLINE-PER-ACTION LAW).
 
-function pickIntakeDisplay(plan: RenderPlan, field: string): string {
+/**
+ * ITEM 262 — VALUE/DISPLAY SEAM.
+ *
+ * Item 243 defect 1(d) redefined `IntakeLedgerEntry.display` to carry the
+ * human FIELD LABEL (grounded-note vocabulary fix). Every composer call
+ * site below consumes the intake VALUE — entity names, yes/no predicates,
+ * cohort markers, role titles, narrative clauses — so they read `.value`.
+ * The residue "On entity name's record..." (ramp-1 attempt 6, job 1f04fff5)
+ * was the observable symptom of the dual-authorship break.
+ *
+ * The former label-reading picker is REMOVED: no composer site genuinely
+ * wants the field label (see courier ITEM262 call-site table).
+ */
+function pickIntakeValue(plan: RenderPlan, field: string): string {
   const row = plan.intake_ledger.find((r) => r.intake_field === field);
-  return (row?.display ?? "").trim();
+  const v = row?.value;
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") return v.trim();
+  return String(v).trim();
 }
 
 function entityName(plan: RenderPlan): string {
-  return pickIntakeDisplay(plan, "entity_name")
-    || pickIntakeDisplay(plan, "company_name")
+  return pickIntakeValue(plan, "entity_name")
+    || pickIntakeValue(plan, "company_name")
     || "the business";
 }
 
@@ -387,11 +403,11 @@ function entityName(plan: RenderPlan): string {
  * wrong owner to Type-J and to certifying-executive gates.
  */
 function certifyingExecTitle(plan: RenderPlan): string {
-  return pickIntakeDisplay(plan, "i8_certifying_exec_title") || "the certifying executive";
+  return pickIntakeValue(plan, "i8_certifying_exec_title") || "the certifying executive";
 }
 
 function contributorRoleTitles(plan: RenderPlan): string {
-  const raw = pickIntakeDisplay(plan, "i7_internal_contributors");
+  const raw = pickIntakeValue(plan, "i7_internal_contributors");
   if (!raw) return "";
   // Role-titles-only guard: drop tokens that look like names / contact
   // handles (defect 6 PII invariant). Retain segments that read as role
@@ -450,8 +466,8 @@ function propAdmtApplicable(p: Proposition, plan: RenderPlan): boolean {
  * defaulting every non-ADMT action to `d.ongoing_processing`.
  */
 function cohortIsProspective(plan: RenderPlan): boolean {
-  const start = pickIntakeDisplay(plan, "processing_start_date");
-  const cohort = pickIntakeDisplay(plan, "cohort_effective_date");
+  const start = pickIntakeValue(plan, "processing_start_date");
+  const cohort = pickIntakeValue(plan, "cohort_effective_date");
   // If the record explicitly names a prospective start date after the
   // operative period, prospective wins; otherwise the record is treated
   // as pre-existing processing (§ 7155(b) applies).
@@ -700,7 +716,7 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const jLabels = jProps.map(propLabel).filter(Boolean);
   const jPinpoints = Array.from(new Set(jProps.map((p) => p.anchor.pinpoint)));
   const sufficient = !insufficientRecord(plan);
-  const asOf = pickIntakeDisplay(plan, "assessment_date") || new Date().toISOString().slice(0, 10);
+  const asOf = pickIntakeValue(plan, "assessment_date") || new Date().toISOString().slice(0, 10);
   // ITEM 244 (L5) — Affirmations block opener. Adequately-documented
   // items lead; gaps trail. Emitted BEFORE the legacy prose so the
   // customer reads the affirmative posture first.
@@ -732,9 +748,9 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   // appended when q18=No AND q5b affirmative (record shows profiling
   // without ADMT-use). The clause distinguishes ADMT governance from
   // systematic-observation profiling; sourced from ADMT_INAPPLICABILITY_EXPLANATION.
-  const q18No = /^(no|false)$/i.test(String(pickIntakeDisplay(plan, "q18_admt_use") || ""));
-  const q5bAffirmative = /^(yes|true)$/i.test(String(pickIntakeDisplay(plan, "q5b_profiling") || ""))
-    || /^(yes|true)$/i.test(String(pickIntakeDisplay(plan, "q5b_sensitive_categories") || ""));
+  const q18No = /^(no|false)$/i.test(String(pickIntakeValue(plan, "q18_admt_use") || ""));
+  const q5bAffirmative = /^(yes|true)$/i.test(String(pickIntakeValue(plan, "q5b_profiling") || ""))
+    || /^(yes|true)$/i.test(String(pickIntakeValue(plan, "q5b_sensitive_categories") || ""));
   const admtExplanation: TemplateInstance[] = (q18No && q5bAffirmative)
     ? [{
         template_id: "T.risk.record_sufficiency.item",
@@ -921,8 +937,8 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     template_id: "T.risk.section_opener.scope",
     ctx: {
       entity_name: entityName(plan),
-      q4_pi_categories: pickIntakeDisplay(plan, "q4_pi_categories") || "personal information",
-      i1_processing_purpose: pickIntakeDisplay(plan, "i1_processing_purpose") || "its stated business purposes",
+      q4_pi_categories: pickIntakeValue(plan, "q4_pi_categories") || "personal information",
+      i1_processing_purpose: pickIntakeValue(plan, "i1_processing_purpose") || "its stated business purposes",
       prong_list_with_individual_pinpoints: prongList || "the § 7150(b) triggers enumerated below",
     },
   };
@@ -941,11 +957,11 @@ function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
   // Correction 1: silent sub-elements resolve to "not stated on the record".
   const nsotr = "not stated on the record";
-  const pick = (field: string) => pickIntakeDisplay(plan, field) || nsotr;
+  const pick = (field: string) => pickIntakeValue(plan, field) || nsotr;
   const engaged = engagedApplicability(plan);
   const activityLabel = engaged.length > 0
     ? engaged.map(propLabel).filter(Boolean).join(", ")
-    : (pickIntakeDisplay(plan, "i1_processing_purpose") || "the processing activity in scope");
+    : (pickIntakeValue(plan, "i1_processing_purpose") || "the processing activity in scope");
   return [{
     template_id: "T.risk.processing_narrative",
     ctx: {
