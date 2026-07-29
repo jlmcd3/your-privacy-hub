@@ -257,7 +257,7 @@ export function applySingleWriterInjection(
     propositions: boundProps,
     weighing_frame: guide.frame,
   };
-  return { plan, empty_by_finding: guide.empty_by_finding };
+  return { plan, empty_by_finding: guide.empty_by_finding, factor_ref_drops };
 }
 
 
