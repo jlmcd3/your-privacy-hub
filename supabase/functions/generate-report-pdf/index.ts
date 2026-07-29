@@ -9,6 +9,7 @@ import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
 import {
   coerceNarrativeScalar,
   coerceNarrativeList,
+  headerForSection,
 } from "../_shared/report-contracts/cppa-risk-shape.ts";
 
 const supabase = createClient(
@@ -1200,8 +1201,14 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const generatedDate = new Date(record?.created_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
-  const listSection = (title: string, items?: readonly string[]) =>
-    items && items.length ? `<section><h2>${text(title)}</h2>${items.map((s) => `<div class="card">${para(s)}</div>`).join("")}</section>` : "";
+  // ITEM 244 (E3) — customer-first section headers sourced from
+  // CPPA_RISK_HEADER_MAP (single source of truth shared with composers).
+  const listSection = (sectionKey: string, fallbackTitle: string, items?: readonly string[]) =>
+    items && items.length
+      ? `<section><h2>${text(headerForSection(sectionKey, fallbackTitle))}</h2>${items.map((s) => `<div class="card">${para(s)}</div>`).join("")}</section>`
+      : "";
+  // Processing Narrative (L1) — new customer-facing section.
+  const processingNarrative = coerceNarrativeList((report as Record<string, unknown>).processing_narrative);
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; }
@@ -1231,23 +1238,24 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   <div class="body">
     <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
     ${opening ? `<section><div class="opening">${para(opening)}</div></section>` : ""}
-    ${exec ? `<section><h2>Executive Summary</h2>${para(exec)}</section>` : ""}
-    ${(summaryNarr || summary.company_name || summary.assessment_date || summary.overall_risk_level) ? `<section><h2>Assessment Summary</h2>
+    ${exec ? `<section><h2>${text(headerForSection("executive_summary", "Executive Summary"))}</h2>${para(exec)}</section>` : ""}
+    ${(summaryNarr || summary.company_name || summary.assessment_date || summary.overall_risk_level) ? `<section><h2>${text(headerForSection("assessment_summary", "Assessment Summary"))}</h2>
       ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
       ${summary.assessment_date ? `<p><span class="label">Assessment date:</span> ${text(summary.assessment_date)}</p>` : ""}
       ${summary.overall_risk_level ? `<p><span class="label">Overall risk level:</span> ${text(summary.overall_risk_level)}</p>` : ""}
       ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status)}</p>` : ""}
       ${summaryNarr ? para(summaryNarr) : ""}
     </section>` : ""}
-    ${listSection("Scope & Triggers", scopeTrig || scopeConf)}
-    ${listSection("Risk Assessment by Activity", activityPara)}
-    ${listSection("Exception Analysis", exceptions)}
-    ${listSection("Priority Actions", priority)}
-    ${listSection("Next Steps", nextSteps)}
-    ${listSection("What Would Strengthen the Record", strengthen)}
-    ${listSection("Items for Your Review", infoNeeded)}
-    ${listSection("Record Sufficiency", recordSuf)}
-    ${submission ? `<section><h2>Submission Summary</h2>${para(submission)}</section>` : ""}
+    ${listSection("scope_and_triggers", "Scope & Triggers", scopeTrig || scopeConf)}
+    ${listSection("processing_narrative", "How the business processes personal information", processingNarrative)}
+    ${listSection("risk_assessment_by_activity", "Risk Assessment by Activity", activityPara)}
+    ${listSection("exception_analysis", "Exception Analysis", exceptions)}
+    ${listSection("priority_actions", "Priority Actions", priority)}
+    ${listSection("next_steps", "Next Steps", nextSteps)}
+    ${listSection("strengthen_items", "What Would Strengthen the Record", strengthen)}
+    ${listSection("information_needed", "Items for Your Review", infoNeeded)}
+    ${listSection("record_sufficiency", "Record Sufficiency", recordSuf)}
+    ${submission ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>` : ""}
     <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>
   </div>
