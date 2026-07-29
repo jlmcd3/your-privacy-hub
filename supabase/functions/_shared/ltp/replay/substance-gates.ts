@@ -29,7 +29,14 @@ export interface SubstanceEvaluation {
 export function presenceRate(
   plan: RenderPlan,
   cfg?: SubstanceGateConfig,
-): { rate: number; present: number; total: number; failure?: string } {
+): {
+  rate: number;
+  present: number;
+  total: number;
+  failure?: string;
+  review_band_low?: boolean;
+  review_band_high?: boolean;
+} {
   const total = plan.factor_table.length;
   const present = plan.factor_table.filter((f) => f.present_in_intake).length;
   const rate = total === 0 ? 0 : present / total;
@@ -37,7 +44,20 @@ export function presenceRate(
   if (cfg?.min_presence_rate !== undefined && rate < cfg.min_presence_rate) {
     failure = `presence_rate:${rate.toFixed(3)}<${cfg.min_presence_rate}`;
   }
-  return { rate, present, total, failure };
+  // Item 254 — advisory band flags. Only meaningful once we're at/above
+  // the hard floor; a rate below the floor is already a hard failure and
+  // the low-band flag is redundant noise there.
+  let review_band_low: boolean | undefined;
+  let review_band_high: boolean | undefined;
+  if (cfg?.review_low !== undefined || cfg?.review_high !== undefined) {
+    const atOrAboveFloor =
+      cfg?.min_presence_rate === undefined || rate >= cfg.min_presence_rate;
+    review_band_low =
+      atOrAboveFloor && cfg?.review_low !== undefined && rate < cfg.review_low;
+    review_band_high =
+      cfg?.review_high !== undefined && rate > cfg.review_high;
+  }
+  return { rate, present, total, failure, review_band_low, review_band_high };
 }
 
 /**
@@ -152,6 +172,12 @@ export function evaluateSubstance(
       factors_with_ledger_refs: ns.factors_with_ledger_refs,
       note_token_diversity: ns.note_token_diversity,
       action_kind_diversity_ok: ad.ok,
+      ...(pr.review_band_low !== undefined
+        ? { review_band_low: pr.review_band_low }
+        : {}),
+      ...(pr.review_band_high !== undefined
+        ? { review_band_high: pr.review_band_high }
+        : {}),
       golden_shape: {
         review_flag: gs.review_flag,
         shortfall_keys: gs.shortfall_keys,

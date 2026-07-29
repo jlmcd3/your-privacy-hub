@@ -37,6 +37,14 @@ export interface SubstanceMetrics {
   readonly factors_with_ledger_refs: number;
   readonly note_token_diversity: number;
   readonly action_kind_diversity_ok: boolean;
+  /**
+   * Item 254 — set true when a review band is configured and
+   * `presence_rate` falls below `review_low` (still at/above the hard
+   * floor). Advisory only; never contributes to `hard_failures`.
+   */
+  readonly review_band_low?: boolean;
+  /** Item 254 — set true when `presence_rate` exceeds `review_high`. */
+  readonly review_band_high?: boolean;
   readonly golden_shape: {
     readonly review_flag: boolean;
     readonly shortfall_keys: readonly string[];
@@ -94,8 +102,15 @@ export interface AggregateReport {
 }
 
 export interface SubstanceGateConfig {
-  /** From Stage B archive-mining. Stage A has no default value. */
+  /** From Stage B archive-mining. Stage A had no default value. */
   readonly min_presence_rate?: number;
+  /**
+   * Item 254 — advisory band. Rates in `[review_low, review_high]` are
+   * "in-band"; rates outside (but at/above `min_presence_rate`) set
+   * `review_band_low`/`review_band_high` metric flags. Never hard-fail.
+   */
+  readonly review_low?: number;
+  readonly review_high?: number;
 }
 
 export interface ReplayRunConfig {

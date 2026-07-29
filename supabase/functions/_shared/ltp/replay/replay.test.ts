@@ -23,7 +23,9 @@ import {
 } from "./providers.ts";
 import { runReplayBatch, runReplayDoc } from "./runner.ts";
 import { compareDoc } from "./side-by-side.ts";
-import type { ReplayDoc } from "./types.ts";
+import { defaultSubstanceGateConfig, MINED_PRESENCE_BAND } from "./presence-band.ts";
+import type { Pass1Provider, ReplayDoc } from "./types.ts";
+import type { DeriveInput } from "../derive.ts";
 
 _modelProviderCallCount_reset();
 
@@ -157,6 +159,106 @@ Deno.test("side-by-side compareDoc returns deltas and tolerates a missing legacy
   assertEquals(typeof row.deltas.review_flag_delta, "number");
   assertEquals(typeof row.deltas.shortfall_delta, "number");
 });
+
+/**
+ * Item 254 — presence-band tests.
+ *
+ * Build hand-constructed plans by wrapping deterministicProvider and
+ * flipping `present_in_intake` on the first N of 16 factor_table rows.
+ * The mutated provider drives runReplayDoc through the real substance
+ * gates; only the band-relevant metric flags + hard-failure presence
+ * are asserted (note-specificity / golden-shape failures may still
+ * fire — they are unrelated to this rider).
+ */
+function nPresentProvider(n: number): Pass1Provider {
+  return async (input: DeriveInput) => {
+    const base = await deterministicProvider(input);
+    const flipped = base.plan.factor_table.map((f, i) =>
+      i < n ? {
+        ...f,
+        present_in_intake: true,
+        intake_ledger_refs: ["l.q1_revenue"],
+        weight_note: `synthetic presence marker for factor ${f.factor_id}`,
+      } : f
+    );
+    return {
+      ...base,
+      plan: { ...base.plan, factor_table: flipped },
+    };
+  };
+}
+
+const BAND_DOC: ReplayDoc = { doc_id: "band-fixture", intake_data: REAL_INTAKE };
+
+Deno.test("Item 254: 9/16 present → passes hard floor, sits IN review band, no band flags", async () => {
+  const r = await runReplayDoc(
+    BAND_DOC,
+    nPresentProvider(9),
+    DETERMINISTIC_PROVIDER_KIND,
+    { substance: defaultSubstanceGateConfig() },
+  );
+  assertStrictEquals(r.substance.present_factor_count, 9);
+  assertStrictEquals(r.substance.presence_rate, 9 / 16);
+  assert(
+    r.substance.presence_rate >= MINED_PRESENCE_BAND.review_low &&
+      r.substance.presence_rate <= MINED_PRESENCE_BAND.review_high,
+    `9/16 must sit inside review band [${MINED_PRESENCE_BAND.review_low}, ${MINED_PRESENCE_BAND.review_high}]`,
+  );
+  assertStrictEquals(r.substance.review_band_low, false);
+  assertStrictEquals(r.substance.review_band_high, false);
+  assert(
+    !r.hard_failures.some((f) => f.startsWith("presence_rate:")),
+    `no presence_rate hard failure expected; observed: ${JSON.stringify(r.hard_failures)}`,
+  );
+});
+
+Deno.test("Item 254: 0/16 present (collapse class — item243 4-doc footprint) → presence_rate hard failure under default config", async () => {
+  const r = await runReplayDoc(
+    BAND_DOC,
+    deterministicProvider, // deterministic path pins present_in_intake:false → 0/16
+    DETERMINISTIC_PROVIDER_KIND,
+    { substance: defaultSubstanceGateConfig() },
+  );
+  assertStrictEquals(r.substance.presence_rate, 0);
+  const presenceHardFailures = r.hard_failures.filter((f) =>
+    f.startsWith("presence_rate:")
+  );
+  assertEquals(
+    presenceHardFailures.length,
+    1,
+    `hollow collapse class MUST trip the hard floor; observed hard_failures: ${
+      JSON.stringify(r.hard_failures)
+    }`,
+  );
+  assertEquals(
+    presenceHardFailures[0],
+    `presence_rate:0.000<${MINED_PRESENCE_BAND.hard_floor}`,
+  );
+});
+
+Deno.test("Item 254: 5/16 present (0.3125) → passes hard floor, flags review_band_low, no presence hard failure", async () => {
+  const r = await runReplayDoc(
+    BAND_DOC,
+    nPresentProvider(5),
+    DETERMINISTIC_PROVIDER_KIND,
+    { substance: defaultSubstanceGateConfig() },
+  );
+  assertStrictEquals(r.substance.presence_rate, 5 / 16);
+  assert(
+    r.substance.presence_rate >= MINED_PRESENCE_BAND.hard_floor,
+    `5/16 must clear hard floor ${MINED_PRESENCE_BAND.hard_floor}`,
+  );
+  assertStrictEquals(r.substance.review_band_low, true);
+  assertStrictEquals(r.substance.review_band_high, false);
+  assert(
+    !r.hard_failures.some((f) => f.startsWith("presence_rate:")),
+    `review_band_low is advisory only; must NOT surface as hard failure. Observed: ${
+      JSON.stringify(r.hard_failures)
+    }`,
+  );
+});
+
+
 
 Deno.test("STATIC ASSERTION — modelProvider was never invoked during Stage A suite", () => {
   // NOTE: this test must remain LAST in file order so it observes the
