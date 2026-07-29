@@ -143,3 +143,72 @@ per-doc result. Batch continues.
 - No `replay_harness_results` row exists.
 
 The controller invokes personally after wire verification per dispatch.
+
+---
+
+## ITEM 256 addendum — archive access via narrow SECURITY DEFINER RPC (2026-07-29T14:58Z)
+
+### Evidence (controller-verified, job `43683e59-4902-4a92-8f24-544daf53d3e7`)
+
+Ramp-1 run failed fail-loud with per-doc
+`harness_error:archive_select:Invalid schema: quality_archive`. PostgREST
+does not expose the `quality_archive` schema (INTENTIONAL — archive
+isolation from the app's exposed API surface). The `.schema("quality_archive")`
+call in `loadArchivedDoc` can never work. Exposing the schema is REJECTED.
+`per_doc_result` recorded the error, 0 LLM calls, $0 spent, job marked
+`done`, legacy wire untouched.
+
+### Team-unanimous fix — four-lens record
+
+- **CS lens**: single-purpose RPC. No generic SQL surface. One row shape,
+  one filter (`tool = 'cppa-risk'`), one input (`p_doc_id uuid`).
+- **Privacy lens**: archive isolation preserved — the `quality_archive`
+  schema stays unexposed at the API layer; only the one shape reachable
+  via the RPC is available, and only to `service_role`.
+- **Prompt lens**: n/a — no prompt changes.
+- **Prose lens**: n/a — no customer prose.
+
+### Migration (verbatim)
+
+```sql
+CREATE OR REPLACE FUNCTION public.replay_harness_fetch_doc(p_doc_id uuid)
+RETURNS TABLE (id uuid, intake_data jsonb, report_data jsonb)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = quality_archive, public
+AS $$
+  SELECT id, intake_data, report_data
+  FROM quality_archive.quality_run_documents_20260728
+  WHERE id = p_doc_id AND tool = 'cppa-risk'
+$$;
+
+REVOKE ALL ON FUNCTION public.replay_harness_fetch_doc(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.replay_harness_fetch_doc(uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.replay_harness_fetch_doc(uuid) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
+```
+
+### Function edit
+
+`supabase/functions/replay-cppa-risk-harness/index.ts::loadArchivedDoc`
+now calls `sb.rpc("replay_harness_fetch_doc", { p_doc_id: docId })` and
+maps the returned rows: empty → `"archive_row_not_found"`; error →
+`"archive_rpc:<msg>"`. No other function changes.
+
+`HARNESS_BUILD_STAMP` bumped to
+`replay-cppa-risk-harness-2026-07-29-item256`.
+
+### Deploy record
+
+- Explicit deploy of ONLY `replay-cppa-risk-harness`:
+  `Successfully deployed edge functions: replay-cppa-risk-harness`
+  (2026-07-29T14:58Z).
+- No other function deployed. `run-cppa-risk-assessment`, the
+  `_rebuild-snapshot-item244/` snapshot, and `_shared/` modules untouched.
+
+### Non-invocation attestation (ramp-1 failure + this turn)
+
+- Ramp-1 attempt (`43683e59-…`): 0 LLM calls, $0 spent. All per-doc
+  results failed at `loadArchivedDoc` before `modelProvider` was reached.
+- This turn: controller did NOT call `?ping=1` or `?run=1`. No new job
+  row was INSERTed. Controller re-runs personally after wire verification.
