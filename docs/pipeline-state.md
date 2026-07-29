@@ -5944,3 +5944,70 @@ No `deploy_edge_functions` call. Files modified this turn:
 
 Live legacy path `supabase/functions/run-cppa-risk-assessment/`
 untouched; `supabase/_rebuild-snapshot-item244/` untouched.
+
+## Item 251 — TRACK 2 / Rider C1: CHECK 4 (qc_r1_4_cohort_determinism) wired
+
+**Scope.** Test-only turn. Wired CHECK 4 (qc_r1_4_cohort_determinism) into
+the grader-check mirror. 4 of 7 cppa-risk deterministic grader checks now
+mirrored; not-yet-scoped list reduced to `qc_r1_5_exception_fields_consumed`,
+`qc_r1_7_enhancement_placement_det`, `qc_ws6_1_supplemental_consumption`.
+
+**Scoping evidence.** Grader rule from
+`quality_archive.quality_check_results_20260728` (check_id
+`qc_r1_4_cohort_determinism`; 48 fails across runs 71–156). Distinct
+verbatim evidence strings:
+- "resolved band $25M to under $50M requires § 7121(a) cohort April 1, 2030 (ISO or long form) in submission_summary; not stated"
+- "resolved band $50M to $100M requires § 7121(a) cohort April 1, 2029 ... not stated"
+- "legacy/absent revenue band requires both April 1, 2029 and April 1, 2030 cohort dates (ISO or long form); found 2029=true 2030=false"
+- "legacy/absent revenue band requires indeterminate two-cohort treatment; not present"
+- "resolved cohort April 1, 2029 is hedged near the cite window" (also 2030 variant).
+
+Item-204 CEO ruling (Defect B, 2026-07-27) retired customer-cohort
+computation: `_shared/ltp/cyber-audit-schedule.ts` now emits the full
+three-tier § 7121(a) schedule (SCHEDULE_LITERALS tier1/2/3 = April 1,
+2028 / 2029 / 2030, corpus-pinned) with tier determination reserved to
+customer + counsel — identical output for resolved AND indeterminate
+bands. Spec §4 mandates exactly this design. Empirically qc_r1_4 passes
+100% on runs 157–164 (0 fails). The harvest guard already rejects
+artifacts missing SCHEDULE_MARKER, missing any tier deadline, or matching
+CUSTOMER_COHORT_PATTERNS.
+
+**Edits.**
+- `supabase/functions/_shared/ltp/harvest-guard.ts` — exported
+  `CUSTOMER_COHORT_PATTERNS` (one-line export authorized as part of this
+  turn; no behavior change).
+- `supabase/functions/_shared/ltp/grader-check-mirror.test.ts` — added
+  imports (`SCHEDULE_MARKER`, `SCHEDULE_LITERALS`, `CUSTOMER_COHORT_PATTERNS`);
+  added CHECK 4 section with three tests using the existing
+  `submissionSummaryText()` helper and `REAL_INTAKE` fixture; bumped
+  `GRADER_CHECK_MIRROR_VERSION` to `grader-check-mirror-2026-07-29-item251`;
+  file header updated (4 of 7 checks wired; qc_r1_4 removed from not-yet-scoped).
+
+**Test output (verbatim; `deno test _shared/ltp/grader-check-mirror.test.ts`).**
+```
+running 9 tests from ./_shared/ltp/grader-check-mirror.test.ts
+CHECK 1 (qc_r1_1): information_needed makes no ask about an already-resolved intake field ... FAILED (33ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume qualifying) → submission_summary cites § 7120(b)(2)(B) ... ok (13ms)
+CHECK 2 (qc_r1_2): resolved M4 (SPI volume below threshold) → submission_summary cites § 7120(b)(2)(B) ... ok (8ms)
+CHECK 2 (qc_r1_2): M4 not_applicable (q15_sensitive_pi=No) → submission_summary still cites § 7120(b)(2)(B) ... ok (8ms)
+CHECK 3 (qc_r1_3): resolved M5 met (q5c=Yes) → submission_summary cites § 7120(b)(1) ... ok (7ms)
+CHECK 3 (qc_r1_3): resolved M5 not_met (q5c=No) → submission_summary cites § 7120(b)(1) ... ok (9ms)
+CHECK 4 (qc_r1_4): resolved revenue band → full § 7121(a) schedule in submission_summary ... ok (7ms)
+CHECK 4 (qc_r1_4): absent revenue band → indeterminate two-cohort treatment subsumed by full schedule ... ok (4ms)
+CHECK 4 (qc_r1_4): shipped schedule never computes a customer-specific cohort ... ok (8ms)
+
+ERRORS
+
+CHECK 1 (qc_r1_1): information_needed makes no ask about an already-resolved intake field => ./_shared/ltp/grader-check-mirror.test.ts:90:6
+error: AssertionError: scaffold wired (Item 250); resolution_source_fields not yet populated — HELD pending CEO sign-off on docs/courier/ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS-2026-07-29.md. Observed: 3 Type-J ConclusionSpec rows; 0 carry resolution_source_fields.
+
+FAILED | 8 passed | 1 failed (106ms)
+```
+
+**Findings.** CHECK 4 passes 3/3 by construction of the Item-204 § 7121(a)
+three-tier schedule emitter (as predicted; runs 157–164 already show 0
+fails empirically). CHECK 1 continues to fail by design (Ruling B HELD;
+not touched). CHECKs 2–3 pass.
+
+**Not deployed.** Test-file + one-line export edit only. `run-cppa-risk-assessment`
+untouched; no batches, no live calls, no DB writes.
