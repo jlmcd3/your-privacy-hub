@@ -2,21 +2,21 @@
  * ITEM 247 — TRACK 2 STAGE 2 / TASK B: GOLDEN-SHAPE GATE ASSESSMENT.
  * ITEM 248 — TRACK 2 STAGE 3: REAL-INTAKE FIXTURE.
  *
- * Spec §6: "quotas are review-flags in production, hard asserts in the
- * e2e gate." This file runs a REAL archived intake (doc
- * 43c17b1c-dbb7-467a-ad99-fc98e352cbac, source_row_id
- * f5b607fa-fd54-4aaf-b2b2-2e08cd5fea3c — the spec §9 Target Dossier
- * exemplar, C-93/G-90, gpt_overall_score 90) through derivePlan +
- * assembleReport, then calls evaluateGoldenShape on the shipped body.
+ * ITEM 250 (Ruling A, team-unanimous 2026-07-29) — LOCATION CLARIFIED.
+ * Spec §6's "hard asserts in the e2e gate" obligation is reinterpreted
+ * as "hard asserts once real MODEL-authored plans are available" — i.e.
+ * the §7 replay harness, NOT the deterministic e2e suite. Content-
+ * density quotas measure model-authored richness, which the
+ * deterministic derivePlan() path structurally cannot produce
+ * (pickFactorTable pins present_in_intake:false by design). This file
+ * therefore serves as pre-replay ASSESSMENT / TELEMETRY, not a release
+ * gate. See docs/courier/ITEM250-RULING-A-GOLDEN-SHAPE-GATE-LOCATION-2026-07-29.md
+ * for the four-panel reasoning and disposition. Do NOT convert the
+ * commented hard assert into a release blocker here; it belongs on the
+ * replay harness when that harness lands.
  *
- * Per Item 248: no hand-added weighing_frame/factor_table/propositions
- * overrides. The real intake's trigger signals (q5_sell_share=Yes,
- * q18_admt_use=Yes, q15_sensitive_pi=Yes, q18b_admt_training=Yes) must
- * engage gates/propositions naturally through the normal derive pipeline.
- *
- * The hard assert stays commented out unless the real-intake pass
- * produces zero shortfalls. Item 236 law: never weaken CPPA_RISK_GOLDEN_QUOTAS,
- * never pad the fixture to force a green.
+ * The hard assert stays commented out; Item 236 law still binds:
+ * never weaken CPPA_RISK_GOLDEN_QUOTAS, never pad the fixture.
  */
 import { assembleReport } from "./pass2-assembler.ts";
 import { derivePlan } from "./derive.ts";
