@@ -44,11 +44,11 @@ The row below is an EXAMPLE ONLY (do not copy the field values into your output)
 ### Where your weight_note renders
 Every weight_note you author is customer-facing prose. It renders inline inside the record_sufficiency panel (when present_in_intake is true) and inside strengthen_items (when the factor is present but thin). The customer reads it exactly as you write it, next to the § 7152(a) pinpoint. Do not write internal reasoning, do not name yourself or the model, do not use meta-phrases ("the record indicates that we could not verify"). Write a single, tight prose clause that a customer's counsel can read out loud without editing.
 
-Return ONLY the JSON object.\`;
+Return ONLY the JSON object.`;
 
 /**
  * USER template placeholders (the caller substitutes these before invocation).
- * Kept as a template string with `${...}` sigils to be filled at call site with
+ * Kept as a template string with sigils to be filled at call site with
  * JSON.stringify() output for each input.
  */
 export const PASS1_DERIVE_USER_TEMPLATE = `INTAKE:

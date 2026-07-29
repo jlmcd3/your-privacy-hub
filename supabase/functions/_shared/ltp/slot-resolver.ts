@@ -95,6 +95,23 @@ export interface SlotContext {
   //    This is the per-proposition binding seam that ends the "everything
   //    cites § 7150(b)(1)" class (global-first-binding fallback).
   readonly __cite?: Readonly<Record<string, string>>;
+  // ITEM 244 (L1/L3/L5) — passthrough slots for processing narrative,
+  // less-intrusive alternatives, and record-sufficiency affirmations.
+  readonly i1b_min_pi_clause?: string;
+  readonly affirmed_count_clause?: string;
+  readonly gap_count_clause?: string;
+  readonly pi_categories_clause?: string;
+  readonly sources_clause?: string;
+  readonly i1_processing_purpose_clause?: string;
+  readonly i6_vendors_clause?: string;
+  readonly i4_disclosure_mechanisms_clause?: string;
+  readonly i2_retention_period_clause?: string;
+  readonly i2_retention_criteria_clause?: string;
+  readonly i2_deletion_clause?: string;
+  // ITEM 244 (E1) v2 posture slots.
+  readonly engaged_prong_label?: string;
+  readonly engaged_prong_posture_clause?: string;
+  readonly non_engaged_prongs_inline?: string;
 }
 
 

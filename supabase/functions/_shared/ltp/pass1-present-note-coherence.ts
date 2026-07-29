@@ -20,7 +20,30 @@
  */
 import type { FactorTableEntry, RenderPlan } from "../render-plan/schema.ts";
 
-export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item243-present-requires-refs";
+export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item244-addendum-mass-absence-abort";
+
+/**
+ * BATCH 55b9f3a2 ADDENDUM (b) — MASS-ABSENCE GUARD.
+ *
+ * If the coherence screen rewrites more than MASS_ABSENCE_ABORT_THRESHOLD
+ * of factor rows to absent+"no record evidence", the rule is misfiring
+ * or the model dropped evidence en masse (evidence: three-doc batch
+ * 55b9f3a2 rewrite ≥ 0.9 across every doc). Mass rewrite is never a
+ * shippable state — the screener aborts fail-loud and the assembler
+ * routes the run to the Type-J write-around body.
+ */
+export const MASS_ABSENCE_ABORT_THRESHOLD = 0.5;
+
+export class MassAbsenceRewriteAbort extends Error {
+  readonly rewrite_rate: number;
+  readonly rewrites: readonly CoherenceRewrite[];
+  constructor(rewrite_rate: number, rewrites: readonly CoherenceRewrite[]) {
+    super(`[pass1-coherence] mass-absence rewrite_rate=${rewrite_rate.toFixed(3)} exceeds ${MASS_ABSENCE_ABORT_THRESHOLD}`);
+    this.rewrite_rate = rewrite_rate;
+    this.rewrites = rewrites;
+    this.name = "MassAbsenceRewriteAbort";
+  }
+}
 
 export interface CoherenceRewrite {
   readonly factor_id: string;
@@ -113,8 +136,14 @@ export function screenPresentNoteCoherence(
 }
 
 
-/** Convenience: screen a whole plan and return a new plan + rewrites. */
-export function applyCoherenceScreen(plan: RenderPlan): { plan: RenderPlan; rewrites: CoherenceRewrite[] } {
+/** Convenience: screen a whole plan and return a new plan + rewrites.
+ *  Throws MassAbsenceRewriteAbort when rewrite_rate exceeds threshold. */
+export function applyCoherenceScreen(plan: RenderPlan): { plan: RenderPlan; rewrites: CoherenceRewrite[]; rewrite_rate: number } {
   const { factor_table, rewrites } = screenPresentNoteCoherence(plan.factor_table);
-  return { plan: { ...plan, factor_table }, rewrites };
+  const denom = plan.factor_table.length || 1;
+  const rewrite_rate = rewrites.length / denom;
+  if (rewrite_rate > MASS_ABSENCE_ABORT_THRESHOLD) {
+    throw new MassAbsenceRewriteAbort(rewrite_rate, rewrites);
+  }
+  return { plan: { ...plan, factor_table }, rewrites, rewrite_rate };
 }

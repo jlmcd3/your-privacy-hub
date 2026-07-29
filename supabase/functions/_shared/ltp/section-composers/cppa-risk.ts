@@ -26,7 +26,16 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item244-wired";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-28-item244-addendum";
+
+/**
+ * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.
+ * Verbatim clause emitted in record_sufficiency when q18_admt_use is
+ * negative AND q5b_profiling is affirmative, distinguishing ADMT-use
+ * from systematic-observation profiling.
+ */
+export const ADMT_INAPPLICABILITY_EXPLANATION =
+  "ADMT-specific governance is inapplicable because the record states no ADMT is in use; the profiling activity is assessed under the § 7150(b)(4) trigger and its own safeguards.";
 
 /**
  * ITEM 242 CP-B FINAL — CEO-ratified per-KIND opener stems.
@@ -162,10 +171,21 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   return negatives > 0 && negatives > benefits;
 };
 
+/**
+ * BATCH 55b9f3a2 ADDENDUM (c) — BALANCE-SUBSTANCE RULE.
+ * A firm benefits-outweigh conclusion REQUIRES ≥1 present benefit on
+ * the record. Zero present benefits → balance renders reserved/
+ * insufficient; the exec-summary never asserts an outweigh over an
+ * empty benefit column. Evidence: doc 2e697bf1's state.
+ */
+const anyPresentBenefit = (plan: RenderPlan): boolean =>
+  plan.factor_table.some((f) => f.kind === "benefit" && f.present_in_intake);
+
 type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
 function aggregateBalance(plan: RenderPlan): BalanceMode {
   if (insufficientRecord(plan)) return "insufficient";
   if (anyImpactsOutweigh(plan)) return "negative";
+  if (!anyPresentBenefit(plan)) return "insufficient";
   const closeness = computeCloseness(plan, plan.weighing_frame);
   return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
 }
@@ -708,6 +728,22 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       gap_count_clause: `${gapCount}`,
     },
   };
+  // BATCH 55b9f3a2 ADDENDUM (e) — ADMT-inapplicability explanation is
+  // appended when q18=No AND q5b affirmative (record shows profiling
+  // without ADMT-use). The clause distinguishes ADMT governance from
+  // systematic-observation profiling; sourced from ADMT_INAPPLICABILITY_EXPLANATION.
+  const q18No = /^(no|false)$/i.test(String(pickIntakeDisplay(plan, "q18_admt_use") || ""));
+  const q5bAffirmative = /^(yes|true)$/i.test(String(pickIntakeDisplay(plan, "q5b_profiling") || ""))
+    || /^(yes|true)$/i.test(String(pickIntakeDisplay(plan, "q5b_sensitive_categories") || ""));
+  const admtExplanation: TemplateInstance[] = (q18No && q5bAffirmative)
+    ? [{
+        template_id: "T.risk.record_sufficiency.item",
+        ctx: {
+          element_label: "ADMT-specific governance",
+          element_status_clause: ADMT_INAPPLICABILITY_EXPLANATION,
+        },
+      }]
+    : [];
   const prose: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose",
     ctx: {
@@ -744,7 +780,7 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       __cite: { PINPOINT: f.anchor.pinpoint },
     },
   }));
-  return [affirmationsOpener, prose, ...items];
+  return [affirmationsOpener, ...admtExplanation, prose, ...items];
 }
 
 
