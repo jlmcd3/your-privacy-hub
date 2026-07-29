@@ -56,7 +56,7 @@ import {
   type GroundedNoteTelemetry,
 } from "./grounded-note.ts";
 
-export const PASS1_LLM_STAMP = "ltp-pass1-llm-item242-bc-rider-grounded-note@2026-07-28";
+export const PASS1_LLM_STAMP = "ltp-pass1-llm-item257-factor-refs-conformance@2026-07-29";
 export const PASS1_MODEL = "claude-sonnet-4-6";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
