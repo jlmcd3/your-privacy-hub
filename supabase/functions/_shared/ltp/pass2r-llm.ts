@@ -135,10 +135,29 @@ export interface Pass2rContext {
   readonly deadline_literals?: readonly string[];
 }
 
+/**
+ * ITEM 287 FIX 6 — per-attempt rejection record, persisted alongside the
+ * rejected prose so observe-mode calibration questions (e.g. the
+ * verdict_consistency ["Low","Moderate"] class) can be adjudicated with the
+ * prose in hand.
+ */
+export interface Pass2rAttemptRejection {
+  readonly attempt: number;
+  readonly validators: readonly string[];
+  readonly codes: readonly string[];
+}
+
 export interface Pass2rResult {
   readonly prose: Pass2rProseDocument | null;
   readonly validation: Pass2rValidationResult | null;
   readonly telemetry: Pass2rTelemetry;
+  /**
+   * ITEM 287 FIX 6 — the FINAL attempt's prose when every attempt was
+   * validator-rejected. OBSERVE-MODE CALIBRATION ONLY: this never reaches a
+   * shipped surface; it is keyed `prose_rejected` everywhere it is persisted.
+   */
+  readonly prose_rejected?: Pass2rProseDocument | null;
+  readonly attempt_rejections?: readonly Pass2rAttemptRejection[];
 }
 
 // ---------------------------------------------------------------------
