@@ -281,6 +281,7 @@ function properNounCandidates(text: string): string[] {
       if (ENTITY_STOPWORDS.has(bare)) continue;
       if (isNonEntityToken(bare)) continue; // ITEM 285: suffix / generic category term
       if (/^[A-Z]{2,6}$/.test(bare)) continue; // acronyms handled by the register rule
+      if (acronymDerivedStem(bare)) continue; // ITEM 287 FIX 2: "ADMT's", "ADMT-related"
       out.push(bare);
     }
   }
