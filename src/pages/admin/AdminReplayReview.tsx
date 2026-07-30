@@ -17,6 +17,20 @@ import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
 
 const ACCEPTANCE_NOTE_PREFIXES = ["Acceptance-40", "Ramp step 1, attempt 9"];
 
+/**
+ * ITEM 274 — page-boundary adapter. Unwraps a `{ report_data: … }` record if
+ * one is handed in, so the viewer always receives the bare report body it
+ * contracts for. Never fork the component to accommodate a page's shape.
+ */
+export function toViewerReport(value: any): any {
+  if (!value || typeof value !== "object") return {};
+  if (!Array.isArray(value) && value.report_data && typeof value.report_data === "object") {
+    return value.report_data;
+  }
+  return value;
+}
+
+
 type Row = {
   id: string;
   doc_id: string;
