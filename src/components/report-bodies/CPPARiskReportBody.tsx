@@ -11,7 +11,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
 import RiskAssessmentReportLTP from "@/components/cppa/RiskAssessmentReportLTP";
-import { isLtpRiskShape } from "@/lib/cppa-risk-shape";
+import { describeCppaRiskShape } from "@/lib/cppa-risk-shape";
 
 
 const riskColor = (r: string) => {
