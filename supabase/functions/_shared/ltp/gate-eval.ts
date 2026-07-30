@@ -37,7 +37,7 @@ const FIELD_ALIASES: Readonly<Record<string, readonly string[]>> = {
   q_sells_or_shares: ["q5_sell_share"],
   q_processes_sensitive_pi: ["q15_sensitive_pi"],
   q_sensitive_pi_carveout: ["q17_sensitive_basis"],
-  q_extensive_profiling: ["q5b_profiling_observation"],
+  q5b_profiling_observation: ["q_extensive_profiling"],
   q_trains_admt: ["q18b_admt_training"],
   q_admt_significant_decision: ["q19_admt_description"],
   pi_categories: ["q4_pi_categories"],

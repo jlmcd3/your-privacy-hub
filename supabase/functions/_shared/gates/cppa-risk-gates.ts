@@ -49,7 +49,7 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
       "q_sells_or_shares",
       "q_processes_sensitive_pi",
       "q18_admt_use",
-      "q_extensive_profiling",
+      "q5b_profiling_observation",
       "q_trains_admt",
     ],
     on_block: "substitute_neutral",
