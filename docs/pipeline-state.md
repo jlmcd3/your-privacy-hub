@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T22:36Z (Item 293 — /admin/replay-review batch-selection fix: the hardcoded Acceptance-40 / Ramp-9 note pin is deleted; the page now lists ALL harness jobs newest-first with a batch dropdown defaulting to CLEAN RUN batch 4. Frontend-only; no backend pin existed.)
+**Last updated:** 2026-07-30T23:12Z (Item 294 — /admin/replay-review layout + robustness: documents table first with the jobs table collapsed below, `[bg:…]` label hygiene, inline fail-visible banners. STANDING PUBLISH LAW recorded: every frontend-affecting turn ends with a production publish.)
 
 ---
 
@@ -7036,3 +7036,21 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Diff: `src/pages/admin/AdminReplayReview.tsx`, `src/test/item293-replay-review-batches.test.ts`, the courier, and this ledger. No backend file in the diff.
 
 **Disposition:** FIXED. The CEO read now opens on CLEAN RUN batch 4.
+
+---
+
+## Item 294 — /ADMIN/REPLAY-REVIEW LAYOUT + ROBUSTNESS (2026-07-30T23:12Z)
+
+**Authority:** CEO screenshot report 2026-07-30. Frontend-only; no backend change, no edge-function deploy, no harness invocation, no DPA files.
+
+**FIXES (all in `src/pages/admin/AdminReplayReview.tsx`).** (a) REORDER — the summary line and the DOCUMENTS table (with the Actions column: `View report` / `Download PDF`) now render directly under the batch dropdown; the 20-row jobs table moved BELOW the documents table and is collapsed by default behind a `Show jobs (N)` toggle. (b) LABEL HYGIENE — new exported `stripBgMarker()` removes a trailing `[bg:…]` harness bookkeeping marker; `jobLabel()` applies it and `batchLabels()` groups through `jobLabel`, so display and grouping share the stripped label and the marker can never split a batch. (c) FAIL-VISIBLE — a results-query error sets `rowsError` and renders an inline `role="alert"` banner with the message plus a platform-incident retry note (not toast-only); a failed `generate-report-pdf` invoke now reports that the PDF service may be temporarily unavailable (platform incident) and to retry. (d) Per-row `View report` / `Download PDF` behaviour and the `ProtectedRoute` + `AdminOnly` gate are otherwise UNCHANGED.
+
+**TESTS.** `src/test/item294-replay-review-layout.test.tsx` — 4 passed (label-stripping pin; grouping equality with/without the marker; render-order pin with jobs collapsed by default; inline error-banner render on results failure). `src/test/item293-replay-review-batches.test.ts` re-run, 5 passed. `tsgo --noEmit -p tsconfig.app.json` clean. No previously passing test fails; tolerated inventory per Items 287/290 unchanged.
+
+**STANDING PUBLISH LAW (recorded here, binding from this item forward).** EVERY FRONTEND-AFFECTING TURN ENDS WITH A PRODUCTION PUBLISH. Root cause of record: the Item-293 fix was invisible to the CEO because production was never published — controller root-caused this from the live bundle hashes. A frontend turn is not DONE until the publish completes.
+
+**COURIER.** `docs/courier/ITEM294-REPLAY-REVIEW-LAYOUT-2026-07-30.md`.
+
+**DOUBLE-CHECK.** Diff: `src/pages/admin/AdminReplayReview.tsx`, `src/test/item294-replay-review-layout.test.tsx`, the courier, and this ledger. No backend file in the diff.
+
+**Disposition:** FIXED + PUBLISHED.
