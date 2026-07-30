@@ -536,6 +536,9 @@ export async function runProsePassStage(
       : deterministicReport,
     shipped_surface: enforceShips ? "2R" : "deterministic",
     prose: result.prose,
+    // ITEM 287 FIX 6 — passthrough only; never merged into shipped_report.
+    prose_rejected: result.prose_rejected ?? null,
+    attempt_rejections: result.attempt_rejections ?? [],
     telemetry: {
       ...result.telemetry,
       shipped_surface: enforceShips ? "2R" : "deterministic",
