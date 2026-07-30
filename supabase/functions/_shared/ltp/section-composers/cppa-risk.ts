@@ -281,20 +281,36 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
       },
     };
   }
-  const direction = mode === "negative"
-    ? BALANCE_DIRECTION_CLAUSES[1]
-    : BALANCE_DIRECTION_CLAUSES[0];
+  // ITEM 273 FIX 3 — BALANCE-VERDICT GUARD (interim, Issue 10).
+  // CEO-read finding 2: the "negative" mode derives from CATEGORY COUNTING
+  // (anyImpactsOutweigh) but was rendered as a FIRM affirmative weighing
+  // verdict — a § 7154 exposure. Until the §2R weighted-weighing design
+  // lands, a count-driven negative may NOT assert that the negative
+  // impacts outweigh the benefits. It routes to the reserved
+  // does-not-support framing instead, so BALANCE_DIRECTION_CLAUSES[1] is
+  // UNREACHABLE from this composer.
+  if (mode === "negative") {
+    return {
+      template_id: "T.risk.summary.docs",
+      ctx: {
+        docs_completion_clause:
+          "records negative impacts that the documented benefits and safeguards do not, on this record, support a benefits-outweigh conclusion against; the weighing is reserved to the customer and qualified legal counsel and the record does not yet complete",
+        __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+      },
+    };
+  }
   return {
     template_id: "T.risk.balance.firm",
     ctx: {
       benefit_summary_tokens,
       negative_summary_tokens,
       safeguard_summary_tokens,
-      balance_direction_clause: direction,
+      balance_direction_clause: BALANCE_DIRECTION_CLAUSES[0],
       __cite: baseCite,
     },
   };
 }
+
 
 function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
   if (insufficientRecord(plan)) {
