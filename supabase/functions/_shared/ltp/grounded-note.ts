@@ -186,7 +186,41 @@ export const CONNECTIVE_LEXICON: readonly string[] = [
   "purpose", "stated-purpose", "for-the-stated-purpose-of",
   // canonical field labels used as analytic terms
   "record", "records", "intake", "assessment",
+  // ── ITEM 267 PART 3(b) — EVIDENCE-MINED ADDITIONS (2026-07-30) ──
+  // Every token below was observed in the accumulated grounded-note
+  // telemetry (public.replay_harness_results → pass1_usage->grounded_note
+  // ->details[]->ungrounded_tokens) AND is ordinary function / analytic /
+  // record-descriptive English. Customer-specific nouns (vendor, product,
+  // sector terms) are DELIBERATELY EXCLUDED — those must ground via the
+  // intake ledger. Frequencies are recorded in
+  // docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md.
+  "type", "types", "service", "services", "support", "supports", "supported",
+  "via", "limited", "limits", "recipient", "recipients", "receive",
+  "receiving", "creating", "create", "commercial", "covering", "cover",
+  "field", "fields", "operation", "operations", "outside", "active",
+  "context", "enabling", "enable", "enables", "surface", "downstream",
+  "logical", "shared", "sold", "appeal", "cause", "direct", "include",
+  "including", "integrity", "percent", "request", "requests", "affect",
+  "among", "apply", "applied", "area", "bear", "bears", "bearing",
+  "conditioning", "conditioned", "conditions", "dependent", "detection",
+  "detect", "driving", "eliminating", "eliminate", "exposure", "finding",
+  "framing", "generating", "generate", "ongoing", "pathway", "pathways",
+  "profiling", "raising", "reducing", "reduces", "required", "residual",
+  "setting", "their", "though", "who", "across", "addresses", "address",
+  "analysis", "available", "average", "beyond", "completed", "consideration",
+  "correction", "degree", "deployment", "destruction", "determines",
+  "disclosed", "distress", "evidencing", "exceeding", "exceeds", "exception",
+  "expectations", "expected", "extends", "factor", "freely", "frustration",
+  "fully", "handle", "hold", "human", "indicating", "infers", "infrastructure",
+  "markets", "meets", "mitigate", "mitigating", "mitigants", "modification",
+  "negatively", "output", "outputs", "part", "parties", "persistent",
+  "potential", "prevention", "prior", "produce", "products", "prominent",
+  "question", "reflecting", "reflects", "relevance", "represent", "role",
+  "satisfy", "scrutiny", "self", "stigma", "stigmatizing", "systemic",
+  "third", "tied", "unlawful", "unreviewed", "used", "vendors", "warrants",
+  "ways", "window", "minimum", "necessary", "legal", "obligation",
 ];
+
 
 /** Registry vocabulary — display labels + fixed factor/gate/law shorthand. */
 const REGISTRY_VOCAB_TOKENS: readonly string[] = (() => {
