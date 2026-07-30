@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T22:20Z (Item 291 — EU CORPUS GAP ANALYSIS, docs-only: full GDPR already ingested (99 EU arts / 81 UK arts / 173 recitals / 893 EDPB excerpts, all hashed) — the gap is REGISTRY WIRING, not ingestion; two P0 truncation defects found (`gdpr-art-34` −69 chars, `gdpr-art-22` −25); only member-state deadlines, UK Arts. 22/44 and an optional CJEU row need new ingestion. AWAITING CEO REVIEW of the inventory before any spend.)
+**Last updated:** 2026-07-30T22:27Z (Item 292 — CLEAN-RUN BATCH 4 RESULT: 20/20 persisted, GTM 0 release / 20 release_with_logged_defects / 0 block — acceptance bar MET; Item-290 single-key fix eliminated all duplication blocks. CEO read open at /admin/replay-review. Awaiting CEO read and rejected-prose adjudication queue.)
 
 ---
 
