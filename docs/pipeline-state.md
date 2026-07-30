@@ -6751,3 +6751,37 @@ The SPEC-TEMPLATE dispatch of 2026-07-30 was **STOPPED by the CEO mid-execution*
 - **PROSE.** No register consequence until prose exists; this fix is what lets prose exist.
 
 **Courier:** `docs/courier/ITEM281-PASS2R-CLOCK-FIX-2026-07-30.md`.
+
+---
+
+## Item 282 — WAVE 1 S0: `cppa-cyber` PRE-MIGRATION AUDIT (docs-only; 2026-07-30T10:16Z)
+
+**Authority:** CEO fleet-rebuild directive 2026-07-30; Product Rebuild Plan v1.0 §3 S0 / §6.1 / §7.2. **DOCS-ONLY** — no code change, no deploy, no harness invocation, no migration, no DB write. Subject build: `run-cppa-cybersecurity` `BUILD_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z"` (`index.ts:15`). Full record: `docs/courier/ITEM282-CPPA-CYBER-S0-AUDIT-2026-07-30.md`.
+
+**THE 15-ITEM AUDIT.**
+
+| # | Item | Finding | file:line / query | Disposition |
+|---|---|---|---|---|
+| 1 | Architecture class | Monolithic: two controls halves + one synthesis call; NOT LTP (no Pass-1/Pass-2 seam, no composers) | `index.ts:625`, `:971`, `:977-986` | MIGRATE (full port) |
+| 2 | Output shape | `{ executive_summary, overall_score, readiness_level, controls[18], top_risks[], enforcement_context, next_steps[≤3], annotations[] }` | `index.ts:977-986` | CARRY FORWARD |
+| 3 | Clock budget | Single `AbortSignal.timeout(900_000)`; no per-attempt budget, no stage ceiling, no reserve | `index.ts:231` | DEFECT (pre-existing) — fix at port |
+| 4 | Retry structure | One 1.5× max-token retry per call + post-lint surgical half re-run; ad hoc | `index.ts:639`, `:666`, `:989-1052` | REPLACE at port |
+| 5 | Leak prevention | P1 emit-gate + P2 serializer both pre-`terminal_complete`; `cppa_cybersecurity` registered | `index.ts:1865`, `:1877`, `:1891`; `_shared/emit-gate.ts:36` | COMPLIANT |
+| 6 | Dispatch | `EdgeRuntime.waitUntil` + 202, persist-first | `index.ts:1930`, `:1968` | COMPLIANT |
+| 7 | Ping / surface map | ABSENT — no declared-vs-actual manifest assertion | boot log `index.ts:16` only | DEFECT — add at port (§7.2) |
+| 8 | RLS / entitlement | owner-ALL + admin SELECT + service_role ALL, GRANTs present, billing cols trigger-locked; generator runs service-role with NO in-function ownership re-check | `pg_policies`; `20260606133328_*.sql:1-2`; `20260711024739_*.sql:68-70`; `index.ts:181`, `:1860` | ACCEPTED-WITH-NOTE |
+| 9 | § 7120(b) operands | Intake collects `{profile:{entity_name,industry,incidents_12mo,framework,last_audit}, controls[18]}` — **no revenue band, no 250k consumers/households count, no 50k sensitive-PI count**; applicability is prose caveat only | `_shared/intake-contracts/cppa-cybersecurity.ts:1-50`; `index.ts:118`, `:557`; corpus `cppa-7120` | **BLOCKING** for rebuild S1 |
+| 10 | Person-list / PII | No person-list loops; only per-control `notes` free text; `next_steps[].owner` is a function, not a person | `index.ts:755`, `:144` | LOW — apply Item-273 sanitizer at port |
+| 11 | Harvested law | `cyber-audit-schedule.ts` § 7121(a) phase-in literals (Apr 1 2028/2029/2030) — harvest class, stated law, no computation | `_shared/ltp/cyber-audit-schedule.ts:25-34` | REUSE AS-IS |
+| 12 | Quality baseline | 143 docs; mean **85.47**, min 63.0, max **94.70**; ≥90 = 40, 80-89 = 76, 70-79 = 23, <70 = 3 | `quality_run_documents` (cyber family) | BASELINE PINNED |
+| 13 | Failed-finding classes | `rubric_generic_boilerplate` 139F/93P (0.611); `rubric_actionability` 111F/90P (0.562); `rubric_citation_misapplied` **high** 80F/109P (0.396); `rubric_unsupported_business_claim` **high** 78F/85P (0.473); `ql2:cppa-cyber` 64F/0P (1.000); `rubric_internal_reasoning_leak` 7F/111P + 5F/20P; `e6_counsel_referral` 4F/2P (0.750) | `quality_check_results` (cyber family) | TARGET SET |
+| 14 | Loop-2 recurring defects | 9 rows, avg 95.7-98.2, all drafting-class: (i) truncated Segmentation citation ("lists segmentation … **at** and") missing `§ 7123(c)(10)`, ×4; (ii) § 7122(g) five-year retention with no anchor; (iii) § 7121(a) cohort keyed to *2026* revenue on a 2026 run date (temporal incoherence); (iv) Cal. Civ. Code § 1798.91.04(b) scope misstated / "connected" dropped | `quality_loop2_results` (9 rows: `6efe1922`, `a87d3feb`, `95d59776`, `a230405b`, `50add936`, `867da557`, `b4c79387`, `8a808f2a`, `8915dc35`) | PINS for rebuild; (iii) = port `era-normalize.ts` (Item 269) |
+| 15 | Hardcoded date claim | Viewer opens with fixed red banner "Compliance deadline: April 1, 2028" for every report regardless of cohort — the generator prompt forbids exactly this | `src/components/cppa/CybersecurityReportBody.tsx:33-40`; prompt `index.ts:114` | DEFECT (customer-facing) — same root cause as item 9 |
+
+**SEAM-17 (generator → suite PDF → viewer): NOT AT PARITY.** Two exporter-side divergences in `generate-cppa-suite-pdf` `renderCyber` (`:125-167`): (1) `controls[].evidence` / `.differentiator` / `.rank` — the QB-P25 designed reader-facing record — are **not rendered** in the PDF though present on screen; (2) `next_steps` is rendered as `<li>${esc(s)}</li>` at `:164` while the generator emits objects `{ text, owner, trigger }`, so the PDF prints `[object Object]` — **customer-visible, high**; the sibling `renderRisk` guards this at `:120`, `renderCyber` does not. The on-screen viewer binds the same long keys and handles the object form correctly (`CybersecurityReportBody.tsx:347-352`), so the viewer is right and the exporter is wrong — the Item-274 divergence class, recurring in cyber. Third, benign asymmetry: the viewer reads `report.citation_ledger` (`:23`) which the assembly block never emits. Nothing fixed this turn (docs-only).
+
+**CORPUS CHECK (§§ 7120-7124).** Present and `approved`: `cppa-7120` (1,075 chars, verified 2026-07-25T10:32Z), `cppa-7121` (1,718 chars, same). **ABSENT: `cppa-7122`, `cppa-7123`, `cppa-7124`.** The engine's entire substantive spine — § 7123(c)'s 18 components, § 7122's audit conduct and five-year retention, § 7124's executive certification — is unpinned and model-supplied, which mechanically explains the `rubric_citation_misapplied` class (item 13) and the truncated `§ 7123(c)(10)` defect (item 14(i)). **Verbatim ingestion of §§ 7122-7124 (Item-268 treatment) is a REQUIRED PREDECESSOR to the cyber LTP port.**
+
+**BLOCKING PREDECESSORS:** (a) corpus ingestion §§ 7122-7124; (b) § 7120(b) threshold operands added to intake (unblocks item 15 too). **FIX-AT-PORT:** clock budgets, retry structure, ping surface, era-normalizer, owner-slot sanitizer. **BAR TO BEAT:** mean 85.47 / max 94.70 over 143 docs.
+
+**Courier:** `docs/courier/ITEM282-CPPA-CYBER-S0-AUDIT-2026-07-30.md`.
