@@ -219,6 +219,7 @@ async function processDoc(
       sideBySide,
       pass1Usage,
       assembledReport: assembled.report as Record<string, unknown>,
+      plan: p1.plan,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -247,6 +248,44 @@ async function processDoc(
       sideBySide: null,
       pass1Usage: { error: msg },
       assembledReport: null,
+      plan: null,
+    };
+  }
+}
+
+/**
+ * ITEM 287 FIX 5 / FIX 6 — PASS-2R OBSERVE PHASE.
+ * Runs strictly AFTER the deterministic result row has been persisted
+ * (§2R.1 order of operations + the fleet's PERSIST-FIRST law). Never throws;
+ * the rejected prose is carried under `prose_rejected` and never reaches any
+ * shipped surface.
+ */
+async function runProseObserve(
+  plan: unknown,
+  assembledReport: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  try {
+    const stage = await runProsePassStage(
+      plan as never,
+      assembledReport,
+      { enabled: true, callerName: "replay-cppa-risk-harness" },
+    );
+    return {
+      telemetry: stage.telemetry,
+      prose: stage.prose,
+      prose_rejected: stage.prose_rejected ?? null,
+      attempt_rejections: stage.attempt_rejections ?? [],
+      shipped_surface: stage.shipped_surface,
+      ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
+    };
+  } catch (e) {
+    return {
+      telemetry: null,
+      prose: null,
+      prose_rejected: null,
+      attempt_rejections: [],
+      shipped_surface: "deterministic",
+      skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
     };
   }
 }
