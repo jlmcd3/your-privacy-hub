@@ -35,13 +35,15 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7156(a)", label: "Comparable set of processing activities" },
       { citation: "11 CCR § 7155(a)(3)", label: "Update on material change (45 days)" },
     ],
-    coachLead: "Name one activity, and say what it does with the information.",
+    coachLead:
+      "Name one processing activity, not a product line or a department. Say what data you handle, whose data it is, and what you use it for. If you would need the word \u201Cand\u201D to join two different purposes, you are naming two activities.",
     coachBody:
       "The name fixes the subject of the record; the one-sentence description states the operation performed on personal information. Timing is part of the standard: the assessment belongs before the processing starts.",
     goodAnswer:
-      "\u201CIn-store birthday mailing\u201D \u2014 \u201CWe use names, addresses, and birthdays collected on paper forms to mail a coupon during each child\u2019s birth month.\u201D The name is the activity; the sentence is the operation.",
+      "\u201CLoyalty birthday coupon mailing\u201D \u2014 \u201CFernbrook Grocers mails a paper coupon to loyalty members using the name, mailing address, and birth month they gave at sign-up, so the coupon arrives in their birthday month.\u201D That is one activity: specific data, specific people, one purpose. \u201CMarketing\u201D or \u201Cthe loyalty program\u201D would not be.",
     commonMistake:
       "Describing the business benefit (\u201Cimproves retention\u201D) instead of the processing. The record needs the operation performed on personal information.",
+
   },
 
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
