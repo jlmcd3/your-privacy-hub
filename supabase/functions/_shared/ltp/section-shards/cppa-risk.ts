@@ -503,9 +503,24 @@ export function shardKeys(): readonly string[] {
   return CPPA_RISK_SECTION_SHARDS.map((s) => s.key);
 }
 
+/**
+ * ITEM 290 — keys the P2 serializer whitelist still carries for LEGACY
+ * (Track-1) rows but that Track-2 no longer emits. `scope_confirmation` is
+ * retired from LTP emission (single-key scope emission, CEO ruling
+ * 2026-07-30) while the production Track-1 engine still emits the legacy
+ * OBJECT shape read by src/pages/CPPARiskAssessmentResult.tsx:328,
+ * src/pages/CPPASuiteResult.tsx:66 and
+ * supabase/functions/generate-cppa-suite-pdf/index.ts:59. The registry view
+ * of the schema therefore excludes it.
+ */
+export const CPPA_RISK_LEGACY_ONLY_KEYS: readonly string[] = ["scope_confirmation"];
+
 export function schemaTopLevelKeys(): readonly string[] {
-  return CPPA_RISK_REPORT_SCHEMA.topLevel;
+  return CPPA_RISK_REPORT_SCHEMA.topLevel.filter(
+    (k) => !CPPA_RISK_LEGACY_ONLY_KEYS.includes(k),
+  );
 }
+
 
 /**
  * Compare registry keys against the report-schema top-level allow-list.
