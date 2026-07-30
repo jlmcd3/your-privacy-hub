@@ -423,7 +423,7 @@ function renderHarvestSection(
     // (single source of truth on the Pass-2 side).
     const artifact: SubmissionHarvestArtifact = harvest.submission_summary ?? {
       text: buildDefaultSubmissionSummary(plan),
-      stamp: "cyber-audit-schedule+postures@assembler-default",
+      stamp: "submission-retention+cyber-audit-schedule+postures@assembler-default",
     };
     const d = evaluateSubmissionHarvest(artifact, plan);
     if (!d.accepted) {
