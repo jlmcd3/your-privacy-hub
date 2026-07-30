@@ -325,6 +325,8 @@ export function validateNumericDateWhitelist(
   wl: Pass2rWhitelist,
 ): Pass2rValidatorOutcome {
   const haystack = wl.numerics.map(norm).join(" | ");
+  // ITEM 287 FIX 1 — endpoints of plan-carried ranges are plan-carried values.
+  const endpoints = carriedNumericEndpoints(wl.numerics);
   const text = maskCitations(norm(proseOf(doc)));
   const bad: string[] = [];
 
@@ -334,6 +336,7 @@ export function validateNumericDateWhitelist(
   for (const n of text.match(NUMERIC_RE) ?? []) {
     if (haystack.includes(n)) continue;
     if (haystack.includes(n.replace(/,/g, ""))) continue;
+    if (endpoints.has(numKey(n))) continue;
     if (!bad.includes(n)) bad.push(n);
   }
 
