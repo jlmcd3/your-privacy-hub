@@ -21,7 +21,8 @@
  */
 
 export const GTM_MATERIALITY_REGISTER_VERSION =
-  "gtm-materiality-v1.1-2026-07-30-RATIFIED";
+  "gtm-materiality-v1.2-2026-07-30";
+
 
 
 export type Materiality = "material" | "non_material";
