@@ -11,7 +11,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
 import RiskAssessmentReportLTP from "@/components/cppa/RiskAssessmentReportLTP";
-import { isLtpRiskShape } from "@/lib/cppa-risk-shape";
+import { describeCppaRiskShape } from "@/lib/cppa-risk-shape";
 
 
 const riskColor = (r: string) => {
@@ -30,13 +30,45 @@ export interface CPPARiskReportBodyProps {
 
 export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskReportBodyProps) {
   // ITEM 274 — LTP shape wins the dispatch; V3/V4 remain for legacy rows.
-  const isLtp = isLtpRiskShape(report);
-  const isV3 = !isLtp && !!(report?.schema_version === "v3-part-a-part-b" && report?.part_a);
-  const isV4 = !isLtp && !isV3 && isV4Report(report);
+  // ITEM 279 / ISSUE 12 — an unrecognized shape fails LOUD, never blank.
+  const shapeResult = describeCppaRiskShape(report, isV4Report);
+  const isLtp = shapeResult.shape === "ltp";
+  const isV3 = shapeResult.shape === "v3";
+  const isV4 = shapeResult.shape === "v4";
+
+  if (!shapeResult.recognized) {
+    // eslint-disable-next-line no-console
+    console.error(
+      "[CPPARiskReportBody] Unrecognized report shape — viewer cannot render this payload.",
+      shapeResult,
+    );
+    return (
+      <div className="space-y-6 font-serif-text">
+        <section
+          role="alert"
+          data-testid="cppa-risk-unrecognized-shape"
+          className="rounded-lg border-l-4 border-destructive bg-destructive/10 p-6"
+        >
+          <h2 className="font-serif mb-2">This report's format is not recognized by the viewer</h2>
+          <p className="text-sm mb-2">
+            We could not display this assessment because its stored format does not match any
+            renderer this viewer supports. Nothing is wrong with your data — the report is safe.
+          </p>
+          <p className="text-sm mb-2">
+            Report id: <strong>{shapeResult.reportId ?? "unavailable"}</strong>
+          </p>
+          <p className="text-sm">
+            Please contact support with this report id and we will restore the document for you.
+          </p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 font-serif-text">
       {!isLtp && !isV4 && (
+
         <section className="bg-slate-900 text-white rounded-lg p-8">
           <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
           {createdAt && (

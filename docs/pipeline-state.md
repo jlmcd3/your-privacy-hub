@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T08:52Z (Item 277 — Redesign Step 3 drafting turn: spec amendment §2R "Bounded Prose Pass (Pass-2R)" instantiated in `docs/CPPA-RISK-IMPLEMENTATION-SPEC-v1.md` plus the signed prose contract; docs only, no `.ts` change, no deploy, no harness invocation.)
+**Last updated:** 2026-07-30T09:21Z (Item 279 — Build-Issues Rev-2 four-lens review adopted: Issues 5/7R/9/10 disposed with no code change; Issue 12 fail-loud viewer guard and Issue 13 coaching copy built in `src/` only; no backend, no deploy, no harness invocation. Issue 11 (Word engine) reserved to CEO.)
 
 ---
 
@@ -6686,3 +6686,27 @@ Courier: `docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md`.
 **STATE.** Pass-2R exists, is wired, and has never run. Enforce is implemented and unreachable. Next: a flagged replay batch to calibrate the seven validators toward the ~zero-FP threshold §6 requires before any enforce proposal.
 
 **Courier:** `docs/courier/ITEM278-PASS2R-BUILD-2026-07-30.md`.
+
+---
+
+### ITEM 279 — BUILD-ISSUES REV-2 TEAM REVIEW: ADOPTED RESOLUTIONS (frontend-only; two builds + record)
+
+**Authority:** CEO directed the four-lens review on 2026-07-30; every disposition below was unanimous and is adopted under his order. **Scope observed:** `src/` only, this ledger, and `docs/courier/ITEM279-BUILD-ISSUES-REVIEW-2026-07-30.md`. No backend change, no deploy, no harness invocation, no engine change. **EXCLUDED:** Issue 11 (Word engine) — reserved to the CEO; the teams' recommendation is presented to him separately and no action is taken here.
+
+**FOUR-LENS DISPOSITIONS (each unanimous).**
+
+- **ISSUE 5 — grounding calibration.** The Pass-1 grounded-note screen REMAINS in observe. Its lexicon calibration and the seven Pass-2R validators calibrate on the SAME flagged replay batches — no separate spend. The promotion bar for any of them is §2R.7: two consecutive replay batches at approximately zero false positives.
+- **ISSUE 7R — GTM register v1.2.** CLOSED as shipped. All four CEO-read material classes now have live detectors: owner-name (Item-273 owner-slot PII rule), the registry-corpus pin test, cross-section duplication, and activity-count coherence. The register was verified at HEAD. The residual weighing question does not reopen this issue; it rides Issue 10.
+- **ISSUE 9 — presence band.** The provisional band [0.4375, 0.6875] and the 0.25 hard floor REMAIN. Recalibration is deferred to the first full acceptance-40 replay on the post-Item-278 build. No interim change.
+- **ISSUE 10 — weighing vs count.** Firm negative verdicts are never count-derived; that rule is already in force (§2R.4(3) plus the Item-273 balance-verdict guard). The CLOSENESS signal that triggers hedging may be derived conservatively from the existing severity-tiered factor structure, used ONLY to hedge a verdict and NEVER to firm one up. Any numeric weighting redesign is deferred until the first prose-replay data exists. **No code change this turn.**
+- **ISSUE 12 — viewer wiring.** Adopted; built this turn (Build 1).
+- **ISSUE 13 — coaching copy.** Adopted; built this turn (Build 2).
+- **ISSUE 11 — Word engine.** NOT decided here. No action.
+
+**BUILD 1 — ISSUE 12 FAIL-LOUD VIEWER GUARD.** `src/lib/cppa-risk-shape.ts` gains `describeCppaRiskShape(report, isV4Report)`, the single place that names the dispatch target: `"ltp" | "v3" | "v4" | "unrecognized"`, plus `recognized`, `reportId`, `schemaVersion`, and the payload's top-level keys for diagnosis. `src/components/report-bodies/CPPARiskReportBody.tsx` now consumes that result for its Item-274 dispatch instead of recomputing the three predicates inline, and an unrecognized shape short-circuits to an explicit `role="alert"` error card reading "This report's format is not recognized by the viewer", carrying the report id and a note to contact support, while emitting a `console.error` with the discriminator result. **A blank body is no longer reachable on this path.** Recognized-shape rendering is byte-unchanged: LTP, V3, and V4 payloads take exactly the branches Item 274 wired.
+
+**BUILD 2 — ISSUE 13 COACHING COPY.** `coachLead` and `goodAnswer` rewritten on the two Item-275 rail entries in `src/components/cppa/CPPARiskRailEntries.ts` (`primary_activity`, `comparable_set`) under campaign content delegation, four-lens. Neither restates the statute — the rail already carries § 7150(a), § 7155(a)(1), and § 7156(a) verbatim — both coach the ANSWER. `primary_activity` coaches naming ONE processing activity (what data, about whom, for what purpose) rather than a product line or department, with a `goodAnswer` that demonstrates the specificity. `comparable_set` keeps the reserved framing: it coaches an honest inventory of other uses and the five-dimension comparison, and its `goodAnswer` shows a customer surfacing a genuinely DIFFERENT secondary use rather than folding it in — it never suggests bundling is fine or that separate assessments are unnecessary. Both examples use a fictional business ("Fernbrook Grocers"); no real-entity names and nothing resembling the fixtures' real-sounding entities.
+
+**TESTS.** `src/test/cppaRiskViewerPdfParity.test.tsx` — **8 passed**, comprising the five Item-274 parity assertions (unchanged, green) and three new Item-279 assertions: unknown payload classifies as `unrecognized`; the viewer renders the error card with the report id, the support note, and non-blank body text, with `console.error` called carrying `{shape: "unrecognized", recognized: false}`; recognized shapes still classify as `ltp` / `v3`. `src/lib/__tests__/intakeRailParity.test.ts` — **4 passed**. `npm run lint:rails` — **1 failure**, the pre-existing `BiometricRailEntries.ts · types` R1 directive-phrasing failure, which remains the only tolerated failure; the CPPA risk rail set is clean.
+
+**Courier:** `docs/courier/ITEM279-BUILD-ISSUES-REVIEW-2026-07-30.md` (four-lens record per disposition, both builds, the verbatim coaching text for both entries, verbatim test output).

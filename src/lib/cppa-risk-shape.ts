@@ -96,3 +96,44 @@ export const LTP_SECTION_ORDER: readonly string[] = [
   "record_sufficiency",
   "submission_summary",
 ];
+
+/**
+ * ITEM 279 / ISSUE 12 — FAIL-LOUD VIEWER GUARD.
+ *
+ * Single place that names which renderer a report dispatches to. The viewer
+ * MUST NEVER render an empty body for a payload no renderer claims: an
+ * unrecognized shape is a defect, and it surfaces as an explicit error card
+ * plus a console.error carrying this discriminator result.
+ */
+export type CppaRiskShape = "ltp" | "v3" | "v4" | "unrecognized";
+
+export interface CppaRiskShapeResult {
+  shape: CppaRiskShape;
+  recognized: boolean;
+  reportId?: string;
+  schemaVersion?: string;
+  topLevelKeys: string[];
+}
+
+export function describeCppaRiskShape(
+  report: any,
+  isV4: (r: any) => boolean,
+): CppaRiskShapeResult {
+  const obj = report && typeof report === "object" ? report : {};
+  const isLtp = isLtpRiskShape(report);
+  const isV3 = !isLtp && !!(obj.schema_version === "v3-part-a-part-b" && obj.part_a);
+  const v4 = !isLtp && !isV3 && isV4(report);
+  const shape: CppaRiskShape = isLtp ? "ltp" : isV3 ? "v3" : v4 ? "v4" : "unrecognized";
+  return {
+    shape,
+    recognized: shape !== "unrecognized",
+    reportId:
+      typeof obj.id === "string"
+        ? obj.id
+        : typeof obj.report_id === "string"
+          ? obj.report_id
+          : undefined,
+    schemaVersion: typeof obj.schema_version === "string" ? obj.schema_version : undefined,
+    topLevelKeys: Object.keys(obj).slice(0, 40),
+  };
+}

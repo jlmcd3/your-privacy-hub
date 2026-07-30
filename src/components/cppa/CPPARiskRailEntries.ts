@@ -35,13 +35,15 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7156(a)", label: "Comparable set of processing activities" },
       { citation: "11 CCR § 7155(a)(3)", label: "Update on material change (45 days)" },
     ],
-    coachLead: "Name one activity, and say what it does with the information.",
+    coachLead:
+      "Name one processing activity, not a product line or a department. Say what data you handle, whose data it is, and what you use it for. If you would need the word \u201Cand\u201D to join two different purposes, you are naming two activities.",
     coachBody:
       "The name fixes the subject of the record; the one-sentence description states the operation performed on personal information. Timing is part of the standard: the assessment belongs before the processing starts.",
     goodAnswer:
-      "\u201CIn-store birthday mailing\u201D \u2014 \u201CWe use names, addresses, and birthdays collected on paper forms to mail a coupon during each child\u2019s birth month.\u201D The name is the activity; the sentence is the operation.",
+      "\u201CLoyalty birthday coupon mailing\u201D \u2014 \u201CFernbrook Grocers mails a paper coupon to loyalty members using the name, mailing address, and birth month they gave at sign-up, so the coupon arrives in their birthday month.\u201D That is one activity: specific data, specific people, one purpose. \u201CMarketing\u201D or \u201Cthe loyalty program\u201D would not be.",
     commonMistake:
       "Describing the business benefit (\u201Cimproves retention\u201D) instead of the processing. The record needs the operation performed on personal information.",
+
   },
 
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
@@ -58,11 +60,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7150(b)", label: "Activities presenting significant risk" },
       { citation: "11 CCR § 7156(b)", label: "Using an assessment prepared for another purpose" },
     ],
-    coachLead: "Compare each other use against this one on all five dimensions.",
+    coachLead:
+      "List every other use the same data is put to, including the ones you would rather leave out, then set each one beside this activity on all five dimensions: the data, the people, the collection method, the purpose, and the privacy risk. Report the differences you find rather than smoothing them over \u2014 whether a difference matters is for you and your counsel to judge, not for this form. If a use does not line up, say so; that answer is as usable as a match.",
     coachBody:
       "The standard is similarity of the activities and similarity of the privacy risks. Answer each comparison from what your records show; where you do not know, \u201CNot sure\u201D is the accurate answer and is recorded as such.",
     goodAnswer:
-      "A fictional retailer compares its birthday mailing with its November mailing: same information, same collection method, same purpose, same consumers, same risks \u2014 the comparison is documented dimension by dimension rather than asserted in one line.",
+      "Fernbrook Grocers notes a second use: the same loyalty records also feed a resale of shopper contact details to a regional beverage distributor. Same data, same shoppers \u2014 but a different purpose, a different recipient, and a different privacy risk, so the customer records the comparison dimension by dimension and flags the mismatch instead of folding the two together.",
+
     commonMistake:
       "Treating uses as comparable because one team runs both, or because the data set is the same. Shared data does not make risks similar; the comparison is about the activities and their privacy risks.",
   },
