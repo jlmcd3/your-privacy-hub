@@ -689,7 +689,9 @@ Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
 Retention: ${body.retention}
 Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None — the Controller has confirmed on the record that no sub-processors are engaged for the Services"}
-Audit rights: ${body.auditRights}${additionalFrameworksLine}${frameworkFallbackNote}`;
+Audit rights: ${body.auditRights}${additionalFrameworksLine}${frameworkFallbackNote}
+NOTE ON THE JURISDICTION FIELDS: the jurisdiction shown in parentheses beside each Party is the jurisdiction in which that Party OPERATES / whose law the record engages. It is NOT the Party's jurisdiction of formation or incorporation, and the record does NOT establish either Party's legal form (entity type). Neither may be inferred from the operating jurisdiction or from the name suffix.`;
+
 
 
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
