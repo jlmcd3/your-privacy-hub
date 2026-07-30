@@ -329,7 +329,9 @@ function renderTemplateSection(
         }
       }
     }
-    if (chunks.length > 0) rendered.push(chunks.join(" "));
+    if (chunks.length > 0) {
+      rendered.push(chunks.length === 1 ? chunks[0] : chunks.map((c) => c.trim()).join(" "));
+    }
   }
 
   const value = rendered.length > 0 ? rendered : undefined;
