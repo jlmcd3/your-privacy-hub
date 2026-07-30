@@ -930,6 +930,16 @@ function groupFamilies(sources: ActionSource[]): ActionSource[] {
 // Sentinel used only inside groupFamilies (composer substitutes entityName at emit).
 function entityPlaceholder(): string { return "the business"; }
 
+/**
+ * ITEM 284 (F5) — hoisted from composePriorityActions so the next-steps
+ * emitter derives Part-3 items from the SAME gate labels the actions use.
+ */
+function documentationGateLabel(id: string): string {
+  const tail = id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
+  const noun = tail.replace(/\s+present$/i, "").trim();
+  return `assessment record — ${noun}`;
+}
+
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
 
@@ -990,11 +1000,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   }
 
   // (4) Unresolved FACTUAL documentation gates.
-  const gateLabel = (id: string): string => {
-    const tail = id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
-    const noun = tail.replace(/\s+present$/i, "").trim();
-    return `assessment record — ${noun}`;
-  };
+  const gateLabel = documentationGateLabel;
   for (const g of plan.gate_outcomes) {
     if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
     if (g.outcome === "pass") continue;
@@ -1051,15 +1057,72 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
 }
 
 
+/**
+ * ITEM 284 (F5) — PART 3/4 STARVATION FIX.
+ *
+ * Evidence: docs 1cda30f6 and 2391b49a shipped `next_steps` NULL and
+ * 278d0608 shipped a single trivial item, while `information_needed` was
+ * rich. Part 3 (what is missing and what to do about it) and Part 4 (what
+ * the conclusion is and what would change it) must be substantive.
+ *
+ * Steps are derived, in order, from:
+ *   (1) every outstanding item in `information_needed` — the same emitter
+ *       the customer reads under "Items for your review";
+ *   (2) every unresolved FACTUAL documentation gate — same labels as
+ *       priority_actions;
+ *   (3) present-element confirmations (the prior behavior), retained.
+ *
+ * FILL-OR-OMIT: an entry with no label or no basis is dropped whole.
+ * Dedupe is by case-folded step_label so (1) and (2) cannot double-list the
+ * same element.
+ */
 function composeNextSteps(plan: RenderPlan): TemplateInstance[] {
-  const rows = plan.factor_table.filter((f) => f.present_in_intake && f.kind === "safeguard");
-  return rows.map<TemplateInstance>((f) => ({
-    template_id: "T.risk.next_step",
-    ctx: {
-      step_label: `Confirm ${factorLabel(f)} is documented in the assessment record`,
-      step_basis: `Present on the record; retain the supporting documentation with the assessment file.`,
-    },
-  }));
+  const out: TemplateInstance[] = [];
+  const seen = new Set<string>();
+  const push = (step_label: string, step_basis: string): void => {
+    const label = step_label.trim();
+    const basis = step_basis.trim();
+    if (!label || !basis) return; // fill-or-omit
+    const key = label.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ template_id: "T.risk.next_step", ctx: { step_label: label, step_basis: basis } });
+  };
+
+  // (1) Outstanding information-needed asks → completion steps.
+  for (const ask of composeInformationNeeded(plan)) {
+    const label = String(ask.ctx?.doc_element_label ?? "").trim();
+    if (!label) continue;
+    const question = String(ask.ctx?.customer_question ?? "").trim();
+    push(
+      `Complete the assessment record for ${lcFirst(label)}`,
+      question || `Listed under Items for your review; the assessment record is not complete for ${lcFirst(label)} until this is supplied.`,
+    );
+  }
+
+  // (2) Unresolved FACTUAL documentation gates.
+  for (const g of plan.gate_outcomes) {
+    if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
+    if (g.outcome === "pass") continue;
+    const pin = CPPA_RISK_GATE_INDEX[g.gate_id]?.anchor_pinpoint ?? "11 CCR § 7152(a)";
+    const label = documentationGateLabel(g.gate_id);
+    push(
+      `Document ${lcFirst(label)}`,
+      `${pin} requires this element for the assessment record to be complete.`,
+    );
+  }
+
+  // (3) Present-element confirmations (retained prior behavior).
+  for (const f of plan.factor_table) {
+    if (!f.present_in_intake || f.kind !== "safeguard") continue;
+    const label = factorLabel(f);
+    push(
+      `Confirm ${label} is documented in the assessment record`,
+      `Present on the record; retain the supporting documentation with the assessment file.`,
+    );
+  }
+
+  return out;
 }
 
 function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
