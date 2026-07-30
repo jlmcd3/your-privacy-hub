@@ -26,7 +26,7 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item266-rationale-dedup";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item272-engaged-lead";
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.
@@ -1019,7 +1019,11 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
         },
       };
     });
-    const items = enriched.map<TemplateInstance>((e) => ({
+    // ITEM 241.1 (E1) contract, re-asserted under ITEM 272: engaged prongs
+    // LEAD. With the six-prong realignment the engaged set can be
+    // non-contiguous ((b)(3) + (b)(4)), so order explicitly rather than
+    // relying on registry order.
+    const items = [...engaged, ...notEngaged].map<TemplateInstance>((e) => ({
       template_id: e.engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged",
       ctx: {
         prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),

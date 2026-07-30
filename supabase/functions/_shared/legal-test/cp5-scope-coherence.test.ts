@@ -48,7 +48,7 @@ Deno.test("CP5 (a) scope: each prong instance carries prong_subject + own PINPOI
     const subj = (inst.ctx as { prong_subject?: string }).prong_subject ?? "";
     assert(subj.length > 0, "prong_subject must be populated from registry label");
   }
-  assertEquals(pinpoints.size, 5, "every prong must render its OWN pinpoint");
+  assertEquals(pinpoints.size, 6, "every prong must render its OWN pinpoint"); // ITEM 272: six prongs
 });
 
 Deno.test("CP5 (b) coherence: balanceInstance on insufficient plan → T.risk.summary.docs (never firm/hedged)", () => {
