@@ -131,7 +131,17 @@ function norm(s: string): string {
 }
 
 /** Citation-shaped spans: "§ 7152(a)(5)", "§§ 7150–7157", "Art. 6(1)(f)", "Sec. 1798.100". */
-const CITATION_RE = /(?:§{1,2}\s*[\d][\dA-Za-z.()\u2013\u2014\-]*|\bArt\.\s*[\d][\dA-Za-z.()\-]*|\bSec\.\s*[\d][\dA-Za-z.()\-]*)/g;
+const CITATION_RE =
+  /(?:\b\d{1,3}\s+[A-Z][A-Za-z.]{1,9}\s+)?(?:§{1,2}\s*[\d][\dA-Za-z.()\u2013\u2014\-]*|\bArt\.\s*[\d][\dA-Za-z.()\-]*|\bSec\.\s*[\d][\dA-Za-z.()\-]*)/g;
+
+/**
+ * Sentence-final punctuation is prose, not part of the pinpoint. Without this
+ * trim "§ 7152(a)(5)." never matches the plan's "§ 7152(a)(5)" and every
+ * correctly-cited closing sentence rejects.
+ */
+function trimCitation(raw: string): string {
+  return norm(raw).replace(/[.,;:]+$/, "");
+}
 
 /** Date shapes and bare numbers (used after citation spans are masked out). */
 const NUMERIC_RE = /\b\d[\d,]*(?:\.\d+)?%?\b/g;
@@ -173,7 +183,12 @@ function properNounCandidates(text: string): string[] {
   for (const sentence of sentences) {
     const tokens = sentence.trim().split(/\s+/);
     for (let i = 0; i < tokens.length; i++) {
-      const bare = tokens[i].replace(/^[^\w§]+|[^\w.]+$/g, "");
+      // Strip surrounding punctuation, then drop a SENTENCE-FINAL period while
+      // preserving abbreviation dots ("Inc." keeps its dot, "Plaid." does not).
+      let bare = tokens[i].replace(/^[^\w§]+|[^\w.]+$/g, "");
+      if (/^[A-Z][A-Za-z0-9'&\-]*\.$/.test(bare) && i === tokens.length - 1) {
+        bare = bare.slice(0, -1);
+      }
       if (!bare) continue;
       if (i === 0) continue; // sentence-initial capitalization is not evidence
       if (!/^[A-Z][A-Za-z0-9'&.\-]*$/.test(bare)) continue;
@@ -196,7 +211,8 @@ export function validateCitationWhitelist(
   const allowed = wl.citations.map(norm);
   const bad: string[] = [];
   for (const m of norm(proseOf(doc)).match(CITATION_RE) ?? []) {
-    const cite = norm(m);
+    const cite = trimCitation(m);
+    if (!cite) continue;
     const ok = allowed.some((a) => a === cite || a.includes(cite) || cite.includes(a));
     if (!ok && !bad.includes(cite)) bad.push(cite);
   }
@@ -254,9 +270,18 @@ export function validateEntityWhitelist(
   const haystack = norm(wl.entities.join(" | "));
   const rejections: Pass2rRejection[] = [];
 
+  // Verdict vocabulary is plan-carried by definition (§2R.4) and is capitalized
+  // wherever the prose states the result. It is not an entity claim.
+  const verdictWords = new Set(
+    [wl.verdict, ...wl.verdict_alternatives]
+      .flatMap((v) => norm(v).split(/\s+/))
+      .filter(Boolean),
+  );
+
   const unknown: string[] = [];
   for (const cand of properNounCandidates(norm(proseOf(doc)))) {
     if (haystack.includes(cand)) continue;
+    if (verdictWords.has(cand)) continue;
     if (!unknown.includes(cand)) unknown.push(cand);
   }
   if (unknown.length > 0) {
