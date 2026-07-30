@@ -26,7 +26,7 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-29-item264-activity-rationale";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item266-rationale-dedup";
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.

@@ -113,6 +113,13 @@ export const GTM_MATERIALITY_REGISTER: readonly MaterialityEntry[] = [
     source: "harness",
   },
   {
+    defect_class: "section_duplication",
+    materiality: "non_material",
+    rationale:
+      "ITEM 266 (DRAFT): verbatim repetition within a section is a prose/quality defect — it does not misstate law or alter the legal conclusion; loop2 dinged even 95+ documents for duplication classes. Ship + log.",
+    source: "harness",
+  },
+  {
     defect_class: "review_band_low",
     materiality: "non_material",
     rationale: "Advisory presence band flag; at/above the hard floor.",
