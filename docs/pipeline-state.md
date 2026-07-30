@@ -6994,3 +6994,26 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK VERIFIED.** Read-only queries throughout; diff limited to the courier and this ledger.
 
 **Disposition:** AWAITING CEO REVIEW of the §Task-3 inventory. No ingestion spend authorized until he approves the list. Recommended first release regardless of the wider list: the two P0 truncation repairs (Arts. 34 and 22), which are defect fixes on already-ingested text and cost nothing.
+
+
+---
+
+## Item 292 — CLEAN-RUN BATCH 4 RESULT + CEO READ OPEN (2026-07-30T22:27Z)
+
+**Authority:** Controller dispatch 2026-07-30. RECORD ONLY — no code change, no deploy, no harness invocation, no DB write. Full record: `docs/courier/ITEM292-CLEAN-RUN-2026-07-30.md`.
+
+**BATCH DESIGN.** Jobs noted "Step 0a — CLEAN RUN batch 4 (post-Item-290, 20 docs, CEO read gate)" — 20 single-document replay jobs.
+
+**DETERMINISTIC RESULTS.** 20/20 persisted. GTM: **0 release / 20 release_with_logged_defects / 0 block**. The acceptance bar (100% release or rwld, zero block) is MET on the shipped deterministic surface.
+
+**ITEM-290 FIX CONFIRMED.** The Batch-3 block class (`section_cross_duplication:scope_confirmation=scope_and_triggers`) dropped from 7 blocks to **0 blocks**. The single-key scope emission eliminated the duplication block class entirely.
+
+**PASS-2R PROSE.** 8 docs completed the observe stage; 7 validator rejects with `prose_rejected` persisted; 12 lost to isolate death. Prose conversion this batch: 0. Cumulative passing prose documents remain at 2: `2391b49a` (Batch 2) and `d47f2960` (Batch 3).
+
+**CEO READ OPEN.** The `/admin/replay-review` surface is loaded with the Batch-4 corpus and the two prose docs as side-by-side candidates for CEO inspection.
+
+**NEXT QUEUE.** (1) Rejected-prose adjudication (verdict_consistency class first) to raise prose conversion; (2) Item 291 EU corpus gap analysis awaiting CEO review before any spend.
+
+**DOUBLE-CHECK VERIFIED.** Diff contains only the courier and this ledger.
+
+**Disposition:** RECORDED. Acceptance bar met; CEO read open; pending CEO inspection and prose-adjudication queue.
