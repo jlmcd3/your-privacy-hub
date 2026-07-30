@@ -128,6 +128,14 @@ const RETENTION_CRITERIA = [
   "Other criteria (described below)",
 ] as const;
 const YES_NO_OPTS = ["Yes", "No"] as const;
+// ITEM 275 — verbatim copy of HAS_SECONDARY_USES_OPTS from
+// src/pages/CPPARiskAssessment.tsx (§ 7156(a) comparable-set fork).
+export const HAS_SECONDARY_USES_OPTS = [
+  "No — this data is used for this activity only",
+  "Yes — there are other uses",
+] as const;
+export const DIVERGENCE_OPTS = ["Same", "Different", "Not sure"] as const;
+
 
 // Fixed inline option lists on the page (verbatim copies from
 // src/pages/CPPARiskAssessment.tsx):
