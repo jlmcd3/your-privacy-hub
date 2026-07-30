@@ -104,6 +104,8 @@ export interface Pass1Telemetry {
   readonly grounded_note_replacement_rate?: number;
   /** ITEM 257 — count of model-authored factor intake_ledger_refs dropped by the Single-Writer filter as invalid/unknown against the adapter-derived ledger. Dedicated key; do NOT overload existing telemetry. */
   readonly pass1_factor_ref_drops?: number;
+  /** ITEM 284 (F3) — count of model-authored weight_notes OMITTED whole because they exceeded WEIGHT_NOTE_MAX_CHARS. Fill-or-omit law: never a mid-word slice. */
+  readonly pass1_weight_note_omissions?: number;
 }
 
 
@@ -119,6 +121,34 @@ function fillUserTemplate(input: DeriveInput): string {
     .replace("{factor_registry}", JSON.stringify(CPPA_RISK_FACTORS))
     .replace("{gate_registry}", JSON.stringify(CPPA_RISK_GATES))
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
+}
+
+/**
+ * ITEM 284 (F3) — WEIGHT-NOTE FILL-OR-OMIT.
+ *
+ * Evidence: doc 10b0e8c3 (batch 1R) shipped "…reflects direct commercial
+ * benefit from thi" — the exact 240-character cut made by the former
+ * `String(m.weight_note).slice(0, 240)` at this seam. A note is now either
+ * shipped WHOLE or omitted entirely with an `omitted_reason_class`; no
+ * mid-word or mid-token slice may reach a customer-facing emitter.
+ */
+export const WEIGHT_NOTE_MAX_CHARS = 600;
+
+export type WeightNoteOmitReasonClass = "weight_note_over_length";
+
+export interface WeightNoteDecision {
+  readonly note?: string;
+  readonly omitted_reason_class?: WeightNoteOmitReasonClass;
+}
+
+export function fillOrOmitWeightNote(raw: unknown): WeightNoteDecision {
+  if (typeof raw !== "string") return {};
+  const t = raw.trim();
+  if (t.length === 0) return {};
+  if (t.length > WEIGHT_NOTE_MAX_CHARS) {
+    return { omitted_reason_class: "weight_note_over_length" };
+  }
+  return { note: t };
 }
 
 /**
@@ -264,7 +294,7 @@ export function applySingleWriterInjection(
     propositions: boundProps,
     weighing_frame: guide.frame,
   };
-  return { plan, empty_by_finding: guide.empty_by_finding, factor_ref_drops };
+  return { plan, empty_by_finding: guide.empty_by_finding, factor_ref_drops, weight_note_omissions };
 }
 
 
@@ -378,7 +408,7 @@ export async function runPass1Llm(
       // validation, so V7 demanded frames the model was never asked for).
       // T-M9.4 VALID PLAN INVARIANT retained: model's own
       // conservative_write_around is IGNORED on the ok path.
-      const { plan: injected, factor_ref_drops } = applySingleWriterInjection(parsed, input);
+      const { plan: injected, factor_ref_drops, weight_note_omissions } = applySingleWriterInjection(parsed, input);
       // ITEM 242 CP-C — present/note coherence screen sits BETWEEN
       // injection and validation. Rewrites are recorded in a dedicated
       // telemetry key `pass1_coherence_rewrites`; do NOT overload
@@ -433,6 +463,7 @@ export async function runPass1Llm(
           grounded_note_replacements: groundedTele.replacements,
           grounded_note_replacement_rate: groundedTele.replacement_rate,
           pass1_factor_ref_drops: factor_ref_drops,
+          pass1_weight_note_omissions: weight_note_omissions,
         },
       };
     } catch (e) {
