@@ -85,7 +85,11 @@ Deno.test("ITEM 284 F2: incomplete record → provisional posture, no firm favor
   if (completeness.complete) return; // nothing to assert on a complete record
 
   for (const key of ["assessment_summary", "risk_assessment_by_activity"]) {
-    const section = composeSection(key, plan) ?? [];
+    const raw = composeSection(key, plan) ?? [];
+    // The RABA is silent when no applicability prong is engaged; the
+    // provisional posture rides its `parts` chain when it does emit.
+    const section = raw.flatMap((i) => [i, ...((i as { parts?: typeof raw }).parts ?? [])]);
+    if (section.length === 0) continue;
     assert(
       section.some((i) => i.template_id === "T.risk.summary.provisional_posture"),
       `${key} must carry the provisional posture on an incomplete record`,

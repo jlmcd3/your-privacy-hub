@@ -356,6 +356,13 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   // of the executive summary is THAT activity (exactly one), and a lead
   // instance names it before any weighing language. Legacy records with no
   // `primary_activity_name` keep the prong-count subject verbatim.
+  // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
+  // though the provisional posture is appended after it in `parts`; the
+  // carrier's ctx is what downstream consumers read for activity_label.
+  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
+    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
+      parts[parts.length - 1];
+
   const primaryName = primaryActivityName(plan);
   const lead: TemplateInstance[] = primaryName
     ? [{
@@ -625,20 +632,28 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   // ITEM 276 — the rationale carrier's subject is the named primary
   // activity when the record supplies one; otherwise the engaged-prong
   // enumeration retained from Item 266.
+  // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
+  // though the provisional posture is appended after it in `parts`; the
+  // carrier's ctx is what downstream consumers read for activity_label.
+  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
+    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
+      parts[parts.length - 1];
+
   const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
     if (!insufficientRecord(plan)) {
       const parts = rationaleParts(primaryName || undefined);
+      const c = carrierOf(parts);
       return [
-        { template_id: parts[parts.length - 1].template_id, ctx: parts[parts.length - 1].ctx, parts },
+        { template_id: c.template_id, ctx: c.ctx, parts },
         liaLine,
       ];
     }
     return [];
   }
   const parts = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
-  const carrier = parts[parts.length - 1];
+  const carrier = carrierOf(parts);
   return [
     { template_id: carrier.template_id, ctx: carrier.ctx, parts },
     liaLine,
@@ -1469,6 +1484,13 @@ function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
   const nsotr = "not stated on the record";
   const pick = (field: string) => pickIntakeValue(plan, field) || nsotr;
   // ITEM 276 — narrative subject is the named primary activity when present.
+  // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
+  // though the provisional posture is appended after it in `parts`; the
+  // carrier's ctx is what downstream consumers read for activity_label.
+  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
+    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
+      parts[parts.length - 1];
+
   const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
   const activityLabel = primaryName ? primaryName : engaged.length > 0
