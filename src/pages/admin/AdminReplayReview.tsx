@@ -51,7 +51,7 @@ export function sortJobsNewestFirst(jobs: HarnessJob[]): HarnessJob[] {
 export function batchLabels(jobs: HarnessJob[]): string[] {
   const out: string[] = [];
   for (const j of sortJobsNewestFirst(jobs)) {
-    const label = String(j.notes ?? "").trim() || "(no label)";
+    const label = jobLabel(j);
     if (!out.includes(label)) out.push(label);
   }
   return out;
@@ -62,8 +62,15 @@ export function defaultBatchLabel(jobs: HarnessJob[]): string | null {
   return batchLabels(jobs)[0] ?? null;
 }
 
+/** ITEM 294 — harness bookkeeping suffix hygiene. Job notes may carry a
+ * trailing "[bg:waitUntil]" style marker; it is noise for the CEO read and
+ * must never split a batch, so it is stripped for BOTH display and grouping. */
+export function stripBgMarker(label: string): string {
+  return String(label ?? "").replace(/\s*\[bg:[^\]]*\]\s*$/i, "").trim();
+}
+
 export function jobLabel(job: HarnessJob): string {
-  return String(job.notes ?? "").trim() || "(no label)";
+  return stripBgMarker(String(job.notes ?? "").trim()) || "(no label)";
 }
 
 type Row = {
@@ -112,6 +119,10 @@ export default function AdminReplayReview() {
   const [legacy, setLegacy] = useState<LegacyDoc | null>(null);
   const [showLegacy, setShowLegacy] = useState(false);
   const [pdfBusy, setPdfBusy] = useState<string | null>(null);
+  // ITEM 294 — fail-visible: results-query errors render inline, not toast-only.
+  const [rowsError, setRowsError] = useState<string | null>(null);
+  // ITEM 294 — the jobs table is secondary; collapsed by default.
+  const [showJobs, setShowJobs] = useState(false);
 
   // 1) Load ALL jobs, newest first. No note/date/id pin.
   useEffect(() => {
@@ -148,6 +159,7 @@ export default function AdminReplayReview() {
     let cancelled = false;
     (async () => {
       setRowsLoading(true);
+      setRowsError(null);
       const noteById = new Map(selectedJobs.map((j) => [j.id, jobLabel(j)]));
       const { data: res, error: rErr } = await supabase
         .from("replay_harness_results" as any)
@@ -156,6 +168,7 @@ export default function AdminReplayReview() {
         .order("created_at", { ascending: false });
       if (cancelled) return;
       if (rErr) {
+        setRowsError(rErr.message || "Unknown error");
         toast.error(`Could not load harness results: ${rErr.message}`);
         setRowsLoading(false);
         return;
@@ -229,7 +242,10 @@ export default function AdminReplayReview() {
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
-      toast.error(e?.message || "Could not generate PDF");
+      // ITEM 294 — fail-visible: name the likely cause so the CEO knows to retry.
+      toast.error(
+        `Could not generate PDF: ${e?.message || "unknown error"}. The PDF service may be temporarily unavailable (platform incident) — please retry.`,
+      );
     } finally {
       setPdfBusy(null);
     }
@@ -271,32 +287,20 @@ export default function AdminReplayReview() {
             </span>
           </div>
 
-          <div className="mb-6 overflow-x-auto border rounded-lg">
-            <table className="w-full text-xs">
-              <thead className="bg-muted/50 text-left">
-                <tr>
-                  <th className="p-2">Created</th>
-                  <th className="p-2">Batch label</th>
-                  <th className="p-2">Status</th>
-                  <th className="p-2">Docs</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortJobsNewestFirst(jobs).map((j) => (
-                  <tr
-                    key={j.id}
-                    className={`border-t cursor-pointer hover:bg-muted/40 ${jobLabel(j) === label ? "bg-muted/60" : ""}`}
-                    onClick={() => setLabel(jobLabel(j))}
-                  >
-                    <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
-                    <td className="p-2">{jobLabel(j)}</td>
-                    <td className="p-2">{j.status ?? "—"}</td>
-                    <td className="p-2">{j.doc_ids?.length ?? 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {rowsError && (
+            <div
+              role="alert"
+              data-testid="results-error"
+              className="mb-4 border border-destructive/40 bg-destructive/10 text-destructive rounded-lg p-3 text-sm"
+            >
+              <strong>Could not load harness results.</strong> {rowsError}
+              <div className="mt-1 text-xs opacity-80">
+                If this persists, the backend may be temporarily unavailable (platform incident) — retry shortly.
+              </div>
+            </div>
+          )}
+
+
 
           <div className="mb-4 text-sm">
             <strong>{rows.length}</strong> documents ·{" "}
@@ -312,7 +316,7 @@ export default function AdminReplayReview() {
             )}
           </div>
 
-          <div className="overflow-x-auto border rounded-lg">
+          <div className="overflow-x-auto border rounded-lg" data-testid="documents-table">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
@@ -367,6 +371,47 @@ export default function AdminReplayReview() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* ITEM 294 — jobs table is secondary bookkeeping: it renders BELOW
+              the documents table and is collapsed by default. */}
+          <div className="mt-8">
+            <button
+              type="button"
+              className="px-2 py-1 border rounded text-sm hover:bg-muted"
+              aria-expanded={showJobs}
+              onClick={() => setShowJobs((s) => !s)}
+            >
+              {showJobs ? "Hide jobs" : `Show jobs (${jobs.length})`}
+            </button>
+            {showJobs && (
+              <div className="mt-3 overflow-x-auto border rounded-lg" data-testid="jobs-table">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50 text-left">
+                    <tr>
+                      <th className="p-2">Created</th>
+                      <th className="p-2">Batch label</th>
+                      <th className="p-2">Status</th>
+                      <th className="p-2">Docs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortJobsNewestFirst(jobs).map((j) => (
+                      <tr
+                        key={j.id}
+                        className={`border-t cursor-pointer hover:bg-muted/40 ${jobLabel(j) === label ? "bg-muted/60" : ""}`}
+                        onClick={() => setLabel(jobLabel(j))}
+                      >
+                        <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
+                        <td className="p-2">{jobLabel(j)}</td>
+                        <td className="p-2">{j.status ?? "—"}</td>
+                        <td className="p-2">{j.doc_ids?.length ?? 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </>
       )}
