@@ -26,13 +26,14 @@ import { modelProvider } from "../_shared/ltp/replay/providers.ts";
 import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
 
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
+import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
 import { evaluateSubstance } from "../_shared/ltp/replay/substance-gates.ts";
 import { compareDoc } from "../_shared/ltp/replay/side-by-side.ts";
 import type { PerDocResult, ReplayDoc, SideBySideRow }
   from "../_shared/ltp/replay/types.ts";
 
 export const HARNESS_BUILD_STAMP =
-  "replay-cppa-risk-harness-2026-07-30-item269";
+  "replay-cppa-risk-harness-2026-07-30-item278-prose-pass";
 
 
 const MAX_DOC_IDS = 50;
@@ -61,6 +62,12 @@ interface HarnessJobRow {
   id: string;
   doc_ids: string[];
   status: string;
+  /**
+   * ITEM 278 — additive, nullable. Read as `{ prose_pass?: boolean }`.
+   * Absent / malformed reads as prose_pass=false, so every pre-Item-278 job
+   * and every current caller is unchanged.
+   */
+  options: Record<string, unknown> | null;
 }
 
 interface ArchivedDoc {
@@ -104,6 +111,7 @@ interface DocProcessOutcome {
 
 async function processDoc(
   doc: ArchivedDoc,
+  prosePass = false,
 ): Promise<DocProcessOutcome> {
   try {
     // ITEM 269 FIX 1 — ERA NORMALIZER. Pre-realignment (five-stage-shaped)
@@ -161,6 +169,33 @@ async function processDoc(
       },
       hard_failures: substance.hard_failures,
     };
+
+    // ITEM 278 — PASS-2R OBSERVE. Runs strictly AFTER the deterministic
+    // document exists (§2R.1 order of operations) and only when the job
+    // row carries options.prose_pass = true. Observe mode: the shipped
+    // surface stays deterministic no matter what 2R returns.
+    if (prosePass) {
+      try {
+        const stage = await runProsePassStage(
+          p1.plan,
+          assembled.report as Record<string, unknown>,
+          { enabled: true, callerName: "replay-cppa-risk-harness" },
+        );
+        (perDoc as { pass2r?: unknown }).pass2r = {
+          telemetry: stage.telemetry,
+          prose: stage.prose,
+          shipped_surface: stage.shipped_surface,
+          ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
+        };
+      } catch (e) {
+        (perDoc as { pass2r?: unknown }).pass2r = {
+          telemetry: null,
+          prose: null,
+          shipped_surface: "deterministic",
+          skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
+        };
+      }
+    }
 
     const sideBySide = doc.report_data ? compareDoc(perDoc, doc.report_data) : null;
 
@@ -267,6 +302,7 @@ Deno.serve(async (req) => {
       harness_build_stamp: HARNESS_BUILD_STAMP,
       pass1_manifest: PASS1_MANIFEST,
       mined_presence_band: MINED_PRESENCE_BAND,
+      pass2r_manifest: PASS2R_MANIFEST,
       env_anthropic_key_present: !!Deno.env.get("ANTHROPIC_API_KEY"),
       env_ltp_enforce_enabled: Deno.env.get("LTP_ENFORCE_ENABLED") === "1",
     });
@@ -286,7 +322,7 @@ Deno.serve(async (req) => {
     .update({ status: "running", started_at: new Date().toISOString() })
     .eq("id", jobId)
     .eq("status", "queued")
-    .select("id, doc_ids, status")
+    .select("id, doc_ids, status, options")
     .maybeSingle();
   if (casRes.error) {
     return json({ error: `cas_failed:${casRes.error.message}` }, 500);
@@ -360,6 +396,10 @@ Deno.serve(async (req) => {
       .eq("id", job.id);
   }
 
+  // ITEM 278 — prose-pass flag. Default FALSE; malformed options read false.
+  const jobOptions = (job.options ?? {}) as Record<string, unknown>;
+  const prosePass = jobOptions.prose_pass === true;
+
   const wrapped = (async () => {
     const summary: Record<string, unknown>[] = [];
     try {
@@ -389,7 +429,7 @@ Deno.serve(async (req) => {
             assembledReport: null,
           };
         } else {
-          outcome = await processDoc(loaded);
+          outcome = await processDoc(loaded, prosePass);
         }
 
         const ins = await sb.from("replay_harness_results").insert({
