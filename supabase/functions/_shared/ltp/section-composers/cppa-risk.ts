@@ -992,10 +992,14 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
       compliance_guidance_sentence: spec?.compliance_guidance
         ?? `Record ${reservedTo}'s decision on ${lcFirst(label)} in the assessment file per ${p.anchor.pinpoint}.`,
       is_documentation_gate: false,
-      // ITEM 284 (F4) — owner follows the registry's reserved_to, not the kind.
-      owner_role_titles_override: reservedTo === "the accountable business owner"
+      // ITEM 284 (F4) — owner follows the registry's reserved_to when the
+      // registry states one. Unregistered conclusion ids keep the
+      // Item-243 defect-6 per-KIND default (qualified legal counsel).
+      owner_role_titles_override: spec?.reserved_to === "business"
         ? (certifyingExecTitle(plan) || "the accountable business owner named on the assessment record")
-        : reservedTo,
+        : spec?.reserved_to === "external_auditor"
+          ? "the external auditor"
+          : undefined,
     });
   }
 
