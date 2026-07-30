@@ -17,7 +17,18 @@ interface Props {
   className?: string;
 }
 
-const DEFAULT_STICKY_TOP = 16; // px
+// Sticky offset comes from the global --sticky-offset token so the rail clears
+// the topnav (and the subscriber subnav when it is present).
+function stickyTopPx(): number {
+  if (typeof window === "undefined") return 72;
+  const raw = getComputedStyle(document.body).getPropertyValue("--sticky-offset").trim();
+  if (raw.endsWith("rem")) {
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return parseFloat(raw) * rootPx;
+  }
+  const px = parseFloat(raw);
+  return Number.isFinite(px) ? px : 72;
+}
 
 export default function SectionReferenceRail({ entries, sectionIds, className = "" }: Props) {
   const [activeId, setActiveId] = useState<string | null>(sectionIds[0] ?? null);
@@ -78,7 +89,7 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
       if (!heading) return;
 
       const headingTop = heading.getBoundingClientRect().top;
-      if (headingTop > DEFAULT_STICKY_TOP) {
+      if (headingTop > stickyTopPx()) {
         const viewportWidth = window.innerWidth;
         const right = Math.max(
           HORIZONTAL_PADDING,
@@ -175,7 +186,7 @@ export default function SectionReferenceRail({ entries, sectionIds, className = 
         className={`hidden lg:flex flex-col w-[300px] shrink-0 self-stretch ${className}`}
         aria-label="Section reference"
       >
-        <div ref={stickyRef} className="sticky top-4">
+        <div ref={stickyRef} className="sticky top-[var(--sticky-offset)]">
           <div ref={cardRef} className="rounded-lg border bg-card shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b bg-[hsl(var(--brand-navy)/0.03)]">
               <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--brand-navy))]" />

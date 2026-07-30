@@ -4,6 +4,18 @@
 
 @layer base {
   :root {
+    /* Sticky offset for side columns/rails: topnav (h-14 = 3.5rem) + breathing room.
+       Raised automatically when the dashboard subnav (top-14, h-10) is on the page. */
+    --sticky-offset: 4.5rem;
+  }
+
+  /* Subscriber shell: topnav 3.5rem + subnav 2.5rem + 1rem gap */
+  body:has(nav[aria-label="Dashboard sections"]) {
+    --sticky-offset: 7rem;
+  }
+
+  :root {
+
     /* ============================================================
        EUP Brand Guidelines v7 — May 2026
        Raw brand palette (HSL space-separated for shadcn / opacity modifiers)

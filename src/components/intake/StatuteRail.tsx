@@ -188,7 +188,7 @@ export default function StatuteRail({
             <div className="p-4">{content}</div>
           </div>
         ) : (
-          <div className="sticky top-4">
+          <div className="sticky top-[var(--sticky-offset)]">
             <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b bg-[hsl(var(--brand-navy)/0.03)]">
                 <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--brand-navy))]" />
@@ -196,7 +196,7 @@ export default function StatuteRail({
                   Regulation Reference
                 </span>
               </div>
-              <div className="p-4 max-h-[calc(100vh-120px)] overflow-y-auto">{content}</div>
+              <div className="p-4 max-h-[calc(100vh-var(--sticky-offset)-2rem)] overflow-y-auto">{content}</div>
             </div>
           </div>
         )}
