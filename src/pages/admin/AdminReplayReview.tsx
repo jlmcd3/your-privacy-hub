@@ -62,8 +62,15 @@ export function defaultBatchLabel(jobs: HarnessJob[]): string | null {
   return batchLabels(jobs)[0] ?? null;
 }
 
+/** ITEM 294 — harness bookkeeping suffix hygiene. Job notes may carry a
+ * trailing "[bg:waitUntil]" style marker; it is noise for the CEO read and
+ * must never split a batch, so it is stripped for BOTH display and grouping. */
+export function stripBgMarker(label: string): string {
+  return String(label ?? "").replace(/\s*\[bg:[^\]]*\]\s*$/i, "").trim();
+}
+
 export function jobLabel(job: HarnessJob): string {
-  return String(job.notes ?? "").trim() || "(no label)";
+  return stripBgMarker(String(job.notes ?? "").trim()) || "(no label)";
 }
 
 type Row = {
