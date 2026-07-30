@@ -242,7 +242,10 @@ export default function AdminReplayReview() {
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
-      toast.error(e?.message || "Could not generate PDF");
+      // ITEM 294 — fail-visible: name the likely cause so the CEO knows to retry.
+      toast.error(
+        `Could not generate PDF: ${e?.message || "unknown error"}. The PDF service may be temporarily unavailable (platform incident) — please retry.`,
+      );
     } finally {
       setPdfBusy(null);
     }
