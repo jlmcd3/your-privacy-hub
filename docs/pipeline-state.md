@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T03:17Z (Item 267 — CEO DELEGATION EXECUTED on Build Issues 5, 6R, 7, 9. GTM materiality register RATIFIED (v1.1); deadline sentences reworded to natural standalone prose with all legal content preserved; grounded-note screen calibrated (feed-side gemination/derivation + 74 evidence-mined lexicon tokens) while STAYING in observe mode; Issue 9 recalibration-from-ramp-3 recommendation ratified with no code change. Issue 8 EXPLICITLY EXCLUDED and untouched. `replay-cppa-risk-harness` redeployed; NO harness invocation.)
+**Last updated:** 2026-07-30T03:47Z (Item 268 — CORPUS INGESTION: OAL-approved CPPA regulations text hash-verified (MATCH), §§ 7151/7153/7154/7155/7156 ingested verbatim into `provision_texts` plus a § 7001(bbb),(ddd) partial-excerpt row. § 7156 CONFIRMED to exist and is the sole home of the "comparable set of processing activities" rule; § 7155(a)(2)-(3) carries the three-year cadence and 45-day material-change deadline. DB rows + courier + ledger only — NO code changes, NO deploys, NO harness invocation, NO grader edits.)
 
 ---
 
