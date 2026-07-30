@@ -89,7 +89,7 @@ Deno.test("defect 8 — applicability gates fire against canonical contract fiel
   const intake: Record<string, unknown> = {
     q5_sell_share: "Yes — sell",
     q15_sensitive_pi: "Yes",
-    q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants" // ITEM 272: real q5b option,
+    q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants", // ITEM 272: real q5b option
     q18_admt_use: "Yes",
     q18b_admt_training: "Yes",
   };
