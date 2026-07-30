@@ -6517,3 +6517,19 @@ Courier: `docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md`.
 **DEPLOY.** `replay-cppa-risk-harness` ONLY, build stamp `replay-cppa-risk-harness-2026-07-30-item269`, deployed 2026-07-30T05:19Z. **NO harness invocation** — controller reruns. Prompts, grounded-note, GTM register/grader, composers, legacy wire and snapshot untouched.
 
 **Courier:** `docs/courier/ITEM269-ERA-NORMALIZER-AND-FOSSIL-RULE-2026-07-30.md` (four-lens review, verify-first citation table, residual-gap and exclusion record, verbatim test output).
+
+---
+
+## Item 270 — RERUN RECORD + ACCEPTANCE-CORPUS RULING (2026-07-30)
+
+**Turn class:** ledger + courier ONLY. NO code, NO deploys, NO harness invocation, NO grader edits.
+
+**1. RERUN RESULTS (28 docs, jobs LIKE 'Ramp step 3 rerun%', post-Item-269).** The 2 modern-era blocked docs (`5b50f9c6`, `1036f12c`) both now verdict **RELEASE** — the fossil-note-on-present coherence rule resolved the only material defects in the modern distribution. Era docs: **25/26 still write-around, 1 pass1-ok but blocked** (sparse-era record) — the Item-269 normalizer APPLIED (telemetry version `era-normalize@2026-07-30-item269`; **4 keys mapped**: `q2_consumers` / `q5_sell_share` / `q15_sensitive_pi` / `exceptions_intake`; band labels resolved, e.g. `"Over 10 million" -> "1,000,000 or more"`) but the pre-realignment intakes are a **STRUCTURALLY DIFFERENT FORM**: nested legacy objects `impact` / `triggers` / `exceptions` / `org_context` / `activity_details` / `annual_consumer_volume` with **NO existing mapping code anywhere in the codebase**; per the no-invention constraint no semantic mappings were fabricated.
+
+**2. GTM STANDING after rerun.** Every GTM-graded modern-contract document is now shippable — ramp-3 modern **24/24** (8 `release`, 16 `release_with_logged_defects`; logged defects all non-material golden-shape/advisory classes) + exemplar attempt 9 (`release_with_logged_defects`). **100% shippable on the graded modern population (25 docs); full-corpus run pending.**
+
+**3. ACCEPTANCE-CORPUS RULING (team-unanimous, four-lens; courier `docs/courier/ITEM270-ACCEPTANCE-CORPUS-2026-07-30.md`).** The §7 replay/acceptance corpus is defined as the archive's **MODERN-CONTRACT era** — **215 of 245** cppa-risk docs (created 2026-07-13→28) whose intakes carry the current contract keys. The **30 pre-realignment docs** (2026-07-11→13; zero modern keys; nested legacy schema) are **EXCLUDED** and enumerated in the courier. Four-lens: **CS** — the current intake contract IS the product; no customer can submit the old shape today, so replaying it measures a compatibility layer neither track ships. **Privacy-law** — §7156/§7152 conclusions must trace to the fields the current form collects; a fabricated old→new semantic mapping would put words in customers' records (invention). **Prompt** — n/a. **Prose** — n/a. **Spec note:** this INTERPRETS §7's "full-archive replay" as **full-compatible-archive** (Ruling-A-class clarification, same family as gate-location); **FLAGGED PROMINENTLY FOR CEO REVIEW WITH VETO** — if the CEO wants the 30 old-era docs covered, the alternative is an explicit old-form mapping table authored as a **CEO-signed courier** (the mapping IS content: it asserts what old customers meant).
+
+**4. Spend.** ~104 billed calls ≈ $17 to date. Rerun accounting (actual): 28 rerun jobs — era docs 2 attempts each ≈ 52 calls + ~3 modern; cumulative ≈ **$17–19 estimated**. Next: full-corpus run ≈ **190 docs** (180 unmeasured modern + re-grade of the 10 ramp-2 docs under the current engine) ≈ **$30 estimated**, inside the released envelope.
+
+**5. Next steps.** Full-corpus run in waves → presence-band recalibration (Issue 9) from the full modern distribution → grounded-note lexicon second calibration pass → e2e suite + legacy-test-failure cleanup (`content.test.ts` / `value-screen.test.ts` / `waveb.test.ts` pre-existing failures) → CEO side-by-side read → acceptance.
