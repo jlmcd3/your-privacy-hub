@@ -8,7 +8,7 @@
  * Courier-only edits.
  */
 
-export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-30-item276-rider-7156a-standard";
+export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-30-item284-provisional-posture";
 
 /**
  * Surface-audit rulings (item-136 default: CUT unless defended).
