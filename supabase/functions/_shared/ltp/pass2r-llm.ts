@@ -46,8 +46,12 @@ export const PASS2R_LLM_STAMP = "ltp-pass2r-llm-2026-07-30-item278";
 export const PASS2R_MODEL = "claude-sonnet-4-6";
 /** One call + at most two validator-directed retries (§2R.6). */
 export const PASS2R_MAX_ATTEMPTS = 3;
-export const PASS2R_PER_ATTEMPT_TIMEOUT_MS = 90_000;
-export const PASS2R_STAGE_CEILING_MS = 180_000;
+// Item 281 (2026-07-30): raised from 90_000/180_000 on evidence from job
+// 343e35d0 — both 2R attempts aborted at exactly 90002ms, terminal
+// pass2r_stage_budget_exhausted. A max_tokens=6000 prose generation cannot
+// complete in 90s at typical Sonnet throughput. 2×170s < 360s ceiling.
+export const PASS2R_PER_ATTEMPT_TIMEOUT_MS = 170_000;
+export const PASS2R_STAGE_CEILING_MS = 360_000;
 export const PASS2R_MAX_TOKENS = 6_000;
 export const PASS2R_TIMEOUT_ENFORCED = "abort-controller";
 
