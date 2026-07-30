@@ -17,7 +17,8 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   CPPA_RISK_SECTION_SHARDS,
-  CPPA_RISK_SECTION_EMISSION_POLICY,
+  deriveTopLevelAllowedKeys,
+  shardKeys,
 } from "./section-shards/cppa-risk.ts";
 import { composeSection } from "./section-composers/cppa-risk.ts";
 
@@ -27,13 +28,14 @@ Deno.test("ITEM 290 — no scope_confirmation shard is declared", () => {
   assert(keys.includes("scope_and_triggers"), "surviving key must remain a shard");
 });
 
-Deno.test("ITEM 290 — no emission policy entry for the retired key (no empty stub)", () => {
-  const policy = CPPA_RISK_SECTION_EMISSION_POLICY as Record<string, unknown>;
-  assertEquals(policy["scope_confirmation"], undefined);
-  assertEquals(policy["scope_and_triggers"], "conditional");
+Deno.test("ITEM 290 — the retired key is absent from every derived allow-list", () => {
+  assert(!deriveTopLevelAllowedKeys().includes("scope_confirmation"));
+  assert(!shardKeys().includes("scope_confirmation"));
+  assert(deriveTopLevelAllowedKeys().includes("scope_and_triggers"));
 });
 
 Deno.test("ITEM 290 — composer dispatch returns null for the retired key", () => {
   const plan = {} as never;
   assertEquals(composeSection("scope_confirmation", plan), null);
 });
+
