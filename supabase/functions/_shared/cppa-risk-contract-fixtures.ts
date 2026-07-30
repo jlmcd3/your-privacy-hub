@@ -89,6 +89,10 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
   intake: {
     entity_name: "Meridian Health, Inc.",
     subject_anchor: "Mental-health triage service",
+    primary_activity_name: "Mental-health triage intake",
+    primary_activity_purpose: "We screen triage intake responses to route patients to a care pathway.",
+    has_secondary_uses: "No — this data is used for this activity only",
+    secondary_activities: [],
     q1_revenue: "Over $100M",
     q2_consumers: "1,000,000 or more",
     q3_sector: "Healthcare/Life Sciences",
@@ -135,6 +139,10 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
   intake: {
     entity_name: "Solstice FinPay, Inc.",
     subject_anchor: "Consumer credit-scoring product",
+    primary_activity_name: "Consumer credit scoring",
+    primary_activity_purpose: "We score applicant financial data to produce a creditworthiness decision.",
+    has_secondary_uses: "No — this data is used for this activity only",
+    secondary_activities: [],
     q1_revenue: "$50M to $100M",
     q2_consumers: "250,000 to under 1,000,000",
     q3_sector: "Financial services",
@@ -175,6 +183,10 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
   intake: {
     entity_name: "Aurora RetailWorks, LLC",
     subject_anchor: "Loyalty-program personalization engine",
+    primary_activity_name: "Loyalty personalisation",
+    primary_activity_purpose: "We match purchase history to member records to select which offers each member sees.",
+    has_secondary_uses: "No — this data is used for this activity only",
+    secondary_activities: [],
     q1_revenue: "$25M to under $50M",
     q2_consumers: "100,000 to under 250,000",
     q3_sector: "Retail/ecommerce",
