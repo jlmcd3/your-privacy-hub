@@ -308,6 +308,14 @@ export function validateEntityWhitelist(
   wl: Pass2rWhitelist,
 ): Pass2rValidatorOutcome {
   const haystack = norm(wl.entities.join(" | "));
+  // ITEM 285 / F7(1): multi-word plan-carried names are matchable by their FULL
+  // form AND by each constituent token ("Cascade" out of "Cascade Data Ltd").
+  const carriedTokens = new Set(
+    wl.entities
+      .flatMap((e) => norm(e).split(/[^A-Za-z0-9'&.\-]+/))
+      .map((t) => stripSuffixDot(t))
+      .filter(Boolean),
+  );
   const rejections: Pass2rRejection[] = [];
 
   // Verdict vocabulary is plan-carried by definition (§2R.4) and is capitalized
@@ -321,9 +329,11 @@ export function validateEntityWhitelist(
   const unknown: string[] = [];
   for (const cand of properNounCandidates(norm(proseOf(doc)))) {
     if (haystack.includes(cand)) continue;
+    if (carriedTokens.has(stripSuffixDot(cand))) continue;
     if (verdictWords.has(cand)) continue;
     if (!unknown.includes(cand)) unknown.push(cand);
   }
+
   if (unknown.length > 0) {
     rejections.push(rej(
       "entity_whitelist",
