@@ -7054,3 +7054,23 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Diff: `src/pages/admin/AdminReplayReview.tsx`, `src/test/item294-replay-review-layout.test.tsx`, the courier, and this ledger. No backend file in the diff.
 
 **Disposition:** FIXED + PUBLISHED.
+
+---
+
+## Item 295 — CEO PDF READ VERDICT + FOUR-LENS REVIEW (DOCS-ONLY, 2026-07-30T23:23Z)
+
+**Authority:** CEO read of two batch-4 replay PDFs at `/admin/replay-review` (post-Item-294). RECORD ONLY — no code change, no deploy, no harness invocation, no DB write.
+
+**CEO VERDICT (verbatim).** "The narrative still reads like a mindless computer reciting facts." / "There is no real assessment — the analysis just repeats facts from the record or recites applicability in one long, almost unreadable paragraph."
+
+**FOUR-LENS REVIEW (unanimous).** The defect is **architectural at the content layer**: no pipeline stage is assigned ANALYSIS. Pass-1 `weight_note` fields are grounded quotes by contract ("the record's own words"); Pass-2 templates frame recitation; Pass-2R's no-new-facts contract can only re-narrate the same recitation. The resulting PDFs exhibit: balancing section with the same FSOR sentence repeated 9×/8× with bare pinpoints; "present in the record as documented" ×13; three priority actions verbatim-identical but for the subject; duplicated provisional-posture paragraph; zero Part-1 customer overview; and a rich record (health + genetic + biometric + ADMT + unresolved opt-out + 250k+ consumers + DPIA medium residual risk) receiving zero weighing of any of those elements.
+
+**PER-LENS POSITIONS.** Legal: supports the amendment if corpus-citation and verbatim-quote discipline are preserved. Customer-success: supports; directly addresses the missing Part-1 overview and tool-shaped conclusion. Prompt/pipeline: supports, provided the new Pass-1 contract is measurable and validator-enforceable. Prose: supports; the only way to break repetition patterns and maintain a single voice.
+
+**PROPOSED ANALYSIS-DUTY AMENDMENT (CEO-GATED).** (1) Pass-1 contract shifts from "the record's own words" to "grounded analytic notes" — state the fact, then state what it means for the legal issue. (2) Add a weighing deliverable argued both directions from record facts. (3) Pass-2R four-part narration includes a Part-1 customer overview, a Part-2 analysis (reasoned application, not recitation), a Part-3 missing-info/next-steps, and a Part-4 conclusion plus how it could change. (4) Validators permit cited reasoned inference from record facts while still banning invented facts and unsupported legal conclusions. Material spec §3/§2R amendment — presented to the CEO, awaiting his direction.
+
+**COURIER.** `docs/courier/ITEM295-CEO-READ-FOUR-LENS-2026-07-30.md`.
+
+**DOUBLE-CHECK.** Diff limited to the courier and this ledger.
+
+**Disposition:** RECORDED. CEO-gated — no build action until the CEO rules on the ANALYSIS-DUTY design amendment.
