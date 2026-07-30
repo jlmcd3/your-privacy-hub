@@ -856,6 +856,14 @@ interface ActionSource {
   readonly gap_or_consequence_clause: string;
   readonly compliance_guidance_sentence: string;
   readonly is_documentation_gate: boolean;
+  /**
+   * ITEM 284 (F4) — per-source owner. `ownerForKind` hard-coded EVERY
+   * type_j_reserved action to "qualified legal counsel", which misassigned
+   * the § 7152(a)(7) initiation decision (`j.initiation_decision`,
+   * reserved_to: "business") to counsel while the action text itself named
+   * the accountable business owner (doc 278d0608). When set, this wins.
+   */
+  readonly owner_role_titles_override?: string;
 }
 
 /** Lowercase the first character (used to fold CEO opener into label prefix). */
@@ -974,6 +982,10 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
       compliance_guidance_sentence: spec?.compliance_guidance
         ?? `Record ${reservedTo}'s decision on ${lcFirst(label)} in the assessment file per ${p.anchor.pinpoint}.`,
       is_documentation_gate: false,
+      // ITEM 284 (F4) — owner follows the registry's reserved_to, not the kind.
+      owner_role_titles_override: reservedTo === "the accountable business owner"
+        ? (certifyingExecTitle(plan) || "the accountable business owner named on the assessment record")
+        : reservedTo,
     });
   }
 
@@ -1008,8 +1020,16 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     // KIND opener stem prepended to element_short_label per courier §2.1.
     // For family-grouped rows the label already carries the family opener
     // ("the following …:"); prepend the KIND stem to complete the sentence.
-    const stem = KIND_OPENERS[s.kind];
-    const prefixedLabel = s.factor_id?.startsWith("family.")
+    // ITEM 284 (F4) — PHRASE DE-DUPLICATION. The family label already names
+    // the element class ("the following potential negative impact
+    // categories:"), so the class-naming KIND stem duplicated it
+    // ("…to address the potential negative impact category the following
+    // potential negative impact categories:", doc 278d0608). Family rows
+    // take the class-neutral ratified stem instead; non-family rows are
+    // unchanged.
+    const isFamily = !!s.factor_id?.startsWith("family.");
+    const stem = isFamily ? KIND_OPENERS.gate_unresolved : KIND_OPENERS[s.kind];
+    const prefixedLabel = isFamily
       ? `${stem} ${s.element_short_label}`
       : `${stem} ${lcFirst(s.element_short_label)}`;
     // Family customer_recorded_fact_clause carries the "the business" sentinel — replace here.
@@ -1023,7 +1043,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         gap_or_consequence_clause: s.gap_or_consequence_clause,
         compliance_guidance_sentence: s.compliance_guidance_sentence,
         deadline_sentence: sel.row.deadline_sentence,
-        owner_role_titles: ownerForKind(s.kind, plan),
+        owner_role_titles: s.owner_role_titles_override ?? ownerForKind(s.kind, plan),
         __cite: { PINPOINT: s.pinpoint },
       },
     };
