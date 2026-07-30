@@ -63,9 +63,23 @@ The document is FOUR parts, in order. The existing section registry is re-homed 
    *Registry mapping:* `information_needed`, `strengthen_items`, `priority_actions`, `next_steps`, `submission_summary` (deadline/filing content).
 
 **PART 4 — CONCLUSION: RESULT + CONDITIONS OF CHANGE.** States the **result of the assessment** in plain terms, then a **sensitivity statement**: which different or additional facts would flip or soften the result. The sensitivity statement is derived from the plan's factor margins — the factors nearest the decision boundary and the factors recorded absent — and **may not invent thresholds, scores, or numeric tipping points**.
-   *Registry mapping:* the closing/verdict surface plus the standing disclaimer.
+   *Registry mapping:* the closing/verdict surface plus the standing disclaimer, **plus `exception_analysis` (Item 287 amendment)**.
 
 Ordering, presence of all four parts, and part-to-registry coverage are checked by the section-structure validator (§2R.3).
+
+### §2R.2 AMENDMENT — `exception_analysis` RE-HOMES TO PART 4 (Item 287, 2026-07-30)
+
+**Change.** `exception_analysis` moves from Part 2 to Part 4 in the re-homing map (`PASS2R_PART_HOME` in `_shared/ltp/pass2r-validators.ts`) and in the `section_structure` validator's expectation. Non-material: the four-part law itself is unchanged, and no registry key is added or dropped.
+
+**Evidence.** `exception_analysis:part_4` fired on EVERY validator reject across Step-0a batches 1R and 2. The model was reading the narrative correctly; the map was wrong.
+
+**Four-lens record (unanimous).**
+- **LEGAL** — exception discussion belongs with the conclusion's conditionality: an exception is a condition under which the result differs.
+- **CS** — single-map edit; the validator reads the same map, so no drift is possible between emitter expectation and check.
+- **PROMPT** — removes a systematic false structure signal that was polluting retry feedback on every attempt.
+- **PROSE** — Part 4 is where a reader expects "unless / except".
+
+**Not amended.** The Part-4 homings observed for `processing_narrative`, `opening_summary` and `risk_assessment_by_activity` in doc `278d0608` are NOT map errors; those expectations stand and remain a structure-discipline watch.
 
 ## §2R.3 NO-NEW-FACTS CONTRACT (deliverable (c))
 
