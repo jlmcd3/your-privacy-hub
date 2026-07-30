@@ -60,11 +60,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7150(b)", label: "Activities presenting significant risk" },
       { citation: "11 CCR § 7156(b)", label: "Using an assessment prepared for another purpose" },
     ],
-    coachLead: "Compare each other use against this one on all five dimensions.",
+    coachLead:
+      "List every other use the same data is put to, including the ones you would rather leave out, then set each one beside this activity on all five dimensions: the data, the people, the collection method, the purpose, and the privacy risk. Report the differences you find rather than smoothing them over \u2014 whether a difference matters is for you and your counsel to judge, not for this form. If a use does not line up, say so; that answer is as usable as a match.",
     coachBody:
       "The standard is similarity of the activities and similarity of the privacy risks. Answer each comparison from what your records show; where you do not know, \u201CNot sure\u201D is the accurate answer and is recorded as such.",
     goodAnswer:
-      "A fictional retailer compares its birthday mailing with its November mailing: same information, same collection method, same purpose, same consumers, same risks \u2014 the comparison is documented dimension by dimension rather than asserted in one line.",
+      "Fernbrook Grocers notes a second use: the same loyalty records also feed a resale of shopper contact details to a regional beverage distributor. Same data, same shoppers \u2014 but a different purpose, a different recipient, and a different privacy risk, so the customer records the comparison dimension by dimension and flags the mismatch instead of folding the two together.",
+
     commonMistake:
       "Treating uses as comparable because one team runs both, or because the data set is the same. Shared data does not make risks similar; the comparison is about the activities and their privacy risks.",
   },
