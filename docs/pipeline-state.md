@@ -6969,3 +6969,28 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DEPLOY.** `replay-cppa-risk-harness` only. No harness invocation.
 
 **Disposition:** SHIPPED. The `section_cross_duplication:scope_confirmation=scope_and_triggers` block class is structurally eliminated at the emitter; the next 20-doc run is the zero-block acceptance candidate.
+---
+
+## Item 291 — EUROPEAN CORPUS GAP ANALYSIS (DOCS-ONLY) — 2026-07-30T22:20Z
+
+**Authority:** CEO corpus authorization 2026-07-30 (Item 289 ruling 5 — completion authorized, conditioned on CEO review of the inventory BEFORE any ingestion spend). DOCS-ONLY: no code, no deploy, no harness invocation, no ingestion writes. Full record with per-row evidence: `docs/courier/ITEM291-EU-CORPUS-GAP-2026-07-30.md`.
+
+**HEADLINE — THE GAP IS REGISTRY WIRING, NOT INGESTION.** The CEO is correct that the full GDPR is already ingested, and more: `gdpr_articles` holds **99 EU articles (Arts. 1-99 complete)** from EUR-Lex CELEX `32016R0679` (99/99 hashed) plus **81 UK articles** from `legislation.gov.uk` (81/81 hashed, 81 distinct URLs); `gdpr_recitals` holds **173 EU recitals (1-173 complete, all hashed)**; `edpb_guidelines` holds **893 hashed excerpts across 10 official documents**. The 20 approved EU `provision_texts` rows are a hand-picked registry slice over that corpus. Tables searched: provision_texts, gdpr_articles, gdpr_recitals, edpb_guidelines, regulatory_guidance, national_provisions, corpus_versions, corpus_drift_log, corpus_field_history, corpus_extraction_errors, cppa_corpus_settings, cppa_source_registry, primary_source_fetch_runs, source_document_cache, article_image_pool.
+
+**PROMOTION IS BYTE-SAFE.** 11 of the 13 comparable registry rows are byte-identical to the CELEX corpus (`verbatim_excerpt = body_text` TRUE for Arts. 9, 13, 14, 25, 28, 30, 32, 33, 35, 44, 46). **TWO P0 DEFECTS FOUND:** `gdpr-art-34` is 1,649 chars vs CELEX 1,718 (**69 chars TRUNCATED**, and it is a live ir-playbook citation) and `gdpr-art-22` is 1,289 vs 1,314 (**25 chars truncated**).
+
+**ART. 35(1) SENTENCE VERIFIED VERBATIM.** The ingested `gdpr-art-35` row contains, at char 400: "A single assessment may address a set of similar processing operations that present similar high risks." Present in both the registry row and the CELEX row. dpia requires ZERO ingestion.
+
+**THREE DISPATCH "MISSING" ITEMS ARE ACTUALLY PRESENT** (corrected): EDPB Guidelines **1/2024** on Art. 6(1)(f) legitimate interests (109 hashed excerpts, adopted 2024-10-08) — including the CJEU three-part-test formulation ("three-step process outlined below") and 10 CJEU-citing excerpts incl. C-252/21 *Meta v Bundeskartellamt*; EDPB Guidelines **9/2022** on personal data breach notification (74 excerpts); and **Recitals 85-88** (inside the complete 1-173 set). **WP248 rev.01** is ingested (46 hashed excerpts) and its nine criteria are verified present, so `gdpr-art-9-1`'s existing "WP248 criterion 4" citation is now hash-gateable.
+
+**GENUINELY MISSING (3 items only):** member-state breach-deadline schedule sources — `national_provisions` is **EMPTY (0 rows)**, the only Wave-3-blocking raw-ingestion need; UK twins for Arts. **22 and 44** (18 EU articles lack a UK row; only these two are Wave-3 relevant); and a standalone CJEU *Rīgas satiksme* C-13/16 row (P3, optional). UK recitals: 0 rows (P3, no current need). UK twins DO exist for Arts. 5, 6, 9, 13, 14, 24, 25, 28, 30, 32, 33, 34, 35, 36, 37, 38, 39, 46 with materially different text (Art. 6 UK 4,897 vs EU 4,114).
+
+**REGISTRY PROMOTION BACKLOG (no ingestion):** Art. 5 full incl. **5(2) accountability** (present at char 1,859 of the corpus row, absent from the registry — registry has only 5(1)(a)/(b)/(c) shards), Art. 36, Art. 24, Arts. 37/38/39, Recitals 85-88, and the three guidance layers.
+
+**VERIFY-FIRST BACKLOG mined from `quality_loop2_results`:** ir-playbook 11/11 rows flag a verification/citation/source defect (avg 97.92), governance 10/10 (96.21), lia 7/10 (97.65), dpia 7/9 (95.61). Governance's flags are dominated by CALIFORNIA citations leaking into an EU/UK surface (`Cal. Civ. Code § 1798.82`, `11 CCR § 7001(e)`) — diagnosed as a consequence of there being no EU Art. 24/37-39/5(2) registry key for the tool to reach for.
+
+**PLAN:** 17 rows, priced P0-P3. **12 of 17 lines (P0-P2) need NO ingestion spend** — promotion, hash-gating and pin tests over already-hashed rows. Estimated **8-10 turns** for stages A-F. NO U.S./CA material serves any role; the 12 `US-CA` provision rows (7 empty/pending) are explicitly barred as EU fallbacks.
+
+**DOUBLE-CHECK VERIFIED.** Read-only queries throughout; diff limited to the courier and this ledger.
+
+**Disposition:** AWAITING CEO REVIEW of the §Task-3 inventory. No ingestion spend authorized until he approves the list. Recommended first release regardless of the wider list: the two P0 truncation repairs (Arts. 34 and 22), which are defect fixes on already-ingested text and cost nothing.
