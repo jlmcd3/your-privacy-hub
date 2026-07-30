@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T18:33Z (Item 288 — STEP-0a BATCH 3 RESULTS + ADJUDICATION QUEUE: 20/20 deterministic results persisted; 1 new prose success, 6 validator rejects with `prose_rejected` persisted, 13 lost to isolate death; GTM 5 release / 8 release_with_logged_defects / 7 block, all on `section_cross_duplication:scope_confirmation=scope_and_triggers`. Adjudication queue released to Item 289.)
+**Last updated:** 2026-07-30T21:56Z (Item 289 — CEO RULINGS on seven open issues: Word engine deferred until full rebuild complete; acceptance read after clean 20-doc run; scope-duplication decision held pending mockup; Pass-2R attempts stay at 3; European corpus authorized pending inventory review; CPPA-cyber intake approved; DPA/eu-notice/us-notice/RoPA excluded. Item 290 queued for mockup/evidence turn.)
 
 ---
 
@@ -6924,4 +6924,27 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK VERIFIED.** Diff contains only the courier and this ledger.
 
 **Disposition:** RECORDED. Adjudication queue released to Item 289 for four-lens review and fix-turn scoping.
+
+---
+
+## Item 289 — CEO RULINGS ON SEVEN OPEN ISSUES (2026-07-30T21:56Z)
+
+**Authority:** Controller dispatch 2026-07-30. RECORD ONLY — no `.ts` change, no deploy, no harness invocation, no DB write. Full record: `docs/courier/ITEM289-CEO-RULINGS-2026-07-30.md`.
+
+**RULINGS (verbatim-in-substance):**
+
+1. **Word engine** — deferred until the ENTIRE rebuild project is complete (all products successfully rebuilt). No Word action of any kind until then; supersedes the prior "reserved pending Carbone reconstruction" posture on timing.
+2. **Acceptance read** — CEO agrees with the teams: clean 20-doc run first, then his inspection at `/admin/replay-review`.
+3. **Scope-duplication (the 7-block class)** — decision HELD: CEO inclines toward the teams' emitter-fix recommendation but requires a mockup of the impacted report sections first; no detector edit and no emitter change until his ruling.
+4. **Pass-2R attempts** — stays at 3 (§2R.6 unchanged).
+5. **European corpus** — completion authorized, conditioned on CEO review of the proposed ingestion inventory before start; no ingestion spend until he approves the list.
+6. **CPPA-cyber intake** — approved per teams' recommendation: add the § 7120(b) statutory-operand questions with band edges on the statutory lines (Item-275 pattern).
+7. **Scope** — DPA, eu-notice, us-notice, and RoPA remain EXCLUDED / deferred.
+
+**SEQUENCING NOTE:** Issue (3) is the critical path to the acceptance read — the zero-block 20-doc run cannot pass while the duplication class blocks. Item 290 (emitter/viewer evidence turn for the alias question) is next after the CEO's mockup review.
+
+**DOUBLE-CHECK VERIFIED.** Diff contains only the courier and this ledger.
+
+**Disposition:** RECORDED. CEO rulings released; Item 290 scoped to the mockup-and-evidence turn for the scope-duplication alias question.
+
 
