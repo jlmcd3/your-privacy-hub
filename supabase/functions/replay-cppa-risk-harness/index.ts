@@ -23,6 +23,8 @@ import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
 import { MINED_PRESENCE_BAND, defaultSubstanceGateConfig }
   from "../_shared/ltp/replay/presence-band.ts";
 import { modelProvider } from "../_shared/ltp/replay/providers.ts";
+import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
+
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
 import { evaluateSubstance } from "../_shared/ltp/replay/substance-gates.ts";
 import { compareDoc } from "../_shared/ltp/replay/side-by-side.ts";
@@ -30,7 +32,8 @@ import type { PerDocResult, ReplayDoc, SideBySideRow }
   from "../_shared/ltp/replay/types.ts";
 
 export const HARNESS_BUILD_STAMP =
-  "replay-cppa-risk-harness-2026-07-29-item260";
+  "replay-cppa-risk-harness-2026-07-30-item269";
+
 
 const MAX_DOC_IDS = 50;
 
@@ -103,9 +106,14 @@ async function processDoc(
   doc: ArchivedDoc,
 ): Promise<DocProcessOutcome> {
   try {
+    // ITEM 269 FIX 1 — ERA NORMALIZER. Pre-realignment (five-stage-shaped)
+    // archive rows are normalized to the flat contract keys BEFORE Pass-1
+    // using the production mapping (`resolveIntakeForTestStates`) and the
+    // V1→V2 band resolvers. Fail-open; unmapped legacy keys pass through.
+    const era = normalizeEraIntake(doc.intake_data);
     const replayDoc: ReplayDoc = {
       doc_id: doc.id,
-      intake_data: doc.intake_data,
+      intake_data: era.intake,
       legacy_report: doc.report_data ?? undefined,
     };
     const p1 = await modelProvider({
@@ -113,6 +121,7 @@ async function processDoc(
       report_data: {},
       buildStamp: `${HARNESS_BUILD_STAMP}#${doc.id}`,
     }, { callerName: "replay-cppa-risk-harness" });
+
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });
     const substance = evaluateSubstance(
       p1.plan,
@@ -172,7 +181,17 @@ async function processDoc(
       write_around: p1.telemetry.write_around,
       validator_issues: p1.telemetry.validator_issues,
       grounded_note: p1.telemetry.grounded_note ?? null,
+      // ITEM 269 FIX 1 transparency record.
+      intake_era_normalization: {
+        applied: era.telemetry.applied,
+        mapped_keys: era.telemetry.mapped_keys,
+        mapped_key_names: era.telemetry.mapped_key_names,
+        unmapped_legacy_keys: era.telemetry.unmapped_legacy_keys,
+        band_labels_resolved: era.telemetry.band_labels_resolved,
+        version: era.telemetry.version,
+      },
       note: "token_usage_not_surfaced_by_runPass1Llm_2026-07-29",
+
     };
 
     return {

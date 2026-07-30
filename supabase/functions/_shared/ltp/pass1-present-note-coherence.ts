@@ -20,7 +20,17 @@
  */
 import type { FactorTableEntry, RenderPlan } from "../render-plan/schema.ts";
 
-export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item244-addendum-mass-absence-abort";
+export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-30-item269-fossil-note-rule";
+
+/**
+ * ITEM 269 FIX 2 — FOSSIL NOTE ON PRESENT ROW.
+ *
+ * The two modern-era ramp-3 blocks were rows where the model asserted
+ * `present_in_intake=true` while writing the canonical no-evidence note.
+ * The model's own evidence statement is adopted: the row becomes absent.
+ */
+export const CANONICAL_NO_EVIDENCE = /^\s*no record evidence\s*\.?\s*$/i;
+
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (b) — MASS-ABSENCE GUARD.
@@ -117,6 +127,18 @@ export function screenPresentNoteCoherence(
     }
     const note = (row.weight_note ?? "").toString();
     if (!note) return row;
+    // ITEM 269 FIX 2 — FOSSIL NOTE ON PRESENT ROW. Runs BEFORE the
+    // glossary patterns (after the defect-3 refs rule).
+    if (CANONICAL_NO_EVIDENCE.test(note)) {
+      rewrites.push({
+        factor_id: row.factor_id,
+        field_id: "(weight_note)",
+        reason: "present row carries the canonical no-evidence note — model's own evidence statement adopted",
+        original_note: note.slice(0, 200),
+      });
+      return { ...row, present_in_intake: false, weight_note: "no record evidence" } as FactorTableEntry;
+    }
+
     for (const p of PATTERNS) {
       if (!p.appliesTo.test(row.factor_id)) continue;
       if (!p.hit.test(note)) continue;
