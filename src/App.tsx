@@ -154,6 +154,7 @@ const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports")
 const AdminStaticStress = lazy(() => import("./pages/admin/AdminStaticStress"));
 const QualityLoop = lazy(() => import("./pages/admin/QualityLoop"));
 const QualityLoop2 = lazy(() => import("./pages/admin/QualityLoop2"));
+const AdminReplayReview = lazy(() => import("./pages/admin/AdminReplayReview"));
 const QualityLoop3 = lazy(() => import("./pages/admin/QualityLoop3"));
 const QualityBatch = lazy(() => import("./pages/admin/QualityBatch"));
 const QualityBatch2 = lazy(() => import("./pages/admin/QualityBatch2"));
@@ -631,6 +632,18 @@ const App = () => (
                   <AdminOnly fallback={<NotFound />}>
                     <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
                       <QualityLoop2 />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/replay-review"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <AdminReplayReview />
                     </Suspense>
                   </AdminOnly>
                 </ProtectedRoute>
