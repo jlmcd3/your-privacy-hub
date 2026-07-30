@@ -50,6 +50,8 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.exec.hedged",
     "T.risk.exec.insufficient",
     "T.risk.exec.negative",
+    // ITEM 276 — primary-activity subject frames.
+    "T.risk.exec.primary_subject_lead",
     "T.risk.information_needed.b_criterion_count",
     // T-M3 — next_steps per-step shape.
     "T.risk.next_step",
@@ -65,6 +67,7 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     // T-M3 — inconsistency_flags per-entry shape.
     "T.risk.review_items.entry",
     // ITEM 241.3 — CP5 §3.2 customer-first section-opener templates.
+    "T.risk.scope.secondary_segmentation",
     "T.risk.section_opener.actions",
     "T.risk.section_opener.balance",
     "T.risk.section_opener.compliance_guidance",
