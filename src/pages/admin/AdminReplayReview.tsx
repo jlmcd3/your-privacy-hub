@@ -119,6 +119,10 @@ export default function AdminReplayReview() {
   const [legacy, setLegacy] = useState<LegacyDoc | null>(null);
   const [showLegacy, setShowLegacy] = useState(false);
   const [pdfBusy, setPdfBusy] = useState<string | null>(null);
+  // ITEM 294 — fail-visible: results-query errors render inline, not toast-only.
+  const [rowsError, setRowsError] = useState<string | null>(null);
+  // ITEM 294 — the jobs table is secondary; collapsed by default.
+  const [showJobs, setShowJobs] = useState(false);
 
   // 1) Load ALL jobs, newest first. No note/date/id pin.
   useEffect(() => {
