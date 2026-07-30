@@ -9,7 +9,10 @@
  */
 import { assembleReport } from "../pass2-assembler.ts";
 import type { AssemblerResult, SectionTelemetry } from "../pass2-assembler.ts";
+import { runProsePassStage } from "../pass2r-llm.ts";
+import type { RenderPlan } from "../../render-plan/schema.ts";
 import { evaluateSubstance } from "./substance-gates.ts";
+
 import { compareDoc } from "./side-by-side.ts";
 import {
   REPLAY_HARNESS_VERSION,
