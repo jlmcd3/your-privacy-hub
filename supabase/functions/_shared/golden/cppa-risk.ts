@@ -6,6 +6,11 @@ import type { GoldenCase } from "./types.ts";
 const base = {
   entity_name: "Meridian SaaS Inc.",
   subject_anchor: "California consumers using the free tier",
+  // ITEM 275 — primary-activity trio (contract fields added this turn).
+  primary_activity_name: "Free-tier account analytics",
+  primary_activity_purpose: "We analyse free-tier account and device identifiers to measure product usage.",
+  has_secondary_uses: "No — this data is used for this activity only",
+  secondary_activities: [],
   q1_revenue: "$25M to under $50M",
   q2_consumers: "250,000 to under 1,000,000",
   q3_sector: "Technology/SaaS",

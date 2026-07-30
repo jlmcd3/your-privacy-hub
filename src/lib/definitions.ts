@@ -6,6 +6,12 @@ export interface TermDefinition {
 }
 
 export const DEFINITIONS: Record<string, TermDefinition> = {
+  comparable_set: {
+    term: "Comparable set of processing activities",
+    definition: "A set of similar processing activities that present similar risks to consumers' privacy, which a business may address in a single risk assessment. (verbatim, condensed)",
+    cite: "11 CCR § 7156(a)",
+  },
+
   sensitive_pi: {
     term: "Sensitive personal information",
     definition: "Personal information revealing a consumer's Social Security, driver's license, state ID, or passport number; account log-in credentials; precise geolocation; racial or ethnic origin, religious or philosophical beliefs, or union membership; the contents of mail, email, or text messages where the business is not the intended recipient; genetic data; biometric information processed to identify a consumer; health data; or data concerning sex life or sexual orientation. (summary)",

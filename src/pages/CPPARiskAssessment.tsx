@@ -137,7 +137,32 @@ const SENSITIVE_PI_CATEGORIES = new Set([
   "Children's data (under 16)",
 ]);
 
+// ITEM 275 — § 7156(a) comparable-set divergence dimensions. Each secondary
+// use is compared against the primary activity across the five dimensions the
+// § 7156(a)(1) Business E example turns on (same information, same purpose,
+// same way/technology, same consumers, similar privacy risks).
+export const DIVERGENCE_OPTS = ["Same", "Different", "Not sure"] as const;
+export const MAX_SECONDARY_ACTIVITIES = 5;
+
+export const DIVERGENCE_DIMENSIONS = [
+  { key: "data", label: "The personal information used" },
+  { key: "purpose", label: "The purpose of the processing" },
+  { key: "systems", label: "The systems, technology, and service providers used" },
+  { key: "people", label: "The consumers whose information is processed" },
+  { key: "risks", label: "The risks to consumers' privacy and the safeguards applied" },
+] as const;
+export const HAS_SECONDARY_USES_OPTS = [
+  "No — this data is used for this activity only",
+  "Yes — there are other uses",
+] as const;
+export type SecondaryActivity = {
+  name: string;
+  purpose: string;
+  divergence: Record<string, string>;
+};
+
 // I-3: California-consumer count band (§ 4D).
+
 const CA_CONSUMER_BAND = [
   "Fewer than 10,000",
   "10,000–100,000",
@@ -363,6 +388,16 @@ export default function CPPARiskAssessment() {
   const [publicPrivacyPolicyUrl, setPublicPrivacyPolicyUrl] = useState("");
   const [sensitiveLocationBasis, setSensitiveLocationBasis] = useState("");
 
+  // ITEM 275 — REDESIGN STEP 1: primary-activity identification + the
+  // § 7156(a) comparable-set fork. The tool NEVER green-lights bundling;
+  // divergence answers only surface the comparable-set standard and reserve
+  // the determination to the user and their counsel.
+  const [primaryActivityName, setPrimaryActivityName] = useState("");
+  const [primaryActivityPurpose, setPrimaryActivityPurpose] = useState("");
+  const [hasSecondaryUses, setHasSecondaryUses] = useState("");
+  const [secondaryActivities, setSecondaryActivities] = useState<SecondaryActivity[]>([]);
+
+
   // Improvement Kit (Doc N R1): parallel assertion map only — never
   // mutates existing field values. When flag off or designated list
   // empty, this stays empty and is omitted from intake_data.
@@ -411,7 +446,7 @@ export default function CPPARiskAssessment() {
   // automatically when the user advances/goes back, so it never shows stale
   // guidance from the previous page.
   const STEP_DEFAULT_RAIL_KEY: Record<number, string | null> = {
-    1: "q1_revenue",
+    1: "primary_activity",
     2: "q9_opt_out",
     3: null,
     4: "q15_sensitive_pi",
@@ -431,7 +466,9 @@ export default function CPPARiskAssessment() {
   const fscrCallouts = useFscrCallouts([
     "11 CCR § 7152(a)(1)",
     "11 CCR § 7152(a)(3)(G)",
+    "11 CCR § 7156(a)",
     "11 CCR § 7156(b)",
+
   ]);
 
   // Regulatory footprint — derived deterministically from current answers.
@@ -448,16 +485,46 @@ export default function CPPARiskAssessment() {
         label: "Risk assessment required — sensitive PI processing",
         triggered: q15 === "Yes" || q4.some((c) => SENSITIVE_PI_CATEGORIES.has(c)),
       },
+      // ITEM 275 BUILD 3 — six-prong realignment. (b)(3) and (b)(6) are
+      // separate prongs with separate triggers; (b)(4) and (b)(5) were absent.
       {
-        citation: "11 CCR §§ 7150(b)(3), 7150(b)(6)",
-        label: "Risk assessment required — ADMT use",
+        citation: "11 CCR § 7150(b)(3)",
+        label: "Risk assessment required — ADMT for a significant decision",
         triggered: q18 === "Yes" || q18 === "In evaluation",
       },
       {
-        citation: "11 CCR § 7122(a)",
+        citation: "11 CCR § 7150(b)(4)",
+        label: "Risk assessment required — systematic-observation inference (work or education context)",
+        triggered:
+          q5bProfiling === "Yes — systematic observation of workers/students/applicants" ||
+          q5bProfiling === "Both",
+      },
+      {
+        citation: "11 CCR § 7150(b)(5)",
+        label: "Risk assessment required — sensitive-location inference",
+        triggered:
+          q5bProfiling === "Yes — based on sensitive-location presence" ||
+          q5bProfiling === "Both" ||
+          (!!sensitiveLocationBasis &&
+            sensitiveLocationBasis !== "Not applicable — no sensitive-location processing"),
+      },
+      {
+        citation: "11 CCR § 7150(b)(6)",
+        label: "Risk assessment required — processing to train ADMT or recognition technology",
+        triggered:
+          q18bTraining === "Yes — training ADMT for significant decisions" ||
+          q18bTraining === "Yes — training facial/emotion/biometric recognition",
+      },
+      {
+        // Thresholds live at § 7120(b); the first-report timing cohorts live
+        // at § 7121(a). The prior "§ 7122(a)" line was a stale citation.
+        citation: "11 CCR §§ 7120(b), 7121(a)",
         label: "Cybersecurity audit may be required (Module 2)",
-        triggered: ["$100M–$500M", "Over $500M"].includes(q1),
-        note: "April 1, 2028 deadline for revenue > $100M",
+        triggered: ["$50M to $100M", "Over $100M"].includes(q1),
+        note:
+          q1 === "Over $100M"
+            ? "First audit report due April 1, 2028 for revenue over $100M (§ 7121(a)(1))"
+            : "First audit report due April 1, 2029 for revenue of $50M–$100M (§ 7121(a)(2))",
       },
       {
         citation: "Cal. Civ. Code §§ 1798.120, 1798.135(a)",
@@ -469,12 +536,37 @@ export default function CPPARiskAssessment() {
         label: "Sensitive PI limit right must be offered",
         triggered: q15 === "Yes",
       },
+      // ITEM 275 BUILD 2(c) — comparable-set reactive line. Reserved framing:
+      // the tool never states that separate assessments ARE required.
+      {
+        citation: "11 CCR § 7156(a)",
+        label:
+          "Multiple distinct uses reported — separate assessments may be required (comparable-set standard)",
+        triggered:
+          hasSecondaryUses === "Yes — there are other uses" &&
+          secondaryActivities.some((a) =>
+            Object.values(a.divergence ?? {}).some((v) => v === "Different" || v === "Not sure"),
+          ),
+        note: "determination reserved to you and counsel",
+      },
     ];
     return items.filter((i) => i.triggered);
-  }, [q1, q4, q5, q15, q18]);
+  }, [
+    q1, q4, q5, q15, q18, q5bProfiling, q18bTraining, sensitiveLocationBasis,
+    hasSecondaryUses, secondaryActivities,
+  ]);
+
 
   const stepValid = (): string | null => {
+    if (step === 1) {
+      // ITEM 275 — the primary trio and the comparable-set fork gate Step 1.
+      // Secondary rows stay skip-tolerant (see the intake memo defaults).
+      if (!primaryActivityName.trim()) return "Please name the processing activity you are assessing.";
+      if (primaryActivityPurpose.trim().length < 10) return "Please describe in one sentence what this activity does with personal information (at least 10 characters).";
+      if (!hasSecondaryUses) return "Please answer whether the same data is used for any other distinct purpose, product, or audience.";
+    }
     if (step === 1 && (!entityName.trim() || !subjectAnchor.trim() || !q1 || !q2 || !q3 || !q4.length || !q5 || !q5bProfiling)) return "Please complete the business profile, including the entity name, subject anchor, and profiling question.";
+
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
@@ -517,7 +609,24 @@ export default function CPPARiskAssessment() {
   const intake = useMemo(() => ({
     entity_name: entityName.trim(),
     subject_anchor: subjectAnchor.trim(),
+    // ITEM 275 — primary activity + § 7156(a) comparable-set fork.
+    // Skip-tolerance: unnamed secondary rows get a positional placeholder and
+    // unanswered divergence comparisons default to "Not sure".
+    primary_activity_name: primaryActivityName.trim(),
+    primary_activity_purpose: primaryActivityPurpose.trim(),
+    has_secondary_uses: hasSecondaryUses,
+    secondary_activities:
+      hasSecondaryUses === "Yes — there are other uses"
+        ? secondaryActivities.map((a, idx) => ({
+            name: a.name.trim() || `Additional use #${idx + 1} (not described)`,
+            purpose: a.purpose.trim(),
+            divergence: Object.fromEntries(
+              DIVERGENCE_DIMENSIONS.map((d) => [d.key, a.divergence?.[d.key] || "Not sure"]),
+            ),
+          }))
+        : [],
     // legacy keys preserved
+
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
     q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
     q11_policy_review: q11, q12_notice_at_collection: q12, q13_notice_content: q13, q14_employee_notice: q14,
@@ -574,6 +683,8 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
     assertions,
+    primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
+
   ]);
 
   // ---- Draft autosave ------------------------------------------------------
@@ -585,7 +696,9 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
+    primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
+
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
@@ -594,7 +707,9 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
+    primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
+
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
     q1: "", q2: "", q3: "", q4: [] as string[], q5: "", q6Multi: [] as string[], q7: "", q8: "", q9: "", q10: "",
@@ -605,6 +720,9 @@ export default function CPPARiskAssessment() {
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
+    primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
+    secondaryActivities: [] as SecondaryActivity[],
+
     exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
@@ -684,6 +802,20 @@ export default function CPPARiskAssessment() {
     if (typeof d.i4bSources === "string") setI4bSources(d.i4bSources);
     if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
     if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
+    // ITEM 275 — absent keys are legal in pre-Item-275 drafts.
+    if (typeof d.primaryActivityName === "string") setPrimaryActivityName(d.primaryActivityName);
+    if (typeof d.primaryActivityPurpose === "string") setPrimaryActivityPurpose(d.primaryActivityPurpose);
+    if (typeof d.hasSecondaryUses === "string" && (HAS_SECONDARY_USES_OPTS as readonly string[]).includes(d.hasSecondaryUses)) setHasSecondaryUses(d.hasSecondaryUses);
+    if (Array.isArray(d.secondaryActivities)) {
+      setSecondaryActivities(
+        d.secondaryActivities.slice(0, MAX_SECONDARY_ACTIVITIES).map((a: any) => ({
+          name: typeof a?.name === "string" ? a.name : "",
+          purpose: typeof a?.purpose === "string" ? a.purpose : "",
+          divergence: a?.divergence && typeof a.divergence === "object" ? a.divergence : {},
+        })),
+      );
+    }
+
     if (d.exceptionClaims && typeof d.exceptionClaims === "object") setExceptionClaims(d.exceptionClaims);
     if (d.impactData && typeof d.impactData === "object") setImpactData((prev) => ({ ...prev, ...d.impactData }));
     if (typeof restoreStage === "number") setStep(restoreStage);
@@ -843,6 +975,165 @@ export default function CPPARiskAssessment() {
               <h2>Step 1: Business Profile</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ag) — CCPA/CPRA business definition and applicability thresholds</p>
               <RequiredLegend />
+
+              {/* ITEM 275 — primary activity + § 7156(a) comparable-set fork.
+                  Every field below carries data-rail-key + focusRail so the
+                  statutory rail and coaching column track the question. */}
+              <div data-rail-key="primary_activity" onFocus={() => focusRail('primary_activity')}>
+                <Label htmlFor="primary_activity_name">What should we call the processing activity you're assessing today? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">A short working name for this one activity. It is the subject of this assessment and appears throughout the report.</p>
+                <input
+                  id="primary_activity_name"
+                  type="text"
+                  value={primaryActivityName}
+                  onChange={(e) => setPrimaryActivityName(e.target.value)}
+                  onFocus={() => focusRail('primary_activity')}
+                  placeholder="e.g., Loyalty-program personalisation"
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                />
+              </div>
+              <div data-rail-key="primary_activity" onFocus={() => focusRail('primary_activity')}>
+                <Label htmlFor="primary_activity_purpose">In one sentence, what does this activity do with personal information? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(1))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Describe what is done with the information — the operation, not the business justification.</p>
+                <textarea
+                  id="primary_activity_purpose"
+                  value={primaryActivityPurpose}
+                  onChange={(e) => setPrimaryActivityPurpose(e.target.value)}
+                  onFocus={() => focusRail('primary_activity')}
+                  rows={2}
+                  placeholder="e.g., We match purchase history to account records to select which offers each member sees."
+                  className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
+                />
+              </div>
+
+              <div data-rail-key="comparable_set" onFocus={() => focusRail('comparable_set')}>
+                <Label>
+                  Beyond {primaryActivityName.trim() || "this activity"}, does your company use this same data for any other distinct purpose, product, or audience? <Req />{" "}
+                  <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7156(a))</span>
+                </Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap mt-1">
+                  <DefPopover termKey="comparable_set" />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  A single risk assessment may cover a “comparable set” of processing activities — similar activities presenting similar risks to consumers’ privacy. Whether your uses form a comparable set is a determination reserved to you and your counsel.
+                </p>
+                <div className="mt-2">
+                  <Radio
+                    name="has_secondary_uses"
+                    options={[...HAS_SECONDARY_USES_OPTS]}
+                    value={hasSecondaryUses}
+                    onChange={(v) => {
+                      setHasSecondaryUses(v);
+                      if (v === "Yes — there are other uses" && secondaryActivities.length === 0) {
+                        setSecondaryActivities([{ name: "", purpose: "", divergence: {} }]);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-3">
+                  <FscrCallout citation="11 CCR § 7156(a)" callouts={fscrCallouts} />
+                </div>
+              </div>
+
+              {hasSecondaryUses === "Yes — there are other uses" && (
+                <div className="space-y-4">
+                  {secondaryActivities.map((act, idx) => (
+                    <div
+                      key={idx}
+                      data-rail-key="comparable_set"
+                      onFocus={() => focusRail('comparable_set')}
+                      className="rounded-lg border border-input p-4 space-y-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold">Other use #{idx + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => setSecondaryActivities((prev) => prev.filter((_, i) => i !== idx))}
+                          className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div>
+                        <Label htmlFor={`secondary_name_${idx}`}>What is this other use called?</Label>
+                        <input
+                          id={`secondary_name_${idx}`}
+                          type="text"
+                          value={act.name}
+                          onChange={(e) =>
+                            setSecondaryActivities((prev) =>
+                              prev.map((a, i) => (i === idx ? { ...a, name: e.target.value } : a)),
+                            )
+                          }
+                          onFocus={() => focusRail('comparable_set')}
+                          placeholder="e.g., Fraud screening"
+                          className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`secondary_purpose_${idx}`}>In one line, what does this other use do with the information?</Label>
+                        <input
+                          id={`secondary_purpose_${idx}`}
+                          type="text"
+                          value={act.purpose}
+                          onChange={(e) =>
+                            setSecondaryActivities((prev) =>
+                              prev.map((a, i) => (i === idx ? { ...a, purpose: e.target.value } : a)),
+                            )
+                          }
+                          onFocus={() => focusRail('comparable_set')}
+                          placeholder="e.g., We score transactions to hold suspected fraudulent orders."
+                          className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                        />
+                      </div>
+                      <div className="pt-1">
+                        <p className="text-sm font-medium">
+                          Compared with {primaryActivityName.trim() || "the activity you are assessing"}, is each of these the same or different?
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          § 7156(a) treats a set as comparable only where the activities are similar and present similar risks to consumers’ privacy — the § 7156(a)(1) example turns on collecting the same information in the same way for the same purpose. Unanswered comparisons are recorded as “Not sure”.
+                        </p>
+                        <div className="mt-3 space-y-3">
+                          {DIVERGENCE_DIMENSIONS.map((dim) => (
+                            <div key={dim.key}>
+                              <Label>{dim.label}</Label>
+                              <div className="mt-1.5">
+                                <Radio
+                                  name={`divergence_${idx}_${dim.key}`}
+                                  options={[...DIVERGENCE_OPTS]}
+                                  value={act.divergence?.[dim.key] ?? ""}
+                                  onChange={(v) =>
+                                    setSecondaryActivities((prev) =>
+                                      prev.map((a, i) =>
+                                        i === idx
+                                          ? { ...a, divergence: { ...(a.divergence ?? {}), [dim.key]: v } }
+                                          : a,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {secondaryActivities.length < MAX_SECONDARY_ACTIVITIES && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setSecondaryActivities((prev) => [...prev, { name: "", purpose: "", divergence: {} }])
+                      }
+                    >
+                      Add another
+                    </Button>
+                  )}
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="entity_name">Entity name <Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report and § 7157 worksheet)</span></Label>
                 <input
