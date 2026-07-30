@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T21:56Z (Item 289 — CEO RULINGS on seven open issues: Word engine deferred until full rebuild complete; acceptance read after clean 20-doc run; scope-duplication decision held pending mockup; Pass-2R attempts stay at 3; European corpus authorized pending inventory review; CPPA-cyber intake approved; DPA/eu-notice/us-notice/RoPA excluded. Item 290 queued for mockup/evidence turn.)
+**Last updated:** 2026-07-30T22:11Z (Item 290 — SINGLE-KEY SCOPE EMISSION: `scope_confirmation` retired from Track-2 emission; surviving key `scope_and_triggers` per renderer evidence on both surfaces; detector and grader instrument untouched; no-twin/parity tests landed; `replay-cppa-risk-harness` deployed.)
 
 ---
 
@@ -6948,3 +6948,24 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **Disposition:** RECORDED. CEO rulings released; Item 290 scoped to the mockup-and-evidence turn for the scope-duplication alias question.
 
 
+---
+
+## Item 290 — SINGLE-KEY SCOPE EMISSION (Track 2, cppa-risk) — 2026-07-30T22:11Z
+
+**Authority:** CEO ruling 2026-07-30 on the duplication issue — "emit one key only, and keep the detector untouched, per the teams' recommendation." Releases the Item-289 hold on issue (3). Full record: `docs/courier/ITEM290-SINGLE-KEY-SCOPE-2026-07-30.md`.
+
+**EVIDENCE (renderer table).** No shipped surface renders the scope block twice — every renderer emits it once, reading `scope_and_triggers` FIRST with `scope_confirmation` only as a fallback: viewer `src/components/cppa/RiskAssessmentReportLTP.tsx:130` (rendered once at `:191`); PDF LTP branch `supabase/functions/generate-report-pdf/index.ts:1190-1191`, emitted once at `:1249`. Legacy surfaces read the legacy OBJECT `scope_confirmation`: `generate-report-pdf/index.ts:1003`, `generate-cppa-suite-pdf/index.ts:59-60`, `src/pages/CPPARiskAssessmentResult.tsx:328`, `src/pages/CPPASuiteResult.tsx:66`. The twin was invisible to customers and visible only to the GTM duplication detector, which blocked correctly.
+
+**DECISION.** Renderers do not diverge → surviving key is **`scope_and_triggers`**; `scope_confirmation` is retired from Track-2 emission entirely (fill-or-omit, no empty stub). No minority reader required updating. Content witness: on the standard fixture the two keys are byte-identical (847 chars, 6 items).
+
+**EMITTER CHANGES.** `section-shards/cppa-risk.ts:285-296` shard deleted and `EXPECTED_EMISSION_MAP:616` entry deleted; `section-composers/cppa-risk.ts:1536` dispatch case deleted (returns `null`); `pass2-assembler.ts:235` NARRATIVE_CLASS_KEYS entry and `:693` degraded-skeleton stub deleted.
+
+**SERIALIZER — ONE DOCUMENTED DEVIATION.** The P2 whitelist is shared with the PRODUCTION Track-1 engine (`run-cppa-risk-assessment/index.ts:3678-3679`); deleting the key from `topLevel` would strip a live legacy section (a legacy edit, forbidden this turn). Implemented instead: key retained and annotated LEGACY-ONLY at `_shared/report-schemas/cppa-risk.ts:72`, retired from the Track-2 registry view via new export `CPPA_RISK_LEGACY_ONLY_KEYS` filtered out of `schemaTopLevelKeys()`, so shard↔schema parity invariants hold with the twin gone. Retire from the whitelist when Track 1 is decommissioned.
+
+**TESTS.** New `_shared/ltp/item290-single-key-scope.test.ts` (3/3 pass: shard pin, allow-list pin, dispatch-null pin). `_shared/legal-test/item241-1-structural.test.ts` E1 amended from "must ship as an array" to the NO-TWIN assertion — now passes. `src/test/cppaRiskViewerPdfParity.test.tsx` extended from 8 to 13 tests (13/13 pass): byte-identical content regression, no-twin pin, exactly-one scope block, pre-fix/post-fix viewer parity, discriminator unaffected. Remaining suite failures are the pre-existing tolerated inventory (content pass2 templates, ITEM 276 narrative, value-screen stamp, 36-template enumeration) plus two legal-test items unrelated to scope (241.1 E2 aggregateBalance, CP5-CP (a) slot order). No test that passed before this turn fails now.
+
+**INSTRUMENT UNTOUCHED.** GTM duplication detector, gtm-grader, and materiality register: zero diff. `golden-shape-quotas.ts` NOT edited per the order — its `scope_confirmation` quota (line 53) will now read as a shortfall OBSERVATION for a key Track 2 no longer emits; flagged to the four lenses as a measurement-only follow-up, not a block class.
+
+**DEPLOY.** `replay-cppa-risk-harness` only. No harness invocation.
+
+**Disposition:** SHIPPED. The `section_cross_duplication:scope_confirmation=scope_and_triggers` block class is structurally eliminated at the emitter; the next 20-doc run is the zero-block acceptance candidate.

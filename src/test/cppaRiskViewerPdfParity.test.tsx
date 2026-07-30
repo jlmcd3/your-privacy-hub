@@ -73,6 +73,60 @@ describe("ITEM 274 — viewer/PDF shape parity (cppa-risk)", () => {
 });
 
 /**
+ * ITEM 290 — SINGLE-KEY SCOPE EMISSION.
+ * CEO ruling 2026-07-30: emit one scope key only; the GTM duplication detector
+ * is untouched. Surviving key = `scope_and_triggers` (read FIRST by BOTH
+ * surfaces: src/components/cppa/RiskAssessmentReportLTP.tsx:130 and
+ * supabase/functions/generate-report-pdf/index.ts:1249). The pre-fix fixture
+ * still carries the twin, so it doubles as the byte-for-byte content witness.
+ */
+describe("ITEM 290 — single-key scope emission", () => {
+  /** A post-fix assembled report: the retired key is not emitted at all. */
+  const postFix = (() => {
+    const { scope_confirmation: _retired, ...rest } = report;
+    return rest as Record<string, any>;
+  })();
+
+  it("the surviving key's content is byte-identical to the retired twin", () => {
+    expect(JSON.stringify(report.scope_and_triggers)).toBe(
+      JSON.stringify(report.scope_confirmation),
+    );
+    expect(JSON.stringify(postFix.scope_and_triggers)).toBe(
+      JSON.stringify(report.scope_confirmation),
+    );
+  });
+
+  it("NO-TWIN PIN: the retired key is absent from a post-fix report (no empty stub)", () => {
+    expect("scope_confirmation" in postFix).toBe(false);
+    expect(postFix.scope_confirmation).toBeUndefined();
+  });
+
+  it("the viewer renders the scope block exactly once, from the surviving key", () => {
+    const { container } = render(<CPPARiskReportBody report={postFix} />);
+    const blocks = container.querySelectorAll('[data-section="scope_and_triggers"]');
+    expect(blocks.length).toBe(1);
+    expect(container.querySelector('[data-section="scope_confirmation"]')).toBeNull();
+    const body = (blocks[0].textContent ?? "")
+      .replace(headerForSection("scope_and_triggers"), "")
+      .trim();
+    expect(body.length).toBeGreaterThan(40);
+  });
+
+  it("PARITY: viewer output for the post-fix report matches the pre-fix scope render", () => {
+    const before = render(<CPPARiskReportBody report={report} />)
+      .container.querySelector('[data-section="scope_and_triggers"]')?.textContent;
+    const after = render(<CPPARiskReportBody report={postFix} />)
+      .container.querySelector('[data-section="scope_and_triggers"]')?.textContent;
+    expect(after).toBe(before);
+  });
+
+  it("the shape discriminator is unaffected by dropping the retired key", () => {
+    expect(isLtpRiskShape(postFix)).toBe(true);
+  });
+});
+
+
+/**
  * ITEM 279 / ISSUE 12 — FAIL-LOUD VIEWER GUARD.
  * An unrecognized payload must render an explicit error card (never a blank
  * body) and emit a console.error carrying the discriminator result.

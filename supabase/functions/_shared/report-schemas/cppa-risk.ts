@@ -69,7 +69,17 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "submission_summary",
     "attestation_block",
     "document_metadata",
+    // ITEM 290 — RETIRED FOR TRACK 2 (single-key scope emission): the LTP
+    // emitters no longer produce `scope_confirmation`. The key is RETAINED in
+    // this whitelist for LEGACY rows only — the production (Track-1) engine
+    // still emits the legacy OBJECT shape and three live legacy surfaces read
+    // it: src/pages/CPPARiskAssessmentResult.tsx:328,
+    // src/pages/CPPASuiteResult.tsx:66,
+    // supabase/functions/generate-cppa-suite-pdf/index.ts:59. Removing it here
+    // would strip a live production section (a legacy edit, out of scope).
+    // Retire from the whitelist only when Track 1 is decommissioned.
     "scope_confirmation",
+
     "scope_and_triggers",
     // ITEM 244 (L1) — Processing Narrative section. Placed between
     // scope_and_triggers and risk_assessment_by_activity. Composed

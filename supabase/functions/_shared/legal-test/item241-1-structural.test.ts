@@ -79,8 +79,14 @@ Deno.test("241.1 (E1): scope shards emit in the shipped report (fill-or-omit no 
   const out = assembleReport(plan);
   assert(Array.isArray(out.report.scope_and_triggers), "scope_and_triggers must ship as an array");
   assert((out.report.scope_and_triggers as unknown[]).length >= 6, "scope_and_triggers must carry at least 6 items");
-  assert(Array.isArray(out.report.scope_confirmation), "scope_confirmation must ship as an array");
+  // ITEM 290 — NO-TWIN PIN. `scope_confirmation` is retired from Track-2
+  // emission (CEO ruling 2026-07-30): not emitted at all, no empty stub.
+  assert(
+    !Object.prototype.hasOwnProperty.call(out.report, "scope_confirmation"),
+    "retired twin scope_confirmation must not be emitted",
+  );
 });
+
 
 Deno.test("241.1 (E2): aggregateBalance insufficiency is documentation-gate driven — factor absence alone is NOT insufficient", () => {
   // No factors present, but ALL documentation gates PASS → not insufficient.

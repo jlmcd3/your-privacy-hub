@@ -282,18 +282,16 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     project: projectFactorTable,
     note: "Object allow-listed at serializer (10 keys + narrative). Firm summary forbidden when any activity rendered hedged.",
   },
-  {
-    key: "scope_confirmation",
-    owner: {
-      kind: "template",
-      template_ids: [
-        "T.risk.applicability.engaged",
-        "T.risk.applicability.not_engaged",
-      ],
-    },
-    project: projectPropositionsByType("R"),
-    note: "One rendering per § 7150(b) prong (Type R).",
-  },
+  // ITEM 290 — SINGLE-KEY SCOPE EMISSION. The `scope_confirmation` shard is
+  // RETIRED: it rendered the identical composeScope() output under a second
+  // key, and the GTM duplication detector correctly blocked the twin
+  // (section_cross_duplication:scope_confirmation=scope_and_triggers). Both
+  // renderers read `scope_and_triggers` FIRST
+  // (src/components/cppa/RiskAssessmentReportLTP.tsx:130,
+  //  supabase/functions/generate-report-pdf/index.ts:1249), so the surviving
+  // key is `scope_and_triggers`. The retired key is NOT emitted at all — no
+  // empty stub (fill-or-omit).
+
   {
     key: "scope_and_triggers",
     owner: {
@@ -505,9 +503,24 @@ export function shardKeys(): readonly string[] {
   return CPPA_RISK_SECTION_SHARDS.map((s) => s.key);
 }
 
+/**
+ * ITEM 290 — keys the P2 serializer whitelist still carries for LEGACY
+ * (Track-1) rows but that Track-2 no longer emits. `scope_confirmation` is
+ * retired from LTP emission (single-key scope emission, CEO ruling
+ * 2026-07-30) while the production Track-1 engine still emits the legacy
+ * OBJECT shape read by src/pages/CPPARiskAssessmentResult.tsx:328,
+ * src/pages/CPPASuiteResult.tsx:66 and
+ * supabase/functions/generate-cppa-suite-pdf/index.ts:59. The registry view
+ * of the schema therefore excludes it.
+ */
+export const CPPA_RISK_LEGACY_ONLY_KEYS: readonly string[] = ["scope_confirmation"];
+
 export function schemaTopLevelKeys(): readonly string[] {
-  return CPPA_RISK_REPORT_SCHEMA.topLevel;
+  return CPPA_RISK_REPORT_SCHEMA.topLevel.filter(
+    (k) => !CPPA_RISK_LEGACY_ONLY_KEYS.includes(k),
+  );
 }
+
 
 /**
  * Compare registry keys against the report-schema top-level allow-list.
@@ -615,7 +628,7 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   // Body sections — conditional on non-empty template render.
   executive_summary: "conditional",
   assessment_summary: "conditional",
-  scope_confirmation: "conditional",
+  // ITEM 290 — `scope_confirmation` RETIRED (single-key scope emission).
   scope_and_triggers: "conditional",
   processing_narrative: "conditional",
   risk_assessment_by_activity: "conditional",

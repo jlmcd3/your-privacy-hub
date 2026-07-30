@@ -232,7 +232,7 @@ const PHONE_RE = /(?:\+?\d{1,2}[ .-]?)?\(?\d{3}\)?[ .-]?\d{3}[ .-]?\d{4}/;
 const NARRATIVE_CLASS_KEYS = new Set([
   "executive_summary",
   "assessment_summary",
-  "scope_confirmation",
+  // ITEM 290 — "scope_confirmation" retired (single-key scope emission).
   "scope_and_triggers",
   "risk_assessment_by_activity",
   "priority_actions",
@@ -690,7 +690,7 @@ export function buildTypeJWriteAroundBody(input: {
     ],
     record_sufficiency: [],
     exception_analysis: [],
-    scope_confirmation: [],
+    // ITEM 290 — "scope_confirmation" retired; no empty stub is emitted.
     scope_and_triggers: {},
     risk_assessment_by_activity: [],
     risk_register: [],

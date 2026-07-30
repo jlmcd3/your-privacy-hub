@@ -1533,7 +1533,7 @@ export function composeSection(sectionKey: string, plan: RenderPlan): TemplateIn
     case "record_sufficiency":           return composeRecordSufficiency(plan);
     case "information_needed":           return composeInformationNeeded(plan);
     case "exception_analysis":           return composeExceptionAnalysis(plan);
-    case "scope_confirmation":           return composeScope(plan);
+    // ITEM 290 — "scope_confirmation" RETIRED; scope renders under one key only.
     case "scope_and_triggers":           return composeScope(plan);
     case "assessment_summary":           return composeAssessmentSummary(plan);
     case "risk_assessment_by_activity":  return composeRiskByActivity(plan);
