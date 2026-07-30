@@ -370,6 +370,9 @@ export async function runPass2r(
   return {
     prose: null,
     validation: lastValidation,
+    // ITEM 287 FIX 6 — observe-mode calibration payload; never shipped.
+    prose_rejected: lastRejectedDoc,
+    attempt_rejections: attemptRejections,
     telemetry: {
       ran: true,
       attempts: details.length,
