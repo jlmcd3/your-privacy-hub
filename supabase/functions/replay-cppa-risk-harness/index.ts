@@ -30,7 +30,8 @@ import type { PerDocResult, ReplayDoc, SideBySideRow }
   from "../_shared/ltp/replay/types.ts";
 
 export const HARNESS_BUILD_STAMP =
-  "replay-cppa-risk-harness-2026-07-29-item260";
+  "replay-cppa-risk-harness-2026-07-30-item269";
+
 
 const MAX_DOC_IDS = 50;
 
